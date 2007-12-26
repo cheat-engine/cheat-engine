@@ -1,10 +1,11 @@
 {$ifndef ceasinjectabledll}
 program CheatEngine;
 {$else}
+{$R 'trainer.res' 'trainer.rc'}
+
 library CheatEngine;
 {$endif}
 
-{%File '..\Homepage\Cheat Engine\Beta\changelog.txt'}
 {$R 'trainer.res' 'trainer.rc'}
 
 uses
@@ -128,7 +129,11 @@ uses
   psvAutoAssembler in 'psvAutoAssembler.pas',
   psvCPlusPlus in 'psvCPlusPlus.pas',
   psvRichSyntax in 'psvRichSyntax.pas',
-  memscan in 'memscan.pas';
+  memscan in 'memscan.pas',
+  CircularBuffer in 'CircularBuffer.pas',
+  PEInfoFunctions in 'PEInfoFunctions.pas',
+  frmFunctionlistUnit in 'frmFunctionlistUnit.pas' {frmFunctionList},
+  FileMapping in 'FileMapping.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -138,7 +143,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.3';
+  Application.Title := 'Cheat Engine 5.4 RC9';
   Application.HelpFile := 'CHEAT ENGINE.HLP';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);
@@ -154,7 +159,6 @@ begin
   Application.CreateForm(TfrmdissectWindow, frmdissectWindow);
   Application.CreateForm(TfrmChangeValue, frmChangeValue);
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
-  Application.CreateForm(TfrmPEInfo, frmPEInfo);
   initcetitle;
   Application.Run;
 end.
