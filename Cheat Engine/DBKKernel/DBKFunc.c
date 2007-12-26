@@ -264,32 +264,21 @@ BOOLEAN HookInt1(void)
 			NewInt1.wLowOffset=(WORD)&interrupt1;
 			NewInt1.wHighOffset=(WORD)((DWORD)&interrupt1 >> 16);
 
-			//IntD1Address=idt.vector[0xd1].wLowOffset+(idt.vector[0xd1].wHighOffset << 16); //save the original address of the int3 handler
-
-			//NewIntD1.wLowOffset=(WORD)&interruptD1;
-			//NewIntD1.wHighOffset=(WORD)((DWORD)&interruptD1 >> 16);
-
-			//__asm
-			//{
-			//	cli
-			//}
-			//idt.vector[0xd1]=NewIntD1;
-			//__asm
-			//{
-			//	sti
-			//}
-
-			__asm
+			if (globaldebug)
 			{
-				mov eax,dr7
-				mov DR_7,eax
-			}
-
-			DR_7.GD=1;
-			__asm
-			{
-				mov eax,DR_7
-				mov dr7,eax
+				//set the global debug bit and start tasksurfing
+				__asm
+				{
+					mov eax,dr7
+					mov DR_7,eax
+				}
+	
+				DR_7.GD=1;
+				__asm
+				{
+					mov eax,DR_7
+					mov dr7,eax
+				}
 			}
 			
 		}
@@ -383,7 +372,7 @@ BOOLEAN HookInt3(void)
 }
 
 
-int globaldebug=1; //=1 during tests
+
 int cpunr(void)
 {
 	unsigned int b;
@@ -431,7 +420,10 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 	ULONG DR_0,DR_1,DR_2,DR_3,ef;
 	DebugReg6 DR_6;
 	DebugReg7 DR_7;
+
+	/*
 	DbgPrint("Int1: CPUnr=%d",cpunr());	
+	*/
 
 	__asm{
         mov eax,dr0
@@ -450,7 +442,7 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 		pop eax
 		mov ef,eax
 	};
-
+	/*
 	DbgPrint("Hello from int1\n");
 	DbgPrint("eax=%x\n",Stacklocation[-1]);
 	DbgPrint("ebx=%x\n",Stacklocation[-4]);
@@ -473,12 +465,12 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 	DbgPrint("DR7=%x\n",DR_7);
 
 
-	DbgPrint("Int1 DR6=%x DR7=%x int_eflags=%x\n",DR_6,DR_7,ef);
+	DbgPrint("Int1 DR6=%x DR7=%x int_eflags=%x\n",DR_6,DR_7,ef);*/
 	
 	
 	if (globaldebug)
 	{
-		DR_7.GD=1; //re-set GD bit
+		DR_7.GD=1; //re-set GD bit , but don't set it in the DR7 register yet
 
 
 		if (DR_6.BD)
@@ -521,6 +513,7 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 			{
 				
 				//emulate read: rm,reg
+				//return what the process has set it to
 				switch (reg)
 				{
 					case 0:
@@ -615,6 +608,7 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 
 					case 5:
 						CPUDebugRegisterState[id].DR7=debugregvalue;
+						
 						break;
 
 					case 6:

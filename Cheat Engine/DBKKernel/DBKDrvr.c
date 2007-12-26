@@ -17,9 +17,9 @@
 #endif
 
 #ifdef AMD64
-	#define dbkversion 2640010
+	#define dbkversion 2640011
 #else
-	#define dbkversion 2000010
+	#define dbkversion 2000011
 #endif
 
 #define IOCTL_UNKNOWN_BASE					FILE_DEVICE_UNKNOWN
@@ -75,6 +75,7 @@
 #define IOCTL_CE_VMXCONFIG						CTL_CODE(IOCTL_UNKNOWN_BASE, 0x082d, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 #define IOCTL_CE_GETCR0 						CTL_CODE(IOCTL_UNKNOWN_BASE, 0x082e, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 #define IOCTL_CE_MAKEKERNELCOPY					CTL_CODE(IOCTL_UNKNOWN_BASE, 0x082f, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+#define IOCTL_CE_SETGLOBALDEBUGSTATE			CTL_CODE(IOCTL_UNKNOWN_BASE, 0x0830, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 
 
 void MSJUnloadDriver(PDRIVER_OBJECT DriverObject);
@@ -577,6 +578,8 @@ Return Value:
 	ModuleListSize=0;
 	KernelCopy=0;
 
+	globaldebug=0;
+
 	newthreaddatafiller=IoAllocateWorkItem(pDeviceObject);
 
 	//
@@ -990,10 +993,17 @@ NTSTATUS MSJDispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				PEPROCESS selectedprocess;
 				processid=Irp->AssociatedIrp.SystemBuffer;
 
-				if (PsLookupProcessByProcessId((PVOID)(*processid),&selectedprocess)==STATUS_SUCCESS)
-                    *(PULONG)Irp->AssociatedIrp.SystemBuffer=(ULONG)selectedprocess;
+				if (processid==0)
+				{
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
 				else
-					*(PULONG)Irp->AssociatedIrp.SystemBuffer=0;
+				{
+					if (PsLookupProcessByProcessId((PVOID)(*processid),&selectedprocess)==STATUS_SUCCESS)
+						*(PULONG)Irp->AssociatedIrp.SystemBuffer=(ULONG)selectedprocess;
+					else
+						*(PULONG)Irp->AssociatedIrp.SystemBuffer=0;
+				}
 
 				ObDereferenceObject(selectedprocess);
 
@@ -1581,6 +1591,16 @@ NTSTATUS MSJDispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				ntStatus=STATUS_SUCCESS;
 				break;
+			}
+		case IOCTL_CE_SETGLOBALDEBUGSTATE:
+			{
+				struct intput
+				{
+					ULONG newstate;
+				} *pinp;
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+
+				globaldebug=pinp->newstate;
 			}
 
 		case IOCTL_CE_STOPDEBUGGING:

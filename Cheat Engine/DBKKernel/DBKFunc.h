@@ -177,6 +177,7 @@ void StopChangeRegOnBP(int DebugRegNR);
 
 BOOLEAN HookInt1(void);
 BOOLEAN HookInt3(void);
+int globaldebug;
 int PTESize;
 UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;

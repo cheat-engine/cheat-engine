@@ -123,7 +123,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 
 			DbgPrint("Checking safety of memory\n");
 
-			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size)))
+			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size-1)))
 				return FALSE; //if the first or last byte of this region is not safe then exit; //I know I should also check the regions inbetween, but since my own dll doesn't request more than 512 bytes it wont overlap
 
     		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
@@ -159,49 +159,52 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size, PVOID Buffer)
 {
 	PEPROCESS selectedprocess=PEProcess;
-	KAPC_STATE apc_state;
+	//KAPC_STATE apc_state;
 	NTSTATUS ntStatus=STATUS_SUCCESS;
 
 	if (PEProcess==NULL)
 	{
-		DbgPrint("ReadProcessMemory:Getting PEPROCESS\n");
+		//DbgPrint("ReadProcessMemory:Getting PEPROCESS\n");
         if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
-		DbgPrint("Retrieved peprocess");  
+		//DbgPrint("Retrieved peprocess");  
 	}
 
-	DbgPrint("a");
+	//DbgPrint("a");
 
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
 		unsigned int temp=(unsigned int)Address;
 		ULONG currentcr3;
-		DbgPrint("b");
+		//DbgPrint("b");
 		
-						
+		/*				
 		RtlZeroMemory(&apc_state,sizeof(apc_state));					
 
-		RtlZeroMemory(Buffer,Size);
+		RtlZeroMemory(Buffer,Size);*/
 
-		DbgPrint("c");
+		//DbgPrint("c");
+		/*
 		__asm
 		{
 			mov eax,cr3
 			mov currentcr3,eax
-		}
-		DbgPrint("d");
+		}*/
+		//DbgPrint("d");
 		//DbgPrint("%d: Before: PEProcess=%x ProcessID=%x CR3=%x (real=%x)\n",cpunr(), (ULONG)PsGetCurrentProcess(), PsGetCurrentProcessId(), currentcr3, vmx_getRealCR3());
     	KeAttachProcess((PEPROCESS)selectedprocess);
 
-		DbgPrint("e");
+		/*
+		//DbgPrint("e");
 		__asm
 		{
 			mov eax,cr3
 			mov currentcr3,eax
 		}
 		//DbgPrint("%d: After: PEProcess=%x ProcessID=%x CR3=%x (real=%x)\n",cpunr(), (ULONG)PsGetCurrentProcess(), PsGetCurrentProcessId(), currentcr3, vmx_getRealCR3());
+*/
 
         __try
         {
@@ -209,21 +212,17 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 			char* source;
 			unsigned int i;	
 
-			DbgPrint("Checking safety of memory\n");
+			//DbgPrint("Checking safety of memory\n");
 
-			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size)))
+			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size-1)))
 				return FALSE; //if the first or last byte of this region is not safe then exit;
 
     		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
 
-			DbgPrint("Copying memory to target\n");
+			//DbgPrint("Copying memory to target\n");
 			target=Buffer;
 			source=Address;
-			for (i=0; i<Size; i++)
-			{
-               target[i]=source[i];
-			}
-
+			RtlCopyMemory(target,source,Size);
 			ntStatus = STATUS_SUCCESS;	
 		}
 		__finally
