@@ -1,0 +1,4 @@
+one two three-half three four 
+one three-half three four 
+2.200000 5.300000 6.700000 4.100000 
+4.100000 6.700000 5.300000 2.200000 

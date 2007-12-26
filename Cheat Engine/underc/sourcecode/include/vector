@@ -1,0 +1,141 @@
+// A simplified version of the std::vector class
+// UnderC Development Project, 2001-2003
+// *add 1.2.5 Optional range checking (controlled by -R)
+// *fix 1.2.5 now uses delete[]; defines NULL if necessary.
+
+#ifndef _VECTOR_H
+#define _VECTOR_H
+
+#ifndef NULL
+#define NULL 0
+#endif
+
+#ifdef _RANGE_CHECK
+#define _RC(sz,i) _range_check(sz,i)
+#else
+#define _RC(sz,i)
+#endif
+
+namespace std {
+
+template <class T>
+ class vector
+ {
+   T *m_begin;
+   T *m_end;
+   int m_size;
+   int m_cap;
+ public:
+   typedef T *       iterator;
+   typedef const T * const_iterator; 
+   typedef T         value_type;
+
+   iterator begin() const { return m_begin; }
+   iterator end()   const { return m_end;   }
+   int size()       const { return m_size; }
+   int capacity()   const { return m_cap;  }
+
+   T& operator[] (int i)  {
+        _RC(m_size,i);
+        return m_begin[i];
+   }
+
+   void raw_copy(T *tmp, T *old_ptr, int sz) {
+     for(int i = 0; i < sz; i++) tmp[i] = old_ptr[i]; 
+   }
+
+   void alloc(int new_sz,T *old_ptr) {
+     T *tmp = new T[new_sz];
+  // reallocating case
+     if (m_size && old_ptr==NULL && m_begin != NULL) {  
+        raw_copy(tmp,m_begin,m_size);
+        delete[] m_begin;
+     }
+    // copying case
+     else if (old_ptr != NULL)
+       raw_copy(tmp,old_ptr,new_sz);
+     m_begin = tmp;
+     m_end = m_begin + new_sz;
+   }
+
+   void copy(const vector& v) {
+     m_cap  = v.m_cap;   
+     m_size = v.m_size;
+     alloc(v.m_size, v.m_begin);
+    }
+
+   void grow() {
+      m_cap = m_size + 10;
+      alloc(m_cap,NULL);
+      m_end = m_begin + m_size;
+    }
+  
+   void resize(int sz) {
+      alloc(sz,NULL);
+      m_cap = m_size = sz;  
+   }
+
+   void reserve(int sz) {
+     alloc(sz,NULL);
+     m_cap = sz;
+   }      
+      
+   vector(int sz = 0) { 
+      m_begin = NULL;
+      m_size = sz;
+      grow();
+   }
+
+   vector(const vector& v) {
+     m_size = 0;
+     m_begin = NULL;
+     copy(v);
+   }
+
+   vector& operator= (const vector& v) {
+     copy(v);
+     return *this;
+   }
+
+   bool operator== (const vector& v) const {
+     if (m_size != v.m_size) return false;
+     bool equal = true;
+     T *op = v.m_begin;
+     for(int i = 0; i < m_size; i++)
+       equal = equal && m_begin[i]==op[i];
+     return equal;
+   }
+   
+   void clear() {
+      if (m_size > 0) {
+        delete[] m_begin;
+        m_size = 0;
+        m_cap = 0;
+      }
+   }
+
+   ~vector() { clear(); }
+
+   void push_back(T t)  { 
+      if (m_size+1 > m_cap) grow();
+      m_size++;
+      *m_end++ = t;
+   }
+
+   template <class It>
+     void assign(It start, It end) {
+       clear();
+       for(; start != end; ++start)
+         push_back(*start);
+     }
+
+   void pop_back()   { m_end--;  m_size--; }
+   T back() const    { return *(m_end-1); }
+   T front() const   { return *m_begin; }
+   void bonzo() { }
+
+ };
+
+} // namespace std
+
+#endif

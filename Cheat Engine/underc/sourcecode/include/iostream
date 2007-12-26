@@ -1,0 +1,283 @@
+// IOSTREAM
+// 'fake' or 'pocket' iostreams...
+// UnderC Development Project, 2001.
+                               
+#ifndef _IOSTREAM_H
+#define _IOSTREAM_H
+#ifdef _CONSOLE
+  const bool USES_WCON = false;
+#else
+  const bool USES_WCON = true;
+#endif
+
+#ifdef __UNDERC__
+ typedef void *FHandle; // this is the exported type of FILE *...
+#else
+ #include <stdio.h>
+ #include <string.h> 
+ typedef FILE *FHandle;	
+ #define wcon_fscanf fscanf
+#endif
+
+const int MAX_LINE = 512;
+
+namespace std {
+
+namespace ios {
+  enum { in=1,out=2,binary=4,app=8,ate=16,trunc=32,
+         beg=0,end=2,cur=1
+  };
+}
+
+typedef unsigned long streampos;
+
+class base_stream {
+public:
+// these fields need to be public until friendship is sorted out!
+  FHandle hand;
+  bool m_redirect;
+
+  bool open_file(const char *file, int access=ios::in)
+  {
+   if (file) {
+      char mode[5],ch;
+      int i = 0;
+      if (access & ios::in) ch = 'r'; 
+      if (access & ios::out) ch = 'w';
+      if (access & ios::app)  ch = 'a';
+      mode[i++] = ch;
+      // *fix 1.2.3 ios::in | ios::out case not handled properly!
+      // *fix 1.2.3b it's && not || !
+      if (ch == 'r' && access & ios::out) {
+           mode[i++] = 'w';
+           mode[i++] = '+';
+      }
+      if (access & ios::binary) mode[i++] = 'b';
+      mode[i] = '\0';
+      hand = fopen(file,mode);
+      m_redirect = false;
+   } else hand = 0;
+   return hand ? true : false;
+  }
+
+  void close()
+   { if (hand) fclose(hand); }
+
+  virtual void flush()
+  { fflush(hand); }
+};
+
+class ostream: public base_stream { 
+public:
+  ostream(FHandle h=0)
+  { hand = h; }  
+
+  ostream& write(char *buff, int sz) {
+    fwrite(buff,1,sz,hand);
+    return *this;
+  }
+  
+  bool good()
+  { return hand ? true : false;  }
+  
+  bool bad()
+  { return ! good(); }
+
+  ostream& seekp(streampos pos, int which=ios::beg)
+  { fseek(hand,pos,which); return *this; }
+
+  streampos tellp()
+  { return ftell(hand); }
+
+};
+
+class ofstream: public ostream {
+public:
+ bool open(const char *file, int access=0) {
+   return open_file(file,access | ios::out);
+ }
+
+ ofstream(const char *file=0, int access=0)
+ { open(file,access); }
+
+ ~ofstream()
+ { close(); }
+};
+
+class istream: public base_stream {
+private:
+  int m_no_read;
+public:
+  
+  istream(FHandle h=0)
+  { hand = h; m_redirect = USES_WCON; }
+
+  istream& getline(char *buff,int sz)
+  { char *s = fgets(buff,sz,hand);
+    if (! m_redirect && s) s[strlen(s)-1] = '\0'; // remove \n!
+    return *this;
+  }
+
+  istream& read(char *buff, int sz) {
+    m_no_read = fread(buff,1,sz,hand);
+    return *this;
+  }
+
+  istream& putback(char ch) {
+    ungetc(ch, hand);
+    return *this;
+  }
+  
+  int gcount() { return m_no_read; }
+
+  istream& write(char *buff, int sz) { // have to say ios::out as well!
+    fwrite(buff,1,sz,hand);
+    return *this;
+  }
+
+  istream& seekg(streampos pos, int which=ios::beg)
+  { fseek(hand,pos,which); return *this; }
+
+  streampos tellg()
+  { return ftell(hand); }
+
+  virtual bool eof()
+  { return feof(hand); }
+
+  bool good()
+  { return hand ? (! eof()) : false;  }
+
+  bool bad()
+  { return ! good(); }
+
+  bool operator! ()
+  { return ! good(); }
+
+  operator int () { return good(); }
+}; 
+
+
+class ifstream: public istream {
+public:
+  bool open(const char *str, int access=0) {
+   return open_file(str,access | ios::in);
+  }
+
+ ifstream(const char *file=0, int access=0)
+ {
+   open(file,access);
+ }
+
+ ~ifstream()
+ { close();    }
+};
+
+struct _Endl_ 
+{ int t;  };
+
+#ifdef __UNDERC__
+ostream cout(_get_std_stream(2));
+ostream cerr(_get_std_stream(3));
+istream cin(_get_std_stream(1));
+#else
+ostream cout(stdout);
+ostream cerr(stderr);
+istream cin(stdin);
+#endif
+
+_Endl_ endl;
+
+} // namespace std
+
+// *fiddle 0.9.4  All operator overloading must be kept in global
+// until we've sorted out cross-namespace overloading.
+
+std::ostream& operator<< (std::ostream& os, int val)
+{ fprintf(os.hand,"%d",val); return os; }
+
+std::ostream& operator<< (std::ostream& os, long val)
+{ fprintf(os.hand,"%d",val); return os; }
+
+std::ostream& operator<< (std::ostream& os, unsigned int val)
+{ fprintf(os.hand,"%u",val); return os; }
+
+std::ostream& operator<< (std::ostream& os, unsigned long val)
+{ fprintf(os.hand,"%u",val); return os; }
+
+std::ostream& operator<< (std::ostream& os, bool val)
+{ fprintf(os.hand,"%s",val ? "true" : "false"); return os; }
+
+std::ostream& operator<< (std::ostream& os, double val)
+{ fprintf(os.hand,"%lf",val); return os; }
+
+//*SJD* Curious that printf() is expecting a float as a double...
+
+std::ostream& operator<< (std::ostream& os, float val)
+{ fprintf(os.hand,"%lf",(double)val); return os; }
+
+std::ostream& operator<< (std::ostream& os, const char *val)
+{ fprintf(os.hand,"%s",val); return os; }
+
+std::ostream& operator << (std::ostream& os, std::_Endl_& e)
+{ 
+ fprintf(os.hand,"\n");
+ os.flush();
+ return os;
+}
+
+std::ostream& operator<< (std::ostream& os, void *val)
+{ fprintf(os.hand,"%x",val); return os; }
+
+std::ostream& operator<< (std::ostream& os, char ch)
+{ fprintf(os.hand,"%c",ch);  return os; }
+
+std::istream& operator>> (std::istream& is, int& val)
+{ 
+if (is.m_redirect) wcon_fscanf(is.hand,"%d",&val);
+else
+ fscanf(is.hand,"%d",&val);
+return is;
+}
+
+std::istream& operator>> (std::istream& is, double& val)
+{
+ if (is.m_redirect) wcon_fscanf(is.hand,"%lf",&val);
+ else
+ fscanf(is.hand,"%lf",&val);
+ return is;
+}
+
+std::istream& operator>> (std::istream& is, float& val)
+{
+ if (is.m_redirect) wcon_fscanf(is.hand,"%f",&val);
+ else
+ fscanf(is.hand,"%f",&val);
+ return is;
+}
+
+std::istream& operator>> (std::istream& is, const char *val)
+{
+ if (is.m_redirect) wcon_fscanf(is.hand,"%s",val);
+ else
+ fscanf(is.hand,"%s",val);
+ return is;
+}
+
+std::istream& operator>> (std::istream& is, char& ch)
+{ 
+ if (is.m_redirect) wcon_fscanf(is.hand,"%c",&ch);
+ else
+ fscanf(is.hand,"%c",&ch);
+ return is;
+}
+
+std::istream& operator>> (std::istream& is, void*& ptr)
+{
+ if (is.m_redirect) wcon_fscanf(is.hand,"%x",&ptr);
+ else
+ fscanf(is.hand,"%x",&ptr);
+ return is;
+}
+
+
+#endif

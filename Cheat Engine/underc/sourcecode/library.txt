@@ -1,0 +1,1120 @@
+UC Library Extensions
+
+UnderC comes with a 'pocket' implementation of the standard C++ libraries, which is a reasonably faithful subset.  This documentation describes those UnderC functions and classes which are not part of the C++ standard.
+
+UC Library
+
+Builtin functions:
+
+Most of these are standard C functions, but there are a few unique to the UnderC system which give you runtime access to the compiler.  You may evaluate expressions, execute commands, compile code, etc.
+
+* Expands the text in expr using the UnderC preprocessor, putting the result
+into buff.
+
+void uc_macro_subst(const char* expr, char* buff, int buffsize);
+
+* Executes a UC #-command, like #l or #help.
+  uc_cmd() expects the name of the command, _without_ the hash,
+  e.g. uc_cmd("l fred.cpp") or uc_cmd("help").
+
+void uc_cmd(const char* cmd);
+
+* Evaluates any C++ expression or statement; will return non-zero if
+unsuccessful. 
+
+int uc_exec(const char* expr);
+
+* Copies the result of the last uc_exec() into a buffer; if passed a non-zero 
+  value in 'ret' it will get the error string,
+  otherwise the string will contain the value of the expression evaluated
+  (generally anything which is a 'message')
+  If 'filename' isn't NULL, then it will contain the file at which the message
+  occured, and 'line' will receive the line number.
+  
+void uc_result_pos(int ret, char* buff, int buffsize, char* filename, int* line);
+
+Examples
+
+uc_exec() is fed a C++ statement as you would type it in, complete with semicolon if required. You may be evaluating a statement for its side-effects, or be declaring something, but sometimes it's necessary to see the result of an operation:
+
+;> uc_exec("23+2;");
+;> char buff[80];
+;; uc_result_pos(0,buff,80,0,0);
+;> buff;
+(char*) "(int) 25
+"
+
+The result is in fact exactly what you would get from the interactive UnderC prompt, complete with expression type and line feed at the end.  It's fairly straightforward to strip these elements away.  In fact, the UnderC DLL exports a function called uc_eval() which does precisely this, as you can see from its code from dll_entry.cpp. Not very elegant, but it does the job:
+
+CEXPORT int XAPI uc_eval(char *expr, char *res, int sz)
+{
+    int iret = ext_uc_eval(expr,res,sz) != FAIL;
+    if (*res=='(') {  // *add 1.1.4 strip out type!
+   	 char buff[EXPR_BUFF_SIZE];
+         char *p = res;
+         while(*p && *p != ')') p++;
+	 p++;
+	 strcpy(buff,p);
+	 strcpy(res,buff);
+    }
+   // *fix 1.1.4 nasty extra line feed!
+   int len = strlen(res);
+   if (res[len-1]=='\n') res[len-1] = '\0';
+   return iret;
+}
+
+If the expression fails to compile, or has a run-time error, uc_exec() will return a non-zero value.  uc_result_pos() can then be used to get the error message.
+
+;> int line; char file[120];
+;> uc_exec("23=2");
+(int) -1
+;> uc_result(-1,buff,80,file,&line); buff;
+(char*) "Can't assign to a const type"
+;> file; line;
+(char*) "CON"
+(int) 6
+
+UnderC Extensions to C++
+
+There are two new keywords, typeof and __declare.
+
+typeof may be used wherever a type is expected, and gives the type of its expression, in analogy to the sizeof operator. GCC already implements typeof, so there's a fair chance of it being accepted in the standard one of these fine years.
+
+;> string s = "hello";
+;> typeof(s) t = "bonzo";
+;> t;
+(string) t = 'bonzo'
+
+It is suprisingly useful in template functions.
+
+__declare has often been proposed, but there's no consensus on its final name. It is used as a pseudo-type for declarations, and declares a variable using the type of the initializing expression:
+
+;> __declare st = t;
+;> st;
+(string&) 'bonzo'
+
+I usually define 'let' to mean '__declare'; please note that when declaring multiple items, each new variable has the type of its own initializer.  Also note that the type of 'a' becomes 'double', not 'const double'! Currently, the type may not be further qualified (by 'const' or '&', say)
+
+;> #define let __declare
+;> let a = 3.2, i = 2;
+;> a; i;
+(double) a = 3.2
+(int) i = 2
+
+In this form it is very useful for declaring local variables implicitly, especially if they have complicated types.  Here I'm avoiding explicitly declaring the iterator to be of type 'list<int>::iterator':
+
+;> list<int> ls;
+;> ls.push_back(10);
+;> ls.push_back(20);
+;> for(let i = ls.begin(); i != ls.end(); ++i) cout << *i << endl;
+10
+20
+
+__declare may be used as as the return type in a function definition; the convention is that the _first_ return encountered defines the actual type. 
+
+;> __declare f(double x) { return x*x; }
+;; f(2.3);
+(double) 5.29
+
+Again, this is would be useful for template functions. However, __declare doesn't currently work for functions that return objects.  The reason is that such functions need a hidden reference argument to pass a temporary object which will be returned; other implementations of course can use different strategies, but I suspect it will also be a problem for them as well;  the compiler needs a hint that an implicit type is really an object.
+
+Of course, it makes no sense to use __declare in a function _declaration_, although Andrew Koenig seems to think this is a reason not to use __declare at all.
+
+I think the consensus is that C++ is already a sufficiently complex beast, but small extensions like this can make the language more expressive.  I certainly use 'let' a lot in interactive work, although I would think twice about using it in production code, since such code will probably be compiled properly at some point.  (A sufficiently advanced IDE would be able to deduce the type of the initializer and substitute the full type for 'let')
+
+UC Library
+
+FOR_EACH (#include <for_each.h>)
+
+It is very common to want to iterate over all elements in a collection. Taking the list of integers from the last example I can say:
+
+;> int k;
+;; FOR_EACH(k,ls) cout << k << endl;
+10
+20
+
+FOR_EACH is a thin macro wrapper around some template trickery; any object which behaves like a container (that is, has begin(),end(), etc) can be iterated over. It's implementation is quite simple for any compiler which implements 'typeof' (like UC or GCC), but _can_ be done for a standard compiler as well (see <foreach2.h>):
+
+#define FOR_EACH(v,c) for(_ForEach<typeof(c),typeof(v)> _fe(c,v); \
+                          _fe.get();  _fe.next())
+
+template <class C, class T>
+   struct _ForEach {
+     typename C::iterator m_it,m_end;
+     T& m_var;
+    _ForEach(C& c, T& t) : m_var(t)
+     { m_it = c.begin(); m_end = c.end(); }
+
+     bool get() { 
+       bool res = m_it != m_end;
+       if (res) m_var = *m_it;
+       return res;
+     }
+
+     void next() { ++m_it; }
+   };
+
+This is a nice example of typeof being used to deduce the type parameters of a template class from the arguments, which is otherwise only possible in a roundabout and less efficient way.  It keeps two iterators, m_it and m_end, which are initialized using the container's begin() and end() methods.  A reference to the variable is kept, and 'm_var = *m_it' does the magic of copying the next value from the sequence.  So FOR_EACH is not the most efficient way to iterate through containers of concrete types which might be expensive to copy;  otherwise it is pretty fast.
+
+At this point I must admit that the thing is a macro, and therefore Considered Evil. Many abuses of the C preprocessor convinced people that it was not a device to leave in the hands of children (who might be tempted to turn C++ into Pascal, etc).  However, all the arguments against the occaisional well-behaved statement macro seem less than convincing to me. The lexical scope issue can be controlled by a naming convention such as all caps, and we all know now to watch out for side-effects when defining macros.  FOR_EACH is well-behaved because the macro parameters appear precisely once in the macro definition, and expressions are quite safe for both arguments.
+
+There is a gotcha, of course;  the container expression must not return a temporary object, since it will probably go out of scope in the for-loop initialization, leading to strange results. (I say probably because this is not well-defined behaviour with different compilers; GCC at least considers it a compile-time error)
+
+Still, I've used the idiom for some time now and have never got into serious trouble yet. It is particularly useful when in interactive mode;  if you still have aesthetic objections you can always mentally expand FOR_EACH as a standard iterator begin/end loop.
+
+DirPaths (#include <uc/dir.h>)
+
+DirPaths is a simple class for iterating over all files matching some given file mask. Since it behaves like a container, it can be used with FOR_EACH:
+
+;> DirPaths dp("*.uc");
+;> string f;
+;> FOR_EACH(f,dp) cout << f << endl;
+test.uc
+skeleton.uc
+persist.uc
+simple.uc
+
+However, here is an example of a FOR_EACH no-no.  We do not get the expected output from the following statement, because the DirPaths() object is temporary and gets destroyed before the loop can iterate:
+
+;> FOR_EACH(f,DirPaths(*.h")) cout << f << endl;
+;;
+
+If you need more information about a file, DirPaths can also be used with DirInfo:
+
+;> DirPaths hp("*.h");
+;> DirInfo di; 
+;> FOR_EACH(di,hp) cout << di.name() << ' ' << di.size() << endl;
+defs.h 1239
+type.h 893
+test-defs.h 1027
+old-defs.h 92
+
+Regular Expressions with rx++ (#include<rx++.h>)
+
+rx++ is a simple class wrapper around the standard POSIX regular expression calls; for UnderC we're using John Lord's RX library under Windows, and the libc implementation under Linux. Although sometimes tricky to set up, regular expressions are a powerful means of searching and processing text, which AWK and Perl programmers have used very effectively. C++ programmers do not currently have a standard way of using them (although the next iteration of the standard library promises to rectify this, probably by using the BOOST libraries)
+
+;> #include <rx++.h>
+;> Regexp rx("dog");
+;> char* str = "the dog sat on the mat; the dog went outside";
+;> rx.match(str);
+(bool) true
+;> rx.matched();
+(string) 'dog'
+
+You may wish to directly access the matched position in the given string:
+
+;> rx.index();
+(int) 4
+;> rx.end_match();
+(int) 7
+;> int s = rx.index(), e = rx.end_match();
+;> char buff[80];
+;> strncpy(buff,str+s,e-s);
+(char*) "dog"
+
+The full POSIX functionality is available.  For example, regular expressions are a 
+powerful way to extract formated data such as dates.  Anything inside escaped parentheses
+(\(, \)) is a group, which can be extracted from the matched string using a one-based index to the Regexp::matched() method:
+
+;> Regexp rdat("\([0-9]*\)/\([0-9]*\)/\([0-9]*\)");
+;> rdat.match(dates);
+(bool) true
+;> rdat.matched();     // the whole matched expression
+(string) '10/09/2003'
+;> rdat.matched(1);
+(string) '10'
+;> rdat.matched(2);
+(string) '09'
+;> rdat.matched(3);
+(string) '2003'
+
+rx++.h doesn't have the most efficient implemention (in particular the string extraction in Regexp::matched() is expensive) but it makes using the POSIX calls less confusing.
+
+Turtle Graphics (#include <turtle.h>)
+
+I've always been intrigued with Turtle Graphics ever since I read Seymour Papert's book _Mindstorms_ about the MIT Logo Project.  Logo was the first programming system designed explicitly for children, and provided users with a 'turtle', which was either a little triangle on the screen, or an actual programmable device with wheels.  The Turtle has both orientation and position, and can be commanded to move, draw or turn.  
+
+Here is a sample session, with comments:
+
+;> TG tg("test");         // creating a TG object makes a graphics window appear
+;> tg.init();             // initialize this object
+;> tg.go_to(50,50);       // move the turtle to (50,50) (default maximum is 100)
+;> tg.show();             // show the turtle explicitly
+;> tg.draw(10);           // draw by moving the turtle forward
+;> tg.right();            // turn to the right
+;> tg.draw(10);           // and draw
+
+This function draws a very attractive tree with a few lines of code.  TG::show() isn't called, since actually displaying the turtle slows things down considerably. A utility class, TG_State, allows one to save a turtle graphics state and restore it:
+
+void draw_tree(TG& tg, double l, double fact, double ang=45.0, double eps=0.1)
+{
+ TG_State state(tg);
+ if (l < eps) return;
+ // Draw the line
+ tg.draw(l);
+ 
+ // Save state and go to the left
+ state.save();
+ tg.turn(ang);
+ draw_tree(tg,fact*l,fact,ang,eps);
+ 
+ // restore state and go to the right
+ state.restore();
+ tg.turn(-ang);
+ draw_tree(tg,fact*l,fact,ang,eps);
+}
+
+// a testing function which lets us explore the effect
+// of angle on the tree
+void do_tree_with_angle(TG& tg, double ang)
+{
+ tg.init();
+ tg.go_to(50,10);
+ draw_tree(tg,20,0.7,ang,0.1);
+}
+
+Although this is currently only available under Windows, it would not be difficult to implement the UC graphics primitives for some other platform (using GTK+, for example). In the Windows version these are implemented as part of the UC core (uc_graphics.cpp) but obviously a shared library would do just as well.
+
+
+The UnderC Reflection Interface (UCRI)
+
+C++ Run-time Type Information (RTTI) is fairly limited compared to more dynamic languages such as Java. A C++ executable may optionally contain debug information, but this is primarily of interest only to debuggers, not standardized, and not usually available to the running program. And we accept that that the price of extra information is a larger executable. So RTTI is a compromise between the needs of a program to be aware of the actual types of objects at runtime, and our usual desire for lean and mean executables.
+
+Programs in Java and the .NET family are also compiled (albeit for a virtual machine) but carry rich metadata about their own classes, etc.  A Java program may list the available fields of a class, which allows almost automatic object persistence, etc.  Reflection (sometimes called introspection) is the ability of a program to query its own metadata.
+
+UnderC exports classes like XClass, XFunction, etc which 'shadow' their internal equivalents (Class, Function, etc).  This external interface provides you with a simplified view of UnderC internals designed for read-only access to metadata.  You don't need to know the intimate details of the UnderC implementation to use UCRI effectively, although there are a few places where such knowledge is useful. This section is a tutorial on UCRI programming, which also will derive convenient functions and classes to do the following useful things:
+   - custom tracing of functions and methods
+   - looking for all references to a given function
+   - implementing a simple profiler for UnderC
+
+When reading the following, it's useful to have /ucw/src/ucri.h at hand.
+
+XNTable
+
+This class represents a named symbol table, which allows you access to namespace and class contexts. There are two functions, uc_global() and uc_std(), which return the important namespaces. (Please note that you _must_ call uc_ucri_init() first to make these available.).  Symbol tables contain _entries_, represented by XEntry.
+
+;> XNTable* pglob = uc_global();
+;> int fred = 2;
+;> XEntry* pe = pglob->lookup("fred");
+
+(It can get tedious typing these explicit typenames out, especially in an interactive session, so from now I'll freely use 'let' as a shortcut for __declare)
+
+;> #define let __declare
+;> let p2 = pglob->lookup("uc_global");
+
+The #v command is useful if you've forgotten the type of a variable; it will also list the class members, if it's a class type.
+
+;> #v p2
+VAR XEntry* p2 size 4 offset 32770
+CLASS(XEntry) __C__ addr_mode base_entry clone
+data entry function m_entry
+name nfun ptr set_data
+set_ptr size str_to_val type
+val_as_str
+
+Obviously, all entries have a name:
+;> pe->name();
+(char*) "fred"
+
+Global variables like 'fred' have an associated address, which you can use to access the value:
+
+;> pe->ptr();    // i.e. &fred
+(void*) 957FF7
+;> *(int *)pe->ptr();
+(int&) 2
+
+All entries have a type, represented by XType:
+
+;> XType* t = pe->type();
+;> t->as_str();
+(char*) "int"
+;> t->size();
+(int) 4
+
+XType provides a number of methods (see the class definition in ucri.h) for querying the type:
+
+;> float** pf;
+;; let tpf = pglob->lookup("pf")->type();
+;> tpf->as_str();
+(char*) "float**"
+;> tpf->is_float();
+(bool) true
+;> tpf->is_pointer();
+(bool) true
+;> tpf->pointer_depth();
+(int) 2
+;> tpf->is_class();
+(bool) false
+
+Here's an example of the useful #alias command, which works very much like #define, except that it's specifically designed for constructing new commands, so the macro arguments are assumed to simply separated by spaces. Here I'm defining a new command 'type' which tells you what the current type of a variable is, without all the extra baggage of #v:
+
+;> #alias type(x) uc_global()->lookup(#x)->type()->as_str();
+;> type pf
+(char*) "float**"
+
+* XFunction
+
+XEntry has a method nfun() which will tell you whether this particular entry is a function or not;  if it returns a value greater than zero, then this is the number of functions in this overloaded set.
+
+;> pe->nfun();   // not a function!
+(int) 0
+;> let pfe = pglob->lookup("sin");
+;> pfe->nfun();
+(int) 1
+;> pfe->function(1);
+(XFunction*) 1279700
+;> let po = pglob->lookup("<<");
+;> po->nfun();
+(int) 13
+
+(Please note that 'operator<<' is internally kept as '<<', etc; class constructors are '__C__', and class destructors are '__D__'.)
+
+XFunction allows you to access all the properties of a function; its full name, its return type, the names and types of its arguments, and its context.
+
+;> string s;
+;> let fsin = pfe->function(1);
+;> fsin->as_str(s);
+;> s;
+(string) s = 'double sin(double )'
+;> fsin->ret_type()->as_str();
+(char*) "double"
+
+To ask about argument types, use the XTList container (it behaves just like list<XType*>,
+but because of certain UC limitations, I'm forced to use an identical template with a different name). It's useful to overload operator<< for XTList:
+
+ostream& operator<< (ostream& os, XTList& tl)
+{
+    XTList::iterator xtli;
+    for(xtli = tl.begin(); xtli != tl.end(); ++xtli)
+      os << (*xtli)->as_str() << ' ';
+     return os;
+}
+
+and to define a shorthand for looking up functions:
+
+XFunction* lookup_fun(char* name)
+{ 
+  return pglob->lookup(name)->function(1);
+}
+
+;> double add(double x, int y, short z) { return x+y+z; }
+;> let fadd = lookup_fun("add");
+;> XTList tl = fadd->args();
+;> tl;
+double int short
+ 
+(Please note the usual default behaviour of UnderC in interactive mode; when trying to dump the value of an object, it will look for any overloaded operator<<)
+
+To extract both argument types and names, use XFunction::get_args(). Somewhat inconsistently, this function takes pointers rather than references; the reason is that the second argument is optional and can be NULL. Here I've overloaded operator<< for XStringList as well:
+
+;> XStringList sl;
+;> fadd->get_args(&tl,&sl);
+;> sl;
+x y z
+
+XFunction::where() can be used to discover where a particular function has been defined. It will return 0 if no line number information can be found (for instance, builtin functions):
+;> string s;
+;> fadd->where(s);
+(int) 54
+;> s;
+(string) s = 'defs.h'
+
+What is a function in UnderC? A function's address does not directly refer to executable pcode, but to a FBlock.  This carries information like size of arguments, etc, and the actual pointer to code.  Making function references indirect like this means that UC functions can be recompiled without the function address changing. XFunction::fblock() returns the function's address, and XFunction::from_fb() returns the function object corresponding to a function.
+
+;> &add;
+(double (*)(double x,int y,short z)) A98045
+;> fadd->fblock();
+(void*) A98045
+;> fadd;
+(XFunction*) fadd = 1571230
+;> XFunction::from_fb(&add);
+(XFunction*) 1571230
+;>
+
+You can examine function block internals of a function very easily:
+;> FBlock* fb = &cos;
+;> #d fb
+(Class*) class_ptr = 0
+(Table*) context = A3FD80
+(void*) data = 4BE794
+(Entry*) entry = A3E170
+(Function*) function = A3FE40
+(int) nargs = 2
+(int) nlocal = 0
+(int) ntotal = 2
+(Instruction*) pstart = A3E1D0
+(XTrace*) trace = 0
+
+Yes, you can get an XFunction using new XFunction(fb->function), but I don't recommend it because XFunction::from_fb() will guarantee that each XFunction object matches exactly one Function object.
+
+
+XClass
+
+XClass represents class contexts;  it's derived from XNTable and so supports lookup(). Here we find the entry of the member function string::substr():  XNTable::lookup_class() will return NULL both if the symbol isn't found _or_ the symbol isn't a class.
+
+;> XClass* pc = pglob->lookup_class("string");
+;> pc->name();
+(char*) "string"
+;> pc->lookup("substr");
+(XEntry*) 1579720
+
+XNTable::lookup_class() is a shorthand for the following operation, where we check the type  of the entry before extracting the class pointer from that type.  
+
+XClass* glob_class(char* name)
+{
+ XEntry* pe = uc_global()->lookup(name);
+ if (pe != NULL && pe->type()->is_class()) {
+    return pe->type()->as_class();
+ } else return NULL;
+}
+
+To demonstrate the kind of information that XClass makes available to you, here are some simple classes with virtual methods:
+
+class A {
+  int a;
+public:
+  A() : a(10) { }
+  void set(int _a) { a = _a; }
+  int  get()       { return a; }
+  virtual void show() 
+  { cout << a << endl; }
+};
+
+class B: public A {
+public:
+  void show()
+  { cout << "I'm B! " << get() << endl; }
+};
+
+It's possible to find out the base class of a given class, and generally whether it inherits from another. Do note that UCRI guarantees that objects like XEntry,XFunction
+and XClass are unique, so that (for instance) repeated calls to lookup_class("A") will return the same object. (Don't assume this is true for XType! Use XType::match() to compare types)
+
+;> let pa = pglob->lookup_class("A");
+;> let pb = pglob->lookup_class("B");
+;> pa; pb;
+(XClass*) pa = 157FD20
+(XClass*) pb = 157F6D0
+;> pb->base_class();
+(XClass*) 157FD20
+;> pb->inherits_from(pa);
+(int) 1
+ 1
+
+Once you have an object, you can ask what the dynamic type of the object is. The object's type must be polymorphic, that is, has virtual methods.  The reason is that such classes carry a 'hidden pointer' to a Virtual Method Table (VMT) which handles the magic of selecting the appropriate behaviour at runtime. Generally, the VMT pointer sits immediately before the object in memory in UnderC, but not always; imported objects may use a different strategy.  So use XClass::get_class_of() as a relatively safe method to find the type, but remember that the result is undefined if the object doesn't have a VMT.
+
+;> A* p1 = new A();
+;> A* p2 = new B();
+;> dynamic_cast<B*>(p1);
+(B*) 0
+;> dynamic_cast<B*>(p2);
+(B*) 1581774
+;> p2->show();
+I'm B! 20
+;> p1->show();
+10
+;> XClass::get_class_of(p2);
+(XClass*) 157F6D0
+;> A* p3 = new B();
+;> XClass::get_class_of(p2) == XClass::get_class_of(p3);
+(bool) true
+
+Here is a more convenient way to look functions up (#include <ucri/utils.h). It will detect qualified references of the form "context::name" and separate out that context to use for lookup:
+
+XNTable* context_from_pattern(string& pat, XNTable* context = NULL)
+{
+ int i = pat.find("::");
+ if (context==NULL) context=uc_global();
+ if (i != string::npos) {
+    string class_name = pat.substr(0,i);
+    pat = pat.substr(i+2,999);
+    context = context->lookup_class(class_name.c_str());
+ } 
+ return context;
+}
+
+XFunction* lookup_fun(string name, int k = 1, XNTable* context = NULL)
+{
+  context = context_from_pattern(name,context);
+  XEntry* xe = context->lookup(name.c_str());
+  if (xe->nfun() >= k) return xe->function(k);
+  else return NULL;
+}
+
+These functions, as with all the <ucri/...> headers, are in namespace UCRI, so from now I'm assuming 'using namespace UCRI;'
+
+Examing the contents of Symbol Tables
+
+<ucri/utils.h> defines a simple function for printing out all entries in a entry list.
+
+void dump_entries(XEntries& xl)
+{
+  XEntry* xe;
+  int k = 0;
+  FOR_EACH(xe,xl) {
+   cout << xe->name();
+   if (++k % 5 != 0) cout << '\t';
+   else cout << endl;
+  }
+  cout << endl;
+}
+
+;> dump_entries(pglob->variables());
+cerr    cin     cout    endl    ends
+$508    $509    $510    $511    BUILTINS
+CLASSES CONSTS  CTORS   DIRECT  DO_PARENT
+DTORS   FIELDS  FUNCTIONS       IMPORTS MAX_LINE
+NAMESPACES      NONE    NON_STATIC      OREL    OREL_F
+SREL    TEMPS   TYPEDEFS        UNDEFINED       USES_WCON
+VIRTUALS        _xo_    buff    fadd    false
+ff      file    fmul    fns     line
+pglob   s       sl      tl      true
+
+;> dump_entries(uc_std()->variables());
+cerr    cin     cout    endl    ends
+ 
+XNTable::variables() returns a reference to a static list, so it's not suitable for all uses.  XNTable::get_variables() is more flexible, because you may specify a wildcard pattern:
+
+;> XEntries xl;
+;> pglob->get_variables(xl,FIELDS,"_*");
+;> xl.size();
+(int) 1
+;> xl.front()->name();
+(char*) "_xo_"
+;>
+
+These wildcards are a bit braindead - either of the form "*text" or "text*", so full regular expressions are not supported (although this would not be a difficult addition if one could assume that the RX library was always available)
+
+Similarly, XNTable::functions() and XNTable::get_functions() lists all functions matching a particular pattern:
+
+;> XFunctions fl;
+;> pglob->get_functions(fl,0,"uc_*");
+;> dump_functions(fl);
+void uc_cmd(const char* );
+int uc_eval_method(void* sc,void* obj,void* arguments,void* result);
+int uc_exec(const char* );
+int uc_exec(const char* ,void* ,const char* ,int );
+XNTable* uc_global();
+void uc_macro_subst(const char* ,char* ,int );
+void uc_result_pos(int ,char* ,int ,char* ,void* );
+XNTable* uc_std();
+void uc_ucri_init();
+;>
+
+Looking at the member variables of classes is an important case. The variables() function also takes a field mask, which is here used to only show non-static member variables of string.
+
+;> XEntry* xe;
+;; FOR_EACH(xe,pc->variables(FIELDS | NON_STATIC))
+;1} cout << xe->name() << endl;
+m_str
+m_len
+
+This is useful in generating C++ source.  For instance, C++ doesn't automatically generate "memberwise" equality operators, in the same way that it will generate memberwise assignment.  Here is a function which creates operator== for some type:
+
+bool generate_equal_operator(const char* classname)
+{
+ XClass* pc = uc_global()->lookup_class(classname);
+ if (! pc) return false;
+ XEntry* xe;
+ XEntries& xl = pc->variables(FIELDS | NON_STATIC);
+// keep the name of the last member variable in this list
+ string lastname = xl.back()->name();
+ cout << "bool operator==(const " << classname
+                      << "& a, const " << classname << "& b)"
+                      << "\n{\n  return" << endl;
+// Construct memberwise equality: true if all non-static members are equal
+ FOR_EACH(xe,xl) {
+   string name = xe->name();
+   cout << "  a." << name << " == b." << name;
+   cout << (name==lastname ? ";" : " &&") << endl;
+ }
+ cout << '}' << endl;
+ return true;
+}
+
+Now, given a simple struct T2:
+
+struct T2 {
+  int a;
+  char b;
+  double c;
+};
+
+Then:
+
+;> generate_equal_operator("T2");
+bool operator==(const T2& a, const T2& b)
+{
+return
+  a.a == b.a &&
+  a.b == b.b &&
+  a.c == b.c;
+}
+
+Obviously this isn't appropriate for more complex types (like a string class) but it's an example of the power of using C++ metadata to generate otherwise tedious code. (Another example which would be particularly useful would be a function to automatically overload operator<< to output a class to some ostream.)
+
+
+Here are two useful functions (also ucri/utils.h) which get all functions and classes within a given context.  In get_matching_classes() we use a field mask to extract all entries which refer to classes or namespaces - this is more efficient than grabbing all entries and checking them individually.
+
+int get_matching_functions(string fun_pat, XFunctions& fl, XNTable* context = NULL)
+{
+ context = context_from_pattern(fun_pat,context);
+ context->get_functions(fl,0,fun_pat.c_str());
+ return fl.size();
+}
+
+int get_matching_classes(const string& clss_pat, XClasses& cl, XNTable* context = NULL)
+{
+  XEntries xl;
+  if (context==NULL) context=uc_global();
+  context->get_variables(xl,CLASSES | NAMESPACES, clss_pat.c_str());
+  XEntry* xe;
+  cl.clear();
+  FOR_EACH(xe,xl)
+    cl.push_back(xe->type()->as_class());
+  return cl.size();
+}
+
+To get _all_ functions and methods available in a system, we apply get_matching_functions() to all available classes and namespaces:
+
+int grab_all_functions(XFunctions& fl, XClass* exclude_context=NULL)
+{
+ XFunctions cl_fl;
+ XClass* context;
+ XClasses cl;
+ get_matching_functions("*",fl);
+ get_matching_classes("*",cl);
+ FOR_EACH(context,cl) 
+  if (context != exclude_context) {
+    get_matching_functions("*",cl_fl,context);
+    fl.splice(fl.begin(),cl_fl);  // append the methods to the function list
+  }
+ return fl.size();
+}
+
+The UnderC Custom Tracing Facility (ucri/trace.h)
+
+It is occaisionally very useful to trace function execution. Prior to vs 1.2.3, tracing was either on or it was off, and I realized that it was more manageable if tracing could be customizable.  As it turns out, a customizable tracing facility has some very interesting applications.  The basic idea is that you can attach a trace object to a function, which executes on function entry and exit.  Here is the default trace object, which allows you to control whether it's called on entry and exit;  the default operation just dumps out the function name.
+
+
+class EXPORT XTrace {
+private:
+    bool m_on_entry, m_on_exit;
+public:
+    XTrace(bool on_exit = false);
+    void set_on_entry(bool b) { m_on_entry = b;  }
+    void set_on_exit(bool b)  { m_on_exit = b;  }
+    bool do_leave()           { return m_on_exit; }
+    bool do_enter()           { return m_on_entry; }
+
+    // the XTrace interface
+    virtual void enter(XExecState* xs);
+    virtual void leave(XExecState* xs);
+};
+
+UCRI provides XFunction::set_trace() to attach a trace object to a particular function. You can also switch off tracing globally using XFunction::set_tracing().
+
+;> void fred() { puts("hello"); }
+;; let ffred = lookup_fun("fred");
+;> let tr = new XTrace();
+;> ffred->set_trace(tr);
+;> for(int i = 0; i < 5; i++) fred();
+*ENTER void fred()
+hello
+*ENTER void fred()
+hello
+*ENTER void fred()
+hello
+*ENTER void fred()
+hello
+*ENTER void fred()
+hello
+;> XFunction::set_tracing(false);
+;> for(int i = 0; i < 5; i++) fred();
+hello
+hello
+hello
+hello
+hello
+
+Now this very general mechanism is too tedious for everyday use.  My general philosophy has to been to provide the basic hooks in UnderC to support a feature, and then write utilities to provide a convenient way to do common things.  Here is one way, defined in ucri/trace.h, which uses the general apply_op_to_funs() to apply a trace object to a whole set of functions:
+
+void set_fun_trace(XFunction* f, void* ptr)
+{
+  f->set_trace((XTrace*)ptr);
+}
+
+void add_trace_to_funs(const string& fun_pat, XTrace* pt)
+{
+ XFunction::set_tracing(false);
+ apply_op_to_funs(fun_pat, set_fun_trace, pt);
+ XFunction::set_tracing(true);
+}
+
+Here it is used to attach our trace object to all methods of string. You immediately start seeing the destruction of all the temporaries generated in string operations. 
+
+;> add_trace_to_funs("string::*",pt);
+*ENTER string::~string()
+;> string s = "hello dolly";
+*ENTER string::string(const char* str)
+;> s = s + " you're so fine";
+*ENTER string& string::operator=(const string& s)
+(string&) 'hello dolly you're so fine'
+*ENTER string::~string()
+*ENTER string::~string()
+;>
+
+By the way, it's an interesting exercise to use the old string header (#include <old-string>) and repeat this exercise. Then you will see the inner workings of the UC string class, which also illustrates my point that tracing to be useful needs to be controlled more finely.
+
+;> s = s + " you're so fine";
+*ENTER string::string(const string& s)
+*ENTER void string::resize(unsigned long int sz)
+*ENTER void string::append(char* s)
+*ENTER void string::resize(unsigned long int sz)
+*ENTER string::string(const string& s)
+*ENTER void string::resize(unsigned long int sz)
+*ENTER string::~string()
+*ENTER string& string::operator=(const string& s)
+*ENTER void string::resize(unsigned long int sz)
+(string&) 'hello dolly you're so fine'
+*ENTER string::~string()
+
+To remove the trace from functions set with add_trace_funs(), use remove_trace() which calls f->set_trace(NULL) for all functions in the set.
+
+void remove_trace(const string& fun_pat)
+{
+ add_trace_to_funs(fun_pat,NULL);
+}
+
+The general power of the XTrace mechanism comes when you derive your own custom trace class.  Since UnderC allows you to override imported methods, you are effectively injecting your own code into the UnderC runtime:
+
+ int kount;
+ 
+ class MyTrace: public XTrace {
+ public:
+    virtual void enter(XExecState* xs)
+    {
+       kount++;
+    }
+ };
+
+This simple trace object, which counts function calls, is here applied to string::~string - please note that you need to use its internal name __D__.  Often we simply need to know some simple function call statistics;  later I'll show you a profiler application which takes this idea to its logical conclusion.  (Or, if you have an external interface like a set of flashing lights, you can make them blink in time to your function calls.)
+
+;> kount = 0;
+;> let f = lookup_fun("string::__D__");
+;> let tr = new MyTrace();
+;> f->set_trace(tr);
+;> string s = "hello";
+;> s = s + " dog";
+(string&) 'hello dog'
+;> kount;
+(int) kount = 1
+
+Note that XTrace::enter() is passed a pointer to an XExecState.  This is useful information about the machine state at this point, like the current function being called, the stack frame, the previous function, etc.  Here's its definition in xtrace.h (found in source dir)
+
+struct XExecState {
+    FBlock* fb;        // currently executing function block
+    int*    sp;        // stack pointer
+    char*   op;        // object pointer
+    void*   ip;        // instruction pointer
+    int*    bp;        // base pointer (args and locals are relative to this) 
+    FBlock* last_fb;   // from where we've been 
+    void*   last_ip;   // called...
+    int*    last_bp;   // base pointer of calling context...
+};
+
+Since this isn't a tutorial on UnderC internals, I won't bore you with all the details. Here is what you need to know;  fb is the address of the function, whereas ip is the actual code address at which you will start executing. If the function is a method, then op will be the address of the object (the 'this' pointer). The base pointer bp allows you direct access to the arguments of the function, and last_fb and last_ip tell you where this function has been called from, which allows you to restrict tracing to particular uses of a function. 
+
+XFunction::pcode() will tell you ip anyway, but what's particularly useful about ip is that you can _modify_ these values. In particular, you can modify fb,ip,sp and bp.  (see engine.cpp, line 718).  This allows a few entertaining hacks, like redirecting a function call to some other routine, etc.  
+
+This example shows a trace object which will show you the caller function:
+
+ string fun_as_str(XFunction* f)
+ {
+    string s;
+    f->as_str(s);
+    return s;
+ }
+
+ class MyTrace: public XTrace {
+ public:
+    virtual void enter(XExecState* xs)
+    {
+       XFunction* called_from = XFunction::from_fb(xs->last_fb);
+       cout << "called from " << fun_as_str(called_from) << endl;
+    }
+ };
+
+I rapidly get bored typing, especially in interactive contexts.   There is a kind of creative laziness which drives programmers to spending late nights working at how to avoid repetitive work.  Here is a function (also from ucri/trace.h) which does all the business of writing a custom trace class for you:
+
+bool add_trace_expr(string fun_pat, string expr)
+{
+  string cname = tmp_name();
+  string cx = "struct " + cname + ": XTrace { ";
+  cx += "  void enter(XExecState* xs) { " + expr + "; } };";
+  if (uc_exec(cx.c_str())==0) {
+    XClass*  pc = uc_global()->lookup_class(cname.c_str());
+    XTrace* pt = (XTrace*)pc->create();
+    add_trace_to_funs(fun_pat, pt);
+    return true;
+  } else return false;
+}
+
+uc_exec() is used to compile an XTrace-derived class with an overrided enter() method, which carries the payload expression you wish to execute whenever the function(s) are called. add_trace_expr() uses XClass::create() to create a new instance of the class. As promised, it saves a fair amount of typing.  The earlier example of counting how many times string::~string() is called can be expressed in two lines:
+
+;> int k = 0;
+;> add_trace_expr("string::__D__","k++");
+
+A very useful function that can be used in trace expressions is dump_fun_args(). For example, say we have a function:
+
+double add(double x, int y, short z)
+{ 
+  return x+y+z;
+}
+
+Then:
+
+;> add_trace_expr("add","dump_fun_args(xs)");
+(bool) true
+;> add(1,2,3);
+x = 1. y = 2 z = 3
+(double) 6.
+
+Here is the definition of dump_fun_args():
+
+void dump_fun_args(XExecState* xs)
+{
+  XFunction* xf = XFunction::from_fb(xs->fb);
+  XTList tl;
+  XStringList args;
+  xf->get_args(&tl,&args);
+  string name,s;
+  FOR_EACH(name,args) {
+     XEntry* pe = xf->lookup_local(name.c_str());
+     cout << name << " = ";
+     pe->type()->val_as_str(s,pe->data()+xs->bp);
+     cout << s << ' ';
+  }
+  cout << endl;
+}
+
+We get a function object from the execute state's function block, and use this to get the actual argument names.  XFunction::lookup_local() allows you to access the otherwise hidden function context, giving the local entries. A pointer to any local variable is by definition some offset plus the base pointer, so we can get the actual values from xs->bp.
+
+dump_fun_args() is just a plain C++ function and can be combined with other calls:
+
+;> void dump_fun(XExecState* xs) {
+;1} cout << XFunction::from_fb(xs->fb)->name() << ' ';
+;1} }
+;; add_trace_expr("add","dump_fun(xs); dump_fun_args(xs)");
+(bool) true
+;> add(10,20,30);
+add x = 10. y = 20 z = 30
+(double) 60.
+
+I will now demonstrate a few more voodoo tricks defined in ucri/trace.h:
+
+int sum(int a, int b) 
+{
+  return a+b;
+}
+
+;> sum(10,20);
+(int) 30
+;> add_trace_expr("sum","RET4(0)");
+(bool) true
+;> sum(1,2);
+(int) 0
+
+The macros RET0 and RET4() force a function to return immediately (sorry RET8() doesn't exist yet for functions returning doubles, but the pattern is clear).  RET0 is easiest to understand; it works by forcing the next instruction to be a RET.
+
+XInstruction ret0_instr = {8,0,0}; // RET
+
+#define RET0 xs->ip = &ret0_instr
+
+There is also CHAIN which allows you to substitute another function altogether. It works by setting the fb and ip directly. You do of course need to make sure that the chained function has the same signature.
+
+;> int product(int x, int y) { return x*y; }
+;; add_trace_expr("sum","CHAIN(product)");
+(bool) true
+;> sum(10,20);
+(int) 200
+;>
+
+Needless to say, these tricks are very implementation-dependent, which is why I've packaged them up as macros.  (By their nature they cannot be functions)
+
+These are entertaining stunts, but have many uses.  Recently there has been talk of yet another programming paradigm, called Aspect-Oriented Programming (AOP).  It comes from the observation that code is easiest to understand if we try to separate different concerns, or aspects.  For example, logging code is a different aspect of a system and really should not be allowed to intrude into the system's main business.  Rather than having logging code scattered throughout the system, AOP sets up rules so that it is automatically called from all required methods.  Which is precisely what the XTrace facility can give you in UnderC. An another example of AOP that I've seen is when constructing unit tests.  Generally a unit depends on other units, so it can be hard to test individual units.  One traditional approach is to write lots of stub routines, which just return some error status. With XTrace, you can use RET4 to stub out a set of routines automatically.
+
+The UnderC Profiling Facility
+
+UCRI provides precisely one function for profiling execution. This function takes a single argument, which is true if you wish profiling to be switched on, etc, and returns a pointer to an internal 32-bit counter. You can then get an aggregate count of the number of pcode instructions used by your UnderC code, which will usually correspond to the amount of time (unless you have imported functions which take up a significant slice of the execution):
+
+;> int* g_pic = ucri_instruction_counter(true);
+;> *g_pic = 0;
+(int!) 0
+;> double x = 0.0;
+;> for(int i = 0; i < 100; i++) x += i;
+;> *g_pic;
+(int!) 1013
+;>
+
+The profiling facility (ucri/profile.h) uses XTrace to attach a special tracing object to every function which we are interested in profiling:
+
+// XProfiler is a custom trace class which is attached to every function;
+// it updates the called count and the total cycles used by the function.
+class XProfiler: public XTrace {
+   int m_kount;
+   int m_cycles;
+   int m_start;
+ public:
+   XProfiler() : m_kount(0),m_cycles(0) { }
+
+   int cycles() { return m_cycles; }
+   int count()  { return m_kount;  }
+
+   void enter(XExecState* xs)
+   {
+     m_kount++;
+     m_start = *g_pic;
+   }
+
+   void leave(XExecState* xs)
+   {
+     m_cycles += (*g_pic - m_start);
+   }
+ };
+
+These objects keep an individual count of how many function calls took place, and how many cycles were used in executing this function.
+
+Finding All Function References (ucri/refs.h)
+
+Again, UnderC doesn't give you too much functionality out of the box.  Given an address in a function, XFunction::ip_to_line() will tell you which line number this corresponds to; XFunction::where() will tell you which file the function is in.  There is (currently) no information kept on where all the function references are.  So the strategy is to actually look at the function code.
+
+UnderC provides some assistance; unless the command-line flag -F is used (which attempts to inline one-instruction functions) all functions are explicitly called. The HALT instruction (which usually does breakpoints) acts as a NOP if its operand is not a breakpoint index, and is emitted to make any virtual method calls stand out (since usually VCALL/VCALLX just have a VMT slot as an operand)
+
+;> let pt = new MyTrace();
+;> #opt u+
+;> pt->enter(0);
+0 PUSHI D 34796           // push zero
+1 PUSHI D 34792           // push pt
+2 LOSS                    // load top of stack onto object stack
+3 HALT  D 32935           // NOP + fun block offset
+4 VCALLX        D 1       // operand is slot id #1
+5 DOS                     // drop object stack
+6 RET
+
+This 'fun block offset' needs some explanation.  All instructions are 32-bit, so there's only 22 bits of data possible (8 bits for opcode, 2 bits for address mode). Therefore all 'direct' references to data are actually offsets in a 22-bit data segment. XNTable::offset() will subtract the begining of this segment and give you the offset:
+
+    // find the offset of the function block in the global data segment
+    int data = uc_global()->offset(pf->fblock());
+
+The idea is now to go over all the functions and look at each instruction for a DIRECT reference to the function offset.  (Here I use the fact that every function is terminated by an extra instruction with opcode = 0)
+
+void generate(int target_data)
+{
+    XFunction* fn;
+    FOR_EACH(fn,g_fl) {
+      // look at the pcode for any direct addressing of the given offset
+      XInstruction* pp = fn->pcode();
+      if (pp)
+       while (pp->opcode != 0) {
+         if (pp->rmode == DIRECT && pp->data == target_data)
+           g_pos_list.push_back(XPosition(fn,pp));
+         pp++;
+       }
+     }
+   }
+
+The rest of the application is just bookkeeping ;).  
+
+An Application: Simple Object Persistence <ucri/persist.h>
+
+Object persistence is a simple strategy for writing and reading a program's object state, which usually has to be done by hand in C++; the strategy is to derive from some base class which defines write() and read() methods, and then each class must overload these methods for their particular case.  Languages with reflection can use the metadata to stream most objects to disk, because they can iterate over all data fields.  So I thought it an interesting experiment to see how this could be implemented with UCRI and UnderC;  in fact, the requirements for UCRI were driven by the particular needs of persistence.
+
+Personally I have mixed feelings about persistence, coming mostly from practical experience with the MFC framework, which is particularly nasty in that it generates an opaque binary file format.  Although traditional persistence makes sense from the point of view of object-orientation (each object becomes responsible for its external representation) the result is a file with structure reflecting the internal object hierarchy, which breaks encapsulation of the system as a whole.  So you cannot change the internal arrangement of objects without breaking the file format.  And this is no theoretical problem, as I can attest from years of maintaining MFC systems. So we'll avoid binary formats in this application.
+
+Some interesting constraints on C++ coding style emerge from this experiment.  First, you have to organize your objects so that there is an object which defines the root of a hierarchical tree of objects. So when the root object is told to stream itself out to disk it will result in all objects being streamed out.  (It's probably possible to relax this requirement by asking all objects found in namespaces to stream out, but a root object is a useful disciple anyhow).
+
+Second, pointers to objects must be used in a disciplined way; I have to assume that if I see a pointer, it refers to a single object and not a dynamically allocated array of objects.  (Regular arrays are fine because they have a definite size) This is not a bad restriction, since we should be using some container like a list or a vector anyway.  Although the implementation of vector usually involves precisely such dynamic arrays, so the approach I've taken here is to explicitly handle vector and list.
+
+Third, classes must have a default constructor.  I have to create the objects dynamically when streaming in objects, which is done using XClass::create().
+
+PERSIST.H is probably the hardest three hundred lines of code I've ever written, and so don't feel obliged to understand every detail at first.  (If the gods be kind and I have time to develop this further, it will become yet another UCRI utility that can be used without too anxiety).  A useful place to start is OutStreamer::stream(XEntry* xe), which writes out an ASCII representation of the entry 'xe'.
+
+line 192:  xe->ptr(m_base). You've seen XEntry::ptr() with its default NULL argument - in general a base pointer is supplied, if you don't want to use the global address space.
+line 198:  char* is treated specially, because it's one pointer-to-value which _by convention_ carries its own length information.  Yes, sometimes a char* may legitimately contain null characters, in which case wrap it up as a string (and then handle string as a special case)
+line 203:  Array entries contain size information, so they're cool. The trick is to use XEntry::base_entry() to generate an entry for the first element of the array, and then mosey along the array, streaming each element in turn, moving to the next element by incrementing the entry data using the element size:
+
+void Streamer::stream_array(XEntry* xe)
+{
+  XEntry* be = xe->base_entry(); // bogus entry for any element
+  int sz = be->type()->size();   // size of element type
+  int n  = xe->size();           // number of elements
+  be->set_data(xe->data());
+  for(int i = 0; i < n; i++) {
+    stream(be);                     // stream out element
+    be->set_data(be->data() + sz);  // and move to the next
+  }
+}
+
+line 205: Plain scalar values can be converted to a string representation using XEntry::val_as_str().
+
+line 209: Pointers or references to objects are a special case. The pointer value is output, followed by the _actual dynamic type_ of the object.  This is a crucial point; a pointer may be declared to be A*, whereas it's actually pointing to some object of type C which is derived from A.  We should only stream unique objects out once, so I keep a map of objects which have been processed.
+
+line 220: Only list<> or vector<> at this point! 
+
+line 224: Streamer::stream_object() is used to stream out an object's fields. It's a classic use of reflection - find all the non-static member variables and stream each one of them out in turn.
+
+void Streamer::stream_object(XClass* pc, void *ptr)
+{
+  XEntry* ce;
+  void *old_base = m_base;
+  XEntries xlist;
+  XEntries::iterator xli;
+  set_base(ptr);
+  pc->get_variables(xlist,NON_STATIC | FIELDS);
+  for(xli = xlist.begin(); xli != xlist.end(); ++xli) {
+       ce = *xli;
+       stream(ce);
+  }
+  set_base(old_base);
+}
+
+The tricky bit is how to handle containers. Streaming out elements is itself a straightforward function template:
+
+template <class C>
+  void stream_elements(const C& ls, Streamer& out, XEntry* xe)
+  {
+     C::iterator it = ls.begin(), iend = ls.end();
+     for(; it != iend; ++it) {
+        xe->set_ptr(& *it);    // entry now points to element
+        out.stream(xe);        // which can be streamed out/in
+     }
+  }
+
+But we don't know what the type is at compile-time, so this function has to be _dynamically_ instantiated.  (Ditto for a little template size_of() to find a container's size).  
+
+The object model supported by PERSIST.H is still too limited to be generally useful. For instance, what happens to other template classes?  UCRI object persistence is obviously not portable, and that's an issue for me because I try not to get trapped into using a non-portable dialect for larger programs.  An interesting project would be to actually generate   the C++ code for persistence explicitly and weave it into the source.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
