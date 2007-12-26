@@ -2,11 +2,14 @@ unit MemoryTrainerUnit;
 
 interface
 
+
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls,settingsunit,tlhelp32,shellapi,math,extratrainercomponents,
   userdefinedformunit, XPMan,newkernelhandler, symbolhandler,frmautoinjectunit,
   cefuncproc,autoassembler,hotkeyhandler;
+
+
 
 type TBytes= array of integer;
 
@@ -48,8 +51,7 @@ end;
 type Ttrainerdata = record
   description: string;
   hotkeytext: string;
-  hotkey: word;
-  hotshift: word;
+  hotkey: TKeyCombo;
   active: boolean;
   codeentrys: array of TCodeEntry;
   addressentrys: array of TAddressEntry;
@@ -93,15 +95,13 @@ type
     procedure redefinecodeentries;
     procedure reinterpretaddresses;
     
-    procedure hotkeyhandler(var Message: TWMHotKey); message WM_HOTKEY;
+    procedure hotkeyhandler(var Message: TWMHotKey); message WM_HOTKEY2;
     procedure checkforprocess;
+    procedure executecheat(sender: tobject);
   public
     { Public declarations }
     filename,process: string;
     autolaunch:boolean;
-
-    hotkeystate: word;
-    hotkeyshiftstate: tshiftstate;
 
     aboutboxtext: string;
     viewdefault: boolean;
@@ -491,10 +491,10 @@ begin
 
           try
             try
-              if autoassemble(sl,false,false,false,trainerdata[i].addressentrys[j].allocs)=false then
+              if autoassemble(sl,false,false,false,false,trainerdata[i].addressentrys[j].allocs)=false then
               begin
                 symhandler.reinitialize;   //second chance, else death sentence
-                autoassemble(sl,false,false,false,trainerdata[i].addressentrys[j].allocs);
+                autoassemble(sl,false,false,false,false,trainerdata[i].addressentrys[j].allocs);
               end;
 
               reinterpretaddresses;
@@ -561,11 +561,11 @@ begin
           try
             try
               setlength(trainerdata[i].addressentrys[j].allocs,1);
-              if autoassemble(sl,false,true,false,trainerdata[i].addressentrys[j].allocs) = false then
+              if autoassemble(sl,false,true,false,false,trainerdata[i].addressentrys[j].allocs) = false then
               begin
                 //failure to inject script, try again but not reload the symbols
                 symhandler.reinitialize;
-                autoassemble(sl,false,true,false,trainerdata[i].addressentrys[j].allocs);
+                autoassemble(sl,false,true,false,false,trainerdata[i].addressentrys[j].allocs);
               end;
 
               reinterpretaddresses;
@@ -796,10 +796,11 @@ procedure TfrmMemoryTrainer.FormClose(Sender: TObject;
 var i: integer;
 begin
   try
+    {
     for i:=0 to length(trainerdata)-1 do
       unregisterhotkey(self.Handle,i);
 
-    unregisterhotkey(self.Handle,$bfff);
+    unregisterhotkey(self.Handle,$bfff);}
   finally
     application.Terminate;
   end;
@@ -835,6 +836,8 @@ var temp: dword;
     tokenhandle: thandle;
     tp:TTokenPrivileges;
     prev: TTokenPrivileges;
+
+    hotkey: TKeyCombo;
 
     ReturnLength: Dword;
 begin
@@ -896,8 +899,7 @@ begin
     trainerdata[i].hotkeytext:=x;
     freemem(x);
 
-    trainerfile.ReadBuffer(trainerdata[i].hotkey,2);
-    trainerfile.ReadBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+    trainerfile.ReadBuffer(trainerdata[i].hotkey,sizeof(trainerdata[i].hotkey));
 
     //nr of code entries
     trainerfile.ReadBuffer(temp,4);
@@ -1059,16 +1061,11 @@ begin
   freemem(x);
 
   //hotkey+shiftstate
-  trainerfile.ReadBuffer(hotkeystate,sizeof(hotkeystate));
-  trainerfile.ReadBuffer(hotkeyshiftstate,sizeof(hotkeyshiftstate));
+  trainerfile.ReadBuffer(hotkey,sizeof(hotkey));
 
   if popup then //register this hotkey
   begin
-    if ssctrl in hotkeyshiftstate then keymod:=keymod or MOD_CONTROL;
-    if ssAlt in hotkeyshiftstate then keymod:=keymod or MOD_ALT;
-    if ssShift in hotkeyshiftstate then keymod:=keymod or MOD_Shift;
-
-    registerhotkey(self.Handle,$bfff,keymod,hotkeystate)
+    registerhotkey2(self.Handle,$bfff,hotkey)
   end;
 
 
@@ -1169,6 +1166,11 @@ begin
                2: onclick:=btnlaunch.onClick;
                3: onclick:=button2.onClick;
                4: onclick:=button3.OnClick;
+               else
+               begin
+                 if temp>=5 then //it's an execute cheat
+                   onclick:=executecheat;
+               end;
              end;
 
              trainerfile.ReadBuffer(temp,4);
@@ -1292,10 +1294,15 @@ begin
 
              trainerfile.ReadBuffer(temp,sizeof(integer));
              case temp of
-             1: onclick:=button1.OnClick;
-             2: onclick:=btnlaunch.onClick;
-             3: onclick:=button2.onClick;
-             4: onclick:=button3.OnClick;
+               1: onclick:=button1.OnClick;
+               2: onclick:=btnlaunch.onClick;
+               3: onclick:=button2.onClick;
+               4: onclick:=button3.OnClick;
+               else
+               begin
+                 if temp>=5 then //it's an execute cheat
+                   onclick:=executecheat;
+               end;
              end;
 
              trainerfile.ReadBuffer(temp,4);
@@ -1354,10 +1361,15 @@ begin
              //tag
              trainerfile.ReadBuffer(temp,sizeof(integer));
              case temp of
-             1: onclick:=button1.OnClick;
-             2: onclick:=btnlaunch.onClick;
-             3: onclick:=button2.onClick;
-             4: onclick:=button3.OnClick;
+               1: onclick:=button1.OnClick;
+               2: onclick:=btnlaunch.onClick;
+               3: onclick:=button2.onClick;
+               4: onclick:=button3.OnClick;
+               else
+               begin
+                 if temp>=5 then //it's an execute cheat
+                   onclick:=executecheat;
+               end;
              end;
 
              trainerfile.ReadBuffer(tempb,sizeof(tempb));
@@ -1415,8 +1427,8 @@ begin
 
     clist.addcheat(trainerdata[i].hotkeytext,trainerdata[i].description,temps,tempb);
 
-
-    if not registerhotkey(self.Handle,i,trainerdata[i].hotshift,trainerdata[i].hotkey) then
+    //if not registerhotkey(self.Handle,i,trainerdata[i].hotshift,trainerdata[i].hotkey) then
+    if not RegisterHotKey2(self.handle,i,trainerdata[i].hotkey) then
     begin
       //couldn't assign hotkey
       //disable that hotkey
@@ -1456,7 +1468,6 @@ begin
       if trainerdata[i].addressentrys[j].setvalue then
       case trainerdata[i].addressentrys[j].memtyp of
         0,1,2,6 : begin
-
                       try
                         trainerdata[i].addressentrys[j].valuei:=StrToInt64(trainerdata[i].addressentrys[j].value);
                       except
@@ -1898,5 +1909,23 @@ begin
 
   hotkeyhandler(m);
 end;
+
+procedure TfrmMemoryTrainer.executecheat(sender: tobject);
+var cheatnr: integer;
+    m: twmhotkey;
+begin
+  if (sender is tbutton) then
+    cheatnr:=tbutton(sender).Tag;
+
+  if (sender is tlabel) then
+    cheatnr:=tlabel(sender).tag;
+
+  if (sender is timage) then
+    cheatnr:=tlabel(sender).tag;
+
+  cheatnr:=cheatnr-5;
+  m.HotKey:=cheatnr;
+  hotkeyhandler(m);
+end; //onclick event
 
 end.

@@ -1,6 +1,6 @@
 object frmMemoryTrainer: TfrmMemoryTrainer
-  Left = 857
-  Top = 136
+  Left = 866
+  Top = 181
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'frmMemoryTrainer'
