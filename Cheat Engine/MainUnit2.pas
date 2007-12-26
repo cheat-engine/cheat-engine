@@ -4,7 +4,7 @@ unit MainUnit2;
 interface
 
 uses dialogs,forms,classes,windows,sysutils,formsettingsunit,registry,cefuncproc,AdvancedOptionsUnit,
-     MemoryBrowserFormUnit
+     MemoryBrowserFormUnit,memscan
 
 {$ifdef net}
 ,unit2;
@@ -17,15 +17,17 @@ procedure LoadSettingsFromRegistry;
 procedure initcetitle;
 function GetScanType: Integer;
 function getVarType: Integer;
+function GetScanType2: TScanOption;
+function getVarType2: TVariableType;
 
-const beta=''; //empty this for a release
+const beta=' RC9 (beta)'; //empty this for a release
 
 var
-  CEnorm:string = 'Cheat Engine'+beta;
-  CERegion:string = 'Cheat Engine 5.3'+beta+' - Please Wait!';
-  CESearch:string = 'Cheat Engine 5.3'+beta+' - Please Wait!';
-  CERegionSearch:string = 'Cheat Engine 5.3+'+beta+' - Please Wait!';
-  CEWait:string= 'Cheat Engine 5.3'+beta+' - Please Wait!';
+  CEnorm:string = 'Cheat Engine 5.4'+beta;
+  CERegion:string = 'Cheat Engine 5.4'+beta+' - Please Wait!';
+  CESearch:string = 'Cheat Engine 5.4'+beta+' - Please Wait!';
+  CERegionSearch:string = 'Cheat Engine 5.4'+beta+' - Please Wait!';
+  CEWait:string= 'Cheat Engine 5.4'+beta+' - Please Wait!';
 
 resourcestring
   strStart='Start';
@@ -77,6 +79,32 @@ resourcestring
 
 implementation
 
+function GetScanType2: TScanOption;
+{
+Determine the current scanoption.
+If it's a custom type vatriable, it's always of type custom
+}
+begin
+  if getVarType2=vtCustom then result:=soCustom
+  else
+  case GetScanType of
+    exact_value:       result:=soExactValue;
+    biggerthan:        result:=soBiggerThan;
+    smallerthan:       result:=soSmallerThan;
+    valueBetween:      result:=soValueBetween;
+    Advanced_scan:     result:=soUnknownValue;
+
+    Increased_value:   result:=soIncreasedValue;
+    Increased_value_by:result:=soIncreasedValueBy;
+    Decreased_value:   result:=soDecreasedValue;
+    Decreased_value_by:result:=soDecreasedValueBy;
+    Changed_value:     result:=soChanged;
+    Unchanged_value:   result:=soUnchanged;
+    SameAsFirst:       result:=soSameAsFirst;
+  end;
+
+end;
+
 function GetScanType: Integer;
 var vtype: integer;
 begin
@@ -85,7 +113,7 @@ begin
     result:=exact_value;
 
     vtype:= getvartype;
-    if getvartype in [0,1,2,3,4,6] then
+    if getvartype in [0,1,2,3,4,6,9] then
     begin
       if not nextscanbutton.enabled then
       begin
@@ -119,11 +147,31 @@ begin
   end;
 end;
 
+
+function getVarType2: TVariableType;
+var i: integer;
+begin
+  i:=getVarType;
+
+  case i of
+    5: result:=vtBinary;
+    0: result:=vtByte;
+    1: result:=vtWord;
+    2: result:=vtDword;
+    6: result:=vtQword;
+    3: result:=vtSingle;
+    4: result:=vtDouble;
+    7: result:=vtString;
+    8: result:=vtByteArray;
+    9: result:=vtAll;
+    10: result:=vtCustom;
+    else result:=vtByte;
+  end;
+end;
+
 function getVarType: Integer;
 begin
   {
-
-
 Bit = 5
 Byte =0
 2 Bytes =1
@@ -145,7 +193,9 @@ Text = 7
       6: result:=4; //double
       7: result:=7; //text
       8: result:=8; //array of byte
-      else result:=0;
+      9: result:=9; //all, only for new memscan
+      10: result:=10; //"custom"
+      else result:=-1;
     end;
   end;
 end;
@@ -200,14 +250,32 @@ begin
         with formsettings do
         begin
           LoadingSettingsFromRegistry:=true;
-          try cbshowundo.checked:=reg.ReadBool('Undo'); except end;
-          try cbShowAdvanced.checked:=reg.ReadBool('Advanced');except end;
-          try checkThread.checked:=reg.ReadBool('SeperateThread'); except end;
-          try combothreadpriority.itemindex:=reg.ReadInteger('ScanThreadpriority'); except end;
+
+
+          if reg.ValueExists('Undo') then
+            cbshowundo.checked:=reg.ReadBool('Undo');
+
+          if reg.ValueExists('Advanced') then
+            cbShowAdvanced.checked:=reg.ReadBool('Advanced');
+
+          if reg.ValueExists('SeperateThread') then
+            checkThread.checked:=reg.ReadBool('SeperateThread');
+
+          if reg.ValueExists('ScanThreadpriority') then
+            combothreadpriority.itemindex:=reg.ReadInteger('ScanThreadpriority');
+
+          case combothreadpriority.itemindex of
+            0: scanpriority:=tpIdle;
+            1: scanpriority:=tpLowest;
+            2: scanpriority:=tpLower;
+            3: scanpriority:=tpLower;
+            4: scanpriority:=tpNormal;
+            5: scanpriority:=tpHigher;
+            6: scanpriority:=tpHighest;
+            7: scanpriority:=tpTimeCritical;
+          end;
 
           mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
-
-
           mainform.advancedbutton.Visible:=cbShowAdvanced.checked;
           mainform.cbspeedhack.Visible:=cbShowAdvanced.checked;
 
@@ -215,19 +283,61 @@ begin
           {$ifndef net}
           SuspendHotkeyHandler;
 
-          try speedhackspeed1.speed:=reg.ReadFloat('Speedhack 1 speed'); except speedhackspeed1.speed:=1; end;
-          try speedhackspeed1.sleeptime:=reg.ReadInteger('Speedhack 1 sleeptime'); except speedhackspeed1.sleeptime:=3; end;
-          try speedhackspeed2.speed:=reg.ReadFloat('Speedhack 2 speed'); except speedhackspeed2.speed:=1; end;
-          try speedhackspeed2.sleeptime:=reg.ReadInteger('Speedhack 2 sleeptime'); except speedhackspeed2.sleeptime:=3; end;
-          try speedhackspeed3.speed:=reg.ReadFloat('Speedhack 3 speed'); except speedhackspeed3.speed:=1; end;
-          try speedhackspeed3.sleeptime:=reg.ReadInteger('Speedhack 3 sleeptime'); except speedhackspeed3.sleeptime:=3; end;
-          try speedhackspeed4.speed:=reg.ReadFloat('Speedhack 4 speed'); except speedhackspeed4.speed:=1; end;
-          try speedhackspeed4.sleeptime:=reg.ReadInteger('Speedhack 4 sleeptime'); except speedhackspeed4.sleeptime:=3; end;
-          try speedhackspeed5.speed:=reg.ReadFloat('Speedhack 5 speed'); except speedhackspeed5.speed:=1; end;
-          try speedhackspeed5.sleeptime:=reg.ReadInteger('Speedhack 5 sleeptime'); except speedhackspeed5.sleeptime:=3; end;
+          if reg.ValueExists('Speedhack 1 speed') then
+            speedhackspeed1.speed:=reg.ReadFloat('Speedhack 1 speed')
+          else
+            speedhackspeed1.speed:=1;
 
-          try speedupdelta:=reg.ReadFloat('Increase Speedhack delta'); except end;
-          try slowdowndelta:=reg.ReadFloat('Decrease Speedhack delta'); except end;
+          if reg.ValueExists('Speedhack 1 sleeptime') then
+            speedhackspeed1.sleeptime:=reg.ReadInteger('Speedhack 1 sleeptime')
+          else
+            speedhackspeed1.sleeptime:=3;
+
+          if reg.ValueExists('Speedhack 2 speed') then
+            speedhackspeed2.speed:=reg.ReadFloat('Speedhack 2 speed')
+          else
+            speedhackspeed2.speed:=1;
+
+          if reg.ValueExists('Speedhack 2 sleeptime') then
+            speedhackspeed2.sleeptime:=reg.ReadInteger('Speedhack 2 sleeptime')
+          else
+            speedhackspeed2.sleeptime:=3;
+
+          if reg.ValueExists('Speedhack 3 speed') then
+            speedhackspeed3.speed:=reg.ReadFloat('Speedhack 3 speed')
+          else
+            speedhackspeed3.speed:=1;
+
+          if reg.ValueExists('Speedhack 3 sleeptime') then
+            speedhackspeed3.sleeptime:=reg.ReadInteger('Speedhack 3 sleeptime')
+          else
+            speedhackspeed3.sleeptime:=3;
+
+          if reg.ValueExists('Speedhack 4 speed') then
+            speedhackspeed4.speed:=reg.ReadFloat('Speedhack 4 speed')
+          else
+            speedhackspeed4.speed:=1;
+
+          if reg.ValueExists('Speedhack 4 sleeptime') then
+            speedhackspeed4.sleeptime:=reg.ReadInteger('Speedhack 4 sleeptime')
+          else
+            speedhackspeed4.sleeptime:=3;
+
+          if reg.ValueExists('Speedhack 5 speed') then
+            speedhackspeed5.speed:=reg.ReadFloat('Speedhack 5 speed')
+          else
+            speedhackspeed5.speed:=1;
+
+          if reg.ValueExists('Speedhack 5 sleeptime') then
+            speedhackspeed5.sleeptime:=reg.ReadInteger('Speedhack 5 sleeptime')
+          else
+            speedhackspeed5.sleeptime:=3;
+
+          if reg.ValueExists('Increase Speedhack delta') then
+            speedupdelta:=reg.ReadFloat('Increase Speedhack delta');
+
+          if reg.ValueExists('Decrease Speedhack delta') then
+            slowdowndelta:=reg.ReadFloat('Decrease Speedhack delta');
 
           try reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10); except mainform.label7.Caption:=''; end;
           try reg.ReadBinaryData('Pause process Hotkey',temphotkeylist[1][0],10); except end;
@@ -361,7 +471,7 @@ begin
           try cbShowAsSigned.checked:=reg.readbool('Show values as signed'); except end;
           try cbBinariesAsDecimal.checked:=reg.readbool('Handle binarys as decimals'); except end;
 
-    //      reg.KeyExists()
+    //      reg.ValueExists()
           if reg.ValueExists('AutoAttach') then
             EditAutoAttach.Text:=reg.ReadString('AutoAttach');
 
@@ -432,17 +542,32 @@ begin
           try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
           try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
 
-          try DenyList:=reg.ReadBool('ModuleList as Denylist'); except denylist:=true; end;
-          try DenyListGlobal:=reg.ReadBool('Global Denylist'); except denylistglobal:=false; end;
-          try ModuleListSize:=reg.ReadInteger('ModuleListSize'); except modulelistsize:=0; end;
+          if reg.ValueExists('ModuleList as Denylist') then
+            DenyList:=reg.ReadBool('ModuleList as Denylist')
+          else
+            denylist:=true;
+            
+          if reg.ValueExists('Global Denylist') then
+            DenyListGlobal:=reg.ReadBool('Global Denylist')
+          else
+            denylistglobal:=false;
+
+          if reg.ValueExists('ModuleListSize') then
+            ModuleListSize:=reg.ReadInteger('ModuleListSize')
+          else
+            modulelistsize:=0;
+            
           if modulelist<>nil then freemem(modulelist);
           getmem(modulelist,modulelistsize);
           try reg.ReadBinaryData('Module List',ModuleList^,ModuleListSize); except end;
 
           try cbProcessWatcher.checked:=reg.readBool('Use Processwatcher'); except end;
           try cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger'); except end;
+          try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;
 
-          if cbForceUndo.checked then LoadDBK32;
+
+
+          if cbForceUndo.checked or cbGlobalDebug.checked then LoadDBK32;
 
           if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
           if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
@@ -452,6 +577,9 @@ begin
             if (frmProcessWatcher=nil) then //propably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
+
+          if assigned(newkernelhandler.SetGlobalDebugState) then
+            newkernelhandler.SetGlobalDebugState(cbGlobalDebug.checked);
           {$endif}
 
           if cbUndoMemoryChanges.checked then
@@ -559,7 +687,7 @@ var dwhandle: thandle;
     ffi: ^VS_FIXEDFILEINFO;
 
 begin
-  CEnorm:='Cheat Engine 5.3';  //.';
+  CEnorm:='Cheat Engine 5.4 RC9 (beta)';  //.';
 
 {  FileVersionInfoSize:=GetFileVersionInfoSize(pchar(application.exename),dwhandle);
   if FileVersionInfoSize>0 then
@@ -590,4 +718,6 @@ begin
 end;
 
 end.
+
+
 

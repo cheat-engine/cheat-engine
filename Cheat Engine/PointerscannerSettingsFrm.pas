@@ -162,14 +162,7 @@ var ths: thandle;
     bitcount: integer;
     PA,SA: dword;
 begin
-  GetProcessAffinityMask(getcurrentprocess,PA,SA);
-  bitcount:=1;
-  while pa>0 do
-  begin
-    if (pa mod 2)=1 then inc(bitcount);
-    pa:=pa div 2;
-  end;
-
+  bitcount:=GetCPUCount+1;
   edtThreadcount.text:=inttostr(bitcount);
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);

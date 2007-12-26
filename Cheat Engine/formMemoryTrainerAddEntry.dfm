@@ -16,8 +16,8 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    377
-    299)
+    385
+    301)
   PixelsPerInch = 96
   TextHeight = 13
   object Label3: TLabel
@@ -79,7 +79,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 377
+    Width = 385
     Height = 230
     ActivePage = TabSheet2
     Align = alTop
@@ -111,12 +111,12 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       Caption = 'Addresses'
       ImageIndex = 1
       DesignSize = (
-        369
+        377
         202)
       object Label5: TLabel
         Left = 0
         Top = 189
-        Width = 369
+        Width = 377
         Height = 13
         Hint = 
           'Dynamic memory allocation is when a game doesnt store it'#39's stats' +
@@ -152,7 +152,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       object Listview: TListView
         Left = 0
         Top = 0
-        Width = 369
+        Width = 377
         Height = 153
         Align = alTop
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -180,5 +180,14 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
         OnClick = ListviewClick
       end
     end
+  end
+  object Button4: TButton
+    Left = 328
+    Top = 248
+    Width = 49
+    Height = 17
+    Caption = 'Clear'
+    TabOrder = 5
+    OnClick = Button4Click
   end
 end

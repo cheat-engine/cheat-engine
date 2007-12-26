@@ -1,11 +1,11 @@
 object formSettings: TformSettings
-  Left = 685
-  Top = 223
+  Left = 564
+  Top = 247
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Cheat Engine settings'
   ClientHeight = 357
-  ClientWidth = 521
+  ClientWidth = 499
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,12 +18,12 @@ object formSettings: TformSettings
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    521
+    499
     357)
   PixelsPerInch = 96
   TextHeight = 13
   object Label20: TLabel
-    Left = 469
+    Left = 453
     Top = 342
     Width = 45
     Height = 13
@@ -50,9 +50,9 @@ object formSettings: TformSettings
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 521
+    Width = 499
     Height = 321
-    ActivePage = TabSheet1
+    ActivePage = TabSheet6
     Align = alTop
     TabOrder = 1
     object TabSheet1: TTabSheet
@@ -213,7 +213,7 @@ object formSettings: TformSettings
           Top = 48
           Width = 441
           Height = 17
-          Caption = 'Simple copy/paste'
+          Caption = 'Simple paste'
           TabOrder = 2
         end
       end
@@ -307,7 +307,7 @@ object formSettings: TformSettings
       end
       object cbAlwaysAutoAttach: TCheckBox
         Left = 8
-        Top = 208
+        Top = 210
         Width = 337
         Height = 17
         Caption = 'Even autoattach when another process has already been selected'
@@ -464,7 +464,7 @@ object formSettings: TformSettings
         Width = 41
         Height = 21
         TabOrder = 0
-        Text = '512'
+        Text = '1024'
       end
     end
     object TabSheet3: TTabSheet
@@ -537,7 +537,7 @@ object formSettings: TformSettings
         Caption = 'The following plugins are available:'
       end
       object Button4: TButton
-        Left = 432
+        Left = 416
         Top = 16
         Width = 75
         Height = 25
@@ -546,7 +546,7 @@ object formSettings: TformSettings
         OnClick = Button4Click
       end
       object Button5: TButton
-        Left = 432
+        Left = 416
         Top = 48
         Width = 75
         Height = 25
@@ -557,7 +557,7 @@ object formSettings: TformSettings
       object clbPlugins: TCheckListBox
         Left = 0
         Top = 16
-        Width = 425
+        Width = 409
         Height = 273
         ItemHeight = 13
         TabOrder = 2
@@ -753,7 +753,7 @@ object formSettings: TformSettings
       object GroupBox3: TGroupBox
         Left = 0
         Top = 0
-        Width = 508
+        Width = 491
         Height = 70
         Align = alTop
         Caption = 
@@ -774,7 +774,7 @@ object formSettings: TformSettings
           Top = 32
           Width = 457
           Height = 17
-          Caption = 'Read/Write Process Memory'
+          Caption = 'Read/Write Process Memory  (Will cause slower scans)'
           TabOrder = 1
           OnClick = cbKernelQueryMemoryRegionClick
         end
@@ -789,9 +789,9 @@ object formSettings: TformSettings
       end
       object Panel1: TPanel
         Left = 0
-        Top = 176
+        Top = 192
         Width = 467
-        Height = 105
+        Height = 89
         BevelOuter = bvLowered
         TabOrder = 3
         object Label25: TLabel
@@ -901,6 +901,15 @@ object formSettings: TformSettings
         TabOrder = 7
         Visible = False
       end
+      object cbGlobalDebug: TCheckBox
+        Left = 24
+        Top = 170
+        Width = 153
+        Height = 17
+        Caption = 'Use Global Debug routines'
+        Enabled = False
+        TabOrder = 8
+      end
     end
     object TabSheet8: TTabSheet
       Caption = 'Extra'
@@ -940,6 +949,7 @@ object formSettings: TformSettings
     Top = 328
     Width = 75
     Height = 25
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2

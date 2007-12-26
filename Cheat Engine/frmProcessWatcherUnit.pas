@@ -410,7 +410,7 @@ begin
     PWOP(ProcessIDString);
     MainForm.ProcessLabel.caption:=processnode.Text;
 
-    mainform.enableGui;
+    mainform.enableGui(false);
 
     sleep(100); //wait a bit for the process to get fully created if it is a auto attach
 
@@ -472,7 +472,7 @@ begin
     if formsettings.cbBreakOnAttach.checked then
       memorybrowser.show;
 
-    mainform.enableGui;
+    mainform.enableGui(false);
     close;
   end else showmessage('First select a process!');
 end;

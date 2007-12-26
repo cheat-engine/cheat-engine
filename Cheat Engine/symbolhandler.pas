@@ -19,6 +19,8 @@ type TMemoryregions = array of tmemoryregion;
   
 {$endif}
 
+type symexception=class(Exception);
+
 
 type TUserdefinedsymbol=record
   symbolname: string;
@@ -33,8 +35,33 @@ end;
 
 type TUserdefinedSymbolCallback=procedure;
 
-type TSymHandler=class
+type
+  TSymbolloaderthread=class(tthread)
   private
+    symbolprocesshandle: thandle;
+    targetself: boolean;
+    thisprocesshandle: thandle;
+    thisprocessid: dword;    
+    procedure LoadDriverSymbols;
+    procedure LoadDLLSymbols;
+  public
+    isloading: boolean;
+    symbolsloaded: boolean;
+
+    kernelsymbols: boolean;
+    dllsymbols: boolean;
+    searchpath: string;
+
+    procedure execute; override;
+    constructor create(targetself, CreateSuspended: boolean);
+    destructor destroy; override;
+  end;
+
+  TSymHandler=class
+  private
+    symbolloaderthread: TSymbolloaderthread;
+
+
     lastmodulelistupdate: integer;
     modulelistpos: integer;
     modulelist: array of TModuleInfo;
@@ -64,6 +91,7 @@ type TSymHandler=class
     dllsymbols: boolean;
     
     locked: boolean;
+    targetself: boolean;
 
     property showmodules: boolean read fshowmodules write setshowmodules;
     property showsymbols: boolean read fshowsymbols write setshowsymbols;
@@ -85,7 +113,7 @@ type TSymHandler=class
 
     function getsearchpath:string;
     procedure setsearchpath(path:string);
-        
+
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     function GetUserdefinedSymbolByName(symbolname:string):dword;
@@ -103,29 +131,12 @@ type TSymHandler=class
 end;
 
 var symhandler: TSymhandler;
+    selfsymhandler: TSymhandler;  //symhandler object for CE itself
 
 implementation
 
 uses assemblerunit;
 
-type TSymbolloaderthread=class(tthread)
-  private
-    procedure LoadDriverSymbols;
-    procedure LoadDLLSymbols;
-  public
-    isloading: boolean;
-    symbolsloaded: boolean;
-    thisprocesshandle: thandle;
-    thisprocessid: dword;
-    kernelsymbols: boolean;
-    dllsymbols: boolean;
-    searchpath: string;
-    procedure execute; override;
-    constructor create(CreateSuspended: boolean);
-end;
-
-var symbolloaderthread: TSymbolloaderthread;
-    symbolprocesshandle: thandle;
 
 procedure TSymbolloaderthread.LoadDLLSymbols;
 var need:dword;
@@ -198,7 +209,7 @@ begin
     symsetsearchpath(processhandle,pchar(searchpath));
 
     if kernelsymbols then LoadDriverSymbols;
-    //if dllsymbols then
+
     LoadDLLSymbols;
 
     symbolprocesshandle:=processhandle;
@@ -207,14 +218,42 @@ begin
   end;
 end;
 
-constructor TSymbolloaderthread.create(CreateSuspended: boolean);
+destructor TSymbolloaderthread.destroy;
 begin
+  //close the symbol handler for this processhandle
+  if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); 
+  inherited destroy;
+end;
+
+constructor TSymbolloaderthread.create(targetself, CreateSuspended: boolean);
+var
+  processid: dword;
+  processhandle: thandle;
+begin
+  self.targetself:=targetself;
+  
+{$ifdef autoassemblerdll}
+  processid:=symbolhandler.ProcessID;
+  processhandle:=symbolhandler.processhandle;
+{$else}
+  if targetself then
+  begin
+    processid:=getcurrentprocessid;
+    processhandle:=getcurrentprocess;
+  end
+  else
+  begin
+    processid:=cefuncproc.ProcessID;
+    processhandle:=cefuncproc.ProcessHandle;
+  end;
+{$endif}
+
   thisprocesshandle:=processhandle;
   thisprocessid:=processid;
   isloading:=true;
   SymbolsLoaded:=false;
 
-  inherited create(suspended);
+  inherited create(CreateSuspended);
 end;
 
 function TSymhandler.getisloaded:boolean;
@@ -235,13 +274,13 @@ end;
 
 procedure TSymhandler.setshowmodules(x: boolean);
 begin
-  if locked then raise exception.Create('You can''t change this setting at the moment');
+  if locked then raise symexception.Create('You can''t change this setting at the moment');
   fshowmodules:=x;
 end;
 
 procedure TSymhandler.setshowsymbols(x: boolean);
 begin
-  if locked then raise exception.Create('You can''t change this setting at the moment');
+  if locked then raise symexception.Create('You can''t change this setting at the moment');
   fshowsymbols:=x;
 end;
 
@@ -276,13 +315,14 @@ begin
   symbolloadervalid.BeginWrite;
   if symbolloaderthread<>nil then
   begin
+    symbolloaderthread.Terminate;
     symbolloaderthread.WaitFor; //wait till it's done
     symbolloaderthread.Free;
   end;
 
 
   
-  symbolloaderthread:=tsymbolloaderthread.Create(true);
+  symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
   symbolloaderthread.kernelsymbols:=kernelsymbols;
   symbolloaderthread.searchpath:=searchpath;
   symbolloaderthread.Resume;
@@ -350,8 +390,8 @@ end;
 
 procedure TSymhandler.AddUserdefinedSymbol(address: dword; symbolname: string);
 begin
-  if address=0 then raise exception.Create('You can''t add a symbol with address 0');
-  if getuserdefinedsymbolbyname(symbolname)>0 then raise exception.Create(symbolname+' already exists');
+  if address=0 then raise symexception.Create('You can''t add a symbol with address 0');
+  if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' already exists');
 
   userdefinedsymbolsMREW.beginwrite;
   try
@@ -515,7 +555,22 @@ var symbol :PImagehlpSymbol;
     offset: dword;
     s: string;
     mi: tmoduleinfo;
+    processhandle: thandle;
 begin
+{$ifdef autoassemblerdll}
+  processhandle:=symbolhandler.processhandle;
+{$else}
+  if targetself then
+  begin
+    processhandle:=getcurrentprocess;
+  end
+  else
+  begin
+    processhandle:=cefuncproc.ProcessHandle;
+  end;
+{$endif}
+
+
   if symbols then
   begin
     //first see if it is a symbol
@@ -600,12 +655,26 @@ var mi: tmoduleinfo;
     ws: widestring;
     pws: pwidechar;
     error: boolean;
+
+    processhandle: thandle;
 begin
+{$ifdef autoassemblerdll}
+  processhandle:=symbolhandler.processhandle;
+{$else}
+  if targetself then
+  begin
+    processhandle:=getcurrentprocess;
+  end
+  else
+  begin
+    processhandle:=cefuncproc.ProcessHandle;
+  end;
+{$endif}
+
   result:=0;
 
-  val('$'+name,result,i);
+  val(ConvertHexStrToRealStr(name),result,i);
   if i=0 then exit; //it's a valid hexadecimal string
-
 
 
   try
@@ -629,7 +698,7 @@ begin
 
 
   except
-    raise exception.create(sn+' is not a valid value');
+    raise symexception.create(sn+' is not a valid value');
   end;
 
   if name='' then name:='0';
@@ -640,10 +709,16 @@ begin
     exit; //it was a simple +/- calculation
   end;
 
+  {
+  debugger hell:
+  tools->debugger options->Language Exceptions
+  click add...
+  type in "symexception" without the quotes
+
+  this will cause you to still break on normal exception like memory access violations, but not on these
+  }
   if getreg(uppercase(name),false)<>9 then
-    raise exception.create('Register'); //can happen in case of eax+# //speed improvement
-
-
+    raise symexception.create('Register'); //can happen in case of eax+# //speed improvement
 
    
   //see if it is a module
@@ -692,7 +767,7 @@ begin
       if (symbolloaderthread<>nil) then
       begin
         if symbolloaderthread.isloading and not waitforsymbols then
-          raise exception.create('This is not a valid address');
+          raise symexception.create('This is not a valid address');
 
         symbolloaderthread.WaitFor; //wait for it to finish if it's still busy
         //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a module
@@ -705,12 +780,12 @@ begin
           if SymGetSymFromName(processhandle,pchar(name),symbol^) then
             result:=symbol.Address+offset
           else
-            raise exception.Create('This is not a valid address');   //no hex string, no module, no symbol, so invalid
+            raise symexception.Create('This is not a valid address');   //no hex string, no module, no symbol, so invalid
         finally
           freemem(symbol);
         end;
       end else
-        raise exception.Create('This is not a valid address');
+        raise symexception.Create('This is not a valid address');
 
     finally
       symbolloadervalid.endread;
@@ -725,7 +800,18 @@ var
   ths: thandle;
   me32:MODULEENTRY32;
   x: pchar;
+
+  processid: dword;
 begin
+{$ifdef autoassemblerdll}
+  processid:=symbolhandler.ProcessID;
+{$else}
+  if targetself then
+    processid:=getcurrentprocessid
+  else
+    processid:=cefuncproc.ProcessID;
+{$endif}
+  
   modulelistMREW.BeginWrite;
   try
     modulelistpos:=0;
@@ -916,12 +1002,14 @@ end;
 
 
 initialization
-  symbolprocesshandle:=0;
   symhandler:=tsymhandler.create;
+  selfsymhandler:=Tsymhandler.create;
+  selfsymhandler.targetself:=true;
 
 finalization
+  selfsymhandler.free;
   symhandler.free;
-
+  
 end.
 
 

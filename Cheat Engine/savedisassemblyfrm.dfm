@@ -1,10 +1,10 @@
 object frmSavedisassembly: TfrmSavedisassembly
-  Left = 725
-  Top = 495
+  Left = 629
+  Top = 393
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'
   ClientHeight = 136
-  ClientWidth = 240
+  ClientWidth = 246
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,7 +12,8 @@ object frmSavedisassembly: TfrmSavedisassembly
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  OnClose = FormClose
+  Position = poScreenCenter
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -86,7 +87,7 @@ object frmSavedisassembly: TfrmSavedisassembly
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 119
-    Width = 240
+    Width = 246
     Height = 17
     Align = alBottom
     TabOrder = 6

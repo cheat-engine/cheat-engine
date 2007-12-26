@@ -96,6 +96,7 @@ begin
 end;
 
 procedure fillclick;
+var i: integer;
 begin
   with frmTrainerDesignObjectView do
   begin
@@ -106,6 +107,10 @@ begin
     valuelisteditor1.ItemProps['On Click'].PickList.Add('Launch App');
     valuelisteditor1.ItemProps['On Click'].PickList.Add('Show Aboutbox');
     valuelisteditor1.ItemProps['On Click'].picklist.add('Execute command');
+
+    for i:=0 to length(frmmemorymodifier.trainerdata)-1 do
+      valuelisteditor1.ItemProps['On Click'].picklist.add('Execute cheat '+inttostr(i));
+
     valuelisteditor1.ItemProps['On Click'].EditStyle:=esPickList;
   end;
 end;
@@ -173,6 +178,12 @@ begin
         2: valuelisteditor1.InsertRow('On Click','Launch App',true);
         3: valuelisteditor1.InsertRow('On Click','Show Aboutbox',true);
         4: valuelisteditor1.InsertRow('On Click','Execute command',true);
+        else
+        begin
+          if tbutton2(selectedobject).Tag>=5 then //it has an cheat assigned
+            valuelisteditor1.InsertRow('On Click','Execute cheat '+inttostr(tbutton2(selectedobject).Tag-5),true);
+        end;
+
       end;
       valuelisteditor1.InsertRow('Command',tbutton2(selectedobject).command,true);
 
@@ -259,6 +270,12 @@ begin
         2: valuelisteditor1.InsertRow('On Click','Launch App',true);
         3: valuelisteditor1.InsertRow('On Click','Show Aboutbox',true);
         4: valuelisteditor1.InsertRow('On Click','Execute command',true);
+        else
+        begin
+          if tbutton2(selectedobject).Tag>=5 then //it has an cheat assigned
+            valuelisteditor1.InsertRow('On Click','Execute cheat '+inttostr(tbutton2(selectedobject).Tag-5),true);
+        end;
+        
       end;
       valuelisteditor1.InsertRow('Command',tImage2(selectedobject).command,true);
 
@@ -288,6 +305,12 @@ begin
         2: valuelisteditor1.InsertRow('On Click','Launch App',true);
         3: valuelisteditor1.InsertRow('On Click','Show Aboutbox',true);
         4: valuelisteditor1.InsertRow('On Click','Execute command',true);
+        else
+        begin
+          if tbutton2(selectedobject).Tag>=5 then //it has an cheat assigned
+            valuelisteditor1.InsertRow('On Click','Execute cheat '+inttostr(tbutton2(selectedobject).Tag-5),true);
+        end;
+        
       end;
       valuelisteditor1.InsertRow('Command',tlabel2(selectedobject).command,true);
       fillclick;

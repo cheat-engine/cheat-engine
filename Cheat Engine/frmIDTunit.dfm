@@ -16,13 +16,14 @@ object frmIDT: TfrmIDT
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object TreeView1: TTreeView
+  object tvIDT: TTreeView
     Left = 0
     Top = 0
     Width = 291
     Height = 287
     Align = alClient
     Indent = 19
+    ReadOnly = True
     TabOrder = 0
   end
 end

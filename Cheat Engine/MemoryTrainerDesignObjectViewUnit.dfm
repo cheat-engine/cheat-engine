@@ -1,6 +1,6 @@
 object frmTrainerDesignObjectView: TfrmTrainerDesignObjectView
-  Left = 755
-  Top = 525
+  Left = 804
+  Top = 578
   Width = 189
   Height = 368
   HelpContext = 14

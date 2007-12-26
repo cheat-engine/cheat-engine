@@ -41,6 +41,7 @@ type TGetDebugportOffset=function:DWORD; stdcall;
 type TGetProcessnameOffset=function:DWORD; stdcall;
 type TGetThreadsProcessOffset=function: dword; stdcall;
 type TGetThreadListEntryOffset=function: dword; stdcall;
+type TSetGlobalDebugState=function(state: boolean): BOOL; stdcall;
 
 type TGetPhysicalAddress=function(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 type TProtectMe=function(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall;
@@ -168,6 +169,7 @@ var
   setAlternateDebugMethod: TsetAlternateDebugMethod;
   getAlternateDebugMethod: TgetAlternateDebugMethod;
 
+  SetGlobalDebugState   :TSetGlobalDebugState;
   DebugProcess          :TDebugProcess;
   ChangeRegOnBP         :TChangeRegOnBP;
   RetrieveDebugData     :TRetrieveDebugData;
@@ -307,8 +309,8 @@ begin
     WritePhysicalMemory:=GetProcAddress(DarkByteKernel,'WritePhysicalMemory');
 
     MakeKernelCopy:=GetProcAddress(DarkByteKernel,'MakeKernelCopy');
-
     CreateRemoteAPC:=GetProcAddress(darkByteKernel,'CreateRemoteAPC');
+    SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'SetGlobalDebugState');
 
     dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');
     dbvm_changeselectors:=GetProcAddress(DarkByteKernel,'dbvm_changeselectors');

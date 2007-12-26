@@ -5,7 +5,7 @@ object About: TAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
-  ClientHeight = 175
+  ClientHeight = 188
   ClientWidth = 250
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -23,9 +23,9 @@ object About: TAbout
     Left = 0
     Top = 0
     Width = 250
-    Height = 175
+    Height = 188
     Align = alClient
-    Caption = 'Cheat Engine 5.1'
+    Caption = 'Cheat Engine 5.4'
     TabOrder = 0
     object Label1: TLabel
       Left = 72
@@ -36,28 +36,28 @@ object About: TAbout
     end
     object Label2: TLabel
       Left = 8
-      Top = 96
+      Top = 112
       Width = 51
       Height = 13
       Caption = 'Thanks to:'
     end
     object Label3: TLabel
       Left = 8
-      Top = 112
+      Top = 128
       Width = 32
       Height = 13
       Caption = 'Metael'
     end
     object Label4: TLabel
       Left = 108
-      Top = 112
+      Top = 128
       Width = 57
       Height = 13
       Caption = 'A. Wiseman'
     end
     object Label5: TLabel
       Left = 8
-      Top = 128
+      Top = 144
       Width = 203
       Height = 13
       Caption = 'And all the other people that helped me out'
@@ -382,14 +382,14 @@ object About: TAbout
     end
     object Label6: TLabel
       Left = 55
-      Top = 112
+      Top = 128
       Width = 34
       Height = 13
       Caption = 'wh1t3y'
     end
     object Label7: TLabel
       Left = 181
-      Top = 112
+      Top = 128
       Width = 66
       Height = 13
       Caption = 'SWAT-Squad'
@@ -424,9 +424,22 @@ object About: TAbout
       ParentFont = False
       OnClick = Label9Click
     end
+    object Label10: TLabel
+      Left = 8
+      Top = 94
+      Width = 213
+      Height = 13
+      Caption = 'Script engine powered by the UnderC Project'
+    end
+    object lblDBVM: TLabel
+      Left = 8
+      Top = 168
+      Width = 3
+      Height = 13
+    end
     object Button1: TButton
       Left = 208
-      Top = 152
+      Top = 163
       Width = 33
       Height = 17
       Caption = 'OK'

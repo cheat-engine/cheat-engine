@@ -32,6 +32,7 @@ type
     Button3: TButton;
     Label5: TLabel;
     Listview: TListView;
+    Button4: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -41,15 +42,15 @@ type
     procedure editHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure editHotkeyKeyPress(Sender: TObject; var Key: Char);
+    procedure Button4Click(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
-    laststate: word;
-    lastshiftstate: TShiftState;
-    
     editmode: boolean;
     memorystuff: array of Tmemoryentry;
+
+    hotkey: tkeycombo;
   end;
 
 var
@@ -103,7 +104,7 @@ procedure TFrmMemoryTrainerAddEntry.Button1Click(Sender: TObject);
 var i,j,k,index: integer;
     keymod: word;
 begin
-  keymod:=0;
+{  keymod:=0;
   if ssctrl in lastshiftstate then keymod:=keymod or MOD_CONTROL;
   if ssAlt in LastShiftState then keymod:=keymod or MOD_ALT;
   if ssShift in LastShiftState then keymod:=keymod or MOD_Shift;
@@ -113,10 +114,11 @@ begin
 
   if (LastState=VK_SHIFT) or (LastState=VK_CONTROL) or (LastState=VK_MENU) then
     raise Exception.create('One other key has to be pressed!(except ctrl, alt or shift!)');
-
+    }
+    
   if editmode then
   begin
-    showmessage('edit');
+    showmessage('nyi');
   end
   else
   begin
@@ -185,8 +187,7 @@ begin
     //all the entrys have been added
     frmMemoryModifier.trainerdata[index].description:=editDescription.Text;
     frmMemoryModifier.trainerdata[index].hotkeytext:=editHotkey.Text;
-    frmMemoryModifier.trainerdata[index].hotkey:=laststate;
-    frmMemoryModifier.trainerdata[index].hotshift:=keymod;
+    frmMemoryModifier.trainerdata[index].hotkey:=hotkey;
 
     //now add this to the list
     frmMemoryModifier.recordview.Items.Add.caption:=frmMemoryModifier.trainerdata[index].description;
@@ -199,29 +200,33 @@ end;
 
 procedure TFrmMemoryTrainerAddEntry.editHotkeyKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
-var newstr: String;
+var i: integer;
 begin
-  laststate:=Key;
-  lastshiftstate:=Shift;
+  if hotkey[4]=0 then
+  begin
+    for i:=0 to 4 do
+      if hotkey[i]=0 then
+      begin
+        hotkey[i]:=key;
+        break;
+      end else
+      if hotkey[i]=key then break;  //already in list
+  end;
 
-  newstr:='';
-  if ssCtrl in Shift then newstr:='Ctrl';
-  if ssAlt in shift then if newstr='' then newstr:='Alt' else newstr:=newstr+'+Alt';
-  if ssShift in Shift then if newstr='' then newstr:='Shift' else newstr:=newstr+'+Shift';
-
-  if newstr='' then
-    newstr:=KeyToStr(key)
-  else
-    newstr:=newstr+'+'+KeyToStr(key);
-
-  edithotkey.text:=newstr;
-  key:=0;
+  editHotkey.Text:=ConvertKeyComboToString(hotkey);
 end;
 
 procedure TFrmMemoryTrainerAddEntry.editHotkeyKeyPress(Sender: TObject;
   var Key: Char);
 begin
   key:=chr(0);
+end;
+
+procedure TFrmMemoryTrainerAddEntry.Button4Click(Sender: TObject);
+begin
+  zeromemory(@hotkey[0],10);
+  editHotkey.Text:=ConvertKeyComboToString(hotkey);
+  edithotkey.SetFocus;
 end;
 
 end.

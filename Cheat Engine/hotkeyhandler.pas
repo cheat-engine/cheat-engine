@@ -2,7 +2,7 @@ unit HotkeyHandler;
 
 interface
 
-uses windows,classes,SyncObjs,messages,cefuncproc;
+uses windows,classes,SyncObjs,cefuncproc,messages;
 
 type thotkeyitem=record
   keys: TKeyCombo;
@@ -27,6 +27,7 @@ function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo): boolean;
 function UnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
+procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
 procedure SuspendHotkeyHandler;
 procedure ResumeHotkeyHandler;
@@ -120,9 +121,12 @@ begin
         result:=false;
         exit;
       end;
+
     end;
 
   end;
+
+
 end;
 
 function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo): boolean;
@@ -143,6 +147,36 @@ begin
   end;
 end;
 
+procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
+{
+Function will take the fsmodifier and vk of the normal registerhotkey call and
+fill it in into a TKeyCombo type array used by ce's hotkey handler
+}
+var i: integer;
+begin
+  k[0]:=vk;
+  i:=1;
+
+  if (fsModifiers and MOD_CONTROL)>0 then
+  begin
+    k[i]:=vk_control;
+    inc(i);
+  end;
+
+  if (fsModifiers and MOD_ALT)>0 then
+  begin
+    k[i]:=vk_menu;
+    inc(i);
+  end;
+
+  if (fsModifiers and MOD_SHIFT)>0 then
+  begin
+    k[i]:=vk_shift;
+    inc(i);
+  end;
+
+  k[i]:=0;
+end;
 
 function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
 var i: integer;
@@ -156,28 +190,7 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=vk;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=false;
 
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys[0]:=VK;
-    i:=1;
-    
-    if (fsModifiers and MOD_CONTROL)>0 then
-    begin
-      hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys[i]:=vk_control;
-      inc(i);
-    end;
-
-    if (fsModifiers and MOD_ALT)>0 then
-    begin
-      hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys[i]:=vk_menu;
-      inc(i);
-    end;
-
-    if (fsModifiers and MOD_Shift)>0 then
-    begin
-      hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys[i]:=vk_shift;
-      inc(i);
-    end;
-
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys[i]:=0;
+    ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
 
     result:=true;
   finally
@@ -245,7 +258,7 @@ begin
             c:=(hotkeylist[i].uVirtKey shl 16)+hotkeylist[i].fuModifiers;
 
             if hotkeylist[i].handler2 then
-              sendmessage(a,WM_USER+$800,b,0) //
+              sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0) //why can't I use wm_hotkey2?
             else
               sendmessage(a,WM_HOTKEY,b,c);
           end;

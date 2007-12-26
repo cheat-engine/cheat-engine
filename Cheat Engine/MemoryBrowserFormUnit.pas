@@ -5,11 +5,11 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32,
   StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,debugger2,{$endif}assemblerunit,disassembler,addressparser,
-  Buttons,imagehlp{$ifndef net},dissectcodethread{$endif}
+  Buttons,imagehlp, Contnrs, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
   ,NetAPIs
   {$else}
-  ,NewKernelHandler
+  ,NewKernelHandler, ComCtrls
   {$endif}
   ;
 
@@ -50,11 +50,8 @@ type
     N2: TMenuItem;
     Splitter1: TSplitter;
     Panel5: TPanel;
-    ScrollBar1: TScrollBar;
     Panel6: TPanel;
     DisCanvas: TPaintBox;
-    Panel2: TPanel;
-    Label1: TLabel;
     ScrollBar2: TScrollBar;
     RegisterView: TPanel;
     Splitter2: TSplitter;
@@ -164,6 +161,18 @@ type
     Newwindow1: TMenuItem;
     Follow1: TMenuItem;
     dflabel: TLabel;
+    Copytoclipboard1: TMenuItem;
+    copyBytes: TMenuItem;
+    copyOpcodes: TMenuItem;
+    CopyBytesAndOpcodes: TMenuItem;
+    DissectPEheaders1: TMenuItem;
+    Back1: TMenuItem;
+    Showvaluesofstaticaddresses1: TMenuItem;
+    disassemblerheader: THeaderControl;
+    disassemblerscrollbox: TScrollBox;
+    Panel2: TPanel;
+    Label1: TLabel;
+    ScrollBar1: TScrollBar;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -294,6 +303,12 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
     procedure Follow1Click(Sender: TObject);
+    procedure CopyBytesAndOpcodesClick(Sender: TObject);
+    procedure DissectPEheaders1Click(Sender: TObject);
+    procedure Back1Click(Sender: TObject);
+    procedure Showvaluesofstaticaddresses1Click(Sender: TObject);
+    procedure disassemblerheaderSectionResize(
+      HeaderControl: THeaderControl; Section: THeaderSection);
   private
     { Private declarations }
 
@@ -332,6 +347,11 @@ type
       address: dword;
       disassembled: string;
       description: string;
+      
+      addresspart: string;
+      bytespart: string;
+      opcodepart: string;
+      specialpart: string;
     end;
 
     part: integer;
@@ -347,8 +367,14 @@ type
     memorybrowserHistory: TStringList;
     assemblerHistory: TStringList;
 
+    backlist: TStack;
+
+    lastspecialwidth: integer;
+    FShowValues: boolean;
     procedure UpdateRWAddress(disasm: string);
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
+    function getShowValues: boolean;
+    procedure setShowValues(newstate: boolean);
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
@@ -385,7 +411,8 @@ type
 
     procedure plugintype2click(sender:tobject);
     function isjumporcall(address: dword; var addresstojumpto: dword): boolean;
-    
+    procedure setcodeanddatabase;
+    property showvalues: boolean read getShowValues write setShowValues;
   end;
 
 var
@@ -428,12 +455,13 @@ uses Valuechange,
   frmFillMemoryUnit,
   frmCodecaveScannerUnit,
   FoundCodeUnit,
+  frmFunctionListUnit,
 
 
 
 
   {$ifndef net}symbolconfigunit,frmTracerUnit,Structuresfrm,dissectcodeunit,pointerscannerfrm,driverlist,ServiceDescriptorTables,{$endif}
-  frmDisassemblyscanunit, frmGDTunit;
+  frmDisassemblyscanunit, frmGDTunit, frmIDTunit, peINFOunit;
 
 
 
@@ -466,6 +494,40 @@ begin
   end;
 end;
 
+//property functions:
+function TMemoryBrowser.getShowValues: boolean;
+begin
+  result:=FShowValues;
+end;
+
+procedure TMemoryBrowser.setShowValues(newstate: boolean);
+begin
+  Showvaluesofstaticaddresses1.checked:=newstate;
+  FShowValues:=newstate;
+
+  if not newstate then
+  begin
+    lastspecialwidth:=disassemblerheader.Sections[3].Width;
+    disassemblerheader.Sections[3].MinWidth:=0;
+    disassemblerheader.Sections[3].Width:=0;
+    disassemblerheader.Sections[3].MaxWidth:=0;
+  end
+  else
+  begin
+    disassemblerheader.Sections[3].MaxWidth:=10000;
+    if lastspecialwidth>0 then
+      disassemblerheader.Sections[3].Width:=lastspecialwidth;
+      
+    disassemblerheader.Sections[3].MinWidth:=5;
+  end;
+
+  updatedisassemblerview;
+  disassemblerheaderSectionResize(disassemblerheader, disassemblerheader.Sections[3]);
+end;
+
+
+//^^^^
+
 procedure TMemoryBrowser.WMGetMinMaxInfo(var Message: TMessage);
 var MMInfo: ^MINMAXINFO;
 begin
@@ -494,6 +556,7 @@ procedure TMemoryBrowser.UpdateRegisterview;
 begin
 //removed till 3.3
 end;
+
 
 
 procedure TMemoryBrowser.UpdateRWAddress(disasm: string);
@@ -551,6 +614,7 @@ begin
 
 
   updatedisassemblerview;
+  panel6.Repaint;
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
@@ -608,6 +672,18 @@ end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 begin
+
+{
+not enough time to add header supports
+
+
+}
+ { disassemblerheader.Visible:=false;
+  discanvas.Top:=discanvas.top-disassemblerheader.Height;
+  discanvas.Height:=discanvas.Height+disassemblerheader.Height;
+  //ronresize isn't repainting correctly   }
+{^^^^}
+
   disassembler:=true;
   dselected2:=$ffffffff;
 
@@ -662,6 +738,9 @@ begin
   memorybrowserHistory:=TStringList.create;
   assemblerHistory:=TStringList.create;
 
+  backlist:=TStack.create;
+
+  showvalues:=true;
 end;
 
 procedure TMemoryBrowser.Goto1Click(Sender: TObject);
@@ -672,6 +751,8 @@ begin
   newaddress:=inputboxtop('Goto Address','Fill in the address you want to go to',IntTohex(memoryaddress,8),true,canceled,memorybrowserHistory);
 
   memoryaddress:=getaddress(newaddress);
+
+  fcontrol2.SetFocus;
 
   RefreshMB;
 end;
@@ -1245,6 +1326,8 @@ var lines,i,j,k: integer;
     address: dword;
     maddress: dword;
     disassembled: string;
+    addressstring, bytesstring, opcodestring, specialstring:string;
+
     descript: string;
     newdselected2: integer;
     repaintornot: boolean;
@@ -1258,6 +1341,25 @@ var lines,i,j,k: integer;
 
     mi: TModuleInfo;
 
+  function truncatestring(s: string; maxwidth: integer): string;
+  var dotsize: integer;
+  begin
+    if disimage.Canvas.TextWidth(s)>maxwidth then
+    begin
+      dotsize:=disimage.Canvas.TextWidth('...');
+      maxwidth:=maxwidth-dotsize;
+      if maxwidth<=0 then
+      begin
+        result:=''; //it's too small for '...'
+        exit;
+      end;
+
+      while disimage.Canvas.TextWidth(s)>maxwidth do
+        s:=copy(s,1,length(s)-1);
+
+      result:=s+'...';
+    end else result:=s; //it fits
+  end; 
 
   procedure addline(i:integer);
   var j: integer;
@@ -1356,13 +1458,27 @@ var lines,i,j,k: integer;
     end;
 
     disimage.Canvas.FillRect(rct);
-    disimage.Canvas.TextOut(8,i*(textHeight+2),disassembled);
+
+
+    addressstring:=truncatestring(addressstring,disassemblerheader.Sections[0].width);
+    bytesstring:=truncatestring(bytesstring,disassemblerheader.Sections[1].width);
+    opcodestring:=truncatestring(opcodestring,disassemblerheader.Sections[2].width);
+    specialstring:=truncatestring(specialstring,disassemblerheader.Sections[3].width);
+
+    disimage.Canvas.TextOut(0,i*(textHeight+2),addressstring);
+    disimage.Canvas.TextOut(disassemblerheader.Sections[1].left,i*(textHeight+2),bytesstring);
+    disimage.Canvas.TextOut(disassemblerheader.Sections[2].left,i*(textHeight+2),opcodestring);
+    disimage.Canvas.TextOut(disassemblerheader.Sections[3].left,i*(textHeight+2),specialstring);
 
     disimage.Canvas.Brush.color:=clBtnFace;
     disimage.Canvas.font.color:=clWindowText;
 
     disassemblerlines[i].disassembled:=disassembled;
     disassemblerlines[i].address:=address;
+    disassemblerlines[i].addresspart:=addressstring;
+    disassemblerlines[i].bytespart:=bytesstring;
+    disassemblerlines[i].opcodepart:=opcodestring;
+    disassemblerlines[i].specialpart:=specialstring;
   end;
 begin
   if not disassembler then exit;
@@ -1476,7 +1592,7 @@ begin
 
           if i<=lines then
           begin
-            disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1);
+            disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1, showvalues,  addressstring, bytesstring, opcodestring, specialstring);
             addline(i);
             inc(i);
           end;
@@ -1490,7 +1606,7 @@ begin
       if not ok then
       begin
         address:=maddress;
-        disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1);
+        disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1, showvalues,  addressstring, bytesstring, opcodestring, specialstring);
 
         if Showmoduleaddresses1.Checked then
         begin
@@ -1500,7 +1616,9 @@ begin
             y:=inttohex(address,8);
             z:=mi.modulename+'+'+inttohex(address-mi.baseaddress,4);
 
-            disassembled:=stringreplace(disassembled,y,z,[rfReplaceAll]);
+            //disassembled:=stringreplace(disassembled,y,z,[rfReplaceAll]);
+            opcodestring:=stringreplace(opcodestring,y,z,[rfReplaceAll]);
+            addressstring:=stringreplace(addressstring,y,z,[rfReplaceAll]);
           end;
 
         end;
@@ -1560,12 +1678,12 @@ begin
     if panel6.caption<>disassemblerlines[line].description then panel6.caption:=disassemblerlines[line].description;
 
     if (disassembleraddress+line)>$FFFFFFFF then exit;
-    for i:=0 to numberofaddresses do
+  {  for i:=0 to numberofaddresses do
     begin
       if disassemblerlines[i].address=dselected then
       begin
         {$ifndef net}
-        if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
+       { if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
         begin
           for j:=0 to 3 do
             if disassemblerlines[i].address=debuggerthread2.breakpoints[j] then
@@ -1576,9 +1694,9 @@ begin
               discanvas.Canvas.font.Color:=clBlack;
               break;  //get out of this for loop
             end;
-        end;
+        end;  }
 
-        if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
+        {if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
         begin
           for j:=0 to length(debuggerthread.userbreakpoints)-1 do
             if disassemblerlines[i].address=debuggerthread.userbreakpoints[j] then
@@ -1602,6 +1720,7 @@ begin
 
         end;
         {$endif}
+        {
         rct.Left:=0;
         rct.Right:=discanvas.Width;
         rct.Top:=i*(textheight+2);
@@ -1616,16 +1735,16 @@ begin
         disimage.Canvas.font.Color:=clWindowText;
 
         discanvas.Canvas.Brush.color:=clBtnFace;
-        disimage.Canvas.Brush.color:=clBtnFace;
-
+        disimage.Canvas.Brush.color:=clBtnFace;     }
+                   {
         break;
       end;
     end;
-
+    }
     //if it isn't found it propably has already been overwritten (and a big bug btw...)
 
     dselected:=disassemblerlines[line].address;
-    discanvas.Canvas.Brush.Color:=Highlightcolor;
+    {discanvas.Canvas.Brush.Color:=Highlightcolor;
     disimage.Canvas.Brush.Color:=Highlightcolor;
     discanvas.Canvas.font.color:=clHighlightText;
     disimage.Canvas.font.Color:=clHighlightText;
@@ -1633,10 +1752,10 @@ begin
     rct.Left:=0;
     rct.Right:=discanvas.Width;
     rct.Top:=line*(textheight+2);
-    rct.Bottom:=rct.top+textheight+1;
+    rct.Bottom:=rct.top+textheight+1;   }
 
     {$ifndef net}
-    if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
+    {if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
     begin
       for j:=0 to 3 do
         if disassemblerlines[line].address=debuggerthread2.breakpoints[j] then
@@ -1647,8 +1766,9 @@ begin
           discanvas.Canvas.font.Color:=clBlack;
           break;  //get out of this for loop
         end;
-    end;
+    end; }
 
+    {
     if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
     begin
       for j:=0 to length(debuggerthread.userbreakpoints)-1 do
@@ -1671,10 +1791,10 @@ begin
           break;  //get out of this for loop
         end;
 
-    end;
+    end;    }
     {$endif}
 
-
+     {
     discanvas.Canvas.FillRect(rct);
     disimage.Canvas.FillRect(rct);
 
@@ -1686,7 +1806,7 @@ begin
     disimage.Canvas.font.Color:=clWindowText;
 
     discanvas.Canvas.Brush.color:=clBtnFace;
-    disimage.Canvas.Brush.color:=clBtnFace;
+    disimage.Canvas.Brush.color:=clBtnFace;  }
   end;
 
   //now update the RWAddress
@@ -2031,14 +2151,24 @@ begin
 
     vk_space:
     begin
-      follow1.Click;
+      if shift=[] then
+        follow1.Click
+      else
+      if shift = [ssShift] then
+        back1.click;
+
+    end;
+
+    VK_BACK:
+    begin
+      back1.click; //backspace and shift+space
     end;
 
     ORD('A')..ORD('Z') , ORD('0')..ORD('9'):
     begin
       if key=ORD('C') then
       begin
-        if ssCtrl in shift then //ctrl C
+        if shift = [ssCtrl] then //ctrl C
         begin
           //open the copy window asking what exactly to copy
           with tfrmSavedisassembly.create(self) do
@@ -2054,6 +2184,9 @@ begin
               a:=dselected;
               b:=dselected2;
             end;
+
+            if a=$ffffffff then a:=b;
+            if b=$ffffffff then b:=a;
 
             disassemble(b); //b gets increased with size of selected instruction
             edit1.Text:=inttohex(a,8);
@@ -2112,6 +2245,7 @@ begin
 
   dselected:=disassembleraddress;
   updatedisassemblerview;
+  fcontrol1.SetFocus;
 end;
 
 procedure TMemoryBrowser.Search1Click(Sender: TObject);
@@ -2834,6 +2968,9 @@ begin
     begin
       if key in [ord('0')..ord('9'),ord('A')..ord('F'),96..105] then
       begin
+        if key in [96..105] then ///numpad fix
+          key:=key-96+ord('0');
+          
         if (length(hexedit.text)=1) and (hexedit.SelLength=0) then
         begin
           hexedit.text:=hexedit.Text+char(key);
@@ -3480,6 +3617,7 @@ end;
 procedure TMemoryBrowser.InjectDLL1Click(Sender: TObject);
 var dll: string;
     functionname: string;
+    dllList: tstringlist;
 begin
   functionname:='';
   dll:='';
@@ -3488,7 +3626,23 @@ begin
   begin
     dll:=opendlldialog.Filename;
     if MessageDlg('Do you want to execute a function of the dll?',mtConfirmation	,[mbyes,mbno],0)=mryes then
-      inputquery('Inject DLL','Type in the name of the function you want to execute: (case sensitive, No Parameters)',functionname);
+    begin
+      dllList:=tstringlist.Create;
+
+      try
+        peinfo_getExportList(opendlldialog.filename, dllList);
+        with TfrmFunctionList.create(self,dllList) do
+        begin
+          if showmodal=mrok then
+            if itemindex<>-1 then
+              functionname:=functions[itemindex];
+
+          free;
+        end;
+      finally
+        dllList.free;
+      end;
+    end;
 
     InjectDll(dll,functionname);
     symhandler.reinitialize;
@@ -3961,6 +4115,7 @@ begin
   ogglebreakpoint1.Enabled:=processhandle<>0;
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
   follow1.visible:=isjumporcall(dselected,x);
+  back1.Visible:=backlist.Count>0;
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
@@ -3970,7 +4125,7 @@ end;
 
 procedure TMemoryBrowser.IDTlist1Click(Sender: TObject);
 begin
-  Tfrmgdtinfo.create(self).show;
+  TfrmIDT.create(self).show;
 end;
 
 procedure TMemoryBrowser.ScriptEngine1Click(Sender: TObject);
@@ -3986,7 +4141,6 @@ procedure TMemoryBrowser.DisCanvasMouseMove(Sender: TObject;
 begin
   if ssLeft in shift then
   begin
-//    if dselected2<>$ffffffff then dselected2:=dselected;
     DisCanvas.OnMouseDown(self,mbleft,shift,x,y);
 
   end;
@@ -4084,6 +4238,7 @@ procedure TMemoryBrowser.Follow1Click(Sender: TObject);
 begin
   if isjumporcall(dselected,disassembleraddress) then
   begin
+    backlist.Push(pointer(dselected));
     dselected:=disassembleraddress;
     updatedisassemblerview;
   end;
@@ -4091,7 +4246,121 @@ end;
 
 
 
+procedure TMemoryBrowser.CopyBytesAndOpcodesClick(Sender: TObject);
+var a,b: dword;
+    tag: integer;
+begin
+  tag:=(sender as tmenuitem).Tag;
+  with tfrmSavedisassembly.create(self) do
+  begin
+
+    if dselected>dselected2 then
+    begin
+      a:=dselected2;
+      b:=dselected;
+    end
+    else
+    begin
+      a:=dselected;
+      b:=dselected2;
+    end;
+
+    if a=$ffffffff then a:=b;
+    if b=$ffffffff then b:=a;
+
+    disassemble(b); //b gets increased with size of selected instruction
+    edit1.Text:=inttohex(a,8);
+    edit2.Text:=inttohex(b,8);
+    copymode:=true;
+
+    checkbox1.checked:=true;
+    checkbox2.checked:=(tag=0) or (tag=1);
+    checkbox3.checked:=(tag=0) or (tag=2);
+
+    button1.click;
+    waittilldone;
+
+    free;
+  end;
+
+
+end;
+
+procedure TMemoryBrowser.DissectPEheaders1Click(Sender: TObject);
+begin
+  with TfrmPEInfo.create(self) do
+    show;
+end;
+
+procedure TMemoryBrowser.SetCodeAndDataBase;
+var modulelist: tstringlist;
+    base: dword;
+    header: pointer;
+    headersize: dword;
+    br: dword;
+begin
+  modulelist:=tstringlist.Create;
+  symhandler.getModuleList(modulelist);
+
+  if modulelist.Count>0 then
+  begin
+    base:=dword(modulelist.Objects[0]);
+    getmem(header,4096);
+    try
+      if readprocessmemory(processhandle,pointer(base),header,4096,br) then
+      begin
+        headersize:=peinfo_getheadersize(header);
+        if headersize>4096 then
+        begin
+          if headersize>1024*512 then exit;
+
+          freemem(header);
+          getmem(header,headersize);
+          if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
+        end;
+
+        disassembleraddress:=base+peinfo_getEntryPoint(header); //peinfo_getcodebase(header);
+        dselected:=disassembleraddress;
+
+        memoryaddress:=base+peinfo_getdatabase(header);
+      end;
+    finally
+      freemem(header);
+    end;
+  end;
+  modulelist.free;
+end;
+
+procedure TMemoryBrowser.Back1Click(Sender: TObject);
+begin
+  if backlist.Count>0 then
+  begin
+    dselected:=dword(backlist.pop);
+    disassembleraddress:=dselected;
+    updatedisassemblerview;
+  end;
+end;
+
+procedure TMemoryBrowser.Showvaluesofstaticaddresses1Click(
+  Sender: TObject);
+begin
+  showvalues:=not showvalues;
+end;
+
+procedure TMemoryBrowser.disassemblerheaderSectionResize(
+  HeaderControl: THeaderControl; Section: THeaderSection);
+var x: integer;
+begin
+  x:=(disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Left+disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Width);
+  disassemblerscrollbox.HorzScrollBar.Range:=x;
+  updatedisassemblerview;
+end;
+
 end.
+
+
+
+
 
 
 

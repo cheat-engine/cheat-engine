@@ -12,7 +12,7 @@ interface
 uses windows,classes,sysutils,syncobjs;
 
 type TFirstscantype= (fs_advanced,fs_addresslist);
-type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64);
+type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);
 
 
 type TFirstScanHandler = class
@@ -28,8 +28,7 @@ type TFirstScanHandler = class
 
 
     procedure cleanup;
-    function loadIfNotLoaded(p: pointer): pointer;
-    function getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
+    function loadIfNotLoadedRegion(p: pointer): pointer;
   public
     function getfirstscanbyte(address: dword): byte;
     function getfirstscanword(address: dword): word;
@@ -37,6 +36,7 @@ type TFirstScanHandler = class
     function getfirstscansingle(address: dword): single;
     function getfirstscandouble(address: dword): double;
     function getfirstscanint64(address: dword): int64;
+    function getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
 
     constructor create;
     destructor destroy; override;
@@ -49,7 +49,14 @@ uses cefuncproc;
 
 type TArrMemoryRegion= array [0..0] of TMemoryRegion;
 
-function TFirstScanHandler.loadIfNotLoaded(p: pointer): pointer;
+
+function TFirstScanHandler.loadIfNotLoadedRegion(p: pointer): pointer;
+{
+Will load in a section from the memory file
+p is a pointer in the memory buffer as if it was completly loaded
+This will effectivly decrease reads to the file. Of course, there is still
+unused memory which is kinda a waste, but it's the most efficient way
+}
 var index: integer;
     base: pointer;
 begin
@@ -85,6 +92,7 @@ function TFirstScanHandler.getpointertoaddress(address:dword;valuetype:tvaluetyp
 var i,j,k: integer;
     pm: ^TArrMemoryRegion;
     pa: PDwordArray;
+    pab: PBitAddressArray;
     p: pbyte;
     p1: PByteArray;
     p2: PWordArray;
@@ -94,13 +102,13 @@ var i,j,k: integer;
     p6: PInt64Array;
 
     first,last: dword;
-    found: boolean;
+
 begin
   result:=nil;
 
   //5.4: change routine to only read in pages of 4KB if it wasn't paged in yet (does require a page table like list of course)
 
-  p:=firstscanMemory;
+  p:=pointer(dword(firstscanaddress.Memory)+7);
   
 
   if firstscantype=fs_advanced then
@@ -113,10 +121,11 @@ begin
     //find the region this address belongs to
     //the region list should be sorted
 
-    found:=false;
+    
 
     first:=0;
     last:=maxnumberofregions-1;
+    k:=0;
     while (first<last) do
     begin
       j:=first+((last-first) div 2);
@@ -145,7 +154,7 @@ begin
         if (address>=pm[j].baseaddress) and (address < (pm[j].BaseAddress + pm[j].MemorySize)) then
         begin
           //found it
-          result:=loadifnotloaded(pointer(dword(pm[j].startaddress)+(address-pm[j].baseaddress)));
+          result:=loadifnotloadedRegion(pointer(dword(pm[j].startaddress)+(address-pm[j].baseaddress)));
           exit;
 
         end;
@@ -153,44 +162,113 @@ begin
         first:=j;
       end;
     end;
-
-    asm
-      db $cc;
-    end;
-
-
   end
   else
   begin
-    //the addressfile exists out of a list of addresses
     pa:=pointer(p);
-    j:=(firstscanaddress.Size-7) div sizeof(dword); //max number of addresses , no same as first for binary
+    pab:=pointer(p);
     p1:=firstscanmemory;
     p2:=firstscanmemory;
     p3:=firstscanmemory;
     p4:=firstscanmemory;
     p5:=firstscanmemory;
     p6:=firstscanmemory;
-    for i:=0 to j-1 do
+
+    if (valuetype <> vt_all) then
     begin
-      if (address<=pa[i]) then
+      //addresslist is a list of dword
+
+      j:=(firstscanaddress.Size-7) div sizeof(dword); //max number of addresses , no same as first for binary
+
+      //the list is sorted so do a quickscan
+      first:=0;
+      last:=j-1;
+      k:=0;
+      while (first<last) do
       begin
-        if address=pa[i] then
+        j:=first+((last-first) div 2);
+        if k=j then
         begin
-          case valuetype of
-            vt_byte : result:=@p1[i];
-            vt_word : result:=@p2[i];
-            vt_dword : result:=@p3[i];
-            vt_single: result:=@p4[i];
-            vt_double: result:=@p5[i];
-            vt_int64: result:=@p6[i];
+          if k=first then
+          begin
+            first:=last;
+            j:=last;
           end;
 
-          exit;
-        end
-        else exit; //not found
+          if k=last then
+          begin
+            last:=first;
+            j:=last;
+          end;
+        end;
+
+        k:=j;
+
+        if address<pa[j] then
+          last:=j
+        else
+        begin
+          if address=pa[j] then
+          begin
+            case valuetype of
+              vt_byte : result:=loadifnotloadedregion(@p1[j]);
+              vt_word : result:=loadifnotloadedregion(@p2[j]);
+              vt_dword : result:=loadifnotloadedregion(@p3[j]);
+              vt_single: result:=loadifnotloadedregion(@p4[j]);
+              vt_double: result:=loadifnotloadedregion(@p5[j]);
+              vt_int64: result:=loadifnotloadedregion(@p6[j]);
+            end;
+            exit; //found it
+          end;
+
+          first:=j;
+        end;
       end;
-    end;  
+      exit; //not found
+    end
+    else
+    begin
+      //addresslist is a list of 2 dwords, address and vartype, what kind of vartype is not important
+
+      j:=(firstscanaddress.Size-7) div sizeof(tbitaddress); //max number of addresses , no same as first for binary
+
+      //the list is sorted so do a quickscan
+      first:=0;
+      last:=j-1;
+      k:=0;
+      while (first<last) do
+      begin
+        j:=first+((last-first) div 2);
+        if k=j then
+        begin
+          if k=first then
+          begin
+            first:=last;
+            j:=last;
+          end;
+
+          if k=last then
+          begin
+            last:=first;
+            j:=last;
+          end;
+        end;
+
+        k:=j;
+
+        if address<pab[j].address then
+          last:=j
+        else
+        begin
+          if address=pab[i].address then
+          begin
+            result:=loadifnotloadedregion(@p6[i]); //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+            exit;
+          end;
+          first:=j;
+        end;
+      end;      
+    end;
   end;
 end;
 
@@ -233,9 +311,10 @@ var datatype: string[6];
 begin
   try
     try
-      firstscanmemoryfile:=Tfilestream.Create('MEMORYFIRST.TMP',fmOpenRead);
+      firstscanmemoryfile:=Tfilestream.Create('MEMORYFIRST.TMP',fmOpenRead or fmsharedenynone);
       firstscanmemory:=virtualalloc(nil, firstscanmemoryfile.Size+$2000, mem_commit, page_readwrite);
 
+      //make an array to store the previous memory in blocks of 4KB
       setlength(loadedfromlist, 2+(firstscanmemoryfile.Size shr 12)); //+2 to keep some extra room, so less checking
       zeromemory(@loadedfromlist[0], length(loadedfromlist));
 
@@ -303,3 +382,4 @@ begin
 end;
 
 end.
+

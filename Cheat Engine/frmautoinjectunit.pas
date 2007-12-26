@@ -21,6 +21,7 @@ uses
   assemblerunit, autoassembler, symbolhandler;
 
 
+
 type
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
@@ -46,11 +47,19 @@ type
     assemblescreen: TRichEdit;
     N2: TMenuItem;
     Syntaxhighlighting1: TMenuItem;
-    PopupMenu2: TPopupMenu;
+    closemenu: TPopupMenu;
     Close1: TMenuItem;
     Inject1: TMenuItem;
     Injectincurrentprocess1: TMenuItem;
     Injectintocurrentprocessandexecute1: TMenuItem;
+    Find1: TMenuItem;
+    Paste1: TMenuItem;
+    Copy1: TMenuItem;
+    Cut1: TMenuItem;
+    Undo1: TMenuItem;
+    N6: TMenuItem;
+    FindDialog1: TFindDialog;
+    undotimer: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -76,21 +85,42 @@ type
     procedure Close1Click(Sender: TObject);
     procedure Injectincurrentprocess1Click(Sender: TObject);
     procedure Injectintocurrentprocessandexecute1Click(Sender: TObject);
+    procedure Cut1Click(Sender: TObject);
+    procedure Copy1Click(Sender: TObject);
+    procedure Paste1Click(Sender: TObject);
+    procedure Find1Click(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
+    procedure undotimerTimer(Sender: TObject);
+    procedure Undo1Click(Sender: TObject);
   private
     { Private declarations }
     updating: boolean;
     pagecontrol: tpagecontrol;
     oldtabindex: integer;
-    scripts: array of string;
+    scripts: array of record
+               script: string;
+               filename: string;
+               undoscripts: array [0..4] of record
+                              oldscript: string;
+                              startpos: integer;
+                            end;
+               currentundo: integer;
+             end;
+             
     selectedtab: integer;
 
     fcplusplus: boolean;
+
+    undolist: array [0..5] of string;
     procedure setcplusplus(state: boolean);
     procedure injectscript(createthread: boolean);
   public
     { Public declarations }
     editscript: boolean;
-    property cplusplus: boolean read fcplusplus write setcplusplus;
+    editscript2: boolean;
+    callbackroutine: procedure(script: string; changed: boolean) of object;
+    injectintomyself: boolean;
+    property cplusplus: boolean read fcplusplus write setcplusplus; 
   end;
 
   procedure Getjumpandoverwrittenbytes(address,addressto: dword; jumppart,originalcodepart: tstrings);
@@ -118,6 +148,7 @@ begin
     emplate1.Visible:=false;
     caption:='Script engine';
     inject1.Visible:=true;
+    helpcontext:=19; //c-script help
   end
   else
   begin
@@ -131,6 +162,7 @@ begin
     emplate1.Visible:=true;
     caption:='Auto assembler';
     inject1.Visible:=false;
+    helpcontext:=18; //auto asm help
   end;
 end;
 
@@ -141,19 +173,24 @@ var enable,disable: integer;
 
     aa: TCEAllocArray;
     i: integer;
+
+    //variables for injectintomyself:
+    check: boolean;
+    oldProcessID: dword;
+    oldProcessHandle: thandle;
 begin
 {$ifndef standalonetrainerwithassembler}
   if cplusplus then
   begin
     //scriptengine stuff
-    if scriptengine.beginScript then
+    if not editscript and scriptengine.beginScript then
     begin
       try
-//        for i:=0 to assemblescreen.Lines.Count-1 do
-          if not scriptengine.execute_command({assemblescreen.Lines[i]}assemblescreen.text) then
-            raise exception.Create('Error interpreting at line '+inttostr(i+1)+': '+scriptengine.getError);
+       // for i:=0 to assemblescreen.Lines.Count-1 do
+          if not scriptengine.execute_command(assemblescreen.text) then
+            raise exception.Create('Error interpreting script:'+scriptengine.getError);
 
-         
+
 
       finally
         scriptengine.endScript;
@@ -165,23 +202,49 @@ begin
 
   end
   else
-{$endif}  
+{$endif}
   begin
     if editscript then
     begin
-      setlength(aa,1);
-
       {$ifndef standalonetrainerwithassembler}
-      //just check if both scripts are valid
-      getenableanddisablepos(assemblescreen.Lines,a,b);
-      if (a=-1) and (b=-1) then raise exception.create('The code needs a [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
+      //check if both scripts are valid before allowing the edit
 
-      if autoassemble(assemblescreen.lines,false,true,true,aa) and
-         autoassemble(assemblescreen.lines,false,false,true,aa) then
+      setlength(aa,1);
+      getenableanddisablepos(assemblescreen.Lines,a,b);
+      if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
+
+      if injectintomyself then
       begin
-        modalresult:=mrok;
+        //save the current process and target CE
+        oldProcessID:=processid;
+        oldProcessHandle:=processhandle;
+        processid:=Getcurrentprocessid;
+        processhandle:=getcurrentprocess;
+      end;
+
+      check:=autoassemble(assemblescreen.lines,false,true,true,false,aa) and
+             autoassemble(assemblescreen.lines,false,false,true,false,aa);
+
+      if injectintomyself then
+      begin
+        //restore back to original process
+        processid:=oldProcessID;
+        processhandle:=oldProcessHandle;
+      end;
+
+      if check then
+      begin
+        modalresult:=mrok; //not modal anymore, but can still be used to pass info
+        close;
       end
-      else showmessage('Error. Not all code is injectable. I can''t change the script');
+      else
+      begin
+        if messagedlg('Not all code is injectable. Are you sure you wan''t to edit it to this?',mtWarning,[mbyes,mbno],0)=mryes then
+        begin
+          modalresult:=mrok; //not modal anymore, but can still be used to pass info
+          close;
+        end;
+      end;
 
       {$endif}
     end else autoassemble(assemblescreen.lines,true);
@@ -222,7 +285,23 @@ procedure TfrmAutoInject.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   if not editscript then
+  begin
     action:=cafree;
+  end
+  else
+  begin
+    if editscript2 then
+    begin
+      //call finish routine with script
+
+      if modalresult=mrok then
+        callbackroutine(assemblescreen.text,true)
+      else
+        callbackroutine(assemblescreen.text,false);
+
+      action:=cafree;
+    end;
+  end;
 end;
 
 procedure TfrmAutoInject.Codeinjection1Click(Sender: TObject);
@@ -356,6 +435,9 @@ var
 {$endif}
 begin
 {$ifndef standalonetrainerwithassembler}
+  undotimer.enabled:=false;
+  undotimer.enabled:=true; //if no change for 2 seconds the script gets stored
+
   if (Length(assemblescreen.Text) <= 0) then
     exit;
 
@@ -433,8 +515,8 @@ begin
   getenableanddisablepos(assemblescreen.Lines,a,b);
   if (a=-1) and (b=-1) then raise exception.create('The code needs a [ENABLE] and a [DISABLE] section if you want to add it to a table');
 
-  if autoassemble(assemblescreen.lines,false,true,true,aa) and
-     autoassemble(assemblescreen.lines,false,false,true,aa) then
+  if autoassemble(assemblescreen.lines,false,true,true,false,aa) and
+     autoassemble(assemblescreen.lines,false,false,true,false,aa) then
   begin
     //add a entry with type 255
     mainform.AddAutoAssembleScript(assemblescreen.text);
@@ -745,10 +827,13 @@ end;
 
 procedure TfrmAutoInject.New1Click(Sender: TObject);
 begin
-  scripts[length(scripts)-1]:=assemblescreen.Text;
+  scripts[length(scripts)-1].script:=assemblescreen.Text;
   setlength(scripts,length(scripts)+1);
 
-  scripts[length(scripts)-1]:='';
+  scripts[length(scripts)-1].script:='';
+  scripts[length(scripts)-1].undoscripts[0].oldscript:='';
+  scripts[length(scripts)-1].currentundo:=0;
+
   assemblescreen.Text:='';
 
   if length(scripts)=2 then //first time new
@@ -762,14 +847,21 @@ end;
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
 begin
   setlength(scripts,1);
+  scripts[0].currentundo:=0;
   oldtabindex:=0;
+  assemblescreen.SelStart:=0;
+  assemblescreen.SelLength:=0;
 
 end;
 
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);
 begin
-  scripts[oldtabindex]:=assemblescreen.text;
-  assemblescreen.text:=scripts[TabControl1.TabIndex];
+  scripts[oldtabindex].script:=assemblescreen.text;
+  scripts[oldtabindex].filename:=opendialog1.FileName;
+  
+  assemblescreen.text:=scripts[TabControl1.TabIndex].script;
+  opendialog1.FileName:=scripts[TabControl1.TabIndex].filename;
+
   oldtabindex:=tabcontrol1.TabIndex;
 end;
 
@@ -798,7 +890,7 @@ procedure TfrmAutoInject.TabControl1ContextPopup(Sender: TObject;
   MousePos: TPoint; var Handled: Boolean);
 begin
   selectedtab:=TabControl1.IndexOfTabAt(mousepos.x,mousepos.y);
-  popupmenu2.Popup(mouse.CursorPos.X,mouse.cursorpos.Y);
+  closemenu.Popup(mouse.CursorPos.X,mouse.cursorpos.Y);   
 end;
 
 procedure TfrmAutoInject.Close1Click(Sender: TObject);
@@ -806,7 +898,7 @@ var i: integer;
 begin
   if messagedlg('Are you sure you want to close '+TabControl1.Tabs[selectedtab]+' ?',mtConfirmation,[mbyes,mbno],0)=mryes then
   begin
-    scripts[oldtabindex]:=assemblescreen.text; //save current script
+    scripts[oldtabindex].script:=assemblescreen.text; //save current script
     tabcontrol1.Tabs.Delete(selectedtab);
 
     for i:=selectedtab to length(scripts)-2 do
@@ -818,7 +910,7 @@ begin
     begin
       oldtabindex:=length(scripts)-1;
       tabcontrol1.TabIndex:=oldtabindex;
-      assemblescreen.text:=scripts[oldtabindex];
+      assemblescreen.text:=scripts[oldtabindex].script;
       assemblescreen.OnChange(assemblescreen);
     end;
 
@@ -885,7 +977,7 @@ begin
     end;
 
     setlength(CEAllocArray,1);
-    if autoassemble(setenvscript,false,true,false,CEAllocArray) then //enabled
+    if autoassemble(setenvscript,false,true,false,false,CEAllocArray) then //enabled
     begin
       for i:=0 to length(ceallocarray)-1 do
         if ceallocarray[i].varname='myscript' then
@@ -900,7 +992,7 @@ begin
 
 
       //wait done
-      autoassemble(setenvscript,false,false,false,CEAllocArray); //disable for the deallocs
+      autoassemble(setenvscript,false,false,false,false,CEAllocArray); //disable for the deallocs
     end;
 
     setenvscript.free;
@@ -946,7 +1038,7 @@ begin
       if not symhandler.getmodulebyname('undercdll.dll',mi) then
         raise exception.Create('Failure loading undercdll');
     end;
-    if not autoassemble(callscriptscript,false,true,false,CEAllocArray) then raise exception.Create('Failed creating calling stub for script located at address '+inttohex(dword(address),8));
+    if not autoassemble(callscriptscript,false,true,false,false,CEAllocArray) then raise exception.Create('Failed creating calling stub for script located at address '+inttohex(dword(address),8));
   finally
     callscriptscript.free;
   end;
@@ -987,7 +1079,94 @@ begin
   injectscript(true);
 end;
 
+procedure TfrmAutoInject.Cut1Click(Sender: TObject);
+begin
+  assemblescreen.CutToClipboard;
+end;
+
+procedure TfrmAutoInject.Copy1Click(Sender: TObject);
+begin
+  assemblescreen.CopyToClipboard;
+end;
+
+procedure TfrmAutoInject.Paste1Click(Sender: TObject);
+begin
+  assemblescreen.PasteFromClipboard;
+end;
+
+procedure TfrmAutoInject.Find1Click(Sender: TObject);
+begin
+  finddialog1.Execute;
+
+end;
+
+procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
+var start,l: integer;
+    p: integer;
+begin
+  //scan the text for the given text
+  start:=assemblescreen.selstart;
+  l:=length(assemblescreen.text)-start;
+
+  p:=assemblescreen.FindText(finddialog1.FindText,start,l,[]);
+  if p<>-1 then
+  begin
+    assemblescreen.SelStart:=p;
+    assemblescreen.SelLength:=length(finddialog1.FindText);
+  end;
+end;
+
+//follow is just a emergency fix since undo is messed up. At least it's better than nothing
+procedure TfrmAutoInject.undotimerTimer(Sender: TObject);
+var currentundo: integer;
+    i: integer;
+    ti: integer;
+begin
+  ti:=tabcontrol1.TabIndex;
+  if ti=-1 then ti:=0;
+  
+  currentundo:=scripts[ti].currentundo;
+
+
+  if currentundo=4 then //first move all previous up one spot and overwrite 1
+  begin
+    for i:=1 to 4 do
+      scripts[ti].undoscripts[i-1]:=scripts[ti].undoscripts[i];
+  end
+  else
+  begin
+    inc(currentundo); //once it hits 4 it stays at 4, else inc.
+    scripts[ti].currentundo:=currentundo;
+  end;
+
+  scripts[ti].undoscripts[currentundo].oldscript:=assemblescreen.Text;
+  scripts[ti].undoscripts[currentundo].startpos:=assemblescreen.SelStart;
+
+  undotimer.Enabled:=false; //done waiting, a keypress or other change will restart this timer
+end;
+
+procedure TfrmAutoInject.Undo1Click(Sender: TObject);
+var currentundo: integer;
+begin
+  currentundo:=scripts[selectedtab].currentundo;
+  dec(currentundo);
+  if currentundo>=0 then
+  begin
+    assemblescreen.text:=scripts[selectedtab].undoscripts[currentundo].oldscript;
+
+    scripts[selectedtab].currentundo:=currentundo;
+    assemblescreen.SelLength:=0;
+    assemblescreen.SelStart:=scripts[selectedtab].undoscripts[currentundo].startpos;
+    undotimer.enabled:=false; //don't bother saving this edit
+  end;
+
+end;
+
 end.
+
+
+
+
 
 
 

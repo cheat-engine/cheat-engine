@@ -438,33 +438,36 @@ begin
   end
   else
   begin
+
     crdebugging.Enter;
+    try
+      itsin:=false;
+      //check if it's already a breakpoint. in that case just add it to mod register array
+      if formsettings.rbDebugAsBreakpoint.checked then
+      begin
+        //check the debugregs
+        for i:=0 to length(debuggerthread.userbreakpoints)-1 do
+          if debuggerthread.userbreakpoints[i]=address then
+          begin
+            itsin:=true;
+            break;
+          end;
+      end
+      else
+      begin
+        //check the default bp's
+        for i:=0 to length(debuggerthread.int3userbreakpoints)-1 do
+          if debuggerthread.int3userbreakpoints[i].address=address then
+          begin
+            itsin:=true;
+            break;
+          end;
 
-    itsin:=false;
-    //check if it's already a breakpoint. in that case just add it to mod register array
-    if formsettings.rbDebugAsBreakpoint.checked then
-    begin
-      //check the debugregs
-      for i:=0 to length(debuggerthread.userbreakpoints)-1 do
-        if debuggerthread.userbreakpoints[i]=address then
-        begin
-          itsin:=true;
-          break;
-        end;
-    end
-    else
-    begin
-      //check the default bp's
-      for i:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-        if debuggerthread.int3userbreakpoints[i].address=address then
-        begin
-          itsin:=true;
-          break;
-        end;
+      end;
 
+    finally
+      crdebugging.Leave;
     end;
-
-    crdebugging.Leave;
 
     //add this entry to the registermodificationBPs array in debugger
     if not itsin then togglebreakpoint(address);
@@ -493,5 +496,7 @@ begin
 end;
 
 end.
+
+
 
 

@@ -8,7 +8,7 @@ uses unit2,dialogs,windows,Classes,Graphics,Controls,commentsunit,advancedoption
 uses mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
-     ExtCtrls,Dialogs,newkernelhandler;
+     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler;
 {$endif}
 
 
@@ -150,8 +150,7 @@ uses symbolhandler;
 
 
 {$ifndef net}
-
-procedure LoadTrainer6(trainer:TFilestream);
+procedure LoadTrainer7(trainer:TFilestream);
 var temp: dword;
     tempb: boolean;
     tempc: tcolor;
@@ -189,8 +188,510 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.readbuffer(trainerdata[i].hotkey,sizeof(trainerdata[i].hotkey));
+
+      trainer.ReadBuffer(temp,4);
+      setlength(trainerdata[i].codeentrys,temp);
+
+      //opcodes of this cheat
+      for j:=0 to length(trainerdata[i].codeentrys)-1 do
+      begin
+        //address
+        trainer.ReadBuffer(trainerdata[i].codeentrys[j].address,4);
+
+        //modulename
+        trainer.ReadBuffer(temp,4);
+        getmem(x,temp+1);
+        trainer.ReadBuffer(x^,temp);
+        x[temp]:=#0;
+        trainerdata[i].codeentrys[j].modulename:=x;
+        freemem(x);
+
+        //module offset
+        trainer.ReadBuffer(trainerdata[i].codeentrys[j].moduleoffset,4);
+
+        //original opcode
+        trainer.ReadBuffer(temp,4);
+        setlength(trainerdata[i].codeentrys[j].originalopcode,temp);
+        trainer.ReadBuffer(pointer(trainerdata[i].codeentrys[j].originalopcode)^,temp);
+      end;
+
+      //address entrys
+      trainer.ReadBuffer(temp,4);
+      setlength(trainerdata[i].addressentrys,temp);
+      for j:=0 to length(trainerdata[i].addressentrys)-1 do
+      begin
+        trainer.ReadBuffer(trainerdata[i].addressentrys[j].address,sizeof(trainerdata[i].addressentrys[j].address));
+
+        //interpretable address
+        trainer.ReadBuffer(temp,4);
+        getmem(x,temp+1);
+        trainer.ReadBuffer(x^,temp);
+        x[temp]:=#0;
+        trainerdata[i].addressentrys[j].interpretableaddress:=x;
+        freemem(x);
+
+        trainer.ReadBuffer(trainerdata[i].addressentrys[j].ispointer,sizeof(trainerdata[i].addressentrys[j].ispointer));
+
+        trainer.ReadBuffer(tempi,4);
+        setlength(trainerdata[i].addressentrys[j].pointers,tempi);
+
+        for k:=0 to tempi-1 do
+        begin
+          trainer.readBuffer(trainerdata[i].addressentrys[j].pointers[k].address,sizeof(trainerdata[i].addressentrys[j].pointers[k].address));
+
+          //interpretable address
+          trainer.ReadBuffer(temp,4);
+          getmem(x,temp+1);
+          trainer.ReadBuffer(x^,temp);
+          x[temp]:=#0;
+          trainerdata[i].addressentrys[j].pointers[k].interpretableaddress:=x;
+          freemem(x);
+
+          trainer.readBuffer(trainerdata[i].addressentrys[j].pointers[k].offset,sizeof(trainerdata[i].addressentrys[j].pointers[k].offset));
+        end;
+
+
+        trainer.ReadBuffer(trainerdata[i].addressentrys[j].bit,sizeof(trainerdata[i].addressentrys[j].bit));
+        trainer.ReadBuffer(trainerdata[i].addressentrys[j].memtyp,sizeof(trainerdata[i].addressentrys[j].memtyp));
+        trainer.Readbuffer(trainerdata[i].addressentrys[j].frozen,sizeof(trainerdata[i].addressentrys[j].frozen));
+        trainer.Readbuffer(trainerdata[i].addressentrys[j].frozendirection,sizeof(trainerdata[i].addressentrys[j].frozendirection));
+        trainer.Readbuffer(trainerdata[i].addressentrys[j].setvalue,sizeof(trainerdata[i].addressentrys[j].setvalue));
+        trainer.ReadBuffer(trainerdata[i].addressentrys[j].userinput,sizeof(trainerdata[i].addressentrys[j].userinput));
+
+        trainer.ReadBuffer(temp,4);
+        getmem(x,temp+1);
+        trainer.ReadBuffer(x^,temp);
+        x[temp]:=#0;
+        trainerdata[i].addressentrys[j].value:=x;
+        freemem(x);
+
+
+       // trainer.Readbuffer(trainerdata[i].addressentrys[j].value,50);
+        if trainerdata[i].addressentrys[j].userinput then
+        begin
+          trainerdata[i].hasedit:=true;
+          trainerdata[i].editvalue:=trainerdata[i].addressentrys[j].value;
+        end;
+
+        //interpretable address
+        trainer.ReadBuffer(temp,4);
+        getmem(x,temp+1);
+        trainer.ReadBuffer(x^,temp);
+        x[temp]:=#0;
+        trainerdata[i].addressentrys[j].autoassemblescript:=x;
+        freemem(x);
+      end;
+    end;
+
+    //title
+    trainer.ReadBuffer(temp,4);
+    getmem(x,temp+1);
+    trainer.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+    edittitle.Text:=x;
+    freemem(x);
+
+    //launch filename
+    trainer.ReadBuffer(temp,4);
+    getmem(x,temp+1);
+    trainer.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+    edit2.Text:=x;
+    freemem(x);
+
+    //autolaunch
+    trainer.ReadBuffer(tempb,sizeof(tempb));
+    checkbox2.Checked:=tempb;
+
+    //popup on keypress
+    trainer.ReadBuffer(tempb,sizeof(tempb));
+    checkbox1.Checked:=tempb;
+
+    //process name
+    trainer.ReadBuffer(temp,4);
+    getmem(x,temp+1);
+    trainer.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+    combobox1.Text:=x;
+    freemem(x);
+
+    //hotkeytext
+    trainer.ReadBuffer(temp,4);
+    getmem(x,temp+1);
+    trainer.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+    edithotkey.Text:=x;
+    freemem(x);
+
+    //hotkey+shiftstate
+    trainer.ReadBuffer(popuphotkey,sizeof(popuphotkey));
+    
+    //abouttext
+    trainer.ReadBuffer(temp,4);
+    getmem(x,temp+1);
+    trainer.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+    memo1.Text:=x;
+    freemem(x);
+
+    //freeze interval
+    trainer.ReadBuffer(tempi,sizeof(tempi));
+    editFreezeInterval.text:=inttostr(tempi);
+
+    trainer.ReadBuffer(temp,4);
+    if temp=$666 then
+    begin
+      //default
+      //leftside image
+      trainer.ReadBuffer(temp,4);  //size of the image
+      if temp>0 then
+      begin
+        //getmem(image,temp);
+        //trainer.ReadBuffer(image^,temp);
+        frmMemorytrainerpreview.Image1.Picture.Bitmap.LoadFromStream(trainer);
+      end;
+
+      //windowwidth
+      trainer.readbuffer(temp,sizeof(frmMemorytrainerpreview.Width));
+      frmMemorytrainerpreview.Width:=temp;
+
+      //windowheight
+      trainer.readbuffer(temp,sizeof(frmMemorytrainerpreview.height));
+      frmMemorytrainerpreview.height:=temp;
+
+      //leftsidewidth
+      trainer.readbuffer(temp,sizeof(frmMemorytrainerpreview.Panel1.Width));
+      frmMemorytrainerpreview.Panel1.Width:=temp;
+
+      //leftsideheight
+      trainer.readbuffer(temp,sizeof(frmMemorytrainerpreview.Panel1.height));
+      frmMemorytrainerpreview.Panel1.height:=temp;
+    end
+    else
+    begin
+      //user defined
+      frmMemoryModifier.dontshowdefault:=true;       //obsolete
+      frmMemoryModifier.Button7.Click;
+
+      //windowwidth
+      trainer.readbuffer(temp,4);
+      frmTrainerDesigner.Width:=temp;
+
+      //windowheight
+      trainer.readbuffer(temp,4);
+      frmTrainerDesigner.height:=temp;
+
+
+      while true do
+      begin
+        trainer.ReadBuffer(temp,4);
+        case temp of
+          0: begin
+               //tbutton
+               with tbutton2.create(frmTrainerDesigner) do
+               begin
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 left:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 top:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 width:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 height:=temp;
+
+                 //caption
+                 trainer.ReadBuffer(temp,4);
+                 getmem(x,temp+1);
+                 trainer.ReadBuffer(x^,temp);
+                 x[temp]:=#0;
+                 caption:=x;
+                 freemem(x);
+
+                 //wordwrap
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 wordwrap:=tempb;
+
+                 //onclick
+                 trainer.ReadBuffer(temp,sizeof(tag));
+                 tag:=temp;
+                 parent:=frmTrainerDesigner;
+
+                 //command
+                 trainer.ReadBuffer(temp,4);
+                 getmem(x,temp+1);
+                 trainer.ReadBuffer(x^,temp);
+                 x[temp]:=#0;
+                 command:=x;
+                 freemem(x);
+
+                 onmousedown:=frmTrainerDesigner.MouseDown;
+                 onmousemove:=frmTrainerDesigner.MouseMove;
+                 onmouseup:=frmTrainerDesigner.MouseUp;
+               end;
+             end;
+
+          1: begin
+               //cheatlist
+               with tcheatlist.create(frmTrainerDesigner) do
+               begin
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 left:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 top:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 width:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 height:=temp;
+
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 activationcolor:=tempc;
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 color:=tempc;
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 textcolor:=tempc;
+
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 hotkeyleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 descriptionleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 editleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 editwidth:=tempi;
+
+                 trainer.ReadBuffer(tempbc,sizeof(tbevelcut));
+                 bevelinner:=tempbc;
+                 trainer.ReadBuffer(tempbc,sizeof(tbevelcut));
+                 bevelouter:=tempbc;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 bevelwidth:=tempi;
+                 trainer.ReadBuffer(tempbk,sizeof(tbevelkind));
+                 bevelkind:=tempbk;
+
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 hascheckbox:=tempb;
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 showhotkeys:=tempb;
+
+                 parent:=frmTrainerDesigner;
+                 onmousedown:=frmTrainerDesigner.MouseDown;
+                 onmousemove:=frmTrainerDesigner.MouseMove;
+                 onmouseup:=frmTrainerDesigner.MouseUp;
+               end;
+             end;
+
+          2: begin
+               //tcheat
+               with tcheat.create(frmTrainerDesigner) do
+               begin
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 left:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 top:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 width:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 height:=temp;
+
+                 trainer.ReadBuffer(cheatnr,sizeof(integer));
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 activationcolor:=tempc;
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 color:=tempc;
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 textcolor:=tempc;
+
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 hotkeyleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 descriptionleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 editleft:=tempi;
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 editwidth:=tempi;
+
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 hascheckbox:=tempb;
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 showhotkey:=tempb;
+
+                 parent:=frmTrainerDesigner;
+                 onmousedown:=frmTrainerDesigner.MouseDown;
+                 onmousemove:=frmTrainerDesigner.MouseMove;
+                 onmouseup:=frmTrainerDesigner.MouseUp;
+               end;
+             end;
+
+          3: begin
+               //timage
+               with timage2.create(frmTrainerDesigner) do
+               begin
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 left:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 top:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 width:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 height:=temp;
+
+                 trainer.ReadBuffer(tempcursor,sizeof(tcursor));
+                 cursor:=tempcursor;
+
+                 trainer.ReadBuffer(tempb,sizeof(tempb));
+                 stretch:=tempb;
+                 trainer.ReadBuffer(tempb,sizeof(tempb));
+                 transparent:=tempb;
+
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 tag:=tempi;
+
+                 trainer.ReadBuffer(temp,4);
+                 if temp>0 then
+                 begin
+                   picture.Bitmap.LoadFromStream(trainer);
+                 end;
+
+                 //command
+                 trainer.ReadBuffer(temp,4);
+                 getmem(x,temp+1);
+                 trainer.ReadBuffer(x^,temp);
+                 x[temp]:=#0;
+                 command:=x;
+                 freemem(x);
+
+                 parent:=frmTrainerDesigner;
+                 onmousedown:=frmTrainerDesigner.MouseDown;
+                 onmousemove:=frmTrainerDesigner.MouseMove;
+                 onmouseup:=frmTrainerDesigner.MouseUp;
+               end;
+             end;
+
+          4: begin
+               with tlabel2.Create(frmTrainerDesigner) do
+               begin
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 left:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 top:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 width:=temp;
+                 trainer.ReadBuffer(temp,sizeof(integer));
+                 height:=temp;
+
+                 //caption
+                 trainer.ReadBuffer(temp,4);
+                 getmem(x,temp+1);
+                 trainer.ReadBuffer(x^,temp);
+                 x[temp]:=#0;
+                 caption:=x;
+                 freemem(x);
+
+                 //wordwrap
+                 trainer.ReadBuffer(tempb,sizeof(boolean));
+                 wordwrap:=tempb;
+
+                 //color
+                 trainer.ReadBuffer(tempc,sizeof(tcolor));
+                 font.Color:=tempc;
+
+                 //command
+                 trainer.ReadBuffer(temp,4);
+                 getmem(x,temp+1);
+                 trainer.ReadBuffer(x^,temp);
+                 x[temp]:=#0;
+                 command:=x;
+                 freemem(x);
+
+                 //cursor
+                 trainer.ReadBuffer(tempcursor,sizeof(tcursor));
+                 cursor:=tempcursor;
+
+                 //tag
+                 trainer.ReadBuffer(tempi,sizeof(integer));
+                 tag:=tempi;
+
+                 trainer.ReadBuffer(tempb,sizeof(tempb));
+                 if tempb then
+                   Font.Style:=[fsUnderline]
+                 else
+                   Font.Style:=[];
+
+                   
+                 parent:=frmTrainerDesigner;
+                 onmousedown:=frmTrainerDesigner.MouseDown;
+                 onmousemove:=frmTrainerDesigner.MouseMove;
+                 onmouseup:=frmTrainerDesigner.MouseUp;
+               end;
+             end;
+          $ffffffff: break;
+          else raise exception.Create(strunknowncomponent+Inttostr(temp));
+        end;
+      end;
+    end;
+  end;
+
+  //fill in the list of cheats
+  for i:=0 to length(frmMemoryModifier.trainerdata)-1 do
+  begin
+    frmMemoryModifier.recordview.Items.Add.caption:=frmMemoryModifier.trainerdata[i].description;
+    frmMemoryModifier.recordview.Items[frmMemoryModifier.recordview.Items.count-1].SubItems.add(frmMemoryModifier.trainerdata[i].hotkeytext);
+  end;
+
+  frmMemoryTrainerPreview.UpdateScreen;
+  if frmtrainerdesigner<>nil then frmtrainerdesigner.updatecheats
+end;
+
+
+procedure LoadTrainer6(trainer:TFilestream);
+var temp: dword;
+    tempb: boolean;
+    tempc: tcolor;
+    tempi: integer;
+    tempbc: tbevelcut;
+    tempbk: tbevelkind;
+    tempcursor: tcursor;
+    i,j,k:integer;
+    x: pchar;
+
+    image: pointer;
+    laststate: word;
+    lastshiftstate:word;
+
+    keycombo: tkeycombo;
+//    trainerdata1: array of TTrainerData1;
+begin
+  with frmMemoryModifier do
+  begin
+    //size of trainerdata
+    trainer.ReadBuffer(temp,4);
+    setlength(frmMemoryModifier.trainerdata,temp);
+
+    for i:=0 to length(trainerdata)-1 do
+    begin
+      //description
+      trainer.ReadBuffer(temp,4);
+      getmem(x,temp+1);
+      trainer.ReadBuffer(x^,temp);
+      x[temp]:=#0;
+      trainerdata[i].description:=x;
+      freemem(x);
+
+      //hotkeytext
+      trainer.ReadBuffer(temp,4);
+      getmem(x,temp+1);
+      trainer.ReadBuffer(x^,temp);
+      x[temp]:=#0;
+      trainerdata[i].hotkeytext:=x;
+      freemem(x);
+
+      //read and convert
+      trainer.ReadBuffer(laststate,sizeof(laststate));
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -329,6 +830,8 @@ begin
     //hotkey+shiftstate
     trainer.ReadBuffer(laststate,sizeof(laststate));
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+    
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -659,6 +1162,8 @@ var temp: dword;
     x: pchar;
 
     image: pointer;
+    laststate: word;
+    lastshiftstate: word;
 //    trainerdata1: array of TTrainerData1;
 begin
   with frmMemoryModifier do
@@ -685,8 +1190,10 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.ReadBuffer(laststate,2);
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -787,8 +1294,10 @@ begin
     freemem(x);
 
     //hotkey+shiftstate
-    trainer.ReadBuffer(laststate,sizeof(laststate));
+    trainer.ReadBuffer(laststate,2);
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -1107,6 +1616,8 @@ var temp: dword;
     x: pchar;
 
     image: pointer;
+    laststate: word;
+    lastshiftstate: word;     
 //    trainerdata1: array of TTrainerData1;
 begin
   with frmMemoryModifier do
@@ -1133,8 +1644,10 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.ReadBuffer(laststate,2);
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -1235,8 +1748,10 @@ begin
     freemem(x);
 
     //hotkey+shiftstate
-    trainer.ReadBuffer(laststate,sizeof(laststate));
+    trainer.ReadBuffer(laststate,2);
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -1546,6 +2061,8 @@ var temp: dword;
     x: pchar;
 
     image: pointer;
+    laststate: word;
+    lastshiftstate: word; 
 //    trainerdata1: array of TTrainerData1;
 begin
   with frmMemoryModifier do
@@ -1572,8 +2089,10 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.ReadBuffer(laststate,2);
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -1666,8 +2185,10 @@ begin
     freemem(x);
 
     //hotkey+shiftstate
-    trainer.ReadBuffer(laststate,sizeof(laststate));
+    trainer.ReadBuffer(laststate,2);
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -1960,6 +2481,8 @@ var temp: dword;
     x: pchar;
 
     image: pointer;
+    laststate: word;
+    lastshiftstate: word;
 //    trainerdata1: array of TTrainerData1;
 begin
   with frmMemoryModifier do
@@ -1986,8 +2509,10 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.ReadBuffer(laststate,2);
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -2066,9 +2591,10 @@ begin
     edithotkey.Text:=x;
     freemem(x);
 
-    //hotkey+shiftstate
-    trainer.ReadBuffer(laststate,sizeof(laststate));
+    trainer.ReadBuffer(laststate,2);
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -2362,6 +2888,8 @@ var temp: dword;
     x: pchar;
 
     image: pointer;
+    laststate: word;
+    lastshiftstate: word;
 //    trainerdata1: array of TTrainerData1;
 begin
   with frmMemoryModifier do
@@ -2388,8 +2916,10 @@ begin
       trainerdata[i].hotkeytext:=x;
       freemem(x);
 
-      trainer.readbuffer(trainerdata[i].hotkey,2);
-      trainer.readBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.ReadBuffer(laststate,2);
+      trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+      ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, trainerdata[i].hotkey);
+
 
       trainer.ReadBuffer(temp,4);
       setlength(trainerdata[i].codeentrys,temp);
@@ -2468,9 +2998,11 @@ begin
     edithotkey.Text:=x;
     freemem(x);
 
-    //hotkey+shiftstate
-    trainer.ReadBuffer(laststate,sizeof(laststate));
+    //hotkey+shiftstate     (convert)
+    trainer.ReadBuffer(laststate,2);
     trainer.ReadBuffer(lastshiftstate,sizeof(lastshiftstate));
+    ConvertOldHotkeyToKeyCombo(lastshiftstate, laststate, popuphotkey);
+
 
     //abouttext
     trainer.ReadBuffer(temp,4);
@@ -2776,6 +3308,7 @@ begin
       4: LoadTrainer4(trainer);
       5: LoadTrainer5(trainer);
       6: LoadTrainer6(trainer);
+      7: LoadTrainer7(trainer);
       else raise exception.Create(strUnknownTrainerVersion+IntToStr(temp));
     end;
 

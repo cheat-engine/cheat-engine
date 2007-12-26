@@ -23,6 +23,7 @@ object frmPointerScanner: TfrmPointerScanner
     Width = 33
     Height = 13
     Caption = 'fcount:'
+    Visible = False
   end
   object Label21: TLabel
     Left = 123
@@ -30,6 +31,7 @@ object frmPointerScanner: TfrmPointerScanner
     Width = 6
     Height = 13
     Caption = '0'
+    Visible = False
   end
   object ProgressBar1: TProgressBar
     Left = 0

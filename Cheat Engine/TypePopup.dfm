@@ -1,6 +1,6 @@
 object TypeForm: TTypeForm
-  Left = 676
-  Top = 248
+  Left = 1069
+  Top = 196
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Type'

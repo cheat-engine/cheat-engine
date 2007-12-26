@@ -2,7 +2,8 @@ unit pluginexports;
 
 interface
 
-uses StdCtrls,sysutils,SyncObjs,dialogs,windows,classes,autoassembler,cefuncproc,newkernelhandler,debugger,tlhelp32;
+uses StdCtrls,sysutils,Controls, SyncObjs,dialogs,windows,classes,autoassembler,
+     cefuncproc,newkernelhandler,debugger,debugger2,tlhelp32;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
@@ -21,6 +22,10 @@ function ce_getaddressfrompointer(baseaddress: dword; offsetcount: integer; offs
 
 function ce_freezemem(address: dword; size: integer):integer; stdcall;
 function ce_unfreezemem(id: integer):boolean; stdcall;
+
+
+//function ce_getControlName(controlpointer: pointer; objectname: pchar; maxsize: integer):integer; stdcall;
+
 
 implementation
 
@@ -69,6 +74,26 @@ procedure ce_showmessage(s: pchar); stdcall;
 begin
   showmessage(s);
 end;
+
+
+{
+function ce_getControlName(controlpointer: pointer; objectname: pchar; maxsize: integer):integer; stdcall;
+//retrieves the name of a gui object
+var name: string;
+begin
+  result:=0;
+  if maxsize=0 then exit;
+
+  try
+    name:=tcontrol(controlpointer).Name;
+    if maxsize<=length(name) then
+      name:=copy(name,1,maxsize-1);
+
+    copymemory(objectname,@name[1],length(name));
+  except
+    result:=-1;
+  end;
+end;  }
 
 
 function ce_reloadsettings:boolean; stdcall;
@@ -234,6 +259,11 @@ end;
 function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):boolean; stdcall;
 var frmModifyRegisters:tfrmModifyRegisters;
 begin
+  if (formsettings.cbKdebug.checked) and (debuggerthread2<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
+
+  if (not formsettings.cbKdebug.checked) then
+    if (not startdebuggerifneeded) then exit;
+    
   frmModifyRegisters:=tfrmModifyRegisters.create(nil,address);
 
   with frmModifyRegisters do
@@ -321,9 +351,10 @@ begin
 
   changereg.address:=address;
 
+  //frmModifyRegisters.Showmodal;
   frmModifyRegisters.Button1.Click;
-  frmModifyRegisters.Free;
-
+  //frmModifyRegisters.Free;
+       
   result:=true;
 end;
 
@@ -400,3 +431,5 @@ begin
 end;
 
 end.
+
+

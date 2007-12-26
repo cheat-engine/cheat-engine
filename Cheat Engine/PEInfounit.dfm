@@ -12,8 +12,8 @@ object frmPEInfo: TfrmPEInfo
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
-  Visible = True
   OnClose = FormClose
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
@@ -31,7 +31,7 @@ object frmPEInfo: TfrmPEInfo
       Top = 15
       Width = 329
       Height = 267
-      ActivePage = TabSheet4
+      ActivePage = TabSheet1
       Align = alClient
       TabOrder = 0
       object TabSheet1: TTabSheet
@@ -52,8 +52,8 @@ object frmPEInfo: TfrmPEInfo
         object lbImports: TListBox
           Left = 0
           Top = 0
-          Width = 313
-          Height = 237
+          Width = 321
+          Height = 239
           Align = alClient
           ItemHeight = 13
           TabOrder = 0
@@ -65,8 +65,8 @@ object frmPEInfo: TfrmPEInfo
         object lbExports: TListBox
           Left = 0
           Top = 0
-          Width = 313
-          Height = 237
+          Width = 321
+          Height = 239
           Align = alClient
           ItemHeight = 13
           TabOrder = 0
@@ -142,29 +142,13 @@ object frmPEInfo: TfrmPEInfo
       Height = 13
       Caption = 'address'
     end
-    object RadioButton1: TRadioButton
-      Left = 8
-      Top = 168
-      Width = 39
-      Height = 17
-      Caption = 'File'
-      TabOrder = 0
-    end
-    object RadioButton2: TRadioButton
-      Left = 8
-      Top = 0
-      Width = 65
-      Height = 17
-      Caption = 'Memory'
-      TabOrder = 1
-    end
     object GroupBox1: TGroupBox
       Left = 8
       Top = 16
       Width = 131
       Height = 145
       Caption = 'MZ-Start'
-      TabOrder = 2
+      TabOrder = 0
       object edtAddress: TEdit
         Left = 8
         Top = 16
@@ -191,14 +175,23 @@ object frmPEInfo: TfrmPEInfo
         OnClick = Button1Click
       end
     end
-    object Button2: TButton
-      Left = 24
-      Top = 240
-      Width = 75
-      Height = 25
-      Caption = 'TEST'
-      TabOrder = 3
-      OnClick = Button2Click
+    object RadioButton1: TRadioButton
+      Left = 8
+      Top = 168
+      Width = 39
+      Height = 17
+      Caption = 'File'
+      TabOrder = 1
+    end
+    object RadioButton2: TRadioButton
+      Left = 8
+      Top = 0
+      Width = 113
+      Height = 17
+      Caption = 'Memory'
+      Checked = True
+      TabOrder = 2
+      TabStop = True
     end
   end
   object OpenDialog1: TOpenDialog

@@ -35,7 +35,8 @@ function disassemble(var offset: dword): string; overload;
 function disassemble(var offset: dword; var description: string): string; overload;
 
 function previousopcode(address: dword):dword;
-function translatestring(disassembled: string; numberofbytes: integer):string;
+//function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean):string;
+function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 
 function inttohexs(address:dword;chars: integer):string;
 
@@ -46,7 +47,7 @@ implementation
 //dont use it by otherunits
 {$ifndef net}
 {$ifndef standalonetrainer}
-uses assemblerunit,debugger;
+uses assemblerunit,debugger, StrUtils;
 {$endif}
 {$endif}
 
@@ -8657,14 +8658,14 @@ begin
                       description:='Logical Compare';
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'NOT '+modrm(memory,prefix2,1,1,last,16);
+                        tempresult:=tempresult+'TEST '+modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
                         tempresult:=tempresult+''+inttohexs(wordptr^,4);
                         inc(offset,last+1);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'NOT '+modrm(memory,prefix2,1,0,last);
+                        tempresult:=tempresult+'TEST '+modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
                         tempresult:=tempresult+''+inttohexs(dwordptr^,4);
                         inc(offset,last+3);
@@ -8872,7 +8873,7 @@ begin
 
     for i:=0 to (offset-startoffset)-1 do
       result:=result+inttohex(memory[i],2)+' ';
-    result:=result+' - '+tempresult;
+    result:=result+'- '+tempresult;
   end
   else
   begin
@@ -8922,7 +8923,7 @@ begin
  // if x<>address then result:=address-1 else result:=y;
 end;
 
-function translatestring(disassembled: string; numberofbytes: integer):string;
+function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 var offset,value:dword;
     e: integer;
     i,j,j2,k,l: integer;
@@ -8934,6 +8935,10 @@ var offset,value:dword;
     fvalue: single;
     fvalue2: double;
 begin
+  result:=disassembled;
+
+
+{
   ts:=disassembled;
   val('$'+disassembled,offset,e);
 
@@ -8954,7 +8959,7 @@ begin
   dec(j,2);
 
 
-  if (j-i)>2*numberofbytes then
+ { if (j-i)>2*numberofbytes then
   begin
     result:=result+copy(disassembled,i,(2*(numberofbytes)-1));
     result:=result+'...';
@@ -8968,112 +8973,138 @@ begin
     while length(ts)<k+2 do ts:=ts+' ';
 
     result:=result+ts;
-  end;
+  end;   }
 
 
-  i:=pos('[',disassembled);
-  if i>0 then
+  if showvalues then
   begin
-    ts:=copy(disassembled,i+1,pos(']',disassembled)-i-1);
-    try
-      offset:=symhandler.getAddressFromName(ts,false);
-      if offset<$80000000 then
-      begin
-        //decide what kind of value it is
-
-        valuetype:=2; //4 bytehex by default
-        setlength(tokens,0); //init
-
-        ts2:=copy(disassembled,pos('-',disassembled)+2,length(disassembled));
-        ts2:=copy(ts2,pos('-',ts2)+2,length(ts2));
-
-
-        if pos('dword ptr',ts2)>0 then valuetype:=2 else
-        if pos('byte ptr',ts2)>0 then valuetype:=0 else
-        if pos('word ptr',ts2)>0 then valuetype:=1 else
+    i:=pos('[',disassembled);
+    if i>0 then
+    begin
+      ts:=copy(disassembled,i+1,pos(']',disassembled)-i-1);
+      try
+        offset:=symhandler.getAddressFromName(ts,false);
+        if offset<$80000000 then
         begin
-          //check the register used
-          j2:=pos(',[',ts2);
-          k:=pos('],',ts2);
-          if j2>0 then //register in front
-          begin
-            l:=pos(' ',ts2);
-            ts3:=copy(ts2,l+1,j2-l-1);
-            valuetype:=TokenToRegisterbit(uppercase(ts3));
-            case valuetype of
-              1: valuetype:=0;
-              2: valuetype:=1;
-              3: valuetype:=2;
-              else valuetype:=2;
-            end;
-          end
-          else
-          if k>0 then  //register after ],
-          begin
-            l:=pos('],',ts2);
-            ts3:=copy(ts2,l+2,length(ts2)-l-1);
-            valuetype:=TokenToRegisterbit(uppercase(ts3));
-            case valuetype of
-              1: valuetype:=0;
-              2: valuetype:=1;
-              3: valuetype:=2;
-              else valuetype:=2;
-            end;
-          end; //else no ideam check instruction
+          //decide what kind of value it is
 
-          if valuetype=2 then
+          valuetype:=2; //4 bytehex by default
+          setlength(tokens,0); //init
+
+          ts2:=copy(disassembled,pos('-',disassembled)+2,length(disassembled));
+          ts2:=copy(ts2,pos('-',ts2)+2,length(ts2));
+
+
+          if pos('dword ptr',ts2)>0 then valuetype:=2 else
+          if pos('byte ptr',ts2)>0 then valuetype:=0 else
+          if pos('word ptr',ts2)>0 then valuetype:=1 else
           begin
-            //default or not decided yet, check the instruction for the float
-           // if pos('
+            //check the register used
+            j2:=pos(',[',ts2);
+            k:=pos('],',ts2);
+            if j2>0 then //register in front
+            begin
+              l:=pos(' ',ts2);
+              ts3:=copy(ts2,l+1,j2-l-1);
+              valuetype:=TokenToRegisterbit(uppercase(ts3));
+              case valuetype of
+                1: valuetype:=0;
+                2: valuetype:=1;
+                3: valuetype:=2;
+                else valuetype:=2;
+              end;
+            end
+            else
+            if k>0 then  //register after ],
+            begin
+              l:=pos('],',ts2);
+              ts3:=copy(ts2,l+2,length(ts2)-l-1);
+              valuetype:=TokenToRegisterbit(uppercase(ts3));
+              case valuetype of
+                1: valuetype:=0;
+                2: valuetype:=1;
+                3: valuetype:=2;
+                else valuetype:=2;
+              end;
+            end; //else no ideam check instruction
+
+            if valuetype=2 then
+            begin
+              //default or not decided yet, check the instruction for the float
+             // if pos('
+            end;
+
           end;
 
-        end;
+          setlength(tokens,0);
 
-        setlength(tokens,0);
+          ts:='';
+          value:=0;
+          fvalue:=0;
+          fvalue2:=0;
+          if valuetype=0 then //1 byte
+          begin
+            if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then
+              ts:=' : '+inttohex(value,2)
+          end
+          else
+          if valuetype=1 then //2 byte
+          begin
+            if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then
+              ts:=' : '+inttohex(value,4)
+          end
+          else
+          if valuetype=2 then //4 byte, could be pointer,so look up name if possible
+          begin
+            if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then
+              ts:=' : '+symhandler.getNameFromAddress(value)
+          end
+          else
+          if valuetype=3 then //single
+          begin
+            if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then
+              ts:=' : '+format('%.4f',[fvalue]);
+          end else
+          if valuetype=4 then //double
+          begin
+            if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then
+              ts:=' : '+format('%.4f',[fvalue2]);
+          end;
 
+        end
+        else ts:='';
+      except
         ts:='';
-        value:=0;
-        fvalue:=0;
-        fvalue2:=0;
-        if valuetype=0 then //1 byte
-        begin
-          if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then
-            ts:=' : '+inttohex(value,2)
-        end
-        else
-        if valuetype=1 then //2 byte
-        begin
-          if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then
-            ts:=' : '+inttohex(value,4)
-        end
-        else
-        if valuetype=2 then //4 byte, could be pointer,so look up name if possible
-        begin
-          if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then
-            ts:=' : '+symhandler.getNameFromAddress(value)
-        end
-        else
-        if valuetype=3 then //single
-        begin
-          if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then
-            ts:=' : '+format('%.4f',[fvalue]);
-        end else
-        if valuetype=4 then //double
-        begin
-          if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then
-            ts:=' : '+format('%.4f',[fvalue2]);
-        end;
+      end;
 
-      end
-      else ts:='';
-    except
-      ts:='';
-    end;
-     
+    end else ts:='';
+
   end else ts:='';
 
+  result:=result{+copy(disassembled,j+1,length(disassembled)-j)}+ts;
 
-  result:=result+copy(disassembled,j+1,length(disassembled)-j)+ts;
+  i:=pos(' - ',result);
+  address:=uppercase(copy(result,1,i-1));
+
+  inc(i,3);
+  j:=PosEx(' - ',result,i);
+  if j=0 then j:=length(result)+1;
+  bytes:=copy(result,i,(j-i));
+
+  inc(j,3);
+  k:=PosEx(' : ',result,j);
+  l:=k;
+  if k=0 then
+    k:=length(result)+1;
+
+  opcode:=copy(result,j,(k-j));
+
+  if l>0 then
+  begin
+    special:=copy(result,l+3,length(result));
+  end else special:='';
+
+
 end;
 
 

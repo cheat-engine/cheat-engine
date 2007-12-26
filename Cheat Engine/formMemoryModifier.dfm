@@ -1,12 +1,12 @@
 object frmMemoryModifier: TfrmMemoryModifier
-  Left = 472
-  Top = 359
+  Left = 448
+  Top = 295
   HelpContext = 14
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Trainer maker'
   ClientHeight = 506
-  ClientWidth = 450
+  ClientWidth = 447
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -295,7 +295,7 @@ object frmMemoryModifier: TfrmMemoryModifier
   object EditHotkey: TEdit
     Left = 288
     Top = 216
-    Width = 155
+    Width = 121
     Height = 21
     Enabled = False
     TabOrder = 9
@@ -358,6 +358,15 @@ object frmMemoryModifier: TfrmMemoryModifier
     ParentShowHint = False
     ShowHint = True
     TabOrder = 14
+  end
+  object Button8: TButton
+    Left = 411
+    Top = 218
+    Width = 33
+    Height = 17
+    Caption = 'Clear'
+    TabOrder = 15
+    OnClick = Button8Click
   end
   object OpenPictureDialog1: TOpenPictureDialog
     DefaultExt = 'bmp'

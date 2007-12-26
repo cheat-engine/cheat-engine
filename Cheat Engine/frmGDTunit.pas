@@ -13,16 +13,30 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    procedure dissectGDTentry(entry: uint64; var segmentlimit_0_15: word; var baseaddress_0_23: dword; var segmenttype: byte; var dpl: byte; var p: byte; var segmentlimit_16_19: byte; var AVL: byte; var bigordefault: byte; var gran: byte; var baseaddress_24_31: byte );
   public
     { Public declarations }
   end;
 
-var
-  frmGDTinfo: TfrmGDTinfo;
 
 implementation
 
 {$R *.dfm}
+
+procedure TfrmGDTinfo.dissectGDTentry(entry: uint64; var segmentlimit_0_15: word; var baseaddress_0_23: dword; var segmenttype: byte; var dpl: byte; var p: byte; var segmentlimit_16_19: byte; var AVL: byte; var bigordefault: byte; var gran: byte; var baseaddress_24_31: byte );
+begin
+  segmentlimit_0_15:=entry and $ffff;
+  baseaddress_0_23:=(entry shr 16) and $ffffff;
+  segmenttype:=(entry shr (32+8)) and $1f;
+  dpl:=(entry shr (32+13)) and 3;
+  p:=(entry shr (32+15)) and 1;
+  segmentlimit_16_19:=(entry shr (32+16)) and $f;
+  avl:=(entry shr (32+20)) and 1;
+  bigordefault:=(entry shr (32+22)) and 1;
+  gran:=(entry shr (32+23)) and 1;
+  baseaddress_24_31:=(entry shr (32+24)) and $ff;
+end;
+
 
 procedure TfrmGDTinfo.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -32,68 +46,107 @@ end;
 procedure TfrmGDTinfo.FormCreate(Sender: TObject);
 var limit: word;
     address: dword;
-    x: packed array of record
-      limit_low: word;    //0-15
-      base_low: word;     //\
-      base_middle: byte;  /// 16-39
-      access: byte;
-      granularity: byte;
-      base_high: byte;
-    end;
+
+    x: puint64array;
+
     i: integer;
     br:dword;
     t: ttreenode;
 
-    dpl: integer;
-    accessed: integer;
-    descriptor_type: integer;
-    descriptor_bit: integer;
-    dlimit: dword;
 
-    descriptor: int64;
+    segmentlimit_0_15: word;
+    baseaddress_0_23: dword;
+    segmenttype: byte;
+    dpl: byte;
+    p: byte;
+    segmentlimit_16_19: byte;
+    AVL: byte;
+    bigordefault: byte;
+    gran: byte;
+    baseaddress_24_31: byte;
+
+    seglimit: dword;
+    baseaddress: dword;
+
+    segtype: integer;
+
+    title: string;
 begin
   address:=getgdt(limit);
 
-  setlength(x,limit);
-  newkernelhandler.readprocessmemory(processhandle,pointer(address),x,limit,br);
+  getmem(x,limit*8);
+  try
+    newkernelhandler.kernelreadprocessmemory(processhandle,pointer(address),x,limit,br);
 
-  if br>0 then
-  begin
-    for i:=0 to (br div 8)-1 do
+    if br>0 then
     begin
-      descriptor:=pint64(@x[i])^;
+      for i:=0 to (br div 8)-1 do
+      begin
+        dissectGDTentry(x[i],segmentlimit_0_15,baseaddress_0_23, segmenttype, dpl,p, segmentlimit_16_19,avl,bigordefault,gran, baseaddress_24_31);
 
-      t:=treeview1.Items.Add(nil,inttohex(8*i,4)+': '+inttohex(descriptor,16));
-      treeview1.Items.Addchild(t,'base='+inttohex(x[i].base_high,2)+inttohex(x[i].base_middle,2)+inttohex(x[i].base_low,4)  );
+        title:=inttohex(8*i,4)+': ';
+        if p=1 then
+        begin
+          if (segmenttype shr 4)=1 then
+          begin
+            if ((segmenttype shr 3) and 1)=1 then
+            begin
+              title:=title+'Code Segment';
+              segtype:=1;
+            end
+            else
+            begin
+              segtype:=0;
+              title:=title+'Data Segment';
+            end;
 
-      accessed:=x[i].access;
-
-      if (x[i].access shr 7=1) then
-        treeview1.Items.addchild(t,'present')
-      else
-        treeview1.Items.addchild(t,'not present');
-
-      accessed:=accessed and $1;
-      treeview1.items.addchild(t,'accessed='+inttostr(accessed));
-
-      descriptor_type:=(accessed shr 1) and $7;
-      treeview1.items.addchild(t,'descriptor type='+inttostr(descriptor_type));
-
-      descriptor_bit:=(accessed shr 4) and $7;
-      treeview1.items.addchild(t,'Descriptor bit='+inttostr(descriptor_bit));
-
-      dpl:=x[i].access;
-      dpl:=(dpl and $7f) shr 5;
-      treeview1.items.addchild(t,'dpl='+inttostr(dpl));
-
-      dlimit:=descriptor and $ffff;
-      dlimit:=dlimit+ ((descriptor shr 48) and $f) shl 16;
-      treeview1.Items.addchild(t,'limit='+inttohex(dlimit,5));
+          end else
+          begin
+            segtype:=2;
+            title:=title+'System Segment';
+          end;
 
 
-    end;
 
-  end else showmessage('Read error');
+          baseaddress:=baseaddress_0_23+(baseaddress_24_31 shl 24);
+          seglimit:=segmentlimit_0_15+(segmentlimit_16_19 shl 16);
+          if gran=1 then
+            seglimit:=seglimit*4096+$FFF;
+
+          title:=title+' ('+inttohex(baseaddress,8)+' - '+inttohex(baseaddress+seglimit,8)+')';
+        end
+        else title:='Not present';
+
+
+        t:=treeview1.Items.Add(nil,title);
+
+        if p=1 then
+        begin
+          if segtype in [0,1] then
+            treeview1.items.addchild(t,'Accessed='+inttostr(segmenttype and 1));
+
+          if segtype = 0 then //data
+          begin
+            treeview1.items.addchild(t,'Writable='+inttostr((segmenttype shr 1) and 1));
+            treeview1.items.addchild(t,'Expansion direction='+inttostr((segmenttype shr 2) and 1));
+          end;
+
+          if segtype = 1 then //code
+          begin
+            treeview1.items.addchild(t,'Readable='+inttostr((segmenttype shr 1) and 1));
+            treeview1.items.addchild(t,'Conforming='+inttostr((segmenttype shr 2) and 1));
+          end;
+
+          treeview1.items.addchild(t,'DPL='+inttostr(dpl));
+          treeview1.items.addchild(t,'AVL='+inttostr(AVL));
+        end;
+      end;
+
+    end else showmessage('Read error');
+
+  finally
+    freemem(x);
+  end;
 
 end;
 

@@ -24,7 +24,10 @@ firstscanhandler,
 {$endif}
 math,syncobjs;
 
-Type TBytes = array of integer;
+
+
+type PUINT64 = ^uint64;
+Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
 type tfloatscan=(rounded,extremerounded,truncated);
 Type TMemoryRegion = record
   BaseAddress: Dword;
@@ -35,10 +38,13 @@ Type TMemoryRegion = record
 type TMemoryRegions = array of TMemoryRegion;
 type PMemoryRegions = ^TMemoryRegions;
 
-type bitaddress = record
+type TBitAddress = record
   address: dword;
   bit: dword;
 end;
+
+type TBitAddressArray=array [0..0] of TBitAddress;
+type PBitAddressArray=^TBitAddressArray;
 
 
 type TFreememoryThread = class(tthread)
@@ -63,11 +69,11 @@ type TFreememoryThread = class(tthread)
     FoundValue5switch:Array of Double;
     foundValue6switch:Array of int64;
 
-    foundaddressB: array of bitaddress;
+    foundaddressB: array of TBitAddress;
     previousmemory: array of byte;
 
     SearchAddress: array of dword;
-    SearchAddressB: array of BitAddress;
+    SearchAddressB: array of TBitAddress;
 
     previousmemory1: array of Byte;
     previousmemory2: array of word;
@@ -93,6 +99,10 @@ type TFreememoryThread = class(tthread)
 
     procedure execute; override;
 end;
+
+function ConvertHexStrToRealStr(const s: string): string;
+function HexStrToInt(const S: string): Integer;
+function HexStrToInt64(const S: string): Int64;
 
 procedure quicksortmemoryregions(lo,hi: integer);
 //function NextScan(var Results: TListBox; value: dword; FValue: Double; ScanWay, ValType,max: Integer; ProgressBar: TProgressbar): Integer;
@@ -149,6 +159,8 @@ procedure DisableStealth;
 Procedure InjectDll(dllname: string; functiontocall: string);
 Function GetRelativeFilePath(filename: string):string;
 
+function GetCPUCount: integer;
+
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:dword; sourceaddress:dword; sizeofcave: integer);
 {$endif}
@@ -186,6 +198,8 @@ const
 
   splitvalue=400000;
   number=600;      //is my using the new value on my system arround 580000
+
+  WM_HOTKEY2=WM_USER+$800;
 
 type
   MemoryRecordcet3 = record
@@ -253,6 +267,10 @@ type PdoubleArray=^TdoubleArray;
 
 type Tint64Array=array[0..0] of int64;
 type Pint64Array=^Tint64Array;
+
+type Tuint64Array=array[0..0] of uint64;
+type Puint64Array=^Tuint64Array;
+
 
 
 type TScanSettings = record
@@ -504,8 +522,8 @@ var
   FoundAddress: array of dword;
   FoundAddressSwitch: array of dword;
 
-  foundaddressB: array of bitaddress;
-  foundaddressBswitch: array of bitaddress;  
+  foundaddressB: array of TBitAddress;
+  foundaddressBswitch: array of TBitAddress;  
 
 
   tempbytearray: array of byte;
@@ -522,7 +540,7 @@ var
   SearchAddress: array of dword;
   searchaddressswitch: array of dword;
 
-  SearchAddressB: array of BitAddress;
+  SearchAddressB: array of TBitAddress;
 
   previousmemory1,previousmemory1switch: array of Byte;
   previousmemory2,previousmemory2switch: array of word;
@@ -582,6 +600,7 @@ var
 
   //windows version data
   iswin2kplus: boolean;
+  scanpriority: TThreadPriority; 
 
   {$ifndef standalonetrainer}
   {$ifndef net}
@@ -1928,7 +1947,7 @@ begin
           inc(found);
           if found=number then
           begin
-            blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(bitaddress)),actualwrite);
+            blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
             found:=0;
           end;
         end;
@@ -5443,7 +5462,7 @@ begin
                       inc(found);
                       if found=buffersize then
                       begin
-                        blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(bitaddress)),actualwrite);
+                        blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
                         found:=0;
                       end;
                     end;
@@ -5463,8 +5482,8 @@ begin
         progressbar.stepit;
       end;
 
-      blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(bitaddress)),actualwrite);
-      if (actualwrite<found*(sizeof(bitaddress))) then
+      blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
+      if (actualwrite<found*(sizeof(Tbitaddress))) then
       begin
         closefile(addressfile);
         closefile(memoryfile);
@@ -5478,13 +5497,13 @@ begin
       try
         try
           resulthelper:=tfilestream.Create(CheatEngineDir+'Addresses.tmp',fmopenread,fmsharedenynone);
-          result:=(resulthelper.Size-7) div sizeof(bitaddress);
+          result:=(resulthelper.Size-7) div sizeof(Tbitaddress);
         finally
           resulthelper.free;
         end;
       except
         reset(addressfile,1);
-        result:=(filesize(addressfile)-7) div sizeof(bitaddress);
+        result:=(filesize(addressfile)-7) div sizeof(Tbitaddress);
         closefile(addressfile);
       end;
 
@@ -12473,7 +12492,7 @@ begin
    //normal scan
    //addressfile contains the addresses of each location and memoryfile contains the value! (at least, thats what is suposed to be :) )
 
-    if valtype=5 then number:=((filesize(addressfile)-7) div sizeof(bitaddress)) else
+    if valtype=5 then number:=((filesize(addressfile)-7) div sizeof(Tbitaddress)) else
                       number:=((filesize(addressfile)-7) div 4);
 
     if number=0 then
@@ -12490,7 +12509,7 @@ begin
     number:=number div 10; //do it in at least 10 steps
     if number=0 then
     begin
-      if valtype=5 then number:=(filesize(addressfile)-7) div sizeof(bitaddress) else
+      if valtype=5 then number:=(filesize(addressfile)-7) div sizeof(Tbitaddress) else
                         number:=(filesize(addressfile)-7) div 4;
     end;
 
@@ -12508,7 +12527,7 @@ begin
     begin
       //it's a bit scan
 
-      progressbar.Max:=(filesize(addressfile)-7) div sizeof(bitaddress);
+      progressbar.Max:=(filesize(addressfile)-7) div sizeof(Tbitaddress);
       progressbar.Position:=0;
       setlength(searchaddressb,number);
       setlength(foundaddressb,number);
@@ -12520,11 +12539,11 @@ begin
 
       if scanway=Exact_Value then
       begin
-        actualread:=number*sizeof(bitaddress);
-        while actualread=number*sizeof(bitaddress) do
+        actualread:=number*sizeof(Tbitaddress);
+        while actualread=number*sizeof(Tbitaddress) do
         begin
-          blockread(addressfile,pointer(searchaddressb)^,number*sizeof(bitaddress),actualread);
-          for i:=0 to (actualread div sizeof(bitaddress))-1 do
+          blockread(addressfile,pointer(searchaddressb)^,number*sizeof(Tbitaddress),actualread);
+          for i:=0 to (actualread div sizeof(Tbitaddress))-1 do
           begin
             //recalculate the address
             startbit:=searchaddressb[i].bit+bitoffsetchange;
@@ -12568,7 +12587,7 @@ begin
                   inc(found);
                   if found=number then
                   begin
-                    blockwrite(newAddressfile,pointer(foundaddressB)^,found*(sizeof(bitaddress)),actualwrite);
+                    blockwrite(newAddressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
                     found:=0;
                   end;
                 end;
@@ -12580,7 +12599,7 @@ begin
           end;
           progressbar.StepIt;
         end;
-        blockwrite(newAddressfile,pointer(foundaddressB)^,found*(sizeof(bitaddress)),actualwrite);
+        blockwrite(newAddressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
       end; //no other scan methods for this(yet, perhaps when I feel like it...)
 
 
@@ -12600,13 +12619,13 @@ begin
       try
         try
           resulthelper:=tfilestream.Create(CheatEngineDir+'Addresses.tmp',fmopenread,fmsharedenynone);
-          result:=(resulthelper.Size-7) div sizeof(bitaddress);
+          result:=(resulthelper.Size-7) div sizeof(Tbitaddress);
         finally
           resulthelper.free;
         end;
       except
         reset(addressfile,1);
-        result:=(filesize(addressfile)-7) div sizeof(bitaddress);
+        result:=(filesize(addressfile)-7) div sizeof(Tbitaddress);
         closefile(addressfile);
       end;
 
@@ -19476,6 +19495,7 @@ begin
   try
     processlist.Sorted:=false;
     GetProcessList(sl);
+    processlist.Items.Clear;
     processlist.Items.AddStrings(sl);
   finally
     sl.free;
@@ -19567,6 +19587,10 @@ begin
 end;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
+{
+Converts a given string into a array of TBytes.
+TBytes are not pure bytes, they can hold -1, which indicates a wildcard
+}
 var i,j,k: integer;
     helpstr:string;
 begin
@@ -19641,12 +19665,84 @@ begin
   FlushInstructionCache(processhandle,pointer(address),size);
 end;
 
+function GetCPUCount: integer;
+{
+this function will return how many active cpu cores there are at your disposal
+}
+var cpucount: integer;
+    PA,SA: dword;
+begin
+  //get the cpu and system affinity mask, only processmask is used
+  GetProcessAffinityMask(getcurrentprocess,PA,SA);
+
+  cpucount:=0; 
+  while pa>0 do
+  begin
+    if (pa mod 2)=1 then inc(cpucount);
+    pa:=pa div 2;
+  end;
+
+  result:=cpucount;
+end;
 
 function GetRelativeFilePath(filename: string):string;
 begin
   result:=filename;
   if pos(uppercase(CheatEngineDir),uppercase(filename))=1 then
     result:='.\'+copy(filename,length(CheatEnginedir)+1,length(filename));
+end;
+
+function ConvertHexStrToRealStr(const s: string): string;
+{
+Converts a string meant to be a hexadeimcal string to the real way delphi reads
+it
+e.g:
+123 > $123
+-123 > -$123
++123 > +$123
+#123 > 123
++#123 > +123
+}
+var ishex: string;
+    start: integer;
+begin
+  if s='' then
+  begin
+    result:=s;
+    exit;
+  end;
+  start:=1;
+
+  if pos('#',s)>0 then
+  begin
+    ishex:='';
+    start:=2;
+  end
+  else
+  begin
+    ishex:='$';
+  end;
+
+  if s[1]='-' then
+  begin
+    result:='-'+ishex+copy(s,start+1,length(s))
+  end
+  else
+  if s[1]='+' then
+  begin
+    result:='+'+ishex+copy(s,start+1,length(s));
+  end
+  else result:=ishex+copy(s,start,length(s));
+end;
+
+function HexStrToInt(const S: string): Integer;
+begin
+  result:=StrToint(ConvertHexStrToRealStr(s));
+end;
+
+function HexStrToInt64(const S: string): Int64;
+begin
+  result:=StrToint64(ConvertHexStrToRealStr(s));
 end;
 
 initialization
@@ -19672,3 +19768,7 @@ finalization
   end;
 
 end.
+
+
+
+

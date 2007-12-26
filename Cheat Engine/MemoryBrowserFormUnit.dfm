@@ -1,8 +1,8 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 508
-  Top = 366
-  Width = 696
-  Height = 566
+  Left = 545
+  Top = 255
+  Width = 674
+  Height = 565
   HelpContext = 12
   Caption = 'Memory Viewer'
   Color = clBtnFace
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 290
-    Width = 680
+    Width = 666
     Height = 4
     Cursor = crVSplit
     Align = alTop
@@ -36,13 +36,13 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 680
+    Width = 666
     Height = 290
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 492
+      Left = 478
       Top = 0
       Height = 290
       Align = alRight
@@ -51,60 +51,92 @@ object MemoryBrowser: TMemoryBrowser
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 492
+      Width = 478
       Height = 290
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
       OnResize = Panel5Resize
-      DesignSize = (
-        492
-        290)
-      object DisCanvas: TPaintBox
-        Left = -8
+      object disassemblerscrollbox: TScrollBox
+        Left = 0
         Top = 17
-        Width = 483
+        Width = 461
         Height = 256
+        HorzScrollBar.Tracking = True
+        VertScrollBar.Visible = False
+        Align = alCustom
         Anchors = [akLeft, akTop, akRight, akBottom]
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Courier'
-        Font.Style = []
-        ParentFont = False
-        PopupMenu = debuggerpopup
-        OnDblClick = DisCanvasDblClick
-        OnMouseDown = DisCanvasMouseDown
-        OnMouseMove = DisCanvasMouseMove
-        OnPaint = DisCanvasPaint
-      end
-      object ScrollBar1: TScrollBar
-        Left = 476
-        Top = 17
-        Width = 16
-        Height = 256
-        Align = alRight
-        Kind = sbVertical
-        PageSize = 2
-        Position = 50
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BorderStyle = bsNone
         TabOrder = 0
-        OnChange = ScrollBar1Change
-        OnEnter = ScrollBar1Enter
-        OnKeyDown = ScrollBar1KeyDown
-        OnScroll = ScrollBar1Scroll
+        object DisCanvas: TPaintBox
+          Left = 0
+          Top = 17
+          Width = 461
+          Height = 239
+          Align = alClient
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Courier'
+          Font.Style = []
+          ParentFont = False
+          PopupMenu = debuggerpopup
+          OnDblClick = DisCanvasDblClick
+          OnMouseDown = DisCanvasMouseDown
+          OnMouseMove = DisCanvasMouseMove
+          OnPaint = DisCanvasPaint
+        end
+        object disassemblerheader: THeaderControl
+          Left = 0
+          Top = 0
+          Width = 461
+          Height = 17
+          Sections = <
+            item
+              AllowClick = False
+              ImageIndex = -1
+              MinWidth = 50
+              Text = 'Address'
+              Width = 75
+            end
+            item
+              AllowClick = False
+              ImageIndex = -1
+              MinWidth = 50
+              Text = 'Bytes'
+              Width = 83
+            end
+            item
+              AllowClick = False
+              ImageIndex = -1
+              MinWidth = 50
+              Text = 'Opcode'
+              Width = 200
+            end
+            item
+              AllowClick = False
+              ImageIndex = -1
+              MinWidth = 5
+              Text = 'Special'
+              Width = 103
+            end>
+          OnSectionResize = disassemblerheaderSectionResize
+        end
       end
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 492
+        Width = 478
         Height = 17
         Align = alTop
         BevelInner = bvLowered
-        TabOrder = 2
+        TabOrder = 1
         object Label1: TLabel
           Left = 2
           Top = 2
-          Width = 488
+          Width = 474
           Height = 13
           Align = alClient
           Alignment = taCenter
@@ -115,7 +147,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel6: TPanel
         Left = 0
         Top = 273
-        Width = 492
+        Width = 478
         Height = 17
         Align = alBottom
         BevelInner = bvLowered
@@ -127,12 +159,27 @@ object MemoryBrowser: TMemoryBrowser
         Font.Name = 'Courier'
         Font.Style = []
         ParentFont = False
-        TabOrder = 1
+        TabOrder = 2
         OnMouseDown = Panel5MouseDown
+      end
+      object ScrollBar1: TScrollBar
+        Left = 462
+        Top = 17
+        Width = 16
+        Height = 256
+        Align = alRight
+        Kind = sbVertical
+        PageSize = 2
+        Position = 50
+        TabOrder = 3
+        OnChange = ScrollBar1Change
+        OnEnter = ScrollBar1Enter
+        OnKeyDown = ScrollBar1KeyDown
+        OnScroll = ScrollBar1Scroll
       end
     end
     object RegisterView: TPanel
-      Left = 495
+      Left = 481
       Top = 0
       Width = 185
       Height = 290
@@ -537,8 +584,8 @@ object MemoryBrowser: TMemoryBrowser
   object Panel4: TPanel
     Left = 0
     Top = 294
-    Width = 680
-    Height = 216
+    Width = 666
+    Height = 217
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -547,13 +594,13 @@ object MemoryBrowser: TMemoryBrowser
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
     DesignSize = (
-      680
-      216)
+      666
+      217)
     object MBCanvas: TPaintBox
       Left = 1
       Top = 9
-      Width = 666
-      Height = 208
+      Width = 644
+      Height = 207
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = memorypopup
       OnDblClick = MBCanvasDblClick
@@ -571,10 +618,10 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Protection'
     end
     object ScrollBar2: TScrollBar
-      Left = 663
+      Left = 649
       Top = 1
       Width = 16
-      Height = 214
+      Height = 215
       Align = alRight
       Kind = sbVertical
       Max = 101
@@ -690,6 +737,10 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Go to address'
       OnClick = Gotoaddress1Click
     end
+    object Back1: TMenuItem
+      Caption = 'Back'
+      OnClick = Back1Click
+    end
     object Follow1: TMenuItem
       Caption = 'Follow'
       Visible = False
@@ -709,6 +760,21 @@ object MemoryBrowser: TMemoryBrowser
     object Assemble1: TMenuItem
       Caption = 'Assemble'
       OnClick = Assemble1Click
+    end
+    object Copytoclipboard1: TMenuItem
+      Caption = 'Copy to clipboard'
+      object CopyBytesAndOpcodes: TMenuItem
+        Caption = 'Bytes+Opcodes'
+        OnClick = CopyBytesAndOpcodesClick
+      end
+      object copyBytes: TMenuItem
+        Caption = 'Bytes'
+        OnClick = CopyBytesAndOpcodesClick
+      end
+      object copyOpcodes: TMenuItem
+        Caption = 'Opcodes'
+        OnClick = CopyBytesAndOpcodesClick
+      end
     end
     object N7: TMenuItem
       Caption = '-'
@@ -850,6 +916,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16469
         OnClick = Symbolhandler1Click
       end
+      object Showvaluesofstaticaddresses1: TMenuItem
+        Caption = 'Show '#39'special'#39' row'
+        ShortCut = 16470
+        OnClick = Showvaluesofstaticaddresses1Click
+      end
     end
     object Debug1: TMenuItem
       Caption = 'Debug'
@@ -929,6 +1000,11 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Dissect window(s)'
         ShortCut = 16471
         OnClick = Disectwindow1Click
+      end
+      object DissectPEheaders1: TMenuItem
+        Caption = 'Dissect PE headers'
+        ShortCut = 49232
+        OnClick = DissectPEheaders1Click
       end
       object N12: TMenuItem
         Caption = '-'

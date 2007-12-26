@@ -56,7 +56,7 @@ var ths: thandle;
     found: boolean;
     temp: thandle;
 begin
-  inherited create(suspended);
+  inherited create(true);
   debugregs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
 
   //try to find this process in the processwatch window.
@@ -105,6 +105,8 @@ begin
       closehandle(ths);
     end;
   end;
+
+  if not suspended then resume;
 end;
 
 procedure TDebugevents.setbreakpoints;

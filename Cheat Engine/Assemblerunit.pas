@@ -1641,6 +1641,7 @@ var x: dword;
 begin
   //this function converts a sttring to a valuetype depsnding on how it is written
   result:=0;
+
   val(value,x,err);
   if err>0 then exit;
 
@@ -1769,17 +1770,7 @@ begin
 
   result:=tokenToRegisterbit(token);
 
-  if token[1]='-' then
-  begin
-    temp:='-$'+copy(token,2,length(token)-1)
-  end
-  else
-  if token[1]='+' then
-  begin
-    temp:='+$'+copy(token,2,length(token)-1);
-  end
-  else temp:='$'+token;
-
+  temp:=ConvertHexStrToRealStr(token);
   val(temp,i,err);
   if err=0 then
   begin
@@ -2455,6 +2446,7 @@ begin
 
   //setreg
   if reg>7 then raise exception.Create('The assembler tried to set a register value that is too high');
+  if reg=-1 then reg:=0;
   modrm[0]:=modrm[0]+(reg shl 3);
 
   j:=length(bytes);

@@ -13,7 +13,7 @@ different threads. (so makes it unusable if I wanted to use it for scanning)
 
 interface
 
-uses windows, SyncObjs, SysUtils{$ifndef isdll}, forms, dialogs{$endif};
+uses windows, SyncObjs, SysUtils{$ifndef isdll},pluginexports, forms, dialogs,cefuncproc,newkernelhandler{$endif};
 
 type tuc_init=function(defs_file: pchar; use_defs: BOOL): integer; stdcall;
 type tuc_finis=procedure; stdcall;
@@ -22,6 +22,10 @@ type tuc_result=procedure(buff: pchar; maxsize: integer); stdcall;
 type tuc_error=procedure(buff: pchar; maxsize: integer); stdcall;
 type tuc_import=function(declaration: pchar; routine: pointer):BOOL; stdcall;
 type tuc_main=function(argc: integer; arguments: pchar): integer; stdcall;
+type tuc_compile=function(result: pchar; code: pchar): pointer; stdcall;
+type tuc_eval=function(expr: pchar; res: pchar; sz: integer): integer; stdcall;
+type tuc_eval_args=function(func: pointer; result: pointer): integer; cdecl varargs;
+type tuc_get_function=function(functionname: pchar): pointer; stdcall;
 
 
 type TScriptengine=class
@@ -37,6 +41,10 @@ type TScriptengine=class
     uc_error: tuc_error;
     uc_import: tuc_import;
     uc_main: tuc_main;
+    uc_compile: tuc_compile;
+    uc_eval: tuc_eval;
+    uc_eval_args: tuc_eval_args;
+    uc_get_function: tuc_get_function;
     function CheckThread: boolean;
   public
     constructor create;
@@ -45,6 +53,7 @@ type TScriptengine=class
     function execute_command(command: string): boolean;
     function getError: string;
     function getResult: string;
+    function x: integer;
 end;
 
 var scriptengine: TScriptengine;
@@ -59,10 +68,25 @@ begin
   result:=x+1;
 end;
 
-procedure ce_showmessage(m: pchar); stdcall;
+function ce_GetSelectedProcessHandle: THandle; stdcall;
 begin
-  showmessage(m);
+  result:=processhandle;
 end;
+
+function ce_ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
+{Calls the ReadProcessMemory version the rest of CE uses right now}
+begin
+  result:=ReadProcessMemory(hProcess,lpBaseAddress,lpBuffer,nSize,lpNumberOfBytesRead);
+end;
+
+function ce_WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+{Calls the WriteProcessMemory version the rest of CE uses right now}
+begin
+  result:=WriteProcessMemory(hProcess,lpBaseAddress,lpBuffer,nSize,lpNumberOfBytesWritten);
+end;
+
+
+
 {$endif}
 
 constructor TScriptengine.create;
@@ -124,6 +148,8 @@ begin
     if underclibrary=0 then
       messagebox(0,pchar(dllpath+'\ucc12.dll'),'error dllpath=',mb_ok);
 {$else}
+//    underclibrary:=loadlibrary('C:\Cheat Engine\underc\sourcecode\src\ddebug\ucc12.dll');
+//    underclibrary:=loadlibrary('C:\Cheat Engine\underc\sourcecode\ucc12.dll');
     underclibrary:=loadlibrary('ucc12.dll');
 {$endif}
 
@@ -141,25 +167,36 @@ begin
     uc_error:=getprocaddress(underclibrary,'_uc_error@8');
     uc_import:=getprocaddress(underclibrary,'_uc_import@8');
     uc_main:=getprocaddress(underclibrary,'_uc_main@8');
+    uc_compile:=getprocaddress(underclibrary,'_uc_compile@8');
+    uc_eval:=getprocaddress(underclibrary,'_uc_eval@12');
+    uc_eval_args:=getprocaddress(underclibrary,'uc_eval_args');
+    uc_get_function:=getprocaddress(underclibrary,'_uc_get_function@4');
 
     uc_init(nil,false);
+
 
 {$ifndef isdll}
     //make some ce specific functions.
     uc_import('int xplusone(int)',@xplusone);
     uc_import('void ce_showmessage(char*)',@ce_showmessage);
+    uc_import('int ce_ChangeRegistersAtAddress(unsigned long, void *)',@ce_ChangeRegistersAtAddress);
+    uc_import('int ce_AutoAssemble(char *)',@ce_AutoAssemble);
+    uc_import('int ce_Assembler(unsigned int, char *, unsigned char *, int, int *)',@ce_assembler);
+    uc_import('int ce_Disassembler(unsigned int, char *, int)',@ce_Disassembler);
+    uc_import('int ce_InjectDLL(char *, char *)',@ce_InjectDLL);
+    uc_import('unsigned int ce_GetAddressFromPointer(unsigned int, int, unsigned int *)',@ce_GetaddressFromPointer);
+    uc_import('int ce_GetSelectedProcessHandle(void)',@ce_GetSelectedProcessHandle);
+    uc_import('int ce_ReadProcessMemory(unsigned int, void *, void *, unsigned long, void *)',@ce_ReadProcessMemory);
+    uc_import('int ce_WriteProcessMemory(unsigned int, void *, void *, unsigned long, void *)',@ce_WriteProcessMemory);
 {$endif}
-    //make some helper functions. DLL version can use these as well
-    //...
-    //...
-    //...   
 
+//    scriptengine.uc_import('void abracadabra(int)',pointer($7c802442));
   end;
 
 
 
 
-  //uc_init(nil,false);
+//  uc_init(nil,false);
 
 
 
@@ -174,7 +211,6 @@ begin
   result:=false;
   if not checkthread then
     exit;
-
 
  // uc_finis;
 //  freelibrary(underclibrary);
@@ -191,7 +227,6 @@ begin
     exit;
 
   result:=uc_exec(pchar(command));
-
 end;
 
 function TScriptEngine.getResult: string;
@@ -230,6 +265,37 @@ begin
 end;
 
 
+
+
+function TScriptengine.x:integer;
+var x: pointer;
+    r: integer;
+    i: integer;
+    j: integer;
+    c,d: int64;
+    total: dword;
+    count: dword;
+    res: pchar;
+    s: string;
+    a: dword;
+
+begin
+  uc_exec('__declare bla(int x) { return x+12; }');
+
+  showmessage(getresult+'  -  '+geterror);
+
+  uc_exec('int i;');
+  uc_exec('i=bla(12);');
+
+  showmessage(getresult+'  -  '+geterror);
+
+  a:=dword(uc_get_function('bla'));
+  showmessage(inttohex(a,8));
+
+
+end;
+
+
 initialization
   scriptengine:=TScriptengine.create;
 
@@ -237,6 +303,7 @@ finalization
   //scriptengine.free;
 
 end.
+
 
 
 

@@ -21,8 +21,8 @@ object frmProcessWatcher: TfrmProcessWatcher
   object tvProcesslist: TTreeView
     Left = 0
     Top = 0
-    Width = 191
-    Height = 188
+    Width = 199
+    Height = 190
     Align = alClient
     Indent = 19
     PopupMenu = pmthreadid
@@ -33,14 +33,14 @@ object frmProcessWatcher: TfrmProcessWatcher
   end
   object Panel1: TPanel
     Left = 0
-    Top = 188
-    Width = 191
+    Top = 190
+    Width = 199
     Height = 55
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      191
+      199
       55)
     object btnOpen: TButton
       Left = 57

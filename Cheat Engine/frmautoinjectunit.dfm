@@ -2,7 +2,7 @@ object frmAutoInject: TfrmAutoInject
   Left = 660
   Top = 265
   Width = 431
-  Height = 313
+  Height = 331
   HelpContext = 18
   Caption = 'Auto assemble'
   Color = clBtnFace
@@ -21,7 +21,7 @@ object frmAutoInject: TfrmAutoInject
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 221
+    Top = 239
     Width = 423
     Height = 38
     Align = alBottom
@@ -42,8 +42,9 @@ object frmAutoInject: TfrmAutoInject
     Left = 0
     Top = 0
     Width = 423
-    Height = 221
+    Height = 239
     Align = alClient
+    PopupMenu = closemenu
     Style = tsFlatButtons
     TabOrder = 0
     OnChange = TabControl1Change
@@ -52,8 +53,9 @@ object frmAutoInject: TfrmAutoInject
       Left = 4
       Top = 6
       Width = 415
-      Height = 211
+      Height = 229
       Align = alClient
+      HideSelection = False
       HideScrollBars = False
       PopupMenu = PopupMenu1
       ScrollBars = ssBoth
@@ -156,12 +158,52 @@ object frmAutoInject: TfrmAutoInject
   object PopupMenu1: TPopupMenu
     Left = 104
     Top = 64
+    object Cut1: TMenuItem
+      Caption = 'Cu&t'
+      ShortCut = 16472
+      OnClick = Cut1Click
+    end
+    object Copy1: TMenuItem
+      Caption = '&Copy'
+      ShortCut = 16451
+      OnClick = Copy1Click
+    end
+    object Paste1: TMenuItem
+      Caption = '&Paste'
+      ShortCut = 16470
+      OnClick = Paste1Click
+    end
+    object Undo1: TMenuItem
+      Caption = '&Undo'
+      ShortCut = 16474
+      OnClick = Undo1Click
+    end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object Find1: TMenuItem
+      Caption = '&Find...'
+      ShortCut = 16454
+      OnClick = Find1Click
+    end
   end
-  object PopupMenu2: TPopupMenu
+  object closemenu: TPopupMenu
     Left = 376
     object Close1: TMenuItem
       Caption = 'Close'
       OnClick = Close1Click
     end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frFindNext, frHideMatchCase, frHideWholeWord, frHideUpDown]
+    OnFind = FindDialog1Find
+    Left = 32
+    Top = 88
+  end
+  object undotimer: TTimer
+    Interval = 250
+    OnTimer = undotimerTimer
+    Left = 264
+    Top = 32
   end
 end

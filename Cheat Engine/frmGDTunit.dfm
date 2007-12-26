@@ -1,6 +1,6 @@
 object frmGDTinfo: TfrmGDTinfo
   Left = 937
-  Top = 657
+  Top = 635
   Width = 299
   Height = 325
   Caption = 'GDT'
@@ -23,6 +23,7 @@ object frmGDTinfo: TfrmGDTinfo
     Height = 291
     Align = alClient
     Indent = 19
+    ReadOnly = True
     TabOrder = 0
   end
 end

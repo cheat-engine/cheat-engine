@@ -4,7 +4,7 @@ interface
 
 uses sysutils,windows,checklst,menus,dialogs,pluginexports,cefuncproc,newkernelhandler;
 
-const CurrentPluginVersion=1;
+const CurrentPluginVersion=2;
 
 //structures
 type TPluginVersion = record
@@ -13,9 +13,7 @@ type TPluginVersion = record
 end;
 type PPluginVersion=^TPluginVersion;
 
-
-
-type TExportedFunctions = record
+type TExportedFunctions2 = record
   sizeofExportedFunctions: integer;
   showmessage: pointer;
   registerfunction: pointer;
@@ -106,11 +104,104 @@ type TExportedFunctions = record
   mainform                :pointer;
   memorybrowser           :pointer;
 end;
-type PExportedFunctions = ^TExportedFunctions;
+type PExportedFunctions2 = ^TExportedFunctions2;
+
+type TExportedFunctions1 = record
+  sizeofExportedFunctions: integer;
+  showmessage: pointer;
+  registerfunction: pointer;
+  unregisterfunction: pointer;
+  OpenedProcessID: ^dword;
+  OpenedProcessHandle: ^thandle;
+
+  GetMainWindowHandle: pointer;
+  AutoAssemble: pointer;
+  assembler: pointer;
+  disassembler: pointer;
+  ChangeRegistersAtAddress: pointer;
+  InjectDLL: pointer;
+  freezemem: pointer;
+  unfreezemem: pointer;
+  fixmem: pointer;
+  processlist: pointer;
+  reloadsettings: pointer;
+  getaddressfrompointer: pointer;
+
+  //pointers to the address that contains the pointers to the functions
+  ReadProcessMemory     :pointer;
+  WriteProcessMemory    :pointer;
+  GetThreadContext      :pointer;
+  SetThreadContext      :pointer;
+  SuspendThread         :pointer;
+  ResumeThread          :pointer;
+  OpenProcess           :pointer;
+  WaitForDebugEvent     :pointer;
+  ContinueDebugEvent    :pointer;
+  DebugActiveProcess    :pointer;
+  StopDebugging         :pointer;
+  StopRegisterChange    :pointer;
+  VirtualProtect        :pointer;
+  VirtualProtectEx      :pointer;
+  VirtualQueryEx        :pointer;
+  VirtualAllocEx        :pointer;
+  CreateRemoteThread    :pointer;
+  OpenThread            :pointer;
+  GetPEProcess          :pointer;
+  GetPEThread           :pointer;
+  GetThreadsProcessOffset:pointer;
+  GetThreadListEntryOffset:pointer;
+  GetProcessnameOffset  :pointer;
+  GetDebugportOffset    :pointer;
+  GetPhysicalAddress    :pointer;
+  ProtectMe             :pointer;
+  GetCR4                :pointer;
+  GetCR3                :pointer;
+  SetCR3                :pointer;
+  GetSDT                :pointer;
+  GetSDTShadow          :pointer;
+  setAlternateDebugMethod: pointer;
+  getAlternateDebugMethod: pointer;
+  DebugProcess          :pointer;
+  ChangeRegOnBP         :pointer;
+  RetrieveDebugData     :pointer;
+  StartProcessWatch     :pointer;
+  WaitForProcessListData:pointer;
+  GetProcessNameFromID  :pointer;
+  GetProcessNameFromPEProcess:pointer;
+  KernelOpenProcess       :pointer;
+  KernelReadProcessMemory :pointer;
+  KernelWriteProcessMemory:pointer;
+  KernelVirtualAllocEx    :pointer;
+  IsValidHandle           :pointer;
+  GetIDTCurrentThread     :pointer;
+  GetIDTs                 :pointer;
+  MakeWritable            :pointer;
+  GetLoadedState          :pointer;
+  DBKSuspendThread        :pointer;
+  DBKResumeThread         :pointer;
+  DBKSuspendProcess       :pointer;
+  DBKResumeProcess        :pointer;
+  KernelAlloc             :pointer;
+  GetKProcAddress         :pointer;
+  CreateToolhelp32Snapshot:pointer;
+  Process32First          :pointer;
+  Process32Next           :pointer;
+  Thread32First           :pointer;
+  Thread32Next            :pointer;
+  Module32First           :pointer;
+  Module32Next            :pointer;
+  Heap32ListFirst         :pointer;
+  Heap32ListNext          :pointer;
+
+  //advanced for delphi 7 enterprise dll programmers only
+  mainform                :pointer;
+  memorybrowser           :pointer;
+end;
+type PExportedFunctions1 = ^TExportedFunctions1; 
 
 //exported functions of the plugin
 type TGetVersion=function(var PluginVersion:TPluginVersion; TPluginVersionSize: integer):BOOL; stdcall;
-type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions; pluginid: dword):BOOL; stdcall;
+type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions2; pluginid: dword):BOOL; stdcall;
 type TDisablePlugin=function:BOOL; stdcall;
 
 
@@ -224,7 +315,7 @@ type TPluginHandler=class
 end;
 
 var pluginhandler: TPluginhandler;
-    exportedfunctions: TExportedFunctions;
+    exportedfunctions: TExportedFunctions2;
 
 implementation
 
@@ -467,7 +558,7 @@ begin
 end;
 
 procedure TPluginHandler.EnablePlugin(pluginid: integer);
-var e: texportedfunctions;
+var e: texportedfunctions2;
     x: boolean;
 begin
   e:=exportedfunctions;  //save it to prevent plugins from fucking it up
@@ -574,7 +665,7 @@ begin
   if GetVersion(PluginVersion,sizeof(TPluginVersion)) then
   begin
     if PluginVersion.version>currentpluginversion then
-      raise exception.Create('Error loading '+dllname+'. The dll requires a newer version of ce to function properly');
+      raise exception.Create('Error loading '+dllname+'. This dll requires a newer version of ce to function properly');
 
     pluginMREW.BeginWrite;
     try
@@ -673,7 +764,7 @@ constructor TPluginHandler.create;
 var test: pchar;
 begin
   pluginMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
-  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions);
+  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions2);
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;
   exportedfunctions.unregisterfunction:=@ce_unregisterfunction;

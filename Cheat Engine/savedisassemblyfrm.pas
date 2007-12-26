@@ -34,8 +34,8 @@ type
     SaveDialog1: TSaveDialog;
     ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure actCancelExecute(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     SaveDisassemblyThread: TSaveDisassemblyThread;
@@ -44,6 +44,7 @@ type
   public
     { Public declarations }
     property copymode: boolean read FCopyMode write setCopyMode;
+    procedure waittilldone;
   end;
 
 var
@@ -58,7 +59,7 @@ var currentaddress: dword;
     f: textfile;
     temps: string;
     temps2: string;
-    addresspart, bytepart, opcodepart: string;
+    addresspart, bytepart, opcodepart, specialpart: string;
     i: integer;
     clip: tclipboard;
     cpbuf: tstringlist;
@@ -82,11 +83,9 @@ begin
   while (not terminated) and (currentaddress<stop) do
   begin
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
-    temps2:=copy(temps,pos('-',temps)+2,length(temps)); //contains the bytepart and opcode part
-    opcodepart:=copy(temps2,pos('-',temps2)+2,length(temps2));
-
-    addresspart:=copy(temps,1,pos('-',temps)-2);
-    bytepart:=copy(temps2,1,pos('-',temps2)-2);
+    temps:=translatestring(temps,0,true,addresspart,bytepart,opcodepart,specialpart);
+    if specialpart<>'' then
+      opcodepart:=opcodepart+' : '+specialpart;
 
     temps:='';
     if address then
@@ -211,8 +210,12 @@ begin
   end;
 end;
 
-procedure TfrmSavedisassembly.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TfrmSavedisassembly.actCancelExecute(Sender: TObject);
+begin
+  close;
+end;
+
+procedure TfrmSavedisassembly.FormDestroy(Sender: TObject);
 begin
   if SaveDisassemblyThread<>nil then
   begin
@@ -222,9 +225,10 @@ begin
   end;
 end;
 
-procedure TfrmSavedisassembly.actCancelExecute(Sender: TObject);
+procedure TfrmSavedisassembly.waittilldone;
 begin
-  close;
+  if SaveDisassemblyThread<>nil then
+    SaveDisassemblyThread.WaitFor;
 end;
 
 end.

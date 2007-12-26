@@ -122,6 +122,7 @@ type
     EditAutoAttach: TEdit;
     Label24: TLabel;
     cbAlwaysAutoAttach: TCheckBox;
+    cbGlobalDebug: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -373,7 +374,7 @@ begin
   if (error<>0) or (updateinterval<=0) then raise exception.Create(editfreezeinterval.text+' is not a valid interval');
 
 
-  try bufsize:=StrToInt(editbufsize.text); except bufsize:=512; end;
+  try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
 
   if bufsize=0 then raise exception.create('The scanbuffer size has to be greater than 0');
 
@@ -398,6 +399,18 @@ begin
       reg.WriteBool('Advanced',cbShowAdvanced.checked);
       reg.WriteBool('SeperateThread',checkThread.checked);
       reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
+      case combothreadpriority.itemindex of
+        0: scanpriority:=tpIdle;
+        1: scanpriority:=tpLowest;
+        2: scanpriority:=tpLower;
+        3: scanpriority:=tpLower;
+        4: scanpriority:=tpNormal;
+        5: scanpriority:=tpHigher;
+        6: scanpriority:=tpHighest;
+        7: scanpriority:=tpTimeCritical;
+      end;
+
+
       reg.WriteInteger('Buffersize',bufsize);
       reg.WriteInteger('Maxresults',newmax);
       reg.WriteBool('UseDebugRegs',rbDebugRegisters.checked);
@@ -575,6 +588,9 @@ begin
 
       reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
+      reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
+      if assigned(newkernelhandler.SetGlobalDebugState) then
+        newkernelhandler.SetGlobalDebugState(cbGlobalDebug.checked);
 
       reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
       reg.WriteBool('Unrandomizer: incremental',unrandomizersettings.incremental);
@@ -1071,8 +1087,13 @@ begin
   begin
     cbKernelOpenProcess.Checked:=true;
     cbKernelOpenProcess.Enabled:=false;
+    cbGlobalDebug.enabled:=true;
   end
-  else cbKernelOpenProcess.Enabled:=true;
+  else
+  begin
+    cbKernelOpenProcess.Enabled:=true;
+    cbGlobalDebug.enabled:=false;
+  end;
 
   if cbkdebug.Checked then
   begin
@@ -1080,6 +1101,7 @@ begin
     cbKernelOpenProcess.Checked:=true;
     cbProcessWatcher.Enabled:=false;
     cbProcesswatcher.Checked:=true;
+
     cbProcessWatcherClick(cbProcessWatcher);
   end else cbprocesswatcher.enableD:=true;
 end;

@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, Menus, ExtDlgs, ComCtrls, Buttons, ExtCtrls,shellapi,tlhelp32,
   cefuncproc,ExtraTrainerComponents;
 
-const trainerversion=6;
+const trainerversion=7;
 
 type TcodeEntry = record
   address: dword;
@@ -34,8 +34,7 @@ end;
 type Ttrainerdata = record
   description: string;
   hotkeytext: string;
-  hotkey: word;
-  hotshift: word;
+  hotkey: TKeyCombo;
   hasedit: boolean;
   editvalue: string;
 
@@ -81,6 +80,7 @@ type
     Label5: TLabel;
     Label6: TLabel;
     cbPreventReopening: TCheckBox;
+    Button8: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -103,6 +103,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure EditHotkeyKeyPress(Sender: TObject; var Key: Char);
     procedure recordviewDblClick(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
   private
     { Private declarations }
     procedure changeicon(filename: string);
@@ -110,8 +111,7 @@ type
     { Public declarations }
     trainerdata: array of TTrainerdata;
     changed: boolean;
-    laststate: word;
-    lastshiftstate:tshiftstate;
+    popuphotkey: tkeycombo;
     dontshowdefault:boolean;
   end;
 
@@ -299,8 +299,7 @@ begin
       x:=pchar(trainerdata[i].hotkeytext);
       trainer.WriteBuffer(pointer(x)^,temp);
 
-      trainer.WriteBuffer(trainerdata[i].hotkey,2);
-      trainer.WriteBuffer(trainerdata[i].hotshift,sizeof(trainerdata[i].hotshift));
+      trainer.WriteBuffer(trainerdata[i].hotkey,sizeof(trainerdata[i].hotkey));
 
       temp:=length(Trainerdata[i].codeEntrys);
       trainer.WriteBuffer(temp,4);
@@ -441,9 +440,8 @@ begin
     x:=pchar(edithotkey.text);
     trainer.writebuffer(pointer(x)^,temp);
 
-    //hotkey+shiftstate
-    trainer.WriteBuffer(laststate,sizeof(laststate));
-    trainer.WriteBuffer(lastshiftstate,sizeof(lastshiftstate));
+    //hotkey
+    trainer.WriteBuffer(popuphotkey,sizeof(popuphotkey));
 
     //aboutbox
     temp:=length(memo1.text);
@@ -903,23 +901,20 @@ end;
 
 procedure TfrmMemoryModifier.EditHotkeyKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var newstr: String;
+var i: integer;
 begin
-  laststate:=Key;
-  lastshiftstate:=Shift;
+  if popuphotkey[4]=0 then
+  begin
+    for i:=0 to 4 do
+      if popuphotkey[i]=0 then
+      begin
+        popuphotkey[i]:=key;
+        break;
+      end else
+      if popuphotkey[i]=key then break;  //already in list
+  end;
 
-  newstr:='';
-  if ssCtrl in Shift then newstr:='Ctrl';
-  if ssAlt in shift then if newstr='' then newstr:='Alt' else newstr:=newstr+'+Alt';
-  if ssShift in Shift then if newstr='' then newstr:='Shift' else newstr:=newstr+'+Shift';
-
-  if newstr='' then
-    newstr:=KeyToStr(key)
-  else
-    newstr:=newstr+'+'+KeyToStr(key);
-
-  edithotkey.text:=newstr;
-  key:=0;
+  editHotkey.Text:=ConvertKeyComboToString(popuphotkey);
 end;
 
 procedure TfrmMemoryModifier.CheckBox1Click(Sender: TObject);
@@ -973,6 +968,13 @@ begin
     if frmTrainerDesigner<>nil then
       frmTrainerDesigner.UpdateCheats;
   end;}
+end;
+
+procedure TfrmMemoryModifier.Button8Click(Sender: TObject);
+begin
+  zeromemory(@popuphotkey[0],10);
+  editHotkey.Text:=ConvertKeyComboToString(popuphotkey);
+  edithotkey.SetFocus;
 end;
 
 end.

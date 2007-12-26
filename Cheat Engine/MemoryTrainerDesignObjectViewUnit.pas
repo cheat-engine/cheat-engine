@@ -73,16 +73,13 @@ begin
   key:=Valuelisteditor1.Keys[Valuelisteditor1.row];
   value:=Valuelisteditor1.Values[key];
 
+
+
+
   if (frmtrainerdesigner.selectedobject<>nil) then
   begin
     if key='On Click' then
-    begin
-      if value='Nothing' then twincontrol(frmtrainerdesigner.selectedobject).Tag:=0 else
-      if value='Exit' then twincontrol(frmtrainerdesigner.selectedobject).Tag:=1 else
-      if value='Launch App' then twincontrol(frmtrainerdesigner.selectedobject).Tag:=2 else
-      if value='Show Aboutbox' then twincontrol(frmtrainerdesigner.selectedobject).Tag:=3 else
-      if value='Execute command' then twincontrol(frmtrainerdesigner.selectedobject).Tag:=4;
-    end;
+      twincontrol(frmtrainerdesigner.selectedobject).Tag:=Valuelisteditor1.ItemProps['On Click'].PickList.IndexOf(value);
 
     //tbutton
     if (frmtrainerdesigner.selectedobject is tbutton2) then

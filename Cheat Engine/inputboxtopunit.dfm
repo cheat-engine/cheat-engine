@@ -31,7 +31,6 @@ object InputboxTop: TInputboxTop
     Top = 16
     Width = 273
     Height = 21
-    CharCase = ecLowerCase
     TabOrder = 0
     Text = 'edit1'
   end

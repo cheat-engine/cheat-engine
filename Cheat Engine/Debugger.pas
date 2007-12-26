@@ -1554,8 +1554,6 @@ begin
   begin
     if WaitForDebugEvent(devent,4000) then  //4 seconds wont cause a hog I hope
     begin
-      try
-        crdebugging.Acquire;
 
         {$ifndef net}
         if handledebuggerplugins(@devent)=1 then
@@ -1631,6 +1629,7 @@ begin
                   begin
                     attached:=true;
                     attaching:=false;
+
                     synchronize(ProcessCreated);
                   end;
 
@@ -1673,14 +1672,21 @@ begin
               //find out what exception it is
               if devent.Exception.ExceptionRecord.ExceptionCode=EXCEPTION_BREAKPOINT then
               begin
+                
                 if userisdebugging then
                 begin
                   //check if this is a exception breakpoint that was made by cheat engine
                   addressfound:=dword(devent.Exception.ExceptionRecord.ExceptionAddress);
 
                   found:=(int3CEBreakpoint.address=addressfound);
-                  for i:=0 to length(int3userbreakpoints)-1 do
-                    if (int3userbreakpoints[i].address=addressfound) then found:=true;
+
+                  crdebugging.enter;
+                  try
+                    for i:=0 to length(int3userbreakpoints)-1 do
+                      if (int3userbreakpoints[i].address=addressfound) then found:=true;
+                  finally
+                    crdebugging.Leave;
+                  end;
 
                   if found or createdusingprocesswindow then
                   begin
@@ -1700,77 +1706,86 @@ begin
                     dec(context.Eip);
 
                     notinlist:=true;
-                    for i:=0 to length(registermodificationBPs)-1 do
-                      if registermodificationBPs[i].address=context.eip then
+                    crdebugging.enter;
+                    try
+
+                      for i:=0 to length(registermodificationBPs)-1 do
                       begin
-                        notinlist:=false;
-
-                        //modify the context of this thread according to the data in registermodificationBPs[i]
-                        if registermodificationBPs[i].change_eax then context.Eax:=registermodificationBPs[i].new_eax;
-                        if registermodificationBPs[i].change_ebx then context.Ebx:=registermodificationBPs[i].new_ebx;
-                        if registermodificationBPs[i].change_ecx then context.Ecx:=registermodificationBPs[i].new_ecx;
-                        if registermodificationBPs[i].change_edx then context.Edx:=registermodificationBPs[i].new_edx;
-                        if registermodificationBPs[i].change_esi then context.Esi:=registermodificationBPs[i].new_esi;
-                        if registermodificationBPs[i].change_edi then context.Edi:=registermodificationBPs[i].new_edi;
-                        if registermodificationBPs[i].change_ebp then context.Ebp:=registermodificationBPs[i].new_ebp;
-                        if registermodificationBPs[i].change_esp then context.Esp:=registermodificationBPs[i].new_esp;
-                        if registermodificationBPs[i].change_eip then context.Eip:=registermodificationBPs[i].new_eip;
-
-                        if registermodificationBPs[i].change_cf then
-                          if registermodificationBPs[i].new_cf then
-                            context.EFlags:=context.EFlags or $1 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $1);
-
-                        if registermodificationBPs[i].change_pf then
-                          if registermodificationBPs[i].new_pf then
-                            context.EFlags:=context.EFlags or $4 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $4);
-
-                        if registermodificationBPs[i].change_af then
-                          if registermodificationBPs[i].new_af then
-                            context.EFlags:=context.EFlags or $10 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $10);
-
-                        if registermodificationBPs[i].change_zf then
-                          if registermodificationBPs[i].new_zf then
-                            context.EFlags:=context.EFlags or $40 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $40);
-
-                        if registermodificationBPs[i].change_sf then
-                          if registermodificationBPs[i].new_sf then
-                            context.EFlags:=context.EFlags or $80 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $80);
-
-                        if registermodificationBPs[i].change_of then
-                          if registermodificationBPs[i].new_of then
-                            context.EFlags:=context.EFlags or $800 //enable the bit
-                          else
-                            context.EFlags:=context.EFlags and (not $800);
-
-                        context.ContextFlags:=CONTEXT_FULL;
-                        setthreadcontext(pausedthreadhandle,context);
-
-                        SetSingleStepping(devent.dwThreadId);
-                        debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-
-                        j:=devent.dwThreadId;
-                        if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
-
-                        while j<>devent.dwthreadid do
+                        if registermodificationBPs[i].address=context.eip then
                         begin
-                          debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-                          if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
-                        end;
-                        resetbreakpoint;
+                          notinlist:=false;
 
-                        debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-                        break;
-                      end;
+                          //modify the context of this thread according to the data in registermodificationBPs[i]
+                          if registermodificationBPs[i].change_eax then context.Eax:=registermodificationBPs[i].new_eax;
+                          if registermodificationBPs[i].change_ebx then context.Ebx:=registermodificationBPs[i].new_ebx;
+                          if registermodificationBPs[i].change_ecx then context.Ecx:=registermodificationBPs[i].new_ecx;
+                          if registermodificationBPs[i].change_edx then context.Edx:=registermodificationBPs[i].new_edx;
+                          if registermodificationBPs[i].change_esi then context.Esi:=registermodificationBPs[i].new_esi;
+                          if registermodificationBPs[i].change_edi then context.Edi:=registermodificationBPs[i].new_edi;
+                          if registermodificationBPs[i].change_ebp then context.Ebp:=registermodificationBPs[i].new_ebp;
+                          if registermodificationBPs[i].change_esp then context.Esp:=registermodificationBPs[i].new_esp;
+                          if registermodificationBPs[i].change_eip then context.Eip:=registermodificationBPs[i].new_eip;
+
+                          if registermodificationBPs[i].change_cf then
+                            if registermodificationBPs[i].new_cf then
+                              context.EFlags:=context.EFlags or $1 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $1);
+
+                          if registermodificationBPs[i].change_pf then
+                            if registermodificationBPs[i].new_pf then
+                              context.EFlags:=context.EFlags or $4 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $4);
+
+                          if registermodificationBPs[i].change_af then
+                            if registermodificationBPs[i].new_af then
+                              context.EFlags:=context.EFlags or $10 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $10);
+
+                          if registermodificationBPs[i].change_zf then
+                            if registermodificationBPs[i].new_zf then
+                              context.EFlags:=context.EFlags or $40 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $40);
+
+                          if registermodificationBPs[i].change_sf then
+                            if registermodificationBPs[i].new_sf then
+                              context.EFlags:=context.EFlags or $80 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $80);
+
+                          if registermodificationBPs[i].change_of then
+                            if registermodificationBPs[i].new_of then
+                              context.EFlags:=context.EFlags or $800 //enable the bit
+                            else
+                              context.EFlags:=context.EFlags and (not $800);
+
+                          context.ContextFlags:=CONTEXT_FULL;
+                          setthreadcontext(pausedthreadhandle,context);
+
+                          SetSingleStepping(devent.dwThreadId);
+                          debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+
+                          j:=devent.dwThreadId;
+                          if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+
+                          while j<>devent.dwthreadid do
+                          begin
+                            debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+                            if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+                          end;
+                          resetbreakpoint;
+
+                          debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+                          break;
+                        end;
+                      end; //registermodificiation loop
+
+                    finally
+                      crdebugging.Leave;
+                    end;
 
                     if (traceaddress<>0) and (self.traceaddress=dword(devent.Exception.ExceptionRecord.ExceptionAddress)) then //do tracecount steps
                     begin
@@ -1783,7 +1798,7 @@ begin
                         tracecount:=0;
                       end else debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
                       resetbreakpoint;
-                      
+
                       continue;
                     end;
 
@@ -1990,79 +2005,87 @@ begin
                   end;
 
                   //check if it is a regmodification bp
-                  notinlist:=true;
-                  for i:=0 to length(registermodificationBPs)-1 do
-                    if registermodificationBPs[i].address=context.eip then
+                  crdebugging.Enter;
+                  try
+                    notinlist:=true;
+                    for i:=0 to length(registermodificationBPs)-1 do
                     begin
-                      notinlist:=false;
-
-                      //modify the context of this thread according to the data in registermodificationBPs[i]
-                      if registermodificationBPs[i].change_eax then context.Eax:=registermodificationBPs[i].new_eax;
-                      if registermodificationBPs[i].change_ebx then context.Ebx:=registermodificationBPs[i].new_ebx;
-                      if registermodificationBPs[i].change_ecx then context.Ecx:=registermodificationBPs[i].new_ecx;
-                      if registermodificationBPs[i].change_edx then context.Edx:=registermodificationBPs[i].new_edx;
-                      if registermodificationBPs[i].change_esi then context.Esi:=registermodificationBPs[i].new_esi;
-                      if registermodificationBPs[i].change_edi then context.Edi:=registermodificationBPs[i].new_edi;
-                      if registermodificationBPs[i].change_ebp then context.Ebp:=registermodificationBPs[i].new_ebp;
-                      if registermodificationBPs[i].change_esp then context.Esp:=registermodificationBPs[i].new_esp;
-                      if registermodificationBPs[i].change_eip then context.Eip:=registermodificationBPs[i].new_eip;
-
-                      if registermodificationBPs[i].change_cf then
-                        if registermodificationBPs[i].new_cf then
-                          context.EFlags:=context.EFlags or $1 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $1);
-
-                      if registermodificationBPs[i].change_pf then
-                        if registermodificationBPs[i].new_pf then
-                          context.EFlags:=context.EFlags or $4 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $4);
-
-                      if registermodificationBPs[i].change_af then
-                        if registermodificationBPs[i].new_af then
-                          context.EFlags:=context.EFlags or $10 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $10);
-
-                      if registermodificationBPs[i].change_zf then
-                        if registermodificationBPs[i].new_zf then
-                          context.EFlags:=context.EFlags or $40 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $40);
-
-                      if registermodificationBPs[i].change_sf then
-                        if registermodificationBPs[i].new_sf then
-                          context.EFlags:=context.EFlags or $80 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $80);
-
-                      if registermodificationBPs[i].change_of then
-                        if registermodificationBPs[i].new_of then
-                          context.EFlags:=context.EFlags or $800 //enable the bit
-                        else
-                          context.EFlags:=context.EFlags and (not $800);
-
-                      context.ContextFlags:=CONTEXT_FULL;
-                      setthreadcontext(pausedthreadhandle,context);
-
-                      removebreakpoint;
-                      SetSingleStepping(devent.dwThreadId);
-                      debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-
-                      j:=devent.dwThreadId;
-                      if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
-
-                      while j<>devent.dwthreadid do
+                      if registermodificationBPs[i].address=context.eip then
                       begin
-                        debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-                        if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
-                      end;
-                      resetbreakpoint;
+                        notinlist:=false;
 
-                      debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-                      break;
+                        //modify the context of this thread according to the data in registermodificationBPs[i]
+                        if registermodificationBPs[i].change_eax then context.Eax:=registermodificationBPs[i].new_eax;
+                        if registermodificationBPs[i].change_ebx then context.Ebx:=registermodificationBPs[i].new_ebx;
+                        if registermodificationBPs[i].change_ecx then context.Ecx:=registermodificationBPs[i].new_ecx;
+                        if registermodificationBPs[i].change_edx then context.Edx:=registermodificationBPs[i].new_edx;
+                        if registermodificationBPs[i].change_esi then context.Esi:=registermodificationBPs[i].new_esi;
+                        if registermodificationBPs[i].change_edi then context.Edi:=registermodificationBPs[i].new_edi;
+                        if registermodificationBPs[i].change_ebp then context.Ebp:=registermodificationBPs[i].new_ebp;
+                        if registermodificationBPs[i].change_esp then context.Esp:=registermodificationBPs[i].new_esp;
+                        if registermodificationBPs[i].change_eip then context.Eip:=registermodificationBPs[i].new_eip;
+
+                        if registermodificationBPs[i].change_cf then
+                          if registermodificationBPs[i].new_cf then
+                            context.EFlags:=context.EFlags or $1 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $1);
+
+                        if registermodificationBPs[i].change_pf then
+                          if registermodificationBPs[i].new_pf then
+                            context.EFlags:=context.EFlags or $4 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $4);
+
+                        if registermodificationBPs[i].change_af then
+                          if registermodificationBPs[i].new_af then
+                            context.EFlags:=context.EFlags or $10 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $10);
+
+                        if registermodificationBPs[i].change_zf then
+                          if registermodificationBPs[i].new_zf then
+                            context.EFlags:=context.EFlags or $40 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $40);
+
+                        if registermodificationBPs[i].change_sf then
+                          if registermodificationBPs[i].new_sf then
+                            context.EFlags:=context.EFlags or $80 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $80);
+
+                        if registermodificationBPs[i].change_of then
+                          if registermodificationBPs[i].new_of then
+                            context.EFlags:=context.EFlags or $800 //enable the bit
+                          else
+                            context.EFlags:=context.EFlags and (not $800);
+
+                        context.ContextFlags:=CONTEXT_FULL;
+                        setthreadcontext(pausedthreadhandle,context);
+
+                        removebreakpoint;
+                        SetSingleStepping(devent.dwThreadId);
+                        debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+
+                        j:=devent.dwThreadId;
+                        if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+
+                        while j<>devent.dwthreadid do
+                        begin
+                          debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+                          if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+                        end;
+                        resetbreakpoint;
+
+                        debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
+                        break;
+                      end;
                     end;
+
+                  finally
+                    crdebugging.Leave;
+                  end;
 
                   if not notinlist then continue;
 
@@ -2582,9 +2605,6 @@ begin
           else debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED);
         end;
 
-      finally
-        crdebugging.Release;
-      end;
 
     end;
 

@@ -1,6 +1,6 @@
 object HotKeyForm: THotKeyForm
-  Left = 1077
-  Top = 659
+  Left = 465
+  Top = 374
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Set/Change hotkey'

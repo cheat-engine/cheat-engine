@@ -2,30 +2,43 @@ unit foundlisthelper;
 
 interface
 
-uses windows,sysutils,classes,ComCtrls,StdCtrls,symbolhandler,cefuncproc,newkernelhandler;
+uses windows,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, cefuncproc,
+     newkernelhandler, memscan;
 
 type TScanType=(fs_advanced,fs_addresslist);
 
-type TFoundList=class
+
+type
+  TFoundList=class;
+  TRebaseAgain=class(tthread)
+  private
+    procedure rerebase;
+  public
+    foundlist: TFoundList;
+    procedure execute; override;
+  end;
+
+  TFoundList=class
   private
     foundlist: TListView;
     foundcountlabel: tlabel;
 
     addressfile: tfilestream;
     scantype: TScanType;
-    vartype: integer;
+    fvartype: integer;
 		varlength: integer; //bitlength, stringlength
 		hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
 		unicode: boolean;
 		binaryasdecimal: boolean;
 
+    lastrebase: integer;
     addresslist: array [0..1023] of dword; //this is a small list of addresses in the list
-    addresslistb: array [0..1023] of bitaddress; //idem, but in case of bit
+    addresslistb: array [0..1023] of TBitAddress; //idem, but in case of bit
     addresslistfirst: dword; //index number the addresslist[0] has
 
 		valuelist: array [0..1023] of string;
-
+    RebaseAgainThread: TRebaseAgain;
   public
     function GetVarLength: integer;
     procedure DeleteResults;
@@ -42,11 +55,26 @@ type TFoundList=class
     function InModule(i: integer):boolean;
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
+    procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
+    property vartype: integer read fvartype;
     constructor create(foundlist: tlistview; foundcountlabel: tlabel);
 end;
 
 implementation
 
+procedure TRebaseAgain.rerebase;
+begin
+  foundlist.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
+  foundlist.RebaseAddresslistAgain;
+  foundlist.foundlist.Refresh;
+end;
+
+procedure TRebaseAgain.execute;
+begin
+  freeonterminate:=true;
+  sleep(1000);
+  synchronize(rerebase);
+end;
 
 procedure TFoundList.clear;
 begin
@@ -104,8 +132,8 @@ begin
 	try
 		//memoryfile is initialized
 
-    if vartype=5 then
-			addresspos:=7+sizeof(sizeof(bitaddress))*i
+    if vartype in [5,9] then
+			addresspos:=7+sizeof(sizeof(TBitAddress))*i
 		else
 			addresspos:=7+sizeof(sizeof(dword))*i;
 
@@ -122,8 +150,8 @@ begin
     memoryfile.Position:=0;
 
     outaddress.CopyFrom(addressfile,addresspos);
-    if vartype=5 then
-			addressfile.Position:=addresspos+sizeof(bitaddress)
+    if vartype in [5,9] then
+			addressfile.Position:=addresspos+sizeof(TBitAddress)
 		else
 			addressfile.Position:=addresspos+sizeof(dword);
 
@@ -131,7 +159,7 @@ begin
       outaddress.CopyFrom(addressfile,addressfile.Size-addressfile.Position);
 
     //memory
-    if not ((vartype = 5) or (vartype=7)) then
+    if not (vartype in [5,7]) then
     begin
       outmemory.CopyFrom(memoryfile,memorypos);
       memoryfile.Position:=memorypos+sizeof(dword);
@@ -159,11 +187,19 @@ begin
   Initialize(vartype);
 end;
 
+procedure TFoundList.RebaseAddresslistAgain;
+begin
+  RebaseAddresslist(lastrebase);
+
+end;
+
 procedure TFoundList.RebaseAddresslist(i: integer);
 var j,k: dword;
 begin
   if addressfile=nil then exit; //during a scan
 
+  lastrebase:=i;
+  
   //reload buffer from index i-512; //so 512 above and below (result has to be bigger than or equal to 0)
   if i>512 then
     j:=i-512
@@ -174,11 +210,11 @@ begin
   k:=foundlist.Items.Count-j;
   if k>1024 then k:=1024;
 
-  if vartype=5 then
+  if vartype in [5,9] then
   begin
-    addressfile.Position:=7+j*sizeof(bitaddress);
+    addressfile.Position:=7+j*sizeof(TBitAddress);
 
-    k:=sizeof(bitaddress)*k;
+    k:=sizeof(TBitAddress)*k;
     addressfile.ReadBuffer(addresslistb[0],k);
     addresslistfirst:=j;
   end
@@ -188,6 +224,18 @@ begin
 
     k:=sizeof(dword)*k;
     addressfile.ReadBuffer(addresslist[0],k);
+
+    if (k>8) and (addresslist[0]=addresslist[1]) then
+    begin
+      //create a thread that calls rebase after a second
+      if RebaseAgainThread=nil then
+      begin
+        RebaseAgainThread:=TRebaseAgain.Create(true);
+        RebaseAgainThread.foundlist:=self;
+        RebaseAgainThread.Resume;
+      end;
+    end;
+    
     addresslistfirst:=j;
   end;
 
@@ -258,7 +306,7 @@ begin
 
   j:=i-addresslistfirst;
 
-  if vartype=5 then  //bit
+  if vartype in [5,9] then  //bit
   begin
     result:=addresslistb[j].address;
     extra:=addresslistb[j].bit;
@@ -278,6 +326,7 @@ end;
 
 function TFoundList.GetAddress(i: integer;var extra: dword; var value: string): dword;
 var j,k,l: integer;
+    currentaddress: dword;
     read1: byte;
     read2: word;
     read3: dword;
@@ -291,6 +340,7 @@ var j,k,l: integer;
 		count: dword; 
 		nrofbytes: integer;  
 		temp,temp2: string;
+    vtype: integer;
 begin
   if i=-1 then exit;
 
@@ -298,15 +348,29 @@ begin
   value:='';
   result:=0;
 
-  result:=GetAddressOnly(i,extra);
+  currentaddress:=GetAddressOnly(i,extra);
+  result:=currentaddress;
   j:=i-addresslistfirst;
 
   if valuelist[j]='' then
 	begin
-	  case (vartype) of
+    if vartype=9 then
+    begin
+      //override vtype with the type it scanned
+      case TVariableType(extra) of
+        vtByte:   vtype:=0;
+        vtWord:   vtype:=1;
+        vtDword:  vtype:=2;
+        vtQword:  vtype:=6;
+        vtSingle: vtype:=3;
+        vtDouble: vtype:=4;
+      end;
+    end else vtype:=vartype;
+
+	  case vtype of
 			0: //byte
 			begin
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read1,1,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read1,1,count) then
 				begin
           if hexadecimal then
 					  valuelist[j]:=IntToHex(read1,2)
@@ -320,7 +384,7 @@ begin
 
 			1: //word
 			begin
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read2,2,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read2,2,count) then
 				begin
           if hexadecimal then
 					  valuelist[j]:=IntToHex(read2,4)
@@ -334,7 +398,7 @@ begin
 
 			2: //dword
 			begin
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read3,4,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read3,4,count) then
 				begin
           if hexadecimal then
 					  valuelist[j]:=IntToHex(read3,8)
@@ -348,7 +412,7 @@ begin
 
   	  3:
       begin //float
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read4,4,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read4,4,count) then
 					valuelist[j]:=FloatToStr(read4)
 				else 
 					valuelist[j]:='??';
@@ -356,7 +420,7 @@ begin
 
   	  4:
       begin //double
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read5,8,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read5,8,count) then
 					valuelist[j]:=FloatToStr(read5)
 				else 
 					valuelist[j]:='??';
@@ -405,7 +469,7 @@ begin
 
   	  6:
       begin //int64
-        if readprocessmemory(processhandle,pointer(addresslist[j]),@read6,8,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),@read6,8,count) then
         begin
           if hexadecimal then
 						valuelist[j]:=inttohex(read6,16)
@@ -459,6 +523,7 @@ begin
         setlength(read8,0);
       end;
 
+
     end;
 
   end;
@@ -493,7 +558,7 @@ begin
       begin
         scantype:=fs_addresslist;
 
-        if vartype=5 then //bit (address+bit)
+        if vartype in [5,9] then //bit, or all (address+bit)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div 8;
           foundlist.Items.Count:=result;
@@ -525,7 +590,7 @@ begin
 
   if scantype=fs_addresslist then
   begin
-    self.vartype:=vartype;
+    self.fvartype:=vartype;
     self.hexadecimal:=hexadecimal;
     self.signed:=signed;
     self.varlength:=varlength;

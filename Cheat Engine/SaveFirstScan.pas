@@ -7,7 +7,13 @@ uses windows, classes, cefuncproc;
 
 type TSaveFirstScanThread=class(tthread)
   public
+    newscanmethod: boolean;
+    memRegion: PMemoryRegions;
+    pmemRegionPos: pinteger;
+    buffer: pointer;  
     procedure execute; override;
+    constructor create(suspended: boolean); overload;
+    constructor create(suspended: boolean; memRegion: PMemoryRegions; pmemRegionPos: pinteger; buffer: pointer); overload;
 end;
 
 implementation
@@ -18,8 +24,14 @@ var addressfile,memoryfile,newaddressfile,newmermoryfile: file;
     i: integer;
     x: dword;
     p: ^byte;
+    regioncount: integer;
 begin
   if terminated then exit;
+
+  regioncount:=pmemregionPos^;
+
+  if newscanmethod then
+    dec(regioncount);
 
   //open the address file to
   assignfile(AddressFile,Cheatenginedir+'ADDRESSES.TMP');
@@ -32,7 +44,7 @@ begin
   try
     if terminated then exit;
 
-    datatype:='NORMAL';
+    //datatype:='NORMAL';
     blockread(Addressfile,datatype,sizeof(datatype));
     if datatype='REGION' then
     begin
@@ -42,12 +54,12 @@ begin
       rewrite(NewMemoryfile,1);
       blockwrite(NewAddressfile,datatype,sizeof(datatype));
       try
-        p:=pointer(memory);
-        for i:=0 to memoryregions do
+        p:=buffer;
+        for i:=0 to regioncount do
         begin
-          blockwrite(newaddressfile,memoryregion[i],sizeof(memoryregion[i]),x);
-          blockwrite(newmemoryfile,p^,memoryregion[i].MemorySize,x);
-          inc(p,memoryregion[i].MemorySize);
+          blockwrite(newaddressfile,memregion^[i],sizeof(memregion^[i]),x);
+          blockwrite(newmemoryfile,p^,memregion^[i].MemorySize,x);
+          inc(p,memregion^[i].MemorySize);
           if terminated then exit;
         end;
 
@@ -69,6 +81,24 @@ begin
     closefile(addressfile);
     closefile(Memoryfile);
   end;
+end;
+
+constructor TSaveFirstScanThread.create(suspended: boolean);
+begin
+  self.memRegion:=@cefuncproc.memoryregion; //old method, so point to cefuncproc.memoryregion
+  self.pmemRegionPos:=@cefuncproc.memoryregions;
+  self.buffer:=cefuncproc.memory;
+  inherited create(suspended);
+end;
+
+constructor TSaveFirstScanThread.create(suspended: boolean; memRegion: PMemoryRegions; pmemRegionPos: pinteger; buffer: pointer);
+begin
+  newscanmethod:=true;
+  self.memRegion:=memRegion;
+  self.pmemRegionPos:=pmemRegionPos;
+  self.buffer:=buffer;
+  inherited create(suspended);
+
 end;
 
 end.

@@ -856,7 +856,7 @@ begin
     if formsettings.cbBreakOnAttach.checked then
       memorybrowser.show;
 
-    mainform.enablegui;
+    mainform.enablegui(false);
 
     with TFrmDirectx.Create(self) do show;
   end;
@@ -921,7 +921,7 @@ begin
     if formsettings.cbBreakOnAttach.checked then
       memorybrowser.show;
 
-    mainform.enablegui;
+    mainform.enablegui(false);
 
 //    with TfrmOpenGL.Create(self) do show;
   end;
