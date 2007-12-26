@@ -130,7 +130,6 @@ uses
   psvCPlusPlus in 'psvCPlusPlus.pas',
   psvRichSyntax in 'psvRichSyntax.pas',
   memscan in 'memscan.pas',
-  CircularBuffer in 'CircularBuffer.pas',
   PEInfoFunctions in 'PEInfoFunctions.pas',
   frmFunctionlistUnit in 'frmFunctionlistUnit.pas' {frmFunctionList},
   FileMapping in 'FileMapping.pas';
