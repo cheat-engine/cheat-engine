@@ -1,0 +1,21 @@
+Cheat Engine 2.3
+Ok, i'm not good at writing help files for my programs, but i'll try.
+
+Whats new since version 2.3
+
+
+How to use Cheat Engine 2.3:
+each time you do a first scan Cheat Engine makes a complete image of the memory
+on your hard disk. (Cheat Engine dir), after that it will use that image to
+search for values and other stuff.
+
+If you do an ADVANCED search CE also makes an image on your hard disk but wont
+continue scanning after making the image. This allows you to start searching
+the memory where you dont know the exact value of the item you're trying to
+find.
+
+finaly:
+If you have any comments, want to make suggestion, or even want to help me with
+Cheat Engine, you can contact me at dark_byte@hotmail.com
+
+DB

@@ -1,0 +1,447 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1043\deflangfe1043{\fonttbl{\f0\fmodern\fprq1\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;\red0\green128\blue0;}
+{\*\generator Msftedit 5.41.15.1507;}\viewkind4\uc1\pard\nowidctlpar\qc\lang1033\b\f0\fs20 CEPlugin 1.0\b0\par
+\pard\nowidctlpar\par
+The Cheat Engine plugin system allows you to add functionality to the Cheat Engine application. It's up to you to use this ability to it's fullest.\par
+\par
+This documentation will describe the functions you have to export in your dll, the results you have to return. And the exported function exported to your dll.\par
+\par
+---------------------------------\par
+\par
+\b\fs28 1: Functions your dll has to export\fs20\par
+\b0 This section will describe what functions have to be exported and what they get and should return.\par
+\par
+\b\i\fs22 1.1: BOOL GetVersion(\cf1 struct\cf0  PluginVersion *pv, \cf1 int\cf0  sizeofpluginversion);\b0\i0\fs20\par
+\par
+This routine gets a pointer to a structure it has to fill, and the size of that structure.\par
+\par
+\b Format of PluginVersion:\b0\par
+struct PluginVersion\par
+\{\par
+  unsigned int version; //write here the minimum version this dll is compatible with (Currently only 1 is supported)\par
+  char *pluginname;  //make this point to a 0-terminated string (allocated memory or static addressin your dll, not stack)\par
+\};\par
+\par
+return value has to be TRUE;\par
+\par
+\par
+\b\i\fs24 1.2: BOOL InitializePlugin(\cf1 struct\cf0  ExportedFunctions *ef , \cf1 int\cf0  pluginid);\par
+\b0\i0\fs20\par
+This routine gets called when the plugin has been enabled. It receives a pointer to a structure that contains all the pointers to the internal ce functions and variables. All of the functions use the stdcall calling convention\par
+\par
+\b Format of ExportedFunctions:\b0\par
+\cf1 struct\cf0  ExportedFunctions\par
+\{\par
+  \cf1 int\cf0  sizeofExportedFunctions;\par
+  PVOID ShowMessage; \cf2 //Pointer to the ce showmessage function\par
+\cf0   PVOID RegisterFunction; \cf2 //Use this to register a specific type of plugin\par
+\cf0   PVOID UnregisterFunction; \cf2 //unregisters a function registered with registerfunction\par
+\cf0   PULONG OpenedProcessID; \cf2 //pointer to the currently selected processid\par
+\cf0   PHANDLE OpenedProcessHandle; \cf2 //pointer to the currently selected processhandle\par
+\par
+\cf0   PVOID GetMainWindowHandle; \cf2 //returns the handle of the main window (for whatever reason, it is recommended to use delphi to make a real userinterface upgrade)\par
+\cf0   PVOID AutoAssembler; \cf2 //Pointer to the AutoAssembler function\par
+\cf0   PVOID ce_assembler; \cf2 //pointer to the assembler function\par
+\cf0   PVOID ce_disassembler; \cf2 //pointer to the disassembler function\par
+\cf0   PVOID ce_ChangeRegistersAtAddress; \cf2 //pointer to the ChangeRegAtBP function\par
+\cf0   PVOID ce_InjectDLL; \cf2 //pointer to ce's Inject DLL function\par
+\cf0   PVOID ce_freezemem; \cf2 //pointer to the FreezeMem routine\par
+\cf0   PVOID ce_unfreezemem; \cf2 //pointer to the UnfreezeMem routine (use this to undo freezes with FreezeMem)\par
+\cf0   PVOID ce_fixmem; \cf2 //pointer to the fixmem routine\par
+\cf0   PVOID ce_processlist; \cf2 //pointer to the processlist routine\par
+\cf0   PVOID ce_ReloadSettings; \cf2 //pointer to the ReloadSettings routine\par
+\cf0   PVOID ce_GetAddressFromPointer; \cf2 //pointer to the GetAddressFromPointer routine\par
+\par
+\cf0   \cf2 //pointers to the address that contains the pointers to the functions\par
+\cf0   PVOID ReadProcessMemory;\tab\tab\tab\cf2 //pointer to the pointer of ReadProcessMemory (Change it to hook that api, or use it yourself)\par
+\cf0   PVOID WriteProcessMemory;\tab\tab\tab\cf2 //pointer to the pointer of WriteProcessMemory (Change it to hook that api, or use it yourself)\par
+\cf0   PVOID GetThreadContext;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID SetThreadContext;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID SuspendThread;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID ResumeThread;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID OpenProcess;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID WaitForDebugEvent;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID ContinueDebugEvent;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID DebugActiveProcess;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID StopDebugging;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID StopRegisterChange;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID VirtualProtect;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   \lang1034 PVOID VirtualProtectEx;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID VirtualQueryEx;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   \lang1033 PVOID VirtualAllocEx;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID CreateRemoteThread;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID OpenThread;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetPEProcess;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetPEThread;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetThreadsProcessOffset;\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetThreadListEntryOffset;\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetProcessnameOffset;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetDebugportOffset;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetPhysicalAddress;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID ProtectMe;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetCR4;\tab\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetCR3;\tab\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID SetCR3;\tab\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetSDT;\tab\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetSDTShadow;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID setAlternateDebugMethod;\tab\tab\cf2 //   ...\par
+\cf0   PVOID getAlternateDebugMethod;\tab\tab\cf2 //   ...\par
+\cf0   PVOID DebugProcess;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID ChangeRegOnBP;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID RetrieveDebugData;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID StartProcessWatch;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID WaitForProcessListData;\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetProcessNameFromID;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetProcessNameFromPEProcess;\tab\cf2 //   ...\par
+\cf0   PVOID KernelOpenProcess;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID KernelReadProcessMemory;\tab\tab\cf2 //   ...\par
+\cf0   PVOID KernelWriteProcessMemory;\tab\tab\cf2 //   ...\par
+\cf0   PVOID KernelVirtualAllocEx;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID IsValidHandle;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetIDTCurrentThread;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetIDTs;\tab\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID MakeWritable;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetLoadedState;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID DBKSuspendThread;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID DBKResumeThread;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID DBKSuspendProcess;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID DBKResumeProcess;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID KernelAlloc;\tab\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID GetKProcAddress;\tab\tab\tab\cf2 //   ...\par
+\cf0   PVOID CreateToolhelp32Snapshot;\tab\tab\cf2 //   ...\cf0\par
+  PVOID Process32First;          \tab\tab\cf2 //   ...\cf0\par
+  PVOID Process32Next;           \tab\tab\cf2 //   ...\cf0\par
+  PVOID Thread32First;           \tab\tab\cf2 //   ...\cf0\par
+  PVOID Thread32Next;            \tab\tab\cf2 //   ...\cf0\par
+  PVOID Module32First;           \tab\tab\cf2 //   ...\cf0\par
+  PVOID Module32Next;            \tab\tab\cf2 //   ...\cf0\par
+  PVOID Heap32ListFirst;         \tab\tab\cf2 //   ...\cf0\par
+  PVOID Heap32ListNext;          \tab\tab\cf2 //   ...\cf0\par
+\cf2\par
+\par
+\cf0   \cf2 //advanced for delphi 7 enterprise dll programmers only\par
+\cf0   PVOID mainform; \cf2 //pointer to the Tmainform object. (main window) Compatible with TFORM\par
+\cf0   PVOID memorybrowser; \cf2 //pointer to the TMemoryBrowser object (memory view windows), same as mainform\par
+\cf0\};\par
+Use sizeofExportedFunctions to verify that the version you are using matches that of what you get. If not, return FALSE;\par
+\par
+It is recommended to register the callback functions in this routine and save ExportedFunctions for later usage. More on these functions in chapter 2\par
+\par
+The pluginid is required to register and unregister a function callback.\par
+\par
+\par
+\b\i\fs24 1.3: BOOL DisablePlugin(\cf1 void\cf0 );\fs20\par
+\b0\i0 This routine gets called when the plugin is being disabled.\par
+Use this to cleanup your memory, unregister all functions, and unhook your api hooks if you have any, and undo any other stuff you might have running.\par
+\par
+return has to be TRUE\par
+\par
+\b\fs28 2: Exported Functions\b0\fs20\par
+This chapter will describe for each exported function or variable what it is, and how to use it.\par
+\par
+\b\i\fs24 2.1: sizeofExportedFunctions\par
+\b0\i0\fs20 This holds the size of the structure , use it to verify that the size is what you expect.\par
+\par
+\b\i\fs24 2.2: ShowMessage\b0\i0\fs20\par
+A pointer to the ShowMessage function of ce. This function will show a simple messagebox with only the text and OK button on the screen. Only works when being called from the main thread.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 void \cf0 showmessage(\cf1\i0 char\cf0\i * message);\par
+\par
+\i0 message is a pointer to a 0-terminated string\par
+Returns nothing\par
+\par
+\b\i\fs24 2.3: RegisterFunction\b0\i0\fs20\par
+A pointer to the RegisterFunction function of ce.  This function function will register a callback function that gets called when a certain event happens and in some cases also creates a extra menu item.\par
+\par
+\ul functiondefinition\ulnone :\par
+\cf1\i int\cf0  RegisterFunction(\cf1 int\cf0  pluginid, \cf1 int\cf0  functiontype, PVOID init);\par
+\i0\par
+\b pluginid\b0  has to be the pluginid that you got from InitializePlugin\par
+\b functiontype \b0 defines what type of function you want to register\par
+\b init\b0  holds a pointer to a structure that is dependant on the type of function.\par
+\par
+functiontypes:\par
+\pard\nowidctlpar\fi-720\li720 0:\tab With this plugintype you create a new plugin menu on the rightclick menu of the addresslist.\par
+\pard\nowidctlpar\li720 When the user clicks the menu item your callback routine will get information about the selected record if one is selected and will give you the ability to change the address, and description.\par
+\par
+callback definition:\par
+\cf1 typedef\cf0  \cf1 BOOL\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE0)(\cf1 struct\cf0  PLUGINTYPE0_RECORD *SelectedRecord);\par
+\par
+return TRUE if you edited the description or address\par
+\par
+\par
+definition of PLIGINTYPE0_RECORD:\par
+\cf1 struct\cf0  PLUGINTYPE0_RECORD\par
+\{\par
+  \cf1 char\cf0  *interpretedaddress; \cf2 //pointer to a 255 bytes long string (0 terminated)\par
+\cf0   ULONG address;\cf2 //this is a read-only representaion of the address. Change interpretedaddress if you want to change this\par
+\cf0   BOOL ispointer; \cf2 //readonly\par
+\cf0   \cf1 int\cf0  countoffsets; \cf2 //readonly\par
+\cf0   ULONG *offsets; \cf2 //array of dwords ranging from 0 to countoffsets-1 (readonly)\par
+\cf0   \cf1 char\cf0  *description; \cf2 //pointer to a 255 bytes long string\par
+\cf0   \cf1 char\cf0  valuetype; \cf2 //0=byte, 1=word, 2=dword, 3=float, 4=double, 5=bit, 6=int64, 7=string\par
+\cf0   \cf1 char\cf0  size; \cf2 //stringlength or bitlength;\par
+\cf0\};\par
+\par
+Pointer to structure of init you have to pass:\par
+\cf1 struct\cf0  PLUGINTYPE0_INIT\par
+\{\par
+  \cf1 char\cf0 * name; \cf2 //0 terminated string describing the name for the user's menu item\par
+\cf0   CEP_PLUGINTYPE0 callbackroutine; \cf2 //pointer to a callback routine of the type 0 plugin\par
+\cf0\};\par
+\par
+\pard\nowidctlpar\fi720\par
+\pard\nowidctlpar\fi-720\li720 1:\tab With this plugintype you create a new plugin menu at the top of the memoryview window.\par
+\pard\nowidctlpar\li720 When the user clicks the menu item your callback routine will get pointers to the address of the disassembler window, the address of the currently selected line in the disassembler, and the address of the hexadecimal view at the bottom. You can change these pointers to anything you like\par
+\par
+callback definition:\par
+\cf1 typedef\cf0  BOOL (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE1)(ULONG *disassembleraddress, ULONG *selected_disassembler_address, ULONG *hexviewaddress);\par
+\par
+return TRUE if you changed any of the pointer so the memoryview will execute a update\par
+\par
+Pointer to structure of init you have to pass:\par
+\cf1 struct\cf0  PLUGINTYPE1_INIT\par
+\{\par
+  \cf1 char\cf0 * name; \cf2 //0 terminated string describing the name for the user's menu item\par
+\cf0   CEP_PLUGINTYPE1 callbackroutine; \cf2 //pointer to a callback routine of the type 1 plugin\par
+\cf0\};\par
+\par
+\pard\nowidctlpar\fi720\par
+\pard\nowidctlpar\fi-720\li720 2:\tab With this plugintype you will get notified whenever a debug event happens in the default windows debugger. Your callback routine gets called right after the WaitForDebugEvent returns true with the pointer to the DebugEvent structure.\par
+\pard\nowidctlpar\li720\par
+callback definition:\par
+\cf1 typedef\cf0  \cf1 int\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE2)(LPDEBUG_EVENT DebugEvent);\par
+\par
+return 0 if you want to let ce or other plugins handle the debug event as well\par
+reutrn 1 if you don't want anything else to handle this event. You will have to call ContinueDebugEvent\par
+\par
+Pointer to structure of init you have to pass:\par
+\cf1 struct\cf0  PLUGINTYPE2_INIT\par
+\{\par
+  CEP_PLUGINTYPE2 callbackroutine; \cf2 //pointer to a callback routine of the type 2 plugin\par
+\cf0\};\par
+\par
+\pard\nowidctlpar\fi720\par
+\pard\nowidctlpar\fi-720\li720 3:\tab With this plugintype you will get notified when the processwatcher is used and it sees a new process has been created. Your callback routine gets the processid and the PEProcess address.\par
+\pard\nowidctlpar\li720\par
+callback definition:\par
+\cf1 typedef\cf0  \cf1 void\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE3)(ULONG processid, ULONG peprocess);\par
+\par
+Doesn't need a return value.\par
+\par
+\par
+Pointer to structure of init you have to pass:\par
+\cf1 struct\cf0  PLUGINTYPE3_INIT\par
+\{\par
+  CEP_PLUGINTYPE3 callbackroutine; \cf2 //pointer to a callback routine of the type 3 plugin\par
+\cf0\};\par
+\par
+\pard\nowidctlpar\fi720\par
+\pard\nowidctlpar\fi-720\li720 4:\tab With this plugintype you will get notified when one or more of the pointers get changed due to user actions. (Other plugins that change the pointers excluded) This is usefull in cases you want to hook a api.\par
+\pard\nowidctlpar\li720\par
+callback definition:\par
+\cf1 typedef\cf0  \cf1 void\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE4)(int reserved);\par
+\par
+reserved: Contains the section in which a change happened. Not usefull at all...\par
+\par
+\par
+Pointer to structure of init you have to pass:\par
+\cf1 struct\cf0  PLUGINTYPE4_INIT\par
+\{\par
+  CEP_PLUGINTYPE4 callbackroutine; \cf2 //pointer to a callback routine of the type 4 plugin\par
+\cf0\};\par
+\par
+\pard\nowidctlpar Result:\par
+When successfull it will return a function id which you will need when unregistering a callback.\par
+If the regitration failed for some reason, then the result will be -1\par
+\par
+\b\i\fs24 2.4: UnregisterFunction\par
+\b0\i0\fs20 A pointer to the UnregisterFunction function in ce. This function will remove a previously registered callback function\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 UnregisterFunction(\cf1 int\cf0  pluginid, \cf1 int\cf0  functionid);\par
+\par
+\b\i0 pluginid\b0 : The pluginid you got at InitializePlugin\par
+\b functionid\b0 : The result of RegisterFunction\par
+\par
+Returns TRUE if the functionid was found and removed for this plugin\par
+\par
+\b\i\fs24 2.5: OpenedProcessID\par
+\b0\i0\fs20 A pointer to the processid of the currently opened process.\par
+Just the processid, but it is prefered to have both ID and HANDLE to point to the same process\par
+\par
+\b\i\fs24 2.6: OpenedProcessHandle\par
+\b0\i0\fs20 A pointer to the handle of the currently opened process.\par
+This handle is used by almost all functions. Take good care to make it valid, or at least valid to the functions that use it.\par
+\par
+\par
+\b\i\fs24 2.7: GetMainWindowHandle\par
+\b0\i0\fs20 A pointer to the UnregisterFunction function in ce. This function will remove a previously registered callback function\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 HANDLE \cf0 GetMainWindowHandle\i0 ();\i\par
+\par
+\i0 Returns the window handle of the main window. For some basic widnow manipulations. For more advanced window manipulation it is recommended to write the DLL in Delphi 7 Enterprise, where you have access to the TFORM object of the main window\par
+\par
+\b\i\fs24 2.8: AutoAssemble\par
+\b0\i0\fs20 A pointer to the AutoAssemble function in ce. This function will allow you to give it a auto assemble script and it will automatically inject it in the currently opened process\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 AutoAssemble(\cf1 char\cf0  *script);\par
+\par
+\b\i0 script\b0 : A pointer to a 0 terminated string buffer that contains the auto assembler script.\par
+\par
+Returns TRUE if the assemblage and injection was successfull\par
+\par
+\b\i\fs24 2.9: Assembler\par
+\b0\i0\fs20 A pointer to the Assembler function in ce. This function will allow you to give it single assembler instruction and the address it should be put at, and it'll return you the generated bytes in a buffer you specify and the ammount of bytes it generated\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 Assembler(ULONG address, \cf1 char\cf0 * instruction, BYTE *output, \cf1 int\cf0  maxlength, \cf1 int\cf0  *returnedsize);\par
+\par
+\b\i0 address\b0 : The address the instruction is supposed to be written. Usefull in cases of jumps and calls...\par
+\b instruction: \b0 A pointer to a 0 terminated string that contains the assembler instruction you want to assemble\par
+\b output:\b0  a pointer to the buffer the assembled bytes will be put in\par
+\b maxlength: \b0 maximum size of the buffer receiving the assembled bytes\par
+\b returnedsize:\b0  a pointer to the integer that gets how many bytes where used\par
+\par
+Returns TRUE if the instruction was valid and there was enough space. Doesn't return why it fails, so it is recommended to always give at least 32 bytes space\par
+\par
+\par
+\b\i\fs24 2.10: Disassembler\par
+\b0\i0\fs20 A pointer to the Disassembler function in ce. This function will allow you to give it a address and it'll return you with the disassembled output.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 Disassembler(ULONG address, \cf1 char\cf0 * output, \cf1 int\cf0  maxsize);\par
+\par
+\b\i0 address\b0 : The address of the instruction you want to disassemble\par
+\b output:\b0  pointer to the buffer the disassembled string will be put in\par
+\b maxsize:\b0  maximum size the string can be\par
+\par
+Returns TRUE if there was enough memory to store the string.\par
+The returned string is build up as "Address - bytes - instruction"\par
+\par
+\par
+\b\i\fs24 2.11: ChangeRegistersAtAddress\par
+\b0\i0\fs20 A pointer to the ChangeRegistersAtAddress function in ce. This function will set a breakpoint at the address you specify and automatically change the registers in the way you want.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 ChangeRegistersAtAddress(ULONG address,\cf1 struct\cf0  REGISTERMODIFICATIONINFO *changereg);\par
+\par
+\b\i0 address\b0 : The address of the instruction you want to break on\par
+\b changereg:\b0  a pointer to a structure that holds all the changes you want to do\par
+\b\par
+\b0 Structure definition of REGISTERMODIFICATIONINFO:\par
+\cf1 struct\cf0  REGISTERMODIFICATIONINFO\par
+\{\par
+  ULONG address; \cf2 //addres to break on\par
+\cf0   BOOL change_eax;\par
+  BOOL change_ebx;\par
+  BOOL change_ecx;\par
+  BOOL change_edx;\par
+  BOOL change_esi;\par
+  BOOL change_edi;\par
+  BOOL change_ebp;\par
+  BOOL change_esp;\par
+  BOOL change_eip;\par
+  BOOL change_cf;\par
+  BOOL change_pf;\par
+  \lang1043 BOOL change_af;\par
+  \lang1033 BOOL change_zf;\par
+  BOOL change_sf;\par
+  BOOL change_of;\par
+  ULONG new_eax;\par
+  ULONG new_ebx;\par
+  ULONG new_ecx;\par
+  ULONG new_edx;\par
+  ULONG new_esi;\par
+  ULONG new_edi;\par
+  ULONG new_ebp;\par
+  ULONG new_esp;\par
+  ULONG new_eip;\par
+  BOOL new_cf;\par
+  BOOL new_pf;\par
+  BOOL new_af;\par
+  BOOL new_zf;\par
+  BOOL new_sf;\par
+  BOOL new_of;\par
+\};\par
+\par
+\par
+Returns TRUE if everything want as planned.\par
+\par
+\par
+\b\i\fs24 2.12: InjectDLL\par
+\b0\i0\fs20 A pointer to the InjectDLL function in ce. This function will allow you to inject a dll using ce's injection engine.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 InjectDLL(\cf1 char\cf0  *dllname, \cf1 char\cf0  *functiontocall);\par
+\par
+\b\i0 dllname\b0 : the name of the dll to inject. \par
+\b functiontocall:\b0  name of the function to call after injection. Can be NULL if you don't want to\par
+\par
+Returns TRUE if the injection was successful\par
+\par
+\par
+\b\i\fs24 2.13: FreezeMem\par
+\b0\i0\fs20 A pointer to the FreezeMem function in ce. This function will freeze the memory of a specific address.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 int \cf0 FreezeMem(ULONG address, \cf1 int\cf0  size);\par
+\par
+\b\i0 address\b0 : Address to freeze \par
+\b size:\b0  Size in bytes of the address to freeze\par
+\par
+Returns the ID of the freeze sop you can later unfreeze it.\par
+Warning: If the process changes the freeze will still be active. It is recommended in this case to hook OpenProcess and watch for changes and unfreeze when a new process is selected\par
+\par
+\b\i\fs24 2.14: UnfreezeMem\par
+\b0\i0\fs20 A pointer to the UnfreezeMem function in ce. This function will stop the freezing of a earlier freeze operation\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 int \cf0 UnfreezeMem\i0 (\cf1 int\cf0  freezeID);\i\par
+\par
+\b\i0 freezeID\b0 : Id returned by a previous FreezeMem instruction\par
+\par
+Returns TRUE if the ID was found and unfrozen\par
+\par
+\par
+\b\i\fs24 2.15: FixMem\par
+\b0\i0\fs20 A pointer to the FixMem function in ce. This function will scan the memory of CE itself for changes and fix them whem possible\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 FixMem\i0 ();\i\par
+\par
+\i0 Returns TRUE if it didn't crash\par
+\par
+\b\i\fs24 2.16: ProcessList\par
+\b0\i0\fs20 A pointer to the ProcessList function in ce. This function will return the processlist in a buffer you provide\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 ProcessList\i0 (\cf1 char\cf0  *listbuffer, \cf1 int\cf0  listsize);\i\par
+\par
+\b\i0 listbuffer\b0 : Pointer to buffer that will receive the processlist\par
+\b listsize:\b0  Size in bytes of the buffer\par
+\par
+Returns TRUE if there was enough memory to fill the list.\par
+\par
+\b\i\fs24 2.17: ReloadSettings\par
+\b0\i0\fs20 A pointer to the ReloadSettings function in ce. This function will reload the settings from the registry and apply them to ce\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 BOOL \cf0 ReloadSettings\i0 ();\i\par
+\par
+\i0 Returns TRUE\par
+\par
+\b\i\fs24 2.18: GetAddressFromPointer\par
+\b0\i0\fs20 A pointer to the GetAddressFromPointer function in ce. This function converts a baseaddress + offsets to a final address.\par
+\par
+\ul functiondefinition\ulnone :\i\par
+\cf1 DWORD \cf0 GetAddressFromPointer(ULONG baseaddress, \cf1 int \cf0 offsetcount\cf1 , int\cf0 * offsets);\par
+\par
+\i0 Returns the address the pointer is pointing to. If part of the pointerpath is unreadable, the result is 0\par
+\par
+\par
+}
+ 

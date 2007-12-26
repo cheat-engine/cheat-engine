@@ -1,0 +1,4 @@
+//first compile the standalone project to generate the needed trainer.exe
+//it is recommended to compress the standalone before release so the generated
+//trainers don't become so big
+TRAINER CEINCEXE "trainerwithassembler.exe"

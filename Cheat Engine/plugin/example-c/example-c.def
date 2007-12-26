@@ -1,0 +1,6 @@
+LIBRARY		Example-C
+DESCRIPTION "Example plugin for CE written in C"
+EXPORTS   
+    GetVersion	@1
+    InitializePlugin @2
+    DisablePlugin @3

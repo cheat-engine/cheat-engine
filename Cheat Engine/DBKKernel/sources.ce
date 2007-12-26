@@ -1,0 +1,4 @@
+TARGETNAME=dbk32
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+SOURCES=DBKDrvr.c DBKFunc.c rootkit.c processlist.c memscan.c threads.c vmxhelper.c newkernel.c

@@ -1,0 +1,1 @@
+run ce.bat in the win2k development environment to compile the driver

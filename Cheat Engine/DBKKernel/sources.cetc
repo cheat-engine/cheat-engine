@@ -1,0 +1,4 @@
+TARGETNAME=cetc
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+SOURCES=DBKDrvr.c DBKFunc.c rootkit.c processlist.c cetc.c memscan.c tdiwrapper.c kfiles.c threads.c

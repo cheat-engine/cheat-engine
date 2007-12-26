@@ -1,0 +1,29 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = cheatengine.exe cheatengine.DEU cheatengine.NLD cheatengine.RUS
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+cheatengine.exe: cheatengine.dpr
+  $(DCC)
+
+cheatengine.DEU: DEU\cheatengine.dpr
+  $(DCC)
+
+cheatengine.NLD: NLD\cheatengine.dpr
+  $(DCC)
+
+cheatengine.RUS: RUS\cheatengine.dpr
+  $(DCC)
+
+
