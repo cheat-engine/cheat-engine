@@ -50,24 +50,27 @@ struct PLUGINTYPE4_INIT
   CEP_PLUGINTYPE4 callbackroutine; //pointer to a callback routine of the type 3 plugin
 };
 
+#pragma pack(push)
+#pragma pack(1)
 struct REGISTERMODIFICATIONINFO
 {
   ULONG address; //addres to break on
-  BOOL change_eax;
-  BOOL change_ebx;
-  BOOL change_ecx;
-  BOOL change_edx;
-  BOOL change_esi;
-  BOOL change_edi;
-  BOOL change_ebp;
-  BOOL change_esp;
-  BOOL change_eip;
-  BOOL change_cf;
-  BOOL change_pf;
-  BOOL change_af;
-  BOOL change_zf;
-  BOOL change_sf;
-  BOOL change_of;
+  char change_eax;
+  char change_ebx;
+  char change_ecx;
+  char change_edx;
+  char change_esi;
+  char change_edi;
+  char change_ebp;
+  char change_esp;
+  char change_eip;
+  char change_cf;
+  char change_pf;
+  char change_af;
+  char change_zf;
+  char change_sf;
+  char change_of;
+  char fill;
   ULONG new_eax;
   ULONG new_ebx;
   ULONG new_ecx;
@@ -77,13 +80,14 @@ struct REGISTERMODIFICATIONINFO
   ULONG new_ebp;
   ULONG new_esp;
   ULONG new_eip;
-  BOOL new_cf;
-  BOOL new_pf;
-  BOOL new_af;
-  BOOL new_zf;
-  BOOL new_sf;
-  BOOL new_of;
+  char new_cf;
+  char new_pf;
+  char new_af;
+  char new_zf;
+  char new_sf;
+  char new_of;
 };
+#pragma pack(pop)
 
 
 //the __stdcall stuff isn't really needed since I've set compiler options to force stdcall, but this makes it clear that stdcall is used to the reader

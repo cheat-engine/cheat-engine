@@ -162,7 +162,9 @@ A pointer to the RegisterFunction function of ce.  This function function will r
 \b init\b0  holds a pointer to a structure that is dependant on the type of function.\par
 \par
 functiontypes:\par
-\pard\nowidctlpar\fi-720\li720 0:\tab With this plugintype you create a new plugin menu on the rightclick menu of the addresslist.\par
+\pard\nowidctlpar\fi-720\li720 0:\tab\b\fs24 Addresslist popup\b0\fs20\par
+\par
+\tab With this plugintype you create a new plugin menu on the rightclick menu of the addresslist.\par
 \pard\nowidctlpar\li720 When the user clicks the menu item your callback routine will get information about the selected record if one is selected and will give you the ability to change the address, and description.\par
 \par
 callback definition:\par
@@ -192,7 +194,9 @@ Pointer to structure of init you have to pass:\par
 \cf0\};\par
 \par
 \pard\nowidctlpar\fi720\par
-\pard\nowidctlpar\fi-720\li720 1:\tab With this plugintype you create a new plugin menu at the top of the memoryview window.\par
+\pard\nowidctlpar\fi-720\li720 1:\tab\b\fs24 Memoryview menu item\b0\fs20\par
+\par
+\tab With this plugintype you create a new plugin menu at the top of the memoryview window.\par
 \pard\nowidctlpar\li720 When the user clicks the menu item your callback routine will get pointers to the address of the disassembler window, the address of the currently selected line in the disassembler, and the address of the hexadecimal view at the bottom. You can change these pointers to anything you like\par
 \par
 callback definition:\par
@@ -208,7 +212,9 @@ Pointer to structure of init you have to pass:\par
 \cf0\};\par
 \par
 \pard\nowidctlpar\fi720\par
-\pard\nowidctlpar\fi-720\li720 2:\tab With this plugintype you will get notified whenever a debug event happens in the default windows debugger. Your callback routine gets called right after the WaitForDebugEvent returns true with the pointer to the DebugEvent structure.\par
+\pard\nowidctlpar\fi-720\li720 2:\tab\b\fs24 Debug Event\b0\fs20\par
+\tab\par
+\tab With this plugintype you will get notified whenever a debug event happens in the default windows debugger. Your callback routine gets called right after the WaitForDebugEvent returns true with the pointer to the DebugEvent structure.\par
 \pard\nowidctlpar\li720\par
 callback definition:\par
 \cf1 typedef\cf0  \cf1 int\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE2)(LPDEBUG_EVENT DebugEvent);\par
@@ -223,7 +229,9 @@ Pointer to structure of init you have to pass:\par
 \cf0\};\par
 \par
 \pard\nowidctlpar\fi720\par
-\pard\nowidctlpar\fi-720\li720 3:\tab With this plugintype you will get notified when the processwatcher is used and it sees a new process has been created. Your callback routine gets the processid and the PEProcess address.\par
+\pard\nowidctlpar\fi-720\li720 3:\tab\b\fs24 Processwatcher event\b0\fs20\par
+\par
+\tab With this plugintype you will get notified when the processwatcher is used and it sees a new process has been created. Your callback routine gets the processid and the PEProcess address.\par
 \pard\nowidctlpar\li720\par
 callback definition:\par
 \cf1 typedef\cf0  \cf1 void\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE3)(ULONG processid, ULONG peprocess);\par
@@ -238,7 +246,9 @@ Pointer to structure of init you have to pass:\par
 \cf0\};\par
 \par
 \pard\nowidctlpar\fi720\par
-\pard\nowidctlpar\fi-720\li720 4:\tab With this plugintype you will get notified when one or more of the pointers get changed due to user actions. (Other plugins that change the pointers excluded) This is usefull in cases you want to hook a api.\par
+\pard\nowidctlpar\fi-720\li720 4:\tab\b\fs24 Pointer reassignment event\b0\fs20\par
+\par
+\tab With this plugintype you will get notified when one or more of the pointers get changed due to user actions. (Other plugins that change the pointers excluded) This is usefull in cases you want to hook a api.\par
 \pard\nowidctlpar\li720\par
 callback definition:\par
 \cf1 typedef\cf0  \cf1 void\cf0  (\cf1 __stdcall\cf0  *CEP_PLUGINTYPE4)(int reserved);\par
