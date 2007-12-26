@@ -32,7 +32,7 @@ var
 
 implementation
 
-uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9;
+uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10;
 
 {$R *.dfm}
 
@@ -153,6 +153,16 @@ begin
     end;
 
   end;
+
+  if length(edit1.text)=8 then
+    if (edit1.text[1]='3') and (edit1.text[2]='1') and (edit1.Text[3]='3') and (edit1.Text[4]='3') and (edit1.text[5]='7') and (edit1.Text[6]='1') and (edit1.text[7]='5') and (edit1.Text[8]='7') then
+    begin
+      //9:31337157
+      hide;
+      form10:=tform10.create(self);
+      form10.show;
+    end;
+
 end;
 
 procedure TForm1.Edit1KeyPress(Sender: TObject; var Key: Char);

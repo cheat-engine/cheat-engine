@@ -1,9 +1,10 @@
 object Form8: TForm8
-  Left = 734
-  Top = 278
-  Width = 579
-  Height = 284
+  Left = 570
+  Top = 503
+  BorderStyle = bsDialog
   Caption = 'Step 7'
+  ClientHeight = 250
+  ClientWidth = 571
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

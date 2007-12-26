@@ -1,6 +1,6 @@
 object Form7: TForm7
-  Left = 882
-  Top = 157
+  Left = 539
+  Top = 241
   BorderStyle = bsDialog
   Caption = 'Step 6'
   ClientHeight = 250

@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 565
-  Top = 459
+  Left = 441
+  Top = 440
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Cheat Engine Tutorial v3'

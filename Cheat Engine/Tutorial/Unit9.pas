@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses Unit4;
+uses Unit4, Unit10;
 
 {$R *.dfm}
 
@@ -139,44 +139,11 @@ begin
   memo1.SelStart:=0;
 end;
 
-function pobfuscate(level: integer; x: pointer):pointer;
-begin
-  if level=2 then
-    result:=pointer(TLevel1(x^).p); //2
-
-  if level=3 then
-    result:=pointer(TLevel2(x^).p); //3
-
-  if level=4 then
-    result:=pointer(TLevel3(x^).p); //4
-end;
-
-function getpointerofhealth: pointer;
-var a: ^TLevel1;
-    b: ^TLevel2;
-    c: ^TLevel3;
-    d: ^TLevel4;
-begin
-  a:=pointer(basepointer);
-  b:=pobfuscate(2,a);
-  c:=pobfuscate(3,b);
-  d:=pobfuscate(4,c);
-  result:=@d.health;
-end;
-
-
-
 procedure TForm9.Button1Click(Sender: TObject);
 var h: ^integer;
     i: integer;
 begin
   basepointer.p.p.p.health:=random(4000);
-{   h:=getpointerofhealth;
-
-
-  i:=random(4000);
-  d.health:=i;}
-
   label1.caption:=inttostr(basepointer.p.p.p.health);
 end;
 
@@ -225,8 +192,8 @@ end;
 procedure TForm9.Button2Click(Sender: TObject);
 begin
   hide;
-  form4:=tform4.create(self);
-  form4.show;
+  form10:=tform10.create(self);
+  form10.show;
 end;
 
 end.
