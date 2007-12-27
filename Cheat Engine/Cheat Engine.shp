@@ -1,4 +1,8 @@
 ##v##00.4.50
+pagenumber=18
+linenumber=2349
+sellength=0
+topline=0
 EditHelpFileTitle.Text=Cheat Engine help
 form2.STextForeHeadline.Color=16777215
 form2.STextForeText.Color=0
@@ -27,6 +31,9 @@ form2.EditAboutMenuCaption.Text=&About this help file...
 form2.CBoxPopupPagesForAboutMenu.Tag=-1
 form2.EditConstantNameFilePrefix.Text=pageConstants_
 form2.EditConstantNameFileExt.Text=txt
+form2.CBoxDontMakeHeadersKeywords.Checked=0
+form2.CBoxDontMakeTargetsKeywords.Checked=0
+copyToPath=
 form5.sTextColor1=0
 form5.sTextColor2=9743070
 form5.sTextColor3=12386403
@@ -59,7 +66,7 @@ form5.sTextComment13=
 form5.sTextComment14=
 form5.sTextComment15=
 form5.sTextComment16=
-NumOfPages=28
+NumOfPages=29
 ------------ end of project settings / page settings follow ------------
 pageC.pages[0].ImageIndex=-1
 pageTitle(0).Text=About this helpfile
@@ -152,60 +159,65 @@ getPageConstantLabel(17).Caption=
 getPageContentHeaderLabel(17).Caption=
 pageKeywords(17).Text=ALLOC;LABEL;FULLACCESS
 pageC.pages[18].ImageIndex=-1
-pageTitle(18).Text=Other stuff
+pageTitle(18).Text=Script engine
 getPageConstantLabel(18).Caption=
 getPageContentHeaderLabel(18).Caption=
 pageKeywords(18).Text=
 pageC.pages[19].ImageIndex=-1
-pageTitle(19).Text=Tutorials
+pageTitle(19).Text=Other stuff
 getPageConstantLabel(19).Caption=
 getPageContentHeaderLabel(19).Caption=
 pageKeywords(19).Text=
 pageC.pages[20].ImageIndex=-1
-pageTitle(20).Text=Anti tab protected games
+pageTitle(20).Text=Tutorials
 getPageConstantLabel(20).Caption=
 getPageContentHeaderLabel(20).Caption=
-pageKeywords(20).Text=anti tab;protected
+pageKeywords(20).Text=
 pageC.pages[21].ImageIndex=-1
-pageTitle(21).Text=What is the difference in bytetype
+pageTitle(21).Text=Anti tab protected games
 getPageConstantLabel(21).Caption=
 getPageContentHeaderLabel(21).Caption=
-pageKeywords(21).Text=valuetype
+pageKeywords(21).Text=anti tab;protected
 pageC.pages[22].ImageIndex=-1
-pageTitle(22).Text=3D pinball for windows (pointer+code)
+pageTitle(22).Text=What is the difference in bytetype
 getPageConstantLabel(22).Caption=
 getPageContentHeaderLabel(22).Caption=
-pageKeywords(22).Text=pointers;code;pinball
+pageKeywords(22).Text=valuetype
 pageC.pages[23].ImageIndex=-1
-pageTitle(23).Text=Direct x-mess +anti-debug
+pageTitle(23).Text=3D pinball for windows (pointer+code)
 getPageConstantLabel(23).Caption=
 getPageContentHeaderLabel(23).Caption=
-pageKeywords(23).Text=directx;debugger
+pageKeywords(23).Text=pointers;code;pinball
 pageC.pages[24].ImageIndex=-1
-pageTitle(24).Text=Find out what addresses are accessed by a piece of code
+pageTitle(24).Text=Direct x-mess +anti-debug
 getPageConstantLabel(24).Caption=
 getPageContentHeaderLabel(24).Caption=
-pageKeywords(24).Text=code
+pageKeywords(24).Text=directx;debugger
 pageC.pages[25].ImageIndex=-1
-pageTitle(25).Text=Basic assembler
+pageTitle(25).Text=Find out what addresses are accessed by a piece of code
 getPageConstantLabel(25).Caption=
 getPageContentHeaderLabel(25).Caption=
-pageKeywords(25).Text=assembler
+pageKeywords(25).Text=code
 pageC.pages[26].ImageIndex=-1
-pageTitle(26).Text=Code Injection and the auto assembler
+pageTitle(26).Text=Basic assembler
 getPageConstantLabel(26).Caption=
 getPageContentHeaderLabel(26).Caption=
-pageKeywords(26).Text=code injection;Auto Assemble;assembler
+pageKeywords(26).Text=assembler
 pageC.pages[27].ImageIndex=-1
-pageTitle(27).Text=Searching Tip
+pageTitle(27).Text=Code Injection and the auto assembler
 getPageConstantLabel(27).Caption=
 getPageContentHeaderLabel(27).Caption=
-pageKeywords(27).Text=
+pageKeywords(27).Text=code injection;Auto Assemble;assembler
 pageC.pages[28].ImageIndex=-1
-pageTitle(28).Text=Remote desktop instead of network version
+pageTitle(28).Text=Searching Tip
 getPageConstantLabel(28).Caption=
 getPageContentHeaderLabel(28).Caption=
-pageKeywords(28).Text=network;client;server;remote desktop
+pageKeywords(28).Text=
+pageC.pages[29].ImageIndex=-1
+pageTitle(29).Text=Remote desktop instead of network version
+getPageConstantLabel(29).Caption=
+getPageContentHeaderLabel(29).Caption=
+pageKeywords(29).Text=network;client;server;remote desktop
 ------------ end of page titles / full text of pages follow ------------
 ----- SHM ---- page 0 ---- 
 This helpfile is just to help with the basics of Cheat Engine, if you think you can write a better helpfile please do so and send it to dark_byte@hotmail.com, thanks! ;-)
@@ -213,12 +225,12 @@ This helpfile is just to help with the basics of Cheat Engine, if you think you 
 DB
 ----- SHM ---- page 1 ---- 
 Cheat Engine is a program designed to make cheating on games easy for people that are new to cheating in games, and for people who already know a lot about cheating.
-This program came to existance because at the time there where no free easy to use cheat programs, and the ones that where free wheren't very easy to use for a beginner. (Or lacked some essential stuff)
+This program came into existance because at the time there where no free easy to use cheat programs, and the ones that where free weren't very easy to use for a beginner. (Or lacked some essential stuff)
 
-Also, I was used to cheat on games using gamehack, and when I moved on to Win2000 i couldn't get it to work, so decided to make something that did work... (And cause I just had to do something)
+Also, I was used to cheat on games using gamehack, and when I moved on to Win2000 I couldn't get it to work, so decided to make something that did work... (And cause I just had to do something, like how to learn to program)
 
-Over time Cheat Engine has had a lot of improvements, more features, and better stability than the very first versions, and that all thanks to the ideas and suggestions of people that sent me some feedback, so, if you want to help make Cheat Engine better, send your ideas and suggestions, to dark_byte@hotmail.com (MSN supported) or contact me at icq #6330306.
-Or you could download the source code, make changes yourself and send them to me. (CE is written in Delphi, so it helps if you know that language before you try it ;-)  )
+Over time Cheat Engine has had a lot of improvements, more features, and better stability than the very first versions, and that all thanks to the ideas and suggestions of people that sent me some feedback, so, if you want to help make Cheat Engine better, send your ideas and suggestions, to dark_byte@hotmail.com (MSN supported) .
+Or you could download the source code, make changes yourself and send them to me. (CE is written mainly in Delphi, so it helps if you know that language before you try it ;-)  )
 
 Also, another way to motivate me to work on Cheat Engine, is to donate. You can donate whatever ammount you prefer to dark_byte@hotmail.com using paypal.
 ----- SHM ---- page 2 ---- 
@@ -245,10 +257,13 @@ Normaly a value is 4-bytes in windows, but sometimes it is different, or you are
 <b>array to scan</b>
 Programs reside in the memory, and store their addresses in various locations. With the Array to scan option you can increase/decrease the number of locations that Cheat Engine will look at for the address you need. This can dramatically increase your scanning speed, and improve the results, when used wisely.
 
-<i>If you're playing dosgames in windows ME or earlier choose the 16-bit memory array.</i>
+<i>If you're playing dosgames in windows ME or earlier choose the 16-bit memory array. If you're targeting a dos game in NT, 2000, XP , Vista or later, target ntvdm.exe and set as range 0 to 7fffffff </i>
 
 <b>readonly</b>
 The readonly checkbox tells Cheat Engine, if you want to scan read-only memory or not. Normaly games do not store important game information in read-only memory, but sometimes you may feel a need to scan that memory anyhow. (e.g. If you want to change some text in the game etc...)
+
+<b>fastscan</b>
+The fastscan checkbox tells CE to skip addresses that arn't located on a alligned. (Address devidable by 2 or 4 depending on the type)
 ----- SHM ---- page 3 ---- 
 The select window process can be accessed by clicking on the computer icon on the top left side of the main window.
 
@@ -258,6 +273,8 @@ Double click on a entry and cheat engine will open this <pop=SHM_contents0005>pr
 If you click on the window button at the bottom you'll get to see all the windows, and the processes that own them, so if you dont know the process name you can use the window to find the process.
 
 The process window also has the ability to attach the debugger the a running process, or to create a new process. The option to attach to a running process is usefull if you don't want a delay when you want to use the debugger, and he option to create a process is usefull when you're using windows 98 or ealier which doesn't have the ability to attach to a running process.
+
+If you have enabled the option to use the processwatcher in settings->extra you will have a 3th button at the bottom saying "Process watcher". Clicking that will open the process watcher window. It'll show you which processes have been created since the start of CE
 ----- SHM ---- page 4 ---- 
 A process is a program or game running in windows.
 ----- SHM ---- page 5 ---- 
@@ -265,7 +282,7 @@ The found list is the list on the left side of the window, under the <klink=Sele
 
 When you do a search and the number of addresses your scan found is smaller or equal to the max number of addresses to show(You can change that in the <klink=Settings Window,1>setting window</klink>), then this list will be filled with the addresses you've found.
 
-If you double click a address, drag it to the list at the bottom, or select some addresses and click the red arrow, the addresses will be added to the memory watch list at the bottom
+If you double click an address, drag it to the list at the bottom, or select some addresses and click the red arrow, the addresses will be added to the memory watch list at the bottom
 ----- SHM ---- page 6 ---- 
 <b>Binary</b>
 The binary scan is a slow but powerfull scan.
@@ -333,6 +350,13 @@ xx ?? xx xx
 xx ** xx xx
 
 a array of byte scan can be usefull when you know that prior to the address you need is always a specific occurance of bytes. (like: 66 66 66 10 10, and 4 bytes after that is your health which is stored as 1 byte. Scanning for 1 byte will take a lot longer than scanning for this string of bytes. Scanning for this string will propably only result 1 address, where as scanning for 1 byte will return thousands of addresses the first time)
+
+<b>All</b>
+A combination of byte, 2 bytes, 4 bytes, 8 bytes, single and double
+
+<b>Custom</b>
+Lets you assign an auto assembler script where you can fill in how the compare wioth an address should be done and what would result in a positive or negative result
+To delete a custom scanscript selexct it and when it's still focuseed press delete
 ----- SHM ---- page 7 ---- 
 Signed:
 A value can hold a negative value if it is a signed value.
@@ -369,11 +393,13 @@ Decreased by...
 If the value of a address has decreased with the specified ammount it will be added to the list.
 
 Changed
-This scantype will check if the value of a address has changed or not. If it has changed it'll be added to the list
+This scantype will check if the value of an address has changed or not. If it has changed it'll be added to the list
 
 Unchanged
-This scantype will check if the value of a address has changed or not . If it has not it'll be added to the list
+This scantype will check if the value of an address has changed or not . If it has not it'll be added to the list
 
+Same as first scan
+This scantype will check if the value of an address is the same as when it was when you did first scan. If it is, it'll be added to the list.
 ----- SHM ---- page 9 ---- 
 The address list is the place where all the addresses will go that you think are usable.
 
@@ -399,6 +425,8 @@ Delete:		Delete Address
 Ctrl+S:		Switch the position of 2 selected addresses
 Ctrl+E:		Edit the selected address
 Ctrl+Alt+A:	Open the auto assembler
+Ctrl+Alt+Grey Plus:	Move down one position
+Ctrl+Alt+Grey Minus:	Move up one position
 ----- SHM ---- page 10 ---- 
 The questionmark on the bottom right of the cheat engine window opens the Comments window.
 The comments window can be used to store extra information in your cheat tables. You can for example use it to leave notes on how you found a address, or other stuff, like your name.
@@ -410,15 +438,15 @@ The memory view contains several tools and functions for advanced game hackers l
 To change assembler code just stand on the address you want to edit and type in your now code.
 To edit the value of some bytes directly in memory just click on a byte and start typing in the new values.
 
-There are also some hotkeys, like ctrl+g to jump which will popup a box where you can fill in the new address you want to go to and ctrl+f in the hex view to do a simple scan
+There are also some hotkeys, like CTRL+G to jump which will popup a box where you can fill in the new address you want to go to and ctrl+f in the hex view to do a simple scan
+If you have a jmp or call selected you can press SPACE to follow that address. BACKSPACE and CTRL+SPACE will go back
 ----- SHM ---- page 12 ---- 
 You will sometimes read about the debugger of cheat engine, this is a thread that has access to the opened process, and handles all debugging events, like creating threads, handling exeptions, etc...
 a thread is a part of the program that runs seperatly from the rest of the program, but still has access to the memory of the main program
 ----- SHM ---- page 13 ---- 
 The settings window allows you to change several aspects of Cheat Engine ranging from how it looks to how it scans.
 ----- SHM ---- page 14 ---- 
-Cheat Engine also comes with a seperat Client and Server programs.
-Right now they are based on Cheat Engine 2.3, but should do the job.
+Older versions of cheat engine come with a seperate Client and Server version
 
 There are a few games that give no possibility to switch between programs. (It either closes, crashes, or takes down your whole pc when you switch to something else)
 In those cases the Network versions of Cheat Engine come in handy.(Assuming you have 2 computers or a friend over internet willing to help)
@@ -426,6 +454,8 @@ In those cases the Network versions of Cheat Engine come in handy.(Assuming you 
 Load the server program on the computer that will run the game and start the server.
 Then run the game on that computer and start the client part of Cheat Engine on another computer.
 Make a connection with the client to the computer that runs the server. When a connection is established the Cheat Engine userinterface will show up on the client side. With that you can open the process of the game on the server and scan the memory as if you're local.
+
+To get them, download Cheat engine 5.3 or earlier
 ----- SHM ---- page 15 ---- 
 To create a trainer click on the advanced button and then click on the create trainer button (the one with the save file icon) or save your table with a .exe extention to get to the same screen.
 In this screen you can choose to open a already existing trainer, or to create a new one. 
@@ -452,7 +482,7 @@ The speedhack of cheat engine replaces some commonly used funtions in games to k
 There are 2 values you can fill in, speed and sleeptime.
 Speed allows you to specify the speed you want the game to run at. (0.5=Half speed, 2=Double speed)
 
-The sleeptime handles how accurate the speed is emulated. A higher sleeptime gives a more accurate speed, but if you make it too high, the game may become choppy.
+The sleeptime handles how accurate the speed is emulated. A higher sleeptime gives a more accurate speed, but if you make it too high, the game may become choppy. This is due to the way the speedhack works. Every few milliseconds it updates the time. And the time it waits between the updates is the sleeptime. As you can imagine, waiting a long time before uopdating the current time will result in weird/choppy behaviour, but having no wait will eat up the whole cpu leaving no time for the game, making it extremely slow.
 ----- SHM ---- page 17 ---- 
 Auto assemble allows you to write assembler code at different locations using a script. It can be found in the memoryview part of cheat engine under extra.
 
@@ -469,7 +499,9 @@ UNREGISTERSYMBOL(symbolname) //removes the symbol from the userdefined symbol li
 DEFINE(name,whatever) //Will replace all tokens with the specified name with the text of whatever
 INCLUDE(filename) //includes another auto assembler file at that spot
 LOADBINARY(address,filename) //will load a binary file at the specified address
-
+CREATETHREAD(address) //Will spawn a thread in the process at the specified address
+LOADLIBRARY(filename) //Will inject the specified dll into the target process
+READMEM(address,size) //Will write the addresses at address at the location this instruction is placed
 
 <b>Basic Example</b>:
 00451029:
@@ -551,11 +583,71 @@ jmp 00451031
 DEFINE(clear_eax,xor eax,eax)
 00400500:
 clear_eax
+
+<b>ReadMem example</b>
+alloc(x,16)
+alloc(script,2048)
+
+script:
+mov eax,[x]
+mov edx,[x+c]
+ret
+
+x:
+readmem(00410000,16) //place the contents of address 00410000 at the address of X
 ----- SHM ---- page 18 ---- 
-Cheat Engine is filled with other features, try to find them and find out what they do, or send questions about them to dark_byte@hotmail.com
+Cheat engine also has a script engine in which you can execute simple c-scripts.
+You can run thos c-scripts inside CE, but you can also inject them into the target process and let it execute there. The scripts have access to the real memory.
+Also, when running in the contectx of Cheat Engine using the normal execute button the script engine provides you with several extra commands that are not available when using the injected form.
+They are:
+
+<b>void ce_showmessage(char* message);</b>
+Will popup a messagebox with the specified message
+Usefull for showing the result of an operation.
+e.g:
+char result[100];
+int x=123;
+x=x+6;
+sprintf(result,"123+6 = %d",x);
+ce_showmessage(result);
+
+<b>int ce_ChangeRegistersAtAddress(unsigned long addresstonbreakat, void *changeregstructure);</b>
+This will use ce's "Change register at address" feature.
+addresstonbreakat is the address to place the break at and changeregstructure is a pointer to the changereg structure.
+
+Look at the plugin-system help or the changeregtest.CEC  example provided for the structure.
+
+<b>int ce_AutoAssemble(char *script);</b>
+Will autoassemble the script provided in script.
+will return 0 if failure
+
+<b>int ce_Assembler(unsigned int address, char *instruction, unsigned char *outputbuffer, int maxbuffersize, int *numberofbytes);</b>
+Will assemble one specific instruction and return the bytes to a structure you've allocated
+
+
+<b>int ce_Disassembler(unsigned int address, char *outputstring, int maxsizeofstring);</b>
+Will disassemble a specific address of the currently selected process and fill it in outputstring.
+
+<b>int ce_InjectDLL(char *pathtodll, char *optionalfunction);</b>
+Will inject a dll and calls a function of that dll (No parameters) Optionalfunction can be 0
+
+<b>unsigned int ce_GetAddressFromPointer(unsigned int baseaddress, int offsetcount, unsigned int *offsetlist);</b>
+Will convert an address with offsets to the final address.
+offsetcount is the number of offsets in the list (offsetlist)
+
+<b>int ce_GetSelectedProcessHandle(void);</b>
+Will return the current processhandle;
+
+<b>int ce_ReadProcessMemory(unsigned int processhandle, void *baseaddress, void *buffer, unsigned long bytestoread, void *numberofbytesread);</b>
+Will use the current ReadProcessMemory currently used by Cheat Engine
+
+<b>int ce_WriteProcessMemory(unsigned int processhandle, void *baseaddress, void *buffer, unsigned long bytestowrite, void *numberofbyteswritten);</b>
+Will use the current WriteProcessMemory currently used by Cheat Engine.
 ----- SHM ---- page 19 ---- 
-This section contains a collection of all usefull tutorials originally posted on the cheat engine forum.
+Cheat Engine is filled with other features, try to find them and find out what they do, or send questions about them to dark_byte@hotmail.com
 ----- SHM ---- page 20 ---- 
+This section contains a collection of all usefull tutorials originally posted on the cheat engine forum.
+----- SHM ---- page 21 ---- 
 Originally posted by Emperor:
 
 Hope it's usefull ...after all i did much research on it. This guide written by me explains how to use CE for anti tab protected games. 
@@ -572,7 +664,7 @@ Possiblity 3
 Use the CE network version. This of course requires 2 computers and you to switch between them. Also the functions in the network version are limited, but new features are being added. 
 <b>What do game creators do against those? </b>
 -Game guard. : The 4.4 Version of CE can cheat Anti Tab protected games. Therefore you can safely use the network version. AAT will not work with nProtected games but if you execute the game as a normal user and AAT as an administrator it will still work.
------ SHM ---- page 21 ---- 
+----- SHM ---- page 22 ---- 
 Originally posted by emperor:
 
 2 Byte means: 00 00 to FF FF this allows only up to 65535, obviously. 
@@ -588,7 +680,7 @@ FF FF 01 2C is increased by one...
 ---> FF FF 01 2D increased would still be okay as unknown initial. 
 But if the FF FF also changes 
 to like FE FE then it would screw up the scan.
------ SHM ---- page 22 ---- 
+----- SHM ---- page 23 ---- 
 Originally posted by me. (no not me, but the user called me)
 
 this is to try answer the most common questions from people new to cheat engine 
@@ -700,11 +792,11 @@ ok a couple of things
 3) so for newcomers it gives an idea of how to use the basic search / pointer / and advanced options 
 
 well as they say thats my two cents 
------ SHM ---- page 23 ---- 
+----- SHM ---- page 24 ---- 
 Originaly posted by Dark Byte
 If you want to use the directx-mess functions in a game but the game detects the debugger (or crashes because of it) then before clicking on OK to run the game select another process, or simpley close Cheat Engine.
 This will detach the debugger from Cheat Engine.
------ SHM ---- page 24 ---- 
+----- SHM ---- page 25 ---- 
 Originally posted by Dark Byte
 
 Sometimes when you've found a address and the code to change that address is also used to change other addresses (like that of the enemy) the following function will be usefull: 
@@ -714,7 +806,7 @@ When you've found the code that accesses the address you've found you can save t
 Go to the advanced window, rightclick the code and choose "Find out what addresses this code writes to" (or reads from depending on what kind of code it is, and can sometimes be a write instead of a read but that doesn't matter) and play the game. after a while the list will be filled up with all the addresses that that code used. (enemy's energy including if it is also used to handle the enemy) 
 
 Only downside is that this (currently) only works for instructions that have a [...] part. So instructions like "rep movsb" won't work, but that is a instruction thats useless to cheating anyhow)
------ SHM ---- page 25 ---- 
+----- SHM ---- page 26 ---- 
 Originally posted by Dark Byte + addition by Smidge204
 
 Most people think assembler is very difficult, but in fact it's very easy. 
@@ -919,7 +1011,7 @@ The carry flag is set if the bit one past the lmit of the register/memory locati
 
 
 
------ SHM ---- page 26 ---- 
+----- SHM ---- page 27 ---- 
 Originally posted by scribly:
 
 Lets say you've found the code that decreases your health 
@@ -1201,7 +1293,7 @@ jmp returnHealthWriter
  
  
  
------ SHM ---- page 27 ---- 
+----- SHM ---- page 28 ---- 
 Originally posted by Smidge204
 
 When searching for a value in memory using the scan, here are a few pointers to find the value quickly: 
@@ -1250,7 +1342,7 @@ Once you have the character map, you can use it to "translate" other text you co
 
 Hope that helps! 
 =SMidge=
------ SHM ---- page 28 ---- 
+----- SHM ---- page 29 ---- 
 Originally posted by Zhoul:
 
 *Pre-Req!!! Windows XP Professional - (Not Home) - Upgraded to SP2. Worry not, hacked TCPIP DLL's are talked about below.* 
