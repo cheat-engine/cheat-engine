@@ -363,6 +363,7 @@ begin
 end;
 
 procedure DBKFileAsMemory; overload;
+{Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }
 begin
   UseFileAsMemory:=true;
   usephysical:=false;
@@ -450,6 +451,7 @@ end;
 
 
 procedure DontUseDBKQueryMemoryRegion;
+{Changes the redirection of VirtualQueryEx back to the windows API virtualQueryEx}
 begin
   VirtualQueryEx:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   usedbkquery:=false;
@@ -464,6 +466,7 @@ begin
 end;
 
 procedure UseDBKQueryMemoryRegion;
+{Changes the redirection of VirtualQueryEx to the DBK32 equivalent}
 begin
   LoadDBK32;
   If DarkByteKernel=0 then exit;
@@ -482,6 +485,7 @@ begin
 end;
 
 procedure DontUseDBKReadWriteMemory;
+{Changes the redirection of ReadProcessMemory and WriteProcessMemory back to the windows API ReadProcessMemory and WriteProcessMemory }
 begin
   DBKReadWrite:=false;
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
@@ -498,6 +502,7 @@ begin
 end;
 
 procedure UseDBKReadWriteMemory;
+{Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to the DBK32 equiv: RPM, WPM and VAE }
 begin
   LoadDBK32;
   If DarkByteKernel=0 then exit;
@@ -518,8 +523,10 @@ begin
 end;
 
 procedure DontUseDBKOpenProcess;
+{Changes the redirection of OpenProcess and VirtualAllocEx  back to the windows API OpenProcess and VirtualAllocEx }
 begin
   OpenProcess:=GetProcAddress(WindowsKernel,'OpenProcess');
+  OpenThread:=GetProcAddress(WindowsKernel,'OpenThread');
 
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(9);
