@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AlphaBlendValue = 127
-  Caption = 'Cheat Engine 5.4 RC9'
+  Caption = 'Cheat Engine 5.4 RC10'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

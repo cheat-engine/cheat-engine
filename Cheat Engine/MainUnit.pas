@@ -9282,7 +9282,7 @@ begin
 
   if (month=4) and (day=1) then aprilfools:=true;
 
-  if (day>29) or (year>2007) then
+  if (year>2007) then
   begin
     showmessage('Go get the new version');
     application.Terminate;

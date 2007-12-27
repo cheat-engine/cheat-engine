@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.4 RC9
-AppVerName=Cheat Engine 5.4 RC9
+AppName=Cheat Engine 5.4 RC10
+AppVerName=Cheat Engine 5.4 RC10
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.4 RC9
+DefaultGroupName=Cheat Engine 5.4 RC10
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine54RC9
+OutputBaseFilename=CheatEngine54RC10
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"

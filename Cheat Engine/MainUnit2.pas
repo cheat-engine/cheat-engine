@@ -20,7 +20,7 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
-const beta=' RC9 (beta)'; //empty this for a release
+const beta=' RC10 (beta)'; //empty this for a release
 
 var
   CEnorm:string = 'Cheat Engine 5.4'+beta;
@@ -687,7 +687,7 @@ var dwhandle: thandle;
     ffi: ^VS_FIXEDFILEINFO;
 
 begin
-  CEnorm:='Cheat Engine 5.4 RC9 (beta)';  //.';
+  CEnorm:='Cheat Engine 5.4 RC10 (beta)';  //.';
 
 {  FileVersionInfoSize:=GetFileVersionInfoSize(pchar(application.exename),dwhandle);
   if FileVersionInfoSize>0 then
