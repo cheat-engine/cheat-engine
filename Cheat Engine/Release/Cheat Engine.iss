@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.3
-AppVerName=Cheat Engine 5.3
+AppName=Cheat Engine 5.4 RC9
+AppVerName=Cheat Engine 5.4 RC9
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.3
+DefaultGroupName=Cheat Engine 5.4 RC9
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine53
+OutputBaseFilename=CheatEngine54RC9
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -99,6 +99,10 @@ begin
 
 end;
 
+[Dirs]
+;go ahead, scream like a pig about this one, I know you want to
+Name: "{app}"; permissions: everyone-modify;
+
 
 [Files]
 Source: "..\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
@@ -135,8 +139,8 @@ Source: "..\CHEAT ENGINE.CNT"; DestDir: "{app}"; DestName: "Cheat Engine.cnt"; F
 Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Client\client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Server\ceserver.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
-Source: "..\Cheat Engine Client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
-Source: "..\Cheat Engine Server.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
+;Source: "..\Cheat Engine Client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
+;Source: "..\Cheat Engine Server.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
 
 
 ; Plugin example
@@ -157,15 +161,20 @@ Source: "..\plugin\example\Unit1.pas"; DestDir: "{app}\Plugins\example-delphi\";
 
 Source: "..\plugin\plugins.rtf"; DestDir: "{app}\Plugins\"; DestName: "plugins.rtf"; Flags: ignoreversion
 
+Source: "..\include\*"; DestDir: "{app}\include\";
+Source: "..\example scripts\*"; DestDir: "{app}\example scripts\";
+Source: "..\ucc12.dll"; DestDir: "{app}";
+Source: "..\undercdll.dll"; DestDir: "{app}";
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.3"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.4"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
 Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
-Name: "{group}\Network\Cheat Engine Client"; Filename: "{app}\Cheat Engine Client.exe"
-Name: "{group}\Network\Cheat Engine Server"; Filename: "{app}\Cheat Engine Server.exe"
+;Name: "{group}\Network\Cheat Engine Client"; Filename: "{app}\Cheat Engine Client.exe"
+;Name: "{group}\Network\Cheat Engine Server"; Filename: "{app}\Cheat Engine Server.exe"
 
 Name: "{group}\Kernel stuff\Unload kernel module"; Filename: "{app}\Kernelmoduleunloader.exe"
 Name: "{group}\Kernel stuff\Gather kernel data"; Filename: "{app}\Systemcallretriever.exe"
@@ -174,4 +183,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.3"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.4"; Flags: nowait postinstall skipifsilent
