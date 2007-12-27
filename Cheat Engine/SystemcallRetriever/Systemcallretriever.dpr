@@ -8,6 +8,8 @@ uses
   Filehandler in '..\Filehandler.pas',
   resultwindowunit in 'resultwindowunit.pas' {resultwindow};
 
+{$R ..\manifest.res}
+
 begin
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
