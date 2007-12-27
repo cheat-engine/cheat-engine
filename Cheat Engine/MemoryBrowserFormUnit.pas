@@ -1085,7 +1085,7 @@ begin
   if (mbi.AllocationProtect and PAGE_GUARD)>0 then teststr:=teststr+'Guarded ';
   if (mbi.AllocationProtect and PAGE_NOCACHE)>0 then teststr:=teststr+'Not Cached';
 
-  if (formsettings<>nil) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(memoryaddress),a) then
+  if (formsettings<>nil) and formsettings.cbKernelOpenProcess.checked and assigned(GetPhysicalAddress) and GetPhysicalAddress(processhandle,pointer(memoryaddress),a) then
     s:=teststr+' AllocationBase='+IntToHex(dword(mbi.AllocationBase),8)+' RegionSize='+IntTohex(mbi.RegionSize,1)+' Physical Address='+IntToHex(a,8)
   else
     s:=teststr+' AllocationBase='+IntToHex(dword(mbi.AllocationBase),8)+' RegionSize='+IntTohex(mbi.RegionSize,1);

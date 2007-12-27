@@ -592,6 +592,5 @@ initialization
   Heap32ListNext:=   GetProcAddress(WindowsKernel, 'Heap32ListNext');
 
 finalization
-  FreeLibrary(WindowsKernel);
-  FreeLibrary(DarkByteKernel);
+
 end.

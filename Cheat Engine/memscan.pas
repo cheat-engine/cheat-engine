@@ -1541,6 +1541,9 @@ begin
     currentbase:=alist[i].address and $FFFFF000;
     while j<=maxindex do
     begin
+
+
+        
       if (currentbase)=((alist[j].address+vsize-1) and $fffff000) then //same page
         inc(j)
       else
@@ -1613,6 +1616,7 @@ begin
               typesmatch[l]:=false;
 
             currentaddress:=alist[k].address;
+
             typesmatch[tvariabletype(alist[k].bit)]:=true;
           end;
 
@@ -2299,6 +2303,7 @@ begin
       if self.variableType=vtall then
         oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
 
+      oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
     end
     else
     begin
