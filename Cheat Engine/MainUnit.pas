@@ -584,8 +584,6 @@ var
   MainForm: TMainForm;
   ToggleWindows: TTogglewindows;
 
-var before,after: dword;
-
 implementation
 
 uses mainunit2,ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
@@ -3857,8 +3855,6 @@ begin
           try
             if formsettings.checkThread.checked or cbFasterScan.checked then
             begin
-              before:=gettickcount;
-              
               formscanning:=TFormscanning.create(self);
               formscanning.button:=0;
               formscanning.scan:=1;
@@ -3880,9 +3876,6 @@ begin
 
 
               res:=formscanning.showmodal;
-
-              after:=gettickcount;
-              showmessage(inttostr(after-before));
 
             end else
             begin
@@ -11343,7 +11336,6 @@ begin
 
   if button2.tag=0 then
   begin
-    before:=gettickcount;
     progressbar1.min:=0;
     progressbar1.max:=1000;
     progressbar1.position:=0;
@@ -11380,8 +11372,6 @@ var i: integer;
     canceled: boolean;
 begin
   canceled:=false;
-
-  after:=gettickcount; 
 
   button2.Tag:=2;
   button2.Caption:='Scan';
