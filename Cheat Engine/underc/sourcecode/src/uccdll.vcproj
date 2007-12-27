@@ -167,7 +167,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../ucc12.dll"
+				OutputFile="../../../ucc12.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\drelease/ucc12.pdb"

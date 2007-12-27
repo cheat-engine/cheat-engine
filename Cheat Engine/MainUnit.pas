@@ -3675,8 +3675,8 @@ begin
 
     enablegui(false);
   end;
-  UpdateScanType;
-  
+
+  UpdateScanType;  
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -3786,7 +3786,7 @@ var FromAdd,ToAdd:Dword;
 
     bytes: tbytes;
 begin
-  if cbnewscanroutine.checked then
+  if (not cbfasterscan.checked) and cbnewscanroutine.checked then
   begin
     button2.click;
     exit;
@@ -4083,7 +4083,7 @@ var error: Integer;
     res: word;
     bytes: tbytes;
 begin
-  if cbnewscanroutine.checked then
+  if (not cbfasterscan.checked) and cbnewscanroutine.checked then
   begin
     button4.click;
     exit;
@@ -11143,7 +11143,7 @@ var
 
     xxx: dword;
 begin
-  if x(12) then exit;
+{  if x(12) then exit;
 
   scriptengine.beginScript;
   try
@@ -11347,14 +11347,20 @@ begin
     progressbar1.min:=0;
     progressbar1.max:=1000;
     progressbar1.position:=0;
-    button2.Caption:='Cancel';
-    button2.Tag:=1;
+
     if scanvalue2<>nil then
       svalue2:=scanvalue2.Text
     else
       svalue2:='';
 
     lastscantype:=scantype.ItemIndex; 
+
+    if cbPauseWhileScanning.checked then
+    begin
+      advancedoptions.Pausebutton.down:=true;
+      advancedoptions.Pausebutton.Click;
+    end;
+
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
     DisableGui;
@@ -11436,11 +11442,17 @@ var svalue2: string;
 begin
   foundlist.Deinitialize; //unlock file handles
 
+  if cbPauseWhileScanning.checked then
+  begin
+    advancedoptions.Pausebutton.down:=true;
+    advancedoptions.Pausebutton.Click;
+  end;
+
   progressbar1.min:=0;
   progressbar1.max:=1000;
   progressbar1.position:=0;
-  button4.Caption:='Cancel';
-  button4.Tag:=1;
+
+  
   if scanvalue2<>nil then
     svalue2:=scanvalue2.Text
   else
@@ -11496,6 +11508,12 @@ begin
   end;
 
 
+
+  if cbPauseWhileScanning.checked then
+  begin
+    advancedoptions.Pausebutton.down:=false; //resume
+    advancedoptions.Pausebutton.Click;
+  end;
 
 end;
 

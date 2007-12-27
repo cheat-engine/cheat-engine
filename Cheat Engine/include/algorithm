@@ -1,0 +1,265 @@
+// UnderC Development Project, 2001
+// First draft of some useful standard algorithms
+
+#ifndef __ALGORITHM_H
+#define __ALGORITHM_H
+namespace std {
+
+// until our template function resolution is a little more
+// sophisticated, we just use specialized versions.
+int min(int a, int b) { return a > b ? b : a; }
+int max(int a, int b) { return a > b ? a : b; }
+double min(double a, double b) { return a > b ? b : a; }
+double max(double a, double b) { return a > b ? a : b; }
+
+
+template <class IT, class T>
+ IT find(IT start, IT finis, T val)
+ {
+   while (start != finis) {
+     if (*start == val) return start;
+     ++start;
+   }
+   return finis;
+ }
+
+template <class IT, class P>
+ IT find_if(IT i1, IT i2, P pred)
+ {
+   while (i1 != i2) {
+     if (pred(*i1)) return i1;
+     ++i1;
+   }
+   return i2;
+ }
+
+template <class In, class Out>
+  void copy(In i1, In i2, Out j) 
+  {
+    while (i1 != i2) {
+      *j = *i1;
+      ++j; ++i1;
+    }
+  }
+
+template <class In, class Fn>
+  void for_each(In i1, In i2, Fn fn)
+  {
+    while (i1 != i2) {
+      fn(*i1);
+      ++i1;
+    }
+  }
+
+template <class In, class Out, class Fn>
+  void transform(In i1, In i2, Out oi, Fn fn)
+  {
+    while (i1 != i2) {
+      *oi = fn(*i1);
+      ++i1; ++oi;
+    }
+  }
+
+ template <class In, class T>
+   int count(In i1, In i2, T val) 
+   {
+     int res = 0;
+     while (i1 != i2) {
+      if (*i1 == val) ++res;
+      ++i1;
+     }
+     return res;
+   }
+
+ template <class In, class P>
+   int count_if(In i1, In i2, P pred) 
+   {
+     int res = 0;
+     while (i1 != i2) {
+      if (pred(*i1)) ++res;
+      ++i1;
+     }
+     return res;
+   }
+
+ 
+ template<class In, class Out, class Pr>
+  void remove_copy_if(In i1, In i2, Out o, Pr fn)
+  {
+   while (i1 != i2) {
+     if (! fn(*i1)) { *o = *i1; ++o; }
+     ++i1;
+   }
+  }
+
+ template<class In, class Pr>
+  void remove_if(In i1, In i2, Pr fn)
+  {
+    i1 = find_if(i1,i2,fn);
+    if (i1==i2) return i1;
+    In ii = i1;
+    ++ii;
+    return remove_copy_if(ii,i2,i1,fn);
+  }
+
+template <class IT, class T>
+ IT binary_search(IT low, IT end, T val)
+ {
+   IT high = end-1;
+   while (low <= high) {
+     IT mid = (low+high)/2;
+     cout << mid << endl;
+     if (val == *mid) return mid;
+     if (val <  *mid) high = mid-1;
+                else  low  = mid+1;
+   }
+   return end;
+ }
+
+template <class IT, class T>
+  void fill(IT start, IT finish, T val)
+  {
+    while (start != finish) {
+      *start = val;
+      ++start;
+    }
+  }
+
+template <class IT, class T>
+  void fill_n(IT start, int n, T val)
+  {
+    for(int i = 0; i < n; i++) *start++ = val;
+  }
+
+template <class IT>
+ IT min_element(IT i1, IT i2)
+ {
+   IT imin = i1;
+   while (i1 != i2) {
+     if (*i1 < *imin) imin = i1;
+     ++i1;
+   }
+   return imin;
+ }
+
+template <class IT>
+ IT max_element(IT i1, IT i2)
+ {
+   IT imax = i1;
+   while (i1 != i2) {
+     if (*i1 > *imax) imax = i1;
+     ++i1;
+   }
+   return imax;
+ }
+
+template <class In, class T>
+ void replace(In i1, In i2, T v1, T v2)
+ {
+   while (i1 != i2) {
+     if (*i1 == v1) *i1 = v2;
+     ++i1;
+   }
+ }
+
+template <class C>
+ class _back_inserter {
+ private:
+    C& m_container;
+    C::value_type m_val;
+  public:
+   typedef C::value_type value_type;
+
+   _back_inserter(C& c)
+    : m_container(c)
+    { }
+
+  _back_inserter(const _back_inserter& c)
+     : m_container(c.m_container)
+    { }
+
+   value_type&    operator*()
+   { return m_val; }
+
+  _back_inserter& operator++() 
+   {
+    m_container.push_back(m_val);
+    return *this;
+   }
+
+ };
+
+ template <class C>
+   _back_inserter<C> back_inserter(C& c) {
+       typedef _back_inserter<C> BI;
+       //int i=0; //,j=1,k=2;
+       BI bb(c);      
+       //cout << i << ' ' << j << ' ' << k << endl;         
+       return bb;
+    }
+ 
+
+
+ // should go in <numeric>
+ template <class In, class T>
+  T accumulate(In i1, In i2, T val)
+  {
+  // there's a bug in the list<T> postfix ++
+      while (i1 != i2) { val = val + *i1; i1++; }
+      return val;
+  }
+
+ // note: we don't have the iterator_traits mechanism,
+ // so I've used the (experimental and non-standard) typeof operator.
+ // These versions are of course only intended for numerical types.
+
+ template <class In, class Out>
+  Out partial_sum(In i1, In i2, Out j)
+  {
+     if (i1 == i2) return j;
+     typeof(*i1) sum = 0;
+     while (i1 != i2) {
+        sum += *i1;
+        *j = sum;
+        ++i1; ++j;
+     }
+     return j;
+  }
+
+ template <class In, class Out>
+  Out adjacent_difference(In i1, In i2, Out j)
+  {
+      if (i1 == i2) return j;
+      typeof(*i1) sum = 0;
+      while (i1 != i2) {
+        *j = *i1 - sum;
+        sum += *i1;
+        ++i1; ++j;
+      }
+      return j;
+  }
+
+// *add 1.2.4 Simple Sort
+template <class T>
+ void swap(T& x, T& y) {
+    T tmp = x;
+    x = y;
+    y = tmp;
+  }
+
+template <class It>
+ void sort(It s, It e) {
+   It f;
+   for(; s != e; ++s) {
+     f = s;
+     ++f;
+     for(; f != e; ++f) 
+       if (*f < *s) swap(*f,*s);
+   }
+ }
+
+
+
+}  // namespace std
+#endif
+

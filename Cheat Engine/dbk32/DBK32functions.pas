@@ -10,7 +10,7 @@ uses windows,sysutils,winsvc,psapi,classes,types,registry;
 
 
 
-const currentversion=2000010;
+const currentversion=2000011;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -76,6 +76,7 @@ const IOCTL_CE_SETCR4 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082b shl 2) o
 const IOCTL_CE_VMXCONFIG				  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETCR0 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_MAKEKERNELCOPY		  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETGLOBALDEBUGSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -127,7 +128,7 @@ var hdevice: thandle; //handle to my the device driver
     processeventname, threadeventname: string;
     processevent,threadevent:thandle;
 
-    ownprocess: thandle; //needed for simple kernelmemory access
+    ownprocess: thandle=0; //needed for simple kernelmemory access
     Successfullyloaded:boolean;
 
     usealternatedebugmethod: boolean;
@@ -171,6 +172,7 @@ function GetSDTShadow:DWORD; stdcall;
 function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
 function getAlternateDebugMethod:BOOL; stdcall;
 function DebugProcess(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
+function SetGlobalDebugState(state: boolean): BOOL; stdcall;
 function StopDebugging:BOOL; stdcall;
 function StopRegisterChange(regnr:integer):BOOL; stdcall;
 function RetrieveDebugData(Buffer: pointer):integer; stdcall;
@@ -349,6 +351,9 @@ begin
 
     SetProcessAffinityMask(getcurrentprocess,PA); //multi processors are so fun. It'd be a waste not to use it
 
+    if length(cpuidt)>maxidts then
+      setlength(cpuidt,maxidts);
+      
     for i:=0 to length(cpuidt)-1 do
       TCardinalDynArray(idtstore)[i]:=cpuidt[i];
 
@@ -552,6 +557,8 @@ begin
       end;
   end;
 end;
+
+
 
 function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 var cc:dword;
@@ -890,8 +897,8 @@ type TInputstruct=record
   startaddress: dword;
   bytestoread: word;
 end;
-var ao: array [0..600] of byte; //give it some space
-    input: TInputstruct absolute ao[0];
+var //ao: array [0..600] of byte; //give it some space
+    input: TInputstruct;
     cc:dword;
 
     i: integer;
@@ -920,21 +927,23 @@ begin
         while ok do
         begin
           input.processid:=handlelist[i].processid;
-          if nSize-numberofbytesread>=512 then
-            toread:=512
+          if (mempointer and $fff) > 0 then //uneven
+          begin
+            toread:=4096-(mempointer and $fff);
+            if toread>(nSize-numberofbytesread) then toread:=nSize-numberofbytesread;
+          end
           else
-            toread:=nSize-numberofbytesread;
+          begin
+            if nSize-numberofbytesread>=4096 then
+              toread:=4096
+            else
+              toread:=nSize-numberofbytesread;
+          end;
 
           input.bytestoread:=toread;
           input.startaddress:=mempointer;
 
-          if deviceiocontrol(hdevice,cc,@ao[0],512,@ao[0],512,br,nil) then
-          begin
-            bufpointer2:=pointer(bufpointer);
-            copymemory(bufpointer2,@ao[0],toread);
-            //no check if it works or try except, it's up to the (retarded) user to do it right
-          end
-          else
+          if not deviceiocontrol(hdevice,cc,@input,sizeof(input),pointer(bufpointer),toread,br,nil) then
             exit;
 
           inc(mempointer,toread);
@@ -1269,6 +1278,25 @@ begin
   end else result:=false;
 end;
 
+function SetGlobalDebugState(state: boolean): BOOL; stdcall;
+var
+  x: dword;
+  br,cc: dword;
+begin
+  outputdebugstring('SetGlobalDebugState');
+
+  if state then
+    x:=1
+  else
+    x:=0;   
+
+  result:=false;
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_SETGLOBALDEBUGSTATE;
+    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,br,nil);
+  end else result:=false;
+end;
 
 function StartCEKernelDebug:BOOL; stdcall;
 var
@@ -2129,8 +2157,9 @@ end;
 
 finalization
 begin
-  closehandle(ownprocess);
+  if ownprocess<>0 then
+    closehandle(ownprocess);
+    
   if hooker<>nil then hooker.Terminate;
-  freelibrary(kernel32dll);
 end;
 end.

@@ -104,7 +104,7 @@ RunParams=
 HostApplication=c:\Cheat Engine\cheatengine.exe
 Launcher=
 UseLauncher=0
-DebugCWD=C:\Cheat Engine
+DebugCWD=C:\Cheat Engine\dbk32
 [Language]
 ActiveLang=
 ProjectLang=

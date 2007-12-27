@@ -53,7 +53,6 @@ type TScriptengine=class
     function execute_command(command: string): boolean;
     function getError: string;
     function getResult: string;
-    function x: integer;
 end;
 
 var scriptengine: TScriptengine;
@@ -262,37 +261,6 @@ begin
   freemem(r);
 
   result:=s;
-end;
-
-
-
-
-function TScriptengine.x:integer;
-var x: pointer;
-    r: integer;
-    i: integer;
-    j: integer;
-    c,d: int64;
-    total: dword;
-    count: dword;
-    res: pchar;
-    s: string;
-    a: dword;
-
-begin
-  uc_exec('__declare bla(int x) { return x+12; }');
-
-  showmessage(getresult+'  -  '+geterror);
-
-  uc_exec('int i;');
-  uc_exec('i=bla(12);');
-
-  showmessage(getresult+'  -  '+geterror);
-
-  a:=dword(uc_get_function('bla'));
-  showmessage(inttohex(a,8));
-
-
 end;
 
 

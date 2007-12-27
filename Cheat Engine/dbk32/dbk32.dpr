@@ -60,6 +60,7 @@ exports GetIDTs;
 exports MakeWritable;
 exports GetLoadedState;
 exports ChangeRegOnBP;
+exports SetGlobalDebugState;
 
 exports DBKSuspendThread;
 exports DBKResumeThread;
