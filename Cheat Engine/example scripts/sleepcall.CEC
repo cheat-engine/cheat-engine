@@ -1,0 +1,10 @@
+#include <windows.h>
+typedef void (*testPtr2)(int st);
+
+testPtr2 zzz;
+
+zzz=(testPtr2*)0x7c802442;
+/*
+ce_showmessage("Calling");
+xxx(1000);
+ce_showmessage("Alive");*/

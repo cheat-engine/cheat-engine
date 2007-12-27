@@ -1,0 +1,69 @@
+/*
+Just target minesweeper with CE and click execute script. No need to inject. 
+Actually, because a ce_*** function is used, injection is not possible */
+
+//change reg at 0x1002ff5 change eip to 0x1002ffb
+#pragma pack(1)
+//define the changeregstruct used internally by ce:
+struct _changeregstruct {
+  unsigned int address;
+  char change_eax;
+  char change_ebx;
+  char change_ecx;
+  char change_edx;
+  char change_esi;
+  char change_edi;
+  char change_ebp;
+  char change_esp;
+  char change_eip;
+  char change_cf;
+  char change_pf;
+  char change_af;
+  char change_zf;
+  char change_sf;
+  char change_of;
+  char fill;
+  unsigned int new_eax;
+  unsigned int new_ebx;
+  unsigned int new_ecx;
+  unsigned int new_edx;
+  unsigned int new_esi;
+  unsigned int new_edi;
+  unsigned int new_ebp;
+  unsigned int new_esp;
+  unsigned int new_eip;
+  char new_cf;
+  char new_pf;
+  char new_af;
+  char new_zf;
+  char new_sf;
+  char new_of;
+};
+
+struct _changeregstruct changeregstruct;
+
+changeregstruct.address=0;
+changeregstruct.change_eax=0;
+changeregstruct.change_ebx=0;
+changeregstruct.change_ecx=0;
+changeregstruct.change_edx=0;
+changeregstruct.change_esi=0;
+changeregstruct.change_edi=0;
+changeregstruct.change_ebp=0;
+changeregstruct.change_esp=0;
+changeregstruct.change_eip=0;
+changeregstruct.change_cf=0;
+changeregstruct.change_pf=0;
+changeregstruct.change_af=0;
+changeregstruct.change_zf=0;
+changeregstruct.change_sf=0;
+changeregstruct.change_of=0;
+
+
+changeregstruct.address=0x1002ff5;
+changeregstruct.change_eip=1;
+changeregstruct.new_eip=0x1002ffb;
+
+
+ce_ChangeRegistersAtAddress(0x1002ff5,&changeregstruct);
+ce_showmessage("ALIVE!!");

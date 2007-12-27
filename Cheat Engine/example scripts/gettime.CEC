@@ -1,0 +1,21 @@
+#include <time.h>
+#include <string.h>
+char sec[50];
+
+
+struct tm *timep;
+time_t c;
+c=time(0);
+
+timep=localtime(&c);
+sprintf(sec,"sec=%d",timep->tm_sec);
+ce_showmessage(sec);
+
+if (timep->tm_sec>=30)
+  ce_showmessage("bigger");
+else
+  ce_showmessage("smaller");
+
+
+
+ce_showmessage("still allive");

@@ -1,0 +1,16 @@
+/*
+usage: Inject it into the process and call it from a codecave injection on the 
+timer decrease code 
+You could also just choose inject->inject into current process and execute, 
+but it's only a -1 so you wouldn't notice, just change to "*ptimer-=10;" then
+
+note: DO NOT CLICK ON EXECUTE
+*/
+
+int *ptimer=(void*)0x0100579c;
+*ptimer--; 
+
+if (*ptimer<0)
+  *ptimer=666;
+
+                                                                                                                                                                                                     
