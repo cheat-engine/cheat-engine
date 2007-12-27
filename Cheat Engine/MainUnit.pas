@@ -6,12 +6,14 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   ComCtrls, StdCtrls,  Menus, CEFuncproc, Buttons,shellapi,
   ExtCtrls, Dialogs, Clipbrd,debugger,debugger2, assemblerunit,
-  registry,xpman,math,hexeditor, Gauges, ImgList,commctrl,NewKernelHandler,
+  registry,{xpman,}math,hexeditor, Gauges, ImgList,commctrl,NewKernelHandler,
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions, memscan;
 
   //the following are just for compatibility
+
+ 
 
 const copypasteversion=4;
 const wm_freedebugger=WM_USER+1;
@@ -4251,6 +4253,7 @@ var pid: dword;
     ReturnLength: Dword;
 
     reg: tregistry;
+    differentWidth: integer;
 begin
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
 
@@ -4441,6 +4444,15 @@ begin
 
   hookedin:=false;
 
+  //allignment fixes for some window style's that mess up with thick borders (like vista)
+  differentWidth:=logopanel.left-(clientwidth-logopanel.width);
+  button1.Left:=clientwidth-button1.width;
+  commentbutton.left:=clientwidth-commentbutton.width;
+  logopanel.left:=clientwidth-logopanel.width;
+  speedbutton4.Left:=clientwidth-speedbutton4.width;
+  progressbar1.Width:=progressbar1.width-differentwidth;
+  undoscan.left:=undoscan.left-differentwidth;
+
   //create object for the auto attach list
   autoattachlist:=tstringlist.create;
   autoattachlist.CaseSensitive:=false; //set it up as not case sensitive
@@ -4448,6 +4460,7 @@ begin
   randomize;
 
   pluginhandler:=TPluginhandler.create;
+
 
 {$ifdef ceasinjectabledll}
   //panel7.Visible:=false;
@@ -9362,7 +9375,7 @@ begin
 
   end;
 
-  if GetSystemType<4 then  //not nt or later
+  if (GetSystemType<4) or (is64bitos) then  //not nt or later
   begin
     with formsettings do
     begin
@@ -9371,6 +9384,12 @@ begin
       cbKernelOpenProcess.enabled:=false;
       cbStealth.enabled:=false;
       cbprotectme.Enabled:=false;
+      cbUndoMemoryChanges.Enabled:=false;
+      cbForceUndo.enabled:=false;
+      cbProcessWatcher.Enabled:=false;
+      cbKDebug.enabled:=false;
+      cbGlobalDebug.enabled:=false;
+
       TauntOldOsUser.Visible:=true;
       panel1.Enabled:=false;
       label25.Enabled:=false;
@@ -11705,6 +11724,7 @@ begin
 end;
 
 end.
+
 
 
 

@@ -972,6 +972,14 @@ begin
 
   deletedmodules:=TStringlist.Create;
 
+
+  //64-bit check
+  if is64bitos then
+  begin
+    TauntOldOsUser.Caption:='These functions can only be used on a 32-bit Operating System';
+    TauntOldOsUser.Visible:=true;
+  end;
+
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);

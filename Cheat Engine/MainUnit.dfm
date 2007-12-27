@@ -1163,7 +1163,6 @@ object MainForm: TMainForm
     Align = alTop
     BevelOuter = bvNone
     Constraints.MinHeight = 305
-    FullRepaint = False
     Locked = True
     TabOrder = 2
     DesignSize = (

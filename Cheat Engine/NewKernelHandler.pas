@@ -22,6 +22,7 @@ type TModule32First=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOO
 type TModule32Next=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL; stdcall;
 type THeap32ListFirst=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type THeap32ListNext=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
+type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 
 
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
@@ -137,6 +138,7 @@ var
   Module32Next          :TModule32Next;
   Heap32ListFirst       :THeap32ListFirst;
   Heap32ListNext        :THeap32ListNext;
+  IsWow64Process        :TIsWow64Process;
 
 
   WaitForDebugEvent     :TWaitForDebugEvent;
@@ -597,6 +599,8 @@ initialization
   Module32Next:=     GetProcAddress(WindowsKernel, 'Module32Next');
   Heap32ListFirst:=  GetProcAddress(WindowsKernel, 'Heap32ListFirst');
   Heap32ListNext:=   GetProcAddress(WindowsKernel, 'Heap32ListNext');
+
+  IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
 
 finalization
 

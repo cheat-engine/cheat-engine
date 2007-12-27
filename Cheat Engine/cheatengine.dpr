@@ -7,6 +7,7 @@ library CheatEngine;
 {$endif}
 
 {$R 'trainer.res' 'trainer.rc'}
+{$R manifest.res} 
 
 uses
   Forms,

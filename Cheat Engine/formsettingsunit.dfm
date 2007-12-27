@@ -1,6 +1,6 @@
 object formSettings: TformSettings
-  Left = 564
-  Top = 247
+  Left = 776
+  Top = 234
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Cheat Engine settings'
@@ -741,10 +741,12 @@ object formSettings: TformSettings
       Caption = 'Extra'
       ImageIndex = 5
       object TauntOldOsUser: TLabel
-        Left = 64
+        Left = 0
         Top = 280
-        Width = 337
+        Width = 491
         Height = 13
+        Align = alBottom
+        Alignment = taCenter
         Caption = 
           'I really recommend upgrading to Windows 2000 or later mister Fli' +
           'ntstone'

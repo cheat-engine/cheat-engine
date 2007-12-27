@@ -3421,7 +3421,7 @@ begin
     on e: exception do
     begin
       haserror:=true;
-      errorstring:=e.message;
+      errorstring:='controller:'+e.message;
     end;
   end;
 
