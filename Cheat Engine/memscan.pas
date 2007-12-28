@@ -2647,8 +2647,8 @@ begin
   inherited create(true); //do create the thread, I need the threadid
   AddressFilename:=CheatEngineDir+'Addresses-'+inttostr(ThreadID)+'.TMP';
   MemoryFilename:=CheatEngineDir+'Memory-'+inttostr(ThreadID)+'.TMP';
-  AddressFile:=TFileStream.Create(AddressFilename,fmCreate);
-  MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate);
+  AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
+  MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
   Priority:=cefuncproc.scanpriority;
 
@@ -3085,7 +3085,7 @@ var AddressFile: TFilestream;
     datatype: string[6];
 begin
   //open the address file and determine if it's a region scan or result scan
-  AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead);
+  AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead or fmSharedenynone);
   try
     Addressfile.ReadBuffer(datatype,sizeof(datatype));
   finally
@@ -3461,7 +3461,8 @@ begin
   //send message saying it's done
   isdone:=true;
   postMessage(notifywindow,notifymessage,err,0);
-
+  
+  //sleep(random(2000)); //stress emulation test
 
   if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
   begin
@@ -3481,6 +3482,9 @@ begin
 
   if scantype=stFirstScan then
     OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+
+  
+  //sleep(random(2000)); //stress emulation test
 
   //clean up secondary scanner threads, their destructor will close and delete their files
   scannersCS.enter;

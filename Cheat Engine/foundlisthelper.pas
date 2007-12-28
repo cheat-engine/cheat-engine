@@ -306,13 +306,28 @@ begin
 
   j:=i-addresslistfirst;
 
-  if vartype in [5,9] then  //bit
+  if vartype in [5,9] then  //bit,all
   begin
     result:=addresslistb[j].address;
     extra:=addresslistb[j].bit;
   end
   else
+  begin
     result:=addresslist[j];
+
+  end;
+
+  if result=0 then //address 0 is usually not possible
+  begin
+    //so means it wasn't loaded yet, klet's rebase it again (reload resultfile)
+    if RebaseAgainThread=nil then
+    begin
+      RebaseAgainThread:=TRebaseAgain.Create(true);
+      RebaseAgainThread.foundlist:=self;
+      RebaseAgainThread.Resume;
+    end;
+  end;
+
 
 end;
 
@@ -349,6 +364,7 @@ begin
   result:=0;
 
   currentaddress:=GetAddressOnly(i,extra);
+
   result:=currentaddress;
   j:=i-addresslistfirst;
 
