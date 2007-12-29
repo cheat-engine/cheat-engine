@@ -1244,6 +1244,7 @@ var LoadLibraryPtr: pointer;
     injectionlocation: pointer;
     threadhandle: thandle;
 begin
+  if not fileexists(dllname) then raise exception.Create(dllname+' does not exist');
   h:=LoadLibrary('Kernel32.dll');
   if h=0 then raise exception.Create('No kernel32.dll loaded');
 
