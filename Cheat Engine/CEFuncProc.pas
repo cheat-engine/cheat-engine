@@ -1244,10 +1244,10 @@ var LoadLibraryPtr: pointer;
     injectionlocation: pointer;
     threadhandle: thandle;
 begin
-  if not fileexists(dllname) then raise exception.Create(dllname+' does not exist');
   h:=LoadLibrary('Kernel32.dll');
   if h=0 then raise exception.Create('No kernel32.dll loaded');
 
+  injectionlocation:=nil;
   try
     try
       getprocaddressptr:=pointer(symhandler.getAddressFromName('GetProcAddress',true));
@@ -1285,22 +1285,6 @@ begin
     inc(position2,length(functiontocall)+1);
     startaddress:=position;
 
-{    assemble('mov ['+inttohex(injectedlocation+4096-4,8)+'],esp');
-    copymemory(@inject[position2],outp,length(outp));
-    inc(position,length(outp));
-    inc(position2,length(outp));}
-
-
-    assemble('PUSHFD',position,outp);
-    copymemory(@inject[position2],outp,length(outp));
-    inc(position,length(outp));
-    inc(position2,length(outp));
-
-    assemble('PUSHAD',position,outp);
-    copymemory(@inject[position2],outp,length(outp));
-    inc(position,length(outp));
-    inc(position2,length(outp));
-
     //loadlibrary(cehook);
     assemble('PUSH '+IntToHex(dword(injectionlocation),8),position,outp);
     copymemory(@inject[position2],outp,length(outp));
@@ -1311,6 +1295,29 @@ begin
     copymemory(@inject[position2],outp,length(outp));
     inc(position,length(outp));
     inc(position2,length(outp));
+
+
+    //safetycode, test if the dll was actually loaded and scip if not
+    assemble('TEST EAX,EAX',position,outp);
+    copymemory(@inject[position2],outp,length(outp));
+    inc(position,length(outp));
+    inc(position2,length(outp));
+
+    assemble('JNE '+inttohex(position+3+5,8),position,outp); //jump over the ret
+    copymemory(@inject[position2],outp,length(outp));
+    inc(position,length(outp));
+    inc(position2,length(outp));
+
+    assemble('MOV EAX,2',position,outp); //exitcode=2
+    copymemory(@inject[position2],outp,length(outp));
+    inc(position,length(outp));
+    inc(position2,length(outp));
+
+    assemble('RET',position,outp);
+    copymemory(@inject[position2],outp,length(outp));
+    inc(position,length(outp));
+    inc(position2,length(outp));
+
 
     if functiontocall<>'' then
     begin
@@ -1330,6 +1337,26 @@ begin
       inc(position,length(outp));
       inc(position2,length(outp));
 
+      assemble('TEST EAX,EAX',position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
+      assemble('JNE '+inttohex(position+3+5,8),position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
+      assemble('MOV EAX,3',position,outp); //exitcode=3
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
+      assemble('RET',position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
       //call function
       assemble('CALL EAX',position,outp);
       copymemory(@inject[position2],outp,length(outp));
@@ -1338,12 +1365,7 @@ begin
     end;
 
 
-    assemble('POPAD',position,outp);
-    copymemory(@inject[position2],outp,length(outp));
-    inc(position,length(outp));
-    inc(position2,length(outp));
-
-    assemble('POPFD',position,outp);
+    assemble('MOV EAX,1',position,outp); //causes the exitcode of the thread be 1
     copymemory(@inject[position2],outp,length(outp));
     inc(position,length(outp));
     inc(position2,length(outp));
@@ -1357,7 +1379,7 @@ begin
     //call the routine
 
     if not writeprocessmemory(processhandle,injectionlocation,@inject[0],position2,x) then raise exception.Create('Failed to inject the dll loader');
-
+    
     {$ifndef standalonetrainer}
     {$ifndef net}   
 
@@ -1377,18 +1399,30 @@ begin
 
     {$endif}
     {$endif}
-    begin
-
+    begin      
       threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,x);
       if threadhandle=0 then raise exception.Create('Failed to execute the dll loader');
 
       if waitforsingleobject(threadhandle,10000)=WAIT_TIMEOUT	then  //max 10 seconds
         raise exception.Create('The injection thread took longer than 10 seconds to execute. Injection routine not freed');
 
-      virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
+      if getexitcodethread(threadhandle,x) then
+      begin
+        case x of
+          1: ;//success
+          2: raise exception.Create('Failed injecting the DLL');
+          3: raise exception.Create('Failed executing the function of the dll');
+          else raise exception.Create('Unknown error during injection');
+        end;
+      end; //else unsure, did it work or not , or is it crashing?
+
+       
+      showmessage(inttohex(startaddress,8));
     end;
   finally
     FreeLibrary(h);
+    if injectionlocation<>nil then
+      virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
   end;
 
 end;
