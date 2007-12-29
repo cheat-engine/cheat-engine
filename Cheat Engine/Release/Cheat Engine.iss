@@ -137,6 +137,8 @@ Source: "..\CHEAT ENGINE.HLP"; DestDir: "{app}"; DestName: "Cheat Engine.hlp"; F
 Source: "..\CHEAT ENGINE.CNT"; DestDir: "{app}"; DestName: "Cheat Engine.cnt"; Flags: ignoreversion
 
 Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
+Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
+
 ;Source: "..\Cheat Engine Net\Client\client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Server\ceserver.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
@@ -178,6 +180,7 @@ Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
 
 Name: "{group}\Kernel stuff\Unload kernel module"; Filename: "{app}\Kernelmoduleunloader.exe"
 Name: "{group}\Kernel stuff\Gather kernel data"; Filename: "{app}\Systemcallretriever.exe"
+Name: "{group}\Reset settings"; Filename: "{app}\ceregreset.exe"
 
 Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
