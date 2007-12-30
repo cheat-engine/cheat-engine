@@ -1416,8 +1416,6 @@ begin
         end;
       end; //else unsure, did it work or not , or is it crashing?
 
-       
-      showmessage(inttohex(startaddress,8));
     end;
   finally
     FreeLibrary(h);
