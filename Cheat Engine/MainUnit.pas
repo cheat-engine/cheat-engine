@@ -9234,7 +9234,7 @@ begin
         reg.WriteBool('Undo',true);
         reg.writeBool('Advanced',true);
         reg.writeBool('SeperateThread',true);
-        reg.writebool('Use Hyperscan if posible',true);
+        reg.writebool('Use Hyperscan if posible',false);
 
         reg.WriteInteger('ScanThreadpriority',formsettings.combothreadpriority.itemindex);
       end;

@@ -429,7 +429,10 @@ begin
 
           {$endif}
 
-          try buffersize:=reg.readInteger('Buffersize'); except buffersize:=512; end;
+          if reg.ValueExists('Buffersize') then
+            buffersize:=reg.readInteger('Buffersize')
+          else
+            buffersize:=512;
 
 
           try EditBufSize.text:=IntToStr(buffersize) except EditBufSize.Text:='512'; end;
@@ -520,15 +523,26 @@ begin
           try cbLowMemoryUsage.Checked:=reg.ReadBool('Low Memory Usage'); except end;
           try cbEnableHyperscanWhenPossible.Checked:=reg.ReadBool('Use Hyperscan if posible'); except end;
 
-          try cbStealth.Checked:=reg.ReadBool('StealthOnExecute'); except cbstealth.Checked:=false; end;
-          try cbProtectMe.Checked:=reg.readbool('Protect CE'); except cbprotectme.checked:=false; end;
+          if reg.ValueExists('StealthOnExecute') then
+            cbStealth.Checked:=reg.ReadBool('StealthOnExecute')
+          else
+            cbstealth.Checked:=false;
+
+          if reg.ValueExists('Protect CE') then
+           cbProtectMe.Checked:=reg.readbool('Protect CE')
+          else
+           cbprotectme.checked:=false;
+
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
           try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
 
 
-          try cbUndoMemoryChanges.checked:=reg.ReadBool('Undo memory changes'); except end;
-          try cbForceUndo.checked:=reg.ReadBool('Undo memory changes:Force writable'); except end;
+          if reg.ValueExists('Undo memory changes') then
+            cbUndoMemoryChanges.checked:=reg.ReadBool('Undo memory changes');
+
+          if reg.ValueExists('Undo memory changes:Force writable') then
+            cbForceUndo.checked:=reg.ReadBool('Undo memory changes:Force writable');
 
           if not cbUndoMemorychanges.Checked then
           begin
