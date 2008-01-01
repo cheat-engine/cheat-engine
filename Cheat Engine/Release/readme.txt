@@ -24,6 +24,7 @@ Added an option to save the memory when a pointerscan has finished so it can be 
 
 
 Fixes:
+Several VISTA-32 bit fixes.
 fixed some asembler/disassembler instructions
 The trainer maker now supports scripts with alloc in them
 hotkeys now work better and don't execute without pressing any key, or when pressing an unrelated key

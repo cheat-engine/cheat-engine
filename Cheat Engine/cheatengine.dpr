@@ -143,7 +143,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.4 RC10';
+  Application.Title := 'Cheat Engine 5.4';
   Application.HelpFile := 'CHEAT ENGINE.HLP';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);
