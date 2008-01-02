@@ -2441,7 +2441,7 @@ begin
 
       repeat
         size:=toread;
-        if (buffersize>0) and (size>buffersize) then size:=buffersize;
+        if (size>buffersize) then size:=buffersize;
 
         actualread:=0;
 
@@ -2523,7 +2523,7 @@ begin
         //05955958
         size:=toread;
 
-        if (buffersize>0) and (size>buffersize) then size:=buffersize;
+        if (size>buffersize) then size:=buffersize;
 
         actualread:=0;
         //variablesize:=0;
