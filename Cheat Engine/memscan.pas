@@ -2322,6 +2322,8 @@ begin
       if self.variableType=vtall then
         oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
 
+      if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(chunksize*variablesize)+' bytes for the old results. chunksize='+inttostr(chunksize)+' variablesize='+inttostr(variablesize));
+
       oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
     end
     else
@@ -3018,6 +3020,9 @@ begin
         dec(scanners[i].stopaddress,leftfromprevious);
       end;
 
+      if scanners[i].maxregionsize>buffersize then
+        scanners[i].maxregionsize:=buffersize;
+
       //now configure the scanner thread with the same info this thread got, with some extra info
 
       scanners[i].scanType:=scanType; //stNextScan obviously
@@ -3294,6 +3299,9 @@ begin
 
         if leftfromprevious<=0 then inc(j); //nothing left in this region
       end;
+
+      if scanners[i].maxregionsize>buffersize then
+        scanners[i].maxregionsize:=buffersize;      
 
       //now configure the scanner thread with the same info this thread got, with some extra info
       scanners[i].scanType:=scanType; //stFirstScan obviously
