@@ -1192,6 +1192,19 @@ begin
   begin
     if typesmatch[i] then
     begin
+      if (i=vtsingle) then
+      begin
+        //filter out NAN and INF
+        if isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^) then
+          continue; //skip, don't save
+      end;
+
+      if (i=vtdouble) then
+      begin
+        if isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^) then
+          continue; //skip, don't save
+      end;
+
       //using the bitaddressarray since it holds a address and a value big enough to hold all types
       PBitAddressArray(CurrentAddressBuffer)[found].address:=address;
       PBitAddressArray(CurrentAddressBuffer)[found].bit:=integer(i);
