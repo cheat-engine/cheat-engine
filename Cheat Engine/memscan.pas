@@ -80,6 +80,8 @@ type
     value,value2: int64;
     svalue,svalue2: single;
     dvalue,dvalue2: double;
+    minsvalue,maxsvalue: single;
+    mindvalue,maxdvalue: double;
     floataccuracy: integer; //number of digits after the decimal seperator
 
     CurrentAddressBuffer: pointer;
@@ -925,29 +927,18 @@ end;
 //single:
 
 function TScanner.SingleExact(newvalue,oldvalue: pointer): boolean;
+var min,max: single;
 begin
   result:=false;
-  if isnan(psingle(newvalue)^) or isinfinite(psingle(newvalue)^) then exit; //not a valid value
-
   case roundingtype of
     rtRounded:
       result:=(RoundTo(psingle(newvalue)^,-floataccuracy)=svalue);
 
     rtExtremerounded:
-    begin
-      if floataccuracy=0 then
-        result:=((psingle(newvalue)^<(svalue+1)) and (psingle(newvalue)^>(svalue-1)) )
-      else
-        result:=((psingle(newvalue)^<(svalue+(1/((floataccuracy)*10)))) and (psingle(newvalue)^>(svalue-(1/((floataccuracy)*10)))) )
-    end;
+      result:=(psingle(newvalue)^>minsvalue) and (psingle(newvalue)^<maxsvalue);
 
     rtTruncated:
-    begin
-      if floataccuracy=0 then
-        result:=((psingle(newvalue)^<(svalue+1)) and (psingle(newvalue)^>=svalue))
-      else
-        result:=((psingle(newvalue)^<(svalue+(1/((floataccuracy)*10)))) and (psingle(newvalue)^>=svalue))
-    end;
+      result:=(psingle(newvalue)^>=svalue) and (psingle(newvalue)^<maxsvalue);
   end;
 
 end;
@@ -1002,27 +993,15 @@ end;
 function TScanner.DoubleExact(newvalue,oldvalue: pointer): boolean;
 begin
   result:=false;
-  if isnan(pdouble(newvalue)^) or isinfinite(pdouble(newvalue)^) then exit; //not a valid value
-
   case roundingtype of
     rtRounded:
       result:=(RoundTo(pdouble(newvalue)^,-floataccuracy)=dvalue);
 
     rtExtremerounded:
-    begin
-      if floataccuracy=0 then
-        result:=((pdouble(newvalue)^<(dvalue+1)) and (pdouble(newvalue)^>(dvalue-1)) )
-      else
-        result:=((pdouble(newvalue)^<(dvalue+(1/((floataccuracy)*10)))) and (pdouble(newvalue)^>(dvalue-(1/((floataccuracy)*10)))) )
-    end;
+      result:=(pdouble(newvalue)^>mindvalue) and (pdouble(newvalue)^<maxdvalue);
 
     rtTruncated:
-    begin
-      if floataccuracy=0 then
-        result:=((pdouble(newvalue)^<(dvalue+1)) and (pdouble(newvalue)^>=dvalue))
-      else
-        result:=((pdouble(newvalue)^<(dvalue+(1/((floataccuracy)*10)))) and (pdouble(newvalue)^>=dvalue))
-    end;
+      result:=(pdouble(newvalue)^>=dvalue) and (pdouble(newvalue)^<maxdvalue);
   end;
 end;
 
@@ -1951,6 +1930,11 @@ begin
       dvalue:=RoundTo(dvalue,-floataccuracy);
       dvalue2:=RoundTo(dvalue2,-floataccuracy);
 
+
+      mindvalue:=dvalue-(1/(power(10,floataccuracy)));
+      maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
+      minsvalue:=svalue-(1/(power(10,floataccuracy)));
+      maxsvalue:=svalue+(1/(power(10,floataccuracy)));
     end;
 
     if variableType = vtString then
@@ -3741,6 +3725,8 @@ begin
 end;
 
 end.
+
+
 
 
 
