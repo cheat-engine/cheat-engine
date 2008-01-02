@@ -1616,7 +1616,7 @@ function GetSystemType: Integer;  //from Stuart Johnson with a little change by 
 const
  { operating system constants }
 
- cOsUnknown = -1;
+ cOsUnknown = 999999;
  cOsWin95 = 0;
  cOsWin98 = 1;
  cOsWin98SE = 2;
