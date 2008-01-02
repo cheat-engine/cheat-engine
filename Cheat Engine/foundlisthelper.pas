@@ -551,6 +551,7 @@ var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
 begin
   result:=0;
   Deinitialize;
+  fvartype:=vartype;
 
   if fileexists(CheatEngineDir+'Addresses.TMP') then
   begin
