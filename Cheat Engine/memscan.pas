@@ -1130,22 +1130,28 @@ end;
 
 procedure TScanner.SingleSaveResult(address: dword; oldvalue: pointer);
 begin
-  pdwordarray(CurrentAddressBuffer)[found]:=address;
-  psinglearray(CurrentFoundBuffer)[found]:=psingle(oldvalue)^;
+  if not (isnan(psingle(oldvalue)^) or IsInfinite(psingle(oldvalue)^))  then
+  begin
+    pdwordarray(CurrentAddressBuffer)[found]:=address;
+    psinglearray(CurrentFoundBuffer)[found]:=psingle(oldvalue)^;
 
-  inc(found);
-  if found>=buffersize then
-    flushroutine;
+    inc(found);
+    if found>=buffersize then
+      flushroutine;
+  end;
 end;
 
 procedure TScanner.DoubleSaveResult(address: dword; oldvalue: pointer);
 begin
-  pdwordarray(CurrentAddressBuffer)[found]:=address;
-  pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
+  if not (isnan(pdouble(oldvalue)^) or IsInfinite(pdouble(oldvalue)^))  then
+  begin
+    pdwordarray(CurrentAddressBuffer)[found]:=address;
+    pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
 
-  inc(found);
-  if found>=buffersize then
-    flushroutine;
+    inc(found);
+    if found>=buffersize then
+      flushroutine;
+  end;
 end;
 
 
