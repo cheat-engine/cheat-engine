@@ -946,7 +946,6 @@ end;
 function TScanner.SingleBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(psingle(newvalue)^>=svalue) and (psingle(newvalue)^<=svalue2);
-
 end;
 
 function TScanner.SingleBiggerThan(newvalue,oldvalue: pointer):boolean;
@@ -1901,7 +1900,7 @@ begin
       if scanoption=soValueBetween then
       begin
         try
-          dvalue2:=strtofloat(scanvalue1,FloatSettings);
+          dvalue2:=strtofloat(scanvalue2,FloatSettings);
         except
           if FloatSettings.DecimalSeparator=',' then
             FloatSettings.DecimalSeparator:='.'
