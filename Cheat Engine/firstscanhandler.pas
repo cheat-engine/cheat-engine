@@ -311,7 +311,8 @@ var datatype: string[6];
 begin
   try
     try
-      firstscanmemoryfile:=Tfilestream.Create('MEMORYFIRST.TMP',fmOpenRead or fmsharedenynone);
+
+      firstscanmemoryfile:=Tfilestream.Create(CheatEngineDir+'MEMORYFIRST.TMP',fmOpenRead or fmsharedenynone);
       firstscanmemory:=virtualalloc(nil, firstscanmemoryfile.Size+$2000, mem_commit, page_readwrite);
 
       //make an array to store the previous memory in blocks of 4KB
