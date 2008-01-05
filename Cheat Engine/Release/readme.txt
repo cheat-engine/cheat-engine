@@ -41,7 +41,7 @@ Fixed cleanup problem when the red X was used causing group info to stay behind 
 Fixed typing in values with the numlock keypad
 Hexview editbox now closes when rightlicking on the hexview.
 The autoassembler now handles spaces and tabs better
-Added some extra checks to the processname doubleclick when kernelmode has been enabled to rpevent a BSOD
+Added some extra checks to the processname doubleclick when kernelmode has been enabled to prevent a BSOD
 
 
 How to use:
