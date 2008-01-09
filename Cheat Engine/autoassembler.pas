@@ -37,7 +37,7 @@ begin
   for i:=1 to length(input) do
   begin
     case input[i] of
-      'a'..'z','A'..'Z','0'..'9','_': if a=-1 then a:=i;
+      'a'..'z','A'..'Z','0'..'9','_','#','@': if a=-1 then a:=i;
       else
       begin
         if a<>-1 then
@@ -225,8 +225,8 @@ begin
       if pos('@f',lowercase(currentline))>0 then  //forward
       begin
         //forward label, so labels[lastseenlabel+1]
-        if lastseenlabel=-1 then
-          raise exception.Create('There is code defined without specifying the address it belongs to');
+        if lastseenlabel+1 >= length(labels) then
+          raise exception.Create('Forward jump with no label defined');
 
         currentline:=replacetoken(currentline,'@f',labels[lastseenlabel+1]);
         currentline:=replacetoken(currentline,'@F',labels[lastseenlabel+1]);
@@ -241,7 +241,7 @@ begin
         currentline:=replacetoken(currentline,'@B',labels[lastseenlabel]);
       end;
     end;
-
+    code[i]:=currentline;
 
   end;
 end;
