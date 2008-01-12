@@ -235,14 +235,14 @@ begin
       if check then
       begin
         modalresult:=mrok; //not modal anymore, but can still be used to pass info
-        close;
+        if editscript2 then close; //can only be used when not modal
       end
       else
       begin
         if messagedlg('Not all code is injectable. Are you sure you wan''t to edit it to this?',mtWarning,[mbyes,mbno],0)=mryes then
         begin
           modalresult:=mrok; //not modal anymore, but can still be used to pass info
-          close;
+          if editscript2 then close;
         end;
       end;
 
