@@ -1812,9 +1812,8 @@ begin
     //user input is given
     if scanvalue1='' then raise exception.Create('Please fill something in');
 
-    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll] then
+    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
     begin
-
       //parse scanvalue1
       try
         if hexadecimal then
@@ -1836,13 +1835,15 @@ begin
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
-              raise exception.Create(scanvalue1+' is not a valid value');
+              if variabletype<>vtCustom then
+                raise exception.Create(scanvalue1+' is not a valid value');
             end;
           end;
           value:=trunc(dvalue);
 
         end else
-          raise exception.Create(scanvalue1+' is an invalid value');
+          if variabletype<>vtCustom then
+            raise exception.Create(scanvalue1+' is an invalid value');
       end;
 
       if scanOption=soValueBetween then
@@ -1869,17 +1870,20 @@ begin
               try
                 dvalue:=strtofloat(scanvalue1,FloatSettings);
               except
-                raise exception.Create(scanvalue1+' is not a valid value');
+                if variabletype<>vtCustom then
+                  raise exception.Create(scanvalue1+' is not a valid value');
               end;
             end;
             value:=trunc(dvalue);
-          end else
-          raise exception.Create(scanvalue2+' is an invalid value');
+          end
+          else
+            if variabletype<>vtCustom then
+              raise exception.Create(scanvalue2+' is an invalid value');
         end;
       end;
     end;
 
-    if variableType in [vtsingle,vtDouble,vtAll] then
+    if variableType in [vtsingle,vtDouble,vtAll,vtCustom] then
     begin
       try
         dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -1893,7 +1897,8 @@ begin
         try
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
-          raise exception.Create(scanvalue1+' is not a valid value');
+          if variabletype<>vtCustom then
+            raise exception.Create(scanvalue1+' is not a valid value');
         end;
       end;
 
@@ -1911,7 +1916,8 @@ begin
           try
             dvalue2:=strtofloat(scanvalue1,FloatSettings);
           except
-            raise exception.Create(scanvalue1+' is not a valid value');
+            if variabletype<>vtCustom then
+              raise exception.Create(scanvalue1+' is not a valid value');
           end;
         end;
 
