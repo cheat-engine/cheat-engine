@@ -1566,14 +1566,16 @@ begin
 
         currentprocess:=-1;
         for i:=0 to length(newprocesses)-1 do
+        begin
           if newprocesses[i].processid=devent.dwProcessId then
           begin
             currentprocess:=i;
             break;
           end;
+        end;
 
-          if length(newprocesses)>0 then
-            processhandle:=newprocesses[length(newprocesses)-1].processhandle;
+        if length(newprocesses)>0 then
+          processhandle:=newprocesses[length(newprocesses)-1].processhandle;
 
         case devent.dwDebugEventCode of
           EXCEPTION_DEBUG_EVENT:
@@ -2440,29 +2442,29 @@ begin
             end;
 
           CREATE_THREAD_DEBUG_EVENT:
-            begin
+          begin
 
-              //seems this is a way of unhooking the debugger
-              processhandle:=newprocesses[currentprocess].processhandle;
+            //seems this is a way of unhooking the debugger
+            processhandle:=newprocesses[currentprocess].processhandle;
 
-              setlength(threadlist,length(threadlist)+1);
-              threadlist[length(threadlist)-1,0]:=devent.dwThreadId;
-              threadlist[length(threadlist)-1,1]:=devent.CreateThread.hThread;
+            setlength(threadlist,length(threadlist)+1);
+            threadlist[length(threadlist)-1,0]:=devent.dwThreadId;
+            threadlist[length(threadlist)-1,1]:=devent.CreateThread.hThread;
 
-              threadlist[length(threadlist)-1,2]:=dword(devent.CreateThread.lpStartAddress);
-              threadlist[length(threadlist)-1,3]:=dword(devent.CreateThread.lpThreadLocalBase);
+            threadlist[length(threadlist)-1,2]:=dword(devent.CreateThread.lpStartAddress);
+            threadlist[length(threadlist)-1,3]:=dword(devent.CreateThread.lpThreadLocalBase);
 
 
-              if canusedebugregs and (findwriter2 or breakpointset or userisdebugging) then  //set the debug registers here too
-                setthreadcontext(devent.CreateThread.hThread,drregs);
+            if canusedebugregs and (findwriter2 or breakpointset or userisdebugging) then  //set the debug registers here too
+              setthreadcontext(devent.CreateThread.hThread,drregs);
 
-              {$ifndef net}
-              if frmthreadlist<>nil then synchronize(frmthreadlist.fillthreadlist);
-              {$endif}
+            {$ifndef net}
+            if frmthreadlist<>nil then synchronize(frmthreadlist.fillthreadlist);
+            {$endif}
 
-              //let the application/OS handle this debug event
-              debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED);
-            end;
+            //let the application/OS handle this debug event
+            debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED);
+          end;
 
           EXIT_THREAD_DEBUG_EVENT:
           begin
@@ -2560,47 +2562,47 @@ begin
           end;
 
           OUTPUT_DEBUG_STRING_EVENT:
+          begin
+            if devent.DebugString.fUnicode=0 then
             begin
-              if devent.DebugString.fUnicode=0 then
-              begin
-                //8 bit ascii
+              //8 bit ascii
+              try
+                getmem(asciistring,devent.DebugString.nDebugStringLength+1);
                 try
-                  getmem(asciistring,devent.DebugString.nDebugStringLength+1);
-                  try
-                    ReadProcessMemory(newprocesses[currentprocess].processhandle,devent.DebugString.lpDebugStringData,asciistring,devent.DebugString.nDebugStringLength,bytesread);
-                    asciistring[devent.DebugString.nDebugStringLength]:=#0;
-                    temps:=asciistring;
-                  finally
-                    freemem(asciistring);
-                  end;
-                except
-                  ;
+                  ReadProcessMemory(newprocesses[currentprocess].processhandle,devent.DebugString.lpDebugStringData,asciistring,devent.DebugString.nDebugStringLength,bytesread);
+                  asciistring[devent.DebugString.nDebugStringLength]:=#0;
+                  temps:=asciistring;
+                finally
+                  freemem(asciistring);
                 end;
-              end
-              else
-              begin
-                //16 bit unicode
-                try
-                  getmem(unicodestring,devent.DebugString.nDebugStringLength+1);
-                  try
-                    ReadProcessMemory(newprocesses[currentprocess].processhandle,devent.DebugString.lpDebugStringData,unicodestring,devent.DebugString.nDebugStringLength,bytesread);
-                    unicodestring[devent.DebugString.nDebugStringLength div 2]:=#0;
-                    temps:=unicodestring;
-                  finally
-                    freemem(unicodestring);
-                  end;
-                except
-
-                end;
+              except
+                ;
               end;
-              synchronize(AddDebugString);
+            end
+            else
+            begin
+              //16 bit unicode
+              try
+                getmem(unicodestring,devent.DebugString.nDebugStringLength+1);
+                try
+                  ReadProcessMemory(newprocesses[currentprocess].processhandle,devent.DebugString.lpDebugStringData,unicodestring,devent.DebugString.nDebugStringLength,bytesread);
+                  unicodestring[devent.DebugString.nDebugStringLength div 2]:=#0;
+                  temps:=unicodestring;
+                finally
+                  freemem(unicodestring);
+                end;
+              except
 
-              if hidedebugger then //double bevcause of the way it is implementedin the os
-                debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED)
-              else
-                debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE)
-
+              end;
             end;
+            synchronize(AddDebugString);
+
+            if hidedebugger then //double bevcause of the way it is implementedin the os
+              debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED)
+            else
+              debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE)
+
+          end;
 
           else debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_EXCEPTION_NOT_HANDLED);
         end;

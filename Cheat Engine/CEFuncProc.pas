@@ -1236,6 +1236,7 @@ var LoadLibraryPtr: pointer;
     x:dword;
 
     outp:TAssemblerBytes;
+    counter: integer;
     position,position2: dword;
 
     dllLocation: string;
@@ -1403,7 +1404,14 @@ begin
       threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,x);
       if threadhandle=0 then raise exception.Create('Failed to execute the dll loader');
 
-      if waitforsingleobject(threadhandle,10000)=WAIT_TIMEOUT	then  //max 10 seconds
+      counter:=10000 div 10;
+      while (waitforsingleobject(threadhandle,10)=WAIT_TIMEOUT) and (counter>0) do
+      begin
+        CheckSynchronize; //handle sychronize while it's waiting 
+        dec(counter);
+      end;
+
+      if (counter=0) then
         raise exception.Create('The injection thread took longer than 10 seconds to execute. Injection routine not freed');
 
       if getexitcodethread(threadhandle,x) then
@@ -5189,7 +5197,7 @@ begin
             extremerounded:
             begin
               //if a scan for 1 it scans for    0<x<2
-              //if a scan for 1.0 it scans for  9.9<x<1.10
+              //if a scan for 1.0 it scans for  0.0<x<1.1
               check:=((SingleP^<(singlevalue+helpsingle3)) and (SingleP^>(singlevalue-helpsingle3)) );
             end;
 
