@@ -1162,7 +1162,7 @@ begin
   try
     result:=strtoint('$'+ToAddress.text);
   except
-    raise exception.Create('Invalid start address: '+FromAddress.text);
+    raise exception.Create('Invalid stop address: '+ToAddress.text);
   end;
 end;
 
