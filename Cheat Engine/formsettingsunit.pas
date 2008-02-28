@@ -544,7 +544,7 @@ begin
 
 
         //apply these hotkey changes
-        for i:=0 to 26 do
+        for i:=0 to 28 do
         begin
           found:=false;
 
