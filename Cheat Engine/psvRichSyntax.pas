@@ -118,10 +118,12 @@ var
 begin
   inherited;
   FCodePage := 1252;
-  Font := TFont.Create;
-  Font.Name := 'Courier New';
-  CreateFontTable([Font]);
-  Font.Free;
+  //Font := TFont.Create;
+  //Font.Name := 'Courier New';
+  //CreateFontTable([Font]);
+  //Font.Free;
+
+  FFontTable := '{\fonttbl{\f0\fmodern\fprq6\fcharset136 \''b7\''73\''b2\''d3\''a9\''fa\''c5\''e9;}}';
   RTFHeader := '{\rtf1\ansi\ansicpg'+IntToStr(FCodePage)+'\deff0\deftab720{\fonttbl';
   RTFFooter :=  '}'#13#10;
   FNewLine := '\deflang1033\pard\plain\f0\fs20';
