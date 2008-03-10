@@ -2387,13 +2387,13 @@ end;
 procedure TScanner.firstNextscan;
 var
   i: integer;
-  size: dword;
+  size: integer;
   currentbase: dword;
   startregion: integer;
   stopregion: integer;
   memorybuffer: ^byte;
   oldbuffer: ^byte;
-  toread: dword;
+  toread: integer;
   actualread: dword;
 begin
   startregion:=_startregion; //using a variable so stack can be used, with possibility of register
@@ -2428,6 +2428,7 @@ begin
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
         toread:=stopaddress-currentbase;
 
+      if toread>0 then //temp bugfix to find the real bug (what causes it?)
       repeat
         size:=toread;
         if (size>buffersize) then size:=buffersize;
@@ -2918,6 +2919,8 @@ var
   totalProcessMemorySize: dword;
   blocksize: dword;
   leftfromprevious: dword;
+  offsetincurrentregion: dword;
+  
   currentblocksize: dword;
   memoryfile,addressfile: tfilestream;
   datatype: string[6];
@@ -2953,6 +2956,7 @@ begin
     setlength(scanners,threadcount);
     j:=0; //start at memregion 0
     leftfromprevious:=0;
+    offsetincurrentregion:=0;
 
     for i:=0 to threadcount-1 do
     begin
@@ -2961,7 +2965,7 @@ begin
       scanners[i].OwningScanController:=self;
 
       scanners[i]._startregion:=j;
-      scanners[i].startaddress:=memRegion[j].BaseAddress+leftfromprevious;
+      scanners[i].startaddress:=memRegion[j].BaseAddress+offsetincurrentregion;
 
       scanners[i].maxregionsize:=0;
 
@@ -2986,7 +2990,7 @@ begin
       else
       begin
         currentblocksize:=0;
-        inc(currentblocksize,memregion[j].MemorySize+leftfromprevious);
+        inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
 
         while (currentblocksize<blocksize) and (j<memregionpos) do
@@ -3003,10 +3007,16 @@ begin
         scanners[i].stopaddress:=memregion[j].BaseAddress+memregion[j].MemorySize;
 
         leftfromprevious:=currentblocksize-blocksize;
-
-        if leftfromprevious<=0 then inc(j);
-
         dec(scanners[i].stopaddress,leftfromprevious);
+
+        if leftfromprevious=0 then
+        begin
+          inc(j); //nothing left in this region
+          offsetincurrentregion:=0;
+        end else offsetincurrentregion:=memregion[j].MemorySize-leftfromprevious;
+
+
+
       end;
 
       if scanners[i].maxregionsize>buffersize then
@@ -3125,6 +3135,8 @@ var
   currentblocksize: dword;
   totalProcessMemorySize: dword;
   leftfromprevious: dword;
+  offsetincurrentregion: dword;
+
 
 
   datatype: string[6];
@@ -3232,7 +3244,7 @@ begin
     setlength(scanners,threadcount);
     j:=0; //start at memregion 0
     leftfromprevious:=0;
-
+    offsetincurrentregion:=0;
 
     for i:=0 to threadcount-1 do
     begin
@@ -3241,12 +3253,13 @@ begin
       scanners[i].OwningScanController:=self;
 
       scanners[i]._startregion:=j;
-      scanners[i].startaddress:=memRegion[j].BaseAddress+leftfromprevious;
-      
+      scanners[i].startaddress:=memRegion[j].BaseAddress+offsetincurrentregion;
+
       scanners[i].maxregionsize:=0;
 
       if i=(threadcount-1) then
       begin
+        //if it's the last thread, just give it what's left
         scanners[i].stopaddress:=stopaddress;
         scanners[i]._stopregion:=memregionpos-1;
 
@@ -3263,8 +3276,9 @@ begin
       end
       else
       begin
+        //not the last thread
         currentblocksize:=0;
-        inc(currentblocksize,memregion[j].MemorySize+leftfromprevious);
+        inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
 
         while (currentblocksize<blocksize) and (j<memregionpos) do
@@ -3281,12 +3295,19 @@ begin
         dec(j);
 
         scanners[i]._stopregion:=j;
-        scanners[i].stopaddress:=memregion[j].BaseAddress+memregion[j].MemorySize;
+        scanners[i].stopaddress:=(memregion[j].BaseAddress+memregion[j].MemorySize);
 
+        //take off the bytes that are too many for this block
         leftfromprevious:=currentblocksize-blocksize;
         dec(scanners[i].stopaddress,leftfromprevious);
 
-        if leftfromprevious<=0 then inc(j); //nothing left in this region
+        if leftfromprevious=0 then
+        begin
+          inc(j); //nothing left in this region
+          offsetincurrentregion:=0;
+        end else offsetincurrentregion:=memregion[j].MemorySize-leftfromprevious;
+
+
       end;
 
       if scanners[i].maxregionsize>buffersize then
