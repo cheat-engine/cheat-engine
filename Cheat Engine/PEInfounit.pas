@@ -120,12 +120,21 @@ var
     ImageNTHeader: PImageNtHeaders;
 begin
   if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then
+  begin
     result:=0;
-
-  if ImageNTHeader.OptionalHeader.Magic<>IMAGE_NT_SIGNATURE then
-    result:=0;
+    exit;
+  end;
 
   ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+
+  if dword(ImageNTHeader)-dword(header)>$1000 then exit;
+  if ImageNTHeader.OptionalHeader.Magic<>IMAGE_NT_SIGNATURE then
+  begin
+    result:=0;
+    exit;
+  end;
+
+
   result:=ImageNTHeader.OptionalHeader.SizeOfHeaders;
 end;
 

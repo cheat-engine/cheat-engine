@@ -4310,6 +4310,8 @@ begin
       if readprocessmemory(processhandle,pointer(base),header,4096,br) then
       begin
         headersize:=peinfo_getheadersize(header);
+        if headersize=0 then exit;
+        
         if headersize>4096 then
         begin
           if headersize>1024*512 then exit;
