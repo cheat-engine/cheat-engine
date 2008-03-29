@@ -126,15 +126,13 @@ begin
   end;
 
   ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
-
   if dword(ImageNTHeader)-dword(header)>$1000 then exit;
-  if ImageNTHeader.OptionalHeader.Magic<>IMAGE_NT_SIGNATURE then
+  
+  if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then
   begin
     result:=0;
     exit;
   end;
-
-
   result:=ImageNTHeader.OptionalHeader.SizeOfHeaders;
 end;
 
