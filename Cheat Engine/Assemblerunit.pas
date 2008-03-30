@@ -1648,11 +1648,13 @@ begin
   val(value,x,err);
   if err>0 then exit;
 
+  
+
   if length(value)=9 then result:=32 else
   if length(value)=5 then result:=16 else
   if length(value)=3 then result:=8;
 
-  if result=0 then result:=ValueToType(x);
+  if result=0 then result:=ValueToType(x); //not a specific ammount of characters given
 end;
 
 function getreg(reg: string;exceptonerror:boolean): integer; overload;

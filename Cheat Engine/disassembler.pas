@@ -329,7 +329,7 @@ begin
                     dwordptr:=@memory[last];
                     if dwordptr^ <=$7FFFFFFF then
                       result:=result+'+'+inttohexs(dwordptr^,8)+'],' else
-                      result:=result+'+'+inttohexs($100000000-dwordptr^,8)+'],';
+                      result:=result+'-'+inttohexs($100000000-dwordptr^,8)+'],';
 
                   end;
               5:  if dwordptr^ <=$7FFFFFFF then

@@ -1986,6 +1986,16 @@ begin
                     refreshMB;
                   end;
 
+    vk_space:
+    begin
+      if shift = [ssCtrl] then
+      begin
+        Disassembleraddress:=memoryaddress;
+        dselected:=memoryaddress;
+        updatedisassemblerview;
+      end;
+    end;
+
     {$ifndef net}
     ord('F')    : begin
                     i:=getkeystate(vk_control);
@@ -2155,8 +2165,13 @@ begin
         follow1.Click
       else
       if shift = [ssShift] then
-        back1.click;
-
+        back1.click
+      else
+      if shift = [ssCtrl] then
+      begin
+        memoryaddress:=dselected;
+        RefreshMB;
+      end;
     end;
 
     VK_BACK:
@@ -2235,7 +2250,7 @@ var newaddress: string;
     canceled: boolean;
 begin
 
-  newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(disassembleraddress,8),true,canceled,memorybrowserHistory);
+  newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(dselected,8),true,canceled,memorybrowserHistory);
 
   try
     DisassemblerAddress:=symhandler.getaddressfromname(newaddress);
