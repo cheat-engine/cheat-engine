@@ -853,6 +853,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+
   (mnemonic:'OR';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$08),
   (mnemonic:'OR';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$09),
   (mnemonic:'OR';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$09),
@@ -981,11 +982,11 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f4),
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f4),
 
-  (mnemonic:'POP';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$58),
   (mnemonic:'POP';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$58),
+  (mnemonic:'POP';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$58),
 
-  (mnemonic:'POP';opcode1:eo_reg0;paramtype1:par_rm16;bytes:2;bt1:$66;bt2:$8f),
   (mnemonic:'POP';opcode1:eo_reg0;paramtype1:par_rm32;bytes:1;bt1:$8f),
+  (mnemonic:'POP';opcode1:eo_reg0;paramtype1:par_rm16;bytes:2;bt1:$66;bt2:$8f),
 
   (mnemonic:'POP';paramtype1:par_ds;bytes:1;bt1:$1f),
   (mnemonic:'POP';paramtype1:par_es;bytes:1;bt1:$07),
@@ -1126,15 +1127,18 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PUNPCKLWD';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$61),
   (mnemonic:'PUNPCKLWD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$61),
 
-  (mnemonic:'PUSH';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$50),
-  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50),
-
-  (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm16;bytes:2;bt1:$66;bt2:$ff),
-  (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm32;bytes:1;bt1:$ff),
 
   (mnemonic:'PUSH';opcode1:eo_ib;paramtype1:par_imm8;bytes:1;bt1:$6a),
-  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
   (mnemonic:'PUSH';opcode1:eo_id;paramtype1:par_imm32;bytes:1;bt1:$68),
+  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
+
+
+  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50),
+  (mnemonic:'PUSH';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$50),
+
+  (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm32;bytes:1;bt1:$ff),
+  (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm16;bytes:2;bt1:$66;bt2:$ff),
+
 
   (mnemonic:'PUSH';paramtype1:par_CS;bytes:1;bt1:$0e),
   (mnemonic:'PUSH';paramtype1:par_ss;bytes:1;bt1:$16),
@@ -1146,7 +1150,6 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PUSHA';bytes:2;bt1:$66;bt2:$60),
   (mnemonic:'PUSHAD';bytes:1;bt1:$60),
   (mnemonic:'PUSHALL';bytes:1;bt1:$60),
-
   (mnemonic:'PUSHF';bytes:2;bt1:$66;bt2:$9c),
   (mnemonic:'PUSHFD';bytes:1;bt1:$9c),
 
@@ -1647,7 +1650,7 @@ begin
 
   if length(value)=9 then result:=32 else
   if length(value)=5 then result:=16 else
-  if length(value)=2 then result:=8;
+  if length(value)=3 then result:=8;
 
   if result=0 then result:=ValueToType(x);
 end;
@@ -2879,6 +2882,18 @@ begin
           result:=true;
           exit;
         end;
+      end;
+    end;
+
+    if (opcodes[j].paramtype1=par_imm32) and (paramtype1=value) then
+    begin
+      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      begin
+        //imm32
+        addopcode(bytes,j);
+        addDword(bytes,v);
+        result:=true;
+        exit;
       end;
     end;
 
