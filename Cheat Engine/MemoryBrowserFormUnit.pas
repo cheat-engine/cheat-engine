@@ -4263,9 +4263,10 @@ end;
 
 procedure TMemoryBrowser.CopyBytesAndOpcodesClick(Sender: TObject);
 var a,b: dword;
-    tag: integer;
+    _tag: integer;
 begin
-  tag:=(sender as tmenuitem).Tag;
+  _tag:=(sender as tmenuitem).Tag;
+
   with tfrmSavedisassembly.create(self) do
   begin
 
@@ -4289,9 +4290,9 @@ begin
     copymode:=true;
 
     checkbox1.checked:=true;
-    checkbox2.checked:=(tag=0) or (tag=1);
-    checkbox3.checked:=(tag=0) or (tag=2);
-
+    checkbox2.checked:=(_tag=0) or (_tag=1);
+    checkbox3.checked:=(_tag=0) or (_tag=2);
+    
     button1.click;
     waittilldone;
 

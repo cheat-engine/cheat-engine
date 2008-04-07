@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
   Left = 545
   Top = 255
-  Width = 674
+  Width = 673
   Height = 565
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 290
-    Width = 666
+    Width = 665
     Height = 4
     Cursor = crVSplit
     Align = alTop
@@ -36,13 +36,13 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 666
+    Width = 665
     Height = 290
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 478
+      Left = 477
       Top = 0
       Height = 290
       Align = alRight
@@ -51,7 +51,7 @@ object MemoryBrowser: TMemoryBrowser
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 478
+      Width = 477
       Height = 290
       Align = alClient
       BevelOuter = bvNone
@@ -60,7 +60,7 @@ object MemoryBrowser: TMemoryBrowser
       object disassemblerscrollbox: TScrollBox
         Left = 0
         Top = 17
-        Width = 461
+        Width = 460
         Height = 256
         HorzScrollBar.Tracking = True
         VertScrollBar.Visible = False
@@ -73,7 +73,7 @@ object MemoryBrowser: TMemoryBrowser
         object DisCanvas: TPaintBox
           Left = 0
           Top = 17
-          Width = 461
+          Width = 460
           Height = 239
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -91,7 +91,7 @@ object MemoryBrowser: TMemoryBrowser
         object disassemblerheader: THeaderControl
           Left = 0
           Top = 0
-          Width = 461
+          Width = 460
           Height = 17
           Sections = <
             item
@@ -128,7 +128,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 478
+        Width = 477
         Height = 17
         Align = alTop
         BevelInner = bvLowered
@@ -136,7 +136,7 @@ object MemoryBrowser: TMemoryBrowser
         object Label1: TLabel
           Left = 2
           Top = 2
-          Width = 474
+          Width = 473
           Height = 13
           Align = alClient
           Alignment = taCenter
@@ -147,7 +147,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel6: TPanel
         Left = 0
         Top = 273
-        Width = 478
+        Width = 477
         Height = 17
         Align = alBottom
         BevelInner = bvLowered
@@ -163,7 +163,7 @@ object MemoryBrowser: TMemoryBrowser
         OnMouseDown = Panel5MouseDown
       end
       object ScrollBar1: TScrollBar
-        Left = 462
+        Left = 461
         Top = 17
         Width = 16
         Height = 256
@@ -179,7 +179,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object RegisterView: TPanel
-      Left = 481
+      Left = 480
       Top = 0
       Width = 185
       Height = 290
@@ -584,7 +584,7 @@ object MemoryBrowser: TMemoryBrowser
   object Panel4: TPanel
     Left = 0
     Top = 294
-    Width = 666
+    Width = 665
     Height = 217
     Align = alClient
     BevelOuter = bvNone
@@ -594,12 +594,12 @@ object MemoryBrowser: TMemoryBrowser
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
     DesignSize = (
-      666
+      665
       217)
     object MBCanvas: TPaintBox
       Left = 1
       Top = 9
-      Width = 644
+      Width = 643
       Height = 207
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = memorypopup
@@ -618,7 +618,7 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Protection'
     end
     object ScrollBar2: TScrollBar
-      Left = 649
+      Left = 648
       Top = 1
       Width = 16
       Height = 215
@@ -768,10 +768,12 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = CopyBytesAndOpcodesClick
       end
       object copyBytes: TMenuItem
+        Tag = 1
         Caption = 'Bytes'
         OnClick = CopyBytesAndOpcodesClick
       end
       object copyOpcodes: TMenuItem
+        Tag = 2
         Caption = 'Opcodes'
         OnClick = CopyBytesAndOpcodesClick
       end
