@@ -266,14 +266,18 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'CMOVZ';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:3;bt1:$66;bt2:$0f;bt3:$44),
   (mnemonic:'CMOVZ';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$44),
 
-  (mnemonic:'CMP';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$3C),
-  (mnemonic:'CMP';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$3D),
-  (mnemonic:'CMP';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$3D),
+
+
+  (mnemonic:'CMP';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$3C), //2 bytes
+  (mnemonic:'CMP';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$3D), //4 bytes
+  (mnemonic:'CMP';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$3D), //5 bytes
   (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
-  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
-  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
   (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
   (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+
+
+  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
+  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
   (mnemonic:'CMP';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$38),
   (mnemonic:'CMP';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$39),
   (mnemonic:'CMP';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$39),
@@ -731,8 +735,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r8;paramtype2:par_rm8;bytes:1;bt1:$8a),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$8b),
 
-  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_sreg;bytes:1;bt1:$8c),
-  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_sreg;paramtype2:par_rm16;bytes:1;bt1:$8e),
+  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_sreg;bytes:2;bt1:$66;bt2:$8c),
+  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_sreg;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$8e),
 
 
 
@@ -3128,6 +3132,7 @@ begin
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
       begin
         //eax,imm8
+
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           addopcode(bytes,j);
@@ -3139,9 +3144,31 @@ begin
 
       if (opcodes[j].paramtype2=par_imm32) and (paramtype2=value) then
       begin
-        //EAX,imm32
+        //EAX,imm32,
+
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
+          //eax,imm32
+
+          if vtype=8 then
+          begin
+            //check if there isn't a rm32,imm8 , since that's less bytes
+            k:=startoflist;
+            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            begin
+              if (opcodes[k].paramtype1=par_rm32) and
+                 (opcodes[k].paramtype2=par_imm8) then
+              begin
+                //yes, there is
+                addopcode(bytes,k);
+                result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+                add(bytes,[v]);
+                exit;
+              end;
+              inc(k);
+            end;
+          end;
+
           if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
           begin
             addopcode(bytes,j);
@@ -3669,7 +3696,7 @@ begin
     end;
 
 
-    if (opcodes[j].paramtype1=par_sreg) and (paramtype2=registersreg) then
+    if (opcodes[j].paramtype1=par_sreg) and (paramtype1=registersreg) then
     begin
       if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
       begin
