@@ -2309,9 +2309,10 @@ begin
       setlength(oldaddressesb,buffersize);
       oldAddressFile.seek(7+sizeof(TBitAddress)*startentry,soFromBeginning);
       if self.variableType=vtall then
+      begin
         oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
-
-      if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(chunksize*variablesize)+' bytes for the old results. chunksize='+inttostr(chunksize)+' variablesize='+inttostr(variablesize));
+        if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(chunksize*variablesize)+' bytes for the old results. chunksize='+inttostr(chunksize)+' variablesize='+inttostr(variablesize));
+      end;
 
       oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
     end
