@@ -3161,7 +3161,7 @@ begin
               begin
                 //yes, there is
                 addopcode(bytes,k);
-                result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+                result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
                 add(bytes,[v]);
                 exit;
               end;
@@ -3946,7 +3946,7 @@ begin
                 //yes, there is
                 addopcode(bytes,k);
                 createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                add(bytes,[byte(v)]);
+                adddword(bytes,v);
                 result:=true;
                 exit;
               end;
