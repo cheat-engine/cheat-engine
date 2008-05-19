@@ -9,7 +9,8 @@ uses
   registry,{xpman,}math,hexeditor, Gauges, ImgList,commctrl,NewKernelHandler,
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
-  foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions, memscan;
+  foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
+  memscan, formsextra;
 
   //the following are just for compatibility
 
@@ -9387,7 +9388,7 @@ begin
 
 
 
-
+  //SMenu:=GetSystemMenu(handle,false);
                         
 end;
 

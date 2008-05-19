@@ -504,6 +504,9 @@ begin
           try mainform.UpdateFoundlisttimer.interval:=reg.readInteger('Update Foundaddress list Interval'); except end;
           try editUpdatefoundInterval.Text:=IntToStr(mainform.UpdateFoundlisttimer.interval); except end;          
 
+          if reg.ValueExists('Save window positions') then
+            cbSaveWindowPos.checked:=reg.ReadBool('Save window positions');
+
           try cbSkip_PAGE_NOCACHE.Checked:=reg.readbool('skip PAGE_NOCACHE'); except end;
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 

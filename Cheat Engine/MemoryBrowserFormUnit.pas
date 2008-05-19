@@ -9,7 +9,7 @@ uses
   {$ifdef netclient}
   ,NetAPIs
   {$else}
-  ,NewKernelHandler, ComCtrls
+  ,NewKernelHandler, ComCtrls,FormsExtra
   {$endif}
   ;
 
@@ -621,6 +621,7 @@ end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
 var x: array of integer;
+
 begin
   updatedisassemblerview;
   mbimage.Width:=0;  //clear the image
@@ -4419,6 +4420,8 @@ begin
 end;
 
 end.
+
+
 
 
 
