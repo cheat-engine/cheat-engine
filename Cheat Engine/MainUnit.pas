@@ -3431,7 +3431,6 @@ var oldprocess: Dword;
     resu: integer;
     i,j: integer;
 
-    startnewscan: boolean;
     oldprocesshandle: thandle;
 
     oldprocessname: string;
@@ -3442,7 +3441,6 @@ resourcestring
   strConfirmProcessTermination='This will close the current process. Are you sure you want to do this?';
   strError='Error';
   strErrorwhileOpeningProcess='Error while opening this process';
-  strWantANewScan='Do you want to start a new scan?';
   strKeepList='Keep the current address list/code list?';
   strInfoAboutTable='Info about this table:';
   strPhysicalMemory='Physical Memory';
@@ -3610,10 +3608,6 @@ begin
   cbunrandomizer.Enabled:=true;
 
 
-  startnewscan:=true;
-  if (newscan.Caption=strNewScan) and (newprocessname=oldprocessname) then
-    startnewscan:=messagedlg(strWantANewScan,mtConfirmation,[mbyes,mbno],0)=mryes;
-
   if (numberofrecords>0) or (advancedoptions.codelist.Count>0) then
   begin
     if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0)=mrNo) then
@@ -3649,32 +3643,7 @@ begin
 
   end;
 
-  if startnewscan then
-  begin
-    if (copy(processlabel.caption,length(processlabel.caption)-11,12)='WINOA386.MOD') or
-       (copy(processlabel.caption,pos('-',processlabel.caption)+1,13)='MS-DOS Prompt') then
-    begin
-      fromaddress.text:='80000000';
-      toaddress.text:='BFFFFFFF';
-      dos.checked:=true;
-    end else
-    begin
-      if processid=$FFFFFFFF then
-      begin
-        allclick.Checked:=true;
-        FromAddress.Text:='00000000';
-        ToAddress.Text:='FFFFFFFF';
-      end
-      else
-      begin
-        FromAddress.text:='00400000';
-        ToAddress.text:='7FFFFFFF';
-        windows.checked:=true;
-      end;
-    end;
-
-    enablegui(false);
-  end;
+  enablegui(nextscanbutton.enabled);
 
   UpdateScanType;  
 end;
@@ -11148,6 +11117,11 @@ var
 
     xxx: dword;
 begin
+
+asm
+  push ax
+  pop gs
+end;
 {  if x(12) then exit;
 
   scriptengine.beginScript;
