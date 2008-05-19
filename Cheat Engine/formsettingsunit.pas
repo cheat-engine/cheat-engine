@@ -123,6 +123,7 @@ type
     Label24: TLabel;
     cbAlwaysAutoAttach: TCheckBox;
     cbGlobalDebug: TCheckBox;
+    cbSaveWindowPos: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -440,6 +441,8 @@ begin
       {$ifndef net}
       mainform.UpdateFoundlisttimer.Interval:=foundinterval;
       {$endif}
+
+      reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
       reg.WriteBool('Break when debuging',cbBreakOnAttach.Checked);
       reg.WriteBool('Hide all windows',cbHideAllWindows.checked);

@@ -10,6 +10,7 @@ ComCtrls,
 reinit,
 assemblerunit,
 imagehlp,
+registry,
 
 {$ifdef netclient}
 netapis,
@@ -161,6 +162,8 @@ Procedure InjectDll(dllname: string; functiontocall: string);
 Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
+procedure SaveFormPosition(form: Tform; extra: array of integer);
+function LoadFormPosition(form: Tform; var x: array of integer):boolean; 
 
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:dword; sourceaddress:dword; sizeofcave: integer);
@@ -269,7 +272,7 @@ type PdoubleArray=^TdoubleArray;
 type Tint64Array=array[0..0] of int64;
 type Pint64Array=^Tint64Array;
 
-type Tuint64Array=array[0..0] of uint64;
+type Tuint64Array=array[0..100] of uint64;
 type Puint64Array=^Tuint64Array;
 
 
@@ -19735,7 +19738,115 @@ begin
     pa:=pa div 2;
   end;
 
-  result:=cpucount;
+  result:=4; //cpucount;
+end;
+
+function LoadFormPosition(form: Tform; var x: array of integer):boolean;
+var reg: tregistry;
+    s: string;
+    buf: array of integer;
+    buf2: array [0..100] of byte;
+    i: integer;
+    z: integer;
+begin
+  result:=false;
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.valueexists('Save window positions') then
+        if reg.readbool('Save window positions') = false then exit;
+    end;
+
+    if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
+    begin
+      s:=form.Name;
+      s:=s+' Position';
+
+      if reg.ValueExists(s) then
+      begin
+
+        setlength(buf,4+length(x)); //for some reason it checks if
+
+        z:=reg.ReadBinaryData(s,buf[0],length(buf)*sizeof(integer));
+
+        form.position:=poDesigned;
+        form.top:=buf[0];
+        form.Left:=buf[1];
+        form.width:=buf[2];
+        form.height:=buf[3];
+
+        for i:=0 to length(x)-1 do
+          x[i]:=buf[4+i];
+
+        setlength(buf,0);
+
+        result:=true;
+      end;
+    end;
+  finally
+    reg.free;
+  end;
+end;
+
+procedure SaveFormPosition(form: Tform; extra: array of integer);
+{
+This function will save the position and the optional data in extra to an array element in the registry
+}
+var reg: tregistry;
+    buf: tmemorystream;
+    temp: integer;
+    i: integer;
+    s: string;
+begin
+  //save window pos
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+
+    //make sure the option to save is enabled
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.valueexists('Save window positions') then
+        if reg.readbool('Save window positions') = false then exit;
+    end;
+
+    
+    if Reg.OpenKey('\Software\Cheat Engine\Window Positions',true) then
+    begin
+      //registry is open, gather data
+      buf:=tmemorystream.Create;
+      try
+        temp:=form.top;
+        buf.Write(temp,sizeof(temp));
+
+        temp:=form.left;
+        buf.Write(temp,sizeof(temp));
+
+        temp:=form.width;
+        buf.Write(temp,sizeof(temp));
+
+        temp:=form.height;
+        buf.Write(temp,sizeof(temp));
+
+
+        //save extra data
+        for i:=0 to length(extra)-1 do
+          buf.Write(extra[i],sizeof(extra[i]));
+
+        //and now save buf to the registry
+        s:=form.Name;
+        s:=s+' Position';
+
+        reg.WriteBinaryData(s,buf.Memory^,buf.Size);
+      finally
+        buf.free;
+      end;
+    end;
+  finally
+    reg.free;
+  end;
 end;
 
 function GetRelativeFilePath(filename: string):string;

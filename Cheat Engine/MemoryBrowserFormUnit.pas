@@ -311,6 +311,8 @@ type
       HeaderControl: THeaderControl; Section: THeaderSection);
   private
     { Private declarations }
+    posloadedfromreg: boolean;
+
 
     editing: boolean;
     editing2: boolean;
@@ -417,7 +419,7 @@ type
 
 var
   MemoryBrowser: TMemoryBrowser;
- 
+  mbchildcount: integer; //global so all other children can increase it as well
 
 implementation
 
@@ -618,6 +620,7 @@ begin
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
+var x: array of integer;
 begin
   updatedisassemblerview;
   mbimage.Width:=0;  //clear the image
@@ -667,10 +670,12 @@ begin
   autoinject1.Visible:=true;
   {$endif}
 
+
   
 end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
+var x: array of integer;
 begin
 
 {
@@ -741,6 +746,25 @@ not enough time to add header supports
   backlist:=TStack.create;
 
   showvalues:=true;
+
+
+
+  setlength(x, 6);
+
+  if loadformposition(self,x) then
+  begin
+    disassemblerheader.Sections[0].Width:=x[0];
+    disassemblerheader.Sections[1].Width:=x[1];
+    disassemblerheader.Sections[2].Width:=x[2];
+    disassemblerheader.Sections[3].Width:=x[3];
+    panel1.height:=x[4];
+    registerview.width:=x[5];
+
+    setlength(x,0);
+    posloadedfromreg:=true;
+  end;  
+
+
 end;
 
 procedure TMemoryBrowser.Goto1Click(Sender: TObject);
@@ -2396,6 +2420,9 @@ begin
 
   if ischild then
     action:=cafree;
+
+
+
 
 
 end;
@@ -4166,16 +4193,33 @@ begin
   disassemblerHistory.free;
   memorybrowserHistory.free;
   assemblerHistory.free;
+
+  //save position of window and other stuff
+  //membrowser comes after formsettings so is destroyed before formsettings, so valid
+  if (not ischild) then
+  begin
+    saveformposition(self,[
+                            disassemblerheader.Sections[0].Width,
+                            disassemblerheader.Sections[1].Width,
+                            disassemblerheader.Sections[2].Width,
+                            disassemblerheader.Sections[3].Width,
+                            panel1.height,
+                            registerview.width
+                    ]);   
+  end;
+
 end;
 
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);
 begin
-  with tmemorybrowser.create(self) do
+  with tmemorybrowser.create(nil) do
   begin
+    inc(mbchildcount);
+    name:='MemoryBrowser'+inttostr(mbchildcount);
     debug1.Visible:=false;
     registerview.Visible:=false;
     splitter2.Visible:=false;
-    caption:=caption+'*';
+    caption:=caption+'* ('+inttostr(mbchildcount)+')';
     ischild:=true;
     show;
   end;
@@ -4375,6 +4419,9 @@ begin
 end;
 
 end.
+
+
+
 
 
 

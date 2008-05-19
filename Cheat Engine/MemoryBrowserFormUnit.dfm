@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 545
-  Top = 255
+  Left = 471
+  Top = 376
   Width = 673
   Height = 565
   HelpContext = 12
@@ -599,8 +599,8 @@ object MemoryBrowser: TMemoryBrowser
     object MBCanvas: TPaintBox
       Left = 1
       Top = 9
-      Width = 643
-      Height = 207
+      Width = 644
+      Height = 206
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = memorypopup
       OnDblClick = MBCanvasDblClick

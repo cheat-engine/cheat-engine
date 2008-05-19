@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 498
-  Top = 284
+  Left = 532
+  Top = 304
   Width = 532
   Height = 570
   Hint = ' '
@@ -22,6 +22,7 @@ object MainForm: TMainForm
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnDragDrop = Panel1DragDrop
   OnDragOver = Panel1DragOver
   OnShow = FormShow
@@ -1412,7 +1413,6 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label38'
-      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel

@@ -392,6 +392,7 @@ type
       Section: THeaderSection);
     procedure HeaderControl1SectionResize(HeaderControl: THeaderControl;
       Section: THeaderSection);
+    procedure FormDestroy(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -4223,6 +4224,7 @@ var pid: dword;
 
     reg: tregistry;
     differentWidth: integer;
+    x: array of integer;
 begin
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
 
@@ -4440,6 +4442,18 @@ begin
   processlabel.Caption:=Inttohex(processid,8)+' : '+'Current process';
 {$endif}
 
+
+  setlength(x,7);
+  if loadformposition(self,x) then
+  begin
+    headercontrol1.Sections[0].Width:=x[0];
+    headercontrol1.Sections[1].Width:=x[1];
+    headercontrol1.Sections[2].Width:=x[2];
+    headercontrol1.Sections[3].Width:=x[3];
+    headercontrol1.Sections[4].Width:=x[4];
+    panel5.height:=x[5];
+    foundlist3.columns[0].width:=x[6];
+  end;
 end;
 
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
@@ -9186,6 +9200,7 @@ var reg: tregistry;
     loadt: boolean;
 
     firsttime: boolean;
+    x: array of integer;
 begin
 
   loadt:=false;
@@ -9368,6 +9383,12 @@ begin
     caption:=cenorm+' EXPIRED!';
 
   if autoattachtimer.enabled then autoattachcheck;
+
+
+
+
+
+                        
 end;
 
 
@@ -11690,7 +11711,21 @@ begin
 
 end;
 
+procedure TMainForm.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[
+                        headercontrol1.Sections[0].Width,
+                        headercontrol1.Sections[1].Width,
+                        headercontrol1.Sections[2].Width,
+                        headercontrol1.Sections[3].Width,
+                        headercontrol1.Sections[4].Width,
+                        panel5.height,
+                        foundlist3.columns[0].width
+                        ]);
+end;
+
 end.
+
 
 
 
