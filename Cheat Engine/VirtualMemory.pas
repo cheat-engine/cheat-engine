@@ -26,7 +26,7 @@ type TVirtualMemory = class(tobject)
     function GetBuffer: pointer;
     function GetBufferSize: dword;
     constructor Create(Start,Stop: dword; progressbar: tprogressbar); //will load the current process in memory (say goodbye to memory....)
-    destructor destroy;
+    destructor destroy; override;
 end;
 
 
@@ -286,12 +286,14 @@ end;
 
 destructor TVirtualMemory.destroy;
 begin
-  freemem(buffer);
+  if buffer<>nil then freemem(buffer);
   setlength(memoryregion,0);
   setlength(memoryregion2,0);
   inherited destroy;
 end;
 
 end.
+
+
 
 

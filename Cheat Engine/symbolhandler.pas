@@ -570,6 +570,9 @@ begin
   end;
 {$endif}
 
+  //check the userdefined symbols
+  result:=self.GetUserdefinedSymbolByAddress(address);
+  if result<>'' then exit;
 
   if symbols then
   begin
@@ -606,9 +609,7 @@ begin
       symbolloadervalid.endread;
     end;
 
-    //check the userdefined symbols
-    result:=self.GetUserdefinedSymbolByAddress(address);
-    if result<>'' then exit;
+
   end;
 
 
@@ -978,10 +979,12 @@ begin
     symbolloaderthread.free;
   end;
 
+  modulelistpos:=0;
 
   symbolloadervalid.Free;
   modulelistMREW.free;
   userdefinedsymbolsMREW.free;
+
   setlength(userdefinedsymbols,0);
   setlength(modulelist,0);
 end;

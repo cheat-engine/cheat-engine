@@ -178,7 +178,7 @@ object frmPointerScanner: TfrmPointerScanner
       OnClick = Button1Click
     end
   end
-  object TreeView2: TTreeView
+  object tvResults: TTreeView
     Left = 209
     Top = 11
     Width = 417
@@ -187,7 +187,7 @@ object frmPointerScanner: TfrmPointerScanner
     ReadOnly = True
     TabOrder = 2
     Visible = False
-    OnDblClick = TreeView2DblClick
+    OnDblClick = tvResultsDblClick
   end
   object Panel1: TPanel
     Left = 0

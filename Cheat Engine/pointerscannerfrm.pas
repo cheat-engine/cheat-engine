@@ -195,7 +195,7 @@ type
     staticonly: boolean; //for reverse
 
     procedure execute; override;
-    destructor destroy; override;
+   // destructor destroy; override;
   end;
 
 type
@@ -215,7 +215,7 @@ type
     Label14: TLabel;
     Label15: TLabel;
     Button1: TButton;
-    TreeView2: TTreeView;
+    tvResults: TTreeView;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -247,7 +247,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
-    procedure TreeView2DblClick(Sender: TObject);
+    procedure tvResultsDblClick(Sender: TObject);
     procedure New1Click(Sender: TObject);
   private
     { Private declarations }
@@ -350,6 +350,9 @@ begin
 end;
 
 function isdissected(level: integer; address: dword;var recnr: integer):boolean;
+{
+check if this address has already been taken appart
+}
 var i: integer;
     first,last: integer;
 begin
@@ -442,7 +445,7 @@ procedure TDrawTreeview.done;
 begin
   if frmpointerscanner<>nil then
   begin
-    frmpointerscanner.treeview2.Items.EndUpdate;
+    frmpointerscanner.tvResults.Items.EndUpdate;
     frmpointerscanner.progressbar1.position:=0;
     frmpointerscanner.file1.Enabled:=true;
     frmpointerscanner.Pointerscanner1.Enabled:=true;
@@ -474,6 +477,7 @@ begin
     total:=0;
     setlength(offsetlist,10);
 
+    s:=nil;
     getmem(s,100);
     ssize:=100;
 
@@ -519,9 +523,13 @@ begin
     pointersfound:=total;
     
   finally
-    freemem(s);
+    if s<>nil then
+      freemem(s);
   end;
 
+
+  setlength(offsetlist,0);
+  
   if not terminated then
     synchronize(done);
 end;
@@ -832,9 +840,10 @@ end;
 
 destructor TMethod2scanner.destroy;
 begin
-  results.free;
-  resultsfile.free;
-  startworking.free;
+  if results<>nil then freeandnil(results);
+  if resultsfile<>nil then freeandnil(resultsfile);
+  if startworking<>nil then freeandnil(startworking);
+  setlength(pathlist,0);
 end;
 
 
@@ -845,10 +854,10 @@ procedure Tfrmpointerscanner.drawtreeview;
 begin
   file1.Enabled:=false;
   Pointerscanner1.Enabled:=false;
-  treeview2.Items.BeginUpdate;
+  tvResults.Items.BeginUpdate;
   DrawTreeviewthread:=TDrawtreeview.Create(true);
   DrawTreeviewThread.pointerlist:=pointerlist;
-  DrawTreeviewThread.treeview:=treeview2;
+  DrawTreeviewThread.treeview:=tvResults;
   DrawTreeviewThread.progressbar:=progressbar1;
   DrawTreeviewThread.Resume;
 end;
@@ -864,8 +873,8 @@ begin
   progressbar1.position:=0;
 
   panel2.Visible:=false;
-  TreeView2.Visible:=true;
-  TreeView2.Align:=alclient;
+  tvResults.Visible:=true;
+  tvResults.Align:=alclient;
   open1.Enabled:=true;
   new1.enabled:=true;
   save1.Enabled:=true;
@@ -979,7 +988,7 @@ destructor TReverseScanWorker.destroy;
 begin
   results.free;
   if resultsfile<>nil then
-    resultsfile.free;
+    freeandnil(resultsfile);
 
   startworking.free;
 end;
@@ -1406,7 +1415,7 @@ begin
         isstatic:=false;
 
         try
-          if ((pdword(vm.AddressToPointer(dword(currentpos)))^ mod 4)=0) or (unalligned) then //unaligned check after the first one so it includes a readable check
+          if (unalligned) or ((pdword(vm.AddressToPointer(dword(currentpos)))^ mod 4)=0) then //unaligned check after the first one so it includes a readable check
             isstatic:=true;
 
           if (writableonly) and ((dword(currentpos) mod 4096)=0) then
@@ -1496,13 +1505,13 @@ begin
 end;
 
 
-
+    {
 destructor TStaticscanner.destroy;
 begin
   terminate;
   waitfor;
   inherited destroy;
-end;
+end;   }
 
 //---------------------------------main--------------------------
 
@@ -1523,7 +1532,9 @@ begin
 
   if frmpointerscannersettings.Showmodal=mrok then
   begin
-    treeview2.Visible:=false;
+    new1.click;
+    
+    tvResults.Visible:=false;
 
     panel2.Visible:=false;
     open1.Enabled:=false;
@@ -1544,11 +1555,7 @@ begin
     treenodeswithchildrenpos:=0;
     matchednodespos:=0;
 
-
-    //free the old critical section's
-    for i:=0 to length(dissectedpointersLevelMREWS)-1 do
-      dissectedpointersLevelMREWS[i].Free;
-
+    //initialize array's
     setlength(dissectedpointersLevelpos,frmpointerscannersettings.maxlevel+1);
     setlength(dissectedpointersLevel,frmpointerscannersettings.maxlevel+1);
     setlength(dissectedpointersLevelMREWS,frmpointerscannersettings.maxlevel+1);
@@ -1557,15 +1564,11 @@ begin
       dissectedpointersLevelpos[i]:=0;
 
     for i:=0 to length(dissectedpointersLevelMREWS)-1 do
-      dissectedpointersLevelMREWS[i]:=TMultiReadExclusiveWriteSynchronizer.create;
+ 	    dissectedpointersLevelMREWS[i]:=TMultiReadExclusiveWriteSynchronizer.create;
 
-    for i:=0 to length(dissectedpointerslevel)-1 do
-      setlength(dissectedpointerslevel[i],1024*1024); //1mb default
+ 	  for i:=0 to length(dissectedpointerslevel)-1 do
+ 	    setlength(dissectedpointerslevel[i],1024*1024); //1mb default
 
-
-    //possible paths cleaning and reinitialize
-    for i:=0 to length(possiblepathslevelMREWS)-1 do
-      possiblepathslevelMREWS[i].Free;
 
     setlength(possiblepathslevelpos,frmpointerscannersettings.maxlevel+1);
     setlength(possiblepathslevel,frmpointerscannersettings.maxlevel+1);
@@ -1579,14 +1582,7 @@ begin
 
     for i:=0 to length(possiblepathslevel)-1 do
       setlength(possiblepathslevel[i],1024*1024); //1mb default
-
-
-    if staticscanner<>nil then
-    begin
-      staticscanner.free;
-      staticscanner:=nil;
-    end;
-
+   
     //default scan
     staticscanner:=TStaticscanner.Create(true);
 
@@ -1811,6 +1807,7 @@ begin
     pointersfound:=0;
     x:=tfilestream.Create(opendialog1.FileName,fmopenread);
 
+    s:=nil;
     getmem(s,100);
     ssize:=100;
     try
@@ -1820,6 +1817,7 @@ begin
         if ssize<=stringlength then
         begin
           freemem(s);
+          s:=nil;
           getmem(s,stringlength+1);
           ssize:=stringlength+1;
         end;
@@ -1839,7 +1837,8 @@ begin
       end;
     finally
       x.free;
-      freemem(s);
+      if s<>nil then
+        freemem(s);
     end;
 
     loadpointers;
@@ -1876,67 +1875,74 @@ begin
   progressbar.Min:=0;
   progressbar.Max:=oldpointerlist.Size;
 
+  s:=nil;
   getmem(s,100);
-  ssize:=100;
 
-  setlength(offsetlist,10);
-  while oldpointerlist.Position<oldpointerlist.Size do
-  begin
-    oldpointerlist.ReadBuffer(stringlength,sizeof(stringlength));
-    if ssize<=stringlength then
+  try
+    ssize:=100;
+
+    setlength(offsetlist,10);
+    while oldpointerlist.Position<oldpointerlist.Size do
     begin
-      freemem(s);
-      getmem(s,stringlength+1);
-      ssize:=stringlength+1;
-    end;
+      oldpointerlist.ReadBuffer(stringlength,sizeof(stringlength));
+      if ssize<=stringlength then
+      begin
+        freemem(s);
+        s:=nil;
+        getmem(s,stringlength+1);
+        ssize:=stringlength+1;
+      end;
 
-    oldpointerlist.ReadBuffer(s^,stringlength);
-    s[stringlength]:=#0;
+      oldpointerlist.ReadBuffer(s^,stringlength);
+      s[stringlength]:=#0;
 
-    oldpointerlist.ReadBuffer(offset,sizeof(offset));
+      oldpointerlist.ReadBuffer(offset,sizeof(offset));
 
   
-    oldpointerlist.ReadBuffer(offsetsize,sizeof(offsetsize));
-    if length(offsetlist)<(offsetsize+1) then
-      setlength(offsetlist,offsetsize*2);
+      oldpointerlist.ReadBuffer(offsetsize,sizeof(offsetsize));
+      if length(offsetlist)<(offsetsize+1) then
+        setlength(offsetlist,offsetsize*2);
 
-    oldpointerlist.ReadBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
-    //now check if it matches, and if so, save it back to the newpointerlist
+      oldpointerlist.ReadBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
+      //now check if it matches, and if so, save it back to the newpointerlist
 
 
-    try
-      x:=symhandler.getAddressFromName(s,true)+offset;
+      try
+        x:=symhandler.getAddressFromName(s,true)+offset;
 
-      for i:=0 to offsetsize-1 do
-      begin
-        if not readprocessmemory(processhandle,pointer(x),@x,sizeof(x),br) then
+        for i:=0 to offsetsize-1 do
         begin
-          progressbar.Position:=oldpointerlist.Position;
-          x:=address+1;
-          break;
+          if not readprocessmemory(processhandle,pointer(x),@x,sizeof(x),br) then
+          begin
+            progressbar.Position:=oldpointerlist.Position;
+            x:=address+1;
+            break;
+          end;
+
+          inc(x,offsetlist[i]);
         end;
 
-        inc(x,offsetlist[i]);
+        if x=address then
+        begin
+          newpointerlist.WriteBuffer(stringlength,sizeof(stringlength));
+          newpointerlist.WriteBuffer(s^,stringlength);
+          newpointerlist.WriteBuffer(offset,sizeof(offset));
+        
+          newpointerlist.WriteBuffer(offsetsize,sizeof(offsetsize));
+          newpointerlist.WriteBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
+          inc(pointersfound);
+        end;
+      except
+        //not valid, so dont save
       end;
 
-      if x=address then
-      begin
-        newpointerlist.WriteBuffer(stringlength,sizeof(stringlength));
-        newpointerlist.WriteBuffer(s^,stringlength);
-        newpointerlist.WriteBuffer(offset,sizeof(offset));
-        
-        newpointerlist.WriteBuffer(offsetsize,sizeof(offsetsize));
-        newpointerlist.WriteBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
-        inc(pointersfound);
-      end;
-    except
-      //not valid, so dont save
+      progressbar.Position:=oldpointerlist.Position;
     end;
 
-    progressbar.Position:=oldpointerlist.Position;
+  finally
+    postmessage(frmPointerScanner.Handle,rescan_done,0,0);
+    if s<>nil then freemem(s);
   end;
-
-  postmessage(frmPointerScanner.Handle,rescan_done,0,0);
 end;
 
 procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
@@ -1964,11 +1970,17 @@ begin
 end;
 
 procedure tfrmpointerscanner.rescandone(var message: tmessage);
+{
+The rescan is done. rescan.oldpointerlist (the current pointerlist) can be deleted
+and the new pointerlist becomes the current pointerlist
+}
 begin
-  pointerlist.free;
-  pointerlist:=rescan.newpointerlist;
-
-  rescan.free;
+  if pointerlist<>nil then freeandnil(pointerlist);
+  if rescan<>nil then
+  begin
+    pointerlist:=rescan.newpointerlist;
+    freeandnil(rescan);
+  end;
 
   doneui;
     
@@ -1993,64 +2005,10 @@ procedure Tfrmpointerscanner.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var i,j: integer;
 begin
-
-//  if frmpointerscannersettings<>nil then freeandnil(frmpointerscannersettings);
-
-  if drawtreeviewthread<>nil then
-  begin
-    drawtreeviewthread.Terminate;
-    drawtreeviewthread.WaitFor;
-    drawtreeviewthread.free;
-    drawtreeviewthread:=nil;
-  end;
-
-  button1.click;
-  staticscanner.Free;
-  staticscanner:=nil;
-
-  if vm<>nil then
-    vm.free;
-
-
-  setlength(staticlist,0);
-  setlength(dissectedpointersLevelpos,0);
-  setlength(dissectedpointersLevel,0);
-
-  for i:=0 to length(dissectedpointersLevelMREWS)-1 do
-    if dissectedpointersLevelMREWS[i]<>nil then
-      freeandnil(dissectedpointersLevelMREWS[i]);
-
-  setlength(dissectedpointersLevelMREWS,0);
-
-  for i:=0 to length(treenodeswithchildren)-1 do
-    freeandnil(treenodeswithchildren[i]);
-
-  setlength(treenodeswithchildren,0);
-
-  if matchednodescs<>nil then freeandnil(matchednodescs);
-
-  for i:=0 to length(matchednodes)-1 do
-    setlength(matchednodes[i],0);
-  setlength(matchednodes,0);
-
-  TreeView2.Items.Clear;
-
-  for i:=0 to length(PossiblepathsLevelMREWS)-1 do
-    freeandnil(PossiblepathsLevelMREWS[i]);
-  setlength(PossiblepathsLevelMREWS,0);
-
-  for i:=0 to length(possiblepathsLevel)-1 do
-    setlength(possiblepathsLevel[i],0);
-  setlength(possiblepathsLevel,0);
-
-  setlength(possiblepathsLevelpos,0);
-
-  if (method2semaphore<>nil) then
-    freeandnil(method2semaphore);
+  new1.click;
     
-  action:=cafree;
-
-  frmpointerscanner:=nil;
+  action:=cafree; //on close free itself
+  frmpointerscanner:=nil; //and set it to nil so other objects that use it will have to recreate it
 end;
 
 procedure Tfrmpointerscanner.FormShow(Sender: TObject);
@@ -2069,14 +2027,14 @@ begin
 end;
 
 
-procedure Tfrmpointerscanner.TreeView2DblClick(Sender: TObject);
+procedure Tfrmpointerscanner.tvResultsDblClick(Sender: TObject);
 var base :ttreenode;
     baseaddress: dword;
     offsets: array of dword;
     i: integer;
     t: string;
 begin
-  base:=treeview2.Selected;
+  base:=tvResults.Selected;
   if base<>nil then
   begin
     if base.Level=1 then
@@ -2102,9 +2060,13 @@ begin
 end;
 
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
+var i: integer;
 begin
-  button1.Click;
-  treeview2.Visible:=false;
+  button1.click;
+  if staticscanner<>nil then
+    freeandnil(staticscanner);
+
+  tvResults.Visible:=false;
   panel2.Visible:=false;
   panel1.Caption:='';
   open1.Enabled:=true;
@@ -2113,8 +2075,63 @@ begin
   rescanmemory1.Enabled:=false;
   showresults1.enabled:=false;
 
+  
+
+  if drawtreeviewthread<>nil then
+  begin
+    drawtreeviewthread.Terminate;
+    drawtreeviewthread.WaitFor;
+    freeandnil(drawtreeviewthread);
+  end;
+
+
   if vm<>nil then
     freeandnil(vm);
+
+
+    
+  setlength(staticlist,0);
+  setlength(dissectedpointersLevelpos,0);
+
+  for i:=0 to length(dissectedpointersLevel)-1 do
+    setlength(dissectedpointersLevel[i],0);
+  setlength(dissectedpointersLevel,0);
+
+  for i:=0 to length(dissectedpointersLevelMREWS)-1 do
+    if dissectedpointersLevelMREWS[i]<>nil then
+      freeandnil(dissectedpointersLevelMREWS[i]);
+
+  setlength(dissectedpointersLevelMREWS,0);
+
+  for i:=0 to length(treenodeswithchildren)-1 do
+    freeandnil(treenodeswithchildren[i]);
+
+  setlength(treenodeswithchildren,0);
+
+  if matchednodescs<>nil then freeandnil(matchednodescs);
+
+  for i:=0 to length(matchednodes)-1 do
+    setlength(matchednodes[i],0);
+  setlength(matchednodes,0);
+
+  tvResults.Items.Clear;
+
+  for i:=0 to length(PossiblepathsLevelMREWS)-1 do
+    freeandnil(PossiblepathsLevelMREWS[i]);
+  setlength(PossiblepathsLevelMREWS,0);
+
+  for i:=0 to length(possiblepathsLevel)-1 do
+    setlength(possiblepathsLevel[i],0);
+  setlength(possiblepathsLevel,0);
+
+  setlength(possiblepathsLevelpos,0);
+
+  if (method2semaphore<>nil) then
+    freeandnil(method2semaphore);
+
+  if pointerlist<>nil then freeandnil(pointerlist);  
+
+  
 end;
 
 
