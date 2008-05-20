@@ -42,6 +42,7 @@ begin
   SMenu:=GetSystemMenu(handle,false);
   AppendMenu(SMenu,MF_SEPARATOR,0,'') ;
   AppendMenu(SMenu, param		, togglefront, 'Stay on top') ;
+  
 end;
 
 procedure TForm.DoCreate;
@@ -53,7 +54,6 @@ begin
 end;
 
 procedure TForm.setStayOnTop(newstate: boolean);
-var mii : TMenuItemInfo;
 begin
 {
 //great, I spend a hour figuring this out to find then out that setting formstyle reserts the sysmenu as well...
@@ -76,6 +76,9 @@ begin
   end else formstyle:=originalFormStyle;
 
   setSysMenu;
+
+
+
 end;
 
 procedure TForm.togglestayonfront;
@@ -94,3 +97,4 @@ end;
 
 
 end.
+
