@@ -4,17 +4,27 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus,Clipbrd;
+  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls;
 
 type
   TFormFoundCodeListExtra = class(TForm)
-    Button1: TButton;
-    Label1: TLabel;
-    Label2: TLabel;
+    pmCopy: TPopupMenu;
+    Copyaddresstoclipboard1: TMenuItem;
+    Panel1: TPanel;
+    Label10: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    Label2: TLabel;
+    Label1: TLabel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
     Label6: TLabel;
+    Label17: TLabel;
+    Panel5: TPanel;
+    Button1: TButton;
+    Panel6: TPanel;
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
@@ -24,11 +34,7 @@ type
     Label14: TLabel;
     Label15: TLabel;
     Label16: TLabel;
-    Label10: TLabel;
-    Label17: TLabel;
     Label18: TLabel;
-    pmCopy: TPopupMenu;
-    Copyaddresstoclipboard1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
@@ -76,3 +82,4 @@ begin
 end;
 
 end.
+

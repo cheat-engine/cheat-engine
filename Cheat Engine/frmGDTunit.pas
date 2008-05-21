@@ -71,12 +71,18 @@ var limit: word;
     segtype: integer;
 
     title: string;
+
+    aa,bb: uint64;
 begin
   address:=getgdt(limit);
 
+  address:=$00400500;
+  limit:=6;
+
   getmem(x,limit*8);
   try
-    newkernelhandler.kernelreadprocessmemory(processhandle,pointer(address),x,limit,br);
+    newkernelhandler.kernelreadprocessmemory(processhandle,pointer(address),x,limit*8,br);
+
 
     if br>0 then
     begin

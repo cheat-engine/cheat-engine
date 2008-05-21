@@ -473,7 +473,7 @@ begin
       else
         val('$'+pointerinfo[i].offset.Text,offsets[i],err);
 
-      if error<>0 then raise exception.Create(pointerinfo[i].offset.Text+' is not a valid offset');
+      if err<>0 then raise exception.Create(pointerinfo[i].offset.Text+' is not a valid offset');
     end else raise exception.Create('Not all offsets have been filled in');
   end;
 

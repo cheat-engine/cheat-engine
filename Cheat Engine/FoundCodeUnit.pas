@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,cefuncproc{$ifdef net},NetAPIs{$endif};
+  Dialogs, StdCtrls,disassembler,cefuncproc,ExtCtrls, Menus{$ifdef net},NetAPIs{$endif};
 
 type Tcoderecord = record
   address: dword;
@@ -16,13 +16,19 @@ end;
 
 type
   TFoundCodeDialog = class(TForm)
-    btnOK: TButton;
     FoundcodeList: TListBox;
+    Panel1: TPanel;
+    btnOK: TButton;
     Description: TLabel;
-    btnReplacewithnops: TButton;
-    btnOpenDisassembler: TButton;
-    btnAddToCodeList: TButton;
     btnExtraInfo: TButton;
+    btnAddToCodeList: TButton;
+    btnOpenDisassembler: TButton;
+    btnReplacewithnops: TButton;
+    pmOptions: TPopupMenu;
+    ReplacewithcodethatdoesnothingNOP1: TMenuItem;
+    Showthisaddressinthedisassembler1: TMenuItem;
+    Addtothecodelist1: TMenuItem;
+    MoreInfo1: TMenuItem;
     procedure FoundcodeListClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -32,6 +38,8 @@ type
     procedure FoundcodeListDblClick(Sender: TObject);
     procedure btnExtraInfoClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FoundcodeListContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
   private
     { Private declarations }
     procedure moreinfo;
@@ -62,7 +70,7 @@ var disassembled: array[1..5] of string;
     address: dword;
     itemindex: integer;
     temp,temp2: string;
-    max: integer;
+    max: dword;
     p: dword;
     i: integer;
 begin
@@ -73,12 +81,12 @@ begin
     if useexceptions then
     begin
       FormFoundCodeListExtra.Label18.Visible:=false;
-      FormFoundCodeListExtra.Height:=254;
+      FormFoundCodeListExtra.Height:=260;
     end
     else
     begin
       FormFoundCodeListExtra.Label18.Visible:=true;
-      FormFoundCodeListExtra.Height:=289;
+      FormFoundCodeListExtra.Height:=301;
     end;
 
     address:=coderecords[ItemIndex].address;
@@ -394,6 +402,19 @@ procedure TFoundCodeDialog.FormCloseQuery(Sender: TObject;
 begin
   if btnOK.caption=strStop then btnOK.Click;
   CanClose:=true;
+end;
+
+procedure TFoundCodeDialog.FoundcodeListContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
+var selected: boolean;
+begin
+  foundcodelist.ItemIndex:=foundcodelist.ItemAtPos(mousepos,true);
+
+  selected:=foundcodelist.itemindex<>-1;
+  ReplacewithcodethatdoesnothingNOP1.Enabled:=selected;
+  Showthisaddressinthedisassembler1.enabled:=selected;
+  Addtothecodelist1.enabled:=selected;
+  MoreInfo1.Enabled:=selected;
 end;
 
 end.

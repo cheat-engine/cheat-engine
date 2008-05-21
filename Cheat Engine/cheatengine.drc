@@ -8,76 +8,75 @@
   resources were bound to the produced executable.
 */
 
-#define MainUnit_strfailuretosetspeed 65072
-#define MainUnit_strIncorrectspeed 65073
-#define MainUnit_strCantSetSpeed 65074
-#define MainUnit_strHyperscanFailed 65075
-#define MainUnit_strUnknownExtension 65076
-#define MainUnit_strCustomScanConfig 65077
-#define MainUnit_strDisableCheat 65088
-#define MainUnit_strFindWhatWritesToPointer 65089
-#define MainUnit_strFindWhatWritesToPointer2 65090
-#define MainUnit_strcantdebugnow 65091
-#define MainUnit_strpointercantberead 65092
-#define MainUnit_strconfirmUndo 65093
-#define MainUnit_strHideForeground 65094
-#define MainUnit_strHideAll 65095
-#define MainUnit_strUnHideForeground 65096
-#define MainUnit_strUnhideAll 65097
-#define MainUnit_strhappybirthday 65098
-#define MainUnit_strXMess 65099
-#define MainUnit_strNewyear 65100
-#define MainUnit_strfuture 65101
-#define MainUnit_strdontbother 65102
-#define MainUnit_strneeddebugger 65103
-#define MainUnit_strdeleteall 65104
-#define MainUnit_stralreadyin 65105
-#define MainUnit_stralreadyinlistmultiple 65106
-#define MainUnit_strsethotkey 65107
-#define MainUnit_strshowasdecimal 65108
-#define MainUnit_strshowashex 65109
-#define MainUnit_strFreezeAddressInList 65110
-#define MainUnit_strFreezeAllAddresses 65111
-#define MainUnit_strUnfreezeAllAddresses 65112
-#define MainUnit_strUnfreezeAddressInList 65113
-#define MainUnit_strDeleteAddress 65114
-#define MainUnit_strRecalculateAddress 65115
-#define MainUnit_strRecalculateSelectedAddresses 65116
-#define MainUnit_strRecalculateAllAddresses 65117
-#define MainUnit_strRemoveFromGroup 65118
-#define MainUnit_strEnableCheat 65119
-#define MainUnit_strNotTheSameSize2 65120
-#define MainUnit_strAdd0 65121
-#define MainUnit_strNotAValidNotation 65122
-#define MainUnit_strNotSameAmmountofBytes 65123
-#define MainUnit_strNotAValidBinaryNotation 65124
-#define MainUnit_strValue 65125
-#define MainUnit_strChange1Value 65126
-#define MainUnit_strChangeMoreValues 65127
-#define MainUnit_strDelete1Address 65128
-#define MainUnit_strDeleteMultipleAddresses 65129
-#define MainUnit_strDelete1Group 65130
-#define MainUnit_strDeleteMoreGroups 65131
-#define MainUnit_strSelectedAddressIsAPointer 65132
-#define MainUnit_strMorePointers 65133
-#define MainUnit_strMorePointers2 65134
-#define MainUnit_strNotAValidValue 65135
+#define MainUnit_strIncorrectspeed 65072
+#define MainUnit_strCantSetSpeed 65073
+#define MainUnit_strHyperscanFailed 65074
+#define MainUnit_strUnknownExtension 65075
+#define MainUnit_strCustomScanConfig 65076
+#define MainUnit_strFindWhatWritesToPointer 65088
+#define MainUnit_strFindWhatWritesToPointer2 65089
+#define MainUnit_strcantdebugnow 65090
+#define MainUnit_strpointercantberead 65091
+#define MainUnit_strconfirmUndo 65092
+#define MainUnit_strHideForeground 65093
+#define MainUnit_strHideAll 65094
+#define MainUnit_strUnHideForeground 65095
+#define MainUnit_strUnhideAll 65096
+#define MainUnit_strhappybirthday 65097
+#define MainUnit_strXMess 65098
+#define MainUnit_strNewyear 65099
+#define MainUnit_strfuture 65100
+#define MainUnit_strdontbother 65101
+#define MainUnit_strneeddebugger 65102
+#define MainUnit_strfailuretosetspeed 65103
+#define MainUnit_stralreadyin 65104
+#define MainUnit_stralreadyinlistmultiple 65105
+#define MainUnit_strsethotkey 65106
+#define MainUnit_strshowasdecimal 65107
+#define MainUnit_strshowashex 65108
+#define MainUnit_strFreezeAddressInList 65109
+#define MainUnit_strFreezeAllAddresses 65110
+#define MainUnit_strUnfreezeAllAddresses 65111
+#define MainUnit_strUnfreezeAddressInList 65112
+#define MainUnit_strDeleteAddress 65113
+#define MainUnit_strRecalculateAddress 65114
+#define MainUnit_strRecalculateSelectedAddresses 65115
+#define MainUnit_strRecalculateAllAddresses 65116
+#define MainUnit_strRemoveFromGroup 65117
+#define MainUnit_strEnableCheat 65118
+#define MainUnit_strDisableCheat 65119
+#define MainUnit_strAdd0 65120
+#define MainUnit_strNotAValidNotation 65121
+#define MainUnit_strNotSameAmmountofBytes 65122
+#define MainUnit_strNotAValidBinaryNotation 65123
+#define MainUnit_strValue 65124
+#define MainUnit_strChange1Value 65125
+#define MainUnit_strChangeMoreValues 65126
+#define MainUnit_strDelete1Address 65127
+#define MainUnit_strDeleteMultipleAddresses 65128
+#define MainUnit_strDelete1Group 65129
+#define MainUnit_strDeleteMoreGroups 65130
+#define MainUnit_strSelectedAddressIsAPointer 65131
+#define MainUnit_strMorePointers 65132
+#define MainUnit_strMorePointers2 65133
+#define MainUnit_strNotAValidValue 65134
+#define MainUnit_strdeleteall 65135
 #define MainUnit_strsearchForText 65136
 #define MainUnit_strSearchForArray 65137
 #define MainUnit_strConfirmProcessTermination 65138
 #define MainUnit_strError 65139
 #define MainUnit_strErrorwhileOpeningProcess 65140
-#define MainUnit_strWantANewScan 65141
-#define MainUnit_strKeepList 65142
-#define MainUnit_strInfoAboutTable 65143
-#define MainUnit_strPhysicalMemory 65144
-#define MainUnit_strfillInSomething 65145
-#define MainUnit_strFirstSelectAProcess 65146
-#define MainUnit_strCantdoNextScan 65147
-#define MainUnit_strClickToGoHome 65148
-#define MainUnit_strChangeDescription1 65149
-#define MainUnit_strChangeDescription2 65150
-#define MainUnit_strNotTheSameSize1 65151
+#define MainUnit_strKeepList 65141
+#define MainUnit_strInfoAboutTable 65142
+#define MainUnit_strPhysicalMemory 65143
+#define MainUnit_strfillInSomething 65144
+#define MainUnit_strFirstSelectAProcess 65145
+#define MainUnit_strCantdoNextScan 65146
+#define MainUnit_strClickToGoHome 65147
+#define MainUnit_strChangeDescription1 65148
+#define MainUnit_strChangeDescription2 65149
+#define MainUnit_strNotTheSameSize1 65150
+#define MainUnit_strNotTheSameSize2 65151
 #define MainUnit2_strUnknownInitialValue 65152
 #define MainUnit2_strSameAsFirstScan 65153
 #define MainUnit2_strFailedToInitialize 65154
@@ -464,13 +463,11 @@
 #define SysConst_SRangeError 65535
 STRINGTABLE
 BEGIN
-	MainUnit_strfailuretosetspeed,	"Failure to set the speed"
 	MainUnit_strIncorrectspeed,	"The speed value is incorrect"
 	MainUnit_strCantSetSpeed,	"I can't set this speed. (must be bigger than 0)"
 	MainUnit_strHyperscanFailed,	"The hyperthread failed to respond with the right answer"
 	MainUnit_strUnknownExtension,	"Unknown extension"
 	MainUnit_strCustomScanConfig,	"Custom scan config"
-	MainUnit_strDisableCheat,	"Disable cheat"
 	MainUnit_strFindWhatWritesToPointer,	"Find out what writes to this pointer"
 	MainUnit_strFindWhatWritesToPointer2,	"Find what reads from the address pointed at by this pointer"
 	MainUnit_strcantdebugnow,	"You can't use this function while you are debugging the application yourself. (Close the memory view window)"
@@ -486,7 +483,7 @@ BEGIN
 	MainUnit_strfuture,	"Wow,I never imagined people would use Cheat Engine up to today"
 	MainUnit_strdontbother,	"Don't even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!"
 	MainUnit_strneeddebugger,	"To use this option the debugger must be attached to the game"
-	MainUnit_strdeleteall,	"Are you sure you want to delete all addresses?"
+	MainUnit_strfailuretosetspeed,	"Failure to set the speed"
 	MainUnit_stralreadyin,	"This address is already in the list"
 	MainUnit_stralreadyinlistmultiple,	"One or more addresses where already in the list"
 	MainUnit_strsethotkey,	"Set a hotkey"
@@ -502,7 +499,7 @@ BEGIN
 	MainUnit_strRecalculateAllAddresses,	"Recalculate all addresses"
 	MainUnit_strRemoveFromGroup,	"Remove from group "
 	MainUnit_strEnableCheat,	"Enable cheat"
-	MainUnit_strNotTheSameSize2,	"Not the same size!"
+	MainUnit_strDisableCheat,	"Disable cheat"
 	MainUnit_strAdd0,	"Do you want to add a '0'-terminator at the end?"
 	MainUnit_strNotAValidNotation,	"This is not a valid notation"
 	MainUnit_strNotSameAmmountofBytes,	"The number of bytes you typed is not the same as the previous ammount. Continue?"
@@ -518,12 +515,12 @@ BEGIN
 	MainUnit_strMorePointers,	"There are more pointers selected. Do you want to change them as well?"
 	MainUnit_strMorePointers2,	"You have selected one or more pointers. Do you want to change them as well?"
 	MainUnit_strNotAValidValue,	"This is not an valid value"
+	MainUnit_strdeleteall,	"Are you sure you want to delete all addresses?"
 	MainUnit_strsearchForText,	"Search for text"
 	MainUnit_strSearchForArray,	"Search for this array"
 	MainUnit_strConfirmProcessTermination,	"This will close the current process. Are you sure you want to do this?"
 	MainUnit_strError,	"Error"
 	MainUnit_strErrorwhileOpeningProcess,	"Error while opening this process"
-	MainUnit_strWantANewScan,	"Do you want to start a new scan?"
 	MainUnit_strKeepList,	"Keep the current address list/code list?"
 	MainUnit_strInfoAboutTable,	"Info about this table:"
 	MainUnit_strPhysicalMemory,	"Physical Memory"
@@ -534,6 +531,7 @@ BEGIN
 	MainUnit_strChangeDescription1,	"Description"
 	MainUnit_strChangeDescription2,	"Change the description to:"
 	MainUnit_strNotTheSameSize1,	"The text you entered isn't the same size as the original. Continue?"
+	MainUnit_strNotTheSameSize2,	"Not the same size!"
 	MainUnit2_strUnknownInitialValue,	"Unknown initial value"
 	MainUnit2_strSameAsFirstScan,	"Same as first scan"
 	MainUnit2_strFailedToInitialize,	"Failed to initialize the debugger"
