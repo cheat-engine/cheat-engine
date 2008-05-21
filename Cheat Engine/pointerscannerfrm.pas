@@ -886,8 +886,6 @@ var x: tfilestream;
     result: tfilestream;
     i: integer;
 begin
-  //update the treeview
-
   //now combile all thread results to 1 file
   result:=tfilestream.Create('result.ptr',fmcreate);
   for i:=0 to length(staticscanner.filenames)-1 do
@@ -907,7 +905,16 @@ begin
   showresults1.Enabled:=true;
   showresults1.Click;
 
-  doneui;  
+  //update the treeview
+  if message.WParam<>0 then
+  begin
+    messagedlg('Error during scan: '+pchar(message.LParam), mtError, [mbok] ,0);
+
+
+  end;
+
+
+  doneui;
 end;
 
 
@@ -1327,8 +1334,15 @@ begin
   if vm=nil then
   begin
     phase:=1;
-    progressbar.Position:=0;  
-    vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar);
+    progressbar.Position:=0;
+    try
+      vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar);
+    except
+      //e.g failure in allocating mem
+      postmessage(frmpointerscanner.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
+      terminate;
+      exit;
+    end;
   end;
 
 

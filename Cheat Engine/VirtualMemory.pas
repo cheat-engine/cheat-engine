@@ -258,11 +258,7 @@ begin
   try
     getmem(buffer,TotalToRead);
   except
-    on EOutOfMemory do
-      begin
-      //not enough free memory for the 2nd
-        raise exception.Create('Not enough memory free to scan');
-      end;
+    raise exception.Create('Not enough memory free to scan');
   end;
 
   buffersize:=totaltoread;

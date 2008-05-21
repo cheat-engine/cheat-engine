@@ -133,7 +133,8 @@ uses
   memscan in 'memscan.pas',
   PEInfoFunctions in 'PEInfoFunctions.pas',
   frmFunctionlistUnit in 'frmFunctionlistUnit.pas' {frmFunctionList},
-  FileMapping in 'FileMapping.pas';
+  FileMapping in 'FileMapping.pas',
+  FormsExtra in 'FormsExtra.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
