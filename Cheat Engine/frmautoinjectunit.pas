@@ -124,6 +124,7 @@ type
   end;
 
   procedure Getjumpandoverwrittenbytes(address,addressto: dword; jumppart,originalcodepart: tstrings);
+  procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
 
 implementation
 
@@ -555,6 +556,75 @@ begin
 end;
 
 
+procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+var originalcode: array of string;
+    i: integer;
+    codesize: integer;
+    a,b: dword;
+    x: string;
+begin
+  //disassemble the old code
+  setlength(originalcode,0);
+
+
+  try
+    a:=symhandler.getAddressFromName(address);
+  except
+    on e: exception do
+      raise exception.create(address+':'+e.message);
+  end;
+
+  try
+    b:=symhandler.getAddressFromName(addresstogoto);
+  except
+    on e: exception do
+      raise exception.create(addresstogoto+':'+e.message);
+  end;
+
+  codesize:=0;
+  b:=a;
+  while codesize<5 do
+  begin
+    setlength(originalcode,length(originalcode)+1);
+    originalcode[length(originalcode)-1]:=disassemble(a,x);
+    i:=posex('-',originalcode[length(originalcode)-1]);
+    i:=posex('-',originalcode[length(originalcode)-1],i+1);
+    originalcode[length(originalcode)-1]:=copy(originalcode[length(originalcode)-1],i+2,length(originalcode[length(originalcode)-1]));
+    codesize:=a-b;
+  end;
+
+  with script do
+  begin
+    add('alloc(originalcall'+nameextension+',2048) //2kb should be enough');
+    add('');
+    add(address+':');
+    add('jmp '+addresstogoto);
+    while codesize>5 do
+    begin
+      add('nop');
+      dec(codesize);
+    end;
+
+    add('');
+    add('originalcall'+nameextension+':');
+
+    for i:=0 to length(originalcode)-1 do
+      add(originalcode[i]);
+    add('jmp returnhere'+nameextension+'');
+
+    add('');
+    if addresstostoreneworiginalfunction<>'' then
+    begin
+      add(addresstostoreneworiginalfunction+':');
+      add('dd originalcall');
+    end;
+
+
+  end;
+end;
+
+
+
 procedure TfrmAutoInject.APIHook1Click(Sender: TObject);
 function inttostr(i:int64):string;
 begin
@@ -581,34 +651,6 @@ begin
 //  if inputquery('Give the address of the api you want to hook',address) and inputquery('Give the address of the replacement function',address) then
   begin
     try
-      edit1.text:=address;
-      if showmodal<>mrok then exit;
-
-      try
-        a:=strtoint('$'+edit1.text);
-      except
-        a:=symhandler.getaddressfromname(edit1.text);
-      end;
-
-      try
-        b:=strtoint('$'+edit2.text);
-      except
-        b:=symhandler.getaddressfromname(edit2.text);
-      end;
-
-      if edit3.text<>'' then
-      begin
-        try
-          c:=strtoint('$'+edit3.text);
-        except
-          c:=symhandler.getaddressfromname(edit3.text);
-        end;
-      end;
-
-
-
-      b:=a;
-
       injectnr:=0;
       for i:=0 to assemblescreen.Lines.Count-1 do
       begin
@@ -627,53 +669,12 @@ begin
         end;
       end;
 
-
-      //disassemble the old code
-      setlength(originalcode,0);
-      codesize:=0;
+      edit1.text:=address;
+      if showmodal<>mrok then exit;
 
 
-      while codesize<5 do
-      begin
-        setlength(originalcode,length(originalcode)+1);
-        originalcode[length(originalcode)-1]:=disassemble(a,x);
-        i:=posex('-',originalcode[length(originalcode)-1]);
-        i:=posex('-',originalcode[length(originalcode)-1],i+1);
-        originalcode[length(originalcode)-1]:=copy(originalcode[length(originalcode)-1],i+2,length(originalcode[length(originalcode)-1]));
-        codesize:=a-b;
-      end;
+      generateAPIHookScript(assemblescreen.Lines,edit1.Text, edit2.Text, edit3.Text, inttostr(injectnr)); 
 
-
-      with assemblescreen.lines do
-      begin
-        add('alloc(originalcall'+inttostr(injectnr)+',2048) //2kb should be enough');
-        add('label(returnhere'+inttostr(injectnr)+')');
-        add('');
-        add(edit1.text+':');
-        add('jmp '+edit2.text);
-        while codesize>5 do
-        begin
-          add('nop');
-          dec(codesize);
-        end;
-
-        add('returnhere'+inttostr(injectnr)+':');
-        add('');
-        add('originalcall'+inttostr(injectnr)+':');
-
-        for i:=0 to length(originalcode)-1 do
-          add(originalcode[i]);
-        add('jmp returnhere'+inttostr(injectnr)+'');
-
-        add('');
-        if edit3.text<>'' then
-        begin
-          add(edit3.text+':');
-          add('dd originalcall');
-        end;
-
-
-      end;
 
     finally
       free;
@@ -1163,6 +1164,7 @@ begin
 end;
 
 end.
+
 
 
 

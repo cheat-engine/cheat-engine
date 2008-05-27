@@ -11255,13 +11255,14 @@ exit;
       }
 {  //find the current kernel, and get the base of it
   //
+  
   findusedkernel;
   getmem(header,4096*4);
   try
     ph:=newkernelhandler.KernelOpenProcess(PROCESS_ALL_ACCESS	,true,getcurrentprocessid);
     if newkernelhandler.KernelReadProcessMemory(ph,pointer(usedkernelbase),header,4096*4,bytesread) then
     begin
-      if MakeKernelCopy(usedkernelbase,peinfo_getcodebase(header)+peinfo_getcodesize(header)) then
+      if MakeKernelCopy(usedkernelbase,peinfo_getheadersize(header)+peinfo_getcodesize(header)) then
       begin
 
 

@@ -23,13 +23,18 @@ function ce_getaddressfrompointer(baseaddress: dword; offsetcount: integer; offs
 function ce_freezemem(address: dword; size: integer):integer; stdcall;
 function ce_unfreezemem(id: integer):boolean; stdcall;
 
+//version 2:
+function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):boolean; stdcall;
+function ce_sym_nameToAddress(name: pchar; address: PDWORD):boolean; stdcall;
+function ce_sym_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
 
 //function ce_getControlName(controlpointer: pointer; objectname: pchar; maxsize: integer):integer; stdcall;
 
 
 implementation
 
-uses plugin,mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,formsettingsunit,undochanges;
+uses plugin,mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
+     formsettingsunit,undochanges, symbolhandler, frmautoinjectunit;
 
 type TFreezeMem_Entry=record
   id: integer;
@@ -94,6 +99,53 @@ begin
     result:=-1;
   end;
 end;  }
+
+function ce_sym_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
+var s: tstringlist;
+begin
+  result:=false;
+  s:=tstringlist.create;
+  try
+    try
+//  procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+      generateAPIHookScript(s,address,addresstojumpto,addresstogetnewcalladdress);
+      result:=true;
+    except
+
+    end;
+  finally
+    s.free;
+  end;
+end;
+
+function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):boolean; stdcall;
+var s: string;
+begin
+  result:=false;
+  try
+    s:=symhandler.getNameFromAddress(address,true,true);
+    if length(s)<maxnamesize then
+      copymemory(name,@s[1],length(s))
+    else
+      copymemory(name,@s[1],maxnamesize);
+      
+    result:=true;
+  except
+
+  end;
+end;
+
+
+function ce_sym_nameToAddress(name: pchar; address: PDWORD):boolean; stdcall;
+begin
+  result:=false;
+  try
+    address^:=symhandler.getAddressFromName(name);
+    result:=true;
+  except
+
+  end;
+end;
 
 
 function ce_reloadsettings:boolean; stdcall;
@@ -259,6 +311,7 @@ end;
 function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):boolean; stdcall;
 var frmModifyRegisters:tfrmModifyRegisters;
 begin
+  result:=false;
   if (formsettings.cbKdebug.checked) and (debuggerthread2<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
 
   if (not formsettings.cbKdebug.checked) then

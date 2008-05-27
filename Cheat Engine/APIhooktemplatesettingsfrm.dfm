@@ -1,6 +1,6 @@
 object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
-  Left = 1197
-  Top = 494
+  Left = 631
+  Top = 299
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Api hook template'

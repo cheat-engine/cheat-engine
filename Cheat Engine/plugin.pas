@@ -103,6 +103,11 @@ type TExportedFunctions2 = record
   //advanced for delphi 7 enterprise dll programmers only
   mainform                :pointer;
   memorybrowser           :pointer;
+
+  //version 2 extension:
+  sym_nameToAddress         : pointer;
+  sym_addressToName         : pointer;
+  sym_generateAPIHookScript : pointer;
 end;
 type PExportedFunctions2 = ^TExportedFunctions2;
 
@@ -857,6 +862,13 @@ begin
   //give the address of the variable since there is a change they arn't initialized just yet...
   exportedfunctions.mainform:=@mainform;
   exportedfunctions.memorybrowser:=@memorybrowser;
+
+  //version2 init:
+  exportedfunctions.sym_nameToAddress:=@ce_sym_nameToAddress;
+  exportedfunctions.sym_addressToName:=@ce_sym_addressToName;
+  exportedfunctions.sym_generateAPIHookScript:=@ce_sym_generateAPIHookScript;
 end;
 
 end.
+
+
