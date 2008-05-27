@@ -2360,6 +2360,8 @@ begin
   mbimage.Height:=mbcanvas.Height;
   mbcanvas.Invalidate;
   refreshmb;
+
+  if hexedit.visible or textedit.visible then fcontrol2.SetFocus;
 end;
 
 procedure TMemoryBrowser.ScrollBar2Scroll(Sender: TObject;
