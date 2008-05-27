@@ -92,6 +92,7 @@ type
     function Func54: TtkTokenKind; //kalloc
     function Func59: TtkTokenKind; //readmem    
     function Func68: TtkTokenKind; //include
+    function Func92: TtkTokenKind; //globalalloc
     function Func101: TtkTokenKind; //fullaccess/loadbinary
     function Func108: TtkTokenKind; //CreateThread
     function Func117: TtkTokenKind; //loadlibrary
@@ -203,6 +204,7 @@ begin
   fIdentFuncTable[54] := Func54;
   fIdentFuncTable[59] := Func59;
   fIdentFuncTable[68] := Func68;
+  fIdentFuncTable[92] := Func92;
   fIdentFuncTable[101] := Func101;
   fIdentFuncTable[108] := Func108;
   fIdentFuncTable[117] := Func117;
@@ -407,6 +409,12 @@ end;
 function TpsvAARTF.Func68: TtkTokenKind; //include
 begin
   if KeyComp('include') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TpsvAARTF.Func92: TtkTokenKind; //globalalloc
+begin
+  if KeyComp('globalalloc') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
