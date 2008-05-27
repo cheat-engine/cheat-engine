@@ -282,7 +282,8 @@ var i,j,k,l,e: integer;
       filename: string;
     end;
 
-    allocs,kallocs: array of tcealloc;
+
+    globalallocs, allocs, kallocs: array of tcealloc;
     labels: array of tlabel;
     defines: array of tdefine;
     fullaccess: array of tfullaccess;
@@ -371,6 +372,35 @@ begin
 
           setlength(assemblerlines,length(assemblerlines)+1);
           assemblerlines[length(assemblerlines)-1]:=currentline;
+
+          if uppercase(copy(currentline,1,12))='GLOBALALLOC(' then
+          begin
+            a:=pos('(',currentline);
+            b:=pos(',',currentline);
+            c:=pos(')',currentline);
+            if (a>0) and (b>0) and (c>0) then
+            begin
+              s1:=copy(currentline,a+1,b-a-1);
+              s2:=copy(currentline,b+1,c-b-1);
+
+              try
+                x:=strtoint(s2);
+              except
+                raise exception.Create(s2+' is not a valid size');
+              end;
+              symhandler.SetUserdefinedSymbolAllocSize(s1,x);
+
+              setlength(globalallocs,length(globalallocs)+1);
+              globalallocs[length(globalallocs)-1].address:=symhandler.GetUserdefinedSymbolByName(s1);
+              globalallocs[length(globalallocs)-1].varname:=s1;
+              globalallocs[length(globalallocs)-1].size:=x;
+
+              setlength(assemblerlines,length(assemblerlines)-1);
+              continue;
+
+            end
+            else raise exception.Create('Wrong syntax. GLOBALALLOC(name,size)');
+          end;
 
           if uppercase(copy(currentline,1,8))='INCLUDE(' then
           begin
@@ -1381,6 +1411,10 @@ begin
       if popupmessages then
       begin
         s1:='';
+        for i:=0 to length(globalallocs)-1 do
+          s1:=s1+#13#10+globalallocs[i].varname+'='+IntToHex(globalallocs[i].address,8);
+
+
         for i:=0 to length(allocs)-1 do
           s1:=s1+#13#10+allocs[i].varname+'='+IntToHex(allocs[i].address,8);
 

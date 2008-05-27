@@ -25,6 +25,8 @@ type symexception=class(Exception);
 type TUserdefinedsymbol=record
   symbolname: string;
   address: dword;
+  allocsize: dword; //if it is a global alloc, allocsize>0
+  processid: dword; //the processid this memory was allocated to (in case of processswitches)
 end;
 
 type TModuleInfo=record
@@ -61,8 +63,6 @@ type
   private
     symbolloaderthread: TSymbolloaderthread;
 
-
-    lastmodulelistupdate: integer;
     modulelistpos: integer;
     modulelist: array of TModuleInfo;
 
@@ -82,6 +82,8 @@ type
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
     function getisloaded:boolean;
+    function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
+    function GetUserdefinedSymbolByAddressIndex(address: dword):integer;
 
     procedure setshowmodules(x: boolean);
     procedure setshowsymbols(x: boolean);
@@ -117,6 +119,7 @@ type
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
     function GetUserdefinedSymbolByName(symbolname:string):dword;
+    function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
     function GetUserdefinedSymbolByAddress(address:dword):string;
     procedure AddUserdefinedSymbol(address: dword; symbolname: string);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
@@ -173,7 +176,6 @@ var need:dword;
     i: integer;
     count: integer;
     drivername: pchar;
-    nearest: dword; //nearest other driver (AFTER win32k.sys)
 begin
   EnumDevicedrivers(nil,0,need);
   getmem(x,need);
@@ -308,7 +310,6 @@ begin
 end;
 
 procedure TSymhandler.reinitialize;
-var previousprocesshandle: thandle;
 begin
   loadmodulelist;
 
@@ -343,21 +344,117 @@ var i,j: integer;
 begin
   result:=false;
   userdefinedsymbolsMREW.beginwrite;
-  for i:=0 to userdefinedsymbolspos-1 do
-    if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
-    begin
-      //found it, now move up all the others and decrease the list
-      for j:=i to userdefinedsymbolspos-2 do
-        userdefinedsymbols[j]:=userdefinedsymbols[j+1];
+  try
+    for i:=0 to userdefinedsymbolspos-1 do
+      if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
+      begin
+        //found it
+        //check if it had a alloc, if so, free it
+        if (userdefinedsymbols[i].allocsize>0) and (userdefinedsymbols[i].processid=processid) then
+          VirtualFreeEx(processhandle,pointer(userdefinedsymbols[i].address),0,MEM_RELEASE);
 
-      dec(userdefinedsymbolspos);
-      result:=true;
-      break;
-    end;
-  userdefinedsymbolsMREW.endwrite;
+        //now move up all the others and decrease the list
+        for j:=i to userdefinedsymbolspos-2 do
+          userdefinedsymbols[j]:=userdefinedsymbols[j+1];
+
+        dec(userdefinedsymbolspos);
+        result:=true;
+        break;
+      end;
+  finally
+    userdefinedsymbolsMREW.endwrite;
+  end;
 
   if assigned(UserdefinedSymbolCallback) then
     UserdefinedSymbolCallback();
+end;
+
+function TSymhandler.SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
+{
+This function will find the userdefined symbol, and when found checks if it already
+allocated memory. If not allocate memory, else check if the size matches
+}
+var i:integer;
+    p: pointer;
+begin
+  result:=false;
+  if size=0 then raise exception.Create('Please provide a bigger size');
+
+  userdefinedsymbolsMREW.beginread;
+  try
+    i:=GetUserdefinedSymbolByNameIndex(symbolname);
+    if i=-1 then //doesn't exist yet. Add it
+    begin
+      p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+      if p=nil then
+        raise exception.Create('Error allocating memory');
+      AddUserdefinedSymbol(dword(p),symbolname);
+      i:=GetUserdefinedSymbolByNameIndex(symbolname);
+      userdefinedsymbols[i].allocsize:=size;
+      userdefinedsymbols[i].processid:=processid;
+
+    end
+    else
+    begin
+      //it exists, check first
+      if (userdefinedsymbols[i].allocsize>0) and (userdefinedsymbols[i].processid=processid) then
+      begin
+        //already allocated and processid is the same
+        if size<>userdefinedsymbols[i].allocsize then
+          raise exception.Create('The symbol named '+userdefinedsymbols[i].symbolname+' was previously declared with a size of '+inttostr(userdefinedsymbols[i].allocsize)+' instead of '+inttostr(size)+'. all scripts that use this memory must give the same size. Adjust the size, or delete the old alloc from the userdefined symbol list');
+      end;
+
+      if userdefinedsymbols[i].processid<>processid then
+      begin
+        p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+        if p=nil then
+          raise exception.Create('Error allocating memory');
+
+        userdefinedsymbols[i].address:=dword(p);
+        userdefinedsymbols[i].allocsize:=size;
+        userdefinedsymbols[i].processid:=processid;
+      end;
+    end;
+    result:=true; //managed to get here without crashing...
+    if assigned(UserdefinedSymbolCallback) then
+      UserdefinedSymbolCallback();
+  finally
+    userdefinedsymbolsMREW.EndRead;
+  end;
+end;
+
+function TSymhandler.GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
+var i: integer;
+begin
+  result:=-1;
+  userdefinedsymbolsMREW.beginread;
+  try
+    for i:=0 to userdefinedsymbolspos-1 do
+      if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
+      begin
+        result:=i;
+        break;
+      end;
+  finally
+    userdefinedsymbolsMREW.endread;
+  end;
+end;
+
+function TSymhandler.GetUserdefinedSymbolByAddressIndex(address: dword):integer;
+var i: integer;
+begin
+  result:=-1;
+  userdefinedsymbolsMREW.beginread;
+  try
+    for i:=0 to userdefinedsymbolspos-1 do
+      if userdefinedsymbols[i].address=address then
+      begin
+        result:=i;
+        break;
+      end;
+  finally
+    userdefinedsymbolsMREW.endread;
+  end;  
 end;
 
 function TSymhandler.GetUserdefinedSymbolByName(symbolname:string):dword;
@@ -365,13 +462,13 @@ var i:integer;
 begin
   result:=0;
   userdefinedsymbolsMREW.beginread;
-  for i:=0 to userdefinedsymbolspos-1 do
-    if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
-    begin
-      result:=userdefinedsymbols[i].address;
-      break;
-    end;
-  userdefinedsymbolsMREW.endread;
+  try
+    i:=GetUserdefinedSymbolByNameIndex(symbolname);
+    if i=-1 then exit;
+    result:=userdefinedsymbols[i].address;
+  finally
+    userdefinedsymbolsMREW.endread;
+  end;
 end;
 
 function TSymhandler.GetUserdefinedSymbolByAddress(address:dword):string;
@@ -379,13 +476,13 @@ var i:integer;
 begin
   result:='';
   userdefinedsymbolsMREW.beginread;
-  for i:=0 to userdefinedsymbolspos-1 do
-    if userdefinedsymbols[i].address=address then
-    begin
-      result:=userdefinedsymbols[i].symbolname;
-      break;
-    end;
-  userdefinedsymbolsMREW.endread;
+  try
+    i:=GetUserdefinedSymbolByAddressIndex(address);
+    if i=-1 then exit;
+    result:=userdefinedsymbols[i].symbolname;
+  finally
+    userdefinedsymbolsMREW.endread;
+  end;
 end;
 
 procedure TSymhandler.AddUserdefinedSymbol(address: dword; symbolname: string);
@@ -400,22 +497,40 @@ begin
 
     userdefinedsymbols[userdefinedsymbolspos].address:=address;
     userdefinedsymbols[userdefinedsymbolspos].symbolname:=symbolname;
+    userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
+    userdefinedsymbols[userdefinedsymbolspos].processid:=0;
     inc(userdefinedsymbolspos);
-
-    if assigned(UserdefinedSymbolCallback) then
-      UserdefinedSymbolCallback();
   finally
     userdefinedsymbolsMREW.endwrite;
   end;
+
+  if assigned(UserdefinedSymbolCallback) then
+    UserdefinedSymbolCallback();
 end;
 
 procedure TSymhandler.EnumerateUserdefinedSymbols(list:tstrings);
+{
+Enumerates all userdefined symbols and stores them in a list
+NOTE: The caller must free the object info added
+}
+type TExtradata=record
+  address: dword;
+  allocsize: dword;
+end;
 var i: integer;
+    extradata: ^TExtradata;
 begin
   list.Clear;
   userdefinedsymbolsMREW.BeginRead;
   for i:=0 to userdefinedsymbolspos-1 do
-    list.Addobject(userdefinedsymbols[i].symbolname,pointer(userdefinedsymbols[i].address));
+  begin
+    getmem(extradata,sizeof(TExtradata));
+    extradata.address:=userdefinedsymbols[i].address;
+    extradata.allocsize:=userdefinedsymbols[i].allocsize;
+
+    list.Addobject(userdefinedsymbols[i].symbolname,pointer(extradata));
+    //just don't forget to free it at the caller's end
+  end;
   userdefinedsymbolsMREW.EndRead;
 end;
 
@@ -428,7 +543,6 @@ var currentaddress: dword;
     sizeleft: dword;
     i: integer;
     closest: integer;
-    ok: boolean;
 begin
   modulelistMREW.beginread;
   try
@@ -644,10 +758,7 @@ end;
 
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean):dword;
 var mi: tmoduleinfo;
-    newaddress: string;
     symbol :PImagehlpSymbol;
-    oldoptions: dword;
-
     offset: dword;
 
     sn: string;
@@ -671,8 +782,6 @@ begin
     processhandle:=cefuncproc.ProcessHandle;
   end;
 {$endif}
-
-  result:=0;
 
   val(ConvertHexStrToRealStr(name),result,i);
   if i=0 then exit; //it's a valid hexadecimal string
@@ -1014,6 +1123,9 @@ finalization
   symhandler.free;
   
 end.
+
+
+
 
 
 

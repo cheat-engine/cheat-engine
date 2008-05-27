@@ -4,22 +4,26 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,symbolhandler, ComCtrls;
+  Dialogs, StdCtrls,symbolhandler, ComCtrls, ExtCtrls, Menus;
 
 type
   TfrmSymbolhandler = class(TForm)
-    Button1: TButton;
-    Label1: TLabel;
-    edtSymbolname: TEdit;
+    Panel1: TPanel;
     Label3: TLabel;
-    edtAddress: TEdit;
+    edtSymbolname: TEdit;
     Label2: TLabel;
+    edtAddress: TEdit;
+    Button1: TButton;
+    Panel2: TPanel;
+    Label1: TLabel;
     ListView1: TListView;
+    PopupMenu1: TPopupMenu;
+    Delete1: TMenuItem;
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure ListView1DblClick(Sender: TObject);
     procedure ListView1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure Delete1Click(Sender: TObject);
   private
     { Private declarations }
     procedure SymUpdate(var message:TMessage); message wm_user+1;
@@ -49,9 +53,15 @@ end;
 
 
 procedure TfrmSymbolhandler.refreshlist;
+type TExtradata=record
+  address: dword;
+  allocsize: dword;
+end;
 var sl: tstringlist;
     i: integer;
     li: tlistitem;
+    extradata: ^TExtraData;
+
 begin
   listview1.Items.Clear;
   sl:=tstringlist.create;
@@ -62,7 +72,12 @@ begin
     begin
       li:=listview1.Items.Add;
       li.Caption:=sl[i];
-      li.SubItems.Add(inttohex(dword(sl.objects[i]),8));
+      extradata:=pointer(sl.objects[i]);
+      li.SubItems.Add(inttohex(dword(extradata^.address),8));
+      if extradata^.allocsize>0 then
+        li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
+
+      freemem(extradata);
     end;
   finally
     sl.free;
@@ -86,18 +101,9 @@ begin
   li:=listview1.Items.Add;
   li.Caption:=symbolname;
   li.SubItems.Add(inttohex(address,8));
-end;
 
-procedure TfrmSymbolhandler.ListView1DblClick(Sender: TObject);
-begin
-  if listview1.ItemIndex<>-1 then
-  begin
-    if messagedlg('Are you sure you want to remove this symbol from the list?',mtconfirmation,[mbyes,mbno],0)=mryes then
-    begin
-      symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
-      listview1.Items[listview1.ItemIndex].Delete;
-    end;
-  end;
+  edtSymbolname.SetFocus;
+  edtSymbolname.SelectAll;
 end;
 
 procedure TfrmSymbolhandler.ListView1Click(Sender: TObject);
@@ -115,6 +121,18 @@ end;
 procedure TfrmSymbolhandler.FormCreate(Sender: TObject);
 begin
   symhandler.RegisterUserdefinedSymbolCallback(@symbolupdate);
+end;
+
+procedure TfrmSymbolhandler.Delete1Click(Sender: TObject);
+begin
+  if listview1.ItemIndex<>-1 then
+  begin
+    if messagedlg('Are you sure you want to remove this symbol from the list?',mtconfirmation,[mbyes,mbno],0)=mryes then
+    begin
+      symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
+      listview1.Items[listview1.ItemIndex].Delete;
+    end;
+  end;
 end;
 
 end.

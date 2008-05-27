@@ -5289,6 +5289,10 @@ end;
 
 
 procedure SaveTable(Filename: string);
+type TExtradata=record
+  address: dword;
+  allocsize: dword;
+end;
 var savefile: File;
     actualwritten: Integer;
     Controle: String[11];
@@ -5300,6 +5304,7 @@ var savefile: File;
     temp: dword;
 
     sl: tstringlist;
+    extradata: ^TExtraData;
 begin
 //version=3;
 
@@ -5407,7 +5412,10 @@ begin
       blockwrite(savefile,records,sizeof(records),actualwritten);
       for i:=0 to records-1 do
       begin
-        temp:=dword(sl.Objects[i]);
+        extradata:=pointer(sl.Objects[i]);
+        temp:=extradata^.address;
+        freemem(extradata);
+        //temp:=dword(sl.Objects[i]);
         blockwrite(savefile,temp,sizeof(temp),actualwritten);
         x:=pchar(sl[i]);
         temp:=length(x);
