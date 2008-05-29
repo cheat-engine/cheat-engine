@@ -567,6 +567,7 @@ begin
   setlength(originalcode,0);
 
 
+
   try
     a:=symhandler.getAddressFromName(address);
   except
@@ -596,15 +597,13 @@ begin
   with script do
   begin
     add('alloc(originalcall'+nameextension+',2048) //2kb should be enough');
+    add('label(returnhere'+nameextension+')');
     add('');
-    add(address+':');
-    add('jmp '+addresstogoto);
-    while codesize>5 do
+    if addresstostoreneworiginalfunction<>'' then
     begin
-      add('nop');
-      dec(codesize);
+      add(addresstostoreneworiginalfunction+':');
+      add('dd originalcall'+nameextension);
     end;
-
     add('');
     add('originalcall'+nameextension+':');
 
@@ -613,11 +612,18 @@ begin
     add('jmp returnhere'+nameextension+'');
 
     add('');
-    if addresstostoreneworiginalfunction<>'' then
+    
+    add(address+':');
+    add('jmp '+addresstogoto);
+    while codesize>5 do
     begin
-      add(addresstostoreneworiginalfunction+':');
-      add('dd originalcall');
+      add('nop');
+      dec(codesize);
     end;
+    add('returnhere'+nameextension+':');
+
+    add('');
+
 
 
   end;

@@ -134,7 +134,8 @@ uses
   PEInfoFunctions in 'PEInfoFunctions.pas',
   frmFunctionlistUnit in 'frmFunctionlistUnit.pas' {frmFunctionList},
   FileMapping in 'FileMapping.pas',
-  FormsExtra in 'FormsExtra.pas';
+  FormsExtra in 'FormsExtra.pas',
+  speedhack2 in 'speedhack2.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -163,3 +164,4 @@ begin
   initcetitle;
   Application.Run;
 end.
+

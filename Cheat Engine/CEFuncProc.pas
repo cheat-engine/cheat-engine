@@ -19721,6 +19721,7 @@ begin
   FlushInstructionCache(processhandle,pointer(address),size);
 end;
 
+
 function GetCPUCount: integer;
 {
 this function will return how many active cpu cores there are at your disposal

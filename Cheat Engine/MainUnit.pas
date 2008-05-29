@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra;
+  memscan, formsextra, speedhack2;
 
   //the following are just for compatibility
 
@@ -151,7 +151,7 @@ type
     Label52: TLabel;
     Edit2: TEdit;
     Edit1: TEdit;
-    cbSpeedhack: TCheckBox;
+    cbSpeedhack2: TCheckBox;
     Change1: TMenuItem;
     Description1: TMenuItem;
     Address1: TMenuItem;
@@ -245,6 +245,14 @@ type
     CheckBox7: TCheckBox;
     vscrollpanel: TPanel;
     ScrollBar1: TScrollBar;
+    Panel14: TPanel;
+    Button5: TButton;
+    Edit3: TEdit;
+    Label54: TLabel;
+    tbSpeed: TTrackBar;
+    Label56: TLabel;
+    Label60: TLabel;
+    cbSpeedhack: TCheckBox;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -394,6 +402,9 @@ type
     procedure HeaderControl1SectionResize(HeaderControl: THeaderControl;
       Section: THeaderSection);
     procedure FormDestroy(Sender: TObject);
+    procedure tbSpeedChange(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure cbSpeedhack2Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -8020,6 +8031,7 @@ begin
   end;
 
   autoattachlist.free;
+  if speedhack<>nil then speedhack.free;
  // EExternalException
 end;
 
@@ -10066,7 +10078,7 @@ var i: integer;
 begin
   if cbfasterscan.Checked then
   begin
-    {hyperscan does not support this type}
+    //hyperscan does not support this type
     i:=vartype.Items.IndexOf('All (Byte to Double)');
     if i>=0 then
       vartype.Items.Delete(i);
@@ -10145,6 +10157,7 @@ begin
          btnSetSpeedhack.Click;
        end;
      end;
+  
 end;
 
 procedure TMainForm.AllClickClick(Sender: TObject);
@@ -11724,21 +11737,68 @@ begin
                         panel5.height,
                         foundlist3.columns[0].width
                         ]);
+
+
+end;
+
+procedure TMainForm.tbSpeedChange(Sender: TObject);
+var x: integer;
+    y: single;
+begin
+  x:=tbSpeed.position;
+  case x of
+    0: y:=0;
+    1: y:=0.5;
+    2: y:=1;
+    3: y:=2;
+    4: y:=5;
+    5: y:=10;
+    6: y:=20;
+    7: y:=50;
+    8: y:=100;
+    9: y:=200;
+    10: y:=500;    
+    else y:=1;
+  end;
+  edit3.text:=format('%.1f',[y]);
+end;
+
+procedure TMainForm.Button5Click(Sender: TObject);
+var newspeed: single;
+    e: integer;
+begin
+  val(edit3.Text,newspeed,e);
+  if (e>0) or IsInfinite(newspeed) or IsNan(newspeed) then raise exception.Create(edit3.text+' is not a valid speed');
+  if speedHack<>nil then
+    speedhack.setSpeed(newspeed);
+end;
+
+procedure TMainForm.cbSpeedhack2Click(Sender: TObject);
+begin
+  if cbSpeedhack2.Checked then
+  begin
+    try
+      if speedhack<>nil then
+        freeandnil(speedhack);
+        
+      speedhack:=TSpeedhack.create;
+    except
+      on e: exception do
+      begin
+        cbSpeedhack2.checked:=false;
+        raise exception.create(e.Message);
+      end;
+    end;
+  end
+  else
+  begin
+    if speedhack<>nil then
+      freeandnil(speedhack);
+  end;
+
+  panel14.Visible:=cbSpeedhack2.Checked;
 end;
 
 end.
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

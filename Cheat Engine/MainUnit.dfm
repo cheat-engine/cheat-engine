@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 377
-  Top = 196
+  Left = 485
+  Top = 256
   Width = 532
   Height = 570
   Hint = ' '
@@ -1434,7 +1434,7 @@ object MainForm: TMainForm
     end
     object Label57: TLabel
       Left = 424
-      Top = 280
+      Top = 288
       Width = 81
       Height = 13
       Caption = 'get dbvm version'
@@ -1451,12 +1451,27 @@ object MainForm: TMainForm
     end
     object Label59: TLabel
       Left = 424
-      Top = 296
+      Top = 304
       Width = 100
       Height = 13
       Caption = 'Test selector change'
       Visible = False
       OnClick = Label59Click
+    end
+    object cbSpeedhack: TCheckBox
+      Left = 404
+      Top = 194
+      Width = 118
+      Height = 18
+      Hint = 'Enable speedhack'
+      Anchors = [akTop, akRight]
+      Caption = 'Enable Speedhack'
+      Enabled = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 29
+      Visible = False
+      OnClick = cbFastScanClick
     end
     object NewScan: TButton
       Left = 191
@@ -1951,7 +1966,7 @@ object MainForm: TMainForm
       Text = '3'
       Visible = False
     end
-    object cbSpeedhack: TCheckBox
+    object cbSpeedhack2: TCheckBox
       Left = 404
       Top = 194
       Width = 118
@@ -1959,11 +1974,10 @@ object MainForm: TMainForm
       Hint = 'Enable speedhack'
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
-      Enabled = False
       ParentShowHint = False
       ShowHint = True
       TabOrder = 19
-      OnClick = cbFastScanClick
+      OnClick = cbSpeedhack2Click
     end
     object pnlFloat: TPanel
       Left = 402
@@ -2384,6 +2398,66 @@ object MainForm: TMainForm
         Transparent = True
         OnClick = LogoClick
         OnMouseDown = LogoMouseDown
+      end
+    end
+    object Panel14: TPanel
+      Left = 403
+      Top = 211
+      Width = 119
+      Height = 94
+      BevelOuter = bvNone
+      TabOrder = 28
+      Visible = False
+      DesignSize = (
+        119
+        94)
+      object Label54: TLabel
+        Left = 13
+        Top = 4
+        Width = 31
+        Height = 13
+        Caption = 'Speed'
+      end
+      object Label56: TLabel
+        Left = 8
+        Top = 56
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label60: TLabel
+        Left = 104
+        Top = 56
+        Width = 12
+        Height = 13
+        Caption = '20'
+      end
+      object Button5: TButton
+        Left = 6
+        Top = 69
+        Width = 113
+        Height = 20
+        Anchors = [akTop, akRight]
+        Caption = 'Apply'
+        TabOrder = 0
+        OnClick = Button5Click
+      end
+      object Edit3: TEdit
+        Left = 48
+        Top = 0
+        Width = 57
+        Height = 21
+        TabOrder = 1
+        Text = '1'
+      end
+      object tbSpeed: TTrackBar
+        Left = 0
+        Top = 24
+        Width = 121
+        Height = 33
+        Position = 2
+        TabOrder = 2
+        OnChange = tbSpeedChange
       end
     end
   end
