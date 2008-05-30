@@ -151,7 +151,6 @@ type
     Label52: TLabel;
     Edit2: TEdit;
     Edit1: TEdit;
-    cbSpeedhack2: TCheckBox;
     Change1: TMenuItem;
     Description1: TMenuItem;
     Address1: TMenuItem;
@@ -246,8 +245,8 @@ type
     vscrollpanel: TPanel;
     ScrollBar1: TScrollBar;
     Panel14: TPanel;
-    Button5: TButton;
-    Edit3: TEdit;
+    btnSetSpeedhack2: TButton;
+    editSH2: TEdit;
     Label54: TLabel;
     tbSpeed: TTrackBar;
     Label56: TLabel;
@@ -403,8 +402,9 @@ type
       Section: THeaderSection);
     procedure FormDestroy(Sender: TObject);
     procedure tbSpeedChange(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
-    procedure cbSpeedhack2Click(Sender: TObject);
+    procedure btnSetSpeedhack2Click(Sender: TObject);
+    procedure cbSpeedhackClick(Sender: TObject);
+    procedure Edit2Change(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -837,7 +837,7 @@ begin
             a:=a+speedupdelta;
             edit2.Text:=format('%.2f',[a]);
             btnSetSpeedhack.Click;
-          END;
+          end;
         end;
       except
 
@@ -10076,6 +10076,7 @@ end;
 procedure TMainForm.cbFastScanClick(Sender: TObject);
 var i: integer;
 begin
+
   if cbfasterscan.Checked then
   begin
     //hyperscan does not support this type
@@ -10132,32 +10133,36 @@ begin
   if cefuncproc.hypermode=nil then
   begin
     cbFasterscan.checked:=false;
-    cbSpeedhack.Checked:=false;
+    if formsettings.cbOldSpeedhack.checked then
+      cbSpeedhack.Checked:=false;
     exit;
   end else cefuncproc.hypermode.WaitFor;
 
   if cefuncproc.hypermode=nil then exit; //self destruct
 
-  if (cefuncproc.hypermode.speedhackenabled) and (not cbspeedhack.checked) then cefuncproc.hypermode.DisableSpeedhack;
+  if formsettings.cbOldSpeedhack.checked then
+  begin
+    if (cefuncproc.hypermode.speedhackenabled) and (not cbspeedhack.checked) then cefuncproc.hypermode.DisableSpeedhack;
 
-  if (cefuncproc.hypermode.hyperscanwindow<>0) and
-     (cbSpeedhack.checked) and
-     (sender=cbSpeedhack) then
-     begin
-       if sendmessage(cefuncproc.hypermode.hyperscanwindow,wm_user+4,0,0)=$11223344 then
-       begin
-         cbspeedhack.Enabled:=true;
-         cbunrandomizer.Enabled:=true;
-         label52.Enabled:=true;
-         label51.Enabled:=true;
-         edit2.Enabled:=true;
-         edit1.Enabled:=true;
-         btnsetspeedhack.Enabled:=true;
-         cefuncproc.hypermode.speedhackenabled:=true;
-         btnSetSpeedhack.Click;
-       end;
-     end;
-  
+    if (cefuncproc.hypermode.hyperscanwindow<>0) and
+       (cbSpeedhack.checked) and
+       (sender=cbSpeedhack) then
+    begin
+      if sendmessage(cefuncproc.hypermode.hyperscanwindow,wm_user+4,0,0)=$11223344 then
+      begin
+        cbspeedhack.Enabled:=true;
+        cbunrandomizer.Enabled:=true;
+        label52.Enabled:=true;
+        label51.Enabled:=true;
+        edit2.Enabled:=true;
+        edit1.Enabled:=true;
+        btnsetspeedhack.Enabled:=true;
+        cefuncproc.hypermode.speedhackenabled:=true;
+        btnSetSpeedhack.Click;
+      end;
+    end;
+  end;
+
 end;
 
 procedure TMainForm.AllClickClick(Sender: TObject);
@@ -10198,6 +10203,13 @@ var x: dword;
     speedtext: string;
     i: integer;
 begin
+  if formsettings.cbOldSpeedhack.checked then
+  begin
+    editSH2.text:=edit2.Text;
+    btnSetSpeedhack2.click;
+    exit;
+  end;
+
   try
     speedtext:=edit2.Text;
     speedf:=strtofloat(speedtext);
@@ -11760,22 +11772,28 @@ begin
     10: y:=500;    
     else y:=1;
   end;
-  edit3.text:=format('%.1f',[y]);
+  editSH2.text:=format('%.1f',[y]);
 end;
 
-procedure TMainForm.Button5Click(Sender: TObject);
+procedure TMainForm.btnSetSpeedhack2Click(Sender: TObject);
 var newspeed: single;
     e: integer;
 begin
-  val(edit3.Text,newspeed,e);
-  if (e>0) or IsInfinite(newspeed) or IsNan(newspeed) then raise exception.Create(edit3.text+' is not a valid speed');
+  val(editSH2.Text,newspeed,e);
+  if (e>0) or IsInfinite(newspeed) or IsNan(newspeed) then raise exception.Create(editSH2.text+' is not a valid speed');
   if speedHack<>nil then
     speedhack.setSpeed(newspeed);
 end;
 
-procedure TMainForm.cbSpeedhack2Click(Sender: TObject);
+procedure TMainForm.cbSpeedhackClick(Sender: TObject);
 begin
-  if cbSpeedhack2.Checked then
+  if formsettings.cbOldSpeedhack.checked then
+  begin
+    cbfastscanclick(sender);
+    exit;
+  end;
+
+  if cbSpeedhack.Checked then
   begin
     try
       if speedhack<>nil then
@@ -11785,7 +11803,7 @@ begin
     except
       on e: exception do
       begin
-        cbSpeedhack2.checked:=false;
+        cbSpeedhack.checked:=false;
         raise exception.create(e.Message);
       end;
     end;
@@ -11796,7 +11814,12 @@ begin
       freeandnil(speedhack);
   end;
 
-  panel14.Visible:=cbSpeedhack2.Checked;
+  panel14.Visible:=cbSpeedhack.Checked;
+end;
+
+procedure TMainForm.Edit2Change(Sender: TObject);
+begin
+  editSH2.text:=edit2.text;
 end;
 
 end.

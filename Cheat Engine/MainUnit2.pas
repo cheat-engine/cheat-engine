@@ -507,6 +507,10 @@ begin
           if reg.ValueExists('Save window positions') then
             cbSaveWindowPos.checked:=reg.ReadBool('Save window positions');
 
+          if reg.ValueExists('Use old speedhack') then
+            cbOldSpeedhack.checked:=reg.ReadBool('Use old speedhack');
+
+
           try cbSkip_PAGE_NOCACHE.Checked:=reg.readbool('skip PAGE_NOCACHE'); except end;
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
@@ -735,6 +739,8 @@ begin
 end;
 
 end.
+
+
 
 
 

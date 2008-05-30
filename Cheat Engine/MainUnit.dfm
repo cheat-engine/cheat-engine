@@ -1469,9 +1469,9 @@ object MainForm: TMainForm
       Enabled = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 29
+      TabOrder = 28
       Visible = False
-      OnClick = cbFastScanClick
+      OnClick = cbSpeedhackClick
     end
     object NewScan: TButton
       Left = 191
@@ -1493,7 +1493,7 @@ object MainForm: TMainForm
       Height = 17
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
-      TabOrder = 21
+      TabOrder = 20
       Visible = False
     end
     object GroupBox1: TGroupBox
@@ -1606,6 +1606,7 @@ object MainForm: TMainForm
         Font.Style = []
         ParentFont = False
         TabOrder = 5
+        OnClick = cbFastScanClick
       end
       object btnShowRegions: TButton
         Left = 166
@@ -1954,6 +1955,7 @@ object MainForm: TMainForm
       TabOrder = 17
       Text = '2'
       Visible = False
+      OnChange = Edit2Change
     end
     object Edit1: TEdit
       Left = 471
@@ -1966,19 +1968,6 @@ object MainForm: TMainForm
       Text = '3'
       Visible = False
     end
-    object cbSpeedhack2: TCheckBox
-      Left = 404
-      Top = 194
-      Width = 118
-      Height = 18
-      Hint = 'Enable speedhack'
-      Anchors = [akTop, akRight]
-      Caption = 'Enable Speedhack'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 19
-      OnClick = cbSpeedhack2Click
-    end
     object pnlFloat: TPanel
       Left = 402
       Top = 120
@@ -1986,7 +1975,7 @@ object MainForm: TMainForm
       Height = 49
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
-      TabOrder = 20
+      TabOrder = 19
       object rt3: TRadioButton
         Left = 8
         Top = 32
@@ -2022,7 +2011,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
       Enabled = False
-      TabOrder = 22
+      TabOrder = 21
       OnClick = cbUnrandomizerClick
       OnMouseDown = cbUnrandomizerMouseDown
     end
@@ -2032,7 +2021,7 @@ object MainForm: TMainForm
       Width = 97
       Height = 17
       Caption = 'mode16'
-      TabOrder = 23
+      TabOrder = 22
       Visible = False
       OnClick = mode16Click
     end
@@ -2042,7 +2031,7 @@ object MainForm: TMainForm
       Width = 75
       Height = 25
       Caption = 'First Scan2'
-      TabOrder = 24
+      TabOrder = 23
       Visible = False
       OnClick = Button2Click
     end
@@ -2052,7 +2041,7 @@ object MainForm: TMainForm
       Width = 75
       Height = 25
       Caption = 'Next scan 2'
-      TabOrder = 25
+      TabOrder = 24
       Visible = False
       OnClick = Button4Click
     end
@@ -2064,7 +2053,7 @@ object MainForm: TMainForm
       Caption = 'New scan engine'
       Checked = True
       State = cbChecked
-      TabOrder = 26
+      TabOrder = 25
       Visible = False
     end
     object LogoPanel: TPanel
@@ -2076,7 +2065,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       FullRepaint = False
-      TabOrder = 27
+      TabOrder = 26
       object Logo: TImage
         Left = 0
         Top = 0
@@ -2406,7 +2395,7 @@ object MainForm: TMainForm
       Width = 119
       Height = 94
       BevelOuter = bvNone
-      TabOrder = 28
+      TabOrder = 27
       Visible = False
       DesignSize = (
         119
@@ -2432,7 +2421,7 @@ object MainForm: TMainForm
         Height = 13
         Caption = '20'
       end
-      object Button5: TButton
+      object btnSetSpeedhack2: TButton
         Left = 6
         Top = 69
         Width = 113
@@ -2440,9 +2429,9 @@ object MainForm: TMainForm
         Anchors = [akTop, akRight]
         Caption = 'Apply'
         TabOrder = 0
-        OnClick = Button5Click
+        OnClick = btnSetSpeedhack2Click
       end
-      object Edit3: TEdit
+      object editSH2: TEdit
         Left = 48
         Top = 0
         Width = 57

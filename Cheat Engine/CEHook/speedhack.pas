@@ -1,4 +1,5 @@
 unit speedhack;
+{obsolete since 5.5 has a seperate dll initialized by ce's auto assembler}
 
 interface
 uses windows,classes,globals;

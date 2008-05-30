@@ -124,6 +124,7 @@ type
     cbAlwaysAutoAttach: TCheckBox;
     cbGlobalDebug: TCheckBox;
     cbSaveWindowPos: TCheckBox;
+    cbOldSpeedhack: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -443,6 +444,8 @@ begin
       {$endif}
 
       reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
+      reg.WriteBool('Use old speedhack',cbOldSpeedhack.checked);
+
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
       reg.WriteBool('Break when debuging',cbBreakOnAttach.Checked);
       reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
@@ -800,6 +803,8 @@ begin
 
   btnUnrandomizerconfig.Enabled:=not mainform.cbUnrandomizer.Checked;
   {$endif}
+
+  cbOldSpeedhack.enabled:=not mainform.cbSpeedhack.Checked; //don't change it while  you're using the speedhack
 
 end;
 

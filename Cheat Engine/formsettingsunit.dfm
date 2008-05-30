@@ -117,14 +117,14 @@ object formSettings: TformSettings
       end
       object Label23: TLabel
         Left = 8
-        Top = 200
+        Top = 208
         Width = 193
         Height = 13
         Caption = 'Automatically attach to processes named'
       end
       object Label24: TLabel
         Left = 328
-        Top = 200
+        Top = 208
         Width = 114
         Height = 13
         Caption = '(Seperate entries with ; )'
@@ -187,9 +187,9 @@ object formSettings: TformSettings
       end
       object GroupBox1: TGroupBox
         Left = 0
-        Top = 97
+        Top = 113
         Width = 489
-        Height = 72
+        Height = 70
         Caption = 'Address list specific'
         TabOrder = 6
         object cbShowAsSigned: TCheckBox
@@ -279,7 +279,7 @@ object formSettings: TformSettings
       end
       object Button3: TButton
         Left = 0
-        Top = 176
+        Top = 186
         Width = 201
         Height = 17
         Caption = 'Configure Hotkeys'
@@ -288,7 +288,7 @@ object formSettings: TformSettings
       end
       object btnUnrandomizerconfig: TButton
         Left = 288
-        Top = 176
+        Top = 186
         Width = 201
         Height = 17
         Caption = 'Configure unrandomizer'
@@ -297,7 +297,7 @@ object formSettings: TformSettings
       end
       object EditAutoAttach: TEdit
         Left = 204
-        Top = 196
+        Top = 204
         Width = 121
         Height = 21
         Hint = 
@@ -307,7 +307,7 @@ object formSettings: TformSettings
       end
       object cbAlwaysAutoAttach: TCheckBox
         Left = 8
-        Top = 218
+        Top = 226
         Width = 481
         Height = 17
         Caption = 'Even autoattach when another process has already been selected'
@@ -315,11 +315,19 @@ object formSettings: TformSettings
       end
       object cbSaveWindowPos: TCheckBox
         Left = 1
-        Top = 80
+        Top = 96
         Width = 488
         Height = 17
         Caption = 'Save window positions'
         TabOrder = 15
+      end
+      object cbOldSpeedhack: TCheckBox
+        Left = 1
+        Top = 80
+        Width = 488
+        Height = 17
+        Caption = 'Use old speedhack'
+        TabOrder = 16
       end
     end
     object TabSheet2: TTabSheet
@@ -328,7 +336,7 @@ object formSettings: TformSettings
       object Label2: TLabel
         Left = 0
         Top = 200
-        Width = 489
+        Width = 481
         Height = 26
         Caption = 
           'Running the scan in a seperate thread will give you a cancel but' +
@@ -577,7 +585,7 @@ object formSettings: TformSettings
       object Label4: TLabel
         Left = 0
         Top = 0
-        Width = 489
+        Width = 477
         Height = 39
         Caption = 
           'There are 2 ways Cheat Engine can find the addresss of code that' +
@@ -589,7 +597,7 @@ object formSettings: TformSettings
       object Label6: TLabel
         Left = 0
         Top = 64
-        Width = 465
+        Width = 455
         Height = 13
         Caption = 
           'Advantage: Not as memory intensive as the "Write Exceptions" typ' +
@@ -751,7 +759,7 @@ object formSettings: TformSettings
       object TauntOldOsUser: TLabel
         Left = 0
         Top = 280
-        Width = 491
+        Width = 337
         Height = 13
         Align = alBottom
         Alignment = taCenter
@@ -807,7 +815,7 @@ object formSettings: TformSettings
         object Label25: TLabel
           Left = 2
           Top = 48
-          Width = 485
+          Width = 478
           Height = 39
           Caption = 
             'Warning: If the system keeps crashing each time you run Cheat En' +
