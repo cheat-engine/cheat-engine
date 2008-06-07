@@ -6,6 +6,15 @@ uses windows,sysutils,imagehlp;
 
 const opcodecount=1048; //I wish there was a easier way than to handcount
 
+
+type TTokenType=(
+  ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit,
+  ttRegisterMM, ttRegisterXMM, ttRegisterST, ttRegisterSreg,
+  ttRegisterCR, ttRegisterDR, ttMemoryLocation, ttMemoryLocation8,
+  ttMemoryLocation16, ttMemoryLocation32, ttMemoryLocation64,
+  ttMemoryLocation80, ttMemoryLocation128, ttValue);
+
+
 const invalidtoken=0;
 const register8bit=1;
 const register16bit=2;
@@ -1499,14 +1508,15 @@ type
 
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
+
 function Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
 function GetOpcodesIndex(opcode: string): integer;
 
 function tokenize(opcode:string; var tokens: ttokens): boolean;
-function gettokentype(var token:string;token2: string):integer;
+function gettokentype(var token:string;token2: string): TTokenType;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 function getreg(reg: string): integer; overload;
-function TokenToRegisterbit(token:string): integer;
+function TokenToRegisterbit(token:string): TTokenType;
 
 
 var parameter1,parameter2,parameter3: integer;
@@ -1682,99 +1692,99 @@ begin
 end;
 
 
-function TokenToRegisterbit(token:string): integer;
+function TokenToRegisterbit(token:string): TTokenType;
 begin
-  result:=register32bit;
+  result:=ttRegister32bit;
 
-  if token='AL' then result:=register8bit else
-  if token='CL' then result:=register8bit else
-  if token='DL' then result:=register8bit else
-  if token='BL' then result:=register8bit else
-  if token='AH' then result:=register8bit else
-  if token='CH' then result:=register8bit else
-  if token='DH' then result:=register8bit else
-  if token='BH' then result:=register8bit else
+  if token='AL' then result:=ttRegister8bit else
+  if token='CL' then result:=ttRegister8bit else
+  if token='DL' then result:=ttRegister8bit else
+  if token='BL' then result:=ttRegister8bit else
+  if token='AH' then result:=ttRegister8bit else
+  if token='CH' then result:=ttRegister8bit else
+  if token='DH' then result:=ttRegister8bit else
+  if token='BH' then result:=ttRegister8bit else
 
-  if token='AX' then result:=register16bit else
-  if token='CX' then result:=register16bit else
-  if token='DX' then result:=register16bit else
-  if token='BX' then result:=register16bit else
-  if token='SP' then result:=register16bit else
-  if token='BP' then result:=register16bit else
-  if token='SI' then result:=register16bit else
-  if token='DI' then result:=register16bit else
+  if token='AX' then result:=ttRegister16bit else
+  if token='CX' then result:=ttRegister16bit else
+  if token='DX' then result:=ttRegister16bit else
+  if token='BX' then result:=ttRegister16bit else
+  if token='SP' then result:=ttRegister16bit else
+  if token='BP' then result:=ttRegister16bit else
+  if token='SI' then result:=ttRegister16bit else
+  if token='DI' then result:=ttRegister16bit else
 
-  if token='EAX' then result:=register32bit else
-  if token='ECX' then result:=register32bit else
-  if token='EDX' then result:=register32bit else
-  if token='EBX' then result:=register32bit else
-  if token='ESP' then result:=register32bit else
-  if token='EBP' then result:=register32bit else
-  if token='ESI' then result:=register32bit else
-  if token='EDI' then result:=register32bit else
+  if token='EAX' then result:=ttRegister32bit else
+  if token='ECX' then result:=ttRegister32bit else
+  if token='EDX' then result:=ttRegister32bit else
+  if token='EBX' then result:=ttRegister32bit else
+  if token='ESP' then result:=ttRegister32bit else
+  if token='EBP' then result:=ttRegister32bit else
+  if token='ESI' then result:=ttRegister32bit else
+  if token='EDI' then result:=ttRegister32bit else
 
-  if token='MM0' then result:=registerMM else
-  if token='MM1' then result:=registerMM else
-  if token='MM2' then result:=registerMM else
-  if token='MM3' then result:=registerMM else
-  if token='MM4' then result:=registerMM else
-  if token='MM5' then result:=registerMM else
-  if token='MM6' then result:=registerMM else
-  if token='MM7' then result:=registerMM else
+  if token='MM0' then result:=ttRegisterMM else
+  if token='MM1' then result:=ttRegisterMM else
+  if token='MM2' then result:=ttRegisterMM else
+  if token='MM3' then result:=ttRegisterMM else
+  if token='MM4' then result:=ttRegisterMM else
+  if token='MM5' then result:=ttRegisterMM else
+  if token='MM6' then result:=ttRegisterMM else
+  if token='MM7' then result:=ttRegisterMM else
 
-  if token='XMM0' then result:=registerXMM else
-  if token='XMM1' then result:=registerXMM else
-  if token='XMM2' then result:=registerXMM else
-  if token='XMM3' then result:=registerXMM else
-  if token='XMM4' then result:=registerXMM else
-  if token='XMM5' then result:=registerXMM else
-  if token='XMM6' then result:=registerXMM else
-  if token='XMM7' then result:=registerXMM else
+  if token='XMM0' then result:=ttRegisterXMM else
+  if token='XMM1' then result:=ttRegisterXMM else
+  if token='XMM2' then result:=ttRegisterXMM else
+  if token='XMM3' then result:=ttRegisterXMM else
+  if token='XMM4' then result:=ttRegisterXMM else
+  if token='XMM5' then result:=ttRegisterXMM else
+  if token='XMM6' then result:=ttRegisterXMM else
+  if token='XMM7' then result:=ttRegisterXMM else
 
-  if token='ST' then result:=registerST else
-  if token='ST(0)' then result:=registerST else
-  if token='ST(1)' then result:=registerST else
-  if token='ST(2)' then result:=registerST else
-  if token='ST(3)' then result:=registerST else
-  if token='ST(4)' then result:=registerST else
-  if token='ST(5)' then result:=registerST else
-  if token='ST(6)' then result:=registerST else
-  if token='ST(7)' then result:=registerST else
+  if token='ST' then result:=ttRegisterST else
+  if token='ST(0)' then result:=ttRegisterST else
+  if token='ST(1)' then result:=ttRegisterST else
+  if token='ST(2)' then result:=ttRegisterST else
+  if token='ST(3)' then result:=ttRegisterST else
+  if token='ST(4)' then result:=ttRegisterST else
+  if token='ST(5)' then result:=ttRegisterST else
+  if token='ST(6)' then result:=ttRegisterST else
+  if token='ST(7)' then result:=ttRegisterST else
 
-  if token='ES' then result:=registersreg else
-  if token='CS' then result:=registersreg else
-  if token='SS' then result:=registersreg else
-  if token='DS' then result:=registersreg else
-  if token='FS' then result:=registersreg else
-  if token='GS' then result:=registersreg else
-  if token='HS' then result:=registersreg else
-  if token='IS' then result:=registersreg else
+  if token='ES' then result:=ttRegistersreg else
+  if token='CS' then result:=ttRegistersreg else
+  if token='SS' then result:=ttRegistersreg else
+  if token='DS' then result:=ttRegistersreg else
+  if token='FS' then result:=ttRegistersreg else
+  if token='GS' then result:=ttRegistersreg else
+  if token='HS' then result:=ttRegistersreg else
+  if token='IS' then result:=ttRegistersreg else
 
-  if token='CR0' then result:=registerCR else
-  if token='CR1' then result:=registerCR else
-  if token='CR2' then result:=registerCR else
-  if token='CR3' then result:=registerCR else
-  if token='CR4' then result:=registerCR else
-  if token='CR5' then result:=registerCR else
-  if token='CR6' then result:=registerCR else
-  if token='CR7' then result:=registerCR else
+  if token='CR0' then result:=ttRegisterCR else
+  if token='CR1' then result:=ttRegisterCR else
+  if token='CR2' then result:=ttRegisterCR else
+  if token='CR3' then result:=ttRegisterCR else
+  if token='CR4' then result:=ttRegisterCR else
+  if token='CR5' then result:=ttRegisterCR else
+  if token='CR6' then result:=ttRegisterCR else
+  if token='CR7' then result:=ttRegisterCR else
 
-  if token='DR0' then result:=registerDR else
-  if token='DR1' then result:=registerDR else
-  if token='DR2' then result:=registerDR else
-  if token='DR3' then result:=registerDR else
-  if token='DR4' then result:=registerDR else
-  if token='DR5' then result:=registerDR else
-  if token='DR6' then result:=registerDR else
-  if token='DR7' then result:=registerDR;
+  if token='DR0' then result:=ttRegisterDR else
+  if token='DR1' then result:=ttRegisterDR else
+  if token='DR2' then result:=ttRegisterDR else
+  if token='DR3' then result:=ttRegisterDR else
+  if token='DR4' then result:=ttRegisterDR else
+  if token='DR5' then result:=ttRegisterDR else
+  if token='DR6' then result:=ttRegisterDR else
+  if token='DR7' then result:=ttRegisterDR;
 
 end;
 
-function gettokentype(var token:string;token2: string):integer;
+function gettokentype(var token:string;token2: string): TTokenType;
 var i,err: integer;
     temp:string;
 begin
-  result:=0;
+  result:=ttInvalidtoken;
   if length(token)=0 then exit;
 
   result:=tokenToRegisterbit(token);
@@ -1783,79 +1793,81 @@ begin
   val(temp,i,err);
   if err=0 then
   begin
-    result:=value;
+    result:=ttValue;
     token:=temp;
   end;
 
   //see if it is a memorylocation
   //can start with [ or ptr [
 
-  if pos('[',token)>0 then result:=memorylocation;
-  if (pos('BYTE PTR [',token)>0) then result:=memorylocation8;
-  if (pos('WORD PTR [',token)>0) then result:=memorylocation16;
-  if (pos('DWORD PTR [',token)>0) then result:=memorylocation32;
-  if (pos('QWORD PTR [',token)>0) then result:=memorylocation64;
-  if (pos('TBYTE PTR [',token)>0) then result:=memorylocation80;
-  if (pos('TWORD PTR [',token)>0) then result:=memorylocation80;
-  if (pos('DQWORD PTR [',token)>0) then result:=memorylocation128;
+  if pos('[',token)>0 then result:=ttMemorylocation;
+  if (pos('BYTE PTR [',token)>0) then result:=ttMemorylocation8;
+  if (pos('WORD PTR [',token)>0) then result:=ttMemorylocation16;
+  if (pos('DWORD PTR [',token)>0) then result:=ttMemorylocation32;
+  if (pos('QWORD PTR [',token)>0) then result:=ttMemorylocation64;
+  if (pos('TBYTE PTR [',token)>0) then result:=ttMemorylocation80;
+  if (pos('TWORD PTR [',token)>0) then result:=ttMemorylocation80;
+  if (pos('DQWORD PTR [',token)>0) then result:=ttMemorylocation128;
 
-  if result=memorylocation then
+  if result=ttMemorylocation then
   begin
     if token2='' then
     begin
-      result:=memorylocation32;
+      result:=ttMemorylocation32;
       exit;
     end;
 
     //I need the helper param to figure it out
     case TokenToRegisterbit(token2) of
-      register8bit:  result:=memorylocation8;
-      registersreg,register16bit: result:=memorylocation16;
+      ttRegister8bit:
+        result:=ttMemorylocation8;
+      ttRegistersreg, TTRegister16bit:
+        result:=ttMemorylocation16;
 
-      else result:=memorylocation32;
+      else result:=ttMemorylocation32;
     end;
   end;
 
 end;
 
-function isrm8(parametertype:integer): boolean;
+function isrm8(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=memorylocation8) or (parametertype=register8bit) then result:=true else result:=false;
+  result:=(parametertype=ttMemorylocation8) or (parametertype=ttRegister8bit);
 end;
 
-function isrm16(parametertype:integer): boolean;
+function isrm16(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=memorylocation16) or (parametertype=register16bit) then result:=true else result:=false;
+  result:=(parametertype=ttmemorylocation16) or (parametertype=ttregister16bit);
 end;
 
-function isrm32(parametertype:integer): boolean;
+function isrm32(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=memorylocation32) or (parametertype=register32bit) then result:=true else result:=false;
+  result:=(parametertype=ttmemorylocation32) or (parametertype=ttregister32bit);
 end;
 
-function ismm_m32(parametertype:integer): boolean;
+function ismm_m32(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=registerMM) or (parametertype=memorylocation32) then result:=true else result:=false;
+  result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation32);
 end;
 
-function ismm_m64(parametertype:integer): boolean;
+function ismm_m64(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=registerMM) or (parametertype=memorylocation64) then result:=true else result:=false;
+  result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m32(parametertype:integer): boolean;
+function isxmm_m32(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=registerXMM) or (parametertype=memorylocation32) then result:=true else result:=false;
+  result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation32);
 end;
 
-function isxmm_m64(parametertype:integer): boolean;
+function isxmm_m64(parametertype:TTokenType): boolean;
 begin
-  if (parametertype=registerXMM) or (parametertype=memorylocation64) then result:=true else result:=false;
+  result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m128(parametertype:integer):boolean;
+function isxmm_m128(parametertype:TTokenType):boolean;
 begin
-  if (parametertype=registerxmm) or (parametertype=memorylocation128) then result:=true else result:=false;
+  result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation128);
 end;
 
 function rewrite(var token:string): boolean;
@@ -2494,7 +2506,7 @@ var tokens: ttokens;
     i,j,k,l: integer;
     v,v2: dword;
     mnemonic,nroftokens: integer;
-    paramtype1,paramtype2,paramtype3: integer;
+    paramtype1,paramtype2,paramtype3: TTokenType;
     parameter1,parameter2,parameter3: string;
     vtype,v2type: integer;
 
@@ -2583,6 +2595,7 @@ begin
   //this is just to speed up the finding of the right opcode
   //I could have done a if mnemonic=... then ... else if mnemonic=... then ..., but that would be slow, VERY SLOW
 
+
   if (nroftokens-1)>=mnemonic+1 then parameter1:=tokens[mnemonic+1] else parameter1:='';
   if (nroftokens-1)>=mnemonic+2 then parameter2:=tokens[mnemonic+2] else parameter2:='';
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
@@ -2591,7 +2604,7 @@ begin
   paramtype2:=gettokentype(parameter2,parameter1);
   paramtype3:=gettokentype(parameter3,'');
 
-  if (paramtype1>=memorylocation) and (paramtype1<=memorylocation128) then
+  if (paramtype1>=ttMemorylocation) and (paramtype1<=ttMemorylocation128) then
   begin
     if pos('ES:',parameter1)>0 then
     begin
@@ -2630,7 +2643,7 @@ begin
     end;
   end;
 
-  if (paramtype2>=memorylocation) and (paramtype2<=memorylocation128) then
+  if (paramtype2>=ttMemorylocation) and (paramtype2<=ttMemorylocation128) then
   begin
     if pos('ES:',parameter2)>0 then
     begin
@@ -2674,13 +2687,13 @@ begin
   vtype:=0;
   v2type:=0;
 
-  if paramtype1=value then
+  if paramtype1=ttValue then
   begin
     v:=StrToInt(parameter1);
     vtype:=StringValueToType(parameter1);
   end;
 
-  if paramtype2=value then if v=0 then
+  if paramtype2=ttValue then if v=0 then
   begin
     v:=StrToInt(parameter2);
     vtype:=StringValueToType(parameter2);
@@ -2691,7 +2704,7 @@ begin
     v2type:=StringValueToType(parameter2);
   end;
 
-  if paramtype3=value then if v=0 then
+  if paramtype3=ttValue then if v=0 then
   begin
     v:=StrToInt(parameter3);
     vtype:=StringValueToType(parameter3);
@@ -2785,7 +2798,7 @@ begin
     end;
 
 
-    if (opcodes[j].paramtype1=par_imm8) and (paramtype1=value) then
+    if (opcodes[j].paramtype1=par_imm8) and (paramtype1=ttValue) then
     begin
       //imm8,
       if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
@@ -2864,7 +2877,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_imm16) and (paramtype1=value) then
+    if (opcodes[j].paramtype1=par_imm16) and (paramtype1=ttValue) then
     begin
       //imm16,
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
@@ -2877,7 +2890,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //imm16,imm8,
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -2891,7 +2904,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_imm32) and (paramtype1=value) then
+    if (opcodes[j].paramtype1=par_imm32) and (paramtype1=ttValue) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -2903,7 +2916,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_moffs8) and ((paramtype1=memorylocation8) or (ismemorylocationdefault(parameter1)  ))  then
+    if (opcodes[j].paramtype1=par_moffs8) and ((paramtype1=ttMemorylocation8) or (ismemorylocationdefault(parameter1)  ))  then
     begin
       if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
       begin
@@ -2924,7 +2937,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_moffs16) and ((paramtype1=memorylocation16) or (ismemorylocationdefault(parameter1)  ))  then
+    if (opcodes[j].paramtype1=par_moffs16) and ((paramtype1=ttMemorylocation16) or (ismemorylocationdefault(parameter1)  ))  then
     begin
       if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
       begin
@@ -2945,7 +2958,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_moffs32) and (paramtype1=memorylocation32)  then
+    if (opcodes[j].paramtype1=par_moffs32) and (paramtype1=ttMemorylocation32)  then
     begin
       if (opcodes[j].paramtype2=par_eax) and (parameter2='EAX') then
       begin
@@ -2968,7 +2981,7 @@ begin
 
 
 
-    if (opcodes[j].paramtype1=par_3) and (paramtype1=value) and (v=3) then
+    if (opcodes[j].paramtype1=par_3) and (paramtype1=ttValue) and (v=3) then
     begin
       //int 3
       addopcode(bytes,j);
@@ -2988,7 +3001,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //AL,imm8
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3005,7 +3018,7 @@ begin
 
       end;
 
-      if (opcodes[j].paramtype2=par_moffs8) and ((paramtype2=memorylocation8) or (ismemorylocationdefault(parameter2)  ))  then
+      if (opcodes[j].paramtype2=par_moffs8) and ((paramtype2=ttMemorylocation8) or (ismemorylocationdefault(parameter2)  ))  then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3046,7 +3059,7 @@ begin
       end;
 
       //r16
-      if (opcodes[j].paramtype2=par_r16) and (paramtype2=register16bit) then
+      if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
       begin
         //eax,r32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3064,7 +3077,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
       begin
         //AX,imm16
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3080,7 +3093,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_moffs16) and ((paramtype2=memorylocation16) or (ismemorylocationdefault(parameter2)  ))  then
+      if (opcodes[j].paramtype2=par_moffs16) and ((paramtype2=ttMemorylocation16) or (ismemorylocationdefault(parameter2)  ))  then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3112,7 +3125,7 @@ begin
       end;
 
       //r32
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=register32bit) then
+      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
       begin
         //eax,r32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3129,7 +3142,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //eax,imm8
 
@@ -3142,7 +3155,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
       begin
         //EAX,imm32,
 
@@ -3179,7 +3192,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_moffs32) and ((paramtype2=memorylocation32) or (ismemorylocationdefault(parameter2)  ))  then
+      if (opcodes[j].paramtype2=par_moffs32) and ((paramtype2=ttMemorylocation32) or (ismemorylocationdefault(parameter2)  ))  then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3288,7 +3301,7 @@ begin
 
 
     //r8,
-    if (opcodes[j].paramtype1=par_r8) and (paramtype1=register8bit) then
+    if (opcodes[j].paramtype1=par_r8) and (paramtype1=ttRegister8bit) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -3303,7 +3316,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3330,7 +3343,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_r16) and (paramtype1=register16bit) then
+    if (opcodes[j].paramtype1=par_r16) and (paramtype1=ttRegister16bit) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -3363,7 +3376,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
         begin
@@ -3396,7 +3409,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3422,7 +3435,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           if (opcodes[j].opcode2=eo_ib) then
           begin
@@ -3455,7 +3468,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_r32) and (paramtype1=register32bit) then
+    if (opcodes[j].paramtype1=par_r32) and (paramtype1=ttRegister32bit) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -3499,7 +3512,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=registermm) then
+      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3519,7 +3532,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=registerxmm) then
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
       begin
         //r32,xmm,
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3539,7 +3552,7 @@ begin
 
       end;
 
-      if (opcodes[j].paramtype2=par_cr) and (paramtype2=registercr) then
+      if (opcodes[j].paramtype2=par_cr) and (paramtype2=ttRegistercr) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3549,7 +3562,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_dr) and (paramtype2=registerdr) then
+      if (opcodes[j].paramtype2=par_dr) and (paramtype2=ttRegisterdr) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3571,7 +3584,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='['))) then
+      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3581,7 +3594,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m64(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='['))) then
+      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3591,7 +3604,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_m32) and (paramtype2=memorylocation32) then
+      if (opcodes[j].paramtype2=par_m32) and (paramtype2=ttMemorylocation32) then
       begin
         //r32,m32,
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3635,7 +3648,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           if (opcodes[j].opcode2=eo_ib) then
           begin
@@ -3668,7 +3681,7 @@ begin
 
       end;
 
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3684,7 +3697,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         addopcode(bytes,j);
         createmodrm(bytes,getreg(parameter1),parameter2);
@@ -3696,7 +3709,7 @@ begin
     end;
 
 
-    if (opcodes[j].paramtype1=par_sreg) and (paramtype1=registersreg) then
+    if (opcodes[j].paramtype1=par_sreg) and (paramtype1=ttRegistersreg) then
     begin
       if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
       begin
@@ -3707,9 +3720,9 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_cr) and (paramtype1=registercr) then
+    if (opcodes[j].paramtype1=par_cr) and (paramtype1=ttRegistercr) then
     begin
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=register32bit) then
+      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3720,9 +3733,9 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_dr) and (paramtype1=registerdr) then
+    if (opcodes[j].paramtype1=par_dr) and (paramtype1=ttRegisterdr) then
     begin
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=register32bit) then
+      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3746,7 +3759,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=value) and (v=1) then
+      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
       begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
@@ -3761,7 +3774,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //r/m8,imm8,
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3775,7 +3788,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_r8) and (paramtype2=register8bit) then
+      if (opcodes[j].paramtype2=par_r8) and (paramtype2=ttRegister8bit) then
       begin
         // r/m8,r8
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3799,14 +3812,14 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=value) and (v=1) then
+      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
       begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3823,7 +3836,7 @@ begin
                 //r/m16,imm16
                 addopcode(bytes,k);
                 createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                add(bytes,[byte(v)]);
+                addword(bytes,word(v));
                 result:=true;
                 exit;
               end;
@@ -3833,13 +3846,13 @@ begin
           //nope, so it IS r/m16,8
           addopcode(bytes,j);
           createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          addword(bytes,word(v));
+          add(bytes,[byte(v)]);
           result:=true;
           exit;
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
       begin
         //r/m16,imm
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -3873,7 +3886,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_r16) and (paramtype2=register16bit) then
+      if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
       begin
         //r/m16,r16,
 
@@ -3891,7 +3904,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter2),parameter1);
@@ -3900,7 +3913,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_sreg) and (paramtype2=registersreg) then
+      if (opcodes[j].paramtype2=par_sreg) and (paramtype2=ttRegistersreg) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3923,14 +3936,14 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=value) and (v=1) then
+      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
       begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         exit;
       end;      
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3964,7 +3977,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
       begin
         //r/m32,imm
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -4005,7 +4018,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=register32bit) then
+      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
       begin
         //r/m32,r32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -4022,7 +4035,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter2),parameter1);
@@ -4032,17 +4045,17 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_mm) and (paramtype1=registermm) then
+    if (opcodes[j].paramtype1=par_mm) and (paramtype1=ttRegistermm) then
     begin
       //mm,xxxxx
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=registermm) then
+      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
       begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,getreg(parameter1),parameter2);
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=registerxmm) then
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
       begin
         //mm,xmm
         addopcode(bytes,j);
@@ -4050,10 +4063,10 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_r32_m16) and ( (paramtype1=register32bit) or (paramtype2=memorylocation16) or ismemorylocationdefault(parameter2) ) then
+      if (opcodes[j].paramtype2=par_r32_m16) and ( (paramtype1=ttRegister32bit) or (paramtype2=ttMemorylocation16) or ismemorylocationdefault(parameter2) ) then
       begin
         //mm,r32/m16,
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           //imm8
           addopcode(bytes,j);
@@ -4072,7 +4085,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='['))) then
+      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         //mm,xmm/m64
         addopcode(bytes,j);
@@ -4080,7 +4093,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='['))) then
+      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         //mm,xmm/m128
         addopcode(bytes,j);
@@ -4089,10 +4102,10 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_xmm) and (paramtype1=registerxmm) then
+    if (opcodes[j].paramtype1=par_xmm) and (paramtype1=ttRegisterxmm) then
     begin
       //XMM,
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=value) then
+      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -4103,7 +4116,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=registermm) then
+      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
       begin
         //xmm,xmm
         addopcode(bytes,j);
@@ -4112,7 +4125,7 @@ begin
       end;
 
 
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=registerxmm) then
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
       begin
         //xmm,xmm
         addopcode(bytes,j);
@@ -4120,7 +4133,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_m64) and ((paramtype2=memorylocation64) or (ismemorylocationdefault(parameter2))) then
+      if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
       begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,getreg(parameter1),parameter2);
@@ -4139,7 +4152,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='['))) then
+      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -4161,7 +4174,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           addopcode(bytes,j);
           createmodrm(bytes,getreg(parameter1),parameter2);
@@ -4171,7 +4184,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='[')))  then
+      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
       begin
         //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -4182,7 +4195,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           addopcode(bytes,j);
           createmodrm(bytes,getreg(parameter1),parameter2);
@@ -4192,7 +4205,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=memorylocation32) and (parameter2[1]='[')))  then
+      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -4202,7 +4215,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=value) then
+        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
           addopcode(bytes,j);
           createmodrm(bytes,getreg(parameter1),parameter2);
@@ -4215,7 +4228,7 @@ begin
     end;
 
     //m8
-    if (opcodes[j].paramtype1=par_m8) and ((paramtype1=memorylocation8) or ismemorylocationdefault(parameter1)) then
+    if (opcodes[j].paramtype1=par_m8) and ((paramtype1=ttMemorylocation8) or ismemorylocationdefault(parameter1)) then
     begin
       //m8,xxx
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
@@ -4230,7 +4243,7 @@ begin
     end;
 
     //m16
-    if (opcodes[j].paramtype1=par_m16) and (paramtype1=memorylocation16) then //no check if it is 16 if it is a [xxx], default is 32
+    if (opcodes[j].paramtype1=par_m16) and (paramtype1=ttMemorylocation16) then //no check if it is 16 if it is a [xxx], default is 32
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -4242,7 +4255,7 @@ begin
     end;
 
     //m32
-    if (opcodes[j].paramtype1=par_m32) and (paramtype1=memorylocation32) then //no check if it is 16 if it is a [xxx], default is 32
+    if (opcodes[j].paramtype1=par_m32) and (paramtype1=ttMemorylocation32) then //no check if it is 16 if it is a [xxx], default is 32
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -4261,7 +4274,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=registerxmm) or ismemorylocationdefault(parameter2)  ) then
+      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
       begin
         if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
         begin
@@ -4273,14 +4286,14 @@ begin
     end;
 
 
-    if (opcodes[j].paramtype1=par_m64) and ((paramtype1=memorylocation64) or (paramtype1=memorylocation32)  ) then
+    if (opcodes[j].paramtype1=par_m64) and ((paramtype1=ttMemorylocation64) or (paramtype1=ttMemorylocation32)  ) then
     begin
       //m64,
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
         //m64
         //                                   //check if it is especially designed to be 32 bit, or if it is a default answer (so CAN be 64)
-        if (paramtype1=memorylocation64) or (parameter1[1]='[') then
+        if (paramtype1=ttMemorylocation64) or (parameter1[1]='[') then
         begin
           //verified, it is a 64 bit location, and if it was detected as 32 it was due to defaulting to 32
           addopcode(bytes,j);
@@ -4289,7 +4302,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=registerxmm) or ismemorylocationdefault(parameter2)  ) then
+      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
       begin
         if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
         begin
@@ -4299,7 +4312,7 @@ begin
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=registerxmm) or ismemorylocationdefault(parameter2)  ) then
+      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
       begin
         if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
         begin
@@ -4311,7 +4324,7 @@ begin
 
     end;
 
-    if (opcodes[j].paramtype1=par_m80) and ((paramtype1=memorylocation80) or ((paramtype1=memorylocation32) and (parameter1[1]='[')))  then
+    if (opcodes[j].paramtype1=par_m80) and ((paramtype1=ttMemorylocation80) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -4321,9 +4334,9 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_m128) and ((paramtype1=memorylocation128) or (ismemorylocationdefault(parameter1))) then
+    if (opcodes[j].paramtype1=par_m128) and ((paramtype1=ttMemorylocation128) or (ismemorylocationdefault(parameter1))) then
     begin
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=registerxmm) then
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -4334,7 +4347,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_rel8) and (paramtype1=value) then
+    if (opcodes[j].paramtype1=par_rel8) and (paramtype1=ttValue) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -4400,7 +4413,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_rel32) and (paramtype1=value) then
+    if (opcodes[j].paramtype1=par_rel32) and (paramtype1=ttValue) then
     begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
@@ -4427,7 +4440,7 @@ begin
     if (opcodes[j].paramtype1=par_st0) and ((parameter1='ST(0)') or (parameter1='ST')) then
     begin
       //st(0),
-      if (opcodes[j].paramtype2=par_st) and (paramtype2=registerst) then
+      if (opcodes[j].paramtype2=par_st) and (paramtype2=ttRegisterst) then
       begin
         //st(0),st(x),
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -4445,7 +4458,7 @@ begin
       end;
     end;
 
-    if (opcodes[j].paramtype1=par_st) and (paramtype1=registerst) then
+    if (opcodes[j].paramtype1=par_st) and (paramtype1=ttRegisterst) then
     begin
       //st(0),
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then

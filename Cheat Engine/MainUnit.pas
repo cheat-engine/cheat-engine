@@ -623,6 +623,7 @@ procedure TFlash.Execute;
 var red,green: byte;
     decreasered: boolean;
 begin
+
 {$ifndef ceasinjecteddll}
   freeonterminate:=true; 
   decreasered:=true;
@@ -650,7 +651,7 @@ begin
   end;
 
 {$endif}
-  mainform.Panel7.Color:=clBtnFace;
+  mainform.Panel7.Color:=clBtnFace;        
 end;
 
 constructor TToggleWindows.Create(CreateSuspended: Boolean);
@@ -11137,6 +11138,7 @@ var v1: real48;
                      }
 
 
+
 procedure TMainForm.Label38Click(Sender: TObject);
 const cnt=500000;
 var
@@ -11163,7 +11165,20 @@ var
     lb: tlistbox;
 
     xxx: dword;
+    blaat: tstringlist;
 begin
+blaat:=tstringlist.create;
+blaat.add('//test1');
+blaat.add('/*test2*/');
+blaat.add('/*test3');
+blaat.add('test3b');
+blaat.add('test3c*/');
+blaat.add('alloc(blaaa,123)');
+    {
+with TAutoAssembler2.create do
+  autoassemble(blaat);  }
+
+exit;
 
 asm
   push ax

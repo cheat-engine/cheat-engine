@@ -247,7 +247,7 @@ begin
 end;
 
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray ):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray):boolean;
 type tassembled=record
   address: dword;
   bytes: TAssemblerbytes;
@@ -388,7 +388,9 @@ begin
               except
                 raise exception.Create(s2+' is not a valid size');
               end;
-              symhandler.SetUserdefinedSymbolAllocSize(s1,x);
+
+              //define it here already
+              symhandler.SetUserdefinedSymbolAllocSize(s1,x);              
 
               setlength(globalallocs,length(globalallocs)+1);
               globalallocs[length(globalallocs)-1].address:=symhandler.GetUserdefinedSymbolByName(s1);
@@ -1581,6 +1583,7 @@ end;
 
 
 end.
+
 
 
 

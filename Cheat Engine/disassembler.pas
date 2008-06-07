@@ -9006,11 +9006,11 @@ begin
             begin
               l:=pos(' ',ts2);
               ts3:=copy(ts2,l+1,j2-l-1);
-              valuetype:=TokenToRegisterbit(uppercase(ts3));
-              case valuetype of
-                1: valuetype:=0;
-                2: valuetype:=1;
-                3: valuetype:=2;
+
+              case TokenToRegisterbit(uppercase(ts3)) of
+                ttRegister8Bit: ValueType:=0;
+                ttRegister16Bit: valuetype:=1;
+                ttRegister32Bit: valuetype:=2;
                 else valuetype:=2;
               end;
             end
@@ -9019,11 +9019,11 @@ begin
             begin
               l:=pos('],',ts2);
               ts3:=copy(ts2,l+2,length(ts2)-l-1);
-              valuetype:=TokenToRegisterbit(uppercase(ts3));
-              case valuetype of
-                1: valuetype:=0;
-                2: valuetype:=1;
-                3: valuetype:=2;
+              
+              case TokenToRegisterbit(uppercase(ts3)) of
+                ttRegister8Bit: valuetype:=0;
+                ttRegister16Bit: valuetype:=1;
+                ttRegister32Bit: valuetype:=2;
                 else valuetype:=2;
               end;
             end; //else no ideam check instruction
