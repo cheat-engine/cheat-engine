@@ -3842,11 +3842,11 @@ end;
 procedure TMemoryBrowser.Dissectdata2Click(Sender: TObject);
 begin
 {$ifndef net}
-  if frmstructures=nil then
-    frmstructures:=tfrmstructures.create(self);
-
-  frmstructures.address:=memoryaddress;
-  frmstructures.show;
+  with tfrmstructures.create(self) do
+  begin
+    address:=memoryaddress;
+    show;
+  end;
 {$endif}
 end;
 

@@ -17,11 +17,12 @@ type Tbasestucture=record
                             structurenr: integer; //-1 and lower=base element   (they can't be both -1)
                             bytesize: dword; //size in bytes of how big this element is. (also for base elements)
                           end;
+  end;
 
-end;
-
-type Tstructure=class
+  TfrmStructures = class;
+  Tstructure=class
   private
+    frmStructures: TfrmStructures;
     treeviewused: ttreeview;
     address:dword;
     basestructure: integer;
@@ -33,12 +34,10 @@ type Tstructure=class
                       end;
   public
     procedure refresh;
-    constructor create(treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
+    constructor create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
     destructor destroy; override;
-end;
+  end;
 
-
-type
   TfrmStructures = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -49,9 +48,6 @@ type
     N1: TMenuItem;
     TreeView1: TTreeView;
     Panel1: TPanel;
-    edtAddress: TEdit;
-    Button1: TButton;
-    Button2: TButton;
     PopupMenu1: TPopupMenu;
     Addelement1: TMenuItem;
     updatetimer: TTimer;
@@ -64,6 +60,11 @@ type
     Addtoaddresslist1: TMenuItem;
     Recalculateaddress1: TMenuItem;
     N3: TMenuItem;
+    Panel2: TPanel;
+    Button2: TButton;
+    edtAddress: TEdit;
+    Button1: TButton;
+    Addextraaddress1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -85,6 +86,7 @@ type
     procedure TreeView1DblClick(Sender: TObject);
     procedure Addtoaddresslist1Click(Sender: TObject);
     procedure Recalculateaddress1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     currentstructure: tstructure;
@@ -99,9 +101,6 @@ type
     { Public declarations }
     property address: dword read faddress write setaddress;
   end;
-
-var
-  frmStructures: TfrmStructures;
 
 implementation
 
@@ -118,10 +117,11 @@ begin
   inherited destroy;
 end;
 
-constructor TStructure.create(treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
+constructor TStructure.create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
 var elementnr: integer;
     s: tstructure;
 begin
+  self.frmStructures:=frmStructures;
   self.address:=address;
   self.basestructure:=basestructure;
   self.treeviewused:=treeviewused;
@@ -395,21 +395,23 @@ begin
         objects[i].currentvalue:='->???';
     end;
 
+
     if basestructure<0 then
     begin
-      newtext:=inttohex(elementaddress,8)+' - '+'('+typename+')';
+      newtext:=inttohex(elementaddress-address,4)+' - '+'('+typename+')';
     end
     else
     begin
-      newtext:=inttohex(elementaddress,8)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
+      newtext:=inttohex(elementaddress-address,4)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
     end;
     newtext:=newtext+' ';
 
 
-    while length(newtext)<50 do
+    while length(newtext)<25 do
         newtext:=newtext+' ';
 
-    newtext:=newtext+objects[i].currentvalue;
+
+    newtext:=newtext+inttohex(elementaddress,8)+' : '+objects[i].currentvalue;
 
     //see if a node exists or not, if not create it.
     if objects[i].nodetoupdate=nil then
@@ -691,7 +693,7 @@ begin
 
   treeview1.Items.Clear;
 
-  currentstructure:=tstructure.create(treeview1,treeview1.Items.Add(nil,edtaddress.text+'-'+definedstructures[(sender as tmenuitem).Tag].name),address,(sender as tmenuitem).Tag);
+  currentstructure:=tstructure.create(self, treeview1,treeview1.Items.Add(nil,edtaddress.text+'-'+definedstructures[(sender as tmenuitem).Tag].name),address,(sender as tmenuitem).Tag);
   currentstructure.refresh;
   refreshmenuitems;  
 end;
@@ -920,7 +922,7 @@ begin
 
   //make sure it's a pointer
   if definedstructures[basestruct].structelement[elementnr].pointerto then
-    s.objects[elementnr].child:=tstructure.create(treeview1,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
+    s.objects[elementnr].child:=tstructure.create(self, treeview1,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
 
   currentstructure.refresh;
 end;
@@ -1394,6 +1396,12 @@ begin
       currentstructure.refresh;
     end;
   end;
+end;
+
+procedure TfrmStructures.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  action:=cafree;
 end;
 
 end.

@@ -1,8 +1,8 @@
 object frmStructures: TfrmStructures
-  Left = 546
-  Top = 629
-  Width = 601
-  Height = 356
+  Left = 406
+  Top = 473
+  Width = 614
+  Height = 392
   Caption = 'Memory dissect'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,13 +13,14 @@ object frmStructures: TfrmStructures
   Menu = MainMenu1
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object TreeView1: TTreeView
     Left = 0
     Top = 33
-    Width = 593
-    Height = 269
+    Width = 606
+    Height = 305
     Align = alClient
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -41,38 +42,47 @@ object frmStructures: TfrmStructures
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 593
+    Width = 606
     Height = 33
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
     TabOrder = 1
-    object edtAddress: TEdit
-      Left = 36
-      Top = 4
-      Width = 77
-      Height = 21
+    object Panel2: TPanel
+      Left = 0
+      Top = 0
+      Width = 137
+      Height = 29
+      Align = alLeft
+      BevelOuter = bvNone
       TabOrder = 0
-      Text = '00000000'
-      OnChange = edtAddressChange
-    end
-    object Button1: TButton
-      Left = 116
-      Top = 4
-      Width = 21
-      Height = 21
-      Caption = '+'
-      TabOrder = 1
-      OnClick = Button1Click
-    end
-    object Button2: TButton
-      Left = 12
-      Top = 4
-      Width = 21
-      Height = 21
-      Caption = '-'
-      TabOrder = 2
-      OnClick = Button2Click
+      object Button2: TButton
+        Left = 4
+        Top = 4
+        Width = 21
+        Height = 21
+        Caption = '-'
+        TabOrder = 0
+        OnClick = Button2Click
+      end
+      object edtAddress: TEdit
+        Left = 28
+        Top = 4
+        Width = 77
+        Height = 21
+        TabOrder = 1
+        Text = '00000000'
+        OnChange = edtAddressChange
+      end
+      object Button1: TButton
+        Left = 108
+        Top = 4
+        Width = 21
+        Height = 21
+        Caption = '+'
+        TabOrder = 2
+        OnClick = Button1Click
+      end
     end
   end
   object MainMenu1: TMainMenu
@@ -83,6 +93,10 @@ object frmStructures: TfrmStructures
         Caption = 'New'
         ShortCut = 16462
         OnClick = New1Click
+      end
+      object Addextraaddress1: TMenuItem
+        Caption = 'Add extra address'
+        ShortCut = 16449
       end
       object Open1: TMenuItem
         Caption = 'Open'
