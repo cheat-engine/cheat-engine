@@ -15,25 +15,6 @@ type TTokenType=(
   ttMemoryLocation80, ttMemoryLocation128, ttValue);
 
 
-const invalidtoken=0;
-const register8bit=1;
-const register16bit=2;
-const register32bit=3;
-const registerMM=4;
-const registerXMM=5;
-const registerST=6;
-const registerSreg=7;
-const registerCR=8;
-const registerDR=9;
-const memorylocation=10;  //in case I cant find out (user forgot to say byte ptr, word ptr or dword ptr)`
-const memorylocation8=11;
-const memorylocation16=12;
-const memorylocation32=13;
-const memorylocation64=14;
-const memorylocation80=15;
-const memorylocation128=16;
-const value=17;
-
 //opcode part (bytes)
 type Textraopcode=(eo_none,
                    eo_reg0,eo_reg1,eo_reg2,eo_reg3,eo_reg4,eo_reg5,eo_reg6,eo_reg7, // /digit
@@ -1789,6 +1770,10 @@ begin
 
   result:=tokenToRegisterbit(token);
 
+  //filter these 2 words
+  token:=StringReplace(token,'LONG ','',[rfIgnoreCase]);
+  token:=StringReplace(token,'SHORT ','',[rfIgnoreCase]);  
+
   temp:=ConvertHexStrToRealStr(token);
   val(temp,i,err);
   if err=0 then
@@ -1796,6 +1781,7 @@ begin
     result:=ttValue;
     token:=temp;
   end;
+
 
   //see if it is a memorylocation
   //can start with [ or ptr [
@@ -2056,6 +2042,8 @@ begin
         or (tokens[length(tokens)-1]='DWORD PTR')
         or (tokens[length(tokens)-1]='WORD PTR')
         or (tokens[length(tokens)-1]='BYTE PTR')
+        or (tokens[length(tokens)-1]='SHORT')
+        or (tokens[length(tokens)-1]='LONG')        
         then
         begin
           setlength(tokens,length(tokens)-1)
@@ -2514,6 +2502,7 @@ var tokens: ttokens;
     startoflist,endoflist: integer;
 
     tempstring: string;
+    overrideShort, overrideLong: boolean;
 begin
   {$ifdef checkassembleralphabet}
   for i:=2 to opcodecount do
@@ -2599,6 +2588,9 @@ begin
   if (nroftokens-1)>=mnemonic+1 then parameter1:=tokens[mnemonic+1] else parameter1:='';
   if (nroftokens-1)>=mnemonic+2 then parameter2:=tokens[mnemonic+2] else parameter2:='';
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
+
+  overrideShort:=Pos('SHORT ',parameter1)>0;
+  overrideLong:=Pos('LONG ',parameter1)>0;
 
   paramtype1:=gettokentype(parameter1,parameter2);
   paramtype2:=gettokentype(parameter2,parameter1);
@@ -4382,7 +4374,8 @@ begin
         else
         begin
           //user typed in a direct address
-          if valueTotype(v-address-(opcodes[j].bytes+1))>8 then
+
+          if (not overrideShort) and ((OverrideLong) or (valueTotype(v-address-(opcodes[j].bytes+1))>8) ) then
           begin
             //the user tried to find a relative address out of it's reach
             //see if there is a 32 bit version of the opcode
@@ -4402,6 +4395,8 @@ begin
           end
           else
           begin
+            //8 bit version
+            
             addopcode(bytes,j);
 
             add(bytes,[v-address-(opcodes[j].bytes+1)]);
