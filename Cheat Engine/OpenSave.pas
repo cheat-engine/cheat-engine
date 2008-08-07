@@ -5,7 +5,7 @@ interface
 {$ifdef net}
 uses unit2,dialogs,windows,Classes,Graphics,Controls,commentsunit,advancedoptionsunit,SysUtils,ceclient,netapis,cefuncproc;
 {$else}
-uses mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
+uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
      ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler;
@@ -146,7 +146,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses symbolhandler;
+uses symbolhandler, XMLDoc, XMLIntf;
 
 
 {$ifndef net}
@@ -3360,6 +3360,288 @@ begin
 {$endif}
 end;
 
+procedure LoadXML(filename: string; merge: boolean);
+var newrec: MemoryRecordV6;
+    doc: TXMLDocument;
+    CheatTable: IXMLNode;
+    Entries, Codes, Symbols, Comments: IXMLNode;
+    CheatEntry: IXMLNode;
+    Offsets: IXMLNode;
+
+    tempnode, tempnode2: IXMLNode;
+    i,j: integer;
+    addrecord: boolean;
+begin
+  doc:=TXMLDocument.Create(application);
+  try
+    doc.FileName:=filename;
+    doc.Active:=true;
+    CheatTable:=doc.ChildNodes.FindNode('CheatTable');
+
+    if cheattable<>nil then
+    begin
+      Entries:=cheattable.ChildNodes.FindNode('CheatEntries');
+      Codes:=cheattable.ChildNodes.FindNode('CheatCodes');
+      Symbols:=cheattable.ChildNodes.FindNode('UserdefinedSymbols');
+      Comments:=cheattable.ChildNodes.FindNode('Comments');
+
+      if entries<>nil then
+      begin
+        for i:=0 to entries.ChildNodes.Count-1 do
+        begin
+          CheatEntry:=entries.ChildNodes[i];
+          if CheatEntry.NodeName='CheatEntry' then
+          begin
+            tempnode:=CheatEntry.ChildNodes.FindNode('Description');
+            if tempnode<>nil then
+              newrec.Description:=tempnode.Text
+            else
+              newrec.Description:='...';
+
+
+            newrec.Address:=0;
+            tempnode:=CheatEntry.ChildNodes.FindNode('Address');
+            if tempnode<>nil then
+            begin
+              try
+                newrec.Address:=StrToInt('$'+tempnode.text);
+              except
+
+              end;
+            end;
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('InterpretableAddress');
+            if tempnode<>nil then
+              newrec.interpretableaddress:=tempnode.Text
+            else
+              newrec.interpretableaddress:='';
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('SpecialCode');
+            if tempnode<>nil then
+              newrec.autoassemblescript:=tempnode.Text
+            else
+              newrec.autoassemblescript:='';
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('Type');
+            if tempnode<>nil then
+              newrec.VarType:=tempnode.NodeValue
+            else
+              newrec.VarType:=0;
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('Unicode');
+            if tempnode<>nil then
+              newrec.unicode:=tempnode.Text='1'
+            else
+              newrec.unicode:=false;
+
+            newrec.Bit:=0;
+            newrec.bitlength:=0;
+            tempnode:=CheatEntry.ChildNodes.FindNode('Length');
+            if tempnode<>nil then
+            begin
+              if newrec.VarType in [7,8] then //string,array of byte
+                newrec.Bit:=tempnode.NodeValue;
+
+              if newrec.VarType = 5 then //binary
+                newrec.bitlength:=tempnode.NodeValue;
+            end;
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('Bit');
+            if (tempnode<>nil) and (newrec.VarType = 5) then
+              newrec.Bit:=tempnode.NodeValue;
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('Group');
+            if tempnode<>nil then
+              newrec.Group:=tempnode.NodeValue
+            else
+              newrec.Group:=0;
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('HexadecimalDisplay');
+            if tempnode<>nil then
+              newrec.ShowAsHex:=tempnode.Text='1';
+
+
+            tempnode:=CheatEntry.ChildNodes.FindNode('Pointer');
+            if tempnode<>nil then
+            begin
+              //it's a pointer
+              Offsets:=tempnode.ChildNodes.FindNode('Offsets');
+              setlength(newrec.pointers, Offsets.ChildNodes.Count);
+
+
+              for j:=0 to Offsets.ChildNodes.Count-1 do
+              begin
+                if Offsets.ChildNodes[j].NodeName='Offset' then
+                begin
+                  try
+                    newrec.pointers[j].offset:=strtoint('$'+Offsets.ChildNodes[j].text);
+                  except
+
+                  end;
+                end;
+              end;
+
+              tempnode2:=tempnode.ChildNodes.FindNode('Address');
+              if tempnode2<>nil then
+                newrec.pointers[Offsets.ChildNodes.Count-1].Address:=strtoint('$'+tempnode2.text);
+
+
+              tempnode2:=tempnode.ChildNodes.FindNode('InterpretableAddress');
+              if tempnode2<>nil then
+                newrec.pointers[Offsets.ChildNodes.Count-1].Interpretableaddress:=tempnode2.Text;
+
+              newrec.IsPointer:=true;
+            end;
+
+            addrecord:=true;
+            if merge then
+            begin
+              //find it in the current list, if it is in, dont add
+              for j:=0 to mainform.NumberOfRecords-1 do
+              begin
+                if (mainform.memrec[j].Address=newrec.Address) and (mainform.memrec[j].VarType=newrec.VarType) then
+                begin
+                  if (newrec.VarType=5) then
+                    if (newrec.Bit<>mainform.memrec[j].bit) or (newrec.bitlength<>mainform.memrec[j].bitlength) then continue;
+                  addrecord:=false;
+                  break;
+                end;
+              end;
+            end;
+
+            if addrecord then
+            begin
+              with mainform do
+              begin
+                inc(numberofrecords);
+                reservemem;
+                memrec[numberofrecords-1].Description:=newrec.Description;
+                memrec[numberofrecords-1].Address:=newrec.Address;
+                memrec[numberofrecords-1].interpretableaddress:=newrec.interpretableaddress;
+                memrec[numberofrecords-1].VarType:=newrec.VarType;
+                memrec[numberofrecords-1].unicode:=newrec.Unicode;
+                memrec[numberofrecords-1].Group:=newrec.Group;
+                memrec[numberofrecords-1].Bit:=newrec.Bit;
+                memrec[numberofrecords-1].bitlength:=newrec.bitlength;
+                memrec[numberofrecords-1].Frozen:=false;
+                memrec[numberofrecords-1].FrozenValue:=0;
+                memrec[numberofrecords-1].Frozendirection:=0;
+                memrec[numberofrecords-1].ShowAsHex:=newrec.showashex;
+                memrec[numberofrecords-1].autoassemblescript:=newrec.autoassemblescript;
+
+                memrec[numberofrecords-1].IsPointer:=newrec.IsPointer;
+                setlength(memrec[numberofrecords-1].pointers,length(newrec.pointers));
+                for j:=0 to length(newrec.pointers)-1 do
+                begin
+                  memrec[numberofrecords-1].pointers[j].Address:=newrec.pointers[j].Address;
+                  memrec[numberofrecords-1].pointers[j].offset:=newrec.pointers[j].offset;
+                  memrec[numberofrecords-1].pointers[j].Interpretableaddress:=newrec.pointers[j].Interpretableaddress;
+                end;
+
+              end;
+            end;
+            
+          end;
+        end;
+      end;
+
+      if codes<>nil then
+      begin
+
+      end;
+
+      if symbols<>nil then
+      begin
+
+      end;
+
+      if comments<>nil then
+      begin
+
+      end;
+    end;
+  finally
+    doc.free;
+  end;
+{
+
+      if mainform.memrec[i].ispointer then
+      begin
+        pointers:=CheatRecord.AddChild('Pointer');
+        offsets:=pointers.AddChild('Offsets');
+        for j:=0 to length(mainform.memrec[i].pointers)-1 do
+          offsets.AddChild('Offset').Text:=inttohex(mainform.memrec[i].pointers[j].offset,4);
+
+        j:=length(mainform.memrec[i].pointers)-1;
+        pointers.AddChild('Address').Text:=inttohex(mainform.memrec[i].pointers[j].Address,8);
+        pointers.AddChild('InterpretableAddress').Text:=mainform.memrec[i].pointers[j].interpretableaddress;
+      end;
+
+    end;
+
+    if advancedoptions.numberofcodes>0 then
+    begin
+      codes:=CheatTable.AddChild('CheatCodes');
+      for i:=0 to advancedoptions.numberofcodes-1 do
+      begin
+        CodeRecord:=codes.AddChild('CodeEntry');
+        CodeRecord.AddChild('Description').Text:=advancedoptions.codelist.Items[i];
+        CodeRecord.AddChild('Address').Text:=inttohex(advancedoptions.code[i].Address,8);
+        CodeRecord.AddChild('ModuleName').Text:=advancedoptions.code[i].modulename;
+        CodeRecord.AddChild('ModuleNameOffset').Text:=inttohex(advancedoptions.code[i].offset,4);
+
+        //before
+        CodeBytes:=CodeRecord.AddChild('Before');
+        for j:=0 to length(advancedoptions.code[i].before)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].before[j],2);
+
+        //actual
+        CodeBytes:=CodeRecord.AddChild('Actual');
+        for j:=0 to length(advancedoptions.code[i].actualopcode)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].actualopcode[j],2);
+
+        //after
+        CodeBytes:=CodeRecord.AddChild('After');
+        for j:=0 to length(advancedoptions.code[i].after)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].after[j],2);
+      end;
+    end;
+
+    sl:=tstringlist.Create;
+    try
+      symhandler.EnumerateUserdefinedSymbols(sl);
+      if sl.Count>0 then
+      begin
+        symbols:=CheatTable.AddChild('UserdefinedSymbols');
+        for i:=0 to sl.Count-1 do
+        begin
+
+          SymbolRecord:=symbols.AddChild('SymbolEntry');
+          SymbolRecord.AddChild('Name').Text:=sl[i];
+
+          extradata:=pointer(sl.Objects[i]);
+          SymbolRecord.AddChild('Address').Text:=IntToHex(extradata.address,8);
+        end;
+      end;
+    finally
+      sl.free;
+    end;
+
+    if comments.memo1.Lines.Count>0 then
+    begin
+      comment:=CheatTable.AddChild('Comments');
+      for i:=0 to comments.Memo1.Lines.Count-1 do
+        comment.AddChild('Comment').Text:=comments.Memo1.Lines[i]
+    end;
+
+    doc.SaveToFile(filename);
+  finally
+    doc.Free;
+  end;
+}
+
+end;
+
 procedure LoadV6(filename: string; ctfile: tfilestream;merge: boolean);
 var newrec: MemoryRecordV6;
     records,pointers: dword;
@@ -5243,6 +5525,7 @@ begin
   if Extension='.CT2' then LoadCT2(filename,merge) else
   if Extension='.CT3' then LoadCT3(filename,merge) else
   if Extension='.CT' then LoadCT(filename,merge) else
+  if Extension='.XML' then LoadXML(filename,merge) else
   raise exception.create('Unknown extention');
 
   with mainform do
@@ -5287,12 +5570,152 @@ begin
   mainform.editedsincelastsave:=false;
 end;
 
-
-procedure SaveTable(Filename: string);
 type TExtradata=record
   address: dword;
   allocsize: dword;
 end;
+procedure SaveXML(Filename: string);
+var doc: TXMLDocument;
+    CheatTable: IXMLNode;
+    Entries,Codes,Symbols, Comment: IXMLNode;
+    CheatRecord, CodeRecord, SymbolRecord: IXMLNode;
+    CodeBytes: IXMLNode;
+    Offsets: IXMLNode;
+
+    CodeList: IXMLNode;
+    Pointers: IXMLNode;
+    i,j: integer;
+
+    sl: tstringlist;
+    extradata: ^TExtraData;
+    x: dword; 
+begin
+  doc:=TXMLDocument.Create(application);
+  try
+
+    doc.Options:=doc.Options+[doNodeAutoIndent];
+    doc.Active:=true;
+
+    CheatTable:=doc.AddChild('CheatTable');
+
+    Entries:=CheatTable.AddChild('CheatEntries');
+    for i:=0 to mainform.NumberOfRecords-1 do
+    begin
+      CheatRecord:=Entries.AddChild('CheatEntry');
+      CheatRecord.AddChild('Description').Text:=mainform.memrec[i].Description;
+
+      if mainform.memrec[i].VarType<>255 then
+      begin
+        //normal address
+        CheatRecord.AddChild('Address').Text:=inttohex(mainform.memrec[i].Address,8);
+
+        if (mainform.memrec[i].interpretableaddress<>'') and
+           (uppercase(mainform.memrec[i].interpretableaddress)<>uppercase(inttohex(mainform.memrec[i].Address,8))) then
+        CheatRecord.AddChild('InterpretableAddress').Text:=mainform.memrec[i].interpretableaddress;
+      end
+      else
+      begin
+        //auto assembler
+        CheatRecord.AddChild('SpecialCode').Text:=mainform.memrec[i].autoassemblescript;
+      end;
+
+      CheatRecord.AddChild('Type').Text:=inttostr(mainform.memrec[i].VarType);
+
+      if mainform.memrec[i].unicode then
+        CheatRecord.AddChild('Unicode').Text:='1';
+
+      if mainform.memrec[i].VarType in [7,8] then
+        CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].Bit);
+
+      if mainform.memrec[i].VarType=5 then
+      begin
+        CheatRecord.AddChild('Bit').Text:=inttostr(mainform.memrec[i].Bit);
+        CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].BitLength);
+      end;
+
+      if mainform.memrec[i].Group>0 then
+        CheatRecord.AddChild('Group').text:=inttostr(mainform.memrec[i].Group);
+        
+      if mainform.memrec[i].ShowAsHex then
+        CheatRecord.AddChild('HexadecimalDisplay').text:='1';
+
+      if mainform.memrec[i].ispointer then
+      begin
+        pointers:=CheatRecord.AddChild('Pointer');
+        offsets:=pointers.AddChild('Offsets');
+        for j:=0 to length(mainform.memrec[i].pointers)-1 do
+          offsets.AddChild('Offset').Text:=inttohex(mainform.memrec[i].pointers[j].offset,4);
+
+        j:=length(mainform.memrec[i].pointers)-1;
+        pointers.AddChild('Address').Text:=inttohex(mainform.memrec[i].pointers[j].Address,8);
+        pointers.AddChild('InterpretableAddress').Text:=mainform.memrec[i].pointers[j].interpretableaddress;
+      end;
+
+    end;
+
+    if advancedoptions.numberofcodes>0 then
+    begin
+      codes:=CheatTable.AddChild('CheatCodes');
+      for i:=0 to advancedoptions.numberofcodes-1 do
+      begin
+        CodeRecord:=codes.AddChild('CodeEntry');
+        CodeRecord.AddChild('Description').Text:=advancedoptions.codelist.Items[i];
+        CodeRecord.AddChild('Address').Text:=inttohex(advancedoptions.code[i].Address,8);
+        CodeRecord.AddChild('ModuleName').Text:=advancedoptions.code[i].modulename;
+        CodeRecord.AddChild('ModuleNameOffset').Text:=inttohex(advancedoptions.code[i].offset,4);
+
+        //before
+        CodeBytes:=CodeRecord.AddChild('Before');
+        for j:=0 to length(advancedoptions.code[i].before)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].before[j],2);
+
+        //actual
+        CodeBytes:=CodeRecord.AddChild('Actual');
+        for j:=0 to length(advancedoptions.code[i].actualopcode)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].actualopcode[j],2);
+
+        //after
+        CodeBytes:=CodeRecord.AddChild('After');
+        for j:=0 to length(advancedoptions.code[i].after)-1 do
+          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].after[j],2);
+      end;
+    end;
+
+    sl:=tstringlist.Create;
+    try
+      symhandler.EnumerateUserdefinedSymbols(sl);
+      if sl.Count>0 then
+      begin
+        symbols:=CheatTable.AddChild('UserdefinedSymbols');
+        for i:=0 to sl.Count-1 do
+        begin
+
+          SymbolRecord:=symbols.AddChild('SymbolEntry');
+          SymbolRecord.AddChild('Name').Text:=sl[i];
+
+          extradata:=pointer(sl.Objects[i]);
+          SymbolRecord.AddChild('Address').Text:=IntToHex(extradata.address,8);
+        end;
+      end;
+    finally
+      sl.free;
+    end;
+
+    if comments.memo1.Lines.Count>0 then
+    begin
+      comment:=CheatTable.AddChild('Comments');
+      for i:=0 to comments.Memo1.Lines.Count-1 do
+        comment.AddChild('Comment').Text:=comments.Memo1.Lines[i]
+    end;
+
+    doc.SaveToFile(filename);
+  finally
+    doc.Free;
+  end;
+end;
+
+procedure SaveTable(Filename: string);
+
 var savefile: File;
     actualwritten: Integer;
     Controle: String[11];
@@ -5307,6 +5730,11 @@ var savefile: File;
     extradata: ^TExtraData;
 begin
 //version=3;
+  if Uppercase(extractfileext(filename))='.XML' then
+  begin
+    SaveXML(filename);
+    exit;
+  end;
 
   if Uppercase(extractfileext(filename))<>'.EXE' then
   begin
@@ -5335,7 +5763,7 @@ begin
 
 
       blockwrite(savefile,mainform.memrec[i].VarType,sizeof(mainform.memrec[i].VarType),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].unicode,sizeof(mainform.memrec[i].unicode),actualwritten);      
+      blockwrite(savefile,mainform.memrec[i].unicode,sizeof(mainform.memrec[i].unicode),actualwritten);
       blockwrite(savefile,mainform.memrec[i].Bit,sizeof(mainform.memrec[i].Bit),actualwritten);
       blockwrite(savefile,mainform.memrec[i].bitlength,sizeof(mainform.memrec[i].bitlength),actualwritten);
       blockwrite(savefile,mainform.memrec[i].Group,sizeof(mainform.memrec[i].Group),actualwritten);

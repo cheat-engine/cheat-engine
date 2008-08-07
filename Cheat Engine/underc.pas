@@ -191,7 +191,7 @@ begin
     //new in 5.5:
     uc_import('int ce_sym_addressToName(unsigned int, void *, int)',@ce_sym_addressToName);
     uc_import('int ce_sym_nameToAddress(void *, unsigned int *)',@ce_WriteProcessMemory);
-    uc_import('int ce_sym_generateAPIHookScript(void *, void *, void *, void *, int)',@ce_sym_generateAPIHookScript);
+    uc_import('int ce_generateAPIHookScript(void *, void *, void *, void *, int)',@ce_generateAPIHookScript);
 {$endif}
 
 //    scriptengine.uc_import('void abracadabra(int)',pointer($7c802442));

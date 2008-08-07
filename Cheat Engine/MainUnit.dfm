@@ -1413,6 +1413,7 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label38'
+      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -2673,22 +2674,22 @@ object MainForm: TMainForm
     DefaultExt = 'CT'
     Filter = 
       'Cheat Engine Tables (*.CET;*.CT2,*.CT3;*.CT)|*.CT;*.CT3;*.CT2;*.' +
-      'CET|Gamehack tables (*.GH)|*.GH|ArtMoney Tables (*.AMT)|*.AMT|Al' +
-      'l files (*.*)|*.*|All supported cheat tables|*.CT;*.CT3;*.CT2;*.' +
-      'CET;*.GH;*.AMT;*.PTR'
+      'CET|Cheat Table XML|*.XML|Gamehack tables (*.GH)|*.GH|ArtMoney T' +
+      'ables (*.AMT)|*.AMT|All files (*.*)|*.*|All supported cheat tabl' +
+      'es|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.PTR;*.XML'
     FilterIndex = 5
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 72
+    Left = 64
     Top = 104
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'CT'
     Filter = 
       'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.EXE)|*.E' +
-      'XE'
+      'XE|Cheat Table XML (*.XML)|*.XML'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     Left = 32
-    Top = 120
+    Top = 104
   end
   object TopDisabler: TTimer
     Enabled = False

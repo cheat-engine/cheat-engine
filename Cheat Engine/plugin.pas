@@ -781,7 +781,7 @@ begin
   exportedfunctions.assembler:=@ce_assembler;
   exportedfunctions.disassembler:=@ce_disassembler;
   exportedfunctions.ChangeRegistersAtAddress:=@ce_ChangeRegistersAtAddress;
-  exportedfunctions.InjectDLL:=@ce_ChangeRegistersAtAddress;
+  exportedfunctions.InjectDLL:=@ce_injectdll;
   exportedfunctions.freezemem:=@ce_freezemem;
   exportedfunctions.unfreezemem:=@ce_unfreezemem;
   exportedfunctions.fixmem:=@ce_fixmem;
@@ -866,7 +866,7 @@ begin
   //version2 init:
   exportedfunctions.sym_nameToAddress:=@ce_sym_nameToAddress;
   exportedfunctions.sym_addressToName:=@ce_sym_addressToName;
-  exportedfunctions.sym_generateAPIHookScript:=@ce_sym_generateAPIHookScript;
+  exportedfunctions.sym_generateAPIHookScript:=@ce_generateAPIHookScript;
 end;
 
 end.

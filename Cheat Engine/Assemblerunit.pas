@@ -2025,8 +2025,9 @@ begin
           tokens[length(tokens)-1]:=copy(opcode,last,i-last);
 
 
-
-        tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+        if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then
+          tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+          
 
         if (tokens[length(tokens)-1]='DQWORD')
         or (tokens[length(tokens)-1]='TBYTE')

@@ -1410,7 +1410,9 @@ begin
       counter:=10000 div 10;
       while (waitforsingleobject(threadhandle,10)=WAIT_TIMEOUT) and (counter>0) do
       begin
-        CheckSynchronize; //handle sychronize while it's waiting 
+        if GetCurrentThreadID = MainThreadID then
+          CheckSynchronize; //handle sychronize calls while it's waiting
+           
         dec(counter);
       end;
 

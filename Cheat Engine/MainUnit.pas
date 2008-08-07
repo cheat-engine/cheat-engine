@@ -9300,13 +9300,11 @@ begin
         Reg.RootKey := HKEY_CURRENT_USER;
         if Reg.OpenKey('\Software\Cheat Engine',false) then
         begin
-          if reg.ReadBool('Protect CE') then
-          begin
-            //open kerneldata.dat and check the version
+          if reg.ValueExists('Protect CE') and reg.ReadBool('Protect CE') then
             ProtectCE;
-          end;
 
-          if reg.ReadBool('StealthOnExecute') then EnableStealth;
+          if reg.ValueExists('StealthOnExecute') and reg.ReadBool('StealthOnExecute') then
+            EnableStealth;            
         end;
       finally
         reg.Free;
@@ -10500,7 +10498,8 @@ begin
   if Opendialog1.Execute then
   begin
     Extension:=uppercase(extractfileext(opendialog1.filename));
-    if (Extension<>'.PTR') and
+    if (Extension<>'.XML') and
+       (Extension<>'.PTR') and
        (Extension<>'.AMT') and
        (Extension<>'.GH') and
        (Extension<>'.CET') and

@@ -882,6 +882,8 @@ begin
         symbolloaderthread.WaitFor; //wait for it to finish if it's still busy
         //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a module
 
+        name:=StringReplace(name,'.','!',[]);
+
         getmem(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
         try
           zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);

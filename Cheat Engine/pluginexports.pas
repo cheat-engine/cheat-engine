@@ -26,7 +26,7 @@ function ce_unfreezemem(id: integer):boolean; stdcall;
 //version 2:
 function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):boolean; stdcall;
 function ce_sym_nameToAddress(name: pchar; address: PDWORD):boolean; stdcall;
-function ce_sym_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
+function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
 
 //function ce_getControlName(controlpointer: pointer; objectname: pchar; maxsize: integer):integer; stdcall;
 
@@ -100,15 +100,25 @@ begin
   end;
 end;  }
 
-function ce_sym_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
+function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
 var s: tstringlist;
 begin
   result:=false;
   s:=tstringlist.create;
   try
     try
-//  procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
       generateAPIHookScript(s,address,addresstojumpto,addresstogetnewcalladdress);
+
+      //now copy the script to the caller
+      if (length(s.Text)+1) > maxscriptsize then
+      begin
+        CopyMemory(script, s.GetText, maxscriptsize)
+      end
+      else
+        CopyMemory(script, s.GetText, length(s.Text)+1);
+
+      script[maxscriptsize]:=#0;
+
       result:=true;
     except
 
@@ -302,6 +312,8 @@ begin
     dllname_s:=dllname;
     functiontocall_s:=functiontocall;
     injectdll(dllname_s,functiontocall_s);
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded;
     result:=true;
   except
     result:=false;
