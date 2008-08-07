@@ -3365,12 +3365,22 @@ var newrec: MemoryRecordV6;
     doc: TXMLDocument;
     CheatTable: IXMLNode;
     Entries, Codes, Symbols, Comments: IXMLNode;
-    CheatEntry: IXMLNode;
+    CheatEntry, CodeEntry, SymbolEntry: IXMLNode;
     Offsets: IXMLNode;
 
     tempnode, tempnode2: IXMLNode;
     i,j: integer;
     addrecord: boolean;
+
+    tempbefore: array of byte;
+    tempactual: array of byte;
+    tempafter: array of byte;
+    tempaddress: dword;
+    tempdescription,tempmodulename: string;
+    tempoffset: dword;
+
+    symbolname: string;
+    address: dword;
 begin
   doc:=TXMLDocument.Create(application);
   try
@@ -3547,16 +3557,160 @@ begin
 
       if codes<>nil then
       begin
+        for i:=0 to codes.ChildNodes.Count-1 do
+        begin
+          CodeEntry:=codes.ChildNodes[i];
+          if CodeEntry.NodeName='CodeEntry' then
+          begin
+            tempnode:=CodeEntry.ChildNodes.FindNode('Description');
+            if tempnode<>nil then
+              tempdescription:=tempnode.Text
+            else
+              tempdescription:='...';
 
+            tempaddress:=0;
+            tempnode:=CodeEntry.ChildNodes.FindNode('Address');
+            if tempnode<>nil then
+            begin
+              try
+                tempaddress:=strtoint('$'+tempnode.text);
+              except
+
+              end;
+            end;
+
+            tempnode:=CodeEntry.ChildNodes.FindNode('ModuleName');
+            if tempnode<>nil then
+              tempmodulename:=tempnode.Text
+            else
+              tempmodulename:='';
+
+            tempoffset:=0;
+            tempnode:=CodeEntry.ChildNodes.FindNode('ModuleNameOffset');
+            if tempnode<>nil then
+            begin
+              try
+                tempoffset:=strtoint('$'+tempnode.text);
+              except
+
+              end;
+            end;
+
+            tempnode:=CodeEntry.ChildNodes.FindNode('Before');
+            if tempnode<>nil then
+            begin
+              setlength(tempbefore,tempnode.ChildNodes.Count);
+              for j:=0 to tempnode.ChildNodes.Count-1 do
+              begin
+                try
+                  tempbefore[j]:=strtoint('$'+tempnode.ChildNodes[j].Text);
+                except
+
+                end;
+              end;
+            end else setlength(tempbefore,0);
+
+            tempnode:=CodeEntry.ChildNodes.FindNode('Actual');
+            if tempnode<>nil then
+            begin
+              setlength(tempactual,tempnode.ChildNodes.Count);
+              for j:=0 to tempnode.ChildNodes.Count-1 do
+              begin
+                try
+                  tempactual[j]:=strtoint('$'+tempnode.ChildNodes[j].Text);
+                except
+
+                end;
+              end;
+            end else setlength(tempactual,0);
+
+            tempnode:=CodeEntry.ChildNodes.FindNode('After');
+            if tempnode<>nil then
+            begin
+              setlength(tempafter,tempnode.ChildNodes.Count);
+              for j:=0 to tempnode.ChildNodes.Count-1 do
+              begin
+                try
+                  tempafter[j]:=strtoint('$'+tempnode.ChildNodes[j].Text);
+                except
+
+                end;
+              end;
+            end else setlength(tempafter,0);
+
+          end;
+
+          with advancedoptions do
+          begin
+            inc(numberofcodes);
+            setlength(code,numberofcodes);
+
+            setlength(code[numberofcodes-1].before,length(tempbefore));
+            for j:=0 to length(tempbefore)-1 do
+              code[numberofcodes-1].before[j]:=tempbefore[j];
+
+            setlength(code[numberofcodes-1].actualopcode,length(tempactual));
+            for j:=0 to length(tempactual)-1 do
+              code[numberofcodes-1].actualopcode[j]:=tempactual[j];
+
+            setlength(code[numberofcodes-1].after,length(tempafter));
+            for j:=0 to length(tempafter)-1 do
+              code[numberofcodes-1].after[j]:=tempafter[j];
+
+            code[numberofcodes-1].Address:=tempaddress;
+            code[numberofcodes-1].modulename:=tempmodulename;
+            code[numberofcodes-1].offset:=tempoffset;
+
+            codelist.Items.Add(tempdescription);
+          end;
+
+        end;
       end;
 
       if symbols<>nil then
       begin
+        for i:=0 to symbols.ChildNodes.Count-1 do
+        begin
+          SymbolEntry:=symbols.ChildNodes[i];
+          if SymbolEntry.NodeName='SymbolEntry' then
+          begin
+            tempnode:=SymbolEntry.ChildNodes.FindNode('Name');
+            if tempnode<>nil then
+              symbolname:=tempnode.Text
+            else
+              symbolname:='...';
 
+            address:=0;
+            tempnode:=SymbolEntry.ChildNodes.FindNode('Address');
+            if tempnode<>nil then
+            begin
+              try
+                address:=strtoint('$'+tempnode.Text);
+              except
+
+              end;
+            end;
+
+            try
+              symhandler.DeleteUserdefinedSymbol(symbolname);
+              symhandler.AddUserdefinedSymbol(address,symbolname);
+            except
+
+            end;
+          end;
+        end;
       end;
 
       if comments<>nil then
       begin
+        Commentsunit.Comments.Memo1.Lines.Add(filename);
+        Commentsunit.Comments.Memo1.Lines.Add('---');
+
+        for i:=0 to comments.ChildNodes.Count-1 do
+        begin
+          if comments.ChildNodes[i].NodeName='Comment' then
+            Commentsunit.Comments.Memo1.Lines.Add(comments.ChildNodes[i].Text);
+        end;
 
       end;
     end;
@@ -3565,67 +3719,10 @@ begin
   end;
 {
 
-      if mainform.memrec[i].ispointer then
-      begin
-        pointers:=CheatRecord.AddChild('Pointer');
-        offsets:=pointers.AddChild('Offsets');
-        for j:=0 to length(mainform.memrec[i].pointers)-1 do
-          offsets.AddChild('Offset').Text:=inttohex(mainform.memrec[i].pointers[j].offset,4);
 
-        j:=length(mainform.memrec[i].pointers)-1;
-        pointers.AddChild('Address').Text:=inttohex(mainform.memrec[i].pointers[j].Address,8);
-        pointers.AddChild('InterpretableAddress').Text:=mainform.memrec[i].pointers[j].interpretableaddress;
-      end;
 
-    end;
 
-    if advancedoptions.numberofcodes>0 then
-    begin
-      codes:=CheatTable.AddChild('CheatCodes');
-      for i:=0 to advancedoptions.numberofcodes-1 do
-      begin
-        CodeRecord:=codes.AddChild('CodeEntry');
-        CodeRecord.AddChild('Description').Text:=advancedoptions.codelist.Items[i];
-        CodeRecord.AddChild('Address').Text:=inttohex(advancedoptions.code[i].Address,8);
-        CodeRecord.AddChild('ModuleName').Text:=advancedoptions.code[i].modulename;
-        CodeRecord.AddChild('ModuleNameOffset').Text:=inttohex(advancedoptions.code[i].offset,4);
 
-        //before
-        CodeBytes:=CodeRecord.AddChild('Before');
-        for j:=0 to length(advancedoptions.code[i].before)-1 do
-          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].before[j],2);
-
-        //actual
-        CodeBytes:=CodeRecord.AddChild('Actual');
-        for j:=0 to length(advancedoptions.code[i].actualopcode)-1 do
-          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].actualopcode[j],2);
-
-        //after
-        CodeBytes:=CodeRecord.AddChild('After');
-        for j:=0 to length(advancedoptions.code[i].after)-1 do
-          CodeBytes.AddChild('Byte').Text:=inttohex(advancedoptions.code[i].after[j],2);
-      end;
-    end;
-
-    sl:=tstringlist.Create;
-    try
-      symhandler.EnumerateUserdefinedSymbols(sl);
-      if sl.Count>0 then
-      begin
-        symbols:=CheatTable.AddChild('UserdefinedSymbols');
-        for i:=0 to sl.Count-1 do
-        begin
-
-          SymbolRecord:=symbols.AddChild('SymbolEntry');
-          SymbolRecord.AddChild('Name').Text:=sl[i];
-
-          extradata:=pointer(sl.Objects[i]);
-          SymbolRecord.AddChild('Address').Text:=IntToHex(extradata.address,8);
-        end;
-      end;
-    finally
-      sl.free;
-    end;
 
     if comments.memo1.Lines.Count>0 then
     begin
@@ -3841,7 +3938,7 @@ begin
     ctfile.Position:=11;
     ctfile.ReadBuffer(j,4);
     ctfile.Position:=i;
-    
+
     if j=7 then
     begin
       //version 7 also contains some stuff about symbols
@@ -5903,4 +6000,5 @@ end;
 
 
 end.
+
 
