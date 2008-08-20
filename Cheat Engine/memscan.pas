@@ -1326,10 +1326,7 @@ begin
   //create the events
   datawritten:=tevent.Create(nil,false,true,'');
   dataavailable:=tevent.create(nil,false,false,'');
-   {
-  cAddressFile:=TCompressionStream.Create(clNone,AddressFile);
-  cMemoryFile:=TCompressionStream.Create(clNone,MemoryFile);
-         }
+
   inherited create(false); //start it  
 end;
 
@@ -3499,8 +3496,7 @@ begin
   //send message saying it's done
   isdone:=true;
   postMessage(notifywindow,notifymessage,err,0);
-  
-  //sleep(random(2000)); //stress emulation test
+
 
   if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
   begin
@@ -3521,8 +3517,6 @@ begin
   if scantype=stFirstScan then
     OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
 
-  
-  //sleep(random(2000)); //stress emulation test
 
   //clean up secondary scanner threads, their destructor will close and delete their files
   scannersCS.enter;

@@ -745,7 +745,7 @@ begin
     repeat
       Inc(Run);
     until fLine[Run] in [#0, #10, #13];
-  end
+  end {
   else
   if fline[run] = '*' then
   begin
@@ -759,7 +759,7 @@ begin
         if not (fLine[Run] in [#0, #10, #13]) then
           AnsiProc;
       end;
-  end
+  end }
   else fTokenID := tkSymbol;
 end;
 

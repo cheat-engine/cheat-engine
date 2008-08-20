@@ -1413,7 +1413,6 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label38'
-      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel

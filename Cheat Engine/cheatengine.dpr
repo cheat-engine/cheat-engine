@@ -135,7 +135,8 @@ uses
   frmFunctionlistUnit in 'frmFunctionlistUnit.pas' {frmFunctionList},
   FileMapping in 'FileMapping.pas',
   FormsExtra in 'FormsExtra.pas',
-  speedhack2 in 'speedhack2.pas';
+  speedhack2 in 'speedhack2.pas',
+  autoassembler2 in 'autoassembler2.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -145,7 +146,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.4';
+  Application.Title := 'Cheat Engine 5.4.2';
   Application.HelpFile := 'CHEAT ENGINE.HLP';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);

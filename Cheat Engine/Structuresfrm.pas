@@ -1209,6 +1209,8 @@ var
   i: integer;
   a: dword;
 begin
+
+
   selectednode:=treeview1.Selected;
   if selectednode<>nil then
   begin

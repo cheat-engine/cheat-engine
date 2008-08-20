@@ -3717,25 +3717,7 @@ begin
   finally
     doc.free;
   end;
-{
 
-
-
-
-
-
-    if comments.memo1.Lines.Count>0 then
-    begin
-      comment:=CheatTable.AddChild('Comments');
-      for i:=0 to comments.Memo1.Lines.Count-1 do
-        comment.AddChild('Comment').Text:=comments.Memo1.Lines[i]
-    end;
-
-    doc.SaveToFile(filename);
-  finally
-    doc.Free;
-  end;
-}
 
 end;
 

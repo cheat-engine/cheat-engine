@@ -11136,36 +11136,33 @@ var v1: real48;
     v6: Currency;
                      }
 
+var xxxb: integer;
 
+procedure xxxa; stdcall;
+asm
+  pushad
+  mov [xxxb],eax
+  popad
+end;
 
 procedure TMainForm.Label38Click(Sender: TObject);
-const cnt=500000;
-var
-    buf: pchar;
-    actualread: dword;
-    a: int64;
-    b: int64;
-    c,d: int64;
 
-    total: uint64;
-    i,j: integer;
-    fc: integer;
-    tc1: dword;
-    tc2: dword;
-
-    bytes: tbytes;
-
-    offsets: array of dword;
-
-    xa,xb: dword;
-    pr: dword;
-
-    ba: array of boolean;
-    lb: tlistbox;
-
-    xxx: dword;
-    blaat: tstringlist;
 begin
+
+
+  {
+asm
+  pushfd
+  pop eax
+  and eax,$100
+  push eax
+  popfd
+  db $cc
+end;  }
+exit;
+          
+        {
+
 blaat:=tstringlist.create;
 blaat.add('//test1');
 blaat.add('/*test2*/');

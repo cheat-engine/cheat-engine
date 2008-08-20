@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 471
-  Top = 376
+  Left = 301
+  Top = 271
   Width = 673
   Height = 565
   HelpContext = 12

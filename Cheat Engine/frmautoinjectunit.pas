@@ -18,7 +18,8 @@ uses
   psvCPlusPlus,
   underc,
   {$endif}
-  assemblerunit, autoassembler, symbolhandler;
+  assemblerunit, autoassembler, symbolhandler,
+  SynEdit, SynEditSearch, SynHighlighterAA;
 
 
 
@@ -32,7 +33,6 @@ type
     Save1: TMenuItem;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
-    N1: TMenuItem;
     Exit1: TMenuItem;
     Assigntocurrentcheattable1: TMenuItem;
     emplate1: TMenuItem;
@@ -44,7 +44,6 @@ type
     Coderelocation1: TMenuItem;
     TabControl1: TTabControl;
     New1: TMenuItem;
-    assemblescreen: TRichEdit;
     N2: TMenuItem;
     Syntaxhighlighting1: TMenuItem;
     closemenu: TPopupMenu;
@@ -60,6 +59,8 @@ type
     N6: TMenuItem;
     FindDialog1: TFindDialog;
     undotimer: TTimer;
+    View1: TMenuItem;
+    Leftborder1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -94,6 +95,9 @@ type
     procedure Undo1Click(Sender: TObject);
   private
     { Private declarations }
+    AAHighlighter: TSynAASyn;
+    assembleSearch: TSynEditSearch;
+
     updating: boolean;
     pagecontrol: tpagecontrol;
     oldtabindex: integer;
@@ -116,6 +120,7 @@ type
     procedure injectscript(createthread: boolean);
   public
     { Public declarations }
+    assemblescreen: TSynEdit;
     editscript: boolean;
     editscript2: boolean;
     callbackroutine: procedure(script: string; changed: boolean) of object;
@@ -314,12 +319,18 @@ end;
 var address: string;
     addressdw: dword;
     originalcode: array of string;
+    originalbytes: array of byte;
     codesize: integer;
     a,b: dword;
     x: string;
     i,j,k: integer;
     prev_usesymbols: boolean;
     injectnr: integer;
+
+    enablepos: integer;
+    disablepos: integer;
+    enablecode: tstringlist;
+    disablecode: tstringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
   a:=memorybrowser.dselected;
@@ -370,36 +381,83 @@ begin
       codesize:=a-b;
     end;
 
-    with assemblescreen.lines do
-    begin
-      add('alloc(newmem'+inttostr(injectnr)+',2048) //2kb should be enough');
-      add('label(returnhere'+inttostr(injectnr)+')');
-      add('label(originalcode'+inttostr(injectnr)+')');
-      add('label(exit'+inttostr(injectnr)+')');
-      add('');
-      add(address+':');
-      add('jmp newmem'+inttostr(injectnr)+'');
-      while codesize>5 do
+    setlength(originalbytes,codesize);
+    ReadProcessMemory(processhandle, pointer(b), @originalbytes[0], codesize, a);
+
+    enablecode:=tstringlist.Create;
+    disablecode:=tstringlist.Create;
+    try
+      with enablecode do
       begin
-        add('nop');
-        dec(codesize);
+        add('alloc(newmem'+inttostr(injectnr)+',2048) //2kb should be enough');
+        add('label(returnhere'+inttostr(injectnr)+')');
+        add('label(originalcode'+inttostr(injectnr)+')');
+        add('label(exit'+inttostr(injectnr)+')');
+        add('');
+        add(address+':');
+        add('jmp newmem'+inttostr(injectnr)+'');
+        while codesize>5 do
+        begin
+          add('nop');
+          dec(codesize);
+        end;
+
+        add('returnhere'+inttostr(injectnr)+':');
+        add('');
+        add('newmem'+inttostr(injectnr)+': //this is allocated memory, you have read,write,execute access');
+        add('//place your code here');
+
+        add('');
+        add('');
+        add('originalcode'+inttostr(injectnr)+':');
+        for i:=0 to length(originalcode)-1 do
+          add(originalcode[i]);
+        add('');
+        add('exit'+inttostr(injectnr)+':');
+        add('jmp returnhere'+inttostr(injectnr)+'');
       end;
 
-      add('returnhere'+inttostr(injectnr)+':');
-      add('');
-      add('newmem'+inttostr(injectnr)+': //this is allocated memory, you have read,write,execute access');
-      add('//place your code here');
+      with disablecode do
+      begin
+        add('dealloc(newmem'+inttostr(injectnr)+')');
+        add(address+':');
+        for i:=0 to length(originalcode)-1 do
+          add(originalcode[i]);
+        x:='db';
+        for i:=0 to codesize-1 do
+          x:=x+' '+inttohex(originalbytes[i],2);
+        add('//Alt: '+x);
+      end;
 
-      add('');
-      add('');
-      add('originalcode'+inttostr(injectnr)+':');
-      for i:=0 to length(originalcode)-1 do
-        add(originalcode[i]);
-      add('');
-      add('exit'+inttostr(injectnr)+':');
-      add('jmp returnhere'+inttostr(injectnr)+'');
+      getenableanddisablepos(assemblescreen.lines,enablepos,disablepos);
+      //skip first comment(s)
+      if enablepos>=0 then
+      begin
+        while enablepos<assemblescreen.lines.Count-1 do
+        begin
+          if pos('//',trim(assemblescreen.Lines[enablepos+1]))=1 then inc(enablepos) else break;
+        end;
+      end;
 
+      for i:=enablecode.Count-1 downto 0 do
+        assemblescreen.Lines.Insert(enablepos+1,enablecode[i]);
 
+      getenableanddisablepos(assemblescreen.lines,enablepos,disablepos);
+      //skip first comment(s)
+      if disablepos>=0 then
+      begin
+        while disablepos<assemblescreen.lines.Count-1 do
+        begin
+          if pos('//',trim(assemblescreen.Lines[disablepos+1]))=1 then inc(enablepos) else break;
+            inc(disablepos);
+        end;
+        //only if there actually is a disable section place this code
+        for i:=disablecode.Count-1 downto 0 do
+          assemblescreen.Lines.Insert(disablepos+1,disablecode[i]);
+      end;
+    finally
+      enablecode.free;
+      disablecode.Free;
     end;
 
   end;
@@ -427,16 +485,19 @@ end;
 
 procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
 {$ifndef standalonetrainerwithassembler}
+{
 var
   TempMS: TMemoryStream;
   FSyntax: TpsvAARTF;
   FSyntax2: TpsvCppRTF;
   pos, top: Integer;
   OnChange: TNotifyEvent;
+  }
 {$endif}
 begin
+
 {$ifndef standalonetrainerwithassembler}
-  undotimer.enabled:=false;
+{  undotimer.enabled:=false;
   undotimer.enabled:=true; //if no change for 2 seconds the script gets stored
 
   if (Length(assemblescreen.Text) <= 0) then
@@ -500,8 +561,9 @@ begin
     TempMS.Free;
     assemblescreen.Lines.EndUpdate;
     assemblescreen.OnChange := OnChange;
-  end;
+  end;   }
 {$endif}
+
 end;
 
 
@@ -563,6 +625,7 @@ var originalcode: array of string;
     a,b: dword;
     x: string;
 begin
+{$ifndef standalonetrainerwithassembler}
   //disassemble the old code
   setlength(originalcode,0);
 
@@ -627,6 +690,7 @@ begin
 
 
   end;
+{$endif}
 end;
 
 
@@ -708,11 +772,11 @@ end;
 procedure TfrmAutoInject.assemblescreenKeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
-   if (ssCtrl in Shift) and (key=ord('A'))  then
+{   if (ssCtrl in Shift) and (key=ord('A'))  then
    begin
      TMemo(Sender).SelectAll;
      Key := 0;
-   end;
+   end; }
 end;
 
 procedure TfrmAutoInject.Coderelocation1Click(Sender: TObject);
@@ -856,8 +920,28 @@ begin
   setlength(scripts,1);
   scripts[0].currentundo:=0;
   oldtabindex:=0;
-  assemblescreen.SelStart:=0;
-  assemblescreen.SelLength:=0;
+{  assemblescreen.SelStart:=0;
+  assemblescreen.SelLength:=0; }
+
+  AAHighlighter:=TSynAASyn.Create(self);
+  assembleSearch:=TSyneditSearch.Create(self);
+
+
+  assemblescreen:=TSynEdit.Create(self);
+  assemblescreen.Highlighter:=AAHighlighter;
+  assemblescreen.SearchEngine:=assembleSearch;
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;
+  assemblescreen.WantTabs:=true;
+
+  assemblescreen.Gutter.Visible:=true;
+  assemblescreen.Gutter.ShowLineNumbers:=true;
+  assemblescreen.Gutter.LeftOffset:=1;
+  assemblescreen.Gutter.RightOffset:=1;
+  assemblescreen.Gutter.DigitCount:=3;
+
+  assemblescreen.Align:=alClient;
+  assemblescreen.PopupMenu:=PopupMenu1;
+  assemblescreen.Parent:=tabcontrol1;
 
 end;
 
@@ -876,28 +960,18 @@ procedure TfrmAutoInject.Syntaxhighlighting1Click(Sender: TObject);
 var s: string;
 begin
   Syntaxhighlighting1.checked:=not Syntaxhighlighting1.checked;
-  if Syntaxhighlighting1.checked then
-  begin
-    //enable
-    assemblescreen.OnChange := assemblescreenChange;
-    assemblescreenChange(assemblescreen);
-  end
-  else
-  begin
-    //disable
-    assemblescreen.OnChange := nil;
-    assemblescreen.PlainText := true;
-    s:=assemblescreen.text;
-    assemblescreen.Clear;
-    assemblescreen.text:=s;
-  end;
+  if Syntaxhighlighting1.checked then //enable
+    assemblescreen.Highlighter:=AAHighlighter
+  else //disabl
+    assemblescreen.Highlighter:=nil;
+
 end;
 
 procedure TfrmAutoInject.TabControl1ContextPopup(Sender: TObject;
   MousePos: TPoint; var Handled: Boolean);
 begin
-  selectedtab:=TabControl1.IndexOfTabAt(mousepos.x,mousepos.y);
-  closemenu.Popup(mouse.CursorPos.X,mouse.cursorpos.Y);   
+  //selectedtab:=TabControl1.IndexOfTabAt(mousepos.x,mousepos.y);
+  //closemenu.Popup(mouse.CursorPos.X,mouse.cursorpos.Y);   
 end;
 
 procedure TfrmAutoInject.Close1Click(Sender: TObject);
@@ -1115,12 +1189,8 @@ begin
   start:=assemblescreen.selstart;
   l:=length(assemblescreen.text)-start;
 
-  p:=assemblescreen.FindText(finddialog1.FindText,start,l,[]);
-  if p<>-1 then
-  begin
-    assemblescreen.SelStart:=p;
-    assemblescreen.SelLength:=length(finddialog1.FindText);
-  end;
+
+  assemblescreen.SearchReplace(finddialog1.FindText,'',[]);
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
@@ -1170,6 +1240,8 @@ begin
 end;
 
 end.
+
+
 
 
 

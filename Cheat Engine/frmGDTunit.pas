@@ -76,9 +76,6 @@ var limit: word;
 begin
   address:=getgdt(limit);
 
-  address:=$00400500;
-  limit:=6;
-
   getmem(x,limit*8);
   try
     newkernelhandler.kernelreadprocessmemory(processhandle,pointer(address),x,limit*8,br);
@@ -86,7 +83,7 @@ begin
 
     if br>0 then
     begin
-      for i:=0 to (br div 8)-1 do
+      for i:=0 to (limit div 8)-1 do
       begin
         dissectGDTentry(x[i],segmentlimit_0_15,baseaddress_0_23, segmenttype, dpl,p, segmentlimit_16_19,avl,bigordefault,gran, baseaddress_24_31);
 

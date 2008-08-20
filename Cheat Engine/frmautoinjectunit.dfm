@@ -1,6 +1,6 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 660
-  Top = 265
+  Left = 525
+  Top = 279
   Width = 431
   Height = 331
   HelpContext = 18
@@ -44,29 +44,14 @@ object frmAutoInject: TfrmAutoInject
     Width = 423
     Height = 239
     Align = alClient
-    PopupMenu = closemenu
     Style = tsFlatButtons
     TabOrder = 0
     OnChange = TabControl1Change
     OnContextPopup = TabControl1ContextPopup
-    object assemblescreen: TRichEdit
-      Left = 4
-      Top = 6
-      Width = 415
-      Height = 229
-      Align = alClient
-      HideSelection = False
-      HideScrollBars = False
-      PopupMenu = PopupMenu1
-      ScrollBars = ssBoth
-      TabOrder = 0
-      WordWrap = False
-      OnChange = assemblescreenChange
-    end
   end
   object MainMenu1: TMainMenu
-    Left = 152
-    Top = 56
+    Left = 8
+    Top = 72
     object File1: TMenuItem
       Caption = 'File'
       object New1: TMenuItem
@@ -92,20 +77,23 @@ object frmAutoInject: TfrmAutoInject
         Caption = 'Assign to current cheat table'
         OnClick = Assigntocurrentcheattable1Click
       end
-      object N1: TMenuItem
-        Caption = '-'
-      end
-      object Syntaxhighlighting1: TMenuItem
-        Caption = 'Syntax highlighting'
-        Checked = True
-        OnClick = Syntaxhighlighting1Click
-      end
       object N2: TMenuItem
         Caption = '-'
       end
       object Exit1: TMenuItem
         Caption = 'Exit'
         OnClick = Exit1Click
+      end
+    end
+    object View1: TMenuItem
+      Caption = 'View'
+      object Syntaxhighlighting1: TMenuItem
+        Caption = 'Syntax highlighting'
+        Checked = True
+        OnClick = Syntaxhighlighting1Click
+      end
+      object Leftborder1: TMenuItem
+        Caption = 'Preferences'
       end
     end
     object emplate1: TMenuItem
@@ -145,7 +133,7 @@ object frmAutoInject: TfrmAutoInject
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
     Title = 'Open CE assembly file'
     Left = 8
-    Top = 24
+    Top = 40
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'CEA'
@@ -153,11 +141,11 @@ object frmAutoInject: TfrmAutoInject
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Open CE assembly file'
     Left = 40
-    Top = 24
+    Top = 40
   end
   object PopupMenu1: TPopupMenu
-    Left = 104
-    Top = 64
+    Left = 8
+    Top = 8
     object Cut1: TMenuItem
       Caption = 'Cu&t'
       ShortCut = 16472
@@ -188,22 +176,23 @@ object frmAutoInject: TfrmAutoInject
     end
   end
   object closemenu: TPopupMenu
-    Left = 376
+    Left = 40
+    Top = 8
     object Close1: TMenuItem
       Caption = 'Close'
       OnClick = Close1Click
     end
   end
   object FindDialog1: TFindDialog
-    Options = [frDown, frFindNext, frHideMatchCase, frHideWholeWord, frHideUpDown]
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown]
     OnFind = FindDialog1Find
-    Left = 32
-    Top = 88
+    Left = 8
+    Top = 104
   end
   object undotimer: TTimer
     Interval = 250
     OnTimer = undotimerTimer
-    Left = 264
-    Top = 32
+    Left = 40
+    Top = 72
   end
 end
