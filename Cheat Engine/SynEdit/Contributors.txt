@@ -1,0 +1,40 @@
+Contributors to the SynEdit project, in alphabetical order:
+
+    Ackbar, Andre Mens, Andy Colson, Anthony Steele, Arentjan Banck, Aaron Chan,
+    Bruno Mikkelsen, Colin Laplace, Daniel Parnell, David H. Muir, Dean Harmon,
+    Eden Kirin, Erik B. Berry, Falko Jens Wagner, Flávio Etrusco, 
+    James D. Richardson, Jan Fiala, Jeff Rafter, Johan Visser, Jordan Russell, 
+    Jorg Jans, Jonathan Halterman, Kirys, Lasse Vagsather Karlsen, Leon Brown, 
+    Lorant Toth, Maël Hörz, Marko Njezic, Martin Pley, Massimo Maria Ghisalberti, 
+	  Mattias Gaertner, Michael Beck, Michael Hieke, Mike Gibbard,
+    Morten J. Skovrup, Murad Kakabayev, Pieter Polak, Primoz Gabrijelcic,
+    Roman Silin, Ruggero Bandera, Satya, Stefan van As, Steve Sutherland,
+    Sven Blankenberg, Tony De Buys, Woo Young Bum
+
+
+Most of the files in the SynEdit package are based on mwEdit version 0.92a.
+mwEdit was started by Martin Waldenburg in 1998, but is no longer
+actively maintained.
+
+Contributors to the mwEdit project (up to version 0.92a, in the order
+of appearance):
+
+    Martin Waldenburg
+
+    Woo Young Bum,  Angus Johnson,  Michael Trier,  James Jacobson,
+    Thomas Kurz,  Primoz Gabrijelcic,  Michael Beck,  Andy Jeffries,
+    Edward Kreis,  Brad Stowers,  Willo van der Merwe,  Cyrille de Brebisson,
+    Carlos Wijders,  Kees van Spelde,  Bernt Levinsson,  Ted Berg,
+    Igor Shitikov,  Michael Hieke,  Dragan Grbic,  Lucifer,  Olivier Deckmyn,
+    Luiz C. Vaz de Brito,  Hideo Koiso,  Theodoros Bebekis,  Albert Research,
+    Tony de Buys,  Greg Chapman,  Jeff Corbets,  Heedong Lim,
+    Kieran McNamara,  Martijn van der Kooij,  Jan Jacobs,  ArentJan Banck,
+    Alexander Reiter,  xueyu,  Sebastian J. Gross,  Stefan van As,
+    Vladimir Kuznetsov,  David Muir,  Nick Hoddinott,  Hanai Tohru,
+    Winfried Schöttler,  Hiep Ma,  Daniel Rodríguez Herrera,  Nur Ismail,
+    Peter Adam,  Wynand Breytenbach,  Milan Nikolic,  Robert Persson,
+    John T. Truchon,  Igor P. Zenkov,  Odilon Nelson,  Martijn Tonies,
+    Eden Kirin,  Max Horváth,  riceball,  Ewart Nijburg,  Nils Springob,
+    Jeff D. Smith,  Pavel Krehula,  Peter Wolters
+
+$Id: Contributors.txt,v 1.2 2007/01/25 06:29:30 etrusco Exp $

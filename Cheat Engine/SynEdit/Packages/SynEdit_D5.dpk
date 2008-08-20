@@ -1,0 +1,37 @@
+package SynEdit_D5;
+
+{$R *.RES}
+{$R '..\Source\SynEditReg.dcr'}
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'SynEdit component suite'}
+{$IMPLICITBUILD OFF}
+
+requires
+  SynEdit_R5;
+
+contains
+  SynEditReg in '..\Source\SynEditReg.pas',
+  SynEditPropertyReg in '..\Source\SynEditPropertyReg.pas',
+  SynHighlighterManager in '..\Source\SynHighlighterManager.pas';
+
+end.

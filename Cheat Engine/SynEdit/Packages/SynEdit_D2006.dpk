@@ -1,0 +1,41 @@
+package SynEdit_D2006;
+
+{ $Id: SynEdit_D2006.dpk,v 1.1 2005/12/31 07:34:36 skyweb Exp $ }
+
+{$R *.res}
+{$R '..\Source\SynEditReg.dcr'}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'SynEdit component suite'}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  designide,
+  SynEdit_R2006;
+
+contains
+  SynEditReg in '..\Source\SynEditReg.pas',
+  SynEditPropertyReg in '..\Source\SynEditPropertyReg.pas',
+  SynHighlighterManager in '..\Source\SynHighlighterManager.pas';
+
+end.
