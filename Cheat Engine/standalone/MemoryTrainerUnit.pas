@@ -6,8 +6,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls,settingsunit,tlhelp32,shellapi,math,extratrainercomponents,
-  userdefinedformunit, XPMan,newkernelhandler, symbolhandler,frmautoinjectunit,
-  cefuncproc,autoassembler,hotkeyhandler;
+  userdefinedformunit, XPMan,newkernelhandler, symbolhandler, cefuncproc,
+  autoassembler,hotkeyhandler;
 
 
 
