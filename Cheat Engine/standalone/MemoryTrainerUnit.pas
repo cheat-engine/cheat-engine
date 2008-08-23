@@ -1923,7 +1923,7 @@ begin
   if (sender is timage) then
     cheatnr:=tlabel(sender).tag;
 
-  cheatnr:=cheatnr-5;
+  cheatnr:=cheatnr;
   m.HotKey:=cheatnr;
   hotkeyhandler(m);
 end; //onclick event
