@@ -94,10 +94,10 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=
+SearchPath=.\SynEdit\Source
 Packages=vcl;rtl;vclx;indy;inet;xmlrtl;vclie;inetdbbde;inetdbxpress;dbrtl;dsnap;dsnapcon;vcldb;soaprtl;VclSmp;dbexpress;dbxcds;inetdb;bdertl;vcldbx;webdsnap;websnap;adortl;ibxpress;teeui;teedb;tee;dss;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;Rave50CLX;Rave50VCL;dclOfficeXP;insppkgd7;DBInspPkgd7;Ecomp
-Conditionals=cemain
-DebugSourceDirs=
+Conditionals=cemain;DEBUG
+DebugSourceDirs=C:\svnx\Cheat Engine\SynEdit\Source\
 UsePackages=0
 [Parameters]
 RunParams=
@@ -187,8 +187,8 @@ IncludeVerInfo=1
 AutoIncBuild=1
 MajorVer=5
 MinorVer=4
-Release=0
-Build=5
+Release=2
+Build=36
 Debug=0
 PreRelease=0
 Special=0
@@ -199,7 +199,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Cheat Engine 5.4
-FileVersion=5.4.0.5
+FileVersion=5.4.2.36
 InternalName=CheatEngine
 LegalCopyright=none
 LegalTrademarks=-
@@ -207,14 +207,22 @@ OriginalFilename=Cheat Engine.EXE
 ProductName=
 ProductVersion=5.4
 Comments=report bugs and or suggestions to dark_byte@hotmail.com
+[HistoryLists\hlDebugSourcePath]
+Count=1
+Item0=C:\svnx\Cheat Engine\SynEdit\Source\
 [HistoryLists\hlConditionals]
-Count=6
-Item0=cemain
-Item1=beta52
-Item2=DEU
-Item3=RUS
-Item4=debug2
-Item5=debug
+Count=8
+Item0=cemain;DEBUG
+Item1=cemain;debugmemscan
+Item2=cemain
+Item3=beta52
+Item4=DEU
+Item5=RUS
+Item6=debug2
+Item7=debug
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=1
+Item0=.\SynEdit\Source

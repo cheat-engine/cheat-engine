@@ -28,7 +28,7 @@ var i: integer;
     x,y: dword;
 begin
   try
-    injectdll(CheatEngineDir+'speedhack\speedhack.dll','');
+    injectdll(CheatEngineDir+'speedhack.dll','');
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded;
   except

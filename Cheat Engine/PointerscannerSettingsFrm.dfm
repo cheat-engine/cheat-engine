@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 409
-  Top = 227
+  Left = 511
+  Top = 303
   Width = 372
   Height = 418
   Caption = 'Pointerscanner scanoptions'
@@ -61,7 +61,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 65
     Height = 21
     TabOrder = 1
-    Text = '1024'
+    Text = '2048'
   end
   object edtAddress: TEdit
     Left = 8
@@ -78,7 +78,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 65
     Height = 21
     TabOrder = 3
-    Text = '1'
+    Text = '5'
   end
   object btnCancel: TButton
     Left = 176

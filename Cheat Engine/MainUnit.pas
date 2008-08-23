@@ -10202,7 +10202,7 @@ var x: dword;
     speedtext: string;
     i: integer;
 begin
-  if formsettings.cbOldSpeedhack.checked then
+  if formsettings.cbOldSpeedhack.checked=false then
   begin
     editSH2.text:=edit2.Text;
     btnSetSpeedhack2.click;

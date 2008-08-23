@@ -17,9 +17,9 @@ uses
   psvAutoAssembler,
   psvCPlusPlus,
   underc,
+  SynEdit, SynEditSearch, SynHighlighterAA, SynHighlighterCPP,
   {$endif}
-  assemblerunit, autoassembler, symbolhandler,
-  SynEdit, SynEditSearch, SynHighlighterAA, SynHighlighterCPP;
+  assemblerunit, autoassembler, symbolhandler;
 
 
 
@@ -94,9 +94,11 @@ type
     procedure AAPref1Click(Sender: TObject);
   private
     { Private declarations }
+    {$ifndef standalonetrainerwithassembler}
     AAHighlighter: TSynAASyn;
     CPPHighlighter: TSynCppSyn;
     assembleSearch: TSynEditSearch;
+    {$endif}
 
     updating: boolean;
     pagecontrol: tpagecontrol;
@@ -120,7 +122,9 @@ type
     procedure injectscript(createthread: boolean);
   public
     { Public declarations }
+    {$ifndef standalonetrainerwithassembler}
     assemblescreen: TSynEdit;
+    {$endif}
     editscript: boolean;
     editscript2: boolean;
     callbackroutine: procedure(script: string; changed: boolean) of object;
@@ -141,6 +145,7 @@ uses frmAAEditPrefsUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,{$ifdef
 
 procedure TfrmAutoInject.setcplusplus(state: boolean);
 begin
+{$ifndef standalonetrainerwithassembler}
   fcplusplus:=state;
   if state then
   begin
@@ -174,6 +179,7 @@ begin
     inject1.Visible:=false;
     helpcontext:=18; //auto asm help
   end;
+{$endif}
 end;
 
 
@@ -212,11 +218,9 @@ begin
 
   end
   else
-{$endif}
   begin
     if editscript then
     begin
-      {$ifndef standalonetrainerwithassembler}
       //check if both scripts are valid before allowing the edit
 
       setlength(aa,1);
@@ -255,26 +259,28 @@ begin
           if editscript2 then close;
         end;
       end;
-
-      {$endif}
     end else autoassemble(assemblescreen.lines,true);
   end;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Load1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   if opendialog1.Execute then
   begin
     assemblescreen.Clear;
     assemblescreen.Lines.LoadFromFile(opendialog1.filename);
     savedialog1.FileName:=opendialog1.filename;
   end;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Save1Click(Sender: TObject);
 var f: tfilestream;
     s: string;
 begin
+{$ifndef standalonetrainerwithassembler}
   if (savedialog1.filename='') and (not savedialog1.Execute) then exit;   //filename was empty and the user clicked cancel
 
   f:=tfilestream.Create(savedialog1.filename,fmcreate);
@@ -284,6 +290,7 @@ begin
   finally
     f.Free;
   end;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Exit1Click(Sender: TObject);
@@ -294,6 +301,7 @@ end;
 procedure TfrmAutoInject.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
+{$ifndef standalonetrainerwithassembler}
   if not editscript then
   begin
     action:=cafree;
@@ -312,6 +320,7 @@ begin
       action:=cafree;
     end;
   end;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Codeinjection1Click(Sender: TObject);
@@ -477,6 +486,7 @@ end;
 
 procedure TfrmAutoInject.CheatTablecompliantcodee1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   assemblescreen.Lines.Insert(0,'[ENABLE]');
   assemblescreen.Lines.Insert(1,'//code from here to ''[DISABLE]'' will be used to enable the cheat');
   assemblescreen.Lines.Insert(2,'');
@@ -485,6 +495,7 @@ begin
   assemblescreen.Lines.Add(' ');
   assemblescreen.Lines.Add('[DISABLE]');
   assemblescreen.Lines.Add('//code from here till the end of the code will be used to disable the cheat');
+{$endif}  
 end;
 
 procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
@@ -902,6 +913,7 @@ end;
 
 procedure TfrmAutoInject.New1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   scripts[length(scripts)-1].script:=assemblescreen.Text;
   setlength(scripts,length(scripts)+1);
 
@@ -917,10 +929,12 @@ begin
   tabcontrol1.Tabs.Add('Script '+inttostr(length(scripts)));
   tabcontrol1.TabIndex:=length(scripts)-1;
   oldtabindex:=tabcontrol1.TabIndex;
+{$endif}
 end;
 
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   setlength(scripts,1);
   scripts[0].currentundo:=0;
   oldtabindex:=0;
@@ -949,29 +963,32 @@ begin
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;
   assemblescreen.Parent:=tabcontrol1;
-
+{$endif}
 end;
 
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   scripts[oldtabindex].script:=assemblescreen.text;
   scripts[oldtabindex].filename:=opendialog1.FileName;
-  
+
   assemblescreen.text:=scripts[TabControl1.TabIndex].script;
   opendialog1.FileName:=scripts[TabControl1.TabIndex].filename;
 
   oldtabindex:=tabcontrol1.TabIndex;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Syntaxhighlighting1Click(Sender: TObject);
 var s: string;
 begin
+{$ifndef standalonetrainerwithassembler}
   Syntaxhighlighting1.checked:=not Syntaxhighlighting1.checked;
   if Syntaxhighlighting1.checked then //enable
     assemblescreen.Highlighter:=AAHighlighter
   else //disabl
     assemblescreen.Highlighter:=nil;
-
+{$endif}
 end;
 
 procedure TfrmAutoInject.TabControl1ContextPopup(Sender: TObject;
@@ -984,6 +1001,7 @@ end;
 procedure TfrmAutoInject.Close1Click(Sender: TObject);
 var i: integer;
 begin
+{$ifndef standalonetrainerwithassembler}
   if messagedlg('Are you sure you want to close '+TabControl1.Tabs[selectedtab]+' ?',mtConfirmation,[mbyes,mbno],0)=mryes then
   begin
     scripts[oldtabindex].script:=assemblescreen.text; //save current script
@@ -1008,6 +1026,7 @@ begin
 //    tabcontrol1.tabs[selectedtab]
 
   end;
+{$endif}
 end;
 
 procedure TfrmAutoInject.injectscript(createthread: boolean);
@@ -1171,17 +1190,23 @@ end;
 
 procedure TfrmAutoInject.Cut1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   assemblescreen.CutToClipboard;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Copy1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   assemblescreen.CopyToClipboard;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Paste1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   assemblescreen.PasteFromClipboard;
+{$endif}
 end;
 
 procedure TfrmAutoInject.Find1Click(Sender: TObject);
@@ -1194,17 +1219,20 @@ procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
 var start,l: integer;
     p: integer;
 begin
+{$ifndef standalonetrainerwithassembler}
   //scan the text for the given text
   start:=assemblescreen.selstart;
   l:=length(assemblescreen.text)-start;
 
 
   assemblescreen.SearchReplace(finddialog1.FindText,'',[]);
+{$endif}
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
 procedure TfrmAutoInject.AAPref1Click(Sender: TObject);
 begin
+{$ifndef standalonetrainerwithassembler}
   with TfrmAAEditPrefs.create(self) do
   begin
     try
@@ -1216,6 +1244,7 @@ begin
       free;
     end;
   end;
+{$endif}
 end;
 
 end.
