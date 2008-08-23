@@ -118,6 +118,9 @@ procedure LoadDBK32;
 Procedure ProtectProcess(processid: dword);
 Procedure ProtectCE;
 
+procedure OutputDebugString(msg: string);
+
+
 //I could of course have made it a parameter thing, but I'm lazy
 
 var
@@ -549,8 +552,15 @@ begin
   {$endif}
 
 end;
-var x: string;
 
+procedure OutputDebugString(msg: string);
+begin
+{$ifdef DEBUG}
+  windows.outputdebugstring(pchar(msg));
+{$endif}
+end;
+
+var x: string;
 initialization
   DarkByteKernel:=0;
 

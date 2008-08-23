@@ -19,7 +19,7 @@ uses
   underc,
   {$endif}
   assemblerunit, autoassembler, symbolhandler,
-  SynEdit, SynEditSearch, SynHighlighterAA;
+  SynEdit, SynEditSearch, SynHighlighterAA, SynHighlighterCPP;
 
 
 
@@ -60,7 +60,7 @@ type
     FindDialog1: TFindDialog;
     undotimer: TTimer;
     View1: TMenuItem;
-    Leftborder1: TMenuItem;
+    AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -91,11 +91,11 @@ type
     procedure Paste1Click(Sender: TObject);
     procedure Find1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
-    procedure undotimerTimer(Sender: TObject);
-    procedure Undo1Click(Sender: TObject);
+    procedure AAPref1Click(Sender: TObject);
   private
     { Private declarations }
     AAHighlighter: TSynAASyn;
+    CPPHighlighter: TSynCppSyn;
     assembleSearch: TSynEditSearch;
 
     updating: boolean;
@@ -136,7 +136,7 @@ implementation
 {$R *.dfm}
 
 {$ifndef standalonetrainerwithassembler}
-uses memorybrowserformunit,APIhooktemplatesettingsfrm,{$ifdef net}unit2{$else}mainunit{$endif};
+uses frmAAEditPrefsUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,{$ifdef net}unit2{$else}mainunit{$endif};
 {$endif}
 
 procedure TfrmAutoInject.setcplusplus(state: boolean);
@@ -144,6 +144,8 @@ begin
   fcplusplus:=state;
   if state then
   begin
+    assemblescreen.Highlighter:=CPPHighlighter;
+
     //change gui to c++ style
     button1.Caption:='Execute script';
     opendialog1.DefaultExt:='CEC';
@@ -158,6 +160,8 @@ begin
   end
   else
   begin
+    assemblescreen.Highlighter:=AAHighlighter;
+
     //change gui to autoassembler style
     button1.caption:='Write code';
     opendialog1.DefaultExt:='CEA';
@@ -924,6 +928,7 @@ begin
   assemblescreen.SelLength:=0; }
 
   AAHighlighter:=TSynAASyn.Create(self);
+  CPPHighlighter:=TSynCppSyn.create(self);
   assembleSearch:=TSyneditSearch.Create(self);
 
 
@@ -932,6 +937,8 @@ begin
   assemblescreen.SearchEngine:=assembleSearch;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;
   assemblescreen.WantTabs:=true;
+  assemblescreen.TabWidth:=2;
+
 
   assemblescreen.Gutter.Visible:=true;
   assemblescreen.Gutter.ShowLineNumbers:=true;
@@ -1152,6 +1159,8 @@ end;
 procedure TfrmAutoInject.Injectincurrentprocess1Click(Sender: TObject);
 begin
   injectscript(false);
+
+
 end;
 
 procedure TfrmAutoInject.Injectintocurrentprocessandexecute1Click(
@@ -1194,49 +1203,19 @@ begin
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
-procedure TfrmAutoInject.undotimerTimer(Sender: TObject);
-var currentundo: integer;
-    i: integer;
-    ti: integer;
+procedure TfrmAutoInject.AAPref1Click(Sender: TObject);
 begin
-  ti:=tabcontrol1.TabIndex;
-  if ti=-1 then ti:=0;
-  
-  currentundo:=scripts[ti].currentundo;
-
-
-  if currentundo=4 then //first move all previous up one spot and overwrite 1
+  with TfrmAAEditPrefs.create(self) do
   begin
-    for i:=1 to 4 do
-      scripts[ti].undoscripts[i-1]:=scripts[ti].undoscripts[i];
-  end
-  else
-  begin
-    inc(currentundo); //once it hits 4 it stays at 4, else inc.
-    scripts[ti].currentundo:=currentundo;
+    try
+      if execute(assemblescreen) then
+      begin
+        //save these settings
+      end;
+    finally
+      free;
+    end;
   end;
-
-  scripts[ti].undoscripts[currentundo].oldscript:=assemblescreen.Text;
-  scripts[ti].undoscripts[currentundo].startpos:=assemblescreen.SelStart;
-
-  undotimer.Enabled:=false; //done waiting, a keypress or other change will restart this timer
-end;
-
-procedure TfrmAutoInject.Undo1Click(Sender: TObject);
-var currentundo: integer;
-begin
-  currentundo:=scripts[selectedtab].currentundo;
-  dec(currentundo);
-  if currentundo>=0 then
-  begin
-    assemblescreen.text:=scripts[selectedtab].undoscripts[currentundo].oldscript;
-
-    scripts[selectedtab].currentundo:=currentundo;
-    assemblescreen.SelLength:=0;
-    assemblescreen.SelStart:=scripts[selectedtab].undoscripts[currentundo].startpos;
-    undotimer.enabled:=false; //don't bother saving this edit
-  end;
-
 end;
 
 end.

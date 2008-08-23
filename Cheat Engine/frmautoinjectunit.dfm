@@ -1,6 +1,6 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 525
-  Top = 279
+  Left = 656
+  Top = 372
   Width = 431
   Height = 331
   HelpContext = 18
@@ -92,8 +92,9 @@ object frmAutoInject: TfrmAutoInject
         Checked = True
         OnClick = Syntaxhighlighting1Click
       end
-      object Leftborder1: TMenuItem
+      object AAPref1: TMenuItem
         Caption = 'Preferences'
+        OnClick = AAPref1Click
       end
     end
     object emplate1: TMenuItem
@@ -164,7 +165,6 @@ object frmAutoInject: TfrmAutoInject
     object Undo1: TMenuItem
       Caption = '&Undo'
       ShortCut = 16474
-      OnClick = Undo1Click
     end
     object N6: TMenuItem
       Caption = '-'
@@ -191,7 +191,6 @@ object frmAutoInject: TfrmAutoInject
   end
   object undotimer: TTimer
     Interval = 250
-    OnTimer = undotimerTimer
     Left = 40
     Top = 72
   end

@@ -2776,6 +2776,13 @@ begin
       fastscanalignsize:=1;
     end;
   end;
+
+
+  OutputDebugString('fillVariableAndFastScanAlignSize:');
+
+  OutputDebugString(format('variableType=%d',[integer(variableType)]));
+  OutputDebugString(format('variablesize=%d',[variablesize]));
+  OutputDebugString(format('fastscanalignsize=%d',[fastscanalignsize]));
 end;
 
 
@@ -2993,13 +3000,16 @@ begin
 
         while (currentblocksize<blocksize) and (j<memregionpos) do
         begin
-          if scanners[i].maxregionsize<memregion[j].MemorySize+variablesize then
-            scanners[i].maxregionsize:=memregion[j].MemorySize+variablesize;
+          if scanners[i].maxregionsize<memregion[j].MemorySize then
+            scanners[i].maxregionsize:=memregion[j].MemorySize;
 
           inc(currentblocksize,memregion[j].MemorySize);
           inc(j);
         end;
         dec(j);
+
+        if scanners[i].maxregionsize=0 then //(currentblocksize<blocksize)
+          scanners[i].maxregionsize:=memregion[j].MemorySize;
 
         scanners[i]._stopregion:=j;
         scanners[i].stopaddress:=memregion[j].BaseAddress+memregion[j].MemorySize;
@@ -3139,8 +3149,12 @@ var
 
   datatype: string[6];
 begin
+  OutputDebugString('TScanController.firstScan');
   threadcount:=GetCPUCount;
   totalProcessMemorySize:=0;
+
+
+  OutputDebugString(format('threadcount=%d',[threadcount]));
   {
   ScanController plan:
   spawn idle scanner threads , ammount=maxthreadcount in settings
@@ -3162,9 +3176,13 @@ begin
   setlength(memRegion,16);
   memRegionPos:=0;
 
-  if (startaddress mod 8)>0 then //align on a 8 byte base
-    startaddress:=startaddress-(startaddress mod 8);
 
+ if (startaddress mod 8)>0 then //align on a 8 byte base
+   startaddress:=startaddress-(startaddress mod 8);
+
+  OutputDebugString(format('startaddress=%x',[startaddress]));
+
+  OutputDebugString('Finding out memory size');
   currentBaseAddress:=startaddress;
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
@@ -3215,6 +3233,14 @@ begin
     currentBaseAddress:=dword(mbi.baseaddress)+mbi.RegionSize;
   end;
 
+  OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
+  for i:=0 to memRegionPos-1 do
+    OutputDebugString(format('i: %d B=%x S=%x SA=%p',[i, memRegion[i].BaseAddress, memRegion[i].MemorySize, memRegion[i].startaddress]));
+
+  OutputDebugString(format('totalProcessMemorySize=%x (%d)',[totalProcessMemorySize, totalProcessMemorySize]));
+
+
+
   totalAddresses:=totalProcessMemorySize;
 
   if memRegionPos=0 then raise exception.Create('No readable memory found');
@@ -3223,19 +3249,28 @@ begin
   //if soUnknown, make a buffer where it can store all the 'previous' memory
   if scanOption=soUnknownValue then
   begin
+    OutputDebugString('scanOption=soUnknownValue');
+
     //extra check to make sure the previous scan was cleared
     if OwningMemScan.previousMemoryBuffer<>nil then virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
 
+    OutputDebugString(format('Allocating %xKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
     OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT	or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
+    if OwningMemScan.previousMemoryBuffer=nil then
+      raise exception.Create('Failure allocating memory for copy');
+
+    OutputDebugString(format('Allocated at %x',[OwningMemScan.previousMemoryBuffer]));
   end;
 
-
   //split up into seperate workloads
+  OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
   Blocksize:=totalProcessMemorySize div threadcount;
-  Blocksize:=blocksize-(blocksize mod 4096); //lastblock gets the missing bytes
+  if (Blocksize mod 4096) > 0 then
+    Blocksize:=blocksize-(blocksize mod 4096); //lastblock gets the missing bytes
+
+  OutputDebugString(format('Blocksize = %x',[Blocksize]));
 
 
-  
 
   scannersCS.Enter; //block access by the mainthread on the scanners object, could scanner[14] has not yet been created when doing a progress request
   try
@@ -3246,13 +3281,14 @@ begin
 
     for i:=0 to threadcount-1 do
     begin
+      OutputDebugString(format('Creating scanner %d',[i]));
       scanners[i]:=tscanner.Create(true);
       scanners[i].scannernr:=i;
       scanners[i].OwningScanController:=self;
 
+
       scanners[i]._startregion:=j;
       scanners[i].startaddress:=memRegion[j].BaseAddress+offsetincurrentregion;
-
       scanners[i].maxregionsize:=0;
 
       if i=(threadcount-1) then
@@ -3261,13 +3297,15 @@ begin
         scanners[i].stopaddress:=stopaddress;
         scanners[i]._stopregion:=memregionpos-1;
 
+        //define maxregionsize
         if scanOption<>soUnknownValue then
         begin
-          //define maxregionsize
+          //define maxregionsize , go from current till end (since it'll scan averything that's left)
           while j<memregionpos do
           begin
             if scanners[i].maxregionsize<memregion[j].MemorySize then
               scanners[i].maxregionsize:=memregion[j].MemorySize;
+
             inc(j);
           end;
         end;
@@ -3279,18 +3317,22 @@ begin
         inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
 
+
         while (currentblocksize<blocksize) and (j<memregionpos) do
         begin
           if scanOption<>soUnknownValue then //not a unknown initial value scan, so it doesn't need overlap
           begin
-            if scanners[i].maxregionsize<memregion[j].MemorySize+variablesize then
-              scanners[i].maxregionsize:=memregion[j].MemorySize+variablesize;
+            if scanners[i].maxregionsize<memregion[j].MemorySize then
+              scanners[i].maxregionsize:=memregion[j].MemorySize;
           end;
 
           inc(currentblocksize,memregion[j].MemorySize);
           inc(j);
         end;
         dec(j);
+
+        if scanners[i].maxregionsize=0 then //(currentblocksize<blocksize)
+          scanners[i].maxregionsize:=memregion[j].MemorySize;
 
         scanners[i]._stopregion:=j;
         scanners[i].stopaddress:=(memregion[j].BaseAddress+memregion[j].MemorySize);
@@ -3307,9 +3349,22 @@ begin
 
 
       end;
+      OutputDebugString(format('startregion = %d',[scanners[i]._startregion]));
+      OutputDebugString(format('stopregion = %d',[scanners[i]._stopregion]));
+      OutputDebugString(format('startaddress = %x',[scanners[i].startaddress]));
+      OutputDebugString(format('stopaddress = %x',[scanners[i].stopaddress]));
+
+      OutputDebugString(format('j = %d',[j]));
+      OutputDebugString(format('leftfromprevious = %x',[leftfromprevious]));
+      OutputDebugString(format('offsetincurrentregion = %x',[offsetincurrentregion]));
+
+
 
       if scanners[i].maxregionsize>buffersize then
-        scanners[i].maxregionsize:=buffersize;      
+        scanners[i].maxregionsize:=buffersize;
+
+      OutputDebugString(format('maxregionsize = %x',[scanners[i].maxregionsize]));
+              
 
       //now configure the scanner thread with the same info this thread got, with some extra info
       scanners[i].scanType:=scanType; //stFirstScan obviously
@@ -3443,6 +3498,8 @@ var err: dword;
     i: integer;
     oldpos,oldmempos: integer;
 begin
+  OutputDebugString('TScanController.execute');
+
   //check what it is, and call first/next/nextnext- scan
   err:=0;
   errorstring:='';
@@ -3452,9 +3509,11 @@ begin
     fillVariableAndFastScanAlignSize;
     if scantype=stFirstScan then firstscan;
     if scantype=stNextScan then nextscan;
+    OutputDebugString('No exception on controller');
   except
     on e: exception do
     begin
+      OutputDebugString(pchar('controller exception happened:'+e.message));
       haserror:=true;
       errorstring:='controller:'+e.message;
     end;
@@ -3465,6 +3524,7 @@ begin
 
   if savescannerresults then //prepare saving. Set the filesize
   begin
+    OutputDebugString('ScanController: creating undo files');
     freeandnil(scanners[0].Addressfile);
     freeandnil(scanners[0].Memoryfile);
 
@@ -3481,6 +3541,7 @@ begin
       AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
       MemoryFile:=TFileStream.Create(CheatEngineDir+'Memory.TMP',fmOpenWrite or fmsharedenynone);
     except
+      outputdebugstring('Scancontroller: Error when while loading result');
       haserror:=true;
       errorstring:='Error while loading results';
       exit;
@@ -3491,16 +3552,19 @@ begin
 
     for i:=1 to threadcount-1 do
       AddressFile.size:=AddressFile.size+scanners[i].Addressfile.Size;
+
+    outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
   end;
+
 
   //send message saying it's done
   isdone:=true;
   postMessage(notifywindow,notifymessage,err,0);
 
 
+
   if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
   begin
-
     //AddressFile should already have been created with the correct datatype and opened as denynone
     AddressFile.Seek(oldpos,soFromBeginning);
     Memoryfile.seek(oldmempos,soFromBeginning);
@@ -3508,25 +3572,34 @@ begin
     //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
     for i:=1 to length(scanners)-1 do
     begin
+      outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
       addressfile.CopyFrom(scanners[i].Addressfile,0);
       Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
     end;
-
   end;
 
   if scantype=stFirstScan then
+  begin
+    outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
     OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+  end;
 
 
   //clean up secondary scanner threads, their destructor will close and delete their files
+  outputdebugstring('ScanController: Destroying scanner threads');
   scannersCS.enter;
   try
+    outputdebugstring('ScanController: Critical section "scannersCS" aquired');
     for i:=0 to length(scanners)-1 do
+    begin
+      outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
       scanners[i].Free;
+    end;
 
     setlength(scanners,0);
   finally
     scannersCS.leave;
+    outputdebugstring('ScanController: Critical section "scannersCS" released');
   end;
 
 
@@ -3746,6 +3819,8 @@ begin
 end;
 
 end.
+
+
 
 
 

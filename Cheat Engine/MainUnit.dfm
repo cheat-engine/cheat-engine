@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 485
-  Top = 256
+  Left = 606
+  Top = 341
   Width = 532
   Height = 570
   Hint = ' '
@@ -2554,7 +2554,6 @@ object MainForm: TMainForm
     object Findoutwhatreadsfromthisaddress1: TMenuItem
       Caption = 'Find out what reads from this address'
       GroupIndex = 2
-      OnClick = Findoutwhatreadsfromthisaddress1Click
     end
     object sep1: TMenuItem
       Caption = '-'

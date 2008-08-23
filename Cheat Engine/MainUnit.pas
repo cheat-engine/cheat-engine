@@ -6643,7 +6643,7 @@ begin
 
     n5.visible:=formsettings.cbShowAdvanced.Checked;
     Setbreakpoint1.visible:=formsettings.cbShowAdvanced.Checked;
-    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
+//    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
     Findoutwhataccessesthisaddress1.Visible:=formsettings.cbShowAdvanced.Checked;
 
 
@@ -6742,7 +6742,7 @@ begin
 
     n5.visible:=formsettings.cbShowAdvanced.Checked;
     Setbreakpoint1.visible:=formsettings.cbShowAdvanced.Checked;
-    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
+//    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
     Findoutwhataccessesthisaddress1.Visible:=formsettings.cbShowAdvanced.Checked;
 
     sep1.Visible:=true;
@@ -6794,7 +6794,7 @@ begin
 
     n5.visible:=formsettings.cbShowAdvanced.Checked;
     Setbreakpoint1.visible:=formsettings.cbShowAdvanced.Checked;
-    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
+//    Findoutwhatreadsfromthisaddress1.visible:=formsettings.cbShowAdvanced.Checked;
     Findoutwhataccessesthisaddress1.Visible:=formsettings.cbShowAdvanced.Checked;
 
 
