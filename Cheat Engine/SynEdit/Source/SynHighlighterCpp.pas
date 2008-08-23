@@ -1965,3 +1965,4 @@ initialization
   RegisterPlaceableHighlighter(TSynCppSyn);
 {$ENDIF}
 end.
+
