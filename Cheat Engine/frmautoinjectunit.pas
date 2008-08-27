@@ -232,8 +232,8 @@ begin
         //save the current process and target CE
         oldProcessID:=processid;
         oldProcessHandle:=processhandle;
-        processid:=Getcurrentprocessid;
-        processhandle:=getcurrentprocess;
+        ProcessHandler.processid:=Getcurrentprocessid;
+        ProcessHandler.ProcessHandle:=getcurrentprocess;
       end;
 
       check:=autoassemble(assemblescreen.lines,false,true,true,false,aa) and
@@ -242,8 +242,8 @@ begin
       if injectintomyself then
       begin
         //restore back to original process
-        processid:=oldProcessID;
-        processhandle:=oldProcessHandle;
+        ProcessHandler.processid:=oldProcessID;
+        ProcessHandler.ProcessHandle:=oldProcessHandle;
       end;
 
       if check then

@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 430
-  Top = 327
+  Left = 462
+  Top = 295
   Width = 532
   Height = 570
   Hint = ' '
@@ -2450,13 +2450,12 @@ object MainForm: TMainForm
   object FreezeTimer: TTimer
     Interval = 250
     OnTimer = FreezeTimerTimer
-    Left = 104
-    Top = 384
+    Left = 16
+    Top = 200
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
-    Left = 184
-    Top = 392
+    Top = 368
     object Deletethisrecord1: TMenuItem
       Caption = 'Delete this record'
       OnClick = Deletethisrecord1Click
@@ -2668,7 +2667,7 @@ object MainForm: TMainForm
       'es|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.PTR;*.XML'
     FilterIndex = 5
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 64
+    Left = 48
     Top = 104
   end
   object SaveDialog1: TSaveDialog
@@ -2677,15 +2676,15 @@ object MainForm: TMainForm
       'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.EXE)|*.E' +
       'XE|Cheat Table XML (*.XML)|*.XML'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    Left = 32
+    Left = 16
     Top = 104
   end
   object TopDisabler: TTimer
     Enabled = False
     Interval = 5000
     OnTimer = TopDisablerTimer
-    Left = 104
-    Top = 120
+    Left = 16
+    Top = 136
   end
   object emptypopup: TPopupMenu
     Left = 104
@@ -2693,8 +2692,8 @@ object MainForm: TMainForm
   end
   object ccpmenu: TPopupMenu
     OnPopup = ccpmenuPopup
-    Left = 304
-    Top = 80
+    Left = 232
+    Top = 88
     object Cut2: TMenuItem
       Caption = 'Cut'
       ShortCut = 16472
@@ -2711,11 +2710,6 @@ object MainForm: TMainForm
       OnClick = Paste2Click
     end
   end
-  object Timer1: TTimer
-    Interval = 100
-    Left = 403
-    Top = 392
-  end
   object Timer4: TTimer
     Enabled = False
     Interval = 4000
@@ -2725,7 +2719,8 @@ object MainForm: TMainForm
   end
   object ActionList1: TActionList
     Images = ImageList1
-    Left = 96
+    Left = 48
+    Top = 72
     object actSave: TAction
       ImageIndex = 0
       ShortCut = 16467
@@ -2887,7 +2882,7 @@ object MainForm: TMainForm
   object UpdateFoundlisttimer: TTimer
     OnTimer = UpdateFoundlisttimerTimer
     Left = 16
-    Top = 272
+    Top = 168
   end
   object AutoAttachTimer: TTimer
     Enabled = False
@@ -2900,6 +2895,12 @@ object MainForm: TMainForm
     Top = 72
     object File1: TMenuItem
       Caption = 'File'
+      object New1: TMenuItem
+        Caption = 'New'
+      end
+      object N7: TMenuItem
+        Caption = '-'
+      end
       object Save1: TMenuItem
         Caption = 'Save'
       end
@@ -2919,6 +2920,9 @@ object MainForm: TMainForm
       object OpenProcess1: TMenuItem
         Caption = 'Open Process window'
         OnClick = ShowProcessListButtonClick
+      end
+      object CreateProcess1: TMenuItem
+        Caption = 'Create Process'
       end
       object N6: TMenuItem
         Caption = '-'

@@ -640,7 +640,7 @@ begin
   Inputquery(filename,'Parameters:',parameters);
 
   debugging:=true;
-  processhandle:=2;
+  ProcessHandler.ProcessHandle:=2;
   howtocontinue:=0;
   createAprocess:=true;
   inherited Create(false);   //I know, I know, these initalizes could also be done in the execute part.
@@ -682,7 +682,7 @@ begin
   createAprocess:=false;
   OpenprocessID:=processid;
 
-  processhandle:=OpenProcess(process_all_access,false,processid);
+  ProcessHandler.ProcessHandle:=OpenProcess(process_all_access,false,processid);
 
   {$ifndef net}
   //check for a debugger
@@ -1437,7 +1437,7 @@ begin
   attached:=false;
   readonlyset:=false;
 
-  processhandle:=0;
+  ProcessHandler.ProcessHandle:=0;
 
   tobefrozen:=-1;
   //GetStartUpInfo(STARTUPINFO);
@@ -1575,7 +1575,7 @@ begin
         end;
 
         if length(newprocesses)>0 then
-          processhandle:=newprocesses[length(newprocesses)-1].processhandle;
+          ProcessHandler.ProcessHandle:=newprocesses[length(newprocesses)-1].processhandle;
 
         case devent.dwDebugEventCode of
           EXCEPTION_DEBUG_EVENT:
@@ -2445,7 +2445,7 @@ begin
           begin
 
             //seems this is a way of unhooking the debugger
-            processhandle:=newprocesses[currentprocess].processhandle;
+            ProcessHandler.ProcessHandle:=newprocesses[currentprocess].processhandle;
 
             setlength(threadlist,length(threadlist)+1);
             threadlist[length(threadlist)-1,0]:=devent.dwThreadId;
@@ -2517,8 +2517,8 @@ begin
 
             if processhandle=0 then
             begin
-              processhandle:=devent.CreateProcessInfo.hProcess;
-              processid:=devent.dwProcessId;
+              ProcessHandler.ProcessHandle:=devent.CreateProcessInfo.hProcess;
+              ProcessHandler.processid:=devent.dwProcessId;
               processinfo.hProcess:=processhandle;
               processinfo.hThread:=devent.CreateProcessInfo.hThread;
               if devent.CreateProcessInfo.hProcess<>processhandle then BEEP;

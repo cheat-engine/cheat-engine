@@ -349,12 +349,12 @@ end;
 procedure TFrmProcessWatcher.PWOP(ProcessIDString:string);
 var i:integer;
 begin
-  val('$'+ProcessIDString,ProcessID,i);
+  val('$'+ProcessIDString,ProcessHandler.processid,i);
   if i<>0 then raise exception.Create(processidstring+' isn''t a valid processID');
   if Processhandle<>0 then
   begin
     CloseHandle(ProcessHandle);
-    ProcessHandle:=0;
+    ProcessHandler.ProcessHandle:=0;
   end;
 
   with mainform do
@@ -440,12 +440,12 @@ begin
       inc(i);
     end;
 
-    val('$'+ProcessIDString,ProcessID,i);
+    val('$'+ProcessIDString,ProcessHandler.processid,i);
 
     if Processhandle<>0 then
     begin
       CloseHandle(ProcessHandle);
-      ProcessHandle:=0;
+      ProcessHandler.ProcessHandle:=0;
     end;
 
 

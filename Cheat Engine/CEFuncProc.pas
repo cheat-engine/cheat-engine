@@ -23,7 +23,7 @@ firstscanhandler,
 {$endif}
 {$endif}
 {$endif}
-math,syncobjs;
+math,syncobjs, ProcessHandlerUnit;
 
 
 
@@ -479,11 +479,20 @@ type PKeys2= ^TKeys2;
 
 
 function ConvertKeyComboToString(x: tkeycombo):string;
+
+{
+ProcessID and ProcessHandle as functions untill all code has been converted to
+make use of ProcessHandlerUnit
+}
+function ProcessID: dword;
+function ProcessHandle: THandle;
+
+//Global vars:
 var
   old8087CW: word;  //you never know...
   ProcessSelected: Boolean;
-  ProcessID: Dword;
-  ProcessHandle: Thandle;
+  //ProcessID: Dword;
+  //ProcessHandle: Thandle;
 
   Skip_PAGE_NOCACHE: boolean;
   Scan_MEM_PRIVATE: boolean;
@@ -613,7 +622,8 @@ var
   {$endif}
   {$endif}
 
-  
+
+  processhandler: TProcessHandler;
 
 implementation
 
@@ -631,6 +641,15 @@ uses symbolhandler;
 
 {$endif}
 
+function ProcessID: dword;
+begin
+  result:=ProcessHandler.Processid;
+end;
+
+function ProcessHandle: THandle;
+begin
+  result:=ProcessHandler.ProcessHandle;
+end;
 
 
 procedure TFreememorythread.execute;
@@ -2447,7 +2466,7 @@ end;
 procedure Open_Process;
 begin
   {$ifndef netclient}
-  Processhandle:=NewKernelHandler.OpenProcess(PROCESS_ALL_ACCESS,false,ProcessID);
+  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(PROCESS_ALL_ACCESS,false,ProcessID);
   le:=GetLastError;
   {$endif}
 end;
@@ -19923,6 +19942,8 @@ initialization
 
   flushthread:=TSaveDataThread.Create(false); //used for scanning, starts idled because the event isn't triggered
   prefetchthread:=TPrefetchDataThread.create(false);
+
+  processhandler:=TProcessHandler.create;
 
 finalization
   if flushthread<>nil then

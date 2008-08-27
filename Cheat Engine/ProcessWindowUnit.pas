@@ -257,12 +257,13 @@ procedure TProcessWindow.PWOP(ProcessIDString:string);
 var i:integer;
 begin
 
-  val('$'+ProcessIDString,ProcessID,i);
+
+  val('$'+ProcessIDString,ProcessHandler.processid,i);
   if i<>0 then raise exception.Create(processidstring+' isn''t a valid processID');
   if Processhandle<>0 then
   begin
     CloseHandle(ProcessHandle);
-    ProcessHandle:=0;
+    ProcessHandler.ProcessHandle:=0;
   end;
 
   with mainform do
@@ -288,9 +289,9 @@ begin
 
   if (processid=0) and (formsettings.cbKernelReadWriteProcessMemory.checked) then
   begin
-    Processid:=$FFFFFFFF;
+    ProcessHandler.processid:=$FFFFFFFF;
     DBKPhysicalMemory;
-    Processhandle:=$FFFFFFFF;
+    ProcessHandler.ProcessHandle:=$FFFFFFFF;
   end
   else
     DBKProcessMemory;
@@ -389,12 +390,12 @@ begin
       inc(i);
     end;
 
-    val('$'+ProcessIDString,ProcessID,i);
+    val('$'+ProcessIDString,ProcessHandler.processid,i);
 
     if Processhandle<>0 then
     begin
       CloseHandle(ProcessHandle);
-      ProcessHandle:=0;
+      ProcessHandler.ProcessHandle:=0;
     end;
 
 
@@ -431,9 +432,9 @@ begin
   begin
     DBKFileAsMemory(opendialog2.filename);
     processselected:=true;
-    processhandle:=filehandle;
+    ProcessHandler.ProcessHandle:=filehandle;
     MainForm.ProcessLabel.caption:=extractfilename(opendialog2.FileName);
-    processid:=$FFFFFFFF;
+    ProcessHandler.processid:=$FFFFFFFF;
 
     modalresult:=mrok;
   end;

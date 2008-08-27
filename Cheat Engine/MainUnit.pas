@@ -133,7 +133,6 @@ type
     SpeedButton4: TSpeedButton;
     cbCaseSensitive: TCheckBox;
     cbFastScan: TCheckBox;
-    Timer1: TTimer;
     btnShowRegions: TButton;
     Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
@@ -267,6 +266,9 @@ type
     c1: TMenuItem;
     d1: TMenuItem;
     e1: TMenuItem;
+    CreateProcess1: TMenuItem;
+    New1: TMenuItem;
+    N7: TMenuItem;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -4356,7 +4358,7 @@ begin
   oldheight:=screen.height;
 
   oldnumberofrecords:=0;
-  processhandle:=0;
+  ProcessHandler.ProcessHandle:=0;
 
   logo.Hint:=strClickToGoHome;
 
@@ -11361,7 +11363,7 @@ begin
         val('$'+pl.strings[j],newPID,k);
         if processid=newPID then exit; //already attached to this one
 
-        ProcessID:=newPID;
+        ProcessHandler.processid:=newPID;
         unpause;
         DetachIfPossible;
 
@@ -11857,7 +11859,7 @@ begin
 
   try
     GetProcessList(sl);
-    for i:=process1.Count-1 downto 2 do
+    for i:=process1.Count-1 downto 3 do
       process1.Items[i].Free;
 
     setlength(mi,sl.count);
@@ -11881,6 +11883,7 @@ end;
 procedure TMainForm.ProcessItemClick(Sender: TObject);
 var pid: dword;
 begin
+  
   //open the selected process
   if (sender is TMenuItemExtra) then
   begin

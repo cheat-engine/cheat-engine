@@ -44,13 +44,13 @@ begin
 
   if i>=0 then
   begin
-    processid:=StrToInt('$'+listbox1.Items[i]);
+    ProcessHandler.processid:=StrToInt('$'+listbox1.Items[i]);
     try
       for j:=0 to length(debuggerthread.Newprocesses)-1 do
       begin
         if debuggerthread.Newprocesses[j].processid=processid then
         begin
-          processhandle:=debuggerthread.Newprocesses[j].processhandle;
+          ProcessHandler.ProcessHandle:=debuggerthread.Newprocesses[j].processhandle;
           break;
         end;
       end;
