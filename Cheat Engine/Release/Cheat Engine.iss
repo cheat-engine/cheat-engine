@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.4.2
-AppVerName=Cheat Engine 5.4.2
+AppName=Cheat Engine 5.4.3
+AppVerName=Cheat Engine 5.4.3
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.4.2
+DefaultGroupName=Cheat Engine 5.4.3
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine542
+OutputBaseFilename=CheatEngine543
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -107,6 +107,7 @@ Name: "{app}"; permissions: everyone-modify;
 [Files]
 Source: "..\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
 Source: "..\CEHook.dll"; DestDir: "{app}"; DestName: "CEHook.dll"; Flags: ignoreversion
+Source: "..\speedhack.dll"; DestDir: "{app}"; DestName: "speedhack.dll"; Flags: ignoreversion
 
 Source: "..\LockedString.bmp"; DestDir: "{app}"; DestName: "LockedString.bmp"; Flags: ignoreversion
 Source: "..\UnLockedString.bmp"; DestDir: "{app}"; DestName: "UnLockedString.bmp"; Flags: ignoreversion

@@ -19568,8 +19568,6 @@ Var SNAPHandle: THandle;
 begin
   processlist.clear;
 
-
-
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
   If SnapHandle>0 then
   begin
@@ -19577,10 +19575,11 @@ begin
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do
     begin
-      if processentry.th32ProcessID<>0 then
-        ProcessList.Add(IntTohex(processentry.th32ProcessID,8)+'-'+ExtractFilename(processentry.szExeFile));
 
-        
+      if processentry.th32ProcessID<>0 then
+        ProcessList.AddObject(IntTohex(processentry.th32ProcessID,8)+'-'+ExtractFilename(processentry.szExeFile), TObject(processentry.th32ProcessID));
+
+       
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
     closehandle(snaphandle);

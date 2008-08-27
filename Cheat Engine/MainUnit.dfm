@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 606
-  Top = 341
+  Left = 430
+  Top = 327
   Width = 532
   Height = 570
   Hint = ' '
@@ -16,6 +16,7 @@ object MainForm: TMainForm
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  Menu = MainMenu1
   OldCreateOrder = False
   Position = poScreenCenter
   Scaled = False
@@ -46,7 +47,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 348
     Width = 524
-    Height = 171
+    Height = 151
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -125,7 +126,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 1
       Width = 506
-      Height = 169
+      Height = 149
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -176,7 +177,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 17
         Width = 506
-        Height = 152
+        Height = 132
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -189,7 +190,7 @@ object MainForm: TMainForm
         OnResize = Panel1Resize
         DesignSize = (
           506
-          152)
+          132)
         object Label30: TLabel
           Tag = 6
           Left = 0
@@ -1076,7 +1077,7 @@ object MainForm: TMainForm
       Left = 507
       Top = 1
       Width = 16
-      Height = 169
+      Height = 149
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1084,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 16
-        Height = 169
+        Height = 149
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1098,7 +1099,7 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 519
+    Top = 499
     Width = 524
     Height = 17
     Align = alBottom
@@ -1470,7 +1471,7 @@ object MainForm: TMainForm
       Enabled = False
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 28
+      TabOrder = 27
       Visible = False
       OnClick = cbSpeedhackClick
     end
@@ -2046,17 +2047,6 @@ object MainForm: TMainForm
       Visible = False
       OnClick = Button4Click
     end
-    object cbNewscanroutine: TCheckBox
-      Left = 368
-      Top = 0
-      Width = 105
-      Height = 17
-      Caption = 'New scan engine'
-      Checked = True
-      State = cbChecked
-      TabOrder = 25
-      Visible = False
-    end
     object LogoPanel: TPanel
       Left = 474
       Top = 0
@@ -2066,7 +2056,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       FullRepaint = False
-      TabOrder = 26
+      TabOrder = 25
       object Logo: TImage
         Left = 0
         Top = 0
@@ -2396,7 +2386,7 @@ object MainForm: TMainForm
       Width = 119
       Height = 94
       BevelOuter = bvNone
-      TabOrder = 27
+      TabOrder = 26
       Visible = False
       DesignSize = (
         119
@@ -2904,5 +2894,56 @@ object MainForm: TMainForm
     Interval = 2000
     OnTimer = AutoAttachTimerTimer
     Left = 480
+  end
+  object MainMenu1: TMainMenu
+    Left = 16
+    Top = 72
+    object File1: TMenuItem
+      Caption = 'File'
+      object Save1: TMenuItem
+        Caption = 'Save'
+      end
+      object Load1: TMenuItem
+        Caption = 'Load'
+      end
+    end
+    object Edit3: TMenuItem
+      Caption = 'Edit'
+      object Settings1: TMenuItem
+        Caption = 'Settings'
+      end
+    end
+    object Process1: TMenuItem
+      Caption = 'Process'
+      OnClick = Process1Click
+      object OpenProcess1: TMenuItem
+        Caption = 'Open Process window'
+        OnClick = ShowProcessListButtonClick
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object a1: TMenuItem
+        Caption = 'a'
+      end
+      object b1: TMenuItem
+        Caption = 'b'
+      end
+      object c1: TMenuItem
+        Caption = 'c'
+      end
+      object d1: TMenuItem
+        Caption = 'd'
+      end
+      object e1: TMenuItem
+        Caption = 'e'
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object About1: TMenuItem
+        Caption = 'About'
+      end
+    end
   end
 end

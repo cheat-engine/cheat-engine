@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2;
+  memscan, formsextra, speedhack2, menuitemExtra;
 
   //the following are just for compatibility
 
@@ -187,7 +187,6 @@ type
     AutoAttachTimer: TTimer;
     Button2: TButton;
     Button4: TButton;
-    cbNewscanroutine: TCheckBox;
     LogoPanel: TPanel;
     Logo: TImage;
     ScrollBox1: TScrollBox;
@@ -252,6 +251,22 @@ type
     Label56: TLabel;
     Label60: TLabel;
     cbSpeedhack: TCheckBox;
+    MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    Process1: TMenuItem;
+    Help1: TMenuItem;
+    Edit3: TMenuItem;
+    About1: TMenuItem;
+    OpenProcess1: TMenuItem;
+    Save1: TMenuItem;
+    Load1: TMenuItem;
+    Settings1: TMenuItem;
+    N6: TMenuItem;
+    a1: TMenuItem;
+    b1: TMenuItem;
+    c1: TMenuItem;
+    d1: TMenuItem;
+    e1: TMenuItem;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -405,6 +420,7 @@ type
     procedure btnSetSpeedhack2Click(Sender: TObject);
     procedure cbSpeedhackClick(Sender: TObject);
     procedure Edit2Change(Sender: TObject);
+    procedure Process1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -484,6 +500,9 @@ type
     procedure EditCustomScanButtonClick(sender: TObject);
 
     procedure changeScriptCallback(script: string; changed: boolean);
+
+    //processlist
+    procedure ProcessItemClick(Sender: TObject);
 
     //property functions
     function GetRoundingType: TRoundingType;
@@ -3769,7 +3788,7 @@ var FromAdd,ToAdd:Dword;
 
     bytes: tbytes;
 begin
-  if (not cbfasterscan.checked) and cbnewscanroutine.checked then
+  if (not cbfasterscan.checked) then
   begin
     button2.click;
     exit;
@@ -4061,7 +4080,7 @@ var error: Integer;
     res: word;
     bytes: tbytes;
 begin
-  if (not cbfasterscan.checked) and cbnewscanroutine.checked then
+  if (not cbfasterscan.checked) then
   begin
     button4.click;
     exit;
@@ -6015,8 +6034,6 @@ begin
 
   case newvartype of
   0: begin //binary
-       if not cbNewscanroutine.checked then
-         hexadecimalcheckbox.Checked:=true;
        rbdec.checked:=true;
        HexadecimalCheckbox.visible:=false;
        decbitvis:=true;
@@ -9407,9 +9424,7 @@ end;
 
 procedure TMainForm.rbBitClick(Sender: TObject);
 begin
-  if not cbNewscanroutine.checked then
-    HexadecimalCheckbox.checked:=rbdec.checked;
-    
+   
   if not isbit then
   begin
     isbit:=true;
@@ -9427,9 +9442,6 @@ end;
 
 procedure TMainForm.rbDecClick(Sender: TObject);
 begin
-  if not cbNewscanroutine.checked then
-    HexadecimalCheckbox.checked:=rbdec.checked;
-
   if isbit then
   begin
     isbit:=false;
@@ -11509,7 +11521,7 @@ begin
   if not canceled then
   begin
     case vtype of
-      5: if cbNewscanroutine.checked then i:=memscan.getbinarysize else i:=nrofbits;
+      5: i:=memscan.getbinarysize;
       7: i:=length(scanvalue.Text);
       8: //array of byte
       begin
@@ -11833,6 +11845,52 @@ begin
   editSH2.text:=edit2.text;
 end;
 
+{--------Processlist menuitem--------}
+procedure TMainForm.Process1Click(Sender: TObject);
+var sl: tstringlist;
+    mi: array of TMenuItem;
+    currentmi: TMenuItemExtra;
+    i,j: integer;
+begin
+  //fill with processlist
+  sl:=tstringlist.Create;
+
+  try
+    GetProcessList(sl);
+    for i:=process1.Count-1 downto 2 do
+      process1.Items[i].Free;
+
+    setlength(mi,sl.count);
+    for i:=0 to sl.count-1 do
+    begin
+      j:=sl.count-1-i;
+      currentmi:=TMenuItemExtra.Create(self);
+      currentmi.Caption:=sl[i];
+      currentmi.Default:=dword(sl.Objects[i])=ProcessID;
+      currentmi.data:=sl.Objects[i];
+      currentmi.OnClick:=ProcessItemClick;
+      mi[j]:=currentmi;
+    end;
+
+    process1.Add(mi);
+  finally
+    sl.free;
+  end;
+end;
+
+procedure TMainForm.ProcessItemClick(Sender: TObject);
+var pid: dword;
+begin
+  //open the selected process
+  if (sender is TMenuItemExtra) then
+  begin
+    pid:=dword(TMenuItemExtra(sender).data);
+    showmessage(inttohex(pid,8));
+  end;
+end;
+
+
+{^^^^^^^^Processlist menuitem^^^^^^^^}
 end.
 
 

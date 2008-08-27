@@ -188,7 +188,7 @@ AutoIncBuild=1
 MajorVer=5
 MinorVer=4
 Release=2
-Build=36
+Build=49
 Debug=0
 PreRelease=0
 Special=0
@@ -199,7 +199,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Cheat Engine 5.4
-FileVersion=5.4.2.36
+FileVersion=5.4.2.49
 InternalName=CheatEngine
 LegalCopyright=none
 LegalTrademarks=-

@@ -1169,9 +1169,13 @@ begin
                else
                begin
                  if temp>=5 then //it's an execute cheat
+                 begin
+                   tag:=temp-5;
                    onclick:=executecheat;
+                 end;
                end;
              end;
+
 
              trainerfile.ReadBuffer(temp,4);
              getmem(x,temp+1);
@@ -1301,7 +1305,10 @@ begin
                else
                begin
                  if temp>=5 then //it's an execute cheat
+                 begin
                    onclick:=executecheat;
+                   tag:=temp-5;
+                 end;
                end;
              end;
 
@@ -1368,7 +1375,10 @@ begin
                else
                begin
                  if temp>=5 then //it's an execute cheat
+                 begin
                    onclick:=executecheat;
+                   tag:=temp-5;
+                 end;
                end;
              end;
 

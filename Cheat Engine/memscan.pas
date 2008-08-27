@@ -3177,7 +3177,7 @@ begin
   memRegionPos:=0;
 
 
- if (startaddress mod 8)>0 then //align on a 8 byte base
+  if (startaddress mod 8)>0 then //align on a 8 byte base
    startaddress:=startaddress-(startaddress mod 8);
 
   OutputDebugString(format('startaddress=%x',[startaddress]));
@@ -3259,7 +3259,7 @@ begin
     if OwningMemScan.previousMemoryBuffer=nil then
       raise exception.Create('Failure allocating memory for copy');
 
-    OutputDebugString(format('Allocated at %x',[OwningMemScan.previousMemoryBuffer]));
+    OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
   end;
 
   //split up into seperate workloads
