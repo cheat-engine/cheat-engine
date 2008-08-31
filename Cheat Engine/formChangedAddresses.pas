@@ -64,8 +64,8 @@ begin
     end;
 
     okButton.Caption:='Close';
-  end else
-  modalresult:=mrok;
+  end else close;
+
 
 end;
 
@@ -76,22 +76,9 @@ var temp:dword;
 begin
   action:=caFree;
   if OKButton.caption='Stop' then
-  begin
-    if WaitForSingleObject(semaphore,10000)=WAIT_FAILED then
-      raise exception.Create('OMG! I can''t stop it!');
-    debuggerthread.breakpointset:=false;
+    OKButton.Click;
 
-    zeromemory(@debuggerthread.DRRegs,sizeof(debuggerthread));
-    debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-    for i:=0 to length(debuggerthread.threadlist)-1 do
-    begin
-      suspendthread(debuggerthread.threadlist[i][1]);
-      if not SetThreadContext(debuggerthread.threadlist[i][1],debuggerthread.DRRegs) then showmessage('I cant seem to remove the breakpoint from one of the threads!');
-      resumethread(debuggerthread.threadlist[i][1]);
-    end;
-    
-    releasesemaphore(semaphore,1,nil);
-  end;
+  if frmChangedAddresses=self then frmChangedAddresses:=nil;
 end;
 
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
@@ -139,3 +126,4 @@ begin
 end;
 
 end.
+

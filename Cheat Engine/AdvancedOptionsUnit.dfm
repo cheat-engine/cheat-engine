@@ -1,6 +1,6 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 685
-  Top = 552
+  Left = 856
+  Top = 702
   Width = 377
   Height = 258
   Anchors = []

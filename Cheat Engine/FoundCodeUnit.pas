@@ -358,18 +358,19 @@ begin
   begin
     codelength:=coderecords[itemindex].size;
     //add it to the codelist
-    advancedoptions.AddToCodeList(coderecords[itemindex].address,codelength,true);
+    if advancedoptions.AddToCodeList(coderecords[itemindex].address,codelength,true) then
+    begin
+      setlength(nops,codelength);
+      for i:=0 to codelength-1 do
+        nops[i]:=$90;  //$90=nop
 
-    setlength(nops,codelength);
-    for i:=0 to codelength-1 do
-      nops[i]:=$90;  //$90=nop
 
+      zeromemory(@mbi,sizeof(mbi));
 
-    zeromemory(@mbi,sizeof(mbi));
-
-    if debuggerthread<>nil then debuggerthread.Suspend;
-    RewriteCode(processhandle,coderecords[itemindex].address,@nops[0],codelength);
-    if debuggerthread<>nil then debuggerthread.Resume;
+      if debuggerthread<>nil then debuggerthread.Suspend;
+      RewriteCode(processhandle,coderecords[itemindex].address,@nops[0],codelength);
+      if debuggerthread<>nil then debuggerthread.Resume;
+    end;
   end;
 end;
 

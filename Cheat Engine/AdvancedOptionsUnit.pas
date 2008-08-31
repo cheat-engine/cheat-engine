@@ -552,7 +552,11 @@ begin
   if not startdebuggerifneeded then exit;
   if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window)');
 
+  if frmChangedAddresses<>nil then
+    frmChangedAddresses.changedlist.color:=clGray;
+
   frmChangedAddresses:=TfrmChangedAddresses.Create(self);
+
   debuggerthread.Suspend;
 
   debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
@@ -571,7 +575,7 @@ begin
   debuggerthread.breakpointset:=true;
 
   debuggerthread.Resume;
-  frmChangedAddresses.showmodal;
+  frmChangedAddresses.show;
 
   {$endif}
 end;

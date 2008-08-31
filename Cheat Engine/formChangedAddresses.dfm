@@ -1,10 +1,10 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1094
+  Left = 1093
   Top = 593
   BorderStyle = bsDialog
   Caption = 'Changed Addresses'
   ClientHeight = 239
-  ClientWidth = 172
+  ClientWidth = 173
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,7 +20,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   object lblInfo: TLabel
     Left = 0
     Top = 0
-    Width = 172
+    Width = 173
     Height = 26
     Align = alTop
     Caption = 
@@ -31,7 +31,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   object Changedlist: TListBox
     Left = 0
     Top = 26
-    Width = 172
+    Width = 173
     Height = 175
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
