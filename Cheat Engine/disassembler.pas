@@ -6536,16 +6536,14 @@ begin
 
       $84 : begin
               description:='Logical Compare';
-              tempresult:=tempresult+'TEST '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $85 : begin
               description:='Logical Compare';
-              if $66 in prefix2 then tempresult:=tempresult+'TEST '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'TEST '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              if $66 in prefix2 then tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                                     tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
 
