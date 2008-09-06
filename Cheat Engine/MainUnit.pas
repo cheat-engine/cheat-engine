@@ -428,7 +428,8 @@ type
     aaa:single;
     hotkeypressed: integer;
 
-    cancelbutton: Tbutton;
+    cancelbutton: Tbutton; //cancel button that spawns during a scan, disabled initially to prevent doubleclick accidents
+    cancelbuttonenabler: TTimer; //timer that will enable the cancelbutton after 3 seconds
 
     CreateCustomScanButton: TButton;
     EditCustomScanButton: TButton;
@@ -498,6 +499,7 @@ type
 
     procedure scanEpilogue(canceled: boolean);
     procedure CancelbuttonClick(sender: TObject);
+    procedure CancelbuttonenablerInterval(sender: TObject);
     procedure CreateCustomScanButtonClick(sender: TObject);
     procedure EditCustomScanButtonClick(sender: TObject);
 
@@ -1255,8 +1257,8 @@ end;
 
 procedure TMainform.DestroyCancelButton;
 begin
-  if cancelbutton<>nil then
-    freeandnil(cancelbutton);
+  if cancelbutton<>nil then freeandnil(cancelbutton);
+  if cancelbuttonenabler<>nil then freeandnil(cancelbuttonenabler);
 end;
 
 procedure TMainform.SpawnCancelButton;
@@ -1270,6 +1272,17 @@ begin
     height:=newscan.height;
     caption:='Cancel';
     onclick:=cancelbuttonclick;
+    enabled:=false;
+    parent:=panel5;
+  end;
+
+  cancelbuttonenabler:=TTimer.create(self);
+
+  with cancelbuttonenabler do
+  begin
+    interval:=2000; //2 seconds
+    OnTimer:=cancelbuttonenablerinterval;
+    enabled:=true;
     parent:=self;
   end;
 end;
@@ -3885,7 +3898,7 @@ begin
 
             end else
             begin
-              foundcount:=GetMemoryRangesAndScanValue2(fr,FromAdd,ToAdd,readonly.checked,false,SType,vtype,scanvalue.text,value2,roundingtype,hexadecimalcheckbox.checked,progressbar1,fastscan,cbunicode.checked);
+              foundcount:=0; //obsolete: GetMemoryRangesAndScanValue2(fr,FromAdd,ToAdd,readonly.checked,false,SType,vtype,scanvalue.text,value2,roundingtype,hexadecimalcheckbox.checked,progressbar1,fastscan,cbunicode.checked);
             end;
 
             if aprilfools then aprilfoolsscan;
@@ -3972,7 +3985,7 @@ begin
 
 
           end else
-          foundcount:=GetMemoryRanges2(FromAdd,ToAdd,readonly.checked,progressbar1,vtype,fastscan);
+          foundcount:=0; //obsolete: GetMemoryRanges2(FromAdd,ToAdd,readonly.checked,progressbar1,vtype,fastscan);
 
           if aprilfools then aprilfoolsscan;
         
@@ -4204,7 +4217,7 @@ begin
         formscanning.roundingtype:=roundingtype;
         res:=formscanning.showmodal;
       end else
-      foundcount:=nextscan2(scanvalue.text,value2,stype,vtype,roundingtype,hexadecimalcheckbox.Checked,progressbar1,fastscan,cbunicode.checked,percentage);
+      foundcount:=0; //obsolete: nextscan2(scanvalue.text,value2,stype,vtype,roundingtype,hexadecimalcheckbox.Checked,progressbar1,fastscan,cbunicode.checked,percentage);
 
       foundlist.Clear;
 
@@ -11162,7 +11175,9 @@ end;
 procedure TMainForm.Label38Click(Sender: TObject);
 
 begin
-
+asm
+ db $84, $82, $00 , $00, $00, $10
+end;
 
   {
 asm
@@ -11174,7 +11189,7 @@ asm
   db $cc
 end;  }
 exit;
-          
+
         {
 
 blaat:=tstringlist.create;
@@ -11484,6 +11499,12 @@ procedure Tmainform.CancelbuttonClick(sender: TObject);
 begin
   tbutton(sender).Caption:='Terminating scan...';
   memscan.terminatescan;
+end;
+
+procedure Tmainform.CancelbuttonenablerInterval(sender: TObject);
+begin
+  if cancelbutton<>nil then cancelbutton.enabled:=true;
+  TTimer(sender).Enabled:=false;
 end;
 
 procedure TMainForm.Button4Click(Sender: TObject);

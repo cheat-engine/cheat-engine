@@ -1,6 +1,6 @@
 object formSettings: TformSettings
-  Left = 553
-  Top = 251
+  Left = 555
+  Top = 253
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Cheat Engine settings'
@@ -52,7 +52,7 @@ object formSettings: TformSettings
     Top = 0
     Width = 499
     Height = 321
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alTop
     TabOrder = 1
     object TabSheet1: TTabSheet
@@ -382,6 +382,7 @@ object formSettings: TformSettings
         Checked = True
         State = cbChecked
         TabOrder = 8
+        Visible = False
         OnClick = checkThreadClick
       end
       object combothreadpriority: TComboBox

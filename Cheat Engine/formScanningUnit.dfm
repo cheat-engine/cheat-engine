@@ -1,6 +1,6 @@
 object formScanning: TformScanning
-  Left = 939
-  Top = 247
+  Left = 941
+  Top = 249
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Scanning...'

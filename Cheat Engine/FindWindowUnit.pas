@@ -66,6 +66,9 @@ begin
   cb.parent:=self;
 
   if rbText.checked then valtype:=7 else valtype:=8;
+
+  raise exception.Create('Please tell dark byte he still has to implement a new find');
+  {
   if GetMemoryRangesAndScanValue2(firstresult,start,stop,true,true,Exact_value,valtype,scanvalue.text,'',rounded,true,progressbar,false,cbunicode.checked)>0 then
   begin
     //something found
@@ -77,7 +80,7 @@ begin
   begin
     showmessage('Nothing found...');
     if not firstscan then modalresult:=mrcancel;
-  end;
+  end;    }
 
   cb.free;
 end;

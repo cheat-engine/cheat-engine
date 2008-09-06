@@ -1,6 +1,6 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
-  Left = 253
-  Top = 426
+  Left = 316
+  Top = 568
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
   ClientHeight = 147

@@ -137,7 +137,7 @@ uses
   FormsExtra in 'FormsExtra.pas',
   speedhack2 in 'speedhack2.pas',
   autoassembler2 in 'autoassembler2.pas',
-  frmAAEditPrefsUnit in 'SynEdit\Source\frmAAEditPrefsUnit.pas' {frmAAEditPrefs},
+  frmAAEditPrefsUnit in 'frmAAEditPrefsUnit.pas' {frmAAEditPrefs},
   MenuItemExtra in 'MenuItemExtra.pas',
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas';
 
@@ -149,7 +149,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.4.2';
+  Application.Title := 'Cheat Engine 5.4.3';
   Application.HelpFile := 'CHEAT ENGINE.HLP';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);

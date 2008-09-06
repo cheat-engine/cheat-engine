@@ -144,32 +144,7 @@ begin
 
     if hypermode<>nil then
       postmessage(hypermode.HyperscanWindow,wm_user+2,0,0); //wm_user+2=scan memory
-
-    exit;
-  end;
-
-  try
-    FreeOnTerminate:=true;
-    with formscanning do
-    case scan of
-      0  : count:=GetMemoryRanges2(FromAdd,ToAdd,readonly,mainform.progressbar1,vtype,fastscan);
-      1  : count:=GetMemoryRangesAndScanValue2(fr,FromAdd,ToAdd,readonly,false,SType,vtype,scanvalue,scanvalue2,roundingtype,hexadecimal,mainform.progressbar1,fastscan,unicode);
-      2  : count:=nextscan2(scanvalue,scanvalue2,stype,vtype,roundingtype,hexadecimal,mainform.progressbar1,fastscan,unicode,percentage);
-      3  : count:=FindPointer(fromadd,toadd,addresstofind,mainform.ProgressBar1,pointerinfo);
-      else count:=0;
-    end;
-
-    //count now contains the number of result
-    postmessage(formScanning.handle,donescanning,count,0);
-  except
-    on e: exception do
-    begin
-      formscanning.lasterror:=e.Message;
-      closefiles;
-      postmessage(formScanning.handle,donescanning,0,1);
-    end;
-  end;
-
+  end else postmessage(formScanning.handle,donescanning,0,1);  //onsolete, so raise error
 end;
 
 
@@ -355,3 +330,4 @@ begin
 end;
 
 end.
+

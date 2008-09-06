@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 462
-  Top = 295
+  Left = 615
+  Top = 179
   Width = 532
   Height = 570
   Hint = ' '
@@ -1414,7 +1414,6 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label38'
-      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -2444,8 +2443,8 @@ object MainForm: TMainForm
   object UpdateTimer: TTimer
     Interval = 500
     OnTimer = UpdateTimerTimer
-    Left = 104
-    Top = 336
+    Left = 16
+    Top = 232
   end
   object FreezeTimer: TTimer
     Interval = 250
@@ -2714,8 +2713,8 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 4000
     OnTimer = Timer4Timer
-    Left = 352
-    Top = 56
+    Left = 16
+    Top = 264
   end
   object ActionList1: TActionList
     Images = ImageList1

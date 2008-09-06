@@ -1360,7 +1360,7 @@ begin
   if variableType=vtAll then
   begin
     //reset typesmatch array for each check
-    while dword(p)<=lastmem do
+    while (dword(p)<=lastmem) do
     begin
       if _fastscan then
       begin
@@ -1384,7 +1384,7 @@ begin
   end
   else
   begin
-    while dword(p)<=lastmem do
+    while (dword(p)<=lastmem) do
     begin
       if checkroutine(p,nil) then //found one
         StoreResultRoutine(base+dword(p)-dword(buffer),p);
@@ -2547,9 +2547,7 @@ begin
         
         inc(scanned,size); //for the progressbar
         dec(toread,size);
-      until toread=0;
-
-
+      until terminated or (toread=0);
     end;
 
     if (scanOption<>soUnknownValue) then flushroutine; //save results
@@ -2884,7 +2882,14 @@ begin
         repeat
           WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
           synchronize(updategui);
-        until scanners[i].isdone;
+        until terminated or scanners[i].isdone;
+
+        //If terminated then stop the scanner thread and wait for it to finish
+        if terminated then
+        begin
+          scanners[i].Terminate;
+          scanners[i].WaitFor;
+        end;
 
         if scanners[i].haserror then
         begin
@@ -3077,7 +3082,14 @@ begin
     repeat
       WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
       synchronize(updategui);
-    until scanners[i].isdone;
+    until terminated or scanners[i].isdone;
+
+    //If terminated then stop the scanner thread and wait for it to finish
+    if terminated then
+    begin
+      scanners[i].Terminate;
+      scanners[i].WaitFor;
+    end;
 
 
     //scanners[i].WaitFor; //if the mainthread has to cancel, it has to tell the child scanners to terminate instead
@@ -3414,8 +3426,14 @@ begin
       repeat
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
         synchronize(updategui);
-      until scanners[i].isdone;
+      until terminated or scanners[i].isdone;
 
+      //If terminated then stop the scanner thread and wait for it to finish
+      if terminated then
+      begin
+        scanners[i].Terminate;
+        scanners[i].WaitFor;
+      end;
 
       if scanners[i].haserror then
       begin
@@ -3424,7 +3442,6 @@ begin
         errorstring:=scanners[i].errorstring;
         break;
       end;
-
       inc(OwningMemScan.found,scanners[i].totalfound);
     end;
 
@@ -3628,9 +3645,8 @@ end;
 procedure TMemscan.TerminateScan;
 var i: integer;
 begin
-  if scancontroller<>nil then
-    scanController.Terminate;
-
+  if scancontroller<>nil then scanController.Terminate;
+  //and now the caller has to wait
 end;
 
 function TMemscan.GetErrorString: string;
