@@ -26,6 +26,7 @@ type TFlushRoutine=procedure of object;
 type
   TMemScan=class;
   TScanController=class;
+  TScanner=class;
 
   Tscanfilewriter=class(tthread)
   {
@@ -39,6 +40,7 @@ type
   }
   private
     scancontroller: TScanController;
+    scanner: TScanner;
     addressfile: TFilestream;
     memoryfile: TFilestream;
 //    cAddressFile,cMemoryFile: TCompressionStream;
@@ -58,7 +60,7 @@ type
     procedure execute; override;
     procedure writeresults(addressbuffer,memorybuffer: pointer; addressSize,memorySize: dword); //writes the results of address and memory
     procedure flush;
-    constructor create(scancontroller:TScanController; addressfile,memoryfile:TFileStream);
+    constructor create(scanner: TScanner; scancontroller:TScanController; addressfile,memoryfile:TFileStream);
     destructor destroy; override;
   end;
 
@@ -1247,7 +1249,9 @@ end;
 
 //==================Tscanfilewriter=================//
 procedure Tscanfilewriter.execute;
+var part: integer;
 begin
+  part:=0;
   if writeError then exit;
   
   try
@@ -1262,6 +1266,7 @@ begin
 
         scancontroller.resultsaveCS.Enter;
         try
+
           //note: Compressing before writing using TCompressStream=failure
           //on fast compression speed it still took longer to compess and write
           //than to only write the uncompressed buffer (no compress=2.8 secs,
@@ -1270,7 +1275,10 @@ begin
   //        cAddressFile.WriteBuffer(addressbuffer^,addressSize);
   //        cMemoryFile.WriteBuffer(memorybuffer^,memorySize);
 
+          part:=1;
           AddressFile.WriteBuffer(addressbuffer^,addressSize);
+
+          part:=2;
           MemoryFile.WriteBuffer(memorybuffer^,memorySize);
         finally
           scancontroller.resultsaveCS.Leave;
@@ -1284,7 +1292,14 @@ begin
   except
     on e: exception do
     begin
-      errorstring:=e.message;
+      case part of
+        0: errorstring:='Thread synchronizer';
+        1: errorstring:=scanner.Addressfilename;
+        2: errorstring:=scanner.MemoryFilename;
+        else errorstring:='Unknown';
+      end;
+
+      errorstring:=errorstring+':'+e.message;
       writeError:=true;
       dataavailable.SetEvent;
       datawritten.SetEvent;
@@ -1337,9 +1352,10 @@ begin
   inherited destroy;
 end;
 
-constructor Tscanfilewriter.create(scancontroller:TScanController; addressfile,memoryfile:TFileStream);
+constructor Tscanfilewriter.create(scanner: TScanner; scancontroller:TScanController; addressfile,memoryfile:TFileStream);
 begin
   self.scancontroller:=scancontroller;
+  self.scanner:=scanner;
   self.addressfile:=addressfile;
   self.memoryfile:=memoryfile;
 
@@ -2583,7 +2599,7 @@ begin
   Set8087CW($133f); //disable floating point exceptions in this thread
 
   try
-    scanwriter:=TScanfilewriter.create(self.OwningScanController,addressfile,memoryfile);
+    scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
     if scantype=stFirstScan then firstscan;
     if scantype=stNextScan then
     begin
