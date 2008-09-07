@@ -53,6 +53,8 @@ type
     datawritten: tevent; //event that is set when the thread has finished writing
     dataavailable:tevent; //event that is set when there is a buffer to save
   public
+    writeError: boolean; //gets set if an exception happened
+    errorString: string; //exception description
     procedure execute; override;
     procedure writeresults(addressbuffer,memorybuffer: pointer; addressSize,memorySize: dword); //writes the results of address and memory
     procedure flush;
@@ -1246,34 +1248,51 @@ end;
 //==================Tscanfilewriter=================//
 procedure Tscanfilewriter.execute;
 begin
-  repeat
-    dataavailable.WaitFor(infinite);
-    try
-      if terminated then exit;
+  if writeError then exit;
+  
+  try
 
-
-
-      scancontroller.resultsaveCS.Enter;
+    
+    repeat
+      dataavailable.WaitFor(infinite);
       try
-        //note: Compressing before writing using TCompressStream=failure
-        //on fast compression speed it still took longer to compess and write
-        //than to only write the uncompressed buffer (no compress=2.8 secs,
-        //compressed=7.1 sec)
 
-//        cAddressFile.WriteBuffer(addressbuffer^,addressSize);
-//        cMemoryFile.WriteBuffer(memorybuffer^,memorySize);
+        if terminated then exit;
 
-        AddressFile.WriteBuffer(addressbuffer^,addressSize);
-        MemoryFile.WriteBuffer(memorybuffer^,memorySize);
+
+        scancontroller.resultsaveCS.Enter;
+        try
+          //note: Compressing before writing using TCompressStream=failure
+          //on fast compression speed it still took longer to compess and write
+          //than to only write the uncompressed buffer (no compress=2.8 secs,
+          //compressed=7.1 sec)
+
+  //        cAddressFile.WriteBuffer(addressbuffer^,addressSize);
+  //        cMemoryFile.WriteBuffer(memorybuffer^,memorySize);
+
+          AddressFile.WriteBuffer(addressbuffer^,addressSize);
+          MemoryFile.WriteBuffer(memorybuffer^,memorySize);
+        finally
+          scancontroller.resultsaveCS.Leave;
+        end;
+
       finally
-        scancontroller.resultsaveCS.Leave;
+        datawritten.SetEvent; //tell the others that you're ready to write again
       end;
 
-    finally
-      datawritten.SetEvent; //tell the others that you're ready to write again
+    until terminated;
+  except
+    on e: exception do
+    begin
+      errorstring:=e.message;
+      writeError:=true;
+      dataavailable.SetEvent;
+      datawritten.SetEvent;
     end;
+  end;
 
-  until terminated;
+
+
 end;
 
 procedure Tscanfilewriter.writeresults(addressbuffer,memorybuffer: pointer; addressSize,memorySize: dword);
@@ -1296,6 +1315,7 @@ end;
 
 procedure Tscanfilewriter.flush;
 begin
+  if writeerror then exit;
   datawritten.WaitFor(infinite);
   datawritten.SetEvent;
 end;
@@ -2575,6 +2595,9 @@ begin
 
     //tell scanwriter to stop
     scanwriter.flush;
+
+    if scanwriter.writeError then
+      raise exception.Create('Disk write error:'+scanwriter.errorString);
   except
     on e: exception do
     begin
@@ -2583,8 +2606,9 @@ begin
 
       //tell all siblings to terminate, something messed up
       //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic
-      for i:=0 to length(OwningScanController.scanners)-1 do
-        OwningScanController.Terminate;
+      //for i:=0 to length(OwningScanController.scanners)-1 do
+
+      OwningScanController.Terminate;
 
     end;
   end;
@@ -2610,7 +2634,7 @@ begin
         begin
           haserror:=true;
           errorstring:='Custom scan cleanup error:'+e.Message;
-        end;
+        end else errorstring:=errorstring+#13#10+'Additional error:'+e.message;
       end;
 
     end;
@@ -2879,10 +2903,11 @@ begin
       //and now we wait
       for i:=0 to threadcount-1 do
       begin
-        repeat
+        while not (terminated or scanners[i].isdone) do
+        begin
           WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
           synchronize(updategui);
-        until terminated or scanners[i].isdone;
+        end;
 
         //If terminated then stop the scanner thread and wait for it to finish
         if terminated then
@@ -3079,10 +3104,11 @@ begin
   //and now we wait
   for i:=0 to threadcount-1 do
   begin
-    repeat
+    while not (terminated or scanners[i].isdone) do
+    begin
       WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
       synchronize(updategui);
-    until terminated or scanners[i].isdone;
+    end;
 
     //If terminated then stop the scanner thread and wait for it to finish
     if terminated then
@@ -3423,10 +3449,11 @@ begin
     //and now we wait
     for i:=0 to threadcount-1 do
     begin
-      repeat
+      while not (terminated or scanners[i].isdone) do
+      begin
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
         synchronize(updategui);
-      until terminated or scanners[i].isdone;
+      end;
 
       //If terminated then stop the scanner thread and wait for it to finish
       if terminated then
