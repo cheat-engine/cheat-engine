@@ -11209,7 +11209,7 @@ begin
       s:=tmemorystream.Create;
       try
         ki:=TKIcon.Create;
-        ki.LoadFromFile('c:\xxx.ico');
+        ki.LoadFromFile('c:\yyy.ico');
         ki.SaveToFile('c:\yyy2.ico');
         showmessage(inttostr(ki.IconData[0].BytesInRes));
 

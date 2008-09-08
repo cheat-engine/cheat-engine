@@ -108,6 +108,7 @@ type
     procedure Button9Click(Sender: TObject);
   private
     { Private declarations }
+    currentIcon: TKIcon;
     procedure changeicon(filename: string);
   public
     { Public declarations }
@@ -135,6 +136,7 @@ begin
   frmMemoryTrainerPreview.Close;
   frmMemoryTrainerPreview.free;
   frmMemoryTrainerPreview:=nil;
+  currentIcon.free;
 end;
 
 procedure TfrmMemoryModifier.Button2Click(Sender: TObject);
@@ -162,7 +164,6 @@ end;
 procedure TfrmMemoryModifier.changeicon(filename: string);
 var resh: thandle;
     s: tmemorystream;
-    ki: TKIcon;
     tid: TIconData;
 begin
     resh:=BeginUpdateResource(pchar(filename),false);
@@ -173,17 +174,10 @@ begin
         s:=tmemorystream.Create;
         try
           //writeicon2(s, icon.Picture.Icon.Handle, false);
-          ki:=TKIcon.Create;
-          try
-            ki.LoadFromHandle(icon.Picture.Icon.Handle);
-            ki.SaveToStream(s);            
+          CurrentIcon.SaveToStream(s);
 
-            if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, pointer(dword(s.Memory)+(s.size-ki.IconData[0].BytesInRes)), s.size-(s.size-ki.IconData[0].BytesInRes)) then
-              showmessage('Error changing the icon');
-          finally
-            ki.free;
-          end;              
-
+          if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, pointer(dword(s.Memory)+(s.size-CurrentIcon.IconData[0].BytesInRes)), s.size-(s.size-CurrentIcon.IconData[0].BytesInRes)) then
+            showmessage('Error changing the icon');
         finally
           s.Free;
         end;
@@ -221,6 +215,8 @@ var res: TResourceStream;
     temps: string;
 
     protect: boolean;
+
+    iconsize: integer;
 begin
   protect:=cbPreventReopening.checked;
   if combobox1.Text='' then raise exception.Create('At least fill in a processname');
@@ -708,7 +704,7 @@ var HI: HICON;
     test: TMemorystream;
     resp: pointer;
 
-    ic: TKIcon;
+
 begin
 
   if opendialog2.execute then
@@ -721,12 +717,12 @@ begin
       raise exception.Create('No icon found in this file');
 
 
-    ic:=TKIcon.Create;
-    ic.LoadFromHandle(hi);
 
-    ic.MaskFromColor(0,clWhite,true);
-    ic.Transparent:=true;
+    CurrentIcon.LoadFromHandle(hi); //meh...
 
+
+    CurrentIcon.MaskFromColor(0,clBlack);
+    CurrentIcon.SaveToFile('c:\bla.ico');
 
     icon.Picture.Icon.Handle:=HI;
     {test:=TMemoryStream.Create;
@@ -848,6 +844,8 @@ Var SNAPHandle: THandle;
     FullProcessName,ProcessName: String;
     I: Integer;
 begin
+  currentIcon:=TKIcon.Create;
+  
   changed:=false;
 
   left:=mainform.left-180;
