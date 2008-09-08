@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Menus, ExtDlgs, ComCtrls, Buttons, ExtCtrls,shellapi,tlhelp32,
-  cefuncproc,ExtraTrainerComponents;
+  cefuncproc,ExtraTrainerComponents, KIcon;
 
 const trainerversion=7;
 
@@ -81,6 +81,7 @@ type
     Label6: TLabel;
     cbPreventReopening: TCheckBox;
     Button8: TButton;
+    Button9: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -104,6 +105,7 @@ type
     procedure EditHotkeyKeyPress(Sender: TObject; var Key: Char);
     procedure recordviewDblClick(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
   private
     { Private declarations }
     procedure changeicon(filename: string);
@@ -160,18 +162,28 @@ end;
 procedure TfrmMemoryModifier.changeicon(filename: string);
 var resh: thandle;
     s: tmemorystream;
+    ki: TKIcon;
+    tid: TIconData;
 begin
-{    resh:=BeginUpdateResource(pchar(filename),false);
+    resh:=BeginUpdateResource(pchar(filename),false);
     if (resh<>0) then
     begin
       try
         // icon.p
         s:=tmemorystream.Create;
         try
-          writeicon2(s, icon.Picture.Icon.Handle, false);
+          //writeicon2(s, icon.Picture.Icon.Handle, false);
+          ki:=TKIcon.Create;
+          try
+            ki.LoadFromHandle(icon.Picture.Icon.Handle);
+            ki.SaveToStream(s);            
 
-          if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, @(s.Memory), s.size) then
-            showmessage('Error changing the icon');
+            if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, pointer(dword(s.Memory)+(s.size-ki.IconData[0].BytesInRes)), s.size-(s.size-ki.IconData[0].BytesInRes)) then
+              showmessage('Error changing the icon');
+          finally
+            ki.free;
+          end;              
+
         finally
           s.Free;
         end;
@@ -179,7 +191,7 @@ begin
         EndUpdateResource(resh,false);
       end;
     end;
-   }
+   
 end;
 
 procedure TfrmMemoryModifier.recordviewClick(Sender: TObject);
@@ -219,9 +231,15 @@ begin
     res:=TResourceStream.Create(hinstance,'TRAINER','CEINCEXE');
 
     trainer:=TMemorystream.Create;
-    res.SaveToStream(trainer);
+    res.SaveToFile(savedialog1.FileName);
     res.free;
 
+    //change the icon
+    changeicon(savedialog1.FileName);
+
+    //load back in memory
+    trainer.LoadFromFile(savedialog1.FileName);
+  {
     //search for the icon
     searcher:=trainer.memory;
     scanstring:='And so, Dark Byte, wrote the text into the icon, So he could find it back...';
@@ -263,7 +281,7 @@ begin
 
     freemem(iconbuf);
     //append the settingsdata behind that file
-
+         }
     temp:=trainer.Size;
     trainer.position:=80;
     trainer.Writebuffer(temp,4);
@@ -690,7 +708,7 @@ var HI: HICON;
     test: TMemorystream;
     resp: pointer;
 
-    ic: ticon;
+    ic: TKIcon;
 begin
 
   if opendialog2.execute then
@@ -702,21 +720,26 @@ begin
     if hi=0 then
       raise exception.Create('No icon found in this file');
 
-    ic:=ticon.Create;
-    ic.Handle:=hi;
+
+    ic:=TKIcon.Create;
+    ic.LoadFromHandle(hi);
+
+    ic.MaskFromColor(0,clWhite,true);
+    ic.Transparent:=true;
+
 
     icon.Picture.Icon.Handle:=HI;
-    test:=TMemoryStream.Create;
+    {test:=TMemoryStream.Create;
     icon.Picture.Icon.SaveToStream(test);
-    
 
+    ic.SaveToStream(test);
 
     try
       if test.Size<>766 then
         raise exception.Create('The size of this icon is '+IntToStr(test.size)+'. It should be 766');
     finally
       test.free;
-    end;
+    end; }
 
     frmMemoryTrainerPreview.Icon:=icon.Picture.Icon;
     if frmTrainerDesigner<>nil then frmtrainerdesigner.Icon:=icon.Picture.Icon;
@@ -977,6 +1000,13 @@ begin
   edithotkey.SetFocus;
 end;
 
+procedure TfrmMemoryModifier.Button9Click(Sender: TObject);
+begin
+  changeicon('c:\xxx.exe');
+end;
+
 end.
+
+
 
 

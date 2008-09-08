@@ -1,0 +1,7 @@
+type
+  {$EXTERNALSYM ULONG_PTR}
+  ULONG_PTR = LongWord;      // Need to have the same size like Pointer
+  {$EXTERNALSYM DWORD_PTR}
+  DWORD_PTR = ULONG_PTR;
+  {$EXTERNALSYM PDWORD_PTR}
+  PDWORD_PTR = ^PLongWord;

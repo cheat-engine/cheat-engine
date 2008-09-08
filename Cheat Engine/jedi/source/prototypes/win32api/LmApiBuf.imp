@@ -1,0 +1,20 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+var
+  _NetApiBufferFree: Pointer;
+
+function NetApiBufferFree;
+begin
+  GetProcedureAddress(_NetApiBufferFree, netapi32, 'NetApiBufferFree');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetApiBufferFree]
+  end;
+end;
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

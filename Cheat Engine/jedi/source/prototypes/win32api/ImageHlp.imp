@@ -1,0 +1,219 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+const
+  ImageHlpLib = 'imagehlp.dll';
+  
+var
+  _ReBaseImage: Pointer;
+
+function ReBaseImage;
+begin
+  GetProcedureAddress(_ReBaseImage, ImageHlpLib, 'ReBaseImage');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_ReBaseImage]
+  end;
+end;
+
+var
+  _ReBaseImage64: Pointer;
+
+function ReBaseImage64;
+begin
+  GetProcedureAddress(_ReBaseImage64, ImageHlpLib, 'ReBaseImage64');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_ReBaseImage64]
+  end;
+end;
+
+var
+  _CheckSumMappedFile: Pointer;
+
+function CheckSumMappedFile;
+begin
+  GetProcedureAddress(_CheckSumMappedFile, ImageHlpLib, 'CheckSumMappedFile');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_CheckSumMappedFile]
+  end;
+end;
+
+var
+  _GetImageUnusedHeaderBytes: Pointer;
+
+function GetImageUnusedHeaderBytes;
+begin
+  GetProcedureAddress(_GetImageUnusedHeaderBytes, ImageHlpLib, 'GetImageUnusedHeaderBytes');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_GetImageUnusedHeaderBytes]
+  end;
+end;
+
+var
+  _MapAndLoad: Pointer;
+
+function MapAndLoad;
+begin
+  GetProcedureAddress(_MapAndLoad, ImageHlpLib, 'MapAndLoad');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_MapAndLoad]
+  end;
+end;
+
+var
+  _UnMapAndLoad: Pointer;
+
+function UnMapAndLoad;
+begin
+  GetProcedureAddress(_UnMapAndLoad, ImageHlpLib, 'UnMapAndLoad');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_UnMapAndLoad]
+  end;
+end;
+
+var
+  _TouchFileTimes: Pointer;
+
+function TouchFileTimes;
+begin
+  GetProcedureAddress(_TouchFileTimes, ImageHlpLib, 'TouchFileTimes');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_TouchFileTimes]
+  end;
+end;
+
+var
+  _ImageDirectoryEntryToData: Pointer;
+
+function ImageDirectoryEntryToData;
+begin
+  GetProcedureAddress(_ImageDirectoryEntryToData, ImageHlpLib, 'ImageDirectoryEntryToData');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_ImageDirectoryEntryToData]
+  end;
+end;
+
+var
+  _ImageRvaToSection: Pointer;
+
+function ImageRvaToSection;
+begin
+  GetProcedureAddress(_ImageRvaToSection, ImageHlpLib, 'ImageRvaToSection');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_ImageRvaToSection]
+  end;
+end;
+
+var
+  _ImageRvaToVa: Pointer;
+
+function ImageRvaToVa;
+begin
+  GetProcedureAddress(_ImageRvaToVa, ImageHlpLib, 'ImageRvaToVa');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_ImageRvaToVa]
+  end;
+end;
+
+var
+  _UnDecorateSymbolName: Pointer;
+
+function UnDecorateSymbolName;
+begin
+  GetProcedureAddress(_UnDecorateSymbolName, ImageHlpLib, 'UnDecorateSymbolName');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_UnDecorateSymbolName]
+  end;
+end;
+
+{$ENDIF MSWINDOWS}
+
+{$IFDEF UNIX}
+
+function ReBaseImage(CurrentImageName: PAnsiChar; SymbolPath: PAnsiChar; fReBase: BOOL;
+  fRebaseSysfileOk: BOOL; fGoingDown: BOOL; CheckImageSize: ULONG;
+  var OldImageSize: ULONG; var OldImageBase: ULONG_PTR; var NewImageSize: ULONG;
+  var NewImageBase: ULONG_PTR; TimeStamp: ULONG): BOOL;
+begin
+  Result := False;
+end;
+
+function CheckSumMappedFile(BaseAddress: Pointer; FileLength: DWORD;
+  out HeaderSum, CheckSum: DWORD): PImageNtHeaders;
+begin
+  HeaderSum := 0;
+  CheckSum := 0;
+  Result := nil;
+end;
+
+function GetImageUnusedHeaderBytes(const LoadedImage: LOADED_IMAGE;
+  var SizeUnusedHeaderBytes: DWORD): DWORD;
+begin
+  SizeUnusedHeaderBytes := 0;
+  Result := 0;
+end;
+
+function MapAndLoad(ImageName, DllPath: PChar; var LoadedImage: LOADED_IMAGE;
+  DotDll: BOOL; ReadOnly: BOOL): BOOL;
+begin
+  Result := False;
+end;
+
+function UnMapAndLoad(const LoadedImage: LOADED_IMAGE): BOOL;
+begin
+  Result := False;
+end;
+
+function TouchFileTimes(const FileHandle: THandle; const pSystemTime: TSystemTime): BOOL;
+begin
+  Result := False;
+end;
+
+function ImageDirectoryEntryToData(Base: Pointer; MappedAsImage: ByteBool;
+  DirectoryEntry: USHORT; var Size: ULONG): Pointer;
+begin
+  Size := 0;
+  Result := nil;
+end;
+
+function ImageRvaToSection(NtHeaders: PImageNtHeaders; Base: Pointer; Rva: ULONG): PImageSectionHeader;
+begin
+  Result := nil;
+end;
+
+function ImageRvaToVa(NtHeaders: PImageNtHeaders; Base: Pointer; Rva: ULONG;
+  LastRvaSection: PPImageSectionHeader): Pointer;
+begin
+  Result := nil;
+end;
+
+function UnDecorateSymbolName(DecoratedName: PAnsiChar; UnDecoratedName: PAnsiChar;
+  UndecoratedLength: DWORD; Flags: DWORD): DWORD;
+begin
+  Result := 0;
+end;
+
+{$ENDIF ~CLR}
+
+{$ENDIF UNIX}

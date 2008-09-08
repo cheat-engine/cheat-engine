@@ -1,0 +1,146 @@
+// line 160
+
+//
+// File creation flags must start at the high end since they
+// are combined with the attributes
+//
+
+const
+  FILE_FLAG_WRITE_THROUGH      = DWORD($80000000);
+  {$EXTERNALSYM FILE_FLAG_WRITE_THROUGH}
+  FILE_FLAG_OVERLAPPED         = $40000000;
+  {$EXTERNALSYM FILE_FLAG_OVERLAPPED}
+  FILE_FLAG_NO_BUFFERING       = $20000000;
+  {$EXTERNALSYM FILE_FLAG_NO_BUFFERING}
+  FILE_FLAG_RANDOM_ACCESS      = $10000000;
+  {$EXTERNALSYM FILE_FLAG_RANDOM_ACCESS}
+  FILE_FLAG_SEQUENTIAL_SCAN    = $08000000;
+  {$EXTERNALSYM FILE_FLAG_SEQUENTIAL_SCAN}
+  FILE_FLAG_DELETE_ON_CLOSE    = $04000000;
+  {$EXTERNALSYM FILE_FLAG_DELETE_ON_CLOSE}
+  FILE_FLAG_BACKUP_SEMANTICS   = $02000000;
+  {$EXTERNALSYM FILE_FLAG_BACKUP_SEMANTICS}
+  FILE_FLAG_POSIX_SEMANTICS    = $01000000;
+  {$EXTERNALSYM FILE_FLAG_POSIX_SEMANTICS}
+  FILE_FLAG_OPEN_REPARSE_POINT = $00200000;
+  {$EXTERNALSYM FILE_FLAG_OPEN_REPARSE_POINT}
+  FILE_FLAG_OPEN_NO_RECALL     = $00100000;
+  {$EXTERNALSYM FILE_FLAG_OPEN_NO_RECALL}
+  FILE_FLAG_FIRST_PIPE_INSTANCE = $00080000;
+  {$EXTERNALSYM FILE_FLAG_FIRST_PIPE_INSTANCE}
+
+// line 3189
+  
+{$IFDEF MSWINDOWS}
+
+function BackupSeek(hFile: THandle; dwLowBytesToSeek, dwHighBytesToSeek: DWORD;
+  out lpdwLowByteSeeked, lpdwHighByteSeeked: DWORD;
+  var lpContext: {$IFDEF CLR}IntPtr{$ELSE}Pointer{$ENDIF}): BOOL; stdcall;
+  {$IFDEF CLR}external kernel32 name 'BackupSeek';{$ENDIF}
+{$EXTERNALSYM BackupSeek}
+
+// line 5454
+
+function AdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: BOOL;
+  const NewState: TTokenPrivileges; BufferLength: DWORD;
+  {$IFDEF CLR}
+  out PreviousState: TTokenPrivileges;
+  out ReturnLength: DWORD
+  {$ELSE}
+  PreviousState: PTokenPrivileges;
+  ReturnLength: PDWORD
+  {$ENDIF CLR}
+  ): BOOL; stdcall;
+  {$IFDEF CLR} external advapi32 name 'AdjustTokenPrivileges';{$ENDIF}
+{$EXTERNALSYM AdjustTokenPrivileges}
+
+{
+From: Ray Lischner <delphi.at.tempest-sw.com@nospam.com>
+Subject: CreateMutex bug
+Date: 1999/12/10
+Message-ID: <e7tQOEYjVVpXzy6tIn=yUyJnBZXw@4ax.com>#1/1
+Content-Transfer-Encoding: 7bit
+Organization: Tempest Software, Inc., Corvallis, Oregon
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0
+Newsgroups: borland.public.delphi.winapi
+
+
+Windows NT 4 has a bug in CreateMutex. The second argument is documented
+to be a BOOL, but in truth, the CreateMutex interprets 1 as True and all
+other values as False. (Do I detect an "if (bInitialOwner == TRUE)" in
+the implementation of CreateMutex?)
+
+The problem is that Delphi declares CreateMutex according to the
+documentation, so bInitialOwner is declared as LongBool. Delphi maps
+True values to $FFFFFFFF, which should work, but doesn't in this case.
+
+My workaround is to declare CreateMutex with a LongInt as the second
+argument, and pass the value 1 for True.
+
+I have not had this problem on Windows 98.
+--
+Ray Lischner, author of Delphi in a Nutshell (coming later this year)
+http://www.bardware.com and http://www.tempest-sw.com
+}
+{$IFNDEF CLR}
+function CreateMutex(lpMutexAttributes: PSecurityAttributes; bInitialOwner: DWORD; lpName: PChar): THandle; stdcall;
+{$EXTERNALSYM CreateMutex}
+{$ENDIF ~CLR}
+
+// alternative conversion for WinNT 4.0 SP6 and later (OSVersionInfoEx instead of OSVersionInfo)
+{$EXTERNALSYM GetVersionEx}
+function GetVersionEx(var lpVersionInformation: TOSVersionInfoEx): BOOL; stdcall; overload;
+  {$IFDEF CLR}external version name 'GetVersionEx';{$ENDIF}
+{$IFNDEF CLR}
+{$EXTERNALSYM GetVersionEx}
+function GetVersionEx(lpVersionInformation: POSVERSIONINFOEX): BOOL; stdcall; overload;
+  {$IFDEF SUPPORTS_DEPRECATED} deprecated; {$ENDIF}
+
+// line 3585
+
+function SetWaitableTimer(hTimer: THandle; var lpDueTime: TLargeInteger;
+  lPeriod: Longint; pfnCompletionRoutine: TFNTimerAPCRoutine;
+  lpArgToCompletionRoutine: Pointer; fResume: BOOL): BOOL; stdcall;
+  {$EXTERNALSYM SetWaitableTimer}
+
+// WinBase.h line 8839
+
+function SetFileSecurityA(lpFileName: LPCSTR; SecurityInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR): BOOL; stdcall;
+{$EXTERNALSYM SetFileSecurityA}
+function SetFileSecurityW(lpFileName: LPCWSTR; SecurityInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR): BOOL; stdcall;
+{$EXTERNALSYM SetFileSecurityW}
+function SetFileSecurity(lpFileName: LPCTSTR; SecurityInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR): BOOL; stdcall;
+{$EXTERNALSYM SetFileSecurityA}
+
+function GetFileSecurityA(lpFileName: LPCSTR; RequestedInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR; nLength: DWORD;
+  var lpnLengthNeeded: DWORD): BOOL; stdcall;
+{$EXTERNALSYM GetFileSecurityA}
+function GetFileSecurityW(lpFileName: LPCWSTR; RequestedInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR; nLength: DWORD;
+  var lpnLengthNeeded: DWORD): BOOL; stdcall;
+{$EXTERNALSYM GetFileSecurityW}
+function GetFileSecurity(lpFileName: LPCTSTR; RequestedInformation: SECURITY_INFORMATION;
+  pSecurityDescriptor: PSECURITY_DESCRIPTOR; nLength: DWORD;
+  var lpnLengthNeeded: DWORD): BOOL; stdcall;
+{$EXTERNALSYM GetFileSecurityA}
+
+// WinBase.h line 10251
+
+function SetVolumeMountPoint(lpszVolumeMountPoint, lpszVolumeName: LPCSTR): BOOL; stdcall;
+{$EXTERNALSYM SetVolumeMountPoint}
+
+function DeleteVolumeMountPoint(lpszVolumeMountPoint: LPCSTR): BOOL; stdcall;
+{$EXTERNALSYM DeleteVolumeMountPoint}
+
+function GetVolumeNameForVolumeMountPoint(lpszVolumeMountPoint: LPCSTR;
+  lpszVolumeName: LPSTR; cchBufferLength: DWORD): BOOL; stdcall;
+{$EXTERNALSYM GetVolumeNameForVolumeMountPoint}
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

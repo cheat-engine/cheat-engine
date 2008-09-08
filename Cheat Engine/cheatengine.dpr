@@ -139,7 +139,8 @@ uses
   autoassembler2 in 'autoassembler2.pas',
   frmAAEditPrefsUnit in 'frmAAEditPrefsUnit.pas' {frmAAEditPrefs},
   MenuItemExtra in 'MenuItemExtra.pas',
-  ProcessHandlerUnit in 'ProcessHandlerUnit.pas';
+  ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
+  AccessCheck in 'AccessCheck.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

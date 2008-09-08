@@ -1,0 +1,12 @@
+This is the directory where include files for JclWin32.pas reside.
+
+Each file is named after the Platform SDK header file from which it originates.
+
+*.int files shall be included in the interface section.
+*.imp files shall be included in the implementation section.
+
+line numbers at present refer to the Jwa* units [*] from which the 
+code has been ripped off, not to the original header file.
+
+
+* Marcel van Brakel's Win32 API Header translations.

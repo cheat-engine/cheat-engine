@@ -1,0 +1,58 @@
+{$IFNDEF CLR}
+
+const
+  PowrprofLib = 'PowrProf.dll';
+  
+var
+  _IsPwrSuspendAllowed: Pointer;
+
+function IsPwrSuspendAllowed;
+begin
+  GetProcedureAddress(_IsPwrSuspendAllowed, PowrprofLib, 'IsPwrSuspendAllowed');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_IsPwrSuspendAllowed]
+  end;
+end;
+
+var
+  _IsPwrHibernateAllowed: Pointer;
+
+function IsPwrHibernateAllowed;
+begin
+  GetProcedureAddress(_IsPwrHibernateAllowed, PowrprofLib, 'IsPwrHibernateAllowed');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_IsPwrHibernateAllowed]
+  end;
+end;
+
+var
+  _IsPwrShutdownAllowed: Pointer;
+
+function IsPwrShutdownAllowed;
+begin
+  GetProcedureAddress(_IsPwrShutdownAllowed, PowrprofLib, 'IsPwrShutdownAllowed');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_IsPwrShutdownAllowed]
+  end;
+end;
+
+var
+  _SetSuspendState: Pointer;
+
+function SetSuspendState;
+begin
+  GetProcedureAddress(_SetSuspendState, PowrprofLib, 'SetSuspendState');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_SetSuspendState]
+  end;
+end;
+
+{$ENDIF ~CLR}

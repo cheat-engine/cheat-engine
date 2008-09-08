@@ -1,0 +1,408 @@
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+
+var
+  _NetUserAdd: Pointer;
+
+function NetUserAdd;
+begin
+  GetProcedureAddress(_NetUserAdd, netapi32, 'NetUserAdd');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserAdd]
+  end;
+end;
+
+var
+  _NetUserEnum: Pointer;
+
+function NetUserEnum;
+begin
+  GetProcedureAddress(_NetUserEnum, netapi32, 'NetUserEnum');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserEnum]
+  end;
+end;
+
+var
+  _NetUserGetInfo: Pointer;
+
+function NetUserGetInfo;
+begin
+  GetProcedureAddress(_NetUserGetInfo, netapi32, 'NetUserGetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserGetInfo]
+  end;
+end;
+
+var
+  _NetUserSetInfo: Pointer;
+
+function NetUserSetInfo;
+begin
+  GetProcedureAddress(_NetUserSetInfo, netapi32, 'NetUserSetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserSetInfo]
+  end;
+end;
+
+var
+  _NetUserDel: Pointer;
+
+function NetUserDel;
+begin
+  GetProcedureAddress(_NetUserDel, netapi32, 'NetUserDel');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserDel]
+  end;
+end;
+
+var
+  _NetUserGetGroups: Pointer;
+
+function NetUserGetGroups;
+begin
+  GetProcedureAddress(_NetUserGetGroups, netapi32, 'NetUserGetGroups');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserGetGroups]
+  end;
+end;
+
+var
+  _NetUserSetGroups: Pointer;
+
+function NetUserSetGroups;
+begin
+  GetProcedureAddress(_NetUserSetGroups, netapi32, 'NetUserSetGroups');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserSetGroups]
+  end;
+end;
+
+var
+  _NetUserGetLocalGroups: Pointer;
+
+function NetUserGetLocalGroups;
+begin
+  GetProcedureAddress(_NetUserGetLocalGroups, netapi32, 'NetUserGetLocalGroups');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserGetLocalGroups]
+  end;
+end;
+
+var
+  _NetUserModalsGet: Pointer;
+
+function NetUserModalsGet;
+begin
+  GetProcedureAddress(_NetUserModalsGet, netapi32, 'NetUserModalsGet');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserModalsGet]
+  end;
+end;
+
+var
+  _NetUserModalsSet: Pointer;
+
+function NetUserModalsSet;
+begin
+  GetProcedureAddress(_NetUserModalsSet, netapi32, 'NetUserModalsSet');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserModalsSet]
+  end;
+end;
+
+var
+  _NetUserChangePassword: Pointer;
+
+function NetUserChangePassword;
+begin
+  GetProcedureAddress(_NetUserChangePassword, netapi32, 'NetUserChangePassword');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetUserChangePassword]
+  end;
+end;
+
+var
+  _NetGroupAdd: Pointer;
+
+function NetGroupAdd;
+begin
+  GetProcedureAddress(_NetGroupAdd, netapi32, 'NetGroupAdd');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupAdd]
+  end;
+end;
+
+var
+  _NetGroupAddUser: Pointer;
+
+function NetGroupAddUser;
+begin
+  GetProcedureAddress(_NetGroupAddUser, netapi32, 'NetGroupAddUser');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupAddUser]
+  end;
+end;
+
+var
+  _NetGroupEnum: Pointer;
+
+function NetGroupEnum;
+begin
+  GetProcedureAddress(_NetGroupEnum, netapi32, 'NetGroupEnum');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupEnum]
+  end;
+end;
+
+var
+  _NetGroupGetInfo: Pointer;
+
+function NetGroupGetInfo;
+begin
+  GetProcedureAddress(_NetGroupGetInfo, netapi32, 'NetGroupGetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupGetInfo]
+  end;
+end;
+
+var
+  _NetGroupSetInfo: Pointer;
+
+function NetGroupSetInfo;
+begin
+  GetProcedureAddress(_NetGroupSetInfo, netapi32, 'NetGroupSetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupSetInfo]
+  end;
+end;
+
+var
+  _NetGroupDel: Pointer;
+
+function NetGroupDel;
+begin
+  GetProcedureAddress(_NetGroupDel, netapi32, 'NetGroupDel');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupDel]
+  end;
+end;
+
+var
+  _NetGroupDelUser: Pointer;
+
+function NetGroupDelUser;
+begin
+  GetProcedureAddress(_NetGroupDelUser, netapi32, 'NetGroupDelUser');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupDelUser]
+  end;
+end;
+
+var
+  _NetGroupGetUsers: Pointer;
+
+function NetGroupGetUsers;
+begin
+  GetProcedureAddress(_NetGroupGetUsers, netapi32, 'NetGroupGetUsers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupGetUsers]
+  end;
+end;
+
+var
+  _NetGroupSetUsers: Pointer;
+
+function NetGroupSetUsers;
+begin
+  GetProcedureAddress(_NetGroupSetUsers, netapi32, 'NetGroupSetUsers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetGroupSetUsers]
+  end;
+end;
+
+var
+  _NetLocalGroupAdd: Pointer;
+
+function NetLocalGroupAdd;
+begin
+  GetProcedureAddress(_NetLocalGroupAdd, netapi32, 'NetLocalGroupAdd');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupAdd]
+  end;
+end;
+
+var
+  _NetLocalGroupAddMember: Pointer;
+
+function NetLocalGroupAddMember;
+begin
+  GetProcedureAddress(_NetLocalGroupAddMember, netapi32, 'NetLocalGroupAddMember');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupAddMember]
+  end;
+end;
+
+var
+  _NetLocalGroupEnum: Pointer;
+
+function NetLocalGroupEnum;
+begin
+  GetProcedureAddress(_NetLocalGroupEnum, netapi32, 'NetLocalGroupEnum');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupEnum]
+  end;
+end;
+
+var
+  _NetLocalGroupGetInfo: Pointer;
+
+function NetLocalGroupGetInfo;
+begin
+  GetProcedureAddress(_NetLocalGroupGetInfo, netapi32, 'NetLocalGroupGetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupGetInfo]
+  end;
+end;
+
+var
+  _NetLocalGroupSetInfo: Pointer;
+
+function NetLocalGroupSetInfo;
+begin
+  GetProcedureAddress(_NetLocalGroupSetInfo, netapi32, 'NetLocalGroupSetInfo');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupSetInfo]
+  end;
+end;
+
+var
+  _NetLocalGroupDel: Pointer;
+
+function NetLocalGroupDel;
+begin
+  GetProcedureAddress(_NetLocalGroupDel, netapi32, 'NetLocalGroupDel');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupDel]
+  end;
+end;
+
+var
+  _NetLocalGroupDelMember: Pointer;
+
+function NetLocalGroupDelMember;
+begin
+  GetProcedureAddress(_NetLocalGroupDelMember, netapi32, 'NetLocalGroupDelMember');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupDelMember]
+  end;
+end;
+
+var
+  _NetLocalGroupGetMembers: Pointer;
+
+function NetLocalGroupGetMembers;
+begin
+  GetProcedureAddress(_NetLocalGroupGetMembers, netapi32, 'NetLocalGroupGetMembers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupGetMembers]
+  end;
+end;
+
+var
+  _NetLocalGroupSetMembers: Pointer;
+
+function NetLocalGroupSetMembers;
+begin
+  GetProcedureAddress(_NetLocalGroupSetMembers, netapi32, 'NetLocalGroupSetMembers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupSetMembers]
+  end;
+end;
+
+var
+  _NetLocalGroupAddMembers: Pointer;
+
+function NetLocalGroupAddMembers;
+begin
+  GetProcedureAddress(_NetLocalGroupAddMembers, netapi32, 'NetLocalGroupAddMembers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupAddMembers]
+  end;
+end;
+
+var
+  _NetLocalGroupDelMembers: Pointer;
+
+function NetLocalGroupDelMembers;
+begin
+  GetProcedureAddress(_NetLocalGroupDelMembers, netapi32, 'NetLocalGroupDelMembers');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_NetLocalGroupDelMembers]
+  end;
+end;
+
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}

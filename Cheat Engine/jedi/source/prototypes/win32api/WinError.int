@@ -1,0 +1,228 @@
+// JwaWinError
+// line 22146
+
+const
+
+//
+// Task Scheduler errors
+//
+//
+// MessageId: SCHED_S_TASK_READY
+//
+// MessageText:
+//
+//  The task is ready to run at its next scheduled time.
+//
+  SCHED_S_TASK_READY = HRESULT($00041300);
+  {$EXTERNALSYM SCHED_S_TASK_READY}
+
+//
+// MessageId: SCHED_S_TASK_RUNNING
+//
+// MessageText:
+//
+//  The task is currently running.
+//
+  SCHED_S_TASK_RUNNING = HRESULT($00041301);
+  {$EXTERNALSYM SCHED_S_TASK_RUNNING}
+
+//
+// MessageId: SCHED_S_TASK_DISABLED
+//
+// MessageText:
+//
+//  The task will not run at the scheduled times because it has been disabled.
+//
+  SCHED_S_TASK_DISABLED = HRESULT($00041302);
+  {$EXTERNALSYM SCHED_S_TASK_DISABLED}
+
+//
+// MessageId: SCHED_S_TASK_HAS_NOT_RUN
+//
+// MessageText:
+//
+//  The task has not yet run.
+//
+  SCHED_S_TASK_HAS_NOT_RUN = HRESULT($00041303);
+  {$EXTERNALSYM SCHED_S_TASK_HAS_NOT_RUN}
+
+//
+// MessageId: SCHED_S_TASK_NO_MORE_RUNS
+//
+// MessageText:
+//
+//  There are no more runs scheduled for this task.
+//
+  SCHED_S_TASK_NO_MORE_RUNS = HRESULT($00041304);
+  {$EXTERNALSYM SCHED_S_TASK_NO_MORE_RUNS}
+
+//
+// MessageId: SCHED_S_TASK_NOT_SCHEDULED
+//
+// MessageText:
+//
+//  One or more of the properties that are needed to run this task on a schedule have not been set.
+//
+  SCHED_S_TASK_NOT_SCHEDULED = HRESULT($00041305);
+  {$EXTERNALSYM SCHED_S_TASK_NOT_SCHEDULED}
+
+//
+// MessageId: SCHED_S_TASK_TERMINATED
+//
+// MessageText:
+//
+//  The last run of the task was terminated by the user.
+//
+  SCHED_S_TASK_TERMINATED = HRESULT($00041306);
+  {$EXTERNALSYM SCHED_S_TASK_TERMINATED}
+
+//
+// MessageId: SCHED_S_TASK_NO_VALID_TRIGGERS
+//
+// MessageText:
+//
+//  Either the task has no triggers or the existing triggers are disabled or not set.
+//
+  SCHED_S_TASK_NO_VALID_TRIGGERS = HRESULT($00041307);
+  {$EXTERNALSYM SCHED_S_TASK_NO_VALID_TRIGGERS}
+
+//
+// MessageId: SCHED_S_EVENT_TRIGGER
+//
+// MessageText:
+//
+//  Event triggers don't have set run times.
+//
+  SCHED_S_EVENT_TRIGGER = HRESULT($00041308);
+  {$EXTERNALSYM SCHED_S_EVENT_TRIGGER}
+
+//
+// MessageId: SCHED_E_TRIGGER_NOT_FOUND
+//
+// MessageText:
+//
+//  Trigger not found.
+//
+  SCHED_E_TRIGGER_NOT_FOUND = HRESULT($80041309);
+  {$EXTERNALSYM SCHED_E_TRIGGER_NOT_FOUND}
+
+//
+// MessageId: SCHED_E_TASK_NOT_READY
+//
+// MessageText:
+//
+//  One or more of the properties that are needed to run this task have not been set.
+//
+  SCHED_E_TASK_NOT_READY = HRESULT($8004130A);
+  {$EXTERNALSYM SCHED_E_TASK_NOT_READY}
+
+//
+// MessageId: SCHED_E_TASK_NOT_RUNNING
+//
+// MessageText:
+//
+//  There is no running instance of the task to terminate.
+//
+  SCHED_E_TASK_NOT_RUNNING = HRESULT($8004130B);
+  {$EXTERNALSYM SCHED_E_TASK_NOT_RUNNING}
+
+//
+// MessageId: SCHED_E_SERVICE_NOT_INSTALLED
+//
+// MessageText:
+//
+//  The Task Scheduler Service is not installed on this computer.
+//
+  SCHED_E_SERVICE_NOT_INSTALLED = HRESULT($8004130C);
+  {$EXTERNALSYM SCHED_E_SERVICE_NOT_INSTALLED}
+
+//
+// MessageId: SCHED_E_CANNOT_OPEN_TASK
+//
+// MessageText:
+//
+//  The task object could not be opened.
+//
+  SCHED_E_CANNOT_OPEN_TASK = HRESULT($8004130D);
+  {$EXTERNALSYM SCHED_E_CANNOT_OPEN_TASK}
+
+//
+// MessageId: SCHED_E_INVALID_TASK
+//
+// MessageText:
+//
+//  The object is either an invalid task object or is not a task object.
+//
+  SCHED_E_INVALID_TASK = HRESULT($8004130E);
+  {$EXTERNALSYM SCHED_E_INVALID_TASK}
+
+//
+// MessageId: SCHED_E_ACCOUNT_INFORMATION_NOT_SET
+//
+// MessageText:
+//
+//  No account information could be found in the Task Scheduler security database for the task indicated.
+//
+  SCHED_E_ACCOUNT_INFORMATION_NOT_SET = HRESULT($8004130F);
+  {$EXTERNALSYM SCHED_E_ACCOUNT_INFORMATION_NOT_SET}
+
+//
+// MessageId: SCHED_E_ACCOUNT_NAME_NOT_FOUND
+//
+// MessageText:
+//
+//  Unable to establish existence of the account specified.
+//
+  SCHED_E_ACCOUNT_NAME_NOT_FOUND = HRESULT($80041310);
+  {$EXTERNALSYM SCHED_E_ACCOUNT_NAME_NOT_FOUND}
+
+//
+// MessageId: SCHED_E_ACCOUNT_DBASE_CORRUPT
+//
+// MessageText:
+//
+//  Corruption was detected in the Task Scheduler security database; the database has been reset.
+//
+  SCHED_E_ACCOUNT_DBASE_CORRUPT = HRESULT($80041311);
+  {$EXTERNALSYM SCHED_E_ACCOUNT_DBASE_CORRUPT}
+
+//
+// MessageId: SCHED_E_NO_SECURITY_SERVICES
+//
+// MessageText:
+//
+//  Task Scheduler security services are available only on Windows NT.
+//
+  SCHED_E_NO_SECURITY_SERVICES = HRESULT($80041312);
+  {$EXTERNALSYM SCHED_E_NO_SECURITY_SERVICES}
+
+//
+// MessageId: SCHED_E_UNKNOWN_OBJECT_VERSION
+//
+// MessageText:
+//
+//  The task object version is either unsupported or invalid.
+//
+  SCHED_E_UNKNOWN_OBJECT_VERSION = HRESULT($80041313);
+  {$EXTERNALSYM SCHED_E_UNKNOWN_OBJECT_VERSION}
+
+//
+// MessageId: SCHED_E_UNSUPPORTED_ACCOUNT_OPTION
+//
+// MessageText:
+//
+//  The task has been configured with an unsupported combination of account settings and run time options.
+//
+  SCHED_E_UNSUPPORTED_ACCOUNT_OPTION = HRESULT($80041314);
+  {$EXTERNALSYM SCHED_E_UNSUPPORTED_ACCOUNT_OPTION}
+
+//
+// MessageId: SCHED_E_SERVICE_NOT_RUNNING
+//
+// MessageText:
+//
+//  The Task Scheduler Service is not running.
+//
+  SCHED_E_SERVICE_NOT_RUNNING = HRESULT($80041315);
+  {$EXTERNALSYM SCHED_E_SERVICE_NOT_RUNNING}
+

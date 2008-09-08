@@ -1,0 +1,448 @@
+(*$JPPDEFINEMACRO JCLHASHMAPIMP(SELFCLASSNAME, ENTRYARRAYTYPENAME, BUCKETTYPENAME,
+  MAPINTERFACENAME, KEYSETINTERFACENAME, KEYITRINTERFACENAME, VALUECOLLECTIONINTERFACENAME,
+  KEYOWNERSHIPDECLARATION, VALUEOWNERSHIPDECLARATION, OWNERSHIPASSIGNMENTS,
+  KEYCONSTKEYWORD, KEYTYPENAME, KEYDEFAULT, VALUECONSTKEYWORD, VALUETYPENAME, VALUEDEFAULT)
+//=== { SELFCLASSNAME } ==========================================
+
+constructor SELFCLASSNAME.Create(ACapacity: IntegerVALUEOWNERSHIPDECLARATIONKEYOWNERSHIPDECLARATION);
+begin
+  inherited Create;OWNERSHIPASSIGNMENTS
+  SetCapacity(ACapacity);
+  FHashFunction := HashMul;
+end;
+
+destructor SELFCLASSNAME.Destroy;
+begin
+  FReadOnly := False;
+  Clear;
+  inherited Destroy;
+end;
+
+procedure SELFCLASSNAME.AssignDataTo(Dest: TJclAbstractContainerBase);
+var
+  I, J: Integer;
+  SelfBucket, NewBucket: BUCKETTYPENAME;
+  ADest: SELFCLASSNAME;
+  AMap: MAPINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    inherited AssignDataTo(Dest);
+    if Dest is SELFCLASSNAME then
+    begin
+      ADest := SELFCLASSNAME(Dest);
+      ADest.Clear;
+      for I := 0 to FCapacity - 1 do
+      begin
+        SelfBucket := FBuckets[I];
+        if SelfBucket <> nil then
+        begin
+          NewBucket := BUCKETTYPENAME.Create;
+          SetLength(NewBucket.Entries, SelfBucket.Size);
+          for J := 0 to SelfBucket.Size - 1 do
+          begin
+            NewBucket.Entries[J].Key := SelfBucket.Entries[J].Key;
+            NewBucket.Entries[J].Value := SelfBucket.Entries[J].Value;
+          end;
+          NewBucket.Size := SelfBucket.Size;
+          ADest.FBuckets[I] := NewBucket;
+        end;
+      end;
+    end
+    else
+    if Supports(IInterface(Dest), MAPINTERFACENAME, AMap) then
+    begin
+      AMap.Clear;
+      AMap.PutAll(Self);
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.AssignPropertiesTo(Dest: TJclAbstractContainerBase);
+begin
+  inherited AssignPropertiesto(Dest);
+  if Dest is SELFCLASSNAME then
+    SELFCLASSNAME(Dest).HashFunction := HashFunction;
+end;
+
+procedure SELFCLASSNAME.Clear;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    for I := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[I];
+      if Bucket <> nil then
+      begin
+        for J := 0 to Bucket.Size - 1 do
+        begin
+          FreeKey(Bucket.Entries[J].Key);
+          FreeValue(Bucket.Entries[J].Value);
+        end;
+        FreeAndNil(FBuckets[I]);
+      end;
+    end;
+    FSize := 0;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.ContainsKey(KEYCONSTKEYWORDKey: KEYTYPENAME): Boolean;
+var
+  I: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    Bucket := FBuckets[FHashFunction(Hash(Key), FCapacity)];
+    if Bucket <> nil then
+      for I := 0 to Bucket.Size - 1 do
+        if KeysEqual(Bucket.Entries[I].Key, Key) then
+        begin
+          Result := True;
+          Break;
+        end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.ContainsValue(VALUECONSTKEYWORDValue: VALUETYPENAME): Boolean;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    for J := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[J];
+      if Bucket <> nil then
+        for I := 0 to Bucket.Size - 1 do
+          if ValuesEqual(Bucket.Entries[I].Value, Value) then
+          begin
+            Result := True;
+            Break;
+          end;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Equals(const AMap: MAPINTERFACENAME): Boolean;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    if AMap = nil then
+      Exit;
+    if FSize <> AMap.Size then
+      Exit;
+    for I := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[I];
+      if Bucket <> nil then
+        for J := 0 to Bucket.Size - 1 do
+          if AMap.ContainsKey(Bucket.Entries[J].Key) then
+          begin
+            if not ValuesEqual(AMap.GetValue(Bucket.Entries[J].Key), Bucket.Entries[J].Value) then
+              Exit;
+          end
+          else
+            Exit;
+    end;
+    Result := True;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO FREEKEY}
+{$JPPEXPANDMACRO FREEVALUE}
+{$JPPEXPANDMACRO GETOWNSKEYS}
+{$JPPEXPANDMACRO GETOWNSVALUES}
+function SELFCLASSNAME.GetValue(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+var
+  I: Integer;
+  Bucket: BUCKETTYPENAME;
+  Found: Boolean;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Found := False;
+    Result := VALUEDEFAULT;
+    Bucket := FBuckets[FHashFunction(Hash(Key), FCapacity)];
+    if Bucket <> nil then
+      for I := 0 to Bucket.Size - 1 do
+        if KeysEqual(Bucket.Entries[I].Key, Key) then
+        begin
+          Result := Bucket.Entries[I].Value;
+          Found := True;
+          Break;
+        end;
+    if (not Found) and (not FReturnDefaultElements) then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO HASH}
+function SELFCLASSNAME.IsEmpty: Boolean;
+begin
+  Result := FSize = 0;
+end;
+
+function SELFCLASSNAME.KeyOfValue(VALUECONSTKEYWORDValue: VALUETYPENAME): KEYTYPENAME;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+  Found: Boolean;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Found := False;
+    Result := KEYDEFAULT;
+    for J := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[J];
+      if Bucket <> nil then
+        for I := 0 to Bucket.Size - 1 do
+          if ValuesEqual(Bucket.Entries[I].Value, Value) then
+          begin
+            Result := Bucket.Entries[I].Key;
+            Found := True;
+            Break;
+          end;
+    end;
+    if (not Found) and (not FReturnDefaultElements) then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO KEYSEQUAL}
+function SELFCLASSNAME.KeySet: KEYSETINTERFACENAME;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := {$JPPEXPANDMACRO CREATEEMPTYARRAYSET(FSize)};
+    for I := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[I];
+      if Bucket <> nil then
+        for J := 0 to Bucket.Size - 1 do
+          Result.Add(Bucket.Entries[J].Key);
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.MoveArray(var List: ENTRYARRAYTYPENAME; FromIndex, ToIndex, Count: Integer);
+{$IFDEF CLR}
+var
+  I: Integer;
+begin
+  if FromIndex < ToIndex then
+  begin
+    for I := Count - 1 downto 0 do
+      List[ToIndex + I] := List[FromIndex + I];
+    if (ToIndex - FromIndex) < Count then
+      // overlapped source and target
+      for I := 0 to ToIndex - FromIndex - 1 do
+      begin
+        List[FromIndex + I].Key := KEYDEFAULT;
+        List[FromIndex + I].Value := VALUEDEFAULT;
+      end
+    else
+      // independant
+      for I := 0 to Count - 1 do
+      begin
+        List[FromIndex + I].Key := KEYDEFAULT;
+        List[FromIndex + I].Value := VALUEDEFAULT;
+      end;
+  end
+  else
+  if FromIndex > ToIndex then
+  begin
+    for I := 0 to Count - 1 do
+      List[ToIndex + I] := List[FromIndex + I];
+    if (FromIndex - ToIndex) < Count then
+      // overlapped source and target
+      for I := Count - FromIndex + ToIndex to Count - 1 do
+      begin
+        List[FromIndex + I].Key := KEYDEFAULT;
+        List[FromIndex + I].Value := VALUEDEFAULT;
+      end
+    else
+      // independant
+      for I := 0 to Count - 1 do
+      begin
+        List[FromIndex + I].Key := KEYDEFAULT;
+        List[FromIndex + I].Value := VALUEDEFAULT;
+      end;
+  end;
+end;
+{$ELSE}
+begin
+  if Count > 0 then
+  begin
+    Move(List[FromIndex], List[ToIndex], Count * SizeOf(List[0]));
+    { Keep reference counting working }
+    if FromIndex < ToIndex then
+    begin
+      if (ToIndex - FromIndex) < Count then
+        FillChar(List[FromIndex], (ToIndex - FromIndex) * SizeOf(List[0]), 0)
+      else
+        FillChar(List[FromIndex], Count * SizeOf(List[0]), 0);
+    end
+    else
+    if FromIndex > ToIndex then
+    begin
+      if (FromIndex - ToIndex) < Count then
+        FillChar(List[ToIndex + Count], (FromIndex - ToIndex) * SizeOf(List[0]), 0)
+      else
+        FillChar(List[FromIndex], Count * SizeOf(List[0]), 0);
+    end;
+  end;
+end;
+{$ENDIF CLR}
+
+procedure SELFCLASSNAME.Pack;
+var
+  I: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    for I := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[I];
+      if Bucket <> nil then
+      begin
+        if Bucket.Size > 0 then
+          SetLength(Bucket.Entries, Bucket.Size)
+        else
+          FreeAndNil(FBuckets[I]);
+      end;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.PutAll(const AMap: MAPINTERFACENAME);
+var
+  It: KEYITRINTERFACENAME;
+  Key: KEYTYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if AMap = nil then
+      Exit;
+    It := AMap.KeySet.First;
+    while It.HasNext do
+    begin
+      Key := It.Next;
+      PutValue(Key, AMap.GetValue(Key));
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.PutValue(KEYCONSTKEYWORDKey: KEYTYPENAME; VALUECONSTKEYWORDValue: VALUETYPENAME);
+var
+  Index: Integer;
+  Bucket: BUCKETTYPENAME;
+  I: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FAllowDefaultElements or (not KeysEqual(Key, KEYDEFAULT) and not ValuesEqual(Value, VALUEDEFAULT)) then
+    begin
+      Index := FHashFunction(Hash(Key), FCapacity);
+      Bucket := FBuckets[Index];
+      if Bucket <> nil then
+      begin
+        for I := 0 to Bucket.Size - 1 do
+          if KeysEqual(Bucket.Entries[I].Key, Key) then
+          begin
+            FreeValue(Bucket.Entries[I].Value);
+            Bucket.Entries[I].Value := Value;
+            Exit;
+          end;
+      end
+      else
+      begin
+        Bucket := BUCKETTYPENAME.Create;
+        SetLength(Bucket.Entries, 1);
+        FBuckets[Index] := Bucket;
+      end;
+
+      if Bucket.Size = Length(Bucket.Entries) then
+        SetLength(Bucket.Entries, CalcGrowCapacity(Bucket.Size, Bucket.Size));
+
+      if Bucket.Size < Length(Bucket.Entries) then
+      begin
+        Bucket.Entries[Bucket.Size].Key := Key;
+        Bucket.Entries[Bucket.Size].Value := Value;
+        Inc(Bucket.Size);
+        Inc(FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Remove(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+var
+  Bucket: BUCKETTYPENAME;
+  I, NewCapacity: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := VALUEDEFAULT;
+    Bucket := FBuckets[FHashFunction(Hash(Key), FCapacity)];
+    if Bucket <> nil then
+    begin
+      for I := 0 to Bucket.Size - 1 do
+        if KeysEqual(Bucket.Entries[I].Key, Key) then
+        begin
+          Result := FreeValue(Bucket.Entries[I].Value);
+          FreeKey(Bucket.Entries[I].Key);
+          if I < Length(Bucket.Entries) - 1 then
+            MoveArray(Bucket.Entries, I + 1, I, Bucket.Size - I - 1);
+          Dec(Bucket.Size);
+          Dec(FSize);
+          Break;
+        end;
+
+      NewCapacity := CalcPackCapacity(Length(Bucket.Entries), Bucket.Size);
+      if NewCapacity < Length(Bucket.Entries) then
+        SetLength(Bucket.Entries, NewCapacity);
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.SetCapacity(Value: Integer);
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FSize = 0 then
+    begin
+      SetLength(FBuckets, Value);
+      inherited SetCapacity(Value);
+    end
+    else
+      raise EJclOperationNotSupportedError.Create;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Size: Integer;
+begin
+  Result := FSize;
+end;
+
+function SELFCLASSNAME.Values: VALUECOLLECTIONINTERFACENAME;
+var
+  I, J: Integer;
+  Bucket: BUCKETTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := {$JPPEXPANDMACRO CREATEEMPTYARRAYLIST(FSize)};
+    for I := 0 to FCapacity - 1 do
+    begin
+      Bucket := FBuckets[I];
+      if Bucket <> nil then
+        for J := 0 to Bucket.Size - 1 do
+          Result.Add(Bucket.Entries[J].Value);
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO VALUESEQUAL}*)

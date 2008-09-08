@@ -232,6 +232,15 @@ object frmMemoryModifier: TfrmMemoryModifier
       TabOrder = 2
       OnClick = Button6Click
     end
+    object Button9: TButton
+      Left = 104
+      Top = 40
+      Width = 75
+      Height = 25
+      Caption = 'Button9'
+      TabOrder = 3
+      OnClick = Button9Click
+    end
   end
   object Button3: TButton
     Left = 288
@@ -395,7 +404,7 @@ object frmMemoryModifier: TfrmMemoryModifier
   object OpenDialog2: TOpenDialog
     Filter = 'Icon files|*.dll;*.exe;*.ico'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
-    Left = 296
+    Left = 328
     Top = 40
   end
   object OpenDialog3: TOpenDialog

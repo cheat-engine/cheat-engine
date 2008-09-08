@@ -1,0 +1,13 @@
+FpcRtl = $(fpc)\rtl
+Fcl = $(fpc)\fcl
+FpcOut = ..\lib\fpc           # for now...
+
+PPCOptions = -Mdelphi -FE$(FpcOut) -Fu$(FpcOut);$(Fcl)\inc;common;windows;..\..\Win32API
+
+PPC = ppc386 $(PPCOptions)
+
+target:
+        @echo Compiling $(file)...
+        @if not exist $(FpcOut) mkdir $(FpcOut)
+        @$(PPC) $(PPCOptions) $(file) >> fpctest.err
+

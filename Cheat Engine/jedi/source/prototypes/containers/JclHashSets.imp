@@ -1,0 +1,275 @@
+(*$JPPDEFINEMACRO JCLHASHSETIMP(SELFCLASSNAME, MAPINTERFACENAME, COLLECTIONINTERFACENAME, ITRINTERFACENAME, OWNERSHIPPARAMETER, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+//=== { SELFCLASSNAME } =====================================================
+
+constructor SELFCLASSNAME.Create(const AMap: MAPINTERFACENAME);
+begin
+  inherited Create(OWNERSHIPPARAMETER);
+  FMap := AMap;
+end;
+
+{$JPPEXPANDMACRO CONSTRUCTORADDITIONAL}
+destructor SELFCLASSNAME.Destroy;
+begin
+  FMap := nil;
+  inherited Destroy;
+end;
+
+function SELFCLASSNAME.Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FMap)}
+    Result := not FMap.ContainsKey(PARAMETERNAME);
+    if Result then
+      FMap.PutValue(PARAMETERNAME, RefUnique);
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FMap)}
+end;
+
+function SELFCLASSNAME.AddAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: ITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FMap)}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    while It.HasNext do
+      Result := Add(It.Next) and Result;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FMap)}
+end;
+
+procedure SELFCLASSNAME.AssignDataTo(Dest: TJclAbstractContainerBase);
+begin
+  inherited AssignDataTo(Dest);
+  if Dest is SELFCLASSNAME then
+    SELFCLASSNAME(Dest).FMap := (FMap as IJclIntfCloneable).Clone as MAPINTERFACENAME;
+end;
+
+procedure SELFCLASSNAME.Clear;
+begin
+  FMap.Clear;
+end;
+
+function SELFCLASSNAME.Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+begin
+  Result := FMap.ContainsKey(PARAMETERNAME);
+end;
+
+function SELFCLASSNAME.ContainsAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: ITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FMap)}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    while Result and It.HasNext do
+      Result := FMap.ContainsKey(It.Next);
+  {$JPPEXPANDMACRO DELEGATEREADEND(FMap)}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Equals(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It, ItMap: ITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FMap)}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    if FMap.Size <> ACollection.Size then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    ItMap := FMap.KeySet.First;
+    while ItMap.HasNext do
+      if not ItemsEqual(ItMap.Next, It.Next) then
+      begin
+        Result := False;
+        Exit;
+      end;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FMap)}
+end;
+
+function SELFCLASSNAME.First: ITRINTERFACENAME;
+begin
+  Result := FMap.KeySet.First;
+end;
+
+{$JPPEXPANDMACRO FREEITEM}
+function SELFCLASSNAME.GetAutoPackParameter: Integer;
+begin
+  Result := (FMap as IJclPackable).GetAutoPackParameter;
+end;
+
+function SELFCLASSNAME.GetAutoPackStrategy: TJclAutoPackStrategy;
+begin
+  Result := (FMap as IJclPackable).GetAutoPackStrategy;
+end;
+
+function SELFCLASSNAME.GetCapacity: Integer;
+begin
+  Result := (FMap as IJclPackable).GetCapacity;
+end;
+
+function SELFCLASSNAME.GetAllowDefaultElements: Boolean;
+begin
+  Result := FMap.AllowDefaultElements;
+end;
+
+function SELFCLASSNAME.GetDuplicates: TDuplicates;
+begin
+  Result := FMap.Duplicates;
+end;
+
+{$IFDEF SUPPORTS_FOR_IN}
+function SELFCLASSNAME.GetEnumerator: ITRINTERFACENAME;
+begin
+  Result := FMap.KeySet.First;
+end;
+{$ENDIF SUPPORTS_FOR_IN}
+
+{$JPPEXPANDMACRO GETOWNSITEMS}
+
+function SELFCLASSNAME.GetReadOnly: Boolean;
+begin
+  Result := FMap.ReadOnly;
+end;
+
+function SELFCLASSNAME.GetRemoveSingleElement: Boolean;
+begin
+  Result := FMap.RemoveSingleElement;
+end;
+
+function SELFCLASSNAME.GetReturnDefaultElements: Boolean;
+begin
+  Result := FMap.ReturnDefaultElements;
+end;
+
+function SELFCLASSNAME.GetThreadSafe: Boolean;
+begin
+  Result := FMap.ThreadSafe;
+end;
+
+{$JPPEXPANDMACRO GETTERADDITIONAL}
+procedure SELFCLASSNAME.Intersect(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  RetainAll(ACollection);
+end;
+
+function SELFCLASSNAME.IsEmpty: Boolean;
+begin
+  Result := FMap.IsEmpty;
+end;
+
+function SELFCLASSNAME.Last: ITRINTERFACENAME;
+begin
+  Result := FMap.KeySet.Last;
+end;
+
+procedure SELFCLASSNAME.Pack;
+begin
+  (FMap as IJclPackable).Pack;
+end;
+
+function SELFCLASSNAME.Remove(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+begin
+  Result := FMap.Remove(PARAMETERNAME) = RefUnique;
+end;
+
+function SELFCLASSNAME.RemoveAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: ITRINTERFACENAME;
+  ARefUnique: TRefUnique;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FMap)}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    ARefUnique := RefUnique;
+    It := ACollection.First;
+    while It.HasNext do
+      Result := (FMap.Remove(It.Next) = ARefUnique) and Result;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FMap)}
+end;
+
+function SELFCLASSNAME.RetainAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  ItMap: ITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FMap)}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    ItMap := FMap.KeySet.First;
+    while ItMap.HasNext do
+      if not ACollection.Contains(ItMap.Next) then
+        ItMap.Remove;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FMap)}
+end;
+
+procedure SELFCLASSNAME.SetAutoPackParameter(Value: Integer);
+begin
+  (FMap as IJclPackable).SetAutoPackParameter(Value);
+end;
+
+procedure SELFCLASSNAME.SetAutoPackStrategy(Value: TJclAutoPackStrategy);
+begin
+  (FMap as IJclPackable).SetAutoPackStrategy(Value);
+end;
+
+procedure SELFCLASSNAME.SetCapacity(Value: Integer);
+begin
+  (FMap as IJclPackable).SetCapacity(Value);
+end;
+
+procedure SELFCLASSNAME.SetAllowDefaultElements(Value: Boolean);
+begin
+  FMap.AllowDefaultElements := Value;
+end;
+
+procedure SELFCLASSNAME.SetDuplicates(Value: TDuplicates);
+begin
+  FMap.Duplicates := Value;
+end;
+
+procedure SELFCLASSNAME.SetReadOnly(Value: Boolean);
+begin
+  FMap.ReadOnly := Value;
+end;
+
+procedure SELFCLASSNAME.SetRemoveSingleElement(Value: Boolean);
+begin
+  FMap.RemoveSingleElement := Value;
+end;
+
+procedure SELFCLASSNAME.SetReturnDefaultElements(Value: Boolean);
+begin
+  FMap.ReturnDefaultElements := Value;
+end;
+
+procedure SELFCLASSNAME.SetThreadSafe(Value: Boolean);
+begin
+  FMap.ThreadSafe := Value;
+end;
+
+{$JPPEXPANDMACRO SETTERADDITIONAL}
+function SELFCLASSNAME.Size: Integer;
+begin
+  Result := FMap.Size;
+end;
+
+procedure SELFCLASSNAME.Subtract(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  RemoveAll(ACollection);
+end;
+
+procedure SELFCLASSNAME.Union(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  AddAll(ACollection);
+end;
+*)

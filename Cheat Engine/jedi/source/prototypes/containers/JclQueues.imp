@@ -1,0 +1,188 @@
+(*$JPPDEFINEMACRO JCLQUEUEIMP(SELFCLASSNAME,
+  OWNERSHIPDECLARATION, OWNERSHIPPARAMETER, CONSTKEYWORD, PARAMETERNAME, TYPENAME, DEFAULTVALUE, MOVEARRAY, RELEASERNAME)
+//=== { SELFCLASSNAME } =======================================================
+
+constructor SELFCLASSNAME.Create(ACapacity: IntegerOWNERSHIPDECLARATION);
+begin
+  inherited Create(OWNERSHIPPARAMETER);
+  FHead := 0;
+  FTail := 0;
+  SetCapacity(ACapacity);
+end;
+
+destructor SELFCLASSNAME.Destroy;
+begin
+  FReadOnly := False;
+  Clear;
+  inherited Destroy;
+end;
+
+procedure SELFCLASSNAME.AssignDataTo(Dest: TJclAbstractContainerBase);
+var
+  ADest: SELFCLASSNAME;
+  I: Integer;
+begin
+  inherited AssignDataTo(Dest);
+  if Dest is SELFCLASSNAME then
+  begin
+    ADest := SELFCLASSNAME(Dest);
+    ADest.Clear;
+    ADest.SetCapacity(Size + 1);
+    I := FHead;
+    while I <> FTail do
+    begin
+      ADest.Enqueue(FElements[I]);
+      Inc(I);
+      if I = FCapacity then
+        I := 0;
+    end;
+  end;
+end;
+
+procedure SELFCLASSNAME.Clear;
+var
+  I: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+     I := FHead;
+     while I <> FTail do
+     begin
+       RELEASERNAME(FElements[I]);
+       Inc(I);
+       if I = FCapacity then
+         I := 0;
+     end;
+     FHead := 0;
+     FTail := 0;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  I: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    I := FHead;
+    while I <> FTail do
+    begin
+      if ItemsEqual(FElements[I], PARAMETERNAME) then
+      begin
+        Result := True;
+        Break;
+      end;
+      Inc(I);
+      if I = FCapacity then
+        I := 0;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Dequeue: TYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := DEFAULTVALUE;
+    if FTail <> FHead then
+    begin
+      Result := FElements[FHead];
+      FElements[FHead] := DEFAULTVALUE;
+      Inc(FHead);
+      if FHead = FCapacity then
+        FHead := 0;
+      AutoPack;
+    end
+    else
+    if not FReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Empty: Boolean;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := FTail = FHead;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.Enqueue(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if (FTail = (FHead - 1)) or (FTail = (FHead + FCapacity - 1)) then
+      AutoGrow;
+    Result := (FTail <> (FHead - 1)) and (FTail <> (FHead + FCapacity - 1));
+    if Result then
+    begin
+      FElements[FTail] := PARAMETERNAME;
+      Inc(FTail);
+      if FTail = FCapacity then
+        FTail := 0;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.Pack;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    SetCapacity(Size + 1);
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Peek: TYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := DEFAULTVALUE;
+    if FTail <> FHead then
+      Result := FElements[FHead]
+    else
+    if not FReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.SetCapacity(Value: Integer);
+var
+  NewHead: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if Value < 1 then
+      raise EJclIllegalQueueCapacityError.Create;
+    if Value <= Size then
+      raise EJclOutOfBoundsError.Create;
+
+    if FHead > FTail then // looped
+    begin
+      NewHead := FHead + Value - FCapacity;
+      if Value > FCapacity then
+        // growing
+        SetLength(FElements, Value);
+      MOVEARRAY(FElements, FHead, NewHead, FCapacity - FHead);
+      if FCapacity > Value then
+        // packing
+        SetLength(FElements, Value);
+      FHead := NewHead;
+    end
+    else
+    begin
+      // unlooped
+      if Value < FCapacity then
+      begin
+        MOVEARRAY(FElements, FHead, 0, FTail - FHead);
+        Dec(FTail, FHead);
+        FHead := 0;
+      end;
+      SetLength(FElements, Value);
+    end;
+    inherited SetCapacity(Value);
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Size: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    if FHead > FTail then
+      Result := FCapacity - FHead + FTail  // looped
+    else
+      Result := FTail - FHead;
+  {$JPPEXPANDMACRO READEND}
+end;*)

@@ -1,0 +1,22 @@
+{ TODO BCB-compatibility}
+
+const
+  DLLVER_PLATFORM_WINDOWS = $00000001;
+  {$EXTERNALSYM DLLVER_PLATFORM_WINDOWS}
+  DLLVER_PLATFORM_NT      = $00000002;
+  {$EXTERNALSYM DLLVER_PLATFORM_NT}
+
+type
+  PDllVersionInfo = ^TDllVersionInfo;
+  _DLLVERSIONINFO = packed record
+    cbSize: DWORD;
+    dwMajorVersion: DWORD;
+    dwMinorVersion: DWORD;
+    dwBuildNumber: DWORD;
+    dwPlatformId: DWORD;
+  end;
+  {$EXTERNALSYM _DLLVERSIONINFO}
+  TDllVersionInfo = _DLLVERSIONINFO;
+  DLLVERSIONINFO = _DLLVERSIONINFO;
+  {$EXTERNALSYM DLLVERSIONINFO}
+

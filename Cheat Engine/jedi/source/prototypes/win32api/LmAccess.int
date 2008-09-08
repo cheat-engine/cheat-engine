@@ -1,0 +1,466 @@
+// line 59
+
+//
+// Function Prototypes - User
+//
+
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+
+function NetUserAdd(servername: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserAdd}
+
+function NetUserEnum(servername: LPCWSTR; level, filter: DWORD; var bufptr: PByte; prefmaxlen: DWORD; entriesread, totalentries, resume_handle: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserEnum}
+
+function NetUserGetInfo(servername, username: LPCWSTR; level: DWORD; var bufptr: PByte): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserGetInfo}
+
+function NetUserSetInfo(servername, username: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserSetInfo}
+
+function NetUserDel(servername: LPCWSTR; username: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserDel}
+
+function NetUserGetGroups(servername, username: LPCWSTR; level: DWORD; var bufptr: PByte; prefmaxlen: DWORD; entriesread, totalentries: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserGetGroups}
+
+function NetUserSetGroups(servername, username: LPCWSTR; level: DWORD; buf: PByte; num_entries: DWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserSetGroups}
+
+function NetUserGetLocalGroups(servername, username: LPCWSTR; level, flags: DWORD; var bufptr: PByte; prefmaxlen: DWORD; entriesread, totalentries: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserGetLocalGroups}
+
+function NetUserModalsGet(servername: LPCWSTR; level: DWORD; var bufptr: PByte): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserModalsGet}
+
+function NetUserModalsSet(servername: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserModalsSet}
+
+function NetUserChangePassword(domainname, username, oldpassword, newpassword: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetUserChangePassword}
+
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}
+
+//
+//  Data Structures - User
+//
+
+type
+  LPUSER_INFO_0 = ^USER_INFO_0;
+  {$EXTERNALSYM LPUSER_INFO_0}
+  PUSER_INFO_0 = ^USER_INFO_0;
+  {$EXTERNALSYM PUSER_INFO_0}
+  _USER_INFO_0 = record
+    usri0_name: LPWSTR;
+  end;
+  {$EXTERNALSYM _USER_INFO_0}
+  USER_INFO_0 = _USER_INFO_0;
+  {$EXTERNALSYM USER_INFO_0}
+  TUserInfo0 = USER_INFO_0;
+  PUserInfo0 = PUSER_INFO_0;
+
+  LPUSER_INFO_1 = ^USER_INFO_1;
+  {$EXTERNALSYM LPUSER_INFO_1}
+  PUSER_INFO_1 = ^USER_INFO_1;
+  {$EXTERNALSYM PUSER_INFO_1}
+  _USER_INFO_1 = record
+    usri1_name: LPWSTR;
+    usri1_password: LPWSTR;
+    usri1_password_age: DWORD;
+    usri1_priv: DWORD;
+    usri1_home_dir: LPWSTR;
+    usri1_comment: LPWSTR;
+    usri1_flags: DWORD;
+    usri1_script_path: LPWSTR;
+  end;
+  {$EXTERNALSYM _USER_INFO_1}
+  USER_INFO_1 = _USER_INFO_1;
+  {$EXTERNALSYM USER_INFO_1}
+  TUserInfo1 = USER_INFO_1;
+  PUserInfo1 = PUSER_INFO_1;
+
+  LPUSER_INFO_2 = ^USER_INFO_2;
+  {$EXTERNALSYM LPUSER_INFO_2}
+  PUSER_INFO_2 = ^USER_INFO_2;
+  {$EXTERNALSYM PUSER_INFO_2}
+  _USER_INFO_2 = record
+    usri2_name: LPWSTR;
+    usri2_password: LPWSTR;
+    usri2_password_age: DWORD;
+    usri2_priv: DWORD;
+    usri2_home_dir: LPWSTR;
+    usri2_comment: LPWSTR;
+    usri2_flags: DWORD;
+    usri2_script_path: LPWSTR;
+    usri2_auth_flags: DWORD;
+    usri2_full_name: LPWSTR;
+    usri2_usr_comment: LPWSTR;
+    usri2_parms: LPWSTR;
+    usri2_workstations: LPWSTR;
+    usri2_last_logon: DWORD;
+    usri2_last_logoff: DWORD;
+    usri2_acct_expires: DWORD;
+    usri2_max_storage: DWORD;
+    usri2_units_per_week: DWORD;
+    usri2_logon_hours: {$IFDEF CLR}IntPtr{$ELSE}PBYTE{$ENDIF};
+    usri2_bad_pw_count: DWORD;
+    usri2_num_logons: DWORD;
+    usri2_logon_server: LPWSTR;
+    usri2_country_code: DWORD;
+    usri2_code_page: DWORD;
+  end;
+  {$EXTERNALSYM _USER_INFO_2}
+  USER_INFO_2 = _USER_INFO_2;
+  {$EXTERNALSYM USER_INFO_2}
+  TUserInfo2 = USER_INFO_2;
+  PUserInfo2 = puser_info_2;
+
+// line 799
+
+//
+// Special Values and Constants - User
+//
+
+//
+//  Bit masks for field usriX_flags of USER_INFO_X (X = 0/1).
+//
+
+const
+  UF_SCRIPT                          = $0001;
+  {$EXTERNALSYM UF_SCRIPT}
+  UF_ACCOUNTDISABLE                  = $0002;
+  {$EXTERNALSYM UF_ACCOUNTDISABLE}
+  UF_HOMEDIR_REQUIRED                = $0008;
+  {$EXTERNALSYM UF_HOMEDIR_REQUIRED}
+  UF_LOCKOUT                         = $0010;
+  {$EXTERNALSYM UF_LOCKOUT}
+  UF_PASSWD_NOTREQD                  = $0020;
+  {$EXTERNALSYM UF_PASSWD_NOTREQD}
+  UF_PASSWD_CANT_CHANGE              = $0040;
+  {$EXTERNALSYM UF_PASSWD_CANT_CHANGE}
+  UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED = $0080;
+  {$EXTERNALSYM UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED}
+
+//
+// Account type bits as part of usri_flags.
+//
+
+  UF_TEMP_DUPLICATE_ACCOUNT    = $0100;
+  {$EXTERNALSYM UF_TEMP_DUPLICATE_ACCOUNT}
+  UF_NORMAL_ACCOUNT            = $0200;
+  {$EXTERNALSYM UF_NORMAL_ACCOUNT}
+  UF_INTERDOMAIN_TRUST_ACCOUNT = $0800;
+  {$EXTERNALSYM UF_INTERDOMAIN_TRUST_ACCOUNT}
+  UF_WORKSTATION_TRUST_ACCOUNT = $1000;
+  {$EXTERNALSYM UF_WORKSTATION_TRUST_ACCOUNT}
+  UF_SERVER_TRUST_ACCOUNT      = $2000;
+  {$EXTERNALSYM UF_SERVER_TRUST_ACCOUNT}
+
+  UF_MACHINE_ACCOUNT_MASK = UF_INTERDOMAIN_TRUST_ACCOUNT or UF_WORKSTATION_TRUST_ACCOUNT or UF_SERVER_TRUST_ACCOUNT;
+  {$EXTERNALSYM UF_MACHINE_ACCOUNT_MASK}
+
+  UF_ACCOUNT_TYPE_MASK = UF_TEMP_DUPLICATE_ACCOUNT or UF_NORMAL_ACCOUNT or
+    UF_INTERDOMAIN_TRUST_ACCOUNT or UF_WORKSTATION_TRUST_ACCOUNT or UF_SERVER_TRUST_ACCOUNT;
+  {$EXTERNALSYM UF_ACCOUNT_TYPE_MASK}
+
+  UF_DONT_EXPIRE_PASSWD                     = $10000;
+  {$EXTERNALSYM UF_DONT_EXPIRE_PASSWD}
+  UF_MNS_LOGON_ACCOUNT                      = $20000;
+  {$EXTERNALSYM UF_MNS_LOGON_ACCOUNT}
+  UF_SMARTCARD_REQUIRED                     = $40000;
+  {$EXTERNALSYM UF_SMARTCARD_REQUIRED}
+  UF_TRUSTED_FOR_DELEGATION                 = $80000;
+  {$EXTERNALSYM UF_TRUSTED_FOR_DELEGATION}
+  UF_NOT_DELEGATED                          = $100000;
+  {$EXTERNALSYM UF_NOT_DELEGATED}
+  UF_USE_DES_KEY_ONLY                       = $200000;
+  {$EXTERNALSYM UF_USE_DES_KEY_ONLY}
+  UF_DONT_REQUIRE_PREAUTH                   = $400000;
+  {$EXTERNALSYM UF_DONT_REQUIRE_PREAUTH}
+  UF_PASSWORD_EXPIRED                       = DWORD($800000);
+  {$EXTERNALSYM UF_PASSWORD_EXPIRED}
+  UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION = $1000000;
+  {$EXTERNALSYM UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION}
+
+
+  UF_SETTABLE_BITS =
+    UF_SCRIPT or
+    UF_ACCOUNTDISABLE or
+    UF_LOCKOUT or
+    UF_HOMEDIR_REQUIRED or
+    UF_PASSWD_NOTREQD or
+    UF_PASSWD_CANT_CHANGE or
+    UF_ACCOUNT_TYPE_MASK or
+    UF_DONT_EXPIRE_PASSWD or
+    UF_MNS_LOGON_ACCOUNT or
+    UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED or
+    UF_SMARTCARD_REQUIRED or
+    UF_TRUSTED_FOR_DELEGATION or
+    UF_NOT_DELEGATED or
+    UF_USE_DES_KEY_ONLY or
+    UF_DONT_REQUIRE_PREAUTH or
+    UF_PASSWORD_EXPIRED or
+    UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION;
+  {$EXTERNALSYM UF_SETTABLE_BITS}
+
+// line 1056
+
+//
+//  For SetInfo call (parmnum 0) when password change not required
+//
+
+  NULL_USERSETINFO_PASSWD = '              ';
+  {$EXTERNALSYM NULL_USERSETINFO_PASSWD}
+
+  TIMEQ_FOREVER             = ULONG(-1);
+  {$EXTERNALSYM TIMEQ_FOREVER}
+  USER_MAXSTORAGE_UNLIMITED = ULONG(-1);
+  {$EXTERNALSYM USER_MAXSTORAGE_UNLIMITED}
+  USER_NO_LOGOFF            = ULONG(-1);
+  {$EXTERNALSYM USER_NO_LOGOFF}
+  UNITS_PER_DAY             = 24;
+  {$EXTERNALSYM UNITS_PER_DAY}
+  UNITS_PER_WEEK            = UNITS_PER_DAY * 7;
+  {$EXTERNALSYM UNITS_PER_WEEK}
+
+//
+// Privilege levels (USER_INFO_X field usriX_priv (X = 0/1)).
+//
+
+  USER_PRIV_MASK  = $3;
+  {$EXTERNALSYM USER_PRIV_MASK}
+  USER_PRIV_GUEST = 0;
+  {$EXTERNALSYM USER_PRIV_GUEST}
+  USER_PRIV_USER  = 1;
+  {$EXTERNALSYM USER_PRIV_USER}
+  USER_PRIV_ADMIN = 2;
+  {$EXTERNALSYM USER_PRIV_ADMIN}
+
+// line 1177
+  
+//
+// Group Class
+//
+
+//
+// Function Prototypes
+//
+
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+
+function NetGroupAdd(servername: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupAdd}
+
+function NetGroupAddUser(servername, GroupName, username: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupAddUser}
+
+function NetGroupEnum(servername: LPCWSTR; level: DWORD; out bufptr: PByte;
+  prefmaxlen: DWORD; out entriesread, totalentries: DWORD; resume_handle: PDWORD_PTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupEnum}
+
+function NetGroupGetInfo(servername, groupname: LPCWSTR; level: DWORD; bufptr: PByte): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupGetInfo}
+
+function NetGroupSetInfo(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupSetInfo}
+
+function NetGroupDel(servername: LPCWSTR; groupname: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupDel}
+
+function NetGroupDelUser(servername: LPCWSTR; GroupName: LPCWSTR; Username: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupDelUser}
+
+function NetGroupGetUsers(servername, groupname: LPCWSTR; level: DWORD; var bufptr: PByte; prefmaxlen: DWORD; entriesread, totalentries: LPDWORD; ResumeHandle: PDWORD_PTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupGetUsers}
+
+function NetGroupSetUsers(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; totalentries: DWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetGroupSetUsers}
+
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}
+
+//
+//  Data Structures - Group
+//
+
+type
+  LPGROUP_INFO_0 = ^GROUP_INFO_0;
+  {$EXTERNALSYM LPGROUP_INFO_0}
+  PGROUP_INFO_0 = ^GROUP_INFO_0;
+  {$EXTERNALSYM PGROUP_INFO_0}
+  _GROUP_INFO_0 = record
+    grpi0_name: LPWSTR;
+  end;
+  {$EXTERNALSYM _GROUP_INFO_0}
+  GROUP_INFO_0 = _GROUP_INFO_0;
+  {$EXTERNALSYM GROUP_INFO_0}
+  TGroupInfo0 = GROUP_INFO_0;
+  PGroupInfo0 = PGROUP_INFO_0;
+
+  LPGROUP_INFO_1 = ^GROUP_INFO_1;
+  {$EXTERNALSYM LPGROUP_INFO_1}
+  PGROUP_INFO_1 = ^GROUP_INFO_1;
+  {$EXTERNALSYM PGROUP_INFO_1}
+  _GROUP_INFO_1 = record
+    grpi1_name: LPWSTR;
+    grpi1_comment: LPWSTR;
+  end;
+  {$EXTERNALSYM _GROUP_INFO_1}
+  GROUP_INFO_1 = _GROUP_INFO_1;
+  {$EXTERNALSYM GROUP_INFO_1}
+  TGroupInfo1 = GROUP_INFO_1;
+  PGroupInfo1 = PGROUP_INFO_1;
+
+// line 1380
+
+//
+// LocalGroup Class
+//
+
+//
+// Function Prototypes
+//
+
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+
+function NetLocalGroupAdd(servername: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupAdd}
+
+function NetLocalGroupAddMember(servername, groupname: LPCWSTR; membersid: PSID): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupAddMember}
+
+function NetLocalGroupEnum(servername: LPCWSTR; level: DWORD; out bufptr: PByte;
+  prefmaxlen: DWORD; out entriesread, totalentries: DWORD; resumehandle: PDWORD_PTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupEnum}
+
+function NetLocalGroupGetInfo(servername, groupname: LPCWSTR; level: DWORD; var bufptr: PByte): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupGetInfo}
+
+function NetLocalGroupSetInfo(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; parm_err: LPDWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupSetInfo}
+
+function NetLocalGroupDel(servername: LPCWSTR; groupname: LPCWSTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupDel}
+
+function NetLocalGroupDelMember(servername: LPCWSTR; groupname: LPCWSTR; membersid: PSID): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupDelMember}
+
+function NetLocalGroupGetMembers(servername, localgroupname: LPCWSTR; level: DWORD; var bufptr: PByte; prefmaxlen: DWORD; entriesread, totalentries: LPDWORD; resumehandle: PDWORD_PTR): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupGetMembers}
+
+function NetLocalGroupSetMembers(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; totalentries: DWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupSetMembers}
+
+function NetLocalGroupAddMembers(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; totalentries: DWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupAddMembers}
+
+function NetLocalGroupDelMembers(servername, groupname: LPCWSTR; level: DWORD; buf: PByte; totalentries: DWORD): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetLocalGroupDelMembers}
+
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}
+
+//
+//  Data Structures - LocalGroup
+//
+
+type
+  LPLOCALGROUP_INFO_0 = ^LOCALGROUP_INFO_0;
+  {$EXTERNALSYM LPLOCALGROUP_INFO_0}
+  PLOCALGROUP_INFO_0 = ^LOCALGROUP_INFO_0;
+  {$EXTERNALSYM PLOCALGROUP_INFO_0}
+  _LOCALGROUP_INFO_0 = record
+    lgrpi0_name: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_INFO_0}
+  LOCALGROUP_INFO_0 = _LOCALGROUP_INFO_0;
+  {$EXTERNALSYM LOCALGROUP_INFO_0}
+  TLocalGroupInfo0 = LOCALGROUP_INFO_0;
+  PLocalGroupInfo0 = PLOCALGROUP_INFO_0;
+
+  LPLOCALGROUP_INFO_1 = ^LOCALGROUP_INFO_1;
+  {$EXTERNALSYM LPLOCALGROUP_INFO_1}
+  PLOCALGROUP_INFO_1 = ^LOCALGROUP_INFO_1;
+  {$EXTERNALSYM PLOCALGROUP_INFO_1}
+  _LOCALGROUP_INFO_1 = record
+    lgrpi1_name: LPWSTR;
+    lgrpi1_comment: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_INFO_1}
+  LOCALGROUP_INFO_1 = _LOCALGROUP_INFO_1;
+  {$EXTERNALSYM LOCALGROUP_INFO_1}
+  TLocalGroupInfo1 = LOCALGROUP_INFO_1;
+  PLocalGroupInfo1 = PLOCALGROUP_INFO_1;
+
+  LPLOCALGROUP_INFO_1002 = ^LOCALGROUP_INFO_1002;
+  {$EXTERNALSYM LPLOCALGROUP_INFO_1002}
+  PLOCALGROUP_INFO_1002 = ^LOCALGROUP_INFO_1002;
+  {$EXTERNALSYM PLOCALGROUP_INFO_1002}
+  _LOCALGROUP_INFO_1002 = record
+    lgrpi1002_comment: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_INFO_1002}
+  LOCALGROUP_INFO_1002 = _LOCALGROUP_INFO_1002;
+  {$EXTERNALSYM LOCALGROUP_INFO_1002}
+  TLocalGroupInfo1002 = LOCALGROUP_INFO_1002;
+  PLocalGroupInfo1002 = PLOCALGROUP_INFO_1002;
+
+  LPLOCALGROUP_MEMBERS_INFO_0 = ^LOCALGROUP_MEMBERS_INFO_0;
+  {$EXTERNALSYM LPLOCALGROUP_MEMBERS_INFO_0}
+  PLOCALGROUP_MEMBERS_INFO_0 = ^LOCALGROUP_MEMBERS_INFO_0;
+  {$EXTERNALSYM PLOCALGROUP_MEMBERS_INFO_0}
+  _LOCALGROUP_MEMBERS_INFO_0 = record
+    lgrmi0_sid: PSID;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_MEMBERS_INFO_0}
+  LOCALGROUP_MEMBERS_INFO_0 = _LOCALGROUP_MEMBERS_INFO_0;
+  {$EXTERNALSYM LOCALGROUP_MEMBERS_INFO_0}
+  TLocalGroupMembersInfo0 = LOCALGROUP_MEMBERS_INFO_0;
+  PLocalGroupMembersInfo0 = PLOCALGROUP_MEMBERS_INFO_0;
+
+  LPLOCALGROUP_MEMBERS_INFO_1 = ^LOCALGROUP_MEMBERS_INFO_1;
+  {$EXTERNALSYM LPLOCALGROUP_MEMBERS_INFO_1}
+  PLOCALGROUP_MEMBERS_INFO_1 = ^LOCALGROUP_MEMBERS_INFO_1;
+  {$EXTERNALSYM PLOCALGROUP_MEMBERS_INFO_1}
+  _LOCALGROUP_MEMBERS_INFO_1 = record
+    lgrmi1_sid: PSID;
+    lgrmi1_sidusage: SID_NAME_USE;
+    lgrmi1_name: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_MEMBERS_INFO_1}
+  LOCALGROUP_MEMBERS_INFO_1 = _LOCALGROUP_MEMBERS_INFO_1;
+  {$EXTERNALSYM LOCALGROUP_MEMBERS_INFO_1}
+  TLocalGroupMembersInfo1 = LOCALGROUP_MEMBERS_INFO_1;
+  PLocalGroupMembersInfo1 = PLOCALGROUP_MEMBERS_INFO_1;
+
+  LPLOCALGROUP_MEMBERS_INFO_2 = ^LOCALGROUP_MEMBERS_INFO_2;
+  {$EXTERNALSYM LPLOCALGROUP_MEMBERS_INFO_2}
+  PLOCALGROUP_MEMBERS_INFO_2 = ^LOCALGROUP_MEMBERS_INFO_2;
+  {$EXTERNALSYM PLOCALGROUP_MEMBERS_INFO_2}
+  _LOCALGROUP_MEMBERS_INFO_2 = record
+    lgrmi2_sid: PSID;
+    lgrmi2_sidusage: SID_NAME_USE;
+    lgrmi2_domainandname: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_MEMBERS_INFO_2}
+  LOCALGROUP_MEMBERS_INFO_2 = _LOCALGROUP_MEMBERS_INFO_2;
+  {$EXTERNALSYM LOCALGROUP_MEMBERS_INFO_2}
+  TLocalGroupMembersInfo2 = LOCALGROUP_MEMBERS_INFO_2;
+  PLocalGroupMembersInfo2 = PLOCALGROUP_MEMBERS_INFO_2;
+
+  LPLOCALGROUP_MEMBERS_INFO_3 = ^LOCALGROUP_MEMBERS_INFO_3;
+  {$EXTERNALSYM LPLOCALGROUP_MEMBERS_INFO_3}
+  PLOCALGROUP_MEMBERS_INFO_3 = ^LOCALGROUP_MEMBERS_INFO_3;
+  {$EXTERNALSYM PLOCALGROUP_MEMBERS_INFO_3}
+  _LOCALGROUP_MEMBERS_INFO_3 = record
+    lgrmi3_domainandname: LPWSTR;
+  end;
+  {$EXTERNALSYM _LOCALGROUP_MEMBERS_INFO_3}
+  LOCALGROUP_MEMBERS_INFO_3 = _LOCALGROUP_MEMBERS_INFO_3;
+  {$EXTERNALSYM LOCALGROUP_MEMBERS_INFO_3}
+  TLocalGroupMembersInfo3 = LOCALGROUP_MEMBERS_INFO_3;
+  PLocalGroupMembersInfo3 = PLOCALGROUP_MEMBERS_INFO_3;

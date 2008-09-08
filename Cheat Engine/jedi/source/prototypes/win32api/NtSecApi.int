@@ -1,0 +1,172 @@
+// NtSecApi.h line 566
+type
+  PLSA_UNICODE_STRING = ^LSA_UNICODE_STRING;
+  _LSA_UNICODE_STRING = record
+    Length: USHORT;
+    MaximumLength: USHORT;
+    Buffer: Windows.LPWSTR;
+  end;
+  LSA_UNICODE_STRING = _LSA_UNICODE_STRING;
+  TLsaUnicodeString = LSA_UNICODE_STRING;
+  PLsaUnicodeString = PLSA_UNICODE_STRING;
+
+  PLSA_STRING = ^LSA_STRING;
+  _LSA_STRING = record
+    Length: USHORT;
+    MaximumLength: USHORT;
+    Buffer: PCHAR;
+  end;
+  LSA_STRING = _LSA_STRING;
+  TLsaString = LSA_STRING;
+  PLsaString = PLSA_STRING;
+
+  PLSA_OBJECT_ATTRIBUTES = ^LSA_OBJECT_ATTRIBUTES;
+  _LSA_OBJECT_ATTRIBUTES = record
+    Length: ULONG;
+    RootDirectory: Windows.THandle;
+    ObjectName: PLSA_UNICODE_STRING;
+    Attributes: ULONG;
+    SecurityDescriptor: Pointer; // Points to type SECURITY_DESCRIPTOR
+    SecurityQualityOfService: Pointer; // Points to type SECURITY_QUALITY_OF_SERVICE
+  end;
+  LSA_OBJECT_ATTRIBUTES = _LSA_OBJECT_ATTRIBUTES;
+  TLsaObjectAttributes = _LSA_OBJECT_ATTRIBUTES;
+  PLsaObjectAttributes = PLSA_OBJECT_ATTRIBUTES;
+
+// NtSecApi.h line 680
+
+////////////////////////////////////////////////////////////////////////////
+//                                                                        //
+// Local Security Policy Administration API datatypes and defines         //
+//                                                                        //
+////////////////////////////////////////////////////////////////////////////
+
+//
+// Access types for the Policy object
+//
+
+const
+  POLICY_VIEW_LOCAL_INFORMATION = $00000001;
+  {$EXTERNALSYM POLICY_VIEW_LOCAL_INFORMATION}
+  POLICY_VIEW_AUDIT_INFORMATION = $00000002;
+  {$EXTERNALSYM POLICY_VIEW_AUDIT_INFORMATION}
+  POLICY_GET_PRIVATE_INFORMATION = $00000004;
+  {$EXTERNALSYM POLICY_GET_PRIVATE_INFORMATION}
+  POLICY_TRUST_ADMIN = $00000008;
+  {$EXTERNALSYM POLICY_TRUST_ADMIN}
+  POLICY_CREATE_ACCOUNT = $00000010;
+  {$EXTERNALSYM POLICY_CREATE_ACCOUNT}
+  POLICY_CREATE_SECRET = $00000020;
+  {$EXTERNALSYM POLICY_CREATE_SECRET}
+  POLICY_CREATE_PRIVILEGE = $00000040;
+  {$EXTERNALSYM POLICY_CREATE_PRIVILEGE}
+  POLICY_SET_DEFAULT_QUOTA_LIMITS = $00000080;
+  {$EXTERNALSYM POLICY_SET_DEFAULT_QUOTA_LIMITS}
+  POLICY_SET_AUDIT_REQUIREMENTS = $00000100;
+  {$EXTERNALSYM POLICY_SET_AUDIT_REQUIREMENTS}
+  POLICY_AUDIT_LOG_ADMIN = $00000200;
+  {$EXTERNALSYM POLICY_AUDIT_LOG_ADMIN}
+  POLICY_SERVER_ADMIN = $00000400;
+  {$EXTERNALSYM POLICY_SERVER_ADMIN}
+  POLICY_LOOKUP_NAMES = $00000800;
+  {$EXTERNALSYM POLICY_LOOKUP_NAMES}
+  POLICY_NOTIFICATION = $00001000;
+  {$EXTERNALSYM POLICY_NOTIFICATION}
+
+  POLICY_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED or
+                               POLICY_VIEW_LOCAL_INFORMATION or
+                               POLICY_VIEW_AUDIT_INFORMATION or
+                               POLICY_GET_PRIVATE_INFORMATION or
+                               POLICY_TRUST_ADMIN or
+                               POLICY_CREATE_ACCOUNT or
+                               POLICY_CREATE_SECRET or
+                               POLICY_CREATE_PRIVILEGE or
+                               POLICY_SET_DEFAULT_QUOTA_LIMITS or
+                               POLICY_SET_AUDIT_REQUIREMENTS or
+                               POLICY_AUDIT_LOG_ADMIN or
+                               POLICY_SERVER_ADMIN or
+                               POLICY_LOOKUP_NAMES);
+  {$EXTERNALSYM POLICY_ALL_ACCESS}
+
+  POLICY_READ = (STANDARD_RIGHTS_READ or
+                               POLICY_VIEW_AUDIT_INFORMATION or
+                               POLICY_GET_PRIVATE_INFORMATION);
+  {$EXTERNALSYM POLICY_READ}
+
+  POLICY_WRITE = (STANDARD_RIGHTS_WRITE or
+                               POLICY_TRUST_ADMIN or
+                               POLICY_CREATE_ACCOUNT or
+                               POLICY_CREATE_SECRET or
+                               POLICY_CREATE_PRIVILEGE or
+                               POLICY_SET_DEFAULT_QUOTA_LIMITS or
+                               POLICY_SET_AUDIT_REQUIREMENTS or
+                               POLICY_AUDIT_LOG_ADMIN or
+                               POLICY_SERVER_ADMIN);
+  {$EXTERNALSYM POLICY_WRITE}
+
+  POLICY_EXECUTE = (STANDARD_RIGHTS_EXECUTE or
+                               POLICY_VIEW_LOCAL_INFORMATION or
+                               POLICY_LOOKUP_NAMES);
+  {$EXTERNALSYM POLICY_EXECUTE}
+
+// NtSecApi.h line 914
+type
+  _POLICY_INFORMATION_CLASS = (
+    picFill0,
+    PolicyAuditLogInformation,
+    PolicyAuditEventsInformation,
+    PolicyPrimaryDomainInformation,
+    PolicyPdAccountInformation,
+    PolicyAccountDomainInformation,
+    PolicyLsaServerRoleInformation,
+    PolicyReplicaSourceInformation,
+    PolicyDefaultQuotaInformation,
+    PolicyModificationInformation,
+    PolicyAuditFullSetInformation,
+    PolicyAuditFullQueryInformation,
+    PolicyDnsDomainInformation,
+    PolicyDnsDomainInformationInt);
+  {$EXTERNALSYM _POLICY_INFORMATION_CLASS}
+  POLICY_INFORMATION_CLASS = _POLICY_INFORMATION_CLASS;
+  {$EXTERNALSYM POLICY_INFORMATION_CLASS}
+  PPOLICY_INFORMATION_CLASS = ^POLICY_INFORMATION_CLASS;
+  {$EXTERNALSYM PPOLICY_INFORMATION_CLASS}
+  TPolicyInformationClass = POLICY_INFORMATION_CLASS;
+  {$EXTERNALSYM TPolicyInformationClass}
+  PPolicyInformationClass = PPOLICY_INFORMATION_CLASS;
+  {$EXTERNALSYM PPolicyInformationClass}
+
+// NtSecApi.h line 1031
+//
+// The following structure corresponds to the PolicyAccountDomainInformation
+// information class.
+//
+type
+  PPOLICY_ACCOUNT_DOMAIN_INFO = ^POLICY_ACCOUNT_DOMAIN_INFO;
+  _POLICY_ACCOUNT_DOMAIN_INFO = record
+    DomainName: LSA_UNICODE_STRING;
+    DomainSid: Windows.PSID;
+  end;
+  POLICY_ACCOUNT_DOMAIN_INFO = _POLICY_ACCOUNT_DOMAIN_INFO;
+  TPolicyAccountDomainInfo = POLICY_ACCOUNT_DOMAIN_INFO;
+  PPolicyAccountDomainInfo = PPOLICY_ACCOUNT_DOMAIN_INFO;
+
+// NtSecApi.h line 1298
+type
+  LSA_HANDLE = Pointer;
+  PLSA_HANDLE = ^LSA_HANDLE;
+  TLsaHandle = LSA_HANDLE;
+
+// NtSecApi.h line 1714
+type
+  NTSTATUS = DWORD;
+
+function LsaOpenPolicy(SystemName: PLSA_UNICODE_STRING;
+  var ObjectAttributes: LSA_OBJECT_ATTRIBUTES; DesiredAccess: ACCESS_MASK;
+  var PolicyHandle: LSA_HANDLE): NTSTATUS; stdcall;
+function LsaQueryInformationPolicy(PolicyHandle: LSA_HANDLE;
+  InformationClass: POLICY_INFORMATION_CLASS; var Buffer: Pointer): NTSTATUS; stdcall;
+function LsaFreeMemory(Buffer: Pointer): NTSTATUS; stdcall;
+function LsaFreeReturnBuffer(Buffer: Pointer): NTSTATUS; stdcall;
+function LsaClose(ObjectHandle: LSA_HANDLE): NTSTATUS; stdcall;
+function LsaNtStatusToWinError(Status: NTSTATUS): ULONG; stdcall;

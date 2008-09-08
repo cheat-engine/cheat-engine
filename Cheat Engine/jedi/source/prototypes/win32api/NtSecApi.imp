@@ -1,0 +1,77 @@
+var
+  _LsaOpenPolicy: Pointer;
+
+function LsaOpenPolicy;
+begin
+  GetProcedureAddress(_LsaOpenPolicy, advapi32, 'LsaOpenPolicy');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaOpenPolicy]
+  end;
+end;
+
+var
+  _LsaQueryInformationPolicy: Pointer;
+
+function LsaQueryInformationPolicy;
+begin
+  GetProcedureAddress(_LsaQueryInformationPolicy, advapi32, 'LsaQueryInformationPolicy');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaQueryInformationPolicy]
+  end;
+end;
+
+var
+  _LsaFreeMemory: Pointer;
+
+function LsaFreeMemory;
+begin
+  GetProcedureAddress(_LsaFreeMemory, advapi32, 'LsaFreeMemory');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaFreeMemory]
+  end;
+end;
+
+var
+  _LsaFreeReturnBuffer: Pointer;
+
+function LsaFreeReturnBuffer;
+begin
+  GetProcedureAddress(_LsaFreeReturnBuffer, advapi32, 'LsaFreeReturnBuffer');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaFreeReturnBuffer]
+  end;
+end;
+
+var
+  _LsaClose: Pointer;
+
+function LsaClose;
+begin
+  GetProcedureAddress(_LsaClose, advapi32, 'LsaClose');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaClose]
+  end;
+end;
+
+var
+  _LsaNtStatusToWinError: Pointer;
+
+function LsaNtStatusToWinError;
+begin
+  GetProcedureAddress(_LsaNtStatusToWinError, advapi32, 'LsaNtStatusToWinError');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_LsaNtStatusToWinError]
+  end;
+end;

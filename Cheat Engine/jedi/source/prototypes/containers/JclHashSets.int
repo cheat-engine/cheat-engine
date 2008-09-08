@@ -1,0 +1,60 @@
+(*$JPPDEFINEMACRO JCLHASHSETINT(SELFCLASSNAME, ANCESTORCLASSNAME, COLLECTIONINTERFACENAME, SETINTERFACENAME, MAPINTERFACENAME, ITRINTERFACENAME,
+  INTERFACEADDITIONAL, PRIVATEADDITIONAL, PROTECTEDADDITIONAL, PUBLICADDITIONAL, COLLECTIONFLAGS, CONSTRUCTORADDITIONAL,
+  CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  SELFCLASSNAME = class(ANCESTORCLASSNAME, {$IFDEF THREADSAFE} IJclLockable, {$ENDIF THREADSAFE}
+    IJclIntfCloneable, IJclCloneable, IJclPackable, IJclContainer,INTERFACEADDITIONAL
+    COLLECTIONINTERFACENAME, SETINTERFACENAME)
+  private
+    FMap: MAPINTERFACENAME;PRIVATEADDITIONAL
+  protected
+    procedure AssignDataTo(Dest: TJclAbstractContainerBase); override;
+    { IJclPackable }
+    function GetAutoPackParameter: Integer; override;
+    function GetAutoPackStrategy: TJclAutoPackStrategy; override;
+    function GetCapacity: Integer; override;
+    procedure Pack; override;
+    procedure SetAutoPackParameter(Value: Integer); override;
+    procedure SetAutoPackStrategy(Value: TJclAutoPackStrategy); override;
+    procedure SetCapacity(Value: Integer); override;
+    { IJclContainer }
+    function GetAllowDefaultElements: Boolean; override;
+    function GetDuplicates: TDuplicates; override;
+    function GetReadOnly: Boolean; override;
+    function GetRemoveSingleElement: Boolean; override;
+    function GetReturnDefaultElements: Boolean; override;
+    function GetThreadSafe: Boolean; override;
+    procedure SetAllowDefaultElements(Value: Boolean); override;
+    procedure SetDuplicates(Value: TDuplicates); override;
+    procedure SetReadOnly(Value: Boolean); override;
+    procedure SetRemoveSingleElement(Value: Boolean); override;
+    procedure SetReturnDefaultElements(Value: Boolean); override;
+    procedure SetThreadSafe(Value: Boolean); override;
+    { COLLECTIONINTERFACENAME }
+    function Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;COLLECTIONFLAGS
+    function AddAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    procedure Clear;COLLECTIONFLAGS
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;COLLECTIONFLAGS
+    function ContainsAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function Equals(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function First: ITRINTERFACENAME;COLLECTIONFLAGS
+    function IsEmpty: Boolean;COLLECTIONFLAGS
+    function Last: ITRINTERFACENAME;COLLECTIONFLAGS
+    function Remove(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;COLLECTIONFLAGS
+    function RemoveAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function RetainAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function Size: Integer;COLLECTIONFLAGS
+    {$IFDEF SUPPORTS_FOR_IN}
+    function GetEnumerator: ITRINTERFACENAME;COLLECTIONFLAGS
+    {$ENDIF SUPPORTS_FOR_IN}
+    { SETINTERFACENAME }
+    procedure Intersect(const ACollection: COLLECTIONINTERFACENAME);
+    procedure Subtract(const ACollection: COLLECTIONINTERFACENAME);
+    procedure Union(const ACollection: COLLECTIONINTERFACENAME);
+    { IJclCloneable }
+    function IJclCloneable.Clone = ObjectClone;
+    { IJclIntfCloneable }
+    function IJclIntfCloneable.Clone = IntfClone;PROTECTEDADDITIONAL
+  public
+    constructor Create(const AMap: MAPINTERFACENAME); overload;CONSTRUCTORADDITIONAL
+    destructor Destroy; override;PUBLICADDITIONAL
+  end;*)

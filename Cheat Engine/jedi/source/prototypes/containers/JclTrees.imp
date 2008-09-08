@@ -1,0 +1,949 @@
+(*$JPPDEFINEMACRO JCLTREEITRIMP(BASEITRCLASSNAME, PREORDERITRCLASSNAME, POSTORDERITRCLASSNAME, NODETYPENAME, TREECLASSNAME,
+  STDITRINTERFACENAME, TREEITRINTERFACENAME, EQUALITYCOMPARERINTERFACENAME,
+  CONSTKEYWORD, PARAMETERNAME, TYPENAME, DEFAULTVALUE, GETTERNAME, SETTERNAME, RELEASERNAME)
+//=== { BASEITRCLASSNAME } ===========================================================
+
+constructor BASEITRCLASSNAME.Create(OwnTree: TREECLASSNAME; ACursor: NODETYPENAME; AValid: Boolean; AStart: TItrStart);
+begin
+  inherited Create(AValid);
+  FCursor := ACursor;
+  FOwnTree := OwnTree;
+  FStart := AStart;
+  FEqualityComparer := OwnTree as EQUALITYCOMPARERINTERFACENAME;
+end;
+
+function BASEITRCLASSNAME.Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  ParentNode, NewNode: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    // add sibling or, if FCursor is root node, behave like TREECLASSNAME.Add
+    Result := (FCursor <> nil) and (FOwnTree.AllowDefaultElements or not FEqualityComparer.ItemsEqual(PARAMETERNAME, DEFAULTVALUE))
+      and ((not FOwnTree.Contains(PARAMETERNAME)) or FOwnTree.CheckDuplicate);
+
+    if Result then
+    begin
+      ParentNode := FCursor.Parent;
+      if ParentNode = nil then
+        ParentNode := FCursor;
+
+      if ParentNode.ChildrenCount = Length(ParentNode.Children) then
+        SetLength(ParentNode.Children, FOwnTree.CalcGrowCapacity(Length(ParentNode.Children), ParentNode.ChildrenCount));
+      if ParentNode.ChildrenCount < Length(ParentNode.Children) then
+      begin
+        NewNode := NODETYPENAME.Create;
+        NewNode.Value := PARAMETERNAME;
+        NewNode.Parent := ParentNode;
+        ParentNode.Children[ParentNode.ChildrenCount] := NewNode;
+        Inc(ParentNode.ChildrenCount);
+        Inc(FOwnTree.FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.AddChild(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  NewNode: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    Result := (FCursor <> nil) and (FOwnTree.AllowDefaultElements or not FEqualityComparer.ItemsEqual(PARAMETERNAME, DEFAULTVALUE))
+      and ((not FOwnTree.Contains(PARAMETERNAME)) or FOwnTree.CheckDuplicate);
+
+    if Result then
+    begin
+      if FCursor.ChildrenCount = Length(FCursor.Children) then
+        SetLength(FCursor.Children, FOwnTree.CalcGrowCapacity(Length(FCursor.Children), FCursor.ChildrenCount));
+      if FCursor.ChildrenCount < Length(FCursor.Children) then
+      begin
+        NewNode := NODETYPENAME.Create;
+        NewNode.Value := PARAMETERNAME;
+        NewNode.Parent := FCursor;
+        FCursor.Children[FCursor.ChildrenCount] := NewNode;
+        Inc(FCursor.ChildrenCount);
+        Inc(FOwnTree.FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.AssignPropertiesTo(Dest: TJclAbstractIterator);
+var
+  ADest: BASEITRCLASSNAME;
+begin
+  inherited AssignPropertiesTo(Dest);
+  if Dest is BASEITRCLASSNAME then
+  begin
+    ADest := BASEITRCLASSNAME(Dest);
+    ADest.FCursor := FCursor;
+    ADest.FOwnTree := FOwnTree;
+    ADest.FEqualityComparer := FEqualityComparer;
+    ADest.FStart := FStart;
+  end;
+end;
+
+function BASEITRCLASSNAME.ChildrenCount: Integer;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if FCursor <> nil then
+      Result := FCursor.ChildrenCount
+    else
+      Result := 0;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.ClearChildren;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    if FCursor <> nil then
+    begin
+      for Index := FCursor.ChildrenCount - 1 downto 0 do
+        {$IFDEF BCB}
+        FOwnTree.ClearNode(NODETYPENAME(FCursor.Children[Index]));
+        {$ELSE ~BCB}
+        FOwnTree.ClearNode(FCursor.Children[Index]);
+        {$ENDIF ~BCB}
+      SetLength(FCursor.Children, 0);
+      FCursor.ChildrenCount := 0;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.DeleteChild(Index: Integer);
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    if (FCursor <> nil) and (Index >= 0) and (Index < FCursor.ChildrenCount) then
+      {$IFDEF BCB}
+      FOwnTree.ClearNode(NODETYPENAME(FCursor.Children[Index]))
+      {$ELSE ~BCB}
+      FOwnTree.ClearNode(FCursor.Children[Index])
+      {$ENDIF ~BCB}
+    else
+      raise EJclOutOfBoundsError.Create;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.Equals(const AIterator: STDITRINTERFACENAME): Boolean;
+var
+  Obj: TObject;
+  ItrObj: BASEITRCLASSNAME;
+begin
+  Result := False;
+  if AIterator = nil then
+    Exit;
+  Obj := AIterator.GetIteratorReference;
+  if Obj is BASEITRCLASSNAME then
+  begin
+    ItrObj := BASEITRCLASSNAME(Obj);
+    Result := (FOwnTree = ItrObj.FOwnTree) and (FCursor = ItrObj.FCursor) and (Valid = ItrObj.Valid);
+  end;
+end;
+
+function BASEITRCLASSNAME.GetChild(Index: Integer): TYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    Result := DEFAULTVALUE;
+    if (FCursor <> nil) and (Index >= 0) and (Index < FCursor.ChildrenCount) then
+      FCursor := NODETYPENAME(FCursor.Children[Index]);
+    if FCursor <> nil then
+      Result := FCursor.Value
+    else
+    if not FOwnTree.ReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.GETTERNAME: TYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    CheckValid;
+    Result := DEFAULTVALUE;
+    if FCursor <> nil then
+      Result := FCursor.Value
+    else
+    if not FOwnTree.ReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.HasChild(Index: Integer): Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    Result := (FCursor <> nil) and (Index >= 0) and (Index < FCursor.ChildrenCount);
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.HasNext: Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if Valid then
+      Result := GetNextCursor <> nil
+    else
+      Result := FCursor <> nil;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.HasParent: Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    Result := (FCursor <> nil) and (FCursor.Parent <> nil);
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.HasPrevious: Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if Valid then
+      Result := GetPreviousCursor <> nil
+    else
+      Result := FCursor <> nil;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.IndexOfChild(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if FCursor <> nil then
+      Result := FCursor.IndexOfValue(PARAMETERNAME, FEqualityComparer)
+    else
+      Result := -1;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.Insert(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  ParentNode, NewNode: NODETYPENAME;
+  Index, I: Integer;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    // insert sibling or, if FCursor is root node, behave like TREECLASSNAME.Insert
+    Result := (FCursor <> nil) and (FOwnTree.AllowDefaultElements or not FEqualityComparer.ItemsEqual(PARAMETERNAME, DEFAULTVALUE))
+      and ((not FOwnTree.Contains(PARAMETERNAME)) or FOwnTree.CheckDuplicate);
+
+    if Result then
+    begin
+      if FCursor.Parent <> nil then
+      begin
+        ParentNode := FCursor.Parent;
+        Index := 0;
+        while (Index < ParentNode.ChildrenCount) and (ParentNode.Children[Index] <> FCursor) do
+          Inc(Index);
+      end
+      else
+      begin
+        ParentNode := FCursor;
+        Index := 0;
+      end;
+
+      if ParentNode.ChildrenCount = Length(ParentNode.Children) then
+        SetLength(ParentNode.Children, FOwnTree.CalcGrowCapacity(Length(ParentNode.Children), ParentNode.ChildrenCount));
+      if ParentNode.ChildrenCount < Length(ParentNode.Children) then
+      begin
+        NewNode := NODETYPENAME.Create;
+        NewNode.Value := PARAMETERNAME;
+        NewNode.Parent := ParentNode;
+        for I := ParentNode.ChildrenCount - 1 downto Index do
+          ParentNode.Children[I + 1] := ParentNode.Children[I];
+        ParentNode.Children[Index] := NewNode;
+        Inc(ParentNode.ChildrenCount);
+        Inc(FOwnTree.FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.InsertChild(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  NewNode: NODETYPENAME;
+  I: Integer;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    // insert sibling or, if FCursor is root node, behave like TREECLASSNAME.Insert
+    Result := (FCursor <> nil) and (FOwnTree.AllowDefaultElements or not FEqualityComparer.ItemsEqual(PARAMETERNAME, DEFAULTVALUE))
+      and ((not FOwnTree.Contains(PARAMETERNAME)) or FOwnTree.CheckDuplicate);
+
+    if Result then
+    begin
+      if FCursor.ChildrenCount = Length(FCursor.Children) then
+        SetLength(FCursor.Children, FOwnTree.CalcGrowCapacity(Length(FCursor.Children), FCursor.ChildrenCount));
+      if FCursor.ChildrenCount < Length(FCursor.Children) then
+      begin
+        NewNode := NODETYPENAME.Create;
+        NewNode.Value := PARAMETERNAME;
+        NewNode.Parent := FCursor;
+        for I := FCursor.ChildrenCount - 1 downto Index do
+          FCursor.Children[I + 1] := FCursor.Children[I];
+        FCursor.Children[Index] := NewNode;
+        Inc(FCursor.ChildrenCount);
+        Inc(FOwnTree.FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+{$IFDEF SUPPORTS_FOR_IN}
+function BASEITRCLASSNAME.MoveNext: Boolean;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if Valid then
+      FCursor := GetNextCursor
+    else
+      Valid := True;
+    Result := FCursor <> nil;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+{$ENDIF SUPPORTS_FOR_IN}
+
+function BASEITRCLASSNAME.Next: TYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if Valid then
+      FCursor := GetNextCursor
+    else
+      Valid := True;
+    Result := DEFAULTVALUE;
+    if FCursor <> nil then
+      Result := FCursor.Value
+    else
+    if not FOwnTree.ReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.NextIndex: Integer;
+begin
+  // No index
+  raise EJclOperationNotSupportedError.Create;
+end;
+
+function BASEITRCLASSNAME.Parent: TYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    Result := DEFAULTVALUE;
+    if FCursor <> nil then
+      FCursor := FCursor.Parent;
+    if FCursor <> nil then
+      Result := FCursor.Value
+    else
+    if not FOwnTree.ReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.Previous: TYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    if Valid then
+      FCursor := GetPreviousCursor
+    else
+      Valid := True;
+    Result := DEFAULTVALUE;
+    if FCursor <> nil then
+      Result := FCursor.Value
+    else
+    if not FOwnTree.ReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+function BASEITRCLASSNAME.PreviousIndex: Integer;
+begin
+  // No index
+  raise EJclOperationNotSupportedError.Create;
+end;
+
+procedure BASEITRCLASSNAME.Remove;
+var
+  OldCursor: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    CheckValid;
+    Valid := False;
+    OldCursor := FCursor;
+    FCursor := GetNextSibling;
+    if OldCursor <> nil then
+      FOwnTree.ClearNode(OldCursor);
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.Reset;
+var
+  NewCursor: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO DELEGATEREADBEGIN(FOwnTree)}
+    Valid := False;
+    case FStart of
+      isFirst:
+        begin
+          NewCursor := FCursor;
+          while NewCursor <> nil do
+          begin
+            NewCursor := GetPreviousCursor;
+            if NewCursor <> nil then
+              FCursor := NewCursor;
+          end;
+        end;
+      isLast:
+        begin
+          NewCursor := FCursor;
+          while NewCursor <> nil do
+          begin
+            NewCursor := GetNextCursor;
+            if NewCursor <> nil then
+              FCursor := NewCursor;
+          end;
+        end;
+      isRoot:
+        begin
+          while (FCursor <> nil) and (FCursor.Parent <> nil) do
+            FCursor := FCursor.Parent;
+        end;
+    end;
+  {$JPPEXPANDMACRO DELEGATEREADEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.SetChild(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME);
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    if (FCursor <> nil) and (Index >= 0) and (Index < FCursor.ChildrenCount) then
+      NODETYPENAME(FCursor.Children[Index]).Value := PARAMETERNAME
+    else
+      raise EJclOutOfBoundsError.Create;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+procedure BASEITRCLASSNAME.SETTERNAME(CONSTKEYWORDPARAMETERNAME: TYPENAME);
+begin
+  {$JPPEXPANDMACRO DELEGATEWRITEBEGIN(FOwnTree)}
+    CheckValid;
+    if FCursor <> nil then
+    begin
+      FOwnTree.RELEASERNAME(FCursor.Value);
+      FCursor.Value := PARAMETERNAME;
+    end;
+  {$JPPEXPANDMACRO DELEGATEWRITEEND(FOwnTree)}
+end;
+
+//=== { PREORDERITRCLASSNAME } ===================================================
+
+function PREORDERITRCLASSNAME.CreateEmptyIterator: TJclAbstractIterator;
+begin
+  Result := PREORDERITRCLASSNAME.Create(FOwnTree, FCursor, Valid, FStart);
+end;
+
+function PREORDERITRCLASSNAME.GetNextCursor: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  LastRet := Result;
+  if Result.ChildrenCount > 0 then
+    Result := NODETYPENAME(Result.Children[0])
+  else
+  begin
+    Result := Result.Parent;
+    while (Result <> nil) and (Result.IndexOfChild(LastRet) = (Result.ChildrenCount - 1)) do
+    begin
+      LastRet := Result;
+      Result := Result.Parent;
+    end;
+    if Result <> nil then // not root = return successor
+      Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) + 1]);
+  end;
+end;
+
+function PREORDERITRCLASSNAME.GetNextSibling: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  LastRet := Result;
+
+  Result := Result.Parent;
+  while (Result <> nil) and (Result.IndexOfChild(LastRet) = (Result.ChildrenCount - 1)) do
+  begin
+    LastRet := Result;
+    Result := Result.Parent;
+  end;
+  if Result <> nil then // not root = return successor
+    Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) + 1]);
+end;
+
+function PREORDERITRCLASSNAME.GetPreviousCursor: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  LastRet := Result;
+  Result := Result.Parent;
+  if (Result <> nil) and (Result.IndexOfChild(LastRet) > 0) then
+    // come from Right
+  begin
+    Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) - 1]);
+    while (Result.ChildrenCount > 0) do // descend down the tree
+      Result := NODETYPENAME(Result.Children[Result.ChildrenCount - 1]);
+  end;
+end;
+
+//=== { POSTORDERITRCLASSNAME } ==================================================
+
+function POSTORDERITRCLASSNAME.CreateEmptyIterator: TJclAbstractIterator;
+begin
+  Result := POSTORDERITRCLASSNAME.Create(FOwnTree, FCursor, Valid, FStart);
+end;
+
+function POSTORDERITRCLASSNAME.GetNextCursor: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  LastRet := Result;
+  Result := Result.Parent;
+  if (Result <> nil) and (Result.IndexOfChild(LastRet) <> (Result.ChildrenCount - 1)) then
+  begin
+    Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) + 1]);
+    while Result.ChildrenCount > 0 do
+      Result := NODETYPENAME(Result.Children[0]);
+  end;
+end;
+
+function POSTORDERITRCLASSNAME.GetNextSibling: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  LastRet := Result;
+  Result := Result.Parent;
+
+  if (Result <> nil) and (Result.IndexOfChild(LastRet) <> (Result.ChildrenCount - 1)) then
+  begin
+    Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) + 1]);
+    while Result.ChildrenCount > 0 do
+      Result := NODETYPENAME(Result.Children[0]);
+  end;
+end;
+
+function POSTORDERITRCLASSNAME.GetPreviousCursor: NODETYPENAME;
+var
+  LastRet: NODETYPENAME;
+begin
+  Result := FCursor;
+  if Result = nil then
+    Exit;
+  if Result.ChildrenCount > 0 then
+    Result := NODETYPENAME(Result.Children[Result.ChildrenCount - 1])
+  else
+  begin
+    LastRet := Result;
+    Result := Result.Parent;
+    while (Result <> nil) and (Result.IndexOfChild(LastRet) = 0) do
+    begin
+      LastRet := Result;
+      Result := Result.Parent;
+    end;
+    if Result <> nil then // not root
+      Result := NODETYPENAME(Result.Children[Result.IndexOfChild(LastRet) - 1]);
+  end;
+end;*)
+(*$JPPDEFINEMACRO JCLTREEIMP(NODETYPENAME, SELFCLASSNAME, PREORDERITRCLASSNAME, POSTORDERITRCLASSNAME,
+  COLLECTIONINTERFACENAME, STDITRINTERFACENAME, TREEITRINTERFACENAME,
+  EQUALITYCOMPARERINTERFACENAME, OWNERSHIPDECLARATION, OWNERSHIPPARAMETER,
+  CONSTKEYWORD, PARAMETERNAME, TYPENAME, DEFAULTVALUE, RELEASERNAME)
+//=== { NODETYPENAME } =======================================================
+
+function NODETYPENAME.IndexOfChild(AChild: NODETYPENAME): Integer;
+begin
+  for Result := 0 to ChildrenCount - 1 do
+    if Children[Result] = AChild then
+      Exit;
+  Result := -1;
+end;
+
+function NODETYPENAME.IndexOfValue(CONSTKEYWORDPARAMETERNAME: TYPENAME;
+  const AEqualityComparer: EQUALITYCOMPARERINTERFACENAME): Integer;
+begin
+  for Result := 0 to ChildrenCount - 1 do
+    if AEqualityComparer.ItemsEqual(NODETYPENAME(Children[Result]).Value, PARAMETERNAME) then
+      Exit;
+  Result := -1;
+end;
+
+//=== { SELFCLASSNAME } =======================================================
+
+constructor SELFCLASSNAME.Create(OWNERSHIPDECLARATION);
+begin
+  inherited Create(OWNERSHIPPARAMETER);
+  FTraverseOrder := toPreOrder;
+end;
+
+destructor SELFCLASSNAME.Destroy;
+begin
+  FReadOnly := False;
+  Clear;
+  inherited Destroy;
+end;
+
+function SELFCLASSNAME.Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  NewNode: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := AllowDefaultElements or not ItemsEqual(PARAMETERNAME, DEFAULTVALUE);
+
+    if Result then
+    begin
+      if FRoot <> nil then
+      begin
+        Result := (not Contains(PARAMETERNAME)) or CheckDuplicate;
+        if Result then
+        begin
+          if FRoot.ChildrenCount = Length(FRoot.Children) then
+            SetLength(FRoot.Children, CalcGrowCapacity(Length(FRoot.Children), FRoot.ChildrenCount));
+          if FRoot.ChildrenCount < Length(FRoot.Children) then
+          begin
+            NewNode := NODETYPENAME.Create;
+            NewNode.Value := PARAMETERNAME;
+            NewNode.Parent := FRoot;
+            FRoot.Children[FRoot.ChildrenCount] := NewNode;
+            Inc(FRoot.ChildrenCount);
+            Inc(FSize);
+          end
+          else
+            Result := False;
+        end;
+      end
+      else
+      begin
+        FRoot := NODETYPENAME.Create;
+        FRoot.Value := PARAMETERNAME;
+        Inc(FSize);
+      end;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.AddAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    while It.HasNext do
+      Result := Add(It.Next) and Result;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.AssignDataTo(Dest: TJclAbstractContainerBase);
+  function CloneNode(Node, Parent: NODETYPENAME): NODETYPENAME;
+  var
+    Index: Integer;
+  begin
+    Result := NODETYPENAME.Create;
+    Result.Value := Node.Value;
+    Result.Parent := Parent;
+    SetLength(Result.Children, Node.ChildrenCount);
+    Result.ChildrenCount := Node.ChildrenCount;
+    for Index := 0 to Node.ChildrenCount - 1 do
+      Result.Children[Index] := CloneNode(NODETYPENAME(Node.Children[Index]), Result); // recursive call
+  end;
+var
+  ADest: SELFCLASSNAME;
+  ACollection: COLLECTIONINTERFACENAME;
+begin
+  inherited AssignDataTo(Dest);
+  if Dest is SELFCLASSNAME then
+  begin
+    ADest := SELFCLASSNAME(Dest);
+    ADest.Clear;
+    ADest.FSize := FSize;
+    if FRoot <> nil then
+      ADest.FRoot := CloneNode(FRoot, nil);
+  end
+  else
+  if Supports(IInterface(Dest), COLLECTIONINTERFACENAME, ACollection) then
+  begin
+    ACollection.Clear;
+    ACollection.AddAll(Self);
+  end;
+end;
+
+procedure SELFCLASSNAME.AssignPropertiesTo(Dest: TJclAbstractContainerBase);
+begin
+  inherited AssignPropertiesto(Dest);
+  if Dest is SELFCLASSNAME then
+    SELFCLASSNAME(Dest).FTraverseOrder := FTraverseOrder;
+end;
+
+procedure SELFCLASSNAME.Clear;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FRoot <> nil then
+      ClearNode(FRoot);
+    FSize := 0;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.ClearNode(var ANode: NODETYPENAME);
+var
+  Index, ChildIndex, NewCapacity: Integer;
+  Parent: NODETYPENAME;
+begin
+  for Index := ANode.ChildrenCount - 1 downto 0 do
+    {$IFDEF BCB}
+    ClearNode(NODETYPENAME(ANode.Children[Index]));
+    {$ELSE ~BCB}
+    ClearNode(ANode.Children[Index]);
+    {$ENDIF ~BCB}
+  RELEASERNAME(ANode.Value);
+  Parent := ANode.Parent;
+  if Parent <> nil then
+  begin
+    ChildIndex := Parent.IndexOfChild(ANode);
+    for Index := ChildIndex + 1 to Parent.ChildrenCount - 1 do
+      Parent.Children[Index - 1] := Parent.Children[Index];
+    Dec(Parent.ChildrenCount);
+    NewCapacity := CalcPackCapacity(Length(Parent.Children), Parent.ChildrenCount);
+    if NewCapacity < Length(Parent.Children) then
+      SetLength(Parent.Children, NewCapacity);
+    FreeAndNil(ANode);
+  end
+  else
+  begin
+    FreeAndNil(ANode);
+    FRoot := nil;
+  end;
+  Dec(FSize);
+end;
+
+function SELFCLASSNAME.Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+  function NodeContains(ANode: NODETYPENAME; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+  var
+    Index: Integer;
+  begin
+    Result := ItemsEqual(ANode.Value, PARAMETERNAME);
+    if not Result then
+      for Index := 0 to ANode.ChildrenCount - 1 do
+    begin
+      Result := NodeContains(NODETYPENAME(ANode.Children[Index]), PARAMETERNAME);
+      if Result then
+        Break;
+    end;
+  end;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    if FRoot <> nil then
+      Result := NodeContains(FRoot, PARAMETERNAME)
+    else
+      Result := False;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.ContainsAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := True;
+    if ACollection = nil then
+      Exit;
+    It := ACollection.First;
+    while Result and It.HasNext do
+      Result := Contains(It.Next);
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Equals(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It, ItSelf: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    if FSize <> ACollection.Size then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    ItSelf := First;
+    while ItSelf.HasNext do
+      if not ItemsEqual(ItSelf.Next, It.Next) then
+      begin
+        Result := False;
+        Break;
+      end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.First: STDITRINTERFACENAME;
+var
+  Start: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Start := FRoot;
+    case GetTraverseOrder of
+      toPreOrder:
+        Result := PREORDERITRCLASSNAME.Create(Self, Start, False, isFirst);
+      toPostOrder:
+        begin
+          if Start <> nil then
+            while (Start.ChildrenCount > 0) do
+              Start := NODETYPENAME(Start.Children[0]);
+          Result := POSTORDERITRCLASSNAME.Create(Self, Start, False, isFirst);
+        end;
+    else
+      Result := nil;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$IFDEF SUPPORTS_FOR_IN}
+function SELFCLASSNAME.GetEnumerator: STDITRINTERFACENAME;
+begin
+  Result := First;
+end;
+{$ENDIF SUPPORTS_FOR_IN}
+
+function SELFCLASSNAME.GetRoot: TREEITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    case GetTraverseOrder of
+      toPreOrder:
+        Result := PREORDERITRCLASSNAME.Create(Self, FRoot, False, isRoot);
+      toPostOrder:
+        Result := POSTORDERITRCLASSNAME.Create(Self, FRoot, False, isRoot);
+    else
+      Result := nil;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.GetTraverseOrder: TJclTraverseOrder;
+begin
+  Result := FTraverseOrder;
+end;
+
+function SELFCLASSNAME.IsEmpty: Boolean;
+begin
+  Result := FSize = 0;
+end;
+
+function SELFCLASSNAME.Last: STDITRINTERFACENAME;
+var
+  Start: NODETYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Start := FRoot;
+    case FTraverseOrder of
+      toPreOrder:
+        begin
+          if Start <> nil then
+            while Start.ChildrenCount > 0 do
+              Start := NODETYPENAME(Start.Children[Start.ChildrenCount - 1]);
+          Result := PREORDERITRCLASSNAME.Create(Self, Start, False, isLast);
+        end;
+      toPostOrder:
+        Result := POSTORDERITRCLASSNAME.Create(Self, Start, False, isLast);
+    else
+      Result := nil;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.Pack;
+  procedure PackNode(ANode: NODETYPENAME);
+  var
+    Index: Integer;
+  begin
+    SetLength(ANode.Children, ANode.ChildrenCount);
+    for Index := 0 to ANode.ChildrenCount - 1 do
+      PackNode(NODETYPENAME(ANode.Children[Index]));
+  end;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FRoot <> nil then
+      PackNode(FRoot);
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Remove(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  It: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := FRoot <> nil;
+    if Result then
+    begin
+      It := First;
+      while It.HasNext do
+        if ItemsEqual(It.Next, PARAMETERNAME) then
+      begin
+        It.Remove;
+        if RemoveSingleElement then
+          Break;
+      end;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.RemoveAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    It := ACollection.First;
+    while It.HasNext do
+      Result := Remove(It.Next) and Result;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.RetainAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: STDITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    Result := True;
+    It := First;
+    while It.HasNext do
+      if not ACollection.Contains(It.Next) then
+        It.Remove;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.SetCapacity(Value: Integer);
+begin
+  raise EJclOperationNotSupportedError.Create;
+end;
+
+procedure SELFCLASSNAME.SetTraverseOrder(Value: TJclTraverseOrder);
+begin
+  FTraverseOrder := Value;
+end;
+
+function SELFCLASSNAME.Size: Integer;
+begin
+  Result := FSize;
+end;*)

@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2, menuitemExtra;
+  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon;
 
   //the following are just for compatibility
 
@@ -4317,7 +4317,8 @@ begin
       begin
         tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
         tp.PrivilegeCount := 1; // One privilege to set
-        AdjustTokenPrivileges(tokenhandle,false,tp,sizeof(tp),@prev,returnlength);
+        if not AdjustTokenPrivileges(tokenhandle,false,tp,sizeof(tp),@prev,returnlength) then
+          showmessage('Failure setting the debug privilege. Debugging may be limited.');
       end;
     end;
   end;
@@ -4501,6 +4502,8 @@ begin
     panel5.height:=x[5];
     foundlist3.columns[0].width:=x[6];
   end;
+
+  FileAccessTest;
 end;
 
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
@@ -11172,12 +11175,56 @@ asm
   popad
 end;
 
-procedure TMainForm.Label38Click(Sender: TObject);
-
+procedure ChangeIcon(hModule: HModule; restype: pchar; resname: pchar; lparam: thandle); stdcall;
+var
+  iconRSRC: HRSRC;
+  iconG: HGLOBAL;
+  resSize: integer;
+  p: pointer;
 begin
-asm
- db $84, $82, $00 , $00, $00, $10
+  iconRSRC:=FindResource(hModule,resName,resType);
+  resSize:=SizeofResource(hModule,iconRSRC);
+  iconG:=LoadResource(hModule,iconRSRC);
+  p:=LockResource(iconG);
+
+//  nvoke UpdateResource,hUpdate,lpszType,lpszName,ecx,pData,nSizeOfRes
+//;invoke FreeResource,hResLoaded
+//mov eax,TRUE
+
+  UpdateResource(lParam,restype, resName, 1030,p,resSize);
+
 end;
+
+procedure TMainForm.Label38Click(Sender: TObject);
+var resh: thandle;
+    s: tmemorystream;
+    ki: TKIcon;
+    tid: TIconData;
+begin
+  resh:=BeginUpdateResource(pchar('c:\xxx.exe'),false);
+  if (resh<>0) then
+  begin
+    try
+      // icon.p
+      s:=tmemorystream.Create;
+      try
+        ki:=TKIcon.Create;
+        ki.LoadFromFile('c:\xxx.ico');
+        ki.SaveToFile('c:\yyy2.ico');
+        showmessage(inttostr(ki.IconData[0].BytesInRes));
+
+        ki.SaveToStream(s);
+
+        if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, pointer(dword(s.Memory)+(s.size-ki.IconData[0].BytesInRes)), s.size-(s.size-ki.IconData[0].BytesInRes)) then
+          showmessage('Error changing the icon');
+
+      finally
+        s.Free;
+      end;
+    finally
+      EndUpdateResource(resh,false);
+    end;
+  end;
 
   {
 asm

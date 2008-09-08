@@ -1,0 +1,51 @@
+{$IFNDEF CLR}
+
+type
+  // Microsoft version (64 bit SDK)
+  {$EXTERNALSYM RVA}
+  RVA = DWORD;
+
+  // 64-bit PE
+  {$EXTERNALSYM ImgDelayDescrV2}
+  ImgDelayDescrV2 = packed record
+    grAttrs: DWORD;      // attributes
+    rvaDLLName: RVA;     // RVA to dll name
+    rvaHmod: RVA;        // RVA of module handle
+    rvaIAT: RVA;         // RVA of the IAT
+    rvaINT: RVA;         // RVA of the INT
+    rvaBoundIAT: RVA;    // RVA of the optional bound IAT
+    rvaUnloadIAT: RVA;   // RVA of optional copy of original IAT
+    dwTimeStamp: DWORD;  // 0 if not bound,
+                         // O.W. date/time stamp of DLL bound to (Old BIND)
+  end;
+  {$EXTERNALSYM TImgDelayDescrV2}
+  TImgDelayDescrV2 = ImgDelayDescrV2;
+  {$EXTERNALSYM PImgDelayDescrV2}
+  PImgDelayDescrV2 = ^ImgDelayDescrV2;
+
+  {$EXTERNALSYM PHMODULE}
+  PHMODULE = ^HMODULE;
+
+  // 32-bit PE
+  {$EXTERNALSYM ImgDelayDescrV1}
+  ImgDelayDescrV1 = packed record
+    grAttrs: DWORD;                // attributes
+    szName: LPCSTR;                // pointer to dll name
+    phmod: PHMODULE;               // address of module handle
+    pIAT: PImageThunkData32;       // address of the IAT
+    pINT: PImageThunkData32;       // address of the INT
+    pBoundIAT: PImageThunkData32;  // address of the optional bound IAT
+    pUnloadIAT: PImageThunkData32; // address of optional copy of original IAT
+    dwTimeStamp: DWORD;            // 0 if not bound,
+                                   // O.W. date/time stamp of DLL bound to (Old BIND)
+  end;
+  {$EXTERNALSYM TImgDelayDescrV1}
+  TImgDelayDescrV1 = ImgDelayDescrV1;
+  {$EXTERNALSYM PImgDelayDescrV1}
+  PImgDelayDescrV1 = ^ImgDelayDescrV1;
+
+  //{$EXTERNALSYM PImgDelayDescr}
+  //PImgDelayDescr = ImgDelayDescr;
+  //TImgDelayDescr = ImgDelayDescr;
+
+{$ENDIF ~CLR}

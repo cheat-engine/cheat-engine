@@ -1,0 +1,108 @@
+// line 9078
+
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+begin
+  Result := (SubLang shl 10) or PrimaryLang;
+end;
+
+function PRIMARYLANGID(LangId: WORD): WORD;
+begin
+  Result := LangId and $03FF;
+end;
+
+function SUBLANGID(LangId: WORD): WORD;
+begin
+  Result := LangId shr 10;
+end;
+
+function MAKELCID(LangId, SortId: WORD): DWORD;
+begin
+  Result := (DWORD(SortId) shl 16) or DWORD(LangId);
+end;
+
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
+begin
+  Result := MAKELCID(LangId, SortId) or (SortVersion shl 20);
+end;
+
+function LANGIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  Result := WORD(LocaleId);
+end;
+
+function SORTIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  Result := WORD((DWORD(LocaleId) shr 16) and $000F);
+end;
+
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
+begin
+  Result := WORD((DWORD(LocaleId) shr 20) and $000F);
+end;
+
+// line 9149
+
+function IsReparseTagMicrosoft(Tag: ULONG): Boolean;
+begin
+  Result := (Tag and ULONG($80000000)) <> 0;
+end;
+
+function IsReparseTagHighLatency(Tag: ULONG): Boolean;
+begin
+  Result := (Tag and ULONG($40000000)) <> 0;
+end;
+
+function IsReparseTagNameSurrogate(Tag: ULONG): Boolean;
+begin
+  Result := (Tag and ULONG($20000000)) <> 0;
+end;
+
+{$IFNDEF CLR}
+
+// IMAGE_FIRST_SECTION by Nico Bendlin - supplied by Markus Fuchs
+
+function FieldOffset(const Struc; const Field): Cardinal;
+begin
+  Result := Cardinal(@Field) - Cardinal(@Struc);
+end;
+
+function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
+begin
+  Result := PImageSectionHeader(Cardinal(NtHeader) +
+    FieldOffset(NtHeader^, NtHeader^.OptionalHeader) +
+    NtHeader^.FileHeader.SizeOfOptionalHeader);
+end;
+
+// line 9204
+
+function IMAGE_ORDINAL64(Ordinal: ULONGLONG): ULONGLONG;
+begin
+  Result := (Ordinal and $FFFF);
+end;
+
+function IMAGE_ORDINAL32(Ordinal: DWORD): DWORD;
+begin
+  Result := (Ordinal and $0000FFFF);
+end;
+
+function IMAGE_ORDINAL(Ordinal: DWORD): DWORD;
+begin
+  Result := (Ordinal and $0000FFFF);
+end;
+
+function IMAGE_SNAP_BY_ORDINAL64(Ordinal: ULONGLONG): Boolean;
+begin
+  Result := ((Ordinal and IMAGE_ORDINAL_FLAG64) <> 0);
+end;
+
+function IMAGE_SNAP_BY_ORDINAL32(Ordinal: DWORD): Boolean;
+begin
+  Result := ((Ordinal and IMAGE_ORDINAL_FLAG32) <> 0);
+end;
+
+function IMAGE_SNAP_BY_ORDINAL(Ordinal: DWORD): Boolean;
+begin
+  Result := ((Ordinal and IMAGE_ORDINAL_FLAG32) <> 0);
+end;
+
+{$ENDIF ~CLR}

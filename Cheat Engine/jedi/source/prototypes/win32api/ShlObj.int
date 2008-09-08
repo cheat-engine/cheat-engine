@@ -1,0 +1,44 @@
+
+const
+  CSIDL_COMMON_APPDATA       = $0023; { All Users\Application Data }
+  CSIDL_WINDOWS              = $0024; { GetWindowsDirectory() }
+  CSIDL_SYSTEM               = $0025; { GetSystemDirectory() }
+  CSIDL_PROGRAM_FILES        = $0026; { C:\Program Files }
+  CSIDL_MYPICTURES           = $0027; { C:\Program Files\My Pictures }
+  CSIDL_PROFILE              = $0028; { USERPROFILE }
+  CSIDL_PROGRAM_FILES_COMMON = $002B; { C:\Program Files\Common }
+  CSIDL_COMMON_TEMPLATES     = $002D; { All Users\Templates }
+  CSIDL_COMMON_DOCUMENTS     = $002E; { All Users\Documents }
+  CSIDL_COMMON_ADMINTOOLS    = $002F; { All Users\Start Menu\Programs\Administrative Tools }
+  CSIDL_ADMINTOOLS           = $0030; { <user name>\Start Menu\Programs\Administrative Tools }
+  CSIDL_CONNECTIONS          = $0031; { Network and Dial-up Connections }
+  CSIDL_COMMON_MUSIC         = $0035; { All Users\My Music }
+  CSIDL_COMMON_PICTURES      = $0036; { All Users\My Pictures }
+  CSIDL_COMMON_VIDEO         = $0037; { All Users\My Video }
+  CSIDL_RESOURCES            = $0038; { Resource Direcotry }
+  CSIDL_RESOURCES_LOCALIZED  = $0039; { Localized Resource Direcotry }
+  CSIDL_COMMON_OEM_LINKS     = $003A; { Links to All Users OEM specific apps }
+  CSIDL_CDBURN_AREA          = $003B; { USERPROFILE\Local Settings\Application Data\Microsoft\CD Burning }
+  CSIDL_COMPUTERSNEARME      = $003D; { Computers Near Me (computered from Workgroup membership) }
+
+  {$EXTERNALSYM CSIDL_COMMON_APPDATA}
+  {$EXTERNALSYM CSIDL_WINDOWS}
+  {$EXTERNALSYM CSIDL_SYSTEM}
+  {$EXTERNALSYM CSIDL_PROGRAM_FILES}
+  {$EXTERNALSYM CSIDL_MYPICTURES}
+  {$EXTERNALSYM CSIDL_PROFILE}
+  {$EXTERNALSYM CSIDL_PROGRAM_FILES_COMMON}
+  {$EXTERNALSYM CSIDL_COMMON_TEMPLATES}
+  {$EXTERNALSYM CSIDL_COMMON_DOCUMENTS}
+  {$EXTERNALSYM CSIDL_COMMON_ADMINTOOLS}
+  {$EXTERNALSYM CSIDL_ADMINTOOLS}
+  {$EXTERNALSYM CSIDL_CONNECTIONS}
+  {$EXTERNALSYM CSIDL_COMMON_MUSIC}
+  {$EXTERNALSYM CSIDL_COMMON_PICTURES}
+  {$EXTERNALSYM CSIDL_COMMON_VIDEO}
+  {$EXTERNALSYM CSIDL_RESOURCES}
+  {$EXTERNALSYM CSIDL_RESOURCES_LOCALIZED}
+  {$EXTERNALSYM CSIDL_COMMON_OEM_LINKS}
+  {$EXTERNALSYM CSIDL_CDBURN_AREA}
+  {$EXTERNALSYM CSIDL_COMPUTERSNEARME}
+

@@ -1,0 +1,27 @@
+(*$JPPDEFINEMACRO JCLSTACKINT(SELFCLASSNAME, STACKINTERFACENAME, ANCESTORCLASSNAME, DYNARRAYTYPE,
+  INTERFACEADDITIONAL, PRIVATEADDITIONAL, PROTECTEDADDITIONAL, PUBLICADDITIONAL, OWNERSHIPDECLARATION, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  SELFCLASSNAME = class(ANCESTORCLASSNAME, {$IFDEF THREADSAFE} IJclLockable, {$ENDIF THREADSAFE}
+    IJclIntfCloneable, IJclCloneable, IJclPackable, IJclGrowable, IJclContainer,INTERFACEADDITIONAL
+    STACKINTERFACENAME)
+  private
+    FElements: DYNARRAYTYPE;PRIVATEADDITIONAL
+  protected
+    procedure AssignDataTo(Dest: TJclAbstractContainerBase); override;
+    { IJclPackable }
+    procedure SetCapacity(Value: Integer); override;
+    { IJclCloneable }
+    function IJclCloneable.Clone = ObjectClone;
+    { IJclIntfCloneable }
+    function IJclIntfCloneable.Clone = IntfClone;
+    { STACKINTERFACENAME }
+    procedure Clear;
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Empty: Boolean;
+    function Peek: TYPENAME;
+    function Pop: TYPENAME;
+    function Push(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Size: Integer;PROTECTEDADDITIONAL
+  public
+    constructor Create(ACapacity: IntegerOWNERSHIPDECLARATION);
+    destructor Destroy; override;PUBLICADDITIONAL
+  end;*)

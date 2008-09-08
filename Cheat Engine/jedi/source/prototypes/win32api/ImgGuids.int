@@ -1,0 +1,9 @@
+// imgguids.h line 75
+
+// Property sets
+const
+  FMTID_ImageInformation: TGUID = '{e5836cbe-5eef-4f1d-acde-ae4c43b608ce}';
+  {$EXTERNALSYM FMTID_ImageInformation}
+  FMTID_JpegAppHeaders: TGUID = '{1c4afdcd-6177-43cf-abc7-5f51af39ee85}';
+  {$EXTERNALSYM FMTID_JpegAppHeaders}
+
