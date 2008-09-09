@@ -17,25 +17,9 @@ object frmConfigUnrandomizer: TfrmConfigUnrandomizer
   object Label1: TLabel
     Left = 0
     Top = 8
-    Width = 94
+    Width = 93
     Height = 13
     Caption = 'Default return value'
-  end
-  object edtDefault: TEdit
-    Left = 96
-    Top = 6
-    Width = 121
-    Height = 21
-    TabOrder = 0
-    Text = '0'
-  end
-  object cbIncremental: TCheckBox
-    Left = 1
-    Top = 32
-    Width = 105
-    Height = 17
-    Caption = 'Incremental value'
-    TabOrder = 1
   end
   object Button1: TButton
     Left = 32
@@ -44,8 +28,7 @@ object frmConfigUnrandomizer: TfrmConfigUnrandomizer
     Height = 25
     Caption = 'OK'
     Default = True
-    TabOrder = 2
-    OnClick = Button1Click
+    TabOrder = 0
   end
   object Button2: TButton
     Left = 120
@@ -55,6 +38,22 @@ object frmConfigUnrandomizer: TfrmConfigUnrandomizer
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
+    TabOrder = 1
+  end
+  object edtDefault: TEdit
+    Left = 96
+    Top = 6
+    Width = 121
+    Height = 21
+    TabOrder = 2
+    Text = '0'
+  end
+  object cbIncremental: TCheckBox
+    Left = 1
+    Top = 32
+    Width = 105
+    Height = 17
+    Caption = 'Incremental value'
     TabOrder = 3
   end
 end

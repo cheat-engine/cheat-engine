@@ -93,7 +93,6 @@ uses
   DissectCodeThread in 'DissectCodeThread.pas',
   DissectCodeunit in 'DissectCodeunit.pas' {frmDissectCode},
   unrandomizer in 'unrandomizer.pas',
-  ConfigUnrandomizerFrm in 'ConfigUnrandomizerFrm.pas' {frmConfigUnrandomizer},
   frmProcesswatcherExtraUnit in 'frmProcesswatcherExtraUnit.pas' {frmProcessWatcherExtra},
   pointerscannerfrm in 'pointerscannerfrm.pas' {frmPointerScanner},
   SyncObjs2 in 'SyncObjs2.pas',

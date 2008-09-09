@@ -8,12 +8,11 @@ uses
 
 type
   TfrmConfigUnrandomizer = class(TForm)
-    edtDefault: TEdit;
-    Label1: TLabel;
-    cbIncremental: TCheckBox;
     Button1: TButton;
     Button2: TButton;
-    procedure Button1Click(Sender: TObject);
+    Label1: TLabel;
+    edtDefault: TEdit;
+    cbIncremental: TCheckBox;
   private
     { Private declarations }
   public
@@ -26,17 +25,5 @@ var
 implementation
 
 {$R *.dfm}
-
-procedure TfrmConfigUnrandomizer.Button1Click(Sender: TObject);
-var i: integer;
-begin
-  try
-    i:=strtoint(edtdefault.Text);
-    if i=800701 then showmessage('Thats Dark Byte''s birthday!!');
-    modalresult:=mrok;
-  except
-
-  end;
-end;
 
 end.

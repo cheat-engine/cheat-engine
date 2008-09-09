@@ -1,6 +1,6 @@
 object formSettings: TformSettings
-  Left = 553
-  Top = 103
+  Left = 466
+  Top = 221
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Cheat Engine settings'
@@ -77,24 +77,25 @@ object formSettings: TformSettings
       TabOrder = 0
       OnChange = tvMenuSelectionChange
       Items.Data = {
-        08000000290000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
+        09000000290000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
         1047656E6572616C2073657474696E6773200000000000000000000000FFFFFF
-        FFFFFFFFFF000000000000000007486F746B6579732600000000000000000000
-        00FFFFFFFFFFFFFFFF00000000000000000D5363616E2073657474696E677320
-        0000000000000000000000FFFFFFFFFFFFFFFF000000000000000007506C7567
-        696E732A0000000000000000000000FFFFFFFFFFFFFFFF000000000000000011
-        46696C65206173736F63696174696F6E73240000000000000000000000FFFFFF
-        FFFFFFFFFF00000000000000000B436F64652046696E6465722A000000000000
-        0000000000FFFFFFFFFFFFFFFF000000000000000011417373656D626C657220
-        6F7074696F6E731E0000000000000000000000FFFFFFFFFFFFFFFF0000000000
-        000000054578747261}
+        FFFFFFFFFF000000000000000007486F746B6579732500000000000000000000
+        00FFFFFFFFFFFFFFFF00000000000000000C556E72616E646F6D697A65722600
+        00000000000000000000FFFFFFFFFFFFFFFF00000000000000000D5363616E20
+        73657474696E6773200000000000000000000000FFFFFFFFFFFFFFFF00000000
+        0000000007506C7567696E732A0000000000000000000000FFFFFFFFFFFFFFFF
+        00000000000000001146696C65206173736F63696174696F6E73240000000000
+        000000000000FFFFFFFFFFFFFFFF00000000000000000B436F64652046696E64
+        65722A0000000000000000000000FFFFFFFFFFFFFFFF00000000000000001141
+        7373656D626C6572206F7074696F6E731E0000000000000000000000FFFFFFFF
+        FFFFFFFF0000000000000000054578747261}
     end
     object pcSetting: TPageControl
       Left = 122
       Top = 1
       Width = 501
       Height = 319
-      ActivePage = Plugins
+      ActivePage = Unrandomizer
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -320,24 +321,6 @@ object formSettings: TformSettings
           TabOrder = 10
           OnClick = btnExcludeProcessesClick
         end
-        object Button3: TButton
-          Left = 0
-          Top = 186
-          Width = 201
-          Height = 17
-          Caption = 'Configure Hotkeys'
-          TabOrder = 11
-          OnClick = Button3Click
-        end
-        object btnUnrandomizerconfig: TButton
-          Left = 288
-          Top = 186
-          Width = 201
-          Height = 17
-          Caption = 'Configure unrandomizer'
-          TabOrder = 12
-          OnClick = btnUnrandomizerconfigClick
-        end
         object EditAutoAttach: TEdit
           Left = 204
           Top = 204
@@ -346,7 +329,7 @@ object formSettings: TformSettings
           Hint = 
             'Type the name of the process you want to automatically open. Not' +
             'e: Only works when NO process has been opened yet'
-          TabOrder = 13
+          TabOrder = 11
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 8
@@ -354,7 +337,7 @@ object formSettings: TformSettings
           Width = 481
           Height = 17
           Caption = 'Even autoattach when another process has already been selected'
-          TabOrder = 14
+          TabOrder = 12
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
@@ -362,7 +345,7 @@ object formSettings: TformSettings
           Width = 488
           Height = 17
           Caption = 'Save window positions'
-          TabOrder = 15
+          TabOrder = 13
         end
         object cbOldSpeedhack: TCheckBox
           Left = 1
@@ -370,12 +353,48 @@ object formSettings: TformSettings
           Width = 488
           Height = 17
           Caption = 'Use old speedhack'
-          TabOrder = 16
+          TabOrder = 14
         end
       end
       object TabSheet16: TTabSheet
         Caption = 'Hotkeys'
         ImageIndex = 7
+        object Button3: TButton
+          Left = 0
+          Top = 2
+          Width = 201
+          Height = 17
+          Caption = 'Configure Hotkeys'
+          TabOrder = 0
+          OnClick = Button3Click
+        end
+      end
+      object Unrandomizer: TTabSheet
+        Caption = 'Unrandomizer'
+        ImageIndex = 8
+        object Label5: TLabel
+          Left = 8
+          Top = 8
+          Width = 93
+          Height = 13
+          Caption = 'Default return value'
+        end
+        object edtDefault: TEdit
+          Left = 104
+          Top = 6
+          Width = 121
+          Height = 21
+          TabOrder = 0
+          Text = '0'
+        end
+        object cbIncremental: TCheckBox
+          Left = 9
+          Top = 32
+          Width = 105
+          Height = 17
+          Caption = 'Incremental value'
+          TabOrder = 1
+        end
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
@@ -807,7 +826,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 275
-          Width = 493
+          Width = 337
           Height = 13
           Align = alBottom
           Alignment = taCenter

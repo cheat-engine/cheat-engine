@@ -53,8 +53,6 @@ type
     editUpdatefoundInterval: TEdit;
     cbHideAllWindows: TCheckBox;
     btnExcludeProcesses: TButton;
-    Button3: TButton;
-    btnUnrandomizerconfig: TButton;
     EditAutoAttach: TEdit;
     cbAlwaysAutoAttach: TCheckBox;
     cbSaveWindowPos: TCheckBox;
@@ -125,6 +123,11 @@ type
     cbGlobalDebug: TCheckBox;
     TabSheet16: TTabSheet;
     OpenDialog1: TOpenDialog;
+    Button3: TButton;
+    Unrandomizer: TTabSheet;
+    Label5: TLabel;
+    edtDefault: TEdit;
+    cbIncremental: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -147,7 +150,6 @@ type
     procedure cbKdebugClick(Sender: TObject);
     procedure cbProcessWatcherClick(Sender: TObject);
     procedure btnMoreStealthClick(Sender: TObject);
-    procedure btnUnrandomizerconfigClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
@@ -599,8 +601,12 @@ begin
       if assigned(newkernelhandler.SetGlobalDebugState) then
         newkernelhandler.SetGlobalDebugState(cbGlobalDebug.checked);
 
+
+      unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
+      unrandomizersettings.incremental:=cbincremental.Checked;
       reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
       reg.WriteBool('Unrandomizer: incremental',unrandomizersettings.incremental);
+
     end;
 
 {$ifndef net}
@@ -794,8 +800,6 @@ begin
     label6.Enabled:=false;
     label7.Enabled:=false;
   end;
-
-  btnUnrandomizerconfig.Enabled:=not mainform.cbUnrandomizer.Checked;
   {$endif}
 
   cbOldSpeedhack.enabled:=not mainform.cbSpeedhack.Checked; //don't change it while  you're using the speedhack
@@ -1188,24 +1192,6 @@ begin
 {$endif}
 end;
 
-
-procedure TformSettings.btnUnrandomizerconfigClick(Sender: TObject);
-begin
-{$ifndef net}
-  with tfrmConfigUnrandomizer.Create(self) do
-  begin
-    edtdefault.text:=inttostr(unrandomizersettings.defaultreturn);
-    cbIncremental.checked:=unrandomizersettings.incremental;
-    if showmodal=mrok then
-    begin
-      unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
-      unrandomizersettings.incremental:=cbincremental.Checked;
-    end;
-
-    free;
-  end;
-{$endif}
-end;
 
 procedure TformSettings.Button4Click(Sender: TObject);
 var pluginname: string;

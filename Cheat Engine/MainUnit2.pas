@@ -101,18 +101,17 @@ begin
     Changed_value:     result:=soChanged;
     Unchanged_value:   result:=soUnchanged;
     SameAsFirst:       result:=soSameAsFirst;
+    else result:=soExactValue;
   end;
 
 end;
 
 function GetScanType: Integer;
-var vtype: integer;
 begin
   with mainform do
   begin
     result:=exact_value;
 
-    vtype:= getvartype;
     if getvartype in [0,1,2,3,4,6,9] then
     begin
       if not nextscanbutton.enabled then
@@ -739,6 +738,11 @@ begin
 end;
 
 end.
+
+
+
+
+
 
 
 
