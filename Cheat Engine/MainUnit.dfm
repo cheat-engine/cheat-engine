@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 615
-  Top = 179
+  Left = 748
+  Top = 239
   Width = 532
   Height = 570
   Hint = ' '
@@ -1363,7 +1363,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       Caption = 'Settings'
       Flat = True
-      OnClick = SpeedButton4Click
+      OnClick = SettingsClick
     end
     object Label51: TLabel
       Left = 471
@@ -2911,6 +2911,7 @@ object MainForm: TMainForm
       Caption = 'Edit'
       object Settings1: TMenuItem
         Caption = 'Settings'
+        OnClick = SettingsClick
       end
     end
     object Process1: TMenuItem
@@ -2946,6 +2947,7 @@ object MainForm: TMainForm
       Caption = 'Help'
       object About1: TMenuItem
         Caption = 'About'
+        OnClick = About1Click
       end
     end
   end

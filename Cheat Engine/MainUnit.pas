@@ -359,7 +359,7 @@ type
     procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
       var Accept: Boolean);
     procedure Splitter1Moved(Sender: TObject);
-    procedure SpeedButton4Click(Sender: TObject);
+    procedure SettingsClick(Sender: TObject);
     procedure cbCaseSensitiveClick(Sender: TObject);
     procedure LogoMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -423,6 +423,7 @@ type
     procedure cbSpeedhackClick(Sender: TObject);
     procedure Edit2Change(Sender: TObject);
     procedure Process1Click(Sender: TObject);
+    procedure About1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -9530,7 +9531,7 @@ begin
   panel5.Repaint;
 end;
 
-procedure TMainForm.SpeedButton4Click(Sender: TObject);
+procedure TMainForm.SettingsClick(Sender: TObject);
 var tlhlp: thandle;
     m:tagMODULEENTRY32;
     mbi: _MEMORY_BASIC_INFORMATION;
@@ -9806,10 +9807,7 @@ procedure TMainForm.LogoMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
   if button=mbright then
-  begin
-    About:=TAbout.create(self);
-    About.showmodal;
-  end;
+    about1.click;
 end;
 
 var strt: integer=0;
@@ -11962,6 +11960,12 @@ end;
 
 
 {^^^^^^^^Processlist menuitem^^^^^^^^}
+procedure TMainForm.About1Click(Sender: TObject);
+begin
+  About:=TAbout.create(self);
+  About.showmodal;
+end;
+
 end.
 
 

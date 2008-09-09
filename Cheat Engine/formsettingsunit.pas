@@ -22,56 +22,43 @@ type
     Button1: TButton;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
-    PageControl1: TPageControl;
-    TabSheet1: TTabSheet;
-    TabSheet3: TTabSheet;
-    cbGH: TCheckBox;
-    cbCT3: TCheckBox;
-    cbCT2: TCheckBox;
-    cbCET: TCheckBox;
-    cbCT: TCheckBox;
-    cbShowUndo: TCheckBox;
-    cbShowAdvanced: TCheckBox;
-    TabSheet4: TTabSheet;
-    Label4: TLabel;
-    rbDebugRegisters: TRadioButton;
-    rdWriteExceptions: TRadioButton;
-    Label6: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
-    Label10: TLabel;
-    cbCenterOnPopup: TCheckBox;
-    EditUpdateInterval: TEdit;
-    EditFreezeInterval: TEdit;
+    AboutLabel: TLabel;
+    Button2: TButton;
+    pnlConfig: TPanel;
+    tvMenuSelection: TTreeView;
+    pcSetting: TPageControl;
+    GeneralSettings: TTabSheet;
+    ScanSettings: TTabSheet;
     Label11: TLabel;
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
+    Label23: TLabel;
+    Label24: TLabel;
+    cbShowUndo: TCheckBox;
+    cbShowAdvanced: TCheckBox;
+    cbCenterOnPopup: TCheckBox;
+    EditUpdateInterval: TEdit;
+    EditFreezeInterval: TEdit;
     GroupBox1: TGroupBox;
     cbShowAsSigned: TCheckBox;
     cbBinariesAsDecimal: TCheckBox;
-    TabSheet5: TTabSheet;
-    cbShowDisassembler: TCheckBox;
-    cbShowDebugoptions: TCheckBox;
-    replacewithnops: TCheckBox;
-    askforreplacewithnops: TCheckBox;
-    Label16: TLabel;
+    cbsimplecopypaste: TCheckBox;
     EditNetworkUpdateInterval: TEdit;
-    Label17: TLabel;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    rbDebugAsBreakpoint: TRadioButton;
-    rbInt3AsBreakpoint: TRadioButton;
     cbUpdatefoundList: TCheckBox;
-    Label18: TLabel;
     editUpdatefoundInterval: TEdit;
-    Label19: TLabel;
-    Label20: TLabel;
-    cbBreakOnAttach: TCheckBox;
     cbHideAllWindows: TCheckBox;
     btnExcludeProcesses: TButton;
-    TabSheet2: TTabSheet;
+    Button3: TButton;
+    btnUnrandomizerconfig: TButton;
+    EditAutoAttach: TEdit;
+    cbAlwaysAutoAttach: TCheckBox;
+    cbSaveWindowPos: TCheckBox;
+    cbOldSpeedhack: TCheckBox;
     Label2: TLabel;
     Label3: TLabel;
     Label1: TLabel;
@@ -86,45 +73,58 @@ type
     cbMemMapped: TCheckBox;
     cbMemPrivate: TCheckBox;
     cbEnableHyperscanWhenPossible: TCheckBox;
-    TabSheet6: TTabSheet;
+    EditBufsize: TEdit;
+    FileAssocs: TTabSheet;
+    Plugins: TTabSheet;
+    CodeFinder: TTabSheet;
+    Assembler: TTabSheet;
+    Label10: TLabel;
+    cbGH: TCheckBox;
+    cbCT3: TCheckBox;
+    cbCT2: TCheckBox;
+    cbCET: TCheckBox;
+    cbCT: TCheckBox;
+    Label22: TLabel;
+    Button4: TButton;
+    Button5: TButton;
+    clbPlugins: TCheckListBox;
+    Label4: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
+    rbDebugRegisters: TRadioButton;
+    rdWriteExceptions: TRadioButton;
+    CheckBox1: TCheckBox;
+    cbHandleBreakpoints: TCheckBox;
+    cbShowDisassembler: TCheckBox;
+    cbShowDebugoptions: TCheckBox;
+    replacewithnops: TCheckBox;
+    askforreplacewithnops: TCheckBox;
+    CheckBox2: TCheckBox;
+    rbDebugAsBreakpoint: TRadioButton;
+    rbInt3AsBreakpoint: TRadioButton;
+    cbBreakOnAttach: TCheckBox;
+    Extra: TTabSheet;
+    TauntOldOsUser: TLabel;
     GroupBox3: TGroupBox;
     cbKernelQueryMemoryRegion: TCheckBox;
     cbKernelReadWriteProcessMemory: TCheckBox;
     cbKernelOpenProcess: TCheckBox;
-    TauntOldOsUser: TLabel;
-    Button2: TButton;
     Panel1: TPanel;
     Label25: TLabel;
     cbStealth: TCheckBox;
     cbProtectMe: TCheckBox;
+    btnMoreStealth: TButton;
     cbUndoMemoryChanges: TCheckBox;
     cbForceUndo: TCheckBox;
-    EditBufsize: TEdit;
-    Button3: TButton;
     cbProcessWatcher: TCheckBox;
     cbKdebug: TCheckBox;
-    btnMoreStealth: TButton;
-    cbHandleBreakpoints: TCheckBox;
-    btnUnrandomizerconfig: TButton;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
-    TabSheet7: TTabSheet;
-    Button4: TButton;
-    Button5: TButton;
-    Label22: TLabel;
-    clbPlugins: TCheckListBox;
-    OpenDialog1: TOpenDialog;
-    TabSheet8: TTabSheet;
-    Label5: TLabel;
-    lamersversion: TLabel;
-    cbsimplecopypaste: TCheckBox;
-    Label23: TLabel;
-    EditAutoAttach: TEdit;
-    Label24: TLabel;
-    cbAlwaysAutoAttach: TCheckBox;
     cbGlobalDebug: TCheckBox;
-    cbSaveWindowPos: TCheckBox;
-    cbOldSpeedhack: TCheckBox;
+    TabSheet16: TTabSheet;
+    OpenDialog1: TOpenDialog;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -135,7 +135,7 @@ type
     procedure CheckBox1Click(Sender: TObject);
     procedure CheckBox2Click(Sender: TObject);
     procedure cbUpdatefoundListClick(Sender: TObject);
-    procedure Label20Click(Sender: TObject);
+    procedure AboutLabelClick(Sender: TObject);
     procedure cbHideAllWindowsClick(Sender: TObject);
     procedure btnExcludeProcessesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -150,6 +150,7 @@ type
     procedure btnUnrandomizerconfigClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
   private
     { Private declarations }
     tempstatePopupHide:word;
@@ -734,13 +735,6 @@ procedure TformSettings.FormShow(Sender: TObject);
   var reg: TRegistry;
   i: integer;
 begin
-  if not fileexists(cheatenginedir+dbkdll) then
-  begin
-    //idiots version
-    tabsheet6.tabVisible:=false;
-    tabsheet8.tabVisible:=true;
-  end;
-
   clickedok:=false;
 
   tempstatepopuphide:=laststatePopupHide;
@@ -856,7 +850,7 @@ begin
   end;
 end;
 
-procedure TformSettings.Label20Click(Sender: TObject);
+procedure TformSettings.AboutLabelClick(Sender: TObject);
 begin
   with tabout.create(self) do
   begin
@@ -883,15 +877,14 @@ begin
 end;
 
 procedure TformSettings.FormCreate(Sender: TObject);
+var i: integer;
 begin
-  lamersversion.caption:='Now if you didn''t have the baby version of Cheat Engine you''d have a lot'+
-                         ' of great features here. But since you''re such a wuss about safety you''re missing'+
-                         ' these functions since they need the ''SCARY'' driver';
+  aboutlabel.left:=formsettings.clientwidth-aboutlabel.width;
+  aboutlabel.top:=formsettings.clientheight-aboutlabel.height;
 
-  label5.caption:='Tough luck dude';
-  label5.Width:=tabsheet8.width;
-  
-  pagecontrol1.tabindex:=0;
+  button1.Left:=formsettings.ClientWidth div 2 - button1.Width - 10;
+  button2.Left:=formsettings.ClientWidth div 2 + 10;  
+
   {$ifdef net}
 
   tabsheet7.TabVisible:=false;
@@ -988,6 +981,12 @@ begin
     TauntOldOsUser.Visible:=true;
   end;
 
+
+  //make the tabs invisible
+  for i:=0 to pcSetting.PageCount-1 do
+    pcSetting.Pages[i].TabVisible:=false;
+
+  pcSetting.ActivePageIndex:=0;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
@@ -1245,4 +1244,15 @@ begin
 {$endif}
 end;
 
+procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
+  Node: TTreeNode);
+begin
+  if node.Level=0 then //main settings
+  begin
+    pcSetting.ActivePageIndex:=node.Index;
+  end;
+end;
+
 end.
+
+

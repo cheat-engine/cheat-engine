@@ -51,7 +51,6 @@ uses
   Assemblerunit in 'Assemblerunit.pas',
   OpenSave in 'OpenSave.pas',
   Handles in 'HANDLES.PAS',
-  Unit1 in 'unit1.pas',
   MemoryTrainerDesignUnit in 'MemoryTrainerDesignUnit.pas' {frmTrainerDesigner},
   MemoryTrainerDesignControlsUnit in 'MemoryTrainerDesignControlsUnit.pas' {frmTrainerDesignControls},
   MemoryTrainerDesignObjectViewUnit in 'MemoryTrainerDesignObjectViewUnit.pas' {frmTrainerDesignObjectView},

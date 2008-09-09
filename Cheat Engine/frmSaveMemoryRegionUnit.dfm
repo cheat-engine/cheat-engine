@@ -1,11 +1,10 @@
 object frmSaveMemoryRegion: TfrmSaveMemoryRegion
-  Left = 799
-  Top = 823
+  Left = 531
+  Top = 369
+  Width = 270
+  Height = 278
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsSingle
   Caption = 'Save memoryregion'
-  ClientHeight = 178
-  ClientWidth = 276
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,93 +13,135 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 8
-    Top = 2
-    Width = 215
-    Height = 13
-    Caption = 'Add the region(s) of memory you want to save'
-    WordWrap = True
-  end
-  object Label2: TLabel
-    Left = 184
-    Top = 18
-    Width = 23
-    Height = 13
-    Caption = 'From'
-  end
-  object Label3: TLabel
-    Left = 184
-    Top = 59
-    Width = 13
-    Height = 13
-    Caption = 'To'
-  end
-  object editFrom: TEdit
-    Left = 184
-    Top = 32
-    Width = 89
-    Height = 21
-    MaxLength = 8
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 262
+    Height = 196
+    Align = alClient
+    BevelOuter = bvNone
     TabOrder = 0
+    object Label1: TLabel
+      Left = 0
+      Top = 0
+      Width = 262
+      Height = 13
+      Align = alTop
+      Caption = 'Add the region(s) of memory you want to save'
+      WordWrap = True
+    end
+    object lbRegions: TListBox
+      Left = 0
+      Top = 13
+      Width = 155
+      Height = 183
+      Align = alClient
+      ItemHeight = 13
+      TabOrder = 0
+      OnDblClick = lbRegionsDblClick
+    end
+    object Panel4: TPanel
+      Left = 155
+      Top = 13
+      Width = 107
+      Height = 183
+      Align = alRight
+      BevelOuter = bvNone
+      TabOrder = 1
+      object Label2: TLabel
+        Left = 8
+        Top = 2
+        Width = 23
+        Height = 13
+        Caption = 'From'
+      end
+      object Label3: TLabel
+        Left = 8
+        Top = 43
+        Width = 13
+        Height = 13
+        Caption = 'To'
+      end
+      object editFrom: TEdit
+        Left = 7
+        Top = 16
+        Width = 90
+        Height = 21
+        MaxLength = 8
+        TabOrder = 0
+      end
+      object editTo: TEdit
+        Left = 7
+        Top = 56
+        Width = 89
+        Height = 21
+        MaxLength = 8
+        TabOrder = 1
+      end
+      object Button3: TButton
+        Left = 13
+        Top = 80
+        Width = 75
+        Height = 25
+        Caption = 'Add'
+        TabOrder = 2
+        OnClick = Button3Click
+      end
+    end
   end
-  object Button1: TButton
-    Left = 56
-    Top = 132
-    Width = 75
-    Height = 25
-    Caption = 'Save'
-    Default = True
-    TabOrder = 3
-    OnClick = Button1Click
-  end
-  object editTo: TEdit
-    Left = 184
-    Top = 72
-    Width = 89
-    Height = 21
-    MaxLength = 8
+  object Panel2: TPanel
+    Left = 0
+    Top = 196
+    Width = 262
+    Height = 48
+    Align = alBottom
+    BevelOuter = bvNone
     TabOrder = 1
-  end
-  object Button2: TButton
-    Left = 143
-    Top = 132
-    Width = 75
-    Height = 25
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 4
-  end
-  object DontInclude: TCheckBox
-    Left = 3
-    Top = 160
-    Width = 214
-    Height = 17
-    Caption = 'Don'#39't include Cheat Engine header in file'
-    TabOrder = 2
-    OnClick = DontIncludeClick
-  end
-  object Button3: TButton
-    Left = 184
-    Top = 96
-    Width = 75
-    Height = 25
-    Caption = 'Add'
-    TabOrder = 5
-    OnClick = Button3Click
-  end
-  object lbRegions: TListBox
-    Left = 8
-    Top = 16
-    Width = 169
-    Height = 105
-    ItemHeight = 13
-    TabOrder = 6
-    OnDblClick = lbRegionsDblClick
+    DesignSize = (
+      262
+      48)
+    object DontInclude: TCheckBox
+      Left = 3
+      Top = 31
+      Width = 262
+      Height = 17
+      Caption = 'Don'#39't include Cheat Engine header in file'
+      TabOrder = 0
+      OnClick = DontIncludeClick
+    end
+    object Panel3: TPanel
+      Left = 47
+      Top = 0
+      Width = 169
+      Height = 33
+      Anchors = [akTop]
+      BevelOuter = bvNone
+      TabOrder = 1
+      object Button1: TButton
+        Left = 0
+        Top = 3
+        Width = 75
+        Height = 25
+        Caption = 'Save'
+        Default = True
+        TabOrder = 0
+        OnClick = Button1Click
+      end
+      object Button2: TButton
+        Left = 86
+        Top = 3
+        Width = 75
+        Height = 25
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 1
+      end
+    end
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'CEM'

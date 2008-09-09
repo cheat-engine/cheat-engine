@@ -10,21 +10,25 @@ uses
   {$else}
   newkernelhandler,
   {$endif}
-  cefuncproc;
+  cefuncproc, ExtCtrls;
 
 type
   TfrmSaveMemoryRegion = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
     Label1: TLabel;
-    editFrom: TEdit;
-    Button1: TButton;
-    Label2: TLabel;
-    Label3: TLabel;
-    editTo: TEdit;
-    Button2: TButton;
+    lbRegions: TListBox;
     SaveDialog1: TSaveDialog;
     DontInclude: TCheckBox;
+    Panel3: TPanel;
+    Button1: TButton;
+    Button2: TButton;
+    Panel4: TPanel;
+    Label2: TLabel;
+    Label3: TLabel;
+    editFrom: TEdit;
+    editTo: TEdit;
     Button3: TButton;
-    lbRegions: TListBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure DontIncludeClick(Sender: TObject);

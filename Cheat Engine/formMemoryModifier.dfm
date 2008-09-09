@@ -1,6 +1,6 @@
 object frmMemoryModifier: TfrmMemoryModifier
-  Left = 448
-  Top = 295
+  Left = 560
+  Top = 393
   HelpContext = 14
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
