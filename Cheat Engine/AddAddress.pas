@@ -411,6 +411,7 @@ end;
 
 procedure TAddForm.cbPointerClick(Sender: TObject);
 var i: integer;
+    startoffset,inputoffset,rowheight: integer;
 begin
   if cbpointer.checked then
   begin
@@ -421,55 +422,14 @@ begin
     button4.visible:=true;
 
     //create a address+offset combination and disable the normal address
+    startoffset:=button3.Top+button3.Height+2;
 
     setlength(pointerinfo,1);
-    pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
-    with pointerinfo[length(pointerinfo)-1].addresstext do
-    begin
-      top:=142;
-      left:=4;
-      caption:='Address of pointer';
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].address do
-    begin
-      top:=140;
-      left:=92;
-      width:=105;
-      onkeypress:=newaddress.onkeypress;
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
-    with pointerinfo[length(pointerinfo)-1].offsettext do
-    begin
-      top:=142;
-      left:=212;
-      caption:='Offset (Hex)';
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].offset do
-    begin
-      top:=140;
-      left:=275;
-      width:=70;
-      text:='0';
-      hint:='Fill in the nr. of bytes after the location the pointer points to';
-      showhint:=true;
-      onkeypress:=offsetKeyPress;
-      parent:=self;
-    end;
-
     pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
     with pointerinfo[length(pointerinfo)-1].ValueAtAddressText do
     begin
-      top:=126;
+      top:=startoffset;
       left:=4;
-//      width:=57;
       caption:='This pointer points to address ????????.';// The offset you chose brings it to ????????';
       showhint:=true;
       onkeypress:=offsetKeyPress;
@@ -479,10 +439,52 @@ begin
     pointerinfo[length(pointerinfo)-1].FinalDestination:=TLabel.Create(self);
     with pointerinfo[length(pointerinfo)-1].FinalDestination do
     begin
-      top:=126;
-      left:=212;
-//      width:=57;
+      top:=startoffset;
+      left:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.left+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.width+20;
       caption:='The offset you chose brings it to ????????';
+      showhint:=true;
+      onkeypress:=offsetKeyPress;
+      parent:=self;
+    end;
+
+    inputoffset:=startoffset+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
+
+    pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
+    with pointerinfo[length(pointerinfo)-1].addresstext do
+    begin
+      top:=inputoffset+2;
+      left:=4;
+      caption:='Address of pointer';
+      parent:=self;
+    end;  
+
+    pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
+    with pointerinfo[length(pointerinfo)-1].address do
+    begin
+      top:=inputoffset;
+      left:=pointerinfo[length(pointerinfo)-1].addresstext.left+pointerinfo[length(pointerinfo)-1].addresstext.width+3;
+      width:=105;
+      onkeypress:=newaddress.onkeypress;
+      parent:=self;
+    end;
+
+    pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
+    with pointerinfo[length(pointerinfo)-1].offsettext do
+    begin
+      top:=inputoffset+2;
+      left:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
+      caption:='Offset (Hex)';
+      parent:=self;
+    end;
+
+    pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
+    with pointerinfo[length(pointerinfo)-1].offset do
+    begin
+      top:=inputoffset;
+      left:=pointerinfo[length(pointerinfo)-1].offsettext.left+pointerinfo[length(pointerinfo)-1].offsettext.width+5;
+      width:=70;
+      text:='0';
+      hint:='Fill in the nr. of bytes after the location the pointer points to';
       showhint:=true;
       onkeypress:=offsetKeyPress;
       parent:=self;
@@ -490,7 +492,12 @@ begin
 
 
 
-    height:=height+66;
+
+    rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
+    rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
+    inc(rowheight,2);
+
+    height:=height+rowheight+button3.Height+5;
   end
   else
   begin
@@ -521,10 +528,17 @@ begin
 end;
 
 procedure TAddForm.Button4Click(Sender: TObject);
+var rowheight: integer;
 begin
+
+
   if length(pointerinfo)=1 then cbPointer.checked:=false
   else
   begin
+    rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
+    rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
+    inc(rowheight,2);
+
     pointerinfo[length(pointerinfo)-1].addresstext.free;
     pointerinfo[length(pointerinfo)-1].address.free;
     pointerinfo[length(pointerinfo)-1].offsettext.free;
@@ -535,13 +549,18 @@ begin
     pointerinfo[length(pointerinfo)-2].address.text:='';
 
     setlength(pointerinfo,length(pointerinfo)-1);
-    height:=height-25;
+    height:=height-rowheight;
 
   end;
 end;
 
 procedure TAddForm.Button3Click(Sender: TObject);
+var rowheight: integer;
 begin
+  rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
+  rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
+  inc(rowheight,2);
+
   pointerinfo[length(pointerinfo)-1].address.text:='result of next pointer';
   pointerinfo[length(pointerinfo)-1].address.enabled:=false;
 
@@ -550,7 +569,7 @@ begin
   pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
   with pointerinfo[length(pointerinfo)-1].addresstext do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].addresstext.top+36;
+    top:=pointerinfo[length(pointerinfo)-2].addresstext.top+rowheight;
     left:=4;
     caption:='Address of pointer';
     parent:=self;
@@ -559,8 +578,8 @@ begin
   pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
   with pointerinfo[length(pointerinfo)-1].address do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].address.top+36;
-    left:=92;
+    top:=pointerinfo[length(pointerinfo)-2].address.top+rowheight;
+    left:=pointerinfo[length(pointerinfo)-2].address.left;
     width:=105;
     onkeypress:=newaddress.onkeypress;
     parent:=self;
@@ -569,8 +588,8 @@ begin
   pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
   with pointerinfo[length(pointerinfo)-1].offsettext do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].offsettext.top+36;
-    left:=212;
+    top:=pointerinfo[length(pointerinfo)-2].offsettext.top+rowheight;
+    left:=pointerinfo[length(pointerinfo)-2].offsettext.left;
     caption:='Offset (Hex)';
     parent:=self;
   end;
@@ -578,8 +597,8 @@ begin
   pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
   with pointerinfo[length(pointerinfo)-1].offset do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].offset.top+36;
-    left:=275;
+    top:=pointerinfo[length(pointerinfo)-2].offset.top+rowheight;
+    left:=pointerinfo[length(pointerinfo)-2].offset.left;
     width:=70;
     text:='0';
     hint:='Fill in the nr. of bytes after the location the pointer points to';
@@ -591,8 +610,8 @@ begin
   pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
   with pointerinfo[length(pointerinfo)-1].ValueAtAddressText do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].ValueAtAddressText.top+36;
-    left:=4;
+    top:=pointerinfo[length(pointerinfo)-2].ValueAtAddressText.top+rowheight;
+    left:=pointerinfo[length(pointerinfo)-2].ValueAtAddressText.left;
     caption:='This pointer points to address ????????.';// The offset you chose brings it to ????????';
     showhint:=true;
     onkeypress:=offsetKeyPress;
@@ -602,15 +621,15 @@ begin
   pointerinfo[length(pointerinfo)-1].FinalDestination:=TLabel.Create(self);
   with pointerinfo[length(pointerinfo)-1].FinalDestination do
   begin
-    top:=pointerinfo[length(pointerinfo)-2].FinalDestination.top+36;
-    left:=212;
+    top:=pointerinfo[length(pointerinfo)-2].FinalDestination.top+rowheight;
+    left:=pointerinfo[length(pointerinfo)-2].FinalDestination.left;
     caption:='The offset you chose brings it to ????????';
     showhint:=true;
     onkeypress:=offsetKeyPress;
     parent:=self;
   end;
 
-  height:=height+36;
+  height:=height+rowheight;
 end;
 
 procedure TAddForm.Timer1Timer(Sender: TObject);

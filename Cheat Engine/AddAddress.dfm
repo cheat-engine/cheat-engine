@@ -1,6 +1,6 @@
 object AddForm: TAddForm
-  Left = 698
-  Top = 634
+  Left = 405
+  Top = 572
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Add address'
