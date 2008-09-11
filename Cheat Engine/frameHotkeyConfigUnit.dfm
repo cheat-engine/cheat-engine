@@ -1,32 +1,21 @@
-object frmHotkeyConfig: TfrmHotkeyConfig
-  Left = 346
-  Top = 143
-  Width = 422
-  Height = 379
-  Caption = 'Hotkey configuration'
-  Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
-  Font.Style = []
-  OldCreateOrder = False
-  Position = poScreenCenter
-  OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+object frameHotkeyConfig: TframeHotkeyConfig
+  Left = 0
+  Top = 0
+  Width = 416
+  Height = 429
+  TabOrder = 0
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 231
-    Height = 345
+    Width = 233
+    Height = 429
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object Label1: TLabel
       Left = 0
       Top = 0
-      Width = 231
+      Width = 233
       Height = 13
       Align = alTop
       Caption = 'Functions'
@@ -34,9 +23,10 @@ object frmHotkeyConfig: TfrmHotkeyConfig
     object ListBox1: TListBox
       Left = 0
       Top = 13
-      Width = 231
-      Height = 332
+      Width = 233
+      Height = 416
       Align = alClient
+      ExtendedSelect = False
       ItemHeight = 13
       Items.Strings = (
         'Popup/Hide cheat engine'
@@ -73,16 +63,16 @@ object frmHotkeyConfig: TfrmHotkeyConfig
     end
   end
   object Panel2: TPanel
-    Left = 231
+    Left = 233
     Top = 0
     Width = 183
-    Height = 345
+    Height = 429
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       183
-      345)
+      429)
     object Label2: TLabel
       Left = 6
       Top = 0
@@ -99,28 +89,6 @@ object frmHotkeyConfig: TfrmHotkeyConfig
       TabOrder = 0
       OnKeyDown = Edit1KeyDown
     end
-    object Button1: TButton
-      Left = 14
-      Top = 316
-      Width = 75
-      Height = 25
-      Anchors = [akLeft, akBottom]
-      Caption = 'OK'
-      Default = True
-      TabOrder = 2
-      OnClick = Button1Click
-    end
-    object Button2: TButton
-      Left = 94
-      Top = 316
-      Width = 75
-      Height = 25
-      Anchors = [akLeft, akBottom]
-      Cancel = True
-      Caption = 'Cancel'
-      ModalResult = 2
-      TabOrder = 3
-    end
     object Button3: TButton
       Left = 128
       Top = 40
@@ -134,13 +102,13 @@ object frmHotkeyConfig: TfrmHotkeyConfig
       Left = 8
       Top = 64
       Width = 170
-      Height = 247
+      Height = 331
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvNone
-      TabOrder = 4
+      TabOrder = 2
       DesignSize = (
         170
-        247)
+        331)
       object Label52: TLabel
         Left = 11
         Top = 2
@@ -182,7 +150,7 @@ object frmHotkeyConfig: TfrmHotkeyConfig
       Width = 173
       Height = 97
       BevelOuter = bvNone
-      TabOrder = 5
+      TabOrder = 3
       object Label3: TLabel
         Left = 3
         Top = 1

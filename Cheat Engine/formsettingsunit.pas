@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst
   {$ifndef net}
-  ,plugin,newkernelhandler,debugger,hotkeyhandler;
+  ,plugin,newkernelhandler,debugger,hotkeyhandler, frameHotkeyConfigUnit;
   {$else}
   ,netapis;
 
@@ -19,11 +19,8 @@ end;
 
 type
   TformSettings = class(TForm)
-    Button1: TButton;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
-    AboutLabel: TLabel;
-    Button2: TButton;
     pnlConfig: TPanel;
     tvMenuSelection: TTreeView;
     pcSetting: TPageControl;
@@ -121,13 +118,16 @@ type
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     cbGlobalDebug: TCheckBox;
-    TabSheet16: TTabSheet;
+    tsHotkeys: TTabSheet;
     OpenDialog1: TOpenDialog;
-    Button3: TButton;
     Unrandomizer: TTabSheet;
     Label5: TLabel;
     edtDefault: TEdit;
     cbIncremental: TCheckBox;
+    Panel6: TPanel;
+    AboutLabel: TLabel;
+    Button2: TButton;
+    Button1: TButton;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -145,7 +145,6 @@ type
     procedure cbKernelQueryMemoryRegionClick(Sender: TObject);
     procedure cbUndoMemoryChangesClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure Button3Click(Sender: TObject);
     procedure cbProtectMeClick(Sender: TObject);
     procedure cbKdebugClick(Sender: TObject);
     procedure cbProcessWatcherClick(Sender: TObject);
@@ -153,6 +152,7 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
+    procedure Panel6Resize(Sender: TObject);
   private
     { Private declarations }
     tempstatePopupHide:word;
@@ -177,6 +177,8 @@ type
     procedure startsystemcallretrieverifneeded(why:string); overload;
   public
     { Public declarations }
+    frameHotkeyConfig: TFrameHotkeyConfig;
+
     tempdonthidelist: array of string;
     temphideall: boolean;
     laststatePopupHide:word;
@@ -186,7 +188,6 @@ type
     laststateSpeedhack:word;
     lastSpeedhackmodifier:dword;
     Loadingsettingsfromregistry: boolean;
-    clickedok:boolean;
 
     unrandomizersettings: record
                             defaultreturn: integer;
@@ -213,7 +214,6 @@ Unit2;
 {$else}
 MainUnit,
 Mainunit2,
-frmhotkeyconfigunit,
 frmExcludeHideUnit,
 MemoryBrowserFormUnit,
 ModuleSafetyUnit,
@@ -491,65 +491,65 @@ begin
 
 
       //check the hotkeys
-      if (frmHotkeyConfig<>nil) and (ClickedOK) then
+      if (frameHotkeyConfig<>nil) then
       begin
         //save the hotkeylist
-        reg.WriteBinaryData('Show Cheat Engine Hotkey',frmHotkeyConfig.newhotkeys[0][0],10);
-        reg.WriteBinaryData('Pause process Hotkey',frmHotkeyConfig.newhotkeys[1][0],10);
-        reg.WriteBinaryData('Toggle speedhack Hotkey',frmHotkeyConfig.newhotkeys[2][0],10);
+        reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
+        reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
+        reg.WriteBinaryData('Toggle speedhack Hotkey',frameHotkeyConfig.newhotkeys[2][0],10);
 
 
-        reg.WriteFloat('Speedhack 1 speed',frmHotkeyConfig.newspeedhackspeed1.speed);
-        reg.WriteInteger('Speedhack 1 sleeptime',frmHotkeyConfig.newspeedhackspeed1.sleeptime);
-        reg.WriteFloat('Speedhack 2 speed',frmHotkeyConfig.newspeedhackspeed2.speed);
-        reg.WriteInteger('Speedhack 2 sleeptime',frmHotkeyConfig.newspeedhackspeed2.sleeptime);
-        reg.WriteFloat('Speedhack 3 speed',frmHotkeyConfig.newspeedhackspeed3.speed);
-        reg.WriteInteger('Speedhack 3 sleeptime',frmHotkeyConfig.newspeedhackspeed3.sleeptime);
-        reg.WriteFloat('Speedhack 4 speed',frmHotkeyConfig.newspeedhackspeed4.speed);
-        reg.WriteInteger('Speedhack 4 sleeptime',frmHotkeyConfig.newspeedhackspeed4.sleeptime);
-        reg.WriteFloat('Speedhack 5 speed',frmHotkeyConfig.newspeedhackspeed5.speed);
-        reg.WriteInteger('Speedhack 5 sleeptime',frmHotkeyConfig.newspeedhackspeed5.sleeptime);
+        reg.WriteFloat('Speedhack 1 speed',frameHotkeyConfig.newspeedhackspeed1.speed);
+        reg.WriteInteger('Speedhack 1 sleeptime',frameHotkeyConfig.newspeedhackspeed1.sleeptime);
+        reg.WriteFloat('Speedhack 2 speed',frameHotkeyConfig.newspeedhackspeed2.speed);
+        reg.WriteInteger('Speedhack 2 sleeptime',frameHotkeyConfig.newspeedhackspeed2.sleeptime);
+        reg.WriteFloat('Speedhack 3 speed',frameHotkeyConfig.newspeedhackspeed3.speed);
+        reg.WriteInteger('Speedhack 3 sleeptime',frameHotkeyConfig.newspeedhackspeed3.sleeptime);
+        reg.WriteFloat('Speedhack 4 speed',frameHotkeyConfig.newspeedhackspeed4.speed);
+        reg.WriteInteger('Speedhack 4 sleeptime',frameHotkeyConfig.newspeedhackspeed4.sleeptime);
+        reg.WriteFloat('Speedhack 5 speed',frameHotkeyConfig.newspeedhackspeed5.speed);
+        reg.WriteInteger('Speedhack 5 sleeptime',frameHotkeyConfig.newspeedhackspeed5.sleeptime);
 
-        mainunit2.speedhackspeed1:=frmhotkeyconfig.newspeedhackspeed1;
-        mainunit2.speedhackspeed2:=frmhotkeyconfig.newspeedhackspeed2;
-        mainunit2.speedhackspeed3:=frmhotkeyconfig.newspeedhackspeed3;
-        mainunit2.speedhackspeed4:=frmhotkeyconfig.newspeedhackspeed4;
-        mainunit2.speedhackspeed5:=frmhotkeyconfig.newspeedhackspeed5;
+        mainunit2.speedhackspeed1:=frameHotkeyConfig.newspeedhackspeed1;
+        mainunit2.speedhackspeed2:=frameHotkeyConfig.newspeedhackspeed2;
+        mainunit2.speedhackspeed3:=frameHotkeyConfig.newspeedhackspeed3;
+        mainunit2.speedhackspeed4:=frameHotkeyConfig.newspeedhackspeed4;
+        mainunit2.speedhackspeed5:=frameHotkeyConfig.newspeedhackspeed5;
 
-        reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frmHotkeyConfig.newhotkeys[3][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frmHotkeyConfig.newhotkeys[4][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frmHotkeyConfig.newhotkeys[5][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frmHotkeyConfig.newhotkeys[6][0],10);
-        reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frmHotkeyConfig.newhotkeys[7][0],10);
+        reg.WriteBinaryData('Set Speedhack speed 1 Hotkey',frameHotkeyConfig.newhotkeys[3][0],10);
+        reg.WriteBinaryData('Set Speedhack speed 2 Hotkey',frameHotkeyConfig.newhotkeys[4][0],10);
+        reg.WriteBinaryData('Set Speedhack speed 3 Hotkey',frameHotkeyConfig.newhotkeys[5][0],10);
+        reg.WriteBinaryData('Set Speedhack speed 4 Hotkey',frameHotkeyConfig.newhotkeys[6][0],10);
+        reg.WriteBinaryData('Set Speedhack speed 5 Hotkey',frameHotkeyConfig.newhotkeys[7][0],10);
 
-        reg.WriteBinaryData('Increase Speedhack speed',frmHotkeyConfig.newhotkeys[8][0],10);
-        reg.WriteFloat('Increase Speedhack delta',frmHotkeyConfig.speedupdelta);
+        reg.WriteBinaryData('Increase Speedhack speed',frameHotkeyConfig.newhotkeys[8][0],10);
+        reg.WriteFloat('Increase Speedhack delta',frameHotkeyConfig.speedupdelta);
 
-        reg.WriteBinaryData('Decrease Speedhack speed',frmHotkeyConfig.newhotkeys[9][0],10);
-        reg.WriteFloat('Decrease Speedhack delta',frmHotkeyConfig.slowdowndelta);
+        reg.WriteBinaryData('Decrease Speedhack speed',frameHotkeyConfig.newhotkeys[9][0],10);
+        reg.WriteFloat('Decrease Speedhack delta',frameHotkeyConfig.slowdowndelta);
 
-        mainunit2.speedupdelta:=frmhotkeyconfig.speedupdelta;
-        mainunit2.slowdowndelta:=frmhotkeyconfig.slowdowndelta;
+        mainunit2.speedupdelta:=frameHotkeyConfig.speedupdelta;
+        mainunit2.slowdowndelta:=frameHotkeyConfig.slowdowndelta;
 
-        reg.WriteBinaryData('Binary Hotkey',frmHotkeyConfig.newhotkeys[10][0],10);
-        reg.WriteBinaryData('Byte Hotkey',frmHotkeyConfig.newhotkeys[11][0],10);
-        reg.WriteBinaryData('2 Bytes Hotkey',frmHotkeyConfig.newhotkeys[12][0],10);
-        reg.WriteBinaryData('4 Bytes Hotkey',frmHotkeyConfig.newhotkeys[13][0],10);
-        reg.WriteBinaryData('8 Bytes Hotkey',frmHotkeyConfig.newhotkeys[14][0],10);
-        reg.WriteBinaryData('Float Hotkey',frmHotkeyConfig.newhotkeys[15][0],10);
-        reg.WriteBinaryData('Double Hotkey',frmHotkeyConfig.newhotkeys[16][0],10);
-        reg.WriteBinaryData('Text Hotkey',frmHotkeyConfig.newhotkeys[17][0],10);
-        reg.WriteBinaryData('Array of Byte Hotkey',frmHotkeyConfig.newhotkeys[18][0],10);
-        reg.WriteBinaryData('New Scan Hotkey',frmHotkeyConfig.newhotkeys[19][0],10);
-        reg.WriteBinaryData('New Scan-Exact Value',frmHotkeyConfig.newhotkeys[20][0],10);
-        reg.WriteBinaryData('Unknown Initial Value Hotkey',frmHotkeyConfig.newhotkeys[21][0],10);
-        reg.WriteBinaryData('Next Scan-Exact Value',frmHotkeyConfig.newhotkeys[22][0],10);
-        reg.WriteBinaryData('Increased Value Hotkey',frmHotkeyConfig.newhotkeys[23][0],10);
-        reg.WriteBinaryData('Decreased Value Hotkey',frmHotkeyConfig.newhotkeys[24][0],10);
-        reg.WriteBinaryData('Changed Value Hotkey',frmHotkeyConfig.newhotkeys[25][0],10);
-        reg.WriteBinaryData('Unchanged Value Hotkey',frmHotkeyConfig.newhotkeys[26][0],10);
-        reg.WriteBinaryData('Undo Last scan Hotkey',frmHotkeyConfig.newhotkeys[27][0],10);
-        reg.WriteBinaryData('Cancel scan Hotkey',frmHotkeyConfig.newhotkeys[28][0],10);
+        reg.WriteBinaryData('Binary Hotkey',frameHotkeyConfig.newhotkeys[10][0],10);
+        reg.WriteBinaryData('Byte Hotkey',frameHotkeyConfig.newhotkeys[11][0],10);
+        reg.WriteBinaryData('2 Bytes Hotkey',frameHotkeyConfig.newhotkeys[12][0],10);
+        reg.WriteBinaryData('4 Bytes Hotkey',frameHotkeyConfig.newhotkeys[13][0],10);
+        reg.WriteBinaryData('8 Bytes Hotkey',frameHotkeyConfig.newhotkeys[14][0],10);
+        reg.WriteBinaryData('Float Hotkey',frameHotkeyConfig.newhotkeys[15][0],10);
+        reg.WriteBinaryData('Double Hotkey',frameHotkeyConfig.newhotkeys[16][0],10);
+        reg.WriteBinaryData('Text Hotkey',frameHotkeyConfig.newhotkeys[17][0],10);
+        reg.WriteBinaryData('Array of Byte Hotkey',frameHotkeyConfig.newhotkeys[18][0],10);
+        reg.WriteBinaryData('New Scan Hotkey',frameHotkeyConfig.newhotkeys[19][0],10);
+        reg.WriteBinaryData('New Scan-Exact Value',frameHotkeyConfig.newhotkeys[20][0],10);
+        reg.WriteBinaryData('Unknown Initial Value Hotkey',frameHotkeyConfig.newhotkeys[21][0],10);
+        reg.WriteBinaryData('Next Scan-Exact Value',frameHotkeyConfig.newhotkeys[22][0],10);
+        reg.WriteBinaryData('Increased Value Hotkey',frameHotkeyConfig.newhotkeys[23][0],10);
+        reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
+        reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
+        reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
+        reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
+        reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
 
 
         //apply these hotkey changes
@@ -562,7 +562,7 @@ begin
             if (hotkeythread.hotkeylist[j].id=i) and (hotkeythread.hotkeylist[j].handler2) then
             begin
               //found it
-              hotkeythread.hotkeylist[j].keys:=frmHotkeyConfig.newhotkeys[i];
+              hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
               found:=true;
               break;
             end;
@@ -572,13 +572,13 @@ begin
           begin
             j:=length(hotkeythread.hotkeylist);
             setlength(hotkeythread.hotkeylist,j+1);
-            hotkeythread.hotkeylist[j].keys:=frmHotkeyConfig.newhotkeys[i];
+            hotkeythread.hotkeylist[j].keys:=frameHotkeyConfig.newhotkeys[i];
             hotkeythread.hotkeylist[j].windowtonotify:=mainform.Handle;
             hotkeythread.hotkeylist[j].id:=i;
             hotkeythread.hotkeylist[j].handler2:=true;
           end;
 
-          checkkeycombo(frmHotkeyConfig.newhotkeys[i]);
+          checkkeycombo(frameHotkeyConfig.newhotkeys[i]);
         end;
       end;
 
@@ -741,8 +741,6 @@ procedure TformSettings.FormShow(Sender: TObject);
   var reg: TRegistry;
   i: integer;
 begin
-  clickedok:=false;
-
   tempstatepopuphide:=laststatePopupHide;
   temppopupmodifier:=lastpopupmodifier;
   tempstatepause:=laststatePause;
@@ -803,6 +801,22 @@ begin
   {$endif}
 
   cbOldSpeedhack.enabled:=not mainform.cbSpeedhack.Checked; //don't change it while  you're using the speedhack
+
+
+
+  //fill hotkey list
+  for i:=0 to length(hotkeythread.hotkeylist)-1 do
+    if hotkeythread.hotkeylist[i].handler2 then
+      framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
+
+  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed1;
+  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed2;
+  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed3;
+  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed4;
+  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed5;
+
+  framehotkeyconfig.speedupdelta:=speedupdelta;
+  framehotkeyconfig.slowdowndelta:=slowdowndelta;
 
 end;
 
@@ -883,11 +897,16 @@ end;
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
 begin
-  aboutlabel.left:=formsettings.clientwidth-aboutlabel.width;
-  aboutlabel.top:=formsettings.clientheight-aboutlabel.height;
+  aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
+  aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;
 
-  button1.Left:=formsettings.ClientWidth div 2 - button1.Width - 10;
-  button2.Left:=formsettings.ClientWidth div 2 + 10;  
+  frameHotkeyConfig:=TFrameHotkeyConfig.create(self);
+  frameHotkeyConfig.Align:=alClient;
+  frameHotkeyConfig.parent:=tsHotkeys;
+
+
+
+
 
   {$ifdef net}
 
@@ -1017,41 +1036,7 @@ procedure TformSettings.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
 {$ifndef net}
-  if frmHotkeyConfig<>nil then
-  begin
-    frmhotkeyconfig.free;
-    frmHotkeyConfig:=nil;
-  end;
-
   deletedmodules.Clear;
-{$endif}
-end;
-
-procedure TformSettings.Button3Click(Sender: TObject);
-var i:integer;
-begin
-{$ifndef net}
-  if frmHotkeyConfig=nil then
-    frmhotkeyconfig:=tfrmhotkeyconfig.create(self);
-
-//fill the list with the current hotkeylist
-  if not ClickedOK then
-  begin
-    for i:=0 to length(hotkeythread.hotkeylist)-1 do
-      if hotkeythread.hotkeylist[i].handler2 then
-        frmhotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
-
-    frmhotkeyconfig.newspeedhackspeed1:=speedhackspeed1;
-    frmhotkeyconfig.newspeedhackspeed1:=speedhackspeed2;
-    frmhotkeyconfig.newspeedhackspeed1:=speedhackspeed3;
-    frmhotkeyconfig.newspeedhackspeed1:=speedhackspeed4;
-    frmhotkeyconfig.newspeedhackspeed1:=speedhackspeed5;
-
-    frmhotkeyconfig.speedupdelta:=speedupdelta;
-    frmhotkeyconfig.slowdowndelta:=slowdowndelta;
-  end;
-
-  if frmHotkeyConfig.showmodal=mrok then clickedok:=true;
 {$endif}
 end;
 
@@ -1237,6 +1222,12 @@ begin
   begin
     pcSetting.ActivePageIndex:=node.Index;
   end;
+end;
+
+procedure TformSettings.Panel6Resize(Sender: TObject);
+begin
+  button1.Left:=button1.parent.ClientWidth div 2 - button1.Width - 10;
+  button2.Left:=button2.parent.ClientWidth div 2 + 10;  
 end;
 
 end.

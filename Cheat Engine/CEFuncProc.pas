@@ -320,6 +320,10 @@ type TScanSettings = record
   hooknewprocesses: boolean;
 end;
 
+type tspeedhackspeed=record
+  speed: single;
+  sleeptime: dword;
+end;
 
 type TKeyCombo=array [0..4] of word;
 type TKeys=record

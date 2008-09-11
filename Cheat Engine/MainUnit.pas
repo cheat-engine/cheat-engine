@@ -631,7 +631,7 @@ uses mainunit2,ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   formScanningUnit, formDifferentBitSizeUnit,OpenSave,
   formMemoryTrainerUnit, MemoryTrainerDesignUnit, formhotkeyunit,
   formAddressChangeUnit, formmemoryregionsunit,formPointerOrPointeeUnit,
-  frmhotkeyconfigunit, frmProcessWatcherUnit, formProcessInfo, frmautoinjectunit,
+  frmProcessWatcherUnit, formProcessInfo, frmautoinjectunit,
   PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   InjectedpointerscanornotFRM, frmGDTunit, frmFunctionlistUnit;
 

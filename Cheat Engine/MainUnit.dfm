@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 748
-  Top = 239
+  Left = 523
+  Top = 263
   Width = 532
   Height = 570
   Hint = ' '

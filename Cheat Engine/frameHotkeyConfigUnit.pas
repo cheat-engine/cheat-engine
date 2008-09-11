@@ -1,32 +1,28 @@
-unit frmhotkeyconfigunit;
+unit frameHotkeyConfigUnit;
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,hotkeyhandler,cefuncproc,mainunit2;
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms, 
+  Dialogs, StdCtrls, ExtCtrls, cefuncproc;
 
 type
-  TfrmHotkeyConfig = class(TForm)
+  TframeHotkeyConfig = class(TFrame)
     Panel1: TPanel;
     Label1: TLabel;
     ListBox1: TListBox;
     Panel2: TPanel;
-    Edit1: TEdit;
     Label2: TLabel;
-    Button1: TButton;
-    Button2: TButton;
+    Edit1: TEdit;
     Button3: TButton;
     Panel3: TPanel;
     Label52: TLabel;
-    Edit2: TEdit;
     Label51: TLabel;
+    Edit2: TEdit;
     Edit3: TEdit;
     Panel4: TPanel;
-    Edit4: TEdit;
     Label3: TLabel;
-    procedure Button1Click(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    Edit4: TEdit;
     procedure ListBox1Click(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -46,18 +42,14 @@ type
     newspeedhackspeed4: tspeedhackspeed;
     newspeedhackspeed5: tspeedhackspeed;
     speedupdelta:       single;
-    slowdowndelta:      single;
+    slowdowndelta:      single;    
   end;
-
-var
-  frmHotkeyConfig: TfrmHotkeyConfig;
 
 implementation
 
 {$R *.dfm}
 
-
-procedure TFrmHotkeyConfig.UpdateSpeed;
+procedure TFrameHotkeyConfig.UpdateSpeed;
 begin
   if panel4.Visible then
   begin
@@ -154,30 +146,18 @@ begin
 
 end;
 
-procedure Tfrmhotkeyconfig.updatehotkey;
+procedure TFrameHotkeyConfig.updatehotkey;
 begin
   edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
-  updatespeed;
+  updatespeed;  
 end;
 
-procedure TfrmHotkeyConfig.Button1Click(Sender: TObject);
-begin
-  updatespeed;
-  modalresult:=mrok;
-end;
-
-procedure TfrmHotkeyConfig.FormShow(Sender: TObject);
-begin
-  listbox1.ItemIndex:=0;
-  UpdateHotkey;
-end;
-
-procedure TfrmHotkeyConfig.ListBox1Click(Sender: TObject);
+procedure TframeHotkeyConfig.ListBox1Click(Sender: TObject);
 begin
   updatehotkey;
 end;
 
-procedure TfrmHotkeyConfig.Edit1KeyDown(Sender: TObject; var Key: Word;
+procedure TframeHotkeyConfig.Edit1KeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 var i: integer;
 begin
@@ -195,7 +175,7 @@ begin
   edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
 end;
 
-procedure TfrmHotkeyConfig.Button3Click(Sender: TObject);
+procedure TframeHotkeyConfig.Button3Click(Sender: TObject);
 begin
   zeromemory(@newhotkeys[listbox1.ItemIndex][0],10);
   edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);

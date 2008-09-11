@@ -3,7 +3,7 @@ unit MainUnit2;
 
 interface
 
-uses dialogs,forms,classes,windows,sysutils,formsettingsunit,registry,cefuncproc,AdvancedOptionsUnit,
+uses dialogs,forms,classes,windows,sysutils,registry,formsettingsunit,cefuncproc,AdvancedOptionsUnit,
      MemoryBrowserFormUnit,memscan
 
 {$ifdef net}
@@ -62,10 +62,7 @@ resourcestring
   strFailedToInitialize='Failed to initialize the debugger';
   strtoolong='Too long';
 
-  type tspeedhackspeed=record
-    speed: single;
-    sleeptime: dword;
-  end;
+
 
   var
     speedhackspeed1: tspeedhackspeed;

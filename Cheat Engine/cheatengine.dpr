@@ -79,7 +79,6 @@ uses
   frmautoinjectunit in 'frmautoinjectunit.pas' {frmAutoInject},
   frmFindstaticsUnit in 'frmFindstaticsUnit.pas' {frmFindStatics},
   UndoChanges in 'UndoChanges.pas',
-  frmhotkeyconfigunit in 'frmhotkeyconfigunit.pas' {frmHotkeyConfig},
   MainUnit2 in 'MainUnit2.pas',
   frmCodecaveScannerUnit in 'frmCodecaveScannerUnit.pas' {frmCodecaveScanner},
   debugger2 in 'debugger2.pas',
@@ -138,7 +137,8 @@ uses
   frmAAEditPrefsUnit in 'frmAAEditPrefsUnit.pas' {frmAAEditPrefs},
   MenuItemExtra in 'MenuItemExtra.pas',
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
-  AccessCheck in 'AccessCheck.pas';
+  AccessCheck in 'AccessCheck.pas',
+  frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

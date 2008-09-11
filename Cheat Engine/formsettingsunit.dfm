@@ -1,11 +1,10 @@
 object formSettings: TformSettings
-  Left = 466
-  Top = 221
+  Left = 259
+  Top = 321
+  Width = 763
+  Height = 547
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsSingle
   Caption = 'Cheat Engine settings'
-  ClientHeight = 364
-  ClientWidth = 624
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,58 +16,20 @@ object formSettings: TformSettings
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  DesignSize = (
-    624
-    364)
   PixelsPerInch = 96
   TextHeight = 13
-  object AboutLabel: TLabel
-    Left = 573
-    Top = 349
-    Width = 45
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'About CE'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = [fsUnderline]
-    ParentFont = False
-    OnClick = AboutLabelClick
-  end
-  object Button1: TButton
-    Left = 181
-    Top = 328
-    Width = 75
-    Height = 25
-    Caption = 'OK'
-    Default = True
-    TabOrder = 0
-    OnClick = Button1Click
-  end
-  object Button2: TButton
-    Left = 275
-    Top = 328
-    Width = 75
-    Height = 25
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 1
-  end
   object pnlConfig: TPanel
     Left = 0
     Top = 0
-    Width = 624
-    Height = 321
-    Align = alTop
-    TabOrder = 2
+    Width = 755
+    Height = 475
+    Align = alClient
+    TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
       Top = 1
       Width = 121
-      Height = 319
+      Height = 473
       Align = alLeft
       HideSelection = False
       Indent = 19
@@ -93,9 +54,9 @@ object formSettings: TformSettings
     object pcSetting: TPageControl
       Left = 122
       Top = 1
-      Width = 501
-      Height = 319
-      ActivePage = Unrandomizer
+      Width = 632
+      Height = 473
+      ActivePage = tsHotkeys
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -356,18 +317,9 @@ object formSettings: TformSettings
           TabOrder = 14
         end
       end
-      object TabSheet16: TTabSheet
+      object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
         ImageIndex = 7
-        object Button3: TButton
-          Left = 0
-          Top = 2
-          Width = 201
-          Height = 17
-          Caption = 'Configure Hotkeys'
-          TabOrder = 0
-          OnClick = Button3Click
-        end
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
@@ -825,7 +777,7 @@ object formSettings: TformSettings
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
-          Top = 275
+          Top = 429
           Width = 337
           Height = 13
           Align = alBottom
@@ -838,7 +790,7 @@ object formSettings: TformSettings
         object GroupBox3: TGroupBox
           Left = 0
           Top = 0
-          Width = 493
+          Width = 624
           Height = 70
           Align = alTop
           Caption = 
@@ -996,6 +948,56 @@ object formSettings: TformSettings
           TabOrder = 8
         end
       end
+    end
+  end
+  object Panel6: TPanel
+    Left = 0
+    Top = 475
+    Width = 755
+    Height = 38
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 1
+    OnResize = Panel6Resize
+    DesignSize = (
+      755
+      38)
+    object AboutLabel: TLabel
+      Left = 709
+      Top = 25
+      Width = 45
+      Height = 13
+      Anchors = [akRight, akBottom]
+      Caption = 'About CE'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsUnderline]
+      ParentFont = False
+      OnClick = AboutLabelClick
+    end
+    object Button2: TButton
+      Left = 331
+      Top = 5
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 245
+      Top = 5
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'OK'
+      Default = True
+      TabOrder = 1
+      OnClick = Button1Click
     end
   end
   object defaultbuffer: TPopupMenu
