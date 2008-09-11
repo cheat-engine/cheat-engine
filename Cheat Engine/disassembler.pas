@@ -7552,7 +7552,7 @@ begin
                       //fadd
                       description:='Add';
                       last:=2;
-                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST('+IntToStr(memory[1]-$c0)+')' else
+                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST(0),ST('+IntToStr(memory[1]-$c0)+')' else
                       begin
                         tempresult:=tempresult+'FADD '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7563,7 +7563,7 @@ begin
                 1:  begin
                       description:='Multiply';
                       last:=2;
-                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST('+IntToStr(memory[1]-$c8)+')' else
+                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST(0),ST('+IntToStr(memory[1]-$c8)+')' else
                       begin
                         tempresult:=tempresult+'FMUL '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7575,7 +7575,7 @@ begin
                 2:  begin
                       description:='Compare Real';
                       last:=2;
-                      if memory[1]>=$d0 then tempresult:=tempresult+'FCOM ST('+IntToStr(memory[1]-$d0)+')' else
+                      if memory[1]>=$d0 then tempresult:=tempresult+'FCOM ST(0),ST('+IntToStr(memory[1]-$d0)+')' else
                       begin
                         tempresult:=tempresult+'FCOM '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7586,7 +7586,7 @@ begin
                 3:  begin
                       description:='Compare Real and pop register stack';
                       last:=2;
-                      if memory[1]>=$d8 then tempresult:=tempresult+'FCOMP ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$d8 then tempresult:=tempresult+'FCOMP ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
                       begin
                         tempresult:=tempresult+'FCOMP '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7597,7 +7597,7 @@ begin
                 4:  begin
                       description:='Substract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e0)+')' else
+                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
                       begin
                         tempresult:=tempresult+'FSUB '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7608,7 +7608,7 @@ begin
                 5:  begin
                       description:='Reverse Substract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e0)+')' else
+                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUBR ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
                       begin
                         tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7619,7 +7619,7 @@ begin
                 6:  begin
                       description:='Divide';
                       last:=2;
-                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIV ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIV ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
                       begin
                         tempresult:=tempresult+'FDIV '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7630,7 +7630,7 @@ begin
                 7:  begin
                       description:='Reverse Divide';
                       last:=2;
-                      if memory[1]>=$f8 then tempresult:=tempresult+'FDIVR ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$f8 then tempresult:=tempresult+'FDIVR ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
                       begin
                         tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7706,13 +7706,13 @@ begin
 
               $c8..$cf : begin
                            description:='Exchange Register Contents';
-                           tempresult:=tempresult+'FLD ST('+IntToStr(memory[1]-$c8)+')';
+                           tempresult:=tempresult+'FXCH ST('+IntToStr(memory[1]-$c8)+')';
                            inc(offset);
                          end;
 
 
               $d9..$df : begin
-                           description:='Exchagne Register contents';
+                           description:='Exchange Register contents';
                            tempresult:=tempresult+'FXCH ST('+IntToStr(memory[1]-$d9)+')';
                            inc(offset);
                          end;
@@ -7959,25 +7959,25 @@ begin
                 case getreg(memory[1]) of
                   0:  begin
                         description:='Floating-Point: Move if below';
-                        tempresult:='FCMOVB ST('+IntToStr(memory[1]-$c0)+')';
+                        tempresult:='FCMOVB ST(0),ST('+IntToStr(memory[1]-$c0)+')';
                         inc(offset);
                       end;
 
                   1:  begin
                         description:='Floating-Point: Move if equal';
-                        tempresult:='FCMOVE ST('+IntToStr(memory[1]-$c8)+')';
+                        tempresult:='FCMOVE ST(0),ST('+IntToStr(memory[1]-$c8)+')';
                         inc(offset);
                       end;
 
                   2:  begin
                         description:='Floating-Point: Move if below or equal';
-                        tempresult:='FCMOVBE ST('+IntToStr(memory[1]-$d0)+')';
+                        tempresult:='FCMOVBE ST(0),ST('+IntToStr(memory[1]-$d0)+')';
                         inc(offset);
                       end;
 
                   3:  begin
                         description:='Floating-Point: Move if unordered';
-                        tempresult:='FCMOVU ST('+IntToStr(memory[1]-$d8)+')';
+                        tempresult:='FCMOVU ST(0),ST('+IntToStr(memory[1]-$d8)+')';
                         inc(offset);
                       end;
 
@@ -8038,25 +8038,25 @@ begin
 
                 $c0..$c7 : begin
                              description:='Floating-Point: Move if not below';
-                             tempresult:='FCMOVNB ST('+IntToStr(memory[1]-$c0)+')';
+                             tempresult:='FCMOVNB ST(0),ST('+IntToStr(memory[1]-$c0)+')';
                              inc(offset);
                            end;
 
                 $c8..$cf : begin
                              description:='Floating-Point: Move if not equal';
-                             tempresult:='FCMOVNE ST('+IntToStr(memory[1]-$c8)+')';
+                             tempresult:='FCMOVNE ST(0),ST('+IntToStr(memory[1]-$c8)+')';
                              inc(offset);
                            end;
 
                 $d0..$d7 : begin
                              description:='Floating-Point: Move if not below or equal';
-                             tempresult:='FCMOVNBE ST('+IntToStr(memory[1]-$d0)+')';
+                             tempresult:='FCMOVNBE ST(0),ST('+IntToStr(memory[1]-$d0)+')';
                              inc(offset);
                            end;
 
                 $d8..$df : begin
                              description:='Floating-Point: Move if not unordered';
-                             tempresult:='FCMOVNU ST('+IntToStr(memory[1]-$d8)+')';
+                             tempresult:='FCMOVNU ST(0),ST('+IntToStr(memory[1]-$d8)+')';
                              inc(offset);
                            end;
 
@@ -8074,13 +8074,13 @@ begin
 
                 $e8..$ef : begin
                              description:='Floating-Point: Compare Real and Set EFLAGS';
-                             tempresult:='FUCOMI ST('+IntToStr(memory[1]-$e8)+')';
+                             tempresult:='FUCOMI ST(0),ST('+IntToStr(memory[1]-$e8)+')';
                              inc(offset);
                            end;
 
                 $f0..$f7 : begin
                              description:='Floating-Point: Compare Real and Set EFLAGS';
-                             tempresult:='FCOMI ST('+IntToStr(memory[1]-$f0)+')';
+                             tempresult:='FCOMI ST(0),ST('+IntToStr(memory[1]-$f0)+')';
                              inc(offset);
                            end;
               end;
@@ -8094,7 +8094,7 @@ begin
                       //fadd
                       description:='Add';
                       last:=2;
-                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST('+IntToStr(memory[1]-$c0)+')' else
+                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FADD '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8105,7 +8105,7 @@ begin
                 1:  begin
                       description:='Multiply';
                       last:=2;
-                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST('+IntToStr(memory[1]-$c8)+')' else
+                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST('+IntToStr(memory[1]-$c8)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FMUL '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8132,7 +8132,7 @@ begin
                 4:  begin
                       description:='Subtract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e0)+')' else
+                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e0)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FSUB '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8143,7 +8143,7 @@ begin
                 5:  begin
                       description:='Reverse Subtract';
                       last:=2;
-                      if memory[1]>=$e8 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e8)+')' else
+                      if memory[1]>=$e8 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e8)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8270,7 +8270,7 @@ begin
                       last:=2;
                       if (memory[1]=$c1) then tempresult:=tempresult+'FADDP'
                       else
-                      if memory[1]>$c0 then tempresult:=tempresult+'FADDP ST('+IntToStr(memory[1]-$c0)+')' else
+                      if memory[1]>$c0 then tempresult:=tempresult+'FADDP ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
                       begin
                         description:='Add';
                         tempresult:=tempresult+'FIADD '+modrm(memory,prefix2,1,0,last);
@@ -8331,7 +8331,7 @@ begin
                 5: begin
                      description:='Reverse Devide';
                      last:=2;
-                     if memory[1]>=$e8 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e8)+')';
+                     if memory[1]>=$e8 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e8)+'),ST(0)';
                      begin
                        tempresult:=tempresult+'FISUBR '+modrm(memory,prefix2,1,0,last);
                        tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8346,7 +8346,7 @@ begin
                      last:=2;
                      if memory[1]>=$f0 then
                      begin
-                       tempresult:=tempresult+'FDIVRP ST('+IntToStr(memory[1]-$f0)+')';
+                       tempresult:=tempresult+'FDIVRP ST('+IntToStr(memory[1]-$f0)+'),ST(0)';
                        inc(offset,last-1);
                      end
                      else tempresult:='DB DE'
@@ -8355,7 +8355,7 @@ begin
                 7: begin
                      description:='Devide';
                      last:=2;
-                     if memory[1]>=$f8 then tempresult:=tempresult+'FDIVP ST('+IntToStr(memory[1]-$f8)+')' else
+                     if memory[1]>=$f8 then tempresult:=tempresult+'FDIVP ST('+IntToStr(memory[1]-$f8)+'),ST(0)' else
                      begin
                        tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last);
                        tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8411,7 +8411,7 @@ begin
                      if memory[1]>=$e8 then
                      begin
                        description:='Compare Real and Set EFLAGS';
-                       tempresult:='FUCOMIP ST,('+IntToStr(memory[1]-$e8)+')';
+                       tempresult:='FUCOMIP ST(0),ST('+IntToStr(memory[1]-$e8)+')';
                        inc(offset);
                      end;
                    end;
@@ -8420,7 +8420,7 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         description:='Compare Real and Set EFLAGS';
-                        tempresult:='FCOMI ST,('+IntToStr(memory[1]-$f0)+')';
+                        tempresult:='FCOMI ST(0),ST('+IntToStr(memory[1]-$f0)+')';
                       end
                       else
                       begin
