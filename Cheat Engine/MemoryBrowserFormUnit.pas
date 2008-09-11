@@ -3623,14 +3623,12 @@ var x,y: string;
     output: textfile;
 begin
 {$ifndef net}
-  if frmSavedisassembly=nil then
-    frmSavedisassembly:=tfrmSavedisassembly.create(self);
-
-
-  frmSavedisassembly.edit1.Text:=inttohex(Disassembleraddress,8);
-  frmSavedisassembly.edit2.Text:=inttohex(disassemblerlines[length(disassemblerlines)-1].address,8);
-
-  frmSavedisassembly.show;
+  with tfrmSavedisassembly.create(self) do
+  begin
+    edit1.Text:=inttohex(Disassembleraddress,8);
+    edit2.Text:=inttohex(disassemblerlines[length(disassemblerlines)-1].address,8);
+    show;
+  end;
 {$endif}
 end;
 

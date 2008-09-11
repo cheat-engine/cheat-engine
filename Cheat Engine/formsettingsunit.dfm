@@ -56,7 +56,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 632
       Height = 473
-      ActivePage = tsHotkeys
+      ActivePage = FileAssocs
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -320,6 +320,32 @@ object formSettings: TformSettings
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
         ImageIndex = 7
+        inline frameHotkeyConfig: TframeHotkeyConfig
+          Left = 0
+          Top = 0
+          Width = 624
+          Height = 442
+          Align = alClient
+          TabOrder = 0
+          inherited Panel1: TPanel
+            Width = 441
+            Height = 442
+            inherited Label1: TLabel
+              Width = 441
+            end
+            inherited ListBox1: TListBox
+              Width = 441
+              Height = 429
+            end
+          end
+          inherited Panel2: TPanel
+            Left = 441
+            Height = 442
+            inherited Panel3: TPanel
+              Height = 344
+            end
+          end
+        end
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'

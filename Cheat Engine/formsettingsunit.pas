@@ -128,6 +128,7 @@ type
     AboutLabel: TLabel;
     Button2: TButton;
     Button1: TButton;
+    frameHotkeyConfig: TframeHotkeyConfig;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -177,7 +178,7 @@ type
     procedure startsystemcallretrieverifneeded(why:string); overload;
   public
     { Public declarations }
-    frameHotkeyConfig: TFrameHotkeyConfig;
+    
 
     tempdonthidelist: array of string;
     temphideall: boolean;
@@ -490,9 +491,6 @@ begin
       end;
 
 
-      //check the hotkeys
-      if (frameHotkeyConfig<>nil) then
-      begin
         //save the hotkeylist
         reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);
         reg.WriteBinaryData('Pause process Hotkey',frameHotkeyConfig.newhotkeys[1][0],10);
@@ -580,7 +578,7 @@ begin
 
           checkkeycombo(frameHotkeyConfig.newhotkeys[i]);
         end;
-      end;
+ 
 
 
       {$endif}
@@ -899,13 +897,6 @@ var i: integer;
 begin
   aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
   aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;
-
-  frameHotkeyConfig:=TFrameHotkeyConfig.create(self);
-  frameHotkeyConfig.Align:=alClient;
-  frameHotkeyConfig.parent:=tsHotkeys;
-
-
-
 
 
   {$ifdef net}

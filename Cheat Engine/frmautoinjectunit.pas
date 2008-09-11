@@ -485,16 +485,25 @@ end;
 
 
 procedure TfrmAutoInject.CheatTablecompliantcodee1Click(Sender: TObject);
+var e,d: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
-  assemblescreen.Lines.Insert(0,'[ENABLE]');
-  assemblescreen.Lines.Insert(1,'//code from here to ''[DISABLE]'' will be used to enable the cheat');
-  assemblescreen.Lines.Insert(2,'');
+  getenableanddisablepos(assemblescreen.lines,e,d);
 
-  assemblescreen.Lines.Add(' ');
-  assemblescreen.Lines.Add(' ');
-  assemblescreen.Lines.Add('[DISABLE]');
-  assemblescreen.Lines.Add('//code from here till the end of the code will be used to disable the cheat');
+  if e=-1 then //-2 is 2 or more, so bugged, and >=0 is has one
+  begin
+    assemblescreen.Lines.Insert(0,'[ENABLE]');
+    assemblescreen.Lines.Insert(1,'//code from here to ''[DISABLE]'' will be used to enable the cheat');
+    assemblescreen.Lines.Insert(2,'');
+  end;
+
+  if d=-1 then
+  begin
+    assemblescreen.Lines.Add(' ');
+    assemblescreen.Lines.Add(' ');
+    assemblescreen.Lines.Add('[DISABLE]');
+    assemblescreen.Lines.Add('//code from here till the end of the code will be used to disable the cheat');
+  end;
 {$endif}  
 end;
 

@@ -47,9 +47,6 @@ type
     procedure waittilldone;
   end;
 
-var
-  frmSavedisassembly: TfrmSavedisassembly;
-
 implementation
 
 {$R *.dfm}

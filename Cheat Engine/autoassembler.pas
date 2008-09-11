@@ -20,7 +20,7 @@ type PCEAlloc=^TCEAlloc;
 type TCEAllocArray=array of TCEAlloc;
 {$endif}
 
-procedure getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer);
+function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray): boolean; overload;
 
@@ -1444,10 +1444,11 @@ begin
 end;
 
 
-procedure getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer);
+function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 var i,j: integer;
     currentline: string;
 begin
+  result:=false;
   enablepos:=-1;
   disablepos:=-1;
 
@@ -1466,6 +1467,7 @@ begin
 
     if (uppercase(currentline))='[ENABLE]' then
     begin
+      result:=true; //there's at least a enable section, so it's ok
       if enablepos<>-1 then
       begin
         enablepos:=-2;
