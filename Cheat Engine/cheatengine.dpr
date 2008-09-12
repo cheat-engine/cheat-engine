@@ -138,7 +138,8 @@ uses
   MenuItemExtra in 'MenuItemExtra.pas',
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
   AccessCheck in 'AccessCheck.pas',
-  frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame};
+  frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame},
+  D6OnHelpFix in 'D6OnHelpFix.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

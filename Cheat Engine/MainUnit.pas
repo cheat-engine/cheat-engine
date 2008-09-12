@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon;
+  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, D6OnHelpFix;
 
   //the following are just for compatibility
 
@@ -492,6 +492,7 @@ type
     procedure CopySelectedRecords;
     procedure DeleteRecords;
     procedure Deletegroups(groups: grouptype);
+    function helphandler(Command: Word; Data: Longint; var CallHelp: Boolean): Boolean;
     procedure exceptionhandler(Sender: TObject; E: Exception);
     procedure ResizeScreen;
     procedure SetReadWriteBreakpoint(address: dword; size: dword);
@@ -1424,6 +1425,15 @@ end;
 procedure TMainform.setfoundlisthorizontal;
 begin
 //removed
+end;
+
+function TMainform.helphandler(Command: Word; Data: Longint; var CallHelp: Boolean): Boolean;
+begin
+  showmessage('help invoke');
+
+  //original Delphi behaviour: CallHelp=True, result=false
+  CallHelp:=true;
+  result:=false;
 end;
 
 procedure TMainform.exceptionhandler(Sender: TObject; E: Exception);
@@ -4360,6 +4370,10 @@ begin
 
 
   application.OnException:=exceptionhandler;
+  application.OnHelp:=helphandler;
+  MainForm.OnHelp:=helphandler;
+
+//  invokehelp(0,0);
   debugproc:=false;
 
   //get current screen resolution (when switching back for debug)
@@ -11199,6 +11213,14 @@ var resh: thandle;
     ki: TKIcon;
     tid: TIconData;
 begin
+//Application.HelpCommand(HELP_CONTEXTPOPUP, 0);
+  
+asm
+fcmovb st(0),st(1)
+fadd st(1),st(0)
+end;
+
+exit;
   resh:=BeginUpdateResource(pchar('c:\xxx.exe'),false);
   if (resh<>0) then
   begin
