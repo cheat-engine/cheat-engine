@@ -2951,11 +2951,16 @@ var winhandle: Hwnd;
 
     x: tstringlist;
     i:integer;
+
+    ProcessListInfo: PProcessListInfo;
 begin
   getmem(temp,101);
   try
     x:=tstringlist.Create;
 
+    for i:=0 to processlist.items.count-1 do
+      if processlist.items.Objects[i]<>nil then
+        freemem(pointer(processlist.items.Objects[i]));
     processlist.clear;
 
     winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
@@ -2970,17 +2975,20 @@ begin
 
       if length(wintitle)>0 then
       begin
+        getmem(ProcessListInfo,sizeof(TProcessListInfo));
+        ProcessListInfo.processID:=winprocess;
+        ProcessListInfo.processIcon:=SendMessage(winhandle,WM_GETICON,ICON_SMALL,0);
+        if ProcessListInfo.processIcon=0 then
+          ProcessListInfo.processIcon:=SendMessage(winhandle,WM_GETICON,ICON_BIG,0);
 
-        x.Add(IntTohex(winprocess,8)+'-'+wintitle);
+        x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
       end;
 
       winhandle:=getwindow(winhandle,GW_HWNDNEXT);
     end;
 
     x.Sort;
-    for i:=0 to x.Count-1 do
-      processlist.Items.Add(x[i]);
-
+    processlist.Items.Assign(x);
   finally
     freemem(temp);
   end;
