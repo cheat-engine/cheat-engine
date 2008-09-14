@@ -81,7 +81,6 @@ type
     Label6: TLabel;
     cbPreventReopening: TCheckBox;
     Button8: TButton;
-    Button9: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -105,7 +104,6 @@ type
     procedure EditHotkeyKeyPress(Sender: TObject; var Key: Char);
     procedure recordviewDblClick(Sender: TObject);
     procedure Button8Click(Sender: TObject);
-    procedure Button9Click(Sender: TObject);
   private
     { Private declarations }
     currentIcon: TKIcon;
@@ -996,11 +994,6 @@ begin
   zeromemory(@popuphotkey[0],10);
   editHotkey.Text:=ConvertKeyComboToString(popuphotkey);
   edithotkey.SetFocus;
-end;
-
-procedure TfrmMemoryModifier.Button9Click(Sender: TObject);
-begin
-  changeicon('c:\xxx.exe');
 end;
 
 end.

@@ -129,6 +129,8 @@ type
     Button2: TButton;
     Button1: TButton;
     frameHotkeyConfig: TframeHotkeyConfig;
+    cbProcessIcons: TCheckBox;
+    cbProcessIconsOnly: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -154,6 +156,7 @@ type
     procedure Button5Click(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
     procedure Panel6Resize(Sender: TObject);
+    procedure cbProcessIconsClick(Sender: TObject);
   private
     { Private declarations }
     tempstatePopupHide:word;
@@ -449,6 +452,11 @@ begin
 
       reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
       reg.WriteBool('Use old speedhack',cbOldSpeedhack.checked);
+      reg.WriteBool('Get process icons',cbProcessIcons.Checked);
+      GetProcessIcons:=cbProcessIcons.Checked;
+
+      reg.WriteBool('Only show processes with icon',cbProcessIconsOnly.Checked);
+      ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
       reg.WriteBool('Break when debuging',cbBreakOnAttach.Checked);
@@ -1219,6 +1227,12 @@ procedure TformSettings.Panel6Resize(Sender: TObject);
 begin
   button1.Left:=button1.parent.ClientWidth div 2 - button1.Width - 10;
   button2.Left:=button2.parent.ClientWidth div 2 + 10;  
+end;
+
+procedure TformSettings.cbProcessIconsClick(Sender: TObject);
+begin
+  cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
+  if not cbProcessIcons.Checked then cbProcessIconsOnly.Checked:=false;
 end;
 
 end.

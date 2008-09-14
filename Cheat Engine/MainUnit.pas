@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, D6OnHelpFix;
+  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon;
 
   //the following are just for compatibility
 
@@ -492,7 +492,7 @@ type
     procedure CopySelectedRecords;
     procedure DeleteRecords;
     procedure Deletegroups(groups: grouptype);
-    function helphandler(Command: Word; Data: Longint; var CallHelp: Boolean): Boolean;
+
     procedure exceptionhandler(Sender: TObject; E: Exception);
     procedure ResizeScreen;
     procedure SetReadWriteBreakpoint(address: dword; size: dword);
@@ -594,7 +594,6 @@ type
     Procedure UpdateScreen;
     procedure SetWriteBreakpoint(address: dword; size: dword);
     procedure SetReadBreakpoint(address: dword; size: dword);
-    procedure setfoundlisthorizontal;
     procedure reserveMem;
     procedure ChangeValue(Itemnr: integer; NewValue:String);
     function  getStringFromRecord(itemid: Integer):string;
@@ -1421,20 +1420,6 @@ begin
   end;
 end;
 
-
-procedure TMainform.setfoundlisthorizontal;
-begin
-//removed
-end;
-
-function TMainform.helphandler(Command: Word; Data: Longint; var CallHelp: Boolean): Boolean;
-begin
-  showmessage('help invoke');
-
-  //original Delphi behaviour: CallHelp=True, result=false
-  CallHelp:=true;
-  result:=false;
-end;
 
 procedure TMainform.exceptionhandler(Sender: TObject; E: Exception);
 begin
@@ -3775,8 +3760,6 @@ begin
 
 
   VartypeChange(vartype);
-  setfoundlisthorizontal;
-
   foundlist.deleteresults;
 
   if scanvalue.Visible and scanvalue.Enabled then
@@ -4000,10 +3983,6 @@ begin
 
           if aprilfools then aprilfoolsscan;
         
-          //foundlabel.visible:=false;
-          setfoundlisthorizontal;
-
-
         finally
           progressbar1.Position:=0;
           mainform.Caption:=CEnorm;
@@ -4232,9 +4211,6 @@ begin
 
       foundlist.Clear;
 
-
-      setfoundlisthorizontal;
-
       Beep;
 
 
@@ -4370,10 +4346,6 @@ begin
 
 
   application.OnException:=exceptionhandler;
-  application.OnHelp:=helphandler;
-  MainForm.OnHelp:=helphandler;
-
-//  invokehelp(0,0);
   debugproc:=false;
 
   //get current screen resolution (when switching back for debug)
@@ -11936,13 +11908,24 @@ begin
 end;
 
 {--------Processlist menuitem--------}
+var il: TImageList;
 procedure TMainForm.Process1Click(Sender: TObject);
 var sl: tstringlist;
     mi: array of TMenuItem;
     currentmi: TMenuItemExtra;
     i,j: integer;
+
+    tempicon: graphics.TIcon;
+
 begin
   //fill with processlist
+  if il=nil then
+    il:=TImageList.Create(self);
+
+  il.Clear;
+
+  Menu.Images:=il;
+
   sl:=tstringlist.Create;
 
   try
@@ -11953,17 +11936,34 @@ begin
     setlength(mi,sl.count);
     for i:=0 to sl.count-1 do
     begin
+
+
       j:=sl.count-1-i;
       currentmi:=TMenuItemExtra.Create(self);
       currentmi.Caption:=sl[i];
       currentmi.Default:=dword(sl.Objects[i])=ProcessID;
-      currentmi.data:=sl.Objects[i];
+      currentmi.data:=pointer(PProcessListInfo(sl.Objects[i])^.processid);
       currentmi.OnClick:=ProcessItemClick;
+
+      if PProcessListInfo(sl.Objects[i])^.processIcon>0 then
+      begin
+        tempicon:=graphics.TIcon.Create;
+        tempicon.handle:=PProcessListInfo(sl.Objects[i])^.processIcon;
+        il.AddIcon(tempicon);
+        tempicon.Free;
+
+        currentmi.ImageIndex:=il.Count-1;
+      end else
+        currentmi.ImageIndex:=-1;
+
       mi[j]:=currentmi;
     end;
 
     process1.Add(mi);
   finally
+    for i:=0 to sl.Count-1 do
+      if sl.Objects[i]<>nil then
+         freemem(pointer(sl.Objects[i]));
     sl.free;
   end;
 end;

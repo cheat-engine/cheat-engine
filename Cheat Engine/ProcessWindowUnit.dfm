@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 1009
-  Top = 120
-  Width = 248
+  Left = 894
+  Top = 206
+  Width = 254
   Height = 355
   HelpContext = 4
   BorderIcons = [biSystemMenu]
@@ -23,20 +23,22 @@ object ProcessWindow: TProcessWindow
   object ProcessList: TListBox
     Left = 0
     Top = 0
-    Width = 240
+    Width = 246
     Height = 152
+    Style = lbOwnerDrawFixed
     Align = alClient
-    ItemHeight = 13
+    ItemHeight = 16
     PopupMenu = PopupMenu1
     TabOrder = 0
     OnClick = ProcessListClick
     OnDblClick = OKButtonClick
+    OnDrawItem = ProcessListDrawItem
     OnKeyPress = ProcessListKeyPress
   end
   object Panel1: TPanel
     Left = 0
     Top = 152
-    Width = 240
+    Width = 246
     Height = 169
     Align = alBottom
     BevelInner = bvLowered
@@ -45,7 +47,7 @@ object ProcessWindow: TProcessWindow
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 238
+      Width = 244
       Height = 167
       Align = alClient
       BevelOuter = bvNone

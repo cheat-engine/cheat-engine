@@ -56,7 +56,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 632
       Height = 473
-      ActivePage = FileAssocs
+      ActivePage = GeneralSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -64,35 +64,35 @@ object formSettings: TformSettings
         Caption = 'General Settings'
         object Label11: TLabel
           Left = 170
-          Top = 249
+          Top = 289
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label12: TLabel
           Left = 170
-          Top = 273
+          Top = 313
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label13: TLabel
           Left = 51
-          Top = 249
+          Top = 289
           Width = 72
           Height = 13
           Caption = 'Update interval'
         end
         object Label14: TLabel
           Left = 54
-          Top = 273
+          Top = 313
           Width = 69
           Height = 13
           Caption = 'Freeze interval'
         end
         object Label16: TLabel
           Left = 8
-          Top = 249
+          Top = 289
           Width = 116
           Height = 13
           Caption = 'Network Update Interval'
@@ -100,7 +100,7 @@ object formSettings: TformSettings
         end
         object Label17: TLabel
           Left = 178
-          Top = 257
+          Top = 297
           Width = 13
           Height = 13
           Caption = 'ms'
@@ -108,28 +108,28 @@ object formSettings: TformSettings
         end
         object Label18: TLabel
           Left = 208
-          Top = 249
+          Top = 289
           Width = 158
           Height = 13
           Caption = 'Found address list update interval'
         end
         object Label19: TLabel
           Left = 413
-          Top = 250
+          Top = 290
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label23: TLabel
           Left = 8
-          Top = 208
+          Top = 248
           Width = 193
           Height = 13
           Caption = 'Automatically attach to processes named'
         end
         object Label24: TLabel
           Left = 328
-          Top = 208
+          Top = 248
           Width = 114
           Height = 13
           Caption = '(Seperate entries with ; )'
@@ -166,7 +166,7 @@ object formSettings: TformSettings
         end
         object EditUpdateInterval: TEdit
           Left = 127
-          Top = 245
+          Top = 285
           Width = 43
           Height = 21
           Hint = 
@@ -179,7 +179,7 @@ object formSettings: TformSettings
         end
         object EditFreezeInterval: TEdit
           Left = 127
-          Top = 269
+          Top = 309
           Width = 43
           Height = 21
           Hint = 
@@ -192,7 +192,7 @@ object formSettings: TformSettings
         end
         object GroupBox1: TGroupBox
           Left = 0
-          Top = 113
+          Top = 153
           Width = 489
           Height = 70
           Caption = 'Address list specific'
@@ -224,7 +224,7 @@ object formSettings: TformSettings
         end
         object EditNetworkUpdateInterval: TEdit
           Left = 135
-          Top = 253
+          Top = 293
           Width = 43
           Height = 21
           Hint = 
@@ -249,7 +249,7 @@ object formSettings: TformSettings
         end
         object editUpdatefoundInterval: TEdit
           Left = 370
-          Top = 246
+          Top = 286
           Width = 41
           Height = 21
           Hint = 
@@ -284,7 +284,7 @@ object formSettings: TformSettings
         end
         object EditAutoAttach: TEdit
           Left = 204
-          Top = 204
+          Top = 244
           Width = 121
           Height = 21
           Hint = 
@@ -294,7 +294,7 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 8
-          Top = 226
+          Top = 266
           Width = 481
           Height = 17
           Caption = 'Even autoattach when another process has already been selected'
@@ -315,6 +315,25 @@ object formSettings: TformSettings
           Height = 17
           Caption = 'Use old speedhack'
           TabOrder = 14
+        end
+        object cbProcessIcons: TCheckBox
+          Left = 1
+          Top = 112
+          Width = 440
+          Height = 17
+          Caption = 'Get process icons for processlist'
+          Checked = True
+          State = cbChecked
+          TabOrder = 15
+          OnClick = cbProcessIconsClick
+        end
+        object cbProcessIconsOnly: TCheckBox
+          Left = 16
+          Top = 128
+          Width = 193
+          Height = 17
+          Caption = 'Only show processes with an icon'
+          TabOrder = 16
         end
       end
       object tsHotkeys: TTabSheet

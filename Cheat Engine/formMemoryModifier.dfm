@@ -232,15 +232,6 @@ object frmMemoryModifier: TfrmMemoryModifier
       TabOrder = 2
       OnClick = Button6Click
     end
-    object Button9: TButton
-      Left = 104
-      Top = 40
-      Width = 75
-      Height = 25
-      Caption = 'Button9'
-      TabOrder = 3
-      OnClick = Button9Click
-    end
   end
   object Button3: TButton
     Left = 288

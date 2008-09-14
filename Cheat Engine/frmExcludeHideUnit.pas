@@ -41,7 +41,7 @@ procedure TfrmExcludeHide.FormCreate(Sender: TObject);
 var i:integer;
 begin
   //get processlist
-  GetProcessListSmall(listbox1);
+  GetProcessList(listbox1);
   //and fill listbox2 with the items from the donthidelist;
   for i:=0 to length(formsettings.tempdonthidelist)-1 do
     listbox2.Items.Add(formsettings.tempdonthidelist[i]);

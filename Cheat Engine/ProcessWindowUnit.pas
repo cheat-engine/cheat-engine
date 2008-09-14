@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, CEFuncProc,debugger, ComCtrls, ImgList,
-  undochanges,filehandler, Menus,tlhelp32,newkernelhandler;
+  undochanges,filehandler, Menus,tlhelp32,newkernelhandler, KIcon;
 
 type tprocesslistlong = class(tthread)
 private
@@ -52,6 +52,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure btnProcessListLongClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ProcessListDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
   private
     { Private declarations }
     currentchar: integer;
@@ -540,6 +542,52 @@ procedure TProcessWindow.FormClose(Sender: TObject;
 begin
   if processlistlong<>nil then
     processlistlong.terminate;
+end;
+
+procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var x: TIcon;
+    b: TBitmap;
+    r,r2: trect;
+begin
+  processlist.Canvas.FillRect(rect);
+
+
+  processlist.Canvas.TextOut(rect.Left+16,rect.Top,processlist.Items[index]);
+
+  if PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0 then
+  begin
+    x:=ticon.Create;
+    x.LoadFromHandle(PProcessListInfo(processlist.Items.Objects[index])^.processIcon);
+
+    b:=tbitmap.Create;
+    b.Width:=x.Width;
+    b.Height:=x.Height;
+    b.Canvas.Brush.Color:=clred;
+    b.Canvas.Draw(0,0,x);
+
+
+    r.Left:=0;
+    r.Top:=0;
+    r.Right:=b.width;
+    r.Bottom:=b.height;
+
+
+
+    r2.Left:=rect.Left+1;
+    r2.Top:=rect.Top;
+    r2.Bottom:=rect.Bottom-1;
+    r2.Right:=15;
+
+
+
+    processlist.Canvas.BrushCopy(r2,b,r,clWhite);
+    b.free;
+
+
+    x.Free;
+  end;
+    
 end;
 
 end.

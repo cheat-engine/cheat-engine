@@ -23,7 +23,7 @@ firstscanhandler,
 {$endif}
 {$endif}
 {$endif}
-math,syncobjs, ProcessHandlerUnit;
+math,syncobjs, shellapi, ProcessHandlerUnit;
 
 
 
@@ -47,6 +47,11 @@ end;
 type TBitAddressArray=array [0..0] of TBitAddress;
 type PBitAddressArray=^TBitAddressArray;
 
+type TProcessListInfo=record
+  processID: dword;
+  processIcon: HICON;
+end;
+PProcessListInfo=^TProcessListInfo;
 
 type TFreememoryThread = class(tthread)
   public
@@ -112,7 +117,7 @@ procedure rewritedata(processhandle: thandle; address:dword; buffer: pointer; si
 
 function FindPointer(start,stop:dword; AddressToFind:Dword; progressbar: Tprogressbar; offset: Tbytes):int64;
 
-procedure GetProcessListSmall(ProcessList: TListBox);
+//procedure GetProcessListSmall(ProcessList: TListBox);
 procedure GetProcessList(ProcessList: TListBox); overload;
 procedure GetProcessList(ProcessList: TStrings); overload;
 procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
@@ -497,7 +502,7 @@ function ProcessHandle: THandle;
 var
   old8087CW: word;  //you never know...
   ProcessSelected: Boolean;
-  //ProcessID: Dword;
+  //ProcessID: Dword; //deperecated
   //ProcessHandle: Thandle;
 
   Skip_PAGE_NOCACHE: boolean;
@@ -506,6 +511,8 @@ var
   Scan_MEM_MAPPED: boolean;
 
   CheatEngineDir: String;
+  GetProcessIcons: Boolean;
+  ProcessesWithIconsOnly: boolean;
 
 //scanhelpers
   nrofbits: integer;
@@ -2840,7 +2847,7 @@ begin
 end;
 
 
-
+     {
 procedure GetProcessListSmall(ProcessList: TListBox);
 Var SNAPHandle: THandle;
     ProcessEntry: ProcessEntry32;
@@ -2862,17 +2869,24 @@ begin
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
   end else raise exception.Create('I can''t get the process list. You are propably using windows NT. Use the window list instead!');
-end;
+end;   }
 
 
 procedure GetProcessList(ProcessList: TListBox);
 var sl: tstringlist;
+    i: integer;
 begin
   sl:=tstringlist.create;
   try
     processlist.Sorted:=false;
-    GetProcessList(sl);
+    for i:=0 to processlist.Items.count-1 do
+      if processlist.Items.Objects[i]<>nil then
+        freemem(pointer(processlist.Items.Objects[i]));
+
     processlist.Items.Clear;
+
+    
+    GetProcessList(sl);
     processlist.Items.AddStrings(sl);
   finally
     sl.free;
@@ -2880,12 +2894,25 @@ begin
 end;
 
 
+
+
 procedure GetProcessList(ProcessList: TStrings);
 Var SNAPHandle: THandle;
     ProcessEntry: ProcessEntry32;
     Check: Boolean;
+
+    HI: HICON;
+    ProcessListInfo: PProcessListInfo;
+    i: integer;
 begin
+  HI:=0;
+
+  for i:=0 to processlist.count-1 do
+    if processlist.Objects[i]<>nil then
+      freemem(pointer(processlist.Objects[i]));
+
   processlist.clear;
+
 
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
   If SnapHandle>0 then
@@ -2894,11 +2921,22 @@ begin
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do
     begin
+      if getprocessicons then
+        HI:=ExtractIcon(hinstance,ProcessEntry.szExeFile,0);
 
-      if processentry.th32ProcessID<>0 then
-        ProcessList.AddObject(IntTohex(processentry.th32ProcessID,8)+'-'+ExtractFilename(processentry.szExeFile), TObject(processentry.th32ProcessID));
+      if not (ProcessesWithIconsOnly and (hi=0)) then
+      begin
+        if processentry.th32ProcessID<>0 then
+        begin
+         // processinfo
+          getmem(ProcessListInfo,sizeof(TProcessListInfo));
+          ProcessListInfo.processID:=processentry.th32ProcessID;
+          ProcessListInfo.processIcon:=HI;
 
-       
+          ProcessList.AddObject(IntTohex(processentry.th32ProcessID,8)+'-'+ExtractFilename(processentry.szExeFile), TObject(ProcessListInfo));
+        end;
+      end;
+
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
     closehandle(snaphandle);
@@ -2908,45 +2946,49 @@ end;
 procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
 var winhandle: Hwnd;
     winprocess: Dword;
-    title: Pchar;
+    temp: Pchar;
+    wintitle: string;
 
     x: tstringlist;
     i:integer;
 begin
-  getmem(title,101);
-  x:=tstringlist.Create;
+  getmem(temp,101);
+  try
+    x:=tstringlist.Create;
 
-  processlist.clear;
+    processlist.clear;
 
-  winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
+    winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
 
-  while winhandle<>0 do
-  begin
-    GetWindowThreadProcessId(winhandle,addr(winprocess));
-    title[0]:=#0;
-    getwindowtext(winhandle,title,100);
+    while winhandle<>0 do
+    begin
+      GetWindowThreadProcessId(winhandle,addr(winprocess));
+      temp[0]:=#0;
+      getwindowtext(winhandle,temp,100);
+      temp[100]:=#0;
+      wintitle:=temp;
 
-    title[100]:=#0;
+      if length(wintitle)>0 then
+      begin
 
-    if length(title)>0 then
-      x.Add(IntTohex(winprocess,8)+'-'+title);
+        x.Add(IntTohex(winprocess,8)+'-'+wintitle);
+      end;
 
-    winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+      winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+    end;
+
+    x.Sort;
+    for i:=0 to x.Count-1 do
+      processlist.Items.Add(x[i]);
+
+  finally
+    freemem(temp);
   end;
-
-  x.Sort;
-  for i:=0 to x.Count-1 do
-    processlist.Items.Add(x[i]);
-    
-  freemem(title);
 end;
 
 function GetCEdir:string;
-var i: Integer;
 begin
-  i:=length(application.ExeName);
-  while (i>1) and (application.ExeName[i]<>'\' ) do dec(i);
-  CheatEngineDir:=copy(application.Exename,1,i);
+  CheatEngineDir:=ExtractFilePath(application.ExeName);
   result:=CheatEngineDir;
 end;
 

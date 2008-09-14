@@ -139,7 +139,7 @@ uses
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
   AccessCheck in 'AccessCheck.pas',
   frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame},
-  D6OnHelpFix in 'D6OnHelpFix.pas';
+  htmlHelp in 'htmlHelp.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -150,7 +150,7 @@ begin
   GetCEdir;
   setlanguage;
   Application.Title := 'Cheat Engine 5.4.3';
-  Application.HelpFile := 'CHEAT ENGINE.HLP';
+  Application.HelpFile := 'CheatEngine.chm';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);
   Application.CreateForm(TformSettings, formSettings);

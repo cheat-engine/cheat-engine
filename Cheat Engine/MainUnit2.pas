@@ -497,14 +497,26 @@ begin
 
           try cbUpdatefoundList.Checked:=reg.readbool('Update Foundaddress list'); except end;
 
-          try mainform.UpdateFoundlisttimer.interval:=reg.readInteger('Update Foundaddress list Interval'); except end;
-          try editUpdatefoundInterval.Text:=IntToStr(mainform.UpdateFoundlisttimer.interval); except end;          
+          if reg.ValueExists('Update Foundaddress list Interval') then
+            try mainform.UpdateFoundlisttimer.interval:=reg.readInteger('Update Foundaddress list Interval'); except end;
+
+          editUpdatefoundInterval.Text:=IntToStr(mainform.UpdateFoundlisttimer.interval);
 
           if reg.ValueExists('Save window positions') then
             cbSaveWindowPos.checked:=reg.ReadBool('Save window positions');
 
           if reg.ValueExists('Use old speedhack') then
             cbOldSpeedhack.checked:=reg.ReadBool('Use old speedhack');
+
+          if reg.ValueExists('Get process icons') then
+            cbProcessIcons.Checked:=reg.ReadBool('Get process icons');
+          GetProcessIcons:=cbProcessIcons.Checked;
+
+          if reg.ValueExists('Only show processes with icon') then
+            cbProcessIconsOnly.checked:=reg.ReadBool('Only show processes with icon');
+
+          cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
+          ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 
 
           try cbSkip_PAGE_NOCACHE.Checked:=reg.readbool('skip PAGE_NOCACHE'); except end;
