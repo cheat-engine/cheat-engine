@@ -555,7 +555,7 @@ begin
 
   processlist.Canvas.TextOut(rect.Left+16,rect.Top,processlist.Items[index]);
 
-  if PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0 then
+  if (processlist.Items.Objects[index]<>nil) and (PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0) then
   begin
     x:=ticon.Create;
     x.LoadFromHandle(PProcessListInfo(processlist.Items.Objects[index])^.processIcon);
