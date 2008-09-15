@@ -11484,6 +11484,7 @@ procedure TMainForm.ScanDone(var message: TMessage);
 var i: integer;
     canceled: boolean;
 begin
+  i:=0;
   canceled:=false;
 
   button2.Tag:=2;
@@ -11596,6 +11597,8 @@ begin
         end;
         setlength(bytes,0);
       end;
+
+      10: i:=memscan.Getcustomvariablesize;
     end;
     foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
   end
@@ -11740,7 +11743,9 @@ begin
         add('4=float notation');
         add('5=double notation');
         add('6=array of bytes');
-        add('255=use ''scandisplayroutine:'' to convert the data to a string');
+        add('7=string ascii');
+        add('8=string unicode');
+        add('ff=use ''scandisplayroutine:'' to convert the data to a string');
         add('*/');
         add('db 2 //2=4 byte notation');
         add('');
@@ -11749,12 +11754,13 @@ begin
         add('displayroutine is a ''special'' globally registered symbol (No need to alloc)');
         add('if ''scandisplayroutinetype:'' is set to 255 then this routine will be called to');
         add('convert the value at the address specified to a ascii-string');
-        add('esi=pointer to bytes at the address');
+        add('eax=pointer to bytes at the address');
+        add('edx=pointer to destination string (max 50 chars)');
         add('');
         add('note: Max size is only 16KB big');
         add('*/');
-
-
+        add('');
+        add('');
         add('[disable]');
         add('dealloc(checkroutine)');
         add('dealloc(prologue,2048)');

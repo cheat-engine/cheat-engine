@@ -377,6 +377,9 @@ type
     //binary stuff:
     binaryLength:  integer;
 
+    //custom:
+    customvariablesize: integer;
+
     //array stuff:
     arrayLength:   integer;
 
@@ -387,6 +390,7 @@ type
     function GetErrorString: string;
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
+    function Getcustomvariablesize: integer;
     procedure TerminateScan;
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
@@ -397,6 +401,8 @@ type
 
     property LastScanType: TScanType read FLastScanType;
   end;
+
+
 
 implementation
 
@@ -2265,7 +2271,10 @@ begin
               fastscanalignsize:=pdword(CustomScanAllocArray[i].address)^
             else
             if lowercase(CustomScanAllocArray[i].varname)='variablesize' then
-              variablesize:=pdword(CustomScanAllocArray[i].address)^
+            begin
+              variablesize:=pdword(CustomScanAllocArray[i].address)^;
+              OwningScanController.OwningMemScan.customvariablesize:=variablesize;
+            end
             else
             if lowercase(CustomScanAllocArray[i].varname)='scantext' then
               pdword(CustomScanAllocArray[i].address)^:=dword(@scanvalue1[1])
@@ -3737,6 +3746,15 @@ begin
   result:=found;
 end;
 
+function TMemscan.Getcustomvariablesize: integer;
+{
+Rturns the veriable size of the custom type
+only valid after having done a scan, not before
+}
+begin
+  result:=customvariablesize;
+end;
+
 function TMemscan.Getbinarysize: int64;
 begin
   case self.currentVariableType of
@@ -3867,6 +3885,7 @@ begin
   self.progressbar:=progressbar;
   self.notifywindow:=notifywindow;
   self.notifymessage:=notifymessage;
+  customvariablesize:=1;
 end;
      
 destructor TMemScan.destroy;
@@ -3877,18 +3896,8 @@ begin
   inherited Destroy;
 end;
 
-var
-  scandisplayroutinetype: byte;
-  scandisplayroutine: pointer;
 
-initialization
-  //Allocate a block of 16KB for the userdefined display routine for custom scans
-  scandisplayroutine:=VirtualAlloc(nil,16*1024,MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-  scandisplayroutinetype:=2;
 
-  //and register these symbols with the selfsymhandler so the symbolhandler can use it
-  selfsymhandler.AddUserdefinedSymbol(dword(scandisplayroutine),'scandisplayroutine');
-  selfsymhandler.AddUserdefinedSymbol(dword(@scandisplayroutine),'scandisplayroutinetype');
 
 end.
 

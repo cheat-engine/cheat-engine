@@ -26,7 +26,7 @@ type
     addressfile: tfilestream;
     scantype: TScanType;
     fvartype: integer;
-		varlength: integer; //bitlength, stringlength
+		varlength: integer; //bitlength, stringlength, customscan
 		hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
 		unicode: boolean;
@@ -59,6 +59,12 @@ type
     property vartype: integer read fvartype;
     constructor create(foundlist: tlistview; foundcountlabel: tlabel);
 end;
+
+type Tscandisplayroutine=procedure(value: pointer; output: pchar);
+
+var
+  scandisplayroutinetype: byte;
+  scandisplayroutine: Tscandisplayroutine;
 
 implementation
 
@@ -355,6 +361,8 @@ var j,k,l: integer;
 		count: dword; 
 		nrofbytes: integer;  
 		temp,temp2: string;
+    tempbuf: pointer;
+    resultstring: pchar;
     vtype: integer;
 begin
   if i=-1 then exit;
@@ -382,6 +390,33 @@ begin
         vtDouble: vtype:=4;
       end;
     end else vtype:=vartype;
+
+    if vtype=10 then
+    begin
+      case scandisplayroutinetype of
+        0: vtype:=0;
+        1: vtype:=1;
+        2: vtype:=2;
+        3: vtype:=6;
+        4: vtype:=3;
+        5: vtype:=4;
+        6: vtype:=8;
+        7:
+        begin
+          vtype:=7;
+          unicode:=false;
+        end;
+
+        8:
+        begin
+          vtype:=7;
+          unicode:=true;
+        end;
+
+        255: vtype:=255;
+      end;
+
+    end;
 
 	  case vtype of
 			0: //byte
@@ -539,7 +574,25 @@ begin
         setlength(read8,0);
       end;
 
-
+      255: //custom routine
+      begin
+        try
+          getmem(tempbuf,varlength);
+          getmem(resultstring,50);
+          try
+            if readprocessmemory(processhandle,pointer(addresslist[j]),tempbuf,varlength,count) then
+            begin
+              scandisplayroutine(tempbuf,resultstring);
+              valuelist[j]:=resultstring;
+            end else valuelist[j]:='??';
+          finally
+            freemem(tempbuf);
+            freemem(resultstring);
+          end;
+        except
+          valuelist[j]:='Exception';
+        end;
+      end;
     end;
 
   end;
@@ -636,6 +689,17 @@ begin
   self.foundcountlabel:=foundcountlabel;
   deleteresults;
 end;
+
+var temppointer: pointer;
+initialization
+  //Allocate a block of 16KB for the userdefined display routine for custom scans
+  temppointer:=VirtualAlloc(nil,16*1024,MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+  scandisplayroutine:=temppointer;
+  scandisplayroutinetype:=2;
+
+  //and register these symbols with the selfsymhandler so the symbolhandler can use it
+  selfsymhandler.AddUserdefinedSymbol(dword(temppointer),'scandisplayroutine');
+  selfsymhandler.AddUserdefinedSymbol(dword(@scandisplayroutinetype),'scandisplayroutinetype');
 
 
 end.
