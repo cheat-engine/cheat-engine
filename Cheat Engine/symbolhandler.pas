@@ -73,6 +73,9 @@ type
     userdefinedsymbols: array of TUserdefinedsymbol;
     userdefinedsymbolsMREW: TMultireadExclusiveWriteSynchronizer;
 
+    internalsymbols: array of TUserdefinedsymbol;
+    internalsymbolspos: integer;
+
     fshowmodules: boolean;   //--determines what is returned by getnamefromaddress
     fshowsymbols: boolean;   ///
 
@@ -126,7 +129,6 @@ type
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
     function GetAddressFromPointer(s: string; var error: boolean):dword;
-
 
     procedure RegisterUserdefinedSymbolCallback(callback: TUserdefinedSymbolCallback);
     constructor create;
@@ -486,6 +488,9 @@ begin
 end;
 
 procedure TSymhandler.AddUserdefinedSymbol(address: dword; symbolname: string);
+{
+This routine will add the symbolname+address combination to the symbollist
+}
 begin
   if address=0 then raise symexception.Create('You can''t add a symbol with address 0');
   if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' already exists');
@@ -1106,6 +1111,7 @@ begin
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
   userdefinedsymbolsMREW:=TMultireadExclusiveWriteSynchronizer.create;
 
+  setlength(internalsymbols,4);
   setlength(userdefinedsymbols,32);
   setlength(modulelist,32);
 

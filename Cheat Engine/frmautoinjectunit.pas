@@ -227,24 +227,8 @@ begin
       getenableanddisablepos(assemblescreen.Lines,a,b);
       if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
 
-      if injectintomyself then
-      begin
-        //save the current process and target CE
-        oldProcessID:=processid;
-        oldProcessHandle:=processhandle;
-        ProcessHandler.processid:=Getcurrentprocessid;
-        ProcessHandler.ProcessHandle:=getcurrentprocess;
-      end;
-
-      check:=autoassemble(assemblescreen.lines,false,true,true,false,aa) and
-             autoassemble(assemblescreen.lines,false,false,true,false,aa);
-
-      if injectintomyself then
-      begin
-        //restore back to original process
-        ProcessHandler.processid:=oldProcessID;
-        ProcessHandler.ProcessHandle:=oldProcessHandle;
-      end;
+      check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa) and
+             autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa);
 
       if check then
       begin

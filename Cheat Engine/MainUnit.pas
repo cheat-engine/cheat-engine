@@ -11750,6 +11750,8 @@ begin
         add('if ''scandisplayroutinetype:'' is set to 255 then this routine will be called to');
         add('convert the value at the address specified to a ascii-string');
         add('esi=pointer to bytes at the address');
+        add('');
+        add('note: Max size is only 16KB big');
         add('*/');
 
 

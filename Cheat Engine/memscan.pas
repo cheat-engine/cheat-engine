@@ -9,7 +9,7 @@ interface
 
 uses windows,sysutils, classes,ComCtrls,dialogs, cefuncproc,
      newkernelhandler, math, SyncObjs, SaveFirstScan, firstscanhandler,
-     autoassembler;
+     autoassembler, symbolhandler;
 
 type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
@@ -3876,6 +3876,19 @@ begin
 
   inherited Destroy;
 end;
+
+var
+  scandisplayroutinetype: byte;
+  scandisplayroutine: pointer;
+
+initialization
+  //Allocate a block of 16KB for the userdefined display routine for custom scans
+  scandisplayroutine:=VirtualAlloc(nil,16*1024,MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+  scandisplayroutinetype:=2;
+
+  //and register these symbols with the selfsymhandler so the symbolhandler can use it
+  selfsymhandler.AddUserdefinedSymbol(dword(scandisplayroutine),'scandisplayroutine');
+  selfsymhandler.AddUserdefinedSymbol(dword(@scandisplayroutine),'scandisplayroutinetype');
 
 end.
 
