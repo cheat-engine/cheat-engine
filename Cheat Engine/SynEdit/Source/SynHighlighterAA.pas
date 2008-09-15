@@ -33,18 +33,10 @@ $Id: SynHighlighterPas.pas,v 1.30 2005/01/28 16:53:24 maelh Exp $
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
-Known Issues:
--------------------------------------------------------------------------------}
-{
-@abstract(Provides a Pascal/AutoAssembler syntax highlighter for SynEdit)
-@author(Martin Waldenburg)
-@created(1998, converted to SynEdit 2000-04-07)
-@lastmod(2001-11-21)
-The SynHighlighterPas unit provides SynEdit with a Object Pascal syntax highlighter.
-Two extra properties included (AutoAssemblerVersion, PackageSource):
-  AutoAssemblerVersion - Allows you to enable/disable the highlighting of various
-                  language enhancements added in the different AutoAssembler versions.
-  PackageSource - Allows you to enable/disable the highlighting of package keywords
+
+@abstract(Provides a AutoAssembler syntax highlighter for SynEdit)
+
+
 }
 
 {$IFNDEF QSYNHIGHLIGHTERPAS}
@@ -726,7 +718,7 @@ end;
 
 procedure TSynAASyn.BraceOpenProc;
 begin
-  if (fLine[Run + 1] = '$') then
+ { if (fLine[Run + 1] = '$') then
   begin
     if fRange = rsAsm then
       fRange := rsDirectiveAsm
@@ -734,12 +726,12 @@ begin
       fRange := rsDirective;
   end
   else
-  begin
+  begin  }
     if fRange = rsAsm then
       fRange := rsBorAsm
     else
       fRange := rsBor;
-  end;
+  //end;
   BorProc;
 end;
 
@@ -856,7 +848,7 @@ end; { PointProc }
 
 procedure TSynAASyn.AnsiProc;
 begin
-  case fLine[Run] of
+{  case fLine[Run] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -873,7 +865,25 @@ begin
       end;
       Inc(Run);
     until fLine[Run] in [#0, #10, #13];
-  end;
+  end;   }
+  case fLine[Run] of
+     #0: NullProc;
+    #10: LFProc;
+    #13: CRProc;
+  else
+    fTokenID := tkComment;
+    repeat
+      if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then begin
+        Inc(Run, 2);
+        if fRange = rsAnsiAsm then
+          fRange := rsAsm
+        else
+          fRange := rsUnKnown;
+        break;
+      end;
+      Inc(Run);
+    until fLine[Run] in [#0, #10, #13];
+  end;  
 end;
 
 procedure TSynAASyn.RoundOpenProc;
@@ -911,7 +921,7 @@ end;
 
 procedure TSynAASyn.SlashProc;
 begin
-  Inc(Run);
+ { Inc(Run);
   if (fLine[Run] = '/') and (fAutoAssemblerVersion > dvAutoAssembler1) then
   begin
     fTokenID := tkComment;
@@ -919,8 +929,39 @@ begin
       Inc(Run);
     until fLine[Run] in [#0, #10, #13];
   end
+  else if (fLine[Run] = '*') then
+  begin
+    fTokenID := tkComment;
+    repeat
+      Inc(Run);
+      
+    until fLine[Run] in [#0];
+  end else fTokenID := tkSymbol;  }
+
+  Inc(Run);
+  if fLine[Run] = '/' then
+  begin
+    fTokenID := tkComment;
+    repeat
+      Inc(Run);
+    until fLine[Run] in [#0, #10, #13];
+  end
   else
-    fTokenID := tkSymbol;
+  if fline[run] = '*' then
+  begin
+      begin
+        Inc(Run);
+        if fRange = rsAsm then
+          fRange := rsAnsiAsm
+        else
+          fRange := rsAnsi;
+        fTokenID := tkComment;
+        if not (fLine[Run] in [#0, #10, #13]) then
+          AnsiProc;
+      end;
+  end 
+  else fTokenID := tkSymbol;  
+
 end;
 
 procedure TSynAASyn.SpaceProc;

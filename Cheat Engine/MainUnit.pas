@@ -11729,6 +11729,28 @@ begin
         add('//You can put some code here that gets executed AFTER the scan finishes');
         add('ret');
         add('');
+        add('scandisplayroutinetype:');
+        add('/*');
+        add('displayroutinetype is a ''special'' globally registered symbol (No need to alloc)');
+        add('The byte at this address specifies how the values are shown');
+        add('0=1 byte notation');
+        add('1=2 byte notation');
+        add('2=4 byte notation');
+        add('3=8 byte notation');
+        add('4=float notation');
+        add('5=double notation');
+        add('6=array of bytes');
+        add('255=use ''scandisplayroutine:'' to convert the data to a string');
+        add('*/');
+        add('db 2 //2=4 byte notation');
+        add('');
+        add('scandisplayroutine:');
+        add('/*');
+        add('displayroutine is a ''special'' globally registered symbol (No need to alloc)');
+        add('if ''scandisplayroutinetype:'' is set to 255 then this routine will be called to');
+        add('convert the value at the address specified to a ascii-string');
+        add('esi=pointer to bytes at the address');
+        add('*/');
 
 
         add('[disable]');
@@ -11936,8 +11958,6 @@ begin
     setlength(mi,sl.count);
     for i:=0 to sl.count-1 do
     begin
-
-
       j:=sl.count-1-i;
       currentmi:=TMenuItemExtra.Create(self);
       currentmi.Caption:=sl[i];

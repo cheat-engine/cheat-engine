@@ -139,7 +139,9 @@ uses
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
   AccessCheck in 'AccessCheck.pas',
   frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame},
-  htmlHelp in 'htmlHelp.pas';
+  htmlHelp in 'htmlHelp.pas',
+  SynHighlighterAA in 'SynEdit\Source\SynHighlighterAA.pas',
+  SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
