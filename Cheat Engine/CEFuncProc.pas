@@ -3240,6 +3240,7 @@ e.g:
 }
 var ishex: string;
     start: integer;
+    i: integer;
 begin
   if s='' then
   begin
@@ -3248,15 +3249,30 @@ begin
   end;
   start:=1;
 
-  if pos('#',s)>0 then
-  begin
-    ishex:='';
-    start:=2;
-  end
-  else
-  begin
-    ishex:='$';
-  end;
+  ishex:='$';
+  for i:=start to length(s) do
+    case s[i] of
+      '''' , '"' :
+      begin
+        //char
+        if (i+2)<=length(s) then
+        begin
+          if s[i+2] in ['''','"'] then
+          begin
+            result := '$'+inttohex(byte(s[i+1]),2);
+            exit; //this is it, no further process required, or appreciated...
+          end;
+        end;
+      end;
+
+      '#' :
+      begin
+        ishex:='';
+        start:=2;
+        break;
+      end;
+    end;
+
 
   if s[1]='-' then
   begin

@@ -11757,8 +11757,14 @@ begin
         add('eax=pointer to bytes at the address');
         add('edx=pointer to destination string (max 50 chars)');
         add('');
-        add('note: Max size is only 16KB big');
+        add('note: scandisplayroutine is only 16KB big');
         add('*/');
+        add('mov [edx],''N'' //NYI, not yet implemented');
+        add('mov [edx+1],''Y''');
+        add('mov [edx+2],''I''');
+        add('mov [edx+3],0');
+        add('ret');
+
         add('');
         add('');
         add('[disable]');
