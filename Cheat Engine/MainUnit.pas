@@ -3407,7 +3407,17 @@ begin
   end else
   if realvartype=10 then //custom
   begin
-    realvartype:=2;
+    case scandisplayroutinetype of
+      0: realvartype:=0;
+      1: realvartype:=1;
+      2: realvartype:=2;
+      3: realvartype:=6;
+      4: realvartype:=3;
+      5: realvartype:=4;
+      6: realvartype:=8;
+      7,8 : realvartype:=7;
+      else realvartype:=2;
+    end;
   end
   else
   begin
@@ -3438,7 +3448,13 @@ begin
   hotkeys[NumberOfRecords-1]:=-1;
 
   if memrec[NumberOfRecords-1].VarType=7 then //text
-    memrec[NumberOfRecords-1].unicode:=cbunicode.Checked;
+  begin
+    case scandisplayroutinetype of
+      7: memrec[NumberOfRecords-1].unicode:=false;
+      8: memrec[NumberOfRecords-1].unicode:=true;
+      else memrec[NumberOfRecords-1].unicode:=cbunicode.Checked;
+    end;
+  end;
 
   if foundlist.inmodule(line) then
     memrec[NumberOfRecords-1].interpretableaddress:=foundlist.GetModuleNamePlusOffset(line)
@@ -11759,9 +11775,9 @@ begin
         add('');
         add('note: scandisplayroutine is only 16KB big');
         add('*/');
-        add('mov [edx],''N'' //NYI, not yet implemented');
-        add('mov [edx+1],''Y''');
-        add('mov [edx+2],''I''');
+        add('mov [edx],"N" //NYI, not yet implemented');
+        add('mov [edx+1],"Y"');
+        add('mov [edx+2],"I"');
         add('mov [edx+3],0');
         add('ret');
 
