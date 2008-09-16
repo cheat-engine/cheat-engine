@@ -133,7 +133,6 @@ uses
   FileMapping in 'FileMapping.pas',
   FormsExtra in 'FormsExtra.pas',
   speedhack2 in 'speedhack2.pas',
-  autoassembler2 in 'autoassembler2.pas',
   frmAAEditPrefsUnit in 'frmAAEditPrefsUnit.pas' {frmAAEditPrefs},
   MenuItemExtra in 'MenuItemExtra.pas',
   ProcessHandlerUnit in 'ProcessHandlerUnit.pas',
