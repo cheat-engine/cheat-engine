@@ -48,6 +48,7 @@ type
     procedure LoadDLLSymbols;
   public
     isloading: boolean;
+    error: boolean;
     symbolsloaded: boolean;
 
     kernelsymbols: boolean;
@@ -85,6 +86,7 @@ type
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
     function getisloaded:boolean;
+    function geterror:boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: dword):integer;
 
@@ -104,6 +106,7 @@ type
     property usedprocesshandle: thandle read getusedprocesshandle;
     property usedprocessid: dword read getusedprocessid;
     property isloaded: boolean read getisloaded;
+    property hasError: boolean read geterror;
     procedure waitforsymbolsloaded;
     procedure reinitialize;
     procedure loadmodulelist;
@@ -209,14 +212,17 @@ begin
     if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
 
     SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
-    symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-    symsetsearchpath(processhandle,pchar(searchpath));
+    if symbolsloaded then
+    begin
+      symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+      symsetsearchpath(processhandle,pchar(searchpath));
 
-    if kernelsymbols then LoadDriverSymbols;
+      if kernelsymbols then LoadDriverSymbols;
+      LoadDLLSymbols;
+    end else error:=true;
 
-    LoadDLLSymbols;
 
-    symbolprocesshandle:=processhandle;
+    symbolprocesshandle:=processhandle;  
   finally
     isloading:=false;
   end;
@@ -258,6 +264,17 @@ begin
   SymbolsLoaded:=false;
 
   inherited create(CreateSuspended);
+end;
+
+function TSymhandler.geterror:boolean;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    result:=symbolloaderthread.error
+  else
+    result:=false; //no error
+
+  symbolloadervalid.endread;
 end;
 
 function TSymhandler.getisloaded:boolean;
@@ -324,7 +341,6 @@ begin
   end;
 
 
-  
   symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
   symbolloaderthread.kernelsymbols:=kernelsymbols;
   symbolloaderthread.searchpath:=searchpath;

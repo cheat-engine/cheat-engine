@@ -1515,10 +1515,17 @@ begin
     symbol.MaxNameLength:=100;
 
 
-    if not symhandler.isloaded then
+    if (not symhandler.isloaded) and (not symhandler.haserror) then
+    begin
       label1.Caption:='Symbols are being loaded'
+    end
     else
     begin
+      if symhandler.haserror then
+        label1.Font.Color:=clRed
+      else
+        label1.Font.Color:=clWindowText;
+        
       label1.Caption:=symhandler.getnamefromaddress(disassembleraddress);
     end;
 
