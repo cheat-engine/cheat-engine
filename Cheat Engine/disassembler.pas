@@ -8936,44 +8936,6 @@ begin
   result:=disassembled;
 
 
-{
-  ts:=disassembled;
-  val('$'+disassembled,offset,e);
-
-  result:=inttohex(offset,8)+' - ';
-
-  i:=pos('-',disassembled);
-  if i=0 then exit;
-
-  ts[i]:=' ';
-  inc(i,2);
-  j:=pos('-',ts);
-  if j=0 then
-  begin
-    result:=result+'??';
-    exit;
-  end;
-
-  dec(j,2);
-
-
- { if (j-i)>2*numberofbytes then
-  begin
-    result:=result+copy(disassembled,i,(2*(numberofbytes)-1));
-    result:=result+'...';
-  end
-  else
-  begin
-    ts:=copy(disassembled,i,j-i);
-
-    k:=2*(numberofbytes);
-
-    while length(ts)<k+2 do ts:=ts+' ';
-
-    result:=result+ts;
-  end;   }
-
-
   if showvalues then
   begin
     i:=pos('[',disassembled);
@@ -9040,35 +9002,13 @@ begin
           value:=0;
           fvalue:=0;
           fvalue2:=0;
-          if valuetype=0 then //1 byte
-          begin
-            if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then
-              ts:=' : '+inttohex(value,2)
-          end
-          else
-          if valuetype=1 then //2 byte
-          begin
-            if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then
-              ts:=' : '+inttohex(value,4)
-          end
-          else
-          if valuetype=2 then //4 byte, could be pointer,so look up name if possible
-          begin
-            if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then
-              ts:=' : '+symhandler.getNameFromAddress(value)
-          end
-          else
-          if valuetype=3 then //single
-          begin
-            if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then
-              ts:=' : '+format('%.4f',[fvalue]);
-          end else
-          if valuetype=4 then //double
-          begin
-            if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then
-              ts:=' : '+format('%.4f',[fvalue2]);
+          case valuetype of
+            0: if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then ts:=' : '+inttohex(value,2);
+            1: if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then ts:=' : '+inttohex(value,4);
+            2: if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then ts:=' : '+symhandler.getNameFromAddress(value);
+            3: if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then ts:=' : '+format('%.4f',[fvalue]);
+            4: if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then ts:=' : '+format('%.4f',[fvalue2]);
           end;
-
         end
         else ts:='';
       except
@@ -9079,7 +9019,7 @@ begin
 
   end else ts:='';
 
-  result:=result{+copy(disassembled,j+1,length(disassembled)-j)}+ts;
+  result:=result+ts;
 
   i:=pos(' - ',result);
   address:=uppercase(copy(result,1,i-1));

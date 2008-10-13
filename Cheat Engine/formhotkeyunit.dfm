@@ -1,6 +1,6 @@
 object FormHotkey: TFormHotkey
-  Left = 942
-  Top = 155
+  Left = 1055
+  Top = 207
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change hotkey'

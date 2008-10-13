@@ -2894,7 +2894,24 @@ begin
 end;
 
 
+function GetFirstModuleName(processid: dword): string;
+var
+  SNAPHandle: THandle;
+  check: boolean;
+  ModuleEntry: MODULEENTRY32;
+begin
+  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
+  if SNAPHandle<>0 then
+  begin
+    ModuleEntry.dwSize:=sizeof(moduleentry);
+    if Module32First(snaphandle,ModuleEntry) then
+      result:=moduleentry.szExePath
+    else
+      result:='';
 
+    closehandle(SNAPHandle);
+  end;
+end;
 
 procedure GetProcessList(ProcessList: TStrings);
 Var SNAPHandle: THandle;
@@ -2904,6 +2921,7 @@ Var SNAPHandle: THandle;
     HI: HICON;
     ProcessListInfo: PProcessListInfo;
     i: integer;
+    s: string;
 begin
   HI:=0;
 
@@ -2922,7 +2940,19 @@ begin
     while check do
     begin
       if getprocessicons then
+      begin
         HI:=ExtractIcon(hinstance,ProcessEntry.szExeFile,0);
+        if HI=0 then
+        begin
+          //alternative method:
+          if processentry.th32ProcessID>0 then
+          begin
+            s:=GetFirstModuleName(processentry.th32ProcessID);
+            HI:=ExtractIcon(hinstance,pchar(s),0);
+          end;
+        end;
+      end;
+
 
       if not (ProcessesWithIconsOnly and (hi=0)) then
       begin

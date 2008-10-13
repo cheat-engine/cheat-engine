@@ -1,6 +1,6 @@
 object frmMemoryTrainer: TfrmMemoryTrainer
   Left = 866
-  Top = 181
+  Top = 241
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'frmMemoryTrainer'
@@ -146,7 +146,6 @@ object frmMemoryTrainer: TfrmMemoryTrainer
     Top = 128
   end
   object Timer2: TTimer
-    Enabled = False
     Interval = 10000
     OnTimer = Timer2Timer
     Left = 101

@@ -1,6 +1,6 @@
 object ProcessWindow: TProcessWindow
-  Left = 894
-  Top = 206
+  Left = 571
+  Top = 289
   Width = 254
   Height = 355
   HelpContext = 4

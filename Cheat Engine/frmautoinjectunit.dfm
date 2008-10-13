@@ -1,6 +1,6 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 656
-  Top = 372
+  Left = 820
+  Top = 496
   Width = 431
   Height = 331
   HelpContext = 18

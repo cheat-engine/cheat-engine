@@ -3537,7 +3537,9 @@ begin
   //for the people that play arround with my source, this causes a external exception while running inside the delphi IDE, outside it gives no problems...
 
   oldprocesshandle:=processhandle;
+
   resu:=ProcessWindow.ShowModal;
+
   ProcessWindow.free;
   ProcessWindow:=nil;
 
@@ -3551,6 +3553,7 @@ begin
 
 
   if resu=mrCancel then exit;
+
 
   symhandler.reinitialize;
   reinterpretaddresses;

@@ -15,7 +15,8 @@ uses
   NewKernelHandler in '..\NewKernelHandler.pas',
   Filehandler in '..\Filehandler.pas',
   symbolhandler in '..\symbolhandler.pas',
-  autoassembler in '..\autoassembler.pas';
+  autoassembler in '..\autoassembler.pas',
+  ProcessHandlerUnit in '..\ProcessHandlerUnit.pas';
 
 {$R *.res}
 

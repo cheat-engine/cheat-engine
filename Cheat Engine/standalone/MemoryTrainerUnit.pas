@@ -364,11 +364,11 @@ begin
 
       if uppercase(processname)=uppercase(process) then
       begin
-        ProcessID:=ProcessEntry.th32ProcessID;
+        processhandler.ProcessID:=ProcessEntry.th32ProcessID;
         btnLaunch.Enabled:=false;
 
         if processhandle=0 then
-          processhandle:=openprocess(process_all_access,false,processid);
+          processhandler.processhandle:=openprocess(process_all_access,false,processid);
 
         symhandler.showmodules:=true;
         symhandler.showsymbols:=true;
@@ -383,7 +383,7 @@ begin
   end;
 
   if processhandle<>0 then closehandle(processhandle);
-  processhandle:=0;
+  processhandler.processhandle:=0;
   btnLaunch.Enabled:=true;
 end;
 
@@ -520,7 +520,7 @@ begin
       begin
         setlength(nops,length(trainerdata[i].codeentrys[j].originalopcode));
         readprocessmemory(processhandle,pointer(trainerdata[i].codeentrys[j].address),@nops[0],length(trainerdata[i].codeentrys[j].originalopcode),bytes);
-        if not comparemem(@trainerdata[i].codeentrys[j].originalopcode[0],@nops[0],length(trainerdata[i].codeentrys[j].originalopcode)) then
+       { if not comparemem(@trainerdata[i].codeentrys[j].originalopcode[0],@nops[0],length(trainerdata[i].codeentrys[j].originalopcode)) then
         begin
           //it not as expected
           //check if it got nopped
@@ -533,7 +533,7 @@ begin
               exit;
             end;
           end;
-        end;
+        end; }
 
         for k:=0 to length(nops)-1 do
           nops[k]:=$90;
@@ -597,7 +597,11 @@ begin
               break;
             end;
           end;
-          if realaddress2=0 then continue;
+          if realaddress2=0 then
+          begin
+            reinitializedesired:=true;
+            continue;
+          end;
           realaddress:=realaddress2;
         end else realaddress:=trainerdata[i].addressentrys[j].address;
 
@@ -1903,7 +1907,10 @@ end;
 
 procedure TfrmMemoryTrainer.Timer3Timer(Sender: TObject);
 begin
-  //every 30 seconds reinterpret anyhow. (not really needed since dlls usually dont change address, but lets do it anyhow) 
+  //every 30 seconds reinterpret anyhow. (not really needed since dlls usually dont change address, but lets do it anyhow)
+  if reinitializedesired and symhandler.isloaded then
+    symhandler.reinitialize;
+    
   reinterpretaddresses;
 end;
 

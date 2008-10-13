@@ -333,7 +333,7 @@ begin
   a:=memorybrowser.dselected;
 
   address:=inttohex(a,8);
-  if inputquery('On what address do you want the jump?','Code inject template',address) then
+  if inputquery('Code inject template','On what address do you want the jump?',address) then
   begin
     try
       a:=strtoint('$'+address);
