@@ -4284,8 +4284,8 @@ begin
                 $8f : begin
                         description:='Jump near if greater';
                         tempresult:=tempresult+'JG ';
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
                         inc(offset,1+4);
+                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $90 : begin
