@@ -40,15 +40,11 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
-    DesignSize = (
-      81
-      256)
     object Label1: TLabel
       Left = 10
       Top = 0
       Width = 63
       Height = 13
-      Anchors = [akTop, akRight]
       Caption = 'Start Address'
     end
     object Label2: TLabel
@@ -56,7 +52,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 48
       Width = 63
       Height = 13
-      Anchors = [akTop, akRight]
       Caption = 'Stop Address'
     end
     object Label3: TLabel
@@ -64,7 +59,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 88
       Width = 59
       Height = 13
-      Anchors = [akTop, akRight]
       Caption = 'Size of cave'
     end
     object btnStart: TButton
@@ -72,7 +66,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 160
       Width = 75
       Height = 25
-      Anchors = [akTop, akRight]
       Caption = 'Start'
       Default = True
       TabOrder = 0
@@ -83,7 +76,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 16
       Width = 81
       Height = 21
-      Anchors = [akTop, akRight]
       CharCase = ecUpperCase
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
@@ -100,7 +92,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 64
       Width = 81
       Height = 21
-      Anchors = [akTop, akRight]
       CharCase = ecUpperCase
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
@@ -117,7 +108,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Top = 104
       Width = 81
       Height = 21
-      Anchors = [akTop, akRight]
       CharCase = ecUpperCase
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
@@ -137,15 +127,11 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
-    DesignSize = (
-      347
-      34)
     object cbNoExecute: TCheckBox
       Left = 0
       Top = 1
       Width = 343
       Height = 17
-      Anchors = [akLeft, akRight, akBottom]
       Caption = 'Also scan non-executable read-only memory'
       Checked = True
       State = cbChecked
