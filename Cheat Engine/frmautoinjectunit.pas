@@ -92,6 +92,7 @@ type
     procedure Find1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure AAPref1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     {$ifndef standalonetrainerwithassembler}
@@ -771,7 +772,8 @@ end;
 procedure TfrmAutoInject.FormShow(Sender: TObject);
 begin
 {$ifndef standalonetrainerwithassembler}
-  if editscript then button1.Caption:=strOK;
+  if editscript then
+    button1.Caption:=strOK;
 
   assemblescreen.SetFocus;
 {$endif}
@@ -1238,6 +1240,15 @@ begin
     end;
   end;
 {$endif}
+end;
+
+procedure TfrmAutoInject.FormDestroy(Sender: TObject);
+begin
+  if editscript or editscript2 then
+  begin
+    saveformposition(self,[]); 
+
+  end;
 end;
 
 end.

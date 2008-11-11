@@ -10615,13 +10615,17 @@ begin
 end;
 
 procedure TMainForm.Changescript1Click(Sender: TObject);
+var x: TFrmAutoInject;
+    y: array of integer;
 begin
   if editingscript then raise exception.Create('First finish editing the other script');
 
   if lastselected<>-1 then
   begin
-    with tfrmautoinject.Create(self) do
+    x:=tfrmautoinject.Create(self);
+    with x do
     begin
+      name:='AAEditScript';
 
       new1.Enabled:=false;
 
@@ -10646,6 +10650,8 @@ begin
       end; }
 
       formstyle:=fsStayOnTop;
+
+      loadformposition(x,y);
       show;
 
     end;
