@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},newkernelhandler{$endif},cefuncproc;
+  Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},newkernelhandler{$endif},cefuncproc,
+  ExtCtrls;
 
 type TCodeCaveScanner=class(tthread)
   private
@@ -24,15 +25,17 @@ end;
 type
   TfrmCodecaveScanner = class(TForm)
     ListBox1: TListBox;
-    btnStart: TButton;
-    editStart: TEdit;
+    Panel1: TPanel;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    btnStart: TButton;
+    editStart: TEdit;
     editStop: TEdit;
+    editSize: TEdit;
+    Panel2: TPanel;
     cbNoExecute: TCheckBox;
     ProgressBar1: TProgressBar;
-    editSize: TEdit;
-    Label3: TLabel;
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
