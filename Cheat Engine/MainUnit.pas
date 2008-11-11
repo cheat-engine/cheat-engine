@@ -269,6 +269,8 @@ type
     CreateProcess1: TMenuItem;
     New1: TMenuItem;
     N7: TMenuItem;
+    ools1: TMenuItem;
+    Calculator1: TMenuItem;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -424,6 +426,7 @@ type
     procedure Edit2Change(Sender: TObject);
     procedure Process1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
+    procedure Calculator1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -586,9 +589,12 @@ type
     memscan: tmemscan;
 
     procedure plugintype1click(Sender:tObject);
+    procedure OnToolsClick(sender: TObject);    
     procedure AddToRecord(Line: Integer);
     procedure AddAutoAssembleScript(script:string);
     procedure reinterpretaddresses;
+
+
     
     procedure Updatelist;
     Procedure UpdateScreen;
@@ -10907,6 +10913,11 @@ begin
   showmessage('dbvm version='+inttohex(i,8));  }
 end;
 
+procedure TMainform.OnToolsClick(sender: TObject);
+begin
+  shellexecute(0,'open',pchar(formsettings.lvTools.Items[TMenuItem(sender).Tag].SubItems[0]),'','',SW_SHOW);
+end;
+
 Procedure TMainForm.plugintype1click(sender:tobject);
 var selectedrecord: PPlugin1_SelectedRecord;
 var x: TPluginfunctionType1;
@@ -12039,6 +12050,12 @@ procedure TMainForm.About1Click(Sender: TObject);
 begin
   About:=TAbout.create(self);
   About.showmodal;
+end;
+
+procedure TMainForm.Calculator1Click(Sender: TObject);
+begin
+  ShellExecute(0,'open','calc','','',SW_SHOW);
+  //calculator1.ShortCut
 end;
 
 end.

@@ -1204,12 +1204,13 @@ begin
 
     lastaddress:=pointer(maxaddress); //variable for progressbar calculation
     currentaddress:=p;
-    firstaddress:=p;
     j:=0;
     
     start:=gettickcount;
     while dword(p)<maxaddress do
     begin
+      currentaddress:=p;
+      
       if (pd^<=automaticaddress) and
          (pd^>automaticAddressMinusMaxStructSize) then
       begin
@@ -1294,7 +1295,8 @@ begin
 
 
     stop:=gettickcount;
-    messagebox(0,pchar('Delta Tickcount='+inttostr(stop-start)+' found='+inttostr(fcount)),'',mb_ok);
+    messagebox(0,'scan done','',mb_ok);
+
 
 end;
 

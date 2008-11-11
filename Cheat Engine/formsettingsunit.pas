@@ -6,7 +6,8 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst
   {$ifndef net}
-  ,plugin,newkernelhandler,debugger,hotkeyhandler, frameHotkeyConfigUnit;
+  ,plugin,newkernelhandler,debugger,hotkeyhandler, frameHotkeyConfigUnit,
+  formhotkeyunit;
   {$else}
   ,netapis;
 
@@ -131,6 +132,22 @@ type
     frameHotkeyConfig: TframeHotkeyConfig;
     cbProcessIcons: TCheckBox;
     cbProcessIconsOnly: TCheckBox;
+    tsTools: TTabSheet;
+    Panel2: TPanel;
+    cbShowTools: TCheckBox;
+    Panel3: TPanel;
+    edtApplicationTool: TEdit;
+    btnSetToolShortcut: TButton;
+    Panel5: TPanel;
+    Panel4: TPanel;
+    btnToolNew: TButton;
+    btnToolDelete: TButton;
+    lvTools: TListView;
+    lblApplicationTool: TLabel;
+    lblShortcut: TLabel;
+    lblShortcutText: TLabel;
+    lblToolsName: TLabel;
+    edtToolsName: TEdit;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -157,6 +174,15 @@ type
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
     procedure Panel6Resize(Sender: TObject);
     procedure cbProcessIconsClick(Sender: TObject);
+    procedure tvMenuSelectionCollapsing(Sender: TObject; Node: TTreeNode;
+      var AllowCollapse: Boolean);
+    procedure btnSetToolShortcutClick(Sender: TObject);
+    procedure cbShowToolsClick(Sender: TObject);
+    procedure btnToolNewClick(Sender: TObject);
+    procedure lvToolsClick(Sender: TObject);
+    procedure edtApplicationToolChange(Sender: TObject);
+    procedure btnToolDeleteClick(Sender: TObject);
+    procedure edtToolsNameChange(Sender: TObject);
   private
     { Private declarations }
     tempstatePopupHide:word;
@@ -613,16 +639,31 @@ begin
       reg.WriteInteger('Unrandomizer: default value',unrandomizersettings.defaultreturn);
       reg.WriteBool('Unrandomizer: incremental',unrandomizersettings.incremental);
 
+      reg.writebool('Show tools menu', cbShowTools.checked);
+      mainform.ools1.Visible:=cbShowTools.checked;
+
     end;
 
 {$ifndef net}
+    //save the tools hotkeys
+    reg.DeleteKey('\Software\Cheat Engine\Tools');
+    if Reg.OpenKey('\Software\Cheat Engine\Tools',true) then
+    begin
+      for i:=0 to lvTools.Items.Count-1 do
+      begin
+        reg.WriteString(format('%.8x A',[i]),lvTools.Items[0].caption);
+        reg.WriteString(format('%.8x B',[i]),lvTools.Items[0].subitems[0]);
+        reg.WriteInteger(format('%.8x C',[i]),dword(lvTools.Items[0].data));
+      end;
+    end;
+    UpdateToolsMenu;
+
     for i:=0 to deletedmodules.Count-1 do
     begin
       j:=pluginhandler.GetPluginID(deletedmodules[i]);
       if j<>-1 then
         pluginhandler.DisablePlugin(j);
     end;
-
 
     //save the plugins
     reg.DeleteKey('\Software\Cheat Engine\Plugins');
@@ -1009,6 +1050,8 @@ begin
     pcSetting.Pages[i].TabVisible:=false;
 
   pcSetting.ActivePageIndex:=0;
+
+  tvMenuSelection.FullExpand;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
@@ -1221,6 +1264,18 @@ begin
   begin
     pcSetting.ActivePageIndex:=node.Index;
   end;
+
+  if node.level=1 then
+  begin
+    if node.Parent.Index=0 then
+    begin
+      if node.Index=0 then //tools menu
+      begin
+        pcSetting.ActivePage:=tsTools;
+      end;
+    end;
+
+  end;
 end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);
@@ -1233,6 +1288,113 @@ procedure TformSettings.cbProcessIconsClick(Sender: TObject);
 begin
   cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
   if not cbProcessIcons.Checked then cbProcessIconsOnly.Checked:=false;
+end;
+
+procedure TformSettings.tvMenuSelectionCollapsing(Sender: TObject;
+  Node: TTreeNode; var AllowCollapse: Boolean);
+begin
+  AllowCollapse:=false;
+end;
+
+procedure TformSettings.btnSetToolShortcutClick(Sender: TObject);
+var x: tshortcut;
+begin
+  if lvtools.Selected=nil then exit;
+
+  with TFormHotkey.Create(self) do
+  begin
+    if ShowModal=mrok then
+    begin
+      x:=key;
+
+      if (modifier and MOD_ALT)>0 then
+        x:=x or scAlt;
+
+      if (modifier and MOD_CONTROL)>0 then
+        x:=x or scCtrl;
+
+      if (modifier and MOD_SHIFT)>0 then
+        x:=x or scShift;
+
+      lblShortcutText.caption:=ShortCutToText(x);
+      lvtools.Selected.Data:=pointer(x);
+      lvtools.Selected.SubItems[1]:=lblShortcutText.caption;
+    end;
+
+    free;
+  end;
+end;
+
+procedure TformSettings.cbShowToolsClick(Sender: TObject);
+begin
+  lvTools.enabled:=cbShowTools.Checked;
+  lblToolsName.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  edtToolsName.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  lblApplicationTool.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  edtApplicationTool.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  lblShortcut.enabled:= cbShowTools.Checked and (lvtools.Selected<>nil);
+  lblShortcutText.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  btnSetToolShortcut.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  btnToolNew.enabled:=cbShowTools.Checked;
+  btnToolDelete.Enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+
+  if (lvtools.Selected<>nil) then
+  begin
+    edtToolsName.Text:=lvtools.Selected.Caption;
+    edtApplicationTool.Text:=lvtools.Selected.SubItems[0];
+    lblShortcutText.caption:=lvtools.Selected.SubItems[1];
+  end;
+
+end;
+
+procedure TformSettings.btnToolNewClick(Sender: TObject);
+var li:tlistitem;
+begin
+  li:=lvTools.Items.Add;
+  li.Data:=nil;
+  li.Caption:='No Name';
+  li.SubItems.Add('');
+  li.SubItems.Add('');
+  li.Selected:=true;
+
+  lvTools.OnClick(lvTools);
+end;
+
+procedure TformSettings.lvToolsClick(Sender: TObject);
+begin
+  lblToolsName.enabled:=lvtools.Selected<>nil;
+  edtToolsName.enabled:=lvtools.Selected<>nil;
+  lblApplicationTool.enabled:=lvtools.Selected<>nil;
+  edtApplicationTool.enabled:=lvtools.Selected<>nil;
+  lblShortcut.enabled:= lvtools.Selected<>nil;
+  lblShortcutText.enabled:=lvtools.Selected<>nil;
+  btnSetToolShortcut.enabled:=lvtools.Selected<>nil;
+  btnToolDelete.Enabled:=lvtools.Selected<>nil;
+
+  if lvtools.Selected<>nil then
+  begin
+    edtToolsName.Text:=lvtools.Selected.Caption;
+    edtApplicationTool.Text:=lvtools.Selected.SubItems[0];
+    lblShortcutText.caption:=lvtools.Selected.SubItems[1];
+  end;
+end;
+
+procedure TformSettings.edtApplicationToolChange(Sender: TObject);
+begin
+  lvtools.Selected.subitems[0]:=edtApplicationTool.text;
+end;
+
+procedure TformSettings.btnToolDeleteClick(Sender: TObject);
+begin
+  if lvTools.Selected<>nil then
+    lvTools.Selected.Delete;
+
+  lvTools.OnClick(lvTools); //refresh
+end;
+
+procedure TformSettings.edtToolsNameChange(Sender: TObject);
+begin
+  lvtools.Selected.Caption:=edtToolsName.text;
 end;
 
 end.

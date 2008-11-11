@@ -3,8 +3,9 @@ unit MainUnit2;
 
 interface
 
-uses dialogs,forms,classes,windows,sysutils,registry,formsettingsunit,cefuncproc,AdvancedOptionsUnit,
-     MemoryBrowserFormUnit,memscan
+uses dialogs,forms,classes,windows,sysutils,registry,ComCtrls, menus,
+      formsettingsunit,
+      cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,memscan
 
 {$ifdef net}
 ,unit2;
@@ -12,6 +13,7 @@ uses dialogs,forms,classes,windows,sysutils,registry,formsettingsunit,cefuncproc
 ,plugin,mainunit,hotkeyhandler,frmProcessWatcherunit,newkernelhandler;
 {$endif}
 
+procedure UpdateToolsMenu;
 procedure HandleautoAttachString;
 procedure LoadSettingsFromRegistry;
 procedure initcetitle;
@@ -225,6 +227,29 @@ begin
   mainform.AutoAttachTimer.Enabled:=mainform.autoattachlist.Count>0;
 end;
 
+procedure UpdateToolsMenu;
+var i: integer;
+    mi: tmenuitem;
+begin
+  with formsettings do
+  begin
+    mainform.ools1.Visible:=lvtools.Items.Count>0;
+    for i:=0 to lvTools.Items.Count-1 do
+    begin
+      mainform.ools1.Clear;
+      mi:=tmenuitem.Create(mainform);
+
+      mi.Caption:=lvTools.Items[i].Caption;
+      mi.ShortCut:=TShortCut(lvTools.Items[i].data);
+      mi.Tag:=i;
+      mi.OnClick:=mainform.OnToolsClick;
+      mainform.ools1.Add(mi);
+    end;
+
+
+  end;
+end;
+
 procedure LoadSettingsFromRegistry;
 var reg : TRegistry;
     modifier: dword;
@@ -235,6 +260,7 @@ var reg : TRegistry;
     temphotkeylist: array [0..28] of cefuncproc.tkeycombo;
     found:boolean;
     names: TStringList;
+    li: tlistitem;
     s,s2: string;
 begin
   try
@@ -594,6 +620,10 @@ begin
           try cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger'); except end;
           try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;
 
+          if reg.ValueExists('Show tools menu') then
+            cbShowTools.Checked:=reg.ReadBool('Show tools menu');
+
+          mainform.ools1.Visible:=cbShowTools.Checked;
 
 
           if cbForceUndo.checked or cbGlobalDebug.checked then LoadDBK32;
@@ -653,6 +683,43 @@ begin
       end;
 
       {$ifndef net}
+      formsettings.lvtools.Clear;
+      if Reg.OpenKey('\Software\Cheat Engine\Tools',false) then
+      begin
+        names:=TStringList.create;
+        try
+          reg.GetValueNames(names);
+          names.sort;
+          for i:=0 to names.count-1 do
+          begin
+            try
+              if names[i][10]='A' then //tools name
+                s:=reg.ReadString(names[i]);
+
+              if names[i][10]='B' then //tools app
+                s2:=reg.ReadString(names[i]);
+
+              if names[i][10]='C' then //tools shortcut
+              begin
+                //A is already handled (sorted) so s contaisn the name
+                li:=formsettings.lvtools.items.add;
+                li.caption:=s;
+                li.Data:=pointer(reg.readinteger(names[i]));
+
+                li.SubItems.Add(s2);
+                li.SubItems.Add(ShortCutToText(dword(li.data)));
+
+              end;
+            except
+            end;
+          end;
+        finally
+          names.free;
+        end;
+      end;
+      UpdateToolsMenu;
+
+
       if Reg.OpenKey('\Software\Cheat Engine\plugins',false) then
       begin
         names:=TStringList.create;

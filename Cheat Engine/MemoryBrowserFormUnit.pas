@@ -3655,6 +3655,8 @@ end;
 procedure TMemoryBrowser.EnumeratedllsandSymbols1Click(Sender: TObject);
 begin
   {$ifndef net}
+  symhandler.reinitialize;
+  
   if frmEnumerateDLLs=nil then
   begin
     frmEnumerateDLLs:=tfrmEnumerateDLLs.create(self);

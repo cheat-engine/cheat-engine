@@ -1,7 +1,7 @@
 object formSettings: TformSettings
   Left = 259
   Top = 321
-  Width = 763
+  Width = 649
   Height = 547
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -21,42 +21,45 @@ object formSettings: TformSettings
   object pnlConfig: TPanel
     Left = 0
     Top = 0
-    Width = 755
+    Width = 641
     Height = 475
     Align = alClient
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
       Top = 1
-      Width = 121
+      Width = 120
       Height = 473
       Align = alLeft
       HideSelection = False
       Indent = 19
       ReadOnly = True
+      RightClickSelect = True
       ShowRoot = False
       TabOrder = 0
       OnChange = tvMenuSelectionChange
+      OnCollapsing = tvMenuSelectionCollapsing
       Items.Data = {
-        09000000290000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
-        1047656E6572616C2073657474696E6773200000000000000000000000FFFFFF
-        FFFFFFFFFF000000000000000007486F746B6579732500000000000000000000
-        00FFFFFFFFFFFFFFFF00000000000000000C556E72616E646F6D697A65722600
-        00000000000000000000FFFFFFFFFFFFFFFF00000000000000000D5363616E20
-        73657474696E6773200000000000000000000000FFFFFFFFFFFFFFFF00000000
-        0000000007506C7567696E732A0000000000000000000000FFFFFFFFFFFFFFFF
-        00000000000000001146696C65206173736F63696174696F6E73240000000000
-        000000000000FFFFFFFFFFFFFFFF00000000000000000B436F64652046696E64
-        65722A0000000000000000000000FFFFFFFFFFFFFFFF00000000000000001141
-        7373656D626C6572206F7074696F6E731E0000000000000000000000FFFFFFFF
-        FFFFFFFF0000000000000000054578747261}
+        09000000290000000000000000000000FFFFFFFFFFFFFFFF0000000001000000
+        1047656E6572616C2073657474696E6773230000000000000000000000FFFFFF
+        FFFFFFFFFF00000000000000000A546F6F6C73206D656E752000000000000000
+        00000000FFFFFFFFFFFFFFFF000000000000000007486F746B65797325000000
+        0000000000000000FFFFFFFFFFFFFFFF00000000000000000C556E72616E646F
+        6D697A6572260000000000000000000000FFFFFFFFFFFFFFFF00000000000000
+        000D5363616E2073657474696E6773200000000000000000000000FFFFFFFFFF
+        FFFFFF000000000000000007506C7567696E732A0000000000000000000000FF
+        FFFFFFFFFFFFFF00000000000000001146696C65206173736F63696174696F6E
+        73240000000000000000000000FFFFFFFFFFFFFFFF00000000000000000B436F
+        64652046696E6465722A0000000000000000000000FFFFFFFFFFFFFFFF000000
+        000000000011417373656D626C6572206F7074696F6E731E0000000000000000
+        000000FFFFFFFFFFFFFFFF0000000000000000054578747261}
     end
     object pcSetting: TPageControl
-      Left = 122
+      Left = 121
       Top = 1
-      Width = 632
+      Width = 519
       Height = 473
-      ActivePage = GeneralSettings
+      ActivePage = tsTools
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -92,15 +95,15 @@ object formSettings: TformSettings
         end
         object Label16: TLabel
           Left = 8
-          Top = 289
+          Top = 345
           Width = 116
           Height = 13
           Caption = 'Network Update Interval'
           Visible = False
         end
         object Label17: TLabel
-          Left = 178
-          Top = 297
+          Left = 170
+          Top = 345
           Width = 13
           Height = 13
           Caption = 'ms'
@@ -223,8 +226,8 @@ object formSettings: TformSettings
           end
         end
         object EditNetworkUpdateInterval: TEdit
-          Left = 135
-          Top = 293
+          Left = 127
+          Top = 341
           Width = 43
           Height = 21
           Hint = 
@@ -342,23 +345,23 @@ object formSettings: TformSettings
         inline frameHotkeyConfig: TframeHotkeyConfig
           Left = 0
           Top = 0
-          Width = 624
+          Width = 511
           Height = 442
           Align = alClient
           TabOrder = 0
           inherited Panel1: TPanel
-            Width = 441
+            Width = 328
             Height = 442
             inherited Label1: TLabel
-              Width = 441
+              Width = 328
             end
             inherited ListBox1: TListBox
-              Width = 441
+              Width = 328
               Height = 429
             end
           end
           inherited Panel2: TPanel
-            Left = 441
+            Left = 328
             Height = 442
             inherited Panel3: TPanel
               Height = 344
@@ -649,8 +652,9 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 477
+          Width = 511
           Height = 39
+          Align = alTop
           Caption = 
             'There are 2 ways Cheat Engine can find the addresss of code that' +
             ' writes to a specific address. Each type has it advantages and i' +
@@ -823,7 +827,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 429
-          Width = 337
+          Width = 511
           Height = 13
           Align = alBottom
           Alignment = taCenter
@@ -835,7 +839,7 @@ object formSettings: TformSettings
         object GroupBox3: TGroupBox
           Left = 0
           Top = 0
-          Width = 624
+          Width = 511
           Height = 70
           Align = alTop
           Caption = 
@@ -993,25 +997,183 @@ object formSettings: TformSettings
           TabOrder = 8
         end
       end
+      object tsTools: TTabSheet
+        Caption = 'tsTools'
+        ImageIndex = 9
+        object Panel2: TPanel
+          Left = 0
+          Top = 0
+          Width = 511
+          Height = 21
+          Align = alTop
+          BevelOuter = bvNone
+          TabOrder = 0
+          object cbShowTools: TCheckBox
+            Left = 0
+            Top = 0
+            Width = 393
+            Height = 17
+            Caption = 'Show '#39'tools'#39' menu item'
+            Checked = True
+            State = cbChecked
+            TabOrder = 0
+            OnClick = cbShowToolsClick
+          end
+        end
+        object Panel3: TPanel
+          Left = 326
+          Top = 21
+          Width = 185
+          Height = 421
+          Align = alRight
+          BevelOuter = bvNone
+          TabOrder = 1
+          object lblApplicationTool: TLabel
+            Left = 8
+            Top = 40
+            Width = 52
+            Height = 13
+            Caption = 'Application'
+            Enabled = False
+          end
+          object lblShortcut: TLabel
+            Left = 8
+            Top = 80
+            Width = 43
+            Height = 13
+            Caption = 'Shortcut:'
+            Enabled = False
+          end
+          object lblShortcutText: TLabel
+            Left = 8
+            Top = 96
+            Width = 40
+            Height = 13
+            Caption = 'xxxxxxxx'
+            Enabled = False
+          end
+          object lblToolsName: TLabel
+            Left = 8
+            Top = 0
+            Width = 28
+            Height = 13
+            Caption = 'Name'
+            Enabled = False
+          end
+          object edtApplicationTool: TEdit
+            Left = 8
+            Top = 56
+            Width = 177
+            Height = 21
+            Enabled = False
+            MaxLength = 255
+            TabOrder = 0
+            OnChange = edtApplicationToolChange
+          end
+          object btnSetToolShortcut: TButton
+            Left = 8
+            Top = 112
+            Width = 75
+            Height = 17
+            Caption = 'Set shortcut'
+            Enabled = False
+            TabOrder = 1
+            OnClick = btnSetToolShortcutClick
+          end
+          object edtToolsName: TEdit
+            Left = 8
+            Top = 16
+            Width = 177
+            Height = 21
+            Enabled = False
+            MaxLength = 255
+            TabOrder = 2
+            OnChange = edtToolsNameChange
+          end
+        end
+        object Panel5: TPanel
+          Left = 0
+          Top = 21
+          Width = 326
+          Height = 421
+          Align = alClient
+          BevelOuter = bvNone
+          TabOrder = 2
+          object Panel4: TPanel
+            Left = 0
+            Top = 398
+            Width = 326
+            Height = 23
+            Align = alBottom
+            BevelOuter = bvNone
+            TabOrder = 0
+            object btnToolNew: TButton
+              Left = 8
+              Top = 3
+              Width = 75
+              Height = 17
+              Caption = 'New'
+              TabOrder = 0
+              OnClick = btnToolNewClick
+            end
+            object btnToolDelete: TButton
+              Left = 88
+              Top = 3
+              Width = 75
+              Height = 17
+              Caption = 'Delete'
+              TabOrder = 1
+              OnClick = btnToolDeleteClick
+            end
+          end
+          object lvTools: TListView
+            Left = 0
+            Top = 0
+            Width = 326
+            Height = 398
+            Align = alClient
+            Columns = <
+              item
+                Caption = 'Name'
+                Width = 60
+              end
+              item
+                Caption = 'Application'
+                Width = 190
+              end
+              item
+                AutoSize = True
+                Caption = 'Shortcut'
+              end>
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            TabOrder = 1
+            ViewStyle = vsReport
+            OnClick = lvToolsClick
+          end
+        end
+      end
     end
   end
   object Panel6: TPanel
     Left = 0
     Top = 475
-    Width = 755
+    Width = 641
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     OnResize = Panel6Resize
     DesignSize = (
-      755
+      641
       38)
     object AboutLabel: TLabel
-      Left = 709
+      Left = 595
       Top = 25
       Width = 45
       Height = 13
+      Cursor = crHandPoint
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Charset = DEFAULT_CHARSET
@@ -1023,7 +1185,7 @@ object formSettings: TformSettings
       OnClick = AboutLabelClick
     end
     object Button2: TButton
-      Left = 331
+      Left = 217
       Top = 5
       Width = 75
       Height = 25
@@ -1034,7 +1196,7 @@ object formSettings: TformSettings
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 245
+      Left = 131
       Top = 5
       Width = 75
       Height = 25

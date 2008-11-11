@@ -2943,6 +2943,14 @@ object MainForm: TMainForm
         Caption = 'e'
       end
     end
+    object ools1: TMenuItem
+      Caption = 'Tools'
+      object Calculator1: TMenuItem
+        Caption = 'Calculator'
+        ShortCut = 16451
+        OnClick = Calculator1Click
+      end
+    end
     object Help1: TMenuItem
       Caption = 'Help'
       object About1: TMenuItem
