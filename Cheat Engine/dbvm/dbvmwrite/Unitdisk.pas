@@ -275,14 +275,14 @@ begin
   getmem(temp,6);
   x:=TFileStream.Create(pchar('\\.\'+cbDeviceList.text),fmOpenReadWrite or fmShareDenyNone );
   try
-    setlength(bla,(vmm.size div 512)+512);
+    setlength(bla,vmm.size+512-(vmm.size mod 512));
     ZeroMemory(@bla[0],length(bla));
 
     x.Seek(0,soFromBeginning);
     x.Read(bla[0],512);
 
     //check if CETC is already writen. If not, query if he's sure
-    CopyMemory(temp,@bla[4],5);
+    CopyMemory(temp,@bla[3],5);
     temp[5]:=#0;
     if temp<>'CETC2' then
     begin
