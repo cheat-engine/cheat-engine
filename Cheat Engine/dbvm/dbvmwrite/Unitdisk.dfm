@@ -29,6 +29,7 @@ object Form1: TForm1
     Width = 75
     Height = 25
     Caption = 'Write'
+    Enabled = False
     TabOrder = 0
     OnClick = Button1Click
   end
@@ -107,6 +108,7 @@ object Form1: TForm1
       Height = 17
       Caption = 'Show boot menu'
       Checked = True
+      Enabled = False
       State = cbChecked
       TabOrder = 0
     end
@@ -117,12 +119,14 @@ object Form1: TForm1
       Height = 17
       Caption = 'Override autodetect bootdrive'
       TabOrder = 1
+      OnClick = CheckBox2Click
     end
     object Edit1: TEdit
       Left = 32
       Top = 48
       Width = 33
       Height = 21
+      Enabled = False
       TabOrder = 2
       Text = '80'
     end

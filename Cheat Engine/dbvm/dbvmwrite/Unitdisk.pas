@@ -28,6 +28,7 @@ type
     procedure cbDeviceListDropDown(Sender: TObject);
     procedure cbDeviceListSelect(Sender: TObject);
     procedure FormClick(Sender: TObject);
+    procedure CheckBox2Click(Sender: TObject);
   private
     { Private declarations }
     vmm: TFilestream;
@@ -433,6 +434,11 @@ end;
 procedure TForm1.FormClick(Sender: TObject);
 begin
   vmm.free;
+end;
+
+procedure TForm1.CheckBox2Click(Sender: TObject);
+begin
+  edit1.enabled:=checkbox2.checked;
 end;
 
 initialization
