@@ -4253,7 +4253,7 @@ begin
         begin
           if (not (buf[1] in [$80..$8f])) then exit; //not one of them
           result:=true;
-          addresstojumpto:=address+plongint(@buf[2])^+5;
+          addresstojumpto:=address+plongint(@buf[2])^+6;
         end;
 
         $70..$7f,$e3,$eb:  //(un)conditional jump (1 byte)
