@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 604
-  Top = 284
+  Left = 794
+  Top = 451
   Width = 532
   Height = 565
   Hint = ' '
@@ -2664,7 +2664,7 @@ object MainForm: TMainForm
       'CET|Cheat Table XML|*.XML|Gamehack tables (*.GH)|*.GH|ArtMoney T' +
       'ables (*.AMT)|*.AMT|All files (*.*)|*.*|All supported cheat tabl' +
       'es|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.PTR;*.XML'
-    FilterIndex = 5
+    FilterIndex = 6
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 48
     Top = 104

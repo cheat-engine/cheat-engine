@@ -1240,6 +1240,7 @@ end;
 function TMainform.GetRoundingType: TRoundingType;
 {Property function to get the current rounding type}
 begin
+  result:=rtTruncated;
   if rt1.checked then result:=rtRounded else
   if rt2.checked then result:=rtExtremerounded else
   if rt3.Checked then result:=rtTruncated;
@@ -2016,21 +2017,39 @@ begin
     if not scrollbar1.Enabled then
       scrollbar1.enabled:=true;
 
-    if scrollbar1.max<>numberofrecords-1 then
-      scrollbar1.max:=numberofrecords-1;
+    try
+      //sometimes on resolion changes this causes a problem, so in a try except to try and fix it on error
+      if scrollbar1.max<>numberofrecords-1 then
+        scrollbar1.max:=numberofrecords-1;
 
-    if scrollbar1.PageSize<>numberoflines-1 then
-      scrollbar1.pagesize:=numberoflines-1;
+      if scrollbar1.PageSize<>numberoflines-1 then
+        scrollbar1.pagesize:=numberoflines-1;
 
-    if scrollbar1.LargeChange<>numberoflines-1 then
-      scrollbar1.LargeChange:=numberoflines-1;
+      if scrollbar1.LargeChange<>numberoflines-1 then
+        scrollbar1.LargeChange:=numberoflines-1;
+
+    except
+      try
+        scrollbar1.Position:=0;
+        scrollbar1.max:=numberofrecords-1;
+        scrollbar1.PageSize:=numberoflines-1;
+        scrollbar1.LargeChange:=numberoflines-1;
+      except
+
+      end;
+    end;
+
   end else
   begin
-    if scrollbar1.Enabled then
-      scrollbar1.enabled:=false;
+    try
+      if scrollbar1.Enabled then
+        scrollbar1.enabled:=false;
 
-    if scrollbar1.Position<>0 then
-      scrollbar1.position:=0;
+      if scrollbar1.Position<>0 then
+        scrollbar1.position:=0;
+    except
+      
+    end;
   end;
 
   for i:=0 to numberoflines-1 do
@@ -2272,6 +2291,8 @@ begin
 
     end;
   end;
+
+
 
 end;
 
@@ -4287,8 +4308,7 @@ var pid: dword;
 begin
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
 
-  memscan:=tmemscan.create(progressbar1,mainform.Handle, wm_scandone);
-  
+
 
   hotkeypressed:=-1;
 
@@ -9447,6 +9467,11 @@ begin
 
 
   //SMenu:=GetSystemMenu(handle,false);
+
+  //don't put this in oncreate, just don't
+  if memscan=nil then
+    memscan:=tmemscan.create(progressbar1,mainform.Handle, wm_scandone);
+
                         
 end;
 
@@ -11221,8 +11246,19 @@ var resh: thandle;
     ki: TKIcon;
     tid: TIconData;
 begin
-//Application.HelpCommand(HELP_CONTEXTPOPUP, 0);
+
+  exit;
   
+asm
+mov eax,$ffffffff
+mov al,14
+end;
+exit;
+
+  showmessage(inttohex(dbvm_version,8));
+  exit;
+//Application.HelpCommand(HELP_CONTEXTPOPUP, 0);
+
 asm
 fcmovb st(0),st(1)
 fadd st(1),st(0)
@@ -12062,6 +12098,7 @@ procedure TMainForm.Calculator1Click(Sender: TObject);
 begin
   ShellExecute(0,'open','calc','','',SW_SHOW);
   //calculator1.ShortCut
+
 end;
 
 end.
