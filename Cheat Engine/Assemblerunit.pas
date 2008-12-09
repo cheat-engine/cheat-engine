@@ -3417,6 +3417,17 @@ begin
         end;
       end;
 
+      if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2)) then
+      begin
+        //r16,r/m8 (eg: movzx)
+        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+      end;
 
       if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
       begin
