@@ -18,8 +18,8 @@ type
     Panel3: TPanel;
     Label52: TLabel;
     Label51: TLabel;
-    Edit2: TEdit;
-    Edit3: TEdit;
+    edtSHSpeed: TEdit;
+    edtSHSleep: TEdit;
     Panel4: TPanel;
     Label3: TLabel;
     Edit4: TEdit;
@@ -67,28 +67,28 @@ begin
   begin
     if currentspeed=1 then
     begin
-      newspeedhackspeed1.speed:=StrToFloat(edit2.Text);
-      newspeedhackspeed1.sleeptime:=strtoint(edit3.Text);
+      newspeedhackspeed1.speed:=StrToFloat(edtSHspeed.Text);
+      newspeedhackspeed1.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=2 then
     begin
-      newspeedhackspeed2.speed:=StrToFloat(edit2.Text);
-      newspeedhackspeed2.sleeptime:=strtoint(edit3.Text);
+      newspeedhackspeed2.speed:=StrToFloat(edtSHspeed.Text);
+      newspeedhackspeed2.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=3 then
     begin
-      newspeedhackspeed3.speed:=StrToFloat(edit2.Text);
-      newspeedhackspeed3.sleeptime:=strtoint(edit3.Text);
+      newspeedhackspeed3.speed:=StrToFloat(edtSHspeed.Text);
+      newspeedhackspeed3.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=4 then
     begin
-      newspeedhackspeed4.speed:=StrToFloat(edit2.Text);
-      newspeedhackspeed4.sleeptime:=strtoint(edit3.Text);
+      newspeedhackspeed4.speed:=StrToFloat(edtSHspeed.Text);
+      newspeedhackspeed4.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=5 then
     begin
-      newspeedhackspeed5.speed:=StrToFloat(edit2.Text);
-      newspeedhackspeed5.sleeptime:=strtoint(edit3.Text);
+      newspeedhackspeed5.speed:=StrToFloat(edtSHspeed.Text);
+      newspeedhackspeed5.sleeptime:=strtoint(edtSHSleep.Text);
     end;
   end;
 
@@ -98,32 +98,32 @@ begin
     case currentspeed of
       1:
       begin
-        edit2.text:=format('%.2f',[newspeedhackspeed1.speed]);
-        edit3.text:=inttostr(newspeedhackspeed1.sleeptime);
+        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed1.speed]);
+        edtSHSleep.text:=inttostr(newspeedhackspeed1.sleeptime);
       end;
 
       2:
       begin
-        edit2.text:=format('%.2f',[newspeedhackspeed2.speed]);
-        edit3.text:=inttostr(newspeedhackspeed2.sleeptime);
+        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed2.speed]);
+        edtSHSleep.text:=inttostr(newspeedhackspeed2.sleeptime);
       end;
 
       3:
       begin
-        edit2.text:=format('%.2f',[newspeedhackspeed3.speed]);
-        edit3.text:=inttostr(newspeedhackspeed3.sleeptime);
+        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed3.speed]);
+        edtSHSleep.text:=inttostr(newspeedhackspeed3.sleeptime);
       end;
 
       4:
       begin
-        edit2.text:=format('%.2f',[newspeedhackspeed4.speed]);
-        edit3.text:=inttostr(newspeedhackspeed4.sleeptime);
+        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed4.speed]);
+        edtSHSleep.text:=inttostr(newspeedhackspeed4.sleeptime);
       end;
 
       5:
       begin
-        edit2.text:=format('%.2f',[newspeedhackspeed5.speed]);
-        edit3.text:=inttostr(newspeedhackspeed5.sleeptime);
+        edtSHSpeed.text:=format('%.2f',[newspeedhackspeed5.speed]);
+        edtSHSleep.text:=inttostr(newspeedhackspeed5.sleeptime);
       end;
     end;
 

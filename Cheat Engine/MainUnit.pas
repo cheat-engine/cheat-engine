@@ -271,6 +271,8 @@ type
     N7: TMenuItem;
     ools1: TMenuItem;
     Calculator1: TMenuItem;
+    N8: TMenuItem;
+    Helpindex1: TMenuItem;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -428,6 +430,7 @@ type
     procedure About1Click(Sender: TObject);
     procedure Calculator1Click(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
+    procedure Helpindex1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -12150,8 +12153,13 @@ begin
 
     if processid<>oldprocess then
       openprocessepilogue(oldprocessname,oldprocess,oldprocesshandle);
-      
+
   end;
+end;
+
+procedure TMainForm.Helpindex1Click(Sender: TObject);
+begin
+  Application.HelpContext(1);
 end;
 
 end.

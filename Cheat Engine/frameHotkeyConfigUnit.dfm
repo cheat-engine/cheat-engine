@@ -125,7 +125,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
         Anchors = [akTop, akRight]
         Caption = 'Sleeptime'
       end
-      object Edit2: TEdit
+      object edtSHSpeed: TEdit
         Left = 4
         Top = 18
         Width = 46
@@ -134,7 +134,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
         TabOrder = 0
         Text = '2'
       end
-      object Edit3: TEdit
+      object edtSHSleep: TEdit
         Left = 60
         Top = 18
         Width = 46
@@ -146,11 +146,12 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object Panel4: TPanel
       Left = 8
-      Top = 59
+      Top = 147
       Width = 173
       Height = 97
       BevelOuter = bvNone
       TabOrder = 3
+      Visible = False
       object Label3: TLabel
         Left = 3
         Top = 1

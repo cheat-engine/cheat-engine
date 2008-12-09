@@ -59,7 +59,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = tsTools
+      ActivePage = tsHotkeys
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -365,6 +365,9 @@ object formSettings: TformSettings
             Height = 442
             inherited Panel3: TPanel
               Height = 344
+            end
+            inherited Panel4: TPanel
+              Top = 67
             end
           end
         end

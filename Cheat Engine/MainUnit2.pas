@@ -356,10 +356,14 @@ begin
             speedhackspeed5.sleeptime:=3;
 
           if reg.ValueExists('Increase Speedhack delta') then
-            speedupdelta:=reg.ReadFloat('Increase Speedhack delta');
+            speedupdelta:=reg.ReadFloat('Increase Speedhack delta')
+          else
+            speedupdelta:=1;
 
           if reg.ValueExists('Decrease Speedhack delta') then
-            slowdowndelta:=reg.ReadFloat('Decrease Speedhack delta');
+            slowdowndelta:=reg.ReadFloat('Decrease Speedhack delta')
+          else
+            slowdowndelta:=1;
 
           try reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10); except mainform.label7.Caption:=''; end;
           try reg.ReadBinaryData('Pause process Hotkey',temphotkeylist[1][0],10); except end;

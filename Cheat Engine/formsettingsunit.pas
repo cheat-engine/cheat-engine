@@ -857,10 +857,10 @@ begin
       framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
 
   framehotkeyconfig.newspeedhackspeed1:=speedhackspeed1;
-  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed2;
-  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed3;
-  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed4;
-  framehotkeyconfig.newspeedhackspeed1:=speedhackspeed5;
+  framehotkeyconfig.newspeedhackspeed2:=speedhackspeed2;
+  framehotkeyconfig.newspeedhackspeed3:=speedhackspeed3;
+  framehotkeyconfig.newspeedhackspeed4:=speedhackspeed4;
+  framehotkeyconfig.newspeedhackspeed5:=speedhackspeed5;
 
   framehotkeyconfig.speedupdelta:=speedupdelta;
   framehotkeyconfig.slowdowndelta:=slowdowndelta;
