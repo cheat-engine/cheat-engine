@@ -65,9 +65,10 @@ type
     procedure SetFilter(filter:string);
     property filter:string read ffilter write setfilter;
     procedure filterlist;
-    procedure PWOP(ProcessIDString:string);
+
   public
     { Public declarations }
+    procedure PWOP(ProcessIDString:string);
   end;
 
 var
@@ -258,8 +259,6 @@ end;
 procedure TProcessWindow.PWOP(ProcessIDString:string);
 var i:integer;
 begin
-
-
   val('$'+ProcessIDString,ProcessHandler.processid,i);
   if i<>0 then raise exception.Create(processidstring+' isn''t a valid processID');
   if Processhandle<>0 then

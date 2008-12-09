@@ -1,6 +1,6 @@
 object ProcessWindow: TProcessWindow
-  Left = 571
-  Top = 289
+  Left = 468
+  Top = 411
   Width = 254
   Height = 355
   HelpContext = 4
@@ -121,7 +121,7 @@ object ProcessWindow: TProcessWindow
         Top = 8
         Width = 75
         Height = 25
-        Caption = 'OK'
+        Caption = 'Open'
         Default = True
         TabOrder = 7
         OnClick = OKButtonClick

@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 794
-  Top = 451
+  Left = 712
+  Top = 372
   Width = 532
   Height = 565
   Hint = ' '
@@ -2923,6 +2923,7 @@ object MainForm: TMainForm
       end
       object CreateProcess1: TMenuItem
         Caption = 'Create Process'
+        OnClick = CreateProcess1Click
       end
       object N6: TMenuItem
         Caption = '-'

@@ -427,6 +427,7 @@ type
     procedure Process1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure Calculator1Click(Sender: TObject);
+    procedure CreateProcess1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -477,6 +478,8 @@ type
     editingscript: boolean;
     editedscript: integer;
 
+    function openprocessPrologue: boolean;
+    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
     procedure doNewScan;
     procedure SetExpectedTableName;
     procedure autoattachcheck;
@@ -3512,18 +3515,6 @@ begin
   Opendialog1.FileName:=expectedFilename;
 end;
 
-
-procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);
-var oldprocess: Dword;
-    resu: integer;
-    i,j: integer;
-
-    oldprocesshandle: thandle;
-
-    oldprocessname: string;
-    newprocessname: string;
-
-    modulelist: tstringlist;
 resourcestring
   strConfirmProcessTermination='This will close the current process. Are you sure you want to do this?';
   strError='Error';
@@ -3532,8 +3523,9 @@ resourcestring
   strInfoAboutTable='Info about this table:';
   strPhysicalMemory='Physical Memory';
 
-
+function TMainform.openprocessPrologue:boolean;
 begin
+  result:=false;
   if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
   if flashprocessbutton<>nil then
@@ -3542,7 +3534,6 @@ begin
     flashprocessbutton:=nil;
   end;
 
-  oldprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
 
   if (debuggerthread<>nil) and (debuggerthread.attached) then
   begin
@@ -3558,18 +3549,13 @@ begin
   end;
 
   canceled:=false;
+  result:=true;
+end;
 
-  oldprocess:=processID;
-  ProcessWindow:=TProcessWindow.Create(nil);
-  //for the people that play arround with my source, this causes a external exception while running inside the delphi IDE, outside it gives no problems...
-
-  oldprocesshandle:=processhandle;
-
-  resu:=ProcessWindow.ShowModal;
-
-  ProcessWindow.free;
-  ProcessWindow:=nil;
-
+procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
+var newprocessname: string;
+    i,j: integer;
+begin
   newprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
 
   if (debuggerthread<>nil) and (debuggerthread.attached) then
@@ -3579,15 +3565,14 @@ begin
   end;
 
 
-  if resu=mrCancel then exit;
-
 
   symhandler.reinitialize;
   reinterpretaddresses;
 
   if oldprocess=0 then //set disassembler and hexview of membrowser to what the main header says
     memorybrowser.setcodeanddatabase;
-  
+
+    {
   if resu=mryes then
   begin
     try
@@ -3634,7 +3619,7 @@ begin
 
     exit;
   end;
-
+         }
 
   if (processhandle=0)then
   begin
@@ -3735,7 +3720,32 @@ begin
 
   enablegui(nextscanbutton.enabled);
 
-  UpdateScanType;  
+  UpdateScanType;
+end;
+
+procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);
+var oldprocess: Dword;
+    resu: integer;
+    i,j: integer;
+    oldprocesshandle: thandle;
+    oldprocessname: string;
+    modulelist: tstringlist;
+begin
+  if not openprocessPrologue then exit;
+
+  oldprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
+  oldprocess:=processID;
+  oldprocesshandle:=processhandle;
+
+  ProcessWindow:=TProcessWindow.Create(nil);
+  resu:=ProcessWindow.ShowModal;
+
+  ProcessWindow.free;
+  ProcessWindow:=nil;
+
+  if resu=mrCancel then exit;
+
+  openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -12076,13 +12086,32 @@ end;
 
 procedure TMainForm.ProcessItemClick(Sender: TObject);
 var pid: dword;
+    oldprocess: Dword;
+    oldprocesshandle: thandle;
+    oldprocessname: string;
 begin
-  
-  //open the selected process
-  if (sender is TMenuItemExtra) then
+  if openprocessPrologue then
   begin
-    pid:=dword(TMenuItemExtra(sender).data);
-    showmessage(inttohex(pid,8));
+    oldprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
+    oldprocess:=processID;
+    oldprocesshandle:=processhandle;
+    if (sender is TMenuItemExtra) then
+    begin
+      pid:=dword(TMenuItemExtra(sender).data);
+
+      unpause;
+      DetachIfPossible;
+
+      with TProcessWindow.Create(self) do
+      begin
+        pwop(inttohex(pid,8));
+        ProcessLabel.caption:=TMenuItemExtra(sender).Caption;
+        free;
+      end;
+
+      openprocessepilogue(oldprocessname,oldprocess,oldprocesshandle);
+
+    end;
   end;
 end;
 
@@ -12099,6 +12128,30 @@ begin
   ShellExecute(0,'open','calc','','',SW_SHOW);
   //calculator1.ShortCut
 
+end;
+
+procedure TMainForm.CreateProcess1Click(Sender: TObject);
+var x: dword;
+    oldprocess: Dword;
+    oldprocesshandle: thandle;
+    oldprocessname: string;
+begin
+  if openprocessPrologue then
+  begin
+
+    oldprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
+    oldprocess:=processID;
+    oldprocesshandle:=processhandle;
+    with TProcessWindow.Create(self) do
+    begin
+      button3.Click;
+      free;
+    end;
+
+    if processid<>oldprocess then
+      openprocessepilogue(oldprocessname,oldprocess,oldprocesshandle);
+      
+  end;
 end;
 
 end.
