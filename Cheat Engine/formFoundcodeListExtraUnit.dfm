@@ -11,6 +11,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  PopupMenu = pmCopy
   Position = poScreenCenter
   OnClose = FormClose
   PixelsPerInch = 96
@@ -19,7 +20,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Top = 0
     Width = 369
-    Height = 80
+    Height = 82
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
@@ -64,7 +65,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
     object Label5: TLabel
       Left = 16
-      Top = 65
+      Top = 69
       Width = 48
       Height = 13
       Caption = 'Label5'
@@ -104,7 +105,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel2: TPanel
     Left = 0
-    Top = 80
+    Top = 82
     Width = 369
     Height = 9
     Align = alTop
@@ -113,7 +114,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel3: TPanel
     Left = 0
-    Top = 89
+    Top = 91
     Width = 369
     Height = 49
     Align = alTop
@@ -146,7 +147,6 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Align = alClient
         AutoSize = False
         Caption = 'yyy'
-        PopupMenu = pmCopy
         WordWrap = True
       end
     end
@@ -178,15 +178,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel6: TPanel
     Left = 0
-    Top = 138
+    Top = 140
     Width = 369
-    Height = 103
+    Height = 101
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
     DesignSize = (
       369
-      103)
+      101)
     object Label7: TLabel
       Left = 8
       Top = 10
@@ -329,7 +329,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 112
     Top = 112
     object Copyaddresstoclipboard1: TMenuItem
-      Caption = 'Copy address to clipboard'
+      Caption = 'Copy info to clipboard'
+      ShortCut = 16451
       OnClick = Copyaddresstoclipboard1Click
     end
   end

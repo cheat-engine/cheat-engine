@@ -173,6 +173,8 @@ type
     Panel2: TPanel;
     Label1: TLabel;
     ScrollBar1: TScrollBar;
+    Floatingpointpanel1: TMenuItem;
+    Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -309,6 +311,8 @@ type
     procedure Showvaluesofstaticaddresses1Click(Sender: TObject);
     procedure disassemblerheaderSectionResize(
       HeaderControl: THeaderControl; Section: THeaderSection);
+    procedure Findoutwhataddressesthisinstructionaccesses1Click(
+      Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -404,7 +408,7 @@ type
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
 
-
+    procedure FindwhatThiscodeAccesses(address: dword);
     procedure UpdateBPlist;
     procedure UpdateRegisterview;
     procedure RefreshMB;
@@ -463,7 +467,8 @@ uses Valuechange,
 
 
   {$ifndef net}symbolconfigunit,frmTracerUnit,Structuresfrm,dissectcodeunit,pointerscannerfrm,driverlist,ServiceDescriptorTables,{$endif}
-  frmDisassemblyscanunit, frmGDTunit, frmIDTunit, peINFOunit;
+  frmDisassemblyscanunit, frmGDTunit, frmIDTunit, peINFOunit,
+  formChangedAddresses;
 
 
 
@@ -4426,6 +4431,45 @@ begin
   x:=(disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Left+disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Width);
   disassemblerscrollbox.HorzScrollBar.Range:=x;
   updatedisassemblerview;
+end;
+
+procedure TMemoryBrowser.FindwhatThiscodeAccesses(address: dword);
+var i: integer;
+begin
+  //New method:
+  if not startdebuggerifneeded then exit;
+  if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window forces a close of manual debugging)');
+
+  if frmChangedAddresses<>nil then
+    frmChangedAddresses.changedlist.color:=clGray;
+
+  frmChangedAddresses:=TfrmChangedAddresses.Create(self);
+
+  debuggerthread.Suspend;
+
+  debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+  debuggerthread.DRRegs.Dr0:=address;
+  debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
+
+  for i:=0 to length(debuggerthread.threadlist)-1 do
+  begin
+    suspendthread(debuggerthread.threadlist[i][1]);
+    if not setthreadcontext(debuggerthread.threadlist[i][1],debuggerthread.DRRegs) then showmessage('failed 1');
+    resumethread(debuggerthread.threadlist[i][1]);
+  end;
+
+
+  debuggerthread.breakpointaddress:=address;
+  debuggerthread.breakpointset:=true;
+
+  debuggerthread.Resume;
+  frmChangedAddresses.show;
+end;
+
+procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(
+  Sender: TObject);
+begin
+  findWhatthisCodeAccesses(dselected);
 end;
 
 end.

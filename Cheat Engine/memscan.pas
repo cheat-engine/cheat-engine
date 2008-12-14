@@ -11,11 +11,7 @@ uses windows,sysutils, classes,ComCtrls,dialogs, cefuncproc,
      newkernelhandler, math, SyncObjs, SaveFirstScan, firstscanhandler,
      autoassembler, symbolhandler;
 
-type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
-type TScanType=(stNewScan, stFirstScan, stNextScan);
-type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
-type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtByteArray, vtBinary, vtAll, vtCustom);
-type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
+
 
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
 type TStoreResultRoutine=procedure(address: dword; oldvalue: pointer) of object;

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},newkernelhandler{$endif},cefuncproc,
-  ExtCtrls;
+  ExtCtrls, Menus, clipbrd;
 
 type TCodeCaveScanner=class(tthread)
   private
@@ -24,7 +24,7 @@ end;
 
 type
   TfrmCodecaveScanner = class(TForm)
-    ListBox1: TListBox;
+    lbCodecaveList: TListBox;
     Panel1: TPanel;
     Label1: TLabel;
     Label2: TLabel;
@@ -36,10 +36,13 @@ type
     Panel2: TPanel;
     cbNoExecute: TCheckBox;
     ProgressBar1: TProgressBar;
+    PopupMenu1: TPopupMenu;
+    Copytoclipboard1: TMenuItem;
     procedure btnStartClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure ListBox1DblClick(Sender: TObject);
+    procedure lbCodecaveListDblClick(Sender: TObject);
+    procedure Copytoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -66,8 +69,8 @@ procedure TCodecavescanner.foundone;
 begin
   if frmCodecaveScanner<>nil then
   begin
-    frmCodecaveScanner.ListBox1.Items.Add(IntToHex(found,8));
-    if frmCodecaveScanner.ListBox1.Items.Count>30000 then terminate;  //too many found
+    frmCodecaveScanner.lbCodecaveList.Items.Add(IntToHex(found,8));
+    if frmCodecaveScanner.lbCodecaveList.Items.Count>30000 then terminate;  //too many found
   end;
 end;
 
@@ -223,7 +226,7 @@ only memory
     progressbar1.Position:=0;
     progressbar1.Max:=stop-start;
     btnStart.caption:=strStop;
-    listbox1.Clear;
+    lbCodecaveList.Clear;
     codecavescanner.Resume;
   end else
   begin
@@ -250,13 +253,30 @@ begin
     canclose:=messagedlg('Closing this window will also stop the scanner. Are you sure?',mtconfirmation,[mbyes,mbno],0)=mryes;
 end;
 
-procedure TfrmCodecaveScanner.ListBox1DblClick(Sender: TObject);
+procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);
 begin
-  if listbox1.ItemIndex<>-1 then
+  if lbCodecaveList.ItemIndex<>-1 then
   begin
-    memorybrowser.memoryaddress:=StrToInt('$'+listbox1.Items[listbox1.itemindex]);
+    memorybrowser.memoryaddress:=StrToInt('$'+lbCodecaveList.Items[lbCodecaveList.itemindex]);
     memorybrowser.RefreshMB;
   end;
+end;
+
+procedure TfrmCodecaveScanner.Copytoclipboard1Click(Sender: TObject);
+var i: integer;
+    s: string;
+begin
+  S:='';
+  for i:=0 to lbCodecaveList.count-1 do
+    if lbCodecaveList.Selected[i] then
+      s:=s+lbCodecaveList.Items[i]+#13#10;
+
+  if s<>'' then
+  begin
+    s:=copy(s,1,length(s)-2);
+    Clipboard.SetTextBuf(pchar(s));
+  end;
+
 end;
 
 end.

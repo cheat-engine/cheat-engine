@@ -4,19 +4,24 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,cefuncproc;
+  Dialogs, StdCtrls,cefuncproc, ExtCtrls, ComCtrls, Menus;
 
 type
   TfrmChangedAddresses = class(TForm)
-    Changedlist: TListBox;
-    OKButton: TButton;
     lblInfo: TLabel;
+    Panel1: TPanel;
+    OKButton: TButton;
+    Changedlist: TListView;
+    cbDisplayType: TComboBox;
+    Timer1: TTimer;
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ChangedlistDblClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
+    procedure refetchValues;
   public
     { Public declarations }
   end;
@@ -75,6 +80,9 @@ var temp:dword;
     i: integer;
 begin
   action:=caFree;
+  for i:=0 to changedlist.Items.Count-1 do
+    freemem(changedlist.Items[i].Data);
+
   if OKButton.caption='Stop' then
     OKButton.Click;
 
@@ -90,39 +98,74 @@ procedure TfrmChangedAddresses.ChangedlistDblClick(Sender: TObject);
 var i: integer;
     ad: dword;
 begin
-  ad:=strtoint('$'+changedlist.Items[changedlist.itemindex]);
-  with mainform do
+  if changedlist.Selected<>nil then
   begin
-    i:=0;
-    while (i<numberofrecords) and
-          (
-            (memrec[i].Address<>ad) or
-            (memrec[i].VarType<>2)
-          )  do
-          inc(i);
-    //find out of this record is in the list
-    if i=NumberOfRecords then
+    ad:=strtoint('$'+changedlist.Selected.Caption);
+    with mainform do
     begin
-      inc(NumberOfRecords);
-      ReserveMem;
+      i:=0;
+      while (i<numberofrecords) and
+            (
+              (memrec[i].Address<>ad) or
+              (memrec[i].VarType<>2)
+            )  do
+            inc(i);
+      //find out of this record is in the list
+      if i=NumberOfRecords then
+      begin
+        inc(NumberOfRecords);
+        ReserveMem;
 
-      memrec[NumberOfRecords-1].Description:='No Description';
-      memrec[NumberOfRecords-1].Address:=ad;
-      memrec[NumberOfRecords-1].VarType:=2;
+        memrec[NumberOfRecords-1].Description:='No Description';
+        memrec[NumberOfRecords-1].Address:=ad;
+        memrec[NumberOfRecords-1].VarType:=2;
 
-      memrec[NumberOfRecords-1].Frozen:=false;
-      memrec[NumberOfRecords-1].FrozenValue:=0;
+        memrec[NumberOfRecords-1].Frozen:=false;
+        memrec[NumberOfRecords-1].FrozenValue:=0;
 
-      memrec[NumberOfRecords-1].Bit:=0;
-      hotkeys[NumberOfRecords-1]:=-1;
+        memrec[NumberOfRecords-1].Bit:=0;
+        hotkeys[NumberOfRecords-1]:=-1;
 
-      updatescreen;
-      updatelist;
-    end
-    else raise Exception.Create(IntToHex(ad,8)+' is already in the list!');
+        updatescreen;
+        updatelist;
+      end
+      else raise Exception.Create(IntToHex(ad,8)+' is already in the list!');
 
 
+    end;
   end;
+end;
+
+procedure TfrmChangedAddresses.refetchValues;
+var i: integer;
+    s: string;
+begin
+  if changedlist.Items.Count>0 then
+  begin
+    if not timer1.Enabled then
+      timer1.Enabled:=true;
+
+    for i:=0 to changedlist.Items.Count-1 do
+    begin
+      case cbDisplayType.ItemIndex of
+        0: s:=ReadAndParseAddress(strtoint('$'+changedlist.items[i].caption), vtByte);
+        1: s:=ReadAndParseAddress(strtoint('$'+changedlist.items[i].caption), vtWord);
+        2: s:=ReadAndParseAddress(strtoint('$'+changedlist.items[i].caption), vtDWord);
+        3: s:=ReadAndParseAddress(strtoint('$'+changedlist.items[i].caption), vtSingle);
+        4: s:=ReadAndParseAddress(strtoint('$'+changedlist.items[i].caption), vtDouble);
+      end;
+
+      if Changedlist.Items[i].SubItems.Count=0 then
+        Changedlist.Items[i].SubItems.Add('');
+
+      Changedlist.Items[i].SubItems[0]:=s;
+    end;
+  end else timer1.Enabled:=false;
+end;
+
+procedure TfrmChangedAddresses.Timer1Timer(Sender: TObject);
+begin
+  refetchValues;
 end;
 
 end.

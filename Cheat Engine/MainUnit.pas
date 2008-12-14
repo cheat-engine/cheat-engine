@@ -431,6 +431,7 @@ type
     procedure Calculator1Click(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
+    procedure New1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -601,7 +602,7 @@ type
     procedure reinterpretaddresses;
 
 
-    
+    procedure ClearList; 
     procedure Updatelist;
     Procedure UpdateScreen;
     procedure SetWriteBreakpoint(address: dword; size: dword);
@@ -3690,15 +3691,8 @@ begin
   begin
     if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0)=mrNo) then
     begin
-      //no, clear the list
-      Comments.Memo1.Clear;
-      comments.Memo1.Lines.Add(strInfoAboutTable);
-      Numberofrecords:=0;
-      advancedoptions.codelist.clear;
-      advancedoptions.numberofcodes:=0;
-      Updatescreen;
-      Updatelist;
 
+      ClearList;
     end
     else
     begin
@@ -12160,6 +12154,26 @@ end;
 procedure TMainForm.Helpindex1Click(Sender: TObject);
 begin
   Application.HelpContext(1);
+end;
+
+procedure TMainForm.New1Click(Sender: TObject);
+begin
+  if MessageDlg('Are you sure you want to erase the data in the current table?',mtconfirmation, [mbyes,mbno],0)=mryes then
+    clearlist;
+end;
+
+procedure TMainForm.ClearList;
+{
+Will remove all entries from the cheattable, comments, and advanced options window
+}
+begin
+  Comments.Memo1.Clear;
+  comments.Memo1.Lines.Add(strInfoAboutTable);
+  Numberofrecords:=0;
+  advancedoptions.codelist.clear;
+  advancedoptions.numberofcodes:=0;
+  Updatescreen;
+  Updatelist;
 end;
 
 end.

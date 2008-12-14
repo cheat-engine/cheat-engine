@@ -99,7 +99,7 @@ resourcestring
 
 implementation
 
-uses {$ifdef net}ceclient,unit2{$else}MainUnit{$endif},
+uses {$ifdef net}ceclient,unit2{$else}MainUnit, MemoryBrowserFormUnit{$endif},
   inputboxtopunit,
   {$ifndef net}
   formChangedAddresses,
@@ -109,7 +109,6 @@ uses {$ifdef net}ceclient,unit2{$else}MainUnit{$endif},
   frmDirectXUnit,
 //  frmOpenglUnit,
   {$endif}
-  MemoryBrowserFormUnit,
   frmFindCodeInFileUnit,
   standaloneunit,
   formsettingsunit,
@@ -548,35 +547,10 @@ procedure TAdvancedOptions.Findoutwhatthiscodechanges1Click(
 var i: integer;
 begin
 {$ifndef net}
-  //New method:
-  if not startdebuggerifneeded then exit;
-  if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window)');
+  MemoryBrowser.FindWhatThisCodeAccesses(code[codelist.ItemIndex].Address);
+  {
 
-  if frmChangedAddresses<>nil then
-    frmChangedAddresses.changedlist.color:=clGray;
-
-  frmChangedAddresses:=TfrmChangedAddresses.Create(self);
-
-  debuggerthread.Suspend;
-
-  debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-  debuggerthread.DRRegs.Dr0:=code[codelist.ItemIndex].Address;
-  debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
-
-  for i:=0 to length(debuggerthread.threadlist)-1 do
-  begin
-    suspendthread(debuggerthread.threadlist[i][1]);
-    if not setthreadcontext(debuggerthread.threadlist[i][1],debuggerthread.DRRegs) then showmessage('failed 1');
-    resumethread(debuggerthread.threadlist[i][1]);
-  end;
-
-
-  debuggerthread.breakpointaddress:=code[codelist.ItemIndex].Address;
-  debuggerthread.breakpointset:=true;
-
-  debuggerthread.Resume;
-  frmChangedAddresses.show;
-
+     }
   {$endif}
 end;
 

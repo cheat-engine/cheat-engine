@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
   Left = 192
   Top = 113
-  Width = 355
+  Width = 353
   Height = 324
   Caption = 'Scan for codecaves'
   Color = clBtnFace
@@ -16,10 +16,10 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   OnCloseQuery = FormCloseQuery
   PixelsPerInch = 96
   TextHeight = 13
-  object ListBox1: TListBox
+  object lbCodecaveList: TListBox
     Left = 0
     Top = 0
-    Width = 266
+    Width = 264
     Height = 256
     Align = alClient
     Font.Charset = ANSI_CHARSET
@@ -28,12 +28,14 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     Font.Name = 'Courier'
     Font.Style = [fsBold]
     ItemHeight = 16
+    MultiSelect = True
     ParentFont = False
+    PopupMenu = PopupMenu1
     TabOrder = 0
-    OnDblClick = ListBox1DblClick
+    OnDblClick = lbCodecaveListDblClick
   end
   object Panel1: TPanel
-    Left = 266
+    Left = 264
     Top = 0
     Width = 81
     Height = 256
@@ -62,7 +64,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       Caption = 'Size of cave'
     end
     object btnStart: TButton
-      Left = 6
+      Left = 4
       Top = 160
       Width = 75
       Height = 25
@@ -122,7 +124,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   object Panel2: TPanel
     Left = 0
     Top = 256
-    Width = 347
+    Width = 345
     Height = 34
     Align = alBottom
     BevelOuter = bvNone
@@ -140,10 +142,19 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     object ProgressBar1: TProgressBar
       Left = 0
       Top = 17
-      Width = 347
+      Width = 345
       Height = 17
       Align = alBottom
       TabOrder = 1
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 128
+    Top = 24
+    object Copytoclipboard1: TMenuItem
+      Caption = 'Copy selection(s) to clipboard'
+      ShortCut = 16451
+      OnClick = Copytoclipboard1Click
     end
   end
 end

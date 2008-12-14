@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 712
-  Top = 372
+  Left = 236
+  Top = 333
   Width = 532
   Height = 565
   Hint = ' '
@@ -2896,14 +2896,17 @@ object MainForm: TMainForm
       Caption = 'File'
       object New1: TMenuItem
         Caption = 'New'
+        OnClick = New1Click
       end
       object N7: TMenuItem
         Caption = '-'
       end
       object Save1: TMenuItem
+        Action = actSave
         Caption = 'Save'
       end
       object Load1: TMenuItem
+        Action = actOpen
         Caption = 'Load'
       end
     end
@@ -2954,6 +2957,13 @@ object MainForm: TMainForm
     end
     object Help1: TMenuItem
       Caption = 'Help'
+      object Helpindex1: TMenuItem
+        Caption = 'Cheat Engine Help'
+        OnClick = Helpindex1Click
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
       object About1: TMenuItem
         Caption = 'About'
         OnClick = About1Click

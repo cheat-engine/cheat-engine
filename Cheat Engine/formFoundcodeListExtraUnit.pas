@@ -75,10 +75,26 @@ end;
 procedure TFormFoundCodeListExtra.Copyaddresstoclipboard1Click(
   Sender: TObject);
 var clip: tclipboard;
+s: string;
 begin
-  clip:=TClipboard.Create;
-  clip.AsText:=inttohex(probably,8);
-  clip.free;
+  s:=label7.Caption+#13#10;
+  s:=s+label8.Caption+#13#10;
+  s:=s+label9.Caption+#13#10;
+  s:=s+label11.Caption+#13#10;
+  s:=s+label16.Caption+#13#10;
+  s:=s+label14.Caption+#13#10;
+  s:=s+label12.Caption+#13#10;
+  s:=s+label13.Caption+#13#10;
+  s:=s+label15.Caption+#13#10;
+  s:=s+#13#10;
+  s:=s+'Probable base pointer ='+inttohex(probably,8)+#13#10#13#10;
+
+  s:=s+label1.Caption+#13#10;
+  s:=s+label2.Caption+#13#10;
+  s:=s+label3.Caption+#13#10;
+  s:=s+label4.Caption+#13#10;
+  s:=s+label5.Caption+#13#10;
+  clipboard.SetTextBuf(pchar(s));
 end;
 
 end.

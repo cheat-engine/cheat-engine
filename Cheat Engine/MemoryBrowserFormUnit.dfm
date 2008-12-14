@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 470
-  Top = 395
+  Left = 773
+  Top = 246
   Width = 673
   Height = 565
   HelpContext = 12
@@ -793,6 +793,10 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Break and trace instructions'
       OnClick = Breakandtraceinstructions1Click
     end
+    object Findoutwhataddressesthisinstructionaccesses1: TMenuItem
+      Caption = 'Find out what addresses this instruction accesses'
+      OnClick = Findoutwhataddressesthisinstructionaccesses1Click
+    end
     object N9: TMenuItem
       Caption = '-'
     end
@@ -874,6 +878,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Debug strings'
         ShortCut = 49220
         OnClick = Debugstrings1Click
+      end
+      object Floatingpointpanel1: TMenuItem
+        Caption = 'Floating point panel'
+        Visible = False
       end
       object N5: TMenuItem
         Caption = '-'

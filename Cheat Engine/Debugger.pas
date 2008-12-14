@@ -5,7 +5,8 @@ unit Debugger;
 interface
 
 uses Classes,windows,sysutils,cefuncproc,Messages,forms,SyncObjs,
-     dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils
+     dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils,
+     ComCtrls
      {$ifndef net}
      ,undochanges,assemblerunit,addressparser  //handled in the client version or not at all
      {$endif}
@@ -847,8 +848,13 @@ begin
 end;
 
 procedure TDebugger.addtochangeslist;
+var i: integer;
+    lbs: string;
+    newitem: TListItem;
+    x: pointer;
 begin
   {$ifndef netserver}
+
   with memorybrowser do
   begin
     EAXv:=context.Eax;
@@ -867,8 +873,21 @@ begin
   except
     //
   end;
-  if frmchangedaddresses.Changedlist.Items.IndexOf(inttohex(lastbreakpoint,8))=-1 then
-    frmchangedaddresses.Changedlist.Items.Add(inttohex(lastbreakpoint,8));
+
+
+  lbs:=inttohex(lastbreakpoint,8);
+  for i:=0 to frmchangedaddresses.Changedlist.Items.Count-1 do
+    if frmchangedaddresses.Changedlist.Items[i].Caption=lbs then exit; //already in the list
+
+  newitem:=frmchangedaddresses.Changedlist.Items.Add;
+  getmem(x,sizeof(_CONTEXT));
+  CopyMemory(x,@context,sizeof(_CONTEXT));  
+  newitem.Data:=x;
+  newitem.Caption:=lbs;
+
+  //enable the timer if needed, there's data to be handled
+  if not frmchangedaddresses.Timer1.Enabled then
+    frmchangedaddresses.Timer1.Enabled:=true;
   {$endif}
 end;
 

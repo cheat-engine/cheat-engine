@@ -25,6 +25,12 @@ firstscanhandler,
 {$endif}
 math,syncobjs, shellapi, ProcessHandlerUnit;
 
+//memscan
+type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
+type TScanType=(stNewScan, stFirstScan, stNextScan);
+type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
+type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtByteArray, vtBinary, vtAll, vtCustom);
+type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 
 
 type PUINT64 = ^uint64;
@@ -109,6 +115,8 @@ end;
 function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
+
+function readAndParseAddress(address: dword; variableType: TVariableType): string;
 
 procedure quicksortmemoryregions(lo,hi: integer);
 
@@ -3324,6 +3332,45 @@ end;
 function HexStrToInt64(const S: string): Int64;
 begin
   result:=StrToint64(ConvertHexStrToRealStr(s));
+end;
+
+function readAndParseAddress(address: dword; variableType: TVariableType): string;
+var buf: array [0..7] of byte;
+    x: dword;
+    check: boolean;
+begin
+  result:='???';
+  case variableType of
+    vtByte:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
+        result:=inttostr(buf[0]);
+    end;
+
+    vtWord:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
+        result:=inttostr(pword(@buf[0])^);
+    end;
+
+    vtDWord:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
+        result:=inttostr(pdword(@buf[0])^);
+    end;
+
+    vtSingle:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
+        result:=floattostr(psingle(@buf[0])^);
+    end;
+
+    vtDouble:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
+        result:=floattostr(pdouble(@buf[0])^);
+    end;
+  end;
 end;
 
 initialization
