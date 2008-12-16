@@ -1,6 +1,6 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 839
-  Top = 457
+  Left = 1376
+  Top = 625
   Width = 255
   Height = 280
   Caption = 'Changed Addresses'

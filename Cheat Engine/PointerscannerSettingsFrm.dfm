@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 511
-  Top = 303
+  Left = 838
+  Top = 414
   Width = 372
   Height = 418
   Caption = 'Pointerscanner scanoptions'
@@ -66,7 +66,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object edtAddress: TEdit
     Left = 8
     Top = 23
-    Width = 89
+    Width = 201
     Height = 21
     CharCase = ecUpperCase
     MaxLength = 8
@@ -91,21 +91,19 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 4
   end
   object rbDefault: TRadioButton
-    Left = 104
+    Left = 216
     Top = 8
     Width = 121
     Height = 17
     Hint = 
       'Starts from static addresses and then follows the path till it e' +
       'ncounters the target address'
-    Caption = 'Default pointer scan'
-    Checked = True
+    Caption = 'Old pointer scan'
     TabOrder = 5
-    TabStop = True
     OnClick = rbDefaultClick
   end
   object rbReverse: TRadioButton
-    Left = 104
+    Left = 216
     Top = 24
     Width = 129
     Height = 17
@@ -113,7 +111,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       'Starts from the target address and finds all addresses that poin' +
       't near there, and then go back further and further'
     Caption = 'Reverse pointer scan'
+    Checked = True
     TabOrder = 6
+    TabStop = True
     OnClick = rbReverseClick
   end
   object PSSettings: TPageControl

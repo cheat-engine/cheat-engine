@@ -140,7 +140,8 @@ uses
   frameHotkeyConfigUnit in 'frameHotkeyConfigUnit.pas' {frameHotkeyConfig: TFrame},
   htmlHelp in 'htmlHelp.pas',
   SynHighlighterAA in 'SynEdit\Source\SynHighlighterAA.pas',
-  SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas';
+  SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas',
+  frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -166,6 +167,7 @@ begin
   Application.CreateForm(TfrmdissectWindow, frmdissectWindow);
   Application.CreateForm(TfrmChangeValue, frmChangeValue);
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
+  Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
   initcetitle;
   Application.Run;
 end.

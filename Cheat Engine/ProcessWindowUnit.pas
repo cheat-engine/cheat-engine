@@ -380,50 +380,52 @@ var ProcessIDString: String;
 begin
   if Processlist.ItemIndex>-1 then
   begin
-    unpause;
-    DetachIfPossible;
-
-    ProcessIDString:='';
-    i:=1;
-    while ProcessList.Items[Processlist.ItemIndex][i]<>'-' do
+    if MessageDlg('Are you sure you want to attach the debugger and not just open this process? (You can later on always attach the debugger)',mtConfirmation,[mbyes,mbno],0)=mryes then
     begin
-      ProcessIDString:=ProcessIDString+ProcessList.Items[Processlist.ItemIndex][i];
-      inc(i);
-    end;
+      unpause;
+      DetachIfPossible;
 
-    val('$'+ProcessIDString,ProcessHandler.processid,i);
+      ProcessIDString:='';
+      i:=1;
+      while ProcessList.Items[Processlist.ItemIndex][i]<>'-' do
+      begin
+        ProcessIDString:=ProcessIDString+ProcessList.Items[Processlist.ItemIndex][i];
+        inc(i);
+      end;
 
-    if Processhandle<>0 then
-    begin
-      CloseHandle(ProcessHandle);
-      ProcessHandler.ProcessHandle:=0;
-    end;
+      val('$'+ProcessIDString,ProcessHandler.processid,i);
+
+      if Processhandle<>0 then
+      begin
+        CloseHandle(ProcessHandle);
+        ProcessHandler.ProcessHandle:=0;
+      end;
 
 
-    Debuggerthread:=TDebugger.MyCreate2(processid);
+      Debuggerthread:=TDebugger.MyCreate2(processid);
 
-    i:=0;
-    while i<=90 do
-    begin
-      if i=100 then raise exception.Create('The thread that was supposed to attach the debugger to the process failed. I recommend restarting Cheat Engine.');
-      if not debuggerthread.attaching then i:=100;
-      inc(i);
-      sleep(100);
-    end;
+      i:=0;
+      while i<=90 do
+      begin
+        if i=100 then raise exception.Create('The thread that was supposed to attach the debugger to the process failed. I recommend restarting Cheat Engine.');
+        if not debuggerthread.attaching then i:=100;
+        inc(i);
+        sleep(100);
+      end;
 
-    if not debuggerthread.attached then
-      raise exception.Create('The thread that was supposed to attach the debugger to the process failed. ');
+      if not debuggerthread.attached then
+        raise exception.Create('The thread that was supposed to attach the debugger to the process failed. ');
 
-    mainform.ProcessLabel.Caption:=ProcessList.Items[Processlist.ItemIndex];
+      mainform.ProcessLabel.Caption:=ProcessList.Items[Processlist.ItemIndex];
 
-    ProcessSelected:=true;
-    mainform.debugproc:=true;
+      ProcessSelected:=true;
+      mainform.debugproc:=true;
 
-    if formsettings.cbBreakOnAttach.checked then
-      memorybrowser.show;
+      if formsettings.cbBreakOnAttach.checked then
+        memorybrowser.show;
 
-    modalresult:=mrOK;
-
+      modalresult:=mrOK;
+    end
   end else showmessage('First select a process!');
 end;
 

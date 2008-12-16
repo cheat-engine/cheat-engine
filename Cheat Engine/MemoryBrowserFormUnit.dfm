@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 773
-  Top = 246
-  Width = 673
+  Left = 214
+  Top = 313
+  Width = 675
   Height = 565
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 290
-    Width = 665
+    Width = 667
     Height = 4
     Cursor = crVSplit
     Align = alTop
@@ -36,13 +36,13 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 665
+    Width = 667
     Height = 290
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 477
+      Left = 479
       Top = 0
       Height = 290
       Align = alRight
@@ -51,7 +51,7 @@ object MemoryBrowser: TMemoryBrowser
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 477
+      Width = 479
       Height = 290
       Align = alClient
       BevelOuter = bvNone
@@ -60,7 +60,7 @@ object MemoryBrowser: TMemoryBrowser
       object disassemblerscrollbox: TScrollBox
         Left = 0
         Top = 17
-        Width = 460
+        Width = 462
         Height = 256
         HorzScrollBar.Tracking = True
         VertScrollBar.Visible = False
@@ -73,7 +73,7 @@ object MemoryBrowser: TMemoryBrowser
         object DisCanvas: TPaintBox
           Left = 0
           Top = 17
-          Width = 460
+          Width = 462
           Height = 239
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -91,7 +91,7 @@ object MemoryBrowser: TMemoryBrowser
         object disassemblerheader: THeaderControl
           Left = 0
           Top = 0
-          Width = 460
+          Width = 462
           Height = 17
           Sections = <
             item
@@ -128,7 +128,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 477
+        Width = 479
         Height = 17
         Align = alTop
         BevelInner = bvLowered
@@ -136,7 +136,7 @@ object MemoryBrowser: TMemoryBrowser
         object Label1: TLabel
           Left = 2
           Top = 2
-          Width = 473
+          Width = 475
           Height = 13
           Align = alClient
           Alignment = taCenter
@@ -147,7 +147,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel6: TPanel
         Left = 0
         Top = 273
-        Width = 477
+        Width = 479
         Height = 17
         Align = alBottom
         BevelInner = bvLowered
@@ -163,7 +163,7 @@ object MemoryBrowser: TMemoryBrowser
         OnMouseDown = Panel5MouseDown
       end
       object ScrollBar1: TScrollBar
-        Left = 461
+        Left = 463
         Top = 17
         Width = 16
         Height = 256
@@ -179,7 +179,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object RegisterView: TPanel
-      Left = 480
+      Left = 482
       Top = 0
       Width = 185
       Height = 290
@@ -578,13 +578,21 @@ object MemoryBrowser: TMemoryBrowser
           ParentFont = False
           OnDblClick = EAXLabelDblClick
         end
+        object sbShowFloats: TSpeedButton
+          Left = 160
+          Top = 136
+          Width = 17
+          Height = 25
+          Caption = '>'
+          OnClick = sbShowFloatsClick
+        end
       end
     end
   end
   object Panel4: TPanel
     Left = 0
     Top = 294
-    Width = 665
+    Width = 667
     Height = 217
     Align = alClient
     BevelOuter = bvNone
@@ -594,12 +602,12 @@ object MemoryBrowser: TMemoryBrowser
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
     DesignSize = (
-      665
+      667
       217)
     object MBCanvas: TPaintBox
       Left = 1
       Top = 9
-      Width = 644
+      Width = 646
       Height = 206
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = memorypopup
@@ -618,7 +626,7 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Protection'
     end
     object ScrollBar2: TScrollBar
-      Left = 648
+      Left = 650
       Top = 1
       Width = 16
       Height = 215
@@ -878,10 +886,6 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Debug strings'
         ShortCut = 49220
         OnClick = Debugstrings1Click
-      end
-      object Floatingpointpanel1: TMenuItem
-        Caption = 'Floating point panel'
-        Visible = False
       end
       object N5: TMenuItem
         Caption = '-'

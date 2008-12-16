@@ -544,6 +544,7 @@ type
     test: single;
 
     debugproc: boolean;
+    autoopen: boolean; //boolean set when table is opened by other means than user file picker
 
     oldNumberOfRecords: Integer;
     oldMemrec: array of memoryrecord;
@@ -1350,7 +1351,7 @@ begin
   scanvalue.Enabled:=true;
   newscan.Enabled:=true;
 
-  undoscan.Enabled:=isnextscan; //nextascan was already enabled
+  undoscan.Enabled:=isnextscan; //nextscan was already enabled
   nextscanbutton.Enabled:=scanstarted;
   vartype.Enabled:=not scanstarted;
   scantype.Enabled:=true;
@@ -1373,6 +1374,8 @@ begin
 
   cbspeedhack.enabled:=true;
   cbunrandomizer.Enabled:=true;
+
+
 end;
 
 procedure TMainform.toggleWindow;
@@ -3559,6 +3562,7 @@ end;
 procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
 var newprocessname: string;
     i,j: integer;
+    fname,expectedfilename: string;
 begin
   newprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
 
@@ -3624,6 +3628,8 @@ begin
     exit;
   end;
          }
+
+
 
   if (processhandle=0)then
   begin
@@ -3716,6 +3722,24 @@ begin
   end;
 
   enablegui(nextscanbutton.enabled);
+
+  Fname:=copy(processlabel.caption,pos('-',processlabel.caption)+1,length(processLabel.caption));
+
+  if FName[length(FName)-3]='.' then  //it's a filename
+    expectedFilename:=copy(FName,1,length(FName)-4)+'.ct'
+  else //it's a normal title;
+    expectedFilename:=FName+'.ct';
+
+
+  if fileexists(expectedfilename) then
+  begin
+    if messagedlg('Load the associated table? ('+expectedFilename+')',mtConfirmation, [mbyes,mbno],0)=mryes then
+    begin
+      autoopen:=true;
+      opendialog1.FileName:=expectedfilename;
+      LoadButton.Click;
+    end;
+  end;
 
   UpdateScanType;
 end;
@@ -10566,8 +10590,9 @@ begin
 
   OpenDialog1.InitialDir:=cheatenginedir;
 
-  if Opendialog1.Execute then
+  if autoopen or Opendialog1.Execute then
   begin
+    autoopen:=false;
     Extension:=uppercase(extractfileext(opendialog1.filename));
     if (Extension<>'.XML') and
        (Extension<>'.PTR') and

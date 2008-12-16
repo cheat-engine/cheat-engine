@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,tlhelp32,cefuncproc,newkernelhandler, ComCtrls;
+  Dialogs, StdCtrls,tlhelp32,cefuncproc,newkernelhandler, ComCtrls, symbolhandler;
 
 type tmoduledata =class
   public
@@ -124,7 +124,8 @@ begin
   
   filterstart:=strtoint('$'+edtfilterstart.text);
   filterstop:=strtoint('$'+edtfilterstop.text);
-  automaticaddress:=strtoint('$'+edtAddress.text);
+
+  automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 
   unalligned:=cbunaligned.checked;
 

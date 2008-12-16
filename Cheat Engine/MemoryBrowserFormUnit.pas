@@ -173,8 +173,8 @@ type
     Panel2: TPanel;
     Label1: TLabel;
     ScrollBar1: TScrollBar;
-    Floatingpointpanel1: TMenuItem;
     Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
+    sbShowFloats: TSpeedButton;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -313,6 +313,7 @@ type
       HeaderControl: THeaderControl; Section: THeaderSection);
     procedure Findoutwhataddressesthisinstructionaccesses1Click(
       Sender: TObject);
+    procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -468,7 +469,7 @@ uses Valuechange,
 
   {$ifndef net}symbolconfigunit,frmTracerUnit,Structuresfrm,dissectcodeunit,pointerscannerfrm,driverlist,ServiceDescriptorTables,{$endif}
   frmDisassemblyscanunit, frmGDTunit, frmIDTunit, peINFOunit,
-  formChangedAddresses;
+  formChangedAddresses, frmFloatingPointPanelUnit;
 
 
 
@@ -2434,11 +2435,17 @@ begin
 
 
   if ischild then
+  begin
+    //do stuff particulary for the children
     action:=cafree;
+  end
+  else
+  begin
+    //do stuff for the main debugger
+    if frmFloatingPointPanel<>nil then
+      frmFloatingPointPanel.Visible:=false;
 
-
-
-
+  end;
 
 end;
 
@@ -4234,7 +4241,9 @@ begin
     debug1.Visible:=false;
     registerview.Visible:=false;
     splitter2.Visible:=false;
+    sbShowFloats.Visible:=false;
     caption:=caption+'* ('+inttostr(mbchildcount)+')';
+
     ischild:=true;
     show;
   end;
@@ -4470,6 +4479,19 @@ procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(
   Sender: TObject);
 begin
   findWhatthisCodeAccesses(dselected);
+end;
+
+procedure TMemoryBrowser.sbShowFloatsClick(Sender: TObject);
+var x: tpoint;
+z: trect;
+begin
+  if frmFloatingPointPanel=nil then
+    frmFloatingPointPanel:=TfrmFloatingPointPanel.create(self);
+
+  frmFloatingPointPanel.Left:=self.left+self.Width;
+  frmFloatingPointPanel.Top:=self.top+(self.ClientOrigin.y-self.top)-(frmFloatingPointPanel.ClientOrigin.y-frmFloatingPointPanel.top);
+  frmFloatingPointPanel.ClientHeight:=scrollbox1.Height;
+  frmFloatingPointPanel.show;//pop to foreground
 end;
 
 end.
