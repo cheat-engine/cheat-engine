@@ -1,6 +1,6 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1376
-  Top = 625
+  Left = 836
+  Top = 121
   Width = 255
   Height = 280
   Caption = 'Changed Addresses'
@@ -20,7 +20,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Top = 0
     Width = 247
-    Height = 33
+    Height = 26
     Align = alTop
     Caption = 
       'The following addresses have been changed by the code you select' +
@@ -59,14 +59,14 @@ object frmChangedAddresses: TfrmChangedAddresses
         '2 Bytes'
         '4 Bytes'
         'Single'
-        'Float')
+        'Double')
     end
   end
   object Changedlist: TListView
     Left = 0
-    Top = 33
+    Top = 26
     Width = 247
-    Height = 172
+    Height = 179
     Align = alClient
     Columns = <
       item
@@ -77,13 +77,23 @@ object frmChangedAddresses: TfrmChangedAddresses
         AutoSize = True
         Caption = 'Value'
       end>
+    RowSelect = True
     TabOrder = 1
     ViewStyle = vsReport
+    OnDblClick = ChangedlistDblClick
   end
   object Timer1: TTimer
     Interval = 500
     OnTimer = Timer1Timer
     Left = 56
     Top = 64
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 40
+    Top = 104
+    object Showregisterstates1: TMenuItem
+      Caption = 'Show register states'
+      OnClick = Showregisterstates1Click
+    end
   end
 end

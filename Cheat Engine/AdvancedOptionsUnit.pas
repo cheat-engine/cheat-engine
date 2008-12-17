@@ -564,6 +564,8 @@ end;
 procedure TAdvancedOptions.Openthedisassemblerhere1Click(Sender: TObject);
 begin
   memorybrowser.Disassembleraddress:=code[codelist.itemindex].Address;
+  memorybrowser.dselected:=memorybrowser.Disassembleraddress;
+
   if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
   memorybrowser.panel1.visible:=true;
   memorybrowser.show;

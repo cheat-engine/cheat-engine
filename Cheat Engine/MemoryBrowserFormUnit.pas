@@ -536,6 +536,7 @@ end;
 
 //^^^^
 
+
 procedure TMemoryBrowser.WMGetMinMaxInfo(var Message: TMessage);
 var MMInfo: ^MINMAXINFO;
 begin

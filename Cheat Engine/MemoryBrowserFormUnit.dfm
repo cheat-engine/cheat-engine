@@ -583,7 +583,10 @@ object MemoryBrowser: TMemoryBrowser
           Top = 136
           Width = 17
           Height = 25
+          Hint = 'Floating point registers'
           Caption = '>'
+          ParentShowHint = False
+          ShowHint = True
           OnClick = sbShowFloatsClick
         end
       end

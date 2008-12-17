@@ -14,11 +14,14 @@ type
     Changedlist: TListView;
     cbDisplayType: TComboBox;
     Timer1: TTimer;
+    PopupMenu1: TPopupMenu;
+    Showregisterstates1: TMenuItem;
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ChangedlistDblClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure Showregisterstates1Click(Sender: TObject);
   private
     { Private declarations }
     procedure refetchValues;
@@ -118,7 +121,8 @@ begin
 
         memrec[NumberOfRecords-1].Description:='No Description';
         memrec[NumberOfRecords-1].Address:=ad;
-        memrec[NumberOfRecords-1].VarType:=2;
+
+        memrec[NumberOfRecords-1].VarType:=cbDisplayType.itemindex;
 
         memrec[NumberOfRecords-1].Frozen:=false;
         memrec[NumberOfRecords-1].FrozenValue:=0;
@@ -166,6 +170,11 @@ end;
 procedure TfrmChangedAddresses.Timer1Timer(Sender: TObject);
 begin
   refetchValues;
+end;
+
+procedure TfrmChangedAddresses.Showregisterstates1Click(Sender: TObject);
+begin
+  showmessage('Not yet implemented');
 end;
 
 end.
