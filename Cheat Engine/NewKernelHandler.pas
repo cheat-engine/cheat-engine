@@ -100,6 +100,10 @@ type Tdbvm_changeselectors=function(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall;
 type Tdbvm_restore_interrupts=function: DWORD; stdcall;
 type Tdbvm_block_interrupts=function: DWORD; stdcall;
 
+type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
+type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
+
+
 
 
 procedure DONTUseDBKQueryMemoryRegion;
@@ -219,11 +223,14 @@ var
   useIOCTL                :TuseIOCTL;
   MakeKernelCopy          :TMakeKernelCopy;
 
-  //dbvm
+  //dbvm ce000000+
   dbvm_version            :Tdbvm_version;
   dbvm_changeselectors    :Tdbvm_changeselectors;
   dbvm_block_interrupts   :Tdbvm_block_interrupts;
   dbvm_restore_interrupts :Tdbvm_restore_interrupts;
+  //dbvm ce000004+
+  dbvm_read_physical_memory: Tdbvm_read_physical_memory
+  dbvm_write_physical_memory: Tdbvm_write_physical_memory
 
 var WindowsKernel: Thandle;
     DarkByteKernel: Thandle;
@@ -320,7 +327,10 @@ begin
     dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');
     dbvm_changeselectors:=GetProcAddress(DarkByteKernel,'dbvm_changeselectors');
     dbvm_block_interrupts:=GetProcAddress(DarkByteKernel,'dbvm_block_interrupts');
-    dbvm_restore_interrupts:=GetProcAddress(DarkByteKernel,'dbvm_restore_interrupts');    
+    dbvm_restore_interrupts:=GetProcAddress(DarkByteKernel,'dbvm_restore_interrupts');
+
+    dbvm_read_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_read_physical_memory');
+    dbvm_write_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_write_physical_memory');
 
     {$ifdef cemain}
     if pluginhandler<>nil then
