@@ -1,6 +1,6 @@
 object AdvancedOptions: TAdvancedOptions
   Left = 1303
-  Top = 758
+  Top = 728
   Width = 377
   Height = 258
   Anchors = []
@@ -193,6 +193,7 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Openthedisassemblerhere1: TMenuItem
       Caption = 'Open the disassembler at this location'
+      Default = True
       OnClick = Openthedisassemblerhere1Click
     end
     object Replaceall1: TMenuItem

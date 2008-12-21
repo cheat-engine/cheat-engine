@@ -229,8 +229,8 @@ var
   dbvm_block_interrupts   :Tdbvm_block_interrupts;
   dbvm_restore_interrupts :Tdbvm_restore_interrupts;
   //dbvm ce000004+
-  dbvm_read_physical_memory: Tdbvm_read_physical_memory
-  dbvm_write_physical_memory: Tdbvm_write_physical_memory
+  dbvm_read_physical_memory: Tdbvm_read_physical_memory;
+  dbvm_write_physical_memory: Tdbvm_write_physical_memory;
 
 var WindowsKernel: Thandle;
     DarkByteKernel: Thandle;
