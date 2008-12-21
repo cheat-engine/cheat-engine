@@ -10586,7 +10586,8 @@ begin
   if editingscript then raise exception.create('First close your script edit window before opening a new table');
 
   merge:=false;
-  if CheckIfSaved=false then exit;
+  if not autoopen then
+    if CheckIfSaved=false then exit;
 
   OpenDialog1.InitialDir:=cheatenginedir;
 

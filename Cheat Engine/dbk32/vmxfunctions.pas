@@ -7,11 +7,17 @@ uses windows;
 const
   VMCALL_GETVERSION=0;
   VMCALL_CHANGEPASSWORD=1;
+  VMCALL_READPHYSICALMEMORY=3;
+  VMCALL_WRITEPHYSICALMEMORY=4;
   VMCALL_REDIRECTINT1=9;
   VMCALL_INT1REDIRECTED=10;
   VMCALL_CHANGESELECTORS=12;
   VMCALL_BLOCK_INTERRUPTS=13;
   VMCALL_RESTORE_INTERRUPTS=14;
+  VMCALL_GETCR0=18;
+  VMCALL_GETCR3=19;
+  VMCALL_GETCR4=20;
+
 
 function dbvm_version: dword; stdcall;
 function dbvm_changepassword(password1,password2: dword):dword; stdcall;
@@ -19,6 +25,9 @@ function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall;
 function dbvm_restore_interrupts: DWORD; stdcall;
 function dbvm_block_interrupts: DWORD; stdcall;
 function dbvm_redirect_interrupt1(redirecttype: integer; newintvector: dword; int1cs: dword; int1eip: dword): dword; stdcall;
+function dbvm_read_physical_memory(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
+function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
+
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 
@@ -169,6 +178,60 @@ begin
     result:=$ffffffff;
   end;
 end;
+
+
+function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
+var vmcallinfo: record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  destinationPA: UINT64;
+  size: dword;
+  sourceVA: UINT64;
+  nopagefault: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WRITEPHYSICALMEMORY;
+  vmcallinfo.destinationPA:=PhysicalAddress;
+  vmcallinfo.size:=size;
+  vmcallinfo.sourceVA:=dword(source);
+  vmcallinfo.nopagefault:=0; //I like pagefaults
+  
+  try
+    result:=vmcall(@vmcallinfo,vmx_password1);
+  except
+    result:=$ffffffff;
+  end;
+end;
+
+function dbvm_read_physical_memory(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
+var vmcallinfo: record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  sourcePA: UINT64;
+  size: dword;
+  destinationVA: UINT64;
+  nopagefault: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_READPHYSICALMEMORY;
+  vmcallinfo.sourcePA:=PhysicalAddress;
+  vmcallinfo.size:=size;
+  vmcallinfo.destinationVA:=dword(destination);
+  vmcallinfo.nopagefault:=0; //I like pagefaults
+  
+  try
+    result:=vmcall(@vmcallinfo,vmx_password1);
+  except
+    result:=$ffffffff;
+  end;
+end;
+
 
 
 procedure configure_vmx(userpassword1,userpassword2: dword); //warning: not multithreaded, take care to only run at init!

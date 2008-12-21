@@ -89,6 +89,9 @@ exports dbvm_restore_interrupts;
 exports dbvm_block_interrupts;
 exports dbvm_redirect_interrupt1;
 
+exports dbvm_write_physical_memory;
+exports dbvm_read_physical_memory;
+
 begin
   randomize;
 end.
