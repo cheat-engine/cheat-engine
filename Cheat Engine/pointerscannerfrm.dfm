@@ -1,6 +1,6 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1018
-  Top = 484
+  Left = 364
+  Top = 257
   Width = 627
   Height = 432
   Caption = 'Pointer scan'
@@ -37,11 +37,12 @@ object frmPointerScanner: TfrmPointerScanner
     TabOrder = 1
   end
   object pgcPScandata: TPageControl
-    Left = 8
-    Top = 16
-    Width = 401
-    Height = 273
+    Left = 0
+    Top = 17
+    Width = 619
+    Height = 344
     ActivePage = tsPSReverse
+    Align = alClient
     TabOrder = 2
     object tsPSDefault: TTabSheet
       Caption = 'tsPSDefault'
@@ -180,33 +181,81 @@ object frmPointerScanner: TfrmPointerScanner
     object tsPSReverse: TTabSheet
       Caption = 'tsPSReverse'
       ImageIndex = 1
-      object Label5: TLabel
+      object tvRSThreads: TTreeView
         Left = 0
-        Top = 8
-        Width = 157
-        Height = 13
-        Caption = 'Total pointer paths encountered: '
-      end
-      object Label6: TLabel
-        Left = 0
-        Top = 24
-        Width = 140
-        Height = 13
-        Caption = 'Of those # have a static base'
-      end
-      object Button1: TButton
-        Left = 0
-        Top = 92
-        Width = 75
-        Height = 25
-        Hint = 
-          'This will stop the current scan and show you the results it has ' +
-          'found'
-        Caption = 'Stop'
-        ParentShowHint = False
-        ShowHint = True
+        Top = 97
+        Width = 611
+        Height = 191
+        Align = alClient
+        Indent = 19
         TabOrder = 0
-        OnClick = btnStopScanClick
+      end
+      object Panel2: TPanel
+        Left = 0
+        Top = 0
+        Width = 611
+        Height = 97
+        Align = alTop
+        BevelOuter = bvNone
+        TabOrder = 1
+        object Label5: TLabel
+          Left = 0
+          Top = 84
+          Width = 39
+          Height = 13
+          Caption = 'Threads'
+        end
+        object lblRSCurrentAddress: TLabel
+          Left = 0
+          Top = 48
+          Width = 99
+          Height = 13
+          Caption = 'Currently at address :'
+        end
+        object lblRSTotalStaticPaths: TLabel
+          Left = 0
+          Top = 24
+          Width = 140
+          Height = 13
+          Caption = 'Of those # have a static base'
+        end
+        object lblRSTotalPaths: TLabel
+          Left = 0
+          Top = 8
+          Width = 157
+          Height = 13
+          Caption = 'Total pointer paths encountered: '
+        end
+        object Label6: TLabel
+          Left = 0
+          Top = 64
+          Width = 56
+          Height = 13
+          Caption = 'Looking for:'
+        end
+      end
+      object Panel3: TPanel
+        Left = 0
+        Top = 288
+        Width = 611
+        Height = 28
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 2
+        object Button1: TButton
+          Left = 0
+          Top = 0
+          Width = 75
+          Height = 25
+          Hint = 
+            'This will stop the current scan and show you the results it has ' +
+            'found'
+          Caption = 'Stop'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 0
+          OnClick = btnStopScanClick
+        end
       end
     end
   end

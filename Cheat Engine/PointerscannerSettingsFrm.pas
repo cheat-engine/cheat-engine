@@ -4,7 +4,12 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,tlhelp32,cefuncproc,newkernelhandler, ComCtrls, symbolhandler;
+  Dialogs, StdCtrls,tlhelp32, ComCtrls
+  {$ifdef injectedpscan}
+  ,symbolhandlerlite;
+  {$else}
+  ,cefuncproc,newkernelhandler, symbolhandler;
+  {$endif}
 
 type tmoduledata =class
   public
@@ -163,7 +168,20 @@ var ths: thandle;
     bitcount: integer;
     PA,SA: dword;
 begin
+  {$ifdef injectedpscan}
+  //get the cpu and system affinity mask, only processmask is used
+  GetProcessAffinityMask(getcurrentprocess,PA,SA);
+
+  bitcount:=0;
+  while pa>0 do
+  begin
+    if (pa mod 2)=1 then inc(bitcount);
+    pa:=pa div 2;
+  end;
+
+  {$else}
   bitcount:=GetCPUCount+1;
+  {$endif}
   edtThreadcount.text:=inttostr(bitcount);
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);

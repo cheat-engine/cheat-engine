@@ -3147,7 +3147,7 @@ begin
     pa:=pa div 2;
   end;
 
-  result:=4; //cpucount;
+  result:=cpucount;
 end;
 
 function LoadFormPosition(form: Tform; var x: array of integer):boolean;

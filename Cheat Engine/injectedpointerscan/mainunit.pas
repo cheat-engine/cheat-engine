@@ -151,7 +151,7 @@ type
   end;
 
 type
-  Tfrmpointerscanner = class(TForm)
+  Tfrmpointerscannerold = class(TForm)
     Label9: TLabel;
     ProgressBar1: TProgressBar;
     MainMenu1: TMainMenu;
@@ -235,7 +235,7 @@ end;
 type tarraypath= array of tpath;
 
 var
-  frmPointerScanner: TfrmPointerScanner;
+  frmpointerscannerold: Tfrmpointerscannerold;
   staticlist: array of dword;
   dissectedstatics: dword=0;
 
@@ -284,8 +284,8 @@ uses settings;
 procedure TExecuter.execute;
 begin
   try
-    frmpointerscanner:=tfrmpointerscanner.Create(nil);
-    frmpointerscanner.ShowModal;
+    frmpointerscannerold:=tfrmpointerscannerold.Create(nil);
+    frmpointerscannerold.ShowModal;
 
     messagebox(0,'Exit pointerscan','exit',mb_ok);
 
@@ -388,12 +388,12 @@ end;
 
 procedure TDrawTreeview.done;
 begin
-  if frmpointerscanner<>nil then
+  if frmpointerscannerold<>nil then
   begin
-    frmpointerscanner.treeview2.Items.EndUpdate;
-    frmpointerscanner.progressbar1.position:=0;
-    frmpointerscanner.file1.Enabled:=true;
-    frmpointerscanner.Pointerscanner1.Enabled:=true;
+    frmpointerscannerold.treeview2.Items.EndUpdate;
+    frmpointerscannerold.progressbar1.position:=0;
+    frmpointerscannerold.file1.Enabled:=true;
+    frmpointerscannerold.Pointerscanner1.Enabled:=true;
   end;
 end;
 
@@ -429,7 +429,7 @@ begin
     progressbar.Max:=pointerlist.Size;
 
     try
-      while (not terminated) and (frmpointerscanner.pointerlist.Position<>pointerlist.Size) do
+      while (not terminated) and (frmpointerscannerold.pointerlist.Position<>pointerlist.Size) do
       begin
         pointerlist.ReadBuffer(stringlength,sizeof(stringlength));
         if ssize<=stringlength then
@@ -453,7 +453,7 @@ begin
         if st<>'' then st:=st+'+';
 
         if not terminated then
-          sendmessage(frmpointerscanner.Handle,wm_drawtreeviewAddToList,0,0);
+          sendmessage(frmpointerscannerold.Handle,wm_drawtreeviewAddToList,0,0);
 
         inc(total);
 
@@ -471,7 +471,7 @@ begin
   end;
 
   if not terminated then
-    sendmessage(frmpointerscanner.Handle,wm_drawtreeviewdone,0,0);
+    sendmessage(frmpointerscannerold.Handle,wm_drawtreeviewdone,0,0);
 end;
 
 //----------------------- scanner info --------------------------
@@ -605,13 +605,13 @@ begin
     sz:=structsize;
 
   try
-    if frmPointerScanner.Staticscanner=nil then
+    if frmPointerScannerold.Staticscanner=nil then
     begin
       terminate;
       exit; //it got freed
     end;
 
-    if frmPointerScanner.Staticscanner.Terminated then
+    if frmPointerScannerold.Staticscanner.Terminated then
     begin
       terminate;
       exit;
@@ -699,7 +699,7 @@ begin
 
 
   try
-    if frmPointerScanner.staticscanner=nil then exit;
+    if frmPointerScannerold.staticscanner=nil then exit;
   except
     exit;
   end;
@@ -787,21 +787,21 @@ end;
 
 //----------------------- staticscanner -------------------------
 
-procedure Tfrmpointerscanner.drawtreeviewdone(var message: tmessage);
+procedure Tfrmpointerscannerold.drawtreeviewdone(var message: tmessage);
 begin
   if DrawTreeviewThread<>nil then
     DrawTreeviewThread.done;
 end;
 
 
-procedure Tfrmpointerscanner.drawtreeviewAddToList(var message: tmessage); 
+procedure Tfrmpointerscannerold.drawtreeviewAddToList(var message: tmessage);
 begin
   if DrawTreeviewThread<>nil then
     DrawTreeviewThread.AddToList;
 end;
 
 
-procedure Tfrmpointerscanner.drawtreeview;
+procedure Tfrmpointerscannerold.drawtreeview;
 begin
   file1.Enabled:=false;
   Pointerscanner1.Enabled:=false;
@@ -813,13 +813,13 @@ begin
   DrawTreeviewThread.Resume;
 end;
 
-procedure TFrmpointerscanner.loadpointers;
+procedure Tfrmpointerscannerold.loadpointers;
 begin
   if pointerlist=nil then pointerlist:=tmemorystream.create;
   pointerlist.loadfromfile(staticscanner.filenames[0]);
 end;
 
-procedure TFrmpointerscanner.doneui;
+procedure Tfrmpointerscannerold.doneui;
 begin
   progressbar1.position:=0;
 
@@ -832,7 +832,7 @@ begin
   rescanmemory1.Enabled:=true;
 end;
 
-procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
+procedure Tfrmpointerscannerold.m_staticscanner_done(var message: tmessage);
 var x: tfilestream;
     result: tfilestream;
     i: integer;
@@ -1058,7 +1058,7 @@ begin
       method2scanners[i].Free;
     end;
 
-    postmessage(frmpointerscanner.Handle,staticscanner_done,0,0);
+    postmessage(frmpointerscannerold.Handle,staticscanner_done,0,0);
     terminate;
     freeandnil(Method2semaphore);
   end;
@@ -1075,19 +1075,19 @@ end;
 
 //---------------------------------main--------------------------
 
-procedure Tfrmpointerscanner.Method3Fastspeedandaveragememoryusage1Click(
+procedure Tfrmpointerscannerold.Method3Fastspeedandaveragememoryusage1Click(
   Sender: TObject);
 var
     i: integer;
 begin
 
   start:=now;
-  if frmpointerscannersettings=nil then
-    frmpointerscannersettings:=tfrmpointerscannersettings.create(self);
+  if frmpointerscannersettingsold=nil then
+    frmpointerscannersettingsold:=tfrmpointerscannersettingsold.create(self);
 
-  if frmpointerscannersettings.Visible then exit;
+  if frmpointerscannersettingsold.Visible then exit;
 
-    if frmpointerscannersettings.Showmodal=mrok then
+    if frmpointerscannersettingsold.Showmodal=mrok then
     begin
       treeview2.Visible:=false;
 
@@ -1115,9 +1115,9 @@ begin
       for i:=0 to length(dissectedpointersLevelMREWS)-1 do
         dissectedpointersLevelMREWS[i].Free;
 
-      setlength(dissectedpointersLevelpos,frmpointerscannersettings.maxlevel+1);
-      setlength(dissectedpointersLevel,frmpointerscannersettings.maxlevel+1);
-      setlength(dissectedpointersLevelMREWS,frmpointerscannersettings.maxlevel+1);
+      setlength(dissectedpointersLevelpos,frmpointerscannersettingsold.maxlevel+1);
+      setlength(dissectedpointersLevel,frmpointerscannersettingsold.maxlevel+1);
+      setlength(dissectedpointersLevelMREWS,frmpointerscannersettingsold.maxlevel+1);
 
       for i:=0 to length(dissectedpointersLevelpos)-1 do
         dissectedpointersLevelpos[i]:=0;
@@ -1133,9 +1133,9 @@ begin
       for i:=0 to length(possiblepathslevelMREWS)-1 do
         possiblepathslevelMREWS[i].Free;
 
-      setlength(possiblepathslevelpos,frmpointerscannersettings.maxlevel+1);
-      setlength(possiblepathslevel,frmpointerscannersettings.maxlevel+1);
-      setlength(possiblepathslevelMREWS,frmpointerscannersettings.maxlevel+1);
+      setlength(possiblepathslevelpos,frmpointerscannersettingsold.maxlevel+1);
+      setlength(possiblepathslevel,frmpointerscannersettingsold.maxlevel+1);
+      setlength(possiblepathslevelMREWS,frmpointerscannersettingsold.maxlevel+1);
 
       for i:=0 to length(possiblepathslevelpos)-1 do
         possiblepathslevelpos[i]:=0;
@@ -1153,29 +1153,29 @@ begin
       staticscanner:=TStaticscanner.Create(true);
 
       try
-        staticscanner.start:=frmpointerscannersettings.start;
-        staticscanner.stop:=frmpointerscannersettings.Stop;
-        staticscanner.filterstart:=frmpointerscannersettings.FilterStart;
-        staticscanner.filterstop:=frmpointerscannersettings.FilterStop;
-        staticscanner.unalligned:=frmpointerscannersettings.unalligned;
-        staticscanner.codescan:=frmpointerscannersettings.codescan;
+        staticscanner.start:=frmpointerscannersettingsold.start;
+        staticscanner.stop:=frmpointerscannersettingsold.Stop;
+        staticscanner.filterstart:=frmpointerscannersettingsold.FilterStart;
+        staticscanner.filterstop:=frmpointerscannersettingsold.FilterStop;
+        staticscanner.unalligned:=frmpointerscannersettingsold.unalligned;
+        staticscanner.codescan:=frmpointerscannersettingsold.codescan;
 
         staticscanner.automatic:=true;
 
-        staticscanner.automaticaddress:=frmpointerscannersettings.automaticaddress;
-        staticscanner.sz:=frmpointerscannersettings.structsize;
-        staticscanner.sz0:=frmpointerscannersettings.level0structsize;
-        staticscanner.maxlevel:=frmpointerscannersettings.maxlevel;
+        staticscanner.automaticaddress:=frmpointerscannersettingsold.automaticaddress;
+        staticscanner.sz:=frmpointerscannersettingsold.structsize;
+        staticscanner.sz0:=frmpointerscannersettingsold.level0structsize;
+        staticscanner.maxlevel:=frmpointerscannersettingsold.maxlevel;
         staticscanner.method2:=true;
         staticscanner.method3:=true;
-        staticscanner.fast:=frmpointerscannersettings.CheckBox1.Checked;
-        staticscanner.psychotic:=frmpointerscannersettings.psychotic;
-        staticscanner.writableonly:=frmpointerscannersettings.writableonly;
-        staticscanner.unallignedbase:=frmpointerscannersettings.unallignedbase;
+        staticscanner.fast:=frmpointerscannersettingsold.CheckBox1.Checked;
+        staticscanner.psychotic:=frmpointerscannersettingsold.psychotic;
+        staticscanner.writableonly:=frmpointerscannersettingsold.writableonly;
+        staticscanner.unallignedbase:=frmpointerscannersettingsold.unallignedbase;
 
         staticscanner.progressbar:=progressbar1;
-        staticscanner.threadcount:=frmpointerscannersettings.threadcount;
-        staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
+        staticscanner.threadcount:=frmpointerscannersettingsold.threadcount;
+        staticscanner.scannerpriority:=frmpointerscannersettingsold.scannerpriority;
 
         progressbar1.Max:=staticscanner.stop-staticscanner.start;
 
@@ -1190,7 +1190,7 @@ begin
     end;
 end;
 
-procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);
+procedure Tfrmpointerscannerold.Timer2Timer(Sender: TObject);
 var i,j,l: integer;
     s: string;
     a: string;
@@ -1256,7 +1256,7 @@ begin
   label5.caption:=inttostr(incorrectresult);
 end;
 
-procedure Tfrmpointerscanner.Showresults1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.Showresults1Click(Sender: TObject);
 begin
   panel1.caption:='There are '+inttostr(pointersfound)+' pointers in the list';
   
@@ -1268,7 +1268,7 @@ begin
 
 end;
 
-procedure Tfrmpointerscanner.Save1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.Save1Click(Sender: TObject);
 var y: tfilestream;
 begin
   if savedialog1.execute then
@@ -1282,7 +1282,7 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.Open1Click(Sender: TObject);
 var x: tfilestream;
     offset: dword;
     offsetsize: dword;
@@ -1434,10 +1434,10 @@ begin
     progressbar.Position:=oldpointerlist.Position;
   end;
 
-  postmessage(frmPointerScanner.Handle,rescan_done,0,0);
+  postmessage(frmPointerScannerold.Handle,rescan_done,0,0);
 end;
 
-procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.Rescanmemory1Click(Sender: TObject);
 var address: dword;
     saddress: string;
 begin
@@ -1461,7 +1461,7 @@ begin
 
 end;
 
-procedure tfrmpointerscanner.rescandone(var message: tmessage);
+procedure tfrmpointerscannerold.rescandone(var message: tmessage);
 begin
   pointerlist.free;
   pointerlist:=rescan.newpointerlist;
@@ -1478,7 +1478,7 @@ begin
   showresults1.Click;  
 end;
 
-procedure Tfrmpointerscanner.Button1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.Button1Click(Sender: TObject);
 begin
   if staticscanner<>nil then
   begin
@@ -1487,7 +1487,7 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.FormClose(Sender: TObject;
+procedure Tfrmpointerscannerold.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var i,j: integer;
 begin
@@ -1540,10 +1540,10 @@ begin
     freeandnil(method2semaphore); 
 
   action:=cafree;
-  frmpointerscanner:=nil;
+  frmpointerscannerold:=nil;
 end;
 
-procedure Tfrmpointerscanner.FormShow(Sender: TObject);
+procedure Tfrmpointerscannerold.FormShow(Sender: TObject);
 begin
   self.BringToFront;
   self.SetFocus;
@@ -1551,17 +1551,17 @@ begin
   label9.Left:=0;
 end;
 
-procedure Tfrmpointerscanner.openscanner(var message: tmessage);
+procedure Tfrmpointerscannerold.openscanner(var message: tmessage);
 begin
-  if frmpointerscannersettings=nil then
-    frmpointerscannersettings:=tfrmpointerscannersettings.create(self);
+  if frmpointerscannersettingsold=nil then
+    frmpointerscannersettingsold:=tfrmpointerscannersettingsold.create(self);
 
-  frmpointerscannersettings.edtAddress.text:=inttohex(message.WParam,8);
+  frmpointerscannersettingsold.edtAddress.text:=inttohex(message.WParam,8);
   Method3Fastspeedandaveragememoryusage1.Click;
 end;
 
 
-procedure Tfrmpointerscanner.TreeView2DblClick(Sender: TObject);
+procedure Tfrmpointerscannerold.TreeView2DblClick(Sender: TObject);
 var ms: tmemorystream;
     x: dword;
     t: ttreenode;
@@ -1598,7 +1598,7 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.New1Click(Sender: TObject);
+procedure Tfrmpointerscannerold.New1Click(Sender: TObject);
 begin
   button1.Click;
   treeview2.Visible:=false;

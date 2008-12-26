@@ -25,21 +25,21 @@ object frmInjectedpointerscanornot: TfrmInjectedpointerscanornot
       'fault one (slow)?'
   end
   object Button1: TButton
-    Left = 200
-    Top = 32
-    Width = 75
-    Height = 25
-    Caption = 'Default'
-    ModalResult = 6
-    TabOrder = 1
-  end
-  object Button2: TButton
     Left = 112
     Top = 32
     Width = 75
     Height = 25
-    Caption = 'Injected'
+    Caption = 'Default'
     Default = True
+    ModalResult = 6
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 200
+    Top = 32
+    Width = 75
+    Height = 25
+    Caption = 'Injected'
     ModalResult = 7
     TabOrder = 0
   end

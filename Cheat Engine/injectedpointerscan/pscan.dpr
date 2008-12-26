@@ -14,11 +14,14 @@ uses
   SysUtils,
   Classes,
   windows,
-  mainunit in 'mainunit.pas' {frmpointerscanner},
-  settings in 'settings.pas' {frmpointerscannersettings},
+  mainunit in 'mainunit.pas' {frmpointerscannerold},
+  settings in 'settings.pas' {frmpointerscannersettingsold},
   SyncObjs2 in '..\SyncObjs2.pas',
   symbolhandlerlite in 'symbolhandlerlite.pas',
-  globals in '..\CEHook\globals.pas';   
+  globals in '..\CEHook\globals.pas',
+  PointerscannerSettingsFrm in '..\PointerscannerSettingsFrm.pas' {frmPointerScannerSettings},
+  pointerscannerfrm in '..\pointerscannerfrm.pas' {frmPointerScanner},
+  VirtualMemoryStub in 'VirtualMemoryStub.pas';
 
 {$R *.res}
 begin

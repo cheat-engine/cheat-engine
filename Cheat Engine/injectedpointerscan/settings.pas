@@ -13,7 +13,7 @@ type tmoduledata =class
 end;
   
 type
-  TfrmPointerScannerSettings = class(TForm)
+  Tfrmpointerscannersettingsold = class(TForm)
     Label1: TLabel;
     Label2: TLabel;
     Label4: TLabel;
@@ -68,13 +68,13 @@ type
     scannerpriority: TThreadPriority;
   end;
 
-var frmpointerscannersettings: tfrmpointerscannersettings;
+var frmpointerscannersettingsold: tfrmpointerscannersettingsold;
 
 implementation
 
 {$R *.dfm}
 
-procedure TfrmPointerScannerSettings.ListBox1Click(Sender: TObject);
+procedure Tfrmpointerscannersettingsold.ListBox1Click(Sender: TObject);
 begin
   if listbox1.ItemIndex<>-1 then
   begin
@@ -83,7 +83,7 @@ begin
   end;
 end;
 
-procedure TfrmPointerScannerSettings.FormClose(Sender: TObject;
+procedure Tfrmpointerscannersettingsold.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var i: integer;
 begin
@@ -93,7 +93,7 @@ begin
   listbox1.Clear;
 end;
 
-procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
+procedure Tfrmpointerscannersettingsold.Button1Click(Sender: TObject);
 begin
   start:=strtoint('$'+edtStart.text);
   stop:=strtoint('$'+edtStop.text);
@@ -132,7 +132,7 @@ begin
   modalresult:=mrok;
 end;
 
-procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);
+procedure Tfrmpointerscannersettingsold.FormShow(Sender: TObject);
 var ths: thandle;
     me32: MODULEENTRY32;
     x: pchar;

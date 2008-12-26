@@ -1,6 +1,6 @@
-object frmpointerscanner: Tfrmpointerscanner
-  Left = 618
-  Top = 219
+object frmpointerscannerold: Tfrmpointerscannerold
+  Left = 899
+  Top = 232
   Width = 564
   Height = 358
   Caption = 'CE Injected Pointerscan'

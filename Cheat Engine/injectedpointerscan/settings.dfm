@@ -1,4 +1,4 @@
-object frmpointerscannersettings: Tfrmpointerscannersettings
+object frmpointerscannersettingsold: Tfrmpointerscannersettingsold
   Left = 938
   Top = 335
   Width = 373

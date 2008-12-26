@@ -52,7 +52,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 25
     Caption = 'OK'
     Default = True
-    TabOrder = 0
+    TabOrder = 1
     OnClick = Button1Click
   end
   object editStructsize: TEdit
@@ -60,7 +60,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Top = 327
     Width = 65
     Height = 21
-    TabOrder = 1
+    TabOrder = 2
     Text = '2048'
   end
   object edtAddress: TEdit
@@ -70,7 +70,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 21
     CharCase = ecUpperCase
     MaxLength = 8
-    TabOrder = 2
+    TabOrder = 0
   end
   object editMaxLevel: TEdit
     Left = 184

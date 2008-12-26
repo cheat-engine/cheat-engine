@@ -4,13 +4,23 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls,disassembler,cefuncproc,newkernelhandler,
-  syncobjs,syncobjs2, Menus, virtualmemory, symbolhandler,mainunit;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus,
+
+  {$ifdef injectedpscan}
+  virtualmemorystub, symbolhandlerlite, globals;
+  {$else}
+  virtualmemory, symbolhandler,mainunit,disassembler,cefuncproc,newkernelhandler;
+  {$endif}
 
 
 const staticscanner_done=wm_user+1;
 const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
+
+{$ifdef injectedpscan}
+const wm_drawtreeviewdone=wm_user+4;
+const wm_drawtreeviewAddToList=wm_user+5;
+{$endif}
 
 type TDrawTreeview=class(tthread)
   private
@@ -88,6 +98,13 @@ type
 
     staticscanner: TStaticscanner;
 
+    //info:
+    currentaddress: pointer;
+    currentlevel: integer;
+    LookingForMin: dword;
+    LookingForMax: dword;
+    lastaddress: dword;
+    
     filename: string;
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -158,6 +175,9 @@ type
     firstaddress: pointer;
     currentaddress: pointer;
     lastaddress: pointer;
+
+    lookingformin: dword;
+    lookingformax: dword;
     //reverse^
 
     reuse: boolean;
@@ -236,8 +256,14 @@ type
     Label17: TLabel;
     Label18: TLabel;
     Label19: TLabel;
-    Label5: TLabel;
     btnStopScan: TButton;
+    tvRSThreads: TTreeView;
+    Panel2: TPanel;
+    Label5: TLabel;
+    lblRSCurrentAddress: TLabel;
+    lblRSTotalStaticPaths: TLabel;
+    lblRSTotalPaths: TLabel;
+    Panel3: TPanel;
     Button1: TButton;
     Label6: TLabel;
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
@@ -259,6 +285,12 @@ type
     rescan: trescanpointers;
     cewindowhandle: thandle;
     drawtreeviewthread: TDrawTreeview;
+
+    {$ifdef injectedpscan}
+    procedure drawtreeviewdone(var message: tmessage); message wm_drawtreeviewdone;
+    procedure drawtreeviewAddToList(var message: tmessage); message wm_drawtreeviewAddToList;
+    {$endif}
+
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
     procedure openscanner(var message: tmessage); message open_scanner;
@@ -324,8 +356,8 @@ var
   incorrectresult: dword;
   continued: dword;
 
-
   vm: tvirtualmemory;
+
 
 implementation
 
@@ -512,8 +544,11 @@ begin
 
         if st<>'' then st:=st+'+';
 
-        if not terminated then
-          synchronize(AddToList);
+        {$ifdef injectedpscan}
+        if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewAddToList,0,0);
+        {$else}
+        if not terminated then synchronize(AddToList);
+        {$endif}
 
         inc(total);
 
@@ -533,9 +568,12 @@ begin
 
 
   setlength(offsetlist,0);
-  
-  if not terminated then
-    synchronize(done);
+
+  {$ifdef injectedpscan}
+  if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewdone,0,0);
+  {$else}
+  if not terminated then synchronize(done);
+  {$endif}
 end;
 
 //----------------------- scanner info --------------------------
@@ -853,6 +891,20 @@ end;
 
 //----------------------- staticscanner -------------------------
 
+{$ifdef injectedpscan}
+procedure Tfrmpointerscanner.drawtreeviewdone(var message: tmessage);
+begin
+  if DrawTreeviewThread<>nil then
+    DrawTreeviewThread.done;
+end;
+
+
+procedure Tfrmpointerscanner.drawtreeviewAddToList(var message: tmessage);
+begin
+  if DrawTreeviewThread<>nil then
+    DrawTreeviewThread.AddToList;
+end;
+{$endif}
 
 procedure Tfrmpointerscanner.drawtreeview;
 begin
@@ -1020,7 +1072,6 @@ begin
     begin
       try
         rscan(startaddress,startlevel+1);
-
       finally
         isdone:=true;  //set isdone to true
         reversescansemaphore.release;
@@ -1042,18 +1093,24 @@ var i: integer;
     foundstatic: boolean;
     mi: tmoduleinfo;
 begin
-  inc(fcount);
+
 
   foundstatic:=false;
   for i:=0 to level do
     if symhandler.getmodulebyaddress(tempresults[i],mi) then
     begin
       //we found a static address in the path!!!
+      {$ifdef injectedpscan}
+      if mi.modulename='pscan.dll' then exit; //certainly NOT through the pointerscan dll.
+      {$endif}
+      
       level:=i; //cut it off at i, not level
       inc(scount);
       foundstatic:=true;
       break;
     end;
+
+  inc(fcount);
 
   if not foundstatic then
   begin
@@ -1100,7 +1157,9 @@ var p: ^byte;
     createdworker: boolean;
 
     mi: tmoduleinfo;
+    mbi: _MEMORY_BASIC_INFORMATION;
 begin
+  currentlevel:=level;
   if (level>=maxlevel) or
      (symhandler.getmodulebyaddress(address,mi)) then //static address
   begin
@@ -1113,61 +1172,76 @@ begin
     exit;
 
 
-  
+
   p:=vm.GetBuffer;
   AddressMinusMaxStructSize:=address-structsize;
   maxaddress:=dword(p)+vm.GetBufferSize;
+  lastaddresS:=maxaddress;
+  
+  currentaddress:=p;
+  LookingForMin:=AddressMinusMaxStructSize;
+  LookingForMax:=address;  
 
 
   while dword(p)<maxaddress do
   begin
-    if (pd^<=address) and
-       (pd^>AddressMinusMaxStructSize) then
-    begin
-      //found one
-      found:=true;
-      tempresults[level]:=vm.PointerToAddress(p);
-
-      //check if I can offload it to another thread
-      if staticscanner.isdone and ((level+1)<maxlevel) then //best only do it when staticscanner is done
+    {$ifdef injectedpscan}
+    try
+    {$endif}
+      currentaddress:=p;
+      if (pd^<=address) and
+         (pd^>AddressMinusMaxStructSize) then
       begin
-        createdworker:=false;
-        reverseScanCS.Enter;
-        
-        //scan the worker thread array for a idle one, if found use it
-        for i:=0 to length(staticscanner.reversescanners)-1 do
+        //found one
+        found:=true;
+        tempresults[level]:=vm.PointerToAddress(p);
+
+        //check if I can offload it to another thread
+        if staticscanner.isdone and ((level+1)<maxlevel) then //best only do it when staticscanner is done
         begin
-          if staticscanner.reversescanners[i].isdone then
+          createdworker:=false;
+          reverseScanCS.Enter;
+        
+          //scan the worker thread array for a idle one, if found use it
+          for i:=0 to length(staticscanner.reversescanners)-1 do
           begin
-            staticscanner.reversescanners[i].isdone:=false;
-            staticscanner.reversescanners[i].maxlevel:=maxlevel;
-            staticscanner.reversescanners[i].addresstofind:=addresstofind; //in case it wasn't set yet...
+            if staticscanner.reversescanners[i].isdone then
+            begin
+              staticscanner.reversescanners[i].isdone:=false;
+              staticscanner.reversescanners[i].maxlevel:=maxlevel;
+              staticscanner.reversescanners[i].addresstofind:=addresstofind; //in case it wasn't set yet...
 
-            staticscanner.reversescanners[i].startaddress:=vm.PointerToAddress(p);
-            for j:=0 to maxlevel-1 do
-              staticscanner.reversescanners[i].tempresults[j]:=tempresults[j]; //copy results
+              staticscanner.reversescanners[i].startaddress:=vm.PointerToAddress(p);
+              for j:=0 to maxlevel-1 do
+                staticscanner.reversescanners[i].tempresults[j]:=tempresults[j]; //copy results
 
-            staticscanner.reversescanners[i].startlevel:=level;
-            staticscanner.reversescanners[i].structsize:=structsize;
-            staticscanner.reversescanners[i].startworking.SetEvent;
-            break;
+              staticscanner.reversescanners[i].startlevel:=level;
+              staticscanner.reversescanners[i].structsize:=structsize;
+              staticscanner.reversescanners[i].startworking.SetEvent;
+              break;
+            end;
           end;
+
+          reverseScanCS.Leave;
+
+          if createdworker then continue;  //stop processing the rest of this routine and continue scanning
         end;
 
-        reverseScanCS.Leave;
 
-        if createdworker then continue;  //stop processing the rest of this routine and continue scanning
+        rscan(tempresults[level],level+1);
+        //messagebox(0,pchar(inttohex(address,8)),'',0);
       end;
 
-
-      rscan(tempresults[level],level+1);
-      //messagebox(0,pchar(inttohex(address,8)),'',0);
+      if alligned then
+        inc(pd) //dword pointer+1
+      else
+        inc(p); //byte pointer+1
+    {$ifdef injectedpscan}
+    except
+      VirtualQuery(p,mbi,sizeof(mbi));
+      inc(p,mbi.RegionSize); //try next region
     end;
-
-    if alligned then
-      inc(pd) //dword pointer+1
-    else
-      inc(p); //byte pointer+1
+    {$endif}
   end;
 
   if (not found) and (not staticonly) then
@@ -1192,6 +1266,9 @@ var p: ^byte;
     results: array of dword;
     i,j: integer;
     alldone: boolean;
+    {$ifdef injectedpscan}
+    mbi: _MEMORY_BASIC_INFORMATION;
+    {$endif}
 begin
     //scan the buffer
     fcount:=0; //debug counter to 0
@@ -1202,61 +1279,71 @@ begin
     setlength(results,maxlevel);
     p:=vm.GetBuffer;
     automaticAddressMinusMaxStructSize:=automaticAddress-sz;
-
+    lookingformin:=automaticAddressMinusMaxStructSize;
+    lookingformax:=automaticAddress;
 
     maxaddress:=dword(p)+vm.GetBufferSize;
 
     lastaddress:=pointer(maxaddress); //variable for progressbar calculation
     currentaddress:=p;
     j:=0;
-    
+
     start:=gettickcount;
     while dword(p)<maxaddress do
     begin
       currentaddress:=p;
-      
-      if (pd^<=automaticaddress) and
-         (pd^>automaticAddressMinusMaxStructSize) then
-      begin
-        //found one
-        //activate a worker thread to do this path
-        reversescansemaphore.Aquire; //aquire here, the thread will release it
-
-        //quick check if we didn't wait to long and the user clicked terminate
-        if terminated then
+      {$ifdef injectedpscan}
+      try
+      {$endif}
+        if (pd^<=automaticaddress) and
+           (pd^>automaticAddressMinusMaxStructSize) then
         begin
-          reversescansemaphore.release;
-          break;
-        end;
+          //found one
 
-        //find an inactive thread
-        for i:=0 to length(reversescanners)-1 do
-        begin
-          if reversescanners[i].isdone then
+          reversescansemaphore.Aquire; //aquire here, the thread will release it when done
+
+          //activate a worker thread to do this path
+          
+          //quick check if we didn't wait to long and the user clicked terminate
+          if terminated then
           begin
-            reversescanners[i].isdone:=false;
-            reversescanners[i].maxlevel:=maxlevel;
-
-            reversescanners[i].startaddress:=vm.PointerToAddress(p);
-            reversescanners[i].addresstofind:=self.automaticaddress;
-            reversescanners[i].tempresults[0]:=reversescanners[i].startaddress;
-            reversescanners[i].startlevel:=0;
-            reversescanners[i].structsize:=sz;
-            reversescanners[i].startworking.SetEvent;
+            reversescansemaphore.release;
             break;
           end;
+
+          //find an inactive thread (there has to be at least one since we got through the semaphore)
+          for i:=0 to length(reversescanners)-1 do
+          begin
+            if reversescanners[i].isdone then
+            begin
+              reversescanners[i].isdone:=false;
+              reversescanners[i].maxlevel:=maxlevel;
+
+              reversescanners[i].startaddress:=vm.PointerToAddress(p);
+              reversescanners[i].addresstofind:=self.automaticaddress;
+              reversescanners[i].tempresults[0]:=reversescanners[i].startaddress;
+              reversescanners[i].startlevel:=0;
+              reversescanners[i].structsize:=sz;
+              reversescanners[i].startworking.SetEvent;
+              break;
+            end;
+          end;
+
+          //results[0]:=vm.PointerToAddress(p);
+          //rscan(results[0],1,results);
+          //messagebox(0,pchar(inttohex(address,8)),'',0);
         end;
 
-
-        //results[0]:=vm.PointerToAddress(p);
-        //rscan(results[0],1,results);
-        //messagebox(0,pchar(inttohex(address,8)),'',0);
+        if unalligned then
+          inc(p) //byte pointer+1
+        else
+          inc(pd); //dword pointer+1
+      {$ifdef injectedpscan}
+      except
+        VirtualQuery(p,mbi,sizeof(mbi));
+        inc(p,mbi.RegionSize); //try next region
       end;
-
-      if unalligned then
-        inc(p) //byte pointer+1
-      else
-        inc(pd); //dword pointer+1
+      {$endif}
 
       currentaddress:=p;
     end;
@@ -1299,7 +1386,7 @@ begin
 
 
     stop:=gettickcount;
-    messagebox(0,'scan done','',mb_ok);
+    //messagebox(0,'scan done','',mb_ok);
 
 
 end;
@@ -1618,6 +1705,7 @@ begin
       begin
         staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
         pgcPScandata.ActivePage:=tsPSReverse;
+        tvRSThreads.Items.Clear;
       end
       else
       begin
@@ -1696,6 +1784,7 @@ var i,j,l: integer;
     donetime,todotime: integer;
     oneaddresstime: double;
     _h,_m,_s: integer;
+    tn,tn2: TTreenode;
 begin
  // label6.Caption:=inttostr(fcount);
  // label23.Caption:=inttostr(scount);
@@ -1707,13 +1796,74 @@ begin
   try
     if staticscanner.reverse then
     begin
+      lblRSTotalPaths.caption:=format('Total pointer paths encountered: %d ',[fcount]);
+      lblRSTotalStaticPaths.caption:=format('Of those %d have a static base',[scount]);
+
+      {$ifdef injectedpscan}
+      lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
+      {$else}
+
+      lblRSCurrentAddress.Caption:=format('Currently at address %0.8x (going till %0.8x)',[vm.PointerToAddress(staticscanner.currentaddress), vm.PointerToAddress(staticscanner.lastaddress)]);
+      {$endif}
+
+
       label2.Caption:=inttostr(scount)+' of '+inttostr(fcount);
+      label6.caption:='Looking for :'+inttohex(staticscanner.lookingformin,8)+'-'+inttohex(staticscanner.lookingformax,8);;
      
       if staticscanner.phase=2 then
       begin
         //calculate time left
         todo:=dword(staticscanner.lastaddress)-dword(staticscanner.currentaddress);
         done:=dword(staticscanner.currentaddress)-dword(staticscanner.firstaddress);
+      end;
+
+      if tvRSThreads.Items.Count<length(staticscanner.reversescanners) then
+      begin
+        //add them
+
+        for i:=0 to length(staticscanner.reversescanners)-1 do
+        begin
+          tn:=tvRSThreads.Items.Add(nil,'Thread '+inttostr(i+1));
+          tvRSThreads.Items.AddChild(tn,'Current Level:0');
+          tvRSThreads.Items.AddChild(tn,'Current Address:0');
+          tvRSThreads.Items.AddChild(tn,'Going till :0');
+          tvRSThreads.Items.AddChild(tn,'Looking for :0-0');          
+        end;
+      end;
+
+      tn:=tvRSThreads.Items.GetFirstNode;
+      i:=0;
+      while tn<>nil do
+      begin
+        if staticscanner.reversescanners[i].isdone then
+        begin
+          tn.Text:='Thread '+inttostr(i+1)+' (Sleeping)';
+          tn2:=tn.getFirstChild;
+          tn2.text:='Sleeping';
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Sleeping';
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Sleeping';
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Sleeping';
+        end
+        else
+        begin
+          tn.text:='Thread '+inttostr(i+1)+' (Active)';
+          tn2:=tn.getFirstChild;
+
+
+          tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel);
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Current Address:'+inttohex(vm.PointerToAddress(staticscanner.reversescanners[i].currentaddress),8);
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Going till:'+inttohex(vm.PointerToAddress(pointer(staticscanner.reversescanners[i].lastaddress)),8);
+          tn2:=tn2.getNextSibling;
+          tn2.text:='Looking for :'+inttohex(staticscanner.reversescanners[i].lookingformin,8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax,8);;
+        end;
+
+        tn:=tn.getNextSibling;
+        inc(i);
       end;
 
     end
@@ -2054,6 +2204,43 @@ end;
 
 
 procedure Tfrmpointerscanner.tvResultsDblClick(Sender: TObject);
+{$ifdef injectedpscan}
+var ms: tmemorystream;
+    x: dword;
+    t: ttreenode;
+
+    p: thandle;
+    targetbuffer: pointer;
+    CDS: COPYDATASTRUCT;
+begin
+  t:=tvResults.Selected;
+  if t=nil then exit;
+  if t.Level<>0 then exit;
+
+  ms:=tmemorystream.Create;
+  try
+    x:=length(tvResults.Selected.Text);
+    ms.WriteBuffer(x,sizeof(x));
+    ms.WriteBuffer(tvResults.Selected.Text[1],x);
+
+    t:=t.GetLastChild;
+
+    while t<>nil do
+    begin
+      x:=strtoint('$'+t.Text);
+      ms.WriteBuffer(x,4);
+      t:=t.getPrevSibling;
+    end;
+
+    cds.dwData:=$ce;
+    cds.cbData:=ms.Size;
+    cds.lpData:=ms.Memory;
+    sendmessage(scansettings.mainformHandle,WM_COPYDATA,handle,dword(@CDS));
+  finally
+    ms.free;
+  end;
+end;
+{$else}
 var base :ttreenode;
     baseaddress: dword;
     offsets: array of dword;
@@ -2084,6 +2271,7 @@ begin
     mainform.memrec[length(mainform.memrec)-1].pointers[length(mainform.memrec[length(mainform.memrec)-1].pointers)-1].Interpretableaddress:=t;
   end;
 end;
+{$endif}
 
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
 var i: integer;
@@ -2164,7 +2352,10 @@ procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
 begin
   tvresults:=TTreeview.Create(self);
   tvResults.ReadOnly:=true;
+  tvResults.Visible:=false;
   tvResults.Parent:=self;
+  tvResults.OnDblClick:=tvResultsDblClick;
+
 end;
 
 end.
