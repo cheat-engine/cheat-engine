@@ -201,21 +201,6 @@ type
 type
   Tfrmpointerscanner = class(TForm)
     ProgressBar1: TProgressBar;
-    Panel2: TPanel;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
-    Button1: TButton;
-    tvResults: TTreeView;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -231,24 +216,42 @@ type
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
     Timer2: TTimer;
+    pgcPScandata: TPageControl;
+    tsPSDefault: TTabSheet;
+    tsPSReverse: TTabSheet;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label7: TLabel;
+    Label8: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
     Label9: TLabel;
     Label16: TLabel;
     Label17: TLabel;
     Label18: TLabel;
     Label19: TLabel;
-    Label20: TLabel;
-    Label21: TLabel;
+    Label5: TLabel;
+    btnStopScan: TButton;
+    Button1: TButton;
+    Label6: TLabel;
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Showresults1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure Rescanmemory1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnStopScanClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure tvResultsDblClick(Sender: TObject);
     procedure New1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     start:tdatetime;
@@ -266,6 +269,7 @@ type
     { Public declarations }
     pointerlist: tmemorystream;
     Staticscanner:TStaticScanner;
+    tvResults: TTreeview;
   end;
 
 type TExecuter = class(tthread)
@@ -872,7 +876,7 @@ procedure TFrmpointerscanner.doneui;
 begin
   progressbar1.position:=0;
 
-  panel2.Visible:=false;
+  pgcPScandata.Visible:=false;
   tvResults.Visible:=true;
   tvResults.Align:=alclient;
   open1.Enabled:=true;
@@ -1054,13 +1058,13 @@ begin
   if not foundstatic then
   begin
     if staticonly then exit; //don't save
-    
+
     mi.modulename:=inttohex(tempresults[level],8);
     mi.baseaddress:=tempresults[level];
   end;
 
   //fill in the offset list
-
+  inc(pointersfound);
 
   offsetlist[level]:=addresstofind-pdword(vm.AddressToPointer(tempresults[0]))^;
   for i:=1 to level do
@@ -1552,7 +1556,7 @@ begin
     
     tvResults.Visible:=false;
 
-    panel2.Visible:=false;
+    pgcPScandata.Visible:=false;
     open1.Enabled:=false;
     new1.enabled:=false;
     save1.Enabled:=false;
@@ -1611,9 +1615,15 @@ begin
       staticscanner.filterstart:=frmpointerscannersettings.FilterStart;
       staticscanner.filterstop:=frmpointerscannersettings.FilterStop;
       if staticscanner.reverse then
-        staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked
+      begin
+        staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
+        pgcPScandata.ActivePage:=tsPSReverse;
+      end
       else
+      begin
         staticscanner.unalligned:=frmpointerscannersettings.unalligned;
+        pgcPScandata.ActivePage:=tsPSDefault;
+      end;
 
       staticscanner.codescan:=frmpointerscannersettings.codescan;
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
@@ -1667,7 +1677,7 @@ begin
         label15.Visible:=true;
       end;
 
-      panel2.Visible:=true;
+      pgcPScandata.Visible:=true;
     except
       staticscanner.Free;
       staticscanner:=nil;
@@ -1773,7 +1783,7 @@ begin
   panel1.caption:='There are '+inttostr(pointersfound)+' pointers in the list';
   
   if pointersfound>15000 then
-    if messagedlg('This is a huge ammount of pointers. ('+inttostr(pointersfound)+') Are you sure you want to show them? (It''ll take a while to update the list)',mtconfirmation,[mbyes,mbno],0)<>mryes then exit;
+    if messagedlg('This is a huge ammount of pointers and will take a while to display them. ('+inttostr(pointersfound)+') Are you sure you want to show them? (If you click no you can still filter out wrong paths)',mtconfirmation,[mbyes,mbno],0)<>mryes then exit;
 
   drawtreeview;
 
@@ -2008,7 +2018,7 @@ begin
   showresults1.Click;  
 end;
 
-procedure Tfrmpointerscanner.Button1Click(Sender: TObject);
+procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
 begin
   if staticscanner<>nil then
   begin
@@ -2078,12 +2088,12 @@ end;
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
 var i: integer;
 begin
-  button1.click;
+  btnStopScan.click;
   if staticscanner<>nil then
     freeandnil(staticscanner);
 
   tvResults.Visible:=false;
-  panel2.Visible:=false;
+  pgcPScandata.Visible:=false;
   panel1.Caption:='';
   open1.Enabled:=true;
   new1.enabled:=true;
@@ -2146,11 +2156,16 @@ begin
     freeandnil(method2semaphore);
 
   if pointerlist<>nil then freeandnil(pointerlist);  
-
-  
 end;
 
 
+
+procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
+begin
+  tvresults:=TTreeview.Create(self);
+  tvResults.ReadOnly:=true;
+  tvResults.Parent:=self;
+end;
 
 end.
 

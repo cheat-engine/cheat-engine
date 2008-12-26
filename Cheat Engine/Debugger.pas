@@ -1187,7 +1187,11 @@ begin
     EIPv:=context.Eip;
 
     if frmFloatingpointpanel<>nil then
+    begin
+      frmFloatingpointpanel.SetContextPointer(@context);
       frmFloatingpointpanel.UpdatedContext;
+    end;
+
 
     updatedisassemblerview;
   end;

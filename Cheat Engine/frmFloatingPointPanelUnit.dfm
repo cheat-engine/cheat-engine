@@ -1,6 +1,6 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 814
-  Top = 101
+  Left = 1202
+  Top = 223
   Width = 269
   Height = 323
   BorderStyle = bsSizeToolWin

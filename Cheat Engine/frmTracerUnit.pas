@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,debugger,newkernelhandler, ExtCtrls;
+  Dialogs, StdCtrls,disassembler,debugger,newkernelhandler, ExtCtrls,
+  Buttons, frmFloatingPointPanelUnit;
 
 type TTraceDebugInfo=class
   private
@@ -40,15 +41,18 @@ type
     Button1: TButton;
     Splitter1: TSplitter;
     dflabel: TLabel;
+    sbShowFloats: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);
     procedure EAXLabelDblClick(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
+    procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
     traceaddress: dword;
+    fpp: TfrmFloatingPointPanel;
   public
     { Public declarations }
   end;
@@ -85,7 +89,7 @@ begin
       debuggerthread.traceaddress:=memorybrowser.dselected;
       debuggerthread.tracecount:=tcount;
 
-      traceaddresS:=memorybrowser.dselected;
+      traceaddress:=memorybrowser.dselected;
 
       togglebreakpoint(memorybrowser.dselected);
       memorybrowser.updatedisassemblerview;
@@ -283,6 +287,9 @@ begin
       Oflabel.caption:=temp;
     end else Oflabel.Font.Color:=clWindowText;
   end;
+
+  if fpp<>nil then
+    fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
 end;
 
 procedure TfrmTracer.EAXLabelDblClick(Sender: TObject);
@@ -300,6 +307,19 @@ begin
   memorybrowser.dselected:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c.Eip;
   memorybrowser.dselected2:=memorybrowser.dselected;
   memorybrowser.updatedisassemblerview;
+end;
+
+procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
+begin
+  if listbox1.ItemIndex=-1 then exit;
+  
+  if fpp=nil then
+    fpp:=TfrmFloatingPointPanel.create(self);
+
+  fpp.Left:=self.left+self.Width;
+  fpp.Top:=self.top;
+  fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+  fpp.show;//pop to foreground
 end;
 
 end.

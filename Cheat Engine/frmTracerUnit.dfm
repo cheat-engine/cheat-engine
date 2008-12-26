@@ -18,16 +18,16 @@ object frmTracer: TfrmTracer
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 200
+    Left = 208
     Top = 0
-    Height = 305
+    Height = 307
     Align = alRight
   end
   object ListBox1: TListBox
     Left = 0
     Top = 0
-    Width = 200
-    Height = 305
+    Width = 208
+    Height = 307
     Align = alClient
     ItemHeight = 13
     TabOrder = 0
@@ -35,10 +35,10 @@ object frmTracer: TfrmTracer
     OnDblClick = ListBox1DblClick
   end
   object Panel1: TPanel
-    Left = 203
+    Left = 211
     Top = 0
     Width = 177
-    Height = 305
+    Height = 307
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
@@ -365,6 +365,17 @@ object frmTracer: TfrmTracer
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+    end
+    object sbShowFloats: TSpeedButton
+      Left = 160
+      Top = 141
+      Width = 17
+      Height = 25
+      Hint = 'Floating point registers'
+      Caption = '>'
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = sbShowFloatsClick
     end
     object Button1: TButton
       Left = 60

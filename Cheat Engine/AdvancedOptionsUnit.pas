@@ -34,6 +34,7 @@ type
     Pausebutton: TSpeedButton;
     SaveButton: TSpeedButton;
     Label1: TLabel;
+    N3: TMenuItem;
     procedure codelistDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormShow(Sender: TObject);

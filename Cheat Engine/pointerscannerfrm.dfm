@@ -1,6 +1,6 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 419
-  Top = 492
+  Left = 1018
+  Top = 484
   Width = 627
   Height = 432
   Caption = 'Pointer scan'
@@ -14,25 +14,10 @@ object frmPointerScanner: TfrmPointerScanner
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Label20: TLabel
-    Left = 8
-    Top = 152
-    Width = 33
-    Height = 13
-    Caption = 'fcount:'
-    Visible = False
-  end
-  object Label21: TLabel
-    Left = 123
-    Top = 152
-    Width = 6
-    Height = 13
-    Caption = '0'
-    Visible = False
-  end
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 361
@@ -42,153 +27,6 @@ object frmPointerScanner: TfrmPointerScanner
     Step = 1
     TabOrder = 0
   end
-  object Panel2: TPanel
-    Left = 0
-    Top = 17
-    Width = 619
-    Height = 264
-    Align = alTop
-    BevelOuter = bvNone
-    TabOrder = 1
-    Visible = False
-    object Label1: TLabel
-      Left = 8
-      Top = 16
-      Width = 100
-      Height = 13
-      Caption = 'Static pointers found:'
-    end
-    object Label2: TLabel
-      Left = 122
-      Top = 16
-      Width = 6
-      Height = 13
-      Caption = '0'
-    end
-    object Label10: TLabel
-      Left = 8
-      Top = 32
-      Width = 94
-      Height = 13
-      Caption = 'Method 2 scanners:'
-    end
-    object Label11: TLabel
-      Left = 122
-      Top = 32
-      Width = 6
-      Height = 13
-      Caption = '0'
-    end
-    object Label3: TLabel
-      Left = 8
-      Top = 48
-      Width = 95
-      Height = 13
-      Caption = 'Scanaddress count:'
-    end
-    object Label4: TLabel
-      Left = 122
-      Top = 48
-      Width = 6
-      Height = 13
-      Caption = '0'
-    end
-    object Label7: TLabel
-      Left = 8
-      Top = 96
-      Width = 110
-      Height = 13
-      Caption = 'Continues after dissect:'
-    end
-    object Label8: TLabel
-      Left = 122
-      Top = 96
-      Width = 6
-      Height = 13
-      Caption = '0'
-    end
-    object Label12: TLabel
-      Left = 8
-      Top = 64
-      Width = 39
-      Height = 13
-      Caption = 'Skipped'
-    end
-    object Label13: TLabel
-      Left = 122
-      Top = 64
-      Width = 6
-      Height = 13
-      Caption = '0'
-    end
-    object Label14: TLabel
-      Left = 8
-      Top = 112
-      Width = 100
-      Height = 13
-      Caption = 'Best spot to continue'
-    end
-    object Label15: TLabel
-      Left = 122
-      Top = 112
-      Width = 48
-      Height = 13
-      Caption = '00000000'
-    end
-    object Label9: TLabel
-      Left = 122
-      Top = 128
-      Width = 3
-      Height = 13
-    end
-    object Label16: TLabel
-      Left = 8
-      Top = 128
-      Width = 40
-      Height = 13
-      Caption = 'Time left'
-    end
-    object Label17: TLabel
-      Left = 8
-      Top = 1
-      Width = 30
-      Height = 13
-      Caption = 'Status'
-    end
-    object Label18: TLabel
-      Left = 122
-      Top = 1
-      Width = 3
-      Height = 13
-    end
-    object Label19: TLabel
-      Left = 123
-      Top = 128
-      Width = 11
-      Height = 13
-      Caption = 'inf'
-    end
-    object Button1: TButton
-      Left = 24
-      Top = 192
-      Width = 75
-      Height = 25
-      Caption = 'Stop'
-      TabOrder = 0
-      OnClick = Button1Click
-    end
-  end
-  object tvResults: TTreeView
-    Left = 209
-    Top = 11
-    Width = 417
-    Height = 209
-    Indent = 19
-    ReadOnly = True
-    TabOrder = 2
-    Visible = False
-    OnDblClick = tvResultsDblClick
-  end
   object Panel1: TPanel
     Left = 0
     Top = 0
@@ -196,11 +34,185 @@ object frmPointerScanner: TfrmPointerScanner
     Height = 17
     Align = alTop
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 1
+  end
+  object pgcPScandata: TPageControl
+    Left = 8
+    Top = 16
+    Width = 401
+    Height = 273
+    ActivePage = tsPSReverse
+    TabOrder = 2
+    object tsPSDefault: TTabSheet
+      Caption = 'tsPSDefault'
+      object Label1: TLabel
+        Left = 8
+        Top = 16
+        Width = 100
+        Height = 13
+        Caption = 'Static pointers found:'
+      end
+      object Label2: TLabel
+        Left = 122
+        Top = 16
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label10: TLabel
+        Left = 8
+        Top = 32
+        Width = 94
+        Height = 13
+        Caption = 'Method 2 scanners:'
+      end
+      object Label11: TLabel
+        Left = 122
+        Top = 32
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label3: TLabel
+        Left = 8
+        Top = 48
+        Width = 95
+        Height = 13
+        Caption = 'Scanaddress count:'
+      end
+      object Label4: TLabel
+        Left = 122
+        Top = 48
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label7: TLabel
+        Left = 8
+        Top = 96
+        Width = 110
+        Height = 13
+        Caption = 'Continues after dissect:'
+      end
+      object Label8: TLabel
+        Left = 122
+        Top = 96
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label12: TLabel
+        Left = 8
+        Top = 64
+        Width = 39
+        Height = 13
+        Caption = 'Skipped'
+      end
+      object Label13: TLabel
+        Left = 122
+        Top = 64
+        Width = 6
+        Height = 13
+        Caption = '0'
+      end
+      object Label14: TLabel
+        Left = 8
+        Top = 112
+        Width = 100
+        Height = 13
+        Caption = 'Best spot to continue'
+      end
+      object Label15: TLabel
+        Left = 122
+        Top = 112
+        Width = 48
+        Height = 13
+        Caption = '00000000'
+      end
+      object Label9: TLabel
+        Left = 122
+        Top = 128
+        Width = 3
+        Height = 13
+      end
+      object Label16: TLabel
+        Left = 8
+        Top = 128
+        Width = 40
+        Height = 13
+        Caption = 'Time left'
+      end
+      object Label17: TLabel
+        Left = 8
+        Top = 1
+        Width = 30
+        Height = 13
+        Caption = 'Status'
+      end
+      object Label18: TLabel
+        Left = 122
+        Top = 1
+        Width = 3
+        Height = 13
+      end
+      object Label19: TLabel
+        Left = 123
+        Top = 128
+        Width = 11
+        Height = 13
+        Caption = 'inf'
+      end
+      object btnStopScan: TButton
+        Left = 8
+        Top = 156
+        Width = 75
+        Height = 25
+        Hint = 
+          'This will stop the current scan and show you the results it has ' +
+          'found'
+        Caption = 'Stop'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnClick = btnStopScanClick
+      end
+    end
+    object tsPSReverse: TTabSheet
+      Caption = 'tsPSReverse'
+      ImageIndex = 1
+      object Label5: TLabel
+        Left = 0
+        Top = 8
+        Width = 157
+        Height = 13
+        Caption = 'Total pointer paths encountered: '
+      end
+      object Label6: TLabel
+        Left = 0
+        Top = 24
+        Width = 140
+        Height = 13
+        Caption = 'Of those # have a static base'
+      end
+      object Button1: TButton
+        Left = 0
+        Top = 92
+        Width = 75
+        Height = 25
+        Hint = 
+          'This will stop the current scan and show you the results it has ' +
+          'found'
+        Caption = 'Stop'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnClick = btnStopScanClick
+      end
+    end
   end
   object MainMenu1: TMainMenu
-    Left = 256
-    Top = 168
+    Left = 144
+    Top = 320
     object File1: TMenuItem
       Caption = 'File'
       object New1: TMenuItem
@@ -251,18 +263,18 @@ object frmPointerScanner: TfrmPointerScanner
   object SaveDialog1: TSaveDialog
     DefaultExt = 'PTR'
     Filter = 'Cheat Engine Injected Pointerlist|*.PTR'
-    Left = 16
-    Top = 216
+    Left = 176
+    Top = 288
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'PTR'
     Filter = 'Cheat Engine injected Pointerlist|*.PTR'
-    Left = 48
-    Top = 216
+    Left = 144
+    Top = 288
   end
   object Timer2: TTimer
     OnTimer = Timer2Timer
-    Left = 288
-    Top = 80
+    Left = 104
+    Top = 312
   end
 end

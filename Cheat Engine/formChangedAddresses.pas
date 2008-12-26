@@ -36,7 +36,7 @@ implementation
 
 {$R *.dfm}
 
-uses debugger, MainUnit;
+uses debugger, MainUnit, frmRegistersunit;
 
 procedure TfrmChangedAddresses.OKButtonClick(Sender: TObject);
 var temp: dword;
@@ -174,7 +174,16 @@ end;
 
 procedure TfrmChangedAddresses.Showregisterstates1Click(Sender: TObject);
 begin
-  showmessage('Not yet implemented');
+  if changedlist.Selected<>nil then
+  begin
+    with TRegisters.create(self) do
+    begin
+      SetContextPointer(changedlist.Selected.Data);
+      show;
+    end;
+  end;
+
+  //for frmfloatingpointpanel: SetContextPointer(changedlist.Selected.Data);
 end;
 
 end.

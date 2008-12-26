@@ -27,6 +27,7 @@ object AdvancedOptions: TAdvancedOptions
     ItemHeight = 13
     PopupMenu = PopupMenu2
     TabOrder = 0
+    OnDblClick = Openthedisassemblerhere1Click
     OnDrawItem = codelistDrawItem
     OnKeyDown = codelistKeyDown
     OnMouseDown = codelistMouseDown
@@ -160,6 +161,14 @@ object AdvancedOptions: TAdvancedOptions
     OnPopup = PopupMenu2Popup
     Left = 112
     Top = 88
+    object Openthedisassemblerhere1: TMenuItem
+      Caption = 'Open the disassembler at this location'
+      Default = True
+      OnClick = Openthedisassemblerhere1Click
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
     object CC1: TMenuItem
       Caption = 'Replace with code that does nothing'
       OnClick = CC1Click
@@ -168,14 +177,14 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Restore with original code'
       OnClick = CC2Click
     end
+    object Findthiscodeinsideabinaryfile1: TMenuItem
+      Caption = 'Find this code inside a file'
+      OnClick = Findthiscodeinsideabinaryfile1Click
+    end
     object Findoutwhatthiscodechanges1: TMenuItem
       Caption = 'Find out what addresses this code writes to'
       Visible = False
       OnClick = Findoutwhatthiscodechanges1Click
-    end
-    object Findthiscodeinsideabinaryfile1: TMenuItem
-      Caption = 'Find this code inside a file'
-      OnClick = Findthiscodeinsideabinaryfile1Click
     end
     object N1: TMenuItem
       Caption = '-'
@@ -188,13 +197,8 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Remove from list'
       OnClick = Remove1Click
     end
-    object N2: TMenuItem
+    object N3: TMenuItem
       Caption = '-'
-    end
-    object Openthedisassemblerhere1: TMenuItem
-      Caption = 'Open the disassembler at this location'
-      Default = True
-      OnClick = Openthedisassemblerhere1Click
     end
     object Replaceall1: TMenuItem
       Caption = 'Replace all'

@@ -7,7 +7,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, debugger, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls, debugger;
 
 type
   TfrmFloatingPointPanel = class(TForm)
@@ -27,9 +27,11 @@ type
     procedure ComboBox1Select(Sender: TObject);
   private
     { Private declarations }
+    context: PContext;
   public
     { Public declarations }
     procedure UpdatedContext;
+    procedure SetContextPointer(context: PContext);
   end;
 
 var frmFloatingPointPanel:TfrmFloatingPointPanel;
@@ -37,6 +39,11 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 implementation
 
 {$R *.dfm}
+
+procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
+begin
+  self.context:=context;
+end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
 {
@@ -51,17 +58,15 @@ var i: integer;
     center: integer;
     temp: integer;
 begin
-  if debuggerthread<>nil then
-  begin
     center:=pnlFloatdata.width div 2;
-    label1.caption:='ControlWord:'+inttohex(debuggerthread.context.FloatSave.ControlWord and $ffff,4);
-    label3.caption:='StatusWord:'+inttohex(debuggerthread.context.FloatSave.StatusWord and $ffff,4);
-    label2.caption:='TagWord:'+inttohex(debuggerthread.context.FloatSave.TagWord and $ffff,4);
-    label8.caption:='Cr0NpxState:'+inttohex(debuggerthread.context.FloatSave.Cr0NpxState,4);
-    label4.caption:='ErrorOffset:'+inttohex(debuggerthread.context.FloatSave.ErrorOffset,4);
-    label5.caption:='ErrorSelector:'+inttohex(debuggerthread.context.FloatSave.ErrorSelector and $ffff,4);
-    label6.caption:='DataOffset:'+inttohex(debuggerthread.context.FloatSave.DataOffset,4);
-    label7.caption:='DataSelector:'+inttohex(debuggerthread.context.FloatSave.DataSelector and $ffff,4);
+    label1.caption:='ControlWord:'+inttohex(context.FloatSave.ControlWord and $ffff,4);
+    label3.caption:='StatusWord:'+inttohex(context.FloatSave.StatusWord and $ffff,4);
+    label2.caption:='TagWord:'+inttohex(context.FloatSave.TagWord and $ffff,4);
+    label8.caption:='Cr0NpxState:'+inttohex(context.FloatSave.Cr0NpxState,4);
+    label4.caption:='ErrorOffset:'+inttohex(context.FloatSave.ErrorOffset,4);
+    label5.caption:='ErrorSelector:'+inttohex(context.FloatSave.ErrorSelector and $ffff,4);
+    label6.caption:='DataOffset:'+inttohex(context.FloatSave.DataOffset,4);
+    label7.caption:='DataSelector:'+inttohex(context.FloatSave.DataSelector and $ffff,4);
 
     pnlFloatdata.Visible:=false;
     try
@@ -97,7 +102,7 @@ begin
             lbl.font.Name:='Courier';
             lbl.Top:=(line-1)*lbl.Height;
             lbl.left:=4+lbl.Canvas.TextWidth(' ')*3*(row+1);
-            lbl.Caption:=inttohex(debuggerthread.context.FloatSave.RegisterArea[i], 2);
+            lbl.Caption:=inttohex(context.FloatSave.RegisterArea[i], 2);
 
             inc(row);
           end;
@@ -120,7 +125,7 @@ begin
             else
               lbl.left:=center;
               
-            lbl.Caption:=inttohex(line*8+row,2)+'-'+inttohex(pdword(@debuggerthread.context.FloatSave.RegisterArea[i])^, 8);
+            lbl.Caption:=inttohex(line*8+row,2)+'-'+inttohex(pdword(@(context.FloatSave.RegisterArea[i]))^, 8);
 
             inc(row,4);
             row:=row mod 8;
@@ -148,7 +153,7 @@ begin
               lbl.left:=center;
 
             try
-              s:=psingle(@debuggerthread.context.FloatSave.RegisterArea[i])^;
+              s:=psingle(@(context.FloatSave.RegisterArea[i]))^;
               lbl.Caption:=inttohex(line*8+row,2)+'-'+format('%5.5f', [s]);
             except
               lbl.Caption:='...';
@@ -188,7 +193,7 @@ begin
             lbl.left:=0;
 
             try
-              d:=pdouble(@debuggerthread.context.FloatSave.RegisterArea[i])^;
+              d:=pdouble(@(context.FloatSave.RegisterArea[i]))^;
               lbl.Caption:=inttohex(line*8,2)+'-'+format('%5.5f', [d]);
             except
               lbl.Caption:='...';
@@ -204,8 +209,6 @@ begin
     finally
       pnlFloatdata.Visible:=true;
     end;
-
-  end;
 end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);

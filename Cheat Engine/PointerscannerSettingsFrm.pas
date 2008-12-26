@@ -209,7 +209,7 @@ end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
 begin
-  pssettings.ActivePage:=PSDefault;
+  pssettings.ActivePage:=PSReverse;
 end;
 
 procedure TfrmPointerScannerSettings.Edit2Change(Sender: TObject);

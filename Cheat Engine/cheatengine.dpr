@@ -141,7 +141,8 @@ uses
   htmlHelp in 'htmlHelp.pas',
   SynHighlighterAA in 'SynEdit\Source\SynHighlighterAA.pas',
   SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas',
-  frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel};
+  frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel},
+  frmRegistersunit in 'frmRegistersunit.pas' {Registers};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

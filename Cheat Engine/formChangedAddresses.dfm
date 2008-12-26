@@ -1,6 +1,6 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 836
-  Top = 121
+  Left = 942
+  Top = 241
   Width = 255
   Height = 280
   Caption = 'Changed Addresses'
@@ -78,6 +78,7 @@ object frmChangedAddresses: TfrmChangedAddresses
         Caption = 'Value'
       end>
     RowSelect = True
+    PopupMenu = PopupMenu1
     TabOrder = 1
     ViewStyle = vsReport
     OnDblClick = ChangedlistDblClick
