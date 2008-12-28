@@ -11278,7 +11278,17 @@ var resh: thandle;
     s: tmemorystream;
     ki: TKIcon;
     tid: TIconData;
+    x: array [0..4095] of byte;
+    y: integer;
 begin
+DBKPhysicalMemoryDBVM;
+
+//  zeromemory(@x[0],4096);
+//  y:=0;
+ // y:=dbvm_read_physical_memory(0,pointer($0),4096);
+//  y:=dbvm_read_physical_memory(0,@x[0],128);
+//  if y=0 then showmessage('failure1');
+//  if x[0]=0 then showmessage('failure2');
 
   exit;
   

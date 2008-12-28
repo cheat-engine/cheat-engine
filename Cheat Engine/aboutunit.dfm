@@ -6,7 +6,7 @@ object About: TAbout
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
   ClientHeight = 188
-  ClientWidth = 250
+  ClientWidth = 260
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,7 +22,7 @@ object About: TAbout
   object GroupBox1: TGroupBox
     Left = 0
     Top = 0
-    Width = 250
+    Width = 260
     Height = 188
     Align = alClient
     Caption = 'Cheat Engine 5.4'
@@ -438,7 +438,7 @@ object About: TAbout
       Height = 13
     end
     object Button1: TButton
-      Left = 208
+      Left = 224
       Top = 163
       Width = 33
       Height = 17
@@ -447,7 +447,7 @@ object About: TAbout
       OnClick = Button1Click
     end
     object Panel1: TPanel
-      Left = 184
+      Left = 192
       Top = 8
       Width = 65
       Height = 33

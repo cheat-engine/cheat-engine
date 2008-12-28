@@ -1,6 +1,6 @@
 object formSettings: TformSettings
-  Left = 259
-  Top = 321
+  Left = 251
+  Top = 320
   Width = 649
   Height = 547
   BorderIcons = [biSystemMenu]
@@ -59,7 +59,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = FileAssocs
+      ActivePage = Extra
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -830,7 +830,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 429
-          Width = 337
+          Width = 511
           Height = 13
           Align = alBottom
           Alignment = taCenter

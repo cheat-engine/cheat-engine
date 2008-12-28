@@ -91,7 +91,6 @@ begin
   except
     result:=$ffffffff;
   end;
-
 end;
 
 function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall;
@@ -181,7 +180,7 @@ end;
 
 
 function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
-var vmcallinfo: record
+var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
   command: dword;
@@ -202,12 +201,12 @@ begin
   try
     result:=vmcall(@vmcallinfo,vmx_password1);
   except
-    result:=$ffffffff;
+    result:=0;
   end;
 end;
 
 function dbvm_read_physical_memory(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
-var vmcallinfo: record
+var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
   command: dword;
@@ -217,6 +216,7 @@ var vmcallinfo: record
   nopagefault: dword;
 end;
 begin
+  ZeroMemory(@vmcallinfo,sizeof(vmcallinfo));
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_READPHYSICALMEMORY;
@@ -228,7 +228,8 @@ begin
   try
     result:=vmcall(@vmcallinfo,vmx_password1);
   except
-    result:=$ffffffff;
+    result:=0; //read 0 bytes
+    messagebox(0,'Error','error',mb_ok);
   end;
 end;
 

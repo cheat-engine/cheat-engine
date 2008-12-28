@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,shellapi;
+  Dialogs, StdCtrls, ExtCtrls,shellapi, newkernelhandler;
 
 type
   TAbout = class(TForm)
@@ -77,25 +77,14 @@ begin
     groupbox1.Caption:=mainunit2.CEnorm;
   {$endif}
 
-  supportsdbvm:=false;
-
+  if dbvm_version=0 then
   begin
-    asm
-      pushad
-      mov eax,0
-      cpuid
-      mov a,eax
-      mov b,ebx
-      mov c,ecx
-      mov d,edx
-      popad
-    end;
+    supportsdbvm:=false;
 
-    if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
     begin
       asm
         pushad
-        mov eax,1
+        mov eax,0
         cpuid
         mov a,eax
         mov b,ebx
@@ -104,26 +93,45 @@ begin
         popad
       end;
 
-      if ((c shr 5) and 1)=1 then
-        supportsdbvm:=true;
-    end;
-  end;
+      if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+      begin
+        asm
+          pushad
+          mov eax,1
+          cpuid
+          mov a,eax
+          mov b,ebx
+          mov c,ecx
+          mov d,edx
+          popad
+        end;
 
-  if supportsdbvm then
-  begin
-    lblDBVM.Font.Color:=clGreen;
-    lbldbvm.caption:='Your system supports DBVM';
+        if ((c shr 5) and 1)=1 then
+          supportsdbvm:=true;
+      end;
+    end;
+
+    if supportsdbvm then
+    begin
+      lblDBVM.Font.Color:=clGreen;
+      lbldbvm.caption:='Your system supports DBVM';
+    end
+    else
+    begin
+      lblDBVM.Font.Color:=clRed;
+      lbldbvm.caption:='Your system DOES NOT support DBVM';
+    end;
   end
   else
   begin
-    lblDBVM.Font.Color:=clRed;
-    lbldbvm.caption:='Your system DOES NOT support DBVM';
+    lblDBVM.Font.Color:=clLime;
+    lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
   end;
 end;
 
 procedure TAbout.Label8Click(Sender: TObject);
 begin
-  ShellExecute(0, pchar('open'),pchar('http://syndiv.com/ce/'), pchar(''),pchar(''), SW_MAXIMIZE	);
+  ShellExecute(0, pchar('open'),pchar('http://cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
 end;
 
 procedure TAbout.Label9Click(Sender: TObject);

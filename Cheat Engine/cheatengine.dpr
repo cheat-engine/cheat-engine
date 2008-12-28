@@ -142,7 +142,8 @@ uses
   SynHighlighterAA in 'SynEdit\Source\SynHighlighterAA.pas',
   SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas',
   frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel},
-  frmRegistersunit in 'frmRegistersunit.pas' {Registers};
+  frmRegistersunit in 'frmRegistersunit.pas' {Registers},
+  dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

@@ -291,7 +291,11 @@ begin
   if (processid=0) and (formsettings.cbKernelReadWriteProcessMemory.checked) then
   begin
     ProcessHandler.processid:=$FFFFFFFF;
-    DBKPhysicalMemory;
+
+    if dbvm_version>=4 then
+      DBKPhysicalMemoryDBVM
+    else
+      DBKPhysicalMemory;
     ProcessHandler.ProcessHandle:=$FFFFFFFF;
   end
   else

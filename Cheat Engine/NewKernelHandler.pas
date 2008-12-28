@@ -116,6 +116,7 @@ procedure UseDBKOpenProcess;
 procedure DBKFileAsMemory(filename:string); overload;
 procedure DBKFileAsMemory; overload;
 procedure DBKPhysicalMemory;
+procedure DBKPhysicalMemoryDBVM;
 procedure DBKProcessMemory;
 procedure LoadDBK32;
 
@@ -237,6 +238,7 @@ var WindowsKernel: Thandle;
 
     Usephysical: boolean;
     UseFileAsMemory: boolean;
+    usephysicaldbvm: boolean;
     usedbkquery:boolean;
     DBKReadWrite: boolean;
 
@@ -252,7 +254,8 @@ uses
      {$ifdef cemain}
      plugin,
      {$endif}
-     filehandler; //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+     filehandler, //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+     dbvmPhysicalMemoryHandler; //'' for physical mem
 
 procedure LoadDBK32;
 begin
@@ -382,6 +385,7 @@ procedure DBKFileAsMemory; overload;
 begin
   UseFileAsMemory:=true;
   usephysical:=false;
+  Usephysicaldbvm:=false;
   ReadProcessMemory:=@ReadProcessMemoryFile;
   WriteProcessMemory:=@WriteProcessMemoryFile;
   VirtualQueryEx:=@VirtualQueryExFile;
@@ -425,12 +429,29 @@ begin
 
 end;
 
+procedure DBKPhysicalMemoryDBVM;
+{Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to dbvm's read/write physical memory}
+begin
+  UseFileAsMemory:=false;
+  usephysical:=false;
+  usephysicaldbvm:=true;
+  ReadProcessMemory:=@ReadProcessMemoryPhys;
+  WriteProcessMemory:=@WriteProcessMemoryPhys;
+  VirtualQueryEx:=@VirtualQueryExPhys;
+
+  {$ifdef cemain}
+  if pluginhandler<>nil then
+    pluginhandler.handlechangedpointers(3);
+  {$endif}
+end;
+
 procedure DBKPhysicalMemory;
 begin
   LoadDBK32;
   If DarkByteKernel=0 then exit;
 
   UsePhysical:=true;
+  Usephysicaldbvm:=false;
   if usefileasmemory then closehandle(filehandle);
   usefileasmemory:=false;
   ReadProcessMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
@@ -457,6 +478,7 @@ begin
     dontusedbkquerymemoryregion;
 
   usephysical:=false;
+  Usephysicaldbvm:=false;
 
   if usefileasmemory then closehandle(filehandle);
   usefileasmemory:=false;
@@ -470,6 +492,7 @@ procedure DontUseDBKQueryMemoryRegion;
 begin
   VirtualQueryEx:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   usedbkquery:=false;
+  if usephysicaldbvm then DbkPhysicalMemoryDBVM;
   if usephysical then DbkPhysicalMemory;
   if usefileasmemory then dbkfileasmemory;
 
@@ -490,7 +513,9 @@ begin
   usedbkquery:=true;
 
   if usephysical then DbkPhysicalMemory;
+  if usephysicaldbvm then DBKPhysicalMemoryDBVM;
   if usefileasmemory then dbkfileasmemory;
+
 
   {$ifdef cemain}
   if pluginhandler<>nil then
@@ -507,6 +532,7 @@ begin
   WriteProcessMemory:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
   VirtualAllocEx:=GetProcAddress(WindowsKernel,'VirtualAllocEx');
   if usephysical then DbkPhysicalMemory;
+  if usephysicaldbvm then DBKPhysicalMemoryDBVM;
   if usefileasmemory then dbkfileasmemory;
 
   {$ifdef cemain}
@@ -527,6 +553,7 @@ begin
   VirtualAllocEx:=GetProcAddress(DarkByteKernel,'VAE');
   DBKReadWrite:=true;
   if usephysical then DbkPhysicalMemory;
+  if usephysicaldbvm then DBKPhysicalMemoryDBVM;
   if usefileasmemory then dbkfileasmemory;
 
   {$ifdef cemain}
@@ -575,6 +602,7 @@ initialization
   DarkByteKernel:=0;
 
   usephysical:=false;
+  Usephysicaldbvm:=false;
   usefileasmemory:=false;
   usedbkquery:=false;
 
