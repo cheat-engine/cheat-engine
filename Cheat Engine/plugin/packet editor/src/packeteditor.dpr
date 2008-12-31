@@ -14,7 +14,7 @@ uses
   SysUtils,
   Classes,
   Unit1 in 'Unit1.pas',
-  controlwindow in 'controlwindow.pas' {frmControlWindow};
+  injector in 'injector.pas';
 
 {$R *.res}
 

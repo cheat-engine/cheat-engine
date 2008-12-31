@@ -284,7 +284,7 @@ end;
 
 //plugin type 5:
 //where: Main form's menu, plugin
-type TPluginfunction5=function:bool; stdcall;
+type TPluginfunction5=procedure; stdcall;
 
 //private plugin data
 type TPluginfunctionType5=class

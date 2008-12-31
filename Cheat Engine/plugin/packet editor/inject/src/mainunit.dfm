@@ -1,6 +1,6 @@
 object mainform: Tmainform
   Left = 333
-  Top = 434
+  Top = 439
   Width = 676
   Height = 391
   Caption = 'Crappy Packet Editor Doh!'
@@ -12,6 +12,7 @@ object mainform: Tmainform
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   PixelsPerInch = 96
@@ -172,9 +173,11 @@ object mainform: Tmainform
       Caption = 'Filters'
       object Newfilter1: TMenuItem
         Caption = 'New filter'
+        OnClick = Newfilter1Click
       end
       object N1: TMenuItem
         Caption = '-'
+        Visible = False
       end
     end
   end

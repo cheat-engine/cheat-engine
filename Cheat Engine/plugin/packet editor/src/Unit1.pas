@@ -2,27 +2,41 @@ unit Unit1;
 
 interface
 
-uses windows,sysutils,forms,StdCtrls,ExtCtrls, controlwindow;
+uses windows,sysutils,forms,StdCtrls,ExtCtrls;
 
-type Tfunction1=record
+type TPluginType=(ptAddressList, ptMemoryView, ptOnDebugEvent, ptProcesswatcherEvent, ptFunctionPointerchange, ptMainMenu);
+
+
+type Tfunction0=record
   name: pchar;
   callbackroutine: pointer;
 end;
-type Tfunction3=record
+type Tfunction1=record
+  name: pchar;
+  callbackroutine: pointer;
+  shortcut: pchar;
+end;
+type Tfunction2=record
   callbackroutine: pointer;
 end;
+type TFunction3=TFunction2;
+type TFunction4=TFunction2;
+type TFunction5=TFunction1;
+
+
+type PFunction0=^TFunction0;
 type PFunction1=^TFunction1;
-type PFunction2=^TFunction1;
+type PFunction2=^TFunction2;
 type PFunction3=^TFunction3;
-type PFunction4=^TFunction3;
-type PFunction5=^TFunction3;
+type PFunction4=^TFunction4;
+type PFunction5=^TFunction5;
 
 type Tce_showmessage=procedure (s: pchar); stdcall;
-type Tce_registerfunction=function (pluginid,functiontype:integer; init: pointer):integer; stdcall;
-type Tce_unregisterfunction=function (pluginid,functionid: integer): boolean; stdcall;
-type Tce_AutoAssembler=function (s: pchar):boolean; stdcall;
-type Tce_InjectDLL=function(dllname: pchar; functiontocall: pchar):boolean; stdcall;
-type Tce_generateAPIHookScript=function(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
+type Tce_registerfunction=function (pluginid: integer; functiontype:TPluginType; init: pointer):integer; stdcall;
+type Tce_unregisterfunction=function (pluginid,functionid: integer): BOOL; stdcall;
+type Tce_AutoAssembler=function (s: pchar):BOOL; stdcall;
+type Tce_InjectDLL=function(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
+type Tce_generateAPIHookScript=function(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): BOOL; stdcall;
 
 
 type Tce_GetMainWindowHandle=function:thandle; stdcall;
@@ -51,6 +65,7 @@ type TExportedFunctions = record
 
   GetMainWindowHandle: pointer;
   AutoAssemble: Tce_AutoAssembler;
+  //this is just an example plugin, fill theswe missing function pointers in yourself ok...
   assembler: pointer;
   disassembler: pointer;
   ChangeRegistersAtAddress: pointer;
@@ -164,10 +179,10 @@ var versionname: pchar;
     ce_exported: TExportedFunctions;
 
 var processwatchevent: integer;
-    controlwindowthread: TControlwindowThread;
 
 implementation
 
+uses injector;
 
 function GetVersion(var PluginVersion:TpluginVersion; sizeofpluginversion:integer):BOOL; stdcall;
 var s: string;
@@ -189,26 +204,23 @@ begin
 end;
 
 function InitializePlugin(ExportedFunctions: PExportedFunctions; pluginid: dword):BOOL; stdcall;
+var init: TFunction5;
 begin
   ce_exported:=ExportedFunctions^;
 
   //spawn a new thread that'll show the controlwindow
-  controlwindowthread:=TControlwindowThread.create(false);
+  init.name:='Attach packet editor to process';
+  init.shortcut:='Ctrl+Alt+P';
+  init.callbackroutine:=@InjectPacketEditor;
+  ce_exported.registerfunction(pluginid, ptMainMenu, @init);
+  //controlwindowthread:=TControlwindowThread.create(false);
 
   result:=true;
 end;
 
 function DisablePlugin:BOOL; stdcall;
 begin
-  messagebox(0,'DisablePlugin Called','Example plugin',mb_ok);
-  if controlwindowthread<>nil then
-  begin
-    if controlwindowthread.controlwindow<>nil then
-      controlwindowthread.controlwindow.Close;
-
-    controlwindowthread.WaitFor;
-    controlwindowthread.free;
-  end;
+  messagebox(0,'DisablePlugin Called','Example PE plugin',mb_ok);
   result:=true;
 end;
 

@@ -8,6 +8,12 @@ uses
 
 type
   TfrmFilter = class(TForm)
+    Label1: TLabel;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    Button1: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
   private

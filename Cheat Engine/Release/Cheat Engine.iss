@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.4.4
-AppVerName=Cheat Engine 5.4.4
+AppName=Cheat Engine 5.4.5
+AppVerName=Cheat Engine 5.4.5
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.4.4
+DefaultGroupName=Cheat Engine 5.4.5
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine544
+OutputBaseFilename=CheatEngine545
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -134,8 +134,7 @@ Source: "..\systemcallsignal.exe"; DestDir: "{app}"; DestName: "systemcallsignal
 
 Source: "..\stealth.dll"; DestDir: "{app}"; DestName: "stealth.dll"; Flags: ignoreversion
 
-Source: "..\CHEAT ENGINE.HLP"; DestDir: "{app}"; DestName: "Cheat Engine.hlp"; Flags: ignoreversion
-Source: "..\CHEAT ENGINE.CNT"; DestDir: "{app}"; DestName: "Cheat Engine.cnt"; Flags: ignoreversion
+Source: "..\CheatEngine.chm"; DestDir: "{app}"; DestName: "CheatEngine.chm"; Flags: ignoreversion
 
 Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
 Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
@@ -148,9 +147,9 @@ Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregre
 
 ; Plugin example
 Source: "..\plugin\example-c\release\example-c.dll"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.dll"; Flags: ignoreversion
-Source: "..\plugin\example-c\example-c.cpp"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.cpp"; Flags: ignoreversion
+Source: "..\plugin\example-c\example-c.c"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.c"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.def"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.def"; Flags: ignoreversion
-Source: "..\plugin\example-c\example-c.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.h"; Flags: ignoreversion
+Source: "..\plugin\example-c\plugin.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "plugin.h"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.sln"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.sln"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.vcproj"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.vcproj"; Flags: ignoreversion
 
@@ -162,7 +161,29 @@ Source: "..\plugin\example\exampleplugin.res"; DestDir: "{app}\Plugins\example-d
 Source: "..\plugin\example\exampleplugin.dpr"; DestDir: "{app}\Plugins\example-delphi\"; DestName: "exampleplugin.dpr"; Flags: ignoreversion
 Source: "..\plugin\example\Unit1.pas"; DestDir: "{app}\Plugins\example-delphi\"; DestName: "Unit1.pas"; Flags: ignoreversion
 
-Source: "..\plugin\plugins.rtf"; DestDir: "{app}\Plugins\"; DestName: "plugins.rtf"; Flags: ignoreversion
+;Packet editor plugin example
+Source: "..\plugin\packet editor\packeteditor.dll"; DestDir: "{app}\Plugins\example packet editor\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\cepe.dll"; DestDir: "{app}\Plugins\example packet editor\inject\"; Flags: ignoreversion
+
+;Packet editor plugin example source
+Source: "..\plugin\packet editor\src\packeteditor.cfg"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\src\packeteditor.dof"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\src\packeteditor.dpr"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\src\packeteditor.res"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\src\Unit1.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+
+Source: "..\plugin\packet editor\inject\src\cepe.cfg"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\cepe.dof"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\cepe.dpr"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\cepe.res"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\filterform.dfm"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\filterform.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\hexedit.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\mainunit.dfm"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\mainunit.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\packedfilter.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+
+
 
 Source: "..\include\*"; DestDir: "{app}\include\";
 Source: "..\example scripts\*"; DestDir: "{app}\example scripts\";

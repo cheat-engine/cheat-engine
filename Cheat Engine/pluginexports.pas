@@ -154,7 +154,7 @@ begin
       else
         CopyMemory(script, s.GetText, length(s.Text)+1);
 
-      script[maxscriptsize]:=#0;
+      script[maxscriptsize-1]:=#0;
 
       result:=true;
     except

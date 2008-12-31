@@ -45,12 +45,15 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button3Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Newfilter1Click(Sender: TObject);
   private
     { Private declarations }
     hexeditor: Thexeditor;
     procedure getips(socket: TSocket; var sock: string; var peer: string);
     procedure SendEvent(var message: TMessage); message WM_SEND;
     procedure RecvEvent(var message: TMessage); message WM_RECV;
+
+    procedure filter(buffer: pchar; size: integer);
   public
     { Public declarations }
   end;
@@ -62,7 +65,45 @@ implementation
 
 {$R *.dfm}
 
-uses packetfilter;
+uses packetfilter, filterform;
+
+procedure Tmainform.filter(buffer: pchar; size: integer);
+var fromstring, tostring: string;
+    i,j: integer;
+    found: boolean;
+begin
+  fromstring:=frmFilter.Edit1.Text;
+  tostring:=frmfilter.Edit2.Text;
+
+  if fromstring='' then exit;
+
+  for i:=0 to size-length(fromstring)-1 do
+  begin
+    found:=true;
+    for j:=1 to length(fromstring) do
+    begin
+      if fromstring[j]<>buffer[i+j-1] then
+      begin
+        found:=false;
+        break;
+      end;
+    end;
+
+    if found then
+    begin
+      //replace
+      for j:=1 to length(tostring) do
+      begin
+        if i+j>size then exit;
+        
+        buffer[i+j-1]:=tostring[j];
+      end;
+    end;
+  end;
+
+
+  
+end;
 
 procedure Tmainform.getips(socket: TSocket; var sock: string; var peer: string);
 var y: SockAddr_In;
@@ -92,15 +133,19 @@ var x: PrecvData;
     packetdata: ^TPacketdata;
     fromaddress,toaddress: string;
     pi: TWSAPROTOCOL_INFO;
-    i: integer;    
+    i: integer;
 begin
   x:=pointer(message.WParam);
+  if frmFilter.CheckBox2.Checked then
+    filter(pchar(x.buf), x.bufsize);
 
   getmem(packetdata,sizeof(TPacketdata));
   packetdata.socket:=x.socket;
   packetdata.buflen:=x.bufsize;
   getmem(packetdata.buffer,packetdata.buflen);
   CopyMemory(packetdata.buffer, x.buf, packetdata.buflen);
+
+
 
  // listview1.Items.BeginUpdate;
   try
@@ -148,6 +193,8 @@ var x: PsendData;
     i: integer;
 begin
   x:=pointer(message.WParam);
+  if frmFilter.CheckBox2.Checked then
+    filter(pchar(x.buf^), x.bufsize^);
 
   getmem(packetdata,sizeof(TPacketdata));
   packetdata.socket:=x.socket;
@@ -193,6 +240,8 @@ var x: pchar;
     c: integer;
     i: integer;
 begin
+
+  frmfilter:=tfrmfilter.Create(self);
   hexeditor:=thexeditor.create(self);
   hexeditor.Align:=alClient;
   hexeditor.Parent:=panel1;
@@ -200,9 +249,9 @@ begin
   c:=1;
   getmem(x,c*6);
   for i:=0 to c-1 do
-    copymemory(@x[i*6],pchar('faggot'),6);
+    copymemory(@x[i*6],pchar('test12'),6);
 
-  hexeditor.setbuffer(x,c*6);
+  hexeditor.setbuffer(x,c*6); 
 end;
 
 
@@ -266,6 +315,11 @@ begin
     ws2WSAsendorig(socket,@x,1,bs,0,nil,nil);
     dec(t);
   end;
+end;
+
+procedure Tmainform.Newfilter1Click(Sender: TObject);
+begin
+  frmfilter.Showmodal;
 end;
 
 initialization
