@@ -2899,6 +2899,7 @@ object MainForm: TMainForm
     Top = 72
     object File1: TMenuItem
       Caption = 'File'
+      OnClick = File1Click
       object New1: TMenuItem
         Caption = 'New'
         OnClick = New1Click
@@ -2954,11 +2955,6 @@ object MainForm: TMainForm
     end
     object ools1: TMenuItem
       Caption = 'Tools'
-      object Calculator1: TMenuItem
-        Caption = 'Calculator'
-        ShortCut = 16451
-        OnClick = Calculator1Click
-      end
     end
     object Plugins2: TMenuItem
       Caption = 'Plugins'

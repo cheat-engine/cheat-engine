@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.4.5
-AppVerName=Cheat Engine 5.4.5
+AppName=Cheat Engine 5.5
+AppVerName=Cheat Engine 5.5
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.4.5
+DefaultGroupName=Cheat Engine 5.5
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine545
+OutputBaseFilename=CheatEngine55
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -101,7 +101,7 @@ end;
 
 [Dirs]
 ;go ahead, scream like a pig about this one, I know you want to
-Name: "{app}"; permissions: everyone-modify;
+Name: "{app}"; permissions: everyone-full;
 
 
 [Files]
@@ -193,10 +193,10 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.4"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.5"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
-Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
+;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
 ;Name: "{group}\Network\Cheat Engine Client"; Filename: "{app}\Cheat Engine Client.exe"
 ;Name: "{group}\Network\Cheat Engine Server"; Filename: "{app}\Cheat Engine Server.exe"
 
@@ -208,4 +208,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.4"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent

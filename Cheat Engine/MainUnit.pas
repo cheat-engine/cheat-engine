@@ -10,7 +10,8 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit;
+  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
+  XMLDoc, XMLIntf;
 
   //the following are just for compatibility
 
@@ -270,7 +271,6 @@ type
     New1: TMenuItem;
     N7: TMenuItem;
     ools1: TMenuItem;
-    Calculator1: TMenuItem;
     N8: TMenuItem;
     Helpindex1: TMenuItem;
     actScriptEngine: TAction;
@@ -430,11 +430,11 @@ type
     procedure Edit2Change(Sender: TObject);
     procedure Process1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
-    procedure Calculator1Click(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
     procedure actScriptEngineExecute(Sender: TObject);
+    procedure File1Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -6623,6 +6623,7 @@ var i: Integer;
     clip: TClipboard;
     inclipboard: boolean;
     temp: pchar;
+    s: string;
 begin
 
   sethotkey1.Caption:=strsethotkey;
@@ -6642,13 +6643,9 @@ begin
   end else Showashexadecimal1.Visible:=false;
 
   inclipboard:=false;
-  clip:=TClipboard.Create;
-  if clip.HasFormat(ceclipboardformat) then
-  begin
-    inclipboard:=true;
-  end;
-
-  clip.free;
+  s:=clipboard.AsText;
+  if length(s)>1 then
+    if s[1]='<' then inclipboard:=true;
 
   number:=0;
   i:=0;
@@ -8194,8 +8191,31 @@ var clip: TClipboard;
     hentries: thandle;
 
     targetbuffer: pointer;
+
+    doc: TXMLDocument;
+    CheatTable: IXMLNode;
+    Entries: IXMLNode;
 begin
   if editingscript then exit; //don't do it when editing a script
+
+  doc:=TXMLDocument.Create(application);
+  try
+    doc.Options:=doc.Options+[doNodeAutoIndent];
+    doc.Active:=true;
+    CheatTable:=doc.AddChild('CheatTable');
+    Entries:=CheatTable.AddChild('CheatEntries');
+
+    for i:=0 to numberofrecords-1 do
+      if selected[i] then
+        SaveCTEntryToXMLNode(i,entries);
+
+    Clipboard.SetTextBuf(pchar(doc.XML.Text));
+  finally
+    doc.free;
+  end;
+
+
+  {
 
   if openclipboard(handle) then
   begin
@@ -8286,7 +8306,7 @@ begin
       ms.free;
       closeclipboard;
     end;
-  end;
+  end;     }
 end;
 
 function TMainform.paste(simplecopypaste: boolean): integer;
@@ -8327,208 +8347,91 @@ var clip: TClipboard;
     replace_with: string;
     changeoffsetstring: string;
     changeoffset: dword;
+
+
+    doc: TXMLDocument;
+    CheatTable: IXMLNode;
+    entries: IXMLNode;
+    CheatEntry: IXMLNode;
+
+    buf: string;
 begin
   if editingscript then exit; //don't do it when editing a script
 
-  //paste
   k:=0;
-  j:=0;
-  last:=11;
 
-  ms:=tmemorystream.create;
-  clip:=TClipboard.create;
+  ms:=tmemorystream.Create;
+  doc:=TXMLDocument.Create(application);
   try
-    if clip.HasFormat(ceclipboardformat) then
-    begin
-      frmPasteTableentry:=TfrmPasteTableentry.create(self);
-      try
-        if not simplecopypaste then
-          if frmpastetableentry.showmodal=mrcancel then exit;
+    try
+      buf:=clipboard.AsText;
+      ms.WriteBuffer(buf[1],length(buf));
 
-        replace_find:=frmpastetableentry.edtFind.text;
-        replace_with:=frmpastetableentry.edtReplace.text;
+      doc.LoadFromStream(ms);
 
-        changeoffsetstring:='$'+stringreplace(frmpastetableentry.edtOffset.Text,'-','-$',[rfReplaceAll]);
-        changeoffsetstring:=stringreplace(changeoffsetstring,'$-','-',[rfReplaceAll]);
-
-        try
-          changeoffset:=strtoint(changeoffsetstring);
-        except
-          changeoffset:=0;
-        end;
-      finally
-        frmPasteTableentry.free;
-      end;
-
-      openclipboard(handle);
-      try
-        hentries:=GetClipboarddata(ceclipboardformat);
-        sourcebuffer:=Globallock(hentries);
-
-        ms.writebuffer(sourcebuffer^,globalsize(hentries));
-        globalunlock(hentries);
-      finally
-        closeclipboard;
-      end;
-
-      ms.Position:=0;
-      getmem(p,9);
-      ms.Read(p^,8);
-      p[8]:=#0;
-      y:=p;
-      freemem(p);
-
-      if y<>'CETables' then exit;
-
-      ms.readbuffer(x,sizeof(x));
-      if x<>copypasteversion then exit;
-
-      ms.readbuffer(k,sizeof(k));
-      setlength(temprec,k);
-
-      for i:=0 to k-1 do
+      doc.Active;
+      CheatTable:=doc.ChildNodes.FindNode('CheatTable');
+      if cheattable<>nil then
       begin
-        //description
-        ms.ReadBuffer(x,sizeof(x));
-        getmem(p,x+1);
-        ms.ReadBuffer(p^,x);
-        p[x]:=#0;
-        temprec[i].Description:=p;
-        freemem(p);
-
-        if replace_find<>'' then
-          temprec[i].Description:=stringreplace(temprec[i].Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
-
-        //address
-        ms.ReadBuffer(temprec[i].address,sizeof(temprec[i].address));
-        temprec[i].Address:=temprec[i].address+changeoffset;
-
-        //interpretable address
-        ms.ReadBuffer(x,sizeof(x));
-        getmem(p,x+1);
-        ms.ReadBuffer(p^,x);
-        p[x]:=#0;
-        temprec[i].interpretableaddress:=p;
-        freemem(p);
-
-        if temprec[i].interpretableaddress<>'' then
+        Entries:=cheattable.ChildNodes.FindNode('CheatEntries');
+        if entries<>nil then
         begin
-          try
-            x:=symhandler.getAddressFromName(temprec[i].interpretableaddress);
-            x:=x+changeoffset;
-            temprec[i].interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
-          except
-            temprec[i].interpretableaddress:=inttohex(temprec[i].Address,8);
-          end;
-        end;
-
-        //vartype
-        ms.ReadBuffer(temprec[i].VarType,sizeof(temprec[i].VarType));
-
-        //unicode
-        ms.ReadBuffer(temprec[i].unicode,sizeof(temprec[i].unicode));
-
-        //IsPointer
-        ms.ReadBuffer(temprec[i].IsPointer,sizeof(temprec[i].IsPointer));
-
-        ms.ReadBuffer(x,sizeof(x));
-        setlength(temprec[i].pointers,x);
-        for j:=0 to x-1 do
-        begin
-          //address
-          ms.ReadBuffer(temprec[i].pointers[j].Address,sizeof(temprec[i].pointers[j].Address));
-          temprec[i].pointers[j].Address:=temprec[i].pointers[j].Address+changeoffset;
-
-          //offset
-          ms.ReadBuffer(temprec[i].pointers[j].offset,sizeof(temprec[i].pointers[j].offset));
-
-          //interpretable address
-          ms.ReadBuffer(x,sizeof(x));
-          getmem(p,x+1);
-          ms.ReadBuffer(p^,x);
-          p[x]:=#0;
-          temprec[i].pointers[j].interpretableaddress:=p;
-          freemem(p);
-
-          if temprec[i].pointers[j].interpretableaddress<>'' then
+          k:=entries.ChildNodes.Count;
+          setlength(temprec, k);
+          for i:=0 to k-1 do
           begin
-            try
-              x:=symhandler.getAddressFromName(temprec[i].pointers[j].interpretableaddress);
-              x:=x+changeoffset;
-              temprec[i].pointers[j].interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
-            except
-              temprec[i].pointers[j].interpretableaddress:=inttohex(temprec[i].Address,8);
-            end;
+            CheatEntry:=entries.ChildNodes[i];
+
+            temprec[i]:=GetmemrecFromXMLNode(CheatEntry);
           end;
-
         end;
-
-        //bit
-        ms.ReadBuffer(temprec[i].Bit,sizeof(temprec[i].bit));
-
-        //bitlength
-        ms.ReadBuffer(temprec[i].bitlength,sizeof(temprec[i].bitlength));
-
-        //skip frozen (always false)
-
-        //showashex
-        ms.ReadBuffer(temprec[i].ShowAsHex,sizeof(temprec[i].ShowAsHex));
-
-        //auto assembler
-        ms.ReadBuffer(x,sizeof(x));
-        getmem(p,x+1);
-        ms.readbuffer(p^,x);
-        p[x]:=#0;
-        temprec[i].autoassemblescript:=p;
-        freemem(p);
       end;
 
 
-    end else exit;
+      inc(NumberOfRecords,k);
+      ReserveMem;
 
-    inc(NumberOfRecords,k);
-    ReserveMem;
-
-    //lastselected:=-1;
-
-//    if lastselected=-1 then lastselected:=numberofrecords-k-1;
-//    if lastselected=-1 then lastselected:=0;
-
-    result:=lastselected+1;
-
-    for i:=numberofrecords-k-1 downto lastselected+1 do
-    begin
-      memrec[i+k]:=memrec[i];
-      selected[i+k]:=selected[i];
-      frozenfvalue[i+k]:=frozenfvalue[i];
-      frozenstrings[i+k]:=frozenstrings[i];
-      frozenbytes[i+k]:=frozenbytes[i];
-      hotkeystrings[i+k]:=hotkeystrings[i];
-      hotkeys[i+k]:=hotkeys[i];
-
+    finally
+      doc.free;
+      ms.free;
     end;
-
-    if numberofrecords-k=0 then
-    for i:=0 to k-1 do
-    begin
-      memrec[i]:=temprec[i];
-      hotkeys[i]:=-1;
-      selected[i]:=false;
-    end
-    else
-    for i:=lastselected+1 to lastselected+k do
-    begin
-      memrec[i]:=temprec[i-lastselected-1];
-      hotkeys[i]:=-1;
-      selected[i]:=false;
-    end;
-
-  finally
-    mainform.UpdateScreen;
-    mainform.Updatelist;
-    ms.free;
-    clip.free;
+  except
+    exit;
   end;
+
+
+  result:=lastselected+1;
+
+  for i:=numberofrecords-k-1 downto lastselected+1 do
+  begin
+    memrec[i+k]:=memrec[i];
+    selected[i+k]:=selected[i];
+    frozenfvalue[i+k]:=frozenfvalue[i];
+    frozenstrings[i+k]:=frozenstrings[i];
+    frozenbytes[i+k]:=frozenbytes[i];
+    hotkeystrings[i+k]:=hotkeystrings[i];
+    hotkeys[i+k]:=hotkeys[i];
+
+  end;
+
+  if numberofrecords-k=0 then
+  for i:=0 to k-1 do
+  begin
+    memrec[i]:=temprec[i];
+    hotkeys[i]:=-1;
+    selected[i]:=false;
+  end
+  else
+  for i:=lastselected+1 to lastselected+k do
+  begin
+    memrec[i]:=temprec[i-lastselected-1];
+    hotkeys[i]:=-1;
+    selected[i]:=false;
+  end;
+
+  mainform.UpdateScreen;
+  mainform.Updatelist;
+
 end;
 
 procedure TMainForm.Copy1Click(Sender: TObject);
@@ -12091,6 +11994,7 @@ begin
   if il=nil then
     il:=TImageList.Create(self);
 
+
   il.Clear;
 
   Menu.Images:=il;
@@ -12174,13 +12078,6 @@ begin
   About.showmodal;
 end;
 
-procedure TMainForm.Calculator1Click(Sender: TObject);
-begin
-  ShellExecute(0,'open','calc','','',SW_SHOW);
-  //calculator1.ShortCut
-
-end;
-
 procedure TMainForm.CreateProcess1Click(Sender: TObject);
 var x: dword;
     oldprocess: Dword;
@@ -12234,6 +12131,11 @@ procedure TMainForm.actScriptEngineExecute(Sender: TObject);
 begin
   with TfrmCScript.create(self) do
     show;
+end;
+
+procedure TMainForm.File1Click(Sender: TObject);
+begin
+  menu.Images:=imagelist1;
 end;
 
 end.

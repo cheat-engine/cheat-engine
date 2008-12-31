@@ -8,7 +8,7 @@ uses unit2,dialogs,windows,Classes,Graphics,Controls,commentsunit,advancedoption
 uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
-     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler;
+     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, XMLDoc, XMLIntf;
 {$endif}
 
 
@@ -20,6 +20,9 @@ procedure SaveCEM(Filename:string;address,size:dword);
 {$ifndef net}
 procedure LoadExe(filename: string);
 {$endif}
+
+
+procedure SaveCTEntryToXMLNode(i: integer; Entries: IXMLNode);
 
 
 {type TCEPointer=record
@@ -138,6 +141,8 @@ type
         FrozenValue : Dword;
   end;
 
+function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
+
 {$ifdef net}
 var processhandle: thandle;
 {$endif}
@@ -146,7 +151,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses symbolhandler, XMLDoc, XMLIntf;
+uses symbolhandler;
 
 
 {$ifndef net}
@@ -3360,6 +3365,182 @@ begin
 {$endif}
 end;
 
+function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
+var newrec: MemoryRecord;
+    tempnode, tempnode2: IXMLNode;
+    Offsets: IXMLNode;
+    addrecord: boolean;
+    j: integer;    
+begin
+  if CheatEntry.NodeName='CheatEntry' then
+  begin
+    tempnode:=CheatEntry.ChildNodes.FindNode('Description');
+    if tempnode<>nil then
+      newrec.Description:=tempnode.Text
+    else
+      newrec.Description:='...';
+
+
+    newrec.Address:=0;
+    tempnode:=CheatEntry.ChildNodes.FindNode('Address');
+    if tempnode<>nil then
+    begin
+      try
+        newrec.Address:=StrToInt('$'+tempnode.text);
+      except
+
+      end;
+    end;
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('InterpretableAddress');
+    if tempnode<>nil then
+      newrec.interpretableaddress:=tempnode.Text
+    else
+      newrec.interpretableaddress:='';
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('SpecialCode');
+    if tempnode<>nil then
+      newrec.autoassemblescript:=tempnode.Text
+    else
+      newrec.autoassemblescript:='';
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('Type');
+    if tempnode<>nil then
+      newrec.VarType:=tempnode.NodeValue
+    else
+      newrec.VarType:=0;
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('Unicode');
+    if tempnode<>nil then
+      newrec.unicode:=tempnode.Text='1'
+    else
+      newrec.unicode:=false;
+
+    newrec.Bit:=0;
+    newrec.bitlength:=0;
+    tempnode:=CheatEntry.ChildNodes.FindNode('Length');
+    if tempnode<>nil then
+    begin
+      if newrec.VarType in [7,8] then //string,array of byte
+        newrec.Bit:=tempnode.NodeValue;
+
+      if newrec.VarType = 5 then //binary
+        newrec.bitlength:=tempnode.NodeValue;
+    end;
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('Bit');
+    if (tempnode<>nil) and (newrec.VarType = 5) then
+      newrec.Bit:=tempnode.NodeValue;
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('Group');
+    if tempnode<>nil then
+      newrec.Group:=tempnode.NodeValue
+    else
+      newrec.Group:=0;
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('HexadecimalDisplay');
+    if tempnode<>nil then
+      newrec.ShowAsHex:=tempnode.Text='1';
+
+
+    tempnode:=CheatEntry.ChildNodes.FindNode('Pointer');
+    if tempnode<>nil then
+    begin
+      //it's a pointer
+      Offsets:=tempnode.ChildNodes.FindNode('Offsets');
+      setlength(newrec.pointers, Offsets.ChildNodes.Count);
+
+
+      for j:=0 to Offsets.ChildNodes.Count-1 do
+      begin
+        if Offsets.ChildNodes[j].NodeName='Offset' then
+        begin
+          try
+            newrec.pointers[j].offset:=strtoint('$'+Offsets.ChildNodes[j].text);
+          except
+
+          end;
+        end;
+      end;
+
+      tempnode2:=tempnode.ChildNodes.FindNode('Address');
+      if tempnode2<>nil then
+        newrec.pointers[Offsets.ChildNodes.Count-1].Address:=strtoint('$'+tempnode2.text);
+
+
+      tempnode2:=tempnode.ChildNodes.FindNode('InterpretableAddress');
+      if tempnode2<>nil then
+        newrec.pointers[Offsets.ChildNodes.Count-1].Interpretableaddress:=tempnode2.Text;
+
+      newrec.IsPointer:=true;
+    end;
+
+    result:=newrec;
+  end;
+end;
+
+procedure LoadCTEntryFromXMLNode(CheatEntry: IXMLNode; merge: boolean);
+var newrec: MemoryRecord;
+    tempnode, tempnode2: IXMLNode;
+    Offsets: IXMLNode;
+    addrecord: boolean;
+    j: integer;
+begin
+  if CheatEntry.NodeName='CheatEntry' then
+  begin
+    newrec:=GetmemrecFromXMLNode(CheatEntry);
+
+    addrecord:=true;
+    if merge then
+    begin
+      //find it in the current list, if it is in, dont add
+      for j:=0 to mainform.NumberOfRecords-1 do
+      begin
+        if (mainform.memrec[j].Address=newrec.Address) and (mainform.memrec[j].VarType=newrec.VarType) then
+        begin
+          if (newrec.VarType=5) then
+            if (newrec.Bit<>mainform.memrec[j].bit) or (newrec.bitlength<>mainform.memrec[j].bitlength) then continue;
+          addrecord:=false;
+          break;
+        end;
+      end;
+    end;
+
+    if addrecord then
+    begin
+      with mainform do
+      begin
+        inc(numberofrecords);
+        reservemem;
+        memrec[numberofrecords-1].Description:=newrec.Description;
+        memrec[numberofrecords-1].Address:=newrec.Address;
+        memrec[numberofrecords-1].interpretableaddress:=newrec.interpretableaddress;
+        memrec[numberofrecords-1].VarType:=newrec.VarType;
+        memrec[numberofrecords-1].unicode:=newrec.Unicode;
+        memrec[numberofrecords-1].Group:=newrec.Group;
+        memrec[numberofrecords-1].Bit:=newrec.Bit;
+        memrec[numberofrecords-1].bitlength:=newrec.bitlength;
+        memrec[numberofrecords-1].Frozen:=false;
+        memrec[numberofrecords-1].FrozenValue:=0;
+        memrec[numberofrecords-1].Frozendirection:=0;
+        memrec[numberofrecords-1].ShowAsHex:=newrec.showashex;
+        memrec[numberofrecords-1].autoassemblescript:=newrec.autoassemblescript;
+
+        memrec[numberofrecords-1].IsPointer:=newrec.IsPointer;
+        setlength(memrec[numberofrecords-1].pointers,length(newrec.pointers));
+        for j:=0 to length(newrec.pointers)-1 do
+        begin
+          memrec[numberofrecords-1].pointers[j].Address:=newrec.pointers[j].Address;
+          memrec[numberofrecords-1].pointers[j].offset:=newrec.pointers[j].offset;
+          memrec[numberofrecords-1].pointers[j].Interpretableaddress:=newrec.pointers[j].Interpretableaddress;
+        end;
+
+      end;
+    end;
+            
+  end;
+end;
+
 procedure LoadXML(filename: string; merge: boolean);
 var newrec: MemoryRecordV6;
     doc: TXMLDocument;
@@ -3400,158 +3581,7 @@ begin
         for i:=0 to entries.ChildNodes.Count-1 do
         begin
           CheatEntry:=entries.ChildNodes[i];
-          if CheatEntry.NodeName='CheatEntry' then
-          begin
-            tempnode:=CheatEntry.ChildNodes.FindNode('Description');
-            if tempnode<>nil then
-              newrec.Description:=tempnode.Text
-            else
-              newrec.Description:='...';
-
-
-            newrec.Address:=0;
-            tempnode:=CheatEntry.ChildNodes.FindNode('Address');
-            if tempnode<>nil then
-            begin
-              try
-                newrec.Address:=StrToInt('$'+tempnode.text);
-              except
-
-              end;
-            end;
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('InterpretableAddress');
-            if tempnode<>nil then
-              newrec.interpretableaddress:=tempnode.Text
-            else
-              newrec.interpretableaddress:='';
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('SpecialCode');
-            if tempnode<>nil then
-              newrec.autoassemblescript:=tempnode.Text
-            else
-              newrec.autoassemblescript:='';
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('Type');
-            if tempnode<>nil then
-              newrec.VarType:=tempnode.NodeValue
-            else
-              newrec.VarType:=0;
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('Unicode');
-            if tempnode<>nil then
-              newrec.unicode:=tempnode.Text='1'
-            else
-              newrec.unicode:=false;
-
-            newrec.Bit:=0;
-            newrec.bitlength:=0;
-            tempnode:=CheatEntry.ChildNodes.FindNode('Length');
-            if tempnode<>nil then
-            begin
-              if newrec.VarType in [7,8] then //string,array of byte
-                newrec.Bit:=tempnode.NodeValue;
-
-              if newrec.VarType = 5 then //binary
-                newrec.bitlength:=tempnode.NodeValue;
-            end;
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('Bit');
-            if (tempnode<>nil) and (newrec.VarType = 5) then
-              newrec.Bit:=tempnode.NodeValue;
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('Group');
-            if tempnode<>nil then
-              newrec.Group:=tempnode.NodeValue
-            else
-              newrec.Group:=0;
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('HexadecimalDisplay');
-            if tempnode<>nil then
-              newrec.ShowAsHex:=tempnode.Text='1';
-
-
-            tempnode:=CheatEntry.ChildNodes.FindNode('Pointer');
-            if tempnode<>nil then
-            begin
-              //it's a pointer
-              Offsets:=tempnode.ChildNodes.FindNode('Offsets');
-              setlength(newrec.pointers, Offsets.ChildNodes.Count);
-
-
-              for j:=0 to Offsets.ChildNodes.Count-1 do
-              begin
-                if Offsets.ChildNodes[j].NodeName='Offset' then
-                begin
-                  try
-                    newrec.pointers[j].offset:=strtoint('$'+Offsets.ChildNodes[j].text);
-                  except
-
-                  end;
-                end;
-              end;
-
-              tempnode2:=tempnode.ChildNodes.FindNode('Address');
-              if tempnode2<>nil then
-                newrec.pointers[Offsets.ChildNodes.Count-1].Address:=strtoint('$'+tempnode2.text);
-
-
-              tempnode2:=tempnode.ChildNodes.FindNode('InterpretableAddress');
-              if tempnode2<>nil then
-                newrec.pointers[Offsets.ChildNodes.Count-1].Interpretableaddress:=tempnode2.Text;
-
-              newrec.IsPointer:=true;
-            end;
-
-            addrecord:=true;
-            if merge then
-            begin
-              //find it in the current list, if it is in, dont add
-              for j:=0 to mainform.NumberOfRecords-1 do
-              begin
-                if (mainform.memrec[j].Address=newrec.Address) and (mainform.memrec[j].VarType=newrec.VarType) then
-                begin
-                  if (newrec.VarType=5) then
-                    if (newrec.Bit<>mainform.memrec[j].bit) or (newrec.bitlength<>mainform.memrec[j].bitlength) then continue;
-                  addrecord:=false;
-                  break;
-                end;
-              end;
-            end;
-
-            if addrecord then
-            begin
-              with mainform do
-              begin
-                inc(numberofrecords);
-                reservemem;
-                memrec[numberofrecords-1].Description:=newrec.Description;
-                memrec[numberofrecords-1].Address:=newrec.Address;
-                memrec[numberofrecords-1].interpretableaddress:=newrec.interpretableaddress;
-                memrec[numberofrecords-1].VarType:=newrec.VarType;
-                memrec[numberofrecords-1].unicode:=newrec.Unicode;
-                memrec[numberofrecords-1].Group:=newrec.Group;
-                memrec[numberofrecords-1].Bit:=newrec.Bit;
-                memrec[numberofrecords-1].bitlength:=newrec.bitlength;
-                memrec[numberofrecords-1].Frozen:=false;
-                memrec[numberofrecords-1].FrozenValue:=0;
-                memrec[numberofrecords-1].Frozendirection:=0;
-                memrec[numberofrecords-1].ShowAsHex:=newrec.showashex;
-                memrec[numberofrecords-1].autoassemblescript:=newrec.autoassemblescript;
-
-                memrec[numberofrecords-1].IsPointer:=newrec.IsPointer;
-                setlength(memrec[numberofrecords-1].pointers,length(newrec.pointers));
-                for j:=0 to length(newrec.pointers)-1 do
-                begin
-                  memrec[numberofrecords-1].pointers[j].Address:=newrec.pointers[j].Address;
-                  memrec[numberofrecords-1].pointers[j].offset:=newrec.pointers[j].offset;
-                  memrec[numberofrecords-1].pointers[j].Interpretableaddress:=newrec.pointers[j].Interpretableaddress;
-                end;
-
-              end;
-            end;
-            
-          end;
+          LoadCTEntryFromXMLNode(CheatEntry, merge);
         end;
       end;
 
@@ -5653,6 +5683,65 @@ type TExtradata=record
   address: dword;
   allocsize: dword;
 end;
+
+procedure SaveCTEntryToXMLNode(i: integer; Entries: IXMLNode);
+var CheatRecord: IXMLNode;
+    Pointers: IXMLNode;
+    Offsets: IXMLNode;
+    j: integer;
+begin
+  CheatRecord:=Entries.AddChild('CheatEntry');
+  CheatRecord.AddChild('Description').Text:=mainform.memrec[i].Description;
+
+  if mainform.memrec[i].VarType<>255 then
+  begin
+    //normal address
+    CheatRecord.AddChild('Address').Text:=inttohex(mainform.memrec[i].Address,8);
+
+    if (mainform.memrec[i].interpretableaddress<>'') and
+       (uppercase(mainform.memrec[i].interpretableaddress)<>uppercase(inttohex(mainform.memrec[i].Address,8))) then
+    CheatRecord.AddChild('InterpretableAddress').Text:=mainform.memrec[i].interpretableaddress;
+  end
+  else
+  begin
+    //auto assembler
+    CheatRecord.AddChild('SpecialCode').Text:=mainform.memrec[i].autoassemblescript;
+  end;
+
+  CheatRecord.AddChild('Type').Text:=inttostr(mainform.memrec[i].VarType);
+
+  if mainform.memrec[i].unicode then
+    CheatRecord.AddChild('Unicode').Text:='1';
+
+  if mainform.memrec[i].VarType in [7,8] then
+    CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].Bit);
+
+  if mainform.memrec[i].VarType=5 then
+  begin
+    CheatRecord.AddChild('Bit').Text:=inttostr(mainform.memrec[i].Bit);
+    CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].BitLength);
+  end;
+
+  if mainform.memrec[i].Group>0 then
+    CheatRecord.AddChild('Group').text:=inttostr(mainform.memrec[i].Group);
+        
+  if mainform.memrec[i].ShowAsHex then
+    CheatRecord.AddChild('HexadecimalDisplay').text:='1';
+
+  if mainform.memrec[i].ispointer then
+  begin
+    pointers:=CheatRecord.AddChild('Pointer');
+    offsets:=pointers.AddChild('Offsets');
+    for j:=0 to length(mainform.memrec[i].pointers)-1 do
+      offsets.AddChild('Offset').Text:=inttohex(mainform.memrec[i].pointers[j].offset,4);
+
+    j:=length(mainform.memrec[i].pointers)-1;
+    pointers.AddChild('Address').Text:=inttohex(mainform.memrec[i].pointers[j].Address,8);
+    pointers.AddChild('InterpretableAddress').Text:=mainform.memrec[i].pointers[j].interpretableaddress;
+  end;
+end;
+
+
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: IXMLNode;
@@ -5680,55 +5769,7 @@ begin
     Entries:=CheatTable.AddChild('CheatEntries');
     for i:=0 to mainform.NumberOfRecords-1 do
     begin
-      CheatRecord:=Entries.AddChild('CheatEntry');
-      CheatRecord.AddChild('Description').Text:=mainform.memrec[i].Description;
-
-      if mainform.memrec[i].VarType<>255 then
-      begin
-        //normal address
-        CheatRecord.AddChild('Address').Text:=inttohex(mainform.memrec[i].Address,8);
-
-        if (mainform.memrec[i].interpretableaddress<>'') and
-           (uppercase(mainform.memrec[i].interpretableaddress)<>uppercase(inttohex(mainform.memrec[i].Address,8))) then
-        CheatRecord.AddChild('InterpretableAddress').Text:=mainform.memrec[i].interpretableaddress;
-      end
-      else
-      begin
-        //auto assembler
-        CheatRecord.AddChild('SpecialCode').Text:=mainform.memrec[i].autoassemblescript;
-      end;
-
-      CheatRecord.AddChild('Type').Text:=inttostr(mainform.memrec[i].VarType);
-
-      if mainform.memrec[i].unicode then
-        CheatRecord.AddChild('Unicode').Text:='1';
-
-      if mainform.memrec[i].VarType in [7,8] then
-        CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].Bit);
-
-      if mainform.memrec[i].VarType=5 then
-      begin
-        CheatRecord.AddChild('Bit').Text:=inttostr(mainform.memrec[i].Bit);
-        CheatRecord.AddChild('Length').Text:=inttostr(mainform.memrec[i].BitLength);
-      end;
-
-      if mainform.memrec[i].Group>0 then
-        CheatRecord.AddChild('Group').text:=inttostr(mainform.memrec[i].Group);
-        
-      if mainform.memrec[i].ShowAsHex then
-        CheatRecord.AddChild('HexadecimalDisplay').text:='1';
-
-      if mainform.memrec[i].ispointer then
-      begin
-        pointers:=CheatRecord.AddChild('Pointer');
-        offsets:=pointers.AddChild('Offsets');
-        for j:=0 to length(mainform.memrec[i].pointers)-1 do
-          offsets.AddChild('Offset').Text:=inttohex(mainform.memrec[i].pointers[j].offset,4);
-
-        j:=length(mainform.memrec[i].pointers)-1;
-        pointers.AddChild('Address').Text:=inttohex(mainform.memrec[i].pointers[j].Address,8);
-        pointers.AddChild('InterpretableAddress').Text:=mainform.memrec[i].pointers[j].interpretableaddress;
-      end;
+      SaveCTEntryToXMLNode(i,entries);
 
     end;
 
@@ -5794,7 +5835,6 @@ begin
 end;
 
 procedure SaveTable(Filename: string);
-
 var savefile: File;
     actualwritten: Integer;
     Controle: String[11];
