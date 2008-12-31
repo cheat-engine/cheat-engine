@@ -10,7 +10,7 @@ uses
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
-  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon;
+  memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit;
 
   //the following are just for compatibility
 
@@ -273,6 +273,8 @@ type
     Calculator1: TMenuItem;
     N8: TMenuItem;
     Helpindex1: TMenuItem;
+    actScriptEngine: TAction;
+    Plugins2: TMenuItem;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -432,6 +434,7 @@ type
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
+    procedure actScriptEngineExecute(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -596,7 +599,8 @@ type
 
     memscan: tmemscan;
 
-    procedure plugintype1click(Sender:tObject);
+    procedure plugintype0click(Sender:tObject);
+    procedure plugintype5click(Sender:tObject);
     procedure OnToolsClick(sender: TObject);    
     procedure AddToRecord(Line: Integer);
     procedure AddAutoAssembleScript(script:string);
@@ -1125,6 +1129,7 @@ begin
 
   if message.WParam=2 then //toggle speedhack
   begin
+  
     try
       unregisterhotkey(mainform.handle,2);
       if cbSpeedhack.Enabled then
@@ -4337,8 +4342,9 @@ var pid: dword;
     differentWidth: integer;
     x: array of integer;
 begin
+  
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
-
+  actScriptEngine.ShortCut:=TextToShortCut('Ctrl+Shift+C');
 
 
   hotkeypressed:=-1;
@@ -9314,7 +9320,7 @@ var reg: tregistry;
     firsttime: boolean;
     x: array of integer;
 begin
-
+  Set8087CW($133f);
   loadt:=false;
   edit2.Text:=format('%.1f',[1.0]);
 
@@ -10982,20 +10988,32 @@ begin
   shellexecute(0,'open',pchar(formsettings.lvTools.Items[TMenuItem(sender).Tag].SubItems[0]),'','',SW_SHOW);
 end;
 
-Procedure TMainForm.plugintype1click(sender:tobject);
-var selectedrecord: PPlugin1_SelectedRecord;
-var x: TPluginfunctionType1;
+Procedure TMainForm.plugintype5click(sender:tobject);
+var x: TPluginfunctionType5;
+begin
+  x:=TPluginfunctionType5(tmenuitem(sender).Tag);
+  if x<>nil then
+    x.callback();
+end;
+
+Procedure TMainForm.plugintype0click(sender:tobject);
+var selectedrecord: PPlugin0_SelectedRecord;
+var x: TPluginfunctionType0;
     interpretableaddress: string[255];
     description: string[255];
     i: integer;
     offsets: PDwordArray;
+
+    a,b,c,d,e,f,g,h,j: dword;
 begin
+
+
   interpretableaddress:=' ';
   description:=' ';
 
   if (lastselected<>-1) and (lastselected<numberofrecords) and (selected[lastselected]) then
   begin
-    getmem(selectedrecord,sizeof(TPlugin1_SelectedRecord));
+    getmem(selectedrecord,sizeof(TPlugin0_SelectedRecord));
     //fill it with data
 
     if memrec[lastselected].IsPointer then
@@ -11023,7 +11041,7 @@ begin
   else
     selectedrecord:=nil;
 
-  x:=TPluginfunctionType1(tmenuitem(sender).Tag);
+  x:=TPluginfunctionType0(tmenuitem(sender).Tag);
   if x<>nil then
   begin
 
@@ -12210,6 +12228,12 @@ begin
   advancedoptions.numberofcodes:=0;
   Updatescreen;
   Updatelist;
+end;
+
+procedure TMainForm.actScriptEngineExecute(Sender: TObject);
+begin
+  with TfrmCScript.create(self) do
+    show;
 end;
 
 end.

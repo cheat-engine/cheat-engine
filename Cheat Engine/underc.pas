@@ -126,7 +126,7 @@ begin
   if currentthreadid=getcurrentthreadid then
   begin
     result:=false;
-    exit; //don't let a thread enter twice without a end\
+    exit; //don't let a thread enter twice without an end
   end;
 
   scriptEngineCS.enter; //will block other threads trying to enter

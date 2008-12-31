@@ -143,7 +143,8 @@ uses
   SynHighlighterCpp in 'SynEdit\Source\SynHighlighterCPP.pas',
   frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel},
   frmRegistersunit in 'frmRegistersunit.pas' {Registers},
-  dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas';
+  dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas',
+  frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -153,7 +154,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.4.4';
+  Application.Title := 'Cheat Engine 5.4.5';
   Application.HelpFile := 'CheatEngine.chm';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);
@@ -170,6 +171,7 @@ begin
   Application.CreateForm(TfrmChangeValue, frmChangeValue);
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
   Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
+  Application.CreateForm(TfrmCScript, frmCScript);
   initcetitle;
   Application.Run;
 end.

@@ -3047,7 +3047,7 @@ begin
   deletefile(CheatEngineDir+'Addresses.UNDO');
   freemem(memory);
  // Closehandle(processhandle);
-  Set8087CW(old8087CW);
+
 end;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);

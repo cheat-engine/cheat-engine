@@ -681,7 +681,10 @@ begin
     for i:=0 to clbplugins.Count-1 do
     begin
       dllpath:=Tpathspecifier(clbplugins.Items.Objects[i]);
-      j:=pluginhandler.LoadPlugin(dllpath.path);
+      j:=pluginhandler.GetPluginID(dllpath.path);
+
+      if j=-1 then //not loaded yet
+        j:=pluginhandler.LoadPlugin(dllpath.path);
 
       if clbplugins.Checked[i] then
       begin

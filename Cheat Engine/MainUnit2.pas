@@ -23,13 +23,14 @@ function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
 const beta=' SVN SNAPSHOT'; //empty this for a release
+const cename='Cheat Engine 5.4.5';
 
 var
-  CEnorm:string = 'Cheat Engine 5.4.4'+beta;
-  CERegion:string = 'Cheat Engine 5.4.4'+beta+' - Please Wait!';
-  CESearch:string = 'Cheat Engine 5.4.4'+beta+' - Please Wait!';
-  CERegionSearch:string = 'Cheat Engine 5.4.4'+beta+' - Please Wait!';
-  CEWait:string= 'Cheat Engine 5.4.4'+beta+' - Please Wait!';
+  CEnorm:string = cename+beta;
+  CERegion:string = cename+beta+' - Please Wait!';
+  CESearch:string = cename+beta+' - Please Wait!';
+  CERegionSearch:string = cename+beta+' - Please Wait!';
+  CEWait:string= cename+beta+' - Please Wait!';
 
 resourcestring
   strStart='Start';
@@ -787,7 +788,7 @@ var dwhandle: thandle;
     ffi: ^VS_FIXEDFILEINFO;
 
 begin
-  CEnorm:='Cheat Engine 5.4.4'+BETA;  //.';
+  CEnorm:=cename+BETA;  //.';
 
 {  FileVersionInfoSize:=GetFileVersionInfoSize(pchar(application.exename),dwhandle);
   if FileVersionInfoSize>0 then

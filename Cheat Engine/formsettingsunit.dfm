@@ -59,7 +59,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = Extra
+      ActivePage = Plugins
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1

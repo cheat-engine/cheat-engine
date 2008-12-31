@@ -3,37 +3,40 @@ unit pluginexports;
 interface
 
 uses StdCtrls,sysutils,Controls, SyncObjs,dialogs,windows,classes,autoassembler,
-     cefuncproc,newkernelhandler,debugger,debugger2,tlhelp32;
+     cefuncproc,newkernelhandler,debugger,debugger2,tlhelp32, plugin;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
-function ce_unregisterfunction(pluginid,functionid: integer): boolean; stdcall;
-function ce_AutoAssemble(s: pchar):boolean; stdcall;
+function ce_unregisterfunction(pluginid,functionid: integer): BOOL; stdcall;
+function ce_AutoAssemble(s: pchar):BOOL; stdcall;
 function ce_GetMainWindowHandle:thandle; stdcall;
-function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):boolean; stdcall;
+function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):BOOL; stdcall;
 
-function ce_assembler(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):boolean; stdcall;
-function ce_disassembler(address: dword; output: pchar; maxsize: integer): boolean; stdcall;
-function ce_InjectDLL(dllname: pchar; functiontocall: pchar):boolean; stdcall;
-function ce_processlist(listbuffer: pchar; listsize: integer):boolean; stdcall;
-function ce_fixmem:boolean; stdcall;
-function ce_reloadsettings:boolean; stdcall;
+function ce_assembler(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):BOOL; stdcall;
+function ce_disassembler(address: dword; output: pchar; maxsize: integer): BOOL; stdcall;
+function ce_InjectDLL(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
+function ce_processlist(listbuffer: pchar; listsize: integer):BOOL; stdcall;
+function ce_fixmem:BOOL; stdcall;
+function ce_reloadsettings:BOOL; stdcall;
 function ce_getaddressfrompointer(baseaddress: dword; offsetcount: integer; offsets: PDwordArray):dword; stdcall;
 
 function ce_freezemem(address: dword; size: integer):integer; stdcall;
-function ce_unfreezemem(id: integer):boolean; stdcall;
+function ce_unfreezemem(id: integer):BOOL; stdcall;
 
 //version 2:
-function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):boolean; stdcall;
-function ce_sym_nameToAddress(name: pchar; address: PDWORD):boolean; stdcall;
-function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
-
-//function ce_getControlName(controlpointer: pointer; objectname: pchar; maxsize: integer):integer; stdcall;
-
+function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):BOOL; stdcall;
+function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
+function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress, script: pchar; maxscriptsize: integer): BOOL; stdcall;
+  {
+function addresslist_getcount: integer; stdcall;
+function addresslist_additem(newitem: PPlugin0_SelectedRecord): BOOL; stdcall;
+function addresslist_getitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
+function addresslist_setitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
+       }
 
 implementation
 
-uses plugin,mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
+uses mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
      formsettingsunit,undochanges, symbolhandler, frmautoinjectunit;
 
 type TFreezeMem_Entry=record
@@ -99,8 +102,42 @@ begin
     result:=-1;
   end;
 end;  }
+   {
+function addresslist_getcount: integer; stdcall;
+begin
+  result:=mainform.NumberOfRecords;
+end;
 
-function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): boolean; stdcall;
+function addresslist_additem(newitem: PPlugin0_SelectedRecord): BOOL; stdcall;
+begin
+//  mainform.addaddress();
+end;
+
+function addresslist_getitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
+var i: integer;
+begin
+  result:=false;
+  if itemnr>=mainform.NumberOfRecords then exit;
+
+  item.interpretedaddress:=pchar(mainform.memrec[itemnr].interpretableaddress);
+  item.address:=mainform.memrec[itemnr].Address;
+  item.ispointer:=mainform.memrec[itemnr].IsPointer;
+
+  item.countoffsets:=length(mainform.memrec[itemnr].pointers);
+  getmem(item.offsets,  item.countoffsets*4);
+  for i:=0 to item.countoffsets-1 do
+    item.countoffsets
+  item.description:=pchar(mainform.memrec[itemnr].description);
+
+  //mainform.memrec[i]
+end;
+
+function addresslist_setitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
+begin
+end; }
+
+
+function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress, script: pchar; maxscriptsize: integer): BOOL; stdcall;
 var s: tstringlist;
 begin
   result:=false;
@@ -128,7 +165,7 @@ begin
   end;
 end;
 
-function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):boolean; stdcall;
+function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):BOOL; stdcall;
 var s: string;
 begin
   result:=false;
@@ -146,7 +183,7 @@ begin
 end;
 
 
-function ce_sym_nameToAddress(name: pchar; address: PDWORD):boolean; stdcall;
+function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
 begin
   result:=false;
   try
@@ -158,7 +195,7 @@ begin
 end;
 
 
-function ce_reloadsettings:boolean; stdcall;
+function ce_reloadsettings:BOOL; stdcall;
 begin
   mainunit2.LoadSettingsFromRegistry;
   result:=true;
@@ -226,7 +263,7 @@ begin
 
 end;
 
-function ce_unfreezemem(id: integer):boolean; stdcall;
+function ce_unfreezemem(id: integer):BOOL; stdcall;
 var i,j: integer;
 begin
   result:=false;
@@ -248,7 +285,7 @@ begin
   freezemem.cs.Leave;
 end;
 
-function ce_fixmem:boolean; stdcall;
+function ce_fixmem:BOOL; stdcall;
 begin
   if formsettings.cbUndoMemoryChanges.checked then
   begin
@@ -259,7 +296,7 @@ begin
     result:=false;
 end;
 
-function ce_processlist(listbuffer: pchar; listsize: integer):boolean; stdcall;
+function ce_processlist(listbuffer: pchar; listsize: integer):BOOL; stdcall;
 var SNAPHandle: THandle;
     ProcessEntry: ProcessEntry32;
     Check: Boolean;
@@ -305,7 +342,7 @@ begin
   end;
 end;
 
-function ce_InjectDLL(dllname: pchar; functiontocall: pchar):boolean; stdcall;
+function ce_InjectDLL(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
 var dllname_s,functiontocall_s: string;
 begin
   try
@@ -320,7 +357,7 @@ begin
   end;
 end;
 
-function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):boolean; stdcall;
+function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodificationBP):BOOL; stdcall;
 var frmModifyRegisters:tfrmModifyRegisters;
 begin
   result:=false;
@@ -423,7 +460,7 @@ begin
   result:=true;
 end;
 
-function ce_AutoAssemble(s: pchar):boolean; stdcall;
+function ce_AutoAssemble(s: pchar):BOOL; stdcall;
 var script: tstringlist;
 begin
   result:=true;
@@ -448,13 +485,13 @@ begin
   result:=pluginhandler.registerfunction(pluginid,functiontype,init);
 end;
 
-function ce_unregisterfunction(pluginid,functionid: integer): boolean; stdcall;
+function ce_unregisterfunction(pluginid,functionid: integer): BOOL; stdcall;
 begin
   result:=pluginhandler.unregisterfunction(pluginid,functionid);
 end;
 
 
-function ce_assembler(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):boolean; stdcall;
+function ce_assembler(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):BOOL; stdcall;
 var x: tassemblerbytes;
     i: integer;
 begin
@@ -478,7 +515,7 @@ begin
   result:=true;
 end;
 
-function ce_disassembler(address: dword; output: pchar; maxsize: integer): boolean; stdcall;
+function ce_disassembler(address: dword; output: pchar; maxsize: integer): BOOL; stdcall;
 var s: string;
     p: pchar;
 begin

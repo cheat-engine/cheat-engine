@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 704
-  Top = 383
+  Left = 468
+  Top = 247
   Width = 532
   Height = 565
   Hint = ' '
@@ -1331,7 +1331,7 @@ object MainForm: TMainForm
       OnClick = SpeedButton2Click
     end
     object SpeedButton3: TSpeedButton
-      Left = 171
+      Left = 174
       Top = 284
       Width = 23
       Height = 22
@@ -1414,6 +1414,7 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label38'
+      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -1779,7 +1780,7 @@ object MainForm: TMainForm
       OnClick = UndoScanClick
     end
     object rbBit: TRadioButton
-      Left = 170
+      Left = 173
       Top = 90
       Width = 57
       Height = 17
@@ -1791,7 +1792,7 @@ object MainForm: TMainForm
       OnClick = rbBitClick
     end
     object rbDec: TRadioButton
-      Left = 170
+      Left = 173
       Top = 106
       Width = 58
       Height = 17
@@ -1832,7 +1833,7 @@ object MainForm: TMainForm
     object Foundlist3: TListView
       Left = 0
       Top = 48
-      Width = 168
+      Width = 171
       Height = 268
       Hint = 
         'This list shows all the found addresses that matched your last s' +
@@ -1842,7 +1843,7 @@ object MainForm: TMainForm
       Columns = <
         item
           Caption = 'Address'
-          Width = 88
+          Width = 93
         end
         item
           AutoSize = True
@@ -2018,7 +2019,7 @@ object MainForm: TMainForm
     end
     object mode16: TCheckBox
       Left = 176
-      Top = 304
+      Top = 312
       Width = 97
       Height = 17
       Caption = 'mode16'
@@ -2735,6 +2736,10 @@ object MainForm: TMainForm
       ShortCut = 49217
       OnExecute = actAutoAssembleExecute
     end
+    object actScriptEngine: TAction
+      Caption = 'Script Engine'
+      OnExecute = actScriptEngineExecute
+    end
   end
   object ImageList1: TImageList
     Left = 128
@@ -2954,6 +2959,10 @@ object MainForm: TMainForm
         ShortCut = 16451
         OnClick = Calculator1Click
       end
+    end
+    object Plugins2: TMenuItem
+      Caption = 'Plugins'
+      Visible = False
     end
     object Help1: TMenuItem
       Caption = 'Help'

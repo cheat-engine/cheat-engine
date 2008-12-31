@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="example-c"
 	ProjectGUID="{3A688B63-7CE8-4993-BEC5-E7FE48B73F03}"
+	RootNamespace="example-c"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -121,7 +122,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;EXAMPLEC_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;EXAMPLEC_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -186,7 +187,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\example-c.cpp"
+				RelativePath=".\example-c.c"
 				>
 			</File>
 			<File
@@ -200,7 +201,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\example-c.h"
+				RelativePath=".\ceplugin.h"
 				>
 			</File>
 		</Filter>

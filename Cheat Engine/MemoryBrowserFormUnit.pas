@@ -9,7 +9,7 @@ uses
   {$ifdef netclient}
   ,NetAPIs
   {$else}
-  ,NewKernelHandler, ComCtrls,FormsExtra
+  ,NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
   {$endif}
   ;
 
@@ -29,11 +29,11 @@ type
 
   end;
 
+  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtSingle, dtDouble);
 
   TMemoryBrowser = class(TForm)
     memorypopup: TPopupMenu;
     Goto1: TMenuItem;
-    Timer1: TTimer;
     debuggerpopup: TPopupMenu;
     Timer2: TTimer;
     Panel1: TPanel;
@@ -175,6 +175,15 @@ type
     ScrollBar1: TScrollBar;
     Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
     sbShowFloats: TSpeedButton;
+    ScriptConsole1: TMenuItem;
+    DisplayType1: TMenuItem;
+    N15: TMenuItem;
+    dispBytes: TMenuItem;
+    dispWords: TMenuItem;
+    dispDwords: TMenuItem;
+    dispFloat: TMenuItem;
+    dispDouble: TMenuItem;
+    dispInts: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -314,9 +323,12 @@ type
     procedure Findoutwhataddressesthisinstructionaccesses1Click(
       Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
+    procedure ScriptConsole1Click(Sender: TObject);
+    procedure DisplayTypeClick(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
+    displaytype: TDisplayType;
 
 
     editing: boolean;
@@ -416,7 +428,7 @@ type
     procedure updatedisassemblerview;
     procedure AssemblePopup(x: string);
 
-    procedure plugintype2click(sender:tobject);
+    procedure plugintype1click(sender:tobject);
     function isjumporcall(address: dword; var addresstojumpto: dword): boolean;
     procedure setcodeanddatabase;
     property showvalues: boolean read getShowValues write setShowValues;
@@ -685,7 +697,9 @@ end;
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
-
+//  displaytype:=vtByte;
+  displayType:=dtSingle;
+  scriptconsole1.ShortCut:=TextToShortCut('Ctrl+Shift+C');
 {
 not enough time to add header supports
 
@@ -834,7 +848,7 @@ procedure TMemoryBrowser.RefreshMB;
 var i: integer;
     j,k: integer;
     currentaddress: string[8];
-    bts: string[2];
+    bts: string[20];
 
     start: integer;
     stop: integer;
@@ -869,6 +883,102 @@ var i: integer;
     module1ok,module2ok: boolean;
     s: string;
     selstart,selstop: integer;
+  procedure getBTSString(unreadable: boolean);
+  {
+  Because this same code snippet is used in range1 AND range 2 it's betetr to make it a subfunction
+  }
+  var x: string;
+  begin
+    bts:='';
+    case displayType of
+      dtByte:
+      begin
+        if unreadable then
+          bts:='??'
+        else
+          bts:=IntToHex(buffer[j+(i*8*rowsof8)],2);
+      end;
+
+      dtWord:
+      begin
+        if j mod 2 = 0 then
+        begin
+          if unreadable then
+            bts:='????'
+          else
+            bts:=IntToHex(pword(@buffer[j+(i*8*rowsof8)])^,4);
+            
+          while length(bts)<10 do
+            bts:=bts+' ';
+        end;
+      end;
+
+      dtDWord:
+      begin
+        if j mod 4 = 0 then
+        begin
+          if unreadable then
+            bts:='????????'
+          else
+            bts:=IntToHex(pdword(@buffer[j+(i*8*rowsof8)])^,8);
+            
+          while length(bts)<10 do
+            bts:=bts+' ';
+        end;
+      end;
+
+      dtDwordDec:
+      begin
+        if j mod 4 = 0 then
+        begin
+          if unreadable then
+            bts:='?????'
+          else
+            bts:=IntToStr(pinteger(@buffer[j+(i*8*rowsof8)])^);
+
+          if length(bts)>9 then
+            bts:=copy(bts,1,6)+'...';
+            
+          while length(bts)<10 do
+            bts:=bts+' ';
+        end;
+      end;
+
+      dtSingle:
+      begin
+        if j mod 4 = 0 then
+        begin
+          if unreadable then
+            bts:='???'
+          else
+            bts:=format('%f',[psingle(@buffer[j+(i*8*rowsof8)])^]);
+            
+          if length(bts)>9 then
+            bts:=copy(bts,1,6)+'...';
+
+          while length(bts)<10 do
+            bts:=bts+' ';
+        end;
+      end;
+
+      dtDouble:
+      begin
+        if j mod 8 = 0 then
+        begin
+          if unreadable then
+            bts:='???'
+          else
+            bts:=format('%f',[pDouble(@buffer[j+(i*8*rowsof8)])^]);
+            
+          if length(bts)>18 then
+            bts:=copy(bts,1,16)+'...';
+
+          while length(bts)<19 do
+            bts:=bts+' ';
+        end;
+      end;
+    end;
+  end;
 begin
   //find the address in the module list
 
@@ -966,7 +1076,8 @@ begin
     p:=pointer(memoryaddress+i*8*rowsof8);
     a:=memoryaddress+i*8*rowsof8;
 
-    for j:=0 to (8*rowsof8)-1 do
+    j:=0;
+    while j<(8*rowsof8)-1 do
     begin
       if a<int64(int64(range1start)+int64(range1length)) then
       begin
@@ -992,7 +1103,9 @@ begin
             end;
           end;
 
-          bts:=IntToHex(buffer[j+(i*8*rowsof8)],2);
+          GetBTSstring(false);
+
+
           mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
           mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
 
@@ -1020,8 +1133,9 @@ begin
             mbimage.Canvas.font.Color:=clwindowtext;
           end;
 
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,'??');
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,'??');
+          GetBTSstring(true);
+          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
 
           mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
           mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
@@ -1054,7 +1168,8 @@ begin
           end;
 
           //readable
-          bts:=IntToHex(buffer[j+i*8*rowsof8],2);
+          //bts:=IntToHex(buffer[j+i*8*rowsof8],2);
+          getBTSString(false);
           mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
           mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
 
@@ -1082,14 +1197,16 @@ begin
             mbimage.Canvas.font.Color:=clwindowtext;
           end;
 
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,'??');
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,'??');
+          GetBTSstring(true);
+          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
 
           mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
           mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
         end;
       end;
       inc(a);
+      inc(j);
     end;
 
 
@@ -2041,6 +2158,13 @@ begin
                     if i<=-127 then search1.OnClick(self);
                   end;
     {$endif}
+
+    ord('1')    : if [ssCtrl] = shift then dispBytes.Click;
+    ord('2')    : if [ssCtrl] = shift then dispWords.Click;
+    ord('3')    : if [ssCtrl] = shift then dispDwords.Click;
+    ord('4')    : if [ssCtrl] = shift then dispints.Click;
+    ord('5')    : if [ssCtrl] = shift then dispFloat.Click;
+    ord('6')    : if [ssCtrl] = shift then dispDouble.Click;
 
     ord('G')    : begin
                     if ssCtrl in shift then goto1.click;
@@ -3967,13 +4091,13 @@ begin
   {$endif}
 end;
 
-procedure TMemoryBrowser.plugintype2click(sender:tobject);
+procedure TMemoryBrowser.plugintype1click(sender:tobject);
 {$ifndef net}
-var x: TPluginfunctionType2;
+var x: TPluginfunctionType1;
 {$endif}
 begin
 {$ifndef net}
-  x:=TPluginfunctionType2(tmenuitem(sender).Tag);
+  x:=TPluginfunctionType1(tmenuitem(sender).Tag);
   if x<>nil then
   begin
     x.callback(@disassembleraddress,@dselected,@memoryaddress);
@@ -4026,6 +4150,12 @@ begin
     part:=2; //textfield ad the left side
     if x<(a+20*8*rows8) then //byteclick
     begin
+      if displaytype<>dtByte then
+      begin
+        selecting:=false; //not for this type
+        exit;
+      end;
+      
       part:=1; //a byte
       srow:=((y-7) div textheight);
       scolumn:=(x-a) div 20;
@@ -4495,18 +4625,35 @@ begin
   frmFloatingPointPanel.show;//pop to foreground
 end;
 
+procedure TMemoryBrowser.ScriptConsole1Click(Sender: TObject);
+begin
+  with TfrmCScript.create(self) do
+    show;
+end;
+
+procedure TMemoryBrowser.DisplayTypeClick(Sender: TObject);
+var x: tmenuitem;
+begin
+//vtByte, vtWord, vtDword, vtDwordDec, vtSingle, vtDouble
+  if (sender is TMenuItem) then
+  begin
+    x:=TMenuItem(sender);
+    case x.tag of
+      0: DisplayType:=dtByte;
+      1: DisplayType:=dtWord;
+      2: DisplayType:=dtDword;
+      3: DisplayType:=dtDwordDec;
+      4: DisplayType:=dtsingle;
+      5: DisplayType:=dtDouble;
+    end;
+
+
+    mbimage.Canvas.FillRect(rect(0,0,mbimage.Width,mbimage.Height));
+    MBCanvas.Invalidate;
+    MBCanvas.Repaint;
+    refreshMB;
+  end;
+end;
+
 end.
-
-
-
-
-
-
-
-
-
-
-
-
-
 

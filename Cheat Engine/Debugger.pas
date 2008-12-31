@@ -71,21 +71,21 @@ end;
 
 type tregistermodificationBP=record
   address:dword; //addres to break on
-  change_eax:boolean;
-  change_ebx:boolean;
-  change_ecx:boolean;
-  change_edx:boolean;
-  change_esi:boolean;
-  change_edi:boolean;
-  change_ebp:boolean;
-  change_esp:boolean;
-  change_eip:boolean;
-  change_cf:boolean;
-  change_pf:boolean;
-  change_af:boolean;
-  change_zf:boolean;
-  change_sf:boolean;
-  change_of:boolean;
+  change_eax:BOOL;
+  change_ebx:BOOL;
+  change_ecx:BOOL;
+  change_edx:BOOL;
+  change_esi:BOOL;
+  change_edi:BOOL;
+  change_ebp:BOOL;
+  change_esp:BOOL;
+  change_eip:BOOL;
+  change_cf:BOOL;
+  change_pf:BOOL;
+  change_af:BOOL;
+  change_zf:BOOL;
+  change_sf:BOOL;
+  change_of:BOOL;
   new_eax:dword;
   new_ebx:dword;
   new_ecx:dword;
@@ -95,12 +95,12 @@ type tregistermodificationBP=record
   new_ebp:dword;
   new_esp:dword;
   new_eip:dword;
-  new_cf:boolean;
-  new_pf:boolean;
-  new_af:boolean;
-  new_zf:boolean;
-  new_sf:boolean;
-  new_of:boolean;
+  new_cf:BOOL;
+  new_pf:BOOL;
+  new_af:BOOL;
+  new_zf:BOOL;
+  new_sf:BOOL;
+  new_of:BOOL;
 end;
 type PRegisterModificationBP=^TRegisterModificationBP;
 

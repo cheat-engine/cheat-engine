@@ -288,7 +288,7 @@ begin
       self.peprocess:=y^.PEProcess;
       synchronize(updatelist);
 
-      pluginhandler.handlenewprocessplugins(y^.ProcessID,y^.PEProcess);
+      pluginhandler.handlenewprocessplugins(y^.ProcessID,y^.PEProcess, created);
 
       inc(y); //next element
     end;

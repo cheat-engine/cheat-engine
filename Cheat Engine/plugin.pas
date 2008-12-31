@@ -2,7 +2,7 @@ unit plugin;
 
 interface
 
-uses sysutils,windows,checklst,menus,dialogs,pluginexports,cefuncproc,newkernelhandler;
+uses sysutils,windows,checklst,menus,dialogs,cefuncproc,newkernelhandler;
 
 const CurrentPluginVersion=2;
 
@@ -108,6 +108,7 @@ type TExportedFunctions2 = record
   sym_nameToAddress         : pointer;
   sym_addressToName         : pointer;
   sym_generateAPIHookScript : pointer;
+
 end;
 type PExportedFunctions2 = ^TExportedFunctions2;
 
@@ -202,7 +203,7 @@ type TExportedFunctions1 = record
   mainform                :pointer;
   memorybrowser           :pointer;
 end;
-type PExportedFunctions1 = ^TExportedFunctions1; 
+type PExportedFunctions1 = ^TExportedFunctions1;  
 
 //exported functions of the plugin
 type TGetVersion=function(var PluginVersion:TPluginVersion; TPluginVersionSize: integer):BOOL; stdcall;
@@ -210,20 +211,34 @@ type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions2; plug
 type TDisablePlugin=function:BOOL; stdcall;
 
 
-//plugin type 1:
+//plugin type 0:
 //where: rightclick on the address list in the menu plugin, user activated
-type TPlugin1_SelectedRecord=record
+type TPlugin0_SelectedRecord=record
   interpretedaddress: pchar; //pointer to a 255 bytes long string (0 terminated)
   address: dword; //this is a read-only representaion of the address. Change interpretedaddress if you want to change this
-  ispointer: boolean; //readonly
+  ispointer: BOOL; //readonly
   countoffsets: integer; //readonly
   offsets: PDWordArray; //pointer to a array of dwords randing from 0 to countoffsets-1 (readonly)
   description: pchar; //pointer to a 255 bytes long string
   valuetype: byte;
   size: byte; //stringlenth or bitlength (max 255);
 end;
-type PPlugin1_SelectedRecord=^TPlugin1_SelectedRecord;
-type TPluginfunction1=function(selectedrecord: PPlugin1_SelectedRecord):bool; stdcall;
+type PPlugin0_SelectedRecord=^TPlugin0_SelectedRecord;
+type TPluginfunction0=function(selectedrecord: PPlugin0_SelectedRecord):bool; stdcall;
+
+//private plugin data
+type TPluginfunctionType0=class
+  public
+    pluginid: integer;
+    functionid: integer;
+    name:string;
+    callback: TPluginfunction0;
+    menuitem: TMenuItem;
+end;
+
+//plugin type 1:
+//where: menu bar under plugins in memory view, user activated
+type TPluginfunction1=function(disassembleraddress: pdword; selected_disassembler_address: pdword; hexviewaddress:pdword ):bool; stdcall;
 
 //private plugin data
 type TPluginfunctionType1=class
@@ -235,24 +250,21 @@ type TPluginfunctionType1=class
     menuitem: TMenuItem;
 end;
 
-//plugin type 2:
-//where: menu bar under plugins in memory view, user activated
-type TPluginfunction2=function(disassembleraddress: pdword; selected_disassembler_address: pdword; hexviewaddress:pdword ):bool; stdcall;
 
-//private plugin data
+//plugin type 2:
+//where: when a debug event happens
+type TPluginFunction2=function(debugevent: PDebugEvent):integer; stdcall; //return 0 if you want to let ce handle it as well, 1 if you don't want to let ce handle it as well  (in case of not handling, do ContinueDebugEvent yourself)
 type TPluginfunctionType2=class
   public
     pluginid: integer;
     functionid: integer;
-    name:string;
-    callback: TPluginfunction2;
-    menuitem: TMenuItem;
+    callback: TPluginFunction2;
 end;
 
-
 //plugin type 3:
-//where: when a debug event happens
-type TPluginFunction3=function(debugevent: PDebugEvent):integer; stdcall; //return 0 if you want to let ce handle it as well, 1 if you don't want to let ce handle it as well  (in case of not handling, do ContinueDebugEvent yourself)
+//where: a new process created according to the processwatcher
+type TPluginFunction3=function(processid: dword; peprocess:dword; created: BOOL):integer; stdcall;
+type TPluginFunction3Version1=function(processid: dword; peprocess:dword):integer; stdcall;
 type TPluginfunctionType3=class
   public
     pluginid: integer;
@@ -261,40 +273,47 @@ type TPluginfunctionType3=class
 end;
 
 //plugin type 4:
-//where: a new process created according to the processwatcher
-type TPluginFunction4=function(processid: dword; peprocess:dword):integer; stdcall;
+//where: Functionpointerchange notification
+type TPluginFunction4=function(section: integer):boolean; stdcall;
 type TPluginfunctionType4=class
   public
     pluginid: integer;
     functionid: integer;
-    callback: TPluginfunction4;
+    callback: TPluginFunction4;
 end;
 
 //plugin type 5:
-//where: Functionpointerchange notification
-type TPluginFunction5=function(section: integer):boolean; stdcall;
+//where: Main form's menu, plugin
+type TPluginfunction5=function:bool; stdcall;
+
+//private plugin data
 type TPluginfunctionType5=class
   public
     pluginid: integer;
     functionid: integer;
+    name:string;
     callback: TPluginfunction5;
+    menuitem: TMenuItem;
 end;
+
 
 type TPlugin = record
   dllname: string;
   filepath: string;
   hmodule: thandle;
   name: string;
+  pluginversion: integer;
   enabled: boolean;
   GetVersion: TGetVersion;
   EnablePlugin: TInitializePlugin;
   DisablePlugin: TDisablePlugin;
   nextid: integer;
+  RegisteredFunctions0: array of TPluginfunctionType0;
   RegisteredFunctions1: array of TPluginfunctionType1;
   RegisteredFunctions2: array of TPluginfunctionType2;
   RegisteredFunctions3: array of TPluginfunctionType3;
   RegisteredFunctions4: array of TPluginfunctionType4;
-  RegisteredFunctions5: array of TPluginfunctionType5;  
+  RegisteredFunctions5: array of TPluginfunctionType5;
 end;
 
 
@@ -311,7 +330,7 @@ type TPluginHandler=class
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
     function handledebuggerplugins(devent:PDebugEvent):integer;
-    function handlenewprocessplugins(processid: dword; peprocess:dword):boolean;
+    function handlenewprocessplugins(processid: dword; peprocess:dword; created: boolean):boolean;
     function handlechangedpointers(section: integer):boolean;
     function registerfunction(pluginid,functiontype:integer; init: pointer):integer;
     function unregisterfunction(pluginid,functionid: integer): boolean;
@@ -324,7 +343,7 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses mainunit,memorybrowserformunit,formsettingsunit;
+uses mainunit,memorybrowserformunit,formsettingsunit, pluginexports;
 
 function TPluginHandler.GetDLLFilePath(pluginid: integer):string;
 begin
@@ -334,21 +353,28 @@ begin
 end;
 
 function TPluginHandler.registerfunction(pluginid,functiontype:integer; init: pointer):integer;
-type Tfunction1=record
+type Tfunction0=record
   name: pchar;
   callbackroutine: pointer;
 end;
-type Tfunction3=record
+type Tfunction1=record
+  name: pchar;
+  callbackroutine: pointer;
+  shortcut: pchar;
+end;
+type TFunction2=record
   callbackroutine: pointer;
 end;
-type PFunction1=^TFunction1;
-type PFunction2=^TFunction1;   //same
-type PFunction3=^TFunction3;
-type PFunction4=^TFunction3;
-type PFunction5=^TFunction3;
+type PFunction0=^TFunction0;
+type Pfunction1=^TFunction1;   //same
+type Pfunction2=^TFunction2;
+type PFunction3=^TFunction2;
+type PFunction4=^TFunction2;
+type PFunction5=^TFunction1;
 
 var i: integer;
     newmenuitem: TMenuItem;
+    f0: TPluginfunctionType0;
     f1: TPluginfunctionType1;
     f2: TPluginfunctionType2;
     f3: TPluginfunctionType3;
@@ -364,73 +390,95 @@ begin
     case functiontype of
       0: begin
            //plugin for the rightclick on the addresslist
-           f1:=TPluginfunctionType1.Create;
-           f1.pluginid:=pluginid;
-           f1.functionid:=plugins[pluginid].nextid;
-           f1.name:=PFunction1(init).name;
-           f1.callback:=PFunction1(init).callbackroutine;
+           f0:=TPluginfunctionType0.Create;
+           f0.pluginid:=pluginid;
+           f0.functionid:=plugins[pluginid].nextid;
+           f0.name:=PFunction0(init).name;
+           f0.callback:=PFunction0(init).callbackroutine;
 
            if not mainform.Plugins1.Visible then
              mainform.Plugins1.Visible:=true;
 
            newmenuitem:=tmenuitem.Create(mainform);
-           newmenuitem.Caption:=f1.name;
-           newmenuitem.Tag:=dword(f1);
-           newmenuitem.onclick:=mainform.plugintype1click;
+           newmenuitem.Caption:=f0.name;
+           newmenuitem.Tag:=dword(f0);
+           newmenuitem.onclick:=mainform.plugintype0click;
            mainform.Plugins1.Add(newmenuitem);
 
-           f1.menuitem:=newmenuitem;
+           f0.menuitem:=newmenuitem;
 
-           setlength(plugins[pluginid].RegisteredFunctions1,length(plugins[pluginid].RegisteredFunctions1)+1);
-           plugins[pluginid].RegisteredFunctions1[length(plugins[pluginid].RegisteredFunctions1)-1]:=f1;
+           setlength(plugins[pluginid].RegisteredFunctions0,length(plugins[pluginid].RegisteredFunctions0)+1);
+           plugins[pluginid].RegisteredFunctions0[length(plugins[pluginid].RegisteredFunctions0)-1]:=f0;
 
            result:=plugins[pluginid].nextid;
          end;
 
       1: begin
            //plugin for the memorybrowser
-           f2:=TPluginfunctionType2.Create;
-           f2.pluginid:=pluginid;
-           f2.functionid:=plugins[pluginid].nextid;
-           f2.name:=Pfunction2(init).name;
-           f2.callback:=Pfunction2(init).callbackroutine;
+           f1:=TPluginfunctionType1.Create;
+           f1.pluginid:=pluginid;
+           f1.functionid:=plugins[pluginid].nextid;
+           f1.name:=Pfunction1(init).name;
+           f1.callback:=Pfunction1(init).callbackroutine;
 
            if not memorybrowser.Plugins1.Visible then
              memorybrowser.Plugins1.Visible:=true;
 
            newmenuitem:=tmenuitem.Create(mainform);
-           newmenuitem.Caption:=f2.name;
-           newmenuitem.Tag:=dword(f2);
-           newmenuitem.onclick:=memorybrowser.plugintype2click;
+           newmenuitem.Caption:=f1.name;
+           newmenuitem.Tag:=dword(f1);
+           newmenuitem.onclick:=memorybrowser.plugintype1click;
+
+           if plugins[pluginid].pluginversion>1 then
+           begin
+             try
+               newmenuitem.ShortCut:=TextToShortCut(PFunction1(init).shortcut);
+             except
+
+             end;
+           end;           
            memorybrowser.Plugins1.Add(newmenuitem);
 
-           f2.menuitem:=newmenuitem;
+           f1.menuitem:=newmenuitem;
 
-           setlength(plugins[pluginid].Registeredfunctions2,length(plugins[pluginid].Registeredfunctions2)+1);
-           plugins[pluginid].Registeredfunctions2[length(plugins[pluginid].Registeredfunctions2)-1]:=f2;
+           setlength(plugins[pluginid].Registeredfunctions1,length(plugins[pluginid].Registeredfunctions1)+1);
+           plugins[pluginid].Registeredfunctions1[length(plugins[pluginid].Registeredfunctions1)-1]:=f1;
 
            result:=plugins[pluginid].nextid;
          end;
 
       2: begin
            //debugger for the memorybrowser
-           f3:=TPluginfunctionType3.Create;
-           f3.pluginid:=pluginid;
-           f3.functionid:=plugins[pluginid].nextid;
-           f3.callback:=Pfunction3(init).callbackroutine;
+           f2:=TPluginfunctionType2.Create;
+           f2.pluginid:=pluginid;
+           f2.functionid:=plugins[pluginid].nextid;
+           f2.callback:=Pfunction2(init).callbackroutine;
 
-           setlength(plugins[pluginid].Registeredfunctions3,length(plugins[pluginid].Registeredfunctions3)+1);
-           plugins[pluginid].Registeredfunctions3[length(plugins[pluginid].Registeredfunctions3)-1]:=f3;
+           setlength(plugins[pluginid].RegisteredFunctions2,length(plugins[pluginid].RegisteredFunctions2)+1);
+           plugins[pluginid].RegisteredFunctions2[length(plugins[pluginid].RegisteredFunctions2)-1]:=f2;
 
            result:=plugins[pluginid].nextid;
          end;
 
       3: begin
            //process created
+           f3:=TPluginfunctionType3.Create;
+           f3.pluginid:=pluginid;
+           f3.functionid:=plugins[pluginid].nextid;
+           f3.callback:=Pfunction2(init).callbackroutine;
+
+           setlength(plugins[pluginid].Registeredfunctions3, length(plugins[pluginid].Registeredfunctions3)+1);
+           plugins[pluginid].Registeredfunctions3[length(plugins[pluginid].Registeredfunctions3)-1]:=f3;
+
+           result:=plugins[pluginid].nextid;
+         end;
+
+      4: begin
+           //function pointers changed
            f4:=TPluginfunctionType4.Create;
            f4.pluginid:=pluginid;
            f4.functionid:=plugins[pluginid].nextid;
-           f4.callback:=Pfunction3(init).callbackroutine;
+           f4.callback:=Pfunction2(init).callbackroutine;
 
            setlength(plugins[pluginid].RegisteredFunctions4, length(plugins[pluginid].Registeredfunctions4)+1);
            plugins[pluginid].Registeredfunctions4[length(plugins[pluginid].Registeredfunctions4)-1]:=f4;
@@ -438,17 +486,37 @@ begin
            result:=plugins[pluginid].nextid;
          end;
 
-      4: begin
-           //function pointers changed
+      5: begin
+           //main menu
+           //plugin for the memorybrowser
            f5:=TPluginfunctionType5.Create;
            f5.pluginid:=pluginid;
            f5.functionid:=plugins[pluginid].nextid;
-           f5.callback:=Pfunction3(init).callbackroutine;
+           f5.name:=Pfunction5(init).name;
+           f5.callback:=Pfunction5(init).callbackroutine;
 
-           setlength(plugins[pluginid].RegisteredFunctions5, length(plugins[pluginid].Registeredfunctions5)+1);
+           if not mainform.Plugins2.Visible then
+             mainform.Plugins2.Visible:=true;
+
+           newmenuitem:=tmenuitem.Create(mainform);
+           newmenuitem.Caption:=f5.name;
+           newmenuitem.Tag:=dword(f5);
+           newmenuitem.onclick:=mainform.plugintype5click;
+
+           try
+             newmenuitem.ShortCut:=TextToShortCut(PFunction5(init).shortcut);
+           except
+
+           end;
+           mainform.Plugins2.Add(newmenuitem);
+
+           f5.menuitem:=newmenuitem;
+
+           setlength(plugins[pluginid].Registeredfunctions5,length(plugins[pluginid].Registeredfunctions5)+1);
            plugins[pluginid].Registeredfunctions5[length(plugins[pluginid].Registeredfunctions5)-1]:=f5;
 
            result:=plugins[pluginid].nextid;
+
          end;
 
 
@@ -462,13 +530,34 @@ end;
 
 function TPluginHandler.unregisterfunction(pluginid,functionid: integer): boolean;
 var i,j: integer;
-    f: ^TPluginfunctionType1;
+    f: ^TPluginfunctionType0;
 begin
   //remove it
   result:=false;
   pluginmrew.BeginWrite;
   try
     if pluginid>=length(plugins) then exit;
+
+    //function0 check
+    for i:=0 to length(plugins[pluginid].RegisteredFunctions0)-1 do
+      if plugins[pluginid].RegisteredFunctions0[i].functionid=functionid then
+      begin
+        if plugins[pluginid].RegisteredFunctions0[i].menuitem.Parent<>nil then
+        begin
+          if plugins[pluginid].RegisteredFunctions0[i].menuitem.Parent.Count=1 then
+            plugins[pluginid].RegisteredFunctions0[i].menuitem.Parent.Visible:=false;
+        end;
+        plugins[pluginid].RegisteredFunctions0[i].menuitem.Free;
+        plugins[pluginid].RegisteredFunctions0[i].Free;
+
+        for j:=i to length(plugins[pluginid].RegisteredFunctions0)-2 do
+          plugins[pluginid].RegisteredFunctions0[j]:=plugins[pluginid].RegisteredFunctions0[j+1];
+
+        setlength(plugins[pluginid].RegisteredFunctions0,length(plugins[pluginid].RegisteredFunctions0)-1);
+
+        result:=true;
+        exit;
+      end;
 
     //function1 check
     for i:=0 to length(plugins[pluginid].RegisteredFunctions1)-1 do
@@ -495,12 +584,6 @@ begin
     for i:=0 to length(plugins[pluginid].RegisteredFunctions2)-1 do
       if plugins[pluginid].RegisteredFunctions2[i].functionid=functionid then
       begin
-        if plugins[pluginid].RegisteredFunctions2[i].menuitem.Parent<>nil then
-        begin
-          if plugins[pluginid].RegisteredFunctions2[i].menuitem.Parent.Count=1 then
-            plugins[pluginid].RegisteredFunctions2[i].menuitem.Parent.Visible:=false;
-        end;
-        plugins[pluginid].RegisteredFunctions2[i].menuitem.Free;
         plugins[pluginid].RegisteredFunctions2[i].Free;
 
         for j:=i to length(plugins[pluginid].RegisteredFunctions2)-2 do
@@ -512,22 +595,22 @@ begin
         exit;
       end;
 
-    //function3 check
-    for i:=0 to length(plugins[pluginid].RegisteredFunctions3)-1 do
-      if plugins[pluginid].RegisteredFunctions3[i].functionid=functionid then
+    //function3 check (processwatcher)
+    for i:=0 to length(plugins[pluginid].Registeredfunctions3)-1 do
+      if plugins[pluginid].Registeredfunctions3[i].functionid=functionid then
       begin
-        plugins[pluginid].RegisteredFunctions3[i].Free;
+        plugins[pluginid].Registeredfunctions3[i].Free;
 
-        for j:=i to length(plugins[pluginid].RegisteredFunctions3)-2 do
-          plugins[pluginid].RegisteredFunctions3[j]:=plugins[pluginid].RegisteredFunctions3[j+1];
+        for j:=i to length(plugins[pluginid].Registeredfunctions3)-2 do
+          plugins[pluginid].Registeredfunctions3[j]:=plugins[pluginid].Registeredfunctions3[j+1];
 
-        setlength(plugins[pluginid].RegisteredFunctions3,length(plugins[pluginid].RegisteredFunctions3)-1);
+        setlength(plugins[pluginid].Registeredfunctions3,length(plugins[pluginid].Registeredfunctions3)-1);
 
         result:=true;
         exit;
       end;
 
-    //function4 check (processwatcher)
+    //function4 check (changed pointers)
     for i:=0 to length(plugins[pluginid].RegisteredFunctions4)-1 do
       if plugins[pluginid].RegisteredFunctions4[i].functionid=functionid then
       begin
@@ -542,10 +625,16 @@ begin
         exit;
       end;
 
-    //function5 check (changed pointers)
+    //function5 check
     for i:=0 to length(plugins[pluginid].RegisteredFunctions5)-1 do
       if plugins[pluginid].RegisteredFunctions5[i].functionid=functionid then
       begin
+        if plugins[pluginid].RegisteredFunctions5[i].menuitem.Parent<>nil then
+        begin
+          if plugins[pluginid].RegisteredFunctions5[i].menuitem.Parent.Count=1 then
+            plugins[pluginid].RegisteredFunctions5[i].menuitem.Parent.Visible:=false;
+        end;
+        plugins[pluginid].RegisteredFunctions5[i].menuitem.Free;
         plugins[pluginid].RegisteredFunctions5[i].Free;
 
         for j:=i to length(plugins[pluginid].RegisteredFunctions5)-2 do
@@ -568,6 +657,9 @@ var e: texportedfunctions2;
 begin
   e:=exportedfunctions;  //save it to prevent plugins from fucking it up
 
+  if plugins[pluginid].pluginversion=1 then
+    e.sizeofExportedFunctions:=sizeof(Texportedfunctions1); //Just say it's smaller (order stays the same)
+
   pluginMREW.BeginRead;
   if pluginid>=length(plugins) then exit;
   
@@ -584,6 +676,7 @@ begin
 end;
 
 procedure TPluginHandler.DisablePlugin(pluginid: integer);
+var i: integer;
 begin
   pluginMREW.BeginRead;
   try
@@ -591,6 +684,28 @@ begin
     begin
       if not plugins[pluginid].DisablePlugin() then raise exception.Create('Error disabling '+plugins[pluginid].dllname);
       plugins[pluginid].enabled:=false;
+
+      //unregister all functions
+//      for i:=0 to
+
+      while length(plugins[pluginid].Registeredfunctions0)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions0[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions1)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions1[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions2)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions2[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions3)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions3[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions4)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions4[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions5)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions5[0].functionid);
+
     end;
   finally
     pluginMREW.EndRead;
@@ -676,6 +791,7 @@ begin
     try
       try
         setlength(plugins,length(plugins)+1);
+        plugins[length(plugins)-1].pluginversion:=PluginVersion.version;
         plugins[length(plugins)-1].dllname:=extractfilename(dllname);
         plugins[length(plugins)-1].filepath:=GetRelativeFilePath(dllname);
         plugins[length(plugins)-1].hmodule:=hmodule;
@@ -729,22 +845,27 @@ begin
   pluginMREW.BeginRead;
   try
     for i:=0 to length(plugins)-1 do
-      for j:=0 to length(plugins[i].RegisteredFunctions3)-1 do
-        if plugins[i].RegisteredFunctions3[j].callback(devent)=1 then result:=1;
+      for j:=0 to length(plugins[i].RegisteredFunctions2)-1 do
+        if plugins[i].RegisteredFunctions2[j].callback(devent)=1 then result:=1;
   finally
     pluginMREW.EndRead;
   end;
 end;
 
-function TPluginHandler.handlenewprocessplugins(processid: dword; peprocess:dword):boolean;
+function TPluginHandler.handlenewprocessplugins(processid: dword; peprocess:dword; created: boolean):boolean;
 var i,j: integer;
 begin
   result:=true;
   pluginMREW.BeginRead;
   try
     for i:=0 to length(plugins)-1 do
-      for j:=0 to length(plugins[i].RegisteredFunctions4)-1 do
-        plugins[i].RegisteredFunctions4[j].callback(processid,peprocess);
+      for j:=0 to length(plugins[i].Registeredfunctions3)-1 do
+      begin
+        if plugins[i].pluginversion=1 then
+          TPluginFunction3Version1(plugins[i].Registeredfunctions3[j].callback)(processid,peprocess)
+        else
+          plugins[i].Registeredfunctions3[j].callback(processid,peprocess, created);
+      end;
   finally
     pluginMREW.EndRead;
   end;
@@ -757,8 +878,8 @@ begin
   pluginMREW.BeginRead;
   try
     for i:=0 to length(plugins)-1 do
-      for j:=0 to length(plugins[i].RegisteredFunctions5)-1 do
-        plugins[i].RegisteredFunctions5[j].callback(section);
+      for j:=0 to length(plugins[i].RegisteredFunctions4)-1 do
+        plugins[i].RegisteredFunctions4[j].callback(section);
   finally
     pluginMREW.EndRead;
   end;
@@ -773,8 +894,9 @@ begin
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;
   exportedfunctions.unregisterfunction:=@ce_unregisterfunction;
-  exportedfunctions.OpenedProcessID:=@processid;
-  exportedfunctions.OpenedProcessHandle:=@processhandle;
+  exportedfunctions.OpenedProcessID:=@processhandler.processid;
+  exportedfunctions.OpenedProcessHandle:=@processhandler.processhandle;
+
 
   exportedfunctions.GetMainWindowHandle:=@ce_GetMainWindowHandle;
   exportedfunctions.AutoAssemble:=@ce_autoassemble;

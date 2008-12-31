@@ -723,6 +723,47 @@ object MemoryBrowser: TMemoryBrowser
       ShortCut = 16464
       OnClick = Pastefromclipboard1Click
     end
+    object N15: TMenuItem
+      Caption = '-'
+    end
+    object DisplayType1: TMenuItem
+      Caption = 'Display Type'
+      object dispBytes: TMenuItem
+        Caption = 'Byte hex'
+        ShortCut = 16433
+        OnClick = DisplayTypeClick
+      end
+      object dispWords: TMenuItem
+        Tag = 1
+        Caption = '2 Byte hex'
+        ShortCut = 16434
+        OnClick = DisplayTypeClick
+      end
+      object dispDwords: TMenuItem
+        Tag = 2
+        Caption = '4 Byte hex'
+        ShortCut = 16435
+        OnClick = DisplayTypeClick
+      end
+      object dispInts: TMenuItem
+        Tag = 3
+        Caption = '4 Byte decimal'
+        ShortCut = 16436
+        OnClick = DisplayTypeClick
+      end
+      object dispFloat: TMenuItem
+        Tag = 4
+        Caption = 'Float'
+        ShortCut = 16437
+        OnClick = DisplayTypeClick
+      end
+      object dispDouble: TMenuItem
+        Tag = 5
+        Caption = 'Double'
+        ShortCut = 16438
+        OnClick = DisplayTypeClick
+      end
+    end
     object N1: TMenuItem
       Caption = '-'
     end
@@ -734,12 +775,6 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Make page writable'
       OnClick = Makepagewritable1Click
     end
-  end
-  object Timer1: TTimer
-    Enabled = False
-    Interval = 5000
-    Left = 40
-    Top = 288
   end
   object debuggerpopup: TPopupMenu
     OnPopup = debuggerpopupPopup
@@ -1053,6 +1088,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Script Engine'
         ShortCut = 49217
         OnClick = ScriptEngine1Click
+      end
+      object ScriptConsole1: TMenuItem
+        Caption = 'Script Console'
+        OnClick = ScriptConsole1Click
       end
     end
     object Kerneltools1: TMenuItem

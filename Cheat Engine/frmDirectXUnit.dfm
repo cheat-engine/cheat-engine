@@ -26,13 +26,13 @@ object frmDirectX: TfrmDirectX
     Height = 335
     HorzScrollBar.Increment = 43
     VertScrollBar.Increment = 36
-    VertScrollBar.Position = 167
+    VertScrollBar.Position = 146
     VertScrollBar.Tracking = True
     Align = alClient
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 8
-      Top = -167
+      Top = -146
       Width = 465
       Height = 225
       Caption = 'Zoom Config'
@@ -380,7 +380,7 @@ object frmDirectX: TfrmDirectX
     end
     object GroupBox2: TGroupBox
       Left = 8
-      Top = 60
+      Top = 81
       Width = 465
       Height = 142
       Caption = 'Visible settings'
@@ -660,7 +660,7 @@ object frmDirectX: TfrmDirectX
     end
     object GroupBox3: TGroupBox
       Left = 8
-      Top = 267
+      Top = 288
       Width = 465
       Height = 804
       Caption = 'Aimhelper functions'
@@ -1574,7 +1574,7 @@ object frmDirectX: TfrmDirectX
     end
     object GroupBox4: TGroupBox
       Left = 8
-      Top = 210
+      Top = 231
       Width = 465
       Height = 49
       Caption = 'Textures'
