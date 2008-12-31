@@ -90,7 +90,7 @@ MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=..\
+OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
@@ -101,7 +101,7 @@ DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
-HostApplication=c:\svnx\Cheat Engine\cheatengine.exe
+HostApplication=C:\svnx\Cheat Engine\plugin\packet editor\cepe\testapp\testapp.exe
 Launcher=
 UseLauncher=0
 DebugCWD=
@@ -144,6 +144,3 @@ Item4=debug
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
-[HistoryLists\hlOutputDirectorry]
-Count=1
-Item0=..\
