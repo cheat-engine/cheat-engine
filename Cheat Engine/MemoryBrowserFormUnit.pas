@@ -697,8 +697,7 @@ end;
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
-//  displaytype:=vtByte;
-  displayType:=dtSingle;
+  displaytype:=dtByte;
   scriptconsole1.ShortCut:=TextToShortCut('Ctrl+Shift+C');
 {
 not enough time to add header supports
