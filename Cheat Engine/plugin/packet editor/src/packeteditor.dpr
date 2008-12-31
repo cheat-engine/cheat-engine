@@ -1,4 +1,4 @@
-library cepe;
+library packeteditor;
 
 { Important note about DLL memory management: ShareMem must be the
   first unit in your library's USES clause AND your project's (select
@@ -13,32 +13,14 @@ library cepe;
 uses
   SysUtils,
   Classes,
-  windows,
-  mainunit in 'mainunit.pas' {mainform},
-  packetfilter in 'packetfilter.pas',
-  hexedit in 'hexedit.pas',
-  filterform in 'filterform.pas' {frmFilter};
+  Unit1 in 'Unit1.pas',
+  controlwindow in 'controlwindow.pas' {frmControlWindow};
 
 {$R *.res}
 
-exports ws2send;
-exports ws2sendorig;
-exports ws2sendto;
-exports ws2sendtoorig;
-exports ws2recv;
-exports ws2recvorig;
-exports ws2recvfrom;
-exports ws2recvfromorig;
-exports ws2WSAsend;
-exports ws2WSAsendorig;
-exports ws2WSAsendto;
-exports ws2WSAsendtoorig;
-exports ws2WSArecv;
-exports ws2WSArecvorig;
-exports ws2WSArecvfrom;
-exports ws2WSArecvfromorig;
-
+exports GetVersion;
+exports InitializePlugin;
+exports DisablePlugin;
 
 begin
-  loadlibrary('ws2_32.dll');
 end.

@@ -95,13 +95,13 @@ UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
-Packages=vcl;rtl;vclx;indy;inet;xmlrtl;vclie;inetdbbde;inetdbxpress;dbrtl;dsnap;dsnapcon;vcldb;soaprtl;VclSmp;dbexpress;dbxcds;inetdb;bdertl;vcldbx;webdsnap;websnap;adortl;ibxpress;teeui;teedb;tee;dss;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;Rave50CLX;Rave50VCL;dclOfficeXP
+Packages=
 Conditionals=
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
-HostApplication=C:\svnx\Cheat Engine\plugin\packet editor\cepe\testapp\testapp.exe
+HostApplication=c:\svnx\Cheat Engine\cheatengine.exe
 Launcher=
 UseLauncher=0
 DebugCWD=

@@ -101,7 +101,7 @@ DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
-HostApplication=
+HostApplication=c:\svnx\Cheat Engine\cheatengine.exe
 Launcher=
 UseLauncher=0
 DebugCWD=
