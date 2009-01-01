@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,cefuncproc,newkernelhandler;
+  Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,cefuncproc,newkernelhandler,
+  symbolhandler;
 
 const structureversion=1;
 
@@ -24,13 +25,13 @@ type Tbasestucture=record
   private
     frmStructures: TfrmStructures;
     treeviewused: ttreeview;
-    address:dword;
+    addresses: array of dword;
     basestructure: integer;
     parentnode: ttreenode; //owner of this object
     objects: array of record //same size as the structelement of the base object
                         nodetoupdate: ttreenode; //same size as the structelement of the base object
                         child: tstructure; //if it is a pointer then this points to the structure that defines it
-                        currentvalue: string;
+                        //currentvalue: string; //obsolete, just get it on request
                       end;
   public
     procedure refresh;
@@ -46,7 +47,7 @@ type Tbasestucture=record
     Structures1: TMenuItem;
     Definenewstructure1: TMenuItem;
     N1: TMenuItem;
-    TreeView1: TTreeView;
+    tvStructureView: TTreeView;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     Addelement1: TMenuItem;
@@ -60,22 +61,20 @@ type Tbasestucture=record
     Addtoaddresslist1: TMenuItem;
     Recalculateaddress1: TMenuItem;
     N3: TMenuItem;
-    Panel2: TPanel;
-    Button2: TButton;
-    edtAddress: TEdit;
-    Button1: TButton;
     Addextraaddress1: TMenuItem;
+    edtAddress: TEdit;
+    Edit1: TEdit;
+    Edit2: TEdit;
+    HeaderControl1: THeaderControl;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
-    procedure TreeView1Collapsing(Sender: TObject; Node: TTreeNode;
+    procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
     procedure edtAddressChange(Sender: TObject);
-    procedure TreeView1Expanding(Sender: TObject; Node: TTreeNode;
+    procedure tvStructureViewExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
-    procedure TreeView1MouseDown(Sender: TObject; Button: TMouseButton;
+    procedure tvStructureViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure PopupMenu1Popup(Sender: TObject);
     procedure Deleteelement1Click(Sender: TObject);
@@ -83,23 +82,27 @@ type Tbasestucture=record
     procedure Open1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
     procedure ChangeElement1Click(Sender: TObject);
-    procedure TreeView1DblClick(Sender: TObject);
+    procedure tvStructureViewDblClick(Sender: TObject);
     procedure Addtoaddresslist1Click(Sender: TObject);
     procedure Recalculateaddress1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure tvStructureViewCustomDrawItem(Sender: TCustomTreeView;
+      Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+    procedure Edit1Change(Sender: TObject);
+    procedure Edit2Change(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
     definedstructures: array of Tbasestucture;
 
-    faddress: dword;
-    procedure setaddress(x:dword);
+    address: dword;  //first address (old compat)
+
     procedure refreshmenuitems;
     procedure definedstructureselect(sender:tobject);
     function RawToType(address: dword; const buf: array of byte; size: integer):integer;
   public
     { Public declarations }
-    property address: dword read faddress write setaddress;
+    procedure setaddress(i: integer; x:dword);
   end;
 
 implementation
@@ -122,7 +125,8 @@ var elementnr: integer;
     s: tstructure;
 begin
   self.frmStructures:=frmStructures;
-  self.address:=address;
+  setlength(self.addresses,1);
+  self.addresses[0]:=address;
   self.basestructure:=basestructure;
   self.treeviewused:=treeviewused;
   self.parentnode:=parentnode;
@@ -131,10 +135,10 @@ end;
 
 
 procedure TStructure.refresh;
-var i,j,k: integer;
+var c,i,j,k: integer;
     newtext,typename: string;
     snr: integer;
-    elementaddress: dword;
+    elementoffset: dword;
     buf: array of byte;
     x: dword;
 
@@ -148,7 +152,7 @@ var i,j,k: integer;
     s: tstructure;
 
     elementnr: integer;
-
+    currentvalues: array of string;
 
 begin
   //check if all nodes are present and remove those not needed anymore
@@ -180,12 +184,12 @@ begin
   end;
 
 
-  elementaddress:=address;
+  elementoffset:=0;
+  setlength(currentvalues,length(addresses));
 
   for i:=0 to length(objects)-1 do
   begin
     //define the text for this element
-
     if basestructure<0 then
     begin
       snr:=basestructure;
@@ -200,218 +204,218 @@ begin
       snr:=frmStructures.definedstructures[basestructure].structelement[i].structurenr;
     end;
 
-    if snr<0 then
+    for c:=0 to length(addresses)-1 do
     begin
-      if basestructure>=0 then
+      if snr<0 then
       begin
-        if frmStructures.definedstructures[basestructure].structelement[i].pointerto then
+        if basestructure>=0 then
         begin
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],4,x) then
-            objects[i].currentvalue:=inttohex(PDWORD(@buf[0])^,8)
-          else
-            objects[i].currentvalue:='???';
-
-          objects[i].currentvalue:='->'+objects[i].currentvalue;
-        end;
-      end;
-
-      if (basestructure<0) or (not frmStructures.definedstructures[basestructure].structelement[i].pointerto) then
-      case snr of
-        -1:
-        begin
-          typename:=typename+'Byte';
-
-          //read the value
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],1,x) then
-            objects[i].currentvalue:=inttostr(byte(buf[0]))
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -2:
-        begin
-          typename:=typename+'Byte Signed';
-
-          //read the value
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],1,x) then
-            objects[i].currentvalue:=inttostr(Shortint(buf[0]))
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -3:
-        begin
-          typename:=typename+'Byte Hexadecimal';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],1,x) then
-            objects[i].currentvalue:=inttohex(buf[0],2)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -4:
-        begin
-          typename:=typename+'2 Bytes';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],2,x) then
-            objects[i].currentvalue:=inttostr(PWORD(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -5:
-        begin
-          typename:=typename+'2 Bytes Signed';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],2,x) then
-            objects[i].currentvalue:=inttostr(PSmallint(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -6:
-        begin
-          typename:=typename+'2 Bytes Hexadecimal';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],2,x) then
-            objects[i].currentvalue:=inttohex(PWORD(@buf[0])^,4)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -7:
-        begin
-          typename:=typename+'4 Bytes';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],4,x) then
-            objects[i].currentvalue:=inttostr(PDWORD(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-
-        -8:
-        begin
-          typename:=typename+'4 Bytes Signed';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],4,x) then
-            objects[i].currentvalue:=inttostr(pinteger(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-
-        -9:
-        begin
-          typename:=typename+'4 Bytes Hexadecimal';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],4,x) then
-            objects[i].currentvalue:=inttohex(PDWORD(@buf[0])^,8)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -10:
-        begin
-          typename:=typename+'8 Bytes';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],8,x) then
-            objects[i].currentvalue:=inttostr(pint64(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -11:
-        begin
-          typename:=typename+'8 Bytes Hexadecimal';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],8,x) then
-            objects[i].currentvalue:=inttohex(pint64(@buf[0])^,16)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -12:
-        begin
-          typename:=typename+'Float';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],4,x) then
-            objects[i].currentvalue:=floattostr(psingle(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -13:
-        begin
-          typename:=typename+'Double';
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],8,x) then
-            objects[i].currentvalue:=floattostr(pdouble(@buf[0])^)
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -14:
-        begin
-          typename:=typename+'String';
-
-          if basestructure>=0 then
-            k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
-          else
+          if frmStructures.definedstructures[basestructure].structelement[i].pointerto then
           begin
-            elementnr:=parentnode.Index;
-            s:=parentnode.data;
-            k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+            currentvalues[c]:='->';
+
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+              currentvalues[c]:=currentvalues[c]+inttohex(PDWORD(@buf[0])^,8)
+            else
+              currentvalues[c]:=currentvalues[c]+'???';
+
+          end;
+        end;
+
+        if (basestructure<0) or (not frmStructures.definedstructures[basestructure].structelement[i].pointerto) then
+        case snr of
+          -1:
+          begin
+            if c=0 then typename:=typename+'Byte';
+
+            //read the value
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+              currentvalues[c]:=inttostr(byte(buf[0]))
+            else
+              currentvalues[c]:='???';
+          end;
+          -2:
+          begin
+            if c=0 then typename:=typename+'Byte Signed';
+
+            //read the value
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+              currentvalues[c]:=inttostr(Shortint(buf[0]))
+            else
+              currentvalues[c]:='???';
+          end;
+          -3:
+          begin
+            if c=0 then typename:=typename+'Byte Hexadecimal';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+              currentvalues[c]:=inttohex(buf[0],2)
+            else
+              currentvalues[c]:='???';
+          end;
+          -4:
+          begin
+            if c=0 then typename:=typename+'2 Bytes';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+              currentvalues[c]:=inttostr(PWORD(@buf[0])^)
+            else
+              currentvalues[c]:='???';
+          end;
+          -5:
+          begin
+            if c=0 then typename:=typename+'2 Bytes Signed';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+              currentvalues[c]:=inttostr(PSmallint(@buf[0])^)
+            else
+              currentvalues[c]:='???';
+          end;
+          -6:
+          begin
+            if c=0 then typename:=typename+'2 Bytes Hexadecimal';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+              currentvalues[c]:=inttohex(PWORD(@buf[0])^,4)
+            else
+              currentvalues[c]:='???';
+          end;
+          -7:
+          begin
+            if c=0 then typename:=typename+'4 Bytes';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+              currentvalues[c]:=inttostr(PDWORD(@buf[0])^)
+            else
+              currentvalues[c]:='???';
           end;
 
-          if length(buf)<=k then
-            setlength(buf,k+1);
-
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],k,x) then
+          -8:
           begin
-            buf[k]:=0;
-            for j:=0 to k-1 do
-              if (buf[j]>0) and (buf[j]<32) then buf[j]:=ord('?');
-
-            pc:=@buf[0];
-            objects[i].currentvalue:=pc;
-          end
-          else
-            objects[i].currentvalue:='???';
-        end;
-        -15:
-        begin
-          typename:=typename+'String Unicode';
-          if basestructure>=0 then
-            k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
-          else
-          begin
-            elementnr:=parentnode.Index;
-            s:=parentnode.data;
-            k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+            if c=0 then typename:=typename+'4 Bytes Signed';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+              currentvalues[c]:=inttostr(pinteger(@buf[0])^)
+            else
+              currentvalues[c]:='???';
           end;
-          if length(buf)<=k then
-            setlength(buf,k+1);
 
-
-          if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],k,x) then
+          -9:
           begin
-            buf[k]:=0;
-            buf[k-1]:=0;
-            for j:=0 to k-1 do
-              if (buf[j]>0) and (buf[j]<32) then buf[j]:=ord('?');
-            pwc:=@buf[0];
-            ws:=pwc;
-            objects[i].currentvalue:=ws;
-          end
-          else
-            objects[i].currentvalue:='???';
-        end;
-      end;
-    end else
-    begin
-      //it's a defined structure (has to be a pointer)
-      typename:=frmStructures.definedstructures[snr].name;
+            if c=0 then typename:=typename+'4 Bytes Hexadecimal';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+              currentvalues[c]:=inttohex(PDWORD(@buf[0])^,8)
+            else
+              currentvalues[c]:='???';
+          end;
+          -10:
+          begin
+            if c=0 then typename:=typename+'8 Bytes';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+              currentvalues[c]:=inttostr(pint64(@buf[0])^)
+            else
+              currentvalues[c]:='???';
+          end;
+          -11:
+          begin
+            if c=0 then typename:=typename+'8 Bytes Hexadecimal';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+              currentvalues[c]:=inttohex(pint64(@buf[0])^,16)
+            else
+              currentvalues[c]:='???';
+          end;
+          -12:
+          begin
+            if c=0 then typename:=typename+'Float';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+              currentvalues[c]:=floattostr(psingle(@buf[0])^)
+            else
+              currentvalues[c]:='???';
+          end;
+          -13:
+          begin
+            if c=0 then typename:=typename+'Double';
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+              currentvalues[c]:=floattostr(pdouble(@buf[0])^)
+            else
+              currentvalues[c]:='???';
+          end;
+          -14:
+          begin
+            if c=0 then typename:=typename+'String';
 
-      if readprocessmemory(processhandle,pointer(elementaddress),@buf[0],8,x) then
-        objects[i].currentvalue:='->'+inttohex(pdword(@buf[0])^,8)
-      else
-        objects[i].currentvalue:='->???';
+            if basestructure>=0 then
+              k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
+            else
+            begin
+              elementnr:=parentnode.Index;
+              s:=parentnode.data;
+              k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+            end;
+
+            if length(buf)<=k then
+              setlength(buf,k+1);
+
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],k,x) then
+            begin
+              buf[k]:=0;
+              for j:=0 to k-1 do
+                if (buf[j]>0) and (buf[j]<32) then buf[j]:=ord('?');
+
+              pc:=@buf[0];
+              currentvalues[c]:=pc;
+            end
+            else
+              currentvalues[c]:='???';
+          end;
+          -15:
+          begin
+            if c=0 then typename:=typename+'String Unicode';
+            if basestructure>=0 then
+              k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
+            else
+            begin
+              elementnr:=parentnode.Index;
+              s:=parentnode.data;
+              k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+            end;
+            if length(buf)<=k then
+              setlength(buf,k+1);
+
+
+            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],k,x) then
+            begin
+              buf[k]:=0;
+              buf[k-1]:=0;
+              for j:=0 to k-1 do
+                if (buf[j]>0) and (buf[j]<32) then buf[j]:=ord('?');
+              pwc:=@buf[0];
+              ws:=pwc;
+              currentvalues[c]:=ws;
+            end
+            else
+              currentvalues[c]:='???';
+          end;
+        end;
+      end else
+      begin
+        //it's a defined structure (has to be a pointer)
+        if c=0 then typename:=frmStructures.definedstructures[snr].name;
+
+        if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+          currentvalues[c]:='->'+inttohex(pdword(@buf[0])^,8)
+        else
+          currentvalues[c]:='->???';
+      end;
+
     end;
-
 
     if basestructure<0 then
     begin
-      newtext:=inttohex(elementaddress-address,4)+' - '+'('+typename+')';
+      newtext:=inttohex(elementoffset,4)+' - '+'('+typename+')';
     end
     else
     begin
-      newtext:=inttohex(elementaddress-address,4)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
+      newtext:=inttohex(elementoffset,4)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
     end;
-    newtext:=newtext+' ';
+    newtext:=newtext+#13#10;
 
-
-    while length(newtext)<25 do
-        newtext:=newtext+' ';
-
-
-    newtext:=newtext+inttohex(elementaddress,8)+' : '+objects[i].currentvalue;
+    for c:=0 to length(addresses)-1 do
+      newtext:=newtext+inttohex(addresses[c]+elementoffset,8)+' : '+currentvalues[c]+#13#10;
 
     //see if a node exists or not, if not create it.
     if objects[i].nodetoupdate=nil then
@@ -435,16 +439,20 @@ begin
         //do the same for the children
         //pointer
 
-        newaddress:=0;
-        readprocessmemory(processhandle,pointer(elementaddress),@newaddress,4,x);
+        for c:=0 to length(addresses)-1 do
+        begin
+          newaddress:=0;
+          readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@newaddress,4,x);
 
-        objects[i].child.address:=newaddress;
+          objects[i].child.addresses[c]:=newaddress;
+        end;
         objects[i].child.refresh;
       end;
 
-      inc(elementaddress,frmStructures.definedstructures[basestructure].structelement[i].bytesize);
+      inc(elementoffset,frmStructures.definedstructures[basestructure].structelement[i].bytesize);
     end;
   end;
+
 
   if treeviewused.Items.GetFirstNode<>nil then
     treeviewused.Items.GetFirstNode.Expand(false);
@@ -453,14 +461,16 @@ begin
 end;
 
 
-procedure TfrmStructures.setaddress(x: dword);
+procedure TfrmStructures.setaddress(i: integer; x: dword);
 begin
-  faddress:=x;
-  if not edtAddress.Focused then edtAddress.text:=inttohex(faddress,8);
-  
+  if i=0 then
+    address:=x;
+     
   if currentstructure<>nil then
   begin
-    currentstructure.address:=address;
+    if length(currentstructure.addresses)<=i then
+      setlength(currentstructure.addresses,i+1);
+    currentstructure.addresses[i]:=x;
     currentstructure.parentnode.Text:=edtaddress.text+'-'+definedstructures[currentstructure.basestructure].name;
     currentstructure.refresh;
   end;
@@ -691,9 +701,9 @@ begin
   if currentstructure<>nil then
     freeandnil(currentstructure);
 
-  treeview1.Items.Clear;
+  tvStructureView.Items.Clear;
 
-  currentstructure:=tstructure.create(self, treeview1,treeview1.Items.Add(nil,edtaddress.text+'-'+definedstructures[(sender as tmenuitem).Tag].name),address,(sender as tmenuitem).Tag);
+  currentstructure:=tstructure.create(self, tvStructureView,tvStructureView.Items.Add(nil,edtaddress.text+'-'+definedstructures[(sender as tmenuitem).Tag].name),address,(sender as tmenuitem).Tag);
   currentstructure.refresh;
   refreshmenuitems;  
 end;
@@ -743,7 +753,9 @@ var d,i,j,k,l:integer;
     selectedelement: integer;
     selectednode: ttreenode;
 begin
-  selectednode:=treeview1.Selected;
+  if currentstructure=nil then exit;
+
+  selectednode:=tvStructureView.Selected;
   if selectednode=nil then
     selectedstructure:=currentstructure
   else
@@ -861,8 +873,8 @@ begin
 
       currentstructure.refresh;
 
-      if not treeview1.Items.GetFirstNode.Expanded then
-        treeview1.Items.GetFirstNode.Expand(false);
+      if not tvStructureView.Items.GetFirstNode.Expanded then
+        tvStructureView.Items.GetFirstNode.Expand(false);
     end;
   end;
 end;
@@ -874,28 +886,22 @@ begin
   if currentstructure<>nil then currentstructure.refresh;
 end;
 
-procedure TfrmStructures.TreeView1Collapsing(Sender: TObject;
+procedure TfrmStructures.tvStructureViewCollapsing(Sender: TObject;
   Node: TTreeNode; var AllowCollapse: Boolean);
 begin
-  allowcollapse:=not (node=treeview1.Items.GetFirstNode);
-end;
-
-procedure TfrmStructures.Button1Click(Sender: TObject);
-begin
-  address:=address+1;
-end;
-
-procedure TfrmStructures.Button2Click(Sender: TObject);
-begin
-  address:=address-1;
+  allowcollapse:=not (node=tvStructureView.Items.GetFirstNode);
 end;
 
 procedure TfrmStructures.edtAddressChange(Sender: TObject);
 begin
-  address:=strtoint('$'+edtaddress.text);
+  try
+    setaddress(0, symhandler.getAddressFromName(edtaddress.text));
+  except
+
+  end;
 end;
 
-procedure TfrmStructures.TreeView1Expanding(Sender: TObject;
+procedure TfrmStructures.tvStructureViewExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
 var s: tstructure;
     elementnr: integer;
@@ -915,35 +921,45 @@ begin
 
   basestruct:=s.basestructure;
 
-  elementaddress:=s.address;
+  elementaddress:=s.addresses[0];
   for i:=0 to elementnr-2 do
     inc(elementaddress,definedstructures[basestruct].structelement[i].bytesize);
 
 
   //make sure it's a pointer
   if definedstructures[basestruct].structelement[elementnr].pointerto then
-    s.objects[elementnr].child:=tstructure.create(self, treeview1,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
+  begin
+    s.objects[elementnr].child:=tstructure.create(self, tvStructureView,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
+
+    setlength(s.objects[elementnr].child.addresses,length(currentstructure.addresses));
+    for i:=0 to length(currentstructure.addresses)-1 do
+      s.objects[elementnr].child.addresses[i]:=currentstructure.addresses[i];
+  end;
 
   currentstructure.refresh;
 end;
 
-procedure TfrmStructures.TreeView1MouseDown(Sender: TObject;
+procedure TfrmStructures.tvStructureViewMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var tn: ttreenode;
 begin
   if mbright = button then
   begin
-    tn:=treeview1.GetNodeAt(x,y);
-    treeview1.Selected:=tn;
+    tn:=tvStructureView.GetNodeAt(x,y);
+    tvStructureView.Selected:=tn;
   end;
 end;
 
 procedure TfrmStructures.PopupMenu1Popup(Sender: TObject);
+var i: integer;
 begin
-  AddElement1.Visible:=currentstructure<>nil;
-  Deleteelement1.Visible:=(treeview1.selected<>nil);
+  for i:=0 to popupmenu1.Items.Count-1 do
+    popupmenu1.Items[i].Visible:=currentstructure<>nil;
 
-  n3.Visible:=(treeview1.selected<>nil) and (treeview1.selected.Level=1);
+
+
+
+  n3.Visible:=(tvStructureView.selected<>nil) and (tvStructureView.selected.Level=1);
   Recalculateaddress1.visible:=n3.Visible;
 end;
 
@@ -952,10 +968,12 @@ var s: tstructure;
     elementnr: integer;
     i: integer;
 begin
-  if treeview1.Selected<>nil then
+  if currentstructure=nil then exit;
+
+  if tvStructureView.Selected<>nil then
   begin
-    elementnr:=treeview1.Selected.Index;
-    s:=tstructure(treeview1.Selected.Data);
+    elementnr:=tvStructureView.Selected.Index;
+    s:=tstructure(tvStructureView.Selected.Data);
 
     if s=nil then exit;
     if s.basestructure<0 then exit;
@@ -1111,7 +1129,9 @@ var i,j: integer;
     selectedelement: integer;
     selectednode: ttreenode;
 begin
-  if treeview1.Selected=treeview1.Items.GetFirstNode then
+  if currentstructure=nil then exit;
+  
+  if tvStructureView.Selected=tvStructureView.Items.GetFirstNode then
   begin
     inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
     address:=address+1-1;
@@ -1120,7 +1140,7 @@ begin
   end;
 
 
-  selectednode:=treeview1.Selected;
+  selectednode:=tvStructureView.Selected;
   if selectednode=nil then exit;
 
   selectedstructure:=tstructure(selectednode.Data);
@@ -1201,7 +1221,7 @@ begin
 
 end;
 
-procedure TfrmStructures.TreeView1DblClick(Sender: TObject);
+procedure TfrmStructures.tvStructureViewDblClick(Sender: TObject);
 var
   selectedstructure: tstructure;
   selectednode: ttreenode;
@@ -1211,14 +1231,14 @@ var
 begin
 
 
-  selectednode:=treeview1.Selected;
+  selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
   begin
     selectedstructure:=tstructure(selectednode.Data);
     if selectedstructure<>nil then
     begin
       selectedelement:=selectednode.Index;
-      a:=selectedstructure.address;
+      a:=selectedstructure.addresses[0];
       for i:=0 to selectedelement-1 do
         inc(a,definedstructures[selectedstructure.basestructure].structelement[i].bytesize);
 
@@ -1274,8 +1294,10 @@ var
 
   i: integer;
 begin
+  if currentstructure=nil then exit;
+  
   showashex:=false;
-  selectednode:=treeview1.Selected;
+  selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
   begin
     selectedstructure:=tstructure(selectednode.Data);
@@ -1372,7 +1394,9 @@ var a: string;
     i: integer;
     delta: integer;
 begin
-  selectednode:=treeview1.Selected;
+  if currentstructure=nil then exit;
+  
+  selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
   begin
     selectedstructure:=tstructure(selectednode.Data);
@@ -1404,6 +1428,30 @@ procedure TfrmStructures.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TfrmStructures.tvStructureViewCustomDrawItem(Sender: TCustomTreeView;
+  Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+begin
+  //
+end;
+
+procedure TfrmStructures.Edit1Change(Sender: TObject);
+begin
+  try
+    setaddress(1, symhandler.getAddressFromName(edit1.text));
+  except
+
+  end;
+end;
+
+procedure TfrmStructures.Edit2Change(Sender: TObject);
+begin
+  try
+    setaddress(2, symhandler.getAddressFromName(edit2.text));
+  except
+
+  end;
 end;
 
 end.

@@ -110,7 +110,7 @@ type
     NextScanButton: TButton;
     ScanType: TComboBox;
     VarType: TComboBox;
-    Button3: TButton;
+    btnMemoryView: TButton;
     Button1: TButton;
     ProgressBar1: TProgressBar;
     HexadecimalCheckbox: TCheckBox;
@@ -275,10 +275,11 @@ type
     Helpindex1: TMenuItem;
     actScriptEngine: TAction;
     Plugins2: TMenuItem;
+    actMemoryView: TAction;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure btnMemoryViewClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AddressKeyPress(Sender: TObject; var Key: Char);
     procedure Panel1DragOver(Sender, Source: TObject; X, Y: Integer;
@@ -4324,7 +4325,7 @@ begin
   end;
 end;
 
-procedure TMainForm.Button3Click(Sender: TObject);
+procedure TMainForm.btnMemoryViewClick(Sender: TObject);
 begin
   memorybrowser.show;
 end;
@@ -9979,7 +9980,7 @@ end;
 
 procedure TMainForm.OpenMemorybrowser1Click(Sender: TObject);
 begin
-  Button3.click;
+  btnMemoryView.click;
 end;
 
 

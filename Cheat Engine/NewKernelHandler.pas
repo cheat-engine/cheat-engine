@@ -104,8 +104,6 @@ type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: p
 type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
 
 
-
-
 procedure DONTUseDBKQueryMemoryRegion;
 procedure DONTUseDBKReadWriteMemory;
 procedure DONTUseDBKOpenProcess;

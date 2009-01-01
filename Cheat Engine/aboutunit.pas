@@ -77,7 +77,8 @@ begin
     groupbox1.Caption:=mainunit2.CEnorm;
   {$endif}
 
-  if dbvm_version=0 then
+
+  if (not assigned(dbvm_version)) or (dbvm_version=0) then
   begin
     supportsdbvm:=false;
 

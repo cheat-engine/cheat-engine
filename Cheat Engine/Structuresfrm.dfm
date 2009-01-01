@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 406
-  Top = 473
+  Left = 628
+  Top = 536
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -16,12 +16,13 @@ object frmStructures: TfrmStructures
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
-  object TreeView1: TTreeView
+  object tvStructureView: TTreeView
     Left = 0
-    Top = 33
+    Top = 50
     Width = 606
-    Height = 305
+    Height = 288
     Align = alClient
+    BorderStyle = bsNone
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -34,10 +35,11 @@ object frmStructures: TfrmStructures
     ReadOnly = True
     ShowRoot = False
     TabOrder = 0
-    OnCollapsing = TreeView1Collapsing
-    OnDblClick = TreeView1DblClick
-    OnExpanding = TreeView1Expanding
-    OnMouseDown = TreeView1MouseDown
+    OnCollapsing = tvStructureViewCollapsing
+    OnCustomDrawItem = tvStructureViewCustomDrawItem
+    OnDblClick = tvStructureViewDblClick
+    OnExpanding = tvStructureViewExpanding
+    OnMouseDown = tvStructureViewMouseDown
   end
   object Panel1: TPanel
     Left = 0
@@ -48,42 +50,51 @@ object frmStructures: TfrmStructures
     BevelOuter = bvNone
     BorderStyle = bsSingle
     TabOrder = 1
-    object Panel2: TPanel
-      Left = 0
-      Top = 0
-      Width = 137
-      Height = 29
-      Align = alLeft
-      BevelOuter = bvNone
+    object edtAddress: TEdit
+      Left = 4
+      Top = 4
+      Width = 77
+      Height = 21
       TabOrder = 0
-      object Button2: TButton
-        Left = 4
-        Top = 4
-        Width = 21
-        Height = 21
-        Caption = '-'
-        TabOrder = 0
-        OnClick = Button2Click
-      end
-      object edtAddress: TEdit
-        Left = 28
-        Top = 4
-        Width = 77
-        Height = 21
-        TabOrder = 1
-        Text = '00000000'
-        OnChange = edtAddressChange
-      end
-      object Button1: TButton
-        Left = 108
-        Top = 4
-        Width = 21
-        Height = 21
-        Caption = '+'
-        TabOrder = 2
-        OnClick = Button1Click
-      end
+      Text = '00000000'
+      OnChange = edtAddressChange
     end
+    object Edit1: TEdit
+      Left = 100
+      Top = 4
+      Width = 77
+      Height = 21
+      TabOrder = 1
+      Text = '00000000'
+      OnChange = Edit1Change
+    end
+    object Edit2: TEdit
+      Left = 196
+      Top = 4
+      Width = 77
+      Height = 21
+      TabOrder = 2
+      Text = '00000000'
+      OnChange = Edit2Change
+    end
+  end
+  object HeaderControl1: THeaderControl
+    Left = 0
+    Top = 33
+    Width = 606
+    Height = 17
+    Sections = <
+      item
+        ImageIndex = -1
+        Text = 'Offset-description'
+        Width = 250
+      end
+      item
+        ImageIndex = -1
+        Text = 'Address: Value'
+        Width = 100
+      end>
+    Style = hsFlat
   end
   object MainMenu1: TMainMenu
     Left = 256
@@ -126,7 +137,8 @@ object frmStructures: TfrmStructures
     Left = 240
     Top = 192
     object Addelement1: TMenuItem
-      Caption = 'Add element'
+      Caption = 'Insert element'
+      ShortCut = 45
       OnClick = Addelement1Click
     end
     object ChangeElement1: TMenuItem

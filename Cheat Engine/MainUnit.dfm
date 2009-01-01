@@ -1721,7 +1721,7 @@ object MainForm: TMainForm
         'All (Byte to Double)'
         'Custom')
     end
-    object Button3: TButton
+    object btnMemoryView: TButton
       Left = 0
       Top = 322
       Width = 89
@@ -1729,7 +1729,7 @@ object MainForm: TMainForm
       Anchors = [akLeft, akBottom]
       Caption = 'Memory view'
       TabOrder = 7
-      OnClick = Button3Click
+      OnClick = btnMemoryViewClick
     end
     object Button1: TButton
       Left = 410
@@ -2739,6 +2739,11 @@ object MainForm: TMainForm
     object actScriptEngine: TAction
       Caption = 'Script Engine'
       OnExecute = actScriptEngineExecute
+    end
+    object actMemoryView: TAction
+      Caption = 'actMemoryView'
+      ShortCut = 16461
+      OnExecute = btnMemoryViewClick
     end
   end
   object ImageList1: TImageList

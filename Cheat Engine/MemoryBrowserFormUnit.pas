@@ -3987,7 +3987,7 @@ begin
 {$ifndef net}
   with tfrmstructures.create(self) do
   begin
-    address:=memoryaddress;
+    setaddress(0, memoryaddress);
     show;
   end;
 {$endif}

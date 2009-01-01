@@ -24,7 +24,7 @@ Assembler can now work with " and ' strings
 Changed the reverse pointer scan to give more details about what is going on
 The positions of the main window and memoryview can now be saved
 The about window now tells you which version of dbvm is loaded if dbvm is running
-If dbvm is running and you choose phsyical memory, it goes through dbvm's read physical memory instead of windows'
+If DBVM is running and you choose phsyical memory, it goes through dbvm's read physical memory instead of windows'
 Added a floating point panel to several windows that use system context to display variables
 Added the option to the memoryview hexview part to display 2 bytes, 4 byte, float or double instead of bytes
 
