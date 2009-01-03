@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 628
-  Top = 536
+  Left = 405
+  Top = 560
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -14,6 +14,7 @@ object frmStructures: TfrmStructures
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object tvStructureView: TTreeView
@@ -33,13 +34,22 @@ object frmStructures: TfrmStructures
     ParentFont = False
     PopupMenu = PopupMenu1
     ReadOnly = True
-    ShowRoot = False
+    RowSelect = True
     TabOrder = 0
+    OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsing = tvStructureViewCollapsing
-    OnCustomDrawItem = tvStructureViewCustomDrawItem
     OnDblClick = tvStructureViewDblClick
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
+    Items.Data = {
+      080000001A0000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
+      01611A0000000000000000000000FFFFFFFFFFFFFFFF00000000000000000162
+      1A0000000000000000000000FFFFFFFFFFFFFFFF000000000000000001631A00
+      00000000000000000000FFFFFFFFFFFFFFFF000000000000000001641A000000
+      0000000000000000FFFFFFFFFFFFFFFF000000000000000001651A0000000000
+      000000000000FFFFFFFFFFFFFFFF000000000000000001661A00000000000000
+      00000000FFFFFFFFFFFFFFFF000000000000000001671A000000000000000000
+      0000FFFFFFFFFFFFFFFF00000000000000000168}
   end
   object Panel1: TPanel
     Left = 0
@@ -55,27 +65,10 @@ object frmStructures: TfrmStructures
       Top = 4
       Width = 77
       Height = 21
+      PopupMenu = PopupMenu2
       TabOrder = 0
       Text = '00000000'
       OnChange = edtAddressChange
-    end
-    object Edit1: TEdit
-      Left = 100
-      Top = 4
-      Width = 77
-      Height = 21
-      TabOrder = 1
-      Text = '00000000'
-      OnChange = Edit1Change
-    end
-    object Edit2: TEdit
-      Left = 196
-      Top = 4
-      Width = 77
-      Height = 21
-      TabOrder = 2
-      Text = '00000000'
-      OnChange = Edit2Change
     end
   end
   object HeaderControl1: THeaderControl
@@ -83,6 +76,7 @@ object frmStructures: TfrmStructures
     Top = 33
     Width = 606
     Height = 17
+    HotTrack = True
     Sections = <
       item
         ImageIndex = -1
@@ -92,9 +86,10 @@ object frmStructures: TfrmStructures
       item
         ImageIndex = -1
         Text = 'Address: Value'
-        Width = 100
+        Width = 200
       end>
     Style = hsFlat
+    OnSectionResize = HeaderControl1SectionResize
   end
   object MainMenu1: TMainMenu
     Left = 256
@@ -105,10 +100,6 @@ object frmStructures: TfrmStructures
         ShortCut = 16462
         OnClick = New1Click
       end
-      object Addextraaddress1: TMenuItem
-        Caption = 'Add extra address'
-        ShortCut = 16449
-      end
       object Open1: TMenuItem
         Caption = 'Open'
         ShortCut = 16463
@@ -118,6 +109,14 @@ object frmStructures: TfrmStructures
         Caption = 'Save'
         ShortCut = 16467
         OnClick = Save1Click
+      end
+      object N7: TMenuItem
+        Caption = '-'
+      end
+      object Addextraaddress1: TMenuItem
+        Caption = 'Add extra address'
+        ShortCut = 16449
+        OnClick = Addextraaddress1Click
       end
     end
     object Structures1: TMenuItem
@@ -175,14 +174,55 @@ object frmStructures: TfrmStructures
   object OpenDialog1: TOpenDialog
     DefaultExt = 'CES'
     Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
-    Left = 16
-    Top = 48
+    Left = 8
+    Top = 144
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'CES'
     Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 56
-    Top = 48
+    Left = 40
+    Top = 144
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 128
+    Top = 8
+    object Undo1: TMenuItem
+      Caption = '&Undo'
+      ShortCut = 16474
+      OnClick = Undo1Click
+    end
+    object N5: TMenuItem
+      Caption = '-'
+    end
+    object Cut1: TMenuItem
+      Caption = 'Cu&t'
+      ShortCut = 16472
+      OnClick = Cut1Click
+    end
+    object Copy1: TMenuItem
+      Caption = '&Copy'
+      ShortCut = 16451
+      OnClick = Copy1Click
+    end
+    object Paste1: TMenuItem
+      Caption = '&Paste'
+      ShortCut = 16470
+      OnClick = Paste1Click
+    end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object SelectAll1: TMenuItem
+      Caption = 'Select &All'
+      OnClick = SelectAll1Click
+    end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object Remove1: TMenuItem
+      Caption = 'Remove'
+      OnClick = Remove1Click
+    end
   end
 end

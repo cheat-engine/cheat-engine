@@ -35,7 +35,9 @@ type Tbasestucture=record
                       end;
   public
     procedure refresh;
-    constructor create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
+    procedure removeAddress(i: integer);
+    procedure setaddress(i: integer; x:dword);
+    constructor create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
     destructor destroy; override;
   end;
 
@@ -63,9 +65,18 @@ type Tbasestucture=record
     N3: TMenuItem;
     Addextraaddress1: TMenuItem;
     edtAddress: TEdit;
-    Edit1: TEdit;
-    Edit2: TEdit;
     HeaderControl1: THeaderControl;
+    PopupMenu2: TPopupMenu;
+    Paste1: TMenuItem;
+    Copy1: TMenuItem;
+    Cut1: TMenuItem;
+    N4: TMenuItem;
+    Remove1: TMenuItem;
+    N5: TMenuItem;
+    SelectAll1: TMenuItem;
+    N6: TMenuItem;
+    Undo1: TMenuItem;
+    N7: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -86,20 +97,32 @@ type Tbasestucture=record
     procedure Addtoaddresslist1Click(Sender: TObject);
     procedure Recalculateaddress1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure tvStructureViewCustomDrawItem(Sender: TCustomTreeView;
-      Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
-    procedure Edit1Change(Sender: TObject);
-    procedure Edit2Change(Sender: TObject);
+    procedure HeaderControl1SectionResize(HeaderControl: THeaderControl;
+      Section: THeaderSection);
+    procedure Addextraaddress1Click(Sender: TObject);
+    procedure Undo1Click(Sender: TObject);
+    procedure Cut1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure Copy1Click(Sender: TObject);
+    procedure Paste1Click(Sender: TObject);
+    procedure SelectAll1Click(Sender: TObject);
+    procedure Remove1Click(Sender: TObject);
+    procedure tvStructureViewAdvancedCustomDrawItem(
+      Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+      Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
   private
     { Private declarations }
     currentstructure: tstructure;
     definedstructures: array of Tbasestucture;
 
-    address: dword;  //first address (old compat)
+    addresses: array of dword;  //first address (old compat)
+    edits: array of tedit;
+    lastnewedit: TEdit;
 
     procedure refreshmenuitems;
     procedure definedstructureselect(sender:tobject);
     function RawToType(address: dword; const buf: array of byte; size: integer):integer;
+    procedure ExtraEnter(Sender: TObject);
   public
     { Public declarations }
     procedure setaddress(i: integer; x:dword);
@@ -120,19 +143,53 @@ begin
   inherited destroy;
 end;
 
-constructor TStructure.create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode;address:dword; basestructure: integer);
+constructor TStructure.create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
 var elementnr: integer;
     s: tstructure;
+    i: integer;
 begin
   self.frmStructures:=frmStructures;
-  setlength(self.addresses,1);
-  self.addresses[0]:=address;
+  setlength(self.addresses,length(addresses));
+  for i:=0 to length(addresses)-1 do
+    self.addresses[i]:=addresses[i];
+    
   self.basestructure:=basestructure;
   self.treeviewused:=treeviewused;
   self.parentnode:=parentnode;
   inherited create;
 end;
 
+procedure TStructure.removeAddress(i: integer);
+var j: integer;
+begin
+  for j:=i to length(addresses)-2 do
+    addresses[j]:=addresses[j+1];
+
+  if i<length(addresses) then //just in case it didn't get the previous add...
+    setlength(addresses,length(addresses)-1);
+
+  for j:=0 to length(objects)-1 do
+    if objects[j].child<>nil then
+      objects[j].child.removeAddress(i);
+  refresh;
+end;
+
+procedure TStructure.setaddress(i: integer; x:dword);
+var j: integer;
+begin
+  if i>=length(addresses) then
+    setlength(addresses,i+1);
+
+  //update children
+  for j:=0 to length(objects)-1 do
+  begin
+    if objects[j].child<>nil then
+      objects[j].child.setaddress(i,x);
+  end;
+
+  addresses[i]:=x;
+  refresh;
+end;
 
 procedure TStructure.refresh;
 var c,i,j,k: integer;
@@ -412,10 +469,10 @@ begin
     begin
       newtext:=inttohex(elementoffset,4)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
     end;
-    newtext:=newtext+#13#10;
+    newtext:=newtext+#13;
 
     for c:=0 to length(addresses)-1 do
-      newtext:=newtext+inttohex(addresses[c]+elementoffset,8)+' : '+currentvalues[c]+#13#10;
+      newtext:=newtext+{inttohex(addresses[c]+elementoffset,8)+' : '+}currentvalues[c]+#13;
 
     //see if a node exists or not, if not create it.
     if objects[i].nodetoupdate=nil then
@@ -460,19 +517,19 @@ begin
   //treeviewused.Items.endupdate;
 end;
 
-
 procedure TfrmStructures.setaddress(i: integer; x: dword);
 begin
-  if i=0 then
-    address:=x;
+  addresses[i]:=x;
      
   if currentstructure<>nil then
   begin
+    currentstructure.setAddress(i,x);
+ {
     if length(currentstructure.addresses)<=i then
       setlength(currentstructure.addresses,i+1);
     currentstructure.addresses[i]:=x;
     currentstructure.parentnode.Text:=edtaddress.text+'-'+definedstructures[currentstructure.basestructure].name;
-    currentstructure.refresh;
+    currentstructure.refresh;  }
   end;
 end;
 
@@ -603,7 +660,7 @@ begin
     setlength(buf,structsize);
     setlength(buf2,8);
     //now read the memory
-    if readprocessmemory(processhandle,pointer(address),@buf[0],structsize,x) then
+    if readprocessmemory(processhandle,pointer(addresses[0]),@buf[0],structsize,x) then
     begin
       x:=0;
       while x<structsize do
@@ -633,7 +690,7 @@ begin
         begin
           //value
           //check what type it is
-          t:=RawToType(address+x,buf[x],structsize-x);
+          t:=RawToType(addresses[0]+x,buf[x],structsize-x);
           definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
 
           case t of
@@ -696,6 +753,7 @@ begin
 end;
 
 procedure TfrmStructures.definedstructureselect(sender:tobject);
+var name: string;
 begin
   caption:='Memory dissect - '+(sender as tmenuitem).Caption;
   if currentstructure<>nil then
@@ -703,7 +761,7 @@ begin
 
   tvStructureView.Items.Clear;
 
-  currentstructure:=tstructure.create(self, tvStructureView,tvStructureView.Items.Add(nil,edtaddress.text+'-'+definedstructures[(sender as tmenuitem).Tag].name),address,(sender as tmenuitem).Tag);
+  currentstructure:=tstructure.create(self, tvStructureView,tvStructureView.Items.Add(nil,definedstructures[(sender as tmenuitem).Tag].name+#13),addresses,(sender as tmenuitem).Tag);
   currentstructure.refresh;
   refreshmenuitems;  
 end;
@@ -895,7 +953,7 @@ end;
 procedure TfrmStructures.edtAddressChange(Sender: TObject);
 begin
   try
-    setaddress(0, symhandler.getAddressFromName(edtaddress.text));
+    setaddress((sender as TEdit).tag, symhandler.getAddressFromName((sender as TEdit).text));
   except
 
   end;
@@ -943,7 +1001,7 @@ procedure TfrmStructures.tvStructureViewMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var tn: ttreenode;
 begin
-  if mbright = button then
+  if button in [mbright, mbleft] then
   begin
     tn:=tvStructureView.GetNodeAt(x,y);
     tvStructureView.Selected:=tn;
@@ -1134,7 +1192,7 @@ begin
   if tvStructureView.Selected=tvStructureView.Items.GetFirstNode then
   begin
     inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
-    address:=address+1-1;
+    addresses[0]:=addresses[0]+1-1;
     currentstructure.refresh;
     exit;
   end;
@@ -1380,7 +1438,7 @@ begin
 
 
     //now add it to the list
-    mainform.addaddress('bla',address+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
+    mainform.addaddress('bla',addresses[0]+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
   end;
 end;
 
@@ -1403,7 +1461,7 @@ begin
     selectedelement:=selectednode.Index;
     snr:=selectedstructure.basestructure;
 
-    oldaddress:=address;
+    oldaddress:=addresses[0];
 
     for i:=0 to selectedelement-1 do
       inc(oldaddress,definedstructures[snr].structelement[i].bytesize);
@@ -1418,7 +1476,7 @@ begin
       end;
 
       delta:=newaddress-oldaddress;
-      address:=address+delta;
+      addresses[0]:=addresses[0]+delta;
       currentstructure.refresh;
     end;
   end;
@@ -1430,28 +1488,215 @@ begin
   action:=cafree;
 end;
 
-procedure TfrmStructures.tvStructureViewCustomDrawItem(Sender: TCustomTreeView;
-  Node: TTreeNode; State: TCustomDrawState; var DefaultDraw: Boolean);
+procedure TfrmStructures.HeaderControl1SectionResize(
+  HeaderControl: THeaderControl; Section: THeaderSection);
 begin
-  //
+  tvStructureView.refresh;
 end;
 
-procedure TfrmStructures.Edit1Change(Sender: TObject);
+procedure TfrmStructures.FormCreate(Sender: TObject);
 begin
-  try
-    setaddress(1, symhandler.getAddressFromName(edit1.text));
-  except
-
-  end;
+  setlength(addresses,1);
+  setlength(edits,1);
+  edits[0]:=edtAddress;
+  lastnewedit:=edtaddress;
+  edtAddress.OnEnter:=extraenter;
 end;
 
-procedure TfrmStructures.Edit2Change(Sender: TObject);
+procedure TfrmStructures.ExtraEnter(Sender: TObject);
 begin
-  try
-    setaddress(2, symhandler.getAddressFromName(edit2.text));
-  except
+  popupmenu2.PopupComponent:=TComponent(sender);
+end;
+
+procedure TfrmStructures.Addextraaddress1Click(Sender: TObject);
+var x: tedit;
+    newsection: THeadersection;
+begin
+  x:=tedit.Create(self);
+  with x do
+  begin
+    left:=lastnewedit.Left+lastnewedit.Width+16;
+    top:=lastnewedit.Top;
+    width:=lastnewedit.Width;
+    text:=lastnewedit.Text;
+    parent:=lastnewedit.Parent;
+
+    x.PopupMenu:=PopupMenu2;
+    x.OnEnter:=extraenter;
+    x.OnChange:=edtAddressChange;
+    x.Tag:=lastnewedit.Tag+1;
 
   end;
+
+  setlength(addresses,length(addresses)+1);
+  addresses[length(addresses)-1]:=addresses[x.tag-1];
+    
+  setlength(edits,length(edits)+1);
+
+  edits[length(edits)-1]:=x;
+  lastnewedit:=x;
+
+  newsection:=headercontrol1.Sections.Add;
+  newsection.Text:='Address: Value';
+  newsection.Width:=200;
+  edtAddressChange(x);  
+end;
+
+procedure TfrmStructures.Remove1Click(Sender: TObject);
+var x: tedit;
+    i: integer;
+begin
+  x:=TEdit(popupmenu2.PopupComponent);
+  if x.tag=0 then exit; //can't remove the first one
+  
+  for i:=x.tag to length(edits)-2 do
+  begin
+    edits[i]:=edits[i+1];
+    edits[i].Left:=edits[i].Left-edits[i].Width-16;
+    edits[i].Tag:=i;
+  end;
+  setlength(edits,length(edits)-1);
+
+  if currentstructure<>nil then
+    currentstructure.removeAddress(x.tag);
+
+  x.free;
+end;
+
+procedure TfrmStructures.Undo1Click(Sender: TObject);
+begin
+  TEdit(popupmenu2.PopupComponent).Undo;
+end;
+
+procedure TfrmStructures.Cut1Click(Sender: TObject);
+begin
+  TEdit(popupmenu2.PopupComponent).CutToClipboard;
+end;
+
+
+
+procedure TfrmStructures.Copy1Click(Sender: TObject);
+begin
+  TEdit(popupmenu2.PopupComponent).CopyToClipboard;
+end;
+
+procedure TfrmStructures.Paste1Click(Sender: TObject);
+begin
+  TEdit(popupmenu2.PopupComponent).PasteFromClipboard;
+end;
+
+procedure TfrmStructures.SelectAll1Click(Sender: TObject);
+begin
+  TEdit(popupmenu2.PopupComponent).SelectAll;
+end;
+
+
+
+
+procedure TfrmStructures.tvStructureViewAdvancedCustomDrawItem(
+  Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
+  Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+var  
+  i: integer;
+  laststart: integer;
+  textrect: trect;
+  linerect: trect;
+  textlinerect: trect;
+  fulltextline: trect;
+  totalsections: integer;
+  sections: array of string;
+  sections2: array of string;
+  currentsection: integer;
+  oldcolor: tcolor;
+
+  different: boolean;
+begin
+  //looks like it's even called before create is done...
+  if stage=cdPostPaint then
+  begin
+    different:=false;
+    textrect:=node.DisplayRect(true);
+    linerect:=node.DisplayRect(false);
+  
+    fulltextline:=linerect;
+    fulltextline.Left:=textrect.Left;
+    oldcolor:=sender.Canvas.Brush.Color;
+    sender.Canvas.Brush.color:=tvStructureView.color;
+    sender.Canvas.FillRect(fulltextline); //whipe the original text
+
+    if headercontrol1=nil then exit;
+    totalsections:=headercontrol1.Sections.Count;
+    setlength(sections,totalsections);
+    setlength(sections2,totalsections);
+    currentsection:=0;
+
+    laststart:=1;
+    //search for seperators (#13)
+    for i:=1 to length(node.Text) do
+      if node.Text[i]=#13 then
+      begin
+        //found one
+        sections[currentsection]:=copy(node.text,laststart,i-laststart);
+        sections2[currentsection]:= copy(sections[currentsection],pos(':',sections[currentsection]),length(sections[currentsection]));
+        laststart:=i+1;
+        inc(currentsection);
+        if (currentsection>=totalsections) then
+          break; //enough, if there is a rest, it has to be a bug
+      end;
+
+    for i:=1 to length(sections2)-2 do
+      if sections2[i]<>sections2[i+1] then
+      begin
+        different:=true;
+        break;
+      end;
+
+    //if laststart=1 then
+    //  sections[currentsection]:=node.text;
+
+    textlinerect.left:=textrect.left;
+    textlinerect.Top:=linerect.Top;
+    textlinerect.Right:=headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+sender.Canvas.textwidth(sections[totalsections-1]);
+    textlinerect.Bottom:=linerect.Bottom;
+    if textlinerect.right<textlinerect.left then
+      textlinerect.right:=textlinerect.left;
+
+    sender.Canvas.Refresh;
+    if not (cdsSelected in State) then
+    begin
+      sender.Canvas.Brush.Style:=bsSolid;
+      sender.Canvas.Brush.Color:=tvStructureView.Color;
+      sender.Canvas.FillRect(textlinerect);
+      if different then
+        tvStructureView.canvas.Font.Color:=clRed
+      else
+        tvStructureView.canvas.Font.Color:=clWindowText;
+
+    end
+    else
+    begin
+      sender.Canvas.Brush.Style:=bsSolid;
+      sender.Canvas.Brush.Color:=clHighlight;   
+      sender.Canvas.FillRect(textlinerect);
+      sender.Canvas.DrawFocusRect(textlinerect);
+      if different then
+        tvStructureView.canvas.Font.Color:=clGreen
+      else
+        tvStructureView.canvas.Font.Color:=clHighlightText;
+
+    end;
+
+    sender.Canvas.Refresh;
+    sender.Canvas.TextOut(textrect.Left,textrect.Top,sections[0]);
+    sender.Canvas.Refresh;
+    for i:=1 to totalsections-1 do
+    begin
+      sender.Canvas.TextOut(headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
+      sender.Canvas.Refresh;
+    end;
+  end;
+
+  DefaultDraw:=true;
 end;
 
 end.

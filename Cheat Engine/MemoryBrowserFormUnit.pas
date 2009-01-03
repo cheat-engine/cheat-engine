@@ -3987,7 +3987,7 @@ begin
 {$ifndef net}
   with tfrmstructures.create(self) do
   begin
-    setaddress(0, memoryaddress);
+    edtAddress.Text:=inttohex(memoryaddress,8);
     show;
   end;
 {$endif}

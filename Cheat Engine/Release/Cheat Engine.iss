@@ -181,7 +181,7 @@ Source: "..\plugin\packet editor\inject\src\filterform.pas"; DestDir: "{app}\Plu
 Source: "..\plugin\packet editor\inject\src\hexedit.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\inject\src\mainunit.dfm"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\inject\src\mainunit.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
-Source: "..\plugin\packet editor\inject\src\packedfilter.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\inject\src\packetfilter.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 
 
 

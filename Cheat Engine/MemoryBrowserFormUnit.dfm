@@ -1044,7 +1044,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = Dissectcode1Click
       end
       object Dissectdata2: TMenuItem
-        Caption = 'Dissect data'
+        Caption = 'Dissect data/structures'
         ShortCut = 16452
         OnClick = Dissectdata2Click
       end

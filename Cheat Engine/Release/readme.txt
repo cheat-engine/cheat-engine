@@ -27,7 +27,7 @@ The about window now tells you which version of dbvm is loaded if dbvm is runnin
 If DBVM is running and you choose phsyical memory, it goes through dbvm's read physical memory instead of windows'
 Added a floating point panel to several windows that use system context to display variables
 Added the option to the memoryview hexview part to display 2 bytes, 4 byte, float or double instead of bytes
-
+Improved the dissect data window to show addresses next to eachother
 
 
 Fixes:
