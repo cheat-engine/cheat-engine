@@ -35,7 +35,7 @@ type
     procedure updatespeed;
   public
     { Public declarations }
-    newhotkeys: array [0..28] of tkeycombo;
+    newhotkeys: array [0..29] of tkeycombo;
     newspeedhackspeed1: tspeedhackspeed;
     newspeedhackspeed2: tspeedhackspeed;
     newspeedhackspeed3: tspeedhackspeed;

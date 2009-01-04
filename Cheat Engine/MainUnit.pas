@@ -1063,6 +1063,11 @@ begin
         formscanning.btnCancel.Click;
     end;
 
+    29: //debug->run
+    begin
+      MemoryBrowser.Run1.Click;
+    end;
+
   end;
 
 end;
@@ -4843,6 +4848,19 @@ begin
                   newvalue4:=newvalue5;
                 end;
 
+    5:
+    begin
+      if formsettings.cbBinariesAsDecimal.checked then
+      begin
+        try
+          newvalue6:=StrToInt(newvaluest);
+          newvaluest:=inttobin(newvalue6);
+        except
+          error:=1;
+        end;
+      end;
+    end;
+
     7:          begin
                   addzero:=false;
                   if length(newvaluest)<>memrec[itemnr].Bit then
@@ -4972,17 +4990,10 @@ begin
 
     5: //binary
     begin
-      if formsettings.cbBinariesAsDecimal.checked then
-        newvaluest:=inttobin(abs(newvalue6));
-
-      bl:=1+((length(newvaluest)-1) div 8);
+      bl:=1+((memrec[i].bit+length(newvaluest)-1) div 8);
 
       setlength(newbytes,bl);
       ReadProcessMemory(processhandle,pointer(realaddress),@newbytes[0],bl,write);
-
-      if formsettings.cbBinariesAsDecimal.checked then
-        newvaluest:=inttobin(abs(newvalue6));
-
 
       j:=0;
       k:=memrec[i].bit;
@@ -6123,6 +6134,7 @@ begin
   case newvartype of
   0: begin //binary
        rbdec.checked:=true;
+       hexadecimalcheckbox.Checked:=false;
        HexadecimalCheckbox.visible:=false;
        decbitvis:=true;
        Scantype.itemindex:=0;
@@ -6139,7 +6151,7 @@ begin
 
   5: begin //float;
        casevis:=false;
-       hexvis:=false;
+
        hexadecimalcheckbox.Checked:=false;
        HexadecimalCheckbox.enabled:=false;
        scanvalue.MaxLength:=0;

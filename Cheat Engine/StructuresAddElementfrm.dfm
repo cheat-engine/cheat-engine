@@ -1,6 +1,6 @@
 object frmStructuresAddElement: TfrmStructuresAddElement
-  Left = 1084
-  Top = 940
+  Left = 537
+  Top = 281
   BorderStyle = bsDialog
   Caption = 'Add Element'
   ClientHeight = 127
@@ -36,7 +36,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    TabOrder = 0
+    TabOrder = 2
     OnChange = cbTypeChange
   end
   object cbPointerto: TCheckBox
@@ -55,7 +55,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 2
+    TabOrder = 4
   end
   object Button2: TButton
     Left = 120
@@ -65,14 +65,14 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 3
+    TabOrder = 5
   end
   object edtDescription: TEdit
     Left = 16
     Top = 16
     Width = 185
     Height = 21
-    TabOrder = 4
+    TabOrder = 0
     Text = 'undefined'
   end
   object edtByteSize: TEdit
@@ -81,7 +81,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     Width = 57
     Height = 21
     Enabled = False
-    TabOrder = 5
+    TabOrder = 3
     Text = '0'
     OnChange = edtByteSizeChange
   end

@@ -1177,6 +1177,8 @@ begin
     setlength(definedstructures,0);
     refreshmenuitems;
   end;
+
+  Definenewstructure1.Click;
 end;
 
 procedure TfrmStructures.ChangeElement1Click(Sender: TObject);
@@ -1287,6 +1289,7 @@ var
   i: integer;
   a: dword;
 begin
+//find out what part is doubleclicked
 
 
   selectednode:=tvStructureView.Selected;
@@ -1610,6 +1613,8 @@ var
   oldcolor: tcolor;
 
   different: boolean;
+
+  clip: trect;
 begin
   //looks like it's even called before create is done...
   if stage=cdPostPaint then
@@ -1687,11 +1692,18 @@ begin
     end;
 
     sender.Canvas.Refresh;
-    sender.Canvas.TextOut(textrect.Left,textrect.Top,sections[0]);
+
+    clip:=textrect;
+    clip.Right:=headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
+    sender.Canvas.TextRect(clip,textrect.Left,textrect.Top,sections[0]);
+
+
     sender.Canvas.Refresh;
     for i:=1 to totalsections-1 do
     begin
-      sender.Canvas.TextOut(headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
+      clip.Left:=headercontrol1.Sections[i].Left;
+      clip.Right:=headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;
+      sender.Canvas.TextRect(clip, headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
       sender.Canvas.Refresh;
     end;
   end;

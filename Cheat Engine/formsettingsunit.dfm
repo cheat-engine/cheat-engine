@@ -59,7 +59,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = Plugins
+      ActivePage = tsHotkeys
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -830,7 +830,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 429
-          Width = 511
+          Width = 337
           Height = 13
           Align = alBottom
           Alignment = taCenter

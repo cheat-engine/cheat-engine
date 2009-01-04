@@ -171,6 +171,7 @@ Source: "..\plugin\packet editor\src\packeteditor.dof"; DestDir: "{app}\Plugins\
 Source: "..\plugin\packet editor\src\packeteditor.dpr"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\src\packeteditor.res"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\src\Unit1.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+Source: "..\plugin\packet editor\src\injector.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 
 Source: "..\plugin\packet editor\inject\src\cepe.cfg"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\inject\src\cepe.dof"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion

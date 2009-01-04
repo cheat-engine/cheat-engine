@@ -57,7 +57,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
         'Next Scan-Changed Value'
         'Next Scan-Unchanged Value'
         'Undo last scan'
-        'Cancel the current scan')
+        'Cancel the current scan'
+        'Debug->Run')
       TabOrder = 0
       OnClick = ListBox1Click
     end
