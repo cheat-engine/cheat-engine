@@ -14,7 +14,8 @@ uses
   SysUtils,
   Classes,
   Unit1 in 'Unit1.pas',
-  injector in 'injector.pas';
+  injector in 'injector.pas',
+  cepluginsdk in 'cepluginsdk.pas';
 
 {$R *.res}
 
