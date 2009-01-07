@@ -141,18 +141,19 @@ object frmStructures: TfrmStructures
     OnPopup = PopupMenu1Popup
     Left = 240
     Top = 192
-    object Addelement1: TMenuItem
-      Caption = 'Insert element'
-      ShortCut = 45
-      OnClick = Addelement1Click
-    end
     object ChangeElement1: TMenuItem
       Caption = 'Change element'
       Default = True
       OnClick = ChangeElement1Click
     end
+    object Addelement1: TMenuItem
+      Caption = 'Insert element'
+      ShortCut = 45
+      OnClick = Addelement1Click
+    end
     object Deleteelement1: TMenuItem
       Caption = 'Delete element'
+      ShortCut = 46
       OnClick = Deleteelement1Click
     end
     object N2: TMenuItem

@@ -1100,47 +1100,74 @@ var f: tfilestream;
     i,j: integer;
     x: dword;
     cemarker: string;
+
+    doc: TXMLDocument;
+    CheatTable: IXMLNode;
+    Structures: IXMLNode;
 begin
   if savedialog1.Execute then
   begin
-    f:=tfilestream.Create(savedialog1.FileName,fmcreate);
-    try
-      cemarker:='CHEATENGINE';
-      f.WriteBuffer(cemarker[1],length(cemarker));
+    if uppercase(ExtractFileExt(savedialog1.FileName))='.CSX' then
+    begin
+      //save as xml
+      doc:=TXMLDocument.Create(application);
+      try
+        doc.Options:=doc.Options+[doNodeAutoIndent];
+        doc.Active:=true;
 
-      x:=structureversion;
-      f.writebuffer(x,4);
-
-      x:=length(definedstructures);
-      f.WriteBuffer(x,4);
-      for i:=0 to length(definedstructures)-1 do
-      begin
-        x:=length(definedstructures[i].name);
-        f.WriteBuffer(x,4); //namelength
-        if x>0 then f.WriteBuffer(definedstructures[i].name[1],x);
-
-        x:=length(definedstructures[i].structelement);
-        f.WriteBuffer(x,4);
-
-        for j:=0 to length(definedstructures[i].structelement)-1 do
+        CheatTable:=doc.AddChild('CheatTable');
+        if length(definedstructures)>0 then
         begin
-          x:=length(definedstructures[i].structelement[j].description);
-          f.WriteBuffer(x,4);
-          if x>0 then f.Write(definedstructures[i].structelement[j].description[1],x);
-
-
-          f.WriteBuffer(definedstructures[i].structelement[j].pointerto,sizeof(definedstructures[i].structelement[j].pointerto));
-          f.WriteBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointerto));
-          f.WriteBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
-          f.WriteBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+          Structures:=CheatTable.AddChild('Structures');
+          for i:=0 to length(definedstructures)-1 do
+            SaveStructToXMLNode(definedstructures[i],Structures);
         end;
 
+        doc.SaveToFile(savedialog1.filename);
+      finally
+        doc.Free;
       end;
-    finally
-      f.free;
     end;
 
-    
+    if uppercase(ExtractFileExt(savedialog1.FileName))='.CES' then
+    begin
+      f:=tfilestream.Create(savedialog1.FileName,fmcreate);
+      try
+        cemarker:='CHEATENGINE';
+        f.WriteBuffer(cemarker[1],length(cemarker));
+
+        x:=structureversion;
+        f.writebuffer(x,4);
+
+        x:=length(definedstructures);
+        f.WriteBuffer(x,4);
+        for i:=0 to length(definedstructures)-1 do
+        begin
+          x:=length(definedstructures[i].name);
+          f.WriteBuffer(x,4); //namelength
+          if x>0 then f.WriteBuffer(definedstructures[i].name[1],x);
+
+          x:=length(definedstructures[i].structelement);
+          f.WriteBuffer(x,4);
+
+          for j:=0 to length(definedstructures[i].structelement)-1 do
+          begin
+            x:=length(definedstructures[i].structelement[j].description);
+            f.WriteBuffer(x,4);
+            if x>0 then f.Write(definedstructures[i].structelement[j].description[1],x);
+
+
+            f.WriteBuffer(definedstructures[i].structelement[j].pointerto,sizeof(definedstructures[i].structelement[j].pointerto));
+            f.WriteBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointerto));
+            f.WriteBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
+            f.WriteBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+          end;
+
+        end;
+      finally
+        f.free;
+      end;
+    end;    
   end;
 end;
 
@@ -1163,29 +1190,33 @@ begin
     begin
       oldsize:=length(definedstructures);
       doc:=TXMLDocument.Create(application);
-      doc.FileName:=opendialog1.filename;
-      doc.active:=true;
-      CheatTable:=doc.ChildNodes.FindNode('CheatTable'); //because I made it compatible with a ct
-      if cheattable<>nil then
-      begin
-        Structures:=cheattable.ChildNodes.FindNode('Structures');
-        if Structures<>nil then
+      try
+        doc.FileName:=opendialog1.filename;
+        doc.active:=true;
+        CheatTable:=doc.ChildNodes.FindNode('CheatTable'); //because I made it compatible with a ct
+        if cheattable<>nil then
         begin
+          Structures:=cheattable.ChildNodes.FindNode('Structures');
+          if Structures<>nil then
+          begin
 
-          setlength(definedstructures,length(definedstructures)+Structures.ChildNodes.Count);
-          try
-            for i:=0 to Structures.ChildNodes.Count-1 do
-            begin
-              Structure:=Structures.ChildNodes[i];
-              LoadStructFromXMLNode(definedstructures[oldsize+i], structure);
+            setlength(definedstructures,length(definedstructures)+Structures.ChildNodes.Count);
+            try
+              for i:=0 to Structures.ChildNodes.Count-1 do
+              begin
+                Structure:=Structures.ChildNodes[i];
+                LoadStructFromXMLNode(definedstructures[oldsize+i], structure);
+              end;
+            except
+              setlength(definedstructures,oldsize);
+              raise exception.Create('This is not a valid structure file');
             end;
-          except
-            setlength(definedstructures,oldsize);
-            raise exception.Create('This is not a valid structure file');
           end;
         end;
+        update(true);
+      finally
+        doc.free;
       end;
-      update(true);
     end
     else
     if uppercase(ExtractFileExt(OpenDialog1.FileName))='.CES' then

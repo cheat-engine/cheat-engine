@@ -143,6 +143,7 @@ type
 
 function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
 procedure LoadStructFromXMLNode(var struct: Tbasestucture; Structure: IXMLNode);
+procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
 
 {$ifdef net}
 var processhandle: thandle;
