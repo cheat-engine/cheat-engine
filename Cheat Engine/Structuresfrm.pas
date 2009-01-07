@@ -20,10 +20,10 @@ type Tbasestucture=record
                           end;
   end;
 
-  TfrmStructures = class;
+  //TfrmStructures = class;
   Tstructure=class
   private
-    frmStructures: TfrmStructures;
+    //frmStructures: TfrmStructures; //obsolete
     treeviewused: ttreeview;
     addresses: array of dword;
     basestructure: integer;
@@ -37,7 +37,7 @@ type Tbasestucture=record
     procedure refresh;
     procedure removeAddress(i: integer);
     procedure setaddress(i: integer; x:dword);
-    constructor create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
+    constructor create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
     destructor destroy; override;
   end;
 
@@ -57,7 +57,6 @@ type Tbasestucture=record
     Deleteelement1: TMenuItem;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
-    New1: TMenuItem;
     ChangeElement1: TMenuItem;
     N2: TMenuItem;
     Addtoaddresslist1: TMenuItem;
@@ -77,6 +76,11 @@ type Tbasestucture=record
     N6: TMenuItem;
     Undo1: TMenuItem;
     N7: TMenuItem;
+    N8: TMenuItem;
+    Newwindow1: TMenuItem;
+    Commands1: TMenuItem;
+    Deletecurrentstructure1: TMenuItem;
+    Renamestructure1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -110,10 +114,15 @@ type Tbasestucture=record
     procedure tvStructureViewAdvancedCustomDrawItem(
       Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
       Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+    procedure FormDestroy(Sender: TObject);
+    procedure PopupMenu2Popup(Sender: TObject);
+    procedure Renamestructure1Click(Sender: TObject);
+    procedure Deletecurrentstructure1Click(Sender: TObject);
+    procedure Newwindow1Click(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
-    definedstructures: array of Tbasestucture;
+
 
     addresses: array of dword;  //first address (old compat)
     edits: array of tedit;
@@ -126,7 +135,12 @@ type Tbasestucture=record
   public
     { Public declarations }
     procedure setaddress(i: integer; x:dword);
+    procedure update(doOthers: boolean);
   end;
+
+var
+  frmStructures: array of TfrmStructures;
+  definedstructures: array of Tbasestucture;
 
 implementation
 
@@ -143,12 +157,12 @@ begin
   inherited destroy;
 end;
 
-constructor TStructure.create(frmStructures: TfrmStructures; treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
+constructor TStructure.create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
 var elementnr: integer;
     s: tstructure;
     i: integer;
 begin
-  self.frmStructures:=frmStructures;
+
   setlength(self.addresses,length(addresses));
   for i:=0 to length(addresses)-1 do
     self.addresses[i]:=addresses[i];
@@ -224,21 +238,25 @@ begin
   end
   else
   begin
-    if length(objects)<length(frmStructures.definedstructures[basestructure].structelement) then
-      setlength(objects,length(frmStructures.definedstructures[basestructure].structelement));
+    if length(objects)<length(definedstructures[basestructure].structelement) then
+      setlength(objects,length(definedstructures[basestructure].structelement));
 
-    if length(objects)>length(frmStructures.definedstructures[basestructure].structelement) then
+    if length(objects)>length(definedstructures[basestructure].structelement) then
     begin
       //delete the extra ones
-      for i:=length(frmStructures.definedstructures[basestructure].structelement) to length(objects)-1 do
+      for i:=length(definedstructures[basestructure].structelement) to length(objects)-1 do
       begin
         if objects[i].nodetoupdate<>nil then objects[i].nodetoupdate.Delete;
         if objects[i].child<>nil then objects[i].child.Free;
       end;
 
-      setlength(objects,length(frmStructures.definedstructures[basestructure].structelement));
+      setlength(objects,length(definedstructures[basestructure].structelement));
+
+
     end;
+    treeviewused.Items.GetFirstNode.Text:=definedstructures[basestructure].name+#13;
   end;
+
 
 
   elementoffset:=0;
@@ -253,12 +271,12 @@ begin
     end
     else
     begin
-      if frmStructures.definedstructures[basestructure].structelement[i].pointerto then
+      if definedstructures[basestructure].structelement[i].pointerto then
         typename:='pointer to '
       else
         typename:='';
 
-      snr:=frmStructures.definedstructures[basestructure].structelement[i].structurenr;
+      snr:=definedstructures[basestructure].structelement[i].structurenr;
     end;
 
     for c:=0 to length(addresses)-1 do
@@ -267,7 +285,7 @@ begin
       begin
         if basestructure>=0 then
         begin
-          if frmStructures.definedstructures[basestructure].structelement[i].pointerto then
+          if definedstructures[basestructure].structelement[i].pointerto then
           begin
             currentvalues[c]:='->';
 
@@ -279,7 +297,7 @@ begin
           end;
         end;
 
-        if (basestructure<0) or (not frmStructures.definedstructures[basestructure].structelement[i].pointerto) then
+        if (basestructure<0) or (not definedstructures[basestructure].structelement[i].pointerto) then
         case snr of
           -1:
           begin
@@ -396,12 +414,12 @@ begin
             if c=0 then typename:=typename+'String';
 
             if basestructure>=0 then
-              k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
+              k:=definedstructures[basestructure].structelement[i].bytesize
             else
             begin
               elementnr:=parentnode.Index;
               s:=parentnode.data;
-              k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+              k:=definedstructures[s.basestructure].structelement[elementnr].pointertosize;
             end;
 
             if length(buf)<=k then
@@ -423,12 +441,12 @@ begin
           begin
             if c=0 then typename:=typename+'String Unicode';
             if basestructure>=0 then
-              k:=frmStructures.definedstructures[basestructure].structelement[i].bytesize
+              k:=definedstructures[basestructure].structelement[i].bytesize
             else
             begin
               elementnr:=parentnode.Index;
               s:=parentnode.data;
-              k:=frmStructures.definedstructures[s.basestructure].structelement[elementnr].pointertosize;
+              k:=definedstructures[s.basestructure].structelement[elementnr].pointertosize;
             end;
             if length(buf)<=k then
               setlength(buf,k+1);
@@ -451,7 +469,7 @@ begin
       end else
       begin
         //it's a defined structure (has to be a pointer)
-        if c=0 then typename:=frmStructures.definedstructures[snr].name;
+        if c=0 then typename:=definedstructures[snr].name;
 
         if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
           currentvalues[c]:='->'+inttohex(pdword(@buf[0])^,8)
@@ -467,7 +485,7 @@ begin
     end
     else
     begin
-      newtext:=inttohex(elementoffset,4)+' - '+frmStructures.definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
+      newtext:=inttohex(elementoffset,4)+' - '+definedstructures[basestructure].structelement[i].description;//+'('+typename+')';
     end;
     newtext:=newtext+#13;
 
@@ -488,8 +506,8 @@ begin
 
     if basestructure>=0 then
     begin
-      if objects[i].nodetoupdate.HasChildren <> frmStructures.definedstructures[basestructure].structelement[i].pointerto then
-        objects[i].nodetoupdate.HasChildren:=frmStructures.definedstructures[basestructure].structelement[i].pointerto;
+      if objects[i].nodetoupdate.HasChildren <> definedstructures[basestructure].structelement[i].pointerto then
+        objects[i].nodetoupdate.HasChildren:=definedstructures[basestructure].structelement[i].pointerto;
 
       if objects[i].child<>nil then
       begin
@@ -506,7 +524,7 @@ begin
         objects[i].child.refresh;
       end;
 
-      inc(elementoffset,frmStructures.definedstructures[basestructure].structelement[i].bytesize);
+      inc(elementoffset,definedstructures[basestructure].structelement[i].bytesize);
     end;
   end;
 
@@ -515,6 +533,32 @@ begin
     treeviewused.Items.GetFirstNode.Expand(false);
 
   //treeviewused.Items.endupdate;
+end;
+
+procedure TfrmStructures.update(doOthers: boolean);
+{Called twice, first time true, 2nd time false. Only on false actually update}
+var i: integer;
+begin
+  if DoOthers then
+  begin
+    for i:=0 to length(frmStructures)-1 do
+      frmStructures[i].update(false);
+  end
+  else
+  begin
+    RefreshMenuItems;
+    if currentstructure<>nil then
+    begin
+      if currentstructure.basestructure < length(definedstructures) then
+        currentstructure.refresh
+      else
+        freeandnil(currentstructure);
+ 
+    end;
+  end;
+
+  if currentstructure=nil then
+    tvStructureView.Items.Clear;
 end;
 
 procedure TfrmStructures.setaddress(i: integer; x: dword);
@@ -638,6 +682,7 @@ var sstructsize:string;
     i,j,t: integer;
     x,y: dword;
 begin
+  structname:='unnamed structure';
   if not inputquery('Structure define','Give the name for this structure',structname) then exit;
   
   autofillin:=messagedlg('Do you want Cheat Engine to try and fill in the most basic types of the struct using the current address?',mtconfirmation,[mbyes,mbno,mbcancel],0);
@@ -652,7 +697,7 @@ begin
 
   if autofillin=mryes then
   begin
-    sstructsize:='512';
+    sstructsize:='4096';
     if not inputquery('Structure define','Please give a starting size of the struct (You can change this later if needed)',Sstructsize) then exit;
     structsize:=strtoint(sstructsize);
 
@@ -748,29 +793,29 @@ begin
 
     end;
   end;
-  refreshmenuitems;
-  currentstructure.refresh;   
+  update(true); 
 end;
 
 procedure TfrmStructures.definedstructureselect(sender:tobject);
 var name: string;
 begin
-  caption:='Memory dissect - '+(sender as tmenuitem).Caption;
+  caption:='Memory dissect - '+StripHotkey((sender as tmenuitem).Caption);
   if currentstructure<>nil then
     freeandnil(currentstructure);
 
   tvStructureView.Items.Clear;
 
-  currentstructure:=tstructure.create(self, tvStructureView,tvStructureView.Items.Add(nil,definedstructures[(sender as tmenuitem).Tag].name+#13),addresses,(sender as tmenuitem).Tag);
-  currentstructure.refresh;
-  refreshmenuitems;  
+  currentstructure:=tstructure.create(tvStructureView,tvStructureView.Items.Add(nil,definedstructures[(sender as tmenuitem).Tag].name+#13),addresses,(sender as tmenuitem).Tag);
+  update(false);
+
+  commands1.enabled:=true; 
 end;
 
 procedure TfrmStructures.refreshmenuitems;
 var i: integer;
     mi: tmenuitem;
 begin
-  //go through the definedstructures array and see if they are int the list or not
+  //go through the definedstructures array and see if they are in the list or not
 
   //delete the ones that are too many
   while (structures1.Count-2)>length(definedstructures) do
@@ -929,7 +974,7 @@ begin
         end;
       end;
 
-      currentstructure.refresh;
+      self.update(true);
 
       if not tvStructureView.Items.GetFirstNode.Expanded then
         tvStructureView.Items.GetFirstNode.Expand(false);
@@ -964,8 +1009,8 @@ procedure TfrmStructures.tvStructureViewExpanding(Sender: TObject;
 var s: tstructure;
     elementnr: integer;
     basestruct: integer;
-    elementaddress: dword;
-    i: integer;
+    elementaddress: array of dword;
+    i,j: integer;
 begin
   AllowExpansion:=true;
 
@@ -979,15 +1024,18 @@ begin
 
   basestruct:=s.basestructure;
 
-  elementaddress:=s.addresses[0];
-  for i:=0 to elementnr-2 do
-    inc(elementaddress,definedstructures[basestruct].structelement[i].bytesize);
-
+  setlength(elementaddress,length(addresses));
+  for i:=0 to length(addresses)-1 do
+  begin
+    elementaddress[i]:=addresses[i];
+    for j:=0 to elementnr-2 do
+      inc(elementaddress[i],definedstructures[basestruct].structelement[j].bytesize);
+  end;
 
   //make sure it's a pointer
   if definedstructures[basestruct].structelement[elementnr].pointerto then
   begin
-    s.objects[elementnr].child:=tstructure.create(self, tvStructureView,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
+    s.objects[elementnr].child:=tstructure.create(tvStructureView,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
 
     setlength(s.objects[elementnr].child.addresses,length(currentstructure.addresses));
     for i:=0 to length(currentstructure.addresses)-1 do
@@ -1005,6 +1053,8 @@ begin
   begin
     tn:=tvStructureView.GetNodeAt(x,y);
     tvStructureView.Selected:=tn;
+
+    
   end;
 end;
 
@@ -1042,7 +1092,7 @@ begin
     setlength(definedstructures[s.basestructure].structelement,length(definedstructures[s.basestructure].structelement)-1);
   end;
 
-  currentstructure.refresh;
+  update(true);
 end;
 
 procedure TfrmStructures.Save1Click(Sender: TObject);
@@ -1089,12 +1139,15 @@ begin
     finally
       f.free;
     end;
+
+    
   end;
 end;
 
 procedure TfrmStructures.Open1Click(Sender: TObject);
 var f: tfilestream;
     i,j: integer;
+    startindex: integer;
     x: dword;
     cemarker: string;
     c: pchar;
@@ -1102,68 +1155,80 @@ var f: tfilestream;
 begin
   if opendialog1.Execute then
   begin
-    f:=tfilestream.Create(opendialog1.FileName,fmopenread);
-    try
-      cemarker:='CHEATENGINE';
-
-      getmem(c,12);
+    if uppercase(ExtractFileExt(OpenDialog1.FileName))='.CSX' then
+    begin
+      //lookup the ce table in xml way of storing the structure data
+    end
+    else
+    if uppercase(ExtractFileExt(OpenDialog1.FileName))='.CES' then
+    begin
+      //old 5.4 CES
+      f:=tfilestream.Create(opendialog1.FileName,fmopenread);
       try
-        f.ReadBuffer(c^,11);
-        c[11]:=#0;
-        s:=c;
-      finally
-        freemem(c);
-      end;
+        cemarker:='CHEATENGINE';
 
-      if s<>cemarker then raise exception.Create('This is not a valid structure file');
-
-      f.ReadBuffer(x,4);
-      if x<>structureversion then raise exception.Create('This structure fils was generated with a newer version of Cheat Engine. (That means there''s more than likely a new version so please update....)');
-
-      f.ReadBuffer(x,4);
-      setlength(definedstructures,x);
-
-      for i:=0 to length(definedstructures)-1 do
-      begin
-        f.readbuffer(x,4);
-        getmem(c,x+1);
+        getmem(c,12);
         try
-          f.ReadBuffer(c^,x);
-          c[x]:=#0;
-          definedstructures[i].name:=c;
+          f.ReadBuffer(c^,11);
+          c[11]:=#0;
+          s:=c;
         finally
           freemem(c);
         end;
 
-        f.readbuffer(x,4);
-        setlength(definedstructures[i].structelement,x);
+        if s<>cemarker then raise exception.Create('This is not a valid structure file');
 
-        for j:=0 to length(definedstructures[i].structelement)-1 do
+        f.ReadBuffer(x,4);
+        if x<>structureversion then raise exception.Create('This structure fils was generated with a newer version of Cheat Engine. (That means there''s more than likely a new version so please update....)');
+
+        startindex:=length(definedstructures);
+
+        f.ReadBuffer(x,4);
+        setlength(definedstructures,length(definedstructures)+x);
+
+        for i:=startindex to length(definedstructures)-1 do
         begin
           f.readbuffer(x,4);
           getmem(c,x+1);
           try
             f.ReadBuffer(c^,x);
             c[x]:=#0;
-            definedstructures[i].structelement[j].description:=c;
+            definedstructures[i].name:=c;
           finally
             freemem(c);
           end;
 
-          f.ReadBuffer(definedstructures[i].structelement[j].pointerto,sizeof(definedstructures[i].structelement[j].pointerto));
-          f.ReadBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointerto));
-          f.ReadBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
-          f.ReadBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+          f.readbuffer(x,4);
+          setlength(definedstructures[i].structelement,x);
+
+          for j:=0 to length(definedstructures[i].structelement)-1 do
+          begin
+            f.readbuffer(x,4);
+            getmem(c,x+1);
+            try
+              f.ReadBuffer(c^,x);
+              c[x]:=#0;
+              definedstructures[i].structelement[j].description:=c;
+            finally
+              freemem(c);
+            end;
+
+            f.ReadBuffer(definedstructures[i].structelement[j].pointerto,sizeof(definedstructures[i].structelement[j].pointerto));
+            f.ReadBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointerto));
+            f.ReadBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
+            f.ReadBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+          end;
+
         end;
-
+      finally
+        f.free;
       end;
-    finally
-      f.free;
-    end;
 
-    TMenuItem.Create(self);
+      TMenuItem.Create(self);
 
-    RefreshMenuItems;
+
+      update(true);
+    end else raise exception.create('Unkown file extension');
   end;
 end;
 
@@ -1193,9 +1258,7 @@ begin
   
   if tvStructureView.Selected=tvStructureView.Items.GetFirstNode then
   begin
-    inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
-    addresses[0]:=addresses[0]+1-1;
-    currentstructure.refresh;
+    renamestructure1.Click;
     exit;
   end;
 
@@ -1275,7 +1338,7 @@ begin
       else
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=bytesize;
 
-      currentstructure.refresh;
+      self.update(true);
     end;
   end;
 
@@ -1288,9 +1351,35 @@ var
   selectedelement: integer;
   i: integer;
   a: dword;
+  cursorpos: tpoint;
+  tvrect: trect;
+  selectedsection: integer;
 begin
-//find out what part is doubleclicked
+  //find out what part is doubleclicked
 
+  //find the position that is clicked
+  cursorpos:=mouse.CursorPos;
+  GetWindowRect(TTreeview(sender).Handle, tvrect);
+
+  cursorpos.X:=cursorpos.X-tvrect.Left;
+  cursorpos.Y:=cursorpos.Y-tvrect.Top;
+  //now find out which section this X belongs to
+
+  selectedsection:=headercontrol1.Sections.Count-1; //default pick the last one
+  for i:=0 to headercontrol1.Sections.Count-1 do
+    if (cursorpos.X>headercontrol1.Sections[i].Left) and (cursorpos.X<(headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width)) then
+    begin
+      selectedsection:=i;
+      break;
+    end;
+
+  if selectedsection=0 then
+  begin
+    ChangeElement1.Click;
+    exit;
+  end;
+
+  
 
   selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
@@ -1299,7 +1388,7 @@ begin
     if selectedstructure<>nil then
     begin
       selectedelement:=selectednode.Index;
-      a:=selectedstructure.addresses[0];
+      a:=selectedstructure.addresses[selectedsection-1];
       for i:=0 to selectedelement-1 do
         inc(a,definedstructures[selectedstructure.basestructure].structelement[i].bytesize);
 
@@ -1333,7 +1422,7 @@ begin
 
 
         ShowModal;
-        currentstructure.refresh;
+        self.update(true);
       end;
     end;
   end;
@@ -1354,8 +1443,34 @@ var
   unicode,ispointer,showashex: boolean;
 
   i: integer;
+
+  tvrect: trect;
+  clickpos: tpoint;
+  section: integer;
 begin
   if currentstructure=nil then exit;
+
+  GetWindowRect(tvStructureView.Handle, tvrect);
+
+  clickpos.X:=popupmenu1.PopupPoint.X-tvrect.Left;
+  clickpos.Y:=popupmenu1.PopupPoint.Y-tvrect.Top;
+
+  section:=headercontrol1.Sections.Count-1;
+  for i:=0 to headercontrol1.Sections.Count-1 do
+  begin
+    if (clickpos.x>=headercontrol1.Sections[i].Left)
+      and
+       (clickpos.x<headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width) then
+    begin
+      //found it
+      section:=i;
+      break;
+    end;
+  end;
+
+  if section>0 then
+    section:=section-1; //count starts from 1, so decrease
+
   
   showashex:=false;
   selectednode:=tvStructureView.Selected;
@@ -1441,7 +1556,7 @@ begin
 
 
     //now add it to the list
-    mainform.addaddress('bla',addresses[0]+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
+    mainform.addaddress('bla',addresses[section]+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
   end;
 end;
 
@@ -1454,9 +1569,34 @@ var a: string;
     selectedelement,snr: integer;
     i: integer;
     delta: integer;
+    tvrect: trect;
+    clickpos: tpoint;
+    section: integer;
 begin
   if currentstructure=nil then exit;
-  
+
+  GetWindowRect(tvStructureView.Handle, tvrect);
+
+  clickpos.X:=popupmenu1.PopupPoint.X-tvrect.Left;
+  clickpos.Y:=popupmenu1.PopupPoint.Y-tvrect.Top;
+
+  section:=headercontrol1.Sections.Count-1;
+  for i:=0 to headercontrol1.Sections.Count-1 do
+  begin
+    if (clickpos.x>=headercontrol1.Sections[i].Left)
+      and
+       (clickpos.x<headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width) then
+    begin
+      //found it
+      section:=i;
+      break;
+    end;
+  end;
+
+  if section>0 then
+    section:=section-1; //count starts from 1, so decrease
+
+      
   selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
   begin
@@ -1464,7 +1604,7 @@ begin
     selectedelement:=selectednode.Index;
     snr:=selectedstructure.basestructure;
 
-    oldaddress:=addresses[0];
+    oldaddress:=addresses[section];
 
     for i:=0 to selectedelement-1 do
       inc(oldaddress,definedstructures[snr].structelement[i].bytesize);
@@ -1479,8 +1619,9 @@ begin
       end;
 
       delta:=newaddress-oldaddress;
-      addresses[0]:=addresses[0]+delta;
-      currentstructure.refresh;
+      addresses[section]:=addresses[section]+delta;
+      edits[section].text:=inttohex(addresses[section],8);
+      update(true);
     end;
   end;
 end;
@@ -1504,6 +1645,9 @@ begin
   edits[0]:=edtAddress;
   lastnewedit:=edtaddress;
   edtAddress.OnEnter:=extraenter;
+
+  setlength(frmStructures,length(frmStructures)+1);
+  frmStructures[length(frmStructures)-1]:=self;
 end;
 
 procedure TfrmStructures.ExtraEnter(Sender: TObject);
@@ -1559,6 +1703,8 @@ begin
     edits[i].Tag:=i;
   end;
   setlength(edits,length(edits)-1);
+
+  lastnewedit:=edits[length(edits)-1];
 
   if currentstructure<>nil then
     currentstructure.removeAddress(x.tag);
@@ -1685,7 +1831,10 @@ begin
       sender.Canvas.FillRect(textlinerect);
       sender.Canvas.DrawFocusRect(textlinerect);
       if different then
-        tvStructureView.canvas.Font.Color:=clGreen
+      begin
+        tvStructureView.canvas.Font.Color:=clRed;
+        tvStructureView.canvas.Font.Style:=[fsBold];
+      end
       else
         tvStructureView.canvas.Font.Color:=clHighlightText;
 
@@ -1709,6 +1858,64 @@ begin
   end;
 
   DefaultDraw:=true;
+end;
+
+procedure TfrmStructures.FormDestroy(Sender: TObject);
+var i,j: integer;
+begin
+  //remove from the list
+  for i:=0 to length(frmStructures)-1 do
+    if frmStructures[i]=self then
+    begin
+      //found it, now move the rest and shink the array
+      for j:=i to length(frmStructures)-2 do
+        frmStructures[j]:=frmStructures[j+1];
+
+      setlength(frmStructures,length(frmStructures)-1);
+      exit;
+    end;
+end;
+
+procedure TfrmStructures.PopupMenu2Popup(Sender: TObject);
+var x: tedit;
+begin
+  x:=TEdit(popupmenu2.PopupComponent);
+  Remove1.Visible:=(x=nil) or (x.tag<>0);
+  n6.Visible:=remove1.Visible;
+end;
+
+procedure TfrmStructures.Renamestructure1Click(Sender: TObject);
+begin
+  if currentstructure<>nil then
+  begin
+    inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
+    update(true);
+  end;
+end;
+
+procedure TfrmStructures.Deletecurrentstructure1Click(Sender: TObject);
+var i: integer;
+begin
+  if MessageDlg('Are you sure you want to delete '+definedstructures[currentstructure.basestructure].name+'?',mtConfirmation, [mbyes,mbno],0)=mryes then
+  begin
+    for i:=currentstructure.basestructure to length(definedstructures)-2 do
+      definedstructures[i]:=definedstructures[i+1];
+
+    setlength(definedstructures,length(definedstructures)-1);
+    freeandnil(currentstructure);
+
+    update(true);
+  end;
+end;
+
+procedure TfrmStructures.Newwindow1Click(Sender: TObject);
+begin
+  with tfrmstructures.create(application) do
+  begin
+    edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
+    update(false);
+    show;
+  end;
 end;
 
 end.

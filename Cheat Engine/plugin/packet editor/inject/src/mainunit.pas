@@ -245,13 +245,13 @@ begin
   hexeditor:=thexeditor.create(self);
   hexeditor.Align:=alClient;
   hexeditor.Parent:=panel1;
-
+{
   c:=1;
   getmem(x,c*6);
   for i:=0 to c-1 do
     copymemory(@x[i*6],pchar('test12'),6);
 
-  hexeditor.setbuffer(x,c*6); 
+  hexeditor.setbuffer(x,c*6);}
 end;
 
 

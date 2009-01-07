@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 405
-  Top = 560
+  Left = 879
+  Top = 523
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -15,6 +15,7 @@ object frmStructures: TfrmStructures
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object tvStructureView: TTreeView
@@ -86,19 +87,21 @@ object frmStructures: TfrmStructures
     Left = 256
     object File1: TMenuItem
       Caption = 'File'
-      object New1: TMenuItem
-        Caption = 'New'
-        ShortCut = 16462
-        OnClick = New1Click
+      object Newwindow1: TMenuItem
+        Caption = 'New window'
+        OnClick = Newwindow1Click
+      end
+      object N8: TMenuItem
+        Caption = '-'
       end
       object Open1: TMenuItem
-        Caption = 'Open'
-        ShortCut = 16463
+        Caption = 'Import'
+        ShortCut = 16457
         OnClick = Open1Click
       end
       object Save1: TMenuItem
-        Caption = 'Save'
-        ShortCut = 16467
+        Caption = 'Export'
+        ShortCut = 16453
         OnClick = Save1Click
       end
       object N7: TMenuItem
@@ -121,6 +124,18 @@ object frmStructures: TfrmStructures
         Caption = '-'
       end
     end
+    object Commands1: TMenuItem
+      Caption = 'Commands'
+      Enabled = False
+      object Renamestructure1: TMenuItem
+        Caption = 'Rename structure'
+        OnClick = Renamestructure1Click
+      end
+      object Deletecurrentstructure1: TMenuItem
+        Caption = 'Delete structure'
+        OnClick = Deletecurrentstructure1Click
+      end
+    end
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
@@ -133,6 +148,7 @@ object frmStructures: TfrmStructures
     end
     object ChangeElement1: TMenuItem
       Caption = 'Change element'
+      Default = True
       OnClick = ChangeElement1Click
     end
     object Deleteelement1: TMenuItem
@@ -163,19 +179,20 @@ object frmStructures: TfrmStructures
     Top = 112
   end
   object OpenDialog1: TOpenDialog
-    DefaultExt = 'CES'
+    DefaultExt = 'CSX'
     Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
     Left = 8
     Top = 144
   end
   object SaveDialog1: TSaveDialog
-    DefaultExt = 'CES'
+    DefaultExt = 'CSX'
     Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 40
     Top = 144
   end
   object PopupMenu2: TPopupMenu
+    OnPopup = PopupMenu2Popup
     Left = 128
     Top = 8
     object Undo1: TMenuItem

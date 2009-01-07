@@ -48,7 +48,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 24
+    Left = 16
     Top = 96
     Width = 75
     Height = 25
@@ -58,7 +58,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
     TabOrder = 4
   end
   object Button2: TButton
-    Left = 120
+    Left = 112
     Top = 96
     Width = 75
     Height = 25

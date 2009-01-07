@@ -6641,6 +6641,15 @@ begin
 
   sethotkey1.Caption:=strsethotkey;
 
+  number:=0;
+  i:=0;
+  selectedi:=0;
+  while (selectedi<2) and (i<numberofrecords) do
+  begin
+    if selected[i] then inc(selectedi);
+    inc(i);
+  end;
+    
   if (lastselected<>-1) and (lastselected<numberofrecords) then
   begin
     if hotkeys[lastselected]<>-1 then sethotkey1.Caption:='Remove the hotkey (currently:'+hotkeystrings[lastselected]+')';
@@ -6653,27 +6662,29 @@ begin
       Showashexadecimal1.Caption:=strshowasdecimal
     else
       Showashexadecimal1.Caption:=strshowashex;
-  end else Showashexadecimal1.Visible:=false;
+
+    change1.Visible:=(memrec[lastselected].VarType<>255) and (selectedi>0);
+
+  end else
+  begin
+    Showashexadecimal1.Visible:=false;
+    change1.Visible:=false;
+  end;
 
   inclipboard:=false;
   s:=clipboard.AsText;
   if length(s)>1 then
     if s[1]='<' then inclipboard:=true;
 
-  number:=0;
-  i:=0;
-  selectedi:=0;
-  while (selectedi<2) and (i<numberofrecords) do
-  begin
-    if selected[i] then inc(selectedi);
-    inc(i);
-  end;
+
 
 
   Forcerechecksymbols1.visible:=numberofrecords>0;
 
   Pointerscanforthisaddress1.Visible:=(numberofrecords>0) and (selectedi>=1);
-  change1.Visible:=(numberofrecords>0) and (selectedi>=1);
+
+
+
 
 
   if (numberofrecords=0) then //it's a empty list

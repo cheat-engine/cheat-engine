@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.5
-AppVerName=Cheat Engine 5.5
+AppName=Cheat Engine 5.5 RC1
+AppVerName=Cheat Engine 5.5 RC1
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.5
+DefaultGroupName=Cheat Engine 5.5 RC1
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine55
+OutputBaseFilename=CheatEngine55rc1
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -194,7 +194,7 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.5"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.5 RC1"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
 ;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
@@ -209,4 +209,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5 RC1"; Flags: nowait postinstall skipifsilent

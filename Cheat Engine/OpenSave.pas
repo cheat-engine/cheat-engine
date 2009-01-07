@@ -8,7 +8,7 @@ uses unit2,dialogs,windows,Classes,Graphics,Controls,commentsunit,advancedoption
 uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
-     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, XMLDoc, XMLIntf;
+     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, structuresfrm, XMLDoc, XMLIntf;
 {$endif}
 
 

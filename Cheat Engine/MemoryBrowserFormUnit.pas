@@ -3985,11 +3985,23 @@ end;
 procedure TMemoryBrowser.Dissectdata2Click(Sender: TObject);
 begin
 {$ifndef net}
-  with tfrmstructures.create(self) do
+  if length(frmStructures)>0 then
   begin
-    edtAddress.Text:=inttohex(memoryaddress,8);
-    show;
+    frmStructures[0].edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
+    frmStructures[0].Show;
+  end
+  else
+  begin
+    //create it
+    with tfrmstructures.create(self) do
+    begin
+      edtAddress.Text:=inttohex(memoryaddress,8);
+      show;
+    end;
   end;
+
+
+
 {$endif}
 end;
 

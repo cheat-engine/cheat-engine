@@ -37,6 +37,8 @@ type Tce_unregisterfunction=function (pluginid,functionid: integer): BOOL; stdca
 type Tce_AutoAssembler=function (s: pchar):BOOL; stdcall;
 type Tce_InjectDLL=function(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
 type Tce_generateAPIHookScript=function(address, addresstojumpto, addresstogetnewcalladdress: string; script: pchar; maxscriptsize: integer): BOOL; stdcall;
+type Tce_sym_addressToName=function(address:dword; name: pchar; maxnamesize: integer):BOOL; stdcall;
+type Tce_sym_nameToAddress=function(name: pchar; address: PDWORD):BOOL; stdcall;
 
 
 type Tce_GetMainWindowHandle=function:thandle; stdcall;
@@ -50,10 +52,13 @@ type TWriteProcessMemory=function (hProcess: THandle; const lpBaseAddress: Point
 type TGetProcessNameFromPEProcess=function(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
 type TOpenProcess=function(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwProcessId: DWORD): THandle; stdcall;
 
+
 type TPluginVersion =record
   version : integer; //write here the minimum version this dll is compatible with
   pluginname: pchar;  //make this point to a 0-terminated string (allocated memory, not stack)
 end;
+
+
 
 type TExportedFunctions = record
   sizeofTExportedFunctions: integer;
@@ -148,9 +153,9 @@ type TExportedFunctions = record
   memorybrowser           :pointer;
 
   //version 2 extension:
-  sym_nameToAddress         : pointer;
-  sym_addressToName         : pointer;
-  ce_generateAPIHookScript  : Tce_generateAPIHookScript;  
+  sym_nameToAddress         : Tce_sym_NameToAddress;
+  sym_addressToName         : Tce_sym_addressToName;
+  ce_generateAPIHookScript  : Tce_generateAPIHookScript;
 end;
 
 type PExportedFunctions=^TExportedFunctions;
