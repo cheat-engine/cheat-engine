@@ -12,7 +12,7 @@ uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,comment
 {$endif}
 
 
-var CurrentTableVersion: dword=7;
+var CurrentTableVersion: dword=8;
 procedure SaveTable(Filename: string);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address,size:dword);
@@ -142,6 +142,7 @@ type
   end;
 
 function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
+procedure LoadStructFromXMLNode(var struct: Tbasestucture; Structure: IXMLNode);
 
 {$ifdef net}
 var processhandle: thandle;
@@ -3479,6 +3480,75 @@ begin
   end;
 end;
 
+procedure LoadStructFromXMLNode(var struct: Tbasestucture; Structure: IXMLNode);
+var tempnode: IXMLNode;
+    elements: IXMLNode;
+    element: IXMLNode;
+    i: integer;
+begin
+
+  if Structure.NodeName='Structure' then
+  begin
+    tempnode:=Structure.ChildNodes.FindNode('Name');
+    if tempnode<>nil then
+      struct.name:=tempnode.Text;
+
+    elements:=Structure.ChildNodes.FindNode('Elements');
+    setlength(struct.structelement, elements.ChildNodes.Count);
+
+    for i:=0 to length(struct.structelement)-1 do
+    begin
+      element:=elements.ChildNodes[i];
+      tempnode:=element.ChildNodes.FindNode('Description');
+      if tempnode<>nil then
+        struct.structelement[i].description:=tempnode.Text;
+
+      tempnode:=element.ChildNodes.FindNode('PointerTo');
+      struct.structelement[i].pointerto:=(tempnode<>nil) and (tempnode.Text='1');
+      tempnode:=element.ChildNodes.FindNode('PointerToSize');
+      if tempnode<>nil then
+        struct.structelement[i].pointertosize:=strtoint(tempnode.Text);
+
+      tempnode:=element.ChildNodes.FindNode('Structurenr');
+      if tempnode<>nil then
+        struct.structelement[i].structurenr:=strtoint(tempnode.Text);
+
+      tempnode:=element.ChildNodes.FindNode('Bytesize');
+      if tempnode<>nil then
+        struct.structelement[i].Bytesize:=strtoint(tempnode.Text);
+
+    end;
+  end;
+end;
+{
+procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
+var structure: IXMLNode;
+    elements: IXMLNode;
+    element: IXMLNode;
+    i: integer;
+begin
+  Structure:=Structures.addChild('Structure');
+  Structure.AddChild('Name').Text:=struct.name;
+  elements:=Structure.AddChild('Elements');
+  for i:=0 to length(struct.structelement)-1 do
+  begin
+    element:=elements.AddChild('Element');
+    element.AddChild('Description').Text:=struct.structelement[i].description;
+
+    if struct.structelement[i].pointerto then
+    begin
+      element.AddChild('PointerTo').Text:='1';
+      element.AddChild('PointerToSize').text:=inttostr(struct.structelement[i].pointertosize);
+    end;
+
+    element.AddChild('Structurenr').Text:=inttostr(struct.structelement[i].structurenr);
+    element.AddChild('Bytesize').Text:=inttostr(struct.structelement[i].bytesize);
+  end;
+
+end;
+
+}
+
 procedure LoadCTEntryFromXMLNode(CheatEntry: IXMLNode; merge: boolean);
 var newrec: MemoryRecord;
     tempnode, tempnode2: IXMLNode;
@@ -3547,6 +3617,7 @@ var newrec: MemoryRecordV6;
     CheatTable: IXMLNode;
     Entries, Codes, Symbols, Comments: IXMLNode;
     CheatEntry, CodeEntry, SymbolEntry: IXMLNode;
+    Structures, Structure: IXMLNode;
     Offsets: IXMLNode;
 
     tempnode, tempnode2: IXMLNode;
@@ -3574,6 +3645,7 @@ begin
       Entries:=cheattable.ChildNodes.FindNode('CheatEntries');
       Codes:=cheattable.ChildNodes.FindNode('CheatCodes');
       Symbols:=cheattable.ChildNodes.FindNode('UserdefinedSymbols');
+      Structures:=cheattable.ChildNodes.FindNode('Structures');
       Comments:=cheattable.ChildNodes.FindNode('Comments');
 
       if entries<>nil then
@@ -3731,6 +3803,16 @@ begin
         end;
       end;
 
+      if Structures<>nil then
+      begin
+        setlength(definedstructures, Structures.ChildNodes.Count);
+        for i:=0 to Structures.ChildNodes.Count-1 do
+        begin
+          Structure:=Structures.ChildNodes[i];
+          LoadStructFromXMLNode(definedstructures[i], Structure);
+        end;
+      end;
+
       if comments<>nil then
       begin
         Commentsunit.Comments.Memo1.Lines.Add(filename);
@@ -3753,10 +3835,11 @@ end;
 
 procedure LoadV6(filename: string; ctfile: tfilestream;merge: boolean);
 var newrec: MemoryRecordV6;
-    records,pointers: dword;
+    records, subrecords, pointers: dword;
     i,j,k: integer;
     addrecord: boolean;
     temp:dword;
+    tableversion: integer;
 
     x: pchar;
     nrofbytes:  byte;
@@ -3948,10 +4031,10 @@ begin
 
     i:=ctfile.Position;
     ctfile.Position:=11;
-    ctfile.ReadBuffer(j,4);
+    ctfile.ReadBuffer(tableversion,4);
     ctfile.Position:=i;
 
-    if j=7 then
+    if tableversion>=7 then
     begin
       //version 7 also contains some stuff about symbols
       ctfile.ReadBuffer(records,sizeof(records));
@@ -3978,7 +4061,66 @@ begin
       end;
     end;
 
+    if tableversion>=8 then
+    begin
+      //version 8 added structure data
+      ctfile.ReadBuffer(records,4);
+      setlength(definedstructures,records);
+      for i:=0 to records-1 do
+      begin
+        ctfile.ReadBuffer(j,sizeof(j));
+        getmem(x,j+1);
+        ctfile.readbuffer(x^,j);
+        x[j]:=#0;
+        definedstructures[i].name:=x;
+        freemem(x);
 
+        ctfile.ReadBuffer(subrecords,4);
+        setlength(definedstructures[i].structelement,subrecords);
+        for j:=0 to subrecords-1 do
+        begin
+          ctfile.ReadBuffer(k,sizeof(k));
+          getmem(x,k+1);
+          ctfile.readbuffer(x^,k);
+          x[k]:=#0;
+          definedstructures[i].structelement[j].description:=x;
+          freemem(x);
+
+          ctfile.ReadBuffer(definedstructures[i].structelement[j].pointerto,sizeof(definedstructures[i].structelement[j].pointerto));
+          ctfile.ReadBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointertoSize));
+          ctfile.ReadBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
+          ctfile.ReadBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+        end;
+
+      end;
+{
+    //structure definitions
+    records:=length(definedstructures);
+    blockwrite(savefile,records,sizeof(temp));
+    for i:=0 to records-1 do
+    begin
+      x:=pchar(definedstructures[i].name);
+      temp:=length(x);
+      blockwrite(savefile,temp,sizeof(temp));
+      blockwrite(savefile,pointer(x)^,temp);
+
+      subrecords:=length(definedstructures[i].structelement);
+      blockwrite(savefile,subrecords,sizeof(temp));
+      for j:=0 to subrecords-1 do
+      begin
+        x:=pchar(definedstructures[i].structelement[j].description);
+        temp:=length(x);
+        blockwrite(savefile,temp,sizeof(temp));
+        blockwrite(savefile,pointer(x)^,temp);
+
+        blockwrite(savefile, definedstructures[i].structelement[j].pointerto, sizeof(definedstructures[i].structelement[j].pointerto));
+        blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointerto));
+        blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
+        blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
+      end;
+    end;
+}
+    end;
 
     //comments
     if merge then comments.Memo1.Lines.Add(filename);
@@ -4806,7 +4948,7 @@ begin
       3: LoadV3(filename,ctfile,merge);
       4: LoadV4(filename,ctfile,merge);
       5: LoadV5(filename,ctfile,merge);
-      6,7: LoadV6(filename,ctfile,merge);
+      6,7,8: LoadV6(filename,ctfile,merge);
       else raise exception.Create('This table was made with a version of Cheat Engine that isn''t supported anymore! (The table is propably messed up)');
     end;
 
@@ -5684,6 +5826,31 @@ type TExtradata=record
   allocsize: dword;
 end;
 
+procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
+var structure: IXMLNode;
+    elements: IXMLNode;
+    element: IXMLNode;
+    i: integer;
+begin
+  Structure:=Structures.addChild('Structure');
+  Structure.AddChild('Name').Text:=struct.name;
+  elements:=Structure.AddChild('Elements');
+  for i:=0 to length(struct.structelement)-1 do
+  begin
+    element:=elements.AddChild('Element');
+    element.AddChild('Description').Text:=struct.structelement[i].description;
+
+    if struct.structelement[i].pointerto then
+    begin
+      element.AddChild('PointerTo').Text:='1';
+      element.AddChild('PointerToSize').text:=inttostr(struct.structelement[i].pointertosize);
+    end;
+
+    element.AddChild('Structurenr').Text:=inttostr(struct.structelement[i].structurenr);
+    element.AddChild('Bytesize').Text:=inttostr(struct.structelement[i].bytesize);
+  end;
+end;
+
 procedure SaveCTEntryToXMLNode(i: integer; Entries: IXMLNode);
 var CheatRecord: IXMLNode;
     Pointers: IXMLNode;
@@ -5745,7 +5912,7 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: IXMLNode;
-    Entries,Codes,Symbols, Comment: IXMLNode;
+    Entries,Codes,Symbols, Structures, Comment: IXMLNode;
     CheatRecord, CodeRecord, SymbolRecord: IXMLNode;
     CodeBytes: IXMLNode;
     Offsets: IXMLNode;
@@ -5821,6 +5988,13 @@ begin
       sl.free;
     end;
 
+    if length(definedstructures)>0 then
+    begin
+      Structures:=CheatTable.AddChild('Structures');
+      for i:=0 to length(definedstructures)-1 do
+        SaveStructToXMLNode(definedstructures[i],Structures);
+    end;
+
     if comments.memo1.Lines.Count>0 then
     begin
       comment:=CheatTable.AddChild('Comments');
@@ -5838,7 +6012,7 @@ procedure SaveTable(Filename: string);
 var savefile: File;
     actualwritten: Integer;
     Controle: String[11];
-    records: dword;
+    records, subrecords: dword;
     x: Pchar;
     i,j,k: integer;
     nrofbytes: byte;
@@ -5973,10 +6147,39 @@ begin
       sl.free;
     end;
 
+    //structure definitions
+    records:=length(definedstructures);
+    blockwrite(savefile,records,sizeof(temp));
+    for i:=0 to records-1 do
+    begin
+      x:=pchar(definedstructures[i].name);
+      temp:=length(x);
+      blockwrite(savefile,temp,sizeof(temp));
+      blockwrite(savefile,pointer(x)^,temp);
+
+      subrecords:=length(definedstructures[i].structelement);
+      blockwrite(savefile,subrecords,sizeof(temp));
+      for j:=0 to subrecords-1 do
+      begin
+        x:=pchar(definedstructures[i].structelement[j].description);
+        temp:=length(x);
+        blockwrite(savefile,temp,sizeof(temp));
+        blockwrite(savefile,pointer(x)^,temp);
+
+        blockwrite(savefile, definedstructures[i].structelement[j].pointerto, sizeof(definedstructures[i].structelement[j].pointerto));
+        blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointertoSize));
+        blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
+        blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
+      end;
+    end;
+
+
     //comments
     x:=pchar(comments.memo1.text);
     blockwrite(Savefile,x^,length(comments.memo1.text),actualwritten);
     closefile(savefile);
+
+
 
     with mainform do
     begin

@@ -3996,6 +3996,7 @@ begin
     with tfrmstructures.create(self) do
     begin
       edtAddress.Text:=inttohex(memoryaddress,8);
+      update(false);
       show;
     end;
   end;

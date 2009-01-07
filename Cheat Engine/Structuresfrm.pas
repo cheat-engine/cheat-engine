@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,cefuncproc,newkernelhandler,
-  symbolhandler;
+  symbolhandler, XMLDoc, XMLIntf;
 
 const structureversion=1;
 
@@ -146,7 +146,7 @@ implementation
 
 {$R *.dfm}
 
-uses StructuresAddElementfrm,valuechange,mainunit, MemoryBrowserFormUnit;
+uses StructuresAddElementfrm,valuechange,mainunit, MemoryBrowserFormUnit, opensave;
 
 destructor TStructure.destroy;
 var i: integer;
@@ -1152,12 +1152,40 @@ var f: tfilestream;
     cemarker: string;
     c: pchar;
     s: string;
+    oldsize: integer;
+    structures, structure: IXMLNode;
+    CheatTable: IXMLNode;
+    doc: TXMLDocument;
 begin
   if opendialog1.Execute then
   begin
-    if uppercase(ExtractFileExt(OpenDialog1.FileName))='.CSX' then
+    if (uppercase(ExtractFileExt(OpenDialog1.FileName))='.CSX') or (uppercase(ExtractFileExt(OpenDialog1.FileName))='.XML') then
     begin
-      //lookup the ce table in xml way of storing the structure data
+      oldsize:=length(definedstructures);
+      doc:=TXMLDocument.Create(application);
+      doc.FileName:=opendialog1.filename;
+      doc.active:=true;
+      CheatTable:=doc.ChildNodes.FindNode('CheatTable'); //because I made it compatible with a ct
+      if cheattable<>nil then
+      begin
+        Structures:=cheattable.ChildNodes.FindNode('Structures');
+        if Structures<>nil then
+        begin
+
+          setlength(definedstructures,length(definedstructures)+Structures.ChildNodes.Count);
+          try
+            for i:=0 to Structures.ChildNodes.Count-1 do
+            begin
+              Structure:=Structures.ChildNodes[i];
+              LoadStructFromXMLNode(definedstructures[oldsize+i], structure);
+            end;
+          except
+            setlength(definedstructures,oldsize);
+            raise exception.Create('This is not a valid structure file');
+          end;
+        end;
+      end;
+      update(true);
     end
     else
     if uppercase(ExtractFileExt(OpenDialog1.FileName))='.CES' then
@@ -1894,10 +1922,25 @@ begin
 end;
 
 procedure TfrmStructures.Deletecurrentstructure1Click(Sender: TObject);
-var i: integer;
+var i,j: integer;
 begin
   if MessageDlg('Are you sure you want to delete '+definedstructures[currentstructure.basestructure].name+'?',mtConfirmation, [mbyes,mbno],0)=mryes then
   begin
+    //remove all children that make use of this structnr
+    //and move all children that point to higher numbered ones
+    for i:=0 to length(definedstructures)-1 do
+      for j:=0 to length(definedstructures[i].structelement)-1 do
+      begin
+        if definedstructures[i].structelement[j].structurenr=currentstructure.basestructure then
+          definedstructures[i].structelement[j].structurenr:=-7;
+
+        if definedstructures[i].structelement[j].structurenr>currentstructure.basestructure then
+          dec(definedstructures[i].structelement[j].structurenr);
+
+        if definedstructures[i].structelement[j].structurenr=0 then
+          definedstructures[i].structelement[j].structurenr:=-7;
+      end;
+
     for i:=currentstructure.basestructure to length(definedstructures)-2 do
       definedstructures[i]:=definedstructures[i+1];
 

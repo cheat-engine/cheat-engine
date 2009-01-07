@@ -180,13 +180,15 @@ object frmStructures: TfrmStructures
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'CSX'
-    Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
+    Filter = 
+      'Cheat Engine structure files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All' +
+      ' Files (*.*)|*.*'
     Left = 8
     Top = 144
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = 'CSX'
-    Filter = 'Cheat Engine structure files (*.CES)|*.CES|All Files (*.*)|*.*'
+    Filter = 'Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 40
     Top = 144

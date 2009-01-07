@@ -102,7 +102,7 @@ object ProcessWindow: TProcessWindow
         Top = 40
         Width = 177
         Height = 17
-        Caption = 'Attach to process'
+        Caption = 'Attach debugger to process'
         TabOrder = 5
         OnClick = Button4Click
       end
