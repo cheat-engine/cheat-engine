@@ -2,7 +2,7 @@ unit injector;
 
 interface
 
-uses windows, sysutils;
+uses windows, sysutils, cepluginsdk;
 
 procedure InjectPacketEditor; stdcall;
 
@@ -14,7 +14,6 @@ procedure InjectPacketEditor; stdcall;
 var x: pchar;
     s: string;
 begin
- 
   if ce_exported.OpenedProcessHandle^=0 then
   begin
     ce_exported.showmessage('Please select a process first');

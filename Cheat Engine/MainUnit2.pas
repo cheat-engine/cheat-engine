@@ -22,7 +22,7 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
-const beta=' RC1'; //empty this for a release
+const beta=' RC2'; //empty this for a release
 const cename='Cheat Engine 5.5';
 
 var
@@ -790,6 +790,7 @@ var dwhandle: thandle;
 
 begin
   CEnorm:=cename+BETA;  //.';
+  Application.Title:=CENorm;
 
 {  FileVersionInfoSize:=GetFileVersionInfoSize(pchar(application.exename),dwhandle);
   if FileVersionInfoSize>0 then

@@ -188,7 +188,7 @@ AutoIncBuild=1
 MajorVer=5
 MinorVer=5
 Release=0
-Build=0
+Build=1
 Debug=0
 PreRelease=0
 Special=0
@@ -198,14 +198,14 @@ Locale=1033
 CodePage=1252
 [Version Info Keys]
 CompanyName=
-FileDescription=Cheat Engine 5.4
-FileVersion=5.5.0.0
+FileDescription=Cheat Engine 5.5
+FileVersion=5.5.0.1
 InternalName=CheatEngine
 LegalCopyright=none
 LegalTrademarks=-
 OriginalFilename=Cheat Engine.EXE
 ProductName=
-ProductVersion=5.4
+ProductVersion=5.5
 Comments=report bugs and or suggestions to dark_byte@hotmail.com
 [HistoryLists\hlDebugSourcePath]
 Count=1
