@@ -22,7 +22,7 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
-const beta=' RC2'; //empty this for a release
+const beta=' RC4'; //empty this for a release
 const cename='Cheat Engine 5.5';
 
 var
@@ -234,10 +234,11 @@ var i: integer;
 begin
   with formsettings do
   begin
+    mainform.ools1.Clear;
     mainform.ools1.Visible:=lvtools.Items.Count>0;
     for i:=0 to lvTools.Items.Count-1 do
     begin
-      mainform.ools1.Clear;
+
       mi:=tmenuitem.Create(mainform);
 
       mi.Caption:=lvTools.Items[i].Caption;

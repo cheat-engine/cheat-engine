@@ -546,6 +546,7 @@ type
     { Public declarations }
    
     test: single;
+    itemshavechanged: boolean;
 
     debugproc: boolean;
     autoopen: boolean; //boolean set when table is opened by other means than user file picker
@@ -1300,6 +1301,12 @@ begin
     caption:='Cancel';
     onclick:=cancelbuttonclick;
     enabled:=false;
+    tag:=0; //0=normal 1=force
+
+    Hint:='This button will try to cacel the current scan. Click twice to force an exit';
+    ParentShowHint:=false;
+    ShowHint:=true;
+
     parent:=panel5;
   end;
 
@@ -2357,6 +2364,9 @@ begin
 
   if not (oldcomments=comments.memo1.Text) then result:=false;
 
+
+  if itemshavechanged then result:=false;
+  
   if result=false then
   begin
     help:=messagedlg(strAskToSave,mtConfirmation,mbYesNoCancel,0);
@@ -4578,7 +4588,7 @@ begin
     foundlist3.columns[0].width:=x[6];
   end;
 
-  FileAccessTest;
+  
 end;
 
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
@@ -9436,6 +9446,8 @@ begin
   if memscan=nil then
     memscan:=tmemscan.create(progressbar1,mainform.Handle, wm_scandone);
 
+
+  FileAccessTest;    
                         
 end;
 
@@ -10600,7 +10612,10 @@ begin
   begin
     editingscript:=false;
     if changed then
+    begin
       memrec[editedscript].autoassemblescript:=script;
+      itemshavechanged:=true;
+    end;
     
   end else raise exception.Create('Unexpected scriptchange');
 end;
@@ -11597,13 +11612,34 @@ end;
 
 procedure Tmainform.CancelbuttonClick(sender: TObject);
 begin
-  tbutton(sender).Caption:='Terminating scan...';
-  memscan.terminatescan;
+  if cancelbutton.tag=0 then
+  begin
+    cancelbutton.Caption:='Terminating scan...';
+    cancelbutton.Enabled:=false;
+    cancelbutton.Tag:=1; //force termination
+    cancelbutton.Hint:='This button will force cancel a scan. Expect memory leaks';
+    cancelbutton.ParentShowHint:=false;
+    cancelbutton.ShowHint:=true;
+    memscan.terminatescan(false);
+
+    cancelbuttonenabler.Enabled:=false;
+    cancelbuttonenabler.interval:=8000; //8 seconds
+    cancelbuttonenabler.tag:=1;
+    cancelbuttonenabler.enabled:=true;
+  end
+  else
+  begin
+    //force it. It took too long
+    memscan.TerminateScan(true);
+  end;
 end;
 
 procedure Tmainform.CancelbuttonenablerInterval(sender: TObject);
 begin
   if cancelbutton<>nil then cancelbutton.enabled:=true;
+
+  if cancelbutton.Tag=1 then
+    cancelbutton.Caption:='Force termination';
   TTimer(sender).Enabled:=false;
 end;
 
@@ -12084,7 +12120,7 @@ begin
       with TProcessWindow.Create(self) do
       begin
         pwop(inttohex(pid,8));
-        ProcessLabel.caption:=TMenuItemExtra(sender).Caption;
+        ProcessLabel.caption:=StripHotkey(TMenuItemExtra(sender).Caption);
         free;
       end;
 

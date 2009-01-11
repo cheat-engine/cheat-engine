@@ -652,9 +652,9 @@ begin
     begin
       for i:=0 to lvTools.Items.Count-1 do
       begin
-        reg.WriteString(format('%.8x A',[i]),lvTools.Items[0].caption);
-        reg.WriteString(format('%.8x B',[i]),lvTools.Items[0].subitems[0]);
-        reg.WriteInteger(format('%.8x C',[i]),dword(lvTools.Items[0].data));
+        reg.WriteString(format('%.8x A',[i]),lvTools.Items[i].caption);
+        reg.WriteString(format('%.8x B',[i]),lvTools.Items[i].subitems[0]);
+        reg.WriteInteger(format('%.8x C',[i]),dword(lvTools.Items[i].data));
       end;
     end;
     UpdateToolsMenu;
@@ -1360,8 +1360,11 @@ begin
   li.SubItems.Add('');
   li.SubItems.Add('');
   li.Selected:=true;
-
   lvTools.OnClick(lvTools);
+
+
+  edtToolsName.SetFocus;
+  edtToolsName.SelectAll;
 end;
 
 procedure TformSettings.lvToolsClick(Sender: TObject);
@@ -1380,6 +1383,7 @@ begin
     edtToolsName.Text:=lvtools.Selected.Caption;
     edtApplicationTool.Text:=lvtools.Selected.SubItems[0];
     lblShortcutText.caption:=lvtools.Selected.SubItems[1];
+    edtToolsName.SetFocus;
   end;
 end;
 

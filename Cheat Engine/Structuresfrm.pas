@@ -975,6 +975,7 @@ begin
       end;
 
       self.update(true);
+      mainform.itemshavechanged:=true;
 
       if not tvStructureView.Items.GetFirstNode.Expanded then
         tvStructureView.Items.GetFirstNode.Expand(false);
@@ -1086,10 +1087,16 @@ begin
     if s=nil then exit;
     if s.basestructure<0 then exit;
 
+    if messagedlg('Are you sure you want to delete '+definedstructures[s.basestructure].structelement[elementnr].description+'?', mtconfirmation, [mbyes,mbno], 0) <>mryes then exit;
+
+    if tvStructureView.Selected.HasChildren then
+      tvStructureView.Selected.Collapse(true);
+
     for i:=elementnr to length(definedstructures[s.basestructure].structelement)-2 do
       definedstructures[s.basestructure].structelement[i]:=definedstructures[s.basestructure].structelement[i+1];
 
     setlength(definedstructures[s.basestructure].structelement,length(definedstructures[s.basestructure].structelement)-1);
+    mainform.itemshavechanged:=true;
   end;
 
   update(true);
@@ -1398,6 +1405,7 @@ begin
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=bytesize;
 
       self.update(true);
+      mainform.itemshavechanged:=true;
     end;
   end;
 
@@ -1616,6 +1624,7 @@ begin
 
     //now add it to the list
     mainform.addaddress('bla',addresses[section]+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
+    mainform.itemshavechanged:=true;
   end;
 end;
 
@@ -1681,6 +1690,8 @@ begin
       addresses[section]:=addresses[section]+delta;
       edits[section].text:=inttohex(addresses[section],8);
       update(true);
+
+      mainform.itemshavechanged:=true;
     end;
   end;
 end;
@@ -1745,6 +1756,7 @@ begin
   newsection:=headercontrol1.Sections.Add;
   newsection.Text:='Address: Value';
   newsection.Width:=200;
+  newsection.MinWidth:=20;
   edtAddressChange(x);  
 end;
 

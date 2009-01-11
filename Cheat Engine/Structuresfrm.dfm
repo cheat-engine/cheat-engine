@@ -72,11 +72,13 @@ object frmStructures: TfrmStructures
     Sections = <
       item
         ImageIndex = -1
+        MinWidth = 20
         Text = 'Offset-description'
         Width = 250
       end
       item
         ImageIndex = -1
+        MinWidth = 20
         Text = 'Address: Value'
         Width = 200
       end>
@@ -140,7 +142,7 @@ object frmStructures: TfrmStructures
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
     Left = 240
-    Top = 192
+    Top = 200
     object ChangeElement1: TMenuItem
       Caption = 'Change element'
       Default = True

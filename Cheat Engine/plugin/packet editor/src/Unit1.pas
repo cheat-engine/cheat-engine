@@ -12,8 +12,6 @@ function DisablePlugin:BOOL; stdcall;
 var versionname: pchar;
     ce_exported: TExportedFunctions;
 
-var processwatchevent: integer;
-
 implementation
 
 uses injector;
@@ -54,7 +52,7 @@ end;
 
 function DisablePlugin:BOOL; stdcall;
 begin
-  messagebox(0,'DisablePlugin Called','Example PE plugin',mb_ok);
+  //messagebox(0,'DisablePlugin Called','Example PE plugin',mb_ok);
   result:=true;
 end;
 

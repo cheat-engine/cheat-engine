@@ -289,7 +289,9 @@ initialization
   hotkeythread.Resume;
 
 finalization
-  hotkeythread.Terminate;
+  if hotkeythread<>nil then
+    hotkeythread.Terminate;
+    
   CSKeys.Free;
 end.
 

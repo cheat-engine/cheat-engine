@@ -11,6 +11,7 @@ New AutoAssembler window
 Removed the question if you want a new scan. (You must now click on new scan yourself)
 Added GlobalAlloc to the autoassembler
 The dissect structure window can now be opened multiple times (for comparison)
+Structures are now saved in the cheat table
 The main ce window now has a menu (can be disabled in settings if you don't like it)
 The processlist can now show process icons. (could be slow, so can be disabled in settings)
 The settings window has been changed from tabs to a list

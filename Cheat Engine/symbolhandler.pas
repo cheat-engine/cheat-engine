@@ -1143,8 +1143,11 @@ initialization
   selfsymhandler.targetself:=true;
 
 finalization
-  selfsymhandler.free;
-  symhandler.free;
+  if selfsymhandler<>nil then
+    selfsymhandler.free;
+
+  if symhandler<>nil then
+    symhandler.free;
   
 end.
 

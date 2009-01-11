@@ -387,7 +387,7 @@ type
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
     function Getcustomvariablesize: integer;
-    procedure TerminateScan;
+    procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
@@ -2603,6 +2603,13 @@ var i: integer;
 begin
   Set8087CW($133f); //disable floating point exceptions in this thread
 
+{$ifdef crashtest}
+  //while (true) do
+  begin
+    sleep(16000);
+  end;
+{$endif}
+
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
     if scantype=stFirstScan then firstscan;
@@ -2668,6 +2675,8 @@ end;
 destructor TScanner.destroy;
 var i: integer;
 begin
+
+
   if AddressFile<>nil then //can be made nil by the scancontroller
   begin
     Addressfile.free;
@@ -3548,7 +3557,7 @@ begin
     end
     else
     begin
-      savescannerresults:=true;
+      savescannerresults:=true; 
     end;
     
   finally
@@ -3564,113 +3573,147 @@ var err: dword;
     oldpos,oldmempos: integer;
 begin
   OutputDebugString('TScanController.execute');
-
-  //check what it is, and call first/next/nextnext- scan
-  err:=0;
-  errorstring:='';
-
-
   try
-    fillVariableAndFastScanAlignSize;
-    if scantype=stFirstScan then firstscan;
-    if scantype=stNextScan then nextscan;
-    OutputDebugString('No exception on controller');
+
+    //check what it is, and call first/next/nextnext- scan
+    err:=0;
+    errorstring:='';
+
+
+    try
+      fillVariableAndFastScanAlignSize;
+      if scantype=stFirstScan then firstscan;
+      if scantype=stNextScan then nextscan;
+      OutputDebugString('No exception on controller');
+    except
+      on e: exception do
+      begin
+        OutputDebugString(pchar('controller exception happened:'+e.message));
+        haserror:=true;
+        errorstring:='controller:'+e.message;
+      end;
+    end;
+
+    if haserror then err:=1;
+
+
+    if savescannerresults then //prepare saving. Set the filesize
+    begin
+      try
+        OutputDebugString('ScanController: creating undo files');
+        freeandnil(scanners[0].Addressfile);
+        freeandnil(scanners[0].Memoryfile);
+
+        //addresses
+        deletefile(CheatEngineDir+'Addresses.UNDO');
+        renamefile(CheatEngineDir+'Addresses.TMP',CheatEngineDir+'Addresses.UNDO');
+        renamefile(scanners[0].Addressfilename, CheatEngineDir+'Addresses.TMP');
+
+        //memory
+        deletefile(CheatEngineDir+'Memory.UNDO');
+        renamefile(CheatEngineDir+'Memory.TMP',CheatEngineDir+'Memory.UNDO');
+        renamefile(scanners[0].Memoryfilename, CheatEngineDir+'Memory.TMP');
+        try
+          AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
+          MemoryFile:=TFileStream.Create(CheatEngineDir+'Memory.TMP',fmOpenWrite or fmsharedenynone);
+        except
+          outputdebugstring('Scancontroller: Error when while loading result');
+          haserror:=true;
+          errorstring:='Error while loading results';
+          exit;
+        end;
+
+        oldpos:=addressfile.Size;
+        oldmempos:=memoryfile.size;
+
+        for i:=1 to threadcount-1 do
+          AddressFile.size:=AddressFile.size+scanners[i].Addressfile.Size;
+
+        outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
+      except
+        on e: exception do
+        begin
+          OutputDebugString(pchar('Disk Write Error:'+e.message));
+          haserror:=true;
+          errorstring:='controller:Cleanup:ResultsPrepare:'+e.message;
+        end;
+      end;
+    end;
+
+
+    //send message saying it's done
+    isdone:=true;
+    postMessage(notifywindow,notifymessage,err,0);
+
+    try
+      if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
+      begin
+        //AddressFile should already have been created with the correct datatype and opened as denynone
+        AddressFile.Seek(oldpos,soFromBeginning);
+        Memoryfile.seek(oldmempos,soFromBeginning);
+
+        //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
+        for i:=1 to length(scanners)-1 do
+        begin
+          outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
+          addressfile.CopyFrom(scanners[i].Addressfile,0);
+          Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
+        end;
+      end;
+    except
+      on e: exception do
+      begin
+        OutputDebugString(pchar('Disk Write Error:'+e.message));
+        haserror:=true;
+        errorstring:='controller:Cleanup:ResultsWrite:'+e.message;
+      end;
+    end;
+
+    try
+      if scantype=stFirstScan then
+      begin
+        outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
+        OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+      end;
+    except
+      on e: exception do
+      begin
+        OutputDebugString(pchar('First Scan Create:'+e.message));
+        haserror:=true;
+        errorstring:='controller:Cleanup:Failed spawning the Save First Scan thread:'+e.message;
+      end;
+    end;
+
+
+    //clean up secondary scanner threads, their destructor will close and delete their files
+    outputdebugstring('ScanController: Destroying scanner threads');
+    scannersCS.enter;
+    try
+      outputdebugstring('ScanController: Critical section "scannersCS" aquired');
+      for i:=0 to length(scanners)-1 do
+      begin
+        outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
+        scanners[i].Free;
+      end;
+
+      setlength(scanners,0);
+    finally
+      scannersCS.leave;
+      outputdebugstring('ScanController: Critical section "scannersCS" released');
+    end;
+
+
+    //cleanup the files
+    if addressfile<>nil then addressfile.Free;
+    if MemoryFile<>nil then Memoryfile.Free;
   except
     on e: exception do
     begin
-      OutputDebugString(pchar('controller exception happened:'+e.message));
+      OutputDebugString(pchar('controller exception happened:Unknown!'+e.message));
       haserror:=true;
-      errorstring:='controller:'+e.message;
+      errorstring:='controller:Unknown!'+e.message;
     end;
   end;
-
-  if haserror then err:=1;
-
-
-  if savescannerresults then //prepare saving. Set the filesize
-  begin
-    OutputDebugString('ScanController: creating undo files');
-    freeandnil(scanners[0].Addressfile);
-    freeandnil(scanners[0].Memoryfile);
-
-    //addresses
-    deletefile(CheatEngineDir+'Addresses.UNDO');
-    renamefile(CheatEngineDir+'Addresses.TMP',CheatEngineDir+'Addresses.UNDO');
-    renamefile(scanners[0].Addressfilename, CheatEngineDir+'Addresses.TMP');
-
-    //memory
-    deletefile(CheatEngineDir+'Memory.UNDO');
-    renamefile(CheatEngineDir+'Memory.TMP',CheatEngineDir+'Memory.UNDO');
-    renamefile(scanners[0].Memoryfilename, CheatEngineDir+'Memory.TMP');
-    try
-      AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
-      MemoryFile:=TFileStream.Create(CheatEngineDir+'Memory.TMP',fmOpenWrite or fmsharedenynone);
-    except
-      outputdebugstring('Scancontroller: Error when while loading result');
-      haserror:=true;
-      errorstring:='Error while loading results';
-      exit;
-    end;
-
-    oldpos:=addressfile.Size;
-    oldmempos:=memoryfile.size;
-
-    for i:=1 to threadcount-1 do
-      AddressFile.size:=AddressFile.size+scanners[i].Addressfile.Size;
-
-    outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
-  end;
-
-
-  //send message saying it's done
-  isdone:=true;
-  postMessage(notifywindow,notifymessage,err,0);
-
-
-
-  if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
-  begin
-    //AddressFile should already have been created with the correct datatype and opened as denynone
-    AddressFile.Seek(oldpos,soFromBeginning);
-    Memoryfile.seek(oldmempos,soFromBeginning);
-
-    //save the exact results, and copy it to the AddressesFirst.tmp and Memoryfirst.tmp files
-    for i:=1 to length(scanners)-1 do
-    begin
-      outputdebugstring(format('ScanController: Writing results from scanner %d',[i]));
-      addressfile.CopyFrom(scanners[i].Addressfile,0);
-      Memoryfile.CopyFrom(scanners[i].MemoryFile,0);
-    end;
-  end;
-
-  if scantype=stFirstScan then
-  begin
-    outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
-    OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
-  end;
-
-
-  //clean up secondary scanner threads, their destructor will close and delete their files
-  outputdebugstring('ScanController: Destroying scanner threads');
-  scannersCS.enter;
-  try
-    outputdebugstring('ScanController: Critical section "scannersCS" aquired');
-    for i:=0 to length(scanners)-1 do
-    begin
-      outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
-      scanners[i].Free;
-    end;
-
-    setlength(scanners,0);
-  finally
-    scannersCS.leave;
-    outputdebugstring('ScanController: Critical section "scannersCS" released');
-  end;
-
-
-  //cleanup the files
-  if addressfile<>nil then addressfile.Free;
-  if MemoryFile<>nil then Memoryfile.Free;
 end;
 
 constructor TScanController.create(suspended: boolean);
@@ -3690,10 +3733,44 @@ end;
 
 
 //----------------memscan--------------//
-procedure TMemscan.TerminateScan;
+procedure TMemscan.TerminateScan(forceTermination: boolean);
 var i: integer;
 begin
-  if scancontroller<>nil then scanController.Terminate;
+  if scancontroller<>nil then
+  begin
+    if not forceTermination then
+    begin
+      scanController.Terminate
+    end
+    else
+    begin
+      //scancontroller.forceTerminate:=true;
+
+
+      for i:=0 to length(scanController.scanners)-1 do
+      begin
+        try
+          TerminateThread(scanController.scanners[i].Handle,$dead);
+          scanController.scanners[i].Free;
+        except
+
+        end;
+      end;
+
+      setlength(scanController.scanners,0);
+      try
+        TerminateThread(scancontroller.Handle,$dead);
+        freeandnil(scancontroller);
+      except
+
+      end;
+
+
+      PostMessage(notifywindow, notifymessage,0,0);
+    end;
+  end
+  else
+    raise exception.Create('For some reason the scanController does not exist');
   //and now the caller has to wait
 end;
 

@@ -59,7 +59,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = tsHotkeys
+      ActivePage = tsTools
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -1070,7 +1070,7 @@ object formSettings: TformSettings
             Height = 21
             Enabled = False
             MaxLength = 255
-            TabOrder = 0
+            TabOrder = 1
             OnChange = edtApplicationToolChange
           end
           object btnSetToolShortcut: TButton
@@ -1080,7 +1080,7 @@ object formSettings: TformSettings
             Height = 17
             Caption = 'Set shortcut'
             Enabled = False
-            TabOrder = 1
+            TabOrder = 2
             OnClick = btnSetToolShortcutClick
           end
           object edtToolsName: TEdit
@@ -1090,7 +1090,7 @@ object formSettings: TformSettings
             Height = 21
             Enabled = False
             MaxLength = 255
-            TabOrder = 2
+            TabOrder = 0
             OnChange = edtToolsNameChange
           end
         end

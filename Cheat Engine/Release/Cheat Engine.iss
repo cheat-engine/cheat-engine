@@ -2,22 +2,35 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.5 RC1
-AppVerName=Cheat Engine 5.5 RC1
+AppName=Cheat Engine 5.5 RC4
+AppVerName=Cheat Engine 5.5 RC4
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.5 RC1
+DefaultGroupName=Cheat Engine 5.5 RC4
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine55rc1
+OutputBaseFilename=CheatEngine55rc4
+
+
+[UninstallDelete]
+Type: files; Name: "{app}\kerneldata.dat"
+Type: files; Name: "{app}\CEProtect.dat"
+Type: files; Name: "{app}\ADDRESSESFIRST.TMP"
+Type: files; Name: "{app}\MEMORYFIRST.TMP"
+Type: files; Name: "{app}\ADDRESSES.TMP"
+Type: files; Name: "{app}\MEMORY.TMP"
 
 [InstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
 Type: files; Name: "{app}\CEProtect.dat"
+Type: files; Name: "{app}\ADDRESSESFIRST.TMP"
+Type: files; Name: "{app}\MEMORYFIRST.TMP"
+Type: files; Name: "{app}\ADDRESSES.TMP"
+Type: files; Name: "{app}\MEMORY.TMP"
 
 
 
@@ -36,6 +49,9 @@ begin
   DeleteFile(ExpandConstant('{app}dbk32.bak'));
 
   RenameFile(ExpandConstant('{app}dbk32.sys'),ExpandConstant('{app}dbk32.bak'));
+  
+  //lets remove all settings as well
+  
   
 end;
 
@@ -69,6 +85,14 @@ begin
   result:=restart;
 end;
 
+//post install
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep=ssPostInstall then
+  begin
+    RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER,'Software\Cheat Engine');
+  end;
+end;
 
 //uninstall
 
@@ -121,7 +145,7 @@ Source: "..\pscan.dll"; DestDir: "{app}"; DestName: "pscan.dll"; Flags: ignoreve
 Source: "..\directxhook\D3DX81ab.dll"; DestDir: "{sys}"; DestName: "D3DX81ab.dll";
 Source: "..\directxhook\d3dx9.dll"; DestDir: "{sys}"; DestName: "d3dx9.dll";
 
-
+Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
 Source: "..\Kernelmoduleunloader.exe"; DestDir: "{app}"; DestName: "Kernelmoduleunloader.exe"; Flags: ignoreversion
 Source: "..\driver.dat"; DestDir: "{app}"; DestName: "driver.dat"; Flags: ignoreversion
 ;comment the next 2 lines for the baby version
@@ -137,7 +161,6 @@ Source: "..\stealth.dll"; DestDir: "{app}"; DestName: "stealth.dll"; Flags: igno
 Source: "..\CheatEngine.chm"; DestDir: "{app}"; DestName: "CheatEngine.chm"; Flags: ignoreversion
 
 Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
-Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
 
 ;Source: "..\Cheat Engine Net\Client\client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Server\ceserver.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
@@ -185,6 +208,17 @@ Source: "..\plugin\packet editor\inject\src\mainunit.dfm"; DestDir: "{app}\Plugi
 Source: "..\plugin\packet editor\inject\src\mainunit.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\inject\src\packetfilter.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 
+;Debug event log example
+Source: "..\plugin\DebugEventLog\DebugEventLog.dll"; DestDir: "{app}\Plugins\DebugEventLog\"; Flags: ignoreversion
+
+;Debug event log example source
+Source: "..\plugin\DebugEventLog\src\DebugEventLog.cfg"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+Source: "..\plugin\DebugEventLog\src\DebugEventLog.dpr"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+Source: "..\plugin\DebugEventLog\src\DebugEventLog.res"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+Source: "..\plugin\DebugEventLog\src\exportimplementation.pas"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+Source: "..\plugin\DebugEventLog\src\frmEventLogUnit.dfm"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+Source: "..\plugin\DebugEventLog\src\frmEventLogUnit.pas"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
+
 
 
 Source: "..\include\*"; DestDir: "{app}\include\";
@@ -195,7 +229,7 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.5 RC1"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.5 RC4"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
 ;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
@@ -210,4 +244,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5 RC1"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5 RC4"; Flags: nowait postinstall skipifsilent

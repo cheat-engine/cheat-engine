@@ -2698,7 +2698,7 @@ initialization
 
 
 finalization
-  FreeLibrary(krn);
-  CRDebugging.Free;
+  if CRDebugging<>nil then
+    CRDebugging.Free;
 
 end.
