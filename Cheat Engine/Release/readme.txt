@@ -35,7 +35,7 @@ Fixes:
 Fixed the multicore scan crash
 Fixed the MEMORYFIRST.TMP file showing up in a weird location
 Fixed several hotkey setting bugs
-Fixed loading back trhe speedhack hotkey values
+Fixed loading back the speedhack hotkey values
 Fixed a crash when opening a process with a broken PE-header
 Fixed several assembler and disassembler instructions
 Fixed memoryviewers "copy to clipboard" option where it picks the wrong option
