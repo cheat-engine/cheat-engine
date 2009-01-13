@@ -29,6 +29,7 @@ If DBVM is running and you choose phsyical memory, it goes through dbvm's read p
 Added a floating point panel to several windows that use system context to display variables
 Added the option to the memoryview hexview part to display 2 bytes, 4 byte, float or double instead of bytes
 Improved the dissect data window to show addresses next to eachother
+The bottom part of the memory view window (hexview) can now display as different types (byte, 2 byte, 4 byte, decimal 4 byte, float, double)
 
 
 Fixes:
