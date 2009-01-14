@@ -33,7 +33,7 @@ object Form1: TForm1
     Align = alTop
     Color = clBtnFace
     Lines.Strings = (
-      'Welcome to the Cheat Engine Tutorial. (v3)'
+      'Welcome to the Cheat Engine Tutorial. (v3.1)'
       ''
       
         'This tutorial will try to explain the basics of cheating on game' +

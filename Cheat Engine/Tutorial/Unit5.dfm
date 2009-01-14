@@ -82,7 +82,7 @@ object Form5: TForm5
         'In the previous tutorial we used bytes to scan, but some games s' +
         'tore information in so called '#39'floating point'#39' notations. '
       
-        '(propably to prevent simple memory scanners from finding it the ' +
+        '(probably to prevent simple memory scanners from finding it the ' +
         'easy way)'
       
         'a floating point is a value with some digits behind the point. (' +

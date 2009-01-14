@@ -71,19 +71,19 @@ object Form8: TForm8
         ' address that decreases health (If it isn'#39't already filled '
       'in correctly)'
       
-        'That'#39'll generate a basic auto assembler injection framework you ' +
-        'can use for your code.'
+        'That will generate a basic auto assembler injection framework yo' +
+        'u can use for your code.'
       ''
       
-        'Notice the alloc, that'#39'll allocate a block of memory for your co' +
-        'de cave, in the past, in the pre windows 2000 systems, '
+        'Notice the alloc, that will allocate a block of memory for your ' +
+        'code cave, in the past, in the pre windows 2000 '
       
-        'people had to find code caves in the memory(regiosn of memory un' +
-        'usaed by the game), but thats luckely a thing f '
+        'systems, people had to find code caves in the memory(regions of ' +
+        'memory unused by the game), but that'#39's luckily a '
       
-        'the past since windows 2000, and will these days cause errors wh' +
-        'en trying to be used, due to SP2 of XP and the NX '
-      'bit of new CPU'#39's'
+        'thing of the past since windows 2000, and will these days cause ' +
+        'errors when trying to be used, due to SP2 of XP '
+      'and the NX bit of new CPU'#39's'
       ''
       
         'Also notice the line newmem: and originalcode: and the text "Pla' +
@@ -92,8 +92,8 @@ object Form8: TForm8
         'As you guessed it, write your code here that will increase the  ' +
         'health with 2.'
       
-        'a usefull assembnler instruction in this case is the "ADD instru' +
-        'ction"'
+        'a usefull assembler instruction in this case is the "ADD instruc' +
+        'tion"'
       'here are a few examples:'
       '"ADD [00901234],9" to increase the address at 00901234 with 9'
       
@@ -121,7 +121,7 @@ object Form8: TForm8
         'ctions, and sometimes, not always, it might happen '
       
         'that a code at another place jumps into your jump instruction en' +
-        'd will then cause unknown behaviour. If that '
+        'd will then cause unknown behavior. If that '
       
         'happens, you should usually look near that instruction and see t' +
         'he jumps and fix it, or perhaps even choose to use a '

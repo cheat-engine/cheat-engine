@@ -9,8 +9,8 @@ inherited Form10: TForm10
   inherited Memo1: TMemo
     Lines.Strings = (
       
-        'In this step we'#39'll do basicly the same as in step 7(Code Injecti' +
-        'on) but now a little bit more difficult.'
+        'In this step we'#39'll do basically the same as in step 7(Code Injec' +
+        'tion) but now a little bit more difficult.'
       
         'Now you have to edit the code that decreases health with a piece' +
         ' of code that sets the health to 1000 if the current '
@@ -58,13 +58,13 @@ inherited Form10: TForm10
         'And fill in as code the call instruction you got. Note that the ' +
         'call will change the value of EAX and some flags may '
       
-        'change as wel;l, so if you want to save them, push them before a' +
-        'nd pop them after.  And remove the original code, '
+        'change as well, so if you want to save them, push them before an' +
+        'd pop them after.  And remove the original code, '
       'it'#39's not used and only makes things '
       'harder.'
       'Click Execute and then click "Hit me" in the trainer.'
       
-        'If all went right the clickign of the button caused your c-scrip' +
+        'If all went right the clicking of the button caused your c-scrip' +
         't to be executed and changed the value of health '
       'according to the current time.'
       ''

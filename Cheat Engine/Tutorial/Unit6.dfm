@@ -64,7 +64,7 @@ object Form6: TForm6
       'address". A window will pop up with an empty list.'
       
         'Then click on the Change value button in this tutorial, and go b' +
-        'ack to Cheat Engine. If evrything went right there '
+        'ack to Cheat Engine. If everything went right there '
       'should be an address with assembler code there now.'
       
         'Click it and choose the replace option to replace it with code t' +
@@ -78,7 +78,7 @@ object Form6: TForm6
         'close to close the window.'
       
         'Now, click on Change value, and if everything went right the Nex' +
-        't button should become clickable.'
+        't button should become enabled.'
       ''
       
         'Note: When you'#39're freezing the address with a high enough speed ' +

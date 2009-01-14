@@ -541,6 +541,9 @@ begin
           if reg.ValueExists('Use old speedhack') then
             cbOldSpeedhack.checked:=reg.ReadBool('Use old speedhack');
 
+          if reg.ValueExists('Show main menu') then
+            cbShowMainMenu.Checked:=reg.ReadBool('Show main menu');
+
           if reg.ValueExists('Get process icons') then
             cbProcessIcons.Checked:=reg.ReadBool('Get process icons');
           GetProcessIcons:=cbProcessIcons.Checked;
@@ -779,6 +782,11 @@ begin
   {$endif}
 
   HandleAutoAttachString;
+
+  if formsettings.cbShowMainMenu.Checked then
+    mainform.Menu:=mainform.MainMenu1
+  else
+    mainform.Menu:=nil;  
 end;
 
 procedure initcetitle;

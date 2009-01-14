@@ -150,6 +150,7 @@ type
     edtToolsName: TEdit;
     OpenButton: TSpeedButton;
     OpenDialog2: TOpenDialog;
+    cbShowMainMenu: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -481,6 +482,7 @@ begin
 
       reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
       reg.WriteBool('Use old speedhack',cbOldSpeedhack.checked);
+      reg.WriteBool('Show main menu',cbShowMainMenu.Checked);
       reg.WriteBool('Get process icons',cbProcessIcons.Checked);
       GetProcessIcons:=cbProcessIcons.Checked;
 
@@ -735,6 +737,11 @@ begin
   lastSpeedhackmodifier:=tempspeedhackmodifier;
 
   handleautoattachstring;
+
+  if cbShowMainMenu.Checked then
+    mainform.Menu:=mainform.MainMenu1
+  else
+    mainform.Menu:=nil;
 
   modalresult:=mrok;
 end;

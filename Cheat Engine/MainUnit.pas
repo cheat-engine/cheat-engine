@@ -4358,7 +4358,8 @@ var pid: dword;
     differentWidth: integer;
     x: array of integer;
 begin
-  
+
+
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
   actScriptEngine.ShortCut:=TextToShortCut('Ctrl+Shift+C');
 

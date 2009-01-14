@@ -66,15 +66,14 @@ object Form2: TForm2
         'out the easiest, '#39'Exact Value'#39':'
       
         'First make sure value type is set to at least 2 bytes or 4 bytes' +
-        ', 1 byte will also work, but you'#39'll run into a '
+        ', 1 byte will also work, but you'#39'll run into a (easy to fix) '
       
-        '(easy to fix) problem when you'#39've found the address and want to ' +
-        'change it. The 8-byte may perhaps works if the '
-      'bytes '
-      'after the address are 0, but I wouldn'#39't take the bet.'
+        'problem when you'#39've found the address and want to change it. The' +
+        ' 8-byte may perhaps works if the '
+      'bytes after the address are 0, but I wouldn'#39't take the bet.'
       
-        'Single, double, and the other scans just dont work, because they' +
-        ' store the value in a different way.'
+        'Single, double, and the other scans just don'#39't work, because the' +
+        'y store the value in a different way.'
       ''
       
         'When the value type is set correctly, make sure the scantype is ' +
@@ -92,8 +91,8 @@ object Form2: TForm2
         'address it is, click '#39'Hit me'#39', fill in the new '
       'health value into the value box, and click '#39'Next Scan'#39
       
-        'repeat this untill you'#39're sure you'#39've found it. (that includes t' +
-        'hat there'#39's only 1 address in the list.....)'
+        'repeat this until you'#39're sure you'#39've found it. (that includes th' +
+        'at there'#39's only 1 address in the list.....)'
       ''
       
         'Now double click the address in the list on the left. This makes' +
@@ -112,7 +111,7 @@ object Form2: TForm2
       
         'If you did anything wrong while scanning, click "New Scan" and r' +
         'epeat the scanning again.'
-      'Also, try playing arround with the value and click '#39'hit me'#39)
+      'Also, try playing around with the value and click '#39'hit me'#39)
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0

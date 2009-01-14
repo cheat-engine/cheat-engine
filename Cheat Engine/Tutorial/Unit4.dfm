@@ -27,11 +27,11 @@ object Form4: TForm4
   object Label2: TLabel
     Left = 8
     Top = 24
-    Width = 364
+    Width = 361
     Height = 13
     Caption = 
-      'Just play arround with the tutorial and learn how the other scan' +
-      'methods work.'
+      'Just play around with the tutorial and learn how the other scanm' +
+      'ethods work.'
   end
   object Button1: TButton
     Left = 160

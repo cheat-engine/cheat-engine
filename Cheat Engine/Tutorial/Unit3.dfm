@@ -53,12 +53,12 @@ object Form3: TForm3
       ''
       
         'In the previous test we knew the initial value so we could do a ' +
-        'exact value, but now we have a statusbar where '
-      'we dont know the starting value.'
+        'exact value, but now we have a status bar where '
+      'we don'#39't know the starting value.'
       
         'We only know that the value is between 0 and 500. And each time ' +
         'you click '#39'hit me'#39' you lose some health. The '
-      'ammount you lose each time is shown above the statusbar.'
+      'amount you lose each time is shown above the status bar.'
       ''
       
         'Again there are several different ways to find the value. (like ' +
@@ -67,8 +67,8 @@ object Form3: TForm3
         'explain the easiest. "Unknown initial value", and decreased valu' +
         'e.'
       
-        'Because you dont know the value it is right now, a exact value w' +
-        'ont do any good, so choose as scantype '
+        'Because you don'#39't know the value it is right now, a exact value ' +
+        'wont do any good, so choose as scantype '
       
         #39'Unknown initial value'#39', again, the value type is 4-bytes. (most' +
         ' windows apps use 4-bytes)'
@@ -76,8 +76,8 @@ object Form3: TForm3
       ''
       
         'When it is done click '#39'hit me'#39'. You'#39'll lose some of your health.' +
-        ' (the ammount you lost shows for a few seconds and '
-      'then disapears, but you dont need that)'
+        ' (the amount you lost shows for a few seconds and '
+      'then disappears, but you don'#39't need that)'
       
         'Now go to Cheat Engine, and choose '#39'Decreased Value'#39' and click '#39 +
         'Next Scan'#39

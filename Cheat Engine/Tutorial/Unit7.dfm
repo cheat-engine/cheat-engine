@@ -56,15 +56,15 @@ object Form7: TForm7
       
         'makes it difficult to find the address to set the values you wan' +
         't.'
-      'Thats why there are pointers:'
+      'That'#39's why there are pointers:'
       ''
       
         'At the bottom you'#39'll find 2 buttons. One will change the value, ' +
         'and the other changes the value AND the location of '
       'the value.'
       
-        'For this step you dont really need to know assembler, but it hel' +
-        'ps a lot if you do.'
+        'For this step you don'#39't really need to know assembler, but it he' +
+        'lps a lot if you do.'
       ''
       
         'First find the address of the value. When you'#39've found it use th' +
@@ -100,7 +100,7 @@ object Form7: TForm7
       'Fill in as address the address you just found.'
       
         'If the assembler instruction has a calculation (e.g: [esi+12]) a' +
-        't the end then type the value in thats at the end. else '
+        't the end then type the value in that'#39's at the end. else '
       
         'leave it 0. If it was a more complicated instruction look at the' +
         ' calculation.'

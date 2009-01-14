@@ -104,9 +104,9 @@ object Form9: TForm9
         'being read and filled out in the same codeblock (same routine, i' +
         'f you know assembler, look up till the start of the '
       
-        'routine). This doesn'#39't always happen, but can be really usefull ' +
-        'in finding a '
-      'pointer when debuggng is troublesome')
+        'routine). This doesn'#39't always happen, but can be really useful i' +
+        'n finding a '
+      'pointer when debugging is troublesome')
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
