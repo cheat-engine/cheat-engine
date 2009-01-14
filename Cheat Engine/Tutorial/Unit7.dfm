@@ -1,6 +1,6 @@
 object Form7: TForm7
-  Left = 539
-  Top = 241
+  Left = 830
+  Top = 234
   BorderStyle = bsDialog
   Caption = 'Step 6'
   ClientHeight = 250
@@ -33,6 +33,15 @@ object Form7: TForm7
     Caption = '3'
     Visible = False
   end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 232
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
+  end
   object Memo1: TMemo
     Left = 0
     Top = 0
@@ -59,7 +68,7 @@ object Form7: TForm7
       ''
       
         'First find the address of the value. When you'#39've found it use th' +
-        'e function to find out what writes to that address.'
+        'e function to find out what accesses this address.'
       
         'Change the value again, and a item will show in the list. Double' +
         ' click that item. (or select and click on more info) and '
@@ -67,8 +76,8 @@ object Form7: TForm7
         'a new window will open with detailed information on what happene' +
         'd when the instruction ran.'
       
-        'If the assembler instruction doesnt have anything between a '#39'['#39' ' +
-        'and '#39']'#39' then use another item in the list.'
+        'If the assembler instruction doesn'#39't have anything between a '#39'['#39 +
+        ' and '#39']'#39' then use another item in the list.'
       
         'If it does it will say what it think will be the value of the po' +
         'inter you need.'
@@ -86,8 +95,8 @@ object Form7: TForm7
         'heckbox.'
       ''
       
-        'The window will change and allows you to type in the address of ' +
-        'a pointer and a offset.'
+        'The window will change and allow you to type in the address of a' +
+        ' pointer and a offset.'
       'Fill in as address the address you just found.'
       
         'If the assembler instruction has a calculation (e.g: [esi+12]) a' +

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls, Buttons;
 
 type
   TForm2 = class(TForm)
@@ -14,12 +14,14 @@ type
     Label2: TLabel;
     Button2: TButton;
     Timer1: TTimer;
+    SpeedButton1: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     health: integer;
@@ -80,6 +82,12 @@ end;
 procedure TForm2.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('Quitting on step2? This is the easiest step there is. Find health, change health, done.... Sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm2.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button1.Click;
 end;
 
 end.

@@ -1,6 +1,6 @@
 object Form5: TForm5
-  Left = 263
-  Top = 843
+  Left = 426
+  Top = 279
   BorderStyle = bsDialog
   Caption = 'Step 4'
   ClientHeight = 249
@@ -60,6 +60,15 @@ object Form5: TForm5
     Width = 38
     Height = 13
     Caption = '(double)'
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 231
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
     Left = 0

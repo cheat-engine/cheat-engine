@@ -26,6 +26,15 @@ object Form6: TForm6
     Height = 13
     Caption = '100'
   end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 231
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
+  end
   object Memo1: TMemo
     Left = 0
     Top = 0
@@ -37,11 +46,10 @@ object Form6: TForm6
       
         'Sometimes the location something is stored at changes when you r' +
         'estart the game, or even while you'#39're playing.. In '
-      'that case you can use 2 things to still make a table that '
-      'works.'
+      'that case you can use 2 things to still make a table that works.'
       
-        'In this step I'#39'll try to descibe how to use the Code Finder func' +
-        'tion.'
+        'In this step I'#39'll try to describe how to use the Code Finder fun' +
+        'ction.'
       ''
       
         'The value down here will be at a different location each time yo' +
@@ -62,8 +70,8 @@ object Form6: TForm6
         'Click it and choose the replace option to replace it with code t' +
         'hat does nothing. That will also add the code address '
       
-        'to the code list in the advanced options window. (Wich gets save' +
-        'd if you save your table)'
+        'to the code list in the advanced options window. (Which gets sav' +
+        'ed if you save your table)'
       ''
       
         'Click on stop, so the game will start running normal again, and ' +

@@ -7,7 +7,7 @@ uses
   StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst
   {$ifndef net}
   ,plugin,newkernelhandler,debugger,hotkeyhandler, frameHotkeyConfigUnit,
-  formhotkeyunit;
+  formhotkeyunit, Buttons;
   {$else}
   ,netapis;
 
@@ -148,6 +148,8 @@ type
     lblShortcutText: TLabel;
     lblToolsName: TLabel;
     edtToolsName: TEdit;
+    OpenButton: TSpeedButton;
+    OpenDialog2: TOpenDialog;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -183,6 +185,7 @@ type
     procedure edtApplicationToolChange(Sender: TObject);
     procedure btnToolDeleteClick(Sender: TObject);
     procedure edtToolsNameChange(Sender: TObject);
+    procedure OpenButtonClick(Sender: TObject);
   private
     { Private declarations }
     tempstatePopupHide:word;
@@ -1403,6 +1406,12 @@ end;
 procedure TformSettings.edtToolsNameChange(Sender: TObject);
 begin
   lvtools.Selected.Caption:=edtToolsName.text;
+end;
+
+procedure TformSettings.OpenButtonClick(Sender: TObject);
+begin
+  if opendialog2.Execute then
+    edtApplicationTool.Text:=opendialog2.FileName;
 end;
 
 end.

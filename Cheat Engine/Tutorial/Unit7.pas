@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, Buttons;
 
 type
   TForm7 = class(TForm)
@@ -14,12 +14,14 @@ type
     Label1: TLabel;
     Button3: TButton;
     Label2: TLabel;
+    SpeedButton1: TSpeedButton;
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
 
@@ -128,6 +130,12 @@ end;
 procedure TForm7.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('So, pointers are too difficult eh? Don''t worry, try again later. For most beginners this is difficult to grasp. But I have to tell you it''s a powerfull feature if you learn to use it. Are you sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm7.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button2.Click;
 end;
 
 end.

@@ -528,10 +528,10 @@ begin
 end;
 
 procedure TAddForm.Button4Click(Sender: TObject);
-var rowheight: integer;
+var
+  rowheight: integer;
+  i: integer;
 begin
-
-
   if length(pointerinfo)=1 then cbPointer.checked:=false
   else
   begin
@@ -539,14 +539,18 @@ begin
     rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
     inc(rowheight,2);
 
+    pointerinfo[length(pointerinfo)-2].address.enabled:=true;
+    pointerinfo[length(pointerinfo)-2].address.text:=pointerinfo[length(pointerinfo)-1].address.text;
+    for i:=0 to length(pointerinfo)-2 do
+      pointerinfo[i].offset.text:=pointerinfo[i+1].offset.text;
+
     pointerinfo[length(pointerinfo)-1].addresstext.free;
     pointerinfo[length(pointerinfo)-1].address.free;
     pointerinfo[length(pointerinfo)-1].offsettext.free;
     pointerinfo[length(pointerinfo)-1].offset.free;
     pointerinfo[length(pointerinfo)-1].valueataddresstext.free;
     pointerinfo[length(pointerinfo)-1].FinalDestination.free;
-    pointerinfo[length(pointerinfo)-2].address.enabled:=true;
-    pointerinfo[length(pointerinfo)-2].address.text:='';
+
 
     setlength(pointerinfo,length(pointerinfo)-1);
     height:=height-rowheight;
@@ -555,12 +559,16 @@ begin
 end;
 
 procedure TAddForm.Button3Click(Sender: TObject);
-var rowheight: integer;
+var
+  rowheight: integer;
+  i: integer;
+  oldaddress: string;
 begin
   rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
   rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
   inc(rowheight,2);
 
+  oldaddress:=pointerinfo[length(pointerinfo)-1].address.text;
   pointerinfo[length(pointerinfo)-1].address.text:='result of next pointer';
   pointerinfo[length(pointerinfo)-1].address.enabled:=false;
 
@@ -629,6 +637,13 @@ begin
     parent:=self;
   end;
 
+
+  for i:=length(pointerinfo)-1 downto 1 do
+    pointerinfo[i].offset.Text:=pointerinfo[i-1].offset.text;
+
+  pointerinfo[0].offset.Text:='0';
+  pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
+  
   height:=height+rowheight;
 end;
 

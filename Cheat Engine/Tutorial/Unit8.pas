@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, Buttons;
 
 type
   TForm8 = class(TForm)
@@ -13,11 +13,13 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Button1: TButton;
+    SpeedButton1: TSpeedButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     health: integer;
@@ -75,6 +77,12 @@ end;
 procedure TForm8.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('Code injections too tough? No problem, memory scanning and basic pointers should be enough to get you experienced enough and you can always try the tutorial later. Are you sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm8.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button2.Click;
 end;
 
 end.

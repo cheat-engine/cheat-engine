@@ -154,7 +154,7 @@ begin
   Application.Initialize;
   GetCEdir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.5 RC4';
+  Application.Title := 'Cheat Engine 5.5';
   Application.HelpFile := 'CheatEngine.chm';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);

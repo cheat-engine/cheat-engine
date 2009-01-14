@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls, ComCtrls;
+  Dialogs, ExtCtrls, StdCtrls, ComCtrls, Buttons;
 
 type
   TForm3 = class(TForm)
@@ -15,6 +15,7 @@ type
     Timer1: TTimer;
     Timer2: TTimer;
     ProgressBar1: TProgressBar;
+    SpeedButton1: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -22,6 +23,7 @@ type
     procedure Timer2Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     health: integer;
@@ -103,6 +105,12 @@ end;
 procedure TForm3.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('Step 3 isn''t really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past this one. Sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm3.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button1.Click;
 end;
 
 end.

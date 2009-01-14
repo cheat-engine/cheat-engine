@@ -4,13 +4,14 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Unit8, StdCtrls;
+  Dialogs, Unit8, StdCtrls, Buttons;
 
 type
   TForm10 = class(TForm8)
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     health: integer;
@@ -61,6 +62,12 @@ begin
   memo1.Lines.Insert(0,'Step 9: Injection++: (PW='+inttostr(313)+inttostr(37157)+')');
   memo1.SelStart:=0;
   health:=100;
+end;
+
+procedure TForm10.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('This was the last tutorial and you skipped it. You lose');
+  Application.Terminate;
 end;
 
 end.

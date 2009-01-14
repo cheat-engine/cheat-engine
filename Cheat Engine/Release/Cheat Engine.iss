@@ -2,19 +2,19 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.5 RC4
-AppVerName=Cheat Engine 5.5 RC4
+AppName=Cheat Engine 5.5
+AppVerName=Cheat Engine 5.5
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.5 RC4
+DefaultGroupName=Cheat Engine 5.5
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine55rc4
-
+OutputBaseFilename=CheatEngine55
+PrivilegesRequired=admin
 
 [UninstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -172,7 +172,7 @@ Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; 
 Source: "..\plugin\example-c\release\example-c.dll"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.dll"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.c"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.c"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.def"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.def"; Flags: ignoreversion
-Source: "..\plugin\example-c\plugin.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "plugin.h"; Flags: ignoreversion
+Source: "..\plugin\example-c\ceplugin.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "plugin.h"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.sln"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.sln"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.vcproj"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.vcproj"; Flags: ignoreversion
 
@@ -229,7 +229,7 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.5 RC4"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.5"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
 ;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
@@ -244,4 +244,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5 RC4"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent

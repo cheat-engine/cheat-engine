@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 214
-  Top = 313
+  Left = 463
+  Top = 182
   Width = 675
   Height = 565
   HelpContext = 12
@@ -119,7 +119,7 @@ object MemoryBrowser: TMemoryBrowser
               AllowClick = False
               ImageIndex = -1
               MinWidth = 5
-              Text = 'Special'
+              Text = 'Comment'
               Width = 103
             end>
           OnSectionResize = disassemblerheaderSectionResize
@@ -969,7 +969,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = Symbolhandler1Click
       end
       object Showvaluesofstaticaddresses1: TMenuItem
-        Caption = 'Show '#39'special'#39' row'
+        Caption = 'Show '#39'Comment'#39' row'
         ShortCut = 16470
         OnClick = Showvaluesofstaticaddresses1Click
       end

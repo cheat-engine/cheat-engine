@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, Buttons;
 
 type
   TForm6 = class(TForm)
@@ -12,11 +12,13 @@ type
     Button2: TButton;
     Button1: TButton;
     Label1: TLabel;
+    SpeedButton1: TSpeedButton;
     procedure Button2Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     i: ^Integer;
@@ -89,6 +91,12 @@ end;
 procedure TForm6.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('This may look difficult. but it''s basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, done. '+' But don''t feel down if you don''t get it. at least you know the basicas of memory scanning...  Are you sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm6.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button2.Click;
 end;
 
 end.

@@ -30,6 +30,15 @@ object Form3: TForm3
     Caption = 'Loss'
     Visible = False
   end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 216
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
+  end
   object Memo1: TMemo
     Left = 0
     Top = 0
@@ -106,9 +115,10 @@ object Form3: TForm3
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 232
-    Width = 569
+    Top = 234
+    Width = 571
     Height = 16
+    Align = alBottom
     TabOrder = 3
   end
   object Timer1: TTimer

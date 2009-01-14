@@ -34,6 +34,15 @@ object Form9: TForm9
     Caption = '3'
     Visible = False
   end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 232
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
+  end
   object Memo1: TMemo
     Left = 0
     Top = 0
@@ -77,8 +86,8 @@ object Form9: TForm9
         'Extra: This problem can also be solved using a auto assembler sc' +
         'ript, or using the pointer scanner'
       
-        'Extra2: In some situations (like this) it is recommended to chan' +
-        'ge ce'#39's codefinder settings to Access violations when '
+        'Extra2: In some situations it is recommended to change ce'#39's code' +
+        'finder settings to Access violations when '
       
         'encountering instructions like mov eax,[eax] since debugregister' +
         's show it AFTER it was changed, making it hard to '
@@ -92,8 +101,11 @@ object Form9: TForm9
         'Extra3: If you'#39're still reading. You might notice that when look' +
         'ing at the assembler instructions that the pointer is '
       
-        'being read and filled out in the same codeblock. This doesn'#39't al' +
-        'ways happen, but can be really usefull in finding a '
+        'being read and filled out in the same codeblock (same routine, i' +
+        'f you know assembler, look up till the start of the '
+      
+        'routine). This doesn'#39't always happen, but can be really usefull ' +
+        'in finding a '
       'pointer when debuggng is troublesome')
     ReadOnly = True
     ScrollBars = ssVertical

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls,math;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls,math, Buttons;
 
 type
   TForm5 = class(TForm)
@@ -19,6 +19,7 @@ type
     Button3: TButton;
     Label5: TLabel;
     Label6: TLabel;
+    SpeedButton1: TSpeedButton;
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -26,6 +27,7 @@ type
     procedure Button3Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     health: single;
@@ -113,6 +115,12 @@ end;
 procedure TForm5.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   canclose:=MessageDlg('Come on. This step is simple. For health do a float scan, and for ammo a double type. (don''t forget to disable fastscan for double in this case) Just ignore the fact that it looks different because it has a "." in the value. You sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+end;
+
+procedure TForm5.SpeedButton1Click(Sender: TObject);
+begin
+  showmessage('LOSER');
+  button2.Click;
 end;
 
 end.

@@ -32,6 +32,15 @@ object Form8: TForm8
     Height = 13
     Caption = 'Health:'
   end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Top = 232
+    Width = 25
+    Height = 17
+    Caption = 'Skip'
+    Flat = True
+    OnClick = SpeedButton1Click
+  end
   object Memo1: TMemo
     Left = 0
     Top = 0
