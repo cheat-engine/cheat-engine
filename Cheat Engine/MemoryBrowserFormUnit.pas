@@ -1076,7 +1076,7 @@ begin
     a:=memoryaddress+i*8*rowsof8;
 
     j:=0;
-    while j<(8*rowsof8)-1 do
+    while j<(8*rowsof8) do
     begin
       if a<int64(int64(range1start)+int64(range1length)) then
       begin

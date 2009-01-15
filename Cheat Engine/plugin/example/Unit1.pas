@@ -1,4 +1,7 @@
 unit Unit1;
+{
+This is just an Version1 plugin example showing the old version plugins work too
+}
 
 interface
 

@@ -1788,7 +1788,6 @@ begin
     end;
   end;
 
-
   while i<maxindex do
   begin
     j:=i+1;
@@ -2403,9 +2402,6 @@ begin
 
 
           nextnextscanmem(@oldaddresses[0],oldmemory,chunksize);
-
-
-
         end;
       end;
 
@@ -2434,12 +2430,14 @@ var
   oldbuffer: ^byte;
   toread: integer;
   actualread: dword;
+  hasleft: boolean;
 begin
+  hasleft:=false;
   startregion:=_startregion; //using a variable so stack can be used, with possibility of register
   stopregion:=_stopregion;
 
   //allocate a buffer for reading the new memory buffer
-  memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+  memorybuffer:=virtualAlloc(nil,maxregionsize+(variablesize-1),MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
   try
     //configure some variables and function pointers
     configurescanroutine;
@@ -2466,6 +2464,11 @@ begin
 
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
         toread:=stopaddress-currentbase;
+
+      //also try to read the last few bytes and add variablesize if needed
+      if (startaddress+toread)<(OwningScanController.memregion[i].BaseAddress+OwningScanController.memregion[i].MemorySize-variablesize) then
+        inc(toread, variablesize-1);
+
 
       if toread>0 then //temp bugfix to find the real bug (what causes it?)
       repeat
@@ -3256,6 +3259,9 @@ begin
   begin
     if (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and (mbi.type_9=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
+      if dword(mbi.BaseAddress)+mbi.RegionSize>=stopaddress then
+        mbi.RegionSize:=stopaddress-dword(mbi.BaseAddress);
+
       if //no cache check
          (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE))
          or

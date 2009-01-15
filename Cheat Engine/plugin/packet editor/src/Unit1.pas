@@ -27,8 +27,8 @@ begin
   getmem(versionname,length(s)+1);
   copymemory(versionname,@s[1],length(s));
   versionname[length(s)]:=#0;
-  
-  PluginVersion.version:=2;
+
+  PluginVersion.version:=PluginVersionSDK;
   PluginVersion.pluginname:=VersionName;
 
 

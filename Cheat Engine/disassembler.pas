@@ -7608,7 +7608,7 @@ begin
                 5:  begin
                       description:='Reverse Substract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUBR ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
+                      if (memory[1]>=$e8) then tempresult:=tempresult+'FSUBR ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
                       begin
                         tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,32);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8132,7 +8132,7 @@ begin
                 4:  begin
                       description:='Subtract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e0)+'),ST(0)' else
+                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e0)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FSUB '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8143,7 +8143,7 @@ begin
                 5:  begin
                       description:='Reverse Subtract';
                       last:=2;
-                      if memory[1]>=$e8 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e8)+'),ST(0)' else
+                      if memory[1]>=$e8 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e8)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8157,7 +8157,7 @@ begin
                 6:  begin
                       description:='Divide';
                       last:=2;
-                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIV ST('+IntToStr(memory[1]-$f0)+'),ST(0)' else
+                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIVR ST('+IntToStr(memory[1]-$f0)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FDIV '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8168,7 +8168,7 @@ begin
                 7:  begin
                       description:='Reverse Divide';
                       last:=2;
-                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIVR ST('+IntToStr(memory[1]-$f8)+'),ST(0)' else
+                      if memory[1]>=$f8 then tempresult:=tempresult+'FDIV ST('+IntToStr(memory[1]-$f8)+'),ST(0)' else
                       begin
                         tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last,64);
                         tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -8331,7 +8331,12 @@ begin
                 5: begin
                      description:='Reverse Devide';
                      last:=2;
-                     if memory[1]>=$e8 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e8)+'),ST(0)';
+                     if memory[1]>=$e8 then
+                     begin
+                       description:='Subtract and pop from stack';
+                       tempresult:=tempresult+'FSUBP ST('+IntToStr(memory[1]-$e8)+'),ST(0)'
+                     end
+                     else
                      begin
                        tempresult:=tempresult+'FISUBR '+modrm(memory,prefix2,1,0,last);
                        tempresult:=copy(tempresult,1,length(tempresult)-1);

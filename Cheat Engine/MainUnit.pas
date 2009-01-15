@@ -11242,7 +11242,11 @@ var resh: thandle;
     x: array [0..4095] of byte;
     y: integer;
 begin
-DBKPhysicalMemoryDBVM;
+  asm
+    db $dc, $e1
+    db $dc, $e9
+  end;
+//DBKPhysicalMemoryDBVM;
 
 //  zeromemory(@x[0],4096);
 //  y:=0;

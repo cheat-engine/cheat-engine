@@ -74,9 +74,6 @@ type
     userdefinedsymbols: array of TUserdefinedsymbol;
     userdefinedsymbolsMREW: TMultireadExclusiveWriteSynchronizer;
 
-    internalsymbols: array of TUserdefinedsymbol;
-    internalsymbolspos: integer;
-
     fshowmodules: boolean;   //--determines what is returned by getnamefromaddress
     fshowsymbols: boolean;   ///
 
@@ -1127,7 +1124,7 @@ begin
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
   userdefinedsymbolsMREW:=TMultireadExclusiveWriteSynchronizer.create;
 
-  setlength(internalsymbols,4);
+  //setlength(internalsymbols,4);
   setlength(userdefinedsymbols,32);
   setlength(modulelist,32);
 

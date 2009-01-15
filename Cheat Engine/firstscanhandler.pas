@@ -88,7 +88,6 @@ begin
 end;
 
 function TFirstScanHandler.getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
-
 var i,j,k: integer;
     pm: ^TArrMemoryRegion;
     pa: PDwordArray;
@@ -126,8 +125,7 @@ begin
     first:=0;
     last:=maxnumberofregions-1;
     k:=0;
-    while (first<last) do
-    begin
+    repeat
       j:=first+((last-first) div 2);
       if k=j then
       begin
@@ -161,7 +159,8 @@ begin
 
         first:=j;
       end;
-    end;
+    until (first>=last);
+
   end
   else
   begin
@@ -270,6 +269,8 @@ begin
       end;      
     end;
   end;
+
+  raise exception.create('Failure in finding '+inttohex(address,8)+' in the first scan results');
 end;
 
 function TFirstScanHandler.getfirstscanbyte(address: dword): byte;

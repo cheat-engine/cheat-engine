@@ -4,6 +4,8 @@ interface
 
 uses windows, sysutils;
 
+const PluginVersionSDK=2;
+
 type TPluginType=(ptAddressList, ptMemoryView, ptOnDebugEvent, ptProcesswatcherEvent, ptFunctionPointerchange, ptMainMenu);
 
 type TDWordArray = array[0..0] of DWord;
