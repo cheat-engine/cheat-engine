@@ -20,6 +20,8 @@ uses
 
 {$R *.res}
 
+{$R ..\manifest.res} 
+
 begin
   Application.Initialize;
   Application.ShowMainForm:=false;

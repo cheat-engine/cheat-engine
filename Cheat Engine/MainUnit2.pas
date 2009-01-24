@@ -551,6 +551,9 @@ begin
           if reg.ValueExists('Only show processes with icon') then
             cbProcessIconsOnly.checked:=reg.ReadBool('Only show processes with icon');
 
+          if reg.ValueExists('Pointer appending') then
+            cbOldPointerAddMethod.checked:=reg.ReadBool('Pointer appending');
+
           cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
           ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 

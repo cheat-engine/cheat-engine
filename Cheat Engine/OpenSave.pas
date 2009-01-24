@@ -6024,204 +6024,209 @@ var savefile: File;
     extradata: ^TExtraData;
 begin
 //version=3;
-  if Uppercase(extractfileext(filename))='.XML' then
-  begin
-    SaveXML(filename);
-    exit;
-  end;
-
-  if Uppercase(extractfileext(filename))<>'.EXE' then
-  begin
-    assignfile(SaveFile,filename);
-    rewrite(SaveFile,1); //sizeof(memoryrecord));
-
-    blockwrite(savefile,'CHEATENGINE',11,actualwritten);
-    blockwrite(savefile,CurrentTableVersion,4,actualwritten);
-
-    Records:=mainform.numberofrecords;
-
-    blockwrite(savefile,records,4,actualwritten);
-
-    for i:=0 to mainform.NumberOfRecords-1 do
+  try
+    if Uppercase(extractfileext(filename))='.XML' then
     begin
-      j:=length(mainform.memrec[i].Description);
-      blockwrite(savefile,j,sizeof(j),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].Description[1],length(mainform.memrec[i].Description),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].Address,sizeof(mainform.memrec[i].Address),actualwritten);
+      SaveXML(filename);
+      exit;
+    end;
 
-      //interpretableaddress
-      j:=length(mainform.memrec[i].interpretableaddress);
-      x:=pchar(mainform.memrec[i].interpretableaddress);
-      blockwrite(savefile,j,sizeof(j),actualwritten);
-      blockwrite(savefile,pointer(x)^,j,actualwritten);
+    if Uppercase(extractfileext(filename))<>'.EXE' then
+    begin
+      assignfile(SaveFile,filename);
+      rewrite(SaveFile,1); //sizeof(memoryrecord));
 
+      blockwrite(savefile,'CHEATENGINE',11,actualwritten);
+      blockwrite(savefile,CurrentTableVersion,4,actualwritten);
 
-      blockwrite(savefile,mainform.memrec[i].VarType,sizeof(mainform.memrec[i].VarType),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].unicode,sizeof(mainform.memrec[i].unicode),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].Bit,sizeof(mainform.memrec[i].Bit),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].bitlength,sizeof(mainform.memrec[i].bitlength),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].Group,sizeof(mainform.memrec[i].Group),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].ShowAsHex,sizeof(mainform.memrec[i].showashex),actualwritten);
-      blockwrite(savefile,mainform.memrec[i].ispointer,sizeof(mainform.memrec[i].ispointer),actualwritten);
+      Records:=mainform.numberofrecords;
 
-      temp:=length(mainform.memrec[i].pointers);
-      blockwrite(savefile,temp,sizeof(temp),actualwritten);
-      for j:=0 to temp-1 do
+      blockwrite(savefile,records,4,actualwritten);
+
+      for i:=0 to mainform.NumberOfRecords-1 do
       begin
-        blockwrite(savefile,mainform.memrec[i].pointers[j].Address,sizeof(mainform.memrec[i].pointers[j].Address),actualwritten);
-        blockwrite(savefile,mainform.memrec[i].pointers[j].offset,sizeof(mainform.memrec[i].pointers[j].offset),actualwritten);
+        j:=length(mainform.memrec[i].Description);
+        blockwrite(savefile,j,sizeof(j),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].Description[1],length(mainform.memrec[i].Description),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].Address,sizeof(mainform.memrec[i].Address),actualwritten);
 
-        //interpretableaddress for pointer
-        k:=length(mainform.memrec[i].pointers[j].interpretableaddress);
-        x:=pchar(mainform.memrec[i].pointers[j].interpretableaddress);
-        blockwrite(savefile,k,sizeof(k),actualwritten);
-        blockwrite(savefile,pointer(x)^,k,actualwritten);
+        //interpretableaddress
+        j:=length(mainform.memrec[i].interpretableaddress);
+        x:=pchar(mainform.memrec[i].interpretableaddress);
+        blockwrite(savefile,j,sizeof(j),actualwritten);
+        blockwrite(savefile,pointer(x)^,j,actualwritten);
+
+
+        blockwrite(savefile,mainform.memrec[i].VarType,sizeof(mainform.memrec[i].VarType),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].unicode,sizeof(mainform.memrec[i].unicode),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].Bit,sizeof(mainform.memrec[i].Bit),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].bitlength,sizeof(mainform.memrec[i].bitlength),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].Group,sizeof(mainform.memrec[i].Group),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].ShowAsHex,sizeof(mainform.memrec[i].showashex),actualwritten);
+        blockwrite(savefile,mainform.memrec[i].ispointer,sizeof(mainform.memrec[i].ispointer),actualwritten);
+
+        temp:=length(mainform.memrec[i].pointers);
+        blockwrite(savefile,temp,sizeof(temp),actualwritten);
+        for j:=0 to temp-1 do
+        begin
+          blockwrite(savefile,mainform.memrec[i].pointers[j].Address,sizeof(mainform.memrec[i].pointers[j].Address),actualwritten);
+          blockwrite(savefile,mainform.memrec[i].pointers[j].offset,sizeof(mainform.memrec[i].pointers[j].offset),actualwritten);
+
+          //interpretableaddress for pointer
+          k:=length(mainform.memrec[i].pointers[j].interpretableaddress);
+          x:=pchar(mainform.memrec[i].pointers[j].interpretableaddress);
+          blockwrite(savefile,k,sizeof(k),actualwritten);
+          blockwrite(savefile,pointer(x)^,k,actualwritten);
+        end;
+
+
+        //autoassemble script
+        j:=length(mainform.memrec[i].autoassemblescript);
+        x:=pchar(mainform.memrec[i].autoassemblescript);
+
+        blockwrite(savefile,j,sizeof(j),actualwritten);
+        blockwrite(savefile,pointer(x)^,j,actualwritten);
+
+
       end;
 
+      records:=advancedoptions.numberofcodes;
+      blockwrite(savefile,records,4,actualwritten);
 
-      //autoassemble script
-      j:=length(mainform.memrec[i].autoassemblescript);
-      x:=pchar(mainform.memrec[i].autoassemblescript);
+      //save the code list
 
-      blockwrite(savefile,j,sizeof(j),actualwritten);
-      blockwrite(savefile,pointer(x)^,j,actualwritten);
-
-
-    end;
-
-    records:=advancedoptions.numberofcodes;
-    blockwrite(savefile,records,4,actualwritten);
-
-    //save the code list
-
-    for i:=0 to records-1 do
-    begin
-      //read the before, actual, and after codes
-      //first byte is the number of bytes
-      blockwrite(savefile,advancedoptions.code[i].Address,4,actualwritten);
-
-      x:=pchar(advancedoptions.code[i].modulename);
-      nrofbytes:=length(advancedoptions.code[i].modulename);
-      blockwrite(savefile,nrofbytes,1,actualwritten);
-      blockwrite(savefile,pointer(x)^,nrofbytes,actualwritten);
-
-      blockwrite(savefile,advancedoptions.code[i].offset,4);
-      
-
-      nrofbytes:=length(advancedoptions.code[i].before);
-      blockwrite(savefile,nrofbytes,1,actualwritten);
-      blockwrite(savefile,pointer(advancedoptions.code[i].before)^,nrofbytes,actualwritten);
-
-      nrofbytes:=length(advancedoptions.code[i].actualopcode);
-      blockwrite(savefile,nrofbytes,1,actualwritten);
-      blockwrite(savefile,pointer(advancedoptions.code[i].actualopcode)^,nrofbytes,actualwritten);
-
-      nrofbytes:=length(advancedoptions.code[i].after);
-      blockwrite(savefile,nrofbytes,1,actualwritten);
-      blockwrite(savefile,pointer(advancedoptions.code[i].after)^,nrofbytes,actualwritten);
-
-      x:=pchar(advancedoptions.codelist.Items[i]);
-      nrofbytes:=length(x);
-      blockwrite(savefile,nrofbytes,1,actualwritten);
-      blockwrite(savefile,pointer(x)^,nrofbytes,actualwritten);
-    end;
-
-    //symbollist
-    sl:=tstringlist.Create;
-    try
-      symhandler.EnumerateUserdefinedSymbols(sl);
-      records:=sl.Count;
-      blockwrite(savefile,records,sizeof(records),actualwritten);
       for i:=0 to records-1 do
       begin
-        extradata:=pointer(sl.Objects[i]);
-        temp:=extradata^.address;
-        freemem(extradata);
-        //temp:=dword(sl.Objects[i]);
-        blockwrite(savefile,temp,sizeof(temp),actualwritten);
-        x:=pchar(sl[i]);
-        temp:=length(x);
-        blockwrite(savefile,temp,sizeof(temp),actualwritten);
-        blockwrite(savefile,pointer(x)^,temp,actualwritten);
+        //read the before, actual, and after codes
+        //first byte is the number of bytes
+        blockwrite(savefile,advancedoptions.code[i].Address,4,actualwritten);
+
+        x:=pchar(advancedoptions.code[i].modulename);
+        nrofbytes:=length(advancedoptions.code[i].modulename);
+        blockwrite(savefile,nrofbytes,1,actualwritten);
+        blockwrite(savefile,pointer(x)^,nrofbytes,actualwritten);
+
+        blockwrite(savefile,advancedoptions.code[i].offset,4);
+      
+
+        nrofbytes:=length(advancedoptions.code[i].before);
+        blockwrite(savefile,nrofbytes,1,actualwritten);
+        blockwrite(savefile,pointer(advancedoptions.code[i].before)^,nrofbytes,actualwritten);
+
+        nrofbytes:=length(advancedoptions.code[i].actualopcode);
+        blockwrite(savefile,nrofbytes,1,actualwritten);
+        blockwrite(savefile,pointer(advancedoptions.code[i].actualopcode)^,nrofbytes,actualwritten);
+
+        nrofbytes:=length(advancedoptions.code[i].after);
+        blockwrite(savefile,nrofbytes,1,actualwritten);
+        blockwrite(savefile,pointer(advancedoptions.code[i].after)^,nrofbytes,actualwritten);
+
+        x:=pchar(advancedoptions.codelist.Items[i]);
+        nrofbytes:=length(x);
+        blockwrite(savefile,nrofbytes,1,actualwritten);
+        blockwrite(savefile,pointer(x)^,nrofbytes,actualwritten);
       end;
-    finally
-      sl.free;
-    end;
 
-    //structure definitions
-    records:=length(definedstructures);
-    blockwrite(savefile,records,sizeof(temp));
-    for i:=0 to records-1 do
-    begin
-      x:=pchar(definedstructures[i].name);
-      temp:=length(x);
-      blockwrite(savefile,temp,sizeof(temp));
-      blockwrite(savefile,pointer(x)^,temp);
+      //symbollist
+      sl:=tstringlist.Create;
+      try
+        symhandler.EnumerateUserdefinedSymbols(sl);
+        records:=sl.Count;
+        blockwrite(savefile,records,sizeof(records),actualwritten);
+        for i:=0 to records-1 do
+        begin
+          extradata:=pointer(sl.Objects[i]);
+          temp:=extradata^.address;
+          freemem(extradata);
+          //temp:=dword(sl.Objects[i]);
+          blockwrite(savefile,temp,sizeof(temp),actualwritten);
+          x:=pchar(sl[i]);
+          temp:=length(x);
+          blockwrite(savefile,temp,sizeof(temp),actualwritten);
+          blockwrite(savefile,pointer(x)^,temp,actualwritten);
+        end;
+      finally
+        sl.free;
+      end;
 
-      subrecords:=length(definedstructures[i].structelement);
-      blockwrite(savefile,subrecords,sizeof(temp));
-      for j:=0 to subrecords-1 do
+      //structure definitions
+      records:=length(definedstructures);
+      blockwrite(savefile,records,sizeof(temp));
+      for i:=0 to records-1 do
       begin
-        x:=pchar(definedstructures[i].structelement[j].description);
+        x:=pchar(definedstructures[i].name);
         temp:=length(x);
         blockwrite(savefile,temp,sizeof(temp));
         blockwrite(savefile,pointer(x)^,temp);
 
-        blockwrite(savefile, definedstructures[i].structelement[j].pointerto, sizeof(definedstructures[i].structelement[j].pointerto));
-        blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointertoSize));
-        blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
-        blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
-      end;
-    end;
-
-
-    //comments
-    x:=pchar(comments.memo1.text);
-    blockwrite(Savefile,x^,length(comments.memo1.text),actualwritten);
-    closefile(savefile);
-
-
-
-    with mainform do
-    begin
-      oldnumberofrecords:=numberofrecords;
-      oldcodelistcount:=advancedoptions.codelist.Count;
-
-      setlength(oldmemrec,numberofrecords);
-      for i:=0 to numberofrecords-1 do
-      begin
-        oldmemrec[i].Description:=memrec[i].Description;
-        oldmemrec[i].Address:=memrec[i].Address;
-        oldmemrec[i].VarType:=memrec[i].VarType;
-        oldmemrec[i].IsPointer:=memrec[i].IsPointer;
-
-        setlength(oldmemrec[i].pointers,length(memrec[i].pointers));
-        for j:=0 to length(memrec[i].pointers)-1 do
+        subrecords:=length(definedstructures[i].structelement);
+        blockwrite(savefile,subrecords,sizeof(temp));
+        for j:=0 to subrecords-1 do
         begin
-          oldmemrec[i].pointers[j].Address:=memrec[i].pointers[j].Address;
-          oldmemrec[i].pointers[j].offset:=memrec[i].pointers[j].offset;
+          x:=pchar(definedstructures[i].structelement[j].description);
+          temp:=length(x);
+          blockwrite(savefile,temp,sizeof(temp));
+          blockwrite(savefile,pointer(x)^,temp);
+
+          blockwrite(savefile, definedstructures[i].structelement[j].pointerto, sizeof(definedstructures[i].structelement[j].pointerto));
+          blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointertoSize));
+          blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
+          blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
+        end;
+      end;
+
+
+      //comments
+      x:=pchar(comments.memo1.text);
+      blockwrite(Savefile,x^,length(comments.memo1.text),actualwritten);
+      closefile(savefile);
+
+
+
+      with mainform do
+      begin
+        oldnumberofrecords:=numberofrecords;
+        oldcodelistcount:=advancedoptions.codelist.Count;
+
+        setlength(oldmemrec,numberofrecords);
+        for i:=0 to numberofrecords-1 do
+        begin
+          oldmemrec[i].Description:=memrec[i].Description;
+          oldmemrec[i].Address:=memrec[i].Address;
+          oldmemrec[i].VarType:=memrec[i].VarType;
+          oldmemrec[i].IsPointer:=memrec[i].IsPointer;
+
+          setlength(oldmemrec[i].pointers,length(memrec[i].pointers));
+          for j:=0 to length(memrec[i].pointers)-1 do
+          begin
+            oldmemrec[i].pointers[j].Address:=memrec[i].pointers[j].Address;
+            oldmemrec[i].pointers[j].offset:=memrec[i].pointers[j].offset;
+          end;
+
+          oldmemrec[i].Bit:=memrec[i].Bit;
+          oldmemrec[i].bitlength:=memrec[i].bitlength;
+          oldmemrec[i].Group:=memrec[i].Group;
         end;
 
-        oldmemrec[i].Bit:=memrec[i].Bit;
-        oldmemrec[i].bitlength:=memrec[i].bitlength;
-        oldmemrec[i].Group:=memrec[i].Group;
+        oldcomments:=comments.Memo1.Text;
       end;
 
-      oldcomments:=comments.Memo1.Text;
-    end;
-
-  end
-  else
-  begin
-    {$ifndef net}
-    if standalone<>nil then
+    end
+    else
     begin
-      StandAlone.filename:=filename;
-      standAlone.showmodal;
+      {$ifndef net}
+      if standalone<>nil then
+      begin
+        StandAlone.filename:=filename;
+        standAlone.showmodal;
+      end;
+      {$endif}
     end;
-    {$endif}
+    mainform.editedsincelastsave:=false;
+
+  finally
+    mainform.editedsincelastsave:=false;
   end;
-  mainform.editedsincelastsave:=false;
 end;
 
 

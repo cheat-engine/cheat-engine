@@ -40,26 +40,25 @@ object formSettings: TformSettings
       OnChange = tvMenuSelectionChange
       OnCollapsing = tvMenuSelectionCollapsing
       Items.Data = {
-        09000000290000000000000000000000FFFFFFFFFFFFFFFF0000000001000000
+        08000000290000000000000000000000FFFFFFFFFFFFFFFF0000000001000000
         1047656E6572616C2073657474696E6773230000000000000000000000FFFFFF
         FFFFFFFFFF00000000000000000A546F6F6C73206D656E752000000000000000
         00000000FFFFFFFFFFFFFFFF000000000000000007486F746B65797325000000
         0000000000000000FFFFFFFFFFFFFFFF00000000000000000C556E72616E646F
         6D697A6572260000000000000000000000FFFFFFFFFFFFFFFF00000000000000
         000D5363616E2073657474696E6773200000000000000000000000FFFFFFFFFF
-        FFFFFF000000000000000007506C7567696E732A0000000000000000000000FF
-        FFFFFFFFFFFFFF00000000000000001146696C65206173736F63696174696F6E
-        73240000000000000000000000FFFFFFFFFFFFFFFF00000000000000000B436F
-        64652046696E6465722A0000000000000000000000FFFFFFFFFFFFFFFF000000
-        000000000011417373656D626C6572206F7074696F6E731E0000000000000000
-        000000FFFFFFFFFFFFFFFF0000000000000000054578747261}
+        FFFFFF000000000000000007506C7567696E73240000000000000000000000FF
+        FFFFFFFFFFFFFF00000000000000000B436F64652046696E6465722A00000000
+        00000000000000FFFFFFFFFFFFFFFF000000000000000011417373656D626C65
+        72206F7074696F6E731E0000000000000000000000FFFFFFFFFFFFFFFF000000
+        0000000000054578747261}
     end
     object pcSetting: TPageControl
       Left = 121
       Top = 1
       Width = 519
       Height = 473
-      ActivePage = tsTools
+      ActivePage = GeneralSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -67,35 +66,35 @@ object formSettings: TformSettings
         Caption = 'General Settings'
         object Label11: TLabel
           Left = 170
-          Top = 305
+          Top = 321
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label12: TLabel
           Left = 170
-          Top = 329
+          Top = 345
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label13: TLabel
           Left = 51
-          Top = 305
+          Top = 321
           Width = 72
           Height = 13
           Caption = 'Update interval'
         end
         object Label14: TLabel
           Left = 54
-          Top = 329
+          Top = 345
           Width = 69
           Height = 13
           Caption = 'Freeze interval'
         end
         object Label16: TLabel
           Left = 8
-          Top = 361
+          Top = 377
           Width = 116
           Height = 13
           Caption = 'Network Update Interval'
@@ -103,7 +102,7 @@ object formSettings: TformSettings
         end
         object Label17: TLabel
           Left = 170
-          Top = 361
+          Top = 377
           Width = 13
           Height = 13
           Caption = 'ms'
@@ -111,28 +110,28 @@ object formSettings: TformSettings
         end
         object Label18: TLabel
           Left = 208
-          Top = 305
+          Top = 321
           Width = 158
           Height = 13
           Caption = 'Found address list update interval'
         end
         object Label19: TLabel
           Left = 413
-          Top = 306
+          Top = 322
           Width = 13
           Height = 13
           Caption = 'ms'
         end
         object Label23: TLabel
           Left = 8
-          Top = 264
+          Top = 280
           Width = 193
           Height = 13
           Caption = 'Automatically attach to processes named'
         end
         object Label24: TLabel
           Left = 328
-          Top = 264
+          Top = 280
           Width = 114
           Height = 13
           Caption = '(Seperate entries with ; )'
@@ -169,7 +168,7 @@ object formSettings: TformSettings
         end
         object EditUpdateInterval: TEdit
           Left = 127
-          Top = 301
+          Top = 317
           Width = 43
           Height = 21
           Hint = 
@@ -182,7 +181,7 @@ object formSettings: TformSettings
         end
         object EditFreezeInterval: TEdit
           Left = 127
-          Top = 325
+          Top = 341
           Width = 43
           Height = 21
           Hint = 
@@ -195,7 +194,7 @@ object formSettings: TformSettings
         end
         object GroupBox1: TGroupBox
           Left = 0
-          Top = 169
+          Top = 185
           Width = 489
           Height = 70
           Caption = 'Address list specific'
@@ -227,7 +226,7 @@ object formSettings: TformSettings
         end
         object EditNetworkUpdateInterval: TEdit
           Left = 127
-          Top = 357
+          Top = 373
           Width = 43
           Height = 21
           Hint = 
@@ -252,7 +251,7 @@ object formSettings: TformSettings
         end
         object editUpdatefoundInterval: TEdit
           Left = 370
-          Top = 302
+          Top = 318
           Width = 41
           Height = 21
           Hint = 
@@ -287,7 +286,7 @@ object formSettings: TformSettings
         end
         object EditAutoAttach: TEdit
           Left = 204
-          Top = 260
+          Top = 276
           Width = 121
           Height = 21
           Hint = 
@@ -297,7 +296,7 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 8
-          Top = 282
+          Top = 298
           Width = 481
           Height = 17
           Caption = 'Even autoattach when another process has already been selected'
@@ -305,7 +304,7 @@ object formSettings: TformSettings
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Top = 96
+          Top = 112
           Width = 488
           Height = 17
           Caption = 'Save window positions'
@@ -313,7 +312,7 @@ object formSettings: TformSettings
         end
         object cbOldSpeedhack: TCheckBox
           Left = 1
-          Top = 80
+          Top = 96
           Width = 488
           Height = 17
           Caption = 'Use old speedhack'
@@ -321,7 +320,7 @@ object formSettings: TformSettings
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Top = 128
+          Top = 144
           Width = 440
           Height = 17
           Caption = 'Get process icons for processlist'
@@ -332,7 +331,7 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 16
-          Top = 144
+          Top = 160
           Width = 193
           Height = 17
           Caption = 'Only show processes with an icon'
@@ -340,13 +339,21 @@ object formSettings: TformSettings
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Top = 112
+          Top = 128
           Width = 488
           Height = 17
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
           TabOrder = 17
+        end
+        object cbOldPointerAddMethod: TCheckBox
+          Left = 1
+          Top = 80
+          Width = 499
+          Height = 17
+          Caption = 'Pointer adding: Append pointerline instead of insert'
+          TabOrder = 18
         end
       end
       object tsHotkeys: TTabSheet
@@ -600,72 +607,13 @@ object formSettings: TformSettings
           TabOrder = 2
         end
       end
-      object FileAssocs: TTabSheet
-        Caption = 'FileAssocs'
-        ImageIndex = 2
-        object Label10: TLabel
-          Left = 7
-          Top = 8
-          Width = 306
-          Height = 13
-          Caption = 'Select the file extensions you want associated with Cheat Engine'
-        end
-        object cbGH: TCheckBox
-          Left = 5
-          Top = 90
-          Width = 484
-          Height = 17
-          Caption = '.GH (Gamehack tables)'
-          TabOrder = 0
-        end
-        object cbCT3: TCheckBox
-          Left = 5
-          Top = 74
-          Width = 484
-          Height = 17
-          Caption = '.CT3 (Cheat Engine Table 3th version)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
-        end
-        object cbCT2: TCheckBox
-          Left = 5
-          Top = 58
-          Width = 484
-          Height = 17
-          Caption = '.CT2 (Cheat Engine Table 2nd version)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 2
-        end
-        object cbCET: TCheckBox
-          Left = 5
-          Top = 42
-          Width = 484
-          Height = 17
-          Caption = '.CET (Cheat Engine Table first version)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 3
-        end
-        object cbCT: TCheckBox
-          Left = 5
-          Top = 26
-          Width = 484
-          Height = 17
-          Caption = '.CT (Standard Cheat Table)'
-          Checked = True
-          State = cbChecked
-          TabOrder = 4
-        end
-      end
       object CodeFinder: TTabSheet
         Caption = 'CodeFinder'
         ImageIndex = 4
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 500
+          Width = 511
           Height = 39
           Align = alTop
           Caption = 
@@ -1078,6 +1026,7 @@ object formSettings: TformSettings
             Top = 56
             Width = 25
             Height = 21
+            Enabled = False
             Glyph.Data = {
               D6020000424DD6020000000000003600000028000000100000000E0000000100
               180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0

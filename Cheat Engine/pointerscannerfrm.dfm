@@ -14,6 +14,7 @@ object frmPointerScanner: TfrmPointerScanner
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
@@ -41,7 +42,7 @@ object frmPointerScanner: TfrmPointerScanner
     Top = 17
     Width = 619
     Height = 344
-    ActivePage = tsPSReverse
+    ActivePage = tsPSDefault
     Align = alClient
     TabOrder = 2
     object tsPSDefault: TTabSheet

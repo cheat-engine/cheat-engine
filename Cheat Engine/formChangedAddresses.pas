@@ -16,12 +16,14 @@ type
     Timer1: TTimer;
     PopupMenu1: TPopupMenu;
     Showregisterstates1: TMenuItem;
+    Browsethismemoryregion1: TMenuItem;
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ChangedlistDblClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Showregisterstates1Click(Sender: TObject);
+    procedure Browsethismemoryregion1Click(Sender: TObject);
   private
     { Private declarations }
     procedure refetchValues;
@@ -36,7 +38,7 @@ implementation
 
 {$R *.dfm}
 
-uses debugger, MainUnit, frmRegistersunit;
+uses debugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit;
 
 procedure TfrmChangedAddresses.OKButtonClick(Sender: TObject);
 var temp: dword;
@@ -184,6 +186,16 @@ begin
   end;
 
   //for frmfloatingpointpanel: SetContextPointer(changedlist.Selected.Data);
+end;
+
+procedure TfrmChangedAddresses.Browsethismemoryregion1Click(
+  Sender: TObject);
+begin
+  if changedlist.Selected<>nil then
+  begin
+    memorybrowser.memoryaddress:=strtoint('$'+changedlist.Selected.Caption);
+    memorybrowser.refreshmb;
+  end;
 end;
 
 end.

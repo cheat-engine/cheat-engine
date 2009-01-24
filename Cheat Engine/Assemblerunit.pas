@@ -1404,7 +1404,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SUBPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$5c),
   (mnemonic:'SUBPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$5c),
   (mnemonic:'SUBSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$f2;bt2:$0f;bt3:$5c),
-  (mnemonic:'SUBSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f2;bt2:$0f;bt3:$5c),
+  (mnemonic:'SUBSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$5c),
 
   (mnemonic:'SYSENTER';bytes:2;bt1:$0f;bt2:$34),
   (mnemonic:'SYSEXIT';bytes:2;bt1:$0f;bt2:$35),
@@ -1793,7 +1793,8 @@ begin
 
   //filter these 2 words
   token:=StringReplace(token,'LONG ','',[rfIgnoreCase]);
-  token:=StringReplace(token,'SHORT ','',[rfIgnoreCase]);  
+  token:=StringReplace(token,'SHORT ','',[rfIgnoreCase]);
+  token:=StringReplace(token,'FAR ','',[rfIgnoreCase]);   
 
   temp:=ConvertHexStrToRealStr(token);
   val(temp,i,err);
@@ -2065,7 +2066,8 @@ begin
         or (tokens[length(tokens)-1]='WORD PTR')
         or (tokens[length(tokens)-1]='BYTE PTR')
         or (tokens[length(tokens)-1]='SHORT')
-        or (tokens[length(tokens)-1]='LONG')        
+        or (tokens[length(tokens)-1]='LONG')
+        or (tokens[length(tokens)-1]='FAR')         
         then
         begin
           setlength(tokens,length(tokens)-1)
@@ -2612,7 +2614,8 @@ begin
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
 
   overrideShort:=Pos('SHORT ',parameter1)>0;
-  overrideLong:=Pos('LONG ',parameter1)>0;
+  overrideLong:=(Pos('LONG ',parameter1)>0) or (Pos('FAR ',parameter1)>0);
+
 
   paramtype1:=gettokentype(parameter1,parameter2);
   paramtype2:=gettokentype(parameter2,parameter1);

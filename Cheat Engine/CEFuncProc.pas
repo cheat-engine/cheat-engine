@@ -125,7 +125,6 @@ procedure rewritedata(processhandle: thandle; address:dword; buffer: pointer; si
 
 function FindPointer(start,stop:dword; AddressToFind:Dword; progressbar: Tprogressbar; offset: Tbytes):int64;
 
-//procedure GetProcessListSmall(ProcessList: TListBox);
 procedure GetProcessList(ProcessList: TListBox); overload;
 procedure GetProcessList(ProcessList: TStrings); overload;
 procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
@@ -133,10 +132,6 @@ function AvailMem:dword;
 function isreadable(address:dword):boolean;
 
 
-//function GetMemoryRanges2(Start,Stop: Dword; readonly: boolean; Progressbar: TProgressBar;vartype:integer;fastscan:boolean):int64;
-
-
-//function GetMemoryRangesAndScanValue2(var firstresult: dword; Start,Stop: Dword; readonly,findonlyone: boolean; ScanType,VarType: Integer; scanvalue,scanvalue2: string;roundingtype:tfloatscan ; extra: boolean;progressbar: Tprogressbar;fastscan:boolean;unicode: boolean): Int64; //integer;
 procedure RemoveAddress(address: Dword;bit: Byte; vartype: Integer);
 
 function GetCEdir:string;
@@ -3147,7 +3142,7 @@ begin
     pa:=pa div 2;
   end;
 
-  result:=1; //cpucount;
+  result:=cpucount;
 end;
 
 function LoadFormPosition(form: Tform; var x: array of integer):boolean;
@@ -3278,7 +3273,9 @@ e.g:
 }
 var ishex: string;
     start: integer;
-    i: integer;
+    i,j,k: integer;
+
+    bytes: string;
 begin
   if s='' then
   begin
@@ -3295,11 +3292,23 @@ begin
         //char
         if (i+2)<=length(s) then
         begin
-          if s[i+2] in ['''','"'] then
-          begin
-            result := '$'+inttohex(byte(s[i+1]),2);
-            exit; //this is it, no further process required, or appreciated...
-          end;
+          bytes:='';
+          for j:=i+2 to length(s) do
+            if s[j] in ['''','"'] then
+            begin
+              bytes:=copy(s,i+1,j-(i+1));
+
+              result:='$';
+              for k:=length(bytes) downto 1 do
+                result:=result+inttohex(byte(bytes[k]),2);
+
+              //result := '$'+inttohex(byte(s[i+1]),2);
+              exit; //this is it, no further process required, or appreciated...
+
+            end;
+
+
+
         end;
       end;
 

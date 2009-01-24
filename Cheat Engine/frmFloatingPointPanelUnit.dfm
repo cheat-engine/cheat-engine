@@ -1,6 +1,6 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 1202
-  Top = 223
+  Left = 1342
+  Top = 179
   Width = 269
   Height = 323
   BorderStyle = bsSizeToolWin
@@ -59,6 +59,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       Width = 53
       Height = 13
       Caption = 'ErrorOffset:'
+      OnClick = Label4Click
     end
     object Label5: TLabel
       Left = 120
@@ -73,6 +74,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       Width = 54
       Height = 13
       Caption = 'DataOffset:'
+      OnDblClick = Label6DblClick
     end
     object Label7: TLabel
       Left = 120

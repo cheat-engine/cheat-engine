@@ -1,7 +1,7 @@
 Cheat Engine 5.5
 
 Changes:
-added 'short' and 'far' override to the jump instructions. (Mainly usefull for auto assembler scripts that by default pick the far one)
+added 'short' and 'long' overrides to the jump instructions. (Mainly usefull for auto assembler scripts that by default pick the long one)
 Copied the "Find out what addresses this code accesses" from advanced options to memory view
 Made the above function display the current value so you don't have to add them first
 And made it non-modal so you can do other stuff while it's working.

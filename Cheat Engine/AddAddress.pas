@@ -79,7 +79,7 @@ var
 
 implementation
 
-uses MainUnit;
+uses MainUnit, formsettingsunit;
 
 {$R *.DFM}
 
@@ -531,6 +531,7 @@ procedure TAddForm.Button4Click(Sender: TObject);
 var
   rowheight: integer;
   i: integer;
+  oldmethod: boolean;
 begin
   if length(pointerinfo)=1 then cbPointer.checked:=false
   else
@@ -540,9 +541,17 @@ begin
     inc(rowheight,2);
 
     pointerinfo[length(pointerinfo)-2].address.enabled:=true;
-    pointerinfo[length(pointerinfo)-2].address.text:=pointerinfo[length(pointerinfo)-1].address.text;
-    for i:=0 to length(pointerinfo)-2 do
-      pointerinfo[i].offset.text:=pointerinfo[i+1].offset.text;
+
+    oldmethod:=formsettings.cbOldPointerAddMethod.checked;
+    if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then oldmethod:=not oldmethod;
+    if not oldmethod then
+    begin
+      pointerinfo[length(pointerinfo)-2].address.text:=pointerinfo[length(pointerinfo)-1].address.text;
+      for i:=0 to length(pointerinfo)-2 do
+        pointerinfo[i].offset.text:=pointerinfo[i+1].offset.text;
+    end
+    else
+      pointerinfo[length(pointerinfo)-2].address.text:='';
 
     pointerinfo[length(pointerinfo)-1].addresstext.free;
     pointerinfo[length(pointerinfo)-1].address.free;
@@ -563,6 +572,7 @@ var
   rowheight: integer;
   i: integer;
   oldaddress: string;
+  oldmethod: boolean;
 begin
   rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
   rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
@@ -637,12 +647,16 @@ begin
     parent:=self;
   end;
 
+  oldmethod:=formsettings.cbOldPointerAddMethod.checked;
+  if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then oldmethod:=not oldmethod;
+  if not oldmethod then
+  begin
+    for i:=length(pointerinfo)-1 downto 1 do
+      pointerinfo[i].offset.Text:=pointerinfo[i-1].offset.text;
 
-  for i:=length(pointerinfo)-1 downto 1 do
-    pointerinfo[i].offset.Text:=pointerinfo[i-1].offset.text;
-
-  pointerinfo[0].offset.Text:='0';
-  pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
+    pointerinfo[0].offset.Text:='0';
+    pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
+  end;
   
   height:=height+rowheight;
 end;

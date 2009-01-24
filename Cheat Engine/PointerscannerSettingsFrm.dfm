@@ -1,9 +1,10 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 838
   Top = 414
-  Width = 372
-  Height = 418
+  BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
+  ClientHeight = 384
+  ClientWidth = 364
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

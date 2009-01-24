@@ -907,7 +907,7 @@ var i: integer;
           else
             bts:=IntToHex(pword(@buffer[j+(i*8*rowsof8)])^,4);
             
-          while length(bts)<10 do
+          while length(bts)<5 do
             bts:=bts+' ';
         end;
       end;
@@ -2495,8 +2495,11 @@ begin
 
   mbimage.Width:=mbcanvas.Width;
   mbimage.Height:=mbcanvas.Height;
-  mbcanvas.Invalidate;
-  refreshmb;
+
+  mbimage.Canvas.FillRect(rect(0,0,mbimage.Width,mbimage.Height));
+  MBCanvas.Invalidate;
+  MBCanvas.Repaint;
+  refreshMB;
 
   if hexedit.visible or textedit.visible then fcontrol2.SetFocus;
 end;

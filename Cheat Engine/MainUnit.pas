@@ -6230,14 +6230,7 @@ end;
 procedure TMainForm.LogoClick(Sender: TObject);
 begin
   if messagedlg('Do you want to go to the Cheat Engine website?',mtconfirmation,[mbyes,mbno],0)=mryes then
-  begin
-    case random(5) of
-      0: ShellExecute(0, pchar('open'),pchar('http://www.syndiv.com/ce/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-      1: ShellExecute(0, pchar('open'),pchar('http://wWw.cheatengine.tk/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-      2: ShellExecute(0, pchar('open'),pchar('http://www.heijnen1.demon.nl/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-      3,4: ShellExecute(0, pchar('open'),pchar('http://www.cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
-    end;
-  end;
+    ShellExecute(0, pchar('open'),pchar('http://www.cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
 
 end;
 
@@ -9212,37 +9205,6 @@ resourcestring
   strNewyear='And what are your good intentions for this year? ;-)';
   strfuture='Wow,I never imagined people would use Cheat Engine up to today';
 
-
-  procedure Associate(ext: string);
-  var  reg: TRegistry;
-       preCE: string;
-  begin
-    reg := TRegistry.Create;
-    reg.RootKey := HKEY_CLASSES_ROOT;
-    reg.LazyWrite := false;
-
-    reg.OpenKey(ext+'\shell\open\command',true);
-
-    preCE:=reg.ReadString('preCE');
-    if preCE='' then //no preCE item yet
-      preCE:=reg.ReadString('');
-    reg.writestring('preCE',preCE);
-
-    reg.WriteString('',application.ExeName+' "%1"');
-    reg.CloseKey;
-
-    reg.OpenKey(ext+'\DefaultIcon', true);
-
-    preCE:=reg.ReadString('preCE');
-    if preCE='' then //no preCE item yet
-      preCE:=reg.ReadString('');
-    reg.writestring('preCE',preCE);
-
-    reg.WriteString('',application.ExeName+',0');
-    reg.CloseKey;
-
-    reg.free;
-  end;
 var reg: tregistry;
     modifier: dword;
     key: dword;
@@ -9283,19 +9245,14 @@ begin
 
   end;
 
-
-  try
-    firsttime:=reg.ReadBool('First Time User');
-  except
+  if reg.ValueExists('First Time User') then
+    firsttime:=reg.ReadBool('First Time User')
+  else
     firsttime:=true;
-  end;
 
   if firsttime then
   begin
     reg.WriteBool('First Time User',false);
-
-    if messagedlg('This is the first time Cheat Engine is executed. Do you want to associate files with extension .CT with Cheat Engine?',mtConfirmation,[mbyes,mbno],0)=mryes then
-      associate('.CT');
 
     if messagedlg('Do you want to try out the tutorial?',mtconfirmation,[mbyes,mbno],0)=mryes then
       shellexecute(0,'open','Tutorial.exe','','',sw_show);
@@ -11999,10 +11956,24 @@ end;
 
 procedure TMainForm.btnSetSpeedhack2Click(Sender: TObject);
 var newspeed: single;
-    e: integer;
+    fs: Tformatsettings;
+    error: boolean;
 begin
-  val(editSH2.Text,newspeed,e);
-  if (e>0) or IsInfinite(newspeed) or IsNan(newspeed) then raise exception.Create(editSH2.text+' is not a valid speed');
+  error:=false;
+  try
+    StrToFloat(editsh2.Text);
+  except
+    GetLocaleFormatSettings(GetThreadLocale, fs);
+    try
+      StrToFloat(editsh2.Text, fs);
+    except
+      error:=true;
+    end;
+  end;
+
+  if error or IsInfinite(newspeed) or IsNan(newspeed) then
+    raise exception.Create(editSH2.text+' is not a valid speed');
+
   if speedHack<>nil then
     speedhack.setSpeed(newspeed);
 end;

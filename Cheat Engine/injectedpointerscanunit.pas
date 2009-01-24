@@ -49,6 +49,13 @@ var i: integer;
     x: dword;
 begin
   freeonterminate:=true;
+
+  found:=false;
+  EnumWindows(@enum,dword(self));
+  if found then exit; //it's already present
+
+
+
   injectdll(CheatEngineDir+'pscan.dll','');
   sleep(250);
   i:=0;

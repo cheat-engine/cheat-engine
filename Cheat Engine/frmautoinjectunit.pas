@@ -21,6 +21,10 @@ uses
   {$endif}
   assemblerunit, autoassembler, symbolhandler;
 
+type TSynEditFix = class (TSynEdit)
+  private
+    procedure PasteFromClipboard;
+end;
 
 
 type
@@ -124,7 +128,7 @@ type
   public
     { Public declarations }
     {$ifndef standalonetrainerwithassembler}
-    assemblescreen: TSynEdit;
+    assemblescreen: TSynEditFix;
     {$endif}
     editscript: boolean;
     editscript2: boolean;
@@ -143,6 +147,12 @@ implementation
 {$ifndef standalonetrainerwithassembler}
 uses frmAAEditPrefsUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,{$ifdef net}unit2{$else}mainunit{$endif};
 {$endif}
+
+procedure TSynEditFix.PasteFromClipboard;
+begin
+  inherited;
+  repaint;
+end;
 
 procedure TfrmAutoInject.setcplusplus(state: boolean);
 begin
@@ -167,6 +177,7 @@ begin
   else
   begin
     assemblescreen.Highlighter:=AAHighlighter;
+
 
     //change gui to autoassembler style
     button1.caption:='Write code';
@@ -941,7 +952,7 @@ begin
   assembleSearch:=TSyneditSearch.Create(self);
 
 
-  assemblescreen:=TSynEdit.Create(self);
+  assemblescreen:=TSynEditFix.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.SearchEngine:=assembleSearch;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;

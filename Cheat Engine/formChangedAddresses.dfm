@@ -96,5 +96,9 @@ object frmChangedAddresses: TfrmChangedAddresses
       Caption = 'Show register states'
       OnClick = Showregisterstates1Click
     end
+    object Browsethismemoryregion1: TMenuItem
+      Caption = 'Browse this memory region'
+      OnClick = Browsethismemoryregion1Click
+    end
   end
 end

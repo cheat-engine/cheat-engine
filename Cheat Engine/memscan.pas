@@ -11,8 +11,6 @@ uses windows,sysutils, classes,ComCtrls,dialogs, cefuncproc,
      newkernelhandler, math, SyncObjs, SaveFirstScan, firstscanhandler,
      autoassembler, symbolhandler;
 
-
-
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
 type TStoreResultRoutine=procedure(address: dword; oldvalue: pointer) of object;
 type TFlushRoutine=procedure of object;
@@ -277,6 +275,8 @@ type
     scanned: dword; //total memory/addresses scanned by this routine
     totalfound: dword;
 
+    OnlyOne: boolean;
+    AddressFound: dword;
     scannernr: integer;
 
     procedure execute; override;
@@ -343,6 +343,12 @@ type
     //messages
     notifywindow: thandle;
     notifymessage: integer;
+
+    //OnlyOne vars
+    OnlyOne: boolean;
+    FoundSomething: Boolean;
+    AddressFound: Dword;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -382,15 +388,19 @@ type
 
     FLastScanType: TScanType;
   public
+    onlyOne: boolean;
     function GetProgress(var totaladdressestoscan:dword; var currentlyscanned: dword):integer;
     function GetErrorString: string;
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
     function Getcustomvariablesize: integer;
+    function GetOnlyOneResult(var address: dword):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+
+
 
     constructor create(progressbar: TProgressbar;notifywindow: thandle; notifymessage: integer);
     destructor destroy; override;
@@ -1425,7 +1435,14 @@ begin
     while (dword(p)<=lastmem) do
     begin
       if checkroutine(p,nil) then //found one
+      begin
         StoreResultRoutine(base+dword(p)-dword(buffer),p);
+        if OnlyOne then
+        begin
+          AddressFound:=base+dword(p)-dword(buffer);
+          exit;
+        end;
+      end;
 
       inc(p,stepsize);
     end;
@@ -2466,8 +2483,9 @@ begin
         toread:=stopaddress-currentbase;
 
       //also try to read the last few bytes and add variablesize if needed
-      if (startaddress+toread)<(OwningScanController.memregion[i].BaseAddress+OwningScanController.memregion[i].MemorySize-variablesize) then
+      if (currentbase+toread)<(OwningScanController.memregion[i].BaseAddress+OwningScanController.memregion[i].MemorySize-variablesize) then
         inc(toread, variablesize-1);
+
 
 
       if toread>0 then //temp bugfix to find the real bug (what causes it?)
@@ -2481,6 +2499,7 @@ begin
           ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
         else
           ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size,actualread);
+
 
 
         firstnextscanmem(currentbase,memorybuffer,oldbuffer,actualread);
@@ -2591,6 +2610,9 @@ begin
         
         inc(scanned,size); //for the progressbar
         dec(toread,size);
+
+        if (OnlyOne and (found>0)) then exit;
+        
       until terminated or (toread=0);
     end;
 
@@ -3221,7 +3243,11 @@ var
   datatype: string[6];
 begin
   OutputDebugString('TScanController.firstScan');
-  threadcount:=GetCPUCount;
+  if OnlyOne then
+    threadcount:=1
+  else
+    threadcount:=GetCPUCount;
+    
   totalProcessMemorySize:=0;
 
 
@@ -3248,8 +3274,16 @@ begin
   memRegionPos:=0;
 
 
-  if (startaddress mod 8)>0 then //align on a 8 byte base
-   startaddress:=startaddress-(startaddress mod 8);
+  if OnlyOne then //don't go back, but forward
+  begin
+    if (startaddress mod 8)>0 then //align on a 8 byte base
+     startaddress:=startaddress-(startaddress mod 8)+8;
+  end
+  else
+  begin
+    if (startaddress mod 8)>0 then //align on a 8 byte base
+     startaddress:=startaddress-(startaddress mod 8);
+  end;
 
   OutputDebugString(format('startaddress=%x',[startaddress]));
 
@@ -3259,6 +3293,12 @@ begin
   begin
     if (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and (mbi.type_9=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
+      if dword(mbi.BaseAddress)<startaddress then
+      begin
+        dec(mbi.RegionSize, startaddress-dword(mbi.BaseAddress));
+        mbi.BaseAddress:=pointer(startaddress);
+      end;
+      
       if dword(mbi.BaseAddress)+mbi.RegionSize>=stopaddress then
         mbi.RegionSize:=stopaddress-dword(mbi.BaseAddress);
 
@@ -3450,6 +3490,7 @@ begin
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
       scanners[i].readonly:=readonly;
       scanners[i].unicode:=unicode;
+      scanners[i].OnlyOne:=OnlyOne;
       scanners[i].caseSensitive:=caseSensitive;
       scanners[i].hexadecimal:=hexadecimal;
       scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
@@ -3506,6 +3547,16 @@ begin
         break;
       end;
       inc(OwningMemScan.found,scanners[i].totalfound);
+    end;
+
+    if OnlyOne then
+    begin
+      if (scanners[0].found) or (scanners[0].totalfound)>0 then
+      begin
+        FoundSomething:=true;
+        AddressFound:=scanners[0].AddressFound;
+
+      end;
     end;
 
     synchronize(updategui);
@@ -3602,7 +3653,8 @@ begin
 
     if haserror then err:=1;
 
-
+    if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
+    
     if savescannerresults then //prepare saving. Set the filesize
     begin
       try
@@ -3792,6 +3844,15 @@ begin
 
 end;
 
+function TMemscan.GetOnlyOneResult(var address: dword):boolean;
+begin
+  if self.scanController<>nil then
+  begin
+    result:=scancontroller.FoundSomething;
+    address:=scancontroller.AddressFound;
+  end;
+end;
+
 function TMemscan.GetProgress(var totaladdressestoscan:dword; var currentlyscanned: dword):integer;
 {returns a value between 1 and 1000 representing how far the scan is}
 var i: integer;
@@ -3929,7 +3990,7 @@ begin
   end;
 
   currentVariableType:=VariableType;
-  
+
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
   scanController.scantype:=stFirstScan;
@@ -3952,6 +4013,7 @@ begin
 
   scancontroller.CustomScanScript:=CustomScanScript;
   scanController.CustomScanType:=CustomScanType;
+  scanController.OnlyOne:=onlyone;
 
   flastscantype:=stFirstScan;
   scanController.Resume;

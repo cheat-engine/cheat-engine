@@ -15,6 +15,7 @@ LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
 OutputBaseFilename=CheatEngine55
 PrivilegesRequired=admin
+ChangesAssociations=yes
 
 [UninstallDelete]
 Type: files; Name: "{app}\kerneldata.dat"
@@ -32,7 +33,11 @@ Type: files; Name: "{app}\MEMORYFIRST.TMP"
 Type: files; Name: "{app}\ADDRESSES.TMP"
 Type: files; Name: "{app}\MEMORY.TMP"
 
-
+[Registry]
+Root: HKCR; Subkey: ".CT"; ValueType: string; ValueName: ""; ValueData: "CheatEngine"; Flags: uninsdeletevalue
+Root: HKCR; Subkey: "CheatEngine"; ValueType: string; ValueName: ""; ValueData: "Cheat Engine"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "CheatEngine\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\Cheat Engine.exe,0"
+Root: HKCR; Subkey: "CheatEngine\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Cheat Engine.exe"" ""%1"""
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
@@ -61,36 +66,29 @@ var restart: boolean;
 begin
   restart:=false;
 
-  if not RegQueryDWordValue(HKCU,'Software\Cheat Engine','First time User',ResultDWord) then
-    RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'First Time User',1);
-  
   if RegQueryDWordValue(HKCU,'Software\Cheat Engine','Use Processwatcher',ResultDWord) then
     if ResultDWord<>0 then restart:=true;
 
   if RegQueryDWordValue(HKCU,'Software\Cheat Engine','Use Kernel Debugger',ResultDWord) then
     if ResultDWord<>0 then restart:=true;
     
-  //disable all kernel crap
-
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'StealthOnExecute',0);
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Protect CE',0);
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Undo memory changes:Force writable',0);
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Undo memory changes',0);
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Use Kernel Debugger',0);
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Use Processwatcher',0);
-  
-  RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'Use Hyperscan if posible',0);
-  
-
   result:=restart;
 end;
 
 //post install
 procedure CurStepChanged(CurStep: TSetupStep);
+var ResultDWord: Cardinal;
 begin
   if CurStep=ssPostInstall then
   begin
-    RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER,'Software\Cheat Engine');
+    if RegKeyExists(HKEY_CURRENT_USER, 'Software\Cheat Engine') then
+    begin
+      if not RegQueryDWordValue(HKCU,'Software\Cheat Engine','First Time User',ResultDWord) then
+        ResultDWord:=1;
+    
+      RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER,'Software\Cheat Engine');
+      RegWriteDWordValue(HKEY_CURRENT_USER,  'Software\Cheat Engine', 'First Time User',ResultDWord);
+    end;
   end;
 end;
 
@@ -231,7 +229,7 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 [Icons]
 Name: "{group}\Cheat Engine 5.5"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
-Name: "{group}\Cheat Engine help"; Filename: "{app}\Cheat Engine.hlp"
+Name: "{group}\Cheat Engine help"; Filename: "{app}\CheatEngine.chm"
 ;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
 ;Name: "{group}\Network\Cheat Engine Client"; Filename: "{app}\Cheat Engine Client.exe"
 ;Name: "{group}\Network\Cheat Engine Server"; Filename: "{app}\Cheat Engine Server.exe"
@@ -244,4 +242,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent runascurrentuser

@@ -4,8 +4,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncproc,ComCtrls, ExtCtrls;
+  Dialogs, StdCtrls,CEFuncproc,ComCtrls, ExtCtrls, memscan;
 
+const wm_fw_scandone=wm_user+1;
 type
   TFindWindow = class(TForm)
     btnOK: TButton;
@@ -27,6 +28,8 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
+    memscan: TMemScan;
+    procedure scandone(var m: TMessage); message wm_fw_scandone;
   public
     { Public declarations }
     firstscan: boolean;
@@ -40,12 +43,33 @@ implementation
 {$R *.dfm}
 uses MemorybrowserFormUnit;
 
+procedure TFindWindow.scandone(var m: TMessage);
+var x: dword;
+    i: integer;
+begin
+  //showmessage('scan finished');
+  try
+    if memscan.GetOnlyOneResult(x) then
+    begin
+      MemoryBrowser.memoryaddress:=x;
+      MemoryBrowser.RefreshMB;
+      modalresult:=mrok;
+    end else raise exception.Create('Nothing found');
+  finally
+    for i:=0 to ControlCount-1 do
+      Controls[i].Enabled:=true;
+    freeandnil(memscan);
+  end;
+end;
+
 procedure TFindWindow.btnOKClick(Sender: TObject);
 var start,stop,temp: dword;
     cb: TCheckbox;
-    valtype: integer;
-    firstresult: dword;
+    valtype: TVariableType;
+    i: integer;
 begin
+  if memscan<>nil then exit;
+  
   try
     start:=StrToInt('$'+editStart.text);
     stop:=strtoint('$'+editstop.Text);
@@ -65,10 +89,22 @@ begin
   cb.checked:=true;
   cb.parent:=self;
 
-  if rbText.checked then valtype:=7 else valtype:=8;
+  if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
 
-  raise exception.Create('Please tell dark byte he still has to implement a new find');
-  {
+//  raise exception.Create('Please tell dark byte he still has to implement a new find');
+
+
+  memscan:=TMemscan.create(ProgressBar, handle, wm_fw_scandone);
+  memscan.onlyone:=true;
+
+  for i:=0 to ControlCount-1 do
+    Controls[i].Enabled:=false;
+
+
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, false, true, true, false, cbunicode.checked, false, nil, cstNone);
+
+
+    {
   if GetMemoryRangesAndScanValue2(firstresult,start,stop,true,true,Exact_value,valtype,scanvalue.text,'',rounded,true,progressbar,false,cbunicode.checked)>0 then
   begin
     //something found
@@ -92,7 +128,7 @@ begin
   if firstscan then
   begin
     editstart.Text:=Inttohex(memorybrowser.memoryaddress,8);
-    height:=175;
+    height:=185;
     progressbar.Top:=96;
 
     labelType.visible:=true;

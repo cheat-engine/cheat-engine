@@ -1,10 +1,10 @@
 object FindWindow: TFindWindow
-  Left = 106
-  Top = 645
+  Left = 525
+  Top = 399
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find'
-  ClientHeight = 154
+  ClientHeight = 151
   ClientWidth = 232
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -79,7 +79,7 @@ object FindWindow: TFindWindow
     Height = 21
     MaxLength = 8
     TabOrder = 3
-    Text = 'editStart'
+    Text = '00400000'
   end
   object EditStop: TEdit
     Left = 152

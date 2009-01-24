@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 566
-  Top = 280
+  Left = 339
+  Top = 267
   Width = 532
   Height = 565
   Hint = ' '
@@ -1560,7 +1560,7 @@ object MainForm: TMainForm
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 2
+        TabOrder = 6
       end
       object FromAddress: TMemo
         Left = 3
@@ -1607,7 +1607,7 @@ object MainForm: TMainForm
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 7
         OnClick = cbFastScanClick
       end
       object btnShowRegions: TButton
@@ -1617,7 +1617,7 @@ object MainForm: TMainForm
         Height = 25
         Caption = 'Show'
         Enabled = False
-        TabOrder = 6
+        TabOrder = 5
         OnClick = btnShowRegionsClick
       end
       object cbFasterScan: TCheckBox
@@ -1627,7 +1627,7 @@ object MainForm: TMainForm
         Height = 17
         Caption = 'Hyper Scan'
         Enabled = False
-        TabOrder = 7
+        TabOrder = 8
         OnClick = cbFastScanClick
       end
       object AllClick: TRadioButton
@@ -1637,7 +1637,7 @@ object MainForm: TMainForm
         Height = 17
         Caption = 'All'
         Enabled = False
-        TabOrder = 8
+        TabOrder = 2
         OnClick = AllClickClick
       end
       object cbPauseWhileScanning: TCheckBox
@@ -2385,6 +2385,7 @@ object MainForm: TMainForm
       Top = 211
       Width = 119
       Height = 94
+      Anchors = [akTop, akRight]
       BevelOuter = bvNone
       TabOrder = 26
       Visible = False
@@ -2406,7 +2407,7 @@ object MainForm: TMainForm
         Caption = '0'
       end
       object Label60: TLabel
-        Left = 104
+        Left = 98
         Top = 56
         Width = 12
         Height = 13
@@ -2415,7 +2416,7 @@ object MainForm: TMainForm
       object btnSetSpeedhack2: TButton
         Left = 6
         Top = 69
-        Width = 113
+        Width = 106
         Height = 20
         Anchors = [akTop, akRight]
         Caption = 'Apply'
@@ -2425,7 +2426,7 @@ object MainForm: TMainForm
       object editSH2: TEdit
         Left = 48
         Top = 0
-        Width = 57
+        Width = 54
         Height = 21
         TabOrder = 1
         Text = '1'
@@ -2433,7 +2434,7 @@ object MainForm: TMainForm
       object tbSpeed: TTrackBar
         Left = 0
         Top = 24
-        Width = 121
+        Width = 117
         Height = 33
         Position = 2
         TabOrder = 2
@@ -2544,6 +2545,8 @@ object MainForm: TMainForm
     object Findoutwhatreadsfromthisaddress1: TMenuItem
       Caption = 'Find out what reads from this address'
       GroupIndex = 2
+      Visible = False
+      OnClick = Findoutwhatreadsfromthisaddress1Click
     end
     object sep1: TMenuItem
       Caption = '-'

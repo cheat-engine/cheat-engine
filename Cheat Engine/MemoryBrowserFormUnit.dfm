@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 463
-  Top = 182
+  Left = 517
+  Top = 314
   Width = 675
   Height = 565
   HelpContext = 12
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 290
-    Width = 667
+    Width = 659
     Height = 4
     Cursor = crVSplit
     Align = alTop
@@ -36,13 +36,13 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 667
+    Width = 659
     Height = 290
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 479
+      Left = 471
       Top = 0
       Height = 290
       Align = alRight
@@ -51,7 +51,7 @@ object MemoryBrowser: TMemoryBrowser
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 479
+      Width = 471
       Height = 290
       Align = alClient
       BevelOuter = bvNone
@@ -128,7 +128,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 479
+        Width = 471
         Height = 17
         Align = alTop
         BevelInner = bvLowered
@@ -136,7 +136,7 @@ object MemoryBrowser: TMemoryBrowser
         object Label1: TLabel
           Left = 2
           Top = 2
-          Width = 475
+          Width = 467
           Height = 13
           Align = alClient
           Alignment = taCenter
@@ -147,7 +147,7 @@ object MemoryBrowser: TMemoryBrowser
       object Panel6: TPanel
         Left = 0
         Top = 273
-        Width = 479
+        Width = 471
         Height = 17
         Align = alBottom
         BevelInner = bvLowered
@@ -163,7 +163,7 @@ object MemoryBrowser: TMemoryBrowser
         OnMouseDown = Panel5MouseDown
       end
       object ScrollBar1: TScrollBar
-        Left = 463
+        Left = 455
         Top = 17
         Width = 16
         Height = 256
@@ -179,7 +179,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object RegisterView: TPanel
-      Left = 482
+      Left = 474
       Top = 0
       Width = 185
       Height = 290
@@ -595,8 +595,8 @@ object MemoryBrowser: TMemoryBrowser
   object Panel4: TPanel
     Left = 0
     Top = 294
-    Width = 667
-    Height = 217
+    Width = 659
+    Height = 215
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -605,8 +605,8 @@ object MemoryBrowser: TMemoryBrowser
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
     DesignSize = (
-      667
-      217)
+      659
+      215)
     object MBCanvas: TPaintBox
       Left = 1
       Top = 9
@@ -629,10 +629,10 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Protection'
     end
     object ScrollBar2: TScrollBar
-      Left = 650
+      Left = 642
       Top = 1
       Width = 16
-      Height = 215
+      Height = 213
       Align = alRight
       Kind = sbVertical
       Max = 101

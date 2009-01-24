@@ -32,7 +32,7 @@ object frmInjectedpointerscanornot: TfrmInjectedpointerscanornot
     Caption = 'Default'
     Default = True
     ModalResult = 6
-    TabOrder = 1
+    TabOrder = 0
   end
   object Button2: TButton
     Left = 200
@@ -41,6 +41,6 @@ object frmInjectedpointerscanornot: TfrmInjectedpointerscanornot
     Height = 25
     Caption = 'Injected'
     ModalResult = 7
-    TabOrder = 0
+    TabOrder = 1
   end
 end

@@ -278,6 +278,7 @@ type
     procedure tvResultsDblClick(Sender: TObject);
     procedure New1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
     start:tdatetime;
@@ -369,19 +370,24 @@ uses PointerscannerSettingsFrm;
 procedure TExecuter.execute;
 begin
   try
-    frmpointerscanner:=tfrmpointerscanner.Create(nil);
-    frmpointerscanner.ShowModal;
+    try
+      frmpointerscanner:=tfrmpointerscanner.Create(nil);
+      frmpointerscanner.ShowModal;
 
-    messagebox(0,'Exit pointerscan','exit',mb_ok);
+      messagebox(0,'Exit pointerscan','exit',mb_ok);
 
-    FreeLibraryAndExitThread(getmodulehandle('pscan.dll'),0);
-  except
-    on e: exception do
-    begin
-      messagebox(0,pchar('pointerscan crash.'),'error',mb_ok);
-      messagebox(0,pchar('pointerscan crash. '+e.message),'error',mb_ok);
+      //FreeLibraryAndExitThread(getmodulehandle('pscan.dll'),0);
+    except
+      on e: exception do
+      begin
+        messagebox(0,pchar('pointerscan crash.'),'error',mb_ok);
+        messagebox(0,pchar('pointerscan crash. '+e.message),'error',mb_ok);
+      end;
+
     end;
-
+  finally
+    messagebox(0,'Exit pointerscan 2','exit',mb_ok);
+    FreeLibraryAndExitThread(hinstance,0);
   end;
 end;
 
@@ -942,6 +948,8 @@ var x: tfilestream;
     result: tfilestream;
     i: integer;
 begin
+  if staticscanner=nil then exit;
+  
   //now combile all thread results to 1 file
   result:=tfilestream.Create('result.ptr',fmcreate);
   for i:=0 to length(staticscanner.filenames)-1 do
@@ -1598,6 +1606,8 @@ begin
         method2scanners[i].Free;
       end;
 
+      setlength(method2scanners,0);
+
       postmessage(frmpointerscanner.Handle,staticscanner_done,0,0);
       terminate;
       freeandnil(Method2semaphore);
@@ -1802,8 +1812,8 @@ begin
       {$ifdef injectedpscan}
       lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
       {$else}
-
-      lblRSCurrentAddress.Caption:=format('Currently at address %0.8x (going till %0.8x)',[vm.PointerToAddress(staticscanner.currentaddress), vm.PointerToAddress(staticscanner.lastaddress)]);
+      if vm<>nil then
+        lblRSCurrentAddress.Caption:=format('Currently at address %0.8x (going till %0.8x)',[vm.PointerToAddress(staticscanner.currentaddress), vm.PointerToAddress(staticscanner.lastaddress)]);
       {$endif}
 
 
@@ -1853,13 +1863,16 @@ begin
           tn2:=tn.getFirstChild;
 
 
-          tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel);
-          tn2:=tn2.getNextSibling;
-          tn2.text:='Current Address:'+inttohex(vm.PointerToAddress(staticscanner.reversescanners[i].currentaddress),8);
-          tn2:=tn2.getNextSibling;
-          tn2.text:='Going till:'+inttohex(vm.PointerToAddress(pointer(staticscanner.reversescanners[i].lastaddress)),8);
-          tn2:=tn2.getNextSibling;
-          tn2.text:='Looking for :'+inttohex(staticscanner.reversescanners[i].lookingformin,8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax,8);;
+          if vm<>nil then
+          begin
+            tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel);
+            tn2:=tn2.getNextSibling;
+            tn2.text:='Current Address:'+inttohex(vm.PointerToAddress(staticscanner.reversescanners[i].currentaddress),8);
+            tn2:=tn2.getNextSibling;
+            tn2.text:='Going till:'+inttohex(vm.PointerToAddress(pointer(staticscanner.reversescanners[i].lastaddress)),8);
+            tn2:=tn2.getNextSibling;
+            tn2.text:='Looking for :'+inttohex(staticscanner.reversescanners[i].lookingformin,8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax,8);;
+          end;
         end;
 
         tn:=tn.getNextSibling;
@@ -2181,10 +2194,15 @@ procedure Tfrmpointerscanner.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var i,j: integer;
 begin
-  new1.click;
-    
+  
+
+
   action:=cafree; //on close free itself
   frmpointerscanner:=nil; //and set it to nil so other objects that use it will have to recreate it
+
+  {$ifdef injectedpscan}
+  FreeLibraryAndExitThread(hinstance,0);
+  {$endif}
 end;
 
 procedure Tfrmpointerscanner.FormShow(Sender: TObject);
@@ -2356,6 +2374,33 @@ begin
   tvResults.Parent:=self;
   tvResults.OnDblClick:=tvResultsDblClick;
 
+  tsPSDefault.TabVisible:=false;
+  tsPSReverse.TabVisible:=false;
+
+  {$ifdef injectedpscan}
+  caption:='CE Injected Pointerscan';
+  {$endif}
+
+end;
+
+procedure Tfrmpointerscanner.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  if Staticscanner<>nil then
+    canclose:=false
+  else
+    canclose:=true;
+
+  btnStopScanClick(Button1);
+
+  if Staticscanner<>nil then
+  begin
+    Staticscanner.Terminate;
+    Staticscanner.WaitFor;
+    freeandnil(Staticscanner);
+  end;
+
+  postmessage(handle,wm_close,0,0);
 end;
 
 end.

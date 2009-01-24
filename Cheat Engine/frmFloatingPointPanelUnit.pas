@@ -25,9 +25,12 @@ type
     ComboBox1: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
+    procedure Label4Click(Sender: TObject);
+    procedure Label6DblClick(Sender: TObject);
   private
     { Private declarations }
     context: PContext;
+    contextCopy: TContext;
   public
     { Public declarations }
     procedure UpdatedContext;
@@ -38,11 +41,14 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation
 
+uses MemoryBrowserFormUnit;
+
 {$R *.dfm}
 
 procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
 begin
   self.context:=context;
+  self.contextCopy:=context^;
 end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
@@ -221,6 +227,19 @@ end;
 procedure TfrmFloatingPointPanel.ComboBox1Select(Sender: TObject);
 begin
   UpdatedContext;
+end;
+
+procedure TfrmFloatingPointPanel.Label4Click(Sender: TObject);
+begin
+  memorybrowser.disassembleraddress:=self.contextCopy.FloatSave.ErrorOffset;
+  memorybrowser.dselected:=self.contextCopy.FloatSave.ErrorOffset;
+  memorybrowser.updatedisassemblerview;
+end;
+
+procedure TfrmFloatingPointPanel.Label6DblClick(Sender: TObject);
+begin
+  memorybrowser.memoryaddress:=self.contextCopy.FloatSave.DataOffset;
+  memorybrowser.refreshmb;
 end;
 
 end.

@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls,settingsunit,tlhelp32,shellapi,math,extratrainercomponents,
-  userdefinedformunit, XPMan,newkernelhandler, symbolhandler, cefuncproc,
+  userdefinedformunit, newkernelhandler, symbolhandler, cefuncproc,
   autoassembler,hotkeyhandler;
 
 
@@ -72,7 +72,6 @@ type
     OpenDialog1: TOpenDialog;
     Freezer: TTimer;
     Button2: TButton;
-    XPManifest1: TXPManifest;
     Button3: TButton;
     Timer2: TTimer;
     Timer3: TTimer;

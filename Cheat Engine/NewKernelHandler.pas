@@ -251,9 +251,10 @@ implementation
 uses
      {$ifdef cemain}
      plugin,
+     dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
-     filehandler, //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     dbvmPhysicalMemoryHandler; //'' for physical mem
+     filehandler; //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+
 
 procedure LoadDBK32;
 begin
@@ -430,6 +431,7 @@ end;
 procedure DBKPhysicalMemoryDBVM;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to dbvm's read/write physical memory}
 begin
+{$ifdef cemain}
   UseFileAsMemory:=false;
   usephysical:=false;
   usephysicaldbvm:=true;
@@ -437,10 +439,10 @@ begin
   WriteProcessMemory:=@WriteProcessMemoryPhys;
   VirtualQueryEx:=@VirtualQueryExPhys;
 
-  {$ifdef cemain}
+
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(3);
-  {$endif}
+{$endif}
 end;
 
 procedure DBKPhysicalMemory;

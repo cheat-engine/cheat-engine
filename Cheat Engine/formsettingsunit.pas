@@ -70,16 +70,9 @@ type
     cbMemPrivate: TCheckBox;
     cbEnableHyperscanWhenPossible: TCheckBox;
     EditBufsize: TEdit;
-    FileAssocs: TTabSheet;
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
-    Label10: TLabel;
-    cbGH: TCheckBox;
-    cbCT3: TCheckBox;
-    cbCT2: TCheckBox;
-    cbCET: TCheckBox;
-    cbCT: TCheckBox;
     Label22: TLabel;
     Button4: TButton;
     Button5: TButton;
@@ -151,6 +144,7 @@ type
     OpenButton: TSpeedButton;
     OpenDialog2: TOpenDialog;
     cbShowMainMenu: TCheckBox;
+    cbOldPointerAddMethod: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -271,86 +265,8 @@ end;
 
 
 procedure TFormSettings.SetAssociations;
-  procedure Associate(ext: string);
-  var  reg: TRegistry;
-       preCE: string;
-  begin
-    reg := TRegistry.Create;
-    reg.RootKey := HKEY_CLASSES_ROOT;
-    reg.LazyWrite := false;
-
-    reg.OpenKey(ext+'\shell\open\command',true);
-
-    preCE:=reg.ReadString('preCE');
-    if preCE='' then //no preCE item yet
-      preCE:=reg.ReadString('');
-    reg.writestring('preCE',preCE);
-
-    reg.WriteString('',application.ExeName+' "%1"');
-    reg.CloseKey;
-
-    reg.OpenKey(ext+'\DefaultIcon', true);
-
-    preCE:=reg.ReadString('preCE');
-    if preCE='' then //no preCE item yet
-      preCE:=reg.ReadString('');
-    reg.writestring('preCE',preCE);
-
-    reg.WriteString('',application.ExeName+',0');
-    reg.CloseKey;
-
-    reg.free;
-  end;
-
-  procedure UnAssociate(ext: string);
-  var  reg: TRegistry;
-       delete: boolean;
-       preCE:string;
-  begin
-    reg := TRegistry.Create;
-    reg.RootKey := HKEY_CLASSES_ROOT;
-    reg.LazyWrite := false;
-
-    delete:=false;
-
-    try
-      reg.OpenKey(ext+'\shell\open\command',false);
-      preCE:=reg.ReadString('preCE');
-      if preCE='' then delete:=true else
-      begin
-        reg.writestring('',preCE);
-        reg.DeleteValue('preCE');
-      end;
-
-      reg.CloseKey;
-    except
-      delete:=true;
-    end;
-
-    try
-      reg.OpenKey(ext+'\DefaultIcon', false);
-      preCE:=reg.ReadString('preCE');
-      if preCE='' then delete:=true else
-      begin
-        reg.writestring('',preCE);
-        reg.DeleteValue('preCE');
-      end;
-
-      reg.closekey;
-    except
-      delete:=true;
-    end;
-
-    reg.DeleteKey(ext);
-    reg.free;
-  end;
-
 begin
-  if cbCT.checked then Associate('.CT') else unassociate('.CT');
-  if cbCT2.checked then Associate('.CT2') else unassociate('.CT2');
-  if cbCT3.checked then Associate('.CT3') else unassociate('.CT3');
-  if cbCET.checked then Associate('.CET') else unassociate('.CET');
-  if cbGH.checked then Associate('.GH') else unassociate('.GH');
+
 end;
 
 
@@ -488,6 +404,8 @@ begin
 
       reg.WriteBool('Only show processes with icon',cbProcessIconsOnly.Checked);
       ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
+
+      reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
       reg.WriteBool('Break when debuging',cbBreakOnAttach.Checked);
@@ -834,13 +752,6 @@ begin
     rbInt3AsBreakpoint.Enabled:=true;
   end;
   {$endif}
-
-
-  cbCT.checked:=CheckAssociation('.CT');
-  cbCET.checked:=CheckAssociation('.CET');
-  cbCT2.checked:=CheckAssociation('.CT2');
-  cbCT3.checked:=CheckAssociation('.CT3');
-  cbGH.checked:=CheckAssociation('.GH');
 
   label1.Enabled:=not mainform.nextscanbutton.enabled;
   editbufsize.enabled:=not mainform.nextscanbutton.enabled;
@@ -1346,6 +1257,7 @@ begin
   edtToolsName.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
   lblApplicationTool.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
   edtApplicationTool.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
+  OpenButton.Enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
   lblShortcut.enabled:= cbShowTools.Checked and (lvtools.Selected<>nil);
   lblShortcutText.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
   btnSetToolShortcut.enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
@@ -1387,6 +1299,7 @@ begin
   lblShortcutText.enabled:=lvtools.Selected<>nil;
   btnSetToolShortcut.enabled:=lvtools.Selected<>nil;
   btnToolDelete.Enabled:=lvtools.Selected<>nil;
+  OpenButton.Enabled:=cbShowTools.Checked and (lvtools.Selected<>nil);
 
   if lvtools.Selected<>nil then
   begin
