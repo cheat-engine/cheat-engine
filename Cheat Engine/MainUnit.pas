@@ -11199,7 +11199,9 @@ var resh: thandle;
     x: array [0..4095] of byte;
     y: integer;
 begin
+
   asm
+
     db $dc, $e1
     db $dc, $e9
   end;
@@ -11961,11 +11963,11 @@ var newspeed: single;
 begin
   error:=false;
   try
-    StrToFloat(editsh2.Text);
+    newspeed:=StrToFloat(editsh2.Text);
   except
     GetLocaleFormatSettings(GetThreadLocale, fs);
     try
-      StrToFloat(editsh2.Text, fs);
+      newspeed:=StrToFloat(editsh2.Text, fs);
     except
       error:=true;
     end;

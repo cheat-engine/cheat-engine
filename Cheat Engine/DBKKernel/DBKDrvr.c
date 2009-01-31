@@ -1020,6 +1020,9 @@ NTSTATUS MSJDispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
+				DbgPrint("IOCTL_CE_READPHYSICALMEMORY:pinp->startaddress=%p, pinp->bytestoread=%d", pinp->startaddress, pinp->bytestoread); 
+
+
 				ntStatus = ReadPhysicalMemory(pinp->startaddress, pinp->bytestoread, pinp);
 				break;
 

@@ -296,6 +296,10 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 			toread=bytestoread;
 
 			memoryview=NULL;
+
+			DbgPrint("ReadPhysicalMemory:viewBase.QuadPart=%x", viewBase.QuadPart); 
+
+
 			ntStatus=ZwMapViewOfSection(
 				physmem,  //sectionhandle
 				NtCurrentProcess(), //processhandle (should be -1)
@@ -314,7 +318,11 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 				RtlCopyMemory(output,&memoryview[offset],toread);
 
 				ZwUnmapViewOfSection( NtCurrentProcess(), memoryview);
-			};
+			}
+			else
+			{
+				DbgPrint("ReadPhysicalMemory:ntStatus=%x", ntStatus); 
+			}
 
 			ZwClose(physmem);
 		};
