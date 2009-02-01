@@ -6568,7 +6568,7 @@ begin
 
       $89 : begin
               description:='Copy memory';
-              if $66 in prefix2 then tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,1,1,last)+r32(memory[1])
+              if $66 in prefix2 then tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,1,1,last)+r16(memory[1])
                                 else tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
