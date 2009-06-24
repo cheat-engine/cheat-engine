@@ -1731,7 +1731,7 @@ begin
 
           lastaddress:=alist[k].address;
 
-          while alist[k].address=lastaddress do
+          while (alist[k].address=lastaddress) and (k<=j) do //nugfix might cause performance loss, check it later
           begin
             //add bits to the scanned bitlist
             scannedbitlist[alist[k].bit]:=true;
@@ -1742,7 +1742,7 @@ begin
           for l:=0 to 7 do
             if not scannedbitlist[l] then binaryresults[l]:=false; //if it wasn't scanned, but the result was true, then set it to false
 
-          StoreResultRoutine(alist[k].address,@newmemory[alist[k].address-currentbase]);
+          StoreResultRoutine(lastaddress,@newmemory[lastaddress-currentbase]);
         end;
         inc(k); //next
       end;
