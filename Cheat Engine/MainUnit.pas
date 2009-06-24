@@ -1278,9 +1278,13 @@ end;
 
 
 procedure TMainform.setfoundcount(x: int64);
+var
+  xdouble: double;
 begin
   ffoundcount:=x;
-  foundcountlabel.Caption:=inttostr(x);
+  xdouble:=x;
+//  foundcountlabel.Caption:=inttostr(x);
+  foundcountlabel.Caption:=Format('%.0n', [xdouble]);
 end;
 
 procedure TMainform.DestroyCancelButton;
@@ -1303,7 +1307,7 @@ begin
     enabled:=false;
     tag:=0; //0=normal 1=force
 
-    Hint:='This button will try to cacel the current scan. Click twice to force an exit';
+    Hint:='This button will try to cancel the current scan. Click twice to force an exit';
     ParentShowHint:=false;
     ShowHint:=true;
 
@@ -1332,8 +1336,15 @@ begin
   Groupbox1.Enabled:=false;
   for i:=0 to groupbox1.ControlCount-1 do
     groupbox1.Controls[i].Enabled:=false;
-
+  
   scanvalue.Enabled:=false;
+  if scanvalue2<>nil then
+  begin
+    scanvalue2.Enabled:=false;
+    andlabel.Enabled:=false;
+    scantext2.Enabled:=false;
+  end;
+
   vartype.Enabled:=false;
   scantype.Enabled:=false;
   scantext.enabled:=false;
@@ -1367,6 +1378,12 @@ begin
   end;
 
   scanvalue.Enabled:=true;
+  if scanvalue2<>nil then
+  begin
+    scanvalue2.Enabled:=true;
+    andlabel.Enabled:=true;
+    scantext2.Enabled:=true;
+  end;
   newscan.Enabled:=true;
 
   undoscan.Enabled:=isnextscan; //nextscan was already enabled
@@ -2564,6 +2581,7 @@ begin
       scanvalue2.Top:=scanvalue.top;
       scanvalue2.Parent:=scanvalue.Parent;
       scanvalue2.Anchors:=scanvalue.Anchors;
+      scanvalue2.TabOrder:=scanvalue.TabOrder+1;
 
       scantext2:=tlabel.create(self);
       scantext2.caption:=scantext.caption;
@@ -12177,5 +12195,6 @@ begin
 end;
 
 end.
+
 
 
