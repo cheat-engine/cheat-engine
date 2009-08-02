@@ -2625,6 +2625,7 @@ typedef struct _FILE_FS_CONTROL_INFORMATION {
     ULONG           FileSystemControlFlags;
 } FILE_FS_CONTROL_INFORMATION, *PFILE_FS_CONTROL_INFORMATION;
 
+/*
 typedef struct _FILE_FS_FULL_SIZE_INFORMATION {
     LARGE_INTEGER   TotalAllocationUnits;
     LARGE_INTEGER   CallerAvailableAllocationUnits;
@@ -2632,11 +2633,14 @@ typedef struct _FILE_FS_FULL_SIZE_INFORMATION {
     ULONG           SectorsPerAllocationUnit;
     ULONG           BytesPerSector;
 } FILE_FS_FULL_SIZE_INFORMATION, *PFILE_FS_FULL_SIZE_INFORMATION;
+*/
 
+/*
 typedef struct _FILE_FS_LABEL_INFORMATION {
     ULONG VolumeLabelLength;
     WCHAR VolumeLabel[1];
 } FILE_FS_LABEL_INFORMATION, *PFILE_FS_LABEL_INFORMATION;
+*/
 
 #if (VER_PRODUCTBUILD >= 2195)
 
@@ -2647,13 +2651,16 @@ typedef struct _FILE_FS_OBJECT_ID_INFORMATION {
 
 #endif // (VER_PRODUCTBUILD >= 2195)
 
+/*
 typedef struct _FILE_FS_SIZE_INFORMATION {
     LARGE_INTEGER   TotalAllocationUnits;
     LARGE_INTEGER   AvailableAllocationUnits;
     ULONG           SectorsPerAllocationUnit;
     ULONG           BytesPerSector;
 } FILE_FS_SIZE_INFORMATION, *PFILE_FS_SIZE_INFORMATION;
+*/
 
+/*
 typedef struct _FILE_FS_VOLUME_INFORMATION {
     LARGE_INTEGER   VolumeCreationTime;
     ULONG           VolumeSerialNumber;
@@ -2661,6 +2668,7 @@ typedef struct _FILE_FS_VOLUME_INFORMATION {
     BOOLEAN         SupportsObjects;
     WCHAR           VolumeLabel[1];
 } FILE_FS_VOLUME_INFORMATION, *PFILE_FS_VOLUME_INFORMATION;
+*/
 
 typedef struct _FILE_FULL_DIR_INFORMATION {
     ULONG           NextEntryOffset;
