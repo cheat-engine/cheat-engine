@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="mykerneldriver"
 	ProjectGUID="{A4B29F18-5AA7-466A-A658-4F886949BE32}"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -21,7 +22,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
-			ConfigurationType="1"
+			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="0"
 			>
@@ -48,7 +49,8 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="D:\WinDDK\6000\inc\ddk;D:\WinDDK\6000\inc\api"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_X86_"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
+				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
 				DisableLanguageExtensions="false"
@@ -75,6 +77,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/mykerneldriver.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -94,9 +98,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -154,6 +155,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -173,9 +176,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -205,6 +205,10 @@
 			</File>
 			<File
 				RelativePath=".\DBKFunc.c"
+				>
+			</File>
+			<File
+				RelativePath=".\debugger.c"
 				>
 			</File>
 			<File
@@ -255,6 +259,10 @@
 			</File>
 			<File
 				RelativePath=".\DBKFunc.h"
+				>
+			</File>
+			<File
+				RelativePath=".\debugger.h"
 				>
 			</File>
 			<File

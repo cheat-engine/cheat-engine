@@ -279,7 +279,7 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 		RtlInitUnicodeString( &physmemString, physmemName );	
 
 		InitializeObjectAttributes( &attributes, &physmemString, OBJ_CASE_INSENSITIVE, NULL, NULL );	
-		ntStatus=ZwOpenSection( &physmem, SECTION_MAP_READ, &attributes );
+		ntStatus=ZwOpenSection( &physmem, SECTION_ALL_ACCESS, &attributes );
 		if (ntStatus==STATUS_SUCCESS)
 		{
 			//hey look, it didn't kill it

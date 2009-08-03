@@ -4,4 +4,4 @@ TARGETTYPE=DRIVER
 SOURCES=DBKDrvr.c \
  DBKFunc.c  \
 rootkit.c  \
-processlist.c memscan.c threads.c vmxhelper.c newkernel.c
+processlist.c memscan.c threads.c vmxhelper.c newkernel.c debugger.c

@@ -10,6 +10,7 @@
 
 #include "vmxhelper.h"
 #include "newkernel.h"
+#include "debugger.h"
 
 
 #ifdef CETC
@@ -414,7 +415,10 @@ Return Value:
 	OBJECT_ATTRIBUTES oa;
 
 	UNICODE_STRING temp; 
+	char x;
 
+
+	
 
 	//DbgPrint("%S",oa.ObjectName.Buffer);  
 
@@ -441,6 +445,26 @@ Return Value:
 		mov [this_gs],ax
 	}
 	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",this_cs, this_ss, this_ds, this_es, this_fs, this_gs);
+
+
+	DebuggerGUI();
+
+		while (1)
+		{
+			LARGE_INTEGER wt;
+			NTSTATUS s;
+			
+			wt.QuadPart=-10000000LL;
+			s=KeDelayExecutionThread(KernelMode, FALSE, &wt);
+			DbgPrint("KeDelayExecutionThread=%x\n",s);
+
+			
+		}
+	//while (*(volatile char *)0x00400000=='M')
+	//{
+		//nothing
+	//}
+	
 
 
 
@@ -1041,7 +1065,7 @@ NTSTATUS MSJDispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				RtlInitUnicodeString( &physmemString, physmemName );	
 
             	InitializeObjectAttributes( &attributes, &physmemString, OBJ_CASE_INSENSITIVE, NULL, NULL );	
-			    ntStatus=ZwOpenSection( &physmem, SECTION_MAP_READ, &attributes );
+			    ntStatus=ZwOpenSection( &physmem, SECTION_ALL_ACCESS, &attributes );
 				if (ntStatus==STATUS_SUCCESS)
 				{
 					//hey look, it didn't kill it
