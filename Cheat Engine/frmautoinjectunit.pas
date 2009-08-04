@@ -433,7 +433,7 @@ begin
         for i:=0 to length(originalcode)-1 do
           add(originalcode[i]);
         x:='db';
-        for i:=0 to codesize-1 do
+        for i:=0 to length(originalbytes)-1 do
           x:=x+' '+inttohex(originalbytes[i],2);
         add('//Alt: '+x);
       end;
