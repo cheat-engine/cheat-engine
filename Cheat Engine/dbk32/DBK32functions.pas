@@ -78,7 +78,11 @@ const IOCTL_CE_GETCR0 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082e shl 2) o
 const IOCTL_CE_MAKEKERNELCOPY		  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_SETGLOBALDEBUGSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_CONTINUEDEBUGEVENT 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0831 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_WAITFORDEBUGEVENT  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0832 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_GETDEBUGGERSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETDEBUGGERSTATE  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -211,6 +215,7 @@ function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; 
 function SetSSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 
 function GetGDT(limit: pword):dword; stdcall;
+
 
 var hooker: THookIDTConstantly;
     kernel32dll: thandle;
@@ -423,7 +428,7 @@ begin
 
       if vmx_enabled then exit; //no rehook needed since idt changes don't matter
       
-      sleep(5000); //wait a while before rewriting
+      sleep(60000); //wait a while before rewriting
     end;
   end;
 end;
@@ -2013,6 +2018,14 @@ begin
     freemem(apppath);
   end;
 
+  try
+    configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
+  except
+    //couldn't parse the password
+  end;
+
+
+
   if not fileexists(driverloc) then
   begin
     messagebox(0,'You are missing the driver. Try reinstalling cheat engine, and try to disable your anti-virus before doing so.','Driver error',MB_ICONERROR or mb_ok);
@@ -2108,7 +2121,13 @@ begin
 
 
     if hdevice=INVALID_HANDLE_VALUE then
-      messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+    begin
+      if dbvm_version>$ce000000 then
+        messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+      else
+        messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+
+    end
     else
     begin
       //Get the address of win32k.sys
@@ -2146,11 +2165,7 @@ begin
   end;
 
 
-  try
-    configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
-  except
-    //couldn't parse the password
-  end;
+
 
 end;
 

@@ -14,7 +14,8 @@ uses
   SysUtils,
   Classes,
   DBK32functions in 'DBK32functions.pas',
-  vmxfunctions in 'vmxfunctions.pas';
+  vmxfunctions in 'vmxfunctions.pas',
+  debug in 'debug.pas';
 
 {$R *.res}
 
@@ -81,6 +82,13 @@ exports test;
 exports useIOCTL;
 exports MakeKernelCopy;
 
+//debug
+exports DBKDebug_ContinueDebugEvent;
+exports DBKDebug_WaitForDebugEvent;
+exports DBKDebug_GetDebuggerState;
+exports DBKDebug_SetDebuggerState;
+
+
 
 //vmx
 exports dbvm_version;
@@ -91,6 +99,8 @@ exports dbvm_redirect_interrupt1;
 
 exports dbvm_write_physical_memory;
 exports dbvm_read_physical_memory;
+
+exports dbvm_raise_privilege;
 
 begin
   randomize;

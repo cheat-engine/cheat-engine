@@ -17,6 +17,9 @@ const
   VMCALL_GETCR0=18;
   VMCALL_GETCR3=19;
   VMCALL_GETCR4=20;
+  VMCALL_RAISEPRIVILEGE=21;
+  VMCALL_REDIRECTINT14=22;
+  VMCALL_INT14REDIRECTED=23;
 
 
 function dbvm_version: dword; stdcall;
@@ -27,7 +30,7 @@ function dbvm_block_interrupts: DWORD; stdcall;
 function dbvm_redirect_interrupt1(redirecttype: integer; newintvector: dword; int1cs: dword; int1eip: dword): dword; stdcall;
 function dbvm_read_physical_memory(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
 function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
-
+function dbvm_raise_privilege: DWORD; stdcall;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 
@@ -230,6 +233,27 @@ begin
   except
     result:=0; //read 0 bytes
     messagebox(0,'Error','error',mb_ok);
+  end;
+end;
+
+function dbvm_raise_privilege: DWORD; stdcall;
+{
+NEEDS interrupts being disabled first (taskswitch would set it back to normal)
+Returns 0 if success, 1 if interrupts are not disabled, -1 is no dbvm
+}
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_RAISEPRIVILEGE;
+  try
+    result:=vmcall(@vmcallinfo,vmx_password1);
+  except
+    result:=$ffffffff;
   end;
 end;
 
