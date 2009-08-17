@@ -1,5 +1,10 @@
+#ifndef DBKFUNC_H
+#define DBKFUNC_H
+
 #include "ntifs.h"
 #include <windef.h>
+
+#include "interruptHook.h"
 
 int _fltused;
 
@@ -97,16 +102,7 @@ typedef struct DebugReg6
 	unsigned undefined2	:16; // 1111111111111111
 } DebugReg6;
 
-#pragma pack(1) //allignemnt of 1 byte
-typedef struct tagINT_VECTOR
-{
-	WORD	wLowOffset;
-	WORD	wSelector;
-	BYTE	bAccess;
-	BYTE	wUnused;
-	WORD	wHighOffset;
-} INT_VECTOR, *PINT_VECTOR;
-#pragma pack()
+
 
 
 #pragma pack(2) //allignment of 2 bytes
@@ -115,13 +111,9 @@ typedef struct tagGDT
     WORD wLimit;
 	PKGDTENTRY vector;
 } GDT, *PGDT;
-
-typedef struct tagIDT
-{    
-    WORD wLimit;
-	PINT_VECTOR vector;
-} IDT, *PIDT;
 #pragma pack()
+
+
 
 typedef struct tagDebugEvent
 {
@@ -177,7 +169,7 @@ void StopChangeRegOnBP(int DebugRegNR);
 
 BOOLEAN HookInt1(void);
 BOOLEAN HookInt3(void);
-int globaldebug;
+//int globaldebug;
 int PTESize;
 UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;
@@ -185,3 +177,9 @@ UINT_PTR MAX_PDE_POS;
 BOOLEAN UsesAlternateMethod;
 void int1apihook(void);
 void OriginalInt1handler(void);
+
+int isPrefix(unsigned char b);
+
+int cpunr(void);
+
+#endif;

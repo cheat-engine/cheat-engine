@@ -212,6 +212,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\interruptHook.c"
+				>
+			</File>
+			<File
+				RelativePath=".\IOPLDispatcher.c"
+				>
+			</File>
+			<File
 				RelativePath=".\kfiles.c"
 				>
 			</File>
@@ -233,6 +241,14 @@
 			</File>
 			<File
 				RelativePath=".\rootkit.c"
+				>
+			</File>
+			<File
+				RelativePath=".\stealthedit.c"
+				>
+			</File>
+			<File
+				RelativePath=".\stealthedit.h"
 				>
 			</File>
 			<File
@@ -258,6 +274,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DBKDrvr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\DBKFunc.h"
 				>
 			</File>
@@ -271,6 +291,14 @@
 			</File>
 			<File
 				RelativePath=".\extraimports.h"
+				>
+			</File>
+			<File
+				RelativePath=".\interruptHook.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IOPLDispatcher.h"
 				>
 			</File>
 			<File

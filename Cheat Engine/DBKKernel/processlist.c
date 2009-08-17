@@ -196,7 +196,7 @@ VOID CreateProcessNotifyRoutine( IN HANDLE  ParentId, IN HANDLE  ProcessId, IN B
 	PEPROCESS CurrentProcess;
 	//CLIENT_ID CI;
 
-	DbgPrint("CreateProcessNotifyRoutine called (ParentID=%x ProcessID=%d Create=%d\n",ParentId, ProcessId, Create);
+	//DbgPrint("CreateProcessNotifyRoutine called (ParentID=%x ProcessID=%d Create=%d\n",ParentId, ProcessId, Create);
 
 	if (KeGetCurrentIrql()==PASSIVE_LEVEL)
 	{

@@ -1,6 +1,7 @@
 //#include "C:\WINDDK\3790\inc\ifs\w2k\ntifs.h"
 #include "DBKFunc.h"
 #include "vmxhelper.h"
+#include "interruptHook.h"
 
 #ifndef AMD64
 void interrupt1( void );
@@ -105,6 +106,30 @@ unsigned long long getTSC(void)
 
 	result=a+((unsigned long long)(b) << 32);
 	return result;
+}
+
+int isPrefix(unsigned char b)
+{
+	switch (b)
+	{
+		case 0x26:
+		case 0x2e:
+		case 0x36:
+		case 0x3e:		
+		case 0x64:
+		case 0x65:
+		case 0x66:
+		case 0x67:
+		case 0xf0: //lock
+		case 0xf2: //repne
+		case 0xf3: //rep
+			return 1;
+
+		default:
+			return 0;
+
+	}
+
 }
 
 void StopDebugging(void)
@@ -241,6 +266,7 @@ void SetIDT(PIDT pIdt)
 	}
 }
 
+/*
 BOOLEAN HookInt1(void)
 {
 #ifndef AMD64
@@ -370,7 +396,7 @@ BOOLEAN HookInt3(void)
 	return FALSE;
 #endif
 }
-
+*/
 
 
 int cpunr(void)
@@ -398,6 +424,8 @@ int cpunr(void)
 }
 
 
+/*
+
 struct {
 	ULONG DR0;
 	ULONG DR1;
@@ -412,18 +440,15 @@ ULONG r1,r2;
 ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 {
 #ifndef AMD64
-/*	//check the current priviledge level
-	DbgPrint("Welcome to my int handler. (I need to find out how this instruction gets me in ring0)\n");
-	DbgPrint("Processid=%d (%x)\n",PsGetCurrentProcessId(),PsGetCurrentProcessId());
-*/
+////check the current priviledge level
+	//DbgPrint("Welcome to my int handler. (I need to find out how this instruction gets me in ring0)\n");
+	//DbgPrint("Processid=%d (%x)\n",PsGetCurrentProcessId(),PsGetCurrentProcessId());
+//
 	ULONG result=0;	//by default do handle the interrupt by the os
 	ULONG DR_0,DR_1,DR_2,DR_3,ef;
 	DebugReg6 DR_6;
 	DebugReg7 DR_7;
 
-	/*
-	DbgPrint("Int1: CPUnr=%d",cpunr());	
-	*/
 
 	__asm{
         mov eax,dr0
@@ -442,30 +467,7 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 		pop eax
 		mov ef,eax
 	};
-	/*
-	DbgPrint("Hello from int1\n");
-	DbgPrint("eax=%x\n",Stacklocation[-1]);
-	DbgPrint("ebx=%x\n",Stacklocation[-4]);
-	DbgPrint("ecx=%x\n",Stacklocation[-2]);
-	DbgPrint("edx=%x\n",Stacklocation[-3]);
-	DbgPrint("esi=%x\n",Stacklocation[-7]);
-	DbgPrint("edi=%x\n",Stacklocation[-8]);			
-	DbgPrint("ebp=%x\n",Stacklocation[-6]);
-	DbgPrint("ss=%x\n",Stacklocation[4]);
-	DbgPrint("esp=%x\n",Stacklocation[3]);
-	DbgPrint("eflags=%x\n",Stacklocation[2]);
-	DbgPrint("cs=%x\n",Stacklocation[1]); //it was a break			
-	DbgPrint("eip=%x\n",Stacklocation[0]); //it was a break			
 
-	DbgPrint("DR0=%x\n",DR_0);
-	DbgPrint("DR1=%x\n",DR_1);
-	DbgPrint("DR2=%x\n",DR_2);
-	DbgPrint("DR3=%x\n",DR_3);
-	DbgPrint("DR6=%x\n",DR_6);
-	DbgPrint("DR7=%x\n",DR_7);
-
-
-	DbgPrint("Int1 DR6=%x DR7=%x int_eflags=%x\n",DR_6,DR_7,ef);*/
 	
 	
 	if (globaldebug)
@@ -686,28 +688,6 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 
 			}
 		
-			/*
-			DbgPrint("Hello from int1\n");
-			DbgPrint("eax=%x\n",Stacklocation[-1]);
-			DbgPrint("ebx=%x\n",Stacklocation[-4]);
-			DbgPrint("ecx=%x\n",Stacklocation[-2]);
-			DbgPrint("edx=%x\n",Stacklocation[-3]);
-			DbgPrint("esi=%x\n",Stacklocation[-7]);
-			DbgPrint("edi=%x\n",Stacklocation[-8]);			
-			DbgPrint("ebp=%x\n",Stacklocation[-6]);
-			DbgPrint("esp=%x\n",Stacklocation[3]);
-			DbgPrint("eip=%x\n",Stacklocation[0]); //it was a break			
-
-			DbgPrint("DR0=%x\n",DR_0);
-			DbgPrint("DR1=%x\n",DR_1);
-			DbgPrint("DR2=%x\n",DR_2);
-			DbgPrint("DR3=%x\n",DR_3);
-			DbgPrint("DR6=%x\n",DR_6);
-			DbgPrint("DR7=%x\n",DR_7);
-
-
-		    DbgPrint("DR_7.L3=%d\nDR_6.B3=%d\nDR_3=%x\n",DR_7.L3,DR_6.B3,DR_3);
-			*/
 			DbgPrint("Stacklocation=%p\n",Stacklocation);
 			DbgPrint("-3=%x\n",Stacklocation[-3]);
 			DbgPrint("-2=%x\n",Stacklocation[-2]);
@@ -975,6 +955,9 @@ ULONG __stdcall GeneralHandler(IN ULONG iInt,IN PULONG Stacklocation )
 #endif
 }
 
+*/
+
+/*
 #ifndef AMD64
 _declspec( naked ) void interrupt1( void )
 {
@@ -1383,3 +1366,5 @@ Exit:
 }
 
 #endif
+
+*/

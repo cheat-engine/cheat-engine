@@ -125,6 +125,33 @@ unsigned int vmx_redirect_interrupt1(unsigned int redirecttype, unsigned int new
 	return vmcall(&vmcallinfo, vmx_password1);
 }
 
+unsigned int vmx_redirect_interrupt14(unsigned int redirecttype, unsigned int newintvector, unsigned int int14cs, unsigned int int14eip)
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+		unsigned int redirecttype;
+		unsigned int newintvector;
+		unsigned long long int14eip;
+		unsigned int int14cs;
+	} vmcallinfo;
+	#pragma pack()
+
+	DbgPrint("vmx_redirect_interrupt14: int14cs=%x int14eip=%x sizeof(vmcallinfo)=%x\n", int14cs, int14eip, sizeof(vmcallinfo));
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_REDIRECTINT14;
+	vmcallinfo.redirecttype=redirecttype;
+	vmcallinfo.newintvector=newintvector;
+	vmcallinfo.int14eip=int14eip;
+	vmcallinfo.int14cs=int14cs;
+
+	return vmcall(&vmcallinfo, vmx_password1);
+}
+
 unsigned int vmx_register_cr3_callback(unsigned int cs, unsigned int eip, unsigned int ss, unsigned int esp)
 {
 	#pragma pack(1)
