@@ -132,6 +132,7 @@ int isPrefix(unsigned char b)
 
 }
 
+/*
 void StopDebugging(void)
 {
 	DebuggedProcessID=0;
@@ -184,7 +185,9 @@ BOOLEAN ChangeRegOnBP(DWORD ProcessID, int DebugRegNR, PChangeReg CR)
 
 	return TRUE; //always
 }
+*/
 
+/* obsolete
 BOOLEAN DebugProcess(DWORD ProcessID, DWORD Address, BYTE Length, BYTE RWE)
 {
 	DbgPrint("Going to debug a process for 1 process+debug address\nProcessID=%d (%x)\n",ProcessID,ProcessID);
@@ -199,16 +202,17 @@ BOOLEAN DebugProcess(DWORD ProcessID, DWORD Address, BYTE Length, BYTE RWE)
 
 	DbgPrint("DebuggedAddress=%x\n",DebuggedAddress);
 
-	/*
-	setting the debug registers in the context will be done from usermode (unless I figure out how to call 
-	NtSetContextThread which doesn't seem to be in ntos so requires user32.sys which is fucking buggy to use
-	but, the threadid's can be retrieved using a toolhelpsnapshot, (or a notify routine for created threads)
-	and can be opened using OpenThread (win2k+ but I dont give a shit about that...)
-	*/
+	
+	//setting the debug registers in the context will be done from usermode (unless I figure out how to call 
+	//NtSetContextThread which doesn't seem to be in ntos so requires user32.sys which is fucking buggy to use
+	//but, the threadid's can be retrieved using a toolhelpsnapshot, (or a notify routine for created threads)
+	//and can be opened using OpenThread (win2k+ but I dont give a shit about that...)
+	
 
 	DbgPrint("Still here so I gues it works!\n");
 	return TRUE;
 }
+*/
 
 unsigned short GetTR(void)
 {

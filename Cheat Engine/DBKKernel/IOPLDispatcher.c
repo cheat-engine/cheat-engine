@@ -952,16 +952,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}	
 
-		case IOCTL_CE_HOOKINTS:
-			{
-				DbgPrint("IOCTL_CE_HOOKINTS\n");
-				if (debugger_initHookForCurrentCPU())
-					ntStatus=STATUS_SUCCESS;
-				else
-				    ntStatus=STATUS_UNSUCCESSFUL;
 
-				break;
-			}
 
 		case IOCTL_CE_ISUSINGALTERNATEMETHOD:
 			{
@@ -992,6 +983,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}
 			*/
 
+		case IOCTL_CE_HOOKINTS:
+			{
+				DbgPrint("IOCTL_CE_HOOKINTS\n");
+				if (debugger_initHookForCurrentCPU())
+					ntStatus=STATUS_SUCCESS;
+				else
+				    ntStatus=STATUS_UNSUCCESSFUL;
+
+				break;
+			}
+
 		case IOCTL_CE_SETGLOBALDEBUGSTATE:
 			{
 				struct intput
@@ -1004,12 +1006,31 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 			}
 
+		case IOCTL_CE_DEBUGPROCESS:
+			{
+				struct input
+				{					
+					DWORD	ProcessID;
+				} *pinp;
+
+			
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+				debugger_startDebugging(pinp->ProcessID);
+
+				ntStatus=STATUS_SUCCESS;
+
+				break;
+
+			}
+
 		case IOCTL_CE_STOPDEBUGGING:
 			{
-				StopDebugging();
+				debugger_stopDebugging();
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}
+
+			/*obsolete
 
 		case IOCTL_CE_STOP_DEBUGPROCESS_CHANGEREG:
 			{
@@ -1039,36 +1060,10 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				break;
 			}
+			*/
 
-		case IOCTL_CE_DEBUGPROCESS:
-			{
-				struct input
-				{					
-					DWORD	ProcessID;
-					DWORD	Address;
-					BYTE	Length;
-					BYTE	RWE;
-				} *pinp;
 
-			
-				pinp=Irp->AssociatedIrp.SystemBuffer;
-				debugger_startDebugging(pinp->ProcessID);
-
-				
-				
-				if (DebugProcess(pinp->ProcessID, pinp->Address, pinp->Length,pinp->RWE))
-				{
-					ntStatus=STATUS_SUCCESS;
-				}
-				else
-				{
-					ntStatus=STATUS_UNSUCCESSFUL;
-				}
-
-				break;
-
-			}
-
+			/*
 		case IOCTL_CE_RETRIEVEDEBUGDATA:
 			{
 				
@@ -1081,6 +1076,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				
 				break;
 			}
+			*/
 
 		case IOCTL_CE_STARTPROCESSWATCH:
 			{
@@ -1397,6 +1393,22 @@ case IOCTL_CE_ALLOCATEMEM:
 			{	
 				DbgPrint("IOCTL_CE_SETDEBUGGERSTATE: state->eax=%x\n", ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->eax);
 				ntStatus=debugger_setDebuggerState((PDebugStackState)Irp->AssociatedIrp.SystemBuffer);
+				break;
+			}
+
+		
+		case IOCTL_CE_GD_SETBREAKPOINT:
+			{
+				struct input
+				{
+					BOOL active;
+					int debugregspot;
+					DWORD address;
+					BreakType breakType;
+					BreakLength breakLength;
+				} *inp=Irp->AssociatedIrp.SystemBuffe
+				
+				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, address, breakType, breakLength);
 				break;
 			}
 

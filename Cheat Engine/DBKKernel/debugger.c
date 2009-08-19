@@ -271,7 +271,7 @@ int debugger_stopDebugging(void)
 	DbgPrint("Stopping the debugger if it is running\n");
 
 	DebuggerState.isDebugging=FALSE;
-	DebuggerState.globalDebug=FALSE; //stop when possible, saves speed
+	//DebuggerState.globalDebug=FALSE; //stop when possible, saves speed
 
 	for (i=0; i<4; i++)
 		DebuggerState.breakpoint[i].active=FALSE;
@@ -435,13 +435,8 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 		DebuggerState.LastRealDebugRegisters[4]=state->dr6;
 		DebuggerState.LastRealDebugRegisters[5]=state->dr7;
 
-		//and now the actual setting
-		debugger_dr0_setValue(state->dr0);
-		debugger_dr1_setValue(state->dr1);
-		debugger_dr2_setValue(state->dr2);
-		debugger_dr3_setValue(state->dr3);
-		debugger_dr6_setValue(state->dr6);
-		debugger_dr7_setValue(*(DebugReg7 *)&state->dr7);
+		//no setting of the DebugRegs here
+
 	}
 
 
