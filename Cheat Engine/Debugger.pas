@@ -295,7 +295,7 @@ var DebuggerThread: TDebugger;
 
 implementation
 
-uses {$ifndef net}Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,{$endif}disassembler{$ifndef net},frmTracerUnit,foundcodeunit,debugger2,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit{$endif};
+uses {$ifndef net}Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,{$endif}disassembler{$ifndef net},frmTracerUnit,foundcodeunit,debugger3,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit{$endif};
 
 function ToggleBreakpoint(address:dword):boolean;
 {$ifndef net}
@@ -345,8 +345,9 @@ begin
   if foundcodedialog<>nil then
     raise exception.Create('I can''t do that! You are currently using one of the code finder options, please, stop it first');  
 
-  if debuggerthread2<>nil then
+  if kdebugger.isactive then
   begin
+  {
     for i:=0 to 3 do
     begin
       if debuggerthread2.breakpoints[i]=address then
@@ -375,6 +376,7 @@ begin
         exit;
       end;
     end;
+    }
   end;
 
 
@@ -514,10 +516,11 @@ begin
   if processhandle=0 then raise exception.create('You must first open a process');
 
   {$ifndef netserver}
-  if debuggerthread2<>nil then
+  if kdebugger.isactive then
   begin
+  {
     if messagedlg('The kerneldebugger is currently active. Enabling the default windows debugger will cause the kernel debugger to terminate itself. Continue?',mtwarning,[mbyes,mbno],0)=mrno then exit;
-    freeandnil(debuggerthread2);
+    freeandnil(debuggerthread2);  }
   end;
   {$endif}
 
@@ -620,8 +623,10 @@ end;
 Constructor TDebugger.MyCreate(filenm: String);
 begin
   {$ifndef netserver}
-  if debuggerthread2<>nil then raise exception.Create('Please stop the kernelmode debugging routines and breakpoints before starting this debugger');
-
+  {
+  if debuggerthread3<>nil then raise exception.Create('Please stop the kernelmode debugging routines and breakpoints before starting this debugger');
+     }
+     
   if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
   if formsettings.cbBreakOnAttach.checked and (ProcessWindow<>nil) then    //created using the process list
@@ -656,11 +661,12 @@ var
 begin
 
   {$ifndef netserver}
-  if debuggerthread2<>nil then
+  {
+  if debuggerthread3<>nil then
   begin
     if messagedlg('The kerneldebugger is currently active. Enabling the default windows debugger will cause the kernel debugger to terminate itself. Continue?',mtwarning,[mbyes,mbno],0)=mrno then exit;
     freeandnil(debuggerthread2);
-  end;
+  end;  }
   
   if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
