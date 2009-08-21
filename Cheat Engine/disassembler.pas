@@ -8848,7 +8848,7 @@ begin
                 5:  begin
                       //call
                       description:='Jump far';
-                      tempresult:='JMP '+modrm(memory,prefix2,1,0,last);
+                      tempresult:='JMP far '+modrm(memory,prefix2,1,0,last);
                       tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
