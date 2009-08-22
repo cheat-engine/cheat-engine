@@ -2614,7 +2614,7 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
                           description:='Move Scalar Single-FP';
                           tempresult:='MOVSS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -3465,6 +3465,7 @@ begin
                 $5c : begin
                         if $f2 in prefix2 then
                         begin
+                          tempresult:=copy(tempresult,1,length(tempresult)-6); //strip prefix 'REPNE '
                           tempresult:=tempresult+'SUBSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
                           tempresult:=copy(tempresult,1,length(tempresult)-1);
                           description:='Scalar Double-FP Subtract';
@@ -3473,6 +3474,7 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
+                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
                           tempresult:=tempresult+'SUBSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
                           tempresult:=copy(tempresult,1,length(tempresult)-1);
                           description:='Scalar Single-FP Subtract';
@@ -4694,6 +4696,7 @@ begin
                 $c2 : begin
                         if $f2 in prefix2 then
                         begin
+                          tempresult:=copy(tempresult,1,length(tempresult)-6); //strip prefix 'REPME '
                           description:='Compare Scalar Dpuble-Precision Floating-Point Values';
                           tempresult:=tempresult+'CMPSD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
                           inc(offset,last);
@@ -4701,6 +4704,7 @@ begin
                         else
                         if $F3 in prefix2 then
                         begin
+                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
                           description:='Packed Single-FP Compare';
                           tempresult:=tempresult+'CMPSS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
                           inc(offset,last);
@@ -4912,7 +4916,7 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+                          tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='Move low quadword from xmm to MMX technology register';
                           tempresult:=tempresult+'MOVQ2DQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           tempresult:=copy(tempresult,1,length(tempresult)-1);
