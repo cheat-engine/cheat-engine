@@ -953,13 +953,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}	
 
 
-
+/*
 		case IOCTL_CE_ISUSINGALTERNATEMETHOD:
 			{
 				*(PBOOLEAN)(Irp->AssociatedIrp.SystemBuffer)=UsesAlternateMethod;
 				break;
 
 			}
+			*/
 
 			/*
 		case IOCTL_CE_USEALTERNATEMETHOD:
@@ -998,12 +999,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct intput
 				{
-					ULONG newstate;
+					BOOL newstate;
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
 				debugger_setGlobalDebugState(pinp->newstate);
 				ntStatus=STATUS_SUCCESS;
+				break;
 			}
 
 		case IOCTL_CE_DEBUGPROCESS:
@@ -1406,9 +1408,9 @@ case IOCTL_CE_ALLOCATEMEM:
 					DWORD address;
 					BreakType breakType;
 					BreakLength breakLength;
-				} *inp=Irp->AssociatedIrp.SystemBuffe
+				} *inp=Irp->AssociatedIrp.SystemBuffer;
 				
-				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, address, breakType, breakLength);
+				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, inp->address, inp->breakType, inp->breakLength);
 				break;
 			}
 
