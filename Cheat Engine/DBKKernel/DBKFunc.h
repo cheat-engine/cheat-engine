@@ -144,11 +144,11 @@ INT_VECTOR	OriginalInt3;
 UINT_PTR IDTAddresses[32]; //max 32 cpu's
 
 //note: Make this a struct and even an array if needed. (Need to figure out dynamic mem)
-PEPROCESS  	DebuggedProcessPEPROCESS;
-DWORD		DebuggedProcessID;
-DWORD		DebuggedAddress;
-DWORD		DebuggedAddressLength;
-BYTE		DebuggedAddressRWE;
+//PEPROCESS  	DebuggedProcessPEPROCESS;
+//DWORD		DebuggedProcessID;
+//DWORD		DebuggedAddress;
+//DWORD		DebuggedAddressLength;
+//BYTE		DebuggedAddressRWE;
 
 void GetIDT(PIDT pIdt);
 void GetGDT(PGDT pGdt);
