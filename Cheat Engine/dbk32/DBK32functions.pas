@@ -52,11 +52,11 @@ const IOCTL_CE_GETVERSION				      =	(IOCTL_UNKNOWN_BASE shl 16) or ($0816 shl 2
 const IOCTL_CE_GETCR4 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($0817 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_OPENTHREAD	    	   	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0818 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_MAKEWRITABLE			      =	(IOCTL_UNKNOWN_BASE shl 16) or ($0819 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_DEBUGPROCESS_CHANGEREG	=	(IOCTL_UNKNOWN_BASE shl 16) or ($081a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const IOCTL_CE_DEBUGPROCESS_CHANGEREG	=	(IOCTL_UNKNOWN_BASE shl 16) or ($081a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_STOPDEBUGGING				  = (IOCTL_UNKNOWN_BASE shl 16) or ($081b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const	IOCTL_CE_STOP_DEBUGPROCESS_CHANGEREG =	(IOCTL_UNKNOWN_BASE shl 16) or ($081c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const	IOCTL_CE_USEALTERNATEMETHOD		  =	(IOCTL_UNKNOWN_BASE shl 16) or ($081d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const	IOCTL_CE_ISUSINGALTERNATEMETHOD =	(IOCTL_UNKNOWN_BASE shl 16) or ($081e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const	IOCTL_CE_STOP_DEBUGPROCESS_CHANGEREG =	(IOCTL_UNKNOWN_BASE shl 16) or ($081c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const	IOCTL_CE_USEALTERNATEMETHOD		  =	(IOCTL_UNKNOWN_BASE shl 16) or ($081d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const	IOCTL_CE_ISUSINGALTERNATEMETHOD =	(IOCTL_UNKNOWN_BASE shl 16) or ($081e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const	IOCTL_CE_ALLOCATEMEM				    =	(IOCTL_UNKNOWN_BASE shl 16) or ($081f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_CREATEAPC					    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0820 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETPETHREAD				    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0821 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -81,8 +81,9 @@ const IOCTL_CE_SETGLOBALDEBUGSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 sh
 const IOCTL_CE_CONTINUEDEBUGEVENT 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0831 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_WAITFORDEBUGEVENT  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0832 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
-const IOCTL_CE_GETDEBUGGERSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETDEBUGGERSTATE  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GETDEBUGGERSTATE 	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETDEBUGGERSTATE  	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GD_SETBREAKPOINT     	= (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -135,7 +136,7 @@ var hdevice: thandle; //handle to my the device driver
     ownprocess: thandle=0; //needed for simple kernelmemory access
     Successfullyloaded:boolean;
 
-    usealternatedebugmethod: boolean;
+    //usealternatedebugmethod: boolean;
 
 
 
@@ -173,14 +174,14 @@ function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
 function GetSDTShadow:DWORD; stdcall;
-function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
-function getAlternateDebugMethod:BOOL; stdcall;
-function DebugProcess(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
-function SetGlobalDebugState(state: boolean): BOOL; stdcall;
-function StopDebugging:BOOL; stdcall;
-function StopRegisterChange(regnr:integer):BOOL; stdcall;
-function RetrieveDebugData(Buffer: pointer):integer; stdcall;
-function ChangeRegOnBP(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
+//function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
+//function getAlternateDebugMethod:BOOL; stdcall;
+
+
+
+//function StopRegisterChange(regnr:integer):BOOL; stdcall;
+//function RetrieveDebugData(Buffer: pointer):integer; stdcall;
+//function ChangeRegOnBP(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
 function StartProcessWatch:BOOL;stdcall;
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 function GetProcessNameFromPEProcess(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
@@ -1237,6 +1238,7 @@ begin
   end;
 end;
 
+{
 function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
 var
   x:record
@@ -1282,113 +1284,12 @@ begin
     usealternatedebugmethod:=x;
   end else result:=false;
 end;
+}
 
-function SetGlobalDebugState(state: boolean): BOOL; stdcall;
-var
-  x: dword;
-  br,cc: dword;
-begin
-  outputdebugstring('SetGlobalDebugState');
 
-  if state then
-    x:=1
-  else
-    x:=0;   
 
-  result:=false;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_SETGLOBALDEBUGSTATE;
-    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,br,nil);
-  end else result:=false;
-end;
 
-function StartCEKernelDebug:BOOL; stdcall;
-var
-    br,cc: dword;
-    i:integer;
-    cpunr,PA,SA:Dword;
-    cpunr2:byte;
-begin
-  result:=false;
-  outputdebugstring('DebugProcess function');
-
-  if usealternatedebugmethod then
-  begin
-    result:=true;
-    exit;
-  end;
-
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_HOOKINTS;
-
-    GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-    //first hook the interrupts if needed
-    cpunr2:=0;
-    cpunr:=1;
-    while (cpunr<=PA) do
-    begin
-      if ((cpunr) and PA)>0 then
-      begin
-        SetProcessAffinityMask(getcurrentprocess,cpunr);
-        //create a new thread. (Gues on what cpu it will run at...)
-
-        with THookIDTThread.Create(true) do
-        begin
-          try
-            cpunr:=cpunr2;
-            resume;
-
-            while not done do sleep(10); //the sleep should also cause a taskswitch but I'm not 100% sure
-
-            if not succeeded then
-            begin
-              SetProcessAffinityMask(getcurrentprocess,PA);
-              messagebox(0,pchar('Failure when changing the interrupt handler on CPU '+inttostr(cpunr)),'',mb_ok);
-              exit;
-            end;
-          finally
-            free;
-          end;
-        end;
-
-      end;
-      if cpunr=$80000000 then break;
-      inc(cpunr,cpunr);
-      inc(cpunr2);
-    end;
-
-    SetProcessAffinityMask(getcurrentprocess,PA); //multi processors are so fun. It'd be a waste not to use it
-    outputdebugstring('going to start the hooker');
-    hooker:=thookidtconstantly.Create(false);
-
-    result:=true;
-  end;
-end;
-
-function SetMemoryAccessWatch(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
-type Tinput=record
-  ProcessID:DWORD;
-  Address:DWORD;
-  Length:BYTE;
-  RWE:BYTE;
-end;
-var input:TInput;
-    br,cc: dword;
-begin
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    result:=StartCEKernelDebug;
-    input.Processid:=processid;
-    input.Address:=address;
-    input.length:=size;
-    input.RWE:=debugtype;
-    cc:=IOCTL_CE_DEBUGPROCESS;
-    result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
-  end;
-end;
+{
 
 function StopRegisterChange(regnr:integer):BOOL; stdcall;
 var x,cc: dword;
@@ -1400,20 +1301,11 @@ begin
     cc:=IOCTL_CE_STOP_DEBUGPROCESS_CHANGEREG;
     result:=deviceiocontrol(hdevice,cc,@regnr,4,nil,0,x,nil);
   end;
-end;
+end;}
 
-function StopDebugging:BOOL; stdcall;
-var x,cc: dword;
-begin
-  outputdebugstring('DBK32: StopDebugging called');
-  result:=false;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_STOPDEBUGGING;
-    result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,x,nil);
-  end;
-end;
 
+
+{
 function DebugProcess(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
 begin
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -1509,6 +1401,7 @@ begin
     freemem(buf);
   end;
 end;
+}
 
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 type tprocesseventstruct=record
@@ -1975,7 +1868,7 @@ begin
   ioctl:=true;
   kernel32dll:=loadlibrary('kernel32.dll');
 
-  usealternatedebugmethod:=false;
+//  usealternatedebugmethod:=false;
   Successfullyloaded:=false;
   iamprotected:=false;
   apppath:=nil;

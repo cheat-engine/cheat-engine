@@ -42,12 +42,14 @@ exports SetCR3;
 exports GetCR0;
 exports GetSDT;
 exports GetSDTShadow;
-exports setAlternateDebugMethod;
-exports getAlternateDebugMethod;
-exports DebugProcess;
-exports StopDebugging;
-exports StopRegisterChange;
-exports RetrieveDebugData;
+//exports setAlternateDebugMethod;
+//exports getAlternateDebugMethod;
+//exports DebugProcess;
+//exports StopDebugging;
+//exports StopRegisterChange;
+//exports RetrieveDebugData;
+//exports ChangeRegOnBP;
+//exports SetGlobalDebugState;
 exports GetThreadsProcessOffset;
 exports GetThreadListEntryOffset;
 exports GetDebugportOffset;
@@ -60,8 +62,8 @@ exports GetIDTCurrentThread;
 exports GetIDTs;
 exports MakeWritable;
 exports GetLoadedState;
-exports ChangeRegOnBP;
-exports SetGlobalDebugState;
+
+
 
 exports DBKSuspendThread;
 exports DBKResumeThread;
@@ -87,7 +89,10 @@ exports DBKDebug_ContinueDebugEvent;
 exports DBKDebug_WaitForDebugEvent;
 exports DBKDebug_GetDebuggerState;
 exports DBKDebug_SetDebuggerState;
-
+exports DBKDebug_SetGlobalDebugState;
+exports DBKDebug_StartDebugging;
+exports DBKDebug_StopDebugging;
+exports DBKDebug_GD_SetBreakpoint;
 
 
 //vmx

@@ -3,7 +3,7 @@ unit pluginexports;
 interface
 
 uses StdCtrls,sysutils,Controls, SyncObjs,dialogs,windows,classes,autoassembler,
-     cefuncproc,newkernelhandler,debugger,debugger2,tlhelp32, plugin;
+     cefuncproc,newkernelhandler,debugger,kerneldebugger,tlhelp32, plugin;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
@@ -361,7 +361,7 @@ function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodifica
 var frmModifyRegisters:tfrmModifyRegisters;
 begin
   result:=false;
-  if (formsettings.cbKdebug.checked) and (debuggerthread2<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
+ { if (formsettings.cbKdebug.checked) and (debuggerthread3<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up}
 
   if (not formsettings.cbKdebug.checked) then
     if (not startdebuggerifneeded) then exit;

@@ -71,6 +71,8 @@ Called by createremotethread
 }
 var x: int64;
 begin
+
+
  // messagebox(0,'called','called',mb_ok);
   initialoffset:=gettickcount;
   initialtime:=TGetTickCount(realgettickcount);
@@ -82,8 +84,5 @@ begin
 
   speedmultiplier:=speed;
 end;
-
-
-
 
 end.

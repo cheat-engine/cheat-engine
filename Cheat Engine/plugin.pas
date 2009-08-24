@@ -923,8 +923,8 @@ begin
   exportedfunctions.WaitForDebugEvent:=@@WaitForDebugEvent;
   exportedfunctions.ContinueDebugEvent:=@@ContinueDebugEvent;
   exportedfunctions.DebugActiveProcess:=@@DebugActiveProcess;
-  exportedfunctions.StopDebugging:=@@StopDebugging;
-  exportedfunctions.StopRegisterChange:=@@StopRegisterChange;
+  exportedfunctions.StopDebugging:=nil;
+  exportedfunctions.StopRegisterChange:=nil; //@@StopRegisterChange;
   exportedfunctions.VirtualProtect:=@@VirtualProtect;
   exportedfunctions.VirtualProtectEx:=@@VirtualProtectEx;
   exportedfunctions.VirtualQueryEx:=@@VirtualQueryEx;
@@ -944,11 +944,11 @@ begin
   exportedfunctions.SetCR3:=@@SetCR3;
   exportedfunctions.GetSDT:=@@GetSDT;
   exportedfunctions.GetSDTShadow:=@@GetSDTShadow;
-  exportedfunctions.setAlternateDebugMethod:=@@setAlternateDebugMethod;
-  exportedfunctions.getAlternateDebugMethod:=@@getAlternateDebugMethod;
-  exportedfunctions.DebugProcess:=@@DebugProcess;
-  exportedfunctions.ChangeRegOnBP:=@@ChangeRegOnBP;
-  exportedfunctions.RetrieveDebugData:=@@RetrieveDebugData;
+  exportedfunctions.setAlternateDebugMethod:=nil; //@@setAlternateDebugMethod;
+  exportedfunctions.getAlternateDebugMethod:=nil; //@@getAlternateDebugMethod;
+  exportedfunctions.DebugProcess:=nil; //@@DebugProcess;
+  exportedfunctions.ChangeRegOnBP:=nil; //@@ChangeRegOnBP;
+  exportedfunctions.RetrieveDebugData:=nil; //@@RetrieveDebugData;
   exportedfunctions.StartProcessWatch:=@@StartProcessWatch;
   exportedfunctions.WaitForProcessListData:=@@WaitForProcessListData;
   exportedfunctions.GetProcessNameFromID:=@@GetProcessNameFromID;

@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 192
   Top = 114
-  Width = 366
+  Width = 376
   Height = 337
   Caption = 'Form1'
   Color = clBtnFace
@@ -131,8 +131,21 @@ object Form1: TForm1
       Text = '80'
     end
   end
+  object Button2: TButton
+    Left = 136
+    Top = 240
+    Width = 75
+    Height = 25
+    Caption = 'Read'
+    TabOrder = 4
+    OnClick = Button2Click
+  end
   object OpenDialog1: TOpenDialog
     Left = 8
     Top = 184
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 216
+    Top = 248
   end
 end

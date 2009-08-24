@@ -23,12 +23,15 @@ type
     CheckBox2: TCheckBox;
     Edit1: TEdit;
     OpenDialog1: TOpenDialog;
+    Button2: TButton;
+    SaveDialog1: TSaveDialog;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbDeviceListDropDown(Sender: TObject);
     procedure cbDeviceListSelect(Sender: TObject);
     procedure FormClick(Sender: TObject);
     procedure CheckBox2Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
     vmm: TFilestream;
@@ -439,6 +442,52 @@ end;
 procedure TForm1.CheckBox2Click(Sender: TObject);
 begin
   edit1.enabled:=checkbox2.checked;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+var x,y: TFilestream;
+    bla: array of byte;
+    temp: pchar;
+begin
+  if savedialog1.execute then
+  begin
+    getmem(temp,6);
+    x:=TFileStream.Create(pchar('\\.\'+cbDeviceList.text),fmOpenRead or fmShareDenyNone );
+    try
+      setlength(bla,vmm.size+512-(vmm.size mod 512));
+      ZeroMemory(@bla[0],length(bla));
+
+      x.Seek(0,soFromBeginning);
+      x.Read(bla[0],512);
+
+      //check if CETC is already writen. If not, query if he's sure
+      CopyMemory(temp,@bla[3],5);
+      temp[5]:=#0;
+      (*if temp<>'CETC2' then
+      begin
+        //ask if sure
+        if MessageDlg('This disk doesn''t contain dbvm. You sure you want to read it? ?', mtConfirmation, [mbyes,mbno],0)<>mryes then
+          exit;
+      end;
+      *)
+
+      x.Seek(0,soFromBeginning);
+      setlength(bla,1024*1024);
+      x.Read(bla[0],1024*1024);
+
+      y:=TFileStream.Create(savedialog1.filename,fmcreate);
+      try
+        y.Write(bla[0],1024*1024);
+      finally
+        y.free;
+      end;
+
+    finally
+      x.free;
+      freemem(temp);
+    end;
+
+  end;
 end;
 
 initialization

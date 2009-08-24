@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   ComCtrls, StdCtrls,  Menus, CEFuncproc, Buttons,shellapi,
-  ExtCtrls, Dialogs, Clipbrd,debugger,debugger2, assemblerunit,
+  ExtCtrls, Dialogs, Clipbrd,debugger,kerneldebugger, assemblerunit,
   registry,{xpman,}math,hexeditor, Gauges, ImgList,commctrl,NewKernelHandler,
   hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
@@ -1604,14 +1604,19 @@ begin
   end;
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
-  if debuggerthread2<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
+  //if Debuggerthread3<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
 
   foundcodedialog:=TFoundcodedialog.create(self);
   foundcodedialog.Caption:=strAccessed;
   foundcodedialog.btnOK.caption:=strStop;
 
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
-    if not DebugProcess(processid,address,size,3) then raise exception.Create(strFailedToInitialize);
+  begin
+    if not KDebugger.isActive then
+      KDebugger.startDebugger;
+
+    //  Debuggerthread3:=TDebuggerthread3.create(false);
+  end;
 
   olda:=address;
   olds:=size;
@@ -1670,24 +1675,7 @@ begin
     //ct.dr7:=$D0303;
     if formsettings.cbKdebug.Checked and (debuggerthread=nil) then
     begin
-      if DebuggerThread2<>nil then
-      begin
-        debuggerthread2.Terminate;
-        debuggerthread2.WaitFor;
-        freeandnil(debuggerthread2);
-      end;
-
-      DebuggerThread2:=TDebugEvents.Create(true);
-      debuggerthread2.debugregs:=ct;
-
-      for i:=0 to length(debuggerthread2.threadlist)-1 do
-      begin
-        suspendthread(debuggerthread2.threadlist[i]);
-        SetThreadContext(debuggerthread2.threadlist[i],debuggerthread2.debugregs);
-        resumethread(debuggerthread2.threadlist[i]);
-      end;
-
-      debuggerthread2.Resume;
+      KDebugger.SetBreakpoint(olda, bt_OnReadsAndWrites, olds, bo_findcode);
     end
     else
     begin
@@ -1861,15 +1849,15 @@ begin
   end;
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
-  if debuggerthread2<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
+  //if debuggerthread3<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
 
   foundcodedialog:=TFoundcodedialog.create(self);
   foundcodedialog.Caption:=strOpcodeChanged;
   foundcodedialog.btnOK.caption:=strstop;
 
-  if formsettings.cbKdebug.checked and (debuggerthread=nil) then
+  {if formsettings.cbKdebug.checked and (debuggerthread=nil) then
     if not DebugProcess(processid,address,size,2) then raise exception.Create(strFailedToInitialize);
-
+  }
 
   olda:=address;
   olds:=size;
@@ -1927,7 +1915,7 @@ begin
    // ct.dr7:=$D0303;
     if formsettings.cbKdebug.Checked and (debuggerthread=nil) then
     begin
-      if DebuggerThread2<>nil then
+      {if DebuggerThread2<>nil then
       begin
         debuggerthread2.Terminate;
         debuggerthread2.WaitFor;
@@ -1944,7 +1932,7 @@ begin
         resumethread(debuggerthread2.threadlist[i]);
       end;
 
-      debuggerthread2.Resume;
+      debuggerthread2.Resume;    }
     end
     else
     begin
@@ -8121,9 +8109,9 @@ begin
 
   if flashprocessbutton<>nil then
     flashprocessbutton.Terminate;
-
+ {
   if debuggerthread2<>nil then
-    freeandnil(debuggerthread2);
+    freeandnil(debuggerthread2); }
 
   try
   if @DebugActiveProcessStop<>@DebugActiveProcessStopProstitute then
@@ -9925,7 +9913,7 @@ begin
   if (not formsettings.cbKdebug.checked) then
   begin
     if (not startdebuggerifneeded) then exit;
-    if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window)');
+    //if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window)');
   end;
 
   address:=memrec[lastselected].Address;
@@ -11057,6 +11045,11 @@ begin
 {  disassembler.mode16:=mode16.checked; }
 end;
 
+var raaa: packed record
+  eip: dword;
+  segment: word;  
+end;
+
 procedure TMainForm.Label59Click(Sender: TObject);
 {type TKeGetCurrentIrql=function: dword; stdcall;
      TExAllocatePool=function(Pooltype: dword; NumberOfBytes: dword):pointer; stdcall;
@@ -11069,7 +11062,134 @@ var new_cs,new_ss,new_ds,new_es,new_fs,new_gs: word;
     ExAllocatePool:   TExAllocatePool;
     z: pointer;
 label lp;    }
+label ex;
+var x: uint64;
+var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
+
+  oldflags: dword;
+  i: integer;
+
+  a: dword;
+  b: dword;
+
+  sgdtdesc: uint64;
+  state: TDebuggerstate;
+
+
 begin
+  LoadDBK32;
+
+  DBKDebug_StartDebugging(ProcessID);
+
+  if DBKDebug_WaitForDebugEvent(1000) then
+  begin
+    ShowMessage('Wait was TRUE');
+
+    if DBKDebug_GetDebuggerState(@state) then
+    begin
+      showmessage('obtained state: ebp='+inttohex(state.ebp,8)+'esp='+inttohex(state.esp,8)+'eax='+inttohex(state.eax,8));
+    end;
+
+//    state.eax:=$9b00b135;
+//    state.eflags:=state.eflags or (1 shl 16); //set Resume flag
+
+//    DBKDebug_SetDebuggerState(@state);
+
+    if DBKDebug_ContinueDebugEvent(false) then
+      ShowMessage('Continued unhandled')
+    else
+      ShowMessage('No continue?');
+
+
+  end
+  else
+    ShowMessage('Wait was FALSE');
+
+  {
+
+  sgdtdesc:=0;
+
+
+
+  asm
+    nop
+    mov ax,cs
+    mov raaa.segment,ax
+    lea eax,[ex]
+    mov raaa.eip,eax
+    db $ff
+    db $2d
+    dd raaa
+  end;
+
+
+  ex:
+  
+
+  showmessage(inttohex(sgdtdesc,16)+':'+inttohex(b,8)+' ('+inttostr(a)+')');
+
+   }
+   {
+
+
+  asm
+    xchg bx,bx
+  end;
+
+  dbvm_block_interrupts;
+  asm
+
+    push eax
+    push ebx
+
+    //save old segment registers , needed to come back from it
+
+    mov ax,cs
+    mov oldcs,ax
+    mov ax,ss
+    mov oldss,ax
+    mov ax,ds
+    mov oldds,ax
+    mov ax,es
+    mov oldes,ax
+    mov ax,fs
+    mov oldfs,ax
+    mov ax,gs
+    mov oldgs,ax
+
+
+
+    pushfd
+    pop eax
+    mov oldflags,eax
+
+    pop ebx
+    pop eax
+
+  end;
+
+  if dbvm_raise_privilege=0 then
+  begin
+    //do your ring0 stuff
+
+
+    asm
+      sgdt [sgdtdesc]
+
+      mov eax,oldflags
+      push eax
+      popfd
+    end;
+    dbvm_changeselectors(oldcs,oldss,oldds,oldes,oldfs,oldgs);
+  end;
+
+
+  dbvm_restore_interrupts;
+
+
+  showmessage(inttohex(sgdtdesc.base,8)+' ('+inttostr(sgdtdesc.limit)+')');
+     }
+
 {  //get the original segment selectors, just to be sure
   asm
     mov ax,cs
@@ -11217,203 +11337,13 @@ var resh: thandle;
     x: array [0..4095] of byte;
     y: integer;
 begin
+  LoadDBK32;
 
-  asm
+  DBKDebug_StartDebugging(ProcessID);
 
-    db $dc, $e1
-    db $dc, $e9
-  end;
-//DBKPhysicalMemoryDBVM;
-
-//  zeromemory(@x[0],4096);
-//  y:=0;
- // y:=dbvm_read_physical_memory(0,pointer($0),4096);
-//  y:=dbvm_read_physical_memory(0,@x[0],128);
-//  if y=0 then showmessage('failure1');
-//  if x[0]=0 then showmessage('failure2');
-
+  DBKDebug_GD_SetBreakpoint(true, 0, $00455c00, bt_OnReadsAndWrites, bl_4byte);
   exit;
-  
-asm
-mov eax,$ffffffff
-mov al,14
-end;
-exit;
-
-  showmessage(inttohex(dbvm_version,8));
-  exit;
-//Application.HelpCommand(HELP_CONTEXTPOPUP, 0);
-
-asm
-fcmovb st(0),st(1)
-fadd st(1),st(0)
-end;
-
-exit;
-  resh:=BeginUpdateResource(pchar('c:\xxx.exe'),false);
-  if (resh<>0) then
-  begin
-    try
-      // icon.p
-      s:=tmemorystream.Create;
-      try
-        ki:=TKIcon.Create;
-        ki.LoadFromFile('c:\yyy.ico');
-        ki.SaveToFile('c:\yyy2.ico');
-        showmessage(inttostr(ki.IconData[0].BytesInRes));
-
-        ki.SaveToStream(s);
-
-        if not updateResource(resh,pchar(RT_ICON),pchar(1),1033, pointer(dword(s.Memory)+(s.size-ki.IconData[0].BytesInRes)), s.size-(s.size-ki.IconData[0].BytesInRes)) then
-          showmessage('Error changing the icon');
-
-      finally
-        s.Free;
-      end;
-    finally
-      EndUpdateResource(resh,false);
-    end;
-  end;
-
-  {
-asm
-  pushfd
-  pop eax
-  and eax,$100
-  push eax
-  popfd
-  db $cc
-end;  }
-exit;
-
-        {
-
-blaat:=tstringlist.create;
-blaat.add('//test1');
-blaat.add('/*test2*/');
-blaat.add('/*test3');
-blaat.add('test3b');
-blaat.add('test3c*/');
-blaat.add('alloc(blaaa,123)');
-    {
-with TAutoAssembler2.create do
-  autoassemble(blaat);  }
-
-exit;
-
-asm
-  push ax
-  pop gs
-end;
-{  if x(12) then exit;
-
-  scriptengine.beginScript;
-  try
-    tc1:=gettickcount;
-    scriptengine.x;
-    tc2:=gettickcount;
-  finally
-    scriptengine.endScript;
-  end;
-
-  showmessage(inttostr(tc2-tc1));
-
-  exit;
-  
-   {
-  getmem(buf,$9001);
-  total:=0;
-  for i:=0 to cnt do
-  begin
-    QueryPerformanceCounter(c);
-    readprocessmemory(processhandle,pointer($00400000),buf,$200,xa);
-    QueryPerformanceCounter(d);
-    total:=total+(d-c);
-  end;
-
-  d:=total;
-  c:=trunc(d / cnt);
-
-  showmessage('t='+inttostr(c ));
-  exit;
-
-  asm
-    mov [0],1223
-  end;
-
-//  showmessage(inttobin(123));
-  exit;
-
-  pr:=memscan.GetProgress(xa,xb);
-  showmessage(format('%d : %d - %d',[pr,xa,xb]));
-
-  exit;
-
-  v1:=2;
-  v2:=2;
-  v3:=2;
-  v4:=2;
-  v5:=2;
-  v6:=2;
-
-  if v1=0 then exit;
-  if v2=0 then exit;
-  if v3=0 then exit;
-  if v4=0 then exit;
-  if v5=0 then exit;
-  if v6=0 then exit;
-
-
- // addaddress();
-  addaddress('v1',dword(@v1),offsets,0,false,2,0,0,false,false);
-  addaddress('v2',dword(@v2),offsets,0,false,2,0,0,false,false);
-  addaddress('v3',dword(@v3),offsets,0,false,2,0,0,false,false);
-  addaddress('v4',dword(@v4),offsets,0,false,2,0,0,false,false);
-  addaddress('v5',dword(@v5),offsets,0,false,2,0,0,false,false);
-  addaddress('v6',dword(@v6),offsets,0,false,2,0,0,false,false);
-
-  beep;
-exit;
-  functocall:=x;
-
-  getmem(buf,32*1024*1024);
-  actualread:=0;
-  total:=0;
-  fc:=0;
-
-  tc1:=gettickcount;
-  QueryPerformanceCounter(c);
-  for i:=1 to cnt do
-  begin
-    QueryPerformanceCounter(a);
-    asm
-      pushad
-
-      popad
-    end;
-
-    if functocall(i) then
-    //if (i mod 666)=123 then
-    begin
-      inc(fc);
-    end;
-
-    QueryPerformanceCounter(b);
-    total:=total+(b-a);
-  end;
-
-  QueryPerformanceCounter(d);
-  tc2:=gettickcount;
-
-
-//  if c then showmessage('success') else showmessage('fail');
-//  showmessage('wanted to read:'+inttohex(32*1024*1024,8)+' didread='+inttohex(actualread,8));
-    showmessage('time='+inttostr(total div cnt)+' d-c='+inttostr((d-c) div cnt)+' '+inttostr((tc2-tc1) ));
-
-
-  freemem(buf);
-  exit;
-      }
+ 
 {  //find the current kernel, and get the base of it
   //
   

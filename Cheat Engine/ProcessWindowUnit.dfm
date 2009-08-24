@@ -1,6 +1,6 @@
 object ProcessWindow: TProcessWindow
-  Left = 768
-  Top = 562
+  Left = 543
+  Top = 311
   Width = 254
   Height = 355
   HelpContext = 4
@@ -23,8 +23,8 @@ object ProcessWindow: TProcessWindow
   object ProcessList: TListBox
     Left = 0
     Top = 0
-    Width = 246
-    Height = 152
+    Width = 238
+    Height = 150
     Style = lbOwnerDrawFixed
     Align = alClient
     ItemHeight = 16
@@ -37,8 +37,8 @@ object ProcessWindow: TProcessWindow
   end
   object Panel1: TPanel
     Left = 0
-    Top = 152
-    Width = 246
+    Top = 150
+    Width = 238
     Height = 169
     Align = alBottom
     BevelInner = bvLowered
@@ -47,7 +47,7 @@ object ProcessWindow: TProcessWindow
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 244
+      Width = 236
       Height = 167
       Align = alClient
       BevelOuter = bvNone

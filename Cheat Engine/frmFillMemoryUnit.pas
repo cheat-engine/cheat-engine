@@ -57,13 +57,14 @@ begin
     raise exception.Create('Please fill in a valid ''Fill'' value');
   end;
 
-  count:=stop-start+1;
+
   if integer(count)<0 then
   begin
     temp:=stop;
     stop:=start;
     start:=temp;
   end;
+  count:=stop-start+1;
 
   setlength(buf,count);
   fillmemory(@buf[0],count,fillvalue);

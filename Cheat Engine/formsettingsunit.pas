@@ -4,10 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst
+  StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst,
+  Buttons, frameHotkeyConfigUnit,
   {$ifndef net}
-  ,plugin,newkernelhandler,debugger,hotkeyhandler, frameHotkeyConfigUnit,
-  formhotkeyunit, Buttons;
+  kerneldebugger,plugin,newkernelhandler,debugger,hotkeyhandler, 
+  formhotkeyunit;
   {$else}
   ,netapis;
 
@@ -554,8 +555,8 @@ begin
       reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
-      if assigned(newkernelhandler.SetGlobalDebugState) then
-        newkernelhandler.SetGlobalDebugState(cbGlobalDebug.checked);
+      kdebugger.GlobalDebug:=cbGlobalDebug.checked;
+
 
 
       unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);

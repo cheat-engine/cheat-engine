@@ -313,8 +313,7 @@ Return Value:
     DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DispatchClose;
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
 
-	DebuggedProcessID=0;				
-	
+
 	ProtectOn=FALSE;
 	ImageNotifyRoutineLoaded=FALSE;
 	LastForegroundWindow=0;

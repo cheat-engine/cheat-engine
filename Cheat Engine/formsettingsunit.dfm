@@ -21,15 +21,15 @@ object formSettings: TformSettings
   object pnlConfig: TPanel
     Left = 0
     Top = 0
-    Width = 641
-    Height = 475
+    Width = 633
+    Height = 473
     Align = alClient
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
       Top = 1
       Width = 120
-      Height = 473
+      Height = 471
       Align = alLeft
       HideSelection = False
       Indent = 19
@@ -56,9 +56,9 @@ object formSettings: TformSettings
     object pcSetting: TPageControl
       Left = 121
       Top = 1
-      Width = 519
-      Height = 473
-      ActivePage = GeneralSettings
+      Width = 511
+      Height = 471
+      ActivePage = ScanSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -362,24 +362,24 @@ object formSettings: TformSettings
         inline frameHotkeyConfig: TframeHotkeyConfig
           Left = 0
           Top = 0
-          Width = 511
-          Height = 442
+          Width = 503
+          Height = 440
           Align = alClient
           TabOrder = 0
           inherited Panel1: TPanel
-            Width = 328
-            Height = 442
+            Width = 320
+            Height = 440
             inherited Label1: TLabel
-              Width = 328
+              Width = 320
             end
             inherited ListBox1: TListBox
-              Width = 328
-              Height = 429
+              Width = 320
+              Height = 427
             end
           end
           inherited Panel2: TPanel
-            Left = 328
-            Height = 442
+            Left = 320
+            Height = 440
             inherited Panel3: TPanel
               Height = 344
             end
@@ -613,7 +613,7 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 511
+          Width = 500
           Height = 39
           Align = alTop
           Caption = 
@@ -964,7 +964,7 @@ object formSettings: TformSettings
         object Panel2: TPanel
           Left = 0
           Top = 0
-          Width = 511
+          Width = 503
           Height = 21
           Align = alTop
           BevelOuter = bvNone
@@ -982,10 +982,10 @@ object formSettings: TformSettings
           end
         end
         object Panel3: TPanel
-          Left = 326
+          Left = 318
           Top = 21
           Width = 185
-          Height = 421
+          Height = 419
           Align = alRight
           BevelOuter = bvNone
           TabOrder = 1
@@ -1089,15 +1089,15 @@ object formSettings: TformSettings
         object Panel5: TPanel
           Left = 0
           Top = 21
-          Width = 326
-          Height = 421
+          Width = 318
+          Height = 419
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
-            Top = 398
-            Width = 326
+            Top = 396
+            Width = 318
             Height = 23
             Align = alBottom
             BevelOuter = bvNone
@@ -1124,8 +1124,8 @@ object formSettings: TformSettings
           object lvTools: TListView
             Left = 0
             Top = 0
-            Width = 326
-            Height = 398
+            Width = 318
+            Height = 396
             Align = alClient
             Columns = <
               item
@@ -1153,15 +1153,15 @@ object formSettings: TformSettings
   end
   object Panel6: TPanel
     Left = 0
-    Top = 475
-    Width = 641
+    Top = 473
+    Width = 633
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     OnResize = Panel6Resize
     DesignSize = (
-      641
+      633
       38)
     object AboutLabel: TLabel
       Left = 595

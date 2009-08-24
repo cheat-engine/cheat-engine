@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,debugger,debugger2,cefuncproc,newkernelhandler,symbolhandler;
+  Dialogs, StdCtrls,debugger,kerneldebugger,cefuncproc,newkernelhandler,symbolhandler;
 
 type
   TfrmModifyRegisters = class(TForm)
@@ -184,9 +184,10 @@ begin
       end;
   end;
 
-  if debuggerthread2<>nil then
+  if KDebugger.isActive then
   begin
-//find the address in debuggerthread.registermodificationBPs
+  {
+    //find the address in debuggerthread.registermodificationBPs
     for i:=0 to 3 do
       if debuggerthread2.breakpoints[i]=address then
       begin
@@ -270,6 +271,7 @@ begin
         end;
 
       end;
+      }
   end;
 end;
 
@@ -399,6 +401,7 @@ begin
 
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
   begin
+  {
     if DebuggerThread2=nil then
       DebuggerThread2:=TDebugEvents.Create(false);
 
@@ -434,7 +437,7 @@ begin
     finally
       crdebugging.Leave;
     end;
-
+      }
   end
   else
   begin

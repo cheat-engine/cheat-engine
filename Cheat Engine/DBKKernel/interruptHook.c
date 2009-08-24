@@ -28,7 +28,11 @@ ULONG_PTR inthook_getOriginalEIP(unsigned char intnr)
 
 int inthook_isHooked(unsigned char intnr)
 {
-	return InterruptHook[intnr].hooked;
+	if (InterruptHook[intnr].hooked)
+	{
+		//todo: add a check to see if the hook is still present. if not, return false and update the hooked value
+		return TRUE;
+	} else return FALSE;
 }
 
 int inthook_isDBVMHook(unsigned char intnr)

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,debugger,debugger2;
+  Dialogs, StdCtrls,debugger,kerneldebugger;
 
 type
   TfrmBreakpointlist = class(TForm)
@@ -50,10 +50,13 @@ begin
 
   end;
 
-  if debuggerthread2<>nil then
+  if kdebugger.isactive then
+  begin
+  {
     for i:=0 to 3 do
       if debuggerthread2.breakpoints[i]<>0 then
-        listbox1.items.add(inttohex(debuggerthread2.breakpoints[i],8));
+        listbox1.items.add(inttohex(debuggerthread2.breakpoints[i],8)); }
+  end;
 end;
 
 procedure TfrmBreakpointlist.FormClose(Sender: TObject;
@@ -75,8 +78,9 @@ begin
   if listbox1.ItemIndex>=0 then
   begin
 
-    if debuggerthread2<>nil then
+    if kdebugger.isactive then
     begin
+    {
       address:=strtoint('$'+listbox1.items[listbox1.itemindex]);
       for i:=0 to 3 do
         if debuggerthread2.breakpoints[i]=address then
@@ -86,7 +90,7 @@ begin
         end;
 
       debuggerthread2.setbreakpoints;
-      updatebplist;
+      updatebplist;  }
     end;
 
 

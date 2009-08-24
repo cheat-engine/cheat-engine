@@ -1,37 +1,34 @@
-unit debugger3;
-//third generation kernelmode debugger
+unit KernelDebugger;
 
 interface
 
 uses windows,sysutils,SyncObjs, dialogs,classes,debugger,disassembler,newkernelhandler,foundcodeunit,
      tlhelp32,cefuncproc;
 
+     {
 type Tdebugevent =record
   EAX,EBX,ECX,EDX,ESI,EDI,EBP,ESP,EIP:DWORD;
 end;
+}
 
 type
-  TThreadListItem=record
-    threadid: dword;
-    threadhandle: dword;
-  end;
-  PThreadListItem=^TThreadListItem;
-
-
   TKDebugger=class;
-  TDebuggerThread3=class(TThread)
+  TKDebuggerThread=class(TThread)
   private
     addressfound: dword;
-    currentDebugEvent: TDebugEvent;
-    //debugregs: _context;
+    currentdebuggerstate: TDebuggerstate; //when a debug event has occured this will be set to the current state
     threadlistCS: TCriticalSection;
     threadlist: array of dword;
 
-    //breakpoints: array [0..3] of dword;
-    //breakpointchanges: array [0..3] of tregistermodificationBP;
-    
-    owner: TKDebugger;    
+    owner: TKDebugger;
+    stepping: boolean; //is true if the previous event was a break or a single step and the user hasn't stopped single stepping yet
+
     procedure foundone;
+    function HandleBreak: boolean;
+    function HandleChangeRegister(breakreason: integer): boolean;
+    function HandleFindCode: boolean;
+
+    function getDebugReason: integer;
   public
     active: boolean;
 
@@ -40,9 +37,10 @@ type
 //    destructor destroy;  override;
   end;
 
+  TBreakOption = (bo_Break=0, bo_ChangeRegister=1, bo_FindCode=2);
   TKDebugger=class
   private
-    DebuggerThread: TDebuggerThread3;
+    DebuggerThread: TKDebuggerThread;
 
     breakpointCS: TCriticalSection;
     breakpoint: array [0..3] of record
@@ -50,6 +48,7 @@ type
       Address: DWORD;
       BreakType: TBreakType;
       BreakLength: TBreakLength;
+      BreakOption: TBreakOption;
     end;
 
     generaldebugregistercontext: TContext;
@@ -61,15 +60,15 @@ type
     procedure ApplyDebugRegisters;    
     procedure StartDebugger;
     procedure StopDebugger;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer); overload;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break); overload;
     function isActive: boolean;
     property GlobalDebug: boolean read fGlobalDebug write setGlobalDebug;
     constructor create;
   end;
   
 
-//var DebuggerThread3: TDebuggerThread3;
+//var KDebuggerThread: TKDebuggerThread;
 
 var KDebugger: TKDebugger;
 
@@ -79,9 +78,8 @@ uses frmProcessWatcherUnit,memorybrowserformunit;
 
 Procedure TKDebugger.StartDebugger;
 begin
-
   if processid=0 then raise exception.Create('Please open a process first');
-  Debuggerthread:=TDebuggerThread3.create(self,false);
+  Debuggerthread:=TKDebuggerThread.create(self,false);
 end;
 
 Procedure TKDebugger.StopDebugger;
@@ -94,18 +92,23 @@ begin
   end;
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer);
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_Break);
 //split up into seperate SetBreakpoint calls
 var atleastone: boolean;
 begin
+  OutputDebugString(format('SetBreakpoint integerlength (%d)',[breaklength]));
+  if not isactive then
+    StartDebugger;
+
   atleastone:=false;
   try
     while (breaklength>0) do
     begin
+      Outputdebugstring(format('address=%x breaklength=%d',[address,breaklength]));
       if (breaklength=1) or (address mod 2 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_1byte);
+        SetBreakpoint(address, BreakType, bl_1byte, BreakOption);
         inc(address,1);
         dec(BreakLength,1);
       end;
@@ -113,7 +116,7 @@ begin
       if (breaklength=2) or (address mod 4 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_2byte);
+        SetBreakpoint(address, BreakType, bl_2byte, BreakOption);
         inc(address,2);
         dec(BreakLength,2);
       end;
@@ -121,7 +124,7 @@ begin
       if (breaklength=4) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_4byte);
+        SetBreakpoint(address, BreakType, bl_4byte, BreakOption);
         inc(address,4);
         dec(breaklength,4);
       end;
@@ -134,13 +137,17 @@ begin
 
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength);
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break);
 //only call this from the main thread
 var debugreg: integer;
     i: integer;
 begin
-  //find a debugreg spot not used yet
+  OutputDebugString('SetBreakpoint predefinedlength');
 
+  //find a debugreg spot not used yet
+  if not isactive then
+    StartDebugger;
+    
   debugreg:=-1;
 
   breakpointCS.Enter;
@@ -150,8 +157,10 @@ begin
       breakpoint[i].Address:=address;
       breakpoint[i].BreakType:=BreakType;
       breakpoint[i].BreakLength:=BreakLength;
+      breakpoint[i].BreakOption:=breakoption;
       breakpoint[i].active:=true;
 
+      outputdebugstring(format('using debug reg %d with BreakOption %d',[i,integer(breakoption)]));
       debugreg:=i;
       break;
     end;
@@ -165,12 +174,14 @@ begin
   if fGlobalDebug then
   begin
     //don't set the debugregs manually, let the taskswitching do the work for us
-    //(for global debug the debugreg is just a recommendation, so don't watch for a dr6 result with this exit)
+    //(for global debug the debugreg is just a recommendation, so don't watch for a dr6 result with this exit)\
+    OutputDebugString('Setting breakpoint using global debug');
     DBKDebug_GD_SetBreakpoint(true,debugreg,address,breaktype,breaklength);
   end
   else
   begin
     //manually set the breakpoints in the global debug register context
+    OutputDebugString('Setting breakpoint manually');
 
     generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl debugreg) or (3 shl 16+debugreg*2))) or (integer(breaktype) shl debugreg) or (integeR(breaklength) shl 16+debugreg*2);
     OutputDebugString(pchar(format('Setting DR7 to %x',[generaldebugregistercontext.Dr7])));
@@ -206,11 +217,13 @@ end;
 
 procedure TKDebugger.ApplyDebugRegistersForThread(threadhandle: DWORD);
 begin
+  OutputDebugString(format('Calling TKDebugger.ApplyDebugRegistersForThread(%x)',[threadhandle]));
   if not globaldebug then
   begin
     Debuggerthread.threadlistCS.Enter;
     try
-      setthreadcontext(threadhandle, generaldebugregistercontext);
+      if not setthreadcontext(threadhandle, generaldebugregistercontext) then
+        OutputDebugString(format('Failed setting debug registers on thread %x with error %d',[threadhandle, GetLastError]));
     finally
       Debuggerthread.threadlistCS.Leave;
     end;
@@ -235,6 +248,11 @@ end;
 procedure TKDebugger.setGlobalDebug(x: boolean);
 begin
   fGlobalDebug:=x;
+  if x then
+    OutputDebugString('setGlobalDebug(true)')
+  else
+    OutputDebugString('setGlobalDebug(false)');
+
   DBKDebug_SetGlobalDebugState(x);
 end;
 
@@ -251,13 +269,16 @@ end;
 
 //---------------------------------------
 
-constructor TDebuggerThread3.create(owner: TKDebugger; suspended:boolean);
+constructor TKDebuggerThread.create(owner: TKDebugger; suspended:boolean);
 var ths: thandle;
     tE: threadentry32;
     i,j: integer;
     found: boolean;
     temp: thandle;
 begin
+  OutputDebugString('TKDebuggerThread.create');
+
+  DBKDebug_StartDebugging(ProcessID);
   active:=true;
   self.owner:=owner;
 
@@ -322,11 +343,10 @@ end;
 
 
 
-procedure TDebuggerThread3.foundone;
+procedure TKDebuggerThread.foundone;
 var desc,opcode: string;
     address: dword;
 begin
-{
   with foundcodedialog do
   begin
     address:=addressfound;
@@ -336,89 +356,185 @@ begin
     coderecords[length(coderecords)-1].address:=addressfound;
     coderecords[length(coderecords)-1].size:=address-addressfound;
     coderecords[length(coderecords)-1].opcode:=opcode;
-    coderecords[length(coderecords)-1].desciption:=desc;
+    coderecords[length(coderecords)-1].description:=desc;
 
-    coderecords[length(coderecords)-1].eax:=currentdebugevent.EAX;
-    coderecords[length(coderecords)-1].ebx:=currentdebugevent.EBX;
-    coderecords[length(coderecords)-1].ecx:=currentdebugevent.ECX;
-    coderecords[length(coderecords)-1].edx:=currentdebugevent.EDX;
-    coderecords[length(coderecords)-1].esi:=currentdebugevent.Esi;
-    coderecords[length(coderecords)-1].edi:=currentdebugevent.Edi;
-    coderecords[length(coderecords)-1].ebp:=currentdebugevent.Ebp;
-    coderecords[length(coderecords)-1].esp:=currentdebugevent.Esp;
-    coderecords[length(coderecords)-1].eip:=currentdebugevent.Eip;
+    coderecords[length(coderecords)-1].eax:=currentdebuggerstate.EAX;
+    coderecords[length(coderecords)-1].ebx:=currentdebuggerstate.EBX;
+    coderecords[length(coderecords)-1].ecx:=currentdebuggerstate.ECX;
+    coderecords[length(coderecords)-1].edx:=currentdebuggerstate.EDX;
+    coderecords[length(coderecords)-1].esi:=currentdebuggerstate.Esi;
+    coderecords[length(coderecords)-1].edi:=currentdebuggerstate.Edi;
+    coderecords[length(coderecords)-1].ebp:=currentdebuggerstate.Ebp;
+    coderecords[length(coderecords)-1].esp:=currentdebuggerstate.Esp;
+    coderecords[length(coderecords)-1].eip:=currentdebuggerstate.Eip;
     Foundcodelist.Items.Add(opcode);
   end;
-  }
 end;
 
-procedure TDebuggerThread3.execute;
-var DebugEvent:array [0..49] of TDebugEvent;
-    i,j,events: integer;
-    offset: dword;
-    opcode,desc: string;
-    notinlist: boolean;
+
+function TKDebuggerThread.getDebugReason: integer;
+//breakreason -2 = error
+//breakreason -1 = single step
+//breakreason x = used breakpoint
+var i,j: integer;
+    bsize: integer;
+    address: dword;
+begin
+  result:=-2;
+  owner.breakpointCS.Enter;
+  try
+    for i:=0 to 3 do
+    begin
+      if getbit(i, currentdebuggerstate.dr6)=1 then
+      begin
+        //find which debug breakpoint it actually is, and that it didn't get overwritten
+        case i of
+          0: address:=currentdebuggerstate.dr0;
+          1: address:=currentdebuggerstate.dr1;
+          2: address:=currentdebuggerstate.dr2;
+          3: address:=currentdebuggerstate.dr3;
+        end;
+
+        for j:=0 to 3 do
+        begin
+          if owner.breakpoint[j].address=address then
+          begin
+            result:=j;
+            exit;
+          end;
+        end;
+      end;
+    end;
+  finally
+    owner.breakpointCS.Leave;
+  end;
+
+  if result=-2 then
+  begin
+    //single step then ?
+    if getbit(14,currentdebuggerstate.dr6)=1 then
+    begin
+      //yes, it's a single step
+      //is the user single stepping ?
+      if Stepping then
+        result:=-1;
+    end;
+  end;
+end;
+
+function TKDebuggerThread.HandleBreak:boolean;
+begin
+  OutputDebugString('HandleBreak');
+
+  result:=true; //unless the single step isn't intended
+
+  //update gui state
+  //sleep until the user sets the continue event
+
+  stepping:=true; //set stepping to false if the user continues with the state set to continue
+
+  //continue debugged thread
+
+end;
+
+function TKDebuggerThread.HandleChangeRegister(breakreason: integer): boolean;
+begin
+  OutputDebugString('HandleChangeRegister');
+  result:=true;
+  //apply update according to the given breakpoint
+  //continue debugged thread
+end;
+
+function TKDebuggerThread.HandleFindCode: boolean;
+var
+  i: integer;
+  temp: dword;
+  opcode,desc: string;
+
+begin
+  //update gui with debugevent data
+  //continue debugged thread
+  OutputDebugString('HandleFindCode');
+
+  result:=true;
+  i:=0;
+  if (foundcodedialog<>nil) then
+  begin
+    addressfound:=currentdebuggerstate.eip;
+    opcode:=disassemble(addressfound,desc);
+
+    if (pos('REP',opcode)=0) then
+    begin
+      if (currentdebuggerstate.ecx=0) then addressfound:=previousopcode(currentdebuggerstate.eip);
+    end
+    else
+      addressfound:=previousopcode(currentdebuggerstate.eip);
+
+
+    for i:=0 to length(foundcodedialog.coderecords)-1 do
+      if (foundcodedialog.coderecords[i].address=addressfound) then exit; //already in the list, handled, and continue
+
+    //still here so not in the list
+    synchronize(foundone);
+
+  end;
+  //else no handler, let's try to continue...
+
+end;
+
+procedure TKDebuggerThread.execute;
+var
+  breakreason: integer;
+  breakoption: TBreakOption;
+
 begin
   active:=true;
   try
-    DBKDebug_StartDebugging(ProcessID);
+
     while not terminated do
     begin
       if DBKDebug_WaitForDebugEvent(1000) then
       begin
         OutputDebugString('KDebug event');
 
+        DBKDebug_GetDebuggerState(@currentdebuggerstate);
+        breakreason:=GetDebugReason;
 
-        DBKDebug_ContinueDebugEvent(false);
-      end;
+        OutputDebugString(format('breakreason=%d',[breakreason]));
 
-    {
-      if foundcodedialog=nil then
-      begin
-        sleep(1000);
-        continue;
-      end;
-
-      crdebugging.Enter;
-      try
-        //poll the debugevents
-        events:=RetrieveDebugData(@DebugEvent);
-        for i:=0 to events-1 do
+        if breakreason>=-1 then
         begin
-          currentdebugevent:=DebugEvent[i];
-          addressfound:=debugevent[i].EIP;
-          offset:=addressfound;
-          opcode:=disassemble(offset,desc);
+          //it has been determined this is a break caused by ce
 
-          if pos('REP',opcode)=0 then
-            addressfound:=previousopcode(addressfound)
-          else
-            if debugevent[i].Ecx=0 then addressfound:=previousopcode(addressfound);
-
-          //check if the address is in the list
-          notinlist:=true;
-          try
-            for j:=0 to length(foundcodedialog.coderecords)-1 do
-              if foundcodedialog.coderecords[j].address=addressfound then //if it is in the list then set notinlist to false and go out of the loop
-              begin
-                notinlist:=false;
-                break;
-              end;
-          except
-            //list got shortened or invalid (or whatever weird bug)
+          breakoption:=bo_Break;
+          if breakreason<>-1 then //no single step (if it is, bo_break)
+          begin
+            //breakpoint triggered
+            //fetch bp data
+            owner.breakpointcs.Enter;
+            breakoption:=owner.breakpoint[breakreason].BreakOption;
+            owner.breakpointCS.Leave;
           end;
 
-          if notinlist then synchronize(foundone); //add this memory address to the foundcode window.
-        end;
+          case breakoption of
+            bo_break:           DBKDebug_ContinueDebugEvent(HandleBreak);
+            bo_ChangeRegister:  DBKDebug_ContinueDebugEvent(HandleChangeRegister(breakreason));
+            bo_FindCode:        DBKDebug_ContinueDebugEvent(HandleFindCode);
+            else
+            begin
+              OutputDebugString('Invalid breakoption');
+              DBKDebug_ContinueDebugEvent(false); //weird bug if it happens...
+            end;
+          end;
 
-
-      finally
-        crdebugging.Leave;
+        end
+        else DBKDebug_ContinueDebugEvent(false);  //not handled
       end;
-      sleep(250);
-      //check for new threads and set their debug registers
-      }
+      //timeout
+
     end;
+
+    //terminated
 
   except
 

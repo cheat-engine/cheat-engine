@@ -5,6 +5,37 @@ uses windows,sysutils,tlhelp32;
 
 const dbkdll='DBK32.dll';
 
+
+type TDebuggerstate=record
+	eflags : DWORD;
+	eax : DWORD;
+	ebx : DWORD;
+	ecx : DWORD;
+	edx : DWORD;
+	esi : DWORD;
+	edi : DWORD;
+	ebp : DWORD;
+	esp : DWORD;
+	eip : DWORD;
+	cs  : DWORD;
+	ds  : DWORD;
+	es  : DWORD;
+	fs  : DWORD;
+	gs  : DWORD;
+	ss  : DWORD;
+  dr0 : DWORD;
+  dr1 : DWORD;
+  dr2 : DWORD;
+  dr3 : DWORD;
+  dr6 : DWORD;
+  dr7 : DWORD;
+end;
+type PDebuggerstate=^TDebuggerstate;
+
+type TBreakType=(bt_OnInstruction=0,bt_OnWrites=1, bt_OnIOAccess=2, bt_OnReadsAndWrites=3);
+type TBreakLength=(bl_1byte=0, bl_2byte=1, bl_8byte=2{Only when in 64-bit}, bl_4byte=3);
+
+
 type TReadProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;
@@ -28,8 +59,6 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
 type TContinueDebugEvent=function(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL; stdcall;
 type TDebugActiveProcess=function(dwProcessId: DWORD): BOOL; stdcall;
-type TStopDebugging=function: BOOL; stdcall;
-type TStopRegisterChange=function(regnr:integer):BOOL; stdcall;
 type TVirtualProtect=function(lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualQueryEx=function(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
@@ -42,7 +71,8 @@ type TGetDebugportOffset=function:DWORD; stdcall;
 type TGetProcessnameOffset=function:DWORD; stdcall;
 type TGetThreadsProcessOffset=function: dword; stdcall;
 type TGetThreadListEntryOffset=function: dword; stdcall;
-type TSetGlobalDebugState=function(state: boolean): BOOL; stdcall;
+
+
 
 type TGetPhysicalAddress=function(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 type TProtectMe=function(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall;
@@ -57,12 +87,16 @@ type TGetSDTShadow=function:DWORD; stdcall;
 type TCreateRemoteAPC=function(threadid: dword; lpStartAddress: TFNAPCProc): THandle; stdcall;
 
 
-type TsetAlternateDebugMethod=function(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
-type TgetAlternateDebugMethod=function:BOOL; stdcall;
+//type TStopDebugging=function: BOOL; stdcall;
+//type TStopRegisterChange=function(regnr:integer):BOOL; stdcall;
 
-type TChangeRegOnBP=function(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
-type TDebugProcess=function(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
-type TRetrieveDebugData=function(Buffer: pointer):integer; stdcall;
+//type TSetGlobalDebugState=function(state: boolean): BOOL; stdcall;
+//type TsetAlternateDebugMethod=function(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
+//type TgetAlternateDebugMethod=function:BOOL; stdcall;
+
+//type TChangeRegOnBP=function(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
+//type TDebugProcess=function(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
+//type TRetrieveDebugData=function(Buffer: pointer):integer; stdcall;
 
 type TGetProcessNameFromID=function(processid:dword; buffer:pchar;buffersize:dword):integer; stdcall;
 type TGetProcessNameFromPEProcess=function(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
@@ -94,11 +128,25 @@ type TGetGDT=function(var limit: word):dword; stdcall;
 type TuseIOCTL=procedure(use: boolean); stdcall;
 type TMakeKernelCopy=function(Base: dword; size: dword): bool; stdcall;
 
+
+type TDBKDebug_ContinueDebugEvent=function(handled: BOOL): boolean; stdcall;
+type TDBKDebug_WaitForDebugEvent=function(timeout: dword): boolean; stdcall;
+type TDBKDebug_GetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
+type TDBKDebug_SetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
+
+type TDBKDebug_SetGlobalDebugState=function(state: BOOL): BOOL; stdcall;
+type TDBKDebug_StartDebugging=function(processid:dword):BOOL; stdcall;
+type TDBKDebug_StopDebugging=function:BOOL; stdcall;
+type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
+
+
 //-----------------------------------DBVM-------------------------------------//
 type Tdbvm_version=function: dword; stdcall;
 type Tdbvm_changeselectors=function(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall;
 type Tdbvm_restore_interrupts=function: DWORD; stdcall;
 type Tdbvm_block_interrupts=function: DWORD; stdcall;
+type Tdbvm_raise_privilege=function: DWORD; stdcall;
+
 
 type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
 type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
@@ -150,8 +198,8 @@ var
   WaitForDebugEvent     :TWaitForDebugEvent;
   ContinueDebugEvent    :TContinueDebugEvent;
   DebugActiveProcess    :TDebugActiveProcess;
-  StopDebugging         :TStopDebugging;
-  StopRegisterChange    :TStopRegisterChange;
+
+
   VirtualProtect        :TVirtualProtect;
   VirtualProtectEx      :TVirtualProtectEx;
   VirtualQueryEx        :TVirtualQueryEx;
@@ -174,13 +222,15 @@ var
   GetSDT                :TGetSDT;
   GetSDTShadow          :TGetSDTShadow;
 
-  setAlternateDebugMethod: TsetAlternateDebugMethod;
-  getAlternateDebugMethod: TgetAlternateDebugMethod;
+//  setAlternateDebugMethod: TsetAlternateDebugMethod;
+//  getAlternateDebugMethod: TgetAlternateDebugMethod;
 
-  SetGlobalDebugState   :TSetGlobalDebugState;
-  DebugProcess          :TDebugProcess;
-  ChangeRegOnBP         :TChangeRegOnBP;
-  RetrieveDebugData     :TRetrieveDebugData;
+//  SetGlobalDebugState   :TSetGlobalDebugState;
+//  DebugProcess          :TDebugProcess;
+//  ChangeRegOnBP         :TChangeRegOnBP;
+//  RetrieveDebugData     :TRetrieveDebugData;
+//  StopDebugging         :TStopDebugging;
+//  StopRegisterChange    :TStopRegisterChange;
   StartProcessWatch     :TStartProcessWatch;
   WaitForProcessListData:TWaitForProcessListData;
   GetProcessNameFromID  :TGetProcessNameFromID;
@@ -222,11 +272,23 @@ var
   useIOCTL                :TuseIOCTL;
   MakeKernelCopy          :TMakeKernelCopy;
 
+  DBKDebug_ContinueDebugEvent : TDBKDebug_ContinueDebugEvent;
+  DBKDebug_WaitForDebugEvent  : TDBKDebug_WaitForDebugEvent;
+  DBKDebug_GetDebuggerState   : TDBKDebug_GetDebuggerState;
+  DBKDebug_SetDebuggerState   : TDBKDebug_SetDebuggerState;
+  DBKDebug_SetGlobalDebugState: TDBKDebug_SetGlobalDebugState;
+  DBKDebug_StartDebugging     : TDBKDebug_StartDebugging;
+  DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
+  DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
+
+
+
   //dbvm ce000000+
   dbvm_version            :Tdbvm_version;
   dbvm_changeselectors    :Tdbvm_changeselectors;
   dbvm_block_interrupts   :Tdbvm_block_interrupts;
   dbvm_restore_interrupts :Tdbvm_restore_interrupts;
+  dbvm_raise_privilege    :Tdbvm_raise_privilege;
   //dbvm ce000004+
   dbvm_read_physical_memory: Tdbvm_read_physical_memory;
   dbvm_write_physical_memory: Tdbvm_write_physical_memory;
@@ -284,13 +346,13 @@ begin
     GetSDT:=GetProcAddress(DarkByteKernel,'GetSDT');
     GetSDTShadow:=GetProcAddress(DarkByteKernel,'GetSDTShadow');
 
-    setAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'setAlternateDebugMethod');
-    getAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'getAlternateDebugMethod');
-    DebugProcess:=GetProcAddress(DarkByteKernel,'DebugProcess');
-    StopDebugging:=GetProcAddress(DarkByteKernel,'StopDebugging');
-    StopRegisterChange:=GetProcAddress(DarkByteKernel,'StopRegisterChange');
-    RetrieveDebugData:=GetProcAddress(DarkByteKernel,'RetrieveDebugData');
-    ChangeRegOnBP:=GetProcAddress(DarkByteKernel,'ChangeRegOnBP');
+//    setAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'setAlternateDebugMethod');
+//    getAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'getAlternateDebugMethod');
+//    DebugProcess:=GetProcAddress(DarkByteKernel,'DebugProcess');
+//    StopDebugging:=GetProcAddress(DarkByteKernel,'StopDebugging');
+//    StopRegisterChange:=GetProcAddress(DarkByteKernel,'StopRegisterChange');
+//    RetrieveDebugData:=GetProcAddress(DarkByteKernel,'RetrieveDebugData');
+//    ChangeRegOnBP:=GetProcAddress(DarkByteKernel,'ChangeRegOnBP');
     StartProcessWatch:=GetProcAddress(DarkByteKernel,'StartProcessWatch');
     WaitForProcessListData:=GetProcAddress(DarkByteKernel,'WaitForProcessListData');
     GetProcessNameFromID:=GetProcAddress(DarkByteKernel,'GetProcessNameFromID');
@@ -324,7 +386,18 @@ begin
 
     MakeKernelCopy:=GetProcAddress(DarkByteKernel,'MakeKernelCopy');
     CreateRemoteAPC:=GetProcAddress(darkByteKernel,'CreateRemoteAPC');
-    SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'SetGlobalDebugState');
+//    SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'SetGlobalDebugState');
+
+    DBKDebug_ContinueDebugEvent:=GetProcAddress(DarkByteKernel,'DBKDebug_ContinueDebugEvent');
+    DBKDebug_WaitForDebugEvent:=GetProcAddress(DarkByteKernel,'DBKDebug_WaitForDebugEvent');
+    DBKDebug_GetDebuggerState:=GetProcAddress(DarkByteKernel,'DBKDebug_GetDebuggerState');
+    DBKDebug_SetDebuggerState:=GetProcAddress(DarkByteKernel,'DBKDebug_SetDebuggerState');
+
+    DBKDebug_SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'DBKDebug_SetGlobalDebugState');
+    DBKDebug_StartDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StartDebugging');
+    DBKDebug_StopDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StopDebugging');
+    DBKDebug_GD_SetBreakpoint:=GetProcAddress(DarkByteKernel,'DBKDebug_GD_SetBreakpoint');
+
 
     dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');
     dbvm_changeselectors:=GetProcAddress(DarkByteKernel,'dbvm_changeselectors');
@@ -333,6 +406,8 @@ begin
 
     dbvm_read_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_read_physical_memory');
     dbvm_write_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_write_physical_memory');
+
+    dbvm_raise_privilege:=GetProcAddress(DarkByteKernel,'dbvm_raise_privilege');
 
     {$ifdef cemain}
     if pluginhandler<>nil then

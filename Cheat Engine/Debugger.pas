@@ -295,7 +295,7 @@ var DebuggerThread: TDebugger;
 
 implementation
 
-uses {$ifndef net}Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,{$endif}disassembler{$ifndef net},frmTracerUnit,foundcodeunit,debugger3,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit{$endif};
+uses {$ifndef net}Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,{$endif}disassembler{$ifndef net},frmTracerUnit,foundcodeunit,kerneldebugger,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit{$endif};
 
 function ToggleBreakpoint(address:dword):boolean;
 {$ifndef net}
@@ -937,7 +937,7 @@ begin
     coderecords[length(coderecords)-1].address:=addressfound;
     coderecords[length(coderecords)-1].size:=address-addressfound;
     coderecords[length(coderecords)-1].opcode:=opcode;
-    coderecords[length(coderecords)-1].desciption:=desc;
+    coderecords[length(coderecords)-1].description:=desc;
 
 
     coderecords[length(coderecords)-1].eax:=context.Eax;

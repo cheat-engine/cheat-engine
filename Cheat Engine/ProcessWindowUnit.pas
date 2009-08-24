@@ -288,11 +288,11 @@ begin
     mainform.cbFasterscan.Checked:=true;
 
 
-  if (processid=0) and (formsettings.cbKernelReadWriteProcessMemory.checked) then
+  if (processid=0) and ((formsettings.cbKernelReadWriteProcessMemory.checked) or (assigned(dbvm_version) and (dbvm_version>=$ce000004))) then
   begin
     ProcessHandler.processid:=$FFFFFFFF;
 
-    if dbvm_version>=4 then
+    if dbvm_version>=$ce000004 then
       DBKPhysicalMemoryDBVM
     else
       DBKPhysicalMemory;
@@ -336,7 +336,8 @@ procedure TProcessWindow.Button1Click(Sender: TObject);
 begin
   currentlisT:=0;
   getprocesslist(processlist);
-  if formsettings.cbKernelReadWriteProcessMemory.checked then //driver is active
+
+  if formsettings.cbKernelReadWriteProcessMemory.checked or (assigned(dbvm_version) and (dbvm_version>=$ce000004)) then //driver is active
     processlist.Items.Insert(0,'00000000-[Physical Memory]');
 
   Filterlist;

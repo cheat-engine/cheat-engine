@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 573
-  Top = 487
+  Left = 517
+  Top = 182
   Width = 532
   Height = 565
   Hint = ' '
@@ -32,7 +32,7 @@ object MainForm: TMainForm
   object Splitter1: TSplitter
     Left = 0
     Top = 345
-    Width = 524
+    Width = 516
     Height = 3
     Cursor = crVSplit
     Align = alTop
@@ -46,8 +46,8 @@ object MainForm: TMainForm
     Tag = 777
     Left = 0
     Top = 348
-    Width = 524
-    Height = 146
+    Width = 516
+    Height = 144
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -125,8 +125,8 @@ object MainForm: TMainForm
     object ScrollBox1: TScrollBox
       Left = 1
       Top = 1
-      Width = 506
-      Height = 144
+      Width = 498
+      Height = 142
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -137,7 +137,7 @@ object MainForm: TMainForm
       object HeaderControl1: THeaderControl
         Left = 0
         Top = 0
-        Width = 506
+        Width = 498
         Height = 17
         Sections = <
           item
@@ -176,8 +176,8 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 17
-        Width = 506
-        Height = 127
+        Width = 498
+        Height = 125
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -189,8 +189,8 @@ object MainForm: TMainForm
         OnMouseDown = Panel1MouseDown
         OnResize = Panel1Resize
         DesignSize = (
-          506
-          127)
+          498
+          125)
         object Label30: TLabel
           Tag = 6
           Left = 0
@@ -1074,10 +1074,10 @@ object MainForm: TMainForm
       end
     end
     object vscrollpanel: TPanel
-      Left = 507
+      Left = 499
       Top = 1
       Width = 16
-      Height = 144
+      Height = 142
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 16
-        Height = 144
+        Height = 142
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1099,13 +1099,13 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 494
-    Width = 524
+    Top = 492
+    Width = 516
     Height = 17
     Align = alBottom
     TabOrder = 1
     DesignSize = (
-      524
+      516
       17)
     object Label7: TLabel
       Left = 147
@@ -1160,7 +1160,7 @@ object MainForm: TMainForm
   object Panel5: TPanel
     Left = 0
     Top = 0
-    Width = 524
+    Width = 516
     Height = 345
     Align = alTop
     BevelOuter = bvNone
@@ -1168,7 +1168,7 @@ object MainForm: TMainForm
     Locked = True
     TabOrder = 2
     DesignSize = (
-      524
+      516
       345)
     object ProcessLabel: TLabel
       Left = -24
@@ -1411,10 +1411,9 @@ object MainForm: TMainForm
       Tag = 1
       Left = 344
       Top = 304
-      Width = 38
+      Width = 53
       Height = 13
-      Caption = 'Label38'
-      Visible = False
+      Caption = 'start debug'
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -1452,12 +1451,11 @@ object MainForm: TMainForm
       Visible = False
     end
     object Label59: TLabel
-      Left = 424
+      Left = 408
       Top = 304
-      Width = 100
+      Width = 54
       Height = 13
-      Caption = 'Test selector change'
-      Visible = False
+      Caption = 'Test debug'
       OnClick = Label59Click
     end
     object cbSpeedhack: TCheckBox

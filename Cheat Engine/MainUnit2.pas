@@ -650,8 +650,8 @@ begin
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
 
-          if assigned(newkernelhandler.SetGlobalDebugState) then
-            newkernelhandler.SetGlobalDebugState(cbGlobalDebug.checked);
+          if assigned(newkernelhandler.DBKDebug_SetGlobalDebugState) then
+            newkernelhandler.DBKDebug_SetGlobalDebugState(cbGlobalDebug.checked);
           {$endif}
 
           if cbUndoMemoryChanges.checked then

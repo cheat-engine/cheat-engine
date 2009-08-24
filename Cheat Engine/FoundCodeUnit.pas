@@ -10,7 +10,7 @@ type Tcoderecord = record
   address: dword;
   size: integer;
   opcode: string;
-  desciption: string;
+  description: string;
   eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
 end;
 
@@ -62,7 +62,7 @@ implementation
 {$R *.dfm}
 uses debugger,
      MemoryBrowserFormUnit,
-     {$ifdef net}unit2,ceclient,{$else}MainUnit,debugger2,{$endif}
+     {$ifdef net}unit2,ceclient,{$else}MainUnit,kerneldebugger,{$endif}
      advancedoptionsunit ,formFoundcodeListExtraUnit,mainunit2;
 
 procedure TFoundCodedialog.moreinfo;
@@ -152,7 +152,7 @@ begin
       label12.caption:='EBP='+IntToHex(coderecords[itemindex].ebp,8);
       label15.caption:='EIP='+IntToHex(coderecords[itemindex].eip,8);
 
-      label6.Caption:=coderecords[itemindex].desciption;
+      label6.Caption:=coderecords[itemindex].description;
     end;
 
     //parse the disassembled[3] string to help the user find the pointer
@@ -213,7 +213,7 @@ begin
     btnOpenDisassembler.enabled:=true;
     btnAddToCodeList.enabled:=true;
     btnExtraInfo.Enabled:=true;
-    description.Caption:=coderecords[foundcodelist.itemindex].desciption;
+    description.Caption:=coderecords[foundcodelist.itemindex].description;
   end
   else
   begin
@@ -235,14 +235,15 @@ begin
   {$ifndef net}
   if btnOK.caption=strStop then
   begin
-    if debuggerthread2<>nil then
+    if kdebugger.isactive then
     begin
+    {
       //new debugger
       //set the threads back to normal
       debuggerthread2.Terminate;
       debuggerthread2.WaitFor;
       freeandnil(debuggerthread2);
-      btnOK.caption:=strClose;
+      btnOK.caption:=strClose; }
     end
     else
     begin

@@ -81,7 +81,7 @@ uses
   UndoChanges in 'UndoChanges.pas',
   MainUnit2 in 'MainUnit2.pas',
   frmCodecaveScannerUnit in 'frmCodecaveScannerUnit.pas' {frmCodecaveScanner},
-  debugger2 in 'debugger2.pas',
+  KernelDebugger in 'KernelDebugger.pas',
   Filehandler in 'Filehandler.pas',
   frmModifyRegistersUnit in 'frmModifyRegistersUnit.pas' {frmModifyRegisters},
   frmBreakpointlistunit in 'frmBreakpointlistunit.pas' {frmBreakpointlist},

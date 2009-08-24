@@ -20,7 +20,7 @@ object frmBreakpointlist: TfrmBreakpointlist
     Left = 0
     Top = 0
     Width = 137
-    Height = 202
+    Height = 200
     Align = alLeft
     ItemHeight = 13
     TabOrder = 0

@@ -144,7 +144,7 @@ procedure closefiles;
 function undolastscan(valtype: integer;hexadecimal:boolean): integer;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
-function getbit(bitnr: integer; bt: Byte):integer;
+function getbit(bitnr: integer; bt: dword):integer;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
 
@@ -650,7 +650,7 @@ uses disassembler,debugger;
 {$ifndef net}
 
 {$ifndef standalonetrainer}
-uses disassembler,debugger,symbolhandler,frmProcessWatcherUnit,debugger2;
+uses disassembler,debugger,symbolhandler,frmProcessWatcherUnit,kerneldebugger;
 {$else}
 uses symbolhandler;
 {$endif}
@@ -1251,11 +1251,6 @@ begin
     waitform:=nil;
   end;
 
-  if debuggerthread2<>nil then
-  begin
-    debuggerthread2.Terminate;
-    debuggerthread2.WaitFor;
-  end;
 
   {$endif}
 
@@ -1985,9 +1980,9 @@ begin
   result:=temp2;
 end;
 
-function getbit(bitnr: integer; bt: Byte):integer;
+function getbit(bitnr: integer; bt: dword):integer;
 begin
-  if (trunc(power(2,bitnr)) and bt)>0 then result:=1 else result:=0;
+  result:=(bt shl bitnr) and 1;
 end;
 
 function scanbits(var found: dword;number:dword;var bytep: pbyte;nrofbits,i,actualread: integer): boolean;
@@ -2069,10 +2064,8 @@ procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
  result: bt has a bit set or unset
 }
 begin
-  if state=1 then
-    bt:=bt or trunc(power(2,bitnr))  //set that bit to 1
-  else
-    bt:=bt and ($ffffffff xor trunc(power(2,bitnr))); //set the bit to 0
+  bt:=bt and (not (1 shl bitnr));
+  bt:=bt or (state shl bitnr);
 end;
 
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
@@ -2977,7 +2970,7 @@ begin
 end;
 
 procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
-var winhandle: Hwnd;
+var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
     wintitle: string;
@@ -2998,7 +2991,8 @@ begin
 
     winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
 
-    while winhandle<>0 do
+    i:=0;
+    while (winhandle<>0) and (i<10000) do
     begin
       GetWindowThreadProcessId(winhandle,addr(winprocess));
       temp[0]:=#0;
@@ -3017,7 +3011,12 @@ begin
         x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
       end;
 
+      previouswinhandle:=winhandle;
       winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+
+      if winhandle=previouswinhandle then break;
+      
+      inc(i);
     end;
 
     x.Sort;
@@ -3143,6 +3142,8 @@ begin
   end;
 
   result:=cpucount;
+
+  if result=0 then result:=1;
 end;
 
 function LoadFormPosition(form: Tform; var x: array of integer):boolean;

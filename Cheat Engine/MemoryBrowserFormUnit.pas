@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32,
-  StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,debugger2,{$endif}assemblerunit,disassembler,addressparser,
+  StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
   Buttons,imagehlp, Contnrs, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
   ,NetAPIs
@@ -1531,15 +1531,16 @@ var lines,i,j,k: integer;
       end;
     end;
 
-    if (debuggerthread2<>nil) and (address<>0) then
+    if (kdebugger.isactive) and (address<>0) then
     begin
+    {
       for j:=0 to 3 do
         if address=debuggerthread2.breakpoints[j] then
         begin
           disimage.Canvas.Brush.Color:=clRed;
           disimage.Canvas.font.Color:=clBlack;
           break;  //get out of this for loop
-        end;
+        end; }
     end;
 
 
@@ -1571,15 +1572,16 @@ var lines,i,j,k: integer;
 
       {$ifndef net}
 
-      if (debuggerthread2<>nil) and (address<>0) then
+      if (kdebugger.isactive) and (address<>0) then
       begin
+      {
         for j:=0 to 3 do
           if address=debuggerthread2.breakpoints[j] then
           begin
             disimage.Canvas.Brush.Color:=clGreen;
             disimage.Canvas.font.Color:=clWhite;
             break;  //get out of this for loop
-          end;
+          end;  }
       end;
 
       if debuggerthread<>nil then
@@ -3917,7 +3919,7 @@ begin
   if foundcodedialog<>nil then
     raise exception.Create('I can''t do that! You are currently using one of the code finder options, please, stop it first');
 
-  if (formsettings.cbKdebug.checked) and (debuggerthread2<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
+  {if (formsettings.cbKdebug.checked) and (debuggerthread3<>nil) and (debuggerthread3.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up}
 
   if (not formsettings.cbKdebug.checked) then
     if (not startdebuggerifneeded) then exit;

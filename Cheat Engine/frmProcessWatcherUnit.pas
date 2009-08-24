@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,newkernelhandler, ExtCtrls, ComCtrls, StdCtrls,undochanges,debugger,debugger2,
+  Dialogs,newkernelhandler, ExtCtrls, ComCtrls, StdCtrls,undochanges,debugger,kerneldebugger,
   cefuncproc, Menus,tlhelp32, symbolhandler;
 
 type tthreaddata=record
@@ -301,21 +301,8 @@ begin
 
     for i:=0 to count-1 do
     begin
-      if debuggerthread2<>nil then
-      begin
-        //kerneldebugger enabled
-        if cefuncproc.processid=z^.ProcessID then
-        begin
-          //open the thread and add it to the debugger's threadlist and set the debugregs
-          crdebugging.Enter;
-          setlength(debuggerthread2.threadlist,length(debuggerthread2.threadlist)+1);
-          debuggerthread2.threadlist[length(debuggerthread2.threadlist)-1]:=Openthread(STANDARD_RIGHTS_REQUIRED or windows.synchronize or $3ff,true,z^.ThreadID);
-
-          //set drregs
-          setthreadcontext(debuggerthread2.threadlist[length(debuggerthread2.threadlist)-1],debuggerthread2.debugregs);
-          crdebugging.Leave;
-        end;
-      end;
+      if (kdebugger.isactive) and (z^.Created) and (z^.processid=ProcessID) then
+          KDebugger.AddThread(z^.ThreadID);
 
       self.created:=z^.Created;
       self.pid:=z^.ProcessID;

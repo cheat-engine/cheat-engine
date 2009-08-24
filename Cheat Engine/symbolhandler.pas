@@ -907,6 +907,7 @@ begin
           zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
           symbol.SizeOfStruct:=sizeof(IMAGEHLP_SYMBOL)+255;
           symbol.MaxNameLength:=254;
+
           if SymGetSymFromName(processhandle,pchar(name),symbol^) then
             result:=symbol.Address+offset
           else
