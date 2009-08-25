@@ -175,13 +175,13 @@ begin
   begin
     //don't set the debugregs manually, let the taskswitching do the work for us
     //(for global debug the debugreg is just a recommendation, so don't watch for a dr6 result with this exit)\
-    OutputDebugString('Setting breakpoint using global debug');
+    OutputDebugString('fGlobalDebug=true, Setting breakpoint using global debug');
     DBKDebug_GD_SetBreakpoint(true,debugreg,address,breaktype,breaklength);
   end
   else
   begin
     //manually set the breakpoints in the global debug register context
-    OutputDebugString('Setting breakpoint manually');
+    OutputDebugString('fGlobalDebug=false, Setting breakpoint manually');
 
     generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl debugreg) or (3 shl 16+debugreg*2))) or (integer(breaktype) shl debugreg) or (integeR(breaklength) shl 16+debugreg*2);
     OutputDebugString(pchar(format('Setting DR7 to %x',[generaldebugregistercontext.Dr7])));
@@ -380,6 +380,9 @@ var i,j: integer;
     bsize: integer;
     address: dword;
 begin
+  outputdebugstring('DR6='+inttohex(currentdebuggerstate.dr6,8));
+  outputdebugstring('DR7='+inttohex(currentdebuggerstate.dr7,8));
+    
   result:=-2;
   owner.breakpointCS.Enter;
   try
@@ -397,10 +400,17 @@ begin
 
         for j:=0 to 3 do
         begin
-          if owner.breakpoint[j].address=address then
+          if owner.breakpoint[j].active then
           begin
-            result:=j;
-            exit;
+            outputdebugstring(format('bp %d: is %x the same as %x ?',[j, owner.breakpoint[j].address, address]));
+
+
+            if owner.breakpoint[j].address=address then
+            begin
+              outputdebugstring('yes it is');
+              result:=j;
+              exit;
+            end else outputdebugstring('nope');
           end;
         end;
       end;
@@ -411,6 +421,7 @@ begin
 
   if result=-2 then
   begin
+    OutputDebugString('Result = -2');
     //single step then ?
     if getbit(14,currentdebuggerstate.dr6)=1 then
     begin

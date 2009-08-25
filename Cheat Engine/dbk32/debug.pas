@@ -2,7 +2,7 @@ unit debug;
 
 interface
 
-uses windows, sysutils, dbk32functions;
+uses windows, sysutils, dbk32functions, classes;
 
 type TDebuggerstate=record
 	eflags : DWORD;
@@ -121,6 +121,62 @@ begin
   end else result:=false;
 end;
 
+type TTouchDebugRegThread=class(tthread)
+  private
+    procedure execute; override;
+  public
+
+  end;
+
+procedure TTouchDebugRegThread.execute;
+var
+  br,cc: dword;
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_TOUCHDEBUGREGISTER;
+    deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  end;
+end;
+
+procedure DBKDebug_TouchDebugRegister;
+//this routine touches the debug registers on each cpu
+//when global debug is enabled this facilitates in setting or unsetting changes in the breakpoint list
+//this way when a breakpoint is set, it actually gets set, or unset the same
+//just make sure to disable the breakpoint before removing the handler
+var
+  cpunr,PA,SA:Dword;
+  cpunr2:byte;
+  
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    GetProcessAffinityMask(getcurrentprocess,PA,SA);
+    cpunr2:=0;
+    cpunr:=1;
+    while (cpunr<=PA) do
+    begin
+      if ((cpunr) and PA)>0 then
+      begin
+        SetProcessAffinityMask(getcurrentprocess,cpunr);
+        //create a new thread. (Guess on what cpu it will run at...)
+
+        with TTouchDebugRegThread.Create(false) do //self cleaning thread
+        begin
+          WaitFor;
+          free;
+        end;
+      end;
+      if cpunr=$80000000 then break;
+      inc(cpunr,cpunr); //1-2-4-8-16
+      inc(cpunr2);//next cpu
+    end;
+
+    SetProcessAffinityMask(getcurrentprocess,PA); //restore process affinity
+
+  end;
+end;
+
 function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
 var
   input: record
@@ -144,6 +200,7 @@ begin
     
     cc:=IOCTL_CE_GD_SETBREAKPOINT;
     result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
+    DBKDebug_TouchDebugRegister; //update the system state
   end;
 end;
 

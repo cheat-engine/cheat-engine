@@ -204,6 +204,11 @@ _declspec( naked ) DWORD debugger_dr6_getValueDword(void)
 	}
 }
 
+void debugger_touchDebugRegister(void)
+{
+	debugger_dr0_setValue(debugger_dr0_getValue());
+}
+
 void debugger_initialize(void)
 {
 	DbgPrint("Initializing debugger events\n");
@@ -925,10 +930,11 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 		debugger_dr3_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR3);
 		debugger_dr6_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR6);
 
+		/*
 		if ((*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[currentcpunr].DR7).GD)
 		{
 			DbgPrint("DR7.GD IS SET IN THE GUEST STATE\n");
-		}
+		}*/
 		//debugger_dr7_setValue(*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[currentcpunr].DR7);
 
 //		DbgPrint("PID/TID:%x/%x\n", PsGetCurrentProcessId(), PsGetCurrentThreadId());
@@ -939,18 +945,20 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 //		DbgPrint("before fake DR6=%x real DR6=%x\n",DebuggerState.FakedDebugRegisterState[currentcpunr].DR6, debugger_dr6_getValueDword());
 //		DbgPrint("before fake DR7=%x real DR7=%x\n",DebuggerState.FakedDebugRegisterState[currentcpunr].DR7, debugger_dr7_getValueDword());
 
+		/*
 		if (!DebuggerState.FakedDebugRegisterState[currentcpunr].inEpilogue)
 		{
 			
 			DbgPrint("Before: It wasn't in the epilogue. eflags=%x\n");
 			DebuggerState.FakedDebugRegisterState[currentcpunr].inEpilogue=1;
-		}
+		}*/
 		
 		for (breakpoint=0; breakpoint<4; breakpoint++)
 		{
 			if (DebuggerState.breakpoint[breakpoint].active)
 			{
 				int foundone=0;
+				DbgPrint("Want to set breakpoint %d\n",breakpoint);
 			
 				//find a usable debugregister
 				while ((debugregister<4) && (foundone==0))				
@@ -973,7 +981,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 						//set address
 						switch (debugregister)
 						{
-							case 0:								
+							case 0:	
 								debugger_dr0_setValue(DebuggerState.breakpoint[breakpoint].address);
 								_dr7.L0=1;
 								_dr7.LEN0=DebuggerState.breakpoint[breakpoint].breakLength;
@@ -1010,6 +1018,8 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 				}
 				if (foundone==0)
 					DbgPrint("Failure setting breakpoint %d\n",breakpoint);
+				else
+					DbgPrint("Managed to set breakpoint %d\n", breakpoint);
 					
 			}
 			

@@ -43,6 +43,7 @@ int debugger_setGlobalDebugState(BOOL state);
 int debugger_startDebugging(DWORD debuggedProcessID);
 int debugger_setGDBreakpoint(int breakpointnr, ULONG_PTR Address, BreakType bt, BreakLength bl);
 int debugger_unsetGDBreakpoint(int breakpointnr);
+void debugger_touchDebugRegister(void);
 int debugger_stopDebugging(void);
 NTSTATUS debugger_waitForDebugEvent(ULONG timeout);
 NTSTATUS debugger_continueDebugEvent(BOOL handled);

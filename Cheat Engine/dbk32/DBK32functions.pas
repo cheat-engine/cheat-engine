@@ -84,6 +84,7 @@ const IOCTL_CE_WAITFORDEBUGEVENT  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0832 shl
 const IOCTL_CE_GETDEBUGGERSTATE 	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_SETDEBUGGERSTATE  	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GD_SETBREAKPOINT     	= (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_TOUCHDEBUGREGISTER    	= (IOCTL_UNKNOWN_BASE shl 16) or ($0836 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -351,7 +352,7 @@ begin
 
       end;
       if cpunr=$80000000 then break;
-      inc(cpunr,cpunr);
+      inc(cpunr,cpunr); //1-2-4-8-16
       inc(cpunr2);//next cpu
     end;
 

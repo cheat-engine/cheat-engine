@@ -1414,6 +1414,14 @@ case IOCTL_CE_ALLOCATEMEM:
 				break;
 			}
 
+		case IOCTL_CE_TOUCHDEBUGREGISTER: //used after setting a global debug breakpoint
+			{
+				debugger_touchDebugRegister();
+				ntStatus=STATUS_SUCCESS;
+				break;
+
+			}
+
 
 		case IOCTL_CE_GETVERSION:
 			{
