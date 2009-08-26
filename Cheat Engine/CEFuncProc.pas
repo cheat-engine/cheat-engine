@@ -1980,10 +1980,7 @@ begin
   result:=temp2;
 end;
 
-function getbit(bitnr: integer; bt: dword):integer;
-begin
-  result:=(bt shl bitnr) and 1;
-end;
+
 
 function scanbits(var found: dword;number:dword;var bytep: pbyte;nrofbits,i,actualread: integer): boolean;
 var j,k,l,m: integer;
@@ -2054,6 +2051,11 @@ begin
 
 
   result:=true;
+end;
+
+function getbit(bitnr: integer; bt: dword):integer;
+begin
+  result:=(bt shr bitnr) and 1;
 end;
 
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;

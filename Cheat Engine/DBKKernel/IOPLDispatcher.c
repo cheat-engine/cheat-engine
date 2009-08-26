@@ -986,7 +986,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_HOOKINTS:
 			{
-				DbgPrint("IOCTL_CE_HOOKINTS\n");
+				DbgPrint("IOCTL_CE_HOOKINTS for cpu %d\n", cpunr());
 				if (debugger_initHookForCurrentCPU())
 					ntStatus=STATUS_SUCCESS;
 				else

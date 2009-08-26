@@ -90,14 +90,14 @@ MaxStackSize=2097152
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=
-UnitOutputDir=
+OutputDir=.\bin
+UnitOutputDir=.\unitbin
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=.\SynEdit\Source;.\KIcon;.\jedi\source;.\jedi\source\vcl;.\jedi\source\common;.\jedi\source\windows
 Packages=vcl;rtl;vclx;indy;inet;xmlrtl;vclie;inetdbbde;inetdbxpress;dbrtl;dsnap;dsnapcon;vcldb;soaprtl;VclSmp;dbexpress;dbxcds;inetdb;bdertl;vcldbx;webdsnap;websnap;adortl;ibxpress;teeui;teedb;tee;dss;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;Rave50CLX;Rave50VCL;dclOfficeXP;insppkgd7;DBInspPkgd7;Ecomp
 Conditionals=cemain;NOcrashtest;DEBUG
-DebugSourceDirs=C:\svnx\Cheat Engine\SynEdit\Source\
+DebugSourceDirs=.\SynEdit\Source\
 UsePackages=0
 [Parameters]
 RunParams=
@@ -188,7 +188,7 @@ AutoIncBuild=1
 MajorVer=5
 MinorVer=5
 Release=0
-Build=57
+Build=61
 Debug=0
 PreRelease=0
 Special=0
@@ -199,7 +199,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=Cheat Engine 5.5
-FileVersion=5.5.0.57
+FileVersion=5.5.0.61
 InternalName=CheatEngine
 LegalCopyright=none
 LegalTrademarks=-
@@ -208,8 +208,9 @@ ProductName=
 ProductVersion=5.5
 Comments=report bugs and or suggestions to dark_byte@hotmail.com
 [HistoryLists\hlDebugSourcePath]
-Count=1
-Item0=C:\svnx\Cheat Engine\SynEdit\Source\
+Count=2
+Item0=.\SynEdit\Source\
+Item1=C:\svnx\Cheat Engine\SynEdit\Source\
 [HistoryLists\hlConditionals]
 Count=12
 Item0=cemain;NOcrashtest;DEBUG
@@ -231,3 +232,9 @@ Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 Count=2
 Item0=.\SynEdit\Source;.\KIcon;.\jedi\source;.\jedi\source\vcl;.\jedi\source\common;.\jedi\source\windows
 Item1=.\SynEdit\Source
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=.\unitbin
+[HistoryLists\hlOutputDirectorry]
+Count=1
+Item0=.\bin

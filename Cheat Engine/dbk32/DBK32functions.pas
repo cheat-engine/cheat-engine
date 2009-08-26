@@ -101,27 +101,6 @@ type TClient_ID=record
 end;
 type PClient_ID=^TClient_ID;
 
-type THookIDTThread=class(tthread)
-  public
-    cpunr: byte;
-    done: boolean;
-    succeeded: boolean;
-    procedure execute; override;
-end;
-
-type THookIDTConstantly=class(tthread)
-  public
-    procedure execute; override;
-end;
-
-var cpuidt: array of dword;
-type TGetIDTThread=class(tthread)
-  public
-    cpunr: byte;
-    done: boolean;
-    procedure execute; override;
-  end;
-
 var hdevice: thandle; //handle to my the device driver
     handlelist: array of thandlelist;
     driverloc: string;
@@ -218,15 +197,72 @@ function SetSSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; st
 
 function GetGDT(limit: pword):dword; stdcall;
 
+type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
+function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 
-var hooker: THookIDTConstantly;
-    kernel32dll: thandle;
+var kernel32dll: thandle;
     ioctl: boolean;
 
 implementation
 
 uses vmxfunctions;
 
+
+type Tforeachcpu=class(tthread)
+  private
+    procedure execute; override;
+  public
+    fp: TCpuSpecificFunction;
+    parameter: pointer;
+    r: boolean;
+  end;
+
+procedure Tforeachcpu.execute;
+begin
+  r:=fp(parameter);
+end;
+
+function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
+var PA,SA:Dword;
+begin
+  result:=false;
+  GetProcessAffinityMask(getcurrentprocess,PA,SA);
+
+  if ((1 shl cpunr) and SA) = 0 then exit; //cpu doesn't exist
+
+  SetProcessAffinityMask(GetCurrentProcess,(1 shl cpunr));
+  sleep(0);
+  with Tforeachcpu.Create(true) do
+  begin
+    fp:=functionpointer;
+    parameter:=parameters;
+    resume;
+    waitfor;
+    if result then result:=r; //one false and it stays false
+    free;
+  end;
+  SetProcessAffinityMask(GetCurrentProcess,PA);
+end;
+
+function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
+var
+  cpunr,PA,SA:Dword;
+  r: bool;
+begin
+  result:=true;
+  GetProcessAffinityMask(getcurrentprocess,PA,SA);
+
+  for cpunr:=0 to 31 do
+    if ((1 shl cpunr) and SA)>0 then //cpu found
+    begin
+      r:=forspecificcpu(cpunr,functionpointer, parameters);
+      if result then result:=r;
+    end;
+
+  SetProcessAffinityMask(GetCurrentProcess,PA);
+
+
+end;
 
 
 procedure FSC;
@@ -304,137 +340,43 @@ begin
   end else result:=0;
 end;
 
-procedure TGetIDTThread.execute;
-begin
-  try
-    cpuidt[cpunr]:=getidtcurrentthread;
-  finally
-    done:=true;
+
+type
+  TDwordArray=array[0..9999] of Dword;
+  PDwordArray=^TDwordArray;
+  TGetIDTParams=record
+    idtstore: pdwordarray;
+    maxidts: integer;
+    currentindex: integer;
   end;
+  PGetIDTParams=^TGetIDTParams;
+
+function internal_GetIDTs(parameters: pointer): BOOL; stdcall;
+var p: PGetIDTParams;
+begin
+  OutputDebugString('internal_GetIDTs');
+  p:=parameters;
+
+  result:=true; //always true, even if not big enough
+  if p^.currentindex>=p^.maxidts then exit;
+
+  p^.idtstore[p^.currentindex]:=GetIDTCurrentThread;
+  inc(p^.currentindex);
 end;
 
 function GetIDTs(idtstore: pointer; maxidts: integer):integer; stdcall;
-var ec: dword;
-    i:integer;
-    cpunr,PA,SA:Dword;
-    cpunr2:byte;
+var
+  p: TGetIDTParams;
 begin
-  //max idt's should be 32, but may be less if you('re a retard!) don't want to allocate the enormous ammount of 32*4=128 bytes
-  setlength(cpuidt,0);
-  result:=0; //0 idt's returned
+  OutputDebugString('GetIDTs');
+  ZeroMemory(idtstore, 4*maxidts);
+  p.idtstore:=idtstore;
+  p.maxidts:=maxidts;
+  p.currentindex:=0;
+  foreachcpu(internal_getidts, @p);
 
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-    //first hook the interrupts if needed
-    cpunr2:=0;
-    cpunr:=1;
-    while (cpunr<=PA) do
-    begin
-      if ((cpunr) and PA)>0 then
-      begin
-        setlength(cpuidt,length(cpuidt)+1);
-        SetProcessAffinityMask(getcurrentprocess,cpunr);
-        //create a new thread. (Gues on what cpu it will run at...)
-
-        with TGetIDTThread.Create(true) do
-        begin
-          try
-            cpunr:=cpunr2;
-            resume;
-
-            while not done do sleep(20); //the sleep should also cause a taskswitch but I'm not 100% sure
-          finally
-            free;
-          end;
-        end;
-
-      end;
-      if cpunr=$80000000 then break;
-      inc(cpunr,cpunr); //1-2-4-8-16
-      inc(cpunr2);//next cpu
-    end;
-
-    SetProcessAffinityMask(getcurrentprocess,PA); //multi processors are so fun. It'd be a waste not to use it
-
-    if length(cpuidt)>maxidts then
-      setlength(cpuidt,maxidts);
-      
-    for i:=0 to length(cpuidt)-1 do
-      TCardinalDynArray(idtstore)[i]:=cpuidt[i];
-
-    result:=length(cpuidt);
-  end;
-
+  result:=p.currentindex;
 end;
-
-
-procedure THookIDTThread.execute;
-var cc,br: dword;
-begin
-  try
-//    outputdebugstring('hooking IDT');
-    cc:=IOCTL_CE_HOOKINTS;
-    succeeded:=deviceiocontrol(hdevice,cc,@cpunr,1,@cpunr,0,br,nil);
-  finally
-    done:=true;
-  end;
-end;
-
-procedure THookIDTConstantly.execute;
-var input:TInput;
-    br,cc: dword;
-    i:integer;
-    cpunr,PA,SA:Dword;
-    cpunr2:byte;
-begin
-  freeonterminate:=true;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_HOOKINTS;
-
-    while not terminated do
-    begin
-//      outputdebugstring('writing the idt');
-      GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-      cpunr2:=0;
-      cpunr:=1;
-      while (cpunr<=PA) do
-      begin
-        if ((cpunr) and PA)>0 then
-        begin
-          SetProcessAffinityMask(getcurrentprocess,cpunr);
-          //create a new thread. (Gues on what cpu it will run at...)
-
-          with THookIDTThread.Create(true) do
-          begin
-            try
-              cpunr:=cpunr2;
-              resume;
-
-              while not done do sleep(10); //the sleep should also cause a taskswitch but I'm not 100% sure
-            finally
-              free;
-            end;
-          end;
-
-        end;
-        if cpunr=$80000000 then break;
-        inc(cpunr,cpunr);
-        inc(cpunr2);
-      end;
-
-      SetProcessAffinityMask(getcurrentprocess,PA); //multi processors are so fun. It'd be a waste not to use it
-
-      if vmx_enabled then exit; //no rehook needed since idt changes don't matter
-      
-      sleep(60000); //wait a while before rewriting
-    end;
-  end;
-end;
-
 
 function GetProcessNameFromPEProcess(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
 var ar:dword;
@@ -1873,7 +1815,6 @@ begin
   Successfullyloaded:=false;
   iamprotected:=false;
   apppath:=nil;
-  hooker:=nil;
   setlength(handlelist,0);
   hSCManager := OpenSCManager(nil, nil, GENERIC_READ or GENERIC_WRITE);
   try
@@ -2068,7 +2009,5 @@ finalization
 begin
   if ownprocess<>0 then
     closehandle(ownprocess);
-    
-  if hooker<>nil then hooker.Terminate;
 end;
 end.

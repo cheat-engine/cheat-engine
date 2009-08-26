@@ -6,4 +6,4 @@ set copycmd=/Y
 copy sources.ce sources
 
 build -cZ
-copy .\obj%BUILD_ALT_DIR%\i386\*.sys ..
+copy .\obj%BUILD_ALT_DIR%\i386\*.sys ..\bin

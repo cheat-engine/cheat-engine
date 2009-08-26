@@ -237,13 +237,9 @@ begin
   begin
     if kdebugger.isactive then
     begin
-    {
-      //new debugger
-      //set the threads back to normal
-      debuggerthread2.Terminate;
-      debuggerthread2.WaitFor;
-      freeandnil(debuggerthread2);
-      btnOK.caption:=strClose; }
+      //todo: Make this only disable the related breakpoints
+      kdebugger.DisableAllBreakpoints;
+      btnOK.caption:=strClose;
     end
     else
     begin

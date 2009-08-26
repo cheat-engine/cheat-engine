@@ -555,7 +555,8 @@ begin
       reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
-      kdebugger.GlobalDebug:=cbGlobalDebug.checked;
+      if (cbGlobalDebug.checked) then
+        kdebugger.GlobalDebug:=cbGlobalDebug.checked;
 
 
 

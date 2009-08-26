@@ -46,6 +46,17 @@ function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address:
 
 implementation
 
+function internal_hookints(parameters: pointer): BOOL; stdcall;
+var cc,br: dword;
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_HOOKINTS;
+    result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+  end else result:=false;
+  
+end;
+
 function StartCEKernelDebug:BOOL; stdcall;
 var
     br,cc: dword;
@@ -53,89 +64,42 @@ var
     cpunr,PA,SA:Dword;
     cpunr2:byte;
 begin
-  result:=false;
-  outputdebugstring('DebugProcess function');
+  outputdebugstring('StartCEKernelDebug');
+  foreachcpu(internal_hookints, nil);
 
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_HOOKINTS;
-
-    GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-    //first hook the interrupts if needed
-    cpunr2:=0;
-    cpunr:=1;
-    while (cpunr<=PA) do
-    begin
-      if ((cpunr) and PA)>0 then
-      begin
-        SetProcessAffinityMask(getcurrentprocess,cpunr);
-        //create a new thread. (Gues on what cpu it will run at...)
-
-        with THookIDTThread.Create(true) do
-        begin
-          try
-            cpunr:=cpunr2;
-            resume;
-
-            while not done do sleep(10); //the sleep should also cause a taskswitch but I'm not 100% sure
-
-            if not succeeded then
-            begin
-              SetProcessAffinityMask(getcurrentprocess,PA);
-              messagebox(0,pchar('Failure when changing the interrupt handler on CPU '+inttostr(cpunr)),'',mb_ok);
-              exit;
-            end;
-          finally
-            free;
-          end;
-        end;
-
-      end;
-      if cpunr=$80000000 then break;
-      inc(cpunr,cpunr);
-      inc(cpunr2);
-    end;
-
-    SetProcessAffinityMask(getcurrentprocess,PA); //multi processors are so fun. It'd be a waste not to use it
-    outputdebugstring('going to start the hooker');
-    hooker:=thookidtconstantly.Create(false);
-
-    result:=true;
-  end;
+  result:=true;
 end;
 
-function DBKDebug_SetGlobalDebugState(state: BOOL): BOOL; stdcall;
+function internal_SetGlobalDebugState(state: pointer): BOOL; stdcall;
 var
   x: BOOL;
   br,cc: dword;
 begin
   outputdebugstring('SetGlobalDebugState');
-  x:=state;
+  x:=PBOOL(state)^;
 
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_SETGLOBALDEBUGSTATE;
     result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,br,nil);
-  end else result:=false;
+  end;
 end;
 
-type TTouchDebugRegThread=class(tthread)
-  private
-    procedure execute; override;
-  public
+function DBKDebug_SetGlobalDebugState(state: BOOL): BOOL; stdcall;
+begin
+  result:=foreachcpu(internal_SetGlobalDebugState, @state);
+end;
 
-  end;
-
-procedure TTouchDebugRegThread.execute;
+function internal_touchdebugregister(parameters: pointer): BOOL; stdcall;
 var
   br,cc: dword;
 begin
+  result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_TOUCHDEBUGREGISTER;
-    deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
+    result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,br,nil);
   end;
 end;
 
@@ -144,37 +108,8 @@ procedure DBKDebug_TouchDebugRegister;
 //when global debug is enabled this facilitates in setting or unsetting changes in the breakpoint list
 //this way when a breakpoint is set, it actually gets set, or unset the same
 //just make sure to disable the breakpoint before removing the handler
-var
-  cpunr,PA,SA:Dword;
-  cpunr2:byte;
-  
 begin
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    GetProcessAffinityMask(getcurrentprocess,PA,SA);
-    cpunr2:=0;
-    cpunr:=1;
-    while (cpunr<=PA) do
-    begin
-      if ((cpunr) and PA)>0 then
-      begin
-        SetProcessAffinityMask(getcurrentprocess,cpunr);
-        //create a new thread. (Guess on what cpu it will run at...)
-
-        with TTouchDebugRegThread.Create(false) do //self cleaning thread
-        begin
-          WaitFor;
-          free;
-        end;
-      end;
-      if cpunr=$80000000 then break;
-      inc(cpunr,cpunr); //1-2-4-8-16
-      inc(cpunr2);//next cpu
-    end;
-
-    SetProcessAffinityMask(getcurrentprocess,PA); //restore process affinity
-
-  end;
+  foreachcpu(internal_touchdebugregister,nil);
 end;
 
 function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
@@ -204,7 +139,8 @@ begin
   end;
 end;
 
-function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
+
+function DBKDebug_StartDebuggingInternal(processid: pointer):BOOL; stdcall;
 type Tinput=record
   ProcessID:DWORD;
 end;
@@ -214,14 +150,20 @@ begin
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     result:=StartCEKernelDebug;
-    input.Processid:=processid;
+    input.Processid:=PDWORD(processid)^;
     cc:=IOCTL_CE_DEBUGPROCESS;
     result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
   end;
 end;
 
 
-function DBKDebug_StopDebugging:BOOL; stdcall;
+
+function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
+begin
+  foreachcpu(DBKDebug_StartDebuggingInternal, @processid);
+end;
+
+function internal_StopDebugging(parameters: pointer):BOOL; stdcall;
 var x,cc: dword;
 begin
   outputdebugstring('DBK32: StopDebugging called');
@@ -233,6 +175,10 @@ begin
   end;
 end;
 
+function DBKDebug_StopDebugging:BOOL; stdcall;
+begin
+  result:=foreachcpu(internal_StopDebugging,nil);
+end;
 
 function DBKDebug_GetDebuggerState(state: PDebuggerstate): boolean; stdcall;
 var

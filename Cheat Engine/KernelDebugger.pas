@@ -5,12 +5,6 @@ interface
 uses windows,sysutils,SyncObjs, dialogs,classes,debugger,disassembler,newkernelhandler,foundcodeunit,
      tlhelp32,cefuncproc;
 
-     {
-type Tdebugevent =record
-  EAX,EBX,ECX,EDX,ESI,EDI,EBP,ESP,EIP:DWORD;
-end;
-}
-
 type
   TKDebugger=class;
   TKDebuggerThread=class(TThread)
@@ -57,19 +51,20 @@ type
   public
     procedure AddThread(ThreadID: Dword);
     procedure ApplyDebugRegistersForThread(threadhandle: DWORD);
-    procedure ApplyDebugRegisters;    
+    procedure ApplyDebugRegisters;
     procedure StartDebugger;
     procedure StopDebugger;
     procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break); overload;
     procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break); overload;
+
+    procedure DisableBreakpoint(bp: integer);
+    procedure DisableAllBreakpoints;
+
     function isActive: boolean;
     property GlobalDebug: boolean read fGlobalDebug write setGlobalDebug;
     constructor create;
   end;
   
-
-//var KDebuggerThread: TKDebuggerThread;
-
 var KDebugger: TKDebugger;
 
 implementation
@@ -198,6 +193,33 @@ begin
   end;
 end;
 
+procedure TKDebugger.DisableAllBreakpoints;
+var i: integer;
+begin
+  for i:=0 to 3 do
+    DisableBreakpoint(i);
+end;
+
+procedure TKDebugger.DisableBreakpoint(bp: integer);
+begin
+  if fGlobalDebug then
+  begin
+    DBKDebug_GD_SetBreakpoint(false, bp, 0, bt_OnInstruction, bl_1byte); 
+  end
+  else
+  begin
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl bp) or (3 shl 16+bp*2)));
+
+    case bp of
+      0: generaldebugregistercontext.Dr0:=0;
+      1: generaldebugregistercontext.Dr1:=0;
+      2: generaldebugregistercontext.Dr2:=0;
+      3: generaldebugregistercontext.Dr3:=0;
+    end;
+    ApplyDebugRegisters;
+  end;
+end;
+
 procedure TKDebugger.AddThread(ThreadID: Dword);
 var Threadhandle: thandle;
 begin
@@ -247,13 +269,16 @@ end;
 
 procedure TKDebugger.setGlobalDebug(x: boolean);
 begin
+  LoadDBK32;
   fGlobalDebug:=x;
   if x then
     OutputDebugString('setGlobalDebug(true)')
   else
     OutputDebugString('setGlobalDebug(false)');
 
-  DBKDebug_SetGlobalDebugState(x);
+  
+  if assigned(newkernelhandler.DBKDebug_SetGlobalDebugState) then
+    DBKDebug_SetGlobalDebugState(x);
 end;
 
 function TKDebugger.isActive: boolean;
@@ -391,6 +416,8 @@ begin
       if getbit(i, currentdebuggerstate.dr6)=1 then
       begin
         //find which debug breakpoint it actually is, and that it didn't get overwritten
+        outputdebugstring(format('bit %d in DR6 is 1',[i]));
+
         case i of
           0: address:=currentdebuggerstate.dr0;
           1: address:=currentdebuggerstate.dr1;
@@ -411,9 +438,13 @@ begin
               result:=j;
               exit;
             end else outputdebugstring('nope');
-          end;
+          end
+          else
+            outputdebugstring(format('breakpoint %d is not active',[j]));
         end;
-      end;
+      end
+      else
+        outputdebugstring(format('bit %d in DR6 is 0',[i]));
     end;
   finally
     owner.breakpointCS.Leave;

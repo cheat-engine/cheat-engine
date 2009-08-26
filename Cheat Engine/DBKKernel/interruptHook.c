@@ -91,7 +91,7 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP)
 {
 	IDT idt;	
 	GetIDT(&idt);
-	DbgPrint("inthook_HookInterrupt\n");
+	DbgPrint("inthook_HookInterrupt for cpu %d\n",cpunr());
 
 	if (!InterruptHook[intnr].hooked)
 	{

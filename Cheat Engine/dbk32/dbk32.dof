@@ -90,8 +90,8 @@ MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=..
-UnitOutputDir=
+OutputDir=..\bin
+UnitOutputDir=.\unitbin
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=$(DELPHI)\Lib\Debug
@@ -145,7 +145,11 @@ Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
 Count=1
 Item0=$(DELPHI)\Lib\Debug
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=.\unitbin
 [HistoryLists\hlOutputDirectorry]
-Count=2
-Item0=..
-Item1=C:\Cheat Engine Delphi\SystemcallRetriever
+Count=3
+Item0=..\bin
+Item1=..
+Item2=C:\Cheat Engine Delphi\SystemcallRetriever

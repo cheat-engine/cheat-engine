@@ -1497,7 +1497,7 @@ var mbi: _Memory_Basic_Information;
     i: integer;
     ct: _context;
     regsinuse: integer;
-    olda,olds: dword;
+    originaladdress,originalsize: dword;
     dr: dword;
 
 procedure Set4bytebreak;
@@ -1618,8 +1618,8 @@ begin
     //  Debuggerthread3:=TDebuggerthread3.create(false);
   end;
 
-  olda:=address;
-  olds:=size;
+  originaladdress:=address;
+  originalsize:=size;
   zeromemory(@ct,sizeof(ct));
   ct.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
 
@@ -1675,7 +1675,7 @@ begin
     //ct.dr7:=$D0303;
     if formsettings.cbKdebug.Checked and (debuggerthread=nil) then
     begin
-      KDebugger.SetBreakpoint(olda, bt_OnReadsAndWrites, olds, bo_findcode);
+      KDebugger.SetBreakpoint(originaladdress, bt_OnReadsAndWrites, originalsize, bo_findcode);
     end
     else
     begin
@@ -1747,7 +1747,7 @@ var mbi: _Memory_Basic_Information;
     i: integer;
     ct: _context;
     regsinuse: integer;
-    olda,olds: dword;
+    originaladdress,originalsize: dword;
     dr: dword;
 
 procedure Set4bytebreak;
@@ -1855,12 +1855,11 @@ begin
   foundcodedialog.Caption:=strOpcodeChanged;
   foundcodedialog.btnOK.caption:=strstop;
 
-  {if formsettings.cbKdebug.checked and (debuggerthread=nil) then
-    if not DebugProcess(processid,address,size,2) then raise exception.Create(strFailedToInitialize);
-  }
+  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
+    KDebugger.startDebugger;
 
-  olda:=address;
-  olds:=size;
+  originaladdress:=address;
+  originalsize:=size;
   zeromemory(@ct,sizeof(ct));
   ct.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
 
@@ -1915,24 +1914,7 @@ begin
    // ct.dr7:=$D0303;
     if formsettings.cbKdebug.Checked and (debuggerthread=nil) then
     begin
-      {if DebuggerThread2<>nil then
-      begin
-        debuggerthread2.Terminate;
-        debuggerthread2.WaitFor;
-        freeandnil(debuggerthread2);
-      end;
-          
-      DebuggerThread2:=TDebugEvents.Create(true);
-      debuggerthread2.debugregs:=ct;
-
-      for i:=0 to length(debuggerthread2.threadlist)-1 do
-      begin
-        suspendthread(debuggerthread2.threadlist[i]);
-        SetThreadContext(debuggerthread2.threadlist[i],debuggerthread2.debugregs);
-        resumethread(debuggerthread2.threadlist[i]);
-      end;
-
-      debuggerthread2.Resume;    }
+      KDebugger.SetBreakpoint(originaladdress, bt_OnWrites, originalsize, bo_findcode);
     end
     else
     begin
@@ -1953,15 +1935,15 @@ begin
   else
   begin
     foundcodedialog.useexceptions:=true;
-    virtualqueryEx(processhandle,pointer(olda),mbi,sizeof(mbi));
+    virtualqueryEx(processhandle,pointer(originaladdress),mbi,sizeof(mbi));
 
     debugger.DebuggerThread.readonly.pagebase:=dword(mbi.BaseAddress);
     debugger.DebuggerThread.readonly.pagesize:=dword(mbi.RegionSize);
-    debugger.DebuggerThread.readonly.Address:=olda;
-    debugger.DebuggerThread.readonly.size:=olds;
+    debugger.DebuggerThread.readonly.Address:=originaladdress;
+    debugger.DebuggerThread.readonly.size:=originalsize;
     DebuggerThread.readonlyset:=true;
 
-    VirtualProtectEx(processhandle,pointer(olda),olds,PAGE_EXECUTE_READ,debugger.DebuggerThread.readonly.originalprotection);
+    VirtualProtectEx(processhandle,pointer(originaladdress),originalsize,PAGE_EXECUTE_READ,debugger.DebuggerThread.readonly.originalprotection);
   end;
 
 
@@ -9105,6 +9087,9 @@ var address: dword;
     res:word;
     check: boolean;
 begin
+  findoutwhatreadsfromthisaddress1.Visible:=false;
+  exit;
+  {
   if not startdebuggerifneeded then exit;
   if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window)');
 
@@ -9142,6 +9127,7 @@ begin
   if memrec[lastselected].VarType=6 then SetReadBreakpoint(address,8); //8-bytes (qword)
   if memrec[lastselected].VarType=7 then SetReadBreakpoint(address,memrec[lastselected].Bit); //length of the text
   if memrec[lastselected].VarType=8 then SetReadBreakpoint(address,memrec[lastselected].Bit); //length of the array
+  }
 end;
 
 procedure TMainForm.UndoScanClick(Sender: TObject);

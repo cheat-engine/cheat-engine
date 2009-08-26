@@ -10,7 +10,7 @@ uses dialogs,forms,classes,windows,sysutils,registry,ComCtrls, menus,
 {$ifdef net}
 ,unit2;
 {$else}
-,plugin,mainunit,hotkeyhandler,frmProcessWatcherunit,newkernelhandler;
+,plugin,mainunit,hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
 {$endif}
 
 procedure UpdateToolsMenu;
@@ -78,6 +78,8 @@ resourcestring
     slowdowndelta: single;
 
 implementation
+
+uses KernelDebugger;
 
 function GetScanType2: TScanOption;
 {
@@ -650,8 +652,7 @@ begin
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
 
-          if assigned(newkernelhandler.DBKDebug_SetGlobalDebugState) then
-            newkernelhandler.DBKDebug_SetGlobalDebugState(cbGlobalDebug.checked);
+          KDebugger.GlobalDebug:=cbGlobalDebug.checked;
           {$endif}
 
           if cbUndoMemoryChanges.checked then
