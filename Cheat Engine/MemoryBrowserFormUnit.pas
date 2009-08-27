@@ -245,7 +245,6 @@ type
     procedure Panel4Resize(Sender: TObject);
     procedure ScrollBar2Scroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
-    procedure Setbreakpoint1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Run1Click(Sender: TObject);
     procedure Step1Click(Sender: TObject);
@@ -2526,14 +2525,6 @@ begin
 
   refreshmb;
   scrollpos:=50;
-end;
-
-procedure TMemoryBrowser.Setbreakpoint1Click(Sender: TObject);
-begin
-{$ifndef net}
-  togglebreakpoint(dselected);
-  updatedisassemblerview;
-{$endif}
 end;
 
 procedure TMemoryBrowser.FormClose(Sender: TObject;

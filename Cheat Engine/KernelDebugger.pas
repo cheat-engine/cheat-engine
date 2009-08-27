@@ -244,13 +244,15 @@ procedure TKDebugger.ToggleBreakpoint(address: dword);
 var i: integer;
     found :boolean;
 begin
+  outputdebugstring(format('ToggleBreakpoint(%x)',[address]));
   found:=false;
   breakpointcs.Enter;
   for i:=0 to 3 do
   begin
     //only affect breakpoints of type instruction
-    if (breakpoint[i].active) and (breakpoint[i].BreakType=bt_onInstruction) then
+    if (breakpoint[i].active) and (breakpoint[i].Address=address) and (breakpoint[i].BreakType=bt_onInstruction) then
     begin
+      outputdebugstring('Found breakpoint. Disabling it');
       //found, so disable
       DisableBreakpoint(i);
       found:=true; //let's not exit just yet...
@@ -260,7 +262,10 @@ begin
   breakpointcs.Leave;
 
   if not found then
+  begin
+    outputdebugstring(format('Not found. Calling SetBreakpoint(%x, bt_OnInstruction, bl_1byte, bo_Break)',[address]));
     SetBreakpoint(address, bt_OnInstruction, bl_1byte, bo_Break);
+  end;
 end;
 
 procedure TKDebugger.DisableAllBreakpoints;
@@ -274,7 +279,7 @@ procedure TKDebugger.DisableBreakpoint(bp: integer);
 begin
   if fGlobalDebug then
   begin
-    DBKDebug_GD_SetBreakpoint(false, bp, 0, bt_OnInstruction, bl_1byte); 
+    DBKDebug_GD_SetBreakpoint(false, bp, 0, bt_OnInstruction, bl_1byte);
   end
   else
   begin
@@ -288,6 +293,7 @@ begin
     end;
     ApplyDebugRegisters;
   end;
+  breakpoint[bp].active:=false;
 end;
 
 procedure TKDebugger.AddThread(ThreadID: Dword);
@@ -492,6 +498,7 @@ begin
 
     Disassembleraddress:=currentdebuggerstate.Eip;
     dselected:=Disassembleraddress;
+    updatedisassemblerview;
 
     temp:='EAX '+IntToHex(currentdebuggerstate.Eax,8);
     if temp<>eaxlabel.Caption then
@@ -784,10 +791,11 @@ begin
 
   if result=-2 then
   begin
-    OutputDebugString('Result = -2');
+    OutputDebugString('Result = -2, is it a single step?');
     //single step then ?
     if getbit(14,currentdebuggerstate.dr6)=1 then
     begin
+      OutputDebugString('Yes, it is a single step. WEEEEEEE');
       //yes, it's a single step
       //is the user single stepping ?
       if Stepping then
@@ -802,6 +810,8 @@ var wr: TWaitResult;
 begin
   OutputDebugString('HandleBreak');
 
+  outputdebugstring(format('initial eflags=%x',[currentdebuggerstate.eflags]));
+
   result:=true; //unless the single step isn't intended, but that check should have happened in the kernel
   stepping:=true;
 
@@ -814,18 +824,23 @@ begin
   case continueoption of
     co_run:
     begin
+      OutputDebugString('run');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
     end;
 
     co_stepinto:
     begin
+      OutputDebugString('step into');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,1); //trap to execute on next instruction
     end;
 
     co_stepover:
     begin
+      OutputDebugString('stop over');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
       //find next instruction address
       address:=currentdebuggerstate.eip;
       disassemble(address);
@@ -836,7 +851,9 @@ begin
 
     co_runtill:
     begin
+      OutputDebugString('run till');    
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
       KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, true);
     end;
 

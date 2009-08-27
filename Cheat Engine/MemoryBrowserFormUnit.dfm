@@ -1003,7 +1003,7 @@ object MemoryBrowser: TMemoryBrowser
       object Setbreakpoint1: TMenuItem
         Caption = 'Toggle breakpoint'
         ShortCut = 116
-        OnClick = Setbreakpoint1Click
+        OnClick = ogglebreakpoint1Click
       end
       object N3: TMenuItem
         Caption = '-'
