@@ -1406,11 +1406,13 @@ case IOCTL_CE_ALLOCATEMEM:
 					BOOL active;
 					int debugregspot;
 					DWORD address;
-					BreakType breakType;
-					BreakLength breakLength;
+					DWORD breakType;
+					DWORD breakLength;
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
 				
-				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, inp->address, inp->breakType, inp->breakLength);
+				DbgPrint("sizeof(struct input)=%d\n",sizeof(struct input));
+				DbgPrint("breakType=%d breakLength=%d\n",inp->breakType,inp->breakLength);
+				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, inp->address, (BreakType)inp->breakType, (BreakLength)inp->breakLength);
 				break;
 			}
 

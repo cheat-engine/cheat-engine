@@ -43,7 +43,6 @@ function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 function DBKDebug_StopDebugging:BOOL; stdcall;
 function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
 
-
 implementation
 
 function internal_hookints(parameters: pointer): BOOL; stdcall;
@@ -118,21 +117,24 @@ var
     active: BOOL;
     debugregspot: integer;
     address: DWORD;
-    breaktype: TBreakType;
-    breakLength: TBreakLength;
+    breaktype: DWORD;
+    breakLength: DWORD;
   end;
 
   br,cc: dword;
 begin
+  OutputDebugString('DBKDebug_GD_SetBreakpoint');
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     result:=StartCEKernelDebug;
     input.active:=active;
     input.debugregspot:=debugregspot;
     input.address:=address;
-    input.breaktype:=breaktype;
-    input.breakLength:=breaklength;
-    
+    input.breaktype:=dword(breaktype);
+    input.breakLength:=dword(breaklength);
+
+    outputdebugstring(pchar(format('sizeof(input)=%d, breaktype=%d breaklength=%d',[sizeof(input), integer(input.breaktype), integer(input.breakLength)])));
+
     cc:=IOCTL_CE_GD_SETBREAKPOINT;
     result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
     DBKDebug_TouchDebugRegister; //update the system state

@@ -20,8 +20,8 @@ object frmStacktrace: TfrmStacktrace
   object ListView1: TListView
     Left = 0
     Top = 0
-    Width = 498
-    Height = 240
+    Width = 490
+    Height = 238
     Align = alClient
     Columns = <
       item

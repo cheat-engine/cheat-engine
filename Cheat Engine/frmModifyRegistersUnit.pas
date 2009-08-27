@@ -401,47 +401,11 @@ begin
 
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
   begin
-  {
-    if DebuggerThread2=nil then
-      DebuggerThread2:=TDebugEvents.Create(false);
-
-    crdebugging.Enter;
-
-    try
-      //first check if it's already in the list, if they are in, delete it and readd the new entry
-      for i:=0 to 3 do
-        if debuggerthread2.breakpoints[i]=address then
-          debuggerthread2.breakpoints[i]:=0;
-      debuggerthread2.setbreakpoints;
-
-      drnr:=-1;
-      for i:=0 to 3 do
-        if debuggerthread2.breakpoints[i]=0 then   //free to use
-        begin
-          debuggerthread2.breakpoints[i]:=address;
-
-          outputdebugstring('Legal call to ChangeRegOnBP');
-
-
-          ChangeRegOnBP(processid,address,i,tempregedit.change_eax,tempregedit.change_ebx,tempregedit.change_ecx,tempregedit.change_edx,tempregedit.change_esi,tempregedit.change_edi,tempregedit.change_ebp,tempregedit.change_esp,tempregedit.change_eip,tempregedit.change_cf,tempregedit.change_pf,tempregedit.change_af,tempregedit.change_zf,tempregedit.change_sf,tempregedit.change_of,
-                                            tempregedit.new_eax,tempregedit.new_ebx,tempregedit.new_ecx,tempregedit.new_edx,tempregedit.new_esi,tempregedit.new_edi,tempregedit.new_ebp,tempregedit.new_esp,tempregedit.new_eip,tempregedit.new_cf,tempregedit.new_pf,tempregedit.new_af,tempregedit.new_zf,tempregedit.new_sf,tempregedit.new_of);
-          debuggerthread2.breakpointchanges[i]:=tempregedit;
-          debuggerthread2.setbreakpoints;
-          drnr:=i;
-          break;
-        end;
-
-      if drnr=-1 then raise exception.Create('Max of 4 Debugregs has been reached');
-
-      memorybrowser.updatebplist;
-    finally
-      crdebugging.Leave;
-    end;
-      }
+    KDebugger.StartDebugger;  //if it wasn't enabled yet
+    KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_ChangeRegister, @tempregedit);
   end
   else
   begin
-
     crdebugging.Enter;
     try
       itsin:=false;

@@ -69,7 +69,7 @@ type tbreakpoint = record
   originalbyte: byte;
 end;
 
-type tregistermodificationBP=record
+type TRegistermodificationBP=record
   address:dword; //addres to break on
   change_eax:BOOL;
   change_ebx:BOOL;
@@ -518,9 +518,8 @@ begin
   {$ifndef netserver}
   if kdebugger.isactive then
   begin
-  {
     if messagedlg('The kerneldebugger is currently active. Enabling the default windows debugger will cause the kernel debugger to terminate itself. Continue?',mtwarning,[mbyes,mbno],0)=mrno then exit;
-    freeandnil(debuggerthread2);  }
+    kdebugger.StopDebugger;
   end;
   {$endif}
 
@@ -999,8 +998,7 @@ procedure TDebugger.UpdateRegisters;
 var temp: string;
     i: integer;
 begin
- //removed for a while
- {$ifndef netserver}
+{$ifndef netserver}
   with memorybrowser do
   begin
     //enable debug mode

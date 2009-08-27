@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,cefuncproc, ComCtrls,imagehlp,debugger;
+  Dialogs,newkernelhandler, cefuncproc, ComCtrls,imagehlp,debugger;
 
 type
   TfrmStacktrace = class(TForm)
@@ -46,7 +46,9 @@ begin
   stackframe^.AddrFrame.Mode:=addrmodeflat;
 
   listview1.items.clear;
-  while stackwalk(IMAGE_FILE_MACHINE_I386,processhandle,threadhandle,stackframe,@cxt, nil,SymFunctionTableAccess,SymGetModuleBase,nil) do
+
+  //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
+  while stackwalk(IMAGE_FILE_MACHINE_I386,processhandle,threadhandle,stackframe,@cxt, newkernelhandler.readprocessmemory ,SymFunctionTableAccess,SymGetModuleBase,nil) do
   begin
     listview1.Items.Add.Caption:=inttohex(stackframe^.AddrPC.Offset,8);
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrStack.Offset,8));

@@ -148,6 +148,27 @@ function getbit(bitnr: integer; bt: dword):integer;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
 
+function eflags_setCF(flagvalue: dword; value: integer): DWORD;
+function eflags_setPF(flagvalue: dword; value: integer): DWORD;
+function eflags_setAF(flagvalue: dword; value: integer): DWORD;
+function eflags_setZF(flagvalue: dword; value: integer): DWORD;
+function eflags_setSF(flagvalue: dword; value: integer): DWORD;
+function eflags_setTF(flagvalue: dword; value: integer): DWORD;
+function eflags_setIF(flagvalue: dword; value: integer): DWORD;
+function eflags_setDF(flagvalue: dword; value: integer): DWORD;
+function eflags_setOF(flagvalue: dword; value: integer): DWORD;
+function eflags_setIOPL(flagvalue: dword; value: integer): DWORD;
+function eflags_setNT(flagvalue: dword; value: integer): DWORD;
+function eflags_setRF(flagvalue: dword; value: integer): DWORD;
+function eflags_setVM(flagvalue: dword; value: integer): DWORD;
+function eflags_setAC(flagvalue: dword; value: integer): DWORD;
+function eflags_setVIF(flagvalue: dword; value: integer): DWORD;
+function eflags_setVIP(flagvalue: dword; value: integer): DWORD;
+function eflags_setID(flagvalue: dword; value: integer): DWORD;
+
+
+
+
 function ByteStringToText(s: string;hex: boolean):string;
 function ByteStringToDouble(s: string;hex: boolean):double;
 function ByteStringToSingle(s: string;hex: boolean):single;
@@ -2082,6 +2103,91 @@ begin
   d:=bt;
   setbit(bitnr,d,state);
   bt:=d;
+end;
+
+function eflags_setCF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 0)) or (value shl 0);
+end;
+
+function eflags_setPF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 2)) or (value shl 2);
+end;
+
+function eflags_setAF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 4)) or (value shl 4);
+end;
+
+function eflags_setZF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 6)) or (value shl 6);
+end;
+
+function eflags_setSF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 7)) or (value shl 7);
+end;
+
+function eflags_setTF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 8)) or (value shl 8);
+end;
+
+function eflags_setIF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 9)) or (value shl 9);
+end;
+
+function eflags_setDF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 10)) or (value shl 10);
+end;
+
+function eflags_setOF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 11)) or (value shl 11);
+end;
+
+function eflags_setIOPL(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (3 shl 12)) or (value shl 12);
+end;
+
+function eflags_setNT(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 14)) or (value shl 14);
+end;
+
+function eflags_setRF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 16)) or (value shl 16);
+end;
+
+function eflags_setVM(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 17)) or (value shl 17);
+end;
+
+function eflags_setAC(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 18)) or (value shl 18);
+end;
+
+function eflags_setVIF(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 19)) or (value shl 19);
+end;
+
+function eflags_setVIP(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 20)) or (value shl 20);
+end;
+
+function eflags_setID(flagvalue: dword; value: integer): DWORD;
+begin
+  result:=flagvalue and (not (1 shl 21)) or (value shl 21);
 end;
 
 function undolastscan(valtype: integer;hexadecimal:boolean): integer;

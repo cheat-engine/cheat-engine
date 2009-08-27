@@ -3,9 +3,10 @@ unit KernelDebugger;
 interface
 
 uses windows,sysutils,SyncObjs, dialogs,classes,debugger,disassembler,newkernelhandler,foundcodeunit,
-     tlhelp32,cefuncproc;
+     tlhelp32,ComCtrls,addressparser, graphics, cefuncproc;
 
 type
+  TContinueOption = (co_run, co_stepinto, co_stepover, co_runtill);
   TKDebugger=class;
   TKDebuggerThread=class(TThread)
   private
@@ -17,21 +18,37 @@ type
     owner: TKDebugger;
     stepping: boolean; //is true if the previous event was a break or a single step and the user hasn't stopped single stepping yet
 
+    tempaddressspecifier: string;
+
+    continueEvent: Tevent;
+    continueOption: TcontinueOption;
+    runtilladdress: dword;
+
+    procedure ConvertDebuggerStateToContext(debuggerstate: TDebuggerstate; var context: _CONTEXT);
+
+    //mainthread:
     procedure foundone;
-    function HandleBreak: boolean;
+    procedure AddToChangesList;
+    procedure UpdateGui;
+
+    //thread:
+    function HandleBreak:boolean;
     function HandleChangeRegister(breakreason: integer): boolean;
     function HandleFindCode: boolean;
+    function HandleFindWhatCodeAccesses: boolean;
 
     function getDebugReason: integer;
+
   public
     active: boolean;
 
+    procedure Continue(continueOption: TContinueOption; runtilladdress: dword=0);
     procedure execute; override;
     constructor create(owner: TKDebugger; suspended:boolean);
 //    destructor destroy;  override;
   end;
 
-  TBreakOption = (bo_Break=0, bo_ChangeRegister=1, bo_FindCode=2);
+  TBreakOption = (bo_Break=0, bo_ChangeRegister=1, bo_FindCode=2, bo_FindWhatCodeAccesses=3);
   TKDebugger=class
   private
     DebuggerThread: TKDebuggerThread;
@@ -43,38 +60,50 @@ type
       BreakType: TBreakType;
       BreakLength: TBreakLength;
       BreakOption: TBreakOption;
+      ChangeRegisterData: TRegistermodificationBP;
+      BreakOnce: boolean;
     end;
 
     generaldebugregistercontext: TContext;
     fGlobalDebug: boolean;
     procedure setGlobalDebug(x: boolean);
+    function getNumberOfBreakpoints: integer;
   public
     procedure AddThread(ThreadID: Dword);
     procedure ApplyDebugRegistersForThread(threadhandle: DWORD);
     procedure ApplyDebugRegisters;
     procedure StartDebugger;
     procedure StopDebugger;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break); overload;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false); overload;
 
     procedure DisableBreakpoint(bp: integer);
     procedure DisableAllBreakpoints;
 
+    procedure Continue(continueOption: TContinueOption; runtilladdress: dword=0);
+
+    //address specific toggle bp
+    procedure ToggleBreakpoint(address: dword);
+
     function isActive: boolean;
     property GlobalDebug: boolean read fGlobalDebug write setGlobalDebug;
     constructor create;
+    property nrofbreakpoints: integer read getNumberOfBreakpoints;
   end;
-  
+
 var KDebugger: TKDebugger;
 
 implementation
 
-uses frmProcessWatcherUnit,memorybrowserformunit;
+uses frmProcessWatcherUnit,formchangedaddresses,memorybrowserformunit, frmstacktraceunit;
+
+
 
 Procedure TKDebugger.StartDebugger;
 begin
   if processid=0 then raise exception.Create('Please open a process first');
-  Debuggerthread:=TKDebuggerThread.create(self,false);
+  if Debuggerthread=nil then
+    Debuggerthread:=TKDebuggerThread.create(self,false);
 end;
 
 Procedure TKDebugger.StopDebugger;
@@ -87,7 +116,19 @@ begin
   end;
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_Break);
+function TKDebugger.getNumberOfBreakpoints: integer;
+var i: integer;
+begin
+  result:=0;
+  breakpointcs.enter;
+  for i:=0 to 3 do
+    if breakpoint[i].active then
+      inc(result);
+
+  breakpointcs.leave;
+end;
+
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_Break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false);
 //split up into seperate SetBreakpoint calls
 var atleastone: boolean;
 begin
@@ -103,23 +144,22 @@ begin
       if (breaklength=1) or (address mod 2 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_1byte, BreakOption);
+        SetBreakpoint(address, BreakType, bl_1byte, BreakOption, ChangeReg, breakonce);
         inc(address,1);
         dec(BreakLength,1);
-      end;
-
+      end
+      else
       if (breaklength=2) or (address mod 4 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_2byte, BreakOption);
+        SetBreakpoint(address, BreakType, bl_2byte, BreakOption, ChangeReg, breakonce);
         inc(address,2);
         dec(BreakLength,2);
-      end;
-
+      end else
       if (breaklength=4) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_4byte, BreakOption);
+        SetBreakpoint(address, BreakType, bl_4byte, BreakOption, ChangeReg, breakonce);
         inc(address,4);
         dec(breaklength,4);
       end;
@@ -132,12 +172,12 @@ begin
 
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break);
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false);
 //only call this from the main thread
 var debugreg: integer;
     i: integer;
 begin
-  OutputDebugString('SetBreakpoint predefinedlength');
+  OutputDebugString('SetBreakpoint predefinedlength for address:'+inttohex(address,8));
 
   //find a debugreg spot not used yet
   if not isactive then
@@ -145,6 +185,7 @@ begin
     
   debugreg:=-1;
 
+  
   breakpointCS.Enter;
   for i:=0 to 3 do
     if not breakpoint[i].active then
@@ -153,7 +194,11 @@ begin
       breakpoint[i].BreakType:=BreakType;
       breakpoint[i].BreakLength:=BreakLength;
       breakpoint[i].BreakOption:=breakoption;
+      if changereg<>nil then
+        breakpoint[i].ChangeRegisterData:=changereg^;
+
       breakpoint[i].active:=true;
+      breakpoint[i].BreakOnce:=breakonce;
 
       outputdebugstring(format('using debug reg %d with BreakOption %d',[i,integer(breakoption)]));
       debugreg:=i;
@@ -171,6 +216,8 @@ begin
     //don't set the debugregs manually, let the taskswitching do the work for us
     //(for global debug the debugreg is just a recommendation, so don't watch for a dr6 result with this exit)\
     OutputDebugString('fGlobalDebug=true, Setting breakpoint using global debug');
+    outputdebugstring('extra:');
+    OutputDebugString(format('DBKDebug_GD_SetBreakpoint(true, %d, %x, %d, %d)',[debugreg,address, integer(breaktype),integer(breaklength)]));
     DBKDebug_GD_SetBreakpoint(true,debugreg,address,breaktype,breaklength);
   end
   else
@@ -178,7 +225,7 @@ begin
     //manually set the breakpoints in the global debug register context
     OutputDebugString('fGlobalDebug=false, Setting breakpoint manually');
 
-    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl debugreg) or (3 shl 16+debugreg*2))) or (integer(breaktype) shl debugreg) or (integeR(breaklength) shl 16+debugreg*2);
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl debugreg) or (3 shl 16+debugreg*2))) or (integer(breaktype) shl debugreg) or (integer(breaklength) shl 16+debugreg*2);
     OutputDebugString(pchar(format('Setting DR7 to %x',[generaldebugregistercontext.Dr7])));
 
     case debugreg of
@@ -191,6 +238,29 @@ begin
     //and apply
     ApplyDebugRegisters;
   end;
+end;
+
+procedure TKDebugger.ToggleBreakpoint(address: dword);
+var i: integer;
+    found :boolean;
+begin
+  found:=false;
+  breakpointcs.Enter;
+  for i:=0 to 3 do
+  begin
+    //only affect breakpoints of type instruction
+    if (breakpoint[i].active) and (breakpoint[i].BreakType=bt_onInstruction) then
+    begin
+      //found, so disable
+      DisableBreakpoint(i);
+      found:=true; //let's not exit just yet...
+    end;
+  end;
+
+  breakpointcs.Leave;
+
+  if not found then
+    SetBreakpoint(address, bt_OnInstruction, bl_1byte, bo_Break);
 end;
 
 procedure TKDebugger.DisableAllBreakpoints;
@@ -286,6 +356,11 @@ begin
   result:=DebuggerThread <> nil;
 end;
 
+procedure TKDebugger.Continue(continueOption: TContinueOption; runtilladdress: dword=0);
+begin
+  debuggerthread.Continue(continueoption, runtilladdress);
+end;
+
 constructor TKDebugger.create;
 begin
   breakpointCS:=TCriticalSection.Create;
@@ -302,6 +377,7 @@ var ths: thandle;
     temp: thandle;
 begin
   OutputDebugString('TKDebuggerThread.create');
+  continueEvent:=Tevent.Create(nil, false, false, '');
 
   DBKDebug_StartDebugging(ProcessID);
   active:=true;
@@ -366,7 +442,263 @@ begin
   if not suspended then resume;
 end;
 
+procedure TKDebuggerThread.ConvertDebuggerStateToContext(debuggerstate: TDebuggerstate; var context: _CONTEXT);
+begin
+  ZeroMemory(@context,sizeof(_CONTEXT));
+  context.Eax:=debuggerstate.Eax;
+  context.Ebx:=debuggerstate.Ebx;
+  context.Ecx:=debuggerstate.Ecx;
+  context.Edx:=debuggerstate.Edx;
+  context.Esi:=debuggerstate.Esi;
+  context.Edi:=debuggerstate.Esi;
+  context.Ebp:=debuggerstate.Ebp;
+  context.Esp:=debuggerstate.Esp;
+  context.Eip:=debuggerstate.Eip;
+  context.Dr0:=debuggerstate.dr0;
+  context.Dr1:=debuggerstate.dr1;
+  context.Dr2:=debuggerstate.dr2;
+  context.Dr3:=debuggerstate.dr3;
+  context.Dr6:=debuggerstate.dr6;
+  context.Dr7:=debuggerstate.dr7;
+end;
 
+procedure TKDebuggerThread.Continue(continueOption: TContinueOption; runtilladdress: dword=0);
+begin
+  self.continueOption:=continueOption;
+  self.runtilladdress:=runtilladdress;
+  continueEvent.SetEvent;
+end;
+
+procedure TKDebuggerThread.UpdateGui;
+var
+  tempcontext: _CONTEXT;
+  temp: string;
+begin
+  with memorybrowser do
+  begin
+    //enable debug mode
+    run1.Enabled:=true;
+    step1.Enabled:=true;
+    stepover1.Enabled:=true;
+    runtill1.Enabled:=true;
+    stacktrace1.Enabled:=true;
+    caption:='Memory Viewer - Currently debugging thread';
+
+    if frmstacktrace<>nil then
+    begin
+      ConvertDebuggerStateToContext(currentdebuggerstate, tempcontext);
+      frmstacktrace.stacktrace(123,tempcontext);
+    end;
+
+    Disassembleraddress:=currentdebuggerstate.Eip;
+    dselected:=Disassembleraddress;
+
+    temp:='EAX '+IntToHex(currentdebuggerstate.Eax,8);
+    if temp<>eaxlabel.Caption then
+    begin
+      eaxlabel.Font.Color:=clred;
+      eaxlabel.Caption:=temp;
+    end else eaxlabel.Font.Color:=clWindowText;
+
+    temp:='EBX '+IntToHex(currentdebuggerstate.Ebx,8);
+    if temp<>ebxlabel.Caption then
+    begin
+      ebxlabel.Font.Color:=clred;
+      ebxlabel.Caption:=temp;
+    end else ebxlabel.Font.Color:=clWindowText;
+
+    temp:='ECX '+IntToHex(currentdebuggerstate.ECx,8);
+    if temp<>eCxlabel.Caption then
+    begin
+      eCXlabel.Font.Color:=clred;
+      eCXlabel.Caption:=temp;
+    end else eCXlabel.Font.Color:=clWindowText;
+
+    temp:='EDX '+IntToHex(currentdebuggerstate.EDx,8);
+    if temp<>eDxlabel.Caption then
+    begin
+      eDxlabel.Font.Color:=clred;
+      eDxlabel.Caption:=temp;
+    end else eDxlabel.Font.Color:=clWindowText;
+
+    temp:='ESI '+IntToHex(currentdebuggerstate.ESI,8);
+    if temp<>eSIlabel.Caption then
+    begin
+      eSIlabel.Font.Color:=clred;
+      eSIlabel.Caption:=temp;
+    end else eSIlabel.Font.Color:=clWindowText;
+
+    temp:='EDI '+IntToHex(currentdebuggerstate.EDI,8);
+    if temp<>eDIlabel.Caption then
+    begin
+      eDIlabel.Font.Color:=clred;
+      eDIlabel.Caption:=temp;
+    end else eDIlabel.Font.Color:=clWindowText;
+
+    temp:='EBP '+IntToHex(currentdebuggerstate.EBP,8);
+    if temp<>eBPlabel.Caption then
+    begin
+      eBPlabel.Font.Color:=clred;
+      eBPlabel.Caption:=temp;
+    end else eBPlabel.Font.Color:=clWindowText;
+
+    temp:='ESP '+IntToHex(currentdebuggerstate.ESP,8);
+    if temp<>eSPlabel.Caption then
+    begin
+      eSPlabel.Font.Color:=clred;
+      eSPlabel.Caption:=temp;
+    end else eSPlabel.Font.Color:=clWindowText;
+
+    temp:='EIP '+IntToHex(currentdebuggerstate.EIP,8);
+    if temp<>eIPlabel.Caption then
+    begin
+      eIPlabel.Font.Color:=clred;
+      eIPlabel.Caption:=temp;
+    end else eIPlabel.Font.Color:=clWindowText;
+
+    temp:='CS '+IntToHex(currentdebuggerstate.cs,4);
+    if temp<>CSlabel.Caption then
+    begin
+      CSlabel.Font.Color:=clred;
+      CSlabel.Caption:=temp;
+    end else CSlabel.Font.Color:=clWindowText;
+
+    temp:='DS '+IntToHex(currentdebuggerstate.ds,4);
+    if temp<>DSlabel.Caption then
+    begin
+      DSlabel.Font.Color:=clred;
+      DSlabel.Caption:=temp;
+    end else DSLabel.Font.Color:=clWindowText;
+
+    temp:='SS '+IntToHex(currentdebuggerstate.ss,4);
+    if temp<>SSlabel.Caption then
+    begin
+      SSlabel.Font.Color:=clred;
+      SSlabel.Caption:=temp;
+    end else SSlabel.Font.Color:=clWindowText;
+
+    temp:='ES '+IntToHex(currentdebuggerstate.es,4);
+    if temp<>ESlabel.Caption then
+    begin
+      ESlabel.Font.Color:=clred;
+      ESlabel.Caption:=temp;
+    end else ESlabel.Font.Color:=clWindowText;
+
+    temp:='FS '+IntToHex(currentdebuggerstate.fs,4);
+    if temp<>FSlabel.Caption then
+    begin
+      FSlabel.Font.Color:=clred;
+      FSlabel.Caption:=temp;
+    end else FSlabel.Font.Color:=clWindowText;
+
+    temp:='GS '+IntToHex(currentdebuggerstate.gs,4);
+    if temp<>GSlabel.Caption then
+    begin
+      GSlabel.Font.Color:=clred;
+      GSlabel.Caption:=temp;
+    end else GSlabel.Font.Color:=clWindowText;
+
+    temp:='CF '+IntToStr(GetBitOf(currentdebuggerstate.EFLAgs,0));
+    if temp<>cflabel.Caption then
+    begin
+      CFlabel.Font.Color:=clred;
+      CFlabel.caption:=temp;
+    end else cflabel.Font.Color:=clWindowText;
+
+    temp:='PF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,2));
+    if temp<>Pflabel.Caption then
+    begin
+      Pflabel.Font.Color:=clred;
+      Pflabel.caption:=temp;
+    end else Pflabel.Font.Color:=clWindowText;
+
+    temp:='AF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,4));
+    if temp<>Aflabel.Caption then
+    begin
+      Aflabel.Font.Color:=clred;
+      Aflabel.caption:=temp;
+    end else Aflabel.Font.Color:=clWindowText;
+
+    temp:='ZF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,6));
+    if temp<>Zflabel.Caption then
+    begin
+      Zflabel.Font.Color:=clred;
+      Zflabel.caption:=temp;
+    end else Zflabel.Font.Color:=clWindowText;
+
+    temp:='SF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,7));
+    if temp<>Sflabel.Caption then
+    begin
+      Sflabel.Font.Color:=clred;
+      Sflabel.caption:=temp;
+    end else Sflabel.Font.Color:=clWindowText;
+
+    temp:='DF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,10));
+    if temp<>Dflabel.Caption then
+    begin
+      Dflabel.Font.Color:=clred;
+      Dflabel.caption:=temp;
+    end else Dflabel.Font.Color:=clWindowText;
+
+    temp:='OF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,11));
+    if temp<>Oflabel.Caption then
+    begin
+      Oflabel.Font.Color:=clred;
+      Oflabel.caption:=temp;
+    end else Oflabel.Font.Color:=clWindowText;
+
+
+    EAXv:=currentdebuggerstate.Eax;
+    EBXv:=currentdebuggerstate.Ebx;
+    ECXv:=currentdebuggerstate.Ecx;
+    EDXv:=currentdebuggerstate.Edx;
+    ESIv:=currentdebuggerstate.ESi;
+    EDIv:=currentdebuggerstate.Edi;
+    EBPv:=currentdebuggerstate.Ebp;
+    ESPv:=currentdebuggerstate.Esp;
+    EIPv:=currentdebuggerstate.Eip;
+  end;
+end;
+
+procedure TKDebuggerThread.AddToChangesList;
+var i: integer;
+    lbs: string;
+    newitem: TListItem;
+    x: PContext;
+    bpa: dword;
+begin
+  with memorybrowser do
+  begin
+    EAXv:=currentdebuggerstate.Eax;
+    EBXv:=currentdebuggerstate.Ebx;
+    ECXv:=currentdebuggerstate.Ecx;
+    EDXv:=currentdebuggerstate.Edx;
+    ESIv:=currentdebuggerstate.Esi;
+    EDIv:=currentdebuggerstate.Edi;
+    EBPv:=currentdebuggerstate.Ebp;
+    ESPv:=currentdebuggerstate.Esp;
+    EIPv:=currentdebuggerstate.Eip;
+  end;
+
+  try
+    bpa:=getaddress(tempaddressspecifier);
+    lbs:=inttohex(bpa,8);
+    for i:=0 to frmchangedaddresses.Changedlist.Items.Count-1 do
+      if frmchangedaddresses.Changedlist.Items[i].Caption=lbs then exit;
+
+    newitem:=frmchangedaddresses.Changedlist.Items.Add;
+    getmem(x,sizeof(_CONTEXT));
+    ConvertDebuggerStateToContext(currentdebuggerstate, x^);
+    newitem.Data:=x;
+    newitem.Caption:=lbs;
+
+    //enable the timer if needed, there's data to be handled
+    if not frmchangedaddresses.Timer1.Enabled then
+      frmchangedaddresses.Timer1.Enabled:=true;
+  except
+    //
+  end;
+end;
 
 procedure TKDebuggerThread.foundone;
 var desc,opcode: string;
@@ -465,15 +797,52 @@ begin
 end;
 
 function TKDebuggerThread.HandleBreak:boolean;
+var wr: TWaitResult;
+    address: dword;
 begin
   OutputDebugString('HandleBreak');
 
-  result:=true; //unless the single step isn't intended
+  result:=true; //unless the single step isn't intended, but that check should have happened in the kernel
+  stepping:=true;
 
   //update gui state
-  //sleep until the user sets the continue event
+  synchronize(updategui);
 
-  stepping:=true; //set stepping to false if the user continues with the state set to continue
+  //sleep until the user sets the continue event
+  continueEvent.WaitFor(INFINITE);
+
+  case continueoption of
+    co_run:
+    begin
+      currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+    end;
+
+    co_stepinto:
+    begin
+      currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,1); //trap to execute on next instruction
+    end;
+
+    co_stepover:
+    begin
+      currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      //find next instruction address
+      address:=currentdebuggerstate.eip;
+      disassemble(address);
+
+      //set breakpoint here. (one time only bp)
+      KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_Break, nil, true);
+    end;
+
+    co_runtill:
+    begin
+      currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
+      KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, true);
+    end;
+
+  end;
+
+  DBKDebug_SetDebuggerState(@currentdebuggerstate);
 
   //continue debugged thread
 
@@ -482,9 +851,32 @@ end;
 function TKDebuggerThread.HandleChangeRegister(breakreason: integer): boolean;
 begin
   OutputDebugString('HandleChangeRegister');
+
+  owner.breakpointCS.Enter;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_eax then currentdebuggerstate.eax:=owner.breakpoint[breakreason].ChangeRegisterData.new_eax;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_ebx then currentdebuggerstate.ebx:=owner.breakpoint[breakreason].ChangeRegisterData.new_ebx;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_ecx then currentdebuggerstate.ecx:=owner.breakpoint[breakreason].ChangeRegisterData.new_ecx;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_edx then currentdebuggerstate.edx:=owner.breakpoint[breakreason].ChangeRegisterData.new_edx;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_esi then currentdebuggerstate.esi:=owner.breakpoint[breakreason].ChangeRegisterData.new_esi;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_edi then currentdebuggerstate.edi:=owner.breakpoint[breakreason].ChangeRegisterData.new_edi;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_ebp then currentdebuggerstate.ebp:=owner.breakpoint[breakreason].ChangeRegisterData.new_ebp;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_esp then currentdebuggerstate.esp:=owner.breakpoint[breakreason].ChangeRegisterData.new_esp;
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_eip then currentdebuggerstate.eip:=owner.breakpoint[breakreason].ChangeRegisterData.new_eip;
+
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_cf then currentdebuggerstate.eflags:=eflags_setCF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_cf));
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_pf then currentdebuggerstate.eflags:=eflags_setPF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_pf));
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_af then currentdebuggerstate.eflags:=eflags_setAF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_af));
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_zf then currentdebuggerstate.eflags:=eflags_setZF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_zf));
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_sf then currentdebuggerstate.eflags:=eflags_setSF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_sf));
+  if owner.breakpoint[breakreason].ChangeRegisterData.change_of then currentdebuggerstate.eflags:=eflags_setOF(currentdebuggerstate.eflags, integer(owner.breakpoint[breakreason].ChangeRegisterData.new_of));
+
+  owner.breakpointCS.Leave;
+
+
+  //set resume flag so the next time this instruction is executed it won't break (yes, eip could be changed, but let's do it anyhow)
+  currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1);
+  DBKDebug_SetDebuggerState(@currentdebuggerstate);
   result:=true;
-  //apply update according to the given breakpoint
-  //continue debugged thread
 end;
 
 function TKDebuggerThread.HandleFindCode: boolean;
@@ -524,11 +916,39 @@ begin
 
 end;
 
+function TKDebuggerThread.HandleFindWhatCodeAccesses: boolean;
+//find window
+//evaluate code between brackets
+//store address
+//continue
+var opcode,desc: string;
+    offset: dword;
+    fb,nb: integer;
+begin
+  offset:=currentdebuggerstate.eip;
+  opcode:=disassemble(offset,desc);
+
+  fb:=pos('[',opcode);
+  if fb>0 then
+    nb:=pos(']',opcode);
+
+  if (fb>0) and (nb>0) then //instruction has brackets
+  begin
+    tempaddressspecifier:=copy(opcode,fb+1,nb-fb-1);
+    synchronize(addtochangeslist);
+  end;
+
+  //and continue
+  currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1);
+  DBKDebug_SetDebuggerState(@currentdebuggerstate);
+  result:=true;
+end;
+
 procedure TKDebuggerThread.execute;
 var
   breakreason: integer;
   breakoption: TBreakOption;
-
+  handled: boolean;
 begin
   active:=true;
   try
@@ -555,20 +975,29 @@ begin
             //fetch bp data
             owner.breakpointcs.Enter;
             breakoption:=owner.breakpoint[breakreason].BreakOption;
+
+            if owner.breakpoint[breakreason].BreakOnce then
+              KDebugger.DisableBreakpoint(breakreason);
+              
             owner.breakpointCS.Leave;
+            
           end;
 
+
+
           case breakoption of
-            bo_break:           DBKDebug_ContinueDebugEvent(HandleBreak);
-            bo_ChangeRegister:  DBKDebug_ContinueDebugEvent(HandleChangeRegister(breakreason));
-            bo_FindCode:        DBKDebug_ContinueDebugEvent(HandleFindCode);
+            bo_break:           handled:=HandleBreak;
+            bo_ChangeRegister:  handled:=HandleChangeRegister(breakreason);
+            bo_FindCode:        handled:=HandleFindCode;
+            bo_FindWhatCodeAccesses: handled:=HandleFindWhatCodeAccesses;
             else
             begin
               OutputDebugString('Invalid breakoption');
-              DBKDebug_ContinueDebugEvent(false); //weird bug if it happens...
+              handled:=false;
             end;
           end;
 
+          DBKDebug_ContinueDebugEvent(handled);
         end
         else DBKDebug_ContinueDebugEvent(false);  //not handled
       end;
@@ -582,23 +1011,9 @@ begin
 
   end;
 
-  crdebugging.Enter;
-{
-  //disable the debugregs
-  zeromemory(@debugregs,sizeof(debugregs));
-  debugregs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-  debugregs.Dr7:=reg0set or reg1set or reg2set or reg3set;
-  for i:=0 to length(threadlist)-1 do
-  begin
-    suspendthread(threadlist[i]);
-    SetThreadContext(threadlist[i],Debugregs);
-    resumethread(threadlist[i]);
-  end;
-         }
   //tell the kerneldriver to whipe out the debuggeerdprocesslist
   DBKDebug_Stopdebugging;
-  
-  crdebugging.Leave;
+
   active:=false;
 end;
 

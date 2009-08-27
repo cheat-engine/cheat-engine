@@ -1604,19 +1604,14 @@ begin
   end;
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
-  //if Debuggerthread3<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
 
   foundcodedialog:=TFoundcodedialog.create(self);
   foundcodedialog.Caption:=strAccessed;
   foundcodedialog.btnOK.caption:=strStop;
 
-  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
-  begin
-    if not KDebugger.isActive then
-      KDebugger.startDebugger;
-
-    //  Debuggerthread3:=TDebuggerthread3.create(false);
-  end;
+  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
+    KDebugger.startDebugger; //start the kerneldebugger
+    
 
   originaladdress:=address;
   originalsize:=size;
@@ -1849,7 +1844,6 @@ begin
   end;
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
-  //if debuggerthread3<>nil then raise exception.create('Please stop any other debugger option before enabling this option');
 
   foundcodedialog:=TFoundcodedialog.create(self);
   foundcodedialog.Caption:=strOpcodeChanged;

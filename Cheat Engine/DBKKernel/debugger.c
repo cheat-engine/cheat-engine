@@ -319,13 +319,11 @@ int debugger_setGDBreakpoint(int breakpointnr, ULONG_PTR Address, BreakType bt, 
 Will register a specific breakpoint. If global debug is used it'll set this debug register accordingly
 */
 {
+	DbgPrint("debugger_setGDBreakpoint(%d, %x, %d, %d)\n", breakpointnr, Address, bt, bl);
 	DebuggerState.breakpoint[breakpointnr].active=TRUE;
 	DebuggerState.breakpoint[breakpointnr].address=Address;
 	DebuggerState.breakpoint[breakpointnr].breakType=bt;
 	DebuggerState.breakpoint[breakpointnr].breakLength=bl;
-
-	//debugger_dr0_setValue(debugger_dr0_getValue()); //kickstart the dr setting
-
 	return TRUE;
 }
 
@@ -334,7 +332,7 @@ NTSTATUS debugger_waitForDebugEvent(ULONG timeout)
 	NTSTATUS r;
 	LARGE_INTEGER wait;
 
-	DbgPrint("debugger_waitForDebugEvent with timeout of %d\n",timeout);
+	//DbgPrint("debugger_waitForDebugEvent with timeout of %d\n",timeout);
 
 	//-10000000LL=1 second
 	//-10000LL should be 1 millisecond
@@ -424,6 +422,10 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 {
 	DebuggerState.LastStackPointer[si_eflags]=state->eflags;
+
+	DbgPrint("have set eflags to %x\n",DebuggerState.LastStackPointer[si_eflags]);
+
+
 	DebuggerState.LastStackPointer[si_eax]=state->eax;
 	DebuggerState.LastStackPointer[si_ebx]=state->ebx;
 	DebuggerState.LastStackPointer[si_ecx]=state->ecx;
@@ -539,6 +541,8 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 
 		//i'm done, let other threads catch it
 		KeSetEvent(&debugger_event_CanBreak, 0, FALSE);
+
+		DbgPrint("Returning after a wait. handled=%d and eflags=%x\n",handled, stackpointer[si_eflags]);
 
 		return handled;
 	}
@@ -857,7 +861,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 
 	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1;
 	debugger_dr7_setGD(0); //make sure the GD bit is disabled (int1 within int1, oooh the fun...)
-	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1;
+	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1; //just be sure...
 
 	if (inthook_isDBVMHook(1))
 	{
@@ -883,8 +887,18 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 		//set the breakpoint in this thread. 
 		int debugregister=0, breakpoint=0;
 		int currentcpunr=cpunr();
+		DebugReg6 dr6=debugger_dr6_getValue();
 		DebugReg7 _dr7=*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[currentcpunr].DR7;
 
+		//first clear the DR6 bits caused by the debugger
+		if ((dr6.BD) && (!(_dr7.GD))) dr6.B0=0; //should already have been done, but what the heck...
+		if ((dr6.B0) && (!(_dr7.L0 || _dr7.G0))) dr6.B0=0; //unset DR6.B0
+		if ((dr6.B1) && (!(_dr7.L1 || _dr7.G1))) dr6.B1=0; //unset DR6.B1
+		if ((dr6.B2) && (!(_dr7.L2 || _dr7.G2))) dr6.B2=0; //unset DR6.B2
+		if ((dr6.B3) && (!(_dr7.L3 || _dr7.G3))) dr6.B3=0; //unset DR6.B3
+
+		DebuggerState.FakedDebugRegisterState[currentcpunr].DR6=*(DWORD *)&dr6;
+		
 		/*DbgPrint("Target process:\n");
 		DbgPrint("real dr0=%x\n",debugger_dr0_getValue());
 		DbgPrint("real dr1=%x\n",debugger_dr1_getValue());
@@ -902,9 +916,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 		//set the debug registers of active breakpoints. Doesn't have to be in the specified order. Just find an unused debug registers
 		//check DebuggerState.FakedDebugRegisterState[cpunr()].DR7 for unused breakpoints
 
-		//first set the breakpoitns to what they should be according to the guest
-
-		
+		//set state to what the gues thinks it is
 		debugger_dr0_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR0);
 		debugger_dr1_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR1);
 		debugger_dr2_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR2);
@@ -1025,15 +1037,16 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 		//DbgPrint("after fake DR7=%x real DR7=%x\n",DebuggerState.FakedDebugRegisterState[currentcpunr].DR7, debugger_dr7_getValueDword());
 
 	}
+	else
+	{
+		//not global debug, just clear all flags and be done with it
+		debugger_dr6_setValue(0xffff0ff0);
+	}
 
 	
 	
-/*	if (handled)
-	{
-		//clear DR6
-		debugger_dr6_setValue(0xffff0ff0);
-	}	
-	*/
+
+	
 
 	if (handled == 2)
 	{

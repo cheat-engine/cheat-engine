@@ -2581,6 +2581,11 @@ end;
 procedure TMemoryBrowser.Run1Click(Sender: TObject);
 begin
   {$ifndef net}
+  if kdebugger.isactive then
+  begin
+    kdebugger.continue(co_run);
+  end
+  else
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=0;   //note: I could also have the debuggerthread suspend itself, and resume it here
@@ -2593,6 +2598,11 @@ end;
 procedure TMemoryBrowser.Step1Click(Sender: TObject);
 begin
   {$ifndef net}
+  if kdebugger.isactive then
+  begin
+    kdebugger.continue(co_stepinto);
+  end
+  else
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=1; //single step
@@ -2614,6 +2624,11 @@ begin
   int3:=$cc;
   //place a invisble for the user breakpoint on the following upcode
 
+  if kdebugger.isactive then
+  begin
+    kdebugger.continue(co_stepover);
+  end
+  else
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=0; //step over
@@ -2670,6 +2685,11 @@ begin
   int3:=$cc;
   //place a invisble for the user breakpoint on the following upcode
 
+  if kdebugger.isactive then
+  begin
+    kdebugger.continue(co_runtill);
+  end
+  else
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=0; //step over
@@ -3919,7 +3939,7 @@ begin
   if foundcodedialog<>nil then
     raise exception.Create('I can''t do that! You are currently using one of the code finder options, please, stop it first');
 
-  {if (formsettings.cbKdebug.checked) and (debuggerthread3<>nil) and (debuggerthread3.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up}
+  if (formsettings.cbKdebug.checked) and (kdebugger.isactive) and (kdebugger.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
 
   if (not formsettings.cbKdebug.checked) then
     if (not startdebuggerifneeded) then exit;
@@ -3931,8 +3951,17 @@ end;
 procedure TMemoryBrowser.ogglebreakpoint1Click(Sender: TObject);
 begin
 {$ifndef net}
-  togglebreakpoint(dselected);
-  updatedisassemblerview;
+  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
+  begin
+    KDebugger.StartDebugger;
+    KDebugger.ToggleBreakpoint(dselected);
+  end
+  else
+  begin
+    //normal debugger
+    togglebreakpoint(dselected);
+    updatedisassemblerview;
+  end;
 
 
 {$endif}
@@ -4593,33 +4622,56 @@ end;
 procedure TMemoryBrowser.FindwhatThiscodeAccesses(address: dword);
 var i: integer;
 begin
-  //New method:
-  if not startdebuggerifneeded then exit;
-  if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window forces a close of manual debugging)');
-
+  //check if the old window exists, if so, mark it as deactivated
   if frmChangedAddresses<>nil then
     frmChangedAddresses.changedlist.color:=clGray;
 
+  //create new window, and leave the old one alive
   frmChangedAddresses:=TfrmChangedAddresses.Create(self);
-
-  debuggerthread.Suspend;
-
-  debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-  debuggerthread.DRRegs.Dr0:=address;
-  debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
-
-  for i:=0 to length(debuggerthread.threadlist)-1 do
+  
+  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
   begin
-    suspendthread(debuggerthread.threadlist[i][1]);
-    if not setthreadcontext(debuggerthread.threadlist[i][1],debuggerthread.DRRegs) then showmessage('failed 1');
-    resumethread(debuggerthread.threadlist[i][1]);
+    KDebugger.StartDebugger;  //if it wasn't enabled yet
+    try
+      KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_FindWhatCodeAccesses);
+    except
+      on e: exception do
+      begin
+        freeandnil(frmChangedAddresses);
+        raise e;
+      end;
+    end;
+  end
+  else
+  begin
+    //New method:
+    if not startdebuggerifneeded then exit;
+    if debuggerthread.userisdebugging then raise exception.create('You can''t use this function while you are debugging the application yourself. (Close the memory view window forces a close of manual debugging)');
+
+    if frmChangedAddresses<>nil then
+      frmChangedAddresses.changedlist.color:=clGray;
+
+    frmChangedAddresses:=TfrmChangedAddresses.Create(self);
+
+    debuggerthread.Suspend;
+
+    debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+    debuggerthread.DRRegs.Dr0:=address;
+    debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
+
+    for i:=0 to length(debuggerthread.threadlist)-1 do
+    begin
+      suspendthread(debuggerthread.threadlist[i][1]);
+      if not setthreadcontext(debuggerthread.threadlist[i][1],debuggerthread.DRRegs) then showmessage('failed 1');
+      resumethread(debuggerthread.threadlist[i][1]);
+    end;
+
+
+    debuggerthread.breakpointaddress:=address;
+    debuggerthread.breakpointset:=true;
+
+    debuggerthread.Resume;
   end;
-
-
-  debuggerthread.breakpointaddress:=address;
-  debuggerthread.breakpointset:=true;
-
-  debuggerthread.Resume;
   frmChangedAddresses.show;
 end;
 
