@@ -108,6 +108,17 @@ unsigned long long getTSC(void)
 	return result;
 }
 
+_declspec( naked ) EFLAGS getEflags(void)
+{
+	__asm
+	{
+		pushfd
+		pop eax
+		ret
+	}
+
+}
+
 int isPrefix(unsigned char b)
 {
 	switch (b)

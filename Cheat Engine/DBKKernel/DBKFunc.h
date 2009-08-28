@@ -179,6 +179,7 @@ void int1apihook(void);
 void OriginalInt1handler(void);
 
 int isPrefix(unsigned char b);
+EFLAGS getEflags(void);
 
 int cpunr(void);
 

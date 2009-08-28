@@ -61,7 +61,8 @@ type
       BreakLength: TBreakLength;
       BreakOption: TBreakOption;
       ChangeRegisterData: TRegistermodificationBP;
-      BreakOnce: boolean;
+      BreakOnce: boolean; //if set it gets deleted when broken on once
+      ThreadID: dword; //threadid determines wwhich thread it should break on.
     end;
 
     generaldebugregistercontext: TContext;
@@ -791,15 +792,18 @@ begin
 
   if result=-2 then
   begin
-    OutputDebugString('Result = -2, is it a single step?');
-    //single step then ?
-    if getbit(14,currentdebuggerstate.dr6)=1 then
+    if stepping then
     begin
-      OutputDebugString('Yes, it is a single step. WEEEEEEE');
-      //yes, it's a single step
-      //is the user single stepping ?
-      if Stepping then
-        result:=-1;
+      OutputDebugString('Result = -2, is it a single step?');
+      //single step then ?
+      if getbit(14,currentdebuggerstate.dr6)=1 then
+      begin
+        OutputDebugString('Yes, it is a single step. WEEEEEEE');
+        //yes, it's a single step
+        //is the user single stepping ?
+        if Stepping then
+          result:=-1;
+      end;
     end;
   end;
 end;
@@ -827,6 +831,7 @@ begin
       OutputDebugString('run');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
+      stepping:=false;
     end;
 
     co_stepinto:
@@ -834,6 +839,7 @@ begin
       OutputDebugString('step into');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,1); //trap to execute on next instruction
+      stepping:=true;
     end;
 
     co_stepover:
@@ -847,6 +853,7 @@ begin
 
       //set breakpoint here. (one time only bp)
       KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_Break, nil, true);
+      stepping:=false;
     end;
 
     co_runtill:
@@ -854,7 +861,8 @@ begin
       OutputDebugString('run till');    
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
-      KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, true);
+      KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, true,currentdebuggerstate.threadid);
+      stepping:=false;
     end;
 
   end;

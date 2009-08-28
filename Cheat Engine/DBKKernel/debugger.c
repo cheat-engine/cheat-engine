@@ -484,16 +484,28 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 
 	//DbgPrint("breakpointHandler for kernel breakpoints\n");
 
+
+
 	if (KeGetCurrentIrql()==0)
 	{
 		//crititical section here
 		NTSTATUS r;
 		r=STATUS_UNSUCCESSFUL;
+		if ((stackpointer[si_cs] & 3)==0)
+		{
+			DbgPrint("Going to wait in a kernelmode routine\n");
+		}
+
 		while (r != STATUS_SUCCESS)
 		{
 			r=KeWaitForSingleObject(&debugger_event_CanBreak,UserRequest, KernelMode, TRUE, NULL);
 			//check r and handle specific events
 				
+		}
+
+		if ((stackpointer[si_cs] & 3)==0)
+		{
+			DbgPrint("Woke up in a kernelmode routine\n");
 		}
 		
 
@@ -543,6 +555,10 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 		KeSetEvent(&debugger_event_CanBreak, 0, FALSE);
 
 		DbgPrint("Returning after a wait. handled=%d and eflags=%x\n",handled, stackpointer[si_eflags]);
+		if ((stackpointer[si_cs] & 3)==0)
+		{
+			DbgPrint("and in kernelmode\n");
+		}
 
 		return handled;
 	}
@@ -789,13 +805,23 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 			//DbgPrint("BP in target process\n");
 			
 			//no extra checks if it's caused by the debugger or not. That is now done in the usermode part
-
+			//if (*(PEFLAGS)(&stackpointer[si_eflags]).IF)	
+			if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
+			{
+				DbgPrint("Breakpoint while interrupts are dissabled: %x\n",stackpointer[si_eip]);
+				((PEFLAGS)&stackpointer[si_eflags])->RF=1;
+				((PEFLAGS)&stackpointer[si_eflags])->TF=1; //test
+				return 1; //don't handle it but also don't tell windows
+			}
+	
 			if (DebuggerState.globalDebug)
 			{
 				//enable the GD flag for taskswitches that will occur as soon as interrupts are enabled
 				//this also means: DO NOT EDIT THE DEBUG REGISTERS IN GLOBAL DEBUG MODE at this point. Only in the epilogue
 				debugger_dr7_setGD(DebuggerState.globalDebug); 
-			}			
+			}	
+
+
 			__asm
 			{
 				sti //start interrupt handling
