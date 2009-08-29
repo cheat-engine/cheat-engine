@@ -5,6 +5,7 @@ interface
 uses windows, sysutils, dbk32functions, classes;
 
 type TDebuggerstate=record
+  threadid: DWORD;
 	eflags : DWORD;
 	eax : DWORD;
 	ebx : DWORD;

@@ -7,6 +7,7 @@ const dbkdll='DBK32.dll';
 
 
 type TDebuggerstate=record
+  threadid: DWORD;
 	eflags : DWORD;
 	eax : DWORD;
 	ebx : DWORD;

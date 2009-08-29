@@ -255,7 +255,8 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	}			
 	__except(1)
 	{
-		DbgPrint("Error while reading\n");
+		DbgPrint("Error while reading: ReadProcessMemory(%x,%p, %p, %d, %p\n", PID, PEProcess, Address, Size, Buffer);
+
 		ntStatus = STATUS_UNSUCCESSFUL;
 	}
 	

@@ -75,8 +75,8 @@ type
     procedure ApplyDebugRegisters;
     procedure StartDebugger;
     procedure StopDebugger;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false); overload;
-    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; threadid: dword=0; breakOnce: boolean=false); overload;
+    procedure SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; threadid: dword=0; breakOnce: boolean=false); overload;
 
     procedure DisableBreakpoint(bp: integer);
     procedure DisableAllBreakpoints;
@@ -129,7 +129,7 @@ begin
   breakpointcs.leave;
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_Break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false);
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: integer; BreakOption: TBreakOption=bo_Break; ChangeReg: PRegistermodificationBP=nil; threadid: dword=0; breakOnce: boolean=false);
 //split up into seperate SetBreakpoint calls
 var atleastone: boolean;
 begin
@@ -145,7 +145,7 @@ begin
       if (breaklength=1) or (address mod 2 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_1byte, BreakOption, ChangeReg, breakonce);
+        SetBreakpoint(address, BreakType, bl_1byte, BreakOption, ChangeReg, threadid, breakonce);
         inc(address,1);
         dec(BreakLength,1);
       end
@@ -153,14 +153,14 @@ begin
       if (breaklength=2) or (address mod 4 > 0) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_2byte, BreakOption, ChangeReg, breakonce);
+        SetBreakpoint(address, BreakType, bl_2byte, BreakOption, ChangeReg, threadid, breakonce);
         inc(address,2);
         dec(BreakLength,2);
       end else
       if (breaklength=4) then
       begin
         atleastone:=true;
-        SetBreakpoint(address, BreakType, bl_4byte, BreakOption, ChangeReg, breakonce);
+        SetBreakpoint(address, BreakType, bl_4byte, BreakOption, ChangeReg, threadid, breakonce);
         inc(address,4);
         dec(breaklength,4);
       end;
@@ -173,7 +173,7 @@ begin
 
 end;
 
-procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; breakOnce: boolean=false);
+procedure TKDebugger.SetBreakpoint(address: dword; BreakType: TBreakType; BreakLength: TBreakLength; BreakOption: TBreakOption=bo_break; ChangeReg: PRegistermodificationBP=nil; threadid: dword=0; breakOnce: boolean=false);
 //only call this from the main thread
 var debugreg: integer;
     i: integer;
@@ -198,8 +198,10 @@ begin
       if changereg<>nil then
         breakpoint[i].ChangeRegisterData:=changereg^;
 
-      breakpoint[i].active:=true;
+      breakpoint[i].threadid:=threadid;
       breakpoint[i].BreakOnce:=breakonce;
+      breakpoint[i].active:=true;
+      
 
       outputdebugstring(format('using debug reg %d with BreakOption %d',[i,integer(breakoption)]));
       debugreg:=i;
@@ -494,7 +496,7 @@ begin
     if frmstacktrace<>nil then
     begin
       ConvertDebuggerStateToContext(currentdebuggerstate, tempcontext);
-      frmstacktrace.stacktrace(123,tempcontext);
+      frmstacktrace.stacktrace(currentdebuggerstate.threadid,tempcontext);
     end;
 
     Disassembleraddress:=currentdebuggerstate.Eip;
@@ -745,6 +747,8 @@ var i,j: integer;
     bsize: integer;
     address: dword;
 begin
+
+  outputdebugstring('EIP='+inttohex(currentdebuggerstate.eip,8));
   outputdebugstring('DR6='+inttohex(currentdebuggerstate.dr6,8));
   outputdebugstring('DR7='+inttohex(currentdebuggerstate.dr7,8));
     
@@ -792,17 +796,22 @@ begin
 
   if result=-2 then
   begin
-    if stepping then
+    OutputDebugString('Result = -2, is it a single step?');
+    //single step then ?
+    if getbit(14,currentdebuggerstate.dr6)=1 then //check if single step bit is 1
     begin
-      OutputDebugString('Result = -2, is it a single step?');
-      //single step then ?
-      if getbit(14,currentdebuggerstate.dr6)=1 then
+      OutputDebugString('Yes, it is a single step');
+      //yes, it's a single step
+      //is the user single stepping ?
+      if Stepping then
       begin
-        OutputDebugString('Yes, it is a single step. WEEEEEEE');
-        //yes, it's a single step
-        //is the user single stepping ?
-        if Stepping then
-          result:=-1;
+        OutputDebugString('Single step while stepping is on. So break');
+        result:=-1;
+      end
+      else
+      begin
+        OutputDebugString('Single step while stepping is off, caused by program itself ?');
+        result:=-1; //remove this if you want to cause an exception
       end;
     end;
   end;
@@ -823,6 +832,7 @@ begin
   synchronize(updategui);
 
   //sleep until the user sets the continue event
+  continueEvent.ResetEvent; //make sure it's unset so unwanted usercommands don't cause a continue
   continueEvent.WaitFor(INFINITE);
 
   case continueoption of
@@ -844,15 +854,15 @@ begin
 
     co_stepover:
     begin
-      OutputDebugString('stop over');
+      OutputDebugString('step over');
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
       //find next instruction address
       address:=currentdebuggerstate.eip;
       disassemble(address);
 
-      //set breakpoint here. (one time only bp)
-      KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_Break, nil, true);
+      //set breakpoint here. (one time only bp for this specific threadid)
+      KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_Break, nil, currentdebuggerstate.threadid, true);
       stepping:=false;
     end;
 
@@ -861,7 +871,7 @@ begin
       OutputDebugString('run till');    
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
-      KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, true,currentdebuggerstate.threadid);
+      KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, currentdebuggerstate.threadid, true);
       stepping:=false;
     end;
 
@@ -999,12 +1009,27 @@ begin
             //breakpoint triggered
             //fetch bp data
             owner.breakpointcs.Enter;
-            breakoption:=owner.breakpoint[breakreason].BreakOption;
+            try
+              breakoption:=owner.breakpoint[breakreason].BreakOption;
 
-            if owner.breakpoint[breakreason].BreakOnce then
-              KDebugger.DisableBreakpoint(breakreason);
-              
-            owner.breakpointCS.Leave;
+              if (owner.breakpoint[breakreason].ThreadID=0) or (owner.breakpoint[breakreason].ThreadID=currentdebuggerstate.threadid) then
+              begin
+                //delete if it belongs to this thread and it's a one time only break
+                if owner.breakpoint[breakreason].BreakOnce then
+                  KDebugger.DisableBreakpoint(breakreason);
+              end
+              else
+              begin
+                //it's a breakpoint that's not designed for this thread, skip it, but don't tell windows it happened
+                OutputDebugString('Thread specific breakpoint. Break didn''t happen in target thread. Skipping breakpoint');
+                currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1);
+                DBKDebug_SetDebuggerState(@currentdebuggerstate);
+                DBKDebug_ContinueDebugEvent(true);
+                System.Continue;
+              end;
+            finally
+              owner.breakpointCS.Leave;
+            end;
             
           end;
 

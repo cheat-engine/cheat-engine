@@ -5,6 +5,7 @@
 #include <windef.h>
 
 typedef struct {
+	ULONG threadid;
 	ULONG eflags;
 	ULONG eax;
 	ULONG ebx;

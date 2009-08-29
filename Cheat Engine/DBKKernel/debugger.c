@@ -46,6 +46,7 @@ struct
 	//while debugging:
 	DWORD *LastStackPointer;
 	DWORD *LastRealDebugRegisters;
+	ULONG LastThreadID;
 	BOOL handledlastevent;
 
 	struct {
@@ -371,6 +372,7 @@ DWORD *debugger_getLastStackPointer(void)
 
 NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 {
+	state->threadid=DebuggerState.LastThreadID;
 	state->eflags=DebuggerState.LastStackPointer[si_eflags];
 	state->eax=DebuggerState.LastStackPointer[si_eax];
 	state->ebx=DebuggerState.LastStackPointer[si_ebx];
@@ -512,7 +514,8 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 		//We're here, let's notify the usermode debugger of our situation
 		//first store the stackpointer so it can be manipulated externally
 		DebuggerState.LastStackPointer=stackpointer;
-		DebuggerState.LastRealDebugRegisters=currentdebugregs;
+		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
+		DebuggerState.LastThreadID=(ULONG)PsGetCurrentThreadId();
 
 
 		//notify usermore app that this thread has halted due to a debug event
