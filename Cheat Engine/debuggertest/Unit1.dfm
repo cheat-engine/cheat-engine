@@ -1,9 +1,10 @@
 object Form1: TForm1
   Left = 302
   Top = 330
-  Width = 451
-  Height = 251
+  BorderStyle = bsSingle
   Caption = 'Form1'
+  ClientHeight = 215
+  ClientWidth = 435
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -106,5 +107,23 @@ object Form1: TForm1
     Caption = 'Get DR'#39's'
     TabOrder = 3
     OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 8
+    Top = 176
+    Width = 121
+    Height = 25
+    Caption = 'Make non executable'
+    TabOrder = 4
+    OnClick = Button5Click
+  end
+  object Button6: TButton
+    Left = 216
+    Top = 176
+    Width = 75
+    Height = 25
+    Caption = 'Crash'
+    TabOrder = 5
+    OnClick = Button6Click
   end
 end

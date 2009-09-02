@@ -1409,11 +1409,11 @@ object MainForm: TMainForm
     end
     object Label38: TLabel
       Tag = 1
-      Left = 344
+      Left = 376
       Top = 304
-      Width = 53
+      Width = 17
       Height = 13
-      Caption = 'start debug'
+      Caption = 'test'
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -2540,11 +2540,11 @@ object MainForm: TMainForm
       GroupIndex = 2
       OnClick = Setbreakpoint1Click
     end
-    object Findoutwhatreadsfromthisaddress1: TMenuItem
+    object Findoutwhatreadsfromthisaddress1obsolete: TMenuItem
       Caption = 'Find out what reads from this address'
       GroupIndex = 2
       Visible = False
-      OnClick = Findoutwhatreadsfromthisaddress1Click
+      OnClick = Findoutwhatreadsfromthisaddress1obsoleteClick
     end
     object sep1: TMenuItem
       Caption = '-'

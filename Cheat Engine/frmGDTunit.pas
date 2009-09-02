@@ -74,7 +74,10 @@ var limit: word;
 
     aa,bb: uint64;
 begin
+  limit:=0;
   address:=getgdt(limit);
+
+  outputdebugstring(format('gdt limit = %d',[limit]));
 
   getmem(x,limit*8);
   try

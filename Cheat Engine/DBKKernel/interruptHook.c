@@ -87,7 +87,7 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 	return TRUE;
 }
 
-int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP)
+int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUMPBACK jumpback)
 {
 	IDT idt;	
 	GetIDT(&idt);
@@ -98,6 +98,12 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP)
 		//new hook, so save the originals
 		InterruptHook[intnr].originalCS=idt.vector[intnr].wSelector;
 		InterruptHook[intnr].originalEIP=idt.vector[intnr].wLowOffset+(idt.vector[intnr].wHighOffset << 16);
+	}
+
+	if (jumpback)
+	{
+		jumpback->cs=InterruptHook[intnr].originalCS;
+		jumpback->eip=InterruptHook[intnr].originalEIP;
 	}
 
 	if (vmxusable && ((intnr==1) || (intnr==14)) )
@@ -121,14 +127,7 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP)
 		newVector.wLowOffset=(WORD)newEIP;
 		newVector.wSelector=(WORD)newCS;
 		newVector.bUnused=0;
-		newVector.bAccessFlags=0x8e;
-		/*
-		newVector.gatetype=6; //interrupt gate
-		newVector.gatesize=1; //32-bit
-		newVector.zero=0;
-		newVector.DPL=0;
-		newVector.P=1;
-		*/
+		newVector.bAccessFlags=idt.vector[intnr].bAccessFlags; //don't touch accessflag, the default settings are good (e.g: int3,4 and 8 have dpl=3)
 
 		__asm{CLI} //no kernelmode taskswitches please
 		idt.vector[intnr]=newVector;

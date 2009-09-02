@@ -11,7 +11,7 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  XMLDoc, XMLIntf;
+  stealthedit, XMLDoc, XMLIntf;
 
   //the following are just for compatibility
 
@@ -81,7 +81,7 @@ type
     Cut1: TMenuItem;
     Setbreakpoint1: TMenuItem;
     SetHotkey1: TMenuItem;
-    Findoutwhatreadsfromthisaddress1: TMenuItem;
+    Findoutwhatreadsfromthisaddress1obsolete: TMenuItem;
     N5: TMenuItem;
     Panel4: TPanel;
     advancedbutton: TSpeedButton;
@@ -354,7 +354,7 @@ type
     procedure advancedbuttonClick(Sender: TObject);
     procedure HexadecimalCheckboxClick(Sender: TObject);
     procedure SetHotkey1Click(Sender: TObject);
-    procedure Findoutwhatreadsfromthisaddress1Click(Sender: TObject);
+    procedure Findoutwhatreadsfromthisaddress1obsoleteClick(Sender: TObject);
     procedure UndoScanClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure rbBitClick(Sender: TObject);
@@ -6684,7 +6684,6 @@ begin
 
     n5.visible:=false;
     Setbreakpoint1.visible:=false;
-    Findoutwhatreadsfromthisaddress1.visible:=false;
     Findoutwhataccessesthisaddress1.Visible:=false;
 
     sep1.Visible:=false;
@@ -6717,7 +6716,6 @@ begin
     end;
     n5.visible:=false;
     Setbreakpoint1.visible:=false;
-    Findoutwhatreadsfromthisaddress1.visible:=false;
     Findoutwhataccessesthisaddress1.Visible:=false;
 
     sep1.Visible:=false;
@@ -6804,7 +6802,6 @@ begin
 
     n5.Visible:=false;
     Setbreakpoint1.Visible:=false;
-    Findoutwhatreadsfromthisaddress1.visible:=false;
     Findoutwhataccessesthisaddress1.Visible:=false;
 
     sep1.Visible:=true;
@@ -6942,7 +6939,6 @@ begin
     Trytofindbasepointer1.Visible:=false;
     Findoutwhataccessesthisaddress1.visible:=false;
     Setbreakpoint1.visible:=false;
-    Findoutwhatreadsfromthisaddress1.Visible:=false;
     sep1.visible:=false;
     Calculatenewvaluepart21.visible:=false;
     N4.visible:=true;
@@ -9074,14 +9070,13 @@ begin
   end;
 end;
 
-procedure TMainForm.Findoutwhatreadsfromthisaddress1Click(Sender: TObject);
+procedure TMainForm.Findoutwhatreadsfromthisaddress1obsoleteClick(Sender: TObject);
 var address: dword;
     realaddress,realaddress2,count: dword;
     j: integer;
     res:word;
     check: boolean;
 begin
-  findoutwhatreadsfromthisaddress1.Visible:=false;
   exit;
   {
   if not startdebuggerifneeded then exit;
@@ -11057,6 +11052,15 @@ var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
 
 
 begin
+ //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+  asm
+
+    sldt ax
+    
+  end;
+
+exit;
+
   LoadDBK32;
 
   DBKDebug_StartDebugging(ProcessID);
@@ -11316,13 +11320,29 @@ var resh: thandle;
     tid: TIconData;
     x: array [0..4095] of byte;
     y: integer;
+    old: dword;
 begin
-  LoadDBK32;
+  loaddbk32;
 
-  DBKDebug_StartDebugging(ProcessID);
+  stealtheditor:=tstealthedit.create;
+  stealtheditor.StartEdit($00450000,4096);
 
-  DBKDebug_GD_SetBreakpoint(true, 0, $00455c00, bt_OnReadsAndWrites, bl_4byte);
-  exit;
+  if assigned(stealthedit_InitializeHooks) then
+  begin
+    if stealthedit_InitializeHooks then
+    begin
+      showmessage('hooked');
+      if stealthedit_AddCloakedSection(processid, $00452000, $2000, 4096) then
+        showmessage('Registered')
+      else
+        showmessage('registration failed');
+        
+    end
+    else
+    begin
+      showmessage('failed');
+    end;
+  end else showmessage('not assigned');
  
 {  //find the current kernel, and get the base of it
   //

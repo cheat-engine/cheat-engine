@@ -144,7 +144,8 @@ uses
   frmFloatingPointPanelUnit in 'frmFloatingPointPanelUnit.pas' {frmFloatingPointPanel},
   frmRegistersunit in 'frmRegistersunit.pas' {Registers},
   dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas',
-  frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript};
+  frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript},
+  stealthedit in 'stealthedit.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

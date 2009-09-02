@@ -10,6 +10,7 @@
 #include "vmxhelper.h"
 #include "interruptHook.h"
 #include "debugger.h"
+#include "stealthedit.h"
 
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTable=NULL;
@@ -953,36 +954,59 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}	
 
 
-/*
-		case IOCTL_CE_ISUSINGALTERNATEMETHOD:
+		case IOCTL_CE_HOOKSTEALTHEDITINTS:
 			{
-				*(PBOOLEAN)(Irp->AssociatedIrp.SystemBuffer)=UsesAlternateMethod;
-				break;
+				DbgPrint("IOCTL_CE_HOOKSTEALTHEDITINTS\n");
 
-			}
-			*/
-
-			/*
-		case IOCTL_CE_USEALTERNATEMETHOD:
-			{
-				struct output
+				if (stealthedit_initStealthEditHooksForCurrentCPU())
 				{
-					ULONG int1apihook; //address of the in1apihook function
-					ULONG OriginalInt1handler; //space to write the int1 handler
-				} *poutp;
+					DbgPrint("stealthedit_initStealthEditHooksForCurrentCPU returned TRUE\n");
+					ntStatus=STATUS_SUCCESS;
+				}
+				else
+				{
+					DbgPrint("stealthedit_initStealthEditHooksForCurrentCPU returned FALSE\n");
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
+				break;
 
-				DbgPrint("IOCTL_CE_USEALTERNATEMETHOD: (ULONG)int1apihook=%x (ULONG)OriginalInt1handler=%x",(ULONG)int1apihook,(ULONG)OriginalInt1handler);
+			}
 
-				poutp=Irp->AssociatedIrp.SystemBuffer;
-				poutp->int1apihook=(ULONG)int1apihook;
-				poutp->OriginalInt1handler=(ULONG)OriginalInt1handler;
+		case IOCTL_CE_ADDCLOAKEDSECTION:
+			{
+				struct intput
+				{
+					DWORD ProcessID;
+					DWORD pagebase;
+					DWORD relocatedpagebase;
+					int	  size;
+				} *pinp;
 
-				UsesAlternateMethod=TRUE;
+				DbgPrint("IOCTL_CE_ADDCLOAKEDSECTION\n");
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+				if (stealthedit_AddCloakedSection(pinp->ProcessID, pinp->pagebase, pinp->relocatedpagebase, pinp->size))
+					ntStatus=STATUS_SUCCESS;
+				else
+					ntStatus=STATUS_UNSUCCESSFUL;
 
-				ntStatus=STATUS_SUCCESS;
 				break;
 			}
-			*/
+
+		case IOCTL_CE_REMOVECLOAKEDSECTION:
+			{
+				struct intput
+				{
+					DWORD ProcessID;
+					DWORD pagebase;
+				} *pinp;
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+
+				if (stealthedit_RemoveCloakedSection(pinp->ProcessID, pinp->pagebase))
+					ntStatus=STATUS_SUCCESS;
+				else
+					ntStatus=STATUS_UNSUCCESSFUL;
+				break;
+			}
 
 		case IOCTL_CE_HOOKINTS:
 			{

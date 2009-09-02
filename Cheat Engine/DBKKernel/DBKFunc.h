@@ -8,6 +8,15 @@
 
 int _fltused;
 
+typedef struct _criticalSection
+{
+  int locked;
+  int cpunr; //unique id for a cpu
+  int lockcount;
+  int oldIFstate;
+} criticalSection, *PcriticalSection;
+
+
 struct PTEStruct
 {
 	unsigned P         :  1; // present (1 = present)
@@ -157,6 +166,7 @@ unsigned short GetTR(void);
 
 
 unsigned __int64 readMSR(ULONG msr);
+ULONG getCR2(void);
 ULONG getCR3(void);
 ULONG getCR4(void);
 void  setCR4(ULONG cr4reg);
@@ -182,5 +192,8 @@ int isPrefix(unsigned char b);
 EFLAGS getEflags(void);
 
 int cpunr(void);
+void csEnter(PcriticalSection CS);
+void csLeave(PcriticalSection CS);
+
 
 #endif;

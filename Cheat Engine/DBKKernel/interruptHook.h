@@ -3,6 +3,11 @@
 
 #include <windef.h>
 
+//assuming the standard interrupt hook routine is used this stackindex will be valid
+typedef enum {si_gs=-12, si_fs=-11, si_es=-10, si_ds=-9, si_edi=-8, si_esi=-7, si_stack_ebp=-6, si_stack_esp=-5, si_ebx=-4, si_edx=-3, si_ecx=-2, si_eax=-1, si_ebp=0, si_errorcode=1, si_eip=2, si_cs=3, si_eflags=4, si_esp=5, si_ss=6} stackindex;
+
+
+
 #pragma pack(1) //allignemnt of 1 byte
 typedef struct tagINT_VECTOR
 {
@@ -22,7 +27,7 @@ typedef struct tagINT_VECTOR
 } INT_VECTOR, *PINT_VECTOR;
 #pragma pack()
 
-#pragma pack(2) //allignemnt of 1 byte
+#pragma pack(2) //allignemnt of 2 byte
 typedef struct tagIDT
 {    
     WORD wLimit;
@@ -30,11 +35,24 @@ typedef struct tagIDT
 } IDT, *PIDT;
 #pragma pack()
 
-int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP);
+
+typedef
+#pragma pack(1) //allignemnt of 1 byte
+struct
+{    
+	ULONG_PTR eip;
+	WORD cs;
+} JUMPBACK, *PJUMPBACK;
+#pragma pack()
+
+int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUMPBACK jumpback);
 int inthook_UnhookInterrupt(unsigned char intnr);
 int inthook_isHooked(unsigned char intnr);
 int inthook_isDBVMHook(unsigned char intnr);
 ULONG_PTR inthook_getOriginalEIP(unsigned char intnr);
 WORD inthook_getOriginalCS(unsigned char intnr);
+
+
+
 
 #endif

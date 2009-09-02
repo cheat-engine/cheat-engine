@@ -85,6 +85,10 @@ const IOCTL_CE_GETDEBUGGERSTATE 	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl
 const IOCTL_CE_SETDEBUGGERSTATE  	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GD_SETBREAKPOINT     	= (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_TOUCHDEBUGREGISTER    	= (IOCTL_UNKNOWN_BASE shl 16) or ($0836 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_HOOKSTEALTHEDITINTS  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0837 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_ADDCLOAKEDSECTION  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0838 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_REMOVECLOAKEDSECTION  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0839 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
@@ -199,6 +203,7 @@ function GetGDT(limit: pword):dword; stdcall;
 
 type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
+function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 
 var kernel32dll: thandle;
     ioctl: boolean;
@@ -225,7 +230,7 @@ end;
 function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 var PA,SA:Dword;
 begin
-  result:=false;
+  result:=true;
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
   if ((1 shl cpunr) and SA) = 0 then exit; //cpu doesn't exist
@@ -311,7 +316,7 @@ end;
 function GetGDT(limit: pword):dword; stdcall;
 var cc,br: dword;
     gdtdescriptor: packed record
-                     wLimit:word;
+                     wLimit: word;
                      vector: dword;
                    end;
 begin
@@ -320,6 +325,7 @@ begin
     cc:=IOCTL_CE_GETGDT;
     deviceiocontrol(hdevice,cc,nil,0,@gdtdescriptor,6,br,nil);
     result:=gdtdescriptor.vector;
+    outputdebugstring(pchar(format('gdtdescriptor.wlimit=%d',[gdtdescriptor.wlimit])));
     if (limit<>nil) then
       limit^:=gdtdescriptor.wlimit;
   end else result:=0;
@@ -427,15 +433,12 @@ end;
 
 
 function GetDriverVersion:dword;
-var x,res,cc,cc2,cc3:dword;
+var x,res,cc:dword;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETVERSION;
-    if cc<>cc2 then
-      if cc<>cc3 then
-
 
     if deviceiocontrol(hdevice,cc,@res,4,@res,4,x,nil) then
       result:=res;

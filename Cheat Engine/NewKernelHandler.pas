@@ -134,11 +134,14 @@ type TDBKDebug_ContinueDebugEvent=function(handled: BOOL): boolean; stdcall;
 type TDBKDebug_WaitForDebugEvent=function(timeout: dword): boolean; stdcall;
 type TDBKDebug_GetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
 type TDBKDebug_SetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
-
 type TDBKDebug_SetGlobalDebugState=function(state: BOOL): BOOL; stdcall;
 type TDBKDebug_StartDebugging=function(processid:dword):BOOL; stdcall;
 type TDBKDebug_StopDebugging=function:BOOL; stdcall;
 type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
+
+type Tstealthedit_InitializeHooks=function: bool; stdcall;
+type Tstealthedit_AddCloakedSection=function(processid: DWORD; pagebase: dword; relocatedpagebase: dword; size: integer ):BOOl; stdcall;
+type Tstealthedit_RemoveCloakedSection=function(processid: DWORD; pagebase: dword):BOOl; stdcall;
 
 
 //-----------------------------------DBVM-------------------------------------//
@@ -282,6 +285,9 @@ var
   DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
 
+  stealthedit_InitializeHooks : Tstealthedit_InitializeHooks;
+  stealthedit_AddCloakedSection : Tstealthedit_AddCloakedSection;
+  stealthedit_RemoveCloakedSection : Tstealthedit_RemoveCloakedSection;
 
 
   //dbvm ce000000+
@@ -398,6 +404,10 @@ begin
     DBKDebug_StartDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StartDebugging');
     DBKDebug_StopDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StopDebugging');
     DBKDebug_GD_SetBreakpoint:=GetProcAddress(DarkByteKernel,'DBKDebug_GD_SetBreakpoint');
+
+    stealthedit_InitializeHooks:=GetProcAddress(DarkByteKernel,'stealthedit_InitializeHooks');
+    stealthedit_AddCloakedSection:=GetProcAddress(DarkByteKernel,'stealthedit_AddCloakedSection');
+    stealthedit_RemoveCloakedSection:=GetProcAddress(DarkByteKernel,'stealthedit_RemoveCloakedSection');
 
 
     dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');

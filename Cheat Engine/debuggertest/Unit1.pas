@@ -20,11 +20,15 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
+    Button5: TButton;
+    Button6: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -171,6 +175,21 @@ begin
     label7.caption:=inttohex(c.Dr6,8);
     label8.caption:=inttohex(c.Dr7,8);
   end;
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var old: dword;
+begin
+  if VirtualProtect(@x, 1, PAGE_READWRITE, old) then
+    showmessage('yes');
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+begin
+asm
+  int 14
+end;
+
 end;
 
 end.

@@ -16,6 +16,89 @@ INT_VECTOR	NewInt1;
 INT_VECTOR  NewIntD1;
 
 
+
+//own critical section implementation for use when the os is pretty much useless (dbvm tech)
+void spinlock(int *lockvar)
+{
+	__asm
+	{
+		spinlock_loop:
+		//serialize
+		push eax
+		push ebx
+		push ecx
+		push edx
+		xor eax,eax
+		cpuid //serialize
+		pop edx
+		pop ecx
+		pop ebx
+		pop eax
+
+		//check lock		
+		mov ebx,[lockvar]
+
+		cmp [ebx],0
+		je spinlock_getlock
+		pause
+		jmp spinlock_loop
+
+		spinlock_getlock:
+		mov eax,1
+		xchg eax,[ebx] //try to lock
+		cmp eax,0 //test if successful
+		jne spinlock_loop
+
+
+	}
+}
+
+void csEnter(PcriticalSection CS)
+{ 
+	EFLAGS oldstate=getEflags();
+	int apicid=cpunr()+1; //+1 so it never returns 0
+	
+	if ((CS->locked) && (CS->cpunr==cpunr())) 
+	{
+	    //already locked but the locker is this cpu, so allow, just increase lockcount
+	    CS->lockcount++;
+	    return; 
+	} 
+
+
+	__asm{cli}; //disable interrupts to prevent taskswitch in same cpu
+	spinlock(&(CS->locked)); //sets CS->locked to 1
+  
+  
+	//here so the lock is aquired and locked is 1
+	CS->lockcount=1;
+	CS->cpunr=cpunr();  
+	CS->oldIFstate=oldstate.IF;
+}
+
+void csLeave(PcriticalSection CS)
+{
+	int apicid=cpunr()+1; //+1 so it never returns 0
+  
+  
+  
+	if ((CS->locked) && (CS->cpunr==cpunr()))
+	{
+	    CS->lockcount--;
+	    if (CS->lockcount==0)
+	    {
+			//unlock    
+			if (CS->oldIFstate)
+				__asm{sti}
+
+			CS->cpunr=-1; //set to an cpunr
+			CS->locked=0;
+		} 
+	}
+}
+
+
+
 unsigned __int64 readMSR(ULONG msr)
 {
 	ULONG a,b;
@@ -38,17 +121,22 @@ unsigned __int64 readMSR(ULONG msr)
 	return ((INT64)b<<32) + a;
 }
 
-ULONG getCR3(void)
+_declspec( naked ) ULONG getCR2(void)
 {
-	ULONG cr3reg;
 	__asm
 	{
-		mov eax,CR3
-		mov cr3reg,eax
+		mov eax,cr2
+		ret
 	}
+}
 
-	return cr3reg;
-
+_declspec( naked ) ULONG getCR3(void)
+{
+	__asm
+	{
+		mov eax,cr3
+		ret
+	}
 }
 
 ULONG getCR4(void)

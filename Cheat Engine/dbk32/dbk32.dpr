@@ -15,7 +15,8 @@ uses
   Classes,
   DBK32functions in 'DBK32functions.pas',
   vmxfunctions in 'vmxfunctions.pas',
-  debug in 'debug.pas';
+  debug in 'debug.pas',
+  stealthedit in 'stealthedit.pas';
 
 {$R *.res}
 
@@ -94,6 +95,10 @@ exports DBKDebug_StartDebugging;
 exports DBKDebug_StopDebugging;
 exports DBKDebug_GD_SetBreakpoint;
 
+//stealthedit
+exports stealthedit_InitializeHooks;
+exports stealthedit_AddCloakedSection;
+exports stealthedit_RemoveCloakedSection;
 
 //vmx
 exports dbvm_version;

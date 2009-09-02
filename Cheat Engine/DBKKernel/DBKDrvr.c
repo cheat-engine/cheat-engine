@@ -8,6 +8,7 @@
 #include "vmxhelper.h"
 #include "newkernel.h"
 #include "debugger.h"
+#include "stealthedit.h"
 #include "IOPLDispatcher.h"
 
 
@@ -140,9 +141,11 @@ Return Value:
 	OBJECT_ATTRIBUTES oa;
 
 	UNICODE_STRING temp; 
+
+	criticalSection csTest;
 	
 
-	//DbgPrint("%S",oa.ObjectName.Buffer);  
+	//DbgPrint("%S",oa.ObjectName.Buffer); 
 
 
 	WORD this_cs, this_ss, this_ds, this_es, this_fs, this_gs;
@@ -168,6 +171,18 @@ Return Value:
 	}
 	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",this_cs, this_ss, this_ds, this_es, this_fs, this_gs);
 
+
+	DbgPrint("Test critical section routines\n");
+	RtlZeroMemory(&csTest,sizeof(criticalSection));
+	DbgPrint("csTest.locked=%d\n",csTest.locked);
+	csEnter(&csTest);
+	DbgPrint("After enter\n");
+	DbgPrint("csTest.locked=%d\n",csTest.locked);
+	csLeave(&csTest);
+	DbgPrint("After leave\n");
+	DbgPrint("csTest.locked=%d\n",csTest.locked);
+
+	
 
 	/*
 		while (1)
@@ -397,6 +412,7 @@ Return Value:
 	
 
 	debugger_initialize();
+	stealthedit_initialize();
 	
 
 

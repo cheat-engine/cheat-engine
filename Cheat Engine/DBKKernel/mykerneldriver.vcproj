@@ -248,10 +248,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\stealthedit.h"
-				>
-			</File>
-			<File
 				RelativePath=".\vmx.c"
 				>
 			</File>
@@ -327,6 +323,10 @@
 			</File>
 			<File
 				RelativePath=".\rootkit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\stealthedit.h"
 				>
 			</File>
 			<File

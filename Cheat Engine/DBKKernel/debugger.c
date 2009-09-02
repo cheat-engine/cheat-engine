@@ -19,14 +19,7 @@ This unit will handle all debugging related code, from hooking, to handling inte
 
 void interrupt1_asmentry( void );
 
-#pragma pack(1)
-struct
-{	
-	ULONG_PTR eip;
-	WORD cs;
-} Int1JumpBackLocation;
-#pragma pack()
-
+JUMPBACK Int1JumpBackLocation;
 
 
 struct
@@ -63,6 +56,7 @@ struct
 
 } DebuggerState;
 
+//typedef enum {si_gs=-12, si_fs=-11, si_es=-10, si_ds=-9, si_edi=-8, si_esi=-7, si_stack_ebp=-6, si_stack_esp=-5, si_ebx=-4, si_edx=-3, si_ecx=-2, si_eax=-1, si_ebp=0, si_eip=1, si_cs=2, si_eflags=3, si_esp=4, si_ss=5} stackindex;
 
 
 KEVENT debugger_event_WaitForContinue; //event for kernelmode. Waits till it's set by usermode (usermode function: DBK_Continue_Debug_Event sets it)
@@ -236,7 +230,7 @@ Must be called for each cpu
 	int result=TRUE;
 	DbgPrint("Hooking int1 for this cpu\n");
 	
-	result=inthook_HookInterrupt(1,0x8, (ULONG_PTR)interrupt1_asmentry);
+	result=inthook_HookInterrupt(1,0x8, (ULONG_PTR)interrupt1_asmentry, &Int1JumpBackLocation);	
 
 	if (DebuggerState.globalDebug)
 	{
@@ -867,11 +861,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 	DWORD currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the opperating system
 
-	int debugme=0;
-
-	//DbgPrint("interrupt1_centry: %x\n",PsGetCurrentProcessId());
 	//Fetch current debug registers
-
 	currentdebugregs[0]=debugger_dr0_getValue();
 	currentdebugregs[1]=debugger_dr1_getValue();
 	currentdebugregs[2]=debugger_dr2_getValue();
@@ -996,10 +986,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 					{
 					  //  DbgPrint("debugregister %d is free to be used\n",debugregister);
 						foundone=1;
-						debugme = 1;
-						//DbgPrint("Before\n");
 						
-
 						//set address
 						switch (debugregister)
 						{
@@ -1031,27 +1018,16 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 								_dr7.RW3=DebuggerState.breakpoint[breakpoint].breakType;
 								break;
 						}
-						//DbgPrint("After\n");
+						
 
 					}
 
 					debugregister++;
 
 				}
-				//if (foundone==0)
-				//	DbgPrint("Failure setting breakpoint %d\n",breakpoint);
-				//else
-				//	DbgPrint("Managed to set breakpoint %d\n", breakpoint);
 					
 			}
 			
-		}
-
-		if (debugme) 
-		{
-			DWORD x=*(DWORD *)&_dr7;
-			
-			//DbgPrint("Setting DR7 to %x\n",x);
 		}
 
 		debugger_dr7_setValue(_dr7);
@@ -1095,7 +1071,8 @@ _declspec( naked ) void interrupt1_asmentry( void )
 //This routine is called upon an interrupt 1, even before windows gets it
 {
 	__asm{ 
-		//save stack position	
+		//save stack position
+		push 0 //push an errorcode on the stack so the stackindex can stay the same
 		push ebp
 		mov ebp,esp
 
@@ -1130,9 +1107,12 @@ _declspec( naked ) void interrupt1_asmentry( void )
 		pop ebp		
 
 		je skip_original_int1
+		
+		add esp,4 //undo errorcode push
 		jmp far [Int1JumpBackLocation]
 
 skip_original_int1:
+		add esp,4 //undo errorcode push
 		iretd
 	}
 }
