@@ -2784,7 +2784,7 @@ begin
   startoflist:=j;
   endoflist:=startoflist;
 
-  while opcodes[endoflist].mnemonic=tokens[mnemonic] do inc(endoflist);
+  while (endoflist<=opcodecount) and (opcodes[endoflist].mnemonic=tokens[mnemonic]) do inc(endoflist);
   dec(endoflist);
 
 
