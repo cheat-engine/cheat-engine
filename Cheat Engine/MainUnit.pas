@@ -11324,7 +11324,9 @@ var resh: thandle;
 begin
   loaddbk32;
 
-  stealtheditor:=tstealthedit.create;
+  if stealtheditor=nil then
+    stealtheditor:=tstealthedit.create;
+    
   stealtheditor.StartEdit($00452000,4096);
 
   {

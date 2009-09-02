@@ -45,6 +45,18 @@ end;
 
 function TStealthEdit.ManualStartEdit(address: dword; relocationpagebase: dword; size: integer): dword;
 begin
+  //sooo, the big bad user knows how to do it better than my automated method?
+  //well then, let's see if he's right
+  if stealthedit_AddCloakedSection(processid, address, relocationpagebase, size) then
+  begin
+    result:=relocationpagebase;
+    setlength(relocations,length(relocations)+1);
+    relocations[length(relocations)-1].baseaddress:=address;
+    relocations[length(relocations)-1].size:=size;    
+  end
+  else
+    result:=0;
+
 
 end;
 
@@ -157,14 +169,17 @@ begin
   symhandler.showmodules:=oldshowmodules;
   symhandler.showsymbols:=oldshowsymbols;
 
-
-
   //and write to the new memory location
   WriteProcessMemory(processhandle, pointer(relocationpagebase), tempbuf, cloaksize+8192, actualwritten);
 
   if stealthedit_AddCloakedSection(processid, address, relocationpagebase, cloaksize) then
   begin
     result:=relocationpagebase;
+
+    setlength(relocations,length(relocations)+1);
+    relocations[length(relocations)-1].baseaddress:=address;
+    relocations[length(relocations)-1].size:=cloaksize;
+
   end
   else
   begin
