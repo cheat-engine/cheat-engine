@@ -72,6 +72,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'Label8'
   end
+  object Label9: TLabel
+    Left = 8
+    Top = 152
+    Width = 32
+    Height = 13
+    Caption = 'Label9'
+  end
   object Button1: TButton
     Left = 8
     Top = 8

@@ -8393,6 +8393,7 @@ begin
                 3:  begin
                       description:='Store Integer';
                       tempresult:='FISTP '+modrm(memory,prefix2,1,0,last,16);
+                      tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
 

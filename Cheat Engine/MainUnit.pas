@@ -11038,7 +11038,6 @@ var new_cs,new_ss,new_ds,new_es,new_fs,new_gs: word;
     z: pointer;
 label lp;    }
 label ex;
-var x: uint64;
 var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
 
   oldflags: dword;
@@ -11051,13 +11050,19 @@ var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
   state: TDebuggerstate;
 
 
+  x: tcanvas;
+
 begin
  //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
-  asm
 
-    db $cc
-    
-  end;
+ x:=TCanvas.Create;
+ x.Handle:=getdc(0);
+ x.Lock;
+ x.FillRect(rect(0,0,100,100));
+ 
+
+
+
 
 exit;
 

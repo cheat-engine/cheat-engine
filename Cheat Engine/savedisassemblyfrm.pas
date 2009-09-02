@@ -52,7 +52,7 @@ implementation
 {$R *.dfm}
 
 procedure TSaveDisassemblyThread.execute;
-var currentaddress: dword;
+var oldaddress, currentaddress: dword;
     f: textfile;
     temps: string;
     temps2: string;
@@ -60,6 +60,8 @@ var currentaddress: dword;
     i: integer;
     clip: tclipboard;
     cpbuf: tstringlist;
+    y,z:string;
+    mi: TModuleInfo;
 begin
   currentaddress:=start;
 
@@ -79,8 +81,23 @@ begin
 
   while (not terminated) and (currentaddress<stop) do
   begin
+    oldaddress:=currentaddress;
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
     temps:=translatestring(temps,0,true,addresspart,bytepart,opcodepart,specialpart);
+
+    if symhandler.showmodules then
+    begin
+      //replace the address part with a modulename+offset when possible
+      if symhandler.getmodulebyaddress(oldaddress,mi) then
+      begin
+        y:=inttohex(oldaddress,8);
+        z:=mi.modulename+'+'+inttohex(oldaddress-mi.baseaddress,4);
+
+        opcodepart:=stringreplace(opcodepart,y,z,[rfReplaceAll]);
+        addresspart:=stringreplace(addresspart,y,z,[rfReplaceAll]);
+      end;
+    end;
+
     if specialpart<>'' then
       opcodepart:=opcodepart+' : '+specialpart;
 
@@ -169,8 +186,9 @@ begin
     exit;
   end;
 
-  start:=strtoint('$'+edit1.Text);
-  stop:=strtoint('$'+edit2.text);
+
+  start:=symhandler.getAddressFromName(edit1.Text);
+  stop:=symhandler.getAddressFromName(edit2.text);
 
 
   if (FCopyMode) or savedialog1.Execute then

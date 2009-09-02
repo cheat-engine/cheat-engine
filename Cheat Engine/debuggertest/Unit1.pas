@@ -22,6 +22,7 @@ type
     Label8: TLabel;
     Button5: TButton;
     Button6: TButton;
+    Label9: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -31,6 +32,7 @@ type
     procedure Button6Click(Sender: TObject);
   private
     { Private declarations }
+    h: dword;
   public
     { Public declarations }
   end;
@@ -142,6 +144,8 @@ begin
   label1.caption:=format('%p : %d',[@health, health]);
   label2.caption:=format('%p',[@x]);
   button4.click;
+
+  label9.caption:=format('%p',[@h]);
 end;
 
 
