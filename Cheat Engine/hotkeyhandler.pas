@@ -244,9 +244,9 @@ var i: integer;
 begin
   while not terminated do
   begin
+    handledhotkey:=false;
     try
       CSKeys.Enter;
-      handledhotkey:=false;
       try
         for i:=0 to length(hotkeylist)-1 do
           if checkkeycombo(hotkeylist[i].keys) then

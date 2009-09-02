@@ -11055,7 +11055,7 @@ begin
  //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
   asm
 
-    sldt ax
+    db $cc
     
   end;
 
@@ -11325,8 +11325,9 @@ begin
   loaddbk32;
 
   stealtheditor:=tstealthedit.create;
-  stealtheditor.StartEdit($00450000,4096);
+  stealtheditor.StartEdit($00452000,4096);
 
+  {
   if assigned(stealthedit_InitializeHooks) then
   begin
     if stealthedit_InitializeHooks then
@@ -11343,6 +11344,7 @@ begin
       showmessage('failed');
     end;
   end else showmessage('not assigned');
+  }
  
 {  //find the current kernel, and get the base of it
   //
