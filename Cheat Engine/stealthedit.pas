@@ -8,6 +8,7 @@ type TStealthEdit=class
   private
     relocations: array of record
       baseaddress: dword;
+      relocationpagebase: dword;
       size: integer;
     end;
   public
@@ -25,8 +26,16 @@ implementation
 
 
 constructor TStealthEdit.create;
+var cr4: dword;
 begin
-  stealthedit_InitializeHooks;
+  loaddbk32;
+
+  cr4:=GetCR4();
+
+  if getbit(6,cr4)=0 then raise exception.create('Your system needs to run in PAE paging mode');  
+
+  if (not stealthedit_InitializeHooks) then
+    raise exception.Create('Failure initializing the stealtheditor. Remember, this function only works on 32-bit windows with admin rights');
 end;
 
 function TStealthEdit.isRelocated(address: dword): boolean;
@@ -51,6 +60,7 @@ begin
   begin
     result:=relocationpagebase;
     setlength(relocations,length(relocations)+1);
+    relocations[length(relocations)-1].relocationpagebase:=relocationpagebase;
     relocations[length(relocations)-1].baseaddress:=address;
     relocations[length(relocations)-1].size:=size;    
   end
@@ -172,14 +182,17 @@ begin
   //and write to the new memory location
   WriteProcessMemory(processhandle, pointer(relocationpagebase), tempbuf, cloaksize+8192, actualwritten);
 
-  if stealthedit_AddCloakedSection(processid, address, relocationpagebase, cloaksize) then
+  if stealthedit_AddCloakedSection(processid, address, relocationpagebase+4096, cloaksize) then
   begin
-    result:=relocationpagebase;
+    result:=relocationpagebase+4096;
 
     setlength(relocations,length(relocations)+1);
-    relocations[length(relocations)-1].baseaddress:=address;
+    relocations[length(relocations)-1].relocationpagebase:=relocationpagebase+4096;
+    relocations[length(relocations)-1].baseaddress:=baseaddress;
     relocations[length(relocations)-1].size:=cloaksize;
 
+    //and make the memory non executable (alternatively I could set the NX bit at the paging level myself)
+    VirtualProtectEx(processhandle, pointer(baseaddress), cloaksize, PAGE_READWRITE, x);
   end
   else
   begin

@@ -811,6 +811,7 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Copy to clipboard'
       object CopyBytesAndOpcodes: TMenuItem
         Caption = 'Bytes+Opcodes'
+        Default = True
         OnClick = CopyBytesAndOpcodesClick
       end
       object copyBytes: TMenuItem
@@ -849,6 +850,21 @@ object MemoryBrowser: TMemoryBrowser
     object Createjumptocodecave1: TMenuItem
       Caption = 'Create jump and initialize Code-Cave'
       OnClick = Createjumptocodecave1Click
+    end
+    object Stealthedit1: TMenuItem
+      Caption = 'Stealthedit'
+      object miStealthEditPage: TMenuItem
+        Caption = 'Stealthedit this page'
+        Default = True
+        OnClick = miStealthEditPageClick
+      end
+      object Stealteditmultiplepages1: TMenuItem
+        Caption = 'Stealtedit multiple pages'
+        OnClick = Stealteditmultiplepages1Click
+      end
+      object miManualStealthEdit: TMenuItem
+        Caption = 'Manually input stealth parameters'
+      end
     end
   end
   object Timer2: TTimer

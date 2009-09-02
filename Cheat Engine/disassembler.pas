@@ -216,7 +216,6 @@ function GetBitOf(Bt: dword; bit: integer): byte;
 begin
   bt:=bt shl (31-bit);
   result:=bt shr 31;
-//  result:=(bt shl (7-bit)) shr 7;  //can someone explain why this isn't working ?
 end;
 
 function getsegmentoverride(prefix: TPrefix): string;

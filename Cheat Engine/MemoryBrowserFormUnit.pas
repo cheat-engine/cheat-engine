@@ -7,9 +7,9 @@ uses
   StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
   Buttons,imagehlp, Contnrs, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
-  ,NetAPIs
+  ,NetAPIs, ComCtrls
   {$else}
-  ,NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
+  ,stealthedit, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
   {$endif}
   ;
 
@@ -184,6 +184,10 @@ type
     dispFloat: TMenuItem;
     dispDouble: TMenuItem;
     dispInts: TMenuItem;
+    Stealthedit1: TMenuItem;
+    miStealthEditPage: TMenuItem;
+    miManualStealthEdit: TMenuItem;
+    Stealteditmultiplepages1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -324,6 +328,8 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
     procedure ScriptConsole1Click(Sender: TObject);
     procedure DisplayTypeClick(Sender: TObject);
+    procedure miStealthEditPageClick(Sender: TObject);
+    procedure Stealteditmultiplepages1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -4712,6 +4718,41 @@ begin
     MBCanvas.Invalidate;
     MBCanvas.Repaint;
     refreshMB;
+  end;
+end;
+
+procedure TMemoryBrowser.miStealthEditPageClick(Sender: TObject);
+var newaddress: dword;
+begin
+  if stealtheditor=nil then
+    stealtheditor:=tstealthedit.create;
+
+
+  newaddress:=stealtheditor.StartEdit(dselected and $fffff000, 4096);
+  dselected:=newaddress or (dselected or $fff);
+  Disassembleraddress:=dselected;
+  updatedisassemblerview;
+end;
+
+procedure TMemoryBrowser.Stealteditmultiplepages1Click(Sender: TObject);
+var
+  newaddress: dword;
+  sizestring: string;
+  size: dword;
+begin
+  if stealtheditor=nil then
+    stealtheditor:=tstealthedit.create;
+
+  sizestring:='4096';
+  if inputquery('StealthEdit','how much memory do you want to stealthedit ?',sizestring) then
+  begin
+    size:=strtoint('$'+sizestring);
+    size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
+    
+    newaddress:=stealtheditor.StartEdit(dselected and $fffff000, size);
+    dselected:=newaddress or (dselected or $fff);
+    Disassembleraddress:=dselected;
+    updatedisassemblerview;
   end;
 end;
 

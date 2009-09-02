@@ -295,7 +295,7 @@ int interrupt14_centry(DWORD *stackpointer)
 
 					DbgPrint("%d: No-execute in relocated region. EIP=%x\n",i,eip);
                     DbgPrint("%d: PID=%d pagebase=%x relocatedpagebase=%x size=%d\n",i,currentPID, CloakedSections.cs[i].pagebase, CloakedSections.cs[i].relocatedpagebase, CloakedSections.cs[i].size);
-					stackpointer[si_eip]=CloakedSections.cs[i].relocatedpagebase+offset+4096;
+					stackpointer[si_eip]=CloakedSections.cs[i].relocatedpagebase+offset;
 					
 					DbgPrint("%d: Changing eip from %x to %x",i, eip,stackpointer[si_eip]);					
 					csLeave(&CloakedSections_CS); //unlock (I might be able to do a try/finally but not sure it'd work in this context)
