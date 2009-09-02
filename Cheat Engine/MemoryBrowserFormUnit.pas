@@ -330,6 +330,7 @@ type
     procedure DisplayTypeClick(Sender: TObject);
     procedure miStealthEditPageClick(Sender: TObject);
     procedure Stealteditmultiplepages1Click(Sender: TObject);
+    procedure miManualStealthEditClick(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -4753,6 +4754,28 @@ begin
     dselected:=newaddress or (dselected or $fff);
     Disassembleraddress:=dselected;
     updatedisassemblerview;
+  end;
+end;
+
+procedure TMemoryBrowser.miManualStealthEditClick(Sender: TObject);
+var basestring, sizestring: string;
+    base,size: dword;
+    newaddress: dword;
+begin
+  if InputQuery('StealthEdit','What is the address of the copy? (not counting in the int3 array in front)', basestring) then
+  begin
+    base:=symhandler.getAddressFromName(basestring);
+
+    if InputQuery('StealthEdit','What is the size of the copy? (again, not counting in the int3 array in front and back)', sizestring) then
+    begin
+      size:=strtoint('$'+sizestring);
+      size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
+
+      newaddress:=stealtheditor.StartEdit(dselected and $fffff000, size);
+      dselected:=newaddress or (dselected or $fff);
+      Disassembleraddress:=dselected;
+      updatedisassemblerview;
+    end;
   end;
 end;
 

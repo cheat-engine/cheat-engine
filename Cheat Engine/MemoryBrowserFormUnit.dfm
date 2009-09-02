@@ -864,6 +864,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object miManualStealthEdit: TMenuItem
         Caption = 'Manually input stealth parameters'
+        OnClick = miManualStealthEditClick
       end
     end
   end
