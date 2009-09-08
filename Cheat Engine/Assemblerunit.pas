@@ -1812,14 +1812,14 @@ begin
 
   if pos('[',token)>0 then
   begin
-    result:=ttMemorylocation;
     if (pos('BYTE ',token)>0) then result:=ttMemorylocation8 else
     if (pos('WORD ',token)>0) then result:=ttMemorylocation16 else
     if (pos('DWORD ',token)>0) then result:=ttMemorylocation32 else
     if (pos('QWORD ',token)>0) then result:=ttMemorylocation64 else
     if (pos('TBYTE ',token)>0) then result:=ttMemorylocation80 else
     if (pos('TWORD ',token)>0) then result:=ttMemorylocation80 else
-    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128;
+    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128 else
+      result:=ttMemorylocation;
   end;
 
   if result=ttMemorylocation then
