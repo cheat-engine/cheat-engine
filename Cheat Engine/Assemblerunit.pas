@@ -1807,15 +1807,20 @@ begin
 
   //see if it is a memorylocation
   //can start with [ or ptr [
+  //temp:=StringReplace(token,'PTR [', '[',[rfIgnoreCase]);
 
-  if pos('[',token)>0 then result:=ttMemorylocation;
-  if (pos('BYTE PTR [',token)>0) then result:=ttMemorylocation8;
-  if (pos('WORD PTR [',token)>0) then result:=ttMemorylocation16;
-  if (pos('DWORD PTR [',token)>0) then result:=ttMemorylocation32;
-  if (pos('QWORD PTR [',token)>0) then result:=ttMemorylocation64;
-  if (pos('TBYTE PTR [',token)>0) then result:=ttMemorylocation80;
-  if (pos('TWORD PTR [',token)>0) then result:=ttMemorylocation80;
-  if (pos('DQWORD PTR [',token)>0) then result:=ttMemorylocation128;
+
+  if pos('[',token)>0 then
+  begin
+    result:=ttMemorylocation;
+    if (pos('BYTE ',token)>0) then result:=ttMemorylocation8 else
+    if (pos('WORD ',token)>0) then result:=ttMemorylocation16 else
+    if (pos('DWORD ',token)>0) then result:=ttMemorylocation32 else
+    if (pos('QWORD ',token)>0) then result:=ttMemorylocation64 else
+    if (pos('TBYTE ',token)>0) then result:=ttMemorylocation80 else
+    if (pos('TWORD ',token)>0) then result:=ttMemorylocation80 else
+    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128;
+  end;
 
   if result=ttMemorylocation then
   begin
@@ -1948,14 +1953,14 @@ begin
 
           disp:=0;
 
+
           try
             tokens[i]:=inttohex(symhandler.getaddressfromname(tokens[i]),8);
-//            tokens[i]:=inttohex(symhandler.getaddressfromname(uppercase(tokens[i])),8);
-
           except
-           // raise exception.create(tokens[i]+' is an unknown identifier');
 
           end;
+
+
 
         end;
       end;
@@ -2641,11 +2646,15 @@ begin
       bytes[length(bytes)-1]:=$36;
     end;
 
+{
     if pos('DS:',parameter1)>0 then
     begin
-      setlength(bytes,length(bytes)+1);
-      bytes[length(bytes)-1]:=$3e;
+      //don't set it, unless bp in 16 bit addressing mode is used (0x67 prefix)
+      //which is a notation ce does NOT support and will never support, so, bye bye
+      //setlength(bytes,length(bytes)+1);
+      //bytes[length(bytes)-1]:=$3e;
     end;
+    }
 
     if pos('FS:',parameter1)>0 then
     begin
