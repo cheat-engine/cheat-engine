@@ -276,6 +276,7 @@ type
     actScriptEngine: TAction;
     Plugins2: TMenuItem;
     actMemoryView: TAction;
+    Button3: TButton;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -436,6 +437,7 @@ type
     procedure New1Click(Sender: TObject);
     procedure actScriptEngineExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -11055,11 +11057,11 @@ var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
 begin
  //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 
- x:=TCanvas.Create;
- x.Handle:=getdc(0);
- x.Lock;
- x.FillRect(rect(0,0,100,100));
- 
+ loaddbk32;
+ showmessage('launch');
+ LaunchDBVM;
+ showmessage('Somehow I did not totally crash...');
+
 
 
 
@@ -11328,6 +11330,10 @@ var resh: thandle;
     old: dword;
 begin
   loaddbk32;
+  asm
+
+  end;
+  exit;
 
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;
@@ -12131,6 +12137,13 @@ end;
 procedure TMainForm.File1Click(Sender: TObject);
 begin
   menu.Images:=imagelist1;
+end;
+
+procedure TMainForm.Button3Click(Sender: TObject);
+begin
+  sleep(5000);
+ loaddbk32;
+ LaunchDBVM;
 end;
 
 end.

@@ -256,6 +256,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\vmxoffload.c"
+				>
+			</File>
+			<File
 				RelativePath=".\I386\vmxtest.asm"
 				>
 			</File>
@@ -339,6 +343,10 @@
 			</File>
 			<File
 				RelativePath=".\vmxhelper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vmxoffload.h"
 				>
 			</File>
 		</Filter>

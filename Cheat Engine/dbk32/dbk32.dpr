@@ -100,6 +100,8 @@ exports stealthedit_InitializeHooks;
 exports stealthedit_AddCloakedSection;
 exports stealthedit_RemoveCloakedSection;
 
+exports LaunchDBVM;
+
 //vmx
 exports dbvm_version;
 exports dbvm_changeselectors;

@@ -90,6 +90,10 @@ const IOCTL_CE_HOOKSTEALTHEDITINTS  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0837 shl
 const IOCTL_CE_ADDCLOAKEDSECTION  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0838 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_REMOVECLOAKEDSECTION  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0839 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_LAUNCHDBVM           	= (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+
+
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
@@ -158,14 +162,7 @@ function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
 function GetSDTShadow:DWORD; stdcall;
-//function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
-//function getAlternateDebugMethod:BOOL; stdcall;
 
-
-
-//function StopRegisterChange(regnr:integer):BOOL; stdcall;
-//function RetrieveDebugData(Buffer: pointer):integer; stdcall;
-//function ChangeRegOnBP(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
 function StartProcessWatch:BOOL;stdcall;
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 function GetProcessNameFromPEProcess(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
@@ -198,6 +195,8 @@ function GetSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; s
 function SetSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
 function SetSSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
+
+procedure LaunchDBVM; stdcall;
 
 function GetGDT(limit: pword):dword; stdcall;
 
@@ -1582,6 +1581,30 @@ begin
   begin
     cc:=IOCTL_CE_SETSDTADDRESS;
     result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
+  end;
+end;
+
+procedure LaunchDBVM; stdcall;
+var cc: dword;
+var Input: record
+  dbvmimgpath: PWideChar;
+end;
+
+  temp: widestring;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    Outputdebugstring('LaunchDBVM');
+    cc:=IOCTL_CE_LAUNCHDBVM;
+
+    temp:='\??\'+GetCurrentDir+'\vmdisk.img';
+
+
+    input.dbvmimgpath:=@temp[1];
+    OutputDebugStringW(input.dbvmimgpath);
+
+
+    deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
   end;
 end;
 

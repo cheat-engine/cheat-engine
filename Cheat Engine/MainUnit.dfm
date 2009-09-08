@@ -2439,6 +2439,15 @@ object MainForm: TMainForm
         OnChange = tbSpeedChange
       end
     end
+    object Button3: TButton
+      Left = 280
+      Top = 304
+      Width = 75
+      Height = 25
+      Caption = 'Delayed test'
+      TabOrder = 28
+      OnClick = Button3Click
+    end
   end
   object UpdateTimer: TTimer
     Interval = 500

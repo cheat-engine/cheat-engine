@@ -11,6 +11,7 @@
 #include "interruptHook.h"
 #include "debugger.h"
 #include "stealthedit.h"
+#include "vmxoffload.h"
 
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTable=NULL;
@@ -1005,6 +1006,28 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					ntStatus=STATUS_SUCCESS;
 				else
 					ntStatus=STATUS_UNSUCCESSFUL;
+				break;
+			}
+
+		case IOCTL_CE_LAUNCHDBVM:
+			{
+				struct intput
+				{
+					PCWSTR dbvmimgpath;				
+				} *pinp;
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+				DbgPrint("IOCTL_CE_LAUNCHDBVM\n");
+				__asm
+				{
+					xchg bx,bx
+				}
+				vmxoffload(pinp->dbvmimgpath);
+				__asm
+				{
+					xchg bx,bx
+				}
+
+				DbgPrint("Returned from vmxofload()\n");
 				break;
 			}
 

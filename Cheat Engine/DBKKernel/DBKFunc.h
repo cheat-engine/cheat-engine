@@ -161,16 +161,35 @@ UINT_PTR IDTAddresses[32]; //max 32 cpu's
 
 void GetIDT(PIDT pIdt);
 void GetGDT(PGDT pGdt);
-void GetLDT(PGDT pLdt);
+WORD GetLDT();
 unsigned short GetTR(void);
 
 
 unsigned __int64 readMSR(ULONG msr);
+ULONG getDR7(void);
+ULONG getCR0(void);
 ULONG getCR2(void);
 ULONG getCR3(void);
 ULONG getCR4(void);
 void  setCR4(ULONG cr4reg);
 unsigned long long getTSC(void);
+ULONG getESP(void);
+ULONG getEBP(void);
+ULONG getEAX(void);
+ULONG getEBX(void);
+ULONG getECX(void);
+ULONG getEDX(void);
+ULONG getESI(void);
+ULONG getEDI(void);
+
+WORD getSS(void);
+WORD getCS(void);
+WORD getDS(void);
+WORD getES(void);
+WORD getFS(void);
+WORD getGS(void);
+
+int getCpuCount(void);
 
 BOOLEAN ChangeRegOnBP(DWORD ProcessID, int DebugRegNR, PChangeReg CR);
 BOOLEAN DebugProcess(DWORD ProcessID, DWORD Address, BYTE Length, BYTE RWE);

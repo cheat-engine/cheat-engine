@@ -121,6 +121,92 @@ unsigned __int64 readMSR(ULONG msr)
 	return ((INT64)b<<32) + a;
 }
 
+_declspec( naked ) ULONG getESP(void) //...
+{
+	__asm
+	{
+		mov eax,esp
+		add eax,4 //don't add this call
+		ret
+	}
+}
+
+_declspec( naked ) ULONG getEBP(void)
+{
+	__asm
+	{
+		mov eax,ebp
+		ret
+	}
+}
+
+_declspec( naked ) ULONG getEAX(void)
+{
+	__asm
+	{
+		mov eax,eax
+		ret
+	}
+}
+_declspec( naked ) ULONG getEBX(void)
+{
+	__asm
+	{
+		mov eax,ebx
+		ret
+	}
+}
+_declspec( naked ) ULONG getECX(void)
+{
+	__asm
+	{
+		mov eax,ecx
+		ret
+	}
+}
+_declspec( naked ) ULONG getEDX(void)
+{
+	__asm
+	{
+		mov eax,edx
+		ret
+	}
+}
+_declspec( naked ) ULONG getESI(void)
+{
+	__asm
+	{
+		mov eax,esi
+		ret
+	}
+}
+_declspec( naked ) ULONG getEDI(void)
+{
+	__asm
+	{
+		mov eax,edi
+		ret
+	}
+}
+
+_declspec( naked ) ULONG getDR7(void)
+{
+	__asm
+	{
+		mov eax,dr7
+		ret
+	}
+}
+
+_declspec( naked ) ULONG getCR0(void)
+{
+	__asm
+	{
+		mov eax,cr0
+		ret
+	}
+}
+
 _declspec( naked ) ULONG getCR2(void)
 {
 	__asm
@@ -176,6 +262,20 @@ void setCR4(ULONG cr4reg)
 	return;
 }
 
+int getCpuCount(void)
+{
+	KAFFINITY ap=KeQueryActiveProcessors();
+	int count=0;
+	while (ap>0)
+	{
+		if (ap % 2)
+			count++;
+
+		ap=ap / 2;
+	}
+	return count;
+}
+
 unsigned long long getTSC(void)
 {
 	ULONG a,b;
@@ -205,6 +305,60 @@ _declspec( naked ) EFLAGS getEflags(void)
 		ret
 	}
 
+}
+
+_declspec( naked ) WORD getSS(void)
+{
+	__asm
+	{
+		mov ax,ss
+		ret
+	}
+}
+
+_declspec( naked ) WORD getCS(void)
+{
+	__asm
+	{
+		mov ax,cs
+		ret
+	}
+}
+
+_declspec( naked ) WORD getDS(void)
+{
+	__asm
+	{
+		mov ax,ds
+		ret
+	}
+}
+
+_declspec( naked ) WORD getES(void)
+{
+	__asm
+	{
+		mov ax,es
+		ret
+	}
+}
+
+_declspec( naked ) WORD getFS(void)
+{
+	__asm
+	{
+		mov ax,fs
+		ret
+	}
+}
+
+_declspec( naked ) WORD getGS(void)
+{
+	__asm
+	{
+		mov ax,gs
+		ret
+	}
 }
 
 int isPrefix(unsigned char b)
@@ -337,13 +491,12 @@ void GetGDT(PGDT pGdt)
 #endif;
 }
 
-void GetLDT(PGDT pLdt)
+WORD GetLDT()
 {
 #ifndef AMD64	
 	__asm
-	{
-		MOV EAX, [pLdt]
-		SLDT [EAX]
+	{		
+		SLDT ax
 	}	
 #endif;
 }

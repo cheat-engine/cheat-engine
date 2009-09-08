@@ -126,6 +126,8 @@ type TGetSSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):bo
 type TSetSSDTEntry=function (nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 type TGetGDT=function(var limit: word):dword; stdcall;
 
+type TLaunchDBVM=procedure; stdcall;
+
 type TuseIOCTL=procedure(use: boolean); stdcall;
 type TMakeKernelCopy=function(Base: dword; size: dword): bool; stdcall;
 
@@ -266,6 +268,8 @@ var
   GetSSDTEntry            :TGetSSDTEntry;
   SetSSDTEntry            :TSetSSDTEntry;
 
+  LaunchDBVM              :TLaunchDBVM;
+
   ReadPhysicalMemory      :TReadProcessMemory;
   WritePhysicalMemory     :TWriteProcessMemory;
 
@@ -387,6 +391,8 @@ begin
     SetSDTEntry:= GetProcAddress(darkbyteKernel,'SetSDTEntry');
     GetSSDTEntry:=GetProcAddress(darkbyteKernel,'GetSSDTEntry');
     SetSSDTEntry:=GetProcAddress(darkbyteKernel,'SetSSDTEntry');
+
+    LaunchDBVM:=GetProcAddress(darkbyteKernel,'LaunchDBVM');
 
     ReadPhysicalMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
     WritePhysicalMemory:=GetProcAddress(DarkByteKernel,'WritePhysicalMemory');
