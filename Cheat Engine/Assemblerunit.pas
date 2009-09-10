@@ -3984,15 +3984,16 @@ begin
 
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
+        //rm32,imm8
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
-          if vtype=32 then
+          if vtype>8 then
           begin
-            //the user requests a 32-bit value, so see if there is also a r/m32,imm32
+            //the user requests a bigger than 8-bit value, so see if there is also a rm32,imm32 (there are no r/m32,imm16)
             k:=startoflist;
             while k<=endoflist do
             begin
-              if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
+              if opcodes[k].mnemonic<>tokens[mnemonic] then break;
               if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
               begin
                 //yes, there is
