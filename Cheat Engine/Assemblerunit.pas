@@ -1812,13 +1812,13 @@ begin
 
   if pos('[',token)>0 then
   begin
-    if (pos('BYTE ',token)>0) then result:=ttMemorylocation8 else
-    if (pos('WORD ',token)>0) then result:=ttMemorylocation16 else
-    if (pos('DWORD ',token)>0) then result:=ttMemorylocation32 else
-    if (pos('QWORD ',token)>0) then result:=ttMemorylocation64 else
+    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128 else
     if (pos('TBYTE ',token)>0) then result:=ttMemorylocation80 else
     if (pos('TWORD ',token)>0) then result:=ttMemorylocation80 else
-    if (pos('DQWORD ',token)>0) then result:=ttMemorylocation128 else
+    if (pos('QWORD ',token)>0) then result:=ttMemorylocation64 else
+    if (pos('DWORD ',token)>0) then result:=ttMemorylocation32 else
+    if (pos('WORD ',token)>0) then result:=ttMemorylocation16 else
+    if (pos('BYTE ',token)>0) then result:=ttMemorylocation8 else
       result:=ttMemorylocation;
   end;
 
@@ -2689,11 +2689,13 @@ begin
       bytes[length(bytes)-1]:=$36;
     end;
 
+    {
     if pos('DS:',parameter2)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$3e;
     end;
+    }
 
     if pos('FS:',parameter2)>0 then
     begin
@@ -4420,7 +4422,8 @@ begin
         begin
           //user typed in a direct address
 
-          if (not overrideShort) and ((OverrideLong) or (valueTotype(v-address-(opcodes[j].bytes+1))>8) ) then
+//        if (not overrideShort) and ((OverrideLong) or (valueTotype(      v-address-       (opcodes[j].bytes+1) )>8) ) then
+          if (not overrideShort) and ((OverrideLong) or (valueToType(DWord(v-address-Integer(opcodes[j].bytes+1)))>8) ) then
           begin
             //the user tried to find a relative address out of it's reach
             //see if there is a 32 bit version of the opcode
