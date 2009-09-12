@@ -2,6 +2,7 @@
 debugger.c:
 This unit will handle all debugging related code, from hooking, to handling interrupts
 */
+#pragma warning( disable: 4103)
 #include "ntifs.h"
 #include <windef.h>
 
@@ -10,14 +11,13 @@ This unit will handle all debugging related code, from hooking, to handling inte
 
 #include "debugger.h"
 
-//setup debugging
-  //setup which process is being debugged
-  //setup which address(es) is/are affected
-  //hook int 1  
-
-//handle breakpoint
-
+#ifdef AMD64 
+extern void interrupt1_asmentry( void ); //declared in debuggera.asm
+#else
 void interrupt1_asmentry( void );
+#endif
+
+
 
 JUMPBACK Int1JumpBackLocation;
 
@@ -28,7 +28,7 @@ struct
 	DWORD		debuggedProcessID;	//The processID that is currently debugger
 	struct {
 		BOOL		active;
-		ULONG_PTR	address;		//Up to 4 addresses to break on
+		UINT_PTR	address;		//Up to 4 addresses to break on
 		BreakType	breakType;		//What type of breakpoint for each seperate address
 		BreakLength breakLength;	//How many bytes does this breakpoint look at
 	} breakpoint[4];
@@ -37,27 +37,23 @@ struct
 	BOOL globalDebug;			//If set all threads of every process will raise an interrupt on taskswitch
 
 	//while debugging:
-	DWORD *LastStackPointer;
-	DWORD *LastRealDebugRegisters;
-	ULONG LastThreadID;
+	UINT_PTR *LastStackPointer;
+	UINT_PTR *LastRealDebugRegisters;
+	HANDLE LastThreadID;
 	BOOL handledlastevent;
 
-	struct {
-		
-		ULONG DR0;
-		ULONG DR1;
-		ULONG DR2;
-		ULONG DR3;
-		ULONG DR6;
-		ULONG DR7;
-		ULONG reserved;
+	struct {		
+		UINT_PTR DR0;
+		UINT_PTR DR1;
+		UINT_PTR DR2;
+		UINT_PTR DR3;
+		UINT_PTR DR6;
+		UINT_PTR DR7;
+		UINT_PTR reserved;
 		int inEpilogue; //if set the global debug bit does no faking
 	} FakedDebugRegisterState[256];
 
 } DebuggerState;
-
-//typedef enum {si_gs=-12, si_fs=-11, si_es=-10, si_ds=-9, si_edi=-8, si_esi=-7, si_stack_ebp=-6, si_stack_esp=-5, si_ebx=-4, si_edx=-3, si_ecx=-2, si_eax=-1, si_ebp=0, si_eip=1, si_cs=2, si_eflags=3, si_esp=4, si_ss=5} stackindex;
-
 
 KEVENT debugger_event_WaitForContinue; //event for kernelmode. Waits till it's set by usermode (usermode function: DBK_Continue_Debug_Event sets it)
 KEVENT debugger_event_WaitForDebugEvent; //event for usermode. Waits till it's set by a debugged event
@@ -65,7 +61,7 @@ KEVENT debugger_event_WaitForDebugEvent; //event for usermode. Waits till it's s
 KEVENT debugger_event_CanBreak; //event for kernelmode. Waits till a break has been handled so a new one can enter
 
 DebugReg7 debugger_dr7_getValue(void);
-DWORD debugger_dr7_setValue(DebugReg7 value);
+void debugger_dr7_setValue(DebugReg7 value);
 DebugReg6 debugger_dr6_getValue(void);
 
 
@@ -76,128 +72,82 @@ void debugger_dr7_setGD(int state)
 	debugger_dr7_setValue(_dr7);
 }
 
-DWORD debugger_dr0_setValue(DWORD value)
+void debugger_dr0_setValue(UINT_PTR value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr0,eax
-	}
+	__writedr(0,value);
 }
 
-_declspec( naked ) DWORD debugger_dr0_getValue(void)
+UINT_PTR debugger_dr0_getValue(void)
 {
-	__asm
-	{
-		mov eax,dr0	
-		ret
-	}
+	return __readdr(0);
 }
 
-DWORD debugger_dr1_setValue(DWORD value)
+void debugger_dr1_setValue(UINT_PTR value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr1,eax
-	}
+	__writedr(1,value);
 }
 
-_declspec( naked ) DWORD debugger_dr1_getValue(void)
+UINT_PTR debugger_dr1_getValue(void)
 {
-	__asm
-	{
-		mov eax,dr1	
-		ret
-	}
+	return __readdr(1);
 }
 
-DWORD debugger_dr2_setValue(DWORD value)
+void debugger_dr2_setValue(UINT_PTR value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr2,eax
-	}
+	__writedr(2,value);
 }
 
-_declspec( naked ) DWORD debugger_dr2_getValue(void)
+UINT_PTR debugger_dr2_getValue(void)
 {
-	__asm
-	{
-		mov eax,dr2	
-		ret
-	}
+	return __readdr(2);
 }
 
-DWORD debugger_dr3_setValue(DWORD value)
+void debugger_dr3_setValue(UINT_PTR value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr3,eax
-	}
+	__writedr(3,value);
 }
 
-_declspec( naked ) DWORD debugger_dr3_getValue(void)
+UINT_PTR debugger_dr3_getValue(void)
 {
-	__asm
-	{
-		mov eax,dr3		
-		ret
-	}
+	return __readdr(3);
 }
 
-DWORD debugger_dr6_setValue(DWORD value)
+UINT_PTR debugger_dr6_setValue(UINT_PTR value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr6,eax
-	}
+	return __readdr(6);
 }
 
-DWORD debugger_dr7_setValue(DebugReg7 value)
+void debugger_dr7_setValue(DebugReg7 value)
 {
-	__asm
-	{
-		mov eax,value
-		mov dr7,eax
-	}
+	UINT_PTR temp=*(UINT_PTR *)&value;		
+	__writedr(7,temp);
+	
+}
+
+UINT_PTR debugger_dr7_getValueDword(void) //I wonder why I couldn't just typecast the DebugReg7 to a dword...
+{
+	return __readdr(7);
 }
 
 
-_declspec( naked ) DebugReg7 debugger_dr7_getValue(void)
+DebugReg7 debugger_dr7_getValue(void)
 {
-	__asm{
-		mov eax,dr7
-		ret
-	}
+	UINT_PTR temp=debugger_dr7_getValueDword();
+	return *(DebugReg7 *)&temp;
 }
 
-_declspec( naked ) DWORD debugger_dr7_getValueDword(void) //I wonder why I couldn't just typecast the DebugReg7 to a dword...
+UINT_PTR debugger_dr6_getValueDword(void)
 {
-	__asm{
-		mov eax,dr7
-		ret
-	}
+	return __readdr(6);
 }
 
-_declspec( naked ) DebugReg6 debugger_dr6_getValue(void)
+DebugReg6 debugger_dr6_getValue(void)
 {
-	__asm{
-		mov eax,dr6
-		ret
-	}
+	UINT_PTR temp=debugger_dr6_getValueDword();
+	return *(DebugReg6 *)&temp;
 }
 
-_declspec( naked ) DWORD debugger_dr6_getValueDword(void)
-{
-	__asm{
-		mov eax,dr6
-		ret
-	}
-}
+
 
 void debugger_touchDebugRegister(void)
 {
@@ -358,7 +308,7 @@ Only call this by one thread only, and only when there's actually a debug eevnt 
 	return STATUS_SUCCESS;
 }
 
-DWORD *debugger_getLastStackPointer(void)
+UINT_PTR *debugger_getLastStackPointer(void)
 {
 	return DebuggerState.LastStackPointer;
 }
@@ -366,39 +316,37 @@ DWORD *debugger_getLastStackPointer(void)
 
 NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 {
-	state->threadid=DebuggerState.LastThreadID;
-	state->eflags=DebuggerState.LastStackPointer[si_eflags];
-	state->eax=DebuggerState.LastStackPointer[si_eax];
-	state->ebx=DebuggerState.LastStackPointer[si_ebx];
-	state->ecx=DebuggerState.LastStackPointer[si_ecx];
-	state->edx=DebuggerState.LastStackPointer[si_edx];
-	state->esi=DebuggerState.LastStackPointer[si_esi];
-	state->edi=DebuggerState.LastStackPointer[si_edi];
-	state->ebp=DebuggerState.LastStackPointer[si_ebp];
+	state->threadid=(UINT64)DebuggerState.LastThreadID;
+	state->rflags=(UINT_PTR)DebuggerState.LastStackPointer[si_eflags];
+	state->rax=DebuggerState.LastStackPointer[si_eax];
+	state->rbx=DebuggerState.LastStackPointer[si_ebx];
+	state->rcx=DebuggerState.LastStackPointer[si_ecx];
+	state->rdx=DebuggerState.LastStackPointer[si_edx];
+	state->rsi=DebuggerState.LastStackPointer[si_esi];
+	state->rdi=DebuggerState.LastStackPointer[si_edi];
+	state->rbp=DebuggerState.LastStackPointer[si_ebp];
+#ifdef AMD64
+	//fill in the extra registers
+	//state->rbp=DebuggerState.LastStackPointer[si_r8];
+#endif
 
 	//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
 	if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
 	{
 		//priv level change, so the stack info was pushed as well
-		state->esp=DebuggerState.LastStackPointer[si_esp]; 
+		state->rsp=DebuggerState.LastStackPointer[si_esp]; 
 		state->ss=DebuggerState.LastStackPointer[si_ss];
 
 	}
 	else
 	{
-		WORD temp;
 		//kernelmode stack, yeah, it's really useless here since changing it here only means certain doom, but hey...
-		state->esp=(DWORD)DebuggerState.LastStackPointer-4;
-		__asm
-		{
-			mov ax,ss
-			mov temp,ax		
-		}
-		state->ss=temp; //unchangable by the user
+		state->rsp=(UINT_PTR)(DebuggerState.LastStackPointer)-4;
+		state->ss=getSS();; //unchangeble by the user
 	}
 
 	
-	state->eip=DebuggerState.LastStackPointer[si_eip];
+	state->rip=DebuggerState.LastStackPointer[si_eip];
 	state->cs=DebuggerState.LastStackPointer[si_cs];
 	state->ds=DebuggerState.LastStackPointer[si_ds];
 	state->fs=DebuggerState.LastStackPointer[si_fs];
@@ -417,26 +365,26 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 
 NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 {
-	DebuggerState.LastStackPointer[si_eflags]=state->eflags;
+	DebuggerState.LastStackPointer[si_eflags]=(UINT_PTR)state->rflags;
 
 	DbgPrint("have set eflags to %x\n",DebuggerState.LastStackPointer[si_eflags]);
 
 
-	DebuggerState.LastStackPointer[si_eax]=state->eax;
-	DebuggerState.LastStackPointer[si_ebx]=state->ebx;
-	DebuggerState.LastStackPointer[si_ecx]=state->ecx;
-	DebuggerState.LastStackPointer[si_edx]=state->edx;
+	DebuggerState.LastStackPointer[si_eax]=(UINT_PTR)state->rax;
+	DebuggerState.LastStackPointer[si_ebx]=(UINT_PTR)state->rbx;
+	DebuggerState.LastStackPointer[si_ecx]=(UINT_PTR)state->rcx;
+	DebuggerState.LastStackPointer[si_edx]=(UINT_PTR)state->rdx;
 	
-	DebuggerState.LastStackPointer[si_esi]=state->esi;
-	DebuggerState.LastStackPointer[si_edi]=state->edi;
+	DebuggerState.LastStackPointer[si_esi]=(UINT_PTR)state->rsi;
+	DebuggerState.LastStackPointer[si_edi]=(UINT_PTR)state->rdi;
 	
-	DebuggerState.LastStackPointer[si_ebp]=state->ebp;
+	DebuggerState.LastStackPointer[si_ebp]=(UINT_PTR)state->rbp;
 
 	//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
 	if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
 	{
 		//priv level change, so the stack info was pushed as well
-		DebuggerState.LastStackPointer[si_esp]=state->esp;
+		DebuggerState.LastStackPointer[si_esp]=(UINT_PTR)state->rsp;
 		//don't mess with ss
 	}
 	else
@@ -445,23 +393,23 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 	}
 
 	
-	DebuggerState.LastStackPointer[si_eip]=state->eip;
-	DebuggerState.LastStackPointer[si_cs]=state->cs;
-	DebuggerState.LastStackPointer[si_ds]=state->ds;
-	DebuggerState.LastStackPointer[si_fs]=state->fs;
-	DebuggerState.LastStackPointer[si_gs]=state->gs;
+	DebuggerState.LastStackPointer[si_eip]=(UINT_PTR)state->rip;
+	DebuggerState.LastStackPointer[si_cs]=(UINT_PTR)state->cs;
+	DebuggerState.LastStackPointer[si_ds]=(UINT_PTR)state->ds;
+	DebuggerState.LastStackPointer[si_fs]=(UINT_PTR)state->fs;
+	DebuggerState.LastStackPointer[si_gs]=(UINT_PTR)state->gs;
 
 	if (!DebuggerState.globalDebug)
 	{
 		//no idea why someone would want to use this method, but it's in (for NON globaldebug only)
 
 		//updating this array too just so the user can see it got executed. (it eases their state of mind...)
-		DebuggerState.LastRealDebugRegisters[0]=state->dr0; 
-		DebuggerState.LastRealDebugRegisters[1]=state->dr1;
-		DebuggerState.LastRealDebugRegisters[2]=state->dr2;
-		DebuggerState.LastRealDebugRegisters[3]=state->dr3;
-		DebuggerState.LastRealDebugRegisters[4]=state->dr6;
-		DebuggerState.LastRealDebugRegisters[5]=state->dr7;
+		DebuggerState.LastRealDebugRegisters[0]=(UINT_PTR)state->dr0; 
+		DebuggerState.LastRealDebugRegisters[1]=(UINT_PTR)state->dr1;
+		DebuggerState.LastRealDebugRegisters[2]=(UINT_PTR)state->dr2;
+		DebuggerState.LastRealDebugRegisters[3]=(UINT_PTR)state->dr3;
+		DebuggerState.LastRealDebugRegisters[4]=(UINT_PTR)state->dr6;
+		DebuggerState.LastRealDebugRegisters[5]=(UINT_PTR)state->dr7;
 
 		//no setting of the DebugRegs here
 
@@ -471,7 +419,7 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 	return STATUS_SUCCESS;
 }
 
-int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
+int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 //Notice: This routine is called when interrupts are enabled and the GD bit has been set if globaL DEBUGGING HAS BEEN USED
 {
 	int handled=0; //0 means let the OS handle it
@@ -509,7 +457,7 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 		//first store the stackpointer so it can be manipulated externally
 		DebuggerState.LastStackPointer=stackpointer;
 		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
-		DebuggerState.LastThreadID=(ULONG)PsGetCurrentThreadId();
+		DebuggerState.LastThreadID=PsGetCurrentThreadId();
 
 
 		//notify usermore app that this thread has halted due to a debug event
@@ -568,7 +516,7 @@ int breakpointHandler_kernel(DWORD *stackpointer, DWORD *currentdebugregs)
 
 }
 
-int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
+int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 {
 
 	HANDLE CurrentProcessID=PsGetCurrentProcessId();	
@@ -620,7 +568,7 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 
 			if (instruction[instructionPointer+1]==0x21)
 			{
-				DWORD drvalue;
+				UINT_PTR drvalue;
 				//DbgPrint("read opperation\n");
 				//21=read
 				switch (debugregister)
@@ -695,7 +643,7 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 			if (instruction[instructionPointer+1]==0x23)
 			{
 				//23=write
-				DWORD gpvalue;
+				UINT_PTR gpvalue;
 				//DbgPrint("Write operation\n");
 				switch (generalpurposeregister)
 				{
@@ -779,7 +727,7 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 			else 
 			{
 				DbgPrint("Some unknown instruction accessed the debug registers?\n");
-				if (CurrentProcessID==(HANDLE)DebuggerState.debuggedProcessID)
+				if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 					DbgPrint("Happened inside the target process\n");
 
 				DbgPrint("interrupt1_handler dr6=%x dr7=%d\n",_dr6,_dr7);
@@ -797,7 +745,7 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 	if (DebuggerState.isDebugging)
 	{
 		//check if this should break
-		if (CurrentProcessID==(HANDLE)DebuggerState.debuggedProcessID)
+		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{
 			//DbgPrint("BP in target process\n");
 			
@@ -819,10 +767,7 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 			}	
 
 
-			__asm
-			{
-				sti //start interrupt handling
-			}
+			enableInterrupts();
 			return breakpointHandler_kernel(stackpointer, currentdebugregs);				
 		}
 		else 
@@ -856,9 +801,9 @@ int interrupt1_handler(DWORD *stackpointer, DWORD *currentdebugregs)
 	
 }
 
-int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpointer
+int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stackpointer
 {
-	DWORD currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
+	UINT_PTR currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the opperating system
 
 	//Fetch current debug registers
@@ -874,12 +819,11 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 
 	//epilogue:
 	//At the end when returning:
-	__asm{
-		cli
-	}	
+	
+	disableInterrupts(); //just making sure..	
 
 	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1;
-	debugger_dr7_setGD(0); //make sure the GD bit is disabled (int1 within int1, oooh the fun...)
+	debugger_dr7_setGD(0); //make sure the GD bit is disabled (int1 within int1, oooh the fun..., and yes, THIS itself will cause one too)
 	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1; //just be sure...
 
 	if (inthook_isDBVMHook(1))
@@ -1067,6 +1011,7 @@ int interrupt1_centry(DWORD *stackpointer) //code segment 8 has a 32-bit stackpo
 	return handled;
 }
 
+#ifndef AMD64
 _declspec( naked ) void interrupt1_asmentry( void )
 //This routine is called upon an interrupt 1, even before windows gets it
 {
@@ -1116,3 +1061,4 @@ skip_original_int1:
 		iretd
 	}
 }
+#endif

@@ -1,3 +1,5 @@
+#pragma warning( disable: 4103)
+
 #include "ntifs.h"
 #include <windef.h>
 
@@ -49,12 +51,15 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 		{
 			if (intnr==1)
 				vmx_redirect_interrupt1(0, 1, 0, 0);
+			else if (intnr==3)
+				vmx_redirect_interrupt3(0, 3, 0, 0); 
 			else
 				vmx_redirect_interrupt14(0, 14, 0, 0); 
 
 			return TRUE; //that's all we need
 		}
 
+#ifndef AMD64
 		//still here so not a dbvm hook, unhook the old way and hope nothing has interfered
 
 		{
@@ -77,11 +82,12 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 				IDT idt;	
 				GetIDT(&idt);
 
-				__asm{CLI} //no kernelmode taskswitches please
+				disableInterrupts();				
 				idt.vector[intnr]=newVector;
-				__asm{STI}
+				enableInterrupts();				
 			}
-		}		
+		}
+#endif
 	}
 
 	return TRUE;
@@ -106,17 +112,31 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		jumpback->eip=InterruptHook[intnr].originalEIP;
 	}
 
-	if (vmxusable && ((intnr==1) || (intnr==14)) )
+	if (vmxusable && ((intnr==1) || (intnr==3) || (intnr==14)) )
 	{		
-		if (intnr==1)
-		  vmx_redirect_interrupt1(1, 0, newCS, newEIP);
-		else
-		  vmx_redirect_interrupt14(1, 0, newCS, newEIP);
+		switch (intnr)
+		{
+			case 1:
+				vmx_redirect_interrupt1(1, 0, newCS, newEIP);
+				break;
+
+			case 3:
+				vmx_redirect_interrupt3(1, 0, newCS, newEIP);
+				break;
+
+			case 14:
+				vmx_redirect_interrupt14(1, 0, newCS, newEIP);
+				break;
+		}
 
 		InterruptHook[intnr].dbvmInterruptEmulation=1;
 	}
 	else
 	{
+#ifdef AMD64
+		DbgPrint("DBVM is not loaded or a non dbvm hookable interrupt is being hooked\n");
+		return FALSE;
+#else
 		//old fashioned hook
 		INT_VECTOR newVector;
 
@@ -129,11 +149,12 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		newVector.bUnused=0;
 		newVector.bAccessFlags=idt.vector[intnr].bAccessFlags; //don't touch accessflag, the default settings are good (e.g: int3,4 and 8 have dpl=3)
 
-		__asm{CLI} //no kernelmode taskswitches please
+		disableInterrupts(); //no kernelmode taskswitches please
 		idt.vector[intnr]=newVector;
-		__asm{STI}
+		enableInterrupts();	
 
 		InterruptHook[intnr].dbvmInterruptEmulation=0;
+#endif
 	}
 
 	InterruptHook[intnr].hooked=1;

@@ -1,9 +1,14 @@
+#pragma warning( disable: 4103)
 #include "newkernel.h"   
 #include "ntifs.h"
 
 NTSTATUS makeKernelCopy(ULONG KernelBase, ULONG KernelSize)
 {
 	NTSTATUS ntStatus=STATUS_UNSUCCESSFUL;
+#ifdef AMD64
+	DbgPrint("makeKernelcopy is not yet implemented for 64-bit windows\n");
+#else
+	
 
 	__try
 	{
@@ -50,6 +55,7 @@ NTSTATUS makeKernelCopy(ULONG KernelBase, ULONG KernelSize)
 	{
 		DbgPrint("Failed to map the kernel\n");
 	}
+#endif
 
 	return ntStatus;
 };

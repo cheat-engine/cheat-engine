@@ -1,3 +1,5 @@
+#pragma warning( disable: 4103)
+
 #include "ntifs.h"
 #include "processlist.h"
 #include "threads.h"
@@ -8,7 +10,7 @@ VOID GetThreadData(IN PDEVICE_OBJECT  DeviceObject, IN PVOID  Context)
 	KIRQL OldIrql;
 	struct ThreadData *tempThreadEntry;
 	PETHREAD selectedthread;
-	ULONG tid;
+	HANDLE tid;
 	LARGE_INTEGER Timeout;
 	PKAPC AP;
 	tempThreadEntry=Context;
@@ -22,7 +24,7 @@ VOID GetThreadData(IN PDEVICE_OBJECT  DeviceObject, IN PVOID  Context)
 	selectedthread=NULL;
 
 	KeAcquireSpinLock(&ProcesslistSL,&OldIrql);
-	tid=(ULONG)tempThreadEntry->ThreadID;
+	tid=tempThreadEntry->ThreadID;
 	AP=&tempThreadEntry->SuspendApc;
 	PsLookupThreadByThreadId((PVOID)tid,&selectedthread);
 	

@@ -1,3 +1,5 @@
+#pragma warning( disable: 4103)
+
 #include "rootkit.h"
 #include "DBKFunc.h"
 #include <windef.h>
@@ -7,6 +9,7 @@
 
 BOOLEAN MakeWritableKM(PVOID StartAddress,UINT_PTR size)
 {
+#ifndef AMD64
 	UINT_PTR PTE,PDE;
 	struct PTEStruct *x;
 	UINT_PTR CurrentAddress=(UINT_PTR)StartAddress;	
@@ -47,6 +50,9 @@ BOOLEAN MakeWritableKM(PVOID StartAddress,UINT_PTR size)
 	}
 
 	return TRUE;
+#else
+	return FALSE;
+#endif
 }
 
 BOOLEAN MakeWritable(PVOID StartAddress,UINT_PTR size,BOOLEAN usecopyonwrite)
@@ -95,6 +101,7 @@ BOOLEAN MakeWritable(PVOID StartAddress,UINT_PTR size,BOOLEAN usecopyonwrite)
 //this unit will contain the functions and other crap used by the hider function
 BOOLEAN CheckImageName(IN PUNICODE_STRING FullImageName, IN char* List,int listsize)
 {
+#ifndef AMD64
 	/*
 	pre:List has been initialized and all entries are UPPERCASE. Each entry is seperated
 	    by a 0-marker so just setting the pointer ro the start and doing a compare will work
@@ -146,12 +153,14 @@ BOOLEAN CheckImageName(IN PUNICODE_STRING FullImageName, IN char* List,int lists
 	}
 
 	DbgPrint("No match\n");
+#endif
 	return FALSE;
 
 }
 
 VOID LoadImageNotifyRoutine(IN PUNICODE_STRING  FullImageName, IN HANDLE  ProcessId, IN PIMAGE_INFO  ImageInfo)
 {
+#ifndef AMD64
 	BOOLEAN RemoveIt=FALSE;
 
 	if ((ProtectOn) && (GlobalDenyList) && (DenyList)) //check for denylist to be %100 sure
@@ -183,13 +192,14 @@ VOID LoadImageNotifyRoutine(IN PUNICODE_STRING  FullImageName, IN HANDLE  Proces
 		{
 		}
 	}
+#endif
 		
 }
 
-
+#ifndef AMD64
 NTSTATUS NewZwOpenProcess(OUT PHANDLE ProcessHandle,  IN ACCESS_MASK DesiredAccess,  IN POBJECT_ATTRIBUTES ObjectAttributes,  IN PCLIENT_ID ClientId)
 {	
-#ifndef AMD64
+
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID) && (((UINT_PTR)(ClientId->UniqueProcess)>=(UINT_PTR)ProtectedProcessID)) && ((UINT_PTR)(ClientId->UniqueProcess)<(UINT_PTR)ProtectedProcessID+4))
 	{
 		if ((UINT_PTR)ProcessHandle<=0x80000000) //make it more genuine
@@ -209,7 +219,7 @@ NTSTATUS NewZwOpenProcess(OUT PHANDLE ProcessHandle,  IN ACCESS_MASK DesiredAcce
 	
 	}
 	else
-#endif
+
 		return OldZwOpenProcess(ProcessHandle,DesiredAccess,ObjectAttributes,ClientId);
 }
 
@@ -253,7 +263,7 @@ NTSTATUS NewZwQuerySystemInformation(IN SYSTEM_INFORMATION_CLASS SystemInformati
 
 	result=OldZwQuerySystemInformation(SystemInformationClass,SystemInformation,SystemInformationLength,ReturnLength);;
 
-#ifndef AMD64	
+	
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID) && (SystemInformationClass==5) && (NT_SUCCESS(result))) //process/thread info
 	{
 		PSYSTEM_PROCESS_INFORMATION pspi;
@@ -296,14 +306,14 @@ NTSTATUS NewZwQuerySystemInformation(IN SYSTEM_INFORMATION_CLASS SystemInformati
 			pspi= (PSYSTEM_PROCESS_INFORMATION)(((PUCHAR)pspi)+pspi->NextEntryDelta);
 		}
 	}
-#endif
+
 	
 	return result;
 }
 
 UINT_PTR NewNtUserQueryWindow(IN ULONG WindowHandle,IN ULONG TypeInformation)
 {
-#ifndef AMD64
+
 	ULONG WindowHandleProcessID;
 
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID))
@@ -312,7 +322,7 @@ UINT_PTR NewNtUserQueryWindow(IN ULONG WindowHandle,IN ULONG TypeInformation)
 		if (WindowHandleProcessID==(ULONG)ProtectedProcessID)
 			return 0;
 	}
-#endif
+
 
 	return OldNtUserQueryWindow(WindowHandle,TypeInformation);
 }
@@ -320,7 +330,6 @@ UINT_PTR NewNtUserQueryWindow(IN ULONG WindowHandle,IN ULONG TypeInformation)
 
 NTSTATUS NewNtUserBuildHwndList(IN HDESK hdesk, IN HWND hwndNext, IN ULONG fEnumChildren, IN DWORD idThread, IN UINT cHwndMax, OUT HWND *phwndFirst, OUT ULONG* pcHwndNeeded)
 {
-#ifndef AMD64
 	NTSTATUS result;
 
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID))
@@ -363,7 +372,7 @@ NTSTATUS NewNtUserBuildHwndList(IN HDESK hdesk, IN HWND hwndNext, IN ULONG fEnum
 
 		return result;
 	}
-#endif
+
 	return OldNtUserBuildHwndList(hdesk,hwndNext,fEnumChildren,idThread,cHwndMax,phwndFirst,pcHwndNeeded);
 }
 
@@ -371,7 +380,7 @@ ULONG NewNtUserFindWindowEx(IN HWND hwndParent, IN HWND hwndChild, IN PUNICODE_S
 {
 	ULONG result;
 	result=OldNtUserFindWindowEx(hwndParent,hwndChild,pstrClassName,pstrWindowName,dwType);
-#ifndef AMD64	
+	
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID))
 	{
 		ULONG ProcessID;
@@ -379,7 +388,7 @@ ULONG NewNtUserFindWindowEx(IN HWND hwndParent, IN HWND hwndChild, IN PUNICODE_S
 		if (ProcessID==(ULONG)ProtectedProcessID)
 			return 1230;
 	}
-#endif
+
 
 	return result;
 }
@@ -388,7 +397,7 @@ ULONG NewNtUserGetForegroundWindow(VOID)
 {
 	ULONG result;
 	result=OldNtUserGetForegroundWindow();
-#ifndef AMD64	
+
 	if ((ProtectOn) && (PsGetCurrentProcessId()!=ProtectedProcessID))
 	{
 		ULONG ProcessID;
@@ -398,7 +407,7 @@ ULONG NewNtUserGetForegroundWindow(VOID)
 		else
             LastForegroundWindow=result;
 	}
-#endif
+
 	
 	return result;
 }
@@ -481,3 +490,5 @@ void cr3_change_callback(ULONG oldcr3, ULONG newcr3)
 	vmx_exit_cr3_callback(newcr3);*/
 	DbgPrint("OMGWTF I'M STILL HERE! WAAAAAAAAAAAAH!!!!!\n");
 }
+
+#endif

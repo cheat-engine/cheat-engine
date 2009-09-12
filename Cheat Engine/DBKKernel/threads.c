@@ -1,3 +1,5 @@
+#pragma warning( disable: 4103)
+
 #include "threads.h"
 #include "processlist.h"
 #include "memscan.h"
@@ -14,7 +16,7 @@ struct ThreadData* GetThreaddata(ULONG threadid)
 		tempThreadData=tempProcessData->Threads;
 		while (tempThreadData)
 		{
-			if (tempThreadData->ThreadID==(HANDLE)threadid)
+			if (tempThreadData->ThreadID==(HANDLE)(UINT_PTR)threadid)
 				return tempThreadData;
 			
 			tempThreadData=tempThreadData->next;
@@ -150,7 +152,7 @@ void DBKSuspendProcess(ULONG ProcessID)
 	tempProcessData=processlist;
 	while (tempProcessData)
 	{
-		if (tempProcessData->ProcessID==(HANDLE)ProcessID)
+		if (tempProcessData->ProcessID==(HANDLE)(UINT_PTR)ProcessID)
 		{
 			t_data=tempProcessData->Threads;
 			break;
@@ -172,7 +174,7 @@ void DBKSuspendProcess(ULONG ProcessID)
 		if (!t_data->PEThread)
 		{
 			//not yet initialized
-			t_data->PEThread=(PETHREAD)getPEThread((ULONG)t_data->ThreadID);
+			t_data->PEThread=(PETHREAD)getPEThread((UINT_PTR)t_data->ThreadID);
 			KeInitializeApc(&t_data->SuspendApc,
 							(PKTHREAD)t_data->PEThread,
 							0,
@@ -214,7 +216,7 @@ void DBKResumeProcess(ULONG ProcessID)
 	tempProcessData=processlist;
 	while (tempProcessData)
 	{
-		if (tempProcessData->ProcessID==(HANDLE)ProcessID)
+		if (tempProcessData->ProcessID==(HANDLE)(UINT_PTR)ProcessID)
 		{
 			t_data=tempProcessData->Threads;
 			break;

@@ -8,6 +8,8 @@
 
 int _fltused;
 
+
+
 typedef struct _criticalSection
 {
   int locked;
@@ -44,10 +46,10 @@ typedef struct tagDebugregs
 	ULONG DR6;
 	ULONG DR7;
 } Debugregs;
-Debugregs DebuggedProcessDR; //the debugregs registers as seen by the program itself
-Debugregs DebuggerDR; //the debugregs owned by the debugger
 
-typedef struct tagEFLAGS
+
+
+typedef struct 
 {
 	unsigned CF			:1; // 0
 	unsigned reserved1	:1; // 1
@@ -71,6 +73,12 @@ typedef struct tagEFLAGS
 	unsigned VIP		:1; // 20
 	unsigned ID			:1; // 21
 	unsigned reserved5	:10; // 22-31
+#ifdef AMD64
+	unsigned reserved6	:8;
+	unsigned reserved7	:8;
+	unsigned reserved8	:8;
+	unsigned reserved9	:8;
+#endif
 } EFLAGS,*PEFLAGS;
 
 typedef struct tagDebugReg7
@@ -96,6 +104,12 @@ typedef struct tagDebugReg7
 	unsigned LEN2		:2;
 	unsigned RW3		:2;
 	unsigned LEN3		:2;
+#ifdef AMD64
+	unsigned undefined3	:8;
+	unsigned undefined4	:8;
+	unsigned undefined5	:8;
+	unsigned undefined6	:8;
+#endif
 } DebugReg7;
 
 typedef struct DebugReg6
@@ -109,6 +123,12 @@ typedef struct DebugReg6
 	unsigned BS			:1;
 	unsigned BT			:1;
 	unsigned undefined2	:16; // 1111111111111111
+#ifdef AMD64
+	unsigned undefined3	:8;
+	unsigned undefined4	:8;
+	unsigned undefined5	:8;
+	unsigned undefined6	:8;
+#endif
 } DebugReg6;
 
 
@@ -118,99 +138,92 @@ typedef struct DebugReg6
 typedef struct tagGDT
 {    
     WORD wLimit;
-	PKGDTENTRY vector;
+	PVOID vector;
 } GDT, *PGDT;
 #pragma pack()
 
-
-
-typedef struct tagDebugEvent
-{
-DWORD EAX,EBX,ECX,EDX,ESI,EDI,EBP,ESP,EIP;
-
-} DebugEvent,*PDebugEvent;
-DebugEvent DebugEvents[50];
-
-typedef struct tagChangeReg
-{
-DWORD BreakAddress;
-DWORD newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP;
-BOOLEAN newCF,newPF,newAF,newZF,newSF,newOF;
-
-BOOLEAN changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP;
-BOOLEAN changeCF,changePF,changeAF,changeZF,changeSF,changeOF;
-BOOLEAN Active;
-
-} ChangeReg,*PChangeReg;
-ChangeReg ChangeRegs[4]; //max of 4
-BOOLEAN ChangeRegistersOnBP;
-
 UCHAR BufferSize;
 
-INT_VECTOR	OriginalInt1;
-INT_VECTOR	OriginalInt3;
-
-UINT_PTR IDTAddresses[32]; //max 32 cpu's
-
-//note: Make this a struct and even an array if needed. (Need to figure out dynamic mem)
-//PEPROCESS  	DebuggedProcessPEPROCESS;
-//DWORD		DebuggedProcessID;
-//DWORD		DebuggedAddress;
-//DWORD		DebuggedAddressLength;
-//BYTE		DebuggedAddressRWE;
-
 void GetIDT(PIDT pIdt);
+
+#ifdef AMD64
+extern void GetGDT(PGDT pGdt);
+extern WORD GetLDT();
+extern WORD GetTR(void);
+#else
 void GetGDT(PGDT pGdt);
 WORD GetLDT();
-unsigned short GetTR(void);
+WORD GetTR(void);
+#endif
 
 
-unsigned __int64 readMSR(ULONG msr);
-ULONG getDR7(void);
-ULONG getCR0(void);
-ULONG getCR2(void);
-ULONG getCR3(void);
-ULONG getCR4(void);
-void  setCR4(ULONG cr4reg);
-unsigned long long getTSC(void);
-ULONG getESP(void);
-ULONG getEBP(void);
-ULONG getEAX(void);
-ULONG getEBX(void);
-ULONG getECX(void);
-ULONG getEDX(void);
-ULONG getESI(void);
-ULONG getEDI(void);
 
-WORD getSS(void);
+UINT64 readMSR(DWORD msr);
+UINT64 getDR7(void);
+void setCR0(UINT64 newCR0);
+UINT64 getCR0(void);
+UINT64 getCR2(void);
+void setCR3(UINT64 newCR3);
+UINT64 getCR3(void);
+UINT64 getCR4(void);
+void setCR4(UINT64 newcr4);
+UINT64 getTSC(void);
+
+#ifdef AMD64
+extern WORD getCS(void);
+extern WORD getSS(void);
+extern WORD getDS(void);
+extern WORD getES(void);
+extern WORD getFS(void);
+extern WORD getGS(void);
+extern UINT64 getRSP(void);
+extern UINT64 getRBP(void);
+extern UINT64 getRAX(void);
+extern UINT64 getRBX(void);
+extern UINT64 getRCX(void);
+extern UINT64 getRDX(void);
+extern UINT64 getRSI(void);
+extern UINT64 getRDI(void);
+#else
 WORD getCS(void);
+WORD getSS(void);
 WORD getDS(void);
 WORD getES(void);
 WORD getFS(void);
 WORD getGS(void);
+ULONG getRSP(void);
+ULONG getRBP(void);
+ULONG getRAX(void);
+ULONG getRBX(void);
+ULONG getRCX(void);
+ULONG getRDX(void);
+ULONG getRSI(void);
+ULONG getRDI(void);
+#endif
+
+extern UINT64 getR8(void);
+extern UINT64 getR9(void);
+extern UINT64 getR10(void);
+extern UINT64 getR11(void);
+extern UINT64 getR12(void);
+extern UINT64 getR13(void);
+extern UINT64 getR14(void);
+extern UINT64 getR15(void);
+
 
 int getCpuCount(void);
 
-BOOLEAN ChangeRegOnBP(DWORD ProcessID, int DebugRegNR, PChangeReg CR);
-BOOLEAN DebugProcess(DWORD ProcessID, DWORD Address, BYTE Length, BYTE RWE);
-void StopDebugging(void);
-void StopChangeRegOnBP(int DebugRegNR);
-
-BOOLEAN HookInt1(void);
-BOOLEAN HookInt3(void);
-//int globaldebug;
 int PTESize;
 UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;
 
-BOOLEAN UsesAlternateMethod;
-void int1apihook(void);
-void OriginalInt1handler(void);
-
 int isPrefix(unsigned char b);
 EFLAGS getEflags(void);
-
 int cpunr(void);
+void disableInterrupts(void);
+void enableInterrupts(void);
+
+
 void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 

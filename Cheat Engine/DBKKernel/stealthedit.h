@@ -4,8 +4,8 @@
 void stealthedit_initialize(void);
 int stealthedit_initStealthEditHooksForCurrentCPU(void);
 
-int stealthedit_RemoveCloakedSection(DWORD ProcessID, DWORD pagebase);
-int stealthedit_AddCloakedSection(DWORD ProcessID, DWORD pagebase, DWORD relocatedpagebase, int size);
+int stealthedit_RemoveCloakedSection(DWORD ProcessID, UINT_PTR pagebase);
+int stealthedit_AddCloakedSection(DWORD ProcessID, UINT_PTR pagebase, UINT_PTR relocatedpagebase, int size);
 
 
 #endif

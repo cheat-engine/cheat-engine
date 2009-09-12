@@ -1,6 +1,6 @@
 //note: instead of int3 one could use the GDT and assign the current thread a segment selector set to the copy
 //downside is there's only a limited number of available segments
-
+#pragma warning( disable: 4103)
 #include "ntifs.h"
 #include <windef.h>
 
@@ -9,9 +9,13 @@
 #include "stealthedit.h"
 //hooks the pagefault handler
 
-
+#ifdef AMD64
+extern void interrupt3_asmentry( void );
+extern void interrupt14_asmentry( void );
+#else
 void interrupt3_asmentry( void );
 void interrupt14_asmentry( void );
+#endif
 
 JUMPBACK Int3JumpBackLocation;
 JUMPBACK Int14JumpBackLocation;
@@ -31,9 +35,9 @@ typedef struct
 
 typedef struct
 {
-	DWORD ProcessID;
-	DWORD pagebase;
-	DWORD relocatedpagebase;
+	HANDLE ProcessID;
+	UINT_PTR pagebase;
+	UINT_PTR relocatedpagebase;
 	int size;
 } CloakedSection, *PCloakedSection;
 
@@ -95,7 +99,7 @@ int stealthedit_increaseBuffer(void)
 	return TRUE;
 }
 
-int stealthedit_AddCloakedSection(DWORD ProcessID, DWORD pagebase, DWORD relocatedpagebase, int size)
+int stealthedit_AddCloakedSection(DWORD ProcessID, UINT_PTR pagebase, UINT_PTR relocatedpagebase, int size)
 /*
 size has to be in pagesizes (4096, 8192, etc...)
 relocatedpagebase is the address where the real code starts
@@ -129,7 +133,7 @@ relocatedpagebase is the address where the real code starts
 	DbgPrint("Registering at position %d\n",CloakedSections.pos);
 	if (CloakedSections.cs)
 	{
-		CloakedSections.cs[CloakedSections.pos].ProcessID=ProcessID;
+		CloakedSections.cs[CloakedSections.pos].ProcessID=(HANDLE)(UINT_PTR)ProcessID;
 		CloakedSections.cs[CloakedSections.pos].pagebase=pagebase;
 		CloakedSections.cs[CloakedSections.pos].relocatedpagebase=relocatedpagebase;
 		CloakedSections.cs[CloakedSections.pos].size=size;
@@ -143,12 +147,12 @@ relocatedpagebase is the address where the real code starts
 
 }
 
-int stealthedit_RemoveCloakedSection(DWORD ProcessID, DWORD pagebase)
+int stealthedit_RemoveCloakedSection(DWORD ProcessID, UINT_PTR pagebase)
 {
 	int i,j;
 	for (i=0; i<CloakedSections.pos; i++)
 	{
-		if ((CloakedSections.cs[i].ProcessID==ProcessID) && (CloakedSections.cs[i].pagebase==pagebase) )
+		if ((CloakedSections.cs[i].ProcessID==(HANDLE)(UINT_PTR)ProcessID) && (CloakedSections.cs[i].pagebase==pagebase) )
 		{
 			//found it, now move all other items to the left
 			csEnter(&CloakedSections_CS);
@@ -182,12 +186,12 @@ int stealthedit_initStealthEditHooksForCurrentCPU(void)
 	return (result1 && result2);
 }
 
-int interrupt3_centry(DWORD *stackpointer)
+int interrupt3_centry(UINT_PTR *stackpointer)
 {
-	DWORD currentPID=(DWORD)PsGetCurrentProcessId();
+	HANDLE currentPID=PsGetCurrentProcessId();
 	int i;
 	int handled=0;
-	DWORD eip=stackpointer[si_eip]-1;
+	UINT_PTR eip=stackpointer[si_eip]-1;
 
 	DbgPrint("interrupt 3. PID=%x eip=%x\n", currentPID, eip);
 	csEnter(&CloakedSections_CS);
@@ -195,8 +199,8 @@ int interrupt3_centry(DWORD *stackpointer)
 	{
 		if (CloakedSections.cs[i].ProcessID==currentPID)
 		{
-			int offset;
-			offset=eip-CloakedSections.cs[i].relocatedpagebase;
+			int offset; //int on purpose!
+			offset=(int)(eip-CloakedSections.cs[i].relocatedpagebase);
 			DbgPrint("offset=%d\n",offset);
 
 			if ((offset>-4096) && (offset<CloakedSections.cs[i].size+4096))
@@ -216,7 +220,7 @@ int interrupt3_centry(DWORD *stackpointer)
 	return handled;
 }
 
-
+#ifndef AMD64
 _declspec( naked ) void interrupt3_asmentry( void )
 //This routine is called upon an interrupt 1, even before windows gets it
 {
@@ -265,8 +269,9 @@ skip_original_int3:
 		iretd		
 	}
 }
+#endif
 
-int interrupt14_centry(DWORD *stackpointer)
+int interrupt14_centry(UINT_PTR *stackpointer)
 {
 	PErrorcodePF errorcode=(PErrorcodePF)&stackpointer[si_errorcode];
 	int handled=0;
@@ -274,8 +279,8 @@ int interrupt14_centry(DWORD *stackpointer)
 	if ((errorcode->P) && (errorcode->US) && (errorcode->ID))
 	{
 		int i;
-		DWORD currentPID=(DWORD)PsGetCurrentProcessId();
-		DWORD cr2=getCR2();
+		HANDLE currentPID=PsGetCurrentProcessId();
+		UINT_PTR cr2=(UINT_PTR)getCR2();
 
 		//NO EXECUTE PAGEFAULT
 		DbgPrint("interrupt14_centry for a NO EXECUTE PF: pid= %x, CR2=%x, errorcode(%x): P=%d WR=%d US=%d RSVD=%d ID=%d\n",currentPID, cr2, stackpointer[si_errorcode], errorcode->P, errorcode->WR, errorcode->US, errorcode->RSVD, errorcode->ID);
@@ -290,8 +295,8 @@ int interrupt14_centry(DWORD *stackpointer)
 								
 				if ((cr2>=CloakedSections.cs[i].pagebase) && (cr2<(CloakedSections.cs[i].pagebase+CloakedSections.cs[i].size)))
 				{					
-					DWORD eip=stackpointer[si_eip];					
-					DWORD offset=eip-CloakedSections.cs[i].pagebase; //eip CAN be lower than pagebase on a pageboundary, but as long as DWORD's are used, it's safe enough (and assuming the usermode part has the first bytes of the instruction saved as well on the prologue region)
+					UINT_PTR eip=stackpointer[si_eip];					
+					UINT_PTR offset=eip-CloakedSections.cs[i].pagebase; //eip CAN be lower than pagebase on a pageboundary, but as long as DWORD's are used, it's safe enough (and assuming the usermode part has the first bytes of the instruction saved as well on the prologue region)
 
 					DbgPrint("%d: No-execute in relocated region. EIP=%x\n",i,eip);
                     DbgPrint("%d: PID=%d pagebase=%x relocatedpagebase=%x size=%d\n",i,currentPID, CloakedSections.cs[i].pagebase, CloakedSections.cs[i].relocatedpagebase, CloakedSections.cs[i].size);
@@ -312,7 +317,7 @@ int interrupt14_centry(DWORD *stackpointer)
 	return handled;
 }
 
-
+#ifndef AMD64
 _declspec( naked ) void interrupt14_asmentry( void )
 //This routine is called upon an interrupt 1, even before windows gets it
 {
@@ -358,3 +363,4 @@ skip_original_int14:
 		jmp skip_original_int14
 	}
 }
+#endif

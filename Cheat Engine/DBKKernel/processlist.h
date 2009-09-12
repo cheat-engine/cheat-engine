@@ -28,8 +28,8 @@ struct ProcessData
 typedef struct tagProcessEventData
 {
 BOOLEAN Created;
-UINT_PTR ProcessID;
-UINT_PTR PEProcess;
+UINT64 ProcessID;
+UINT64 PEProcess;
 } ProcessEventdta;
 ProcessEventdta ProcessEventdata[50];
 UCHAR ProcessEventCount;
@@ -44,8 +44,8 @@ VOID CreateThreadNotifyRoutine(IN HANDLE ProcessId, IN HANDLE ThreadId, IN BOOLE
 typedef struct tagThreadEventData
 {
 BOOLEAN Created;
-UINT_PTR ProcessID;
-UINT_PTR ThreadID;
+UINT64 ProcessID;
+UINT64 ThreadID;
 } ThreadEventDta;
 ThreadEventDta ThreadEventData[50];
 UCHAR ThreadEventCount;

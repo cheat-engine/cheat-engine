@@ -51,8 +51,8 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size, PVOID Buffer);
 BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size, PVOID Buffer);
 BOOLEAN IsAddressSafe(UINT_PTR StartAddress);
-BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, DWORD *memorysize,DWORD *baseaddress);
-ULONG getPEThread(ULONG threadid);
+BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress);
+UINT_PTR getPEThread(UINT_PTR threadid);
 
 ADDRESSENTRY *AddressList;
 unsigned int AddressListSize;

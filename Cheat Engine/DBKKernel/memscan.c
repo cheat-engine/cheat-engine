@@ -1,3 +1,5 @@
+#pragma warning( disable: 4103)
+
 #include "ntifs.h"
 #include <windef.h>
 #ifdef CETC
@@ -6,19 +8,19 @@
 #endif
 #include "memscan.h"
 #include "DBKFunc.h"
+/*
 #include "vmxhelper.h"
 #include "rootkit.h"
+*/
 
 
 BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 {
 
-
-	//note: Add support for PAE enabled systems
 	//return TRUE;
 #ifdef AMD64
-	return TRUE; //for now
-#endif
+	return TRUE; //for now untill I ave figure out the win 4 paging scheme
+#else
 /*	MDL x;
 
 	
@@ -72,19 +74,21 @@ BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 
 		return TRUE;
 	} 
+#endif
 
 }
 
-ULONG getPEThread(ULONG threadid)  
+UINT_PTR getPEThread(UINT_PTR threadid)  
 {	
     //UINT_PTR *threadid;
 	PETHREAD selectedthread;
-	ULONG result=0;
+	UINT_PTR result=0;
+	
 	
 
-	if (PsLookupThreadByThreadId((PVOID)threadid,&selectedthread)==STATUS_SUCCESS)
+	if (PsLookupThreadByThreadId((PVOID)(UINT_PTR)threadid,&selectedthread)==STATUS_SUCCESS)
 	{
-		result=(ULONG)selectedthread;
+		result=(UINT_PTR)selectedthread;
 		ObDereferenceObject(selectedthread);
 	}
 
@@ -100,7 +104,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 	if (selectedprocess==NULL)
 	{
 		DbgPrint("WriteProcessMemory:Getting PEPROCESS\n");
-        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)PID,&selectedprocess)))
+        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
 		DbgPrint("Retrieved peprocess");  
@@ -109,7 +113,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
-		unsigned int temp=(unsigned int)Address;
+		UINT_PTR temp=(UINT_PTR)Address;
 						
 		RtlZeroMemory(&apc_state,sizeof(apc_state));					
 
@@ -123,7 +127,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 
 			DbgPrint("Checking safety of memory\n");
 
-			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size-1)))
+			if ((!IsAddressSafe((UINT_PTR)Address)) || (!IsAddressSafe((UINT_PTR)Address+Size-1)))
 				return FALSE; //if the first or last byte of this region is not safe then exit; //I know I should also check the regions inbetween, but since my own dll doesn't request more than 512 bytes it wont overlap
 
     		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
@@ -165,7 +169,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	if (PEProcess==NULL)
 	{
 		//DbgPrint("ReadProcessMemory:Getting PEPROCESS\n");
-        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)PID,&selectedprocess)))
+        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
 		//DbgPrint("Retrieved peprocess");  
@@ -176,8 +180,8 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
-		unsigned int temp=(unsigned int)Address;
-		ULONG currentcr3;
+		UINT_PTR temp=(UINT_PTR)Address;
+		UINT_PTR currentcr3;
 		//DbgPrint("b");
 		
 		/*				
@@ -214,7 +218,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 
 			//DbgPrint("Checking safety of memory\n");
 
-			if ((!IsAddressSafe((ULONG)Address)) || (!IsAddressSafe((ULONG)Address+Size-1)))
+			if ((!IsAddressSafe((UINT_PTR)Address)) || (!IsAddressSafe((UINT_PTR)Address+Size-1)))
 				return FALSE; //if the first or last byte of this region is not safe then exit;
 
     		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
@@ -337,7 +341,7 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 	return ntStatus;
 }
 
-BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, DWORD *memorysize,DWORD *baseaddress)
+BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress)
 {
 	UINT_PTR StartAddress;
 	KAPC_STATE apc_state;
@@ -348,7 +352,7 @@ BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULON
 	if (PEProcess==NULL)
 	{
 		DbgPrint("GetMemoryRegionData:Getting PEPROCESS\n");
-        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)PID,&selectedprocess)))
+        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
 		DbgPrint("Retrieved peprocess");  

@@ -24,6 +24,10 @@ typedef struct tagINT_VECTOR
 	unsigned P         : 1;
 	*/
 	WORD	wHighOffset;
+#ifdef AMD64
+	DWORD	TopOffset;
+	DWORD	Reserved;
+#endif
 } INT_VECTOR, *PINT_VECTOR;
 #pragma pack()
 
@@ -36,14 +40,26 @@ typedef struct tagIDT
 #pragma pack()
 
 
+#ifdef AMD64
 typedef
 #pragma pack(1) //allignemnt of 1 byte
 struct
 {    
-	ULONG_PTR eip;
+	UINT64 eip;
+	UINT64 cs;
+} JUMPBACK, *PJUMPBACK;
+#pragma pack()
+#else
+typedef
+#pragma pack(1) //allignemnt of 1 byte
+struct
+{    
+	DWORD eip;
 	WORD cs;
 } JUMPBACK, *PJUMPBACK;
 #pragma pack()
+#endif
+
 
 int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUMPBACK jumpback);
 int inthook_UnhookInterrupt(unsigned char intnr);

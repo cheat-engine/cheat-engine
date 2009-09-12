@@ -1,7 +1,7 @@
 #include "ntifs.h"
 #include <windef.h>
 
-
+#ifndef AMD64 //(no apihook in 64bit)
 //ZwOpenProcess
 NTSYSAPI NTSTATUS NTAPI ZwOpenProcess(OUT PHANDLE ProcessHandle,  IN ACCESS_MASK DesiredAccess,   IN POBJECT_ATTRIBUTES ObjectAttributes, IN PCLIENT_ID ClientId);
 NTSTATUS NewZwOpenProcess(OUT PHANDLE ProcessHandle,  IN ACCESS_MASK DesiredAccess,  IN POBJECT_ATTRIBUTES ObjectAttributes,IN PCLIENT_ID ClientId);
@@ -52,6 +52,8 @@ ULONG NtUserGetDC_callnumber;
 typedef HDC (*NTUSERGETDC)(IN HWND WindowHandle);
 NTUSERGETDC RealNtUserGetDC;
 
+#endif
+
 
 
 VOID LoadImageNotifyRoutine(IN PUNICODE_STRING  FullImageName, IN HANDLE  ProcessId, IN PIMAGE_INFO  ImageInfo);
@@ -75,10 +77,12 @@ UINT_PTR	DebugportOffset;
 UINT_PTR	PIDOffset;
 
 //------------
+#ifndef AMD64 //no apihook in 64bit
 NTSTATUS OriginalObOpenObjectByPointer(IN PVOID Object, IN ULONG HandleAttributes, IN PACCESS_STATE PassedAccessState OPTIONAL, IN ACCESS_MASK DesiredAccess,
 													  IN POBJECT_TYPE ObjectType, IN KPROCESSOR_MODE AccessMode, OUT PHANDLE Handle );
 NTSTATUS NewObOpenObjectByPointer (IN PVOID Object, IN ULONG HandleAttributes, IN PACCESS_STATE PassedAccessState OPTIONAL, IN ACCESS_MASK DesiredAccess,
 								   IN POBJECT_TYPE ObjectType, IN KPROCESSOR_MODE AccessMode, OUT PHANDLE Handle );
+#endif
 
 void cr3_change_callback(ULONG oldcr3, ULONG newcr3);
 

@@ -1,15 +1,25 @@
+#pragma warning( disable: 4103)
+
 #include "DBKFunc.h"
+#include <ntddk.h>
+#include <windef.h>
 #include "DBKDrvr.h"
+
 #include "rootkit.h"
 #include "processlist.h"
 #include "memscan.h"
 #include "threads.h"
-
 #include "vmxhelper.h"
-#include "newkernel.h"
 #include "debugger.h"
+
+
+
+#include "newkernel.h"
+
 #include "stealthedit.h"
+
 #include "IOPLDispatcher.h"
+
 
 
 #ifdef CETC
@@ -25,6 +35,8 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject);
 NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
 NTSTATUS DispatchClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
 
+#ifndef AMD64
+//no api hooks for x64
 
 //-----NtUserSetWindowsHookEx----- //prevent global hooks
 typedef ULONG (NTUSERSETWINDOWSHOOKEX)(
@@ -39,11 +51,6 @@ NTUSERSETWINDOWSHOOKEX OldNtUserSetWindowsHookEx;
 ULONG NtUserSetWindowsHookEx_callnumber;
 //HHOOK NewNtUserSetWindowsHookEx(IN HANDLE hmod,IN PUNICODE_STRING pstrLib OPTIONAL,IN DWORD idThread,IN int nFilterType, IN PROC pfnFilterProc,IN DWORD dwFlags);
 
-//------------------------
-
-
-
-
 
 typedef NTSTATUS (*ZWSUSPENDPROCESS)
 (
@@ -51,10 +58,6 @@ typedef NTSTATUS (*ZWSUSPENDPROCESS)
 );
 ZWSUSPENDPROCESS ZwSuspendProcess;
 
-
-
-
-//PVOID GetApiEntry(ULONG FunctionNumber);
 void Unhook(void);
 
 NTSTATUS ZwCreateThread(
@@ -67,6 +70,10 @@ NTSTATUS ZwCreateThread(
 	IN PVOID  UserStack,
 	IN BOOLEAN  CreateSuspended);
 
+//PVOID GetApiEntry(ULONG FunctionNumber);
+#endif
+
+
 
 UNICODE_STRING  uszDeviceString;
 PVOID BufDeviceString=NULL;
@@ -75,6 +82,8 @@ PVOID BufDeviceString=NULL;
 
 void hideme(PDRIVER_OBJECT DriverObject)
 {
+#ifndef AMD64
+	
 	typedef struct _MODULE_ENTRY {
 	LIST_ENTRY le_mod;
 	DWORD  unknown[4];
@@ -92,8 +101,9 @@ void hideme(PDRIVER_OBJECT DriverObject)
 	*((PDWORD)pm_current->le_mod.Blink)        = (DWORD) pm_current->le_mod.Flink;
 	pm_current->le_mod.Flink->Blink            = pm_current->le_mod.Blink;
 	HiddenDriver=TRUE;
-}
 
+#endif
+}
 
 
 int testfunction(int p1,int p2)
@@ -106,6 +116,7 @@ int testfunction(int p1,int p2)
 void* functionlist[1];
 char  paramsizes[1];
 int registered=0;
+
 
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
@@ -127,6 +138,7 @@ Return Value:
 
 --*/
 {
+	
     NTSTATUS        ntStatus;
     PVOID           BufDriverString=NULL,BufProcessEventString=NULL,BufThreadEventString=NULL;
     UNICODE_STRING  uszDriverString;
@@ -136,41 +148,36 @@ Return Value:
     PDEVICE_OBJECT  pDeviceObject;
 	int				i;
 	ULONG cr4reg;
-
 	HANDLE reg;
 	OBJECT_ATTRIBUTES oa;
 
 	UNICODE_STRING temp; 
+	char wbuf[100]; 
+	WORD this_cs, this_ss, this_ds, this_es, this_fs, this_gs;
 
+	
 	criticalSection csTest;
+	
 	
 
 	//DbgPrint("%S",oa.ObjectName.Buffer); 
+	
 
+	
 
-	WORD this_cs, this_ss, this_ds, this_es, this_fs, this_gs;
-	__asm
-	{
-		mov ax,cs
-		mov [this_cs],ax
+	
 
-		mov ax,ss
-		mov [this_ss],ax
+	this_cs=getCS();
+	this_ss=getSS();
+	this_ds=getDS();
+	this_es=getES();
+	this_fs=getFS();
+	this_gs=getGS();	
 
-		mov ax,ds
-		mov [this_ds],ax
-
-		mov ax,es
-		mov [this_es],ax
-
-		mov ax,fs
-		mov [this_fs],ax
-
-		mov ax,gs
-		mov [this_gs],ax
-	}
 	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",this_cs, this_ss, this_ds, this_es, this_fs, this_gs);
 
+	
+	
 
 	DbgPrint("Test critical section routines\n");
 	RtlZeroMemory(&csTest,sizeof(criticalSection));
@@ -179,35 +186,34 @@ Return Value:
 	DbgPrint("After enter\n");
 	DbgPrint("csTest.locked=%d\n",csTest.locked);
 	csLeave(&csTest);
+	
 	DbgPrint("After leave\n");
 	DbgPrint("csTest.locked=%d\n",csTest.locked);
+	
+	
 
 	
 
-	/*
-		while (1)
-		{
-			LARGE_INTEGER wt;
-			NTSTATUS s;
-			
-			wt.QuadPart=-10000000LL;  ==1 sec
-			s=KeDelayExecutionThread(KernelMode, FALSE, &wt);
-			DbgPrint("KeDelayExecutionThread=%x\n",s);
-
-			
-		}
-		*/
-	//while (*(volatile char *)0x00400000=='M')
-	//{
-		//nothing
-	//}
 	
-
-
-
 	//lame antiviruses and more lamer users that keep crying rootkit virus....
-	RtlInitUnicodeString(&temp, L"KeServiceDescriptorTable"); 
+	temp.Buffer=(PWCH)wbuf;
+	temp.Length=0;
+	temp.MaximumLength=100;
+	
+	RtlAppendUnicodeToString(&temp, L"Ke"); //KeServiceDescriptorTable 
+	RtlAppendUnicodeToString(&temp, L"Service");
+	RtlAppendUnicodeToString(&temp, L"Descriptor");
+	RtlAppendUnicodeToString(&temp, L"Table");
+
+	DbgPrint("temp.buffer=%S\n",temp.Buffer);
+
+	
+
 	KeServiceDescriptorTable=MmGetSystemRoutineAddress(&temp);         
+	
+	
+
+
 
 	DbgPrint("Loading driver\n");
 	DbgPrint("Registry path = %S\n", RegistryPath->Buffer);
@@ -275,6 +281,8 @@ Return Value:
 
 	ntStatus = STATUS_SUCCESS;
 
+	
+
     // Point uszDriverString at the driver name
 #ifndef CETC
 	
@@ -326,29 +334,26 @@ Return Value:
     DriverObject->DriverUnload                         = UnloadDriver;
     DriverObject->MajorFunction[IRP_MJ_CREATE]         = DispatchCreate;
     DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DispatchClose;
+	
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
 
 
+		
+#ifndef AMD64
 	ProtectOn=FALSE;
 	ImageNotifyRoutineLoaded=FALSE;
+
 	LastForegroundWindow=0;
 	ProtectedProcessID=0;
+
 	ModuleList=NULL;
 	ModuleListSize=0;
 	KernelCopy=0;
-
+#endif
 	newthreaddatafiller=IoAllocateWorkItem(pDeviceObject);
-
-	//
 
 	//Processlist init
 #ifndef CETC
-/*	DbgPrint("Creating ProcessEvent with name : %S",uszProcessEventString.Buffer);
-	ProcessEvent=IoCreateNotificationEvent(&uszProcessEventString, &ProcessEventHandle);
-	if (ProcessEvent==NULL)
-		DbgPrint("Failed creating ProcessEvent");
-
-	KeClearEvent(ProcessEvent);*/
 
 	ProcessEventCount=0;
 	KeInitializeSpinLock(&ProcesslistSL);
@@ -357,34 +362,14 @@ Return Value:
 	CreateProcessNotifyRoutineEnabled=FALSE;
 
 	//threadlist init
-#ifndef CETC
-/*	DbgPrint("Creating ThreadEvent with name : %S",uszThreadEventString.Buffer);
-	ThreadEvent=IoCreateNotificationEvent(&uszThreadEventString, &ThreadEventHandle);
-	if (ThreadEvent==NULL)
-		DbgPrint("Failed creating ThreadEvent\n");
-
-	KeClearEvent(ThreadEvent);	*/
-	
-#endif
-
 	ThreadEventCount=0;
-	for (i=0; i<32;i++)
-		IDTAddresses[i]=0; //init. I dont know for sure if it gets set to NULL by default so let's be sure
-
-	RtlZeroMemory(&DebugEvents[0],50*sizeof(DebugEvent));
 	
 	BufferSize=0;
 	processlist=NULL;
 
-	OriginalInt1.wHighOffset=0;
-	OriginalInt3.wHighOffset=0;
-
-	ChangeRegistersOnBP=FALSE;
-	for (i=0;i<4;i++)
-		ChangeRegs[i].Active=FALSE;
-
+#ifndef AMD64
     //determine if PAE is used
-	cr4reg=getCR4();
+	cr4reg=(ULONG)getCR4();
 
 	if ((cr4reg & 0x20)==0x20)
 	{
@@ -399,6 +384,11 @@ Return Value:
 		PAGE_SIZE_LARGE=0x400000;
 		MAX_PDE_POS=0xC0301000;
 	}
+#else
+	PTESize=8; //pae
+	PAGE_SIZE_LARGE=0x200000;
+	//MAX_PDE_POS=to be filled in
+#endif
 
 #ifdef CETC
 	DbgPrint("Going to initialice CETC\n");
@@ -406,15 +396,14 @@ Return Value:
 #endif
 
 
-	UsesAlternateMethod=FALSE;
-
     //hideme(DriverObject); //ok, for those that see this, enabling this WILL fuck up try except routines, even in usermode you'll get a blue sreen
-	
 
 	debugger_initialize();
+	
 	stealthedit_initialize();
 	
 
+	
 
 	// Return success (don't do the devicestring, I need it for unload)
 	ExFreePool(BufDriverString);
@@ -423,8 +412,8 @@ Return Value:
 		
 	ZwClose(reg); 
 
-	ntStatus=STATUS_SUCCESS;
-    return ntStatus;
+	
+    return STATUS_SUCCESS;
 }
 
 
@@ -462,6 +451,7 @@ PSRLINR PsRemoveLoadImageNotifyRoutine2;
 
 void UnloadDriver(PDRIVER_OBJECT DriverObject)
 {
+	/*x
 	if (ProtectOn) //can't unload when protection is enabled
 		return;
 
@@ -536,9 +526,10 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	//Unhook();
 
 
+*/
+	DbgPrint("Driver unloading\n");
 
     IoDeleteDevice(DriverObject->DeviceObject);
-	//ZwClose(ProcessEventHandle);
 
 #ifdef CETC
 #ifndef CETC_RELEASE
