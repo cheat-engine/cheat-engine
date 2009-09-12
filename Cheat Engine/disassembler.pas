@@ -38,7 +38,7 @@ function previousopcode(address: dword):dword;
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean):string;
 function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 
-function inttohexs(address:dword;chars: integer):string;
+function inttohexs(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
 var mode16: boolean;
 
@@ -6044,7 +6044,7 @@ begin
             end;
 
       $6a : begin
-              tempresult:=tempresult+'PUSH '+inttohexs(memory[1],2);
+              tempresult:=tempresult+'PUSH '+inttohexs(memory[1],2,true,1);
               inc(offset);
               description:='Push Byte Onto the Stack';
             end;
@@ -9055,14 +9055,26 @@ begin
 end;
 
 
-function inttohexs(address:dword;chars: integer):string;
+function inttohexs(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 var symbol: PImagehlpSymbol;
     disp: dword;
 begin
   if symhandler.showsymbols and (chars=8) then
     result:=symhandler.getNameFromAddress(address)
   else
-    result:=sysutils.IntToHex(address,chars);
+  begin
+    if signed then
+    begin
+      case signedsize of
+        1: if address>=$80 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
+        2: if address>=$8000 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
+        4: if address>=$80000000 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
+        else result:=sysutils.IntToHex(address,chars);
+      end;
+    end
+    else
+      result:=sysutils.IntToHex(address,chars);
+  end;
 end;
 
 end.

@@ -1627,7 +1627,15 @@ begin
   end;
 end;
 
+function SignedValueToType(value: integer): integer;
+begin
+  result:=8;
 
+  if ((value<-128) or (value>127)) then result:=16;
+  if ((value<-32768) or (value>32767)) then result:=32;
+
+
+end;
 
 function ValueToType(value: dword): integer;
 begin
@@ -2526,6 +2534,7 @@ var tokens: ttokens;
     paramtype1,paramtype2,paramtype3: TTokenType;
     parameter1,parameter2,parameter3: string;
     vtype,v2type: integer;
+    signedvtype,signedv2type: integer;
 
     first,last: integer;
     startoflist,endoflist: integer;
@@ -2743,6 +2752,10 @@ begin
     v2type:=StringValueToType(parameter3);
   end;
 
+  signedvtype:=SignedValueToType(v);
+  signedv2type:=SignedValueToType(v2);
+
+
   result:=false;
   //this is just a test to see if I can do the assembler stuff a little easier
 
@@ -2828,6 +2841,7 @@ begin
 
     if (opcodes[j].paramtype1=par_imm8) and (paramtype1=ttValue) then
     begin
+
       //imm8,
       if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
       begin
@@ -2878,7 +2892,9 @@ begin
           end;
         end;
 
-        if vtype=32 then
+
+
+        if (vtype=32) or (signedvtype>8) then
         begin
           //see if there is also a 'opcode imm32' variant
           k:=startoflist;
