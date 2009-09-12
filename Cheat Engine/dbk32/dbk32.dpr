@@ -39,7 +39,7 @@ exports UnprotectMe;
 exports IsValidHandle;
 exports GetCR4;
 exports GetCR3;
-exports SetCR3;
+//exports SetCR3;
 exports GetCR0;
 exports GetSDT;
 exports GetSDTShadow;

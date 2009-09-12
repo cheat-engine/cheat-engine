@@ -18,6 +18,13 @@ const METHOD_NEITHER=     3;
 const FILE_DEVICE_UNKNOWN=$00000022;
 const IOCTL_UNKNOWN_BASE=FILE_DEVICE_UNKNOWN;
 
+type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
+
+
+var kernel32dll: thandle;
+    IsWow64Process: TIsWow64Process;
+    iswow64: bool;
+
 
 var
   hSCManager: SC_HANDLE;
@@ -29,6 +36,16 @@ var
   ok,ok2:     boolean;
   count:      integer;
 
+
+function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
+begin
+  if @isWow<>nil then
+    isWow:=false;
+    
+  result:=false;
+end;
+
+  
 function UpperCase(const S: string): string;
 var
   Ch: Char;
@@ -63,6 +80,13 @@ var f,driverdat: textfile;
     dataloc: string;
     apppath: pchar;
 begin
+  kernel32dll:=loadlibrary('kernel32.dll');
+  IsWow64Process:=GetProcAddress(kernel32dll, 'IsWow64Process');
+  if not assigned(IsWow64Process) then IsWow64Process:=noIsWow64;
+
+  IsWow64Process(getcurrentprocess,iswow64);
+
+
   setup:=false;
   if ParamCount>0 then
   begin
@@ -228,7 +252,11 @@ begin
         getmem(apppath,250);
         GetModuleFileName(0,apppath,250);
 
-        dataloc:=extractfilepath(apppath)+'driver.dat';
+        if iswow64 then
+          dataloc:=extractfilepath(apppath)+'driver64.dat'
+        else
+          dataloc:=extractfilepath(apppath)+'driver.dat';
+
         if fileexists(dataloc) then
         begin
           assignfile(driverdat,dataloc);

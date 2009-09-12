@@ -37,7 +37,7 @@ const IOCTL_CE_WRITEPHYSICALMEMORY	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0807 shl
 const IOCTL_CE_GETPHYSICALADDRESS		  = (IOCTL_UNKNOWN_BASE shl 16) or ($0808 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_PROTECTME					    = (IOCTL_UNKNOWN_BASE shl 16) or ($0809 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETCR3 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETCR3 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//you really don't want to do this in usermode const IOCTL_CE_SETCR3 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETSDT 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_INITIALIZE     		    = (IOCTL_UNKNOWN_BASE shl 16) or ($080d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_DONTPROTECTME			    = (IOCTL_UNKNOWN_BASE shl 16) or ($080e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -123,7 +123,7 @@ var hdevice: thandle; //handle to my the device driver
 
     ownprocess: thandle=0; //needed for simple kernelmemory access
     Successfullyloaded:boolean;
-
+    iswow64: bool;
     //usealternatedebugmethod: boolean;
 
 
@@ -158,7 +158,7 @@ function MakeKernelCopy(Base: dword; size: dword): bool; stdcall;
 
 function GetCR4:DWORD; stdcall;
 function GetCR3(hProcess:THANDLE;var CR3:DWORD):BOOL; stdcall;
-function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
+//function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
 function GetSDTShadow:DWORD; stdcall;
@@ -204,8 +204,13 @@ type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 
+type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
+
+
 var kernel32dll: thandle;
     ioctl: boolean;
+
+    IsWow64Process: TIsWow64Process;
 
 implementation
 
@@ -268,6 +273,13 @@ begin
 
 end;
 
+function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
+begin
+  if @isWow<>nil then
+    isWow:=false;
+    
+  result:=false;
+end;
 
 procedure FSC;
 asm
@@ -316,13 +328,13 @@ function GetGDT(limit: pword):dword; stdcall;
 var cc,br: dword;
     gdtdescriptor: packed record
                      wLimit: word;
-                     vector: dword;
+                     vector: uint64;
                    end;
 begin
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETGDT;
-    deviceiocontrol(hdevice,cc,nil,0,@gdtdescriptor,6,br,nil);
+    deviceiocontrol(hdevice,cc,nil,0,@gdtdescriptor,10,br,nil);
     result:=gdtdescriptor.vector;
     outputdebugstring(pchar(format('gdtdescriptor.wlimit=%d',[gdtdescriptor.wlimit])));
     if (limit<>nil) then
@@ -333,14 +345,14 @@ end;
 function GetIDTCurrentThread:dword;
 var cc,br: dword;
     idtdescriptor: packed record
-                     wLimit:word;
-                     vector: dword;
+                     wLimit: word;
+                     vector: UINT64;
                    end;
 begin
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETIDT;
-    deviceiocontrol(hdevice,cc,nil,0,@idtdescriptor,6,br,nil);
+    deviceiocontrol(hdevice,cc,nil,0,@idtdescriptor,10,br,nil);
     result:=idtdescriptor.vector;
   end else result:=0;
 end;
@@ -407,25 +419,27 @@ begin
 end;
 
 function GetCR0:DWORD; stdcall;
-var x,res,cc:dword;
+var x,cc:dword;
+res: uint64;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETCR0;
-    if deviceiocontrol(hdevice,cc,@res,4,@res,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,nil,0,@res,8,x,nil) then
       result:=res;
   end;
 end;
 
 function GetCR4:DWORD; stdcall;
-var x,res,cc:dword;
+var x,cc:dword;
+  res: uint64;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETCR4;
-    if deviceiocontrol(hdevice,cc,@res,4,@res,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,nil,0,@res,sizeof(res),x,nil) then
       result:=res;
   end;
 end;
@@ -478,13 +492,14 @@ begin
 end;
 
 function GetSDT:DWORD; stdcall;
-var res,x,cc:dword;
+var x,cc:dword;
+    res: uint64;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETSDT;
-    if deviceiocontrol(hdevice,cc,@res,4,@res,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,nil,0,@res,8,x,nil) then
       result:=res;
   end;
 end;
@@ -493,6 +508,7 @@ function GetCR3(hProcess:THANDLE;var CR3:DWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
     i: integer;
+    _cr3: uint64;
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -502,16 +518,16 @@ begin
       begin
         cc:=IOCTL_CE_GETCR3;
         x:=handlelist[i].processid;
-        result:=deviceiocontrol(hdevice,cc,@x,4,@x,4,y,nil);
+        result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
-        if result then CR3:=x else cr3:=$11223344;
+        if result then CR3:=_cr3 else cr3:=$11223344;
       end;
   end;
 end;
 
 
 
-function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
+{function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 var cc:dword;
     ar: array [0..7] of byte;
     x:dword;
@@ -530,7 +546,7 @@ begin
         result:=deviceiocontrol(hdevice,cc,@ar[0],4,@ar[0],4,x,nil);
       end;
   end;
-end;
+end;  }
 
 
 function ProtectMe(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall; //or should I give it a array of processid's?
@@ -661,13 +677,14 @@ end;
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 type TInputstruct=record
   ProcessID: dword;
-  BaseAddress: dword;
+  BaseAddress: UINT64;
 end;
 var cc: dword;
     input: TInputStruct;
     physicaladdress: int64 absolute input;
     x: dword;
     i: integer;
+
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -679,8 +696,9 @@ begin
       begin
         input.ProcessID:=handlelist[i].processid;
         input.BaseAddress:=dword(lpBaseAddresS);
+        outputdebugstring(pchar(format('ProcessID(%p)=%x Baseaddress(%p)=%x',[@input.ProcessID, input.processid, @input.BaseAddress, input.baseaddress])));
 
-        result:=deviceiocontrol(hdevice,cc,@input,8,@input,8,x,nil);
+        result:=deviceiocontrol(hdevice,cc,@input,sizeof(TInputstruct),@physicaladdress,8,x,nil);
         if result then address:=physicaladdress else address:=0;
       end;
   end;
@@ -688,8 +706,8 @@ end;
 
 function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=record
-  startaddress: dword;
-  bytestowrite: dword;
+  startaddress: uint64;
+  bytestowrite: uint64;
 end;
 var ao: array [0..511] of byte;
     input: TInputstruct absolute ao[0];
@@ -749,8 +767,8 @@ end;
 
 function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 type TInputstruct=record
-  startaddress: dword;
-  bytestoread: dword
+  startaddress: uint64;
+  bytestoread: uint64;
 end;
 var ao: array [0..600] of byte;
     input: TInputstruct absolute ao[0];
@@ -803,14 +821,15 @@ end;
 Function GetPEThread(Threadid: dword):dword; stdcall;
 var cc:dword;
     x: dword;
-    pethread: dword;
+    pethread: uint64;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETPETHREAD;
     pethread:=threadid;
-    if deviceiocontrol(hdevice,cc,@pethread,4,@pethread,4,x,nil) then result:=pethread;
+    if deviceiocontrol(hdevice,cc,@threadid,4,@pethread,8,x,nil) then
+      result:=pethread;
   end;
 end;
 
@@ -818,14 +837,14 @@ end;
 Function GetPEProcess(ProcessID: dword):dword; stdcall;
 var cc:dword;
     x: dword;
-    peprocess: dword;
+    peprocess: uint64;
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_GETPEPROCESS;
     peprocess:=processid;
-    if deviceiocontrol(hdevice,cc,@peprocess,4,@peprocess,4,x,nil) then result:=peprocess else result:=0;
+    if deviceiocontrol(hdevice,cc,@processid,4,@peprocess,8,x,nil) then result:=peprocess else result:=0;
   end;
 end;
 
@@ -845,7 +864,7 @@ end;
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 type TInputstruct=record
   processid: dword;
-  startaddress: dword;
+  startaddress: uint64;
   bytestoread: word;
 end;
 var //ao: array [0..600] of byte; //give it some space
@@ -920,7 +939,7 @@ end;
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=record
   processid: dword;
-  startaddress: dword;
+  startaddress: uint64;
   bytestowrite: word;
 end;
 var ao: array [0..511] of byte;
@@ -989,7 +1008,7 @@ end;
 
 function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 var
-  threadhandle: thandle;
+  threadhandle: uint64;
   cc,x: dword;
 begin
   result:=0;
@@ -998,7 +1017,7 @@ begin
   begin
     cc:=IOCTL_CE_OPENTHREAD;
     threadhandle:=dwThreadId;
-    if deviceiocontrol(hdevice,cc,@threadhandle,4,@threadhandle,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,@dwThreadID,4,@threadhandle,8,x,nil) then
       result:=threadhandle
     else
       result:=0;
@@ -1008,7 +1027,7 @@ end;
 
 function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 var valid:boolean;
-    Processhandle: thandle;
+    Processhandle: uint64;
     i:integer;
     cc,x: dword;
 begin
@@ -1023,9 +1042,7 @@ begin
   begin
     cc:=IOCTL_CE_OPENPROCESS;
 
-    processhandle:=dwProcessId; //rest is ignored
-
-    if deviceiocontrol(hdevice,cc,@processhandle,4,@processhandle,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,@dwProcessId,4,@processhandle,8,x,nil) then
     begin
       result:=processhandle
     end
@@ -1073,13 +1090,20 @@ begin
 end;
 
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
-type TOUTP=record
-	length : DWORD ;
-	protection : DWORD ;
-end;
-var buf: TOUTP;
-    i: integer;
-    br,cc: dword;
+var
+  input: record
+    ProcessID: DWORD;
+    StartAddress: UINT64;
+  end;
+
+  output: record
+  	length : DWORD ;
+  	protection : DWORD ;
+  end;
+
+
+  i: integer;
+  br,cc: dword;
 begin
   result:=0;
   for i:=0 to length(handlelist)-1 do
@@ -1087,18 +1111,18 @@ begin
     begin
       if hdevice<>INVALID_HANDLE_VALUE then
       begin
-        buf.length:=handlelist[i].processid;
-        buf.protection:=dword(address);
+        input.ProcessID:=handlelist[i].processid;
+        input.StartAddress:=dword(address);
 
         cc:=IOCTL_CE_QUERY_VIRTUAL_MEMORY;
-        if deviceiocontrol(hdevice,cc,@buf,sizeof(buf),@buf,sizeof(buf),br,nil) then
+        if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),br,nil) then
         begin
           mbi.BaseAddress:=pointer((dword(address) div $1000) *$1000);
           mbi.AllocationBase:=mbi.BaseAddress;
-          mbi.AllocationProtect:=buf.protection;
-          mbi.RegionSize:=buf.length;
+          mbi.AllocationProtect:=output.protection;
+          mbi.RegionSize:=output.length;
           mbi.State:=MEM_COMMIT;
-          mbi.Protect:=buf.protection;
+          mbi.Protect:=output.protection;
           mbi.Type_9:=MEM_PRIVATE;
 
           result:=sizeof(mbi);
@@ -1118,12 +1142,12 @@ var i: integer;
     br,cc: dword;
     x: record
       processid: dword;
-      baseaddress: pointer;
+      baseaddress: uint64;
       size: dword;
       AllocationType: dword;
       Protect: dword;
     end;
-    r: pointer;
+    r: uint64;
 begin
   result:=0;
   for i:=0 to length(handlelist)-1 do
@@ -1132,7 +1156,7 @@ begin
       if hdevice<>INVALID_HANDLE_VALUE then
       begin
         x.processid:=handlelist[i].processid;
-        x.baseaddress:=lpAddress;
+        x.baseaddress:=dword(lpAddress);
         x.size:=dwsize;
         x.AllocationType:=flAllocationType;
         x.Protect:=flProtect;
@@ -1140,8 +1164,11 @@ begin
         cc:=IOCTL_CE_ALLOCATEMEM;
         deviceiocontrol(hdevice,cc,@x,sizeof(x),@r,sizeof(r),br,nil);
 
-        result:=r;
-        exit; //we're done here
+        if (r<$100000000) then
+        begin
+          result:=pointer(dword(r));
+          exit; //we're done here
+        end;
       end;
     end;
 
@@ -1165,14 +1192,14 @@ var i: integer;
     br,cc: dword;
     x:record
       threadid: dword;
-      addresstoexecute: pointer;
+      addresstoexecute: uint64;
     end;
 
 begin
   result:=0;
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
-    x.addresstoexecute:=lpStartAddress;
+    x.addresstoexecute:=dword(lpStartAddress);
     x.threadid:=threadid;
 
     cc:=IOCTL_CE_CREATEAPC;
@@ -1351,13 +1378,13 @@ end;
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 type tprocesseventstruct=record
   Created:BOOL;
-  ProcessID:DWORD;
-  PEProcess:DWORD;
+  ProcessID:UINT64;
+  PEProcess:UINT64;
 end;
 type tthreadeventstruct=record
   Created:BOOL;
-  ProcessID:DWORD;
-  ThreadID:dword;
+  ProcessID:UINT64;
+  ThreadID:UINT64;
 end;
 var cc,x:dword;
     eventarray: array of thandle;
@@ -1412,7 +1439,7 @@ end;
 
 function MakeWritable(Address,Size:dword;copyonwrite:boolean): boolean; stdcall;
 type TMemoryDesignation=record
-  StartAddress:DWORD;
+  StartAddress:UINT64;
   Size: DWORD;
   CopyOnWrite: BYTE;
 end;
@@ -1427,7 +1454,7 @@ begin
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_MAKEWRITABLE;
-    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),@x,0,cc,nil);
+    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
   end;
 end;
 
@@ -1437,7 +1464,7 @@ type TInput=record
 end;
 var cc: dword;
     x: TInput;
-    output: pointer;
+    output: uint64;
 begin
   result:=nil;
   x.Size:=size;
@@ -1446,16 +1473,17 @@ begin
   begin
     cc:=IOCTL_CE_ALLOCATEMEM_NONPAGED;
     if deviceiocontrol(hdevice,cc,@x,sizeof(x),@output,sizeof(output),cc,nil) then
-      result:=output;
+      result:=pointer(dword(output)); //useless in 64-bit for this 32-bit dll
   end;
 end;
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
 var cc: dword;
-    output: pointer;
+    output: uint64;
     d: dword;
     err: integer;
     st: string;
+    sp: uint64;
 begin
   result:=nil;
 
@@ -1470,8 +1498,9 @@ begin
   begin
     cc:=IOCTL_CE_GETPROCADDRESS;
     output:=0;
-    if deviceiocontrol(hdevice,cc,@s,sizeof(s),@output,sizeof(output),cc,nil) then
-      result:=output;
+    sp:=dword(s);
+    if deviceiocontrol(hdevice,cc,@sp,sizeof(sp),@output,sizeof(output),cc,nil) then
+      result:=pointer(dword(output));
   end;
 
 end;
@@ -1627,17 +1656,17 @@ end;
 
 function InitializeDriver(Address,size:dword):BOOL; stdcall;
 type tinput=record
-  address: dword;
-  size:dword;
-  NtUserBuildHwndList_callnumber: Dword;
-  NtUserQueryWindow_callnumber:dword;
-  NtUserFindWindowEx_callnumber:DWORD;
-  NtUserGetForegroundWindow_callnumber:DWORD;
-  activelinkoffset: dword;
-  processnameoffset:dword;
-  debugportoffset:dword;
-  processevent: dword; //event handles (driver rev. 10+)
-  threadevent: dword;
+  address: uint64;
+  size:uint64;
+  NtUserBuildHwndList_callnumber: uint64;
+  NtUserQueryWindow_callnumber:uint64;
+  NtUserFindWindowEx_callnumber:uint64;
+  NtUserGetForegroundWindow_callnumber:uint64;
+  activelinkoffset: uint64;
+  processnameoffset:uint64;
+  debugportoffset:uint64;
+  processevent: uint64; //event handles (driver rev. 10+)
+  threadevent: uint64;
 end;
 var cc: dword;
     buf: tinput;
@@ -1831,11 +1860,17 @@ var sav: pchar;
     reg: tregistry;
     driverdat: textfile;
 
+
 //    servicestatus: _service_status;
 initialization
 begin
+
   ioctl:=true;
   kernel32dll:=loadlibrary('kernel32.dll');
+  IsWow64Process:=GetProcAddress(kernel32dll, 'IsWow64Process');
+  if not assigned(IsWow64Process) then IsWow64Process:=noIsWow64;
+
+  IsWow64Process(getcurrentprocess,iswow64);
 
 //  usealternatedebugmethod:=false;
   Successfullyloaded:=false;
@@ -1847,13 +1882,22 @@ begin
     getmem(apppath,250);
     GetModuleFileName(0,apppath,250);
 
-    dataloc:=extractfilepath(apppath)+'driver.dat';
+    dataloc:=extractfilepath(apppath);
+    if not iswow64 then
+      dataloc:=dataloc+'driver.dat'
+    else
+      dataloc:=dataloc+'driver64.dat';
+
     if not fileexists(dataloc) then
     begin
-      servicename:='CEDRIVER53';
-      processeventname:='DBKProcList53';
-      threadeventname:='DBKThreadList53';
-      sysfile:='dbk32.sys';
+      servicename:='CEDRIVER55';
+      processeventname:='DBKProcList55';
+      threadeventname:='DBKThreadList55';
+      if iswow64 then
+        sysfile:='dbk64.sys'
+      else
+        sysfile:='dbk32.sys';
+
       vmx_p1_txt:='76543210';
       vmx_p2_txt:='fedcba98';
     end
@@ -1960,7 +2004,7 @@ begin
         begin
           messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers"','DBK32 error',MB_ICONERROR or mb_ok);
 
-        end;
+        end else messagebox(0,'service failed to start','dbk.dll',mb_ok);
       end;
 
       closeservicehandle(hservice);
@@ -1984,9 +2028,13 @@ begin
     if hdevice=INVALID_HANDLE_VALUE then
     begin
       if dbvm_version>$ce000000 then
+      begin
         messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+      end
       else
+      begin
         messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. I recommend to reboot your system and try again (If you''re on 64-bit windows, you might want to use dbvm)','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+      end;
 
     end
     else
