@@ -224,6 +224,8 @@ type TDebugger = class(TThread)
     procedure suspendallthreads;
     procedure resumeallthreads;
 
+    function isBreakpoint(address:dword): boolean;
+
   end;
 
 
@@ -991,6 +993,25 @@ var i: integer;
 begin
   for i:=0 to length(threadlist)-1 do
     resumethread(threadlist[i,1]);
+end;
+
+function TDebugger.isBreakpoint(address: dword): boolean;
+var j: integer;
+begin
+  result:=false;
+  for j:=0 to length(debuggerthread.userbreakpoints)-1 do
+    if address=userbreakpoints[j] then
+    begin
+      result:=true;
+      exit;
+    end;
+
+  for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
+    if address=int3userbreakpoints[j].address then
+    begin
+      result:=true;
+      exit;
+    end;
 end;
 
 

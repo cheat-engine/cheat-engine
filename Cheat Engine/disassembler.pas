@@ -36,7 +36,8 @@ function disassemble(var offset: dword; var description: string): string; overlo
 
 function previousopcode(address: dword):dword;
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean):string;
-function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+//function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 
 function inttohexs(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
@@ -214,8 +215,7 @@ end;
 
 function GetBitOf(Bt: dword; bit: integer): byte;
 begin
-  bt:=bt shl (31-bit);
-  result:=bt shr 31;
+  result:=(bt shr bit) and 1;
 end;
 
 function getsegmentoverride(prefix: TPrefix): string;
@@ -8930,7 +8930,8 @@ begin
  // if x<>address then result:=address-1 else result:=y;
 end;
 
-function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+//function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 var offset,value:dword;
     e: integer;
     i,j,j2,k,l: integer;
