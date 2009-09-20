@@ -1054,6 +1054,7 @@ _declspec( naked ) void interrupt1_asmentry( void )
 		je skip_original_int1
 		
 		add esp,4 //undo errorcode push
+
 		jmp far [Int1JumpBackLocation]
 
 skip_original_int1:

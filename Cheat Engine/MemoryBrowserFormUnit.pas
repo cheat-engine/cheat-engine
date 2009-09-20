@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32,
   StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
-  Buttons,imagehlp, Contnrs, peinfofunctions {$ifndef net},dissectcodethread{$endif}
+  Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
   ,NetAPIs, ComCtrls
   {$else}
@@ -406,6 +406,8 @@ type
     Disassembleraddress: dword;
     memoryaddress: dword;
     thhandle: Thandle;
+
+    disassemblerview: TDisassemblerview;
     EAXv: dword;
     EBXv: dword;
     ECXv: dword;
@@ -775,6 +777,13 @@ not enough time to add header supports
   showvalues:=true;
 
 
+  disassemblerview:=TDisassemblerview.Create(self);
+  disassemblerview.Align:=alClient;
+  disassemblerview.Parent:=panel4;
+  disassemblerview.PopupMenu:=debuggerpopup;
+
+
+
 
   setlength(x, 6);
 
@@ -789,8 +798,7 @@ not enough time to add header supports
 
     setlength(x,0);
     posloadedfromreg:=true;
-  end;  
-
+  end;
 
 end;
 
@@ -1537,38 +1545,14 @@ var lines,i,j,k: integer;
       end;
     end;
 
-    if (kdebugger.isactive) and (address<>0) then
+    if ((kdebugger.isactive) and (address<>0) and (kdebugger.isBreakpoint(address))) or
+       ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(address))) then
     begin
-    {
-      for j:=0 to 3 do
-        if address=debuggerthread2.breakpoints[j] then
-        begin
-          disimage.Canvas.Brush.Color:=clRed;
-          disimage.Canvas.font.Color:=clBlack;
-          break;  //get out of this for loop
-        end; }
+      disimage.Canvas.Brush.Color:=clRed;
+      disimage.Canvas.font.Color:=clBlack;
     end;
 
 
-    if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
-    begin
-      for j:=0 to length(debuggerthread.userbreakpoints)-1 do
-        if address=debuggerthread.userbreakpoints[j] then
-        begin
-          disimage.Canvas.Brush.Color:=clRed;
-          disimage.Canvas.font.Color:=clBlack;
-          break;  //get out of this for loop
-        end;
-
-      for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-        if address=debuggerthread.int3userbreakpoints[j].address then
-        begin
-          disimage.Canvas.Brush.Color:=clRed;
-          disimage.Canvas.font.Color:=clBlack;
-          break;  //get out of this for loop
-        end;
-
-    end;
     {$endif}
 
     if dselected=address then
@@ -1755,7 +1739,7 @@ begin
 
           if i<=lines then
           begin
-            disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1, showvalues,  addressstring, bytesstring, opcodestring, specialstring);
+            disassembled:=splitDisassembledString(disassemble(maddress,disassemblerlines[i].description), showvalues,  addressstring, bytesstring, opcodestring, specialstring);
             addline(i);
             inc(i);
           end;
@@ -1769,7 +1753,7 @@ begin
       if not ok then
       begin
         address:=maddress;
-        disassembled:=translatestring(disassemble(maddress,disassemblerlines[i].description),bytestoshow-1, showvalues,  addressstring, bytesstring, opcodestring, specialstring);
+        disassembled:=splitDisassembledString(disassemble(maddress,disassemblerlines[i].description), showvalues,  addressstring, bytesstring, opcodestring, specialstring);
 
         if Showmoduleaddresses1.Checked then
         begin
@@ -1838,138 +1822,11 @@ begin
 
   if disassemblerlines[line].address<>dselected then
   begin
+  
     if panel6.caption<>disassemblerlines[line].description then panel6.caption:=disassemblerlines[line].description;
-
     if (disassembleraddress+line)>$FFFFFFFF then exit;
-  {  for i:=0 to numberofaddresses do
-    begin
-      if disassemblerlines[i].address=dselected then
-      begin
-        {$ifndef net}
-       { if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
-        begin
-          for j:=0 to 3 do
-            if disassemblerlines[i].address=debuggerthread2.breakpoints[j] then
-            begin
-              disimage.Canvas.Brush.Color:=clRed;
-              discanvas.Canvas.Brush.Color:=clRed;
-              disimage.Canvas.font.Color:=clBlack;
-              discanvas.Canvas.font.Color:=clBlack;
-              break;  //get out of this for loop
-            end;
-        end;  }
-
-        {if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
-        begin
-          for j:=0 to length(debuggerthread.userbreakpoints)-1 do
-            if disassemblerlines[i].address=debuggerthread.userbreakpoints[j] then
-            begin
-              disimage.Canvas.Brush.Color:=clRed;
-              discanvas.Canvas.Brush.Color:=clRed;
-              disimage.Canvas.font.Color:=clBlack;
-              discanvas.Canvas.font.Color:=clBlack;
-              break;  //get out of this for loop
-            end;
-
-          for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-            if disassemblerlines[i].address=debuggerthread.int3userbreakpoints[j].address then
-            begin
-              disimage.Canvas.Brush.Color:=clRed;
-              discanvas.Canvas.Brush.Color:=clRed;
-              disimage.Canvas.font.Color:=clBlack;
-              discanvas.Canvas.font.Color:=clBlack;
-              break;  //get out of this for loop
-            end;
-
-        end;
-        {$endif}
-        {
-        rct.Left:=0;
-        rct.Right:=discanvas.Width;
-        rct.Top:=i*(textheight+2);
-        rct.Bottom:=rct.top+textheight+1;
-        discanvas.Canvas.FillRect(rct);
-        disimage.Canvas.FillRect(rct);
-
-
-        discanvas.Canvas.TextOut(8,i*(textHeight+2),disassemblerlines[i].disassembled);
-        disimage.Canvas.TextOut(8,i*(textHeight+2),disassemblerlines[i].disassembled);
-        discanvas.Canvas.font.color:=clWindowText;
-        disimage.Canvas.font.Color:=clWindowText;
-
-        discanvas.Canvas.Brush.color:=clBtnFace;
-        disimage.Canvas.Brush.color:=clBtnFace;     }
-                   {
-        break;
-      end;
-    end;
-    }
-    //if it isn't found it propably has already been overwritten (and a big bug btw...)
 
     dselected:=disassemblerlines[line].address;
-    {discanvas.Canvas.Brush.Color:=Highlightcolor;
-    disimage.Canvas.Brush.Color:=Highlightcolor;
-    discanvas.Canvas.font.color:=clHighlightText;
-    disimage.Canvas.font.Color:=clHighlightText;
-
-    rct.Left:=0;
-    rct.Right:=discanvas.Width;
-    rct.Top:=line*(textheight+2);
-    rct.Bottom:=rct.top+textheight+1;   }
-
-    {$ifndef net}
-    {if (debuggerthread2<>nil) and (disassemblerlines[i].address<>0) then
-    begin
-      for j:=0 to 3 do
-        if disassemblerlines[line].address=debuggerthread2.breakpoints[j] then
-        begin
-          disimage.Canvas.Brush.Color:=clRed;
-          discanvas.Canvas.Brush.Color:=clRed;
-          disimage.Canvas.font.Color:=clBlack;
-          discanvas.Canvas.font.Color:=clBlack;
-          break;  //get out of this for loop
-        end;
-    end; }
-
-    {
-    if (debuggerthread<>nil) and (debuggerthread.userisdebugging) then
-    begin
-      for j:=0 to length(debuggerthread.userbreakpoints)-1 do
-        if disassemblerlines[line].address=debuggerthread.userbreakpoints[j] then
-        begin
-          disimage.Canvas.Brush.Color:=clGreen;
-          discanvas.Canvas.Brush.Color:=clGreen;
-          disimage.Canvas.font.Color:=clWhite;
-          discanvas.Canvas.font.Color:=clWhite;
-          break;  //get out of this for loop
-        end;
-
-      for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-        if disassemblerlines[line].address=debuggerthread.int3userbreakpoints[j].address then
-        begin
-          disimage.Canvas.Brush.Color:=clGreen;
-          discanvas.Canvas.Brush.Color:=clGreen;
-          disimage.Canvas.font.Color:=clWhite;
-          discanvas.Canvas.font.Color:=clWhite;
-          break;  //get out of this for loop
-        end;
-
-    end;    }
-    {$endif}
-
-     {
-    discanvas.Canvas.FillRect(rct);
-    disimage.Canvas.FillRect(rct);
-
-
-    discanvas.Canvas.TextOut(8,line*(textHeight+2),disassemblerlines[line].disassembled);
-    disimage.Canvas.TextOut(8,line*(textHeight+2),disassemblerlines[line].disassembled);
-
-    discanvas.Canvas.font.color:=clWindowText;
-    disimage.Canvas.font.Color:=clWindowText;
-
-    discanvas.Canvas.Brush.color:=clBtnFace;
-    disimage.Canvas.Brush.color:=clBtnFace;  }
   end;
 
   //now update the RWAddress
@@ -3010,6 +2867,7 @@ begin
                  end;
                  editing:=true;
                  key:=0;
+                 updatedisassemblerview;
                end;
 
     vk_subtract:begin
@@ -3025,6 +2883,7 @@ begin
                  end;
                  editing:=true;
                  key:=0;
+                 updatedisassemblerview;
                end;
 
     vk_escape: begin

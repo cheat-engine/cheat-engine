@@ -83,7 +83,7 @@ begin
   begin
     oldaddress:=currentaddress;
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
-    temps:=translatestring(temps,0,true,addresspart,bytepart,opcodepart,specialpart);
+    temps:=splitDisassembledString(temps,true,addresspart,bytepart,opcodepart,specialpart);
 
     if symhandler.showmodules then
     begin

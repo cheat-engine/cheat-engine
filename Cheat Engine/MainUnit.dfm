@@ -2446,7 +2446,6 @@ object MainForm: TMainForm
       Height = 25
       Caption = 'Delayed test'
       TabOrder = 28
-      OnClick = Button3Click
     end
   end
   object UpdateTimer: TTimer

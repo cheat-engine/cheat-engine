@@ -7,29 +7,37 @@ const dbkdll='DBK32.dll';
 
 
 type TDebuggerstate=record
-  threadid: DWORD;
-	eflags : DWORD;
-	eax : DWORD;
-	ebx : DWORD;
-	ecx : DWORD;
-	edx : DWORD;
-	esi : DWORD;
-	edi : DWORD;
-	ebp : DWORD;
-	esp : DWORD;
-	eip : DWORD;
-	cs  : DWORD;
-	ds  : DWORD;
-	es  : DWORD;
-	fs  : DWORD;
-	gs  : DWORD;
-	ss  : DWORD;
-  dr0 : DWORD;
-  dr1 : DWORD;
-  dr2 : DWORD;
-  dr3 : DWORD;
-  dr6 : DWORD;
-  dr7 : DWORD;
+  threadid: uint64;
+	eflags : uint64;
+	eax : uint64;
+	ebx : uint64;
+	ecx : uint64;
+	edx : uint64;
+	esi : uint64;
+	edi : uint64;
+	ebp : uint64;
+	esp : uint64;
+	eip : uint64;
+	r8  : uint64;
+	r9  : uint64;
+	r10 : uint64;
+	r11 : uint64;
+	r12 : uint64;
+	r13 : uint64;
+	r14 : uint64;
+	r15 : uint64;
+	cs  : uint64;
+	ds  : uint64;
+	es  : uint64;
+	fs  : uint64;
+	gs  : uint64;
+	ss  : uint64;
+  dr0 : uint64;
+  dr1 : uint64;
+  dr2 : uint64;
+  dr3 : uint64;
+  dr6 : uint64;
+  dr7 : uint64;
 end;
 type PDebuggerstate=^TDebuggerstate;
 
@@ -55,7 +63,6 @@ type TModule32Next=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL
 type THeap32ListFirst=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type THeap32ListNext=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
-
 
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
 type TContinueDebugEvent=function(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL; stdcall;

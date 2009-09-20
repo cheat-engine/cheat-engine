@@ -145,7 +145,9 @@ uses
   frmRegistersunit in 'frmRegistersunit.pas' {Registers},
   dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas',
   frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript},
-  stealthedit in 'stealthedit.pas';
+  stealthedit in 'stealthedit.pas',
+  disassemblerviewunit in 'disassemblerviewunit.pas',
+  disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

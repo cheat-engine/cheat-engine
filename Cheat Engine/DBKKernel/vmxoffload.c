@@ -73,6 +73,7 @@ PVOID TemporaryPagingSetup;
 UINT_PTR TemporaryPagingSetupPA;
 UINT_PTR pagedirptrbasePA;
 UINT_PTR originalstatePA;
+UINT_PTR NewGDTDescriptorVA;
 
 int initializedvmm=0;
 
@@ -179,11 +180,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	bam.QuadPart=0x00400000; //4 mb boundaries
 
 
+	DbgPrint("vmxoffload\n");
+
 	if (!initializedvmm)
 	{	
 		DbgPrint("First time run. Initializing vmm section");
 	
-		vmm=MmAllocateContiguousMemorySpecifyCache(4*1024*1024, minPA, maxPA, bam, MmWriteCombined);
+		vmm=MmAllocateContiguousMemorySpecifyCache(4*1024*1024, minPA, maxPA, bam, MmCached);
 		if (vmm)
 		{	
 			HANDLE dbvmimghandle;
@@ -271,6 +274,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						PUINT64		PageDirPtr=(PUINT64)(pagedirptrbase+4096);
 						PUINT64		PageDir=(PUINT64)(pagedirptrbase+4096+4096);
 
+						DbgPrint("pagedirptrbase=%x (physical address %x)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
+
 						pagedirptrbasePA=MmGetPhysicalAddress((PVOID)pagedirptrbase).LowPart;
 						
 						DbgPrint("sizeof(PageDirPtr[0])=%d",sizeof(PageDirPtr[0]));
@@ -324,7 +329,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						GDTBase[7 ]=0;						//56: 32-bit task	
 						GDTBase[8 ]=0;						//64: 64-bit task
 						GDTBase[9 ]=0;						//72:  ^   ^   ^
-						GDTBase[10]=0x00a09a0000000000ULL;	//80: 64-bit code
+						GDTBase[10]=0x00a09e0000000000ULL;	//80: 64-bit code
 						GDTBase[11]=0;						//88:  ^   ^   ^
 						GDTBase[12]=0;						//96: 64-bit tss descriptor (2)
 						GDTBase[13]=0;						//104: ^   ^   ^
@@ -332,6 +337,12 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						NewGDTDescriptor.limit=0x6f; //111
 						NewGDTDescriptor.base=0x00400000+vmmsize+4096;
+
+						DbgPrint("&NewGDTDescriptor=%p, &NewGDTDescriptor.limit=%p, &NewGDTDescriptor.base=%p\n",&NewGDTDescriptor,&NewGDTDescriptor.limit, &NewGDTDescriptor.base); 
+						DbgPrint("NewGDTDescriptor.limit=%x\n",NewGDTDescriptor.limit);
+						DbgPrint("NewGDTDescriptor.base=%x\n",NewGDTDescriptor.base);
+
+						NewGDTDescriptorVA=(UINT_PTR)&NewGDTDescriptor;
 
 						
 						DbgPrint("Before enterVMM2 alloc: minPA=%x, maxPA=%x, bam=%x\n",minPA.LowPart, maxPA.LowPart, bam.LowPart);
@@ -378,7 +389,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						//TemporaryPagingSetup=ExAllocatePool(NonPagedPool, 4096*3);
 						//allocate 4 pages under the 4 GB boundary (just so i'm sure none of the reserved bits(40-51) are used, even though there's currently no system capable to support that much ram...)
-						TemporaryPagingSetup=MmAllocateContiguousMemorySpecifyCache(4096*3, minPA, maxPA, bam, MmWriteCombined);
+						DbgPrint("Allocating memory for the temp pagedir\n");
+						minPA.QuadPart=0;
+						maxPA.QuadPart=0xffff0000;
+						bam.QuadPart=0x00400000;
+
+						
+						TemporaryPagingSetup=MmAllocateContiguousMemorySpecifyCache(4096*4, minPA, maxPA, bam, MmWriteCombined);
 						if (TemporaryPagingSetup==NULL)
 						{
 							DbgPrint("TemporaryPagingSetup==NULL!!! minPA=%x, maxPA=%x, bam=%x\n",minPA.LowPart, maxPA.LowPart, bam.LowPart);
@@ -391,8 +408,11 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						TemporaryPagingSetupPA=MmGetPhysicalAddress(TemporaryPagingSetup).LowPart;
 
-						DbgPrint("Setting up temporary paging setup\n");
+						
+
+						
 #ifdef AMD64
+						//no need for temporary paging in x64						
 						{
 							PUINT64 PML4Table=(PUINT64)TemporaryPagingSetup;
 							PUINT64	PageDirPtr=(PUINT64)((UINT_PTR)TemporaryPagingSetup+4096);						
@@ -421,7 +441,9 @@ void vmxoffload(PCWSTR dbvmimgpath)
 							}
 
 						}
+						
 #else
+						DbgPrint("Setting up temporary paging setup\n");
 						if (PTESize==8) //PAE paging
 						{
 							PUINT64	PageDirPtr=(PUINT64)TemporaryPagingSetup;						
@@ -470,6 +492,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						DbgPrint("Temp paging has been setup\n");
 
+						
+
 						enterVMM2PA=MmGetPhysicalAddress(enterVMM2).LowPart;
 						
 						minPA.QuadPart=0;
@@ -481,6 +505,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						DbgPrint("enterVMM2PA=%x\n",enterVMM2PA);
 
 						initializedvmm=TRUE;
+
+						
 					}
 
 				}
@@ -508,11 +534,23 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	{
 		DbgPrint("Storing original state\n");
 		originalstate->cpucount=getCpuCount();
+		DbgPrint("originalstate->cpucount=%d",originalstate->cpucount);
+
 		originalstate->originalLME=(int)(((DWORD)(readMSR(0xc0000080)) >> 8) & 1);
+		DbgPrint("originalstate->originalLME=%d",originalstate->originalLME);
+
 		originalstate->cr0=getCR0();
+		DbgPrint("originalstate->cr0=%x",originalstate->cr0);
+
 		originalstate->cr2=getCR2();
+		DbgPrint("originalstate->cr2=%x",originalstate->cr2);
+
 		originalstate->cr3=getCR3();
+		DbgPrint("originalstate->cr3=%x",originalstate->cr3);
+
 		originalstate->cr4=getCR4();
+		DbgPrint("originalstate->cr4=%x",originalstate->cr4);
+
 		originalstate->ss=getSS();
 		originalstate->cs=getCS();
 		originalstate->ds=getDS();
@@ -523,19 +561,28 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->tr=GetTR();
 
 		originalstate->dr7=getDR7();
+
 		
+		gdt.vector=0;
+		gdt.wLimit=0;
 		GetGDT(&gdt);									
 		originalstate->gdtbase=(ULONG_PTR)gdt.vector;
 		originalstate->gdtlimit=gdt.wLimit;
+
+		DbgPrint("originalstate->gdtbase=%x",originalstate->gdtbase);
+		DbgPrint("originalstate->gdtlimit=%x",originalstate->gdtlimit);
 
 		GetIDT(&idt);
 		originalstate->idtbase=(ULONG_PTR)idt.vector;
 		originalstate->idtlimit=idt.wLimit;
 
-
-
+		DbgPrint("originalstate->idtbase=%x",originalstate->idtbase);
+		DbgPrint("originalstate->idtlimit=%x",originalstate->idtlimit);
+		
 		eflags=getEflags();
-		originalstate->rflags=*(PDWORD)&eflags;
+		originalstate->rflags=*(PUINT_PTR)&eflags;
+
+		DbgPrint("originalstate->rflags=%x",originalstate->rflags);
 
 
 		originalstate->rsp=getRSP();
@@ -560,11 +607,15 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		DbgPrint("Calling entervmm2\n");
 
 #ifdef AMD64
+		
 		originalstate->rsp-=8; //adjust rsp for the "call entervmmprologue"
  		originalstate->rip=(UINT_PTR)enterVMMEpilogue;
 		enterVMMPrologue();
+		
 		DbgPrint("Returned from enterVMMPrologue\n");
+
 #else
+		
 		{
 			ULONG vmmentryeip;
 			
@@ -575,9 +626,11 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			}	
 			originalstate->rip=(UINT64)vmmentryeip;
 		}
+		
 
 
 		__asm{
+			
 			cli //goodbye interrupts
 			xchg bx,bx
 			
@@ -598,7 +651,9 @@ enterVMMEpilogue:
 			nop
 			nop						
 		}
+		
 #endif
+		DbgPrint("Returning\n");
 
 		return;
 

@@ -46,7 +46,7 @@ typedef
 struct
 {    
 	UINT64 eip;
-	UINT64 cs;
+	WORD cs;
 } JUMPBACK, *PJUMPBACK;
 #pragma pack()
 #else

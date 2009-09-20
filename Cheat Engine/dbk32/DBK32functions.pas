@@ -1616,7 +1616,7 @@ end;
 procedure LaunchDBVM; stdcall;
 var cc: dword;
 var Input: record
-  dbvmimgpath: PWideChar;
+  dbvmimgpath: UINT64;
 end;
 
   temp: widestring;
@@ -1629,10 +1629,7 @@ begin
     temp:='\??\'+GetCurrentDir+'\vmdisk.img';
 
 
-    input.dbvmimgpath:=@temp[1];
-    OutputDebugStringW(input.dbvmimgpath);
-
-
+    input.dbvmimgpath:=dword(@temp[1]);
     deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
   end;
 end;
@@ -2002,9 +1999,9 @@ begin
       begin
         if getlasterror=577 then
         begin
-          messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers"','DBK32 error',MB_ICONERROR or mb_ok);
+          messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
 
-        end else messagebox(0,'service failed to start','dbk.dll',mb_ok);
+        end; //else could already be started
       end;
 
       closeservicehandle(hservice);

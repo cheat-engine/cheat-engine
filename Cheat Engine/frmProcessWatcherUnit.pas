@@ -12,8 +12,8 @@ type tthreaddata=record
 end;
 
 type tprocessdata=record
-  processid: dword;
-  peprocess: dword;
+  processid: DWORD;
+  peprocess: DWORD;
   threadlist: array of tthreaddata;
 end;
 
@@ -244,15 +244,15 @@ end;
 procedure tprocesswatchthread.execute;
 type tprocesseventstruct=record
   Created:BOOL;
-  ProcessID:DWORD;
-  PEProcess:DWORD;
+  ProcessID:UINT64;
+  PEProcess:UINT64;
 end;
 type pprocesseventstruct=^tprocesseventstruct;
 
 type tthreadeventstruct=record
   Created:BOOL;
-  ProcessID:DWORD;
-  ThreadID:dword;
+  ProcessID:UINT64;
+  ThreadID:UINT64;
 end;
 type pthreadeventstruct=^tthreadeventstruct;
 

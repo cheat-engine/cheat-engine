@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 673
-  Top = 356
+  Left = 487
+  Top = 327
   Width = 675
   Height = 565
   HelpContext = 12
@@ -60,12 +60,11 @@ object MemoryBrowser: TMemoryBrowser
       object disassemblerscrollbox: TScrollBox
         Left = 0
         Top = 17
-        Width = 462
+        Width = 455
         Height = 256
         HorzScrollBar.Tracking = True
         VertScrollBar.Visible = False
-        Align = alCustom
-        Anchors = [akLeft, akTop, akRight, akBottom]
+        Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
         BorderStyle = bsNone
@@ -73,7 +72,7 @@ object MemoryBrowser: TMemoryBrowser
         object DisCanvas: TPaintBox
           Left = 0
           Top = 17
-          Width = 462
+          Width = 455
           Height = 239
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -91,7 +90,7 @@ object MemoryBrowser: TMemoryBrowser
         object disassemblerheader: THeaderControl
           Left = 0
           Top = 0
-          Width = 462
+          Width = 455
           Height = 17
           Sections = <
             item
@@ -120,7 +119,7 @@ object MemoryBrowser: TMemoryBrowser
               ImageIndex = -1
               MinWidth = 5
               Text = 'Comment'
-              Width = 103
+              Width = 97
             end>
           OnSectionResize = disassemblerheaderSectionResize
         end

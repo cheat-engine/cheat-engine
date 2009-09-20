@@ -871,7 +871,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}
 			
 
-/*x
+
 		case IOCTL_CE_HOOKSTEALTHEDITINTS:
 			{
 				DbgPrint("IOCTL_CE_HOOKSTEALTHEDITINTS\n");
@@ -900,14 +900,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				struct intput
 				{
 					DWORD ProcessID;
-					DWORD pagebase;
-					DWORD relocatedpagebase;
+					UINT64 pagebase;
+					UINT64 relocatedpagebase;
 					int	  size;
 				} *pinp;
 
 				DbgPrint("IOCTL_CE_ADDCLOAKEDSECTION\n");
 				pinp=Irp->AssociatedIrp.SystemBuffer;
-				if (stealthedit_AddCloakedSection(pinp->ProcessID, pinp->pagebase, pinp->relocatedpagebase, pinp->size))
+				if (stealthedit_AddCloakedSection(pinp->ProcessID, (UINT_PTR)pinp->pagebase, (UINT_PTR)pinp->relocatedpagebase, pinp->size))
 					ntStatus=STATUS_SUCCESS;
 				else
 					ntStatus=STATUS_UNSUCCESSFUL;
@@ -920,31 +920,33 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				struct intput
 				{
 					DWORD ProcessID;
-					DWORD pagebase;
+					UINT64 pagebase;
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
-				if (stealthedit_RemoveCloakedSection(pinp->ProcessID, pinp->pagebase))
+				if (stealthedit_RemoveCloakedSection(pinp->ProcessID, (UINT_PTR)pinp->pagebase))
 					ntStatus=STATUS_SUCCESS;
 				else
 					ntStatus=STATUS_UNSUCCESSFUL;
 				break;
 			}
 
+			
 		case IOCTL_CE_LAUNCHDBVM:
 			{
 				struct intput
 				{
-					PCWSTR dbvmimgpath;				
+					UINT_PTR dbvmimgpath;				
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 				DbgPrint("IOCTL_CE_LAUNCHDBVM\n");
 
-				vmxoffload(pinp->dbvmimgpath);
+				vmxoffload((PCWSTR)pinp->dbvmimgpath);
 
 				DbgPrint("Returned from vmxofload()\n");
 				break;
 			}
+			
 
 		case IOCTL_CE_HOOKINTS:
 			{
@@ -993,7 +995,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}
-			*/
+			
 
 			
 
@@ -1398,8 +1400,9 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				
 				PossibleKeServiceDescriptorTableShow=KeServiceDescriptorTable;
 
-				ntStatus=STATUS_UNSUCCESSFUL;                
+				               
 #ifndef AMD64
+				ntStatus=STATUS_UNSUCCESSFUL; 
 				NtUserBuildHwndList_callnumber=(ULONG)pinp->NtUserBuildHwndList_callnumber;
 				NtUserQueryWindow_callnumber=(ULONG)pinp->NtUserQueryWindow_callnumber;
 				NtUserFindWindowEx_callnumber=(ULONG)pinp->NtUserFindWindowEx_callnumber;

@@ -437,7 +437,6 @@ type
     procedure New1Click(Sender: TObject);
     procedure actScriptEngineExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -4397,11 +4396,12 @@ begin
   fcontrol:=tfcontrol.Create(self);
   with fcontrol do
   begin
-    parent:=panel5;
+    parent:=panel1;
     OnEnter:=FControlEnter;
     OnExit:=FcontrolExit;
     OnKeyDown:=FControlKeyDown;
     OnKeyPress:=FControlKeyPress;
+    PopupMenu:=PopupMenu2;
     helpcontext:=10;
     left:=0;
     top:=57;
@@ -9346,7 +9346,7 @@ begin
 
   end;
 
-  if (GetSystemType<4) or (is64bitos) then  //not nt or later
+  if (GetSystemType<4) {or (is64bitos)} then  //not nt or later
   begin
     with formsettings do
     begin
@@ -12137,13 +12137,6 @@ end;
 procedure TMainForm.File1Click(Sender: TObject);
 begin
   menu.Images:=imagelist1;
-end;
-
-procedure TMainForm.Button3Click(Sender: TObject);
-begin
-  sleep(5000);
- loaddbk32;
- LaunchDBVM;
 end;
 
 end.

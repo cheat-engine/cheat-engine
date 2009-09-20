@@ -68,6 +68,7 @@ type
     generaldebugregistercontext: TContext;
     fGlobalDebug: boolean;
     procedure setGlobalDebug(x: boolean);
+    function breaklengthToByteLength(breakLength: TBreakLength): integer;
     function getNumberOfBreakpoints: integer;
   public
     procedure AddThread(ThreadID: Dword);
@@ -87,6 +88,8 @@ type
     procedure ToggleBreakpoint(address: dword);
 
     function isActive: boolean;
+
+    function isBreakpoint(a: dword): boolean;
     property GlobalDebug: boolean read fGlobalDebug write setGlobalDebug;
     constructor create;
     property nrofbreakpoints: integer read getNumberOfBreakpoints;
@@ -115,6 +118,40 @@ begin
     Debuggerthread.WaitFor;
     FreeAndNil(Debuggerthread);
   end;
+end;
+
+function TKDebugger.breaklengthToByteLength(breakLength: TBreakLength): integer;
+begin
+  case breaklength of
+    bl_1byte: result:=1;
+    bl_2byte: result:=2;
+    bl_4byte: result:=4;
+    bl_8byte: result:=8;
+  end;
+
+end;
+
+function TKDebugger.isBreakpoint(a: dword): boolean;
+var i: integer;
+begin
+  result:=false;
+  breakpointcs.enter;
+  try
+    for i:=0 to 3 do
+      if breakpoint[i].active then
+      begin
+        if (breakpoint[i].Address>=a) and (a<breakpoint[i].Address+breaklengthToByteLength(breakpoint[i].BreakLength)) then
+        begin
+          result:=true;
+          exit;
+        end;
+
+      end;
+
+  finally
+    breakpointcs.leave;
+  end;
+
 end;
 
 function TKDebugger.getNumberOfBreakpoints: integer;

@@ -2076,7 +2076,7 @@ end;
 
 function getbit(bitnr: integer; bt: dword):integer;
 begin
-  result:=(bt shr bitnr) and 1;
+  result:=GetBitOf(bt,bitnr);
 end;
 
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;

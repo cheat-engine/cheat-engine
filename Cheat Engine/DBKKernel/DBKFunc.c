@@ -343,14 +343,14 @@ _declspec( naked ) unsigned short GetTR(void)
 	}	
 }
 
-_declspec( naked ) void GetGDT(PGDT pGdt)
+
+void GetGDT(PGDT pGdt)
 {
 	__asm
-	{
+    {
 		MOV EAX, [pGdt]
-		SGDT [EAX]
-		ret
-	}	
+	    SGDT [EAX]
+    }       
 }
 
 _declspec( naked )WORD GetLDT()
