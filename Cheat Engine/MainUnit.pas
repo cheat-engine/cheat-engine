@@ -602,6 +602,7 @@ type
 
     memscan: tmemscan;
 
+    procedure ChangedHandle(Sender: TObject);
     procedure plugintype0click(Sender:tObject);
     procedure plugintype5click(Sender:tObject);
     procedure OnToolsClick(sender: TObject);    
@@ -4573,7 +4574,14 @@ begin
     foundlist3.columns[0].width:=x[6];
   end;
 
+  OnChangedHandle:=ChangedHandle;
+
   
+end;
+
+procedure TMainForm.ChangedHandle(Sender: TObject);
+begin
+  memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 end;
 
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
@@ -9385,8 +9393,9 @@ begin
 
   //don't put this in oncreate, just don't
   if memscan=nil then
-    memscan:=tmemscan.create(progressbar1,mainform.Handle, wm_scandone);
+    memscan:=tmemscan.create(progressbar1);
 
+  memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
   FileAccessTest;    
                         
@@ -11475,7 +11484,7 @@ begin
     //newscan
     button2.Tag:=0;
     donewscan;
-    memscan.newscan; //cleanup memory and terminate all background threads    
+    memscan.newscan; //cleanup memory and terminate all background threads
   end;
 end;
 
@@ -11589,7 +11598,7 @@ begin
     svalue2:='';
 
   lastscantype:=scantype.ItemIndex;
-    
+
   memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
   DisableGui;
   SpawnCancelButton;

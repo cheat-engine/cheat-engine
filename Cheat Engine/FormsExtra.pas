@@ -14,6 +14,10 @@ type
   private
     originalformstyle: Tformstyle;
     fStayOnTop: boolean;
+
+    FOnChangedHandle: TNotifyEvent;
+
+//    fOnHandleChange:
     procedure setSysMenu;
     procedure setStayOnTop(newstate: boolean); 
     procedure WMSysCommand(var Msg: TWMSysCommand) ; message WM_SYSCOMMAND;
@@ -23,9 +27,9 @@ type
   protected
     SMenu: HMenu;
 
+    property OnChangedHandle: TNotifyEvent read FOnChangedHandle write FOnChangedHandle;
 
     procedure DoCreate; override;
-
   end;
 
 implementation
@@ -78,7 +82,8 @@ begin
   setSysMenu;
 
 
-
+  if assigned(FOnChangedHandle) then
+    FOnChangedHandle(self);
 end;
 
 procedure TForm.togglestayonfront;

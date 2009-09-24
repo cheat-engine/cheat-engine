@@ -94,7 +94,8 @@ begin
 //  raise exception.Create('Please tell dark byte he still has to implement a new find');
 
 
-  memscan:=TMemscan.create(ProgressBar, handle, wm_fw_scandone);
+  memscan:=TMemscan.create(ProgressBar);
+  memscan.setScanDoneCallback(handle, wm_fw_scandone);
   memscan.onlyone:=true;
 
   for i:=0 to ControlCount-1 do

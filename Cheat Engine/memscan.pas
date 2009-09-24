@@ -401,8 +401,8 @@ type
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
 
 
-
-    constructor create(progressbar: TProgressbar;notifywindow: thandle; notifymessage: integer);
+    procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
+    constructor create(progressbar: TProgressbar);
     destructor destroy; override;
 
     property LastScanType: TScanType read FLastScanType;
@@ -4021,11 +4021,15 @@ begin
 
 end;
 
-constructor TMemScan.create(progressbar: TProgressbar; notifywindow: thandle; notifymessage: integer);
+procedure TMemscan.setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 begin
-  self.progressbar:=progressbar;
   self.notifywindow:=notifywindow;
   self.notifymessage:=notifymessage;
+end;
+
+constructor TMemScan.create(progressbar: TProgressbar);
+begin
+  self.progressbar:=progressbar;
   customvariablesize:=1;
 end;
      
@@ -4037,33 +4041,4 @@ begin
   inherited Destroy;
 end;
 
-
-
-
 end.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
