@@ -4,7 +4,7 @@ interface
 
 uses windows,sysutils,imagehlp;
 
-const opcodecount=1070; //I wish there was a easier way than to handcount
+const opcodecount=1072; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -370,10 +370,12 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FCMOVU';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$DA;bt2:$d8),
   (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$d8),
   (mnemonic:'FCOM';opcode1:eo_reg2;paramtype1:par_m64;bytes:1;bt1:$dc),
+  (mnemonic:'FCOM';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$d0),  
   (mnemonic:'FCOM';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$d0),
   (mnemonic:'FCOM';bytes:2;bt1:$d8;bt2:$d1),
   (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d8),
   (mnemonic:'FCOMP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dc),
+  (mnemonic:'FCOMP';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$d8),
   (mnemonic:'FCOMP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$d8),
   (mnemonic:'FCOMP';bytes:2;bt1:$d8;bt2:$d9),
   (mnemonic:'FCOMI';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$db;bt2:$f0),
