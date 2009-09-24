@@ -475,8 +475,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FNSTCW';opcode1:eo_reg7;paramtype1:par_m16;bytes:1;bt1:$d9),
   (mnemonic:'FNSTENV';opcode1:eo_reg6;paramtype1:par_m32;bytes:1;bt1:$d9),
 
+  (mnemonic:'FNSTSW';paramtype1:par_ax;bytes:2;bt1:$df;bt2:$e0),
   (mnemonic:'FNSTSW';opcode1:eo_reg7;paramtype1:par_m16;bytes:1;bt1:$dd),
-  (mnemonic:'FNSTSW';paramtype1:par_ax;bytes:3;bt1:$9b;bt2:$df;bt3:$df),
 
 
   (mnemonic:'FPATAN';bytes:2;bt1:$d9;bt2:$f3),
