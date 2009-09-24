@@ -7286,6 +7286,8 @@ begin
 
    	MainForm.Caption:=CEWait;
     Mainform.Refresh;
+
+    foundlist3.Items.BeginUpdate;
     try
       j:=0;
       setlength(selected, foundlist3.selcount);
@@ -7304,6 +7306,7 @@ begin
 		finally
 	    Mainform.caption:=CENorm;
    		screen.Cursor:=crDefault;
+      foundlist3.Items.EndUpdate;
 		end;
 	end;
 
