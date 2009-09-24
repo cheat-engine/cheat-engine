@@ -1492,6 +1492,44 @@ begin
 end;
 
 
+procedure getScript(code: TStrings; newscript: tstrings; enablescript: boolean);
+{
+removes the enable or disable section from a script leaving only the outer code and the selected script routine
+}
+var
+  i: integer;
+  insideenable: boolean;
+  insidedisable: boolean;
+begin
+  insideenable:=false;
+  insidedisable:=false;
+
+  for i:=0 to code.Count-1 do
+  begin
+    if (uppercase(code[i]))='[ENABLE]' then
+    begin
+      insideenable:=true;
+      insidedisable:=false;
+      continue;
+    end;
+
+    if (uppercase(code[i]))='[DISABLE]' then
+    begin
+      insideenable:=false;
+      insidedisable:=true;
+      continue;
+    end;
+
+    //
+    if ((not insideenable) and (not insidedisable)) or
+       (insideenable and enablescript) or
+       (insidedisable and not enablescript) then newscript.Add(code[i]);
+
+  end;
+
+end;
+
+
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
@@ -1542,31 +1580,11 @@ begin
 
       if enable then
       begin
-        if enablepos>disablepos then
-        begin
-          //copy everything from enablepos to end
-          for i:=enablepos+1 to code.count-1  do
-            tempstrings.add(code[i]);
-        end
-        else
-        begin
-          for i:=enablepos+1 to disablepos-1 do
-            tempstrings.add(code[i]);
-        end;
+        getscript(code, tempstrings, true);
       end
       else
       begin
-        if disablepos>enablepos then
-        begin
-          //copy everything from disablepos to end
-          for i:=disablepos+1 to code.count-1  do
-            tempstrings.add(code[i]);
-        end
-        else
-        begin
-          for i:=disablepos+1 to enablepos-1 do
-            tempstrings.add(code[i]);
-        end;
+        getscript(code, tempstrings,false);
       end;
     end;
 
