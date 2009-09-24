@@ -112,7 +112,8 @@ type
     function getmodulebyaddress(address: dword; var mi: TModuleInfo):BOOLEAN;
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     function getNameFromAddress(address:dword):string; overload;
-    function getNameFromAddress(address:dword;symbols:boolean; modules: boolean):string; overload;
+    function getNameFromAddress(address:dword;symbols:boolean; modules: boolean; baseaddress: PDWORD=nil):string; overload;
+
     function getAddressFromName(name: string):dword; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):dword; overload;
 
@@ -682,7 +683,7 @@ begin
 end;
 
 
-function TSymhandler.getNameFromAddress(address:dword;symbols:boolean; modules: boolean):string;
+function TSymhandler.getNameFromAddress(address:dword;symbols:boolean; modules: boolean; baseaddress: PDWORD=nil):string;
 var symbol :PImagehlpSymbol;
     offset: dword;
     s: string;
@@ -728,6 +729,9 @@ begin
                 result:=s
               else
                 result:=s+'+'+inttohex(offset,1);
+
+              if baseaddress<>nil then
+                baseaddress^:=symbol.Address;
               exit;
             end;
 
@@ -754,6 +758,9 @@ begin
         result:=mi.modulename
       else
         result:=mi.modulename+'+'+inttohex(address-mi.baseaddress,1);
+
+      if baseaddress<>nil then
+        baseaddress^:=mi.baseaddress;
       exit;
     end;
   end;

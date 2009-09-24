@@ -142,7 +142,7 @@ begin
   else
   begin
     setlength(disassemblerthread.strings,c);
-    disassemblerthread.startaddress:=memorybrowser.Disassembleraddress;
+    disassemblerthread.startaddress:=memorybrowser.disassemblerview.TopAddress;
     disassemblerthread.ownerform:=self;
     disassemblerthread.Resume;
   end;
@@ -186,9 +186,7 @@ begin
   if listbox1.itemindex<>-1 then
   begin
     val('$'+listbox1.Items[listbox1.itemindex],x,err);
-    MemoryBrowser.dselected:=x;
-    MemoryBrowser.Disassembleraddress:=x;
-    MemoryBrowser.updatedisassemblerview;
+    memorybrowser.disassemblerview.SelectedAddress:=x;
   end;
 end;
 

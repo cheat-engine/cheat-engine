@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32,
-  StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
+  math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
   Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
   ,NetAPIs, ComCtrls
@@ -16,13 +16,6 @@ uses
 
 type
   TEdit2= class( TEdit)
-  private
-  public
-    procedure wmMouseWheel (var Msg : TWMMouseWheel); message wm_MouseWheel;
-
-  end;
-
-  TEdit3= class( TEdit)
   private
   public
     procedure wmMouseWheel (var Msg : TWMMouseWheel); message wm_MouseWheel;
@@ -50,8 +43,6 @@ type
     N2: TMenuItem;
     Splitter1: TSplitter;
     Panel5: TPanel;
-    Panel6: TPanel;
-    DisCanvas: TPaintBox;
     ScrollBar2: TScrollBar;
     RegisterView: TPanel;
     Splitter2: TSplitter;
@@ -168,11 +159,6 @@ type
     DissectPEheaders1: TMenuItem;
     Back1: TMenuItem;
     Showvaluesofstaticaddresses1: TMenuItem;
-    disassemblerheader: THeaderControl;
-    disassemblerscrollbox: TScrollBox;
-    Panel2: TPanel;
-    Label1: TLabel;
-    ScrollBar1: TScrollBar;
     Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
     sbShowFloats: TSpeedButton;
     ScriptConsole1: TMenuItem;
@@ -188,6 +174,9 @@ type
     miStealthEditPage: TMenuItem;
     miManualStealthEdit: TMenuItem;
     Stealteditmultiplepages1: TMenuItem;
+    Jumplines1: TMenuItem;
+    Showjumplines1: TMenuItem;
+    Onlyshowjumplineswithinrange1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -203,16 +192,6 @@ type
     procedure MBCanvasMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure MBCanvasDblClick(Sender: TObject);
-    procedure Panel2Resize(Sender: TObject);
-    procedure DisCanvasPaint(Sender: TObject);
-    procedure DisCanvasMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure ScrollBar1Change(Sender: TObject);
-    procedure ScrollBar1Scroll(Sender: TObject; ScrollCode: TScrollCode;
-      var ScrollPos: Integer);
-    procedure ScrollBar1KeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure ScrollBar1Enter(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure Replacewithnops1Click(Sender: TObject);
     procedure Panel4Enter(Sender: TObject);
@@ -223,22 +202,11 @@ type
     procedure FControl2KeyPress(Sender: TObject; var Key: Char);
     procedure FControl2Enter(Sender: TObject);
     procedure FControl2Exit(Sender: TObject);
-    procedure FControl1Enter(Sender: TObject);
     procedure FControl1Exit(Sender: TObject);
-    procedure Panel2MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure Button4MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure Button6MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure Button7MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure Panel5MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+
     procedure FControl1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
-    procedure Panel5Resize(Sender: TObject);
     procedure Gotoaddress1Click(Sender: TObject);
     procedure Search1Click(Sender: TObject);
     procedure Change1Click(Sender: TObject);
@@ -257,7 +225,6 @@ type
     procedure Stacktrace1Click(Sender: TObject);
     procedure Threadlist1Click(Sender: TObject);
     procedure Assemble1Click(Sender: TObject);
-    procedure DisCanvasDblClick(Sender: TObject);
     procedure HexEditKeyPress(Sender: TObject; var Key: Char);
     procedure HexEditExit(Sender: TObject);
     procedure HexEditKeyDown(Sender: TObject; var Key: Word;
@@ -312,8 +279,6 @@ type
     procedure GDTlist1Click(Sender: TObject);
     procedure IDTlist1Click(Sender: TObject);
     procedure ScriptEngine1Click(Sender: TObject);
-    procedure DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
     procedure FormDestroy(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
     procedure Follow1Click(Sender: TObject);
@@ -321,8 +286,6 @@ type
     procedure DissectPEheaders1Click(Sender: TObject);
     procedure Back1Click(Sender: TObject);
     procedure Showvaluesofstaticaddresses1Click(Sender: TObject);
-    procedure disassemblerheaderSectionResize(
-      HeaderControl: THeaderControl; Section: THeaderSection);
     procedure Findoutwhataddressesthisinstructionaccesses1Click(
       Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
@@ -331,6 +294,8 @@ type
     procedure miStealthEditPageClick(Sender: TObject);
     procedure Stealteditmultiplepages1Click(Sender: TObject);
     procedure miManualStealthEditClick(Sender: TObject);
+    procedure Showjumplines1Click(Sender: TObject);
+    procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -342,12 +307,10 @@ type
 
     srow,scolumn: integer;
 
-    bytestoshow: integer;
     bytelength: integer;
     chrlength: integer;
 
     MBImage: TBitmap;
-    DisImage: TBitmap;
     memorylabelcount: integer;
     addresslabelcount: integer;
     addresslabel: array of TLabel;
@@ -368,16 +331,7 @@ type
     Highlightcolor: Tcolor;
 
     numberofaddresses: integer;
-    disassemblerlines : array of record
-      address: dword;
-      disassembled: string;
-      description: string;
-      
-      addresspart: string;
-      bytespart: string;
-      opcodepart: string;
-      specialpart: string;
-    end;
+
 
     part: integer;
 
@@ -400,10 +354,11 @@ type
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
     function getShowValues: boolean;
     procedure setShowValues(newstate: boolean);
+
+    procedure disassemblerviewDblClick(Sender: TObject);
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
-    Disassembleraddress: dword;
     memoryaddress: dword;
     thhandle: Thandle;
 
@@ -417,14 +372,11 @@ type
     EBPv: dword;
     ESPv: dword;
     EIPv: dword;
-    FControl1: TEdit3;
     FControl2:Tedit2;
     rows8: integer;
     disassembler: boolean;
     selecting,selectionmade: boolean;
     selected,selected2: dword;
-    dselected,dselected2: dword;
-
     cancelsearch: boolean;
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
@@ -433,11 +385,9 @@ type
     procedure UpdateBPlist;
     procedure UpdateRegisterview;
     procedure RefreshMB;
-    procedure updatedisassemblerview;
     procedure AssemblePopup(x: string);
 
     procedure plugintype1click(sender:tobject);
-    function isjumporcall(address: dword; var addresstojumpto: dword): boolean;
     procedure setcodeanddatabase;
     property showvalues: boolean read getShowValues write setShowValues;
   end;
@@ -509,19 +459,6 @@ begin
   end;
 end;
 
-procedure TEdit3.wmMouseWheel (var Msg : TWMMouseWheel);
-begin
-  with (parent as TMemorybrowser) do
-  begin
-    if msg.WheelDelta>0 then
-      disassembleraddress:=previousopcode(disassembleraddress) //up
-    else
-      disassemble(disassembleraddress); //down
-
-    updatedisassemblerview;
-  end;
-end;
-
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
 begin
@@ -532,25 +469,7 @@ procedure TMemoryBrowser.setShowValues(newstate: boolean);
 begin
   Showvaluesofstaticaddresses1.checked:=newstate;
   FShowValues:=newstate;
-
-  if not newstate then
-  begin
-    lastspecialwidth:=disassemblerheader.Sections[3].Width;
-    disassemblerheader.Sections[3].MinWidth:=0;
-    disassemblerheader.Sections[3].Width:=0;
-    disassemblerheader.Sections[3].MaxWidth:=0;
-  end
-  else
-  begin
-    disassemblerheader.Sections[3].MaxWidth:=10000;
-    if lastspecialwidth>0 then
-      disassemblerheader.Sections[3].Width:=lastspecialwidth;
-      
-    disassemblerheader.Sections[3].MinWidth:=5;
-  end;
-
-  updatedisassemblerview;
-  disassemblerheaderSectionResize(disassemblerheader, disassemblerheader.Sections[3]);
+  disassemblerview.setCommentsTab(FShowValues);
 end;
 
 
@@ -639,18 +558,14 @@ end;
 
 procedure TMemoryBrowser.Splitter1Moved(Sender: TObject);
 begin
-//  updatememoryview;
-
-
-  updatedisassemblerview;
-  panel6.Repaint;
+  disassemblerview.Update;
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
 var x: array of integer;
 
 begin
-  updatedisassemblerview;
+  disassemblerview.Update;;
   mbimage.Width:=0;  //clear the image
   mbimage.Width:=clientwidth;
 
@@ -702,6 +617,11 @@ begin
   
 end;
 
+procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
+begin
+  assemble1.Click;
+end;
+
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
@@ -719,18 +639,16 @@ not enough time to add header supports
 {^^^^}
 
   disassembler:=true;
-  dselected2:=$ffffffff;
 
-  fcontrol1:=tedit3.create(self);
-  fcontrol1.width:=0;
-  fcontrol1.Height:=0;
-  fcontrol1.parent:=self;
-  fcontrol1.OnEnter:=FControl1Enter;
-  fcontrol1.onexit:=FControl1Exit;
-  fcontrol1.onKeydown:=FControl1keydown;
-  fcontrol1.onkeypress:=FControl1keypress;
-  fcontrol1.PopupMenu:=mainform.emptypopup;
-  fcontrol1.sendtoback;
+  disassemblerview:=TDisassemblerview.Create(self);
+  disassemblerview.Align:=alClient;
+  disassemblerview.Parent:=panel5;
+  disassemblerview.PopupMenu:=debuggerpopup;
+  disassemblerview.OnKeyDown:=FControl1keydown;
+  disassemblerview.OnDblClick:=disassemblerviewDblClick;
+
+  disassemblerview.TopAddress:=$00400000;
+    
 
   fcontrol2:=tedit2.create(self);
   fcontrol2.Width:=0;
@@ -743,8 +661,6 @@ not enough time to add header supports
   fcontrol2.PopupMenu:=mainform.emptypopup;
   fcontrol2.SendToBack;
 
-  bytestoshow:=3;
-  disassembleraddress:=$00400000;  //debug
 
   MBImage:=TBitmap.Create;
   MBImage.Canvas.Brush.Color:=clBtnFace;
@@ -755,13 +671,6 @@ not enough time to add header supports
   textheight:=MBImage.Canvas.TextHeight('||||');
   bytelength:=MBImage.Canvas.TextWidth('   ');
   chrlength:=MBImage.Canvas.TextWidth(' ');
-
-
-  DisImage:=TBitmap.create;
-  DisImage.Canvas.Brush.Color:=clBtnFace;
-  DisImage.Width:=1024; //there's no way that the text ever goes over this
-  DisImage.Height:=MBCanvas.Height+textheight+10;
-  DisImage.Canvas.Font.Name:='Courier';
 
   memoryaddress:=$00400000;
   memorylabelcount:=0;
@@ -777,10 +686,8 @@ not enough time to add header supports
   showvalues:=true;
 
 
-  disassemblerview:=TDisassemblerview.Create(self);
-  disassemblerview.Align:=alClient;
-  disassemblerview.Parent:=panel4;
-  disassemblerview.PopupMenu:=debuggerpopup;
+
+//  FControl1KeyDown
 
 
 
@@ -789,10 +696,11 @@ not enough time to add header supports
 
   if loadformposition(self,x) then
   begin
-    disassemblerheader.Sections[0].Width:=x[0];
-    disassemblerheader.Sections[1].Width:=x[1];
-    disassemblerheader.Sections[2].Width:=x[2];
-    disassemblerheader.Sections[3].Width:=x[3];
+    disassemblerview.setheaderWidth(0,x[0]);
+    disassemblerview.setheaderWidth(1,x[1]);
+    disassemblerview.setheaderWidth(2,x[2]);
+    disassemblerview.setheaderWidth(3,x[3]);
+
     panel1.height:=x[4];
     registerview.width:=x[5];
 
@@ -823,7 +731,7 @@ begin
   mbimage.Width:=mbcanvas.Width;
   mbimage.Height:=mbcanvas.Height;
   refreshmb;
-  updatedisassemblerview;
+  disassemblerview.Update;;
 end;
 
 procedure TMemoryBrowser.MemoryLabelClick(Sender: TObject);
@@ -847,7 +755,7 @@ begin
   if Visible then
   begin
     refreshMB;
-    updatedisassemblerview;
+    disassemblerview.Update;;
 
     //refresh the modulelist
     lastmodulelistupdate:=(lastmodulelistupdate+1) mod 10;
@@ -1474,448 +1382,6 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Panel2Resize(Sender: TObject);
-begin
-  updatedisassemblerview;
-end;
-
-procedure TMemoryBrowser.updatedisassemblerview;
-{
-This routine will paint the disassembler view canvas
-}
-var lines,i,j,k: integer;
-    rct: trect;
-    address: dword;
-    maddress: dword;
-    disassembled: string;
-    addressstring, bytesstring, opcodestring, specialstring:string;
-
-    descript: string;
-    newdselected2: integer;
-    repaintornot: boolean;
-
-    {$ifndef net}addresses: tdissectarray;{$endif}
-    symbol: PImagehlpSymbol;
-    sn: pchar;
-    ok: boolean;
-    x:dword;
-    y,z:string;
-
-    mi: TModuleInfo;
-
-  function truncatestring(s: string; maxwidth: integer): string;
-  var dotsize: integer;
-  begin
-    if disimage.Canvas.TextWidth(s)>maxwidth then
-    begin
-      dotsize:=disimage.Canvas.TextWidth('...');
-      maxwidth:=maxwidth-dotsize;
-      if maxwidth<=0 then
-      begin
-        result:=''; //it's too small for '...'
-        exit;
-      end;
-
-      while disimage.Canvas.TextWidth(s)>maxwidth do
-        s:=copy(s,1,length(s)-1);
-
-      result:=s+'...';
-    end else result:=s; //it fits
-  end; 
-
-  procedure addline(i:integer);
-  var j: integer;
-      offset: integer;
-  begin
-    rct.Top:=i*(textheight+2);
-    rct.Bottom:=rct.top+textheight+2;
-
-    {$ifndef net}
-
-    if (dselected2<>$ffffffff) then
-    begin
-      //check if this falls in the selected region
-      offset:=integer(dselected2-dselected);
-
-      if ((offset>0) and (address<=dselected2) and (address>=dselected)) or
-         ((offset<0) and (address>=dselected2) and (address<=dselected)) then
-      begin
-        disimage.Canvas.Brush.Color:=clGradientActiveCaption;
-        disimage.Canvas.font.Color:=clBlack;
-      end;
-    end;
-
-    if ((kdebugger.isactive) and (address<>0) and (kdebugger.isBreakpoint(address))) or
-       ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(address))) then
-    begin
-      disimage.Canvas.Brush.Color:=clRed;
-      disimage.Canvas.font.Color:=clBlack;
-    end;
-
-
-    {$endif}
-
-    if dselected=address then
-    begin
-      disimage.Canvas.Brush.Color:=clHighlight;
-      disimage.Canvas.font.Color:=clHighlightText;
-
-      {$ifndef net}
-
-      if (kdebugger.isactive) and (address<>0) then
-      begin
-      {
-        for j:=0 to 3 do
-          if address=debuggerthread2.breakpoints[j] then
-          begin
-            disimage.Canvas.Brush.Color:=clGreen;
-            disimage.Canvas.font.Color:=clWhite;
-            break;  //get out of this for loop
-          end;  }
-      end;
-
-      if debuggerthread<>nil then
-      begin
-        for j:=0 to length(debuggerthread.userbreakpoints)-1 do
-          if address=debuggerthread.userbreakpoints[j] then
-          begin
-            disimage.Canvas.Brush.Color:=clGreen;
-            disimage.Canvas.font.Color:=clWhite;
-            break;  //get out of this for loop
-          end;
-
-        for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-          if address=debuggerthread.int3userbreakpoints[j].address then
-          begin
-            disimage.Canvas.Brush.Color:=clGreen;
-            disimage.Canvas.font.Color:=clWhite;
-            break;  //get out of this for loop
-          end;
-      end;
-      {$endif}
-
-      if PANEL6.caption<>disassemblerlines[i].description then panel6.Caption:=disassemblerlines[i].description;
-    end;
-
-    disimage.Canvas.FillRect(rct);
-
-
-    addressstring:=truncatestring(addressstring,disassemblerheader.Sections[0].width);
-    bytesstring:=truncatestring(bytesstring,disassemblerheader.Sections[1].width);
-    opcodestring:=truncatestring(opcodestring,disassemblerheader.Sections[2].width);
-    specialstring:=truncatestring(specialstring,disassemblerheader.Sections[3].width);
-
-    disimage.Canvas.TextOut(0,i*(textHeight+2),addressstring);
-    disimage.Canvas.TextOut(disassemblerheader.Sections[1].left,i*(textHeight+2),bytesstring);
-    disimage.Canvas.TextOut(disassemblerheader.Sections[2].left,i*(textHeight+2),opcodestring);
-    disimage.Canvas.TextOut(disassemblerheader.Sections[3].left,i*(textHeight+2),specialstring);
-
-    disimage.Canvas.Brush.color:=clBtnFace;
-    disimage.Canvas.font.color:=clWindowText;
-
-    disassemblerlines[i].disassembled:=disassembled;
-    disassemblerlines[i].address:=address;
-    disassemblerlines[i].addresspart:=addressstring;
-    disassemblerlines[i].bytespart:=bytesstring;
-    disassemblerlines[i].opcodepart:=opcodestring;
-    disassemblerlines[i].specialpart:=specialstring;
-  end;
-begin
-  if not disassembler then exit;
-
-  try
-    try
-    getmem(symbol,sizeof(_Imagehlp_symbol)+100);
-    symbol.SizeOfStruct:=sizeof(_Imagehlp_symbol)+100;
-    symbol.MaxNameLength:=100;
-
-
-    if (not symhandler.isloaded) and (not symhandler.haserror) then
-    begin
-      label1.Caption:='Symbols are being loaded'
-    end
-    else
-    begin
-      if symhandler.haserror then
-        label1.Font.Color:=clRed
-      else
-        label1.Font.Color:=clWindowText;
-        
-      label1.Caption:=symhandler.getnamefromaddress(disassembleraddress);
-    end;
-
-    rct.Left:=0;
-    rct.Right:=discanvas.Width;
-
-    disimage.Width:=0;
-    disimage.width:=discanvas.Width;
-    disimage.Height:=discanvas.Height;
-    DisCanvas.Canvas.Font:=DisImage.Canvas.Font;
-
-    lines:=(Discanvas.Height) div (textheight+2);
-
-    if numberofaddresses<>lines then
-    begin
-      setlength(disassemblerlines,0); //freemem
-      setlength(disassemblerlines,lines+1);
-    end;
-
-    numberofaddresses:=lines;
-
-    maddress:=disassembleraddress;
-
-    i:=0;
-    while i<=lines do
-    begin
-      ok:=false;
-            
-      if SymGetSymFromAddr(processhandle,maddress,0,symbol^) then
-      begin
-        if symbol.Address=maddress then
-        begin
-          if ((i>0) and (disassemblerlines[i-1].address<>maddress)) then
-          begin
-            disassemblerlines[i].description:='';
-            disassembled:=pchar(@symbol.Name[0]);
-            addresS:=maddress;
-            ok:=true;
-
-            addline(i);
-            inc(i);
-
-            continue;
-          end;
-        end;
-      end;
-
-      {$ifndef net}
-      if dissectcode<>nil then
-      begin
-        setlength(addresses,0);
-        if dissectcode.checkaddress(maddress,addresses) then
-        begin
-          disassembled:='Referenced by ';
-          for k:=0 to length(addresses)-1 do
-          begin
-            if i>lines then break;
-
-            disassemblerlines[i].description:='';
-            x:=addresses[k].address;
-            for j:=0 to dissectcode.accuracy-1 do
-              x:=previousopcode(x);
-
-            for j:=0 to dissectcode.accuracy-1 do
-              disassemble(x);
-
-
-
-            if x=addresses[k].address then
-            begin
-              if disassembled[length(disassembled)]=')' then disassembled:=disassembled+', ';
-              case addresses[k].jumptype of
-                jtUnconditional: disassembled:=disassembled+inttohex(addresses[k].address,8)+'(U)';
-                jtConditional: disassembled:=disassembled+inttohex(addresses[k].address,8)+'(C)';
-                jtCall: disassembled:=disassembled+inttohex(addresses[k].address,8)+'(Call)';
-              end;
-
-              if length(disassembled)>50 then
-              begin
-                //disassembled:=disassembled+
-                address:=maddress;
-                addline(i);
-                inc(i);
-                disassembled:='Referenced by ';
-              end;
-
-            end;
-          end;
-
-          if disassembled<>'Referenced by ' then
-          begin
-            addresS:=maddress;
-            addline(i);
-            inc(i);
-          end;
-
-          if i<=lines then
-          begin
-            disassembled:=splitDisassembledString(disassemble(maddress,disassemblerlines[i].description), showvalues,  addressstring, bytesstring, opcodestring, specialstring);
-            addline(i);
-            inc(i);
-          end;
-
-          setlength(addresses,0);
-          continue;
-        end;
-      end;
-      {$endif}
-
-      if not ok then
-      begin
-        address:=maddress;
-        disassembled:=splitDisassembledString(disassemble(maddress,disassemblerlines[i].description), showvalues,  addressstring, bytesstring, opcodestring, specialstring);
-
-        if Showmoduleaddresses1.Checked then
-        begin
-          //replace the address part with a modulename+offset when possible
-          if symhandler.getmodulebyaddress(address,mi) then
-          begin
-            y:=inttohex(address,8);
-            z:=mi.modulename+'+'+inttohex(address-mi.baseaddress,4);
-
-            //disassembled:=stringreplace(disassembled,y,z,[rfReplaceAll]);
-            opcodestring:=stringreplace(opcodestring,y,z,[rfReplaceAll]);
-            addressstring:=stringreplace(addressstring,y,z,[rfReplaceAll]);
-          end;
-
-        end;
-
-      end;
-
-      addline(i);
-      inc(i);
-    end;
-
-
-    rct.Top:=0;
-    rct.Bottom:=disimage.Height;
-    discanvas.Canvas.CopyRect(rct,disimage.Canvas,rct);
-    finally
-      freemem(symbol);
-    end;
-  except
-    ;//
-  end;
-
-end;
-
-procedure TMemoryBrowser.DisCanvasPaint(Sender: TObject);
-var cr: Trect;
-begin
-  cr:=discanvas.Canvas.ClipRect;
-  discanvas.Canvas.CopyRect(cr,disimage.Canvas,cr);
-end;
-
-procedure TMemoryBrowser.DisCanvasMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,j,line: integer;
-    rct: trect;
-    disassembled: string;
-begin
-  if button=mbleft then
-  begin
-    if (not (ssShift in shift)) then
-      dselected2:=$ffffffff
-    else
-      if dselected2=$ffffffff then
-        dselected2:=dselected;     //dslected 2 now contains the start
-  end;
-  
-
-  if not fcontrol1.Focused then fcontrol1.SetFocus;
-
-  discanvas.Canvas.font.Name:='Courier';
-  disimage.Canvas.Font.Name:='Courier';
-
-  line:=y div (textheight+2);
-  if (line<0) or (line>=length(disassemblerlines)) then exit; //mouse drag overflow
-
-  if disassemblerlines[line].address<>dselected then
-  begin
-  
-    if panel6.caption<>disassemblerlines[line].description then panel6.caption:=disassemblerlines[line].description;
-    if (disassembleraddress+line)>$FFFFFFFF then exit;
-
-    dselected:=disassemblerlines[line].address;
-  end;
-
-  //now update the RWAddress
-
-  UpdateRWAddress(disassemblerlines[line].disassembled);
-  updatedisassemblerview;
-end;
-
-procedure TMemoryBrowser.ScrollBar1Change(Sender: TObject);
-begin
-  //disassembleraddress:=dword(ScrollBar1.Position+2147483648);
-  updatedisassemblerview;
-end;
-
-procedure TMemoryBrowser.ScrollBar1Scroll(Sender: TObject;
-  ScrollCode: TScrollCode; var ScrollPos: Integer);
-var x: integer;
-    found: boolean;
-    temp: string;
-    delta: integer;
-    i: integer;
-begin
-  if scrollcode=sctrack then
-  begin
-    delta:=scrollpos-50;
-    //caption:=inttostr(delta);
-
-    if delta>0 then
-    begin
-      for i:=0 to delta do
-        ScrollBar1Scroll(Sender,scLineDown, scrollpos);
-    end
-    else
-    begin
-      for i:=delta to 0 do
-        ScrollBar1Scroll(Sender,scLineUp, scrollpos);
-    end;
-  end;
-
-
-  case scrollcode of
-    scLineUp:   disassembleraddress:=previousopcode(disassembleraddress);
-    scLineDown:
-    begin
-      found:=false;
-      for x:=0 to numberofaddresses-1 do
-        if disassembleraddress<>disassemblerlines[x].address then
-        begin
-          disassembleraddress:=disassemblerlines[x].address;
-          found:=true;
-          break;
-        end;
-
-      if not found then //disassemble
-        disassemble(disassembleraddress,temp);
-    end;
-
-    scPageDown:
-    begin
-      if disassemblerlines[numberofaddresses-1].address=disassembleraddress then
-      begin
-        for x:=0 to numberofaddresses-1 do
-          disassemble(disassembleraddress,temp);
-      end
-      else disassembleraddress:=disassemblerlines[numberofaddresses-1].address;
-    end;
-
-    scPageUp:   for x:=0 to numberofaddresses-2 do
-                    disassembleraddress:=previousopcode(disassembleraddress);  //go 'numberofaddresses'-1 times up
-
-
-  end;
-
-  scrollpos:=50;      //i dont want the slider to work 100%
-  updatedisassemblerview;
-  fcontrol1.SetFocus;
-end;
-
-procedure TMemoryBrowser.ScrollBar1KeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-begin
-  fcontrol1.SetFocus;
-end;
-
-procedure TMemoryBrowser.ScrollBar1Enter(Sender: TObject);
-begin
-  fcontrol1.SetFocus;
-end;
-
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 begin
   goto1.Visible:=true;
@@ -1939,26 +1405,26 @@ begin
   //search dselected in the addresslist
 
 
-  a:=dselected;
+  a:=disassemblerview.SelectedAddress;
 
   disassemble(a,bla);
-  codelength:=a-dselected;
+  codelength:=a-disassemblerview.SelectedAddress;
 
-  if advancedoptions.AddToCodeList(dselected,codelength,true) then
+  if advancedoptions.AddToCodeList(disassemblerview.SelectedAddress,codelength,true) then
   begin
     setlength(nops,codelength);
     for i:=0 to codelength-1 do
       nops[i]:=$90;  //$90=nop
 
     zeromemory(@mbi,sizeof(mbi));
-    Virtualqueryex(processhandle,pointer(dselected),mbi,sizeof(mbi));
+    Virtualqueryex(processhandle,pointer(disassemblerview.SelectedAddress),mbi,sizeof(mbi));
 
    // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
     original:=0;
 
-    RewriteCode(processhandle,dselected,@nops[0],codelength);
+    RewriteCode(processhandle,disassemblerview.SelectedAddress,@nops[0],codelength);
     refreshMB;
-    updatedisassemblerview;
+    disassemblerview.Update;;
   end;
 end;
 
@@ -2009,11 +1475,7 @@ begin
     vk_space:
     begin
       if shift = [ssCtrl] then
-      begin
-        Disassembleraddress:=memoryaddress;
-        dselected:=memoryaddress;
-        updatedisassemblerview;
-      end;
+        disassemblerview.SelectedAddress:=memoryaddress;
     end;
 
     {$ifndef net}
@@ -2078,49 +1540,10 @@ begin
 //  RefreshMB;
 end;
 
-procedure TMemoryBrowser.FControl1Enter(Sender: TObject);
-begin
-  Highlightcolor:=clHighlight;
-  updatedisassemblerview;
-end;
-
 procedure TMemoryBrowser.FControl1Exit(Sender: TObject);
 begin
-  Highlightcolor:=clInactiveCaption;
-  updatedisassemblerview;
+
 end;
-
-procedure TMemoryBrowser.Panel2MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol1.SetFocus;
-end;
-
-procedure TMemoryBrowser.Button4MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol1.SetFocus;
-end;
-
-procedure TMemoryBrowser.Button6MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol1.SetFocus;
-end;
-
-procedure TMemoryBrowser.Button7MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol1.SetFocus;
-end;
-
-
-procedure TMemoryBrowser.Panel5MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol1.SetFocus;
-end;
-
 
 //key control for the disassembler
 procedure TMemoryBrowser.FControl1KeyDown(Sender: TObject; var Key: Word;
@@ -2132,53 +1555,10 @@ var rct: trect;
     a,b: dword;
 begin
   //if shift is not pressed and it's a up,down,left or right, then disable multiline section
-  if (key in [vk_up,vk_down,vk_left,vk_right]) then
-  begin
-    if (not (ssShift in shift)) then
-      dselected2:=$ffffffff
-    else
-      if dselected2=$ffffffff then
-        dselected2:=dselected;     //dslected 2 now contains the start
-  end;
-
   case key of
-    vk_delete   : Replacewithnops1.Click;
+    vk_delete:
+      Replacewithnops1.Click;
 
-    vk_up       : begin
-                    dselected:=previousopcode(dselected);
-                    if dselected<disassembleraddress then disassembleraddress:=dselected;
-                  end;
-                  
-    vk_down     : begin
-                    disassemble(dselected);
-
-                    if dselected>(disassemblerlines[(Discanvas.Height) div (textheight+2)-1].address) then
-                      disassemble(disassembleraddress);
-                  end;
-
-    vk_left     : dec(disassembleraddress);
-    vk_right    : inc(disassembleraddress);
-
-    vk_prior    : begin
-                    if dselected>disassemblerlines[0].address then dselected:=disassemblerlines[0].address else
-                    begin
-                      for i:=0 to numberofaddresses-2 do
-                        disassembleraddress:=previousopcode(disassembleraddress);  //go 'numberofaddresses'-1 times up
-                      dselected:=0;
-                      updatedisassemblerview;
-                      dselected:=disassemblerlines[0].address;
-                    end;
-                  end;
-
-    vk_next     : begin
-                    if dselected<disassemblerlines[numberofaddresses-1].address then dselected:=disassemblerlines[numberofaddresses-1].address else
-                    begin
-                      disassembleraddress:=disassemblerlines[numberofaddresses-1].address;
-                      dselected:=0;
-                      updatedisassemblerview;
-                      dselected:=disassemblerlines[numberofaddresses-1].address;
-                    end;
-                  end;
 
     vk_return:
     begin
@@ -2196,7 +1576,7 @@ begin
       else
       if shift = [ssCtrl] then
       begin
-        memoryaddress:=dselected;
+        memoryaddress:=disassemblerview.SelectedAddress;
         RefreshMB;
       end;
     end;
@@ -2215,21 +1595,10 @@ begin
           //open the copy window asking what exactly to copy
           with tfrmSavedisassembly.create(self) do
           begin
+            a:=min(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+            b:=max(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
 
-            if dselected>dselected2 then
-            begin
-              a:=dselected2;
-              b:=dselected;
-            end
-            else
-            begin
-              a:=dselected;
-              b:=dselected2;
-            end;
-
-            if a=$ffffffff then a:=b;
-            if b=$ffffffff then b:=a;
-
+            
             disassemble(b); //b gets increased with size of selected instruction
             edit1.Text:=inttohex(a,8);
             edit2.Text:=inttohex(b,8);
@@ -2247,7 +1616,7 @@ begin
         if ssCtrl in shift then
         begin
           gotoaddress1.Click;
-          updatedisassemblerview;
+          disassemblerview.Update;
           exit;
         end;
       end;
@@ -2256,7 +1625,8 @@ begin
     end;
   end;
 
-  updatedisassemblerview;
+  disassemblerview.Update;
+
   key:=0;
 end;
 
@@ -2265,29 +1635,19 @@ begin
   key:=chr(0);
 end;
 
-procedure TMemoryBrowser.Panel5Resize(Sender: TObject);
-begin
-  bytestoshow:=(discanvas.Width-360) div bytelength;
-end;
-
 procedure TMemoryBrowser.Gotoaddress1Click(Sender: TObject);
 var newaddress: string;
     symbol :PImagehlpSymbol;
     oldoptions: dword;
     canceled: boolean;
 begin
-
-  newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(dselected,8),true,canceled,memorybrowserHistory);
+  newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(disassemblerview.SelectedAddress,8),true,canceled,memorybrowserHistory);
 
   try
-    DisassemblerAddress:=symhandler.getaddressfromname(newaddress);
+    disassemblerview.SelectedAddress:=symhandler.getaddressfromname(newaddress);
   except
-    disassembleraddress:=getaddress(newaddress);
+    disassemblerview.SelectedAddress:=getaddress(newaddress);
   end;
-
-  dselected:=disassembleraddress;
-  updatedisassemblerview;
-  fcontrol1.SetFocus;
 end;
 
 procedure TMemoryBrowser.Search1Click(Sender: TObject);
@@ -2329,8 +1689,8 @@ var {start,stop: string;
 begin
   frmAddToCodeList:=TfrmAddToCodeList.create(self);
   frmAddToCodeList.addtocodelist:=true;
-  frmAddToCodeList.fromaddress:=dselected;
-  frmAddToCodeList.toaddress:=dselected;
+  frmAddToCodeList.fromaddress:=disassemblerview.SelectedAddress;
+  frmAddToCodeList.toaddress:=disassemblerview.SelectedAddress;
   disassemble(frmAddToCodeList.toaddress,desc);
   dec(frmAddToCodeList.toaddress);
   frmAddToCodeList.showmodal;
@@ -2548,7 +1908,7 @@ begin
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=0; //step over
-    x:=dselected;
+    x:=disassemblerview.SelectedAddress;
     disassemble(x,temp);
 
     if formsettings.rbDebugAsBreakpoint.checked then
@@ -2629,7 +1989,7 @@ begin
   if debuggerthread<>nil then
   begin
     for i:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-      if debuggerthread.int3userbreakpoints[i].address=dselected then
+      if debuggerthread.int3userbreakpoints[i].address=disassemblerview.SelectedAddress then
       begin
         beep; //Best sound effect cheat engine has
         exit;
@@ -2637,9 +1997,9 @@ begin
   end;
   {$endif}
 
-  originalsize:=dselected;
+  originalsize:=disassemblerview.SelectedAddress;
   assemblercode:=disassemble(originalsize,desc);
-  dec(originalsize,dselected);
+  dec(originalsize,disassemblerview.SelectedAddress);
 
   if x<>'' then
     assemblercode:=x
@@ -2653,12 +2013,12 @@ begin
 
 //  copy
 
-  assemblercode:=InputboxTop('Cheat Engine single-linge assembler','Type your assembler code here: (address='+inttohex(dselected,8)+')',assemblercode,x='', canceled, assemblerHistory);
+  assemblercode:=InputboxTop('Cheat Engine single-linge assembler','Type your assembler code here: (address='+inttohex(disassemblerview.SelectedAddress,8)+')',assemblercode,x='', canceled, assemblerHistory);
   if not canceled then
   begin
 
     try
-      if Assemble(assemblercode,dselected,bytes) then
+      if Assemble(assemblercode,disassemblerview.SelectedAddress,bytes) then
       begin
         if originalsize<>length(bytes) then
         begin
@@ -2679,12 +2039,12 @@ begin
                 bytes[length(bytes)-1]:=$90;
               end;
 
-              a:=dselected+length(bytes);
+              a:=disassemblerview.SelectedAddress+length(bytes);
 
-              b:=dselected;
+              b:=disassemblerview.SelectedAddress;
               while b<a do disassemble(b,desc);
 
-              a:=b-dselected;
+              a:=b-disassemblerview.SelectedAddress;
               while length(bytes)<a do
               begin
                 setlength(bytes,length(bytes)+1);
@@ -2702,9 +2062,9 @@ begin
         // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
         original:=0;
 
-        RewriteCode(processhandle,dselected,@bytes[0],length(bytes));
+        RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],length(bytes));
         refreshMB;
-        updatedisassemblerview;
+        disassemblerview.Update;
       end else raise exception.create('I don''t understand what you mean with '+assemblercode);
     except
       raise exception.create('I don''t understand what you mean with '+assemblercode);
@@ -2717,11 +2077,6 @@ end;
 procedure TMemoryBrowser.Assemble1Click(Sender: TObject);
 begin
   AssemblePopup('');
-end;
-
-procedure TMemoryBrowser.DisCanvasDblClick(Sender: TObject);
-begin
-  assemble1.Click;
 end;
 
 procedure TMemoryBrowser.HexEditKeyPress(Sender: TObject; var Key: Char);
@@ -2867,7 +2222,7 @@ begin
                  end;
                  editing:=true;
                  key:=0;
-                 updatedisassemblerview;
+                 disassemblerview.Update;
                end;
 
     vk_subtract:begin
@@ -2883,7 +2238,7 @@ begin
                  end;
                  editing:=true;
                  key:=0;
-                 updatedisassemblerview;
+                 disassemblerview.Update;
                end;
 
     vk_escape: begin
@@ -3203,18 +2558,14 @@ begin
     begin
 
 
-      if (dselected<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
-        CreateCodecave(dword(baseaddress),dselected,memsize)
+      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
+        CreateCodecave(dword(baseaddress),disassemblerview.SelectedAddress,memsize)
       else
         messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8),mtinformation,[mbok],0);
 
 
       if messagedlg('Do you want to go there now?',mtConfirmation,[mbyes,mbno],0) = mryes then
-      begin
-        dselected:=dword(baseaddress);
-        disassembleraddress:=dselected;
-        updatedisassemblerview;
-      end;
+        disassemblerview.SelectedAddress:=dword(baseaddress);
 
 
     end else raise exception.Create('Error allocating memory!');
@@ -3542,7 +2893,7 @@ var startaddress,parameter: dword;
     start:string;
     param:string;
 begin
-  start:=IntToHex(dselected,8);
+  start:=IntToHex(disassemblerview.SelectedAddress,8);
   param:='0';
   if not InputQuery('Create remote thread','What will be the startaddress of this thread?',start) then exit;
   try
@@ -3627,8 +2978,8 @@ begin
   frmFillMemory:=TFrmFillMemory.create(self);
   with frmFillMemory do
   begin
-    edit1.Text:=IntToHex(dselected,8);
-    edit2.Text:=IntToHex(dselected+1,8);
+    edit1.Text:=IntToHex(disassemblerview.SelectedAddress,8);
+    edit2.Text:=IntToHex(disassemblerview.SelectedAddress+1,8);
     frmFillMemory.showmodal;
   end;
 
@@ -3650,8 +3001,8 @@ begin
 {$ifndef net}
   with tfrmSavedisassembly.create(self) do
   begin
-    edit1.Text:=inttohex(Disassembleraddress,8);
-    edit2.Text:=inttohex(disassemblerlines[length(disassemblerlines)-1].address,8);
+    edit1.Text:=inttohex(min(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
+    edit2.Text:=inttohex(max(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
     show;
   end;
 {$endif}
@@ -3728,6 +3079,7 @@ end;
 procedure TMemoryBrowser.Dissectcode1Click(Sender: TObject);
 begin
   {$ifndef net}
+  dissectcode:=nil;
   if dissectcode<>nil then freeandnil(dissectcode);
 
   if dissectcode=nil then
@@ -3736,6 +3088,7 @@ begin
     dissectcode:=tdissectcodethread.create(true);
     frmdissectcode:=tfrmDissectcode.create(self,dissectcode);
     frmdissectcode.showmodal;
+    disassemblerview.dissectCode:=dissectcode;
   end;
   {$endif}
 end;
@@ -3763,7 +3116,7 @@ begin
         raise exception.Create('And how many bytes are that?');
       end;
 
-      CreateCodecave(codecaveaddress,dselected,size);
+      CreateCodecave(codecaveaddress,disassemblerview.SelectedAddress,size);
 
     end;
 
@@ -3801,7 +3154,7 @@ begin
   if (not formsettings.cbKdebug.checked) then
     if (not startdebuggerifneeded) then exit;
 
-  tfrmModifyRegisters.create(self,dselected).showmodal;
+  tfrmModifyRegisters.create(self,disassemblerview.SelectedAddress).showmodal;
 {$endif}
 end;
 
@@ -3811,13 +3164,13 @@ begin
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
   begin
     KDebugger.StartDebugger;
-    KDebugger.ToggleBreakpoint(dselected);
+    KDebugger.ToggleBreakpoint(disassemblerview.SelectedAddress);
   end
   else
   begin
     //normal debugger
-    togglebreakpoint(dselected);
-    updatedisassemblerview;
+    togglebreakpoint(disassemblerview.SelectedAddress);
+    disassemblerview.Update;
   end;
 
 
@@ -3862,14 +3215,14 @@ procedure TMemoryBrowser.Showsymbols1Click(Sender: TObject);
 begin
   showsymbols1.Checked:=not showsymbols1.Checked;
   symhandler.showsymbols:=showsymbols1.Checked;
-  updatedisassemblerview;
+  disassemblerview.Update;
 end;
 
 procedure TMemoryBrowser.Showmoduleaddresses1Click(Sender: TObject);
 begin
   Showmoduleaddresses1.Checked:=not Showmoduleaddresses1.checked;
   symhandler.showmodules:=Showmoduleaddresses1.Checked;
-  updatedisassemblerview;
+  disassemblerview.Update;
 end;
 
 
@@ -3928,18 +3281,14 @@ begin
     baseaddress:=KernelAlloc(memsize);
     if baseaddress<>nil then
     begin
-      if (dselected<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
-        CreateCodecave(dword(baseaddress),dselected,memsize)
+      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
+        CreateCodecave(dword(baseaddress),disassemblerview.SelectedAddress,memsize)
       else
         messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8),mtinformation,[mbok],0);
 
 
       if messagedlg('Do you want to go there now?',mtConfirmation,[mbyes,mbno],0) = mryes then
-      begin
-        dselected:=dword(baseaddress);
-        disassembleraddress:=dselected;
-        updatedisassemblerview;
-      end;
+        disassemblerview.SelectedAddress:=dword(baseaddress);
     end else raise exception.Create('Error allocating memory!');
   end;
   {$endif}
@@ -3957,9 +3306,7 @@ begin
     pws:=@ws[1];
     p:=GetKProcAddress(pws);
 
-    dselected:=dword(p);
-    disassembleraddress:=dword(p);
-    updatedisassemblerview;
+    disassemblerview.SelectedAddress:=dword(p);
   end;
 end;
 
@@ -3978,7 +3325,7 @@ begin
     if s='' then exit;
     with TfrmDisassemblyscan.create(self) do
     begin
-      startaddress:=dselected;
+      startaddress:=disassemblerview.SelectedAddress;
       stringtofind:=s;
       show;
     end;
@@ -3997,15 +3344,17 @@ end;
 procedure TMemoryBrowser.plugintype1click(sender:tobject);
 {$ifndef net}
 var x: TPluginfunctionType1;
+address: dword;
 {$endif}
 begin
 {$ifndef net}
   x:=TPluginfunctionType1(tmenuitem(sender).Tag);
   if x<>nil then
   begin
-    x.callback(@disassembleraddress,@dselected,@memoryaddress);
+    address:=disassemblerview.TopAddress;
+    x.callback(@address,@disassemblerview.SelectedAddress,@memoryaddress);
+    disassemblerview.TopAddress:=address;
     refreshmb;
-    updatedisassemblerview;
   end;
 {$endif}
 end;
@@ -4212,7 +3561,7 @@ begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   ogglebreakpoint1.Enabled:=processhandle<>0;
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
-  follow1.visible:=isjumporcall(dselected,x);
+  follow1.visible:=isjumporcall(disassemblerview.SelectedAddress,x);
   back1.Visible:=backlist.Count>0;
 end;
 
@@ -4234,17 +3583,8 @@ begin
   x.show;
 end;
 
-procedure TMemoryBrowser.DisCanvasMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  if ssLeft in shift then
-  begin
-    DisCanvas.OnMouseDown(self,mbleft,shift,x,y);
-
-  end;
-end;
-
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
+var h0,h1,h2,h3: integer;
 begin
   disassemblerHistory.free;
   memorybrowserHistory.free;
@@ -4255,10 +3595,10 @@ begin
   if (not ischild) then
   begin
     saveformposition(self,[
-                            disassemblerheader.Sections[0].Width,
-                            disassemblerheader.Sections[1].Width,
-                            disassemblerheader.Sections[2].Width,
-                            disassemblerheader.Sections[3].Width,
+                            disassemblerview.getheaderwidth(0),
+                            disassemblerview.getheaderwidth(1),
+                            disassemblerview.getheaderwidth(2),
+                            disassemblerview.getheaderwidth(3),
                             panel1.height,
                             registerview.width
                     ]);   
@@ -4283,81 +3623,17 @@ begin
   end;
 end;
 
-function TMemoryBrowser.isjumporcall(address: dword; var addresstojumpto: dword): boolean;
-var buf: array [0..31] of byte;
-    actualread: dword;
-    i,j: integer;
-    st: string;
-    offset: dword;
-begin
-  result:=false;
-
-  if readprocessmemory(processhandle,pointer(address),@buf[0],32,actualread) then
-  begin
-    if buf[0] in [$0f,$70..$7f,$e3,$e8,$e9,$eb,$ff] then //possible
-    begin
-      case buf[0] of
-        $0f:
-        begin
-          if (not (buf[1] in [$80..$8f])) then exit; //not one of them
-          result:=true;
-          addresstojumpto:=address+plongint(@buf[2])^+6;
-        end;
-
-        $70..$7f,$e3,$eb:  //(un)conditional jump (1 byte)
-        begin
-          result:=true;
-          addresstojumpto:=address+pshortint(@buf[1])^+2;
-        end;
-
-        $e8,$e9: //jump or call unconditional (4 byte)
-        begin
-          result:=true;
-          addresstojumpto:=address+plongint(@buf[1])^+5;
-        end;
-
-        $ff: //disassemble to see what it is
-        begin
-          st:=disassemble(address);
-          st:=copy(st,pos('-',st)+2,length(st));
-          st:=copy(st,pos('-',st)+2,length(st));
-
-          i:=pos('jmp',st);
-          j:=pos('call',st);
-          if (i=1) or (j=1) then
-          begin
-            //now determine where it jumps to
-            i:=pos('[',st);
-            if i>0 then
-            begin
-              st:=copy(st,i,pos(']',st)-i+1);
-
-              try
-                addresstojumpto:=symhandler.getAddressFromName(st); //the pointer interpreter code can do this
-                result:=true;
-              except
-
-              end;
-            end;
-
-          end;
-        end;
-
-
-      end;
-    end;
-
-  end;
-
-end;
 
 procedure TMemoryBrowser.Follow1Click(Sender: TObject);
+{
+will change the selected disassembler address to the address this instructions jump so if it is an jump instruction
+}
+var address: dword;
 begin
-  if isjumporcall(dselected,disassembleraddress) then
+  if isjumporcall(disassemblerview.SelectedAddress,address) then
   begin
-    backlist.Push(pointer(dselected));
-    dselected:=disassembleraddress;
-    updatedisassemblerview;
+    backlist.Push(pointer(disassemblerview.SelectedAddress));
+    disassemblerview.SelectedAddress:=address;
   end;
 end;
 
@@ -4372,20 +3648,9 @@ begin
   with tfrmSavedisassembly.create(self) do
   begin
 
-    if dselected>dselected2 then
-    begin
-      a:=dselected2;
-      b:=dselected;
-    end
-    else
-    begin
-      a:=dselected;
-      b:=dselected2;
-    end;
-
-    if a=$ffffffff then a:=b;
-    if b=$ffffffff then b:=a;
-
+    a:=min(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+    b:=max(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+    
     disassemble(b); //b gets increased with size of selected instruction
     edit1.Text:=inttohex(a,8);
     edit2.Text:=inttohex(b,8);
@@ -4439,8 +3704,7 @@ begin
           if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
         end;
 
-        disassembleraddress:=base+peinfo_getEntryPoint(header); //peinfo_getcodebase(header);
-        dselected:=disassembleraddress;
+        disassemblerview.SelectedAddress:=base+peinfo_getEntryPoint(header);
 
         memoryaddress:=base+peinfo_getdatabase(header);
       end;
@@ -4454,26 +3718,13 @@ end;
 procedure TMemoryBrowser.Back1Click(Sender: TObject);
 begin
   if backlist.Count>0 then
-  begin
-    dselected:=dword(backlist.pop);
-    disassembleraddress:=dselected;
-    updatedisassemblerview;
-  end;
+    disassemblerview.SelectedAddress:=dword(backlist.pop);
 end;
 
 procedure TMemoryBrowser.Showvaluesofstaticaddresses1Click(
   Sender: TObject);
 begin
   showvalues:=not showvalues;
-end;
-
-procedure TMemoryBrowser.disassemblerheaderSectionResize(
-  HeaderControl: THeaderControl; Section: THeaderSection);
-var x: integer;
-begin
-  x:=(disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Left+disassemblerheader.Sections[disassemblerheader.Sections.Count-1].Width);
-  disassemblerscrollbox.HorzScrollBar.Range:=x;
-  updatedisassemblerview;
 end;
 
 procedure TMemoryBrowser.FindwhatThiscodeAccesses(address: dword);
@@ -4535,7 +3786,7 @@ end;
 procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(
   Sender: TObject);
 begin
-  findWhatthisCodeAccesses(dselected);
+  findWhatthisCodeAccesses(disassemblerview.SelectedAddress);
 end;
 
 procedure TMemoryBrowser.sbShowFloatsClick(Sender: TObject);
@@ -4588,10 +3839,8 @@ begin
     stealtheditor:=tstealthedit.create;
 
 
-  newaddress:=stealtheditor.StartEdit(dselected and $fffff000, 4096);
-  dselected:=newaddress or (dselected or $fff);
-  Disassembleraddress:=dselected;
-  updatedisassemblerview;
+  newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, 4096);
+  disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
 end;
 
 procedure TMemoryBrowser.Stealteditmultiplepages1Click(Sender: TObject);
@@ -4609,10 +3858,8 @@ begin
     size:=strtoint('$'+sizestring);
     size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
     
-    newaddress:=stealtheditor.StartEdit(dselected and $fffff000, size);
-    dselected:=newaddress or (dselected or $fff);
-    Disassembleraddress:=dselected;
-    updatedisassemblerview;
+    newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
+    disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
   end;
 end;
 
@@ -4630,12 +3877,29 @@ begin
       size:=strtoint('$'+sizestring);
       size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
 
-      newaddress:=stealtheditor.StartEdit(dselected and $fffff000, size);
-      dselected:=newaddress or (dselected or $fff);
-      Disassembleraddress:=dselected;
-      updatedisassemblerview;
+      newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
+      disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
     end;
   end;
+end;
+
+procedure TMemoryBrowser.Showjumplines1Click(Sender: TObject);
+begin
+  showjumplines1.checked:=not showjumplines1.checked;
+  disassemblerview.showjumplines:=showjumplines1.checked;
+
+  Onlyshowjumplineswithinrange1.Enabled:=showjumplines1.checked;
+end;
+
+procedure TMemoryBrowser.Onlyshowjumplineswithinrange1Click(
+  Sender: TObject);
+begin
+  Onlyshowjumplineswithinrange1.checked:=not Onlyshowjumplineswithinrange1.checked;
+  if Onlyshowjumplineswithinrange1.checked then
+    disassemblerview.ShowJumplineState:=jlsOnlyWithinRange
+  else
+    disassemblerview.ShowJumplineState:=jlsAll;
+
 end;
 
 end.

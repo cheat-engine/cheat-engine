@@ -458,7 +458,7 @@ begin
     end;
   end;
 
-  memorybrowser.updatedisassemblerview;
+  memorybrowser.disassemblerview.Update;
   modalresult:=mrok;
 end;
 

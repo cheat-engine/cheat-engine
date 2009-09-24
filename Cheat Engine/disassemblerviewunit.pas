@@ -19,15 +19,20 @@ interface
 
 uses windows,forms, classes, controls, comctrls, stdctrls, extctrls, symbolhandler,
      cefuncproc, newkernelhandler, graphics, disassemblerviewlinesunit, disassembler,
-     math, messages;
+     math, messages, menus, dissectcodethread;
 
 
+
+type TShowjumplineState=(jlsAll, jlsOnlyWithinRange);     
+     
 
 type TDisassemblerview=class(tpanel)
   private
     statusinfo: TPanel;
     statusinfolabel: TLabel;
     header: THeaderControl;
+    previousCommentsTabWidth: integer;
+
     scrollbox: TScrollbox; //for the header
     verticalscrollbar: TScrollbar;
     disassembleDescription: TPanel;
@@ -43,6 +48,9 @@ type TDisassemblerview=class(tpanel)
     fSelectedAddress: dword; //normal selected address
     fSelectedAddress2: dword; //secondary selected address (when using shift selecting)
     fTopAddress: dword; //address to start disassembling from
+    fShowJumplines: boolean; //defines if it should draw jumplines or not
+    fShowjumplineState: TShowjumplineState;
+    fdissectCode: TDissectCodeThread;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -55,20 +63,178 @@ type TDisassemblerview=class(tpanel)
     procedure OnLostFocus(sender: TObject);
     procedure DisCanvasPaint(Sender: TObject);
     procedure DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure SetPopupMenu(p: Tpopupmenu);
+    function getPopupMenu: Tpopupmenu;
+    procedure wmMouseWheel (var Msg : TWMMouseWheel); message wm_MouseWheel;
+    procedure setSelectedAddress(address: dword);
+    procedure setTopAddress(address: dword);
+    function getOnDblClick: TNotifyEvent;
+    procedure setOnDblClick(x: TNotifyEvent);
+    procedure renderJumpLines;
+    procedure setJumpLines(state: boolean);
+    procedure setJumplineState(state: tshowjumplinestate);
+    procedure setDissectCodeThread(dc: TdissectCodeThread);
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
     procedure DoEnter; override;
     procedure DoExit; override;
+
+  published
+    property OnKeyDown;
+    property OnDblClick: TNotifyEvent read getOnDblClick write setOnDblClick;
+
   public
     procedure BeginUpdate; //stops painting until endupdate
     procedure EndUpdate;
     procedure Update;
+    procedure setCommentsTab(state: boolean);
+
+    function getheaderWidth(headerid: integer): integer;
+    procedure setheaderWidth(headerid: integer; size: integer);
+
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
+    property PopupMenu: TPopupMenu read getPopupMenu write SetPopupMenu;
+    property SelectedAddress: dword read fSelectedAddress write setSelectedAddress;
+    property SelectedAddress2: dword read fSelectedAddress2;
+    property TopAddress: dword read fTopAddress write setTopAddress;
+    property ShowJumplines: boolean read fShowJumplines write setJumpLines;
+    property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
+    property DissectCode: TDissectCodeThread read fDissectCode write setDissectCodeThread;
+
     constructor create(AOwner: TComponent); override;
 end;
 
 implementation
+
+procedure TDisassemblerview.setDissectCodeThread(dc: TdissectCodeThread);
+var i: integer;
+begin
+  for i:=0 to disassemblerlines.count-1 do
+    TDisassemblerline(disassemblerlines[i]).dissectcode:=dc;
+
+  fdissectCode:=dc;
+  update;
+end;
+
+procedure TDisassemblerview.setJumplineState(state: tshowjumplinestate);
+begin
+  fShowjumplineState:=state;
+  update;
+end;
+
+procedure TDisassemblerview.setJumpLines(state: boolean);
+begin
+  fShowJumplines:=state;
+  update;
+end;
+
+function TDisassemblerview.getOnDblClick: TNotifyEvent;
+begin
+  result:=disCanvas.OnDblClick;
+end;
+
+procedure TDisassemblerview.setOnDblClick(x: TNotifyEvent);
+begin
+  disCanvas.OnDblClick:=x;
+end;
+
+function TDisassemblerview.getheaderWidth(headerid: integer): integer;
+begin
+  result:=header.Sections[headerid].width;
+end;
+
+procedure TDisassemblerview.setheaderWidth(headerid: integer; size: integer);
+begin
+  header.Sections[headerid].width:=size;
+end;
+
+procedure TDisassemblerview.setCommentsTab(state:boolean);
+begin
+  if not state then
+  begin
+    previousCommentsTabWidth:=header.Sections[3].Width;
+    header.Sections[3].MinWidth:=0;
+    header.Sections[3].Width:=0;
+    header.Sections[3].MaxWidth:=0;
+  end
+  else
+  begin
+    header.Sections[3].MaxWidth:=10000;
+    if previousCommentsTabWidth>0 then
+      header.Sections[3].Width:=previousCommentsTabWidth;
+
+    header.Sections[3].MinWidth:=5;
+  end;
+
+  update;
+  headerSectionResize(header, header.Sections[3]);
+end;
+
+procedure TDisassemblerview.setTopAddress(address: dword);
+begin
+  fTopAddress:=address;
+  fSelectedAddress:=address;
+  fSelectedAddress2:=address;
+  update;
+end;
+
+procedure TDisassemblerview.setSelectedAddress(address: dword);
+var i: integer;
+    found: boolean;
+begin
+  fSelectedAddress:=address;
+  fSelectedAddress2:=address;
+
+  if (fTotalvisibledisassemblerlines>0) and (InRange(fSelectedAddress, Tdisassemblerline(disassemblerlines[0]).address, Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-1]).address)) then
+  begin
+    //in range
+    found:=false;
+    for i:=0 to fTotalvisibledisassemblerlines-1 do
+      if address=Tdisassemblerline(disassemblerlines[i]).address then
+      begin
+        found:=true;
+        break;
+      end;
+
+    //not in one of the current lines. Looks like the disassembler order is wrong. Fix it by setting it to the top address
+    if not found then
+      fTopAddress:=address;
+
+  end else fTopAddress:=address;
+
+
+  update;
+end;
+
+procedure TDisassemblerview.wmMouseWheel (var Msg : TWMMouseWheel);
+begin
+  if msg.WheelDelta>0 then
+  begin
+    fTopAddress:=previousopcode(fTopAddress); //up
+    fTopAddress:=previousopcode(fTopAddress); //up
+    fTopAddress:=previousopcode(fTopAddress); //up        
+  end
+  else
+  begin
+    disassemble(fTopAddress); //down
+    disassemble(fTopAddress); //down
+    disassemble(fTopAddress); //down
+  end;
+
+  update;
+end;
+
+function TDisassemblerview.getPopupMenu: Tpopupmenu;
+begin
+  result:=discanvas.PopupMenu;
+end;
+
+procedure TDisassemblerview.SetPopupMenu(p: tpopupmenu);
+begin
+  discanvas.PopupMenu:=p;
+end;
 
 procedure TDisassemblerview.HandleSpecialKey(key: word);
 var i: integer;
@@ -182,6 +348,13 @@ begin
   update;
 end;
 
+
+procedure TDisassemblerview.DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  if ssLeft in shift then
+    DisCanvas.OnMouseDown(self,mbleft,shift,x,y);
+end;
+
 procedure TDisassemblerview.DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i,j: integer;
     rct: trect;
@@ -217,7 +390,7 @@ begin
     fSelectedAddress:=line.address;
 
     //set the secondary address to the same as the first if shift isn't pressed
-    if (button=mbleft) and (not (ssShift in shift)) then
+    if not (ssShift in shift) then
       fSelectedAddress2:=fSelectedAddress;
   end;
 
@@ -231,6 +404,67 @@ var cr: Trect;
 begin
   cr:=discanvas.Canvas.ClipRect;
   discanvas.Canvas.CopyRect(cr,offscreenbitmap.Canvas,cr);
+end;
+
+procedure TDisassemblerview.renderJumpLines;
+{
+will render the lines of visible jumps
+pre: must be called after the disassemblerlines have been created and configured
+}
+var
+  currentline,linex: TDisassemblerLine;
+  i,j: integer;
+  address: dword;
+
+  found: boolean;
+  jumplineoffset: integer;
+begin
+  jumplineoffset:=4;
+
+  for i:=0 to fTotalvisibledisassemblerlines-1 do
+  begin
+    currentline:=disassemblerlines[i];
+    if currentline.isJumpOrCall(address) then
+    begin
+      for j:=0 to fTotalvisibledisassemblerlines-1 do
+      begin
+        linex:=disassemblerlines[j];
+        if linex.address=address then
+        begin
+          currentline.drawJumplineTo(linex.instructionCenter, jumplineoffset);
+          found:=true;
+          break;
+        end else
+        if (j>0) and (linex.address>address) and (TDisassemblerline(disassemblerlines[j-1]).address<address) then //we past it...
+        begin
+          currentline.drawJumplineTo(linex.gettop, jumplineoffset);
+          found:=true;
+          break;
+        end;
+
+      end;
+
+      if fShowjumplineState=jlsAll then
+      begin
+        if not found then
+        begin
+          //not in the visible region
+          if currentline.address>address then
+          begin
+            //line to the top
+            currentline.drawJumplineTo(0, jumplineoffset,false);
+          end
+          else
+          begin
+            //line to the bottom
+            currentline.drawJumplineTo(offscreenbitmap.Height-1, jumplineoffset,false);
+          end;
+        end;
+      end;
+
+      inc(jumplineoffset,2);
+    end;
+  end;
 end;
 
 procedure TDisassemblerview.update;
@@ -247,6 +481,25 @@ var
 
   selstart, selstop: dword;
 begin
+  if (not symhandler.isloaded) and (not symhandler.haserror) then
+  begin
+    if processid>0 then
+      statusinfolabel.Caption:='Symbols are being loaded'
+    else
+      statusinfolabel.Caption:='Please open a process first';    
+
+  end
+  else
+  begin
+    if symhandler.haserror then
+      statusinfolabel.Font.Color:=clRed
+    else
+      statusinfolabel.Font.Color:=clWindowText;
+
+    statusinfolabel.Caption:=symhandler.getnamefromaddress(TopAddress);
+  end;
+
+
   //initialize bitmap dimensions
   if discanvas.width>scrollbox.HorzScrollBar.Range then
     offscreenbitmap.Width:=discanvas.width
@@ -268,7 +521,7 @@ begin
   while currenttop<offscreenbitmap.Height do
   begin
     if disassemblerlines.Count<=i then //add a new line
-      disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
+      disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections, DissectCode));
 
     currentline:=disassemblerlines[i];
 
@@ -279,6 +532,10 @@ begin
   end;
 
   fTotalvisibledisassemblerlines:=i;
+
+  if ShowJumplines then
+    renderjumplines;
+
 
   if not isupdating then
     disCanvas.Repaint;
@@ -536,13 +793,15 @@ begin
     parent:=scrollbox;
     OnPaint:=DisCanvasPaint;
     OnMouseDown:=DisCanvasMouseDown;
+    OnMouseMove:=DisCanvasMouseMove;
   end;
 
   offscreenbitmap:=Tbitmap.Create;
 
   disassemblerlines:=TList.Create;
 
-
+  fShowjumplineState:=jlsOnlyWithinRange;
+  fShowJumplines:=true;
 end;
 
 end.

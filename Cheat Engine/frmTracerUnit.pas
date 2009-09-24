@@ -86,13 +86,13 @@ begin
     if startdebuggerifneeded then
     begin
       debuggerthread.userisdebugging:=true;
-      debuggerthread.traceaddress:=memorybrowser.dselected;
+      debuggerthread.traceaddress:=memorybrowser.disassemblerview.SelectedAddress;
       debuggerthread.tracecount:=tcount;
 
-      traceaddress:=memorybrowser.dselected;
+      traceaddress:=memorybrowser.disassemblerview.SelectedAddress;
 
-      togglebreakpoint(memorybrowser.dselected);
-      memorybrowser.updatedisassemblerview;
+      togglebreakpoint(memorybrowser.disassemblerview.SelectedAddress);
+      memorybrowser.disassemblerview.Update;
     end;
   end;
 end;
@@ -304,9 +304,7 @@ end;
 
 procedure TfrmTracer.ListBox1DblClick(Sender: TObject);
 begin
-  memorybrowser.dselected:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c.Eip;
-  memorybrowser.dselected2:=memorybrowser.dselected;
-  memorybrowser.updatedisassemblerview;
+  memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c.Eip;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);

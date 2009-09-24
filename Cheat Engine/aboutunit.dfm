@@ -25,7 +25,7 @@ object About: TAbout
     Width = 260
     Height = 188
     Align = alClient
-    Caption = 'Cheat Engine 5.4'
+    Caption = 'Cheat Engine 5.6'
     TabOrder = 0
     object Label1: TLabel
       Left = 72

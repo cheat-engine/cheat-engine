@@ -342,7 +342,7 @@ var address: string;
     disablecode: tstringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
-  a:=memorybrowser.dselected;
+  a:=memorybrowser.disassemblerview.SelectedAddress;
 
   address:=inttohex(a,8);
   if inputquery('Code inject template','On what address do you want the jump?',address) then
@@ -733,7 +733,7 @@ var address: string;
 
 begin
 {$ifndef standalonetrainerwithassembler}
-  a:=memorybrowser.dselected;
+  a:=memorybrowser.disassemblerview.SelectedAddress;
 
   address:=inttohex(a,8);
 
@@ -816,8 +816,8 @@ var starts,stops: string;
 
 begin
 {$ifndef standalonetrainerwithassembler}
-  starts:=inttohex(memorybrowser.dselected,8);
-  stops:=inttohex(memorybrowser.dselected+128,8);
+  starts:=inttohex(memorybrowser.disassemblerview.SelectedAddress,8);
+  stops:=inttohex(memorybrowser.disassemblerview.SelectedAddress+128,8);
 
   if inputquery('Start address:','Code relocation template',starts) then
   begin

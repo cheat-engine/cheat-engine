@@ -540,25 +540,33 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		DbgPrint("originalstate->originalLME=%d",originalstate->originalLME);
 
 		originalstate->cr0=getCR0();
-		DbgPrint("originalstate->cr0=%x",originalstate->cr0);
+		DbgPrint("originalstate->cr0=%llx",originalstate->cr0);
 
 		originalstate->cr2=getCR2();
-		DbgPrint("originalstate->cr2=%x",originalstate->cr2);
+		DbgPrint("originalstate->cr2=%llx",originalstate->cr2);
 
 		originalstate->cr3=getCR3();
-		DbgPrint("originalstate->cr3=%x",originalstate->cr3);
+		DbgPrint("originalstate->cr3=%llx",originalstate->cr3);
 
 		originalstate->cr4=getCR4();
-		DbgPrint("originalstate->cr4=%x",originalstate->cr4);
+		DbgPrint("originalstate->cr4=%llx",originalstate->cr4);
 
 		originalstate->ss=getSS();
+		DbgPrint("originalstate->ss=%llx",originalstate->ss);
 		originalstate->cs=getCS();
+		DbgPrint("originalstate->cs=%llx",originalstate->cs);
 		originalstate->ds=getDS();
+		DbgPrint("originalstate->ds=%llx",originalstate->ds);
 		originalstate->es=getES();
+		DbgPrint("originalstate->es=%llx",originalstate->es);
 		originalstate->fs=getFS();
+		DbgPrint("originalstate->fs=%llx",originalstate->fs);
 		originalstate->gs=getGS();
+		DbgPrint("originalstate->gs=%llx",originalstate->gs);
 		originalstate->ldt=GetLDT();
+		DbgPrint("originalstate->ldt=%llx",originalstate->ldt);
 		originalstate->tr=GetTR();
+		DbgPrint("originalstate->tr=%llx",originalstate->tr);
 
 		originalstate->dr7=getDR7();
 
@@ -569,20 +577,20 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->gdtbase=(ULONG_PTR)gdt.vector;
 		originalstate->gdtlimit=gdt.wLimit;
 
-		DbgPrint("originalstate->gdtbase=%x",originalstate->gdtbase);
-		DbgPrint("originalstate->gdtlimit=%x",originalstate->gdtlimit);
+		DbgPrint("originalstate->gdtbase=%llx",originalstate->gdtbase);
+		DbgPrint("originalstate->gdtlimit=%llx",originalstate->gdtlimit);
 
 		GetIDT(&idt);
 		originalstate->idtbase=(ULONG_PTR)idt.vector;
 		originalstate->idtlimit=idt.wLimit;
 
-		DbgPrint("originalstate->idtbase=%x",originalstate->idtbase);
-		DbgPrint("originalstate->idtlimit=%x",originalstate->idtlimit);
+		DbgPrint("originalstate->idtbase=%llx",originalstate->idtbase);
+		DbgPrint("originalstate->idtlimit=%llx",originalstate->idtlimit);
 		
 		eflags=getEflags();
 		originalstate->rflags=*(PUINT_PTR)&eflags;
 
-		DbgPrint("originalstate->rflags=%x",originalstate->rflags);
+		DbgPrint("originalstate->rflags=%llx",originalstate->rflags);
 
 
 		originalstate->rsp=getRSP();
@@ -609,7 +617,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 #ifdef AMD64
 		
 		originalstate->rsp-=8; //adjust rsp for the "call entervmmprologue"
- 		originalstate->rip=(UINT_PTR)enterVMMEpilogue;
+ 		originalstate->rip=(UINT_PTR)enterVMMEpilogue; //enterVMMEpilogue is an address inside the entervmmprologue function
 		enterVMMPrologue();
 		
 		DbgPrint("Returned from enterVMMPrologue\n");

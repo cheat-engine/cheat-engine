@@ -1043,8 +1043,7 @@ begin
       frmstacktrace.stacktrace(debuggerthread.pausedthreadhandle,debuggerthread.context);
     end;
 
-    Disassembleraddress:=context.Eip;
-    dselected:=context.eip;
+    disassemblerview.SelectedAddress:=context.Eip;
 
     temp:='EAX '+IntToHex(context.Eax,8);
     if temp<>eaxlabel.Caption then
@@ -1218,7 +1217,7 @@ begin
     end;
 
 
-    updatedisassemblerview;
+    disassemblerview.Update;
   end;
   {$endif}
 

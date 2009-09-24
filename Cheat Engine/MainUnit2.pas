@@ -477,7 +477,7 @@ begin
             begin
               formsettings.cbShowDisassembler.checked:=true;
               memorybrowser.Panel1.Visible:=true;
-              memorybrowser.updatedisassemblerview;
+              memorybrowser.disassemblerview.Update;
               memorybrowser.RefreshMB;
             end
             else
@@ -753,7 +753,7 @@ begin
               if names[i][10]='B' then //enabled or not
               begin
                 if reg.ReadBool(names[i]) then
-                  pluginhandler.EnablePlugin(j);
+                  pluginhandler.EnablePlugin(i);
               end;
             except
 

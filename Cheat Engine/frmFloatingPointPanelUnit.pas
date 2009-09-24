@@ -231,9 +231,7 @@ end;
 
 procedure TfrmFloatingPointPanel.Label4Click(Sender: TObject);
 begin
-  memorybrowser.disassembleraddress:=self.contextCopy.FloatSave.ErrorOffset;
-  memorybrowser.dselected:=self.contextCopy.FloatSave.ErrorOffset;
-  memorybrowser.updatedisassemblerview;
+  memorybrowser.disassemblerview.SelectedAddress:=self.contextCopy.FloatSave.ErrorOffset;
 end;
 
 procedure TfrmFloatingPointPanel.Label6DblClick(Sender: TObject);

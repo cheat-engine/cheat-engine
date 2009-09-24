@@ -105,8 +105,7 @@ end;
 procedure TfrmBreakpointlist.ListBox1DblClick(Sender: TObject);
 begin
   if listbox1.ItemIndex>=0 then
-    memorybrowser.Disassembleraddress:=StrToInt('$'+listbox1.items[listbox1.itemindex]);
-  memorybrowser.updatedisassemblerview;
+    memorybrowser.disassemblerview.SelectedAddress:=StrToInt('$'+listbox1.items[listbox1.itemindex]);
 end;
 
 end.

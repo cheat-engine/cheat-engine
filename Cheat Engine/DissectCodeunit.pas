@@ -14,7 +14,6 @@ end;
 
 type
   TfrmDissectCode = class(TForm)
-    Button1: TButton;
     ProgressBar1: TProgressBar;
     Timer1: TTimer;
     Panel1: TPanel;
@@ -22,11 +21,13 @@ type
     Panel2: TPanel;
     Label2: TLabel;
     Label3: TLabel;
+    Panel3: TPanel;
     Label1: TLabel;
     Label6: TLabel;
     Label7: TLabel;
-    edtAccuracy: TEdit;
     Label8: TLabel;
+    Button1: TButton;
+    edtAccuracy: TEdit;
     GroupBox1: TGroupBox;
     Label4: TLabel;
     Label5: TLabel;
@@ -55,6 +56,7 @@ implementation
 {$R *.dfm}
 
 constructor TfrmDissectCode.create(aowner: tcomponent; dc: tdissectcodethread);
+var i: integer;
 begin
   dissectcode:=dc;
   inherited create(aowner);

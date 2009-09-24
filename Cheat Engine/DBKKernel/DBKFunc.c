@@ -133,7 +133,7 @@ int cpunr(void)
 
 EFLAGS getEflags(void)
 {
-	DWORD x=__getcallerseflags();
+	UINT64 x=__getcallerseflags();
 	PEFLAGS y = (PEFLAGS)&x;
 	return *y;
 }

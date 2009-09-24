@@ -3,7 +3,7 @@ unit DissectCodeThread;
 interface
 
 uses
-  cefuncproc,windows,sysutils,syncobjs,Classes,disassembler;
+  cefuncproc,windows,sysutils,syncobjs,Classes,disassembler, newkernelhandler;
 
 type tjumptype=(jtUnconditional,jtConditional,jtCall);
 
@@ -72,6 +72,7 @@ implementation
 
 {
 This thread will scan the memory for jumps and conditional jumps
+that data will be added to a list that the disassemblerview can read out for data
 
 }
 function TDissectCodeThread.findaddress(address:dword; const list: tjumparray; currentsize: integer; var recnr: integer):boolean;
@@ -350,7 +351,7 @@ var
       f: tfilestream;
       index: array of record  //
         address: dword;
-        offset: dword;  //sure, you might want to use a 64 bit integer, but if that would be needed I'd rather put my head in a automated meatgrinder
+        offset: dword; 
       end;
 
       fname,fname2: string;

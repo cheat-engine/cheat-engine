@@ -373,7 +373,7 @@ end;
 
 procedure TFoundCodeDialog.btnOpenDisassemblerClick(Sender: TObject);
 begin
-  memorybrowser.Disassembleraddress:=coderecords[foundcodelist.itemindex].address;
+  memorybrowser.disassemblerview.SelectedAddress:=coderecords[foundcodelist.itemindex].address;
   memorybrowser.panel1.visible:=true;
   memorybrowser.show;
 

@@ -56,126 +56,6 @@ object MemoryBrowser: TMemoryBrowser
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      OnResize = Panel5Resize
-      object disassemblerscrollbox: TScrollBox
-        Left = 0
-        Top = 17
-        Width = 455
-        Height = 256
-        HorzScrollBar.Tracking = True
-        VertScrollBar.Visible = False
-        Align = alClient
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        TabOrder = 0
-        object DisCanvas: TPaintBox
-          Left = 0
-          Top = 17
-          Width = 455
-          Height = 239
-          Align = alClient
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Courier'
-          Font.Style = []
-          ParentFont = False
-          PopupMenu = debuggerpopup
-          OnDblClick = DisCanvasDblClick
-          OnMouseDown = DisCanvasMouseDown
-          OnMouseMove = DisCanvasMouseMove
-          OnPaint = DisCanvasPaint
-        end
-        object disassemblerheader: THeaderControl
-          Left = 0
-          Top = 0
-          Width = 455
-          Height = 17
-          Sections = <
-            item
-              AllowClick = False
-              ImageIndex = -1
-              MinWidth = 50
-              Text = 'Address'
-              Width = 75
-            end
-            item
-              AllowClick = False
-              ImageIndex = -1
-              MinWidth = 50
-              Text = 'Bytes'
-              Width = 83
-            end
-            item
-              AllowClick = False
-              ImageIndex = -1
-              MinWidth = 50
-              Text = 'Opcode'
-              Width = 200
-            end
-            item
-              AllowClick = False
-              ImageIndex = -1
-              MinWidth = 5
-              Text = 'Comment'
-              Width = 97
-            end>
-          OnSectionResize = disassemblerheaderSectionResize
-        end
-      end
-      object Panel2: TPanel
-        Left = 0
-        Top = 0
-        Width = 471
-        Height = 17
-        Align = alTop
-        BevelInner = bvLowered
-        TabOrder = 1
-        object Label1: TLabel
-          Left = 2
-          Top = 2
-          Width = 467
-          Height = 13
-          Align = alClient
-          Alignment = taCenter
-          AutoSize = False
-          Transparent = False
-        end
-      end
-      object Panel6: TPanel
-        Left = 0
-        Top = 273
-        Width = 471
-        Height = 17
-        Align = alBottom
-        BevelInner = bvLowered
-        BevelOuter = bvLowered
-        Color = clWhite
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBtnText
-        Font.Height = -11
-        Font.Name = 'Courier'
-        Font.Style = []
-        ParentFont = False
-        TabOrder = 2
-        OnMouseDown = Panel5MouseDown
-      end
-      object ScrollBar1: TScrollBar
-        Left = 455
-        Top = 17
-        Width = 16
-        Height = 256
-        Align = alRight
-        Kind = sbVertical
-        PageSize = 2
-        Position = 50
-        TabOrder = 3
-        OnChange = ScrollBar1Change
-        OnEnter = ScrollBar1Enter
-        OnKeyDown = ScrollBar1KeyDown
-        OnScroll = ScrollBar1Scroll
-      end
     end
     object RegisterView: TPanel
       Left = 474
@@ -988,6 +868,21 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Show '#39'Comment'#39' row'
         ShortCut = 16470
         OnClick = Showvaluesofstaticaddresses1Click
+      end
+      object Jumplines1: TMenuItem
+        Caption = 'Jumplines'
+        object Showjumplines1: TMenuItem
+          Caption = 'Show jumplines'
+          Checked = True
+          Default = True
+          ShortCut = 49228
+          OnClick = Showjumplines1Click
+        end
+        object Onlyshowjumplineswithinrange1: TMenuItem
+          Caption = 'Only show jumplines within range'
+          Checked = True
+          OnClick = Onlyshowjumplineswithinrange1Click
+        end
       end
     end
     object Debug1: TMenuItem

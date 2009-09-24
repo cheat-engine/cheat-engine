@@ -536,9 +536,7 @@ begin
       frmstacktrace.stacktrace(currentdebuggerstate.threadid,tempcontext);
     end;
 
-    Disassembleraddress:=currentdebuggerstate.Eip;
-    dselected:=Disassembleraddress;
-    updatedisassemblerview;
+    disassemblerview.SelectedAddress:=currentdebuggerstate.Eip;
 
     temp:='EAX '+IntToHex(currentdebuggerstate.Eax,8);
     if temp<>eaxlabel.Caption then

@@ -11388,10 +11388,7 @@ var a,b: dword;
 begin
   if (foundlist3.ItemIndex<>-1) then
   begin
-    memorybrowser.DisassemblerAddress:=foundlist.GetAddress(foundlist3.itemindex,b,s);
-    memorybrowser.dselected:=memorybrowser.DisassemblerAddress;
-    memorybrowser.dselected2:=$ffffffff;
-    memorybrowser.updatedisassemblerview;
+    memorybrowser.disassemblerview.SelectedAddress:=foundlist.GetAddress(foundlist3.itemindex,b,s);
     memorybrowser.show;
   end;
 end;

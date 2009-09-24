@@ -273,8 +273,7 @@ begin
   if (treeview1.Selected<>nil) and (treeview1.Selected.Level=1) then
   begin
     val('$'+treeview1.Selected.Text,x,i);
-    memorybrowser.disassembleraddress:=x;
-    memorybrowser.updatedisassemblerview;
+    memorybrowser.disassemblerview.SelectedAddress:=x;
   end;
 end;
 

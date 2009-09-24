@@ -20,7 +20,7 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   object Label2: TLabel
     Left = 0
     Top = 0
-    Width = 361
+    Width = 353
     Height = 13
     Align = alTop
     Alignment = taCenter
@@ -29,8 +29,8 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   object TreeView1: TTreeView
     Left = 0
     Top = 13
-    Width = 361
-    Height = 216
+    Width = 353
+    Height = 214
     Align = alClient
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -48,14 +48,14 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object Panel1: TPanel
     Left = 0
-    Top = 229
-    Width = 361
+    Top = 227
+    Width = 353
     Height = 40
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      361
+      353
       40)
     object Button1: TButton
       Left = 142

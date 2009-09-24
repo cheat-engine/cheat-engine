@@ -1621,6 +1621,7 @@ end;
 
   temp: widestring;
 begin
+  
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     Outputdebugstring('LaunchDBVM');
