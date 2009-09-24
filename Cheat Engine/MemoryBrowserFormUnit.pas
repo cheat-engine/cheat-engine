@@ -1621,6 +1621,8 @@ begin
         end;
       end;
 
+      if (ssalt in shift) or (ssctrl in shift) then exit; 
+
       assemblepopup(lowercase(chr(key)));
     end;
   end;
