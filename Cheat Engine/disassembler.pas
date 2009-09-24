@@ -9064,7 +9064,7 @@ begin
     result:=symhandler.getNameFromAddress(address)
   else
   begin
-    if signed then
+    {if signed then
     begin
       case signedsize of
         1: if address>=$80 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
@@ -9073,7 +9073,7 @@ begin
         else result:=sysutils.IntToHex(address,chars);
       end;
     end
-    else
+    else  }
       result:=sysutils.IntToHex(address,chars);
   end;
 end;

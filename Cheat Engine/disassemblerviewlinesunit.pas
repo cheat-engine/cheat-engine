@@ -152,9 +152,9 @@ begin
     height:=height+fcanvas.TextHeight(symbolname)+1+10;
   end;
 
+  refferencedbylinecount:=0;
   if fdissectcode<>nil then
   begin
-    refferencedbylinecount:=0;
 
     fcanvas.Font.Style:=[fsBold, fsItalic];
     refferencedby:=buildReferencedByString;
