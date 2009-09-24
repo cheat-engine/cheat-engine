@@ -8412,7 +8412,7 @@ begin
                      if memory[1]<$c0 then
                      begin
                        description:='Load Integer';
-                       tempresult:='FILD '+modrm(memory,prefix2,1,0,last,128);
+                       tempresult:='FILD '+modrm(memory,prefix2,1,0,last,64);
                        tempresult:=copy(tempresult,1,length(tempresult)-1);
                        inc(offset,last-1);
                      end;
