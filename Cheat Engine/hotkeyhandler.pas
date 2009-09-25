@@ -32,6 +32,7 @@ procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
 procedure SuspendHotkeyHandler;
 procedure ResumeHotkeyHandler;
+procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
 
 
 var hotkeythread: THotkeythread;
@@ -78,6 +79,22 @@ begin
   zeromemory(@keystate[0],256*sizeof(tkeystate));
   for i:=0 to 255 do
     getasynckeystate(i); //clears the last call flag
+end;
+
+procedure hotkeyTargetWindowHandleChanged(oldhandle, newhandle: thandle);
+{
+Called when the handle of a window is changed. This will update all associated hotkeys
+}
+var i: integer;
+begin
+  cskeys.Enter;
+  try
+    for i:=0 to length(hotkeythread.hotkeylist)-1 do
+      if hotkeythread.hotkeylist[i].windowtonotify=oldhandle then
+        hotkeythread.hotkeylist[i].windowtonotify:=newhandle;
+  finally
+    cskeys.Leave;
+  end;
 end;
 
 procedure SuspendHotkeyHandler;
@@ -258,7 +275,7 @@ begin
 
             hotkeylist[i].lastactivate:=gettickcount;
             if hotkeylist[i].handler2 then
-              sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0) //why can't I use wm_hotkey2?
+              sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0)
             else
               sendmessage(a,WM_HOTKEY,b,c);
           end;

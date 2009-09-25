@@ -4587,6 +4587,7 @@ begin
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
   //reset the hotkeys
+  hotkeyTargetWindowHandleChanged(oldhandle,mainform.handle);
   oldhandle:=mainform.handle;
 end;
 
