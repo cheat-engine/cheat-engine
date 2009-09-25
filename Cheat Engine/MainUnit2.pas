@@ -307,6 +307,15 @@ begin
 
 
           {$ifndef net}
+          if reg.ValueExists('hotkey poll interval') then
+            hotkeyPollInterval:=reg.ReadInteger('hotkey poll interval');
+
+          if reg.ValueExists('Time between hotkeypress') then
+            hotkeyIdletime:=reg.ReadInteger('Time between hotkeypress');
+
+          frameHotkeyConfig.edtKeypollInterval.text:=inttostr(hotkeyPollInterval);
+          frameHotkeyConfig.edtHotkeyDelay.text:=inttostr(hotkeyIdletime);
+
           SuspendHotkeyHandler;
 
           if reg.ValueExists('Speedhack 1 speed') then

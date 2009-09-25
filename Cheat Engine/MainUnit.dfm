@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 517
-  Top = 182
+  Left = 826
+  Top = 363
   Width = 532
-  Height = 565
+  Height = 558
   Hint = ' '
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -47,7 +47,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 348
     Width = 516
-    Height = 144
+    Height = 137
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -126,7 +126,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 1
       Width = 498
-      Height = 142
+      Height = 135
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -177,7 +177,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 17
         Width = 498
-        Height = 125
+        Height = 118
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -190,7 +190,7 @@ object MainForm: TMainForm
         OnResize = Panel1Resize
         DesignSize = (
           498
-          125)
+          118)
         object Label30: TLabel
           Tag = 6
           Left = 0
@@ -1077,7 +1077,7 @@ object MainForm: TMainForm
       Left = 499
       Top = 1
       Width = 16
-      Height = 142
+      Height = 135
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 16
-        Height = 142
+        Height = 135
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1099,7 +1099,7 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 492
+    Top = 485
     Width = 516
     Height = 17
     Align = alBottom

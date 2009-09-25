@@ -23,6 +23,11 @@ type
     Panel4: TPanel;
     Label3: TLabel;
     Edit4: TEdit;
+    Panel5: TPanel;
+    edtKeypollInterval: TEdit;
+    edtHotkeyDelay: TEdit;
+    Label4: TLabel;
+    Label5: TLabel;
     procedure ListBox1Click(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);

@@ -487,6 +487,8 @@ type
     editingscript: boolean;
     editedscript: integer;
 
+    oldhandle: thandle;
+
     function openprocessPrologue: boolean;
     procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
     procedure doNewScan;
@@ -4574,6 +4576,7 @@ begin
     foundlist3.columns[0].width:=x[6];
   end;
 
+  oldhandle:=mainform.handle;
   OnChangedHandle:=ChangedHandle;
 
   
@@ -4582,6 +4585,9 @@ end;
 procedure TMainForm.ChangedHandle(Sender: TObject);
 begin
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
+
+  //reset the hotkeys
+  oldhandle:=mainform.handle;
 end;
 
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
@@ -8892,7 +8898,7 @@ begin
   if hotkeys[lastselected]<>-1 then //remove this hotkey
   begin
     memrec[lastselected].Frozendirection:=0;
-    oldunregisterhotkey(handle,hotkeys[lastselected]);
+    unregisterhotkey(handle,hotkeys[lastselected]);
     hotkeys[lastselected]:=-1;
     updatescreen;
     exit;
@@ -9081,6 +9087,7 @@ begin
 
     updatescreen;
   end;
+  
 end;
 
 procedure TMainForm.Findoutwhatreadsfromthisaddress1obsoleteClick(Sender: TObject);

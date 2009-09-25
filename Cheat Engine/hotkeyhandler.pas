@@ -12,6 +12,7 @@ type thotkeyitem=record
   fuModifiers: word;
   uVirtKey:word;
   handler2:boolean;
+  lastactivate: dword; //determines when the last time this hotkey was activated
 end;
 
 type Thotkeythread=class(tthread)
@@ -25,7 +26,7 @@ end;
 function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
 function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo): boolean;
 function UnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
-function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
+//function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
@@ -36,14 +37,19 @@ procedure ResumeHotkeyHandler;
 var hotkeythread: THotkeythread;
     CSKeys: TCriticalSection;
 
+    hotkeyPollInterval: integer=100;
+    hotkeyIdletime: integer=100;
+
 implementation
 
-var keystate: array [0..255] of byte;  //0=undefined, 1=pressed, 2-not pressed
+type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
+
+var keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
 
 function IsKeyPressed(key: integer):boolean;
 var ks: dword;
 begin
-  if key>0 then //not inside the list... (doubt it's valid)
+  if key>255 then //not inside the list... (doubt it's valid)
   begin
     //anyhow, check if it is currently pressed
     result:=((word(getasynckeystate(key)) shr 15) and 1) = 1;
@@ -51,25 +57,25 @@ begin
   end;
 
   //look up in the list
-  if keystate[key]=0 then
+  if keystate[key]=ks_undefined then
   begin
     ks:=getasynckeystate(key);
     if ((ks and 1)=1) then
-      keystate[key]:=1
+      keystate[key]:=ks_pressed
     else
     if ((ks shr 15) and 1)=1 then
-      keystate[key]:=1
+      keystate[key]:=ks_pressed
     else
-      keystate[key]:=2; //not pressed at all
+      keystate[key]:=ks_notpressed; //not pressed at all
   end;
 
-  result:=keystate[key]=1;
+  result:=keystate[key]=ks_pressed;
 end;
 
 procedure clearkeystate;
 var i: integer;
 begin
-  zeromemory(@keystate[0],256);
+  zeromemory(@keystate[0],256*sizeof(tkeystate));
   for i:=0 to 255 do
     getasynckeystate(i); //clears the last call flag
 end;
@@ -110,12 +116,9 @@ begin
 
     for i:=0 to length(keycombo)-1 do
     begin
-      if i>=5 then
-        messagebox(0,'memory corruption','memory corruption',mb_ok);
-        
       if (keycombo[i]=0) then exit;
 
-      if not IsKeyPressed(keycombo[i]) then //if ((word(getasynckeystate(keycombo[i])) shr 15) and 1) = 0 then
+      if not IsKeyPressed(keycombo[i]) then
       begin
         //not pressed
         result:=false;
@@ -128,6 +131,27 @@ begin
 
 
 end;
+
+function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
+var i: integer;
+begin
+  CSKeys.Enter;
+  try
+    setlength(hotkeythread.hotkeylist,length(hotkeythread.hotkeylist)+1);
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].windowtonotify:=hWnd;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].id:=id;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].fuModifiers:=fsmodifiers;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=vk;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=false;
+
+    ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
+
+    result:=true;
+  finally
+    CSKeys.Leave;
+  end;
+end;
+
 
 function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo): boolean;
 begin
@@ -145,7 +169,7 @@ begin
   finally
     CSKeys.Leave;
   end;
-end;
+end;  
 
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 {
@@ -176,31 +200,6 @@ begin
   end;
 
   k[i]:=0;
-end;
-
-function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
-var i: integer;
-begin
-  CSKeys.Enter;
-  try
-    setlength(hotkeythread.hotkeylist,length(hotkeythread.hotkeylist)+1);
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].windowtonotify:=hWnd;
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].id:=id;
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].fuModifiers:=fsmodifiers;
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=vk;
-    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=false;
-
-    ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
-
-    result:=true;
-  finally
-    CSKeys.Leave;
-  end;
-end;
-
-function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
-begin
-  result:=windows.UnregisterHotKey(hWnd,id);
 end;
 
 function UnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
@@ -244,12 +243,12 @@ var i: integer;
 begin
   while not terminated do
   begin
-    handledhotkey:=false;
     try
       CSKeys.Enter;
       try
         for i:=0 to length(hotkeylist)-1 do
-          if checkkeycombo(hotkeylist[i].keys) then
+        begin
+          if ((hotkeylist[i].lastactivate+hotkeyIdletime)<GetTickCount) and checkkeycombo(hotkeylist[i].keys) then
           begin
             handledhotkey:=true;
             //the hotkey got pressed
@@ -257,11 +256,13 @@ begin
             b:=hotkeylist[i].id;
             c:=(hotkeylist[i].uVirtKey shl 16)+hotkeylist[i].fuModifiers;
 
+            hotkeylist[i].lastactivate:=gettickcount;
             if hotkeylist[i].handler2 then
               sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0) //why can't I use wm_hotkey2?
             else
               sendmessage(a,WM_HOTKEY,b,c);
           end;
+        end;
       finally
         CSKeys.Leave;
       end;
@@ -269,16 +270,9 @@ begin
     except
     end;
 
-    if handledhotkey then
-      clearkeystate; //keys have been handled
+    clearkeystate; //keys have been handled
 
-    sleep(100);
-
-
-    if handledhotkey then
-      sleep(250); //a little extra wait
-
-
+    sleep(hotkeyPollInterval);
   end;
 end;
 

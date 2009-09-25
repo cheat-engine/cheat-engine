@@ -448,6 +448,22 @@ begin
         reg.WriteBool('ModuleList as Denylist',DenyList);
       end;
 
+      try
+        reg.WriteInteger('hotkey poll interval',strtoint(frameHotkeyConfig.edtKeypollInterval.text));
+        hotkeyPollInterval:=strtoint(frameHotkeyConfig.edtKeypollInterval.text);
+      except
+        raise exception.Create('the value for the keypoll interval ('+frameHotkeyConfig.edtKeypollInterval.text+' is invalid');
+      end;
+
+      try
+        reg.WriteInteger('Time between hotkeypress',strtoint(frameHotkeyConfig.edtHotkeyDelay.text));
+        hotkeyIdletime:=strtoint(frameHotkeyConfig.edtHotkeyDelay.text);
+      except
+        raise exception.Create('the value for the wait between hotkey presses ('+frameHotkeyConfig.edtHotkeyDelay.text+' is invalid');
+      end;
+
+
+
 
         //save the hotkeylist
         reg.WriteBinaryData('Show Cheat Engine Hotkey',frameHotkeyConfig.newhotkeys[0][0],10);

@@ -2,13 +2,13 @@ object frameHotkeyConfig: TframeHotkeyConfig
   Left = 0
   Top = 0
   Width = 416
-  Height = 429
+  Height = 546
   TabOrder = 0
   object Panel1: TPanel
     Left = 0
-    Top = 0
+    Top = 50
     Width = 233
-    Height = 429
+    Height = 496
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
@@ -24,7 +24,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Left = 0
       Top = 13
       Width = 233
-      Height = 416
+      Height = 483
       Align = alClient
       ExtendedSelect = False
       ItemHeight = 13
@@ -65,15 +65,15 @@ object frameHotkeyConfig: TframeHotkeyConfig
   end
   object Panel2: TPanel
     Left = 233
-    Top = 0
+    Top = 50
     Width = 183
-    Height = 429
+    Height = 496
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       183
-      429)
+      496)
     object Label2: TLabel
       Left = 6
       Top = 0
@@ -103,13 +103,14 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Left = 8
       Top = 64
       Width = 170
-      Height = 331
+      Height = 65
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvNone
       TabOrder = 2
+      Visible = False
       DesignSize = (
         170
-        331)
+        65)
       object Label52: TLabel
         Left = 11
         Top = 2
@@ -147,7 +148,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object Panel4: TPanel
       Left = 8
-      Top = 147
+      Top = 123
       Width = 173
       Height = 97
       BevelOuter = bvNone
@@ -168,6 +169,49 @@ object frameHotkeyConfig: TframeHotkeyConfig
         TabOrder = 0
         Text = '1'
       end
+    end
+  end
+  object Panel5: TPanel
+    Left = 0
+    Top = 0
+    Width = 416
+    Height = 50
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 2
+    object Label4: TLabel
+      Left = 104
+      Top = 6
+      Width = 136
+      Height = 13
+      Caption = 'Keypoll interval (milliseconds)'
+    end
+    object Label5: TLabel
+      Left = 104
+      Top = 32
+      Width = 169
+      Height = 13
+      Caption = 'Delay between reactivating hotkeys'
+    end
+    object edtKeypollInterval: TEdit
+      Left = 2
+      Top = 2
+      Width = 95
+      Height = 21
+      Hint = 'Determines how quickly a hotkey keypress is detected'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      Text = '100'
+    end
+    object edtHotkeyDelay: TEdit
+      Left = 2
+      Top = 26
+      Width = 95
+      Height = 21
+      Hint = 'Lets you specify how quickly a hotkey is repeated'
+      TabOrder = 1
+      Text = '100'
     end
   end
 end

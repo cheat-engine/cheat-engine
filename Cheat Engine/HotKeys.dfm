@@ -1,6 +1,6 @@
 object HotKeyForm: THotKeyForm
-  Left = 581
-  Top = 499
+  Left = 920
+  Top = 137
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Set/Change hotkey'
@@ -62,6 +62,7 @@ object HotKeyForm: THotKeyForm
     Height = 22
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
+    Default = True
     TabOrder = 0
     OnClick = BitBtn1Click
   end
@@ -71,6 +72,7 @@ object HotKeyForm: THotKeyForm
     Width = 65
     Height = 22
     Anchors = [akLeft, akBottom]
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
