@@ -3,7 +3,7 @@ unit MemoryBrowserFormUnit;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32,
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32, frmMemoryAllocHandlerUnit,
   math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
   Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions {$ifndef net},dissectcodethread{$endif}
   {$ifdef netclient}
@@ -177,6 +177,7 @@ type
     Jumplines1: TMenuItem;
     Showjumplines1: TMenuItem;
     Onlyshowjumplineswithinrange1: TMenuItem;
+    Watchmemoryallocations1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -296,6 +297,7 @@ type
     procedure miManualStealthEditClick(Sender: TObject);
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
+    procedure Watchmemoryallocations1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -3902,6 +3904,23 @@ begin
   else
     disassemblerview.ShowJumplineState:=jlsAll;
 
+end;
+
+procedure TMemoryBrowser.Watchmemoryallocations1Click(Sender: TObject);
+begin
+  if processid=0 then raise exception.Create('Please target a process first');
+  if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
+    freeandnil(frmMemoryAllocHandler);
+
+
+  if frmMemoryAllocHandler=nil then
+  begin
+    if MessageDlg('This function will inject a dll into the target process and hook some memory allocation/free routines. Continue?',mtConfirmation, [mbyes,mbno],0)<>mryes then exit;
+    
+    frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self);
+  end;
+
+  frmMemoryAllocHandler.Show;
 end;
 
 end.

@@ -124,8 +124,6 @@ procedure quicksortmemoryregions(lo,hi: integer);
 procedure rewritecode(processhandle: thandle; address:dword; buffer: pointer; size:dword);
 procedure rewritedata(processhandle: thandle; address:dword; buffer: pointer; size:dword);
 
-function FindPointer(start,stop:dword; AddressToFind:Dword; progressbar: Tprogressbar; offset: Tbytes):int64;
-
 procedure GetProcessList(ProcessList: TListBox); overload;
 procedure GetProcessList(ProcessList: TStrings); overload;
 procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
@@ -140,8 +138,6 @@ procedure Open_Process;
 Procedure Shutdown;
 function KeyToStr(key:word):string;
 
-procedure Freememory;
-procedure closefiles;
 function undolastscan(valtype: integer;hexadecimal:boolean): integer;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
@@ -190,12 +186,16 @@ procedure ToggleOtherWindows;
 
 procedure EnableStealth;
 procedure DisableStealth;
-Procedure InjectDll(dllname: string; functiontocall: string);
+Procedure InjectDll(dllname: string; functiontocall: string='');
 Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
 procedure SaveFormPosition(form: Tform; extra: array of integer);
 function LoadFormPosition(form: Tform; var x: array of integer):boolean; 
+
+function allocationtypetostring(alloctype: dword): string;
+function allocationprotecttostring(protect: dword): string;
+function freetypetostring(freetype: dword):string;
 
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:dword; sourceaddress:dword; sizeofcave: integer);
@@ -1280,7 +1280,7 @@ end;
 {$endif}
 
 
-Procedure InjectDll(dllname: string; functiontocall: string);
+Procedure InjectDll(dllname: string; functiontocall: string='');
 var LoadLibraryPtr: pointer;
     GetProcAddressPtr: Pointer;
 
@@ -2203,134 +2203,6 @@ begin
   assignfile(memoryfile,CheatEngineDir+'Memory.tmp');
 end;
 
-procedure closefiles;
-begin
-  try closefile(addressfile); except end;
-  try closefile(memoryfile); except end;
-  try closefile(newAddressfile); except end;
-  try closefile(newmemoryfile); except end;
-end;
-
-procedure Freememory;
-var i: integer;
-    fm: tfreememorythread;
-begin
-//  freeingmemory:=true;
-
-  fm:=tfreememorythread.Create(true);
-  fm.FreeOnTerminate:=true;
-
-  fm.Bitscan:=pointer(bitscan);
-  bitscan:=nil;
-
-  fm.tempbits:=pointer(tempbits);
-  tempbits:=nil;
-
-  fm.FoundAddress:=pointer(foundaddress);
-  foundaddress:=nil;
-  foundaddressswitch:=nil;
-
-  fm.FoundValue1:=pointer(foundvalue1);
-  fm.FoundValue1switch:=pointer(foundvalue1switch);
-  foundvalue1:=nil;
-  foundvalue1switch:=nil;
-
-  fm.FoundValue2:=pointer(foundvalue2);
-  fm.FoundValue2switch:=pointer(foundvalue2switch);
-  FoundValue2:=nil;
-  FoundValue2switch:=nil;
-
-  fm.FoundValue3:=pointer(foundvalue3);
-  fm.foundvalue3switch:=pointer(foundvalue3switch);
-  FoundValue3:=nil;
-  foundvalue3switch:=nil;
-
-  fm.FoundValue4:=pointer(foundvalue4);
-  fm.foundvalue4switch:=pointer(foundvalue4switch);
-  FoundValue4:=nil;
-  foundvalue4switch:=nil;
-
-  fm.FoundValue5:=pointer(foundvalue5);
-  fm.foundvalue5switch:=pointer(foundvalue5switch);
-  FoundValue5:=nil;
-  FoundValue5switch:=nil;
-
-  fm.foundValue6:=pointer(foundvalue6);
-  fm.foundvalue6switch:=pointer(foundvalue6switch);
-  foundValue6:=nil;
-  foundvalue6switch:=nil;
-
-  fm.FoundValue7:=pointer(foundvalue7);
-  fm.foundvalue7switch:=pointer(foundvalue7switch);
-  FoundValue7:=nil;
-  foundvalue7switch:=nil;
-
-  fm.FoundValue8:=pointer(foundvalue8);
-  fm.foundvalue8switch:=pointer(foundvalue8switch);
-  FoundValue8:=nil;
-  foundvalue8switch:=nil;  
-
-  fm.foundaddressB:=pointer(foundaddressb);
-  foundaddressB:=nil;
-  foundaddressbswitch:=nil;
-
-
-  fm.previousmemory:=pointer(previousmemory);
-  previousmemory:=nil;
-
-  fm.SearchAddress:=pointer(searchaddress);
-  SearchAddress:=nil;
-
-  fm.SearchAddressB:=pointer(searchaddressb);
-  SearchAddressB:=nil;
-
-  fm.previousmemory1:=pointer(previousmemory1);
-  fm.previousmemory1switch:=pointer(previousmemory1switch);
-  previousmemory1:=nil;
-
-  fm.previousmemory2:=pointer(previousmemory2);
-  fm.previousmemory2switch:=pointer(previousmemory2switch);
-  previousmemory2:=nil;
-
-  fm.previousmemory3:=pointer(previousmemory3);
-  fm.previousmemory3switch:=pointer(previousmemory3switch);
-  previousmemory3:=nil;
-
-  fm.previousmemory4:=pointer(previousmemory4);
-  fm.previousmemory4switch:=pointer(previousmemory4switch);
-  previousmemory4:=nil;
-
-  fm.previousmemory5:=pointer(previousmemory5);
-  fm.previousmemory5switch:=pointer(previousmemory5switch);
-  previousmemory5:=nil;
-
-  fm.previousmemory6:=pointer(previousmemory6);
-  fm.previousmemory6switch:=pointer(previousmemory6switch);
-  previousmemory6:=nil;
-
-  fm.PreviousMemory7:=pointer(previousmemory7);
-  fm.previousmemory7switch:=pointer(previousmemory7switch);
-  PreviousMemory7:=nil;
-
-  fm.PreviousMemory8:=pointer(previousmemory8);
-  fm.previousmemory8switch:=pointer(previousmemory8switch);
-  PreviousMemory8:=nil;
-
-  fm.Memory:=pointer(memory);
-  Memory:=nil;
-
-  fm.memory2:=pointer(memory2);
-  memory2:=nil;
-
-  fm.bytes:=pointer(bytes);
-  bytes:=nil;
-
-  fm.bytearray:=pointer(bytearray);
-  bytearray:=nil;
-
-  fm.resume;
-end;
-
 function AvailMem:dword;
 var x: _MEMORYSTATUS;
 begin
@@ -2607,320 +2479,6 @@ begin
   end;
 end;
            }
-function FindPointer(start,stop:dword; AddressToFind:Dword; progressbar: Tprogressbar; offset: Tbytes):int64;
-var mbi : _MEMORY_BASIC_INFORMATION;
-    address: Dword;
-    size:       dword;
-
-    found: dword;
-
-    Decim:       dword;
-    Decimhelp:   Integer;
-
-
-
-    ByteValue: Byte;
-    WordValue: Word;
-    DWordValue: Dword;
-    SingleValue: Single;
-    doubleValue: double;
-    Int64Value: Int64;
-
-    helpword:  word;
-    helpdword:  dword;
-    HelpInt64: Int64;
-    helpsingle,helpsingle2: Single;
-    helpdouble,helpdouble2: double;
-
-
-    i,k,l: integer;
-    j: dword;
-
-    actualread: dword;
-    actualwrite: dword;
-
-
-    //save variables
-    dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
-
-
-    //string search part
-
-  //  buf: array [1..512] of byte;
-      CharToFind: Dword;
-   //   region: TMemoryregion;
-      memoryposition: Dword;
-      position: Dword;
-      searching: Boolean;
-
-      scanlength: Dword;
-
-      TotalToRead: Dword;
-      check:    boolean;
-
-//x:integer
-      MPoint: ^Byte;
-
-      ByteP: pbyte;
-      bytep2: pbyte;
-      WordP: ^Word;
-      DwordP: ^Dword;
-      Int64P: ^Int64;
-
-      SingleP: ^Single;
-      DoubleP: ^double;
-
-
-      number: dword;
-      maxmem: dword;
-
-      FoundIsFilled: Boolean;
-
-      //arrayofbyte vars
-      nrofbytes: dword;
-      bytes: TBytes;  //-1=wildcard
-
-      BitToFind: integer;
-
-      traceback: boolean;
-
-      resulthelper: tfilestream;
-      tempstring: pchar;
-      readonly: boolean;
-      tempdword: dword;
-
-      P: dword;
-      currentcheck: integer;
-begin
-
-  readonly:=true;
-  advanceD:=false;
-  nrofbits:=999;
-
-  Int64Value:=0;
-  FoundIsFilled:=false;
-
- // setlength(memory,splitvalue+1);
-  found:=0;
-
-
-  address:=start;
-  try
-//-------------------------------------------------
-  while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
-  begin
-    if (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and (mbi.protect<>PAGE_NOACCESS) then  //look if it is commited
-    begin
-      if not readonly then  //if the settings are set to not read read-only memory then
-      begin
-        if (((mbi.AllocationProtect) and (page_readonly or page_execute_read))=0) and
-           (((mbi.Protect) and (page_readonly or PAGE_EXECUTE_READ))=0) then //look if the memory is not read-only  , if 0 it means it's not read-only
-        begin
-          if Skip_PAGE_NOCACHE then
-            if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
-            begin
-              address:=dword(mbi.BaseAddress)+mbi.RegionSize;
-              continue;
-            end;
-
-          setlength(memoryregion,memoryregions+1);
-          memoryregion[memoryregions].BaseAddress:=dword(mbi.baseaddress);  //remember if it's not read only
-          memoryregion[memoryregions].MemorySize:=mbi.RegionSize;
-          inc(memoryregions);
-        end;
-      end else  //if the settings are to also read the read only then:
-      begin
-        if Skip_PAGE_NOCACHE then
-          if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
-          begin
-            address:=dword(mbi.BaseAddress)+mbi.RegionSize;
-            continue;
-          end;
-
-        setlength(memoryregion,memoryregions+1);
-        memoryregion[memoryregions].BaseAddress:=dword(mbi.baseaddress);  //just remember this location
-        memoryregion[memoryregions].MemorySize:=mbi.RegionSize;
-        inc(memoryregions);
-      end;
-    end;
-
-
-    address:=dword(mbi.baseaddress)+mbi.RegionSize;
-  end;
-
-  
-  if memoryregions=0 then
-  begin
-    closefile(memoryfile);
-    closefile(addressfile);
-    raise Exception.create('No readable memory found in the region you specified!');
-  end;
-
-  //lets search really at the start of the location the user specified
-  if (memoryregion[0].BaseAddress<start) and (memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress)>0) then
-  begin
-    memoryregion[0].MemorySize:=memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress);
-    memoryregion[0].BaseAddress:=start;
-  end;
-
-  //also the right end
-  if (memoryregion[memoryregions-1].BaseAddress+memoryregion[memoryregions-1].MemorySize)>stop then
-    dec(memoryregion[memoryregions-1].MemorySize,(memoryregion[memoryregions-1].BaseAddress+memoryregion[memoryregions-1].MemorySize)-stop-1);
-
-
-  j:=0;
-  address:=memoryregion[0].BaseAddress;
-  size:=memoryregion[0].MemorySize;
-
-  for i:=1 to memoryregions-1 do
-  begin
-    if memoryregion[i].BaseAddress=address+size then
-    begin
-      inc(size,memoryregion[i].MemorySize);
-    end
-    else
-    begin
-      memoryregion[j].BaseAddress:=address;
-      memoryregion[j].MemorySize:=size;
-
-      address:=memoryregion[i].BaseAddress;
-      size:=memoryregion[i].MemorySize;
-      inc(j);
-    end;
-  end;
-
-  memoryregion[j].BaseAddress:=address;
-  memoryregion[j].MemorySize:=size;
-
-  memoryregions:=j+1;
-  setlength(memoryregion,memoryregions);
-
-
-  //re-added due to complaints about speed:
-  //split up into smaller chunks
-
-  if buffersize>0 then
-  begin
-    i:=0;
-    while i<=memoryregions-1 do
-    begin
-      if memoryregion[i].MemorySize>dword(buffersize) then
-      begin
-        inc(memoryregions);
-        setlength(memoryregion,memoryregions);
-
-        //copy the next element to the back, and split up the current one
-        //(unless this is the item at the back, and not needed)
-        if i<memoryregions-2 then
-        begin
-          //i isnt the last element of the array so do a semi-shift
-          memoryregion[memoryregions-1].BaseAddress:=memoryregion[i+1].baseaddress;
-          memoryregion[memoryregions-1].MemorySize:=memoryregion[i+1].MemorySize;
-        end;
-
-        memoryregion[i+1].IsChild:=true;
-        memoryregion[i+1].BaseAddress:=memoryregion[i].BaseAddress+buffersize;
-        memoryregion[i+1].MemorySize:=memoryregion[i].MemorySize-buffersize;
-
-        memoryregion[i].MemorySize:=buffersize;
-      end;
-      inc(i);
-    end;
-    dec(memoryregions);
-  end else memoryregions:=j;
-
-  TotalToRead:=0;
-  maxmem:=0;
-  For i:=0 to Memoryregions do
-  begin
-    inc(TotalToRead,Memoryregion[i].MemorySize);
-    if maxmem<Memoryregion[i].MemorySize then maxmem:=Memoryregion[i].MemorySize;
-  end;
-
-  totalbytes:=totaltoread;
-
-  progressbar.max:=totaltoread;;
- // setlength(memory,maxmem+1);  //+1 just because I want to be sure, you never know in delphi)
-  if memory<>nil then
-  begin
-    freemem(memory);
-    memory:=nil;
-  end;
-
-  getmem(memory,maxmem);
-  number:=buffersize;
-
-  setlength(foundaddress,number);
-
-  except
-    raise exception.Create('Something went wrong');
-  end;
-
-  assignfile(Addressfile,CheatEngineDir+'Addresses.TMP');
-  datatype:='NORMAL';
-  rewrite(Addressfile,1);
-  blockwrite(Addressfile,datatype,sizeof(datatype));
-
-  for i:=0 to memoryregions do
-  begin
-    dwordp:=pointer(memory);
-    readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),Memory,Memoryregion[i].MemorySize,actualread);
-
-    if actualread<4 then
-    begin
-//      raise exception.create(IntToStR(getlasterror));
-      inc(currentbyte,Memoryregion[i].MemorySize);
-      progressbar.Position:=currentbyte;
-      continue;
-    end;
-
-    currentcheck:=0;
-    for j:=0 to actualread-1 do
-    begin
-      p:=Memoryregion[i].BaseAddress+j; //dwordp^;
-
-      while currentcheck<>length(offset) do
-      begin
-        readprocessmemory(processhandle,pointer(p),@p,4,nrofbytes);
-        if nrofbytes<>4 then
-        begin
-          currentcheck:=0;
-          break
-        end
-        else
-        begin
-          inc(p,offset[currentcheck]);
-          inc(currentcheck);
-        end;
-      end;
-
-      if currentcheck=length(offset) then
-      begin
-        if p=addresstofind then
-        begin
-          tempdword:=Memoryregion[i].BaseAddress+j;
-          blockwrite(addressfile,tempdword,sizeof(dword),tempdword);
-        end;
-
-        currentcheck:=0;
-      end;
-
-      asm
-        inc [dwordp]
-      end;
-      inc(currentbyte);
-
-    end;
-    if actualread<>Memoryregion[i].MemorySize then inc(currentbyte,Memoryregion[i].MemorySize-actualread);
-    progressbar.Position:=currentbyte;
-  end;
-
-
-  result:=filesize(addressfile) div 4;
-
-  closefile(addressfile);
-  freememory;
-end;
 
 
 procedure quicksortmemoryregions(lo,hi: integer);
@@ -3560,6 +3118,47 @@ begin
     end;
   end;
 end;
+
+function allocationtypetostring(alloctype: dword): string;
+begin
+  result:='';
+  if (alloctype and MEM_COMMIT) > 0 then result:='MEM_COMMIT+';
+  if (alloctype and MEM_RESERVE) > 0 then result:=result+'MEM_RESERVE+';
+  if (alloctype and MEM_RESET) > 0 then result:=result+'MEM_RESET+';
+  if (alloctype and MEM_TOP_DOWN)	> 0 then result:=result+'MEM_TOP_DOWN+';
+  if (alloctype and $400000) > 0 then result:=result+'MEM_PHYSICAL+';
+  if (alloctype and $20000000) > 0 then result:=result+'MEM_LARGE_PAGES+';
+
+  result:=Copy(result,1,length(result)-1)+'('+inttohex(alloctype,1)+')';
+end;
+
+function allocationprotecttostring(protect: dword): string;
+begin
+  result:='';
+  if (protect and PAGE_EXECUTE) > 0 then result:='PAGE_EXECUTE+';
+  if (protect and PAGE_EXECUTE_READ) > 0 then result:=result+'PAGE_EXECUTE_READ+';
+  if (protect and PAGE_EXECUTE_READWRITE) > 0 then result:=result+'PAGE_EXECUTE_READWRITE+';
+  if (protect and PAGE_EXECUTE_WRITECOPY) > 0 then result:=result+'PAGE_EXECUTE_WRITECOPY+';
+  if (protect and PAGE_NOACCESS) > 0 then result:=result+'PAGE_NOACCESS+';
+  if (protect and PAGE_READONLY) > 0 then result:=result+'PAGE_READONLY+';
+  if (protect and PAGE_READWRITE) > 0 then result:=result+'PAGE_READWRITE+';
+  if (protect and PAGE_WRITECOPY) > 0 then result:=result+'PAGE_WRITECOPY+';
+  if (protect and PAGE_GUARD) > 0 then result:=result+'PAGE_GUARD+';
+  if (protect and PAGE_NOCACHE) > 0 then result:=result+'PAGE_NOCACHE+';
+  if (protect and $400) > 0 then result:=result+'PAGE_WRITECOMBINE+';
+
+  result:=Copy(result,1,length(result)-1)+'('+inttohex(protect,1)+')';
+end;
+
+function freetypetostring(freetype: dword):string;
+begin
+  result:='';
+  
+  if (freetype and MEM_DECOMMIT) > 0 then result:='MEM_DECOMMIT+';
+  if (freetype and MEM_RELEASE) > 0 then result:='MEM_RELEASE+';  
+  result:=Copy(result,1,length(result)-1)+'('+inttohex(freetype,1)+')';
+end;
+
 
 initialization
   keysfilemapping:=0;

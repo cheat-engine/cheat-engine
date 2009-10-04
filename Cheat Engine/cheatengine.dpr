@@ -147,7 +147,9 @@ uses
   frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript},
   stealthedit in 'stealthedit.pas',
   disassemblerviewunit in 'disassemblerviewunit.pas',
-  disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas';
+  disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas',
+  frmMemoryAllocHandlerUnit in 'frmMemoryAllocHandlerUnit.pas' {frmMemoryAllocHandler},
+  stacktrace2 in 'stacktrace2.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -155,7 +157,7 @@ uses
 
 begin
   Application.Initialize;
-  GetCEdir;
+  getcedir;
   setlanguage;
   Application.Title := 'Cheat Engine 5.5';
   Application.HelpFile := 'CheatEngine.chm';

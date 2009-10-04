@@ -1613,7 +1613,8 @@ begin
   end;
 end;
 
-procedure LaunchDBVM; stdcall;
+
+function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
 var cc: dword;
 var Input: record
   dbvmimgpath: UINT64;
@@ -1621,7 +1622,6 @@ end;
 
   temp: widestring;
 begin
-  
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     Outputdebugstring('LaunchDBVM');
@@ -1633,6 +1633,12 @@ begin
     input.dbvmimgpath:=dword(@temp[1]);
     deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
   end;
+end;
+
+procedure LaunchDBVM; stdcall;
+begin
+  forspecificcpu(0,internal_LaunchDBVM,nil);
+//  foreachcpu(internal_LaunchDBVM, nil);
 end;
 
 

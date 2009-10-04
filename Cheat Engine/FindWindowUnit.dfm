@@ -1,5 +1,5 @@
 object FindWindow: TFindWindow
-  Left = 525
+  Left = 1680
   Top = 399
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

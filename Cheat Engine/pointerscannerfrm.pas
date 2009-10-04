@@ -201,6 +201,10 @@ type
     writableonly: boolean;
     unallignedbase: boolean;
 
+    mustEndWithSpecificOffset: boolean;
+    offsetlist: array of dword;
+
+
     threadcount: integer;
     scannerpriority: TThreadPriority;
 
@@ -1672,6 +1676,8 @@ begin
     treenodeswithchildrenpos:=0;
     matchednodespos:=0;
 
+
+
     //initialize array's
     setlength(dissectedpointersLevelpos,frmpointerscannersettings.maxlevel+1);
     setlength(dissectedpointersLevel,frmpointerscannersettings.maxlevel+1);
@@ -1744,6 +1750,13 @@ begin
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
 
+      staticscanner.mustEndWithSpecificOffset:=frmpointerscannersettings.cbMustEndWithSpecificOffset.checked;
+      if staticscanner.mustEndWithSpecificOffset then
+      begin
+        setlength(staticscanner.offsetlist, frmpointerscannersettings.offsetlist.count);
+        for i:=0 to frmpointerscannersettings.offsetlist.count do
+          staticscanner.offsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
+      end;
 
       progressbar1.Max:=staticscanner.stop-staticscanner.start;
 

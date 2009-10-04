@@ -946,6 +946,10 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49236
         OnClick = CreateThread1Click
       end
+      object Watchmemoryallocations1: TMenuItem
+        Caption = 'Watch memory allocations'
+        OnClick = Watchmemoryallocations1Click
+      end
       object N8: TMenuItem
         Caption = '-'
       end

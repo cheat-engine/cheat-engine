@@ -61,7 +61,11 @@ typedef struct
 	UINT64		fs;
 	UINT64		gs;
 	UINT64		tr;
-	UINT64		ldt;	
+	UINT64		ldt;
+	
+	UINT64		fsbase;
+	UINT64		gsbase;
+
 } OriginalState, *POriginalState;
 
 unsigned char *enterVMM2;
@@ -295,14 +299,18 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						PageDir[0]=0;
 						((PPDE2MB_PAE)(&PageDir[0]))->P=1;
-						((PPDE2MB_PAE)(&PageDir[0]))->RW=1;
-						((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB
+						((PPDE2MB_PAE)(&PageDir[0]))->US=1;
+						((PPDE2MB_PAE)(&PageDir[0]))->RW=0;
+						((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB*/
 
 
-						PageDir[1]=0;
+						PageDir[1]=0x00200000;
+						
 						((PPDE2MB_PAE)(&PageDir[1]))->P=1;
-						((PPDE2MB_PAE)(&PageDir[1]))->RW=1;
+						((PPDE2MB_PAE)(&PageDir[1]))->US=1;
+						((PPDE2MB_PAE)(&PageDir[1]))->RW=0;
 						((PPDE2MB_PAE)(&PageDir[1]))->PS=1; //2MB
+						
 
 						PageDir[2]=MmGetPhysicalAddress(vmm).LowPart;
 						((PPDE2MB_PAE)(&PageDir[2]))->P=1;
@@ -411,8 +419,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						
 
 						
-#ifdef AMD64
-						//no need for temporary paging in x64						
+#ifdef AMD64			
+						DbgPrint("Setting up temporary paging setup for x64\n");
 						{
 							PUINT64 PML4Table=(PUINT64)TemporaryPagingSetup;
 							PUINT64	PageDirPtr=(PUINT64)((UINT_PTR)TemporaryPagingSetup+4096);						
@@ -501,6 +509,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						bam.QuadPart=0;
 						originalstate=MmAllocateContiguousMemorySpecifyCache(((sizeof(OriginalState)>4096) ? sizeof(OriginalState) : 4096), minPA, maxPA, bam, MmCached);
 						RtlZeroMemory(originalstate, sizeof(OriginalState));
+
 						originalstatePA=MmGetPhysicalAddress(originalstate).LowPart;
 						DbgPrint("enterVMM2PA=%x\n",enterVMM2PA);
 
@@ -532,6 +541,14 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 	if (initializedvmm)
 	{
+		KIRQL oldirql;
+		
+		DbgPrint("cpunr=%d\n",cpunr());
+		KeRaiseIrql(HIGH_LEVEL,&oldirql);
+
+		
+			
+
 		DbgPrint("Storing original state\n");
 		originalstate->cpucount=getCpuCount();
 		DbgPrint("originalstate->cpucount=%d",originalstate->cpucount);
@@ -568,6 +585,12 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->tr=GetTR();
 		DbgPrint("originalstate->tr=%llx",originalstate->tr);
 
+		originalstate->fsbase=readMSR(0xc0000100);
+		originalstate->gsbase=readMSR(0xc0000101);
+
+		DbgPrint("originalstate->fsbase=%llx originalstate->gsbase=%llx\n", originalstate->fsbase, originalstate->gsbase);
+
+
 		originalstate->dr7=getDR7();
 
 		
@@ -587,41 +610,96 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		DbgPrint("originalstate->idtbase=%llx",originalstate->idtbase);
 		DbgPrint("originalstate->idtlimit=%llx",originalstate->idtlimit);
 		
-		eflags=getEflags();
+		
+		eflags=getEflags();		
+		eflags.IF=0;
+
 		originalstate->rflags=*(PUINT_PTR)&eflags;
+
+
 
 		DbgPrint("originalstate->rflags=%llx",originalstate->rflags);
 
 
 		originalstate->rsp=getRSP();
+		DbgPrint("originalstate->rsp=%llx",originalstate->rsp);
 		originalstate->rbp=getRBP();
+		DbgPrint("originalstate->rbp=%llx",originalstate->rbp);
+
 		originalstate->rax=getRAX();
+		DbgPrint("originalstate->rax=%llx",originalstate->rax);
 		originalstate->rbx=getRBX();
+		DbgPrint("originalstate->rbx=%llx",originalstate->rbx);
 		originalstate->rcx=getRCX();
+		DbgPrint("originalstate->rcx=%llx",originalstate->rcx);
 		originalstate->rdx=getRDX();
+		DbgPrint("originalstate->rdx=%llx",originalstate->rdx);
 		originalstate->rsi=getRSI();
+		DbgPrint("originalstate->rsi=%llx",originalstate->rsi);
 		originalstate->rdi=getRDI();
+		DbgPrint("originalstate->rdi=%llx",originalstate->rdi);
 #ifdef AMD64
 		originalstate->r8=getR8();
+		DbgPrint("originalstate->r8=%llx",originalstate->r8);
 		originalstate->r9=getR9();
+		DbgPrint("originalstate->r9=%llx",originalstate->r9);
 		originalstate->r10=getR10();
+		DbgPrint("originalstate->r10=%llx",originalstate->r10);
 		originalstate->r11=getR11();
+		DbgPrint("originalstate->r11=%llx",originalstate->r11);
 		originalstate->r12=getR12();
+		DbgPrint("originalstate->r12=%llx",originalstate->r12);
 		originalstate->r13=getR13();
+		DbgPrint("originalstate->r13=%llx",originalstate->r13);
 		originalstate->r14=getR14();
+		DbgPrint("originalstate->r14=%llx",originalstate->r14);
 		originalstate->r15=getR15();
+		DbgPrint("originalstate->r15=%llx",originalstate->r15);
 #endif
 		
-		DbgPrint("Calling entervmm2\n");
 
 #ifdef AMD64
 		
 		originalstate->rsp-=8; //adjust rsp for the "call entervmmprologue"
  		originalstate->rip=(UINT_PTR)enterVMMEpilogue; //enterVMMEpilogue is an address inside the entervmmprologue function
+
+		DbgPrint("originalstate->rip=%llx",originalstate->rip);
+
+		DbgPrint("Calling entervmm2. (Originalstate=%p (%llx))\n",originalstate,originalstatePA);
+		{
+
+			LARGE_INTEGER wait;
+			wait.QuadPart=-10000LL * 5000; //5 seconds should be enough time
+			
+			KeDelayExecutionThread(KernelMode, TRUE, &wait);
+		}
+
+		//call to entervmmprologue, pushes the return value on the stack
 		enterVMMPrologue();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		disableInterrupts();
+		
 		
 		DbgPrint("Returned from enterVMMPrologue\n");
+		enableInterrupts();
 
+		DbgPrint("cpunr=%d\n",cpunr());
+		KeLowerIrql(oldirql);
+
+		DbgPrint("cpunr=%d\n",cpunr());
 #else
 		
 		{

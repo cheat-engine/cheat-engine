@@ -92,7 +92,6 @@ int getCpuCount(void)
 	return count;
 }
 
-
 int isPrefix(unsigned char b)
 {
 	switch (b)

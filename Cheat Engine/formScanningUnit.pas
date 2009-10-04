@@ -240,10 +240,7 @@ begin
   //the scan got terminated
   if not mainform.cbFasterScan.checked then
   begin
-    terminatethread(scanner.Handle,0);
-    freememory;
-    closefiles;
-
+    {obsolete}
     canclose:=true;
     modalresult:=mrCancel;
   end

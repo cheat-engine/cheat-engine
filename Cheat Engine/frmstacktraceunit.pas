@@ -26,6 +26,9 @@ implementation
 
 {$R *.dfm}
 
+
+
+
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
 var stackframe: PStackframe;
     cxt:_context;

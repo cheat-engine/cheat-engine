@@ -1,6 +1,6 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 364
-  Top = 257
+  Left = 602
+  Top = 420
   Width = 627
   Height = 432
   Caption = 'Pointer scan'
@@ -21,8 +21,8 @@ object frmPointerScanner: TfrmPointerScanner
   TextHeight = 13
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 361
-    Width = 619
+    Top = 359
+    Width = 611
     Height = 17
     Align = alBottom
     Step = 1
@@ -31,7 +31,7 @@ object frmPointerScanner: TfrmPointerScanner
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 619
+    Width = 611
     Height = 17
     Align = alTop
     BevelOuter = bvNone
@@ -40,8 +40,8 @@ object frmPointerScanner: TfrmPointerScanner
   object pgcPScandata: TPageControl
     Left = 0
     Top = 17
-    Width = 619
-    Height = 344
+    Width = 611
+    Height = 342
     ActivePage = tsPSDefault
     Align = alClient
     TabOrder = 2
@@ -185,8 +185,8 @@ object frmPointerScanner: TfrmPointerScanner
       object tvRSThreads: TTreeView
         Left = 0
         Top = 97
-        Width = 611
-        Height = 191
+        Width = 603
+        Height = 189
         Align = alClient
         Indent = 19
         TabOrder = 0
@@ -194,7 +194,7 @@ object frmPointerScanner: TfrmPointerScanner
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 611
+        Width = 603
         Height = 97
         Align = alTop
         BevelOuter = bvNone
@@ -237,8 +237,8 @@ object frmPointerScanner: TfrmPointerScanner
       end
       object Panel3: TPanel
         Left = 0
-        Top = 288
-        Width = 611
+        Top = 286
+        Width = 603
         Height = 28
         Align = alBottom
         BevelOuter = bvNone

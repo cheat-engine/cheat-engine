@@ -138,7 +138,6 @@ type
     Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
-    Trytofindbasepointer1: TMenuItem;
     Settogroup42: TMenuItem;
     Settogroup51: TMenuItem;
     cbFasterScan: TCheckBox;
@@ -379,7 +378,6 @@ type
     procedure CloseCheatEngine1Click(Sender: TObject);
     procedure Showashexadecimal1Click(Sender: TObject);
     procedure OpenMemorybrowser1Click(Sender: TObject);
-    procedure Trytofindbasepointer1Click(Sender: TObject);
     procedure cbFastScanClick(Sender: TObject);
     procedure AllClickClick(Sender: TObject);
     procedure cbPauseWhileScanningClick(Sender: TObject);
@@ -3818,9 +3816,7 @@ begin
 
   fastscan:=formsettings.cbFastscan.checked;
   //close files in case of a bug i might have missed...
-  closefiles;
 
-  freememory;
   vartype.visible:=true;
 
   foundcount:=0;
@@ -6657,7 +6653,6 @@ begin
   begin
     if hotkeys[lastselected]<>-1 then sethotkey1.Caption:='Remove the hotkey (currently:'+hotkeystrings[lastselected]+')';
 
-    Trytofindbasepointer1.Visible:=memrec[lastselected].IsPointer;
     if memrec[lastselected].VarType in [0,1,2,6] then
       Showashexadecimal1.Visible:=true;
 
@@ -6953,7 +6948,6 @@ begin
     FreezeAllAddresses2.caption:=strenablecheat;
 
     n5.visible:=false;
-    Trytofindbasepointer1.Visible:=false;
     Findoutwhataccessesthisaddress1.visible:=false;
     Setbreakpoint1.visible:=false;
     sep1.visible:=false;
@@ -8092,7 +8086,6 @@ begin
     
   disablestealth;
 
-  Freememory;
   numberofrecords:=0;
   reservemem;
 
@@ -9980,99 +9973,6 @@ begin
 end;
 
 
-procedure TMainForm.Trytofindbasepointer1Click(Sender: TObject);
-var value:string;
-    Vtype,SType: Integer;
-    FromAdd,ToAdd:Dword;
-
-    x: TBytes;
-
-    i,j,error: integer;
-    res:word;
-    atf: dword;
-begin
-  if processhandle=0 then raise exception.Create('First open a process to be scanned');
-
-  res:=mrcancel;
-  VType:=GetVarType;
-  SType:=GetScanType;
-
-  if not (vtype in [0,1,2,3,4,6]) then raise exception.create('This function can''t work with the type you''ve selected');
-  value:='';
-  if InputQuery('Find base address','Please give the address the pointer should point to and I''ll try to find it. (Warning! This will take a long time, and it''s only recommended if nothing else works)',value) then
-  begin
-    if value='' then raise exception.Create('Please fill in an address');
-
-    try
-      atf:=StrToInt('$'+value);
-    except
-
-    end;
-
-    //fill x
-    setlength(x,length(memrec[lastselected].pointers));
-    for i:=0 to length(x)-1 do
-      x[length(x)-1-i]:=memrec[lastselected].pointers[i].offset;     //inverse, last first
-
-
-    foundlist.Deinitialize;
-    try
-      screen.Cursor:=crHourglass;
-      advanced:=false;
-      undoscan.enabled:=false;
-
-      foundlist.Clear;
-
-      val('$'+FromAddress.text,FromAdd,error);
-      val('$'+ToAddress.text,ToAdd,error);
-      foundcountlabel.visible:=true;
-
-      mainform.caption:=CERegionSearch;
-      foundcountlabel.caption:='';
-
-      UpdateFoundlisttimer.Enabled:=false;
-
-      if formsettings.checkThread.checked or cbfasterscan.checked then
-      begin
-        formscanning:=TFormscanning.create(self);
-        formscanning.button:=0;
-        formscanning.scan:=3;
-        formscanning.fromadd:=fromadd;
-        formscanning.toadd:=toadd;
-        formscanning.readonly:=readonly.checked;
-        formscanning.stype:=stype;
-        formscanning.vtype:=vtype;
-        formscanning.fastscan:=fastscan;
-        formscanning.scanvalue:=scanvalue.Text;
-        formscanning.hexadecimal:=hexadecimalcheckbox.checked;
-        formscanning.addresstofind:=atf;
-        formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
-        formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
-        formscanning.ExtremeScan:=cbFasterscan.Checked;
-        
-        setlength(formscanning.pointerinfo,length(x));
-        for i:=0 to length(x)-1 do
-          formscanning.pointerinfo[i]:=x[i];
-          
-        res:=formscanning.showmodal;
-      end else
-      begin
-        foundcount:=FindPointer(FromAdd,ToAdd,atf,progressbar1,x);
-      end;
-
-      foundlist.Clear;
-
-      progressbar1.Position:=0;
-      mainform.Caption:=CEnorm;
-    finally
-      screen.Cursor:=crDefault;
-      setlength(x,0);
-    end;
-
-    foundlist.Initialize(2,0,true,false,false,false);
-  end;
-end;
-
 procedure TMainForm.cbFastScanClick(Sender: TObject);
 var i: integer;
 begin
@@ -10744,10 +10644,15 @@ var res: integer;
     j: integer;
     check: boolean;
     i: integer;
+    findpointeroffsets: boolean;
 begin
+  findpointeroffsets:=false;
   try
     if memrec[lastselected].IsPointer then
     begin
+      if MessageDlg('This is already a pointer. Do you want to find a pointer that fits with these offsets',mtInformation, [mbyes,mbno], 0)=mryes then
+        findpointeroffsets:=true;
+
       realaddress2:=memrec[lastselected].pointers[length(memrec[lastselected].pointers)-1].Address;
       for j:=length(memrec[lastselected].pointers)-1 downto 0 do
       begin
@@ -10758,7 +10663,6 @@ begin
           raise exception.Create('The pointer can''t be completly read');
       end;
       address:=realaddress2;
-
     end
     else
       address:=memrec[lastselected].address;
@@ -10787,6 +10691,20 @@ begin
       frmpointerscannersettings:=tfrmpointerscannersettings.create(self);
 
     frmpointerscannersettings.edtAddress.text:=inttohex(address,8);
+
+    if findpointeroffsets then
+    begin
+      //create and fill in the offset list
+      frmpointerscannersettings.cbMustEndWithSpecificOffset.checked:=true;
+      TOffsetEntry(frmpointerscannersettings.offsetlist[0]).offset:=memrec[lastselected].pointers[0].offset;
+
+      for i:=1 to length(memrec[lastselected].pointers)-1 do
+      begin
+        frmpointerscannersettings.btnAddOffset.Click;
+        TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset:=memrec[lastselected].pointers[i].offset;
+      end;
+    end;
+
     frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
   end
   else if res=mrno then
@@ -11341,20 +11259,23 @@ begin
 end;
 
 procedure TMainForm.Label38Click(Sender: TObject);
-var resh: thandle;
+var
+  x: dword;
+{resh: thandle;
     s: tmemorystream;
     ki: TKIcon;
     tid: TIconData;
     x: array [0..4095] of byte;
     y: integer;
-    old: dword;
+    old: dword;}
 begin
-  loaddbk32;
-  asm
-
-  end;
+  x:=0;
+  while x=0 do
+    x:=x+1;
+    
+  beep;
   exit;
-
+  {
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;
     

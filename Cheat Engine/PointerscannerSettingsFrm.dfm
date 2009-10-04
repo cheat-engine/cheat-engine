@@ -1,10 +1,10 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 838
-  Top = 414
+  Left = 591
+  Top = 2
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 384
-  ClientWidth = 364
+  ClientHeight = 413
+  ClientWidth = 360
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,51 +18,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Label3: TLabel
-    Left = 96
-    Top = 312
-    Width = 76
-    Height = 13
-    Caption = 'Size of structure'
-  end
-  object Label12: TLabel
-    Left = 184
-    Top = 312
-    Width = 45
-    Height = 13
-    Caption = 'Max level'
-  end
   object Label7: TLabel
     Left = 8
     Top = 8
     Width = 73
     Height = 13
     Caption = 'Address to find:'
-  end
-  object Label9: TLabel
-    Left = 32
-    Top = 288
-    Width = 113
-    Height = 13
-    Caption = 'Nr of threads scanning: '
-  end
-  object Button1: TButton
-    Left = 104
-    Top = 352
-    Width = 65
-    Height = 25
-    Caption = 'OK'
-    Default = True
-    TabOrder = 1
-    OnClick = Button1Click
-  end
-  object editStructsize: TEdit
-    Left = 96
-    Top = 327
-    Width = 65
-    Height = 21
-    TabOrder = 2
-    Text = '2048'
   end
   object edtAddress: TEdit
     Left = 8
@@ -73,24 +34,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     MaxLength = 8
     TabOrder = 0
   end
-  object editMaxLevel: TEdit
-    Left = 184
-    Top = 326
-    Width = 65
-    Height = 21
-    TabOrder = 3
-    Text = '5'
-  end
-  object btnCancel: TButton
-    Left = 176
-    Top = 352
-    Width = 75
-    Height = 25
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 4
-  end
   object rbDefault: TRadioButton
     Left = 216
     Top = 8
@@ -100,7 +43,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       'Starts from static addresses and then follows the path till it e' +
       'ncounters the target address'
     Caption = 'Old pointer scan'
-    TabOrder = 5
+    TabOrder = 1
     OnClick = rbDefaultClick
   end
   object rbReverse: TRadioButton
@@ -113,7 +56,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       't near there, and then go back further and further'
     Caption = 'Reverse pointer scan'
     Checked = True
-    TabOrder = 6
+    TabOrder = 2
     TabStop = True
     OnClick = rbReverseClick
   end
@@ -123,7 +66,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 353
     Height = 217
     ActivePage = PSReverse
-    TabOrder = 7
+    TabOrder = 3
     object PSDefault: TTabSheet
       Caption = 'Default'
       TabVisible = False
@@ -290,6 +233,14 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Height = 13
         Caption = 'Pointer path must only be inside this region:'
       end
+      object Label14: TLabel
+        Left = 0
+        Top = 120
+        Width = 121
+        Height = 13
+        Caption = 'Maximum offset to accept'
+        Enabled = False
+      end
       object CbAlligned: TCheckBox
         Left = 0
         Top = 0
@@ -332,33 +283,34 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         State = cbChecked
         TabOrder = 3
       end
+      object cbStackAsBase: TCheckBox
+        Left = 0
+        Top = 104
+        Width = 337
+        Height = 17
+        Caption = 
+          'Accept stack addresses of the main thread as base pointer as wel' +
+          'l'
+        TabOrder = 4
+      end
+      object Edit3: TEdit
+        Left = 0
+        Top = 136
+        Width = 121
+        Height = 21
+        Enabled = False
+        TabOrder = 5
+        Text = '4096'
+      end
+      object cbOnlyStackAsBase: TCheckBox
+        Left = 0
+        Top = 160
+        Width = 209
+        Height = 17
+        Caption = 'Only use the maintread stack as a base'
+        TabOrder = 6
+      end
     end
-  end
-  object edtThreadcount: TEdit
-    Left = 144
-    Top = 285
-    Width = 49
-    Height = 21
-    TabOrder = 8
-    Text = '2'
-  end
-  object ComboBox1: TComboBox
-    Left = 200
-    Top = 284
-    Width = 113
-    Height = 21
-    ItemHeight = 13
-    ItemIndex = 3
-    TabOrder = 9
-    Text = 'Normal'
-    Items.Strings = (
-      'Idle'
-      'Lowest'
-      'Lower'
-      'Normal'
-      'Higher'
-      'Highest'
-      'TimeCritical')
   end
   object cbreuse: TCheckBox
     Left = 8
@@ -368,6 +320,107 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Caption = 
       'Do not free the memory copy when finished, but reuse it for next' +
       ' scan'
-    TabOrder = 10
+    TabOrder = 4
+  end
+  object cbMustEndWithSpecificOffset: TCheckBox
+    Left = 8
+    Top = 288
+    Width = 201
+    Height = 17
+    Caption = 'Pointers must end with specific offsets'
+    TabOrder = 5
+    OnClick = cbMustEndWithSpecificOffsetClick
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 305
+    Width = 360
+    Height = 108
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 6
+    object Label3: TLabel
+      Left = 48
+      Top = 35
+      Width = 76
+      Height = 13
+      Caption = 'Size of structure'
+    end
+    object Label12: TLabel
+      Left = 184
+      Top = 34
+      Width = 45
+      Height = 13
+      Caption = 'Max level'
+    end
+    object Label9: TLabel
+      Left = 8
+      Top = 8
+      Width = 113
+      Height = 13
+      Caption = 'Nr of threads scanning: '
+    end
+    object Button1: TButton
+      Left = 112
+      Top = 56
+      Width = 65
+      Height = 25
+      Caption = 'OK'
+      Default = True
+      TabOrder = 0
+      OnClick = Button1Click
+    end
+    object editStructsize: TEdit
+      Left = 128
+      Top = 31
+      Width = 49
+      Height = 21
+      TabOrder = 1
+      Text = '2048'
+    end
+    object editMaxLevel: TEdit
+      Left = 232
+      Top = 30
+      Width = 65
+      Height = 21
+      TabOrder = 2
+      Text = '5'
+    end
+    object btnCancel: TButton
+      Left = 184
+      Top = 56
+      Width = 75
+      Height = 25
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 3
+    end
+    object edtThreadcount: TEdit
+      Left = 128
+      Top = 5
+      Width = 49
+      Height = 21
+      TabOrder = 4
+      Text = '2'
+    end
+    object ComboBox1: TComboBox
+      Left = 184
+      Top = 4
+      Width = 113
+      Height = 21
+      ItemHeight = 13
+      ItemIndex = 3
+      TabOrder = 5
+      Text = 'Normal'
+      Items.Strings = (
+        'Idle'
+        'Lowest'
+        'Lower'
+        'Normal'
+        'Higher'
+        'Highest'
+        'TimeCritical')
+    end
   end
 end

@@ -54,12 +54,13 @@ GetGDT:
 PUBLIC getRSP
 getRSP:
 	mov rax,rsp
-	add rax,4 ;undo the call push
+	add rax,8 ;undo the call push
 	ret	
 	
 PUBLIC getRBP
 getRBP:
-	mov rax,rbp
+    push rbp
+    pop rax	
 	ret	
 	
 PUBLIC getRAX

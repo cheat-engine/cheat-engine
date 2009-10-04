@@ -2,13 +2,13 @@ object frameHotkeyConfig: TframeHotkeyConfig
   Left = 0
   Top = 0
   Width = 416
-  Height = 546
+  Height = 414
   TabOrder = 0
   object Panel1: TPanel
     Left = 0
     Top = 50
     Width = 233
-    Height = 496
+    Height = 364
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
@@ -24,7 +24,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Left = 0
       Top = 13
       Width = 233
-      Height = 483
+      Height = 351
       Align = alClient
       ExtendedSelect = False
       ItemHeight = 13
@@ -67,13 +67,13 @@ object frameHotkeyConfig: TframeHotkeyConfig
     Left = 233
     Top = 50
     Width = 183
-    Height = 496
+    Height = 364
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
       183
-      496)
+      364)
     object Label2: TLabel
       Left = 6
       Top = 0
@@ -103,14 +103,14 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Left = 8
       Top = 64
       Width = 170
-      Height = 65
+      Height = 0
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvNone
       TabOrder = 2
       Visible = False
       DesignSize = (
         170
-        65)
+        0)
       object Label52: TLabel
         Left = 11
         Top = 2

@@ -213,13 +213,9 @@ begin
   if msg.WheelDelta>0 then
   begin
     fTopAddress:=previousopcode(fTopAddress); //up
-    fTopAddress:=previousopcode(fTopAddress); //up
-    fTopAddress:=previousopcode(fTopAddress); //up        
   end
   else
   begin
-    disassemble(fTopAddress); //down
-    disassemble(fTopAddress); //down
     disassemble(fTopAddress); //down
   end;
 

@@ -176,6 +176,8 @@ Return Value:
 
 	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",this_cs, this_ss, this_ds, this_es, this_fs, this_gs);
 
+	DbgPrint("fsbase=%llx gsbase=%llx\n", readMSR(0xc0000100), readMSR(0xc0000101));
+	DbgPrint("rbp=%llx\n", getRBP());
 	
 	
 
