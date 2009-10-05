@@ -11,7 +11,7 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  stealthedit, XMLDoc, XMLIntf;
+  stealthedit, XMLDoc, XMLIntf, stacktrace2;
 
   //the following are just for compatibility
 
@@ -11268,7 +11268,14 @@ var
     x: array [0..4095] of byte;
     y: integer;
     old: dword;}
+
+    trace: tstringlist;
 begin
+  trace:=tstringlist.Create;
+  ce_stacktrace(dword(@x),dword(@x), 0, @x,128,trace);
+
+  showmessage(trace.Text);
+
   x:=0;
   while x=0 do
     x:=x+1;

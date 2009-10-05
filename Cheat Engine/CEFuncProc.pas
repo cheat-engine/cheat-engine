@@ -29,7 +29,7 @@ math,syncobjs, shellapi, ProcessHandlerUnit;
 type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
 type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
-type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtByteArray, vtBinary, vtAll, vtCustom);
+type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtUnicodeString, vtByteArray, vtBinary, vtAll, vtCustom, vtPointer);
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 
 
@@ -2077,7 +2077,7 @@ end;
 
 function getbit(bitnr: integer; bt: dword):integer;
 begin
-  result:=GetBitOf(bt,bitnr);
+  result:=(bt shr bitnr) and 1;
 end;
 
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
@@ -3018,6 +3018,7 @@ var buf: array [0..31] of byte;
     st: string;
     offset: dword;
 begin
+{$ifndef standalonetrainer}
   result:=false;
 
   if readprocessmemory(processhandle,pointer(address),@buf[0],32,actualread) then
@@ -3076,6 +3077,7 @@ begin
     end;
 
   end;
+{$endif}
 
 end;
 

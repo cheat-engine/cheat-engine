@@ -215,7 +215,7 @@ end;
 
 function GetBitOf(Bt: dword; bit: integer): byte;
 begin
-  result:=(bt shr bit) and 1;
+  result:=getbit(bit,bt);
 end;
 
 function getsegmentoverride(prefix: TPrefix): string;

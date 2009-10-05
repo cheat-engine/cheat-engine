@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 879
-  Top = 523
+  Left = 880
+  Top = 527
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -21,8 +21,8 @@ object frmStructures: TfrmStructures
   object tvStructureView: TTreeView
     Left = 0
     Top = 50
-    Width = 606
-    Height = 288
+    Width = 598
+    Height = 286
     Align = alClient
     BorderStyle = bsNone
     Font.Charset = ANSI_CHARSET
@@ -46,7 +46,7 @@ object frmStructures: TfrmStructures
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 606
+    Width = 598
     Height = 33
     Align = alTop
     BevelOuter = bvNone
@@ -66,7 +66,7 @@ object frmStructures: TfrmStructures
   object HeaderControl1: THeaderControl
     Left = 0
     Top = 33
-    Width = 606
+    Width = 598
     Height = 17
     HotTrack = True
     Sections = <

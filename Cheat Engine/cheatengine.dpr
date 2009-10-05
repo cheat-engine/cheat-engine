@@ -149,7 +149,8 @@ uses
   disassemblerviewunit in 'disassemblerviewunit.pas',
   disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas',
   frmMemoryAllocHandlerUnit in 'frmMemoryAllocHandlerUnit.pas' {frmMemoryAllocHandler},
-  stacktrace2 in 'stacktrace2.pas';
+  stacktrace2 in 'stacktrace2.pas',
+  byteinterpreter in 'byteinterpreter.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

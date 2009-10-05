@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,cefuncproc,newkernelhandler,
-  symbolhandler, XMLDoc, XMLIntf;
+  symbolhandler, XMLDoc, XMLIntf, byteinterpreter;
 
 const structureversion=1;
 
@@ -130,7 +130,8 @@ type Tbasestucture=record
 
     procedure refreshmenuitems;
     procedure definedstructureselect(sender:tobject);
-    function RawToType(address: dword; const buf: array of byte; size: integer):integer;
+    function convertVariableTypeTostructnr(d: TVariableType): integer;
+//    function RawToType(address: dword; const buf: array of byte; size: integer):integer;
     procedure ExtraEnter(Sender: TObject);
   public
     { Public declarations }
@@ -577,10 +578,30 @@ begin
   end;
 end;
 
-function TfrmStructures.RawToType(address: dword; const buf: array of byte; size: integer):integer;
+
+function TfrmStructures.convertVariableTypeTostructnr(d: TVariableType): integer;
+begin
+  result:=-1;
+  case d of
+    vtByte: result:=-1;
+    vtWord: result:=-4;
+    vtDword: result:=-7;
+    vtQword: result:=-7;
+    vtSingle: result:=-12;
+    vtDouble: result:=-13;
+    vtString: result:=-14;
+    vtUnicodeString: result:=-7; //currently not implemented
+    vtByteArray: result:=-7; //FindTypeOfData should never return this
+    vtBinary: result:=-7; //nor this
+    vtAll: result:=-7; //also not this
+    vtCustom: result:=-7; //certainly not this
+    vtPointer: result:=-7; //currently not handled, but can be used to speed up things... 
+  end;
+end;
+
 {
-returns: -1,-4,-7,-12,-13,-14
-}
+function TfrmStructures.RawToType(address: dword; const buf: array of byte; size: integer):integer;
+//returns: -1,-4,-7,-12,-13,-14
 var x: string;
     i: integer;
     isstring: boolean;
@@ -672,6 +693,7 @@ begin
   //none of the above, so....
   result:=-7;
 end;
+}
 
 procedure TfrmStructures.Definenewstructure1Click(Sender: TObject);
 var sstructsize:string;
@@ -680,6 +702,7 @@ var sstructsize:string;
     buf: array of byte;
     buf2: array of byte;
     i,j,t: integer;
+    t2: TVariableType;
     x,y: dword;
 begin
   structname:='unnamed structure';
@@ -714,7 +737,11 @@ begin
         setlength(definedstructures[length(definedstructures)-1].structelement,i+1);
         definedstructures[length(definedstructures)-1].structelement[i].pointerto:=false;
 
-        if isreadable(pdword(@buf[x])^) and (pdword(@buf[x])^ mod 4=0) then
+
+        //value
+        //check what type it is
+        t2:=FindTypeOfData(addresses[0]+x,@buf[x],structsize-x);
+        if t2=vtPointer then
         begin
           //pointer
           definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
@@ -724,69 +751,72 @@ begin
 
           if readprocessmemory(processhandle,pointer(pdword(@buf[x])^),@buf2[0],8,y) then
           begin
-            t:=RawToType(pdword(@buf[x])^,buf2[0],8);
+            t2:=FindTypeOfData(pdword(@buf[x])^,@buf2[0],8);
+            t:=convertVariableTypeTostructnr(t2);
             definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
           end
           else definedstructures[length(definedstructures)-1].structelement[i].structurenr:=-9;
 
           inc(x,4);
-        end
-        else
-        begin
-          //value
-          //check what type it is
-          t:=RawToType(addresses[0]+x,buf[x],structsize-x);
-          definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
+          continue;
+        end;
 
-          case t of
-            -1: //byte
+
+        t:=convertVariableTypeTostructnr(t2);
+
+
+
+        definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
+
+        case t of
+          -1: //byte
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Byte';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=1;
+            inc(x,1);
+          end;
+
+          -4: //word
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Word';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=2;
+            inc(x,2);
+          end;
+
+          -7: //dword
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Dword';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+            inc(x,4);
+          end;
+
+          -12: //single
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Float';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+            inc(x,4);
+          end;
+
+          -13: //double
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Double';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=8;
+            inc(x,8);
+          end;
+
+          -14: //string
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='String';
+
+            //find out how long this string is:
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=0;
+            while (x<structsize) and (buf[x]>=32) and (buf[x]<=127) do
             begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='Byte';
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=1;
-              inc(x,1);
-            end;
-
-            -4: //word
-            begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='Word';
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=2;
-              inc(x,2);
-            end;
-
-            -7: //dword
-            begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='Dword';
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
-              inc(x,4);
-            end;
-
-            -12: //single
-            begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='Float';
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
-              inc(x,4);
-            end;
-
-            -13: //double
-            begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='Double';
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=8;
-              inc(x,8);
-            end;
-
-            -14: //string
-            begin
-              definedstructures[length(definedstructures)-1].structelement[i].description:='String';
-
-              //find out how long this string is:
-              definedstructures[length(definedstructures)-1].structelement[i].bytesize:=0;
-              while (x<structsize) and (buf[x]>=32) and (buf[x]<=127) do
-              begin
-                inc(x);
-                inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
-              end;
+              inc(x);
+              inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
             end;
           end;
+
 
         end;
       end;
