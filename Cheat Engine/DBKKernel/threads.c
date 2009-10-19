@@ -48,7 +48,7 @@ void SuspendThreadAPCRoutine(PVOID arg1, PVOID arg2, PVOID arg3)
 	Timeout.QuadPart = -999999999999999;	
 
 		
-	KeWaitForSingleObject(&(x->SuspendSemaphore), 5, KernelMode, FALSE, NULL);
+	KeWaitForSingleObject(&(x->SuspendSemaphore), Suspended, KernelMode, FALSE, NULL);
 	//KeDelayExecutionThread(KernelMode, FALSE, &Timeout);
 	DbgPrint("Resuming...\n");
 }
@@ -163,6 +163,7 @@ void DBKSuspendProcess(ULONG ProcessID)
 	if (!t_data)
 	{
 		DbgPrint("This process was not found\n");
+		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
 		return; //no process found
 	}
 
@@ -227,6 +228,7 @@ void DBKResumeProcess(ULONG ProcessID)
 	if (!t_data)
 	{
 		DbgPrint("This process was not found\n");
+		KeReleaseSpinLock(&ProcesslistSL,OldIrql);
 		return; //no process found
 	}
 

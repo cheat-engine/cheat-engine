@@ -100,7 +100,7 @@ Conditionals=
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
-RunParams=/SeTuP
+RunParams=
 HostApplication=
 Launcher=
 UseLauncher=0

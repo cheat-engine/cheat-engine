@@ -2,7 +2,7 @@ unit debug;
 
 interface
 
-uses windows, sysutils, dbk32functions, classes;
+uses windows, sysutils, dbk32functions, classes, multicpuexecution;
 
 type TDebuggerstate=record
   threadid: uint64;
@@ -66,11 +66,6 @@ begin
 end;
 
 function StartCEKernelDebug:BOOL; stdcall;
-var
-    br,cc: dword;
-    i:integer;
-    cpunr,PA,SA:Dword;
-    cpunr2:byte;
 begin
   outputdebugstring('StartCEKernelDebug');
   foreachcpu(internal_hookints, nil);
@@ -147,7 +142,7 @@ begin
     cc:=IOCTL_CE_GD_SETBREAKPOINT;
     result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
     DBKDebug_TouchDebugRegister; //update the system state
-  end;
+  end else result:=false;
 end;
 
 
@@ -164,14 +159,14 @@ begin
     input.Processid:=PDWORD(processid)^;
     cc:=IOCTL_CE_DEBUGPROCESS;
     result:=result and deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
-  end;
+  end else result:=false;
 end;
 
 
 
 function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 begin
-  foreachcpu(DBKDebug_StartDebuggingInternal, @processid);
+  result:=foreachcpu(DBKDebug_StartDebuggingInternal, @processid);
 end;
 
 function internal_StopDebugging(parameters: pointer):BOOL; stdcall;

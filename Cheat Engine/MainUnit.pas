@@ -276,6 +276,7 @@ type
     Plugins2: TMenuItem;
     actMemoryView: TAction;
     Button3: TButton;
+    Label61: TLabel;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -435,6 +436,7 @@ type
     procedure New1Click(Sender: TObject);
     procedure actScriptEngineExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
+    procedure Label61Click(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -11271,17 +11273,10 @@ var
 
     trace: tstringlist;
 begin
-  trace:=tstringlist.Create;
-  ce_stacktrace(dword(@x),dword(@x), 0, @x,128,trace);
 
-  showmessage(trace.Text);
+  LoadDBK32;
 
-  x:=0;
-  while x=0 do
-    x:=x+1;
-    
-  beep;
-  exit;
+  DBKDebug_StartDebugging(ProcessID);
   {
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;
@@ -12083,6 +12078,17 @@ procedure TMainForm.File1Click(Sender: TObject);
 begin
   menu.Images:=imagelist1;
 end;
+
+procedure TMainForm.Label61Click(Sender: TObject);
+begin
+  if DBKDebug_WaitForDebugEvent(1000) then
+  begin
+    DBKDebug_ContinueDebugEvent(true);
+    showmessage('handled');
+  end else showmessage('failed');
+end;
+
+initialization
 
 end.
 

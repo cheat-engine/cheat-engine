@@ -127,7 +127,7 @@ int cpunr(void)
 	DWORD x[4];
 	__cpuid(x,1);
 
-	return (x[0] >> 24)+1;
+	return (x[1] >> 24)+1;
 }
 
 EFLAGS getEflags(void)

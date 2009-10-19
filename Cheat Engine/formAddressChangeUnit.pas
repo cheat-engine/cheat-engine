@@ -193,18 +193,18 @@ begin
       bitpanel.Visible:=true;
 
       case mainform.memrec[index].Bit of
-        0: radiobutton1.checkeD:=true;
-        1: radiobutton2.checkeD:=true;
-        2: radiobutton3.checkeD:=true;
-        3: radiobutton4.checkeD:=true;
-        4: radiobutton5.checkeD:=true;
-        5: radiobutton6.checkeD:=true;
-        6: radiobutton7.checkeD:=true;
-        7: radiobutton8.checkeD:=true;
+        0: radiobutton1.checked:=true;
+        1: radiobutton2.checked:=true;
+        2: radiobutton3.checked:=true;
+        3: radiobutton4.checked:=true;
+        4: radiobutton5.checked:=true;
+        5: radiobutton6.checked:=true;
+        6: radiobutton7.checked:=true;
+        7: radiobutton8.checked:=true;
       end;
 
       width:=288;
-    end else width:=158;
+    end else clientwidth:=button4.Left+button4.Width+5;
   end;
 
   if mainform.memrec[index].IsPointer then

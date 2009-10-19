@@ -21,6 +21,7 @@ type Thotkeythread=class(tthread)
     suspended: boolean;
     hotkeylist: array of thotkeyitem;
     procedure execute; override;
+    constructor create(suspended: boolean);
 end;
 
 function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
@@ -251,6 +252,12 @@ begin
   finally
     CSKeys.Leave;
   end;
+end;
+
+constructor THotkeyThread.create(suspended: boolean);
+begin
+  //init
+  inherited create(suspended);
 end;
 
 procedure THotkeyThread.execute;

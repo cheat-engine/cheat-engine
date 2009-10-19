@@ -73,7 +73,7 @@ BOOLEAN MakeWritable(PVOID StartAddress,UINT_PTR size,BOOLEAN usecopyonwrite)
 	{
 		__try
 		{
-			y=*(PCHAR)CurrentAddress; //page it in if it wasn't loaded already
+			y=*(PCHAR)CurrentAddress; //page it in if it wasn't loaded already (BSOD if kernelmode address)
 			x=(PVOID)(CurrentAddress/0x1000*PTESize+0xc0000000);
 			if (x->RW==0) //if it's read only then
 			{

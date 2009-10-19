@@ -243,14 +243,14 @@ end;
 
 procedure tprocesswatchthread.execute;
 type tprocesseventstruct=record
-  Created:BOOL;
+  Created:UINT64;
   ProcessID:UINT64;
   PEProcess:UINT64;
 end;
 type pprocesseventstruct=^tprocesseventstruct;
 
 type tthreadeventstruct=record
-  Created:BOOL;
+  Created:UINT64;
   ProcessID:UINT64;
   ThreadID:UINT64;
 end;
@@ -283,7 +283,7 @@ begin
 
     for i:=0 to count-1 do
     begin
-      self.created:=y^.Created;
+      self.created:=y^.Created>0;
       self.pid:=y^.ProcessID;
       self.peprocess:=y^.PEProcess;
       synchronize(updatelist);
@@ -301,10 +301,10 @@ begin
 
     for i:=0 to count-1 do
     begin
-      if (kdebugger.isactive) and (z^.Created) and (z^.processid=ProcessID) then
+      if (kdebugger.isactive) and (z^.Created>0) and (z^.processid=ProcessID) then
           KDebugger.AddThread(z^.ThreadID);
 
-      self.created:=z^.Created;
+      self.created:=z^.Created>0;
       self.pid:=z^.ProcessID;
       self.tid:=z^.threadid;
 

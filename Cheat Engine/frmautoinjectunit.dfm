@@ -1,5 +1,5 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 820
+  Left = 1024
   Top = 496
   Width = 431
   Height = 331
@@ -22,8 +22,8 @@ object frmAutoInject: TfrmAutoInject
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
-    Top = 239
-    Width = 423
+    Top = 237
+    Width = 415
     Height = 38
     Align = alBottom
     BevelOuter = bvNone
@@ -42,8 +42,8 @@ object frmAutoInject: TfrmAutoInject
   object TabControl1: TTabControl
     Left = 0
     Top = 0
-    Width = 423
-    Height = 239
+    Width = 415
+    Height = 237
     Align = alClient
     Style = tsFlatButtons
     TabOrder = 0

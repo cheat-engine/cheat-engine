@@ -31,6 +31,8 @@ end;
 
 type TModuleInfo=record
   modulename: string;
+  modulepath: string;
+  isSystemModule: boolean;
   baseaddress: dword;
   basesize: dword;
 end;
@@ -111,11 +113,14 @@ type
     procedure getModuleList(list: tstrings);
     function getmodulebyaddress(address: dword; var mi: TModuleInfo):BOOLEAN;
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
+    function inModule(address: dword): BOOLEAN; //returns true if the given address is part of a module
+    function inSystemModule(address: dword): BOOLEAN;
     function getNameFromAddress(address:dword):string; overload;
     function getNameFromAddress(address:dword;symbols:boolean; modules: boolean; baseaddress: PDWORD=nil):string; overload;
 
     function getAddressFromName(name: string):dword; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):dword; overload;
+    function getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):dword; overload;
 
     function getsearchpath:string;
     procedure setsearchpath(path:string);
@@ -630,6 +635,22 @@ begin
   modulelistMREW.EndRead;
 end;
 
+function TSymhandler.inSystemModule(address: dword): BOOLEAN;
+var mi: TModuleInfo;
+    mn: string;
+    i: integer;
+begin
+  result:=false;
+  if getmodulebyaddress(address,mi) then
+    result:=mi.isSystemModule;
+end;
+
+function TSymhandler.inModule(address: dword): BOOLEAN; //returns true if the given address is part of a module
+var mi: TModuleInfo;
+begin
+  result:=getmodulebyaddress(address,mi);
+end;
+
 function TSymhandler.getmodulebyaddress(address: dword; var mi: TModuleInfo):BOOLEAN;
 var i: integer;
 begin
@@ -781,13 +802,30 @@ begin
   result:=getAddressFromName(name,true);
 end;
 
-function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean):dword;
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean): dword;
+var x: boolean;
+begin
+  result:=getAddressFromName(name,true,x);
+  {
+  debugger hell:
+  tools->debugger options->Language Exceptions
+  click add...
+  type in "symexception" without the quotes
+
+  this will cause you to still break on normal exception like memory access violations, but not on these
+  }
+
+  if x then
+    raise symexception.Create('Failure determining what '+name+' means');
+end;
+
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):dword;
 var mi: tmoduleinfo;
     symbol :PImagehlpSymbol;
     offset: dword;
 
     sn: string;
-    i: integer;
+    i,j: integer;
 
     ws: widestring;
     pws: pwidechar;
@@ -795,6 +833,8 @@ var mi: tmoduleinfo;
 
     processhandle: thandle;
 begin
+  haserror:=false;
+  
 {$ifdef autoassemblerdll}
   processhandle:=symbolhandler.processhandle;
 {$else}
@@ -819,12 +859,15 @@ begin
       if name[i] in ['+','-'] then
       begin
         sn:=copy(name,i+1,length(name));
-        offset:=strtoint('$'+sn);
+        val('$'+sn,offset,j);
+        if j=0 then
+        begin
+          if name[i]='-' then
+            offset:=-offset;
 
-        if name[i]='-' then
-          offset:=-offset;
+          name:=copy(name,1,i-1);
+        end;
 
-        name:=copy(name,1,i-1);
         break;
       end
       else
@@ -833,7 +876,8 @@ begin
 
 
   except
-    raise symexception.create(sn+' is not a valid value');
+    haserror:=true;
+    exit;
   end;
 
   if name='' then name:='0';
@@ -853,8 +897,12 @@ begin
   this will cause you to still break on normal exception like memory access violations, but not on these
   }
   if getreg(uppercase(name),false)<>9 then
-    raise symexception.create('Register'); //can happen in case of eax+# //speed improvement
+  begin
+    haserror:=true;
+    exit;
+//    raise symexception.create('Register'); //can happen in case of eax+# //speed improvement
 
+  end;
    
   //see if it is a module
   if getmodulebyname(name,mi) then
@@ -918,12 +966,19 @@ begin
           if SymGetSymFromName(processhandle,pchar(name),symbol^) then
             result:=symbol.Address+offset
           else
-            raise symexception.Create('This is not a valid address');   //no hex string, no module, no symbol, so invalid
+          begin
+            haserror:=true;
+            exit;
+          end;
         finally
           freemem(symbol);
         end;
-      end else
-        raise symexception.Create('This is not a valid address');
+      end
+      else
+      begin
+        haserror:=true;
+        exit;
+      end;
 
     finally
       symbolloadervalid.endread;
@@ -970,6 +1025,8 @@ begin
 
             x:=me32.szExePath;
             modulelist[modulelistpos].modulename:=extractfilename(x);
+            modulelist[modulelistpos].modulepath:=x;
+            modulelist[modulelistpos].isSystemModule:=pos(lowercase(windowsdir),lowercase(x))>0;
             modulelist[modulelistpos].baseaddress:=dword(me32.modBaseAddr);
             modulelist[modulelistpos].basesize:=me32.modBaseSize;
             inc(modulelistpos);

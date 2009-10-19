@@ -142,7 +142,7 @@ end;
 function TOffsetEntry.getOffset: dword;
 var o: integer;
 begin
-  if TryStrToInt(text, o) then result:=o else result:=0;
+  if TryStrToInt('$'+text, o) then result:=o else result:=0;
 end;
 
 procedure TOffsetEntry.setOffset(x: dword);

@@ -16,7 +16,8 @@ uses
   DBK32functions in 'DBK32functions.pas',
   vmxfunctions in 'vmxfunctions.pas',
   debug in 'debug.pas',
-  stealthedit in 'stealthedit.pas';
+  stealthedit in 'stealthedit.pas',
+  multicpuexecution in 'multicpuexecution.pas';
 
 {$R *.res}
 

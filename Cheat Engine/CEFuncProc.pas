@@ -536,6 +536,7 @@ var
   Scan_MEM_MAPPED: boolean;
 
   CheatEngineDir: String;
+  WindowsDir: string;
   GetProcessIcons: Boolean;
   ProcessesWithIconsOnly: boolean;
 
@@ -2699,6 +2700,18 @@ begin
   result:=CheatEngineDir;
 end;
 
+function GetWinDir:string;
+var x: pchar;
+begin
+  getmem(x,200);
+  if GetWindowsDirectory(x,200)>0 then
+  begin
+    result:=x;
+    WindowsDir:=x;
+  end;
+  freemem(x);
+end;
+
 Procedure Shutdown;
 //This will erase the temporary files and close the processhandle (In case it doesnt happen automatically)
 begin
@@ -3131,7 +3144,8 @@ begin
   if (alloctype and $400000) > 0 then result:=result+'MEM_PHYSICAL+';
   if (alloctype and $20000000) > 0 then result:=result+'MEM_LARGE_PAGES+';
 
-  result:=Copy(result,1,length(result)-1)+'('+inttohex(alloctype,1)+')';
+  if length(result)>0 then
+    result:=Copy(result,1,length(result)-1)+'('+inttohex(alloctype,1)+')';
 end;
 
 function allocationprotecttostring(protect: dword): string;
@@ -3149,7 +3163,8 @@ begin
   if (protect and PAGE_NOCACHE) > 0 then result:=result+'PAGE_NOCACHE+';
   if (protect and $400) > 0 then result:=result+'PAGE_WRITECOMBINE+';
 
-  result:=Copy(result,1,length(result)-1)+'('+inttohex(protect,1)+')';
+  if length(result)>0 then
+    result:=Copy(result,1,length(result)-1)+'('+inttohex(protect,1)+')';
 end;
 
 function freetypetostring(freetype: dword):string;
@@ -3163,6 +3178,7 @@ end;
 
 
 initialization
+  GetWindir;
   keysfilemapping:=0;
   keys:=nil;
 

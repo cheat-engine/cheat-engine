@@ -4,11 +4,12 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,debugger,kerneldebugger;
+  Dialogs, StdCtrls,debugger,kerneldebugger, ExtCtrls;
 
 type
   TfrmBreakpointlist = class(TForm)
     ListBox1: TListBox;
+    Panel1: TPanel;
     Button1: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);

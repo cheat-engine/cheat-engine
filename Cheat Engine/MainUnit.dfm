@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 506
-  Top = 246
+  Left = 681
+  Top = 283
   Width = 532
   Height = 557
   Hint = ' '
@@ -27,12 +27,12 @@ object MainForm: TMainForm
   OnDragDrop = Panel1DragDrop
   OnDragOver = Panel1DragOver
   OnShow = FormShow
-  PixelsPerInch = 96
+  PixelsPerInch = 120
   TextHeight = 13
   object Splitter1: TSplitter
     Left = 0
     Top = 345
-    Width = 516
+    Width = 514
     Height = 3
     Cursor = crVSplit
     Align = alTop
@@ -46,8 +46,8 @@ object MainForm: TMainForm
     Tag = 777
     Left = 0
     Top = 348
-    Width = 516
-    Height = 136
+    Width = 514
+    Height = 122
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -125,8 +125,8 @@ object MainForm: TMainForm
     object ScrollBox1: TScrollBox
       Left = 1
       Top = 1
-      Width = 498
-      Height = 134
+      Width = 496
+      Height = 120
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -137,7 +137,7 @@ object MainForm: TMainForm
       object HeaderControl1: THeaderControl
         Left = 0
         Top = 0
-        Width = 498
+        Width = 496
         Height = 17
         Sections = <
           item
@@ -176,8 +176,8 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 17
-        Width = 498
-        Height = 117
+        Width = 496
+        Height = 103
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -189,8 +189,8 @@ object MainForm: TMainForm
         OnMouseDown = Panel1MouseDown
         OnResize = Panel1Resize
         DesignSize = (
-          498
-          117)
+          496
+          103)
         object Label30: TLabel
           Tag = 6
           Left = 0
@@ -1074,10 +1074,10 @@ object MainForm: TMainForm
       end
     end
     object vscrollpanel: TPanel
-      Left = 499
+      Left = 497
       Top = 1
       Width = 16
-      Height = 134
+      Height = 120
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 16
-        Height = 134
+        Height = 120
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1099,13 +1099,13 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 484
-    Width = 516
+    Top = 470
+    Width = 514
     Height = 17
     Align = alBottom
     TabOrder = 1
     DesignSize = (
-      516
+      514
       17)
     object Label7: TLabel
       Left = 147
@@ -1160,7 +1160,7 @@ object MainForm: TMainForm
   object Panel5: TPanel
     Left = 0
     Top = 0
-    Width = 516
+    Width = 514
     Height = 345
     Align = alTop
     BevelOuter = bvNone
@@ -1168,7 +1168,7 @@ object MainForm: TMainForm
     Locked = True
     TabOrder = 2
     DesignSize = (
-      516
+      514
       345)
     object ProcessLabel: TLabel
       Left = -24
@@ -1458,6 +1458,14 @@ object MainForm: TMainForm
       Caption = 'Test debug'
       OnClick = Label59Click
     end
+    object Label61: TLabel
+      Left = 368
+      Top = 320
+      Width = 38
+      Height = 13
+      Caption = 'Label61'
+      OnClick = Label61Click
+    end
     object cbSpeedhack: TCheckBox
       Left = 404
       Top = 194
@@ -1730,7 +1738,7 @@ object MainForm: TMainForm
       OnClick = btnMemoryViewClick
     end
     object Button1: TButton
-      Left = 410
+      Left = 406
       Top = 322
       Width = 113
       Height = 17
@@ -1977,7 +1985,7 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       TabOrder = 19
       object rt3: TRadioButton
-        Left = 8
+        Left = 4
         Top = 32
         Width = 73
         Height = 17
@@ -1987,7 +1995,7 @@ object MainForm: TMainForm
         TabStop = True
       end
       object rt1: TRadioButton
-        Left = 8
+        Left = 4
         Top = 0
         Width = 105
         Height = 17
@@ -1995,7 +2003,7 @@ object MainForm: TMainForm
         TabOrder = 0
       end
       object rt2: TRadioButton
-        Left = 8
+        Left = 4
         Top = 16
         Width = 113
         Height = 17

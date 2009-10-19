@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 487
-  Top = 327
+  Left = 349
+  Top = 173
   Width = 675
   Height = 565
   HelpContext = 12
@@ -8,7 +8,7 @@ object MemoryBrowser: TMemoryBrowser
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -19,13 +19,13 @@ object MemoryBrowser: TMemoryBrowser
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Splitter1: TSplitter
     Left = 0
-    Top = 290
-    Width = 659
-    Height = 4
+    Top = 357
+    Width = 657
+    Height = 5
     Cursor = crVSplit
     Align = alTop
     AutoSnap = False
@@ -36,51 +36,51 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 659
-    Height = 290
+    Width = 657
+    Height = 357
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 471
+      Left = 426
       Top = 0
-      Height = 290
+      Height = 357
       Align = alRight
       AutoSnap = False
     end
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 471
-      Height = 290
+      Width = 426
+      Height = 357
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object RegisterView: TPanel
-      Left = 474
+      Left = 429
       Top = 0
-      Width = 185
-      Height = 290
+      Width = 228
+      Height = 357
       Align = alRight
       TabOrder = 1
       object ScrollBox1: TScrollBox
         Left = 1
         Top = 1
-        Width = 183
-        Height = 288
+        Width = 226
+        Height = 355
         Align = alClient
         TabOrder = 0
         object EAXLabel: TLabel
-          Left = 8
-          Top = 16
+          Left = 10
+          Top = 20
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EAX 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -88,15 +88,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EBXlabel: TLabel
           Tag = 1
-          Left = 8
-          Top = 32
+          Left = 10
+          Top = 39
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EBX 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -104,15 +104,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ECXlabel: TLabel
           Tag = 2
-          Left = 8
-          Top = 48
+          Left = 10
+          Top = 59
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'ECX 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -120,15 +120,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EDXlabel: TLabel
           Tag = 3
-          Left = 8
-          Top = 64
+          Left = 10
+          Top = 79
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EDX 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -136,15 +136,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESIlabel: TLabel
           Tag = 4
-          Left = 8
-          Top = 80
+          Left = 10
+          Top = 98
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'ESI 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -152,15 +152,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EDIlabel: TLabel
           Tag = 5
-          Left = 8
-          Top = 96
+          Left = 10
+          Top = 118
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EDI 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -168,15 +168,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EBPlabel: TLabel
           Tag = 6
-          Left = 8
-          Top = 112
+          Left = 10
+          Top = 138
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EBP 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -184,15 +184,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESPlabel: TLabel
           Tag = 7
-          Left = 8
-          Top = 128
+          Left = 10
+          Top = 158
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'ESP 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -200,15 +200,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EIPlabel: TLabel
           Tag = 8
-          Left = 8
-          Top = 144
+          Left = 10
+          Top = 177
           Width = 96
           Height = 13
           Cursor = crHandPoint
           Caption = 'EIP 00000000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -216,15 +216,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object CSLabel: TLabel
           Tag = 9
-          Left = 8
-          Top = 176
+          Left = 10
+          Top = 217
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'CS 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -232,15 +232,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object DSLabel: TLabel
           Tag = 11
-          Left = 8
-          Top = 208
+          Left = 10
+          Top = 256
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'DS 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -248,15 +248,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object SSlabel: TLabel
           Tag = 10
-          Left = 8
-          Top = 192
+          Left = 10
+          Top = 236
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'SS 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -264,15 +264,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESlabel: TLabel
           Tag = 12
-          Left = 8
-          Top = 224
+          Left = 10
+          Top = 276
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'ES 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -280,15 +280,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object FSlabel: TLabel
           Tag = 13
-          Left = 8
-          Top = 240
+          Left = 10
+          Top = 295
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'FS 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -296,15 +296,15 @@ object MemoryBrowser: TMemoryBrowser
         end
         object GSlabel: TLabel
           Tag = 14
-          Left = 8
-          Top = 256
+          Left = 10
+          Top = 315
           Width = 56
           Height = 13
           Cursor = crHandPoint
           Caption = 'GS 0000'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -312,14 +312,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object cflabel: TLabel
           Tag = 20
-          Left = 136
-          Top = 16
+          Left = 167
+          Top = 20
           Width = 32
           Height = 13
           Caption = 'CF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -327,14 +327,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object pflabel: TLabel
           Tag = 21
-          Left = 136
-          Top = 32
+          Left = 167
+          Top = 39
           Width = 32
           Height = 13
           Caption = 'PF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -342,14 +342,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object aflabel: TLabel
           Tag = 22
-          Left = 136
-          Top = 48
+          Left = 167
+          Top = 59
           Width = 32
           Height = 13
           Caption = 'AF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -357,14 +357,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object zflabel: TLabel
           Tag = 23
-          Left = 136
-          Top = 64
+          Left = 167
+          Top = 79
           Width = 32
           Height = 13
           Caption = 'ZF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -372,14 +372,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object sflabel: TLabel
           Tag = 24
-          Left = 136
-          Top = 80
+          Left = 167
+          Top = 98
           Width = 32
           Height = 13
           Caption = 'SF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
@@ -387,81 +387,81 @@ object MemoryBrowser: TMemoryBrowser
         end
         object oflabel: TLabel
           Tag = 26
-          Left = 136
-          Top = 112
+          Left = 167
+          Top = 138
           Width = 32
           Height = 13
           Caption = 'OF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
           OnDblClick = EAXLabelDblClick
         end
         object Label14: TLabel
-          Left = 8
+          Left = 10
           Top = 0
-          Width = 47
-          Height = 13
+          Width = 61
+          Height = 16
           Caption = 'Registers:'
         end
         object Shape1: TShape
-          Left = 8
-          Top = 13
-          Width = 46
+          Left = 10
+          Top = 16
+          Width = 56
           Height = 2
           Brush.Color = clBlack
         end
         object Label15: TLabel
-          Left = 136
+          Left = 167
           Top = 0
-          Width = 25
-          Height = 13
+          Width = 34
+          Height = 16
           Caption = 'Flags'
         end
         object Shape2: TShape
-          Left = 135
-          Top = 13
-          Width = 28
+          Left = 166
+          Top = 16
+          Width = 35
           Height = 2
           Brush.Color = clBlack
         end
         object Label16: TLabel
-          Left = 6
-          Top = 161
-          Width = 89
-          Height = 13
+          Left = 7
+          Top = 198
+          Width = 115
+          Height = 16
           Caption = 'Segment Registers'
         end
         object Shape3: TShape
-          Left = 6
-          Top = 174
-          Width = 90
-          Height = 2
+          Left = 7
+          Top = 214
+          Width = 111
+          Height = 3
           Brush.Color = clBlack
         end
         object dflabel: TLabel
           Tag = 25
-          Left = 136
-          Top = 96
+          Left = 167
+          Top = 118
           Width = 32
           Height = 13
           Caption = 'DF 0'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
-          Font.Height = -11
+          Font.Height = -15
           Font.Name = 'Courier'
           Font.Style = []
           ParentFont = False
           OnDblClick = EAXLabelDblClick
         end
         object sbShowFloats: TSpeedButton
-          Left = 160
-          Top = 136
-          Width = 17
-          Height = 25
+          Left = 197
+          Top = 167
+          Width = 21
+          Height = 31
           Hint = 'Floating point registers'
           Caption = '>'
           ParentShowHint = False
@@ -473,9 +473,9 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Top = 294
-    Width = 659
-    Height = 215
+    Top = 362
+    Width = 657
+    Height = 133
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -484,13 +484,13 @@ object MemoryBrowser: TMemoryBrowser
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
     DesignSize = (
-      659
-      215)
+      657
+      133)
     object MBCanvas: TPaintBox
       Left = 1
-      Top = 9
-      Width = 646
-      Height = 206
+      Top = 11
+      Width = 795
+      Height = 254
       Anchors = [akLeft, akTop, akRight, akBottom]
       PopupMenu = memorypopup
       OnDblClick = MBCanvasDblClick
@@ -501,17 +501,17 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Protectlabel: TLabel
       Tag = 2
-      Left = 3
+      Left = 4
       Top = 2
-      Width = 48
-      Height = 13
+      Width = 60
+      Height = 16
       Caption = 'Protection'
     end
     object ScrollBar2: TScrollBar
-      Left = 642
+      Left = 636
       Top = 1
-      Width = 16
-      Height = 213
+      Width = 20
+      Height = 131
       Align = alRight
       Kind = sbVertical
       Max = 101
@@ -521,17 +521,17 @@ object MemoryBrowser: TMemoryBrowser
       OnScroll = ScrollBar2Scroll
     end
     object HexEdit: TEdit
-      Left = 104
-      Top = 32
-      Width = 18
-      Height = 14
+      Left = 128
+      Top = 39
+      Width = 22
+      Height = 18
       BevelOuter = bvNone
       BorderStyle = bsNone
       Color = clHighlight
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clHighlightText
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'Courier'
       Font.Style = []
       MaxLength = 2
@@ -547,17 +547,17 @@ object MemoryBrowser: TMemoryBrowser
       OnKeyPress = HexEditKeyPress
     end
     object TextEdit: TEdit
-      Left = 552
-      Top = 48
-      Width = 10
-      Height = 14
+      Left = 679
+      Top = 59
+      Width = 13
+      Height = 17
       BevelOuter = bvNone
       BorderStyle = bsNone
       Color = clHighlight
       Ctl3D = False
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clHighlightText
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'Courier'
       Font.Style = []
       MaxLength = 1

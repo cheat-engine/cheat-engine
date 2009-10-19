@@ -1,7 +1,10 @@
 program Kernelmoduleunloader;
 
 uses
-  windows, winsvc,SysUtils;
+  windows,
+  winsvc,
+  SysUtils,
+  multicpuexecution in '..\multicpuexecution.pas';
 
 {$R ic.res}
 {$R ..\..\manifest.res} 
@@ -35,6 +38,7 @@ var
   servicestatus:_service_status;
   ok,ok2:     boolean;
   count:      integer;
+  setup: boolean;
 
 
 function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
@@ -72,25 +76,62 @@ begin
   Result := (DeviceType shl 16) or (Access shl 14) or (Func shl 2) or Method;
 end;
 
+
+function disableGlobalDebug(parameters: pointer): BOOL; stdcall;
+{
+Sets the global debug flag to 0 for the current cpu
+}
+var state: BOOL;
+begin
+  state:=false;
+  cc:=CTL_CODE(IOCTL_UNKNOWN_BASE, $0830 {IOCTL_CE_SETGLOBALDEBUGSTATE}, METHOD_BUFFERED, FILE_READ_ACCESS or FILE_WRITE_ACCESS);
+  result:=deviceiocontrol(hdevice,cc,@state,sizeof(state),nil,0,x,nil);
+  if not result then
+  begin
+    if not setup then messagebox(0,'Failure stopping the debugging','driver error',mb_ok or MB_ICONERROR);
+    ExitProcess(1);
+  end;
+end;
+
+function disableInterruptHooks(parameters: pointer): BOOL; stdcall;
+{
+Sets the global debug flag to 0 for the current cpu
+}
+var state: BOOL;
+begin
+  state:=false;
+  cc:=CTL_CODE(IOCTL_UNKNOWN_BASE, $083b {IOCTL_CE_UNHOOKALLINTERRUPTS}, METHOD_BUFFERED, FILE_READ_ACCESS or FILE_WRITE_ACCESS);
+  result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,x,nil);
+  if not result then
+  begin
+    if not setup then messagebox(0,'Failure stopping the debugging','driver error',mb_ok or MB_ICONERROR);
+    ExitProcess(1);
+  end;
+end;
+
 var f,driverdat: textfile;
     s: string;
     i: integer;
 
-    setup: boolean;
+
     dataloc: string;
     apppath: pchar;
 begin
   kernel32dll:=loadlibrary('kernel32.dll');
+  loadlibrary('user32.dll');
+  loadlibrary('comctl32.dll');
   IsWow64Process:=GetProcAddress(kernel32dll, 'IsWow64Process');
   if not assigned(IsWow64Process) then IsWow64Process:=noIsWow64;
 
   IsWow64Process(getcurrentprocess,iswow64);
 
+  outputdebugstring('Kernelmodule unloader');
+  if iswow64 then
+    outputdebugstring('Running in wow64');
 
   setup:=false;
   if ParamCount>0 then
   begin
-
     for i:=1 to paramcount do
     begin
       s:=paramstr(i);
@@ -103,14 +144,23 @@ begin
   count:=0;
   ok:=false;
 
+  if setup then
+    outputdebugstring('Setup. So do not show messages')
+  else
+    outputdebugstring('Setup is false');
+
   while (not ok) and (count<5) do
   begin
+    outputdebugstring('attempting to unload');
+
     hSCManager := OpenSCManager(nil, nil, GENERIC_READ or GENERIC_WRITE);
     if hscmanager<>0 then
     begin
+      outputdebugstring('SCManager opened');
       hservice:=OpenService(hSCManager, 'DBKDRVR', SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring('Opened service DBKDRVR');
         hDevice := CreateFile('\\.\DBKDRVR',
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -134,6 +184,7 @@ begin
       hservice:=OpenService(hSCManager, 'DRIVER1111', SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring('Opened service DRIVER1111');
         hDevice := CreateFile('\\.\DRIVER1111',
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -158,6 +209,7 @@ begin
       hService := OpenService(hSCManager, 'CEDRIVER50', SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring('Opened service CEDRIVER50');
         hDevice := CreateFile('\\.\CEDRIVER50',
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -189,6 +241,7 @@ begin
       hService := OpenService(hSCManager, 'CEDRIVER51', SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring('Opened service CEDRIVER51');
         hDevice := CreateFile('\\.\CEDRIVER51',
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -219,6 +272,7 @@ begin
       hService := OpenService(hSCManager, 'CEDRIVER52', SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring('Opened service CEDRIVER52');
         hDevice := CreateFile('\\.\CEDRIVER52',
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -248,7 +302,7 @@ begin
 
 
       try
-        s:='CEDRIVER52';
+        s:='CEDRIVER55';
         getmem(apppath,250);
         GetModuleFileName(0,apppath,250);
 
@@ -267,10 +321,11 @@ begin
       finally
         freemem(apppath);
       end;
-      
+
       hService := OpenService(hSCManager, pchar(s), SERVICE_ALL_ACCESS);
       if hservice<>0 then
       begin
+        outputdebugstring(pchar('Opened service '+s));
         hDevice := CreateFile(pchar('\\.\'+s),
                       GENERIC_READ or GENERIC_WRITE,
                       FILE_SHARE_READ or FILE_SHARE_WRITE,
@@ -281,16 +336,26 @@ begin
 
         if hdevice<>INVALID_HANDLE_VALUE then
         begin
+          outputdebugstring('Calling unprotect');
+
           //unhook (in case it was protecting something)
           cc:=CTL_CODE(IOCTL_UNKNOWN_BASE, $080e {unprotect}, METHOD_BUFFERED, FILE_READ_ACCESS or FILE_WRITE_ACCESS);
           ok:=deviceiocontrol(hdevice,cc,@x,4,@x,4,x,nil);
           if not ok then
           begin
-            if not setup then messagebox(0,'The driver was found and present. But it can''t unload itself right now','driver error',mb_ok or MB_ICONERROR);
+            outputdebugstring('Unprotect returned false');
+            if not setup then messageboxA(0,'The driver was found and present. But it can''t unload itself right now','driver error',mb_ok or MB_ICONERROR);
 //            closehandle(hdevice);
 //            CloseServiceHandle(hservice);
 //            CloseServiceHandle(hSCManager);
 //            exit;
+          end
+          else //still here so it can be unloaded, try to stop the debugger if possible
+          begin
+            outputdebugstring('Calling disableglobaldebug');
+            foreachcpu(disableGlobalDebug,nil);
+            outputdebugstring('calling disableInterruptHooks');
+            foreachcpu(disableInterruptHooks,nil);
           end;
 
           closehandle(hdevice);
@@ -303,7 +368,14 @@ begin
       end else
       if count=0 then
       begin
-        if not setup then messagebox(0,'Failed to find the driver in the registry','driver error',mb_ok or MB_ICONERROR);
+        outputdebugstring('count=0');
+        if not setup then
+        begin
+         // outputdebugstring('showing message that the driver isn''t in the registry');
+          messageboxA(0,'Failed to find the driver in the registry','driver error',mb_ok);
+         // outputdebugstring('AFTER the messagebox');
+        end
+        else outputdebugstring('setup=true');
         exit;
       end;
 
@@ -317,6 +389,8 @@ begin
     end;
   end;
 
+
+  outputdebugstring('near the end');
   if not setup then
   begin
     if ok or ok2 then

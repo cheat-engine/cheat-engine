@@ -144,6 +144,9 @@ begin
 
       k:=j;
 
+      if j<0 then break;
+      
+
 
       if address<pm[j].baseaddress then
         last:=j

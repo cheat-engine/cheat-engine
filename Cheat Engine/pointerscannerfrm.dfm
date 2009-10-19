@@ -7,7 +7,7 @@ object frmPointerScanner: TfrmPointerScanner
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -17,13 +17,13 @@ object frmPointerScanner: TfrmPointerScanner
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 359
-    Width = 611
-    Height = 17
+    Top = 341
+    Width = 609
+    Height = 21
     Align = alBottom
     Step = 1
     TabOrder = 0
@@ -31,144 +31,144 @@ object frmPointerScanner: TfrmPointerScanner
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 611
-    Height = 17
+    Width = 609
+    Height = 21
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
   end
   object pgcPScandata: TPageControl
     Left = 0
-    Top = 17
-    Width = 611
-    Height = 342
+    Top = 21
+    Width = 609
+    Height = 320
     ActivePage = tsPSDefault
     Align = alClient
     TabOrder = 2
     object tsPSDefault: TTabSheet
       Caption = 'tsPSDefault'
       object Label1: TLabel
-        Left = 8
-        Top = 16
-        Width = 100
-        Height = 13
+        Left = 10
+        Top = 20
+        Width = 123
+        Height = 16
         Caption = 'Static pointers found:'
       end
       object Label2: TLabel
-        Left = 122
-        Top = 16
-        Width = 6
-        Height = 13
+        Left = 150
+        Top = 20
+        Width = 7
+        Height = 16
         Caption = '0'
       end
       object Label10: TLabel
-        Left = 8
-        Top = 32
-        Width = 94
-        Height = 13
+        Left = 10
+        Top = 39
+        Width = 116
+        Height = 16
         Caption = 'Method 2 scanners:'
       end
       object Label11: TLabel
-        Left = 122
-        Top = 32
-        Width = 6
-        Height = 13
+        Left = 150
+        Top = 39
+        Width = 7
+        Height = 16
         Caption = '0'
       end
       object Label3: TLabel
-        Left = 8
-        Top = 48
-        Width = 95
-        Height = 13
+        Left = 10
+        Top = 59
+        Width = 119
+        Height = 16
         Caption = 'Scanaddress count:'
       end
       object Label4: TLabel
-        Left = 122
-        Top = 48
-        Width = 6
-        Height = 13
+        Left = 150
+        Top = 59
+        Width = 7
+        Height = 16
         Caption = '0'
       end
       object Label7: TLabel
-        Left = 8
-        Top = 96
-        Width = 110
-        Height = 13
+        Left = 10
+        Top = 118
+        Width = 137
+        Height = 16
         Caption = 'Continues after dissect:'
       end
       object Label8: TLabel
-        Left = 122
-        Top = 96
-        Width = 6
-        Height = 13
+        Left = 150
+        Top = 118
+        Width = 7
+        Height = 16
         Caption = '0'
       end
       object Label12: TLabel
-        Left = 8
-        Top = 64
-        Width = 39
-        Height = 13
+        Left = 10
+        Top = 79
+        Width = 51
+        Height = 16
         Caption = 'Skipped'
       end
       object Label13: TLabel
-        Left = 122
-        Top = 64
-        Width = 6
-        Height = 13
+        Left = 150
+        Top = 79
+        Width = 7
+        Height = 16
         Caption = '0'
       end
       object Label14: TLabel
-        Left = 8
-        Top = 112
-        Width = 100
-        Height = 13
+        Left = 10
+        Top = 138
+        Width = 123
+        Height = 16
         Caption = 'Best spot to continue'
       end
       object Label15: TLabel
-        Left = 122
-        Top = 112
-        Width = 48
-        Height = 13
+        Left = 150
+        Top = 138
+        Width = 56
+        Height = 16
         Caption = '00000000'
       end
       object Label9: TLabel
-        Left = 122
-        Top = 128
+        Left = 150
+        Top = 158
         Width = 3
-        Height = 13
+        Height = 16
       end
       object Label16: TLabel
-        Left = 8
-        Top = 128
-        Width = 40
-        Height = 13
+        Left = 10
+        Top = 158
+        Width = 51
+        Height = 16
         Caption = 'Time left'
       end
       object Label17: TLabel
-        Left = 8
+        Left = 10
         Top = 1
-        Width = 30
-        Height = 13
+        Width = 37
+        Height = 16
         Caption = 'Status'
       end
       object Label18: TLabel
-        Left = 122
+        Left = 150
         Top = 1
         Width = 3
-        Height = 13
+        Height = 16
       end
       object Label19: TLabel
-        Left = 123
-        Top = 128
-        Width = 11
-        Height = 13
+        Left = 151
+        Top = 158
+        Width = 13
+        Height = 16
         Caption = 'inf'
       end
       object btnStopScan: TButton
-        Left = 8
-        Top = 156
-        Width = 75
-        Height = 25
+        Left = 10
+        Top = 192
+        Width = 92
+        Height = 31
         Hint = 
           'This will stop the current scan and show you the results it has ' +
           'found'
@@ -184,9 +184,9 @@ object frmPointerScanner: TfrmPointerScanner
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
-        Top = 97
-        Width = 603
-        Height = 189
+        Top = 119
+        Width = 601
+        Height = 135
         Align = alClient
         Indent = 19
         TabOrder = 0
@@ -194,60 +194,60 @@ object frmPointerScanner: TfrmPointerScanner
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 603
-        Height = 97
+        Width = 601
+        Height = 119
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
         object Label5: TLabel
           Left = 0
-          Top = 84
-          Width = 39
-          Height = 13
+          Top = 103
+          Width = 51
+          Height = 16
           Caption = 'Threads'
         end
         object lblRSCurrentAddress: TLabel
           Left = 0
-          Top = 48
-          Width = 99
-          Height = 13
+          Top = 59
+          Width = 125
+          Height = 16
           Caption = 'Currently at address :'
         end
         object lblRSTotalStaticPaths: TLabel
           Left = 0
-          Top = 24
-          Width = 140
-          Height = 13
+          Top = 30
+          Width = 171
+          Height = 16
           Caption = 'Of those # have a static base'
         end
         object lblRSTotalPaths: TLabel
           Left = 0
-          Top = 8
-          Width = 157
-          Height = 13
+          Top = 10
+          Width = 195
+          Height = 16
           Caption = 'Total pointer paths encountered: '
         end
         object Label6: TLabel
           Left = 0
-          Top = 64
-          Width = 56
-          Height = 13
+          Top = 79
+          Width = 69
+          Height = 16
           Caption = 'Looking for:'
         end
       end
       object Panel3: TPanel
         Left = 0
-        Top = 286
-        Width = 603
-        Height = 28
+        Top = 254
+        Width = 601
+        Height = 35
         Align = alBottom
         BevelOuter = bvNone
         TabOrder = 2
         object Button1: TButton
           Left = 0
           Top = 0
-          Width = 75
-          Height = 25
+          Width = 92
+          Height = 31
           Hint = 
             'This will stop the current scan and show you the results it has ' +
             'found'

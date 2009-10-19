@@ -516,9 +516,9 @@ var seperator: integer;
     address: string;
     offset:dword;
 begin
-//find out if it is a read or write
-  //label1.Caption:='';
-  seperator:=pos(',',disasm);
+  //temporaryily obsolete
+  
+{  seperator:=pos(',',disasm);
   if seperator>0 then
   begin
     fb:=pos('[',disasm);
@@ -537,7 +537,7 @@ begin
       end;
       //label1.Caption:=IntToHex(offset,8);
     end;
-  end;
+  end; }
 end;
 
 procedure TMemoryBrowser.Button4Click(Sender: TObject);

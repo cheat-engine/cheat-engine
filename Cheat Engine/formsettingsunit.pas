@@ -74,10 +74,6 @@ type
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
-    Label22: TLabel;
-    Button4: TButton;
-    Button5: TButton;
-    clbPlugins: TCheckListBox;
     Label4: TLabel;
     Label6: TLabel;
     Label7: TLabel;
@@ -146,6 +142,12 @@ type
     OpenDialog2: TOpenDialog;
     cbShowMainMenu: TCheckBox;
     cbOldPointerAddMethod: TCheckBox;
+    Panel7: TPanel;
+    Button5: TButton;
+    Button4: TButton;
+    Panel8: TPanel;
+    Label22: TLabel;
+    clbPlugins: TCheckListBox;
     procedure Button1Click(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);

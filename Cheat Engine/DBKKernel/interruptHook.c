@@ -47,6 +47,7 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 	if (InterruptHook[intnr].hooked)
 	{
 		//it's hooked, try to unhook
+		DbgPrint("cpu %d : interrupt %d is hooked\n",cpunr(),intnr);
 		if (InterruptHook[intnr].dbvmInterruptEmulation)
 		{
 			if (intnr==1)
@@ -86,6 +87,8 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 				idt.vector[intnr]=newVector;
 				enableInterrupts();				
 			}
+
+			DbgPrint("Restored\n");
 		}
 #endif
 	}

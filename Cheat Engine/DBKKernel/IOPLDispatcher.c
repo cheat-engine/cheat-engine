@@ -125,14 +125,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					DWORD processid;
+					UINT64 processid;
 					UINT64 startaddress;
 					WORD bytestoread;
 				} *pinp;
 
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
-				ntStatus=ReadProcessMemory(pinp->processid,NULL,(PVOID)pinp->startaddress,pinp->bytestoread,pinp) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+				ntStatus=ReadProcessMemory((DWORD)pinp->processid,NULL,(PVOID)pinp->startaddress,pinp->bytestoread,pinp) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 			}
 			__except(1)
 			{
@@ -147,13 +147,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					DWORD processid;
+					UINT64 processid;
 					UINT64 startaddress;
 					WORD bytestowrite;
 				} *pinp,inp;
 
 				pinp=Irp->AssociatedIrp.SystemBuffer;
-				ntStatus=WriteProcessMemory(pinp->processid,NULL,(PVOID)pinp->startaddress,pinp->bytestowrite,(PVOID)((UINT_PTR)pinp+sizeof(inp))) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+				ntStatus=WriteProcessMemory((DWORD)pinp->processid,NULL,(PVOID)pinp->startaddress,pinp->bytestowrite,(PVOID)((UINT_PTR)pinp+sizeof(inp))) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 			}
 			__except(1)
 			{
@@ -959,6 +959,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+		case IOCTL_CE_UNHOOKALLINTERRUPTS:
+			{
+				int i;
+				DbgPrint("IOCTL_CE_UNHOOKALLINTERRUPTS for cpu %d\n",cpunr());
+				for (i=0; i<256; i++)
+					inthook_UnhookInterrupt((unsigned char)i);
+
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}
+
 		case IOCTL_CE_SETGLOBALDEBUGSTATE:
 			{
 				struct intput
@@ -1290,7 +1301,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 */
-			/*x
+			
 
 		case IOCTL_CE_CONTINUEDEBUGEVENT:
 			{
@@ -1323,13 +1334,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				DbgPrint("IOCTL_CE_GETDEBUGGERSTATE\n");
 				ntStatus=debugger_getDebuggerState((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer));
 				
-				DbgPrint("ntStatus=%x eax=%x\n",ntStatus, ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->eax);
+				DbgPrint("ntStatus=%x rax=%x\n",ntStatus, ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->rax);
 				break;
 			}
 
 		case IOCTL_CE_SETDEBUGGERSTATE:
 			{	
-				DbgPrint("IOCTL_CE_SETDEBUGGERSTATE: state->eax=%x\n", ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->eax);
+				DbgPrint("IOCTL_CE_SETDEBUGGERSTATE: state->rax=%x\n", ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->rax);
 				ntStatus=debugger_setDebuggerState((PDebugStackState)Irp->AssociatedIrp.SystemBuffer);
 				break;
 			}
@@ -1360,7 +1371,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 			}
 
-*/
+
 		case IOCTL_CE_GETVERSION:
 			{
 				DbgPrint("IOCTL_CE_GETVERSION. Version=%d\n",dbkversion);

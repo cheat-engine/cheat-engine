@@ -127,6 +127,7 @@ begin
     bl_2byte: result:=2;
     bl_4byte: result:=4;
     bl_8byte: result:=8;
+    else result:=1; //(error)
   end;
 
 end;
@@ -140,7 +141,7 @@ begin
     for i:=0 to 3 do
       if breakpoint[i].active then
       begin
-        if (breakpoint[i].Address>=a) and (a<breakpoint[i].Address+breaklengthToByteLength(breakpoint[i].BreakLength)) then
+        if (breakpoint[i].Address>=a) and (a<(breakpoint[i].Address+breaklengthToByteLength(breakpoint[i].BreakLength))) then
         begin
           result:=true;
           exit;

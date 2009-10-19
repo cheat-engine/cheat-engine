@@ -1,14 +1,14 @@
 object FormMemoryRegions: TFormMemoryRegions
-  Left = 433
-  Top = 399
-  Width = 512
-  Height = 299
+  Left = 702
+  Top = 327
+  Width = 613
+  Height = 370
   BorderIcons = [biSystemMenu]
   Caption = 'Memory regions'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
@@ -16,15 +16,15 @@ object FormMemoryRegions: TFormMemoryRegions
   OnClose = FormClose
   OnShow = FormShow
   DesignSize = (
-    504
-    265)
-  PixelsPerInch = 96
-  TextHeight = 13
+    595
+    325)
+  PixelsPerInch = 120
+  TextHeight = 16
   object Button1: TButton
-    Left = 214
-    Top = 238
-    Width = 75
-    Height = 25
+    Left = 343
+    Top = 364
+    Width = 93
+    Height = 31
     Anchors = [akBottom]
     Cancel = True
     Caption = 'OK'
@@ -36,33 +36,33 @@ object FormMemoryRegions: TFormMemoryRegions
   object ListView1: TListView
     Left = 0
     Top = 0
-    Width = 504
-    Height = 232
-    Align = alTop
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Width = 595
+    Height = 325
+    Align = alClient
     Columns = <
       item
         Caption = 'Address'
-        Width = 80
+        Width = 98
       end
       item
         Caption = 'Allocation Protect'
-        Width = 110
+        Width = 135
       end
       item
         Caption = 'State'
-        Width = 60
+        Width = 74
       end
       item
         Caption = 'Protect'
-        Width = 110
+        Width = 135
       end
       item
         Caption = 'Type'
+        Width = 62
       end
       item
         Caption = 'Size'
-        Width = 70
+        Width = 86
       end>
     HideSelection = False
     MultiSelect = True

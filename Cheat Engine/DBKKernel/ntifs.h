@@ -1220,13 +1220,14 @@ extern PACL                         SeSystemDefaultDacl;
 #define PORT_CONNECT                    0x0001
 #define PORT_ALL_ACCESS                 (STANDARD_RIGHTS_ALL |\
                                          PORT_CONNECT)
-
+/*
 #define SEC_BASED                       0x00200000
 #define SEC_NO_CHANGE                   0x00400000
 #define SEC_FILE                        0x00800000
 #define SEC_IMAGE                       0x01000000
 #define SEC_COMMIT                      0x08000000
 #define SEC_NOCACHE                     0x10000000
+*/
 
 #define SECURITY_WORLD_SID_AUTHORITY    {0,0,0,0,0,1}
 #define SECURITY_WORLD_RID              (0x00000000L)
@@ -3376,11 +3377,13 @@ typedef struct _RETRIEVAL_POINTERS_BUFFER {
     } Extents[1];
 } RETRIEVAL_POINTERS_BUFFER, *PRETRIEVAL_POINTERS_BUFFER;
 
+/*
 typedef struct _RTL_SPLAY_LINKS {
     struct _RTL_SPLAY_LINKS *Parent;
     struct _RTL_SPLAY_LINKS *LeftChild;
     struct _RTL_SPLAY_LINKS *RightChild;
 } RTL_SPLAY_LINKS, *PRTL_SPLAY_LINKS;
+*/
 
 typedef struct _SE_EXPORTS {
 

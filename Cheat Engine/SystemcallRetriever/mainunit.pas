@@ -383,15 +383,15 @@ var ths: thandle;
     process1name: string;
     process1processid: dword;
     process1peprocess:dword;
-    process1buffer: array [0..512] of byte;
+    process1buffer: array [0..1023] of byte;
     process2name: string;
     process2processid: dword;
     process2peprocess:dword;
-    process2buffer: array [0..512] of byte;
+    process2buffer: array [0..1023] of byte;
     process3name: string;
     process3processid: dword;
     process3peprocess:dword;
-    process3buffer: array [0..512] of byte;
+    process3buffer: array [0..1023] of byte;
     nobr: dword;
     a,b,c: boolean;
     p,p2: ^dword;
@@ -460,10 +460,16 @@ begin
         exit;
       end;
 
+
+      listbox1.Lines.Add(format('%x (%x) - %s',[process1processid, process1peprocess, process1name]));
+      listbox1.Lines.Add(format('%x (%x) - %s',[process2processid, process2peprocess, process2name]));
+      listbox1.Lines.Add(format('%x (%x) - %s',[process3processid, process3peprocess, process3name]));
+
+
       listbox1.Lines.Add('Reading the PEProcess structures');
-      a:=ReadProcessmemory(processhandle,pointeR(process1peprocess),@process1buffer[0],512,nobr);
-      b:=ReadProcessmemory(processhandle,pointeR(process2peprocess),@process2buffer[0],512,nobr);
-      c:=ReadProcessmemory(processhandle,pointeR(process3peprocess),@process3buffer[0],512,nobr);
+      a:=ReadProcessmemory(processhandle,pointer(process1peprocess),@process1buffer[0],1024,nobr);
+      b:=ReadProcessmemory(processhandle,pointer(process2peprocess),@process2buffer[0],1024,nobr);
+      c:=ReadProcessmemory(processhandle,pointer(process3peprocess),@process3buffer[0],1024,nobr);
 
       if not (a and b and c) then
       begin
@@ -697,12 +703,15 @@ begin
   processhandle:=OpenProcess(process_all_access,true,getcurrentprocessid);
   if processhandle=0 then showmessage('this process couldn''t be opened');
 
+
+
   sdtshadow:=GetSdtshadow;
   if sdtshadow=0 then
   begin
     listbox1.Lines.Add('No SDTShadow found. So no window stealth possible');
   end else
   begin
+    listbox1.Lines.Add('SDTShadow was found at '+inttohex(sdtshadow,8));
     Paramlist:=sdtshadow+12;
     if (paramlist=12) or (not ReadProcessMemory(processhandle,pointer(paramlist),@paramlist,4,ar)) then
       listbox1.Lines.Add('The SDTShadow table that was reported to be found isn''t valid. No stealth...');

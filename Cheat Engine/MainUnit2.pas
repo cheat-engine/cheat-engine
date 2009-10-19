@@ -308,10 +308,14 @@ begin
 
           {$ifndef net}
           if reg.ValueExists('hotkey poll interval') then
-            hotkeyPollInterval:=reg.ReadInteger('hotkey poll interval');
+            hotkeyPollInterval:=reg.ReadInteger('hotkey poll interval')
+          else
+            hotkeyPollInterval:=100;
 
           if reg.ValueExists('Time between hotkeypress') then
-            hotkeyIdletime:=reg.ReadInteger('Time between hotkeypress');
+            hotkeyIdletime:=reg.ReadInteger('Time between hotkeypress')
+          else
+            hotkeyIdletime:=100;
 
           frameHotkeyConfig.edtKeypollInterval.text:=inttostr(hotkeyPollInterval);
           frameHotkeyConfig.edtHotkeyDelay.text:=inttostr(hotkeyIdletime);
@@ -378,7 +382,10 @@ begin
           else
             slowdowndelta:=1;
 
-          try reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10); except mainform.label7.Caption:=''; end;
+
+          if reg.ValueExists('Show Cheat Engine Hotkey') then
+            reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[0][0],10) else  mainform.label7.Caption:='';
+
           try reg.ReadBinaryData('Pause process Hotkey',temphotkeylist[1][0],10); except end;
           try reg.ReadBinaryData('Toggle speedhack Hotkey',temphotkeylist[2][0],10); except end;
           try reg.ReadBinaryData('Set Speedhack speed 1 Hotkey',temphotkeylist[3][0],10); except end;
@@ -475,13 +482,22 @@ begin
             buffersize:=512;
 
 
+
           try EditBufSize.text:=IntToStr(buffersize) except EditBufSize.Text:='512'; end;
           buffersize:=buffersize*1024;
           {$ifdef net} mainform.buffersize:=buffersize; {$endif}
 
-          try if reg.ReadBool('UseDebugRegs') then formsettings.rbDebugRegisters.checked:=true else formsettings.rdWriteExceptions.checked:=true; except end;
+          if reg.ValueExists('UseDebugRegs') then
+          begin
+            if reg.ReadBool('UseDebugRegs') then
+              formsettings.rbDebugRegisters.checked:=true
+            else
+              formsettings.rdWriteExceptions.checked:=true;
+          end;
 
-          try
+
+          if reg.ValueExists('Show Disassembler') then
+          begin
             if reg.readbool('Show Disassembler') then
             begin
               formsettings.cbShowDisassembler.checked:=true;
@@ -495,8 +511,6 @@ begin
               memorybrowser.Panel1.Visible:=false;
               memorybrowser.RefreshMB;
             end;
-          except
-
           end;
 
           try formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup'); except end;
@@ -569,13 +583,20 @@ begin
           ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 
 
-          try cbSkip_PAGE_NOCACHE.Checked:=reg.readbool('skip PAGE_NOCACHE'); except end;
+          if reg.ValueExists('skip PAGE_NOCACHE') then
+            cbSkip_PAGE_NOCACHE.Checked:=reg.readbool('skip PAGE_NOCACHE');
+            
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
           //try cbBreakOnAttach.Checked:=reg.readbool('Break when debuging'); except end;
           cbBreakOnattach.Checked:=false;
-          try cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows'); except end;
-          try temphideall:=reg.ReadBool('Really hide all windows'); except end;
+
+          if reg.ValueExists('Hide all windows') then
+            cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
+
+          if reg.ValueExists('Really hide all windows') then
+            temphideall:=reg.ReadBool('Really hide all windows');
+            
           onlyfront:=not formsettings.temphideall;
 
           try cbMemPrivate.Checked:=reg.ReadBool('MEM_PRIVATE'); except end;

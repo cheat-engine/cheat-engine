@@ -4,17 +4,35 @@ interface
 
 uses windows, sysutils, classes, symbolhandler, cefuncproc, newkernelhandler, byteinterpreter;
 
-procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true);
+procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
+procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false);
 
 implementation
 
-procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true);
+uses StrUtils;
+
+procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
+var i,j: integer;
+begin
+  //has 2 ' - ' occurances
+  i:=pos(' - ',s);
+  address:=copy(s,1,i-1);
+
+  j:=posex(' - ',s,i+3);
+  bytes:=copy(s,i+3,j-(i+3));
+
+  details:=copy(s,j+3,length(s)); //leftover
+end;
+
+procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false);
 {
 ce_stacktrace will walk the provided stack trying to figure out functionnames ,passed strings and optional other data
 esp must be aligned on a 4 byte boundary the first entry alignment but other entries will try to be forced to 4 byte alignment unless otherwise needed (double, string,...)
 
 if eip is in a known function location this can help with the parameter naming (for the location of ebp)
 esp is the first 4 byte of stack
+
+nosystemmodules is only in effect when show moduleso only is enabled
 }
 var
   alignedstack: pdwordarray;
@@ -49,9 +67,24 @@ begin
     oldi:=i;
     address:=inttohex(esp,8);
     value:=inttohex(alignedstack[i],8);
+    v:=vtdword;
 
     //figure out what alignedstack[i] is.
-    v:=FindTypeOfData(esp,@alignedstack[i],sizeinbytes-(i*4));
+
+    if showmodulesonly then
+    begin
+      if symhandler.inModule(alignedstack[i]) and ((not nosystemmodules) or (not symhandler.inSystemModule(alignedstack[i]))) then
+        v:=vtPointer
+      else
+      begin
+        inc(i);
+        inc(esp, (i-oldi)*4); 
+        continue; //skip
+      end;
+    end
+    else
+      v:=FindTypeOfData(esp,@alignedstack[i],sizeinbytes-(i*4));
+
     case v of
       vtbyte..vtdword:
       begin
@@ -76,8 +109,8 @@ begin
 
       vtString:
       begin
-        pchar(@alignedstack[sizeinbytes-1])[0]:=#0; //make sure it has an end
-        secondary:=pchar(@alignedstack[i]);
+        pchar(@pbytearray(alignedstack)[sizeinbytes-1])[0]:=#0; //make sure it has an end
+        secondary:='"'+pchar(@alignedstack[i])+'"';
 
         if force4byteblocks then
         begin
@@ -94,8 +127,8 @@ begin
 
       vtUnicodeString:
       begin
-        pchar(@alignedstack[sizeinbytes-1])[0]:=#0; //make sure it has an end
-        pchar(@alignedstack[sizeinbytes-2])[0]:=#0;
+        pchar(@pbytearray(alignedstack)[sizeinbytes-1])[0]:=#0; //make sure it has an end
+        pchar(@pbytearray(alignedstack)[sizeinbytes-2])[0]:=#0;
         secondaryws:=pwidechar(@alignedstack[i]);
 
         if force4byteblocks then
@@ -110,7 +143,7 @@ begin
             inc(i);
         end;
 
-        secondary:=secondaryws;
+        secondary:='"'+secondaryws+'"';
       end;
 
       vtPointer:

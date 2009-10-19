@@ -4,12 +4,12 @@ object AddForm: TAddForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Add address'
-  ClientHeight = 136
-  ClientWidth = 443
+  ClientHeight = 167
+  ClientWidth = 545
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
@@ -17,75 +17,75 @@ object AddForm: TAddForm
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    443
-    136)
-  PixelsPerInch = 96
-  TextHeight = 13
+    545
+    167)
+  PixelsPerInch = 120
+  TextHeight = 16
   object Label1: TLabel
-    Left = 23
-    Top = 8
-    Width = 38
-    Height = 13
+    Left = 28
+    Top = 10
+    Width = 51
+    Height = 16
     Caption = 'Address'
   end
   object Label2: TLabel
-    Left = 38
-    Top = 55
-    Width = 24
-    Height = 13
+    Left = 47
+    Top = 68
+    Width = 32
+    Height = 16
     Caption = 'Type'
   end
   object Label3: TLabel
-    Left = 8
-    Top = 32
-    Width = 53
-    Height = 13
+    Left = 10
+    Top = 39
+    Width = 68
+    Height = 16
     Caption = 'Description'
   end
   object ValuePanel: TPanel
-    Left = 170
-    Top = 50
-    Width = 231
-    Height = 27
+    Left = 209
+    Top = 62
+    Width = 285
+    Height = 33
     BevelOuter = bvNone
     TabOrder = 6
     Visible = False
     object Label12: TLabel
       Left = 0
-      Top = 4
-      Width = 89
-      Height = 17
+      Top = 5
+      Width = 110
+      Height = 21
       Alignment = taRightJustify
       AutoSize = False
       BiDiMode = bdLeftToRight
       ParentBiDiMode = False
     end
     object Edit1: TEdit
-      Left = 96
+      Left = 118
       Top = 2
-      Width = 41
+      Width = 51
       Height = 21
       PopupMenu = MainForm.emptypopup
       TabOrder = 0
       Text = '1'
     end
     object cbUnicode: TCheckBox
-      Left = 144
-      Top = 4
-      Width = 75
-      Height = 17
+      Left = 177
+      Top = 5
+      Width = 93
+      Height = 21
       Caption = 'Unicode'
       TabOrder = 1
     end
   end
   object VarType: TComboBox
-    Left = 64
-    Top = 51
-    Width = 105
-    Height = 21
+    Left = 79
+    Top = 63
+    Width = 129
+    Height = 24
     Style = csDropDownList
     DropDownCount = 9
-    ItemHeight = 13
+    ItemHeight = 16
     TabOrder = 2
     OnChange = VarTypeChange
     Items.Strings = (
@@ -100,10 +100,10 @@ object AddForm: TAddForm
       'Array of Byte')
   end
   object Button1: TButton
-    Left = 8
-    Top = 101
-    Width = 75
-    Height = 25
+    Left = 10
+    Top = 124
+    Width = 92
+    Height = 31
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
     Default = True
@@ -111,10 +111,10 @@ object AddForm: TAddForm
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 96
-    Top = 101
-    Width = 75
-    Height = 25
+    Left = 118
+    Top = 124
+    Width = 92
+    Height = 31
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
@@ -122,173 +122,173 @@ object AddForm: TAddForm
     OnClick = Button2Click
   end
   object Description: TEdit
-    Left = 64
-    Top = 28
-    Width = 377
+    Left = 79
+    Top = 34
+    Width = 464
     Height = 21
     MaxLength = 50
     TabOrder = 1
     Text = 'No Description!'
   end
   object BitPanel: TPanel
-    Left = 169
-    Top = 50
-    Width = 257
-    Height = 27
+    Left = 208
+    Top = 62
+    Width = 316
+    Height = 33
     BevelOuter = bvNone
     TabOrder = 5
     Visible = False
     object Label4: TLabel
-      Left = 51
+      Left = 63
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '0'
     end
     object Label5: TLabel
-      Left = 68
+      Left = 84
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '1'
     end
     object Label6: TLabel
-      Left = 83
+      Left = 102
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '2'
     end
     object Label7: TLabel
-      Left = 100
+      Left = 123
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '3'
     end
     object Label8: TLabel
-      Left = 116
+      Left = 143
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '4'
     end
     object Label9: TLabel
-      Left = 132
+      Left = 162
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '5'
     end
     object Label10: TLabel
-      Left = 147
+      Left = 181
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '6'
     end
     object Label11: TLabel
-      Left = 164
+      Left = 202
       Top = 0
-      Width = 6
-      Height = 13
+      Width = 7
+      Height = 16
       Caption = '7'
     end
     object Label13: TLabel
-      Left = 8
-      Top = 8
-      Width = 36
-      Height = 13
+      Left = 10
+      Top = 10
+      Width = 44
+      Height = 16
       Caption = 'Startbit:'
     end
     object Label14: TLabel
-      Left = 176
-      Top = 6
-      Width = 37
-      Height = 13
+      Left = 217
+      Top = 7
+      Width = 46
+      Height = 16
       Caption = 'nrofbits:'
     end
     object RadioButton1: TRadioButton
-      Left = 48
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 59
+      Top = 15
+      Width = 21
+      Height = 21
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object RadioButton2: TRadioButton
-      Left = 64
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 79
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 1
     end
     object RadioButton3: TRadioButton
-      Left = 80
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 98
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 2
     end
     object RadioButton4: TRadioButton
-      Left = 96
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 118
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 3
     end
     object RadioButton5: TRadioButton
-      Left = 112
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 138
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 4
     end
     object RadioButton6: TRadioButton
-      Left = 128
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 158
+      Top = 15
+      Width = 20
+      Height = 21
       TabOrder = 5
     end
     object RadioButton7: TRadioButton
-      Left = 144
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 177
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 6
     end
     object RadioButton8: TRadioButton
-      Left = 160
-      Top = 12
-      Width = 17
-      Height = 17
+      Left = 197
+      Top = 15
+      Width = 21
+      Height = 21
       TabOrder = 7
     end
     object Edit2: TEdit
-      Left = 216
-      Top = 4
-      Width = 37
+      Left = 266
+      Top = 5
+      Width = 45
       Height = 21
       TabOrder = 8
       Text = '1'
     end
   end
   object NewAddress: TEdit
-    Left = 64
-    Top = 4
-    Width = 105
+    Left = 79
+    Top = 5
+    Width = 129
     Height = 21
     TabOrder = 0
     Text = '00400000'
     OnKeyPress = NewAddressKeyPress
   end
   object cbPointer: TCheckBox
-    Left = 19
-    Top = 80
-    Width = 57
-    Height = 17
+    Left = 23
+    Top = 98
+    Width = 71
+    Height = 21
     Alignment = taLeftJustify
     BiDiMode = bdLeftToRight
     Caption = 'Pointer'
@@ -297,20 +297,20 @@ object AddForm: TAddForm
     OnClick = cbPointerClick
   end
   object Button3: TButton
-    Left = 8
-    Top = 102
-    Width = 73
-    Height = 21
+    Left = 10
+    Top = 126
+    Width = 90
+    Height = 25
     Caption = 'Add pointer'
     TabOrder = 8
     Visible = False
     OnClick = Button3Click
   end
   object Button4: TButton
-    Left = 88
-    Top = 102
-    Width = 73
-    Height = 21
+    Left = 108
+    Top = 126
+    Width = 90
+    Height = 25
     Caption = 'Remove'
     TabOrder = 9
     Visible = False

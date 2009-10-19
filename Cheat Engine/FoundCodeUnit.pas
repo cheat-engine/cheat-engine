@@ -18,17 +18,19 @@ type
   TFoundCodeDialog = class(TForm)
     FoundcodeList: TListBox;
     Panel1: TPanel;
-    btnOK: TButton;
     Description: TLabel;
-    btnExtraInfo: TButton;
-    btnAddToCodeList: TButton;
-    btnOpenDisassembler: TButton;
-    btnReplacewithnops: TButton;
     pmOptions: TPopupMenu;
     ReplacewithcodethatdoesnothingNOP1: TMenuItem;
     Showthisaddressinthedisassembler1: TMenuItem;
     Addtothecodelist1: TMenuItem;
     MoreInfo1: TMenuItem;
+    Panel2: TPanel;
+    btnOK: TButton;
+    Panel3: TPanel;
+    btnExtraInfo: TButton;
+    btnAddToCodeList: TButton;
+    btnOpenDisassembler: TButton;
+    btnReplacewithnops: TButton;
     procedure FoundcodeListClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);

@@ -122,7 +122,7 @@ begin
     sleep(100);
     
     except
-      Messagebox(0,'There was a error but I refuse to tell you what it is.','Signal Caller Error',MB_ICONERROR);
+      Messagebox(0,'There was an error but I refuse to tell you what it is.','Signal Caller Error',MB_ICONERROR);
       exit;
     end;
   end;

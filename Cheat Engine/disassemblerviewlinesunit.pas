@@ -193,8 +193,8 @@ begin
   height:=height+fcanvas.TextHeight(fdisassembled)+1;
   fcanvas.Font.Style:=[];
 
-  isbp:=((kdebugger.isactive) and (address<>0) and (kdebugger.isBreakpoint(address))) or
-        ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(address)));
+  isbp:=((kdebugger.isactive) and (kdebugger.isBreakpoint(faddress))) or
+        ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(faddress)));
 
   if selected then
   begin
@@ -214,12 +214,13 @@ begin
     end
     else
     begin
+      //it's a breakpoint
       fCanvas.Brush.Color:=clGreen;
       fCanvas.font.Color:=clWhite;
     end;
     fcanvas.Refresh;
 
-    fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
+
 
   end
   else
@@ -230,8 +231,14 @@ begin
       fCanvas.Brush.Color:=clRed;
       fCanvas.font.Color:=clBlack;
       fcanvas.Refresh
+    end else
+    begin
+      fcanvas.Brush.Color:=clBtnFace;
+      fcanvas.Font.Color:=clWindowText;
+      fcanvas.Refresh
     end;
   end;
+  fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin

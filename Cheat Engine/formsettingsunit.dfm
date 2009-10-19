@@ -1,14 +1,14 @@
 object formSettings: TformSettings
-  Left = 5
-  Top = 4
-  Width = 638
-  Height = 448
+  Left = 257
+  Top = 306
+  Width = 785
+  Height = 599
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
@@ -16,20 +16,20 @@ object formSettings: TformSettings
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object pnlConfig: TPanel
     Left = 0
     Top = 0
-    Width = 622
-    Height = 374
+    Width = 767
+    Height = 507
     Align = alClient
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
       Top = 1
-      Width = 120
-      Height = 372
+      Width = 148
+      Height = 505
       Align = alLeft
       HideSelection = False
       Indent = 19
@@ -54,93 +54,93 @@ object formSettings: TformSettings
         0000000000054578747261}
     end
     object pcSetting: TPageControl
-      Left = 121
+      Left = 149
       Top = 1
-      Width = 500
-      Height = 372
-      ActivePage = GeneralSettings
+      Width = 617
+      Height = 505
+      ActivePage = ScanSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
         object Label11: TLabel
-          Left = 170
-          Top = 321
-          Width = 13
-          Height = 13
+          Left = 209
+          Top = 395
+          Width = 18
+          Height = 16
           Caption = 'ms'
         end
         object Label12: TLabel
-          Left = 170
-          Top = 345
-          Width = 13
-          Height = 13
+          Left = 209
+          Top = 425
+          Width = 18
+          Height = 16
           Caption = 'ms'
         end
         object Label13: TLabel
-          Left = 51
-          Top = 321
-          Width = 72
-          Height = 13
+          Left = 63
+          Top = 395
+          Width = 91
+          Height = 16
           Caption = 'Update interval'
         end
         object Label14: TLabel
-          Left = 54
-          Top = 345
-          Width = 69
-          Height = 13
+          Left = 66
+          Top = 425
+          Width = 88
+          Height = 16
           Caption = 'Freeze interval'
         end
         object Label16: TLabel
-          Left = 8
-          Top = 377
-          Width = 116
-          Height = 13
+          Left = 10
+          Top = 464
+          Width = 143
+          Height = 16
           Caption = 'Network Update Interval'
           Visible = False
         end
         object Label17: TLabel
-          Left = 170
-          Top = 377
-          Width = 13
-          Height = 13
+          Left = 209
+          Top = 464
+          Width = 18
+          Height = 16
           Caption = 'ms'
           Visible = False
         end
         object Label18: TLabel
-          Left = 208
-          Top = 321
-          Width = 158
-          Height = 13
+          Left = 256
+          Top = 395
+          Width = 201
+          Height = 16
           Caption = 'Found address list update interval'
         end
         object Label19: TLabel
-          Left = 413
-          Top = 322
-          Width = 13
-          Height = 13
+          Left = 508
+          Top = 396
+          Width = 18
+          Height = 16
           Caption = 'ms'
         end
         object Label23: TLabel
-          Left = 8
-          Top = 280
-          Width = 193
-          Height = 13
+          Left = 10
+          Top = 345
+          Width = 245
+          Height = 16
           Caption = 'Automatically attach to processes named'
         end
         object Label24: TLabel
-          Left = 328
-          Top = 280
-          Width = 114
-          Height = 13
+          Left = 404
+          Top = 345
+          Width = 141
+          Height = 16
           Caption = '(Seperate entries with ; )'
         end
         object cbShowUndo: TCheckBox
           Left = 1
           Top = 2
-          Width = 488
-          Height = 17
+          Width = 601
+          Height = 21
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -148,9 +148,9 @@ object formSettings: TformSettings
         end
         object cbShowAdvanced: TCheckBox
           Left = 1
-          Top = 18
-          Width = 488
-          Height = 17
+          Top = 22
+          Width = 601
+          Height = 21
           Caption = 'Show advanced options.'
           Checked = True
           State = cbChecked
@@ -158,19 +158,19 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Top = 49
-          Width = 488
-          Height = 17
+          Top = 60
+          Width = 601
+          Height = 21
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
           TabOrder = 2
         end
         object EditUpdateInterval: TEdit
-          Left = 127
-          Top = 317
-          Width = 43
-          Height = 21
+          Left = 156
+          Top = 390
+          Width = 53
+          Height = 24
           Hint = 
             'The number of milliseconds that Cheat Engine will wait before re' +
             'freshing the list of addresses'
@@ -180,10 +180,10 @@ object formSettings: TformSettings
           Text = '500'
         end
         object EditFreezeInterval: TEdit
-          Left = 127
-          Top = 341
-          Width = 43
-          Height = 21
+          Left = 156
+          Top = 420
+          Width = 53
+          Height = 24
           Hint = 
             'The number of milliseconds that Cheat Engine will wait before re' +
             'setting the frozen addresses to their original value.'
@@ -194,41 +194,41 @@ object formSettings: TformSettings
         end
         object GroupBox1: TGroupBox
           Left = 0
-          Top = 185
-          Width = 489
-          Height = 70
+          Top = 228
+          Width = 602
+          Height = 86
           Caption = 'Address list specific'
           TabOrder = 5
           object cbShowAsSigned: TCheckBox
-            Left = 16
-            Top = 16
-            Width = 441
-            Height = 17
+            Left = 20
+            Top = 20
+            Width = 542
+            Height = 21
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
           object cbBinariesAsDecimal: TCheckBox
-            Left = 16
-            Top = 32
-            Width = 441
-            Height = 17
+            Left = 20
+            Top = 39
+            Width = 542
+            Height = 21
             Caption = 'Show and work with binaries as if they are decimals'
             TabOrder = 1
           end
           object cbsimplecopypaste: TCheckBox
-            Left = 16
-            Top = 48
-            Width = 441
-            Height = 17
+            Left = 20
+            Top = 59
+            Width = 542
+            Height = 21
             Caption = 'Simple paste'
             TabOrder = 2
           end
         end
         object EditNetworkUpdateInterval: TEdit
-          Left = 127
-          Top = 373
-          Width = 43
-          Height = 21
+          Left = 156
+          Top = 459
+          Width = 53
+          Height = 24
           Hint = 
             'The number of milliseconds that Cheat Engine will wait before re' +
             'freshing the list of addresses'
@@ -240,9 +240,9 @@ object formSettings: TformSettings
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Top = 33
-          Width = 488
-          Height = 17
+          Top = 41
+          Width = 601
+          Height = 21
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           State = cbChecked
@@ -250,10 +250,10 @@ object formSettings: TformSettings
           OnClick = cbUpdatefoundListClick
         end
         object editUpdatefoundInterval: TEdit
-          Left = 370
-          Top = 318
-          Width = 41
-          Height = 21
+          Left = 455
+          Top = 391
+          Width = 51
+          Height = 24
           Hint = 
             'The number of milliseconds that Cheat Engine will wait before re' +
             'freshing the list of addresses'
@@ -264,9 +264,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Top = 64
-          Width = 348
-          Height = 17
+          Top = 79
+          Width = 429
+          Height = 21
           Caption = 
             'Hide some/all windows instead of trying to bring cheat engine to' +
             ' front'
@@ -276,53 +276,53 @@ object formSettings: TformSettings
           OnClick = cbHideAllWindowsClick
         end
         object btnExcludeProcesses: TButton
-          Left = 352
-          Top = 64
-          Width = 73
-          Height = 17
+          Left = 433
+          Top = 78
+          Width = 90
+          Height = 21
           Caption = 'More...'
           TabOrder = 10
           OnClick = btnExcludeProcessesClick
         end
         object EditAutoAttach: TEdit
-          Left = 204
-          Top = 276
-          Width = 121
-          Height = 21
+          Left = 251
+          Top = 340
+          Width = 149
+          Height = 24
           Hint = 
             'Type the name of the process you want to automatically open. Not' +
             'e: Only works when NO process has been opened yet'
           TabOrder = 11
         end
         object cbAlwaysAutoAttach: TCheckBox
-          Left = 8
-          Top = 298
-          Width = 481
-          Height = 17
+          Left = 10
+          Top = 367
+          Width = 592
+          Height = 21
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 12
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Top = 112
-          Width = 488
-          Height = 17
+          Top = 138
+          Width = 601
+          Height = 21
           Caption = 'Save window positions'
           TabOrder = 13
         end
         object cbOldSpeedhack: TCheckBox
           Left = 1
-          Top = 96
-          Width = 488
-          Height = 17
+          Top = 118
+          Width = 601
+          Height = 21
           Caption = 'Use old speedhack'
           TabOrder = 14
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Top = 144
-          Width = 440
-          Height = 17
+          Top = 177
+          Width = 542
+          Height = 21
           Caption = 'Get process icons for processlist'
           Checked = True
           State = cbChecked
@@ -330,18 +330,18 @@ object formSettings: TformSettings
           OnClick = cbProcessIconsClick
         end
         object cbProcessIconsOnly: TCheckBox
-          Left = 16
-          Top = 160
-          Width = 193
-          Height = 17
+          Left = 20
+          Top = 197
+          Width = 237
+          Height = 21
           Caption = 'Only show processes with an icon'
           TabOrder = 16
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Top = 128
-          Width = 488
-          Height = 17
+          Top = 158
+          Width = 601
+          Height = 20
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -349,9 +349,9 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Top = 80
-          Width = 499
-          Height = 17
+          Top = 98
+          Width = 614
+          Height = 21
           Caption = 'Pointer adding: Append pointerline instead of insert'
           TabOrder = 18
         end
@@ -362,39 +362,101 @@ object formSettings: TformSettings
         inline frameHotkeyConfig: TframeHotkeyConfig
           Left = 0
           Top = 0
-          Width = 492
-          Height = 341
+          Width = 609
+          Height = 471
           Align = alClient
           TabOrder = 0
           inherited Panel1: TPanel
-            Width = 309
-            Height = 291
+            Top = 62
+            Width = 383
+            Height = 409
             inherited Label1: TLabel
-              Width = 309
+              Width = 383
             end
             inherited ListBox1: TListBox
-              Width = 309
-              Height = 278
+              Width = 383
+              Height = 393
             end
           end
           inherited Panel2: TPanel
-            Left = 309
-            Height = 291
+            Left = 383
+            Top = 62
+            Width = 226
+            Height = 409
             DesignSize = (
-              183
-              291)
+              226
+              409)
+            inherited Label2: TLabel
+              Left = 7
+            end
+            inherited Edit1: TEdit
+              Left = 6
+              Top = 20
+              Width = 212
+            end
+            inherited Button3: TButton
+              Left = 158
+              Top = 49
+              Width = 60
+              Height = 21
+            end
             inherited Panel3: TPanel
-              Height = 195
+              Left = 10
+              Top = 79
+              Width = 209
+              Height = 391
               DesignSize = (
-                170
-                195)
+                209
+                391)
+              inherited Label52: TLabel
+                Left = 14
+              end
+              inherited Label51: TLabel
+                Left = 74
+              end
+              inherited edtSHSpeed: TEdit
+                Left = 5
+                Top = 22
+                Width = 57
+              end
+              inherited edtSHSleep: TEdit
+                Left = 74
+                Top = 22
+                Width = 56
+              end
             end
             inherited Panel4: TPanel
-              Top = 67
+              Left = 10
+              Top = 82
+              Width = 213
+              Height = 120
+              inherited Label3: TLabel
+                Left = 4
+              end
+              inherited Edit4: TEdit
+                Top = 20
+                Width = 205
+              end
             end
           end
           inherited Panel5: TPanel
-            Width = 492
+            Width = 609
+            Height = 62
+            inherited Label4: TLabel
+              Left = 128
+              Top = 7
+            end
+            inherited Label5: TLabel
+              Left = 128
+              Top = 39
+            end
+            inherited edtKeypollInterval: TEdit
+              Width = 117
+            end
+            inherited edtHotkeyDelay: TEdit
+              Top = 32
+              Width = 117
+            end
           end
         end
       end
@@ -402,25 +464,25 @@ object formSettings: TformSettings
         Caption = 'Unrandomizer'
         ImageIndex = 8
         object Label5: TLabel
-          Left = 8
-          Top = 8
-          Width = 93
-          Height = 13
+          Left = 10
+          Top = 10
+          Width = 114
+          Height = 16
           Caption = 'Default return value'
         end
         object edtDefault: TEdit
-          Left = 104
-          Top = 6
-          Width = 121
-          Height = 21
+          Left = 128
+          Top = 7
+          Width = 149
+          Height = 24
           TabOrder = 0
           Text = '0'
         end
         object cbIncremental: TCheckBox
-          Left = 9
-          Top = 32
-          Width = 105
-          Height = 17
+          Left = 11
+          Top = 39
+          Width = 129
+          Height = 21
           Caption = 'Incremental value'
           TabOrder = 1
         end
@@ -430,9 +492,9 @@ object formSettings: TformSettings
         ImageIndex = 1
         object Label2: TLabel
           Left = 0
-          Top = 200
-          Width = 481
-          Height = 26
+          Top = 246
+          Width = 590
+          Height = 32
           Caption = 
             'Running the scan in a seperate thread will give you a cancel but' +
             'ton, and prevents CE from starvation. (meaning parts of the wind' +
@@ -441,38 +503,38 @@ object formSettings: TformSettings
           WordWrap = True
         end
         object Label3: TLabel
-          Left = 177
-          Top = 251
-          Width = 67
-          Height = 13
+          Left = 218
+          Top = 309
+          Width = 87
+          Height = 16
           Caption = 'Thread priority'
         end
         object Label1: TLabel
           Left = 0
-          Top = 6
-          Width = 114
-          Height = 13
+          Top = 7
+          Width = 139
+          Height = 16
           Caption = 'Size of scanbuffer (KB) :'
         end
         object Label15: TLabel
-          Left = 189
-          Top = 6
-          Width = 136
-          Height = 13
+          Left = 233
+          Top = 7
+          Width = 169
+          Height = 16
           Caption = '(Can effect scan speed a lot)'
         end
         object Label21: TLabel
           Left = 0
-          Top = 128
-          Width = 157
-          Height = 13
+          Top = 158
+          Width = 198
+          Height = 16
           Caption = 'Scan the following memory types:'
         end
         object checkThread: TCheckBox
-          Left = 169
-          Top = 232
-          Width = 161
-          Height = 17
+          Left = 208
+          Top = 286
+          Width = 198
+          Height = 20
           Caption = 'Run scan in seperate thread'
           Checked = True
           State = cbChecked
@@ -481,11 +543,11 @@ object formSettings: TformSettings
           OnClick = checkThreadClick
         end
         object combothreadpriority: TComboBox
-          Left = 249
-          Top = 248
-          Width = 73
-          Height = 21
-          ItemHeight = 13
+          Left = 306
+          Top = 305
+          Width = 90
+          Height = 24
+          ItemHeight = 16
           ItemIndex = 4
           PopupMenu = MainForm.emptypopup
           TabOrder = 1
@@ -501,17 +563,17 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Top = 32
-          Width = 489
-          Height = 17
+          Top = 39
+          Width = 602
+          Height = 21
           Caption = 'Fast scan on by default'
           TabOrder = 2
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Top = 64
-          Width = 489
-          Height = 17
+          Top = 79
+          Width = 602
+          Height = 21
           Hint = 
             'Some systems crash when trying to read memory with this protecti' +
             'on. If that happens check this option.'
@@ -522,9 +584,9 @@ object formSettings: TformSettings
         end
         object cbLowMemoryUsage: TCheckBox
           Left = 0
-          Top = 80
-          Width = 489
-          Height = 17
+          Top = 98
+          Width = 602
+          Height = 21
           Caption = 
             'Keep low memory usage when doing an "Unkown Initial Value scan" ' +
             'with Hyper Scan'
@@ -532,9 +594,9 @@ object formSettings: TformSettings
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Top = 160
-          Width = 489
-          Height = 17
+          Top = 197
+          Width = 602
+          Height = 21
           Caption = 
             'MEM_IMAGE:Memory that is mapped into the view of an image sectio' +
             'n'
@@ -544,9 +606,9 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Top = 176
-          Width = 489
-          Height = 17
+          Top = 217
+          Width = 602
+          Height = 21
           Caption = 
             'MEM_MAPPED:Memory that is mapped into the view of a section. (E.' +
             'g:File mapping, slow)'
@@ -554,9 +616,9 @@ object formSettings: TformSettings
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Top = 144
-          Width = 489
-          Height = 17
+          Top = 177
+          Width = 602
+          Height = 21
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -564,17 +626,17 @@ object formSettings: TformSettings
         end
         object cbEnableHyperscanWhenPossible: TCheckBox
           Left = 0
-          Top = 48
-          Width = 489
-          Height = 17
+          Top = 59
+          Width = 602
+          Height = 21
           Caption = 'Enable Hyperscan when possible'
           TabOrder = 8
         end
         object EditBufsize: TEdit
-          Left = 144
+          Left = 177
           Top = 2
-          Width = 41
-          Height = 21
+          Width = 51
+          Height = 24
           TabOrder = 9
           Text = '1024'
         end
@@ -582,38 +644,58 @@ object formSettings: TformSettings
       object Plugins: TTabSheet
         Caption = 'Plugins'
         ImageIndex = 3
-        object Label22: TLabel
+        object Panel7: TPanel
+          Left = 512
+          Top = 0
+          Width = 97
+          Height = 471
+          Align = alRight
+          BevelOuter = bvNone
+          TabOrder = 0
+          object Button5: TButton
+            Left = 5
+            Top = 43
+            Width = 92
+            Height = 31
+            Caption = 'Delete'
+            TabOrder = 0
+            OnClick = Button5Click
+          end
+          object Button4: TButton
+            Left = 5
+            Top = 4
+            Width = 92
+            Height = 30
+            Caption = 'Add new'
+            TabOrder = 1
+            OnClick = Button4Click
+          end
+        end
+        object Panel8: TPanel
           Left = 0
           Top = 0
-          Width = 165
-          Height = 13
-          Caption = 'The following plugins are available:'
-        end
-        object Button4: TButton
-          Left = 416
-          Top = 16
-          Width = 75
-          Height = 25
-          Caption = 'Add new'
-          TabOrder = 0
-          OnClick = Button4Click
-        end
-        object Button5: TButton
-          Left = 416
-          Top = 48
-          Width = 75
-          Height = 25
-          Caption = 'Delete'
+          Width = 512
+          Height = 471
+          Align = alClient
+          BevelOuter = bvNone
           TabOrder = 1
-          OnClick = Button5Click
-        end
-        object clbPlugins: TCheckListBox
-          Left = 0
-          Top = 16
-          Width = 409
-          Height = 273
-          ItemHeight = 13
-          TabOrder = 2
+          object Label22: TLabel
+            Left = 0
+            Top = 0
+            Width = 512
+            Height = 16
+            Align = alTop
+            Caption = 'The following plugins are available:'
+          end
+          object clbPlugins: TCheckListBox
+            Left = 0
+            Top = 16
+            Width = 512
+            Height = 455
+            Align = alClient
+            ItemHeight = 16
+            TabOrder = 0
+          end
         end
       end
       object CodeFinder: TTabSheet
@@ -622,8 +704,8 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 500
-          Height = 39
+          Width = 609
+          Height = 48
           Align = alTop
           Caption = 
             'There are 2 ways Cheat Engine can find the addresss of code that' +
@@ -634,42 +716,44 @@ object formSettings: TformSettings
         end
         object Label6: TLabel
           Left = 0
-          Top = 64
-          Width = 455
-          Height = 13
+          Top = 79
+          Width = 568
+          Height = 16
           Caption = 
             'Advantage: Not as memory intensive as the "Write Exceptions" typ' +
             'e. And very high compatibility.'
         end
         object Label7: TLabel
           Left = 0
-          Top = 79
-          Width = 255
-          Height = 13
+          Top = 97
+          Width = 325
+          Height = 16
           Caption = 'Disadvantage: May sometimes return a wrong address'
         end
         object Label8: TLabel
           Left = 0
-          Top = 112
-          Width = 327
-          Height = 13
+          Top = 138
+          Width = 416
+          Height = 16
           Caption = 
             'Advantage: Finds every address that accesses the specified addre' +
             'ss.'
         end
         object Label9: TLabel
           Left = 0
-          Top = 126
-          Width = 276
-          Height = 13
-          Caption = 'Disadvantage: Memory intensive so slows down the game.'
+          Top = 155
+          Width = 585
+          Height = 32
+          Caption = 
+            'Disadvantage: Memory intensive so slows down the game. And might' +
+            ' cause stability problems in the game'
           WordWrap = True
         end
         object rbDebugRegisters: TRadioButton
           Left = 0
-          Top = 48
-          Width = 489
-          Height = 17
+          Top = 59
+          Width = 602
+          Height = 21
           Caption = 'Use Debug Registers (aka Hardware Breakpoints)'
           Checked = True
           TabOrder = 0
@@ -677,26 +761,26 @@ object formSettings: TformSettings
         end
         object rdWriteExceptions: TRadioButton
           Left = 0
-          Top = 96
-          Width = 489
-          Height = 17
+          Top = 118
+          Width = 602
+          Height = 21
           Caption = 'Memory Access Exceptions'
           TabOrder = 1
         end
         object CheckBox1: TCheckBox
           Left = 0
-          Top = 146
-          Width = 489
-          Height = 17
+          Top = 188
+          Width = 602
+          Height = 21
           Caption = 'Try to prevent detection of the debugger'
           TabOrder = 2
           OnClick = CheckBox1Click
         end
         object cbHandleBreakpoints: TCheckBox
           Left = 0
-          Top = 161
-          Width = 489
-          Height = 17
+          Top = 206
+          Width = 602
+          Height = 21
           Caption = 'Handle beakpoints not caused by CE'
           TabOrder = 3
           OnClick = CheckBox1Click
@@ -708,8 +792,8 @@ object formSettings: TformSettings
         object cbShowDisassembler: TCheckBox
           Left = 1
           Top = 2
-          Width = 488
-          Height = 17
+          Width = 601
+          Height = 21
           Caption = 'Show disassembler'
           Checked = True
           State = cbChecked
@@ -717,20 +801,20 @@ object formSettings: TformSettings
           OnClick = cbShowDisassemblerClick
         end
         object cbShowDebugoptions: TCheckBox
-          Left = 16
-          Top = 24
-          Width = 473
-          Height = 17
+          Left = 20
+          Top = 30
+          Width = 582
+          Height = 20
           Caption = 'Show debugger options'
           Checked = True
           State = cbChecked
           TabOrder = 1
         end
         object replacewithnops: TCheckBox
-          Left = 16
-          Top = 72
-          Width = 473
-          Height = 17
+          Left = 20
+          Top = 89
+          Width = 582
+          Height = 21
           Hint = 
             'If you type in a opcode and it is smaller than the opcode you re' +
             'placed, it will fill the missing bytes with NOP instructions. If' +
@@ -745,10 +829,10 @@ object formSettings: TformSettings
           OnClick = replacewithnopsClick
         end
         object askforreplacewithnops: TCheckBox
-          Left = 32
-          Top = 88
-          Width = 457
-          Height = 17
+          Left = 39
+          Top = 108
+          Width = 563
+          Height = 21
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -756,36 +840,36 @@ object formSettings: TformSettings
         end
         object CheckBox2: TCheckBox
           Left = 0
-          Top = 146
-          Width = 489
-          Height = 17
+          Top = 180
+          Width = 602
+          Height = 21
           Caption = 'Try to prevent detection of the debugger'
           TabOrder = 4
           OnClick = CheckBox2Click
         end
         object rbDebugAsBreakpoint: TRadioButton
-          Left = 32
-          Top = 40
-          Width = 457
-          Height = 17
+          Left = 39
+          Top = 49
+          Width = 563
+          Height = 21
           Caption = 'Use hardware breakpoints (Max 3)'
           Checked = True
           TabOrder = 5
           TabStop = True
         end
         object rbInt3AsBreakpoint: TRadioButton
-          Left = 32
-          Top = 56
-          Width = 457
-          Height = 17
+          Left = 39
+          Top = 69
+          Width = 563
+          Height = 21
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           TabOrder = 6
         end
         object cbBreakOnAttach: TCheckBox
-          Left = 16
-          Top = 120
-          Width = 473
-          Height = 17
+          Left = 20
+          Top = 148
+          Width = 582
+          Height = 21
           Caption = 'Break when attaching/creating process using the process list'
           TabOrder = 7
           Visible = False
@@ -796,9 +880,9 @@ object formSettings: TformSettings
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
-          Top = 427
-          Width = 337
-          Height = 13
+          Top = 455
+          Width = 609
+          Height = 16
           Align = alBottom
           Alignment = taCenter
           Caption = 
@@ -809,52 +893,52 @@ object formSettings: TformSettings
         object GroupBox3: TGroupBox
           Left = 0
           Top = 0
-          Width = 503
-          Height = 70
+          Width = 609
+          Height = 86
           Align = alTop
           Caption = 
             'Use the following CE Kernel routines instead of the original win' +
             'dows version'
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
-            Left = 8
-            Top = 16
-            Width = 481
-            Height = 17
+            Left = 10
+            Top = 20
+            Width = 592
+            Height = 21
             Caption = 'Query memory region routines'
             TabOrder = 0
             OnClick = cbKernelQueryMemoryRegionClick
           end
           object cbKernelReadWriteProcessMemory: TCheckBox
-            Left = 8
-            Top = 32
-            Width = 481
-            Height = 17
+            Left = 10
+            Top = 39
+            Width = 592
+            Height = 21
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             TabOrder = 1
             OnClick = cbKernelQueryMemoryRegionClick
           end
           object cbKernelOpenProcess: TCheckBox
-            Left = 8
-            Top = 48
-            Width = 481
-            Height = 17
+            Left = 10
+            Top = 59
+            Width = 592
+            Height = 21
             Caption = 'Open Process'
             TabOrder = 2
           end
         end
         object Panel1: TPanel
           Left = 0
-          Top = 192
-          Width = 489
-          Height = 89
+          Top = 236
+          Width = 602
+          Height = 110
           BevelOuter = bvLowered
           TabOrder = 1
           object Label25: TLabel
             Left = 2
-            Top = 48
-            Width = 478
-            Height = 39
+            Top = 59
+            Width = 580
+            Height = 48
             Caption = 
               'Warning: If the system keeps crashing each time you run Cheat En' +
               'gine making it impossible to turn these options off then run Che' +
@@ -863,27 +947,27 @@ object formSettings: TformSettings
             WordWrap = True
           end
           object cbStealth: TCheckBox
-            Left = 3
-            Top = 8
-            Width = 486
-            Height = 17
+            Left = 4
+            Top = 10
+            Width = 598
+            Height = 21
             Caption = 'Stealth mode (Usermode)'
             TabOrder = 0
           end
           object cbProtectMe: TCheckBox
-            Left = 3
-            Top = 24
-            Width = 486
-            Height = 17
+            Left = 4
+            Top = 30
+            Width = 598
+            Height = 20
             Caption = 'Stealth mode (Kernelmode)'
             TabOrder = 1
             OnClick = cbProtectMeClick
           end
           object btnMoreStealth: TButton
-            Left = 152
-            Top = 24
-            Width = 75
-            Height = 17
+            Left = 187
+            Top = 30
+            Width = 92
+            Height = 20
             Caption = 'More...'
             Enabled = False
             TabOrder = 2
@@ -891,10 +975,10 @@ object formSettings: TformSettings
           end
         end
         object cbUndoMemoryChanges: TCheckBox
-          Left = 7
-          Top = 72
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 89
+          Width = 593
+          Height = 21
           Hint = 
             'This will check some often used memory locations of and undo any' +
             ' changes if it finds them'
@@ -905,10 +989,10 @@ object formSettings: TformSettings
           OnClick = cbUndoMemoryChangesClick
         end
         object cbForceUndo: TCheckBox
-          Left = 7
-          Top = 87
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 107
+          Width = 593
+          Height = 21
           Hint = 
             'If by some means that normal way of changing the protection of m' +
             'emory isn'#39't working then change the protection from the kernelsi' +
@@ -922,46 +1006,46 @@ object formSettings: TformSettings
           TabOrder = 3
         end
         object cbProcessWatcher: TCheckBox
-          Left = 7
-          Top = 139
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 171
+          Width = 593
+          Height = 21
           Caption = 'Enable use of the Process Watcher'
           TabOrder = 4
           OnClick = cbProcessWatcherClick
         end
         object cbKdebug: TCheckBox
-          Left = 7
-          Top = 155
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 191
+          Width = 593
+          Height = 21
           Caption = 'Use kernelmode debugger options when possible'
           TabOrder = 5
           OnClick = cbKdebugClick
         end
         object CheckBox3: TCheckBox
-          Left = 7
-          Top = 104
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 128
+          Width = 593
+          Height = 21
           Caption = 'Use APC to inject dll'#39's'
           TabOrder = 6
           Visible = False
         end
         object CheckBox4: TCheckBox
-          Left = 7
-          Top = 120
-          Width = 482
-          Height = 17
+          Left = 9
+          Top = 148
+          Width = 593
+          Height = 21
           Caption = 'Use APC to create new threads'
           TabOrder = 7
           Visible = False
         end
         object cbGlobalDebug: TCheckBox
-          Left = 24
-          Top = 170
-          Width = 465
-          Height = 17
+          Left = 30
+          Top = 209
+          Width = 572
+          Height = 21
           Caption = 'Use Global Debug routines'
           Enabled = False
           TabOrder = 8
@@ -973,16 +1057,16 @@ object formSettings: TformSettings
         object Panel2: TPanel
           Left = 0
           Top = 0
-          Width = 492
-          Height = 21
+          Width = 609
+          Height = 26
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
           object cbShowTools: TCheckBox
             Left = 0
             Top = 0
-            Width = 393
-            Height = 17
+            Width = 484
+            Height = 21
             Caption = 'Show '#39'tools'#39' menu item'
             Checked = True
             State = cbChecked
@@ -991,50 +1075,50 @@ object formSettings: TformSettings
           end
         end
         object Panel3: TPanel
-          Left = 307
-          Top = 21
-          Width = 185
-          Height = 320
+          Left = 381
+          Top = 26
+          Width = 228
+          Height = 445
           Align = alRight
           BevelOuter = bvNone
           TabOrder = 1
           object lblApplicationTool: TLabel
-            Left = 8
-            Top = 40
-            Width = 104
-            Height = 13
+            Left = 10
+            Top = 49
+            Width = 133
+            Height = 16
             Caption = 'Application/Command'
             Enabled = False
           end
           object lblShortcut: TLabel
-            Left = 8
-            Top = 80
-            Width = 43
-            Height = 13
+            Left = 10
+            Top = 98
+            Width = 51
+            Height = 16
             Caption = 'Shortcut:'
             Enabled = False
           end
           object lblShortcutText: TLabel
-            Left = 8
-            Top = 96
-            Width = 40
-            Height = 13
+            Left = 10
+            Top = 118
+            Width = 48
+            Height = 16
             Caption = 'xxxxxxxx'
             Enabled = False
           end
           object lblToolsName: TLabel
-            Left = 8
+            Left = 10
             Top = 0
-            Width = 28
-            Height = 13
+            Width = 37
+            Height = 16
             Caption = 'Name'
             Enabled = False
           end
           object OpenButton: TSpeedButton
-            Left = 160
-            Top = 56
-            Width = 25
-            Height = 21
+            Left = 197
+            Top = 69
+            Width = 31
+            Height = 26
             Enabled = False
             Glyph.Data = {
               D6020000424DD6020000000000003600000028000000100000000E0000000100
@@ -1065,30 +1149,30 @@ object formSettings: TformSettings
             OnClick = OpenButtonClick
           end
           object edtApplicationTool: TEdit
-            Left = 8
-            Top = 56
-            Width = 151
-            Height = 21
+            Left = 10
+            Top = 69
+            Width = 186
+            Height = 24
             Enabled = False
             MaxLength = 255
             TabOrder = 1
             OnChange = edtApplicationToolChange
           end
           object btnSetToolShortcut: TButton
-            Left = 8
-            Top = 112
-            Width = 75
-            Height = 17
+            Left = 10
+            Top = 138
+            Width = 92
+            Height = 21
             Caption = 'Set shortcut'
             Enabled = False
             TabOrder = 2
             OnClick = btnSetToolShortcutClick
           end
           object edtToolsName: TEdit
-            Left = 8
-            Top = 16
-            Width = 177
-            Height = 21
+            Left = 10
+            Top = 20
+            Width = 218
+            Height = 24
             Enabled = False
             MaxLength = 255
             TabOrder = 0
@@ -1097,34 +1181,34 @@ object formSettings: TformSettings
         end
         object Panel5: TPanel
           Left = 0
-          Top = 21
-          Width = 307
-          Height = 320
+          Top = 26
+          Width = 381
+          Height = 445
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
-            Top = 297
-            Width = 307
-            Height = 23
+            Top = 417
+            Width = 381
+            Height = 28
             Align = alBottom
             BevelOuter = bvNone
             TabOrder = 0
             object btnToolNew: TButton
-              Left = 8
-              Top = 3
-              Width = 75
-              Height = 17
+              Left = 10
+              Top = 4
+              Width = 92
+              Height = 21
               Caption = 'New'
               TabOrder = 0
               OnClick = btnToolNewClick
             end
             object btnToolDelete: TButton
-              Left = 88
-              Top = 3
-              Width = 75
-              Height = 17
+              Left = 108
+              Top = 4
+              Width = 93
+              Height = 21
               Caption = 'Delete'
               TabOrder = 1
               OnClick = btnToolDeleteClick
@@ -1133,17 +1217,17 @@ object formSettings: TformSettings
           object lvTools: TListView
             Left = 0
             Top = 0
-            Width = 307
-            Height = 297
+            Width = 381
+            Height = 417
             Align = alClient
             Columns = <
               item
                 Caption = 'Name'
-                Width = 60
+                Width = 74
               end
               item
                 Caption = 'Application'
-                Width = 190
+                Width = 234
               end
               item
                 AutoSize = True
@@ -1162,37 +1246,37 @@ object formSettings: TformSettings
   end
   object Panel6: TPanel
     Left = 0
-    Top = 374
-    Width = 622
-    Height = 38
+    Top = 507
+    Width = 767
+    Height = 47
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     OnResize = Panel6Resize
     DesignSize = (
-      622
-      38)
+      767
+      47)
     object AboutLabel: TLabel
-      Left = 584
-      Top = 25
-      Width = 45
-      Height = 13
+      Left = 866
+      Top = 31
+      Width = 56
+      Height = 16
       Cursor = crHandPoint
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = AboutLabelClick
     end
     object Button2: TButton
-      Left = 206
-      Top = 5
-      Width = 75
-      Height = 25
+      Left = 401
+      Top = 6
+      Width = 92
+      Height = 31
       Anchors = [akTop, akRight]
       Cancel = True
       Caption = 'Cancel'
@@ -1200,10 +1284,10 @@ object formSettings: TformSettings
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 120
-      Top = 5
-      Width = 75
-      Height = 25
+      Left = 295
+      Top = 6
+      Width = 92
+      Height = 31
       Anchors = [akTop, akRight]
       Caption = 'OK'
       Default = True

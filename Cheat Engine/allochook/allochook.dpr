@@ -23,7 +23,11 @@ exports NtFreeVirtualMemoryOrig;
 exports CeAllocateVirtualMemory;
 exports CeFreeVirtualMemory;
 
-exports CeAllocHandlerWindow;
+exports CreateEventData;
+exports FreeEventData;
+exports HasSetupDataEvent;
+exports CEHasHandledItEvent;
+exports eventtype;
 
 begin
 end.

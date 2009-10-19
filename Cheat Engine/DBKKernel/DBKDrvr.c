@@ -19,6 +19,7 @@
 #include "stealthedit.h"
 
 #include "IOPLDispatcher.h"
+#include "interruptHook.h"
 
 
 
@@ -146,7 +147,6 @@ Return Value:
     UNICODE_STRING  uszProcessEventString;
 	UNICODE_STRING	uszThreadEventString;
     PDEVICE_OBJECT  pDeviceObject;
-	int				i;
 	ULONG cr4reg;
 	HANDLE reg;
 	OBJECT_ATTRIBUTES oa;
@@ -207,7 +207,6 @@ Return Value:
 	RtlAppendUnicodeToString(&temp, L"Descriptor");
 	RtlAppendUnicodeToString(&temp, L"Table");
 
-	DbgPrint("temp.buffer=%S\n",temp.Buffer);
 
 	
 
@@ -261,6 +260,11 @@ Return Value:
 			RtlInitUnicodeString(&uszDeviceString,(PCWSTR) bufB->Data);
 			RtlInitUnicodeString(&uszProcessEventString,(PCWSTR) bufC->Data);
 			RtlInitUnicodeString(&uszThreadEventString,(PCWSTR) bufD->Data);
+
+			DbgPrint("DriverString=%S\n",uszDriverString.Buffer);
+			DbgPrint("DeviceString=%S\n",uszDeviceString.Buffer);
+			DbgPrint("ProcessEventString=%S\n",uszProcessEventString.Buffer);
+			DbgPrint("ThreadEventString=%S\n",uszThreadEventString.Buffer);
 		}
 		else
 		{
@@ -300,6 +304,7 @@ Return Value:
 
     if(ntStatus != STATUS_SUCCESS)
 	{
+		DbgPrint("IoCreateDevice failed\n");
 		ExFreePool(BufDriverString);
 		ExFreePool(BufDeviceString);
 		ExFreePool(BufProcessEventString);
@@ -316,6 +321,7 @@ Return Value:
 
     if(ntStatus != STATUS_SUCCESS)
     {
+		DbgPrint("IoCreateSymbolicLink failed: %x\n",ntStatus);
         // Delete device object if not successful
         IoDeleteDevice(pDeviceObject);
 
@@ -335,8 +341,7 @@ Return Value:
     // Load structure to point to IRP handlers...
     DriverObject->DriverUnload                         = UnloadDriver;
     DriverObject->MajorFunction[IRP_MJ_CREATE]         = DispatchCreate;
-    DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DispatchClose;
-	
+    DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DispatchClose;	
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
 
 
@@ -400,14 +405,17 @@ Return Value:
 
     //hideme(DriverObject); //ok, for those that see this, enabling this WILL fuck up try except routines, even in usermode you'll get a blue sreen
 
+	DbgPrint("Initializing debugger\n");
 	debugger_initialize();
-	
+
+	DbgPrint("Initializing stealthedit\n");	
 	stealthedit_initialize();
 	
 
 	
 
 	// Return success (don't do the devicestring, I need it for unload)
+	DbgPrint("Cleaning up initialization buffers\n");
 	ExFreePool(BufDriverString);
 	ExFreePool(BufProcessEventString);
 	ExFreePool(BufThreadEventString);
@@ -453,7 +461,7 @@ PSRLINR PsRemoveLoadImageNotifyRoutine2;
 
 void UnloadDriver(PDRIVER_OBJECT DriverObject)
 {
-	/*x
+
 	if (ProtectOn) //can't unload when protection is enabled
 		return;
 
@@ -462,6 +470,7 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		DbgPrint("Can not unload the driver because of debugger\n");
 		return; //
 	}
+	
 
 	if (KeServiceDescriptorTableShadow && registered) //I can't unload without a shadotw table (system service registered)
 	{
@@ -476,35 +485,20 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		KeServiceDescriptorTable[2].ServiceTable=NULL;
 		KeServiceDescriptorTable[2].TableSize=0;
 	}
-	
-	
-	if (OriginalInt1.wHighOffset!=0) //hidden feature: unloading WILL be able to stop the hook so it can be enabled a second time (e.g something overwrote my hook)
-	{
-		int	i;		
-		for (i=0;i<32;i++)
-		{
-			if (IDTAddresses[i]!=0)
-			{							
-				((PINT_VECTOR)(IDTAddresses[i]))[1]=OriginalInt1;
-				//((PINT_VECTOR)(IDTAddresses[i]))[3]=OriginalInt3;
-			};
-		};
-	}
-
+		
 
 	if ((CreateProcessNotifyRoutineEnabled) || (ImageNotifyRoutineLoaded)) 
 	{
 		PVOID x;
-		RtlInitUnicodeString(&uszDeviceString, L"PsRemoveCreateThreadNotifyRoutine");
-		PsRemoveCreateThreadNotifyRoutine2=MmGetSystemRoutineAddress(&uszDeviceString);
+		UNICODE_STRING temp;
+		RtlInitUnicodeString(&temp, L"PsRemoveCreateThreadNotifyRoutine");
+		PsRemoveCreateThreadNotifyRoutine2=MmGetSystemRoutineAddress(&temp);
 
-		RtlInitUnicodeString(&uszDeviceString, L"PsRemoveCreateThreadNotifyRoutine");
-		PsRemoveLoadImageNotifyRoutine2=MmGetSystemRoutineAddress(&uszDeviceString);
-
-
+		RtlInitUnicodeString(&temp, L"PsRemoveCreateThreadNotifyRoutine");
+		PsRemoveLoadImageNotifyRoutine2=MmGetSystemRoutineAddress(&temp);
 		
-		RtlInitUnicodeString(&uszDeviceString, L"ObOpenObjectByName");
-		x=MmGetSystemRoutineAddress(&uszDeviceString);
+		RtlInitUnicodeString(&temp, L"ObOpenObjectByName");
+		x=MmGetSystemRoutineAddress(&temp);
 		
 		DbgPrint("ObOpenObjectByName=%p\n",x);
 			
@@ -525,10 +519,11 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		else return;  //leave now!!!!!		
 	}
 
-	//Unhook();
+#ifndef AMD64
+	Unhook();
+#endif
 
 
-*/
 	DbgPrint("Driver unloading\n");
 
     IoDeleteDevice(DriverObject->DeviceObject);
@@ -540,15 +535,17 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 #endif
 
 #ifndef CETC_RELEASE
-	IoDeleteSymbolicLink(&uszDeviceString);
+	DbgPrint("DeviceString=%S\n",uszDeviceString.Buffer);
+	DbgPrint("IoDeleteSymbolicLink: %x\n", IoDeleteSymbolicLink(&uszDeviceString));
 	ExFreePool(BufDeviceString);
 #endif
 
 }
 
+#ifndef AMD64
 void Unhook(void)
 {
-#ifndef AMD64
+
     if (ProtectOn)
 	{
         __asm
@@ -582,5 +579,6 @@ void Unhook(void)
 		}
 		ProtectOn=FALSE;
 	}
-#endif
+
 }
+#endif

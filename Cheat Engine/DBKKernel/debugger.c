@@ -187,6 +187,7 @@ Must be called for each cpu
 		//set the fake state
 		//debugger_setInitialFakeState();
 		DbgPrint("Setting GD bit\n");
+
 		debugger_dr7_setGD(1); //enable the GD flag		
 	}
 		
@@ -201,9 +202,14 @@ int debugger_setGlobalDebugState(BOOL state)
 
 	if (inthook_isHooked(1))
 	{
-		DbgPrint("Int 1 is hooked, setting GD");
+		int oldEpilogueState=DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue;
+
+		DbgPrint("Int 1 is hooked,%s setting GD\n",(state ? "":"un"));
 		//debugger_setInitialFakeState();
-		debugger_dr7_setGD(1);
+
+		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=TRUE;
+		debugger_dr7_setGD(state);
+		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=oldEpilogueState;
 	}
 
 	return TRUE;
@@ -238,7 +244,6 @@ Call this AFTER the interrupts are hooked
 
 int debugger_stopDebugging(void)
 {	
-	//don't unhook if globaldebug has been used	
 	int i;
 
 	DbgPrint("Stopping the debugger if it is running\n");
@@ -805,6 +810,8 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 {
 	UINT_PTR currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the opperating system
+
+	DbgPrint("interrupt1_centry\n");
 
 	//Fetch current debug registers
 	currentdebugregs[0]=debugger_dr0_getValue();

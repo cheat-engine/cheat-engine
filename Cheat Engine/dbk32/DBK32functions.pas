@@ -2,7 +2,7 @@ unit DBK32functions;
 
 interface
 
-uses windows,sysutils,winsvc,psapi,classes,types,registry;
+uses windows,sysutils,winsvc,psapi,classes,types,registry, multicpuexecution;
 
 //xp sp2
 //ThreadsProcess=220
@@ -200,9 +200,6 @@ procedure LaunchDBVM; stdcall;
 
 function GetGDT(limit: pword):dword; stdcall;
 
-type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
-function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
-function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 
@@ -217,61 +214,6 @@ implementation
 uses vmxfunctions;
 
 
-type Tforeachcpu=class(tthread)
-  private
-    procedure execute; override;
-  public
-    fp: TCpuSpecificFunction;
-    parameter: pointer;
-    r: boolean;
-  end;
-
-procedure Tforeachcpu.execute;
-begin
-  r:=fp(parameter);
-end;
-
-function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
-var PA,SA:Dword;
-begin
-  result:=true;
-  GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-  if ((1 shl cpunr) and SA) = 0 then exit; //cpu doesn't exist
-
-  SetProcessAffinityMask(GetCurrentProcess,(1 shl cpunr));
-  sleep(0);
-  with Tforeachcpu.Create(true) do
-  begin
-    fp:=functionpointer;
-    parameter:=parameters;
-    resume;
-    waitfor;
-    if result then result:=r; //one false and it stays false
-    free;
-  end;
-  SetProcessAffinityMask(GetCurrentProcess,PA);
-end;
-
-function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
-var
-  cpunr,PA,SA:Dword;
-  r: bool;
-begin
-  result:=true;
-  GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-  for cpunr:=0 to 31 do
-    if ((1 shl cpunr) and SA)>0 then //cpu found
-    begin
-      r:=forspecificcpu(cpunr,functionpointer, parameters);
-      if result then result:=r;
-    end;
-
-  SetProcessAffinityMask(GetCurrentProcess,PA);
-
-
-end;
 
 function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 begin
@@ -863,7 +805,7 @@ end;
 
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 type TInputstruct=record
-  processid: dword;
+  processid: uint64;
   startaddress: uint64;
   bytestoread: word;
 end;
@@ -938,7 +880,7 @@ end;
 
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=record
-  processid: dword;
+  processid: uint64;
   startaddress: uint64;
   bytestowrite: word;
 end;
@@ -1149,7 +1091,7 @@ var i: integer;
     end;
     r: uint64;
 begin
-  result:=0;
+  result:=nil;
   for i:=0 to length(handlelist)-1 do
     if handlelist[i].processhandle=hProcess then
     begin
@@ -1377,12 +1319,12 @@ end;
 
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 type tprocesseventstruct=record
-  Created:BOOL;
+  Created:UINT64;
   ProcessID:UINT64;
   PEProcess:UINT64;
 end;
 type tthreadeventstruct=record
-  Created:BOOL;
+  Created:UINT64;
   ProcessID:UINT64;
   ThreadID:UINT64;
 end;
@@ -1631,8 +1573,8 @@ begin
 
 
     input.dbvmimgpath:=dword(@temp[1]);
-    deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
-  end;
+    result:=deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
+  end else result:=false;
 end;
 
 procedure LaunchDBVM; stdcall;
@@ -1645,11 +1587,13 @@ end;
 function RewriteKernel32:boolean; stdcall;
 begin
   //modifies the code of NtOpenProcess,NtOpenThread,OpenProcess,OpenThread to point to this dll's functions
+  result:=false;
 end;
 
 function RestoreKernel32: boolean; stdcall;
 begin
-
+  //
+  result:=false;
 end;
 
 
@@ -1682,7 +1626,7 @@ var cc: dword;
     majorversion,minorversion,buildnumber: dword;
     CSDVersion: array [0..127] of char;
     a: boolean;
-    i,j: integer;
+    i: integer;
 begin
   result:=false;
   sdtshadow:=0;

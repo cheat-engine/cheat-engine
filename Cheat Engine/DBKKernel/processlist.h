@@ -27,7 +27,7 @@ struct ProcessData
 
 typedef struct tagProcessEventData
 {
-BOOLEAN Created;
+UINT64 Created;
 UINT64 ProcessID;
 UINT64 PEProcess;
 } ProcessEventdta;

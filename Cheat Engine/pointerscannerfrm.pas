@@ -842,7 +842,7 @@ procedure TMethod2Scanner.execute;
 var wr: twaitresult;
     err: integer;
 begin
-  filename:=inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
+  filename:=cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
   
@@ -955,7 +955,7 @@ begin
   if staticscanner=nil then exit;
   
   //now combile all thread results to 1 file
-  result:=tfilestream.Create('result.ptr',fmcreate);
+  result:=tfilestream.Create(cheatenginedir+'result.ptr',fmcreate);
   for i:=0 to length(staticscanner.filenames)-1 do
   begin
     x:=tfilestream.Create(staticscanner.filenames[i],fmopenread);
@@ -966,7 +966,7 @@ begin
   result.Free;
 
   setlength(staticscanner.filenames,1);
-  staticscanner.filenames[0]:='result.ptr';
+  staticscanner.filenames[0]:=cheatenginedir+'result.ptr';
 
   loadpointers;
 
@@ -1071,7 +1071,7 @@ end;
 procedure TReverseScanWorker.execute;
 var wr: twaitresult;
 begin
-  filename:=inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
+  filename:=cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
   
@@ -1170,6 +1170,8 @@ var p: ^byte;
 
     mi: tmoduleinfo;
     mbi: _MEMORY_BASIC_INFORMATION;
+
+    ExactOffset: boolean;
 begin
   currentlevel:=level;
   if (level>=maxlevel) or
@@ -1186,7 +1188,13 @@ begin
 
 
   p:=vm.GetBuffer;
-  AddressMinusMaxStructSize:=address-structsize;
+  exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.offsetlist)-1>=level);
+
+  if exactOffset then
+    AddressMinusMaxStructSize:=address-staticscanner.offsetlist[level]
+  else
+    AddressMinusMaxStructSize:=address-structsize;
+    
   maxaddress:=dword(p)+vm.GetBufferSize;
   lastaddresS:=maxaddress;
   
@@ -1195,14 +1203,17 @@ begin
   LookingForMax:=address;  
 
 
+
   while dword(p)<maxaddress do
   begin
     {$ifdef injectedpscan}
     try
     {$endif}
       currentaddress:=p;
-      if (pd^<=address) and
-         (pd^>AddressMinusMaxStructSize) then
+
+      if (exactOffset and (pd^=AddressMinusMaxStructSize)) or
+         ((pd^<=address) and (pd^>AddressMinusMaxStructSize))
+      then
       begin
         //found one
         found:=true;
@@ -1281,6 +1292,8 @@ var p: ^byte;
     {$ifdef injectedpscan}
     mbi: _MEMORY_BASIC_INFORMATION;
     {$endif}
+
+    exactoffset: boolean;
 begin
     //scan the buffer
     fcount:=0; //debug counter to 0
@@ -1290,7 +1303,14 @@ begin
 
     setlength(results,maxlevel);
     p:=vm.GetBuffer;
-    automaticAddressMinusMaxStructSize:=automaticAddress-sz;
+
+    exactOffset:=self.mustEndWithSpecificOffset and (length(self.offsetlist)-1>=0); //level 0 here
+
+    if exactOffset then
+      automaticAddressMinusMaxStructSize:=automaticAddress-self.offsetlist[0]
+    else
+      automaticAddressMinusMaxStructSize:=automaticAddress-sz;
+
     lookingformin:=automaticAddressMinusMaxStructSize;
     lookingformax:=automaticAddress;
 
@@ -1307,8 +1327,9 @@ begin
       {$ifdef injectedpscan}
       try
       {$endif}
-        if (pd^<=automaticaddress) and
-           (pd^>automaticAddressMinusMaxStructSize) then
+        if (exactOffset and (pd^=automaticAddressMinusMaxStructSize)) or
+           ((pd^<=automaticaddress) and (pd^>automaticAddressMinusMaxStructSize))
+        then
         begin
           //found one
 
@@ -1754,7 +1775,7 @@ begin
       if staticscanner.mustEndWithSpecificOffset then
       begin
         setlength(staticscanner.offsetlist, frmpointerscannersettings.offsetlist.count);
-        for i:=0 to frmpointerscannersettings.offsetlist.count do
+        for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
           staticscanner.offsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
 
