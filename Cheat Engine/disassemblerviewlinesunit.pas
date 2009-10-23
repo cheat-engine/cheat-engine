@@ -193,7 +193,7 @@ begin
   height:=height+fcanvas.TextHeight(fdisassembled)+1;
   fcanvas.Font.Style:=[];
 
-  isbp:=((kdebugger.isactive) and (kdebugger.isBreakpoint(faddress))) or
+  isbp:=((kdebugger.isactive) and (kdebugger.isExecutableBreakpoint(faddress))) or
         ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(faddress)));
 
   if selected then

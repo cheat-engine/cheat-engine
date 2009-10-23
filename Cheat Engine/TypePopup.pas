@@ -69,7 +69,7 @@ begin
     lengthlabel.visible:=false;
     label2.Visible:=true;
     edit2.Visible:=true;
-    TypeForm.width:=390;
+    clientwidth:=bitpanel.left+bitpanel.Width+vartype.left;
   end
   else
   if vartype.itemindex>=7 then
@@ -77,7 +77,7 @@ begin
     bitpanel.visible:=false;
     lengthpanel.visible:=true;
     lengthlabel.visible:=true;
-    typeform.width:=295;
+    clientwidth:=lengthpanel.left+lengthpanel.Width;
 
   end else
   begin
@@ -85,7 +85,7 @@ begin
     lengthpanel.visible:=false;
     lengthlabel.visible:=false;
 
-    TypeForm.width:=182;
+    TypeForm.width:=vartype.Left+vartype.Width+vartype.left;
   end;
 end;
 

@@ -5,7 +5,7 @@ interface
 uses windows, sysutils, classes, symbolhandler, cefuncproc, newkernelhandler, byteinterpreter;
 
 procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
-procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false);
+procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0);
 
 implementation
 
@@ -24,7 +24,7 @@ begin
   details:=copy(s,j+3,length(s)); //leftover
 end;
 
-procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false);
+procedure ce_stacktrace(esp: dword; ebp: dword; eip: dword; stack: PDwordArray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth: integer=0);
 {
 ce_stacktrace will walk the provided stack trying to figure out functionnames ,passed strings and optional other data
 esp must be aligned on a 4 byte boundary the first entry alignment but other entries will try to be forced to 4 byte alignment unless otherwise needed (double, string,...)
@@ -156,6 +156,7 @@ begin
     end;
 
     trace.Add(address+' - '+value+' - '+secondary);
+    if (maxdepth>0) and (trace.Count>=maxdepth) then exit;
 
     inc(esp, (i-oldi)*4);   
 

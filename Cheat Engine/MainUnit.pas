@@ -10652,7 +10652,7 @@ begin
   try
     if memrec[lastselected].IsPointer then
     begin
-      if MessageDlg('This is already a pointer. Do you want to find a pointer that fits with these offsets',mtInformation, [mbyes,mbno], 0)=mryes then
+      if MessageDlg('This is already a pointer. Do you want to find another pointer that fits with these offsets?',mtInformation, [mbyes,mbno], 0)=mryes then
         findpointeroffsets:=true;
 
       realaddress2:=memrec[lastselected].pointers[length(memrec[lastselected].pointers)-1].Address;

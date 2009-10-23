@@ -1,6 +1,6 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 417
-  Top = 370
+  Left = 632
+  Top = 503
   Width = 744
   Height = 397
   Caption = 'Memory Allocations'
@@ -180,11 +180,73 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       OnDblClick = ListView1DblClick
     end
   end
+  object lbSearchResults: TListBox
+    Left = 0
+    Top = 0
+    Width = 218
+    Height = 327
+    ItemHeight = 16
+    PopupMenu = PopupMenu1
+    TabOrder = 2
+    Visible = False
+    OnClick = ListBox1Click
+    OnDblClick = ListBox1DblClick
+  end
   object MainMenu1: TMainMenu
     Left = 10
     Top = 24
+    object File1: TMenuItem
+      Caption = 'File'
+      object Saveselectedfingerprint1: TMenuItem
+        Caption = 'Save selected fingerprint'
+        ShortCut = 16467
+        OnClick = Saveselectedfingerprint1Click
+      end
+      object Searchfingerprint1: TMenuItem
+        Caption = 'Search fingerprint'
+        ShortCut = 49231
+        OnClick = Searchfingerprint1Click
+      end
+    end
     object Search1: TMenuItem
       Caption = 'Search'
+      object Findtext1: TMenuItem
+        Caption = 'Find text'
+        ShortCut = 16454
+        OnClick = Findtext1Click
+      end
+      object Searchagain1: TMenuItem
+        Caption = 'Search again'
+        ShortCut = 114
+        OnClick = Searchagain1Click
+      end
     end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = 'sfp'
+    Filter = 'Stack fingerprint (*.sfp)|*.sfp|All Files (*.*)|*.*'
+    FilterIndex = 0
+    Left = 48
+    Top = 24
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'Stack fingerprint (*.sfp)|*.sfp|All Files (*.*)|*.*'
+    FilterIndex = 0
+    Left = 80
+    Top = 24
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 48
+    Top = 56
+    object Closesearchresults1: TMenuItem
+      Caption = 'Close search results'
+      OnClick = Closesearchresults1Click
+    end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideUpDown]
+    OnFind = FindDialog1Find
+    Left = 48
+    Top = 88
   end
 end

@@ -89,7 +89,7 @@ type
 
     function isActive: boolean;
 
-    function isBreakpoint(a: dword): boolean;
+    function isExecutableBreakpoint(a: dword): boolean;
     property GlobalDebug: boolean read fGlobalDebug write setGlobalDebug;
     constructor create;
     property nrofbreakpoints: integer read getNumberOfBreakpoints;
@@ -132,7 +132,7 @@ begin
 
 end;
 
-function TKDebugger.isBreakpoint(a: dword): boolean;
+function TKDebugger.isExecutableBreakpoint(a: dword): boolean;
 var i: integer;
 begin
   result:=false;
@@ -141,7 +141,7 @@ begin
     for i:=0 to 3 do
       if breakpoint[i].active then
       begin
-        if (breakpoint[i].Address>=a) and (a<(breakpoint[i].Address+breaklengthToByteLength(breakpoint[i].BreakLength))) then
+        if (breakpoint[i].BreakType=bt_OnInstruction) and (breakpoint[i].address=a) then
         begin
           result:=true;
           exit;

@@ -67,9 +67,12 @@ DebugReg6 debugger_dr6_getValue(void);
 
 void debugger_dr7_setGD(int state)
 {
+
 	DebugReg7 _dr7=debugger_dr7_getValue();
 	_dr7.GD=state; //usually 1
 	debugger_dr7_setValue(_dr7);
+
+	
 }
 
 void debugger_dr0_setValue(UINT_PTR value)
@@ -112,9 +115,9 @@ UINT_PTR debugger_dr3_getValue(void)
 	return __readdr(3);
 }
 
-UINT_PTR debugger_dr6_setValue(UINT_PTR value)
+void debugger_dr6_setValue(UINT_PTR value)
 {
-	return __readdr(6);
+	__writedr(6,value);
 }
 
 void debugger_dr7_setValue(DebugReg7 value)
@@ -164,6 +167,7 @@ void debugger_initialize(void)
 
 void debugger_setInitialFakeState(void)
 {	
+	DbgPrint("setInitialFakeState for cpu %d\n",cpunr());
 	DebuggerState.FakedDebugRegisterState[cpunr()].DR0=debugger_dr0_getValue();
 	DebuggerState.FakedDebugRegisterState[cpunr()].DR1=debugger_dr1_getValue();
 	DebuggerState.FakedDebugRegisterState[cpunr()].DR2=debugger_dr2_getValue();
@@ -186,7 +190,7 @@ Must be called for each cpu
 	{
 		//set the fake state
 		//debugger_setInitialFakeState();
-		DbgPrint("Setting GD bit\n");
+		DbgPrint("Setting GD bit for cpu %d\n",cpunr());
 
 		debugger_dr7_setGD(1); //enable the GD flag		
 	}
@@ -198,18 +202,22 @@ int debugger_setGlobalDebugState(BOOL state)
 //call this BEFORE debugging, if already debugging, the user must call this for each cpu
 {
 	DbgPrint("debugger_setGlobalDebugState(%d)\n",state);
-	DebuggerState.globalDebug=state; //to other editors: just make sure this is set BEFORE calling debugger_dr7_setGD
+	if (state)
+	  DebuggerState.globalDebug=state; //on enable set this first
 
 	if (inthook_isHooked(1))
 	{
 		int oldEpilogueState=DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue;
 
-		DbgPrint("Int 1 is hooked,%s setting GD\n",(state ? "":"un"));
+		DbgPrint("Int 1 is hooked,%s-setting GD\n",(state ? "":"un"));
 		//debugger_setInitialFakeState();
 
 		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=TRUE;
 		debugger_dr7_setGD(state);
 		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=oldEpilogueState;
+
+		if (!state)
+			DebuggerState.globalDebug=state;
 	}
 
 	return TRUE;
@@ -230,7 +238,7 @@ int debugger_startDebugging(DWORD debuggedProcessID)
 Call this AFTER the interrupts are hooked
 */
 {
-	DbgPrint("debugger_startDebugging\n");
+	DbgPrint("debugger_startDebugging. Processid=%x\n",debuggedProcessID);
 	Int1JumpBackLocation.eip=inthook_getOriginalEIP(1);
 	Int1JumpBackLocation.cs=inthook_getOriginalCS(1);
 
@@ -426,6 +434,7 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 
 int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 //Notice: This routine is called when interrupts are enabled and the GD bit has been set if globaL DEBUGGING HAS BEEN USED
+//Interrupts are enabled and should be at passive level, so taskswitching is possible
 {
 	int handled=0; //0 means let the OS handle it
 	
@@ -525,10 +534,11 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 {
 
 	HANDLE CurrentProcessID=PsGetCurrentProcessId();	
+	UINT_PTR originaldr6=currentdebugregs[4];
 	DebugReg6 _dr6=*(DebugReg6 *)&currentdebugregs[4];
 	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
-	//DbgPrint("interrupt1_handler dr6=%x dr7=%d\n",_dr6,_dr7);
+//	DbgPrint("%d: interrupt1_handler dr6=%x fakedr6=%x\n",cpunr(), originaldr6,DebuggerState.FakedDebugRegisterState[cpunr()].DR6);
 
 	
 
@@ -550,7 +560,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 			//unset this flag in DR6
 			_dr6.BD=0;
-			debugger_dr6_setValue(*(DWORD *)&_dr6);
+			debugger_dr6_setValue(*(UINT_PTR *)&_dr6);
 
 			if (DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue)
 			{					
@@ -559,8 +569,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			}
 
 		
+			//DbgPrint("handler: Setting fake dr6 to %x\n",*(UINT_PTR *)&_dr6);
 			
-			DebuggerState.FakedDebugRegisterState[cpunr()].DR6=*(DWORD *)&_dr6;
+			//DebuggerState.FakedDebugRegisterState[cpunr()].DR6=*(UINT_PTR *)&_dr6;
 
 			for (instructionPointer=0; instruction[instructionPointer] != 0x0f; instructionPointer++) ; //find the start of the instruction, skipping prefixes etc...
 			
@@ -579,7 +590,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				switch (debugregister)
 				{
 					case 0: 
+						
 						drvalue=DebuggerState.FakedDebugRegisterState[cpunr()].DR0;
+						//DbgPrint("Reading DR0 (returning %x real %x)\n", drvalue, currentdebugregs[0]); 
 						break;
 
 					case 1: 
@@ -597,6 +610,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					case 4: 
 					case 6:
 						drvalue=DebuggerState.FakedDebugRegisterState[cpunr()].DR6;
+						//DbgPrint("reading dr6 value:%x\n",drvalue);
 						break;
 
 					case 5: 
@@ -627,6 +641,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					case 4:
 						if ((stackpointer[si_cs] & 3) == 3)
 							stackpointer[si_esp]=drvalue;
+						else
+							stackpointer[si_stack_esp]=drvalue;
 
 						break;
 
@@ -690,7 +706,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				//gpvalue now contains the value to set the debug register
 				switch (debugregister)
 				{
-					case 0: 						
+					case 0: 	
+						//DbgPrint("Writing DR0. Original value=%x new value=%x\n", currentdebugregs[0], gpvalue);
 						debugger_dr0_setValue(gpvalue);
 						DebuggerState.FakedDebugRegisterState[cpunr()].DR0=debugger_dr0_getValue();
 						break;
@@ -711,18 +728,25 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 						break;
 
 					case 4: 
-					case 6:
-						debugger_dr6_setValue(gpvalue);
+					case 6:						
+						//DbgPrint("Setting dr6 to %x (was %x)\n", gpvalue, DebuggerState.FakedDebugRegisterState[cpunr()].DR6);
+						debugger_dr6_setValue(gpvalue);						
 						DebuggerState.FakedDebugRegisterState[cpunr()].DR6=debugger_dr6_getValueDword();
 						break;
 
 					case 5: 
 					case 7:
 						//make sure it doesn't set the GD flag nowgpvalue
+						
+						if (DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue)
+							DbgPrint("Was in epilogue\n");
+
 						gpvalue=gpvalue | 0x400;
-						((DebugReg7 *)&gpvalue)->GD=0;
+						((DebugReg7 *)&gpvalue)->GD=0;						
+
 						debugger_dr7_setValue(*((DebugReg7 *)&gpvalue));
 						DebuggerState.FakedDebugRegisterState[cpunr()].DR7=debugger_dr7_getValueDword();
+						
 						break;
 				}
 
@@ -735,7 +759,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 					DbgPrint("Happened inside the target process\n");
 
-				DbgPrint("interrupt1_handler dr6=%x dr7=%d\n",_dr6,_dr7);
+				DbgPrint("interrupt1_handler dr6=%x (original=%x) dr7=%d\n",_dr6, originaldr6, _dr7);
 				DbgPrint("eip=%x\n",stackpointer[si_eip]);
 			}
 
@@ -752,17 +776,28 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		//check if this should break
 		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{
+			UINT_PTR originaldebugregs[5];
+
+			originaldebugregs[0]=DebuggerState.FakedDebugRegisterState[cpunr()].DR0;
+			originaldebugregs[1]=DebuggerState.FakedDebugRegisterState[cpunr()].DR1;
+			originaldebugregs[2]=DebuggerState.FakedDebugRegisterState[cpunr()].DR2;
+			originaldebugregs[3]=DebuggerState.FakedDebugRegisterState[cpunr()].DR3;
+			originaldebugregs[4]=DebuggerState.FakedDebugRegisterState[cpunr()].DR6;
+			originaldebugregs[5]=DebuggerState.FakedDebugRegisterState[cpunr()].DR7;
+
 			//DbgPrint("BP in target process\n");
 			
 			//no extra checks if it's caused by the debugger or not. That is now done in the usermode part
 			//if (*(PEFLAGS)(&stackpointer[si_eflags]).IF)	
 			if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
 			{
-				DbgPrint("Breakpoint while interrupts are dissabled: %x\n",stackpointer[si_eip]);
+				//DbgPrint("Breakpoint while interrupts are disabled: %x\n",stackpointer[si_eip]);
 				((PEFLAGS)&stackpointer[si_eflags])->RF=1;
-				((PEFLAGS)&stackpointer[si_eflags])->TF=1; //test
+				((PEFLAGS)&stackpointer[si_eflags])->TF=1; //keep going until IF=1
 				return 1; //don't handle it but also don't tell windows
 			}
+
+			//set the real debug registers to what it is according to the guest (so taskswitches take over these values) .... shouldn't be needed as global debug is on which fakes that read...
 	
 			if (DebuggerState.globalDebug)
 			{
@@ -771,9 +806,24 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				debugger_dr7_setGD(DebuggerState.globalDebug); 
 			}	
 
-
+			//start the windows taskswitching mode
 			enableInterrupts();
-			return breakpointHandler_kernel(stackpointer, currentdebugregs);				
+			{
+				
+				int rs;
+				rs=breakpointHandler_kernel(stackpointer, currentdebugregs);	
+				//DbgPrint("After handler dr6=%x and before handling it was %x\n",debugger_dr6_getValue(), DebuggerState.FakedDebugRegisterState[cpunr()].DR6); 
+
+				disableInterrupts();
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR0=originaldebugregs[0];
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR1=originaldebugregs[1];
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR2=originaldebugregs[2];
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR3=originaldebugregs[3];
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR6=originaldebugregs[4];
+				DebuggerState.FakedDebugRegisterState[cpunr()].DR7=originaldebugregs[5];
+				
+				return rs;
+			}
 		}
 		else 
 		{
@@ -783,14 +833,14 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			//DbgPrint("Not the debugged process (%x != %x)\n",CurrentProcessID,DebuggerState.debuggedProcessID );
 			//check if this break is due to a breakpoint ce has set.
 			//do that by checking if the breakpoint condition exists in the FAKE dr7 registers
-			//if so, let windows handle it, if not, it is caused by ce, which then means, skip
+			//if so, let windows handle it, if not, it is caused by ce, which then means, skip (so execute normally)
 
 			
-
-			if ((dr6.B0) && (!(dr7.L0 || dr7.G0))) return 1;  //break caused by DR0 and not expected by the current process
-			if ((dr6.B1) && (!(dr7.L1 || dr7.G1))) return 1;  //		...		DR1		...
-			if ((dr6.B2) && (!(dr7.L2 || dr7.G2))) return 1;  //		...		DR2		...
-			if ((dr6.B3) && (!(dr7.L3 || dr7.G3))) return 1;  //		...		DR3		...
+				//real dr6		//fake dr7
+			if ((dr6.B0) && (!(dr7.L0 || dr7.G0))) { ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //break caused by DR0 and not expected by the current process, ignore this bp and continue
+			if ((dr6.B1) && (!(dr7.L1 || dr7.G1))) { ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //		...		DR1		...
+			if ((dr6.B2) && (!(dr7.L2 || dr7.G2))) { ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR2		...
+			if ((dr6.B3) && (!(dr7.L3 || dr7.G3))) { ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR3		...
 
 			return 0; //still here, so let windows handle it
 
@@ -811,7 +861,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	UINT_PTR currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the opperating system
 
-	DbgPrint("interrupt1_centry\n");
+	//DbgPrint("interrupt1_centry:%d\n",cpunr());
 
 	//Fetch current debug registers
 	currentdebugregs[0]=debugger_dr0_getValue();
@@ -823,11 +873,21 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	handled=interrupt1_handler(stackpointer, currentdebugregs);
 
+	//DbgPrint("After interrupt1_handler dr6=%x and fake dr6=%x\n",currentdebugregs[4] , DebuggerState.FakedDebugRegisterState[cpunr()].DR6);
 
 	//epilogue:
 	//At the end when returning:
 	
+	
+
+	/*
+	/--------------------------------------------------------------------------\
+	|--------------EPILOGUE (AFTER HAVING HANDLED THE BREAKPOINT)--------------|
+	\--------------------------------------------------------------------------/
+
+	*/
 	disableInterrupts(); //just making sure..	
+
 
 	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1;
 	debugger_dr7_setGD(0); //make sure the GD bit is disabled (int1 within int1, oooh the fun..., and yes, THIS itself will cause one too)
@@ -852,22 +912,35 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 		*/
 
 
-	if ((DebuggerState.globalDebug)) //vista: DR's are only accesses when there are DR's(no idea how it handles breakpoints in a different process...), so set them in each thread even those that don't belong original: && (PsGetCurrentProcessId()==(HANDLE)DebuggerState.debuggedProcessID))
+	if ((DebuggerState.globalDebug)) //DR's are only accesses when there are DR's(no idea how it handles breakpoints in a different process...), so set them in each thread even those that don't belong original: && (PsGetCurrentProcessId()==(HANDLE)DebuggerState.debuggedProcessID))
 	{		
 		//set the breakpoint in this thread. 
 		int debugregister=0, breakpoint=0;
-		int currentcpunr=cpunr();
-		DebugReg6 dr6=debugger_dr6_getValue();
-		DebugReg7 _dr7=*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[currentcpunr].DR7;
+        DebugReg6 dr6=debugger_dr6_getValue();
+		//DebugReg7 dr7=debugger_dr7_getValue();
 
-		//first clear the DR6 bits caused by the debugger
-		if ((dr6.BD) && (!(_dr7.GD))) dr6.B0=0; //should already have been done, but what the heck...
-		if ((dr6.B0) && (!(_dr7.L0 || _dr7.G0))) dr6.B0=0; //unset DR6.B0
-		if ((dr6.B1) && (!(_dr7.L1 || _dr7.G1))) dr6.B1=0; //unset DR6.B1
-		if ((dr6.B2) && (!(_dr7.L2 || _dr7.G2))) dr6.B2=0; //unset DR6.B2
-		if ((dr6.B3) && (!(_dr7.L3 || _dr7.G3))) dr6.B3=0; //unset DR6.B3
+		DebugReg6 _dr6=*(DebugReg6 *)&DebuggerState.FakedDebugRegisterState[cpunr()].DR6;
+        DebugReg7 _dr7=*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[cpunr()].DR7;
 
-		DebuggerState.FakedDebugRegisterState[currentcpunr].DR6=*(DWORD *)&dr6;
+
+        //first clear the DR6 bits caused by the debugger
+
+		if (!handled)
+		{
+			//it's going to get sent to windows
+			if (dr6.BD && _dr7.GD) _dr6.BD=1; //should already have been done, but what the heck...
+			if (dr6.B0 && (_dr7.L0 || _dr7.G0)) _dr6.B0=1;
+			if (dr6.B1 && (_dr7.L1 || _dr7.G1)) _dr6.B1=1;
+			if (dr6.B2 && (_dr7.L2 || _dr7.G2)) _dr6.B2=1;
+			if (dr6.B3 && (_dr7.L3 || _dr7.G3)) _dr6.B3=1;
+
+			_dr6.BS=dr6.BS;
+			_dr6.BT=dr6.BT;
+			//DbgPrint("epilogue: Setting fake dr6 to %x (fake=%x)\n",*(DWORD *)&dr6, *(DWORD *)&_dr6);
+		}
+
+		debugger_dr6_setValue(0xffff0ff0);
+
 		
 		/*DbgPrint("Target process:\n");
 		DbgPrint("real dr0=%x\n",debugger_dr0_getValue());
@@ -886,12 +959,12 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 		//set the debug registers of active breakpoints. Doesn't have to be in the specified order. Just find an unused debug registers
 		//check DebuggerState.FakedDebugRegisterState[cpunr()].DR7 for unused breakpoints
 
-		//set state to what the gues thinks it is
-		debugger_dr0_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR0);
-		debugger_dr1_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR1);
-		debugger_dr2_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR2);
-		debugger_dr3_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR3);
-		debugger_dr6_setValue(DebuggerState.FakedDebugRegisterState[currentcpunr].DR6);
+		//set state to what the guest thinks it is
+		debugger_dr0_setValue(DebuggerState.FakedDebugRegisterState[cpunr()].DR0);
+		debugger_dr1_setValue(DebuggerState.FakedDebugRegisterState[cpunr()].DR1);
+		debugger_dr2_setValue(DebuggerState.FakedDebugRegisterState[cpunr()].DR2);
+		debugger_dr3_setValue(DebuggerState.FakedDebugRegisterState[cpunr()].DR3);
+		debugger_dr6_setValue(DebuggerState.FakedDebugRegisterState[cpunr()].DR6);
 
 		/*
 		if ((*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[currentcpunr].DR7).GD)
@@ -926,14 +999,14 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 				//find a usable debugregister
 				while ((debugregister<4) && (foundone==0))				
 				{
-					if (!DebuggerState.FakedDebugRegisterState[currentcpunr].inEpilogue)
+					if (!DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue)
 					{
 			//			DbgPrint("During: It wasn't in the epilogue\n");
-						DebuggerState.FakedDebugRegisterState[currentcpunr].inEpilogue=1;
+						DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1;
 					}
 
 					//check if this debugregister is usable
-					if (((DebuggerState.FakedDebugRegisterState[currentcpunr].DR7 >> (debugregister*2)) & 3)==0)  //DR7.Gx and DR7.Lx are 0
+					if (((DebuggerState.FakedDebugRegisterState[cpunr()].DR7 >> (debugregister*2)) & 3)==0)  //DR7.Gx and DR7.Lx are 0
 					{
 					  //  DbgPrint("debugregister %d is free to be used\n",debugregister);
 						foundone=1;
@@ -1060,7 +1133,7 @@ _declspec( naked ) void interrupt1_asmentry( void )
 
 		je skip_original_int1
 		
-		add esp,4 //undo errorcode push
+		add esp,4 //undo errorcode push (add effects eflags, so set it at both locations)
 
 		jmp far [Int1JumpBackLocation]
 

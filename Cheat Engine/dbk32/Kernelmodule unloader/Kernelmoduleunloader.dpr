@@ -354,6 +354,7 @@ begin
           begin
             outputdebugstring('Calling disableglobaldebug');
             foreachcpu(disableGlobalDebug,nil);
+
             outputdebugstring('calling disableInterruptHooks');
             foreachcpu(disableInterruptHooks,nil);
           end;

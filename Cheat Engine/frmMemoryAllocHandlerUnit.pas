@@ -27,6 +27,7 @@ type TmemoryAllocevent=class
 
     stack: array [0..4095] of byte;
     stacksize: dword;
+    procedure assign(o: TMemoryAllocEvent);
 end;
   
 type TAllocWatcher=class(TThread)
@@ -67,13 +68,30 @@ type
     rbStackTraceModules: TRadioButton;
     rdNonsystemModulesOnly: TRadioButton;
     MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    Saveselectedfingerprint1: TMenuItem;
+    Searchfingerprint1: TMenuItem;
+    SaveDialog1: TSaveDialog;
+    OpenDialog1: TOpenDialog;
+    lbSearchResults: TListBox;
+    PopupMenu1: TPopupMenu;
+    Closesearchresults1: TMenuItem;
     Search1: TMenuItem;
+    Findtext1: TMenuItem;
+    Searchagain1: TMenuItem;
+    FindDialog1: TFindDialog;
     procedure FormCreate(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure rbStackTraceModulesClick(Sender: TObject);
+    procedure Saveselectedfingerprint1Click(Sender: TObject);
+    procedure Searchfingerprint1Click(Sender: TObject);
+    procedure Closesearchresults1Click(Sender: TObject);
+    procedure Findtext1Click(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
+    procedure Searchagain1Click(Sender: TObject);
   private
     { Private declarations }
     HasSetupDataEvent: THandle;
@@ -94,7 +112,7 @@ implementation
 
 {$R *.dfm}
 
-uses frmautoinjectunit, memorybrowserformunit;
+uses frmautoinjectunit, memorybrowserformunit, frmMemoryAllocHandlerSearchFingerprintunit;
 
 
 
@@ -113,6 +131,25 @@ type TFreeEvent=record
   baseaddress: dword;
   size: dword;
   FreeType: dword;
+end;
+
+procedure TmemoryAllocevent.assign(o: TMemoryAllocEvent);
+var i: integer;
+begin
+  self.handle:=o.handle;
+  self.baseaddress:=o.baseaddress;
+  self.allocationType:=o.allocationType;
+  self.protect:=o.protect;
+  self.size:=o.size;
+  self.esp:=o.esp;
+  self._free:=o._free;
+  self.FreeType:=o.FreeType;
+  self.FreeSize:=o.FreeSize;
+
+  for i:=0 to o.stacksize-1 do
+    self.stack[i]:=o.stack[i];
+
+  self.stacksize:=o.stacksize;
 end;
 
 procedure TAllocWatcher.addObject;
@@ -416,10 +453,10 @@ var
   li: tlistitem;
   oldindex: integer;
 begin
-  if listbox1.ItemIndex<>-1 then
+  if (sender as tlistbox).ItemIndex<>-1 then
   begin
     if not panel1.Visible then panel1.visible:=true;
-    o:=TMemoryAllocEvent(listbox1.Items.Objects[listbox1.ItemIndex]);
+    o:=TMemoryAllocEvent((sender as tlistbox).Items.Objects[(sender as tlistbox).ItemIndex]);
     lblhandle.caption:=inttohex(o.handle,1);
     lblBaseAddress.Caption:=inttohex(o.baseaddress,8);
 
@@ -458,6 +495,8 @@ begin
           li.SubItems.Add(bytes);
           li.SubItems.Add(details);
         end;
+
+
       finally
         trace.free;
       end;
@@ -467,6 +506,8 @@ begin
       begin
         listview1.ItemIndex:=oldindex;
         listview1.Selected.Focused:=true;
+        if oldindex<listview1.Items.Count then
+          listview1.Items[oldindex].MakeVisible(false);
       end;
 
       listview1.Items.EndUpdate;
@@ -481,9 +522,9 @@ end;
 procedure TfrmMemoryAllocHandler.ListBox1DblClick(Sender: TObject);
 var o: TMemoryAllocEvent;
 begin
-  if listbox1.ItemIndex<>-1 then
+  if (sender as tlistbox).ItemIndex<>-1 then
   begin
-    o:=TMemoryAllocEvent(listbox1.Items.Objects[listbox1.ItemIndex]);
+    o:=TMemoryAllocEvent((sender as tlistbox).Items.Objects[(sender as tlistbox).ItemIndex]);
     memorybrowser.memoryaddress:=o.baseaddress;
     memorybrowser.RefreshMB;
   end;
@@ -495,6 +536,10 @@ begin
   for i:=0 to listbox1.Items.Count-1 do
     if listbox1.Items.Objects[i]<>nil then
       TMemoryAllocEvent(listbox1.Items.Objects[i]).Free;
+
+  for i:=0 to lbSearchResults.Items.Count-1 do
+    if lbSearchResults.Items.Objects[i]<>nil then
+      TMemoryAllocEvent(lbSearchResults.Items.Objects[i]).Free;
 
   if watcher<>nil then
     freeandnil(watcher);
@@ -515,6 +560,328 @@ end;
 procedure TfrmMemoryAllocHandler.rbStackTraceModulesClick(Sender: TObject);
 begin
   listbox1.OnClick(listbox1);
+end;
+
+procedure TfrmMemoryAllocHandler.Saveselectedfingerprint1Click(
+  Sender: TObject);
+var
+  t: tstringlist;
+  o: TmemoryAllocevent;
+  tracefull, tracehalf, traceapp: tstringlist;
+  seperator: tstringlist;
+begin
+  if (listbox1.ItemIndex<>-1) and savedialog1.execute then
+  begin
+    t:=tstringlist.Create;
+    tracefull:=TStringlist.Create;
+    tracehalf:=TStringlist.Create;
+    traceapp:=TStringlist.Create;
+    seperator:=TStringlist.Create;
+    try
+      seperator.Add('========');
+
+      o:=TmemoryAllocevent(listbox1.items.objects[listbox1.ItemIndex]);
+      ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, tracefull, true,false,false);
+      ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, tracehalf, true,true,false);
+      ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, traceapp, true,true,true);
+
+      t.AddStrings(tracefull);
+      t.AddStrings(seperator);
+      t.AddStrings(tracehalf);
+      t.AddStrings(seperator);
+      t.AddStrings(traceapp);
+
+      t.SaveToFile(savedialog1.FileName);
+    finally
+      t.Free;
+      tracefull.free;
+      tracehalf.free;
+      traceapp.free;
+      seperator.free;
+    end;
+  end;
+end;
+
+procedure TfrmMemoryAllocHandler.Searchfingerprint1Click(Sender: TObject);
+var
+  t: TStringlist;
+  i,j: integer;
+  tracefull, tracehalf, traceapp: tstringlist;
+  lookfor: tstringlist;
+  temptrace: tstringlist;
+  depth: integer;
+  saddress, sbytes, sdetails: string;
+  o,o2:TmemoryAllocevent;
+  match: boolean;
+begin
+  if opendialog1.Execute then
+  begin
+    t:=tstringlist.Create;
+    tracefull:=TStringlist.Create;
+    tracehalf:=TStringlist.Create;
+    traceapp:=TStringlist.Create;
+    lookfor:=TStringlist.Create;
+    temptrace:=TStringlist.Create;
+
+    lbSearchResults.Items.BeginUpdate;
+
+    for i:=0 to lbSearchResults.items.Count-1 do
+      TmemoryAllocevent(lbSearchResults.Items.Objects[i]).Free;
+
+
+    lbSearchResults.Clear;
+
+    t.LoadFromFile(opendialog1.FileName);
+    try
+      //seperate the traces
+      i:=0;
+      while i<t.Count-1 do
+      begin
+        if t[i]='========' then
+        begin
+          inc(i);
+          break;
+        end;
+
+        tracefull.Add(t[i]);
+        inc(i);
+      end;
+
+      while i<t.Count-1 do
+      begin
+        if t[i]='========' then
+        begin
+          inc(i);
+          break;
+        end;
+
+        tracehalf.Add(t[i]);
+        inc(i);
+      end;
+
+      while i<t.Count do
+      begin
+        traceapp.Add(t[i]);
+        inc(i);
+      end;
+
+
+      //ask which one to use
+      with tfrmMemoryAllocHandlerSearchFingerprint.create(self) do
+      begin
+        if showmodal=mrok then
+        begin
+          if not TryStrToInt(edtDepth.text, depth) then
+            depth:=5;
+            
+          if rbTypeAll.checked then
+          begin
+            for i:=0 to depth-1 do
+            begin
+              seperatestacktraceline(tracefull[i],saddress, sbytes, sdetails);
+              lookfor.Add(sdetails);
+            end;
+
+            for i:=0 to listbox1.Count-1 do
+            begin
+              o:=TmemoryAllocevent(listbox1.Items.Objects[i]);
+
+              temptrace.Clear;
+              ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, temptrace, true,false,false,depth);
+              if temptrace.count>0 then //at least 1
+              begin
+                match:=true;
+                for j:=0 to min(min(depth-1,temptrace.Count),lookfor.Count-1) do
+                begin
+                  //check
+                  if temptrace[j]<>lookfor[j] then
+                  begin
+                    match:=false;
+                    break;
+                  end;
+                end;
+
+                if match then
+                begin
+                  o2:=TmemoryAllocevent.Create;
+                  o2.assign(o);
+                  lbSearchResults.Items.AddObject(listbox1.Items[i], o2);
+                end;
+              end;
+            end;
+
+          end
+          else
+          if rbTypeModules.checked then
+          begin
+            //module sonly
+            for i:=0 to depth-1 do
+            begin
+              seperatestacktraceline(tracehalf[i],saddress, sbytes, sdetails);
+              lookfor.Add(sdetails);
+            end;
+
+            for i:=0 to listbox1.Count-1 do
+            begin
+              o:=TmemoryAllocevent(listbox1.Items.Objects[i]);
+
+              temptrace.Clear;
+              ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, temptrace, true,true,false,depth);
+              if temptrace.count>0 then //at least 1
+              begin
+                match:=true;
+                for j:=0 to min(min(depth-1,temptrace.Count),lookfor.Count-1) do
+                begin
+                  //check
+                  if temptrace[j]<>lookfor[j] then
+                  begin
+                    match:=false;
+                    break;
+                  end;
+                end;
+
+                if match then
+                begin
+                  o2:=TmemoryAllocevent.Create;
+                  o2.assign(o);
+                  lbSearchResults.Items.AddObject(listbox1.Items[i], o2);
+                end;
+              end;
+            end;
+          end
+          else
+          begin
+            //app modules only
+            for i:=0 to depth-1 do
+            begin
+              seperatestacktraceline(traceapp[i],saddress, sbytes, sdetails);
+              lookfor.Add(sdetails);
+            end;
+
+            for i:=0 to listbox1.Count-1 do
+            begin
+              o:=TmemoryAllocevent(listbox1.Items.Objects[i]);
+
+              temptrace.Clear;
+              ce_stacktrace(o.esp,0,0,@o.stack[0],o.stacksize, temptrace, true,true,true,depth);
+              if temptrace.count>0 then //at least 1
+              begin
+                match:=true;
+                for j:=0 to min(min(depth-1,temptrace.Count-1),lookfor.Count-1) do
+                begin
+                  //check
+                  seperatestacktraceline(temptrace[j],saddress, sbytes, sdetails);
+                  if sdetails<>lookfor[j] then
+                  begin
+                    match:=false;
+                    break;
+                  end;
+                end;
+
+                if match then
+                begin
+                  o2:=TmemoryAllocevent.Create;
+                  o2.assign(o);
+                  lbSearchResults.Items.AddObject(listbox1.Items[i], o2);
+                end;
+              end;
+            end;
+          end;
+
+
+
+        end;
+
+        free;
+      end;
+
+      lbSearchResults.Visible:=true;
+    finally
+      lbSearchResults.Items.EndUpdate;
+      t.free;
+      temptrace.free;
+      tracefull.free;
+      tracehalf.free;
+      traceapp.free;
+      lookfor.free;
+    end;
+  end;
+end;
+
+procedure TfrmMemoryAllocHandler.Closesearchresults1Click(Sender: TObject);
+var i: integer;
+begin
+  lbSearchResults.Visible:=false;
+  for i:=0 to lbSearchResults.items.Count-1 do
+    TmemoryAllocevent(lbSearchResults.Items.Objects[i]).Free;
+
+  lbSearchResults.Clear;
+end;
+
+procedure TfrmMemoryAllocHandler.Findtext1Click(Sender: TObject);
+begin
+  finddialog1.Execute;
+end;
+
+procedure TfrmMemoryAllocHandler.FindDialog1Find(Sender: TObject);
+var objectstart: integer;
+    viewstart: integer;
+    searchTextUP: string;
+    i: integer;
+    wholeword: boolean;
+begin
+  searchTextUP:=uppercase(finddialog1.FindText);
+
+  wholeword:=frWholeWord in finddialog1.Options;
+
+  listbox1.Items.BeginUpdate;
+  listview1.Items.BeginUpdate;
+  try
+
+    objectstart:=listbox1.ItemIndex;
+    if objectstart=-1 then objectstart:=0;
+
+
+
+    for objectstart:=objectstart to listbox1.Items.Count-1 do
+    begin
+      if listbox1.ItemIndex<>objectstart then
+      begin
+        listbox1.ItemIndex:=objectstart;
+        viewstart:=0;
+      end
+      else
+      begin
+        //check if something is already selected in listview1
+        viewstart:=listview1.ItemIndex;
+      end;
+
+      for i:=viewstart+1 to listview1.Items.Count-1 do //start from next index
+      begin
+        if (wholeword and (searchTextUP=uppercase(listview1.Items[i].SubItems[1]))) or //if whole word and word matches
+           ((not wholeword) and (pos(searchTextUP, uppercase(listview1.Items[i].SubItems[1]))>0)) //or not whole word and partial match then
+        then
+        begin
+          //found it
+          listview1.ItemIndex:=i;
+          listview1.Items[i].MakeVisible(false);
+          exit;
+        end;
+      end;
+    end;
+
+  finally
+    listbox1.Items.EndUpdate;
+    listview1.Items.EndUpdate;
+  end;
+end;
+
+procedure TfrmMemoryAllocHandler.Searchagain1Click(Sender: TObject);
+begin
+  if finddialog1.FindText<>'' then
+    finddialog1.OnFind(finddialog1)
+  else
+    finddialog1.Execute;
 end;
 
 end.

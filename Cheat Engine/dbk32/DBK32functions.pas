@@ -804,7 +804,7 @@ begin
 end;
 
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-type TInputstruct=record
+type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
   bytestoread: word;
@@ -879,7 +879,7 @@ end;
 
 
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
-type TInputstruct=record
+type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
   bytestowrite: word;
@@ -927,6 +927,7 @@ begin
           bufpointer2:=pointer(bufpointer);
           copymemory(@ao[sizeof(tinputstruct)],bufpointer2,towrite);
 
+          OutputDebugString(pchar('sizeof(TInputstruct)='+inttostr(sizeof(TInputstruct))));
           if not deviceiocontrol(hdevice,cc,@ao[0],512,@ao[0],512,br,nil) then exit;
 
           inc(mempointer,towrite);

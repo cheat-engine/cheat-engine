@@ -152,6 +152,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					WORD bytestowrite;
 				} *pinp,inp;
 
+				DbgPrint("sizeof(inp)=%d\n",sizeof(inp));
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 				ntStatus=WriteProcessMemory((DWORD)pinp->processid,NULL,(PVOID)pinp->startaddress,pinp->bytestowrite,(PVOID)((UINT_PTR)pinp+sizeof(inp))) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 			}

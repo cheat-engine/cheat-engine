@@ -1,13 +1,13 @@
 object frmStructures: TfrmStructures
-  Left = 880
-  Top = 527
+  Left = 854
+  Top = 241
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -16,18 +16,18 @@ object frmStructures: TfrmStructures
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object tvStructureView: TTreeView
     Left = 0
-    Top = 50
-    Width = 598
-    Height = 286
+    Top = 62
+    Width = 596
+    Height = 260
     Align = alClient
     BorderStyle = bsNone
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'Courier'
     Font.Style = []
     HideSelection = False
@@ -46,16 +46,16 @@ object frmStructures: TfrmStructures
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 598
-    Height = 33
+    Width = 596
+    Height = 41
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
     TabOrder = 1
     object edtAddress: TEdit
-      Left = 4
-      Top = 4
-      Width = 77
+      Left = 5
+      Top = 5
+      Width = 95
       Height = 21
       PopupMenu = PopupMenu2
       TabOrder = 0
@@ -65,9 +65,9 @@ object frmStructures: TfrmStructures
   end
   object HeaderControl1: THeaderControl
     Left = 0
-    Top = 33
-    Width = 598
-    Height = 17
+    Top = 41
+    Width = 596
+    Height = 21
     HotTrack = True
     Sections = <
       item

@@ -150,7 +150,8 @@ uses
   disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas',
   frmMemoryAllocHandlerUnit in 'frmMemoryAllocHandlerUnit.pas' {frmMemoryAllocHandler},
   stacktrace2 in 'stacktrace2.pas',
-  byteinterpreter in 'byteinterpreter.pas';
+  byteinterpreter in 'byteinterpreter.pas',
+  frmMemoryAllocHandlerSearchFingerprintUnit in 'frmMemoryAllocHandlerSearchFingerprintUnit.pas' {frmMemoryAllocHandlerSearchFingerprint};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -178,6 +179,7 @@ begin
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
   Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
   Application.CreateForm(TfrmCScript, frmCScript);
+  Application.CreateForm(TfrmMemoryAllocHandlerSearchFingerprint, frmMemoryAllocHandlerSearchFingerprint);
   initcetitle;
   Application.Run;
 end.
