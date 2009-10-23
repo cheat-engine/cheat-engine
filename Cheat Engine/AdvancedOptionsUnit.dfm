@@ -1,6 +1,6 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 1303
-  Top = 728
+  Left = 468
+  Top = 203
   Width = 377
   Height = 258
   Anchors = []
@@ -8,23 +8,24 @@ object AdvancedOptions: TAdvancedOptions
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object codelist: TListBox
     Left = 0
-    Top = 31
-    Width = 369
-    Height = 159
+    Top = 38
+    Width = 359
+    Height = 133
     Style = lbOwnerDrawFixed
     Align = alClient
     ItemHeight = 13
+    MultiSelect = True
     PopupMenu = PopupMenu2
     TabOrder = 0
     OnDblClick = Openthedisassemblerhere1Click
@@ -34,21 +35,21 @@ object AdvancedOptions: TAdvancedOptions
   end
   object Panel1: TPanel
     Left = 0
-    Top = 190
-    Width = 369
-    Height = 34
+    Top = 171
+    Width = 359
+    Height = 42
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     OnResize = Panel1Resize
     DesignSize = (
-      369
-      34)
+      359
+      42)
     object Button1: TButton
-      Left = 147
-      Top = 5
-      Width = 75
-      Height = 25
+      Left = 181
+      Top = 6
+      Width = 92
+      Height = 31
       Anchors = [akBottom]
       Caption = 'OK'
       TabOrder = 0
@@ -56,19 +57,19 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Button4: TButton
       Left = 0
-      Top = 17
-      Width = 81
-      Height = 17
+      Top = 21
+      Width = 100
+      Height = 21
       Anchors = [akLeft, akBottom]
       Caption = 'Direct X-Mess'
       TabOrder = 1
       OnClick = Button4Click
     end
     object Button2: TButton
-      Left = 288
-      Top = 17
-      Width = 81
-      Height = 17
+      Left = 354
+      Top = 21
+      Width = 100
+      Height = 21
       Anchors = [akRight, akBottom]
       Caption = 'OpenGL Mess'
       TabOrder = 2
@@ -79,19 +80,19 @@ object AdvancedOptions: TAdvancedOptions
   object Panel2: TPanel
     Left = 0
     Top = 0
-    Width = 369
-    Height = 31
+    Width = 359
+    Height = 38
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
     DesignSize = (
-      369
-      31)
+      359
+      38)
     object Pausebutton: TSpeedButton
-      Left = 34
-      Top = 3
-      Width = 25
-      Height = 25
+      Left = 42
+      Top = 4
+      Width = 31
+      Height = 30
       Hint = 'Pause the game'
       AllowAllUp = True
       GroupIndex = 1
@@ -116,9 +117,9 @@ object AdvancedOptions: TAdvancedOptions
     end
     object SaveButton: TSpeedButton
       Left = 2
-      Top = 3
-      Width = 25
-      Height = 25
+      Top = 4
+      Width = 31
+      Height = 30
       Hint = 'Create a standalone trainer'
       Glyph.Data = {
         CA020000424DCA0200000000000036000000280000000E0000000F0000000100
@@ -149,10 +150,10 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = SaveButtonClick
     end
     object Label1: TLabel
-      Left = 161
-      Top = 16
-      Width = 43
-      Height = 13
+      Left = 198
+      Top = 20
+      Width = 55
+      Height = 16
       Anchors = [akTop]
       Caption = 'Code list:'
     end
@@ -160,7 +161,7 @@ object AdvancedOptions: TAdvancedOptions
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
     Left = 112
-    Top = 88
+    Top = 96
     object Openthedisassemblerhere1: TMenuItem
       Caption = 'Open the disassembler at this location'
       Default = True

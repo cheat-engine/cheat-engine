@@ -4733,27 +4733,15 @@ begin
 
   if TypeForm.Showmodal=mrNo then exit;
 
-  if oldtype=memrec[scrollbar1.position+(sender as TLabel).tag].VarType then exit;
-
-
-  i:=0;
-  j:=0;
-  while (i<numberofrecords-1) and (j<1) do
+ 
+  j:=memrec[scrollbar1.position+(sender as TLabel).tag].VarType;
+  for i:=0 to numberofrecords-1 do
   begin
-    if selected[i] then inc(j);
-    inc(i);
-  end;
-
-  if (i>1) then
-  begin
-    j:=memrec[scrollbar1.position+(sender as TLabel).tag].VarType;
-    for i:=0 to numberofrecords-1 do
+    if (selected[i]) then
     begin
-      if (selected[i]) then
-      begin
+      if memrec[i].vartype<>255 then
         memrec[i].VarType:=j;
-        memrec[i].Frozen:=false;
-      end;
+      memrec[i].Frozen:=false;
     end;
   end;
 
@@ -6936,7 +6924,7 @@ begin
   end;
 
   address1.enabled:=selectedi=1;
-  ype1.Enabled:=selectedi=1;
+  ype1.Enabled:=selectedi>0;
 
   if (lastselected<>-1) and (numberofrecords>0) and (memrec[lastselected].VarType=255) then
   begin

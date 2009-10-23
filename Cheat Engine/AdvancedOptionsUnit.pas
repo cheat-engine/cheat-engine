@@ -396,7 +396,7 @@ begin
 end;
 
 procedure TAdvancedOptions.CC2Click(Sender: TObject);
-var i: integer;
+var i,j: integer;
     a,original,written: dword;
     lengthactualopcode: dword;
     temp: array of byte;
@@ -405,57 +405,59 @@ var i: integer;
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';
                strnotthesame='The memory at this address isn''t what it should be! Continue?';
 begin
-  i:=codelist.ItemIndex;
-
-  lengthactualopcode:=length(code[i].actualopcode);
-  //read the current list, if it isnt a NOP or the actualopcode give a warning
-  setlength(temp,lengthactualopcode);
-  setlength(temp2,lengthactualopcode);
-  for i:=0 to lengthactualopcode-1 do
-    temp[i]:=$90;
-
-  i:=codelist.itemindex;
-  readprocessmemory(processhandle,pointer(code[i].Address),@temp2[0],lengthactualopcode,original);
-  if original<>lengthactualopcode then
-    raise exception.Create(strNotReadable);
-
-  //check if it is a nop field
-  if not comparemem(@temp[0],@temp2[0],lengthactualopcode) then
+  for i:=0 to codelist.Count-1 do
   begin
-    //NO????????
+    if not codelist.Selected[i] then continue;
 
-    //then check if it is the actual opcode, and there was a bug
-    if not comparemem(@temp[0],@code[i].actualopcode[0],lengthactualopcode) then
+    lengthactualopcode:=length(code[i].actualopcode);
+    //read the current list, if it isnt a NOP or the actualopcode give a warning
+    setlength(temp,lengthactualopcode);
+    setlength(temp2,lengthactualopcode);
+    for j:=0 to lengthactualopcode-1 do
+      temp[j]:=$90;
+
+    readprocessmemory(processhandle,pointer(code[i].Address),@temp2[0],lengthactualopcode,original);
+    if original<>lengthactualopcode then
+      raise exception.Create(strNotReadable);
+
+    //check if it is a nop field
+    if not comparemem(@temp[0],@temp2[0],lengthactualopcode) then
     begin
-      //It's also not the original opcode? WTF, This dude must be braindeath...
-      if messagedlg(strnotthesame,mtWarning,[mbyes,mbno],0)=mrno then exit;
-    end
-    else
+      //NO????????
+
+      //then check if it is the actual opcode, and there was a bug
+      if not comparemem(@temp[0],@code[i].actualopcode[0],lengthactualopcode) then
+      begin
+        //It's also not the original opcode? WTF, This dude must be braindeath...
+        if messagedlg(strnotthesame,mtWarning,[mbyes,mbno],0)=mrno then exit;
+      end
+      else
+      begin
+        code[i].changed:=false;
+        codelist.Repaint;
+        exit;
+      end;
+    end;
+
+
+    //set to read and write
+    VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+
+    //write
+    writeprocessmemory(processhandle,pointer(code[i].Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
+    if written<>lengthactualopcode then
     begin
-      code[i].changed:=false;
-      codelist.Repaint;
+      messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
+      VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,a);  //ignore a
       exit;
     end;
-  end;
 
-
-  //set to read and write
-  VirtualProtectEx(processhandle,pointer(code[i].Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
-
-  //write
-  writeprocessmemory(processhandle,pointer(code[i].Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
-  if written<>lengthactualopcode then
-  begin
-    messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
+    //set back
     VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,a);  //ignore a
-    exit;
+    FlushInstructionCache(processhandle,pointer(code[i].Address),lengthactualopcode);
+
+    code[i].changed:=false;
   end;
-
-  //set back
-  VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,a);  //ignore a
-  FlushInstructionCache(processhandle,pointer(code[i].Address),lengthactualopcode);
-
-  code[i].changed:=false;
 
   codelist.Repaint;
 
@@ -471,43 +473,46 @@ var codelength: integer;
 resourcestring strcouldntwrite='The memory at this address couldn''t be written';
 begin
   //search dselected in the addresslist
-
-  index:=codelist.itemindex;
-  a:=code[index].Address;
-  codelength:=length(code[index].actualopcode);
-
-  //read the opcode currently at the address
-  setlength(nops,codelength);
-  readprocessmemory(processhandle,pointer(a),@nops[0],codelength,b);
-  if b<>dword(codelength) then
-    raise exception.Create(strNotReadable);
-
-  //compare it with what is in the actualopcode array
-  if not comparemem(@nops[0],@code[index].actualopcode[0],codelength) then
-    if messagedlg(strNotWhatitshouldbe,mtWarning,[mbyes,mbno],0)=mrno then exit;
-
-
-
-  for i:=0 to codelength-1 do
-    nops[i]:=$90;  //$90=nop
-
- // get old security and set new security
-  VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
-
-  writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
-  if written<>dword(codelength) then
+  for index:=0 to codelist.Count-1 do
   begin
-    messagedlg(strcouldntwrite,mtError,[mbok],0);
-    exit;
+    if not codelist.Selected[index] then continue;
+
+    a:=code[index].Address;
+    codelength:=length(code[index].actualopcode);
+
+    //read the opcode currently at the address
+    setlength(nops,codelength);
+    readprocessmemory(processhandle,pointer(a),@nops[0],codelength,b);
+    if b<>dword(codelength) then
+      raise exception.Create(strNotReadable);
+
+    //compare it with what is in the actualopcode array
+    if not comparemem(@nops[0],@code[index].actualopcode[0],codelength) then
+      if messagedlg(strNotWhatitshouldbe,mtWarning,[mbyes,mbno],0)=mrno then exit;
+
+
+
+    for i:=0 to codelength-1 do
+      nops[i]:=$90;  //$90=nop
+
+   // get old security and set new security
+    VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
+
+    writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+    if written<>dword(codelength) then
+    begin
+      messagedlg(strcouldntwrite,mtError,[mbok],0);
+      exit;
+    end;
+
+
+    //set old security back
+    VirtualProtectEx(processhandle,pointer(a),codelength,original,a);  //ignore a
+
+    FlushInstructionCache(processhandle,pointer(a),codelength);
+
+    code[index].changed:=true;
   end;
-
-
-  //set old security back
-  VirtualProtectEx(processhandle,pointer(a),codelength,original,a);  //ignore a
-
-  FlushInstructionCache(processhandle,pointer(a),codelength);
-
-  code[index].changed:=true;
   codelist.Repaint;
 end;
 
@@ -563,7 +568,14 @@ begin
 end;
 
 procedure TAdvancedOptions.Openthedisassemblerhere1Click(Sender: TObject);
+var mi: TModuleInfo;
 begin
+  if code[codelist.itemindex].modulename<>'' then
+  begin
+    symhandler.getmodulebyname(code[codelist.itemindex].modulename,mi);
+    code[codelist.itemindex].Address:=mi.baseaddress+code[codelist.itemindex].offset;
+  end;
+    
   memorybrowser.disassemblerview.SelectedAddress:=code[codelist.itemindex].Address;
 
   if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
