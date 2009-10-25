@@ -147,6 +147,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Align = alClient
         AutoSize = False
         Caption = 'yyy'
+        PopupMenu = pmCopy2
         WordWrap = True
       end
     end
@@ -326,6 +327,14 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Caption = 'Copy info to clipboard'
       ShortCut = 16451
       OnClick = Copyaddresstoclipboard1Click
+    end
+  end
+  object pmCopy2: TPopupMenu
+    Left = 190
+    Top = 112
+    object Copyguesstoclipboard1: TMenuItem
+      Caption = 'Copy easy gues to clipboard'
+      OnClick = Copyguesstoclipboard1Click
     end
   end
 end

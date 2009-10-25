@@ -11261,6 +11261,10 @@ var
 
     trace: tstringlist;
 begin
+asm
+  db $9b,$d9, $83, $28, $03, $00, $00
+end;
+exit;
 
   LoadDBK32;
 

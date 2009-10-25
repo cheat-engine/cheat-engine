@@ -31,10 +31,8 @@ type
     Timer2: TTimer;
     Panel1: TPanel;
     Panel4: TPanel;
-    MBCanvas: TPaintBox;
     Replacewithnops1: TMenuItem;
     Gotoaddress1: TMenuItem;
-    Protectlabel: TLabel;
     Search1: TMenuItem;
     Change1: TMenuItem;
     Addthisaddresstothelist1: TMenuItem;
@@ -43,7 +41,6 @@ type
     N2: TMenuItem;
     Splitter1: TSplitter;
     Panel5: TPanel;
-    ScrollBar2: TScrollBar;
     RegisterView: TPanel;
     Splitter2: TSplitter;
     MainMenu1: TMainMenu;
@@ -178,6 +175,10 @@ type
     Showjumplines1: TMenuItem;
     Onlyshowjumplineswithinrange1: TMenuItem;
     Watchmemoryallocations1: TMenuItem;
+    ScrollBar2: TScrollBar;
+    Panel2: TPanel;
+    Protectlabel: TLabel;
+    MBCanvas: TPaintBox;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -920,12 +921,12 @@ begin
   k:=0;
   MBCanvas.Canvas.Font:=MBImage.Canvas.Font;
 
-  if length(addressestext)<((mbcanvas.Height-5) div (TextHeight))+2 then //resync
+  if length(addressestext)<((mbcanvas.Height) div (TextHeight))+2 then //resync
   begin
     setlength(addressestext,0);
-    setlength(addressestext,((mbcanvas.Height-5) div (TextHeight))+2);
+    setlength(addressestext,((mbcanvas.Height) div (TextHeight))+2);
     setlength(memorystring,0);
-    setlength(memorystring,((mbcanvas.Height-5) div (TextHeight))+2);
+    setlength(memorystring,((mbcanvas.Height) div (TextHeight))+2);
   end;
 
   start:=20+mbimage.Canvas.TextWidth('00400000');
@@ -956,16 +957,16 @@ begin
   end;
 
    //fill local array
-  setlength(buffer,(((mbcanvas.Height-5) div (TextHeight))+1)*(8*rowsof8)+257);
+  setlength(buffer,(((mbcanvas.Height) div (TextHeight))+1)*(8*rowsof8)+257);
 
   range1start:=memoryaddress;
   range1length:=2048-(range1start mod 2048);
-  if range1length>((((mbcanvas.Height-5) div (TextHeight))+1)*(8*rowsof8)) then range1length:=((((mbcanvas.Height-5) div (TextHeight))+1)*(8*rowsof8));
+  if range1length>((((mbcanvas.Height) div (TextHeight))+1)*(8*rowsof8)) then range1length:=((((mbcanvas.Height) div (TextHeight))+1)*(8*rowsof8));
 
  // range1length:=(range1start+(((mbcanvas.Height-5) div (TextHeight))+1)*(8*rowsof8));// mod 2048;
 
   range2start:=range1start+range1length;
-  range2length:=((((mbcanvas.Height-5) div (TextHeight))+1)*(8*rowsof8))-range1length;
+  range2length:=((((mbcanvas.Height) div (TextHeight))+1)*(8*rowsof8))-range1length;
 
   //get the modules (if they have any)
   module1ok:=symhandler.getmodulebyaddress(range1start,range1module);
@@ -976,15 +977,15 @@ begin
   range1ok:=readprocessmemory(processhandle,pointer(range1start),@buffer[0],range1length,bytesread);
   if range2length>0 then range2ok:=readprocessmemory(processhandle,pointer(range2start),@buffer[range1length],range2length,bytesread) else range2ok:=false;
 
-  for i:=0 to ((mbcanvas.Height-5) div (TextHeight))+1 do
+  for i:=0 to ((mbcanvas.Height) div (TextHeight))+1 do
   begin
     //addresses
     mbcanvas.Canvas.font.Color:=clwindowtext;
     mbimage.Canvas.font.Color:=clwindowtext;
 
     currentaddress:=IntToHex(dword(memoryaddress+i*8*rowsof8),8);
-    mbcanvas.Canvas.TextOut(10,5+i*TextHeight+2,currentaddress);
-    mbimage.Canvas.TextOut(10,5+i*TextHeight+2,currentaddress);
+    mbcanvas.Canvas.TextOut(10,i*TextHeight+2,currentaddress);
+    mbimage.Canvas.TextOut(10,i*TextHeight+2,currentaddress);
 
     if addressestext[i]<>currentaddress then
     begin
@@ -1029,17 +1030,17 @@ begin
           GetBTSstring(false);
 
 
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbcanvas.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
 
           if buffer[j+(i*8*rowsof8)]<$20 then
           begin
-            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,' ');
-            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,' ');
+            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,' ');
+            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,' ');
           end else
           begin
-            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
-            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
+            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
+            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
           end;
         end
         else
@@ -1057,11 +1058,11 @@ begin
           end;
 
           GetBTSstring(true);
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbcanvas.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
 
-          mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
-          mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
+          mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,'?');
+          mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,'?');
 
 //          teststr:=teststr+'?';
         end;
@@ -1093,17 +1094,17 @@ begin
           //readable
           //bts:=IntToHex(buffer[j+i*8*rowsof8],2);
           getBTSString(false);
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbcanvas.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
 
           if buffer[j+(i*8*rowsof8)]<$20 then
           begin
-            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,' ');
-            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,' ');
+            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,' ');
+            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,' ');
           end else
           begin
-            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
-            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
+            mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
+            mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,chr(buffer[j+(i*8*rowsof8)]));
           end;
         end
         else
@@ -1121,11 +1122,11 @@ begin
           end;
 
           GetBTSstring(true);
-          mbcanvas.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
-          mbimage.Canvas.TextOut(start+20*j,5+i*textHeight+2,bts);
+          mbcanvas.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
+          mbimage.Canvas.TextOut(start+20*j,i*textHeight+2,bts);
 
-          mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
-          mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,5+i*textHeight+2,'?');
+          mbcanvas.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,'?');
+          mbimage.Canvas.TextOut(start+20+20*((8*rowsof8)-1)+j*chrlength,i*textHeight+2,'?');
         end;
       end;
       inc(a);
@@ -1465,12 +1466,12 @@ begin
                     refreshmb;
                   end;
     vk_prior    : begin
-                    dec(memoryaddress,8*rows8*((mbcanvas.Height-5) div (TextHeight)-1));
+                    dec(memoryaddress,8*rows8*((mbcanvas.Height) div (TextHeight)-1));
                     refreshMB;
                   end;
 
     vk_next     : begin
-                    inc(memoryaddress,8*rows8*((mbcanvas.Height-5) div (TextHeight)-1));
+                    inc(memoryaddress,8*rows8*((mbcanvas.Height) div (TextHeight)-1));
                     refreshMB;
                   end;
 
@@ -1741,8 +1742,8 @@ begin
   case scrollcode of
     scLineUp:   dec(memoryaddress,8*rows8);
     scLineDown: inc(memoryaddress,8*rows8);
-    scPageDown: inc(memoryaddress,8*rows8*((mbcanvas.Height-5) div (TextHeight)-1));
-    scPageUp:   dec(memoryaddress,8*rows8*((mbcanvas.Height-5) div (TextHeight)-1));
+    scPageDown: inc(memoryaddress,8*rows8*((mbcanvas.Height) div (TextHeight)-1));
+    scPageUp:   dec(memoryaddress,8*rows8*((mbcanvas.Height) div (TextHeight)-1));
     sctrack:
     begin
       delta:=scrollpos-50;

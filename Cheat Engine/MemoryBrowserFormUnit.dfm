@@ -1,8 +1,8 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 349
-  Top = 173
+  Left = 624
+  Top = 233
   Width = 675
-  Height = 565
+  Height = 568
   HelpContext = 12
   Caption = 'Memory Viewer'
   Color = clBtnFace
@@ -23,7 +23,7 @@ object MemoryBrowser: TMemoryBrowser
   TextHeight = 16
   object Splitter1: TSplitter
     Left = 0
-    Top = 357
+    Top = 350
     Width = 657
     Height = 5
     Cursor = crVSplit
@@ -37,14 +37,14 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Top = 0
     Width = 657
-    Height = 357
+    Height = 350
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
       Left = 426
       Top = 0
-      Height = 357
+      Height = 350
       Align = alRight
       AutoSnap = False
     end
@@ -52,7 +52,7 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Top = 0
       Width = 426
-      Height = 357
+      Height = 350
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
@@ -61,14 +61,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 429
       Top = 0
       Width = 228
-      Height = 357
+      Height = 350
       Align = alRight
       TabOrder = 1
       object ScrollBox1: TScrollBox
         Left = 1
         Top = 1
         Width = 226
-        Height = 355
+        Height = 348
         Align = alClient
         TabOrder = 0
         object EAXLabel: TLabel
@@ -89,7 +89,7 @@ object MemoryBrowser: TMemoryBrowser
         object EBXlabel: TLabel
           Tag = 1
           Left = 10
-          Top = 39
+          Top = 31
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -105,7 +105,7 @@ object MemoryBrowser: TMemoryBrowser
         object ECXlabel: TLabel
           Tag = 2
           Left = 10
-          Top = 59
+          Top = 43
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -121,7 +121,7 @@ object MemoryBrowser: TMemoryBrowser
         object EDXlabel: TLabel
           Tag = 3
           Left = 10
-          Top = 79
+          Top = 55
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -137,7 +137,7 @@ object MemoryBrowser: TMemoryBrowser
         object ESIlabel: TLabel
           Tag = 4
           Left = 10
-          Top = 98
+          Top = 66
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -153,7 +153,7 @@ object MemoryBrowser: TMemoryBrowser
         object EDIlabel: TLabel
           Tag = 5
           Left = 10
-          Top = 118
+          Top = 78
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -169,7 +169,7 @@ object MemoryBrowser: TMemoryBrowser
         object EBPlabel: TLabel
           Tag = 6
           Left = 10
-          Top = 138
+          Top = 90
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -185,7 +185,7 @@ object MemoryBrowser: TMemoryBrowser
         object ESPlabel: TLabel
           Tag = 7
           Left = 10
-          Top = 158
+          Top = 102
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -201,7 +201,7 @@ object MemoryBrowser: TMemoryBrowser
         object EIPlabel: TLabel
           Tag = 8
           Left = 10
-          Top = 177
+          Top = 113
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -217,7 +217,7 @@ object MemoryBrowser: TMemoryBrowser
         object CSLabel: TLabel
           Tag = 9
           Left = 10
-          Top = 217
+          Top = 153
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -233,7 +233,7 @@ object MemoryBrowser: TMemoryBrowser
         object DSLabel: TLabel
           Tag = 11
           Left = 10
-          Top = 256
+          Top = 176
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -249,7 +249,7 @@ object MemoryBrowser: TMemoryBrowser
         object SSlabel: TLabel
           Tag = 10
           Left = 10
-          Top = 236
+          Top = 164
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -265,7 +265,7 @@ object MemoryBrowser: TMemoryBrowser
         object ESlabel: TLabel
           Tag = 12
           Left = 10
-          Top = 276
+          Top = 188
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -281,7 +281,7 @@ object MemoryBrowser: TMemoryBrowser
         object FSlabel: TLabel
           Tag = 13
           Left = 10
-          Top = 295
+          Top = 199
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -297,7 +297,7 @@ object MemoryBrowser: TMemoryBrowser
         object GSlabel: TLabel
           Tag = 14
           Left = 10
-          Top = 315
+          Top = 211
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -328,7 +328,7 @@ object MemoryBrowser: TMemoryBrowser
         object pflabel: TLabel
           Tag = 21
           Left = 167
-          Top = 39
+          Top = 31
           Width = 32
           Height = 13
           Caption = 'PF 0'
@@ -343,7 +343,7 @@ object MemoryBrowser: TMemoryBrowser
         object aflabel: TLabel
           Tag = 22
           Left = 167
-          Top = 59
+          Top = 43
           Width = 32
           Height = 13
           Caption = 'AF 0'
@@ -358,7 +358,7 @@ object MemoryBrowser: TMemoryBrowser
         object zflabel: TLabel
           Tag = 23
           Left = 167
-          Top = 79
+          Top = 55
           Width = 32
           Height = 13
           Caption = 'ZF 0'
@@ -373,7 +373,7 @@ object MemoryBrowser: TMemoryBrowser
         object sflabel: TLabel
           Tag = 24
           Left = 167
-          Top = 98
+          Top = 66
           Width = 32
           Height = 13
           Caption = 'SF 0'
@@ -388,7 +388,7 @@ object MemoryBrowser: TMemoryBrowser
         object oflabel: TLabel
           Tag = 26
           Left = 167
-          Top = 138
+          Top = 90
           Width = 32
           Height = 13
           Caption = 'OF 0'
@@ -430,14 +430,14 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label16: TLabel
           Left = 7
-          Top = 198
+          Top = 134
           Width = 115
           Height = 16
           Caption = 'Segment Registers'
         end
         object Shape3: TShape
           Left = 7
-          Top = 214
+          Top = 150
           Width = 111
           Height = 3
           Brush.Color = clBlack
@@ -445,7 +445,7 @@ object MemoryBrowser: TMemoryBrowser
         object dflabel: TLabel
           Tag = 25
           Left = 167
-          Top = 118
+          Top = 78
           Width = 32
           Height = 13
           Caption = 'DF 0'
@@ -473,9 +473,9 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Top = 362
+    Top = 355
     Width = 657
-    Height = 133
+    Height = 143
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -483,43 +483,6 @@ object MemoryBrowser: TMemoryBrowser
     OnEnter = Panel4Enter
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
-    DesignSize = (
-      657
-      133)
-    object MBCanvas: TPaintBox
-      Left = 1
-      Top = 11
-      Width = 795
-      Height = 254
-      Anchors = [akLeft, akTop, akRight, akBottom]
-      PopupMenu = memorypopup
-      OnDblClick = MBCanvasDblClick
-      OnMouseDown = MBCanvasMouseDown
-      OnMouseMove = MBCanvasMouseMove
-      OnMouseUp = MBCanvasMouseUp
-      OnPaint = MBCanvasPaint
-    end
-    object Protectlabel: TLabel
-      Tag = 2
-      Left = 4
-      Top = 2
-      Width = 60
-      Height = 16
-      Caption = 'Protection'
-    end
-    object ScrollBar2: TScrollBar
-      Left = 636
-      Top = 1
-      Width = 20
-      Height = 131
-      Align = alRight
-      Kind = sbVertical
-      Max = 101
-      PageSize = 2
-      Position = 50
-      TabOrder = 0
-      OnScroll = ScrollBar2Scroll
-    end
     object HexEdit: TEdit
       Left = 128
       Top = 39
@@ -538,7 +501,7 @@ object MemoryBrowser: TMemoryBrowser
       ParentCtl3D = False
       ParentFont = False
       PopupMenu = memorypopup
-      TabOrder = 1
+      TabOrder = 0
       Text = 'EE'
       Visible = False
       OnDblClick = HexEditDblClick
@@ -564,12 +527,56 @@ object MemoryBrowser: TMemoryBrowser
       ParentCtl3D = False
       ParentFont = False
       PopupMenu = memorypopup
-      TabOrder = 2
+      TabOrder = 1
       Text = 'E'
       Visible = False
       OnExit = TextEditExit
       OnKeyDown = TextEditKeyDown
       OnKeyPress = TextEditKeyPress
+    end
+    object ScrollBar2: TScrollBar
+      Left = 640
+      Top = 1
+      Width = 16
+      Height = 141
+      Align = alRight
+      Kind = sbVertical
+      Max = 101
+      PageSize = 2
+      Position = 50
+      TabOrder = 2
+      OnScroll = ScrollBar2Scroll
+    end
+    object Panel2: TPanel
+      Left = 1
+      Top = 1
+      Width = 639
+      Height = 141
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 3
+      object Protectlabel: TLabel
+        Tag = 2
+        Left = 0
+        Top = 0
+        Width = 639
+        Height = 16
+        Align = alTop
+        Caption = 'Protection'
+      end
+      object MBCanvas: TPaintBox
+        Left = 0
+        Top = 16
+        Width = 639
+        Height = 125
+        Align = alClient
+        PopupMenu = memorypopup
+        OnDblClick = MBCanvasDblClick
+        OnMouseDown = MBCanvasMouseDown
+        OnMouseMove = MBCanvasMouseMove
+        OnMouseUp = MBCanvasMouseUp
+        OnPaint = MBCanvasPaint
+      end
     end
   end
   object memorypopup: TPopupMenu

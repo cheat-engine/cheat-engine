@@ -35,9 +35,12 @@ type
     Label15: TLabel;
     Label16: TLabel;
     Label18: TLabel;
+    pmCopy2: TPopupMenu;
+    Copyguesstoclipboard1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
+    procedure Copyguesstoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
     fprobably: dword;
@@ -94,6 +97,15 @@ begin
   s:=s+label3.Caption+#13#10;
   s:=s+label4.Caption+#13#10;
   s:=s+label5.Caption+#13#10;
+  clipboard.SetTextBuf(pchar(s));
+end;
+
+procedure TFormFoundCodeListExtra.Copyguesstoclipboard1Click(
+  Sender: TObject);
+var
+s: string;
+begin
+  s:=inttohex(probably,8);
   clipboard.SetTextBuf(pchar(s));
 end;
 

@@ -63,6 +63,7 @@ var i: integer;
     d: double;
     center: integer;
     temp: integer;
+    e: extended;
 begin
   if context=nil then exit;
 
@@ -92,14 +93,14 @@ begin
         row:=0;
         for i:=0 to SIZE_OF_80387_REGISTERS-1 do
         begin
-          if (i mod 8)=0 then
+          if (i mod 10)=0 then
           begin
             //new line
             lbl:=tlabel.Create(self);
             lbl.Parent:=pnlFloatdata;
             lbl.font.Name:='Courier';
             lbl.top:=line*lbl.Height;
-            lbl.caption:=inttohex(line*8,2)+'-';
+            lbl.caption:=format('%.2d-',[line*10]);
 
             inc(line);
             row:=0;
@@ -116,7 +117,33 @@ begin
         end;
       end;
 
-      1: //dword
+      1: //floating point value
+      begin
+        line:=0;
+        i:=0;
+        while i<SIZE_OF_80387_REGISTERS do
+        begin
+
+          lbl:=tlabel.Create(self);
+          lbl.Parent:=pnlFloatdata;
+          lbl.font.Name:='Courier';
+          lbl.Top:=line*lbl.Height;
+          lbl.left:=0;
+
+          try
+            e:=pextended(@(context.FloatSave.RegisterArea[i]))^;
+            lbl.Caption:=format('%f', [e]);
+          except
+            lbl.Caption:='...';
+          end;
+
+          inc(i,10);
+          inc(line);
+        end;
+      end;
+
+
+   {   1: //dword
       begin
         line:=0;
         row:=0;
@@ -141,9 +168,9 @@ begin
             inc(line);
           inc(i,4);
         end;
-      end;
+      end; }
 
-      2: //float
+   {   2: //float
       begin
         line:=0;
         row:=0;
@@ -185,9 +212,9 @@ begin
             inc(line);
           inc(i,4);
         end;
-      end;
+      end; }
 
-      3: //double
+     { 3: //double
       begin
         line:=0;
         i:=0;
@@ -210,7 +237,7 @@ begin
           inc(i,8);
           inc(line);
         end;
-      end;
+      end; }
 
 
     end;

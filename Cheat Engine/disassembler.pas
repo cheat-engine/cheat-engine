@@ -6682,7 +6682,7 @@ begin
               inc(offset,6);
             end;
 
-      $9b : begin    //ehrm, wait???
+      $9b : begin
               case memory[1] of
 
                $d9 : begin
@@ -6699,6 +6699,13 @@ begin
                                  tempresult:=tempresult+'WAIT:FSTCW '+modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
+
+                         else
+                         begin
+                            description:='Wait';
+                            tempresult:='WAIT';
+                         end;
+
                        end;
                      end;
 
@@ -6715,6 +6722,11 @@ begin
                                  tempresult:=tempresult+'WAIT:FINIT';
                                  inc(offset,2);
                                end;
+                         else
+                         begin
+                            description:='Wait';
+                            tempresult:='WAIT';
+                         end;
                        end;
                      end;
 
@@ -6731,6 +6743,12 @@ begin
                                  tempresult:=tempresult+'WAIT:FSTSW '+modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
+
+                         else
+                         begin
+                            description:='Wait';
+                            tempresult:='WAIT';
+                         end;
                        end;
                      end;
 
@@ -6741,6 +6759,12 @@ begin
                                  tempresult:=Tempresult+'WAIT:FSTSW AX';
                                  inc(offset,2);
                                end;
+
+                         else
+                         begin
+                            description:='Wait';
+                            tempresult:='WAIT';
+                         end;
                        end;
                      end;
 

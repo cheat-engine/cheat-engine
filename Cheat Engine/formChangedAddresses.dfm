@@ -1,26 +1,26 @@
 object frmChangedAddresses: TfrmChangedAddresses
   Left = 942
   Top = 241
-  Width = 255
+  Width = 321
   Height = 280
   Caption = 'Changed Addresses'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object lblInfo: TLabel
     Left = 0
     Top = 0
-    Width = 247
-    Height = 26
+    Width = 303
+    Height = 32
     Align = alTop
     Caption = 
       'The following addresses have been changed by the code you select' +
@@ -29,28 +29,28 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Top = 205
-    Width = 247
-    Height = 41
+    Top = 184
+    Width = 303
+    Height = 51
     Align = alBottom
     TabOrder = 0
     object OKButton: TButton
-      Left = 8
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 10
+      Top = 10
+      Width = 92
+      Height = 31
       Caption = 'Stop'
       Default = True
       TabOrder = 0
       OnClick = OKButtonClick
     end
     object cbDisplayType: TComboBox
-      Left = 96
-      Top = 8
-      Width = 145
-      Height = 21
+      Left = 118
+      Top = 10
+      Width = 179
+      Height = 24
       Style = csDropDownList
-      ItemHeight = 13
+      ItemHeight = 16
       ItemIndex = 2
       TabOrder = 1
       Text = '4 Bytes'
@@ -64,14 +64,14 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Top = 26
-    Width = 247
-    Height = 179
+    Top = 32
+    Width = 303
+    Height = 152
     Align = alClient
     Columns = <
       item
         Caption = 'Address'
-        Width = 100
+        Width = 123
       end
       item
         AutoSize = True
