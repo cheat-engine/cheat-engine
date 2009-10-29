@@ -94,6 +94,7 @@ begin
   check:=Heap32First(HeapEntry,processid,id);
   while check and (not terminated) do
   begin
+
     list[c]:=IntTohex(heapentry.dwAddress,8)+' - '+IntToHex(heapentry.dwAddress+heapentry.dwBlockSize,8);
     inc(c);
     if c=15 then
@@ -125,6 +126,7 @@ begin
   begin
     Heaplist.dwSize:=sizeof(Heaplist);
     Heaplist.th32ProcessID:=Processid;
+    Heaplist.dwFlags:=0;
     check:=Heap32ListFirst(SNAPHandle,heaplist);
 
     while check do

@@ -11,7 +11,7 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  stealthedit, XMLDoc, XMLIntf, stacktrace2;
+  XMLDoc, XMLIntf,  simpleaobscanner;
 
   //the following are just for compatibility
 
@@ -275,7 +275,6 @@ type
     actScriptEngine: TAction;
     Plugins2: TMenuItem;
     actMemoryView: TAction;
-    Button3: TButton;
     Label61: TLabel;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
@@ -7339,6 +7338,8 @@ var i,j,k: Integer;
 procedure FreezeOrUnfreezeSelected;
 var i,j,k: integer;
 begin
+  if lastselected>=numberofrecords then exit;
+
    freeze:=not memrec[lastselected].frozen;
 
    for i:=0 to numberofrecords-1 do
@@ -11260,7 +11261,23 @@ var
     old: dword;}
 
     trace: tstringlist;
+    bla: pointer;
+
 begin
+  x:=findaob('90 90 90');
+  showmessage(inttohex(x,8));
+  asm
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+  end;
+  exit;
+
+
+{
 asm
   db $9b,$d9, $83, $28, $03, $00, $00
 end;
@@ -11268,7 +11285,7 @@ exit;
 
   LoadDBK32;
 
-  DBKDebug_StartDebugging(ProcessID);
+  DBKDebug_StartDebugging(ProcessID);       }
   {
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;

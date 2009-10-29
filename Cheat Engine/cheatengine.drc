@@ -8,434 +8,435 @@
   resources were bound to the produced executable.
 */
 
-#define MainUnit_strhappybirthday 64944
-#define MainUnit_strXMess 64945
-#define MainUnit_strNewyear 64946
-#define MainUnit_strfuture 64947
-#define MainUnit_strdontbother 64948
-#define MainUnit_strneeddebugger 64949
-#define MainUnit_strfailuretosetspeed 64950
-#define MainUnit_strIncorrectspeed 64951
-#define MainUnit_strCantSetSpeed 64952
-#define MainUnit_strHyperscanFailed 64953
-#define MainUnit_strUnknownExtension 64954
-#define MainUnit_strCustomScanConfig 64955
-#define MainUnit_strDeleteAddress 64960
-#define MainUnit_strRecalculateAddress 64961
-#define MainUnit_strRecalculateSelectedAddresses 64962
-#define MainUnit_strRecalculateAllAddresses 64963
-#define MainUnit_strRemoveFromGroup 64964
-#define MainUnit_strEnableCheat 64965
-#define MainUnit_strDisableCheat 64966
-#define MainUnit_strFindWhatWritesToPointer 64967
-#define MainUnit_strFindWhatWritesToPointer2 64968
-#define MainUnit_strcantdebugnow 64969
-#define MainUnit_strpointercantberead 64970
-#define MainUnit_strconfirmUndo 64971
-#define MainUnit_strHideForeground 64972
-#define MainUnit_strHideAll 64973
-#define MainUnit_strUnHideForeground 64974
-#define MainUnit_strUnhideAll 64975
-#define MainUnit_strDelete1Group 64976
-#define MainUnit_strDeleteMoreGroups 64977
-#define MainUnit_strSelectedAddressIsAPointer 64978
-#define MainUnit_strMorePointers 64979
-#define MainUnit_strMorePointers2 64980
-#define MainUnit_strNotAValidValue 64981
-#define MainUnit_strdeleteall 64982
-#define MainUnit_stralreadyin 64983
-#define MainUnit_stralreadyinlistmultiple 64984
-#define MainUnit_strsethotkey 64985
-#define MainUnit_strshowasdecimal 64986
-#define MainUnit_strshowashex 64987
-#define MainUnit_strFreezeAddressInList 64988
-#define MainUnit_strFreezeAllAddresses 64989
-#define MainUnit_strUnfreezeAllAddresses 64990
-#define MainUnit_strUnfreezeAddressInList 64991
-#define MainUnit_strFirstSelectAProcess 64992
-#define MainUnit_strCantdoNextScan 64993
-#define MainUnit_strClickToGoHome 64994
-#define MainUnit_strChangeDescription1 64995
-#define MainUnit_strChangeDescription2 64996
-#define MainUnit_strNotTheSameSize1 64997
-#define MainUnit_strNotTheSameSize2 64998
-#define MainUnit_strAdd0 64999
-#define MainUnit_strNotAValidNotation 65000
-#define MainUnit_strNotSameAmmountofBytes 65001
-#define MainUnit_strNotAValidBinaryNotation 65002
-#define MainUnit_strValue 65003
-#define MainUnit_strChange1Value 65004
-#define MainUnit_strChangeMoreValues 65005
-#define MainUnit_strDelete1Address 65006
-#define MainUnit_strDeleteMultipleAddresses 65007
-#define MainUnit_strOpcodeChanged 65008
-#define MainUnit_strAllowNegative 65009
-#define MainUnit_strAllowPositive 65010
-#define MainUnit_strNormalFreeze 65011
-#define MainUnit_strAskToSave 65012
-#define MainUnit_strScantextcaptiontotext 65013
-#define MainUnit_strScantextcaptiontoValue 65014
-#define MainUnit_strsearchForText 65015
-#define MainUnit_strSearchForArray 65016
-#define MainUnit_strConfirmProcessTermination 65017
-#define MainUnit_strError 65018
-#define MainUnit_strErrorwhileOpeningProcess 65019
-#define MainUnit_strKeepList 65020
-#define MainUnit_strInfoAboutTable 65021
-#define MainUnit_strPhysicalMemory 65022
-#define MainUnit_strfillInSomething 65023
-#define MainUnit2_strexact 65024
-#define MainUnit2_strexactvalue 65025
-#define MainUnit2_strbiggerThan 65026
-#define MainUnit2_strSmallerThan 65027
-#define MainUnit2_strIncreasedValue 65028
-#define MainUnit2_strIncreasedValueBy 65029
-#define MainUnit2_strDecreasedValue 65030
-#define MainUnit2_strDecreasedValueBy 65031
-#define MainUnit2_strValueBetween 65032
-#define MainUnit2_strChangedValue 65033
-#define MainUnit2_strUnchangedValue 65034
-#define MainUnit2_strUnknownInitialValue 65035
-#define MainUnit2_strSameAsFirstScan 65036
-#define MainUnit2_strtoolong 65037
-#define MainUnit_strWindowFailedToHide 65038
-#define MainUnit_strAccessed 65039
-#define AdvancedOptionsUnit_strnotthesame 65040
-#define AdvancedOptionsUnit_strcouldntwrite 65041
-#define AdvancedOptionsUnit_StrSelectExeFor3D 65042
-#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65043
-#define FoundCodeUnit_strClose 65044
-#define formsettingsunit_strProcessWatcherWillPreventUnloader 65045
-#define MainUnit2_strStart 65046
-#define MainUnit2_strStop 65047
-#define MainUnit2_strOK 65048
-#define MainUnit2_strBug 65049
-#define MainUnit2_strAutoAssemble 65050
-#define MainUnit2_strAddressHasToBeReadable 65051
-#define MainUnit2_strNewScan 65052
-#define MainUnit2_strFirstScan 65053
-#define MainUnit2_strNoDescription 65054
-#define MainUnit2_strNeedNewerWindowsVersion 65055
-#define frmFindstaticsUnit_strStop 65056
-#define frmFindstaticsUnit_strStopping 65057
-#define frmLoadMemoryunit_strinvalidfile 65058
-#define AdvancedOptionsUnit_strnotreadable 65059
-#define AdvancedOptionsUnit_strNotWhatitshouldbe 65060
-#define AdvancedOptionsUnit_stralreadyinthelist 65061
-#define AdvancedOptionsUnit_strPartOfOpcodeInTheList 65062
-#define AdvancedOptionsUnit_strAddressAlreadyInTheList 65063
-#define AdvancedOptionsUnit_strCECode 65064
-#define AdvancedOptionsUnit_strNameCECode 65065
-#define AdvancedOptionsUnit_strChangeOf 65066
-#define AdvancedOptionsUnit_strCode 65067
-#define AdvancedOptionsUnit_strFindWhatCodeaccesses 65068
-#define AdvancedOptionsUnit_strFindWhatCodeReads 65069
-#define AdvancedOptionsUnit_strFindWhatCodeWrites 65070
-#define AdvancedOptionsUnit_strcouldntrestorecode 65071
-#define SynEditStrConst_SYNS_AttrOctal 65072
-#define SynEditStrConst_SYNS_AttrPreprocessor 65073
-#define SynEditStrConst_SYNS_AttrReservedWord 65074
-#define SynEditStrConst_SYNS_AttrSpace 65075
-#define SynEditStrConst_SYNS_AttrString 65076
-#define SynEditStrConst_SYNS_AttrSymbol 65077
-#define SynEditStrConst_SYNS_ScrollInfoFmt 65078
-#define SynEditStrConst_SYNS_ScrollInfoFmtTop 65079
-#define SynEditStrConst_SYNS_EDuplicateShortcut 65080
-#define SynEditStrConst_SYNS_FilterPascal 65081
-#define SynEditStrConst_SYNS_FilterCPP 65082
-#define SynEditStrConst_SYNS_LangCPP 65083
-#define SynEditStrConst_SYNS_LangPascal 65084
-#define SynEditTextBuffer_SListIndexOutOfBounds 65085
-#define SynEditTextBuffer_SInvalidCapacity 65086
-#define frmFindstaticsUnit_strScan 65087
-#define XMLConst_SMissingFileName 65088
-#define XMLConst_SLine 65089
-#define OpenSave_strunknowncomponent 65090
-#define OpenSave_strCorruptIcon 65091
-#define OpenSave_strCantLoadFilepatcher 65092
-#define OpenSave_strNotACETrainer 65093
-#define OpenSave_strUnknownTrainerVersion 65094
-#define OpenSave_strCantLoadProtectedfile 65095
-#define SynEditStrConst_SYNS_AttrAssembler 65096
-#define SynEditStrConst_SYNS_AttrCharacter 65097
-#define SynEditStrConst_SYNS_AttrComment 65098
-#define SynEditStrConst_SYNS_AttrFloat 65099
-#define SynEditStrConst_SYNS_AttrHexadecimal 65100
-#define SynEditStrConst_SYNS_AttrIdentifier 65101
-#define SynEditStrConst_SYNS_AttrIllegalChar 65102
-#define SynEditStrConst_SYNS_AttrNumber 65103
-#define XMLConst_SDuplicateRegistration 65104
-#define XMLConst_SNoMatchingDOMVendor 65105
-#define XMLConst_SNoDOMNodeEx 65106
-#define XMLConst_SDOMNotSupported 65107
-#define XMLConst_SNodeExpected 65108
-#define XMLConst_SMSDOMNotInstalled 65109
-#define XMLConst_SNotActive 65110
-#define XMLConst_SNodeNotFound 65111
-#define XMLConst_SMissingNode 65112
-#define XMLConst_SNoAttributes 65113
-#define XMLConst_SInvalidNodeType 65114
-#define XMLConst_SMismatchedRegItems 65115
-#define XMLConst_SNotSingleTextNode 65116
-#define XMLConst_SNoDOMParseOptions 65117
-#define XMLConst_SNodeReadOnly 65118
-#define XMLConst_SNoRefresh 65119
-#define JclResources_RsIntelCacheDescrF0 65120
-#define JclResources_RsIntelCacheDescrF1 65121
-#define JclResources_RsUnknownAMDModel 65122
-#define ComConst_SOleError 65123
-#define ComConst_SNoMethod 65124
-#define ComConst_SVarNotObject 65125
-#define ComConst_STooManyParams 65126
-#define JConsts_sChangeJPGSize 65127
-#define JConsts_sJPEGError 65128
-#define JConsts_sJPEGImageFile 65129
-#define KIcon_SVCursors 65130
-#define KIcon_SIconAllocationError 65131
-#define KIcon_SIconBitmapError 65132
-#define KIcon_SIconFormatError 65133
-#define KIcon_SIconGDIError 65134
-#define KIcon_SIconResizingError 65135
-#define JclResources_RsIntelCacheDescr79 65136
-#define JclResources_RsIntelCacheDescr7A 65137
-#define JclResources_RsIntelCacheDescr7B 65138
-#define JclResources_RsIntelCacheDescr7C 65139
-#define JclResources_RsIntelCacheDescr7D 65140
-#define JclResources_RsIntelCacheDescr7F 65141
-#define JclResources_RsIntelCacheDescr82 65142
-#define JclResources_RsIntelCacheDescr83 65143
-#define JclResources_RsIntelCacheDescr84 65144
-#define JclResources_RsIntelCacheDescr85 65145
-#define JclResources_RsIntelCacheDescr86 65146
-#define JclResources_RsIntelCacheDescr87 65147
-#define JclResources_RsIntelCacheDescrB0 65148
-#define JclResources_RsIntelCacheDescrB1 65149
-#define JclResources_RsIntelCacheDescrB3 65150
-#define JclResources_RsIntelCacheDescrB4 65151
-#define JclResources_RsIntelCacheDescr50 65152
-#define JclResources_RsIntelCacheDescr51 65153
-#define JclResources_RsIntelCacheDescr52 65154
-#define JclResources_RsIntelCacheDescr56 65155
-#define JclResources_RsIntelCacheDescr57 65156
-#define JclResources_RsIntelCacheDescr5B 65157
-#define JclResources_RsIntelCacheDescr5C 65158
-#define JclResources_RsIntelCacheDescr5D 65159
-#define JclResources_RsIntelCacheDescr60 65160
-#define JclResources_RsIntelCacheDescr66 65161
-#define JclResources_RsIntelCacheDescr67 65162
-#define JclResources_RsIntelCacheDescr68 65163
-#define JclResources_RsIntelCacheDescr70 65164
-#define JclResources_RsIntelCacheDescr71 65165
-#define JclResources_RsIntelCacheDescr72 65166
-#define JclResources_RsIntelCacheDescr78 65167
-#define JclResources_RsIntelCacheDescr2C 65168
-#define JclResources_RsIntelCacheDescr30 65169
-#define JclResources_RsIntelCacheDescr40 65170
-#define JclResources_RsIntelCacheDescr41 65171
-#define JclResources_RsIntelCacheDescr42 65172
-#define JclResources_RsIntelCacheDescr43 65173
-#define JclResources_RsIntelCacheDescr44 65174
-#define JclResources_RsIntelCacheDescr45 65175
-#define JclResources_RsIntelCacheDescr46 65176
-#define JclResources_RsIntelCacheDescr47 65177
-#define JclResources_RsIntelCacheDescr48 65178
-#define JclResources_RsIntelCacheDescr49 65179
-#define JclResources_RsIntelCacheDescr4A 65180
-#define JclResources_RsIntelCacheDescr4B 65181
-#define JclResources_RsIntelCacheDescr4D 65182
-#define JclResources_RsIntelCacheDescr4E 65183
-#define JclResources_RsHKDDShort 65184
-#define JclResources_RsIntelCacheDescr00 65185
-#define JclResources_RsIntelCacheDescr01 65186
-#define JclResources_RsIntelCacheDescr02 65187
-#define JclResources_RsIntelCacheDescr03 65188
-#define JclResources_RsIntelCacheDescr04 65189
-#define JclResources_RsIntelCacheDescr05 65190
-#define JclResources_RsIntelCacheDescr06 65191
-#define JclResources_RsIntelCacheDescr08 65192
-#define JclResources_RsIntelCacheDescr0A 65193
-#define JclResources_RsIntelCacheDescr0B 65194
-#define JclResources_RsIntelCacheDescr0C 65195
-#define JclResources_RsIntelCacheDescr22 65196
-#define JclResources_RsIntelCacheDescr23 65197
-#define JclResources_RsIntelCacheDescr25 65198
-#define JclResources_RsIntelCacheDescr29 65199
-#define JclResources_RsCreateCompatibleDc 65200
-#define JclResources_RsDibHandleAllocation 65201
-#define JclResources_RsSelectObjectInDc 65202
-#define JclResources_RsHKCRLong 65203
-#define JclResources_RsHKCULong 65204
-#define JclResources_RsHKLMLong 65205
-#define JclResources_RsHKUSLong 65206
-#define JclResources_RsHKPDLong 65207
-#define JclResources_RsHKCCLong 65208
-#define JclResources_RsHKDDLong 65209
-#define JclResources_RsHKCRShort 65210
-#define JclResources_RsHKCUShort 65211
-#define JclResources_RsHKLMShort 65212
-#define JclResources_RsHKUSShort 65213
-#define JclResources_RsHKPDShort 65214
-#define JclResources_RsHKCCShort 65215
-#define ExtCtrls_clNameWindowText 65216
-#define ComStrs_sTabFailClear 65217
-#define ComStrs_sTabFailDelete 65218
-#define ComStrs_sTabFailRetrieve 65219
-#define ComStrs_sTabFailGetObject 65220
-#define ComStrs_sTabFailSet 65221
-#define ComStrs_sTabFailSetObject 65222
-#define ComStrs_sTabMustBeMultiLine 65223
-#define ComStrs_sInvalidIndex 65224
-#define ComStrs_sInsertError 65225
-#define ComStrs_sInvalidOwner 65226
-#define ComStrs_sPageIndexError 65227
-#define ComStrs_sInvalidComCtl32 65228
-#define WinHelpViewer_hNoKeyword 65229
-#define PEInfoFunctions_strInvalidFile 65230
-#define JclResources_RsAssertUnpairedEndUpdate 65231
-#define ExtCtrls_clNameGrayText 65232
-#define ExtCtrls_clNameHighlight 65233
-#define ExtCtrls_clNameHighlightText 65234
-#define ExtCtrls_clNameInactiveBorder 65235
-#define ExtCtrls_clNameInactiveCaption 65236
-#define ExtCtrls_clNameInactiveCaptionText 65237
-#define ExtCtrls_clNameInfoBk 65238
-#define ExtCtrls_clNameInfoText 65239
-#define ExtCtrls_clNameMenu 65240
-#define ExtCtrls_clNameMenuText 65241
-#define ExtCtrls_clNameNone 65242
-#define ExtCtrls_clNameScrollBar 65243
-#define ExtCtrls_clName3DDkShadow 65244
-#define ExtCtrls_clName3DLight 65245
-#define ExtCtrls_clNameWindow 65246
-#define ExtCtrls_clNameWindowFrame 65247
-#define ExtCtrls_clNameAqua 65248
-#define ExtCtrls_clNameWhite 65249
-#define ExtCtrls_clNameMoneyGreen 65250
-#define ExtCtrls_clNameSkyBlue 65251
-#define ExtCtrls_clNameCream 65252
-#define ExtCtrls_clNameMedGray 65253
-#define ExtCtrls_clNameActiveBorder 65254
-#define ExtCtrls_clNameActiveCaption 65255
-#define ExtCtrls_clNameAppWorkSpace 65256
-#define ExtCtrls_clNameBackground 65257
-#define ExtCtrls_clNameBtnFace 65258
-#define ExtCtrls_clNameBtnHighlight 65259
-#define ExtCtrls_clNameBtnShadow 65260
-#define ExtCtrls_clNameBtnText 65261
-#define ExtCtrls_clNameCaptionText 65262
-#define ExtCtrls_clNameDefault 65263
-#define HelpIntfs_hNoContext 65264
-#define HelpIntfs_hNoTopics 65265
-#define ExtCtrls_clNameBlack 65266
-#define ExtCtrls_clNameMaroon 65267
-#define ExtCtrls_clNameGreen 65268
-#define ExtCtrls_clNameOlive 65269
-#define ExtCtrls_clNameNavy 65270
-#define ExtCtrls_clNamePurple 65271
-#define ExtCtrls_clNameTeal 65272
-#define ExtCtrls_clNameGray 65273
-#define ExtCtrls_clNameSilver 65274
-#define ExtCtrls_clNameRed 65275
-#define ExtCtrls_clNameLime 65276
-#define ExtCtrls_clNameYellow 65277
-#define ExtCtrls_clNameBlue 65278
-#define ExtCtrls_clNameFuchsia 65279
-#define Consts_SDockTreeRemoveError 65280
-#define Consts_SDockZoneNotFound 65281
-#define Consts_SDockZoneHasNoCtl 65282
-#define Consts_SMultiSelectRequired 65283
-#define Consts_SKeyCaption 65284
-#define Consts_SValueCaption 65285
-#define Consts_SKeyConflict 65286
-#define Consts_SKeyNotFound 65287
-#define Consts_SNoColumnMoving 65288
-#define Consts_SNoEqualsInKey 65289
-#define Consts_SSeparator 65290
-#define Consts_SErrorSettingCount 65291
-#define Consts_SListBoxMustBeVirtual 65292
-#define Consts_SNoGetItemEventHandler 65293
-#define HelpIntfs_hNoTableOfContents 65294
-#define HelpIntfs_hNothingFound 65295
-#define Consts_SmkcCtrl 65296
-#define Consts_SmkcAlt 65297
-#define Consts_srNone 65298
-#define Consts_SOutOfRange 65299
-#define Consts_sAllFilter 65300
-#define Consts_SInsertLineError 65301
-#define Consts_SInvalidClipFmt 65302
-#define Consts_SIconToClipboard 65303
-#define Consts_SCannotOpenClipboard 65304
-#define Consts_SInvalidMemoSize 65305
-#define Consts_SNoDefaultPrinter 65306
-#define Consts_SDuplicateMenus 65307
-#define Consts_SPictureLabel 65308
-#define Consts_SPictureDesc 65309
-#define Consts_SPreviewLabel 65310
-#define Consts_SDockedCtlNeedsName 65311
-#define Consts_SmkcBkSp 65312
-#define Consts_SmkcTab 65313
-#define Consts_SmkcEsc 65314
-#define Consts_SmkcEnter 65315
-#define Consts_SmkcSpace 65316
-#define Consts_SmkcPgUp 65317
-#define Consts_SmkcPgDn 65318
-#define Consts_SmkcEnd 65319
-#define Consts_SmkcHome 65320
-#define Consts_SmkcLeft 65321
-#define Consts_SmkcUp 65322
-#define Consts_SmkcRight 65323
-#define Consts_SmkcDown 65324
-#define Consts_SmkcIns 65325
-#define Consts_SmkcDel 65326
-#define Consts_SmkcShift 65327
-#define Consts_SMaskEditErr 65328
-#define Consts_SMsgDlgWarning 65329
-#define Consts_SMsgDlgError 65330
-#define Consts_SMsgDlgInformation 65331
-#define Consts_SMsgDlgConfirm 65332
-#define Consts_SMsgDlgYes 65333
-#define Consts_SMsgDlgNo 65334
-#define Consts_SMsgDlgOK 65335
-#define Consts_SMsgDlgCancel 65336
-#define Consts_SMsgDlgHelp 65337
-#define Consts_SMsgDlgAbort 65338
-#define Consts_SMsgDlgRetry 65339
-#define Consts_SMsgDlgIgnore 65340
-#define Consts_SMsgDlgAll 65341
-#define Consts_SMsgDlgNoToAll 65342
-#define Consts_SMsgDlgYesToAll 65343
-#define Consts_SOKButton 65344
-#define Consts_SCancelButton 65345
-#define Consts_SYesButton 65346
-#define Consts_SNoButton 65347
-#define Consts_SHelpButton 65348
-#define Consts_SCloseButton 65349
-#define Consts_SIgnoreButton 65350
-#define Consts_SRetryButton 65351
-#define Consts_SAbortButton 65352
-#define Consts_SAllButton 65353
-#define Consts_SCannotDragForm 65354
-#define Consts_SVMetafiles 65355
-#define Consts_SVEnhMetafiles 65356
-#define Consts_SVIcons 65357
-#define Consts_SVBitmaps 65358
-#define Consts_SMaskErr 65359
-#define Consts_SMDIChildNotVisible 65360
-#define Consts_SVisibleChanged 65361
-#define Consts_SCannotShowModal 65362
-#define Consts_SScrollBarRange 65363
-#define Consts_SPropertyOutOfRange 65364
-#define Consts_SMenuIndexError 65365
-#define Consts_SMenuReinserted 65366
-#define Consts_SMenuNotFound 65367
-#define Consts_SNoTimers 65368
-#define Consts_SNotPrinting 65369
-#define Consts_SPrinting 65370
-#define Consts_SInvalidPrinter 65371
-#define Consts_SDeviceOnPort 65372
-#define Consts_SGroupIndexTooLow 65373
-#define Consts_SNoMDIForm 65374
-#define Consts_SControlParentSetToSelf 65375
+#define MainUnit_strUnhideAll 64944
+#define MainUnit_strhappybirthday 64945
+#define MainUnit_strXMess 64946
+#define MainUnit_strNewyear 64947
+#define MainUnit_strfuture 64948
+#define MainUnit_strdontbother 64949
+#define MainUnit_strneeddebugger 64950
+#define MainUnit_strfailuretosetspeed 64951
+#define MainUnit_strIncorrectspeed 64952
+#define MainUnit_strCantSetSpeed 64953
+#define MainUnit_strHyperscanFailed 64954
+#define MainUnit_strUnknownExtension 64955
+#define MainUnit_strCustomScanConfig 64956
+#define MainUnit_strUnfreezeAddressInList 64960
+#define MainUnit_strDeleteAddress 64961
+#define MainUnit_strRecalculateAddress 64962
+#define MainUnit_strRecalculateSelectedAddresses 64963
+#define MainUnit_strRecalculateAllAddresses 64964
+#define MainUnit_strRemoveFromGroup 64965
+#define MainUnit_strEnableCheat 64966
+#define MainUnit_strDisableCheat 64967
+#define MainUnit_strFindWhatWritesToPointer 64968
+#define MainUnit_strFindWhatWritesToPointer2 64969
+#define MainUnit_strcantdebugnow 64970
+#define MainUnit_strpointercantberead 64971
+#define MainUnit_strconfirmUndo 64972
+#define MainUnit_strHideForeground 64973
+#define MainUnit_strHideAll 64974
+#define MainUnit_strUnHideForeground 64975
+#define MainUnit_strDeleteMultipleAddresses 64976
+#define MainUnit_strDelete1Group 64977
+#define MainUnit_strDeleteMoreGroups 64978
+#define MainUnit_strSelectedAddressIsAPointer 64979
+#define MainUnit_strMorePointers 64980
+#define MainUnit_strMorePointers2 64981
+#define MainUnit_strNotAValidValue 64982
+#define MainUnit_strdeleteall 64983
+#define MainUnit_stralreadyin 64984
+#define MainUnit_stralreadyinlistmultiple 64985
+#define MainUnit_strsethotkey 64986
+#define MainUnit_strshowasdecimal 64987
+#define MainUnit_strshowashex 64988
+#define MainUnit_strFreezeAddressInList 64989
+#define MainUnit_strFreezeAllAddresses 64990
+#define MainUnit_strUnfreezeAllAddresses 64991
+#define MainUnit_strfillInSomething 64992
+#define MainUnit_strFirstSelectAProcess 64993
+#define MainUnit_strCantdoNextScan 64994
+#define MainUnit_strClickToGoHome 64995
+#define MainUnit_strChangeDescription1 64996
+#define MainUnit_strChangeDescription2 64997
+#define MainUnit_strNotTheSameSize1 64998
+#define MainUnit_strNotTheSameSize2 64999
+#define MainUnit_strAdd0 65000
+#define MainUnit_strNotAValidNotation 65001
+#define MainUnit_strNotSameAmmountofBytes 65002
+#define MainUnit_strNotAValidBinaryNotation 65003
+#define MainUnit_strValue 65004
+#define MainUnit_strChange1Value 65005
+#define MainUnit_strChangeMoreValues 65006
+#define MainUnit_strDelete1Address 65007
+#define MainUnit_strAccessed 65008
+#define MainUnit_strOpcodeChanged 65009
+#define MainUnit_strAllowNegative 65010
+#define MainUnit_strAllowPositive 65011
+#define MainUnit_strNormalFreeze 65012
+#define MainUnit_strAskToSave 65013
+#define MainUnit_strScantextcaptiontotext 65014
+#define MainUnit_strScantextcaptiontoValue 65015
+#define MainUnit_strsearchForText 65016
+#define MainUnit_strSearchForArray 65017
+#define MainUnit_strConfirmProcessTermination 65018
+#define MainUnit_strError 65019
+#define MainUnit_strErrorwhileOpeningProcess 65020
+#define MainUnit_strKeepList 65021
+#define MainUnit_strInfoAboutTable 65022
+#define MainUnit_strPhysicalMemory 65023
+#define MainUnit2_strNeedNewerWindowsVersion 65024
+#define MainUnit2_strexact 65025
+#define MainUnit2_strexactvalue 65026
+#define MainUnit2_strbiggerThan 65027
+#define MainUnit2_strSmallerThan 65028
+#define MainUnit2_strIncreasedValue 65029
+#define MainUnit2_strIncreasedValueBy 65030
+#define MainUnit2_strDecreasedValue 65031
+#define MainUnit2_strDecreasedValueBy 65032
+#define MainUnit2_strValueBetween 65033
+#define MainUnit2_strChangedValue 65034
+#define MainUnit2_strUnchangedValue 65035
+#define MainUnit2_strUnknownInitialValue 65036
+#define MainUnit2_strSameAsFirstScan 65037
+#define MainUnit2_strtoolong 65038
+#define MainUnit_strWindowFailedToHide 65039
+#define AdvancedOptionsUnit_strcouldntrestorecode 65040
+#define AdvancedOptionsUnit_strnotthesame 65041
+#define AdvancedOptionsUnit_strcouldntwrite 65042
+#define AdvancedOptionsUnit_StrSelectExeFor3D 65043
+#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65044
+#define FoundCodeUnit_strClose 65045
+#define formsettingsunit_strProcessWatcherWillPreventUnloader 65046
+#define MainUnit2_strStart 65047
+#define MainUnit2_strStop 65048
+#define MainUnit2_strOK 65049
+#define MainUnit2_strBug 65050
+#define MainUnit2_strAutoAssemble 65051
+#define MainUnit2_strAddressHasToBeReadable 65052
+#define MainUnit2_strNewScan 65053
+#define MainUnit2_strFirstScan 65054
+#define MainUnit2_strNoDescription 65055
+#define frmFindstaticsUnit_strScan 65056
+#define frmFindstaticsUnit_strStop 65057
+#define frmFindstaticsUnit_strStopping 65058
+#define frmLoadMemoryunit_strinvalidfile 65059
+#define AdvancedOptionsUnit_strnotreadable 65060
+#define AdvancedOptionsUnit_strNotWhatitshouldbe 65061
+#define AdvancedOptionsUnit_stralreadyinthelist 65062
+#define AdvancedOptionsUnit_strPartOfOpcodeInTheList 65063
+#define AdvancedOptionsUnit_strAddressAlreadyInTheList 65064
+#define AdvancedOptionsUnit_strCECode 65065
+#define AdvancedOptionsUnit_strNameCECode 65066
+#define AdvancedOptionsUnit_strChangeOf 65067
+#define AdvancedOptionsUnit_strCode 65068
+#define AdvancedOptionsUnit_strFindWhatCodeaccesses 65069
+#define AdvancedOptionsUnit_strFindWhatCodeReads 65070
+#define AdvancedOptionsUnit_strFindWhatCodeWrites 65071
+#define SynEditStrConst_SYNS_AttrNumber 65072
+#define SynEditStrConst_SYNS_AttrOctal 65073
+#define SynEditStrConst_SYNS_AttrPreprocessor 65074
+#define SynEditStrConst_SYNS_AttrReservedWord 65075
+#define SynEditStrConst_SYNS_AttrSpace 65076
+#define SynEditStrConst_SYNS_AttrString 65077
+#define SynEditStrConst_SYNS_AttrSymbol 65078
+#define SynEditStrConst_SYNS_ScrollInfoFmt 65079
+#define SynEditStrConst_SYNS_ScrollInfoFmtTop 65080
+#define SynEditStrConst_SYNS_EDuplicateShortcut 65081
+#define SynEditStrConst_SYNS_FilterPascal 65082
+#define SynEditStrConst_SYNS_FilterCPP 65083
+#define SynEditStrConst_SYNS_LangCPP 65084
+#define SynEditStrConst_SYNS_LangPascal 65085
+#define SynEditTextBuffer_SListIndexOutOfBounds 65086
+#define SynEditTextBuffer_SInvalidCapacity 65087
+#define XMLConst_SNoRefresh 65088
+#define XMLConst_SMissingFileName 65089
+#define XMLConst_SLine 65090
+#define OpenSave_strunknowncomponent 65091
+#define OpenSave_strCorruptIcon 65092
+#define OpenSave_strCantLoadFilepatcher 65093
+#define OpenSave_strNotACETrainer 65094
+#define OpenSave_strUnknownTrainerVersion 65095
+#define OpenSave_strCantLoadProtectedfile 65096
+#define SynEditStrConst_SYNS_AttrAssembler 65097
+#define SynEditStrConst_SYNS_AttrCharacter 65098
+#define SynEditStrConst_SYNS_AttrComment 65099
+#define SynEditStrConst_SYNS_AttrFloat 65100
+#define SynEditStrConst_SYNS_AttrHexadecimal 65101
+#define SynEditStrConst_SYNS_AttrIdentifier 65102
+#define SynEditStrConst_SYNS_AttrIllegalChar 65103
+#define KIcon_SIconResizingError 65104
+#define XMLConst_SDuplicateRegistration 65105
+#define XMLConst_SNoMatchingDOMVendor 65106
+#define XMLConst_SNoDOMNodeEx 65107
+#define XMLConst_SDOMNotSupported 65108
+#define XMLConst_SNodeExpected 65109
+#define XMLConst_SMSDOMNotInstalled 65110
+#define XMLConst_SNotActive 65111
+#define XMLConst_SNodeNotFound 65112
+#define XMLConst_SMissingNode 65113
+#define XMLConst_SNoAttributes 65114
+#define XMLConst_SInvalidNodeType 65115
+#define XMLConst_SMismatchedRegItems 65116
+#define XMLConst_SNotSingleTextNode 65117
+#define XMLConst_SNoDOMParseOptions 65118
+#define XMLConst_SNodeReadOnly 65119
+#define JclResources_RsIntelCacheDescrB4 65120
+#define JclResources_RsIntelCacheDescrF0 65121
+#define JclResources_RsIntelCacheDescrF1 65122
+#define JclResources_RsUnknownAMDModel 65123
+#define ComConst_SOleError 65124
+#define ComConst_SNoMethod 65125
+#define ComConst_SVarNotObject 65126
+#define ComConst_STooManyParams 65127
+#define JConsts_sChangeJPGSize 65128
+#define JConsts_sJPEGError 65129
+#define JConsts_sJPEGImageFile 65130
+#define KIcon_SVCursors 65131
+#define KIcon_SIconAllocationError 65132
+#define KIcon_SIconBitmapError 65133
+#define KIcon_SIconFormatError 65134
+#define KIcon_SIconGDIError 65135
+#define JclResources_RsIntelCacheDescr78 65136
+#define JclResources_RsIntelCacheDescr79 65137
+#define JclResources_RsIntelCacheDescr7A 65138
+#define JclResources_RsIntelCacheDescr7B 65139
+#define JclResources_RsIntelCacheDescr7C 65140
+#define JclResources_RsIntelCacheDescr7D 65141
+#define JclResources_RsIntelCacheDescr7F 65142
+#define JclResources_RsIntelCacheDescr82 65143
+#define JclResources_RsIntelCacheDescr83 65144
+#define JclResources_RsIntelCacheDescr84 65145
+#define JclResources_RsIntelCacheDescr85 65146
+#define JclResources_RsIntelCacheDescr86 65147
+#define JclResources_RsIntelCacheDescr87 65148
+#define JclResources_RsIntelCacheDescrB0 65149
+#define JclResources_RsIntelCacheDescrB1 65150
+#define JclResources_RsIntelCacheDescrB3 65151
+#define JclResources_RsIntelCacheDescr4E 65152
+#define JclResources_RsIntelCacheDescr50 65153
+#define JclResources_RsIntelCacheDescr51 65154
+#define JclResources_RsIntelCacheDescr52 65155
+#define JclResources_RsIntelCacheDescr56 65156
+#define JclResources_RsIntelCacheDescr57 65157
+#define JclResources_RsIntelCacheDescr5B 65158
+#define JclResources_RsIntelCacheDescr5C 65159
+#define JclResources_RsIntelCacheDescr5D 65160
+#define JclResources_RsIntelCacheDescr60 65161
+#define JclResources_RsIntelCacheDescr66 65162
+#define JclResources_RsIntelCacheDescr67 65163
+#define JclResources_RsIntelCacheDescr68 65164
+#define JclResources_RsIntelCacheDescr70 65165
+#define JclResources_RsIntelCacheDescr71 65166
+#define JclResources_RsIntelCacheDescr72 65167
+#define JclResources_RsIntelCacheDescr29 65168
+#define JclResources_RsIntelCacheDescr2C 65169
+#define JclResources_RsIntelCacheDescr30 65170
+#define JclResources_RsIntelCacheDescr40 65171
+#define JclResources_RsIntelCacheDescr41 65172
+#define JclResources_RsIntelCacheDescr42 65173
+#define JclResources_RsIntelCacheDescr43 65174
+#define JclResources_RsIntelCacheDescr44 65175
+#define JclResources_RsIntelCacheDescr45 65176
+#define JclResources_RsIntelCacheDescr46 65177
+#define JclResources_RsIntelCacheDescr47 65178
+#define JclResources_RsIntelCacheDescr48 65179
+#define JclResources_RsIntelCacheDescr49 65180
+#define JclResources_RsIntelCacheDescr4A 65181
+#define JclResources_RsIntelCacheDescr4B 65182
+#define JclResources_RsIntelCacheDescr4D 65183
+#define JclResources_RsHKCCShort 65184
+#define JclResources_RsHKDDShort 65185
+#define JclResources_RsIntelCacheDescr00 65186
+#define JclResources_RsIntelCacheDescr01 65187
+#define JclResources_RsIntelCacheDescr02 65188
+#define JclResources_RsIntelCacheDescr03 65189
+#define JclResources_RsIntelCacheDescr04 65190
+#define JclResources_RsIntelCacheDescr05 65191
+#define JclResources_RsIntelCacheDescr06 65192
+#define JclResources_RsIntelCacheDescr08 65193
+#define JclResources_RsIntelCacheDescr0A 65194
+#define JclResources_RsIntelCacheDescr0B 65195
+#define JclResources_RsIntelCacheDescr0C 65196
+#define JclResources_RsIntelCacheDescr22 65197
+#define JclResources_RsIntelCacheDescr23 65198
+#define JclResources_RsIntelCacheDescr25 65199
+#define JclResources_RsAssertUnpairedEndUpdate 65200
+#define JclResources_RsCreateCompatibleDc 65201
+#define JclResources_RsDibHandleAllocation 65202
+#define JclResources_RsSelectObjectInDc 65203
+#define JclResources_RsHKCRLong 65204
+#define JclResources_RsHKCULong 65205
+#define JclResources_RsHKLMLong 65206
+#define JclResources_RsHKUSLong 65207
+#define JclResources_RsHKPDLong 65208
+#define JclResources_RsHKCCLong 65209
+#define JclResources_RsHKDDLong 65210
+#define JclResources_RsHKCRShort 65211
+#define JclResources_RsHKCUShort 65212
+#define JclResources_RsHKLMShort 65213
+#define JclResources_RsHKUSShort 65214
+#define JclResources_RsHKPDShort 65215
+#define ExtCtrls_clNameWindowFrame 65216
+#define ExtCtrls_clNameWindowText 65217
+#define ComStrs_sTabFailClear 65218
+#define ComStrs_sTabFailDelete 65219
+#define ComStrs_sTabFailRetrieve 65220
+#define ComStrs_sTabFailGetObject 65221
+#define ComStrs_sTabFailSet 65222
+#define ComStrs_sTabFailSetObject 65223
+#define ComStrs_sTabMustBeMultiLine 65224
+#define ComStrs_sInvalidIndex 65225
+#define ComStrs_sInsertError 65226
+#define ComStrs_sInvalidOwner 65227
+#define ComStrs_sPageIndexError 65228
+#define ComStrs_sInvalidComCtl32 65229
+#define WinHelpViewer_hNoKeyword 65230
+#define PEInfoFunctions_strInvalidFile 65231
+#define ExtCtrls_clNameDefault 65232
+#define ExtCtrls_clNameGrayText 65233
+#define ExtCtrls_clNameHighlight 65234
+#define ExtCtrls_clNameHighlightText 65235
+#define ExtCtrls_clNameInactiveBorder 65236
+#define ExtCtrls_clNameInactiveCaption 65237
+#define ExtCtrls_clNameInactiveCaptionText 65238
+#define ExtCtrls_clNameInfoBk 65239
+#define ExtCtrls_clNameInfoText 65240
+#define ExtCtrls_clNameMenu 65241
+#define ExtCtrls_clNameMenuText 65242
+#define ExtCtrls_clNameNone 65243
+#define ExtCtrls_clNameScrollBar 65244
+#define ExtCtrls_clName3DDkShadow 65245
+#define ExtCtrls_clName3DLight 65246
+#define ExtCtrls_clNameWindow 65247
+#define ExtCtrls_clNameFuchsia 65248
+#define ExtCtrls_clNameAqua 65249
+#define ExtCtrls_clNameWhite 65250
+#define ExtCtrls_clNameMoneyGreen 65251
+#define ExtCtrls_clNameSkyBlue 65252
+#define ExtCtrls_clNameCream 65253
+#define ExtCtrls_clNameMedGray 65254
+#define ExtCtrls_clNameActiveBorder 65255
+#define ExtCtrls_clNameActiveCaption 65256
+#define ExtCtrls_clNameAppWorkSpace 65257
+#define ExtCtrls_clNameBackground 65258
+#define ExtCtrls_clNameBtnFace 65259
+#define ExtCtrls_clNameBtnHighlight 65260
+#define ExtCtrls_clNameBtnShadow 65261
+#define ExtCtrls_clNameBtnText 65262
+#define ExtCtrls_clNameCaptionText 65263
+#define HelpIntfs_hNothingFound 65264
+#define HelpIntfs_hNoContext 65265
+#define HelpIntfs_hNoTopics 65266
+#define ExtCtrls_clNameBlack 65267
+#define ExtCtrls_clNameMaroon 65268
+#define ExtCtrls_clNameGreen 65269
+#define ExtCtrls_clNameOlive 65270
+#define ExtCtrls_clNameNavy 65271
+#define ExtCtrls_clNamePurple 65272
+#define ExtCtrls_clNameTeal 65273
+#define ExtCtrls_clNameGray 65274
+#define ExtCtrls_clNameSilver 65275
+#define ExtCtrls_clNameRed 65276
+#define ExtCtrls_clNameLime 65277
+#define ExtCtrls_clNameYellow 65278
+#define ExtCtrls_clNameBlue 65279
+#define Consts_SDockedCtlNeedsName 65280
+#define Consts_SDockTreeRemoveError 65281
+#define Consts_SDockZoneNotFound 65282
+#define Consts_SDockZoneHasNoCtl 65283
+#define Consts_SMultiSelectRequired 65284
+#define Consts_SKeyCaption 65285
+#define Consts_SValueCaption 65286
+#define Consts_SKeyConflict 65287
+#define Consts_SKeyNotFound 65288
+#define Consts_SNoColumnMoving 65289
+#define Consts_SNoEqualsInKey 65290
+#define Consts_SSeparator 65291
+#define Consts_SErrorSettingCount 65292
+#define Consts_SListBoxMustBeVirtual 65293
+#define Consts_SNoGetItemEventHandler 65294
+#define HelpIntfs_hNoTableOfContents 65295
+#define Consts_SmkcShift 65296
+#define Consts_SmkcCtrl 65297
+#define Consts_SmkcAlt 65298
+#define Consts_srNone 65299
+#define Consts_SOutOfRange 65300
+#define Consts_sAllFilter 65301
+#define Consts_SInsertLineError 65302
+#define Consts_SInvalidClipFmt 65303
+#define Consts_SIconToClipboard 65304
+#define Consts_SCannotOpenClipboard 65305
+#define Consts_SInvalidMemoSize 65306
+#define Consts_SNoDefaultPrinter 65307
+#define Consts_SDuplicateMenus 65308
+#define Consts_SPictureLabel 65309
+#define Consts_SPictureDesc 65310
+#define Consts_SPreviewLabel 65311
+#define Consts_SMsgDlgYesToAll 65312
+#define Consts_SmkcBkSp 65313
+#define Consts_SmkcTab 65314
+#define Consts_SmkcEsc 65315
+#define Consts_SmkcEnter 65316
+#define Consts_SmkcSpace 65317
+#define Consts_SmkcPgUp 65318
+#define Consts_SmkcPgDn 65319
+#define Consts_SmkcEnd 65320
+#define Consts_SmkcHome 65321
+#define Consts_SmkcLeft 65322
+#define Consts_SmkcUp 65323
+#define Consts_SmkcRight 65324
+#define Consts_SmkcDown 65325
+#define Consts_SmkcIns 65326
+#define Consts_SmkcDel 65327
+#define Consts_SMaskErr 65328
+#define Consts_SMaskEditErr 65329
+#define Consts_SMsgDlgWarning 65330
+#define Consts_SMsgDlgError 65331
+#define Consts_SMsgDlgInformation 65332
+#define Consts_SMsgDlgConfirm 65333
+#define Consts_SMsgDlgYes 65334
+#define Consts_SMsgDlgNo 65335
+#define Consts_SMsgDlgOK 65336
+#define Consts_SMsgDlgCancel 65337
+#define Consts_SMsgDlgHelp 65338
+#define Consts_SMsgDlgAbort 65339
+#define Consts_SMsgDlgRetry 65340
+#define Consts_SMsgDlgIgnore 65341
+#define Consts_SMsgDlgAll 65342
+#define Consts_SMsgDlgNoToAll 65343
+#define Consts_SControlParentSetToSelf 65344
+#define Consts_SOKButton 65345
+#define Consts_SCancelButton 65346
+#define Consts_SYesButton 65347
+#define Consts_SNoButton 65348
+#define Consts_SHelpButton 65349
+#define Consts_SCloseButton 65350
+#define Consts_SIgnoreButton 65351
+#define Consts_SRetryButton 65352
+#define Consts_SAbortButton 65353
+#define Consts_SAllButton 65354
+#define Consts_SCannotDragForm 65355
+#define Consts_SVMetafiles 65356
+#define Consts_SVEnhMetafiles 65357
+#define Consts_SVIcons 65358
+#define Consts_SVBitmaps 65359
+#define Consts_SParentGivenNotAParent 65360
+#define Consts_SMDIChildNotVisible 65361
+#define Consts_SVisibleChanged 65362
+#define Consts_SCannotShowModal 65363
+#define Consts_SScrollBarRange 65364
+#define Consts_SPropertyOutOfRange 65365
+#define Consts_SMenuIndexError 65366
+#define Consts_SMenuReinserted 65367
+#define Consts_SMenuNotFound 65368
+#define Consts_SNoTimers 65369
+#define Consts_SNotPrinting 65370
+#define Consts_SPrinting 65371
+#define Consts_SInvalidPrinter 65372
+#define Consts_SDeviceOnPort 65373
+#define Consts_SGroupIndexTooLow 65374
+#define Consts_SNoMDIForm 65375
 #define Consts_SScanLine 65376
 #define Consts_SChangeIconSize 65377
 #define Consts_SUnknownExtension 65378
@@ -598,6 +599,7 @@
 #define SysConst_SRangeError 65535
 STRINGTABLE
 BEGIN
+	MainUnit_strUnhideAll,	"will bring all windows back"
 	MainUnit_strhappybirthday,	"Let's sing Happy Birthday for Dark Byte today!"
 	MainUnit_strXMess,	"Merry christmas and happy new year"
 	MainUnit_strNewyear,	"And what are your good intentions for this year? ;-)"
@@ -610,6 +612,7 @@ BEGIN
 	MainUnit_strHyperscanFailed,	"The hyperthread failed to respond with the right answer"
 	MainUnit_strUnknownExtension,	"Unknown extension"
 	MainUnit_strCustomScanConfig,	"Custom scan config"
+	MainUnit_strUnfreezeAddressInList,	"Unfreeze the address in this list"
 	MainUnit_strDeleteAddress,	"Delete this address"
 	MainUnit_strRecalculateAddress,	"Recalculate address"
 	MainUnit_strRecalculateSelectedAddresses,	"Recalculate selected addresses"
@@ -625,7 +628,7 @@ BEGIN
 	MainUnit_strHideForeground,	"will hide the foreground window"
 	MainUnit_strHideAll,	"will hide all windows"
 	MainUnit_strUnHideForeground,	"will bring the foreground window back"
-	MainUnit_strUnhideAll,	"will bring all windows back"
+	MainUnit_strDeleteMultipleAddresses,	"Delete these addresses?"
 	MainUnit_strDelete1Group,	"Also delete the group this address is a member of?"
 	MainUnit_strDeleteMoreGroups,	"Also delete the groups of the addresses you selected?"
 	MainUnit_strSelectedAddressIsAPointer,	"The selected address is a pointer. Are you sure? (the base pointer will get the address)"
@@ -641,7 +644,7 @@ BEGIN
 	MainUnit_strFreezeAddressInList,	"Freeze the address in this list"
 	MainUnit_strFreezeAllAddresses,	"Freeze all addresses in this list"
 	MainUnit_strUnfreezeAllAddresses,	"Unfreeze all addresses in this list"
-	MainUnit_strUnfreezeAddressInList,	"Unfreeze the address in this list"
+	MainUnit_strfillInSomething,	"Please fill in something!"
 	MainUnit_strFirstSelectAProcess,	"First select a process"
 	MainUnit_strCantdoNextScan,	"You can't do a Next Scan with the current selected way of scanning!"
 	MainUnit_strClickToGoHome,	"Click here to go to the Cheat Engine homepage"
@@ -657,7 +660,7 @@ BEGIN
 	MainUnit_strChange1Value,	"Change this value to:"
 	MainUnit_strChangeMoreValues,	"Change these values to:"
 	MainUnit_strDelete1Address,	"Delete this address?"
-	MainUnit_strDeleteMultipleAddresses,	"Delete these addresses?"
+	MainUnit_strAccessed,	"The following opcodes accessed the selected address"
 	MainUnit_strOpcodeChanged,	"The following opcodes changed the selected address"
 	MainUnit_strAllowNegative,	"Allow negative changes"
 	MainUnit_strAllowPositive,	"Allow positive changes"
@@ -673,7 +676,7 @@ BEGIN
 	MainUnit_strKeepList,	"Keep the current address list/code list?"
 	MainUnit_strInfoAboutTable,	"Info about this table:"
 	MainUnit_strPhysicalMemory,	"Physical Memory"
-	MainUnit_strfillInSomething,	"Please fill in something!"
+	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
 	MainUnit2_strexact,	"Exact"
 	MainUnit2_strexactvalue,	"Exact Value"
 	MainUnit2_strbiggerThan,	"Bigger than..."
@@ -689,7 +692,7 @@ BEGIN
 	MainUnit2_strSameAsFirstScan,	"Same as first scan"
 	MainUnit2_strtoolong,	"Too long"
 	MainUnit_strWindowFailedToHide,	"A window failed to hide"
-	MainUnit_strAccessed,	"The following opcodes accessed the selected address"
+	AdvancedOptionsUnit_strcouldntrestorecode,	"Error when trying to restore this code!"
 	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
 	AdvancedOptionsUnit_strcouldntwrite,	"The memory at this address couldn't be written"
 	AdvancedOptionsUnit_StrSelectExeFor3D,	"Select the executable of the Direct-3D game"
@@ -705,7 +708,7 @@ BEGIN
 	MainUnit2_strNewScan,	"New Scan"
 	MainUnit2_strFirstScan,	"First Scan"
 	MainUnit2_strNoDescription,	"No description"
-	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
+	frmFindstaticsUnit_strScan,	"Scan"
 	frmFindstaticsUnit_strStop,	"Stop"
 	frmFindstaticsUnit_strStopping,	"Stopping..."
 	frmLoadMemoryunit_strinvalidfile,	"This is a invalid memory region file. I'll assume this file has no header data"
@@ -721,7 +724,7 @@ BEGIN
 	AdvancedOptionsUnit_strFindWhatCodeaccesses,	"Find out what addresses this code accesses"
 	AdvancedOptionsUnit_strFindWhatCodeReads,	"Find out what addresses this code reads from"
 	AdvancedOptionsUnit_strFindWhatCodeWrites,	"Find out what addresses this code writes to"
-	AdvancedOptionsUnit_strcouldntrestorecode,	"Error when trying to restore this code!"
+	SynEditStrConst_SYNS_AttrNumber,	"Number"
 	SynEditStrConst_SYNS_AttrOctal,	"Octal"
 	SynEditStrConst_SYNS_AttrPreprocessor,	"Preprocessor"
 	SynEditStrConst_SYNS_AttrReservedWord,	"Reserved Word"
@@ -737,7 +740,7 @@ BEGIN
 	SynEditStrConst_SYNS_LangPascal,	"Object Pascal"
 	SynEditTextBuffer_SListIndexOutOfBounds,	"Invalid stringlist index %d"
 	SynEditTextBuffer_SInvalidCapacity,	"Stringlist capacity cannot be smaller than count"
-	frmFindstaticsUnit_strScan,	"Scan"
+	XMLConst_SNoRefresh,	"Refresh is only supported if the FileName or XML properties are set"
 	XMLConst_SMissingFileName,	"FileName cannot be blank"
 	XMLConst_SLine,	"Line"
 	OpenSave_strunknowncomponent,	"There is a unknown component in the trainer! compnr="
@@ -753,7 +756,7 @@ BEGIN
 	SynEditStrConst_SYNS_AttrHexadecimal,	"Hexadecimal"
 	SynEditStrConst_SYNS_AttrIdentifier,	"Identifier"
 	SynEditStrConst_SYNS_AttrIllegalChar,	"Illegal Char"
-	SynEditStrConst_SYNS_AttrNumber,	"Number"
+	KIcon_SIconResizingError,	"Error while resizing icon"
 	XMLConst_SDuplicateRegistration,	"\"%s\" DOMImplementation already registered"
 	XMLConst_SNoMatchingDOMVendor,	"No matching DOM Vendor: \"%s\""
 	XMLConst_SNoDOMNodeEx,	"Selected DOM Vendor does not support this property or method"
@@ -769,7 +772,7 @@ BEGIN
 	XMLConst_SNotSingleTextNode,	"Element does not contain a single text node"
 	XMLConst_SNoDOMParseOptions,	"DOM Implementation does not support IDOMParseOptions"
 	XMLConst_SNodeReadOnly,	"Node is readonly"
-	XMLConst_SNoRefresh,	"Refresh is only supported if the FileName or XML properties are set"
+	JclResources_RsIntelCacheDescrB4,	"Data TLB1: 4 KByte pages, 4-way set associative, 256 entries"
 	JclResources_RsIntelCacheDescrF0,	"64-Byte Prefetching"
 	JclResources_RsIntelCacheDescrF1,	"128-Byte Prefetching"
 	JclResources_RsUnknownAMDModel,	"Unknown AMD (Model %d)"
@@ -785,7 +788,7 @@ BEGIN
 	KIcon_SIconBitmapError,	"Invalid icon bitmap handles"
 	KIcon_SIconFormatError,	"Invalid icon format"
 	KIcon_SIconGDIError,	"GDI object could not be created"
-	KIcon_SIconResizingError,	"Error while resizing icon"
+	JclResources_RsIntelCacheDescr78,	"2nd-level cache: 1 MBytes, 4-way set associative, 64 bytes line size"
 	JclResources_RsIntelCacheDescr79,	"2nd-level cache: 128 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr7A,	"2nd-level cache: 256 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr7B,	"2nd-level cache: 512 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
@@ -801,7 +804,7 @@ BEGIN
 	JclResources_RsIntelCacheDescrB0,	"Instruction TLB: 4 KByte pages, 4-way set associative, 128 entries"
 	JclResources_RsIntelCacheDescrB1,	"Instruction TLB: 2 MByte pages, 4-way, 8 entries or 4 MByte pages, 4-way, 4 entries"
 	JclResources_RsIntelCacheDescrB3,	"Data TLB: 4 KByte pages, 4-way set associative, 128 entries"
-	JclResources_RsIntelCacheDescrB4,	"Data TLB1: 4 KByte pages, 4-way set associative, 256 entries"
+	JclResources_RsIntelCacheDescr4E,	"2nd-level cache: 6MByte, 24-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr50,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 64 Entries"
 	JclResources_RsIntelCacheDescr51,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 128 Entries"
 	JclResources_RsIntelCacheDescr52,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 256 Entries"
@@ -817,7 +820,7 @@ BEGIN
 	JclResources_RsIntelCacheDescr70,	"Trace cache: 12 K-Ops, 8-way set associative"
 	JclResources_RsIntelCacheDescr71,	"Trace cache: 16 K-Ops, 8-way set associative"
 	JclResources_RsIntelCacheDescr72,	"Trace cache: 32 K-Ops, 8-way set associative"
-	JclResources_RsIntelCacheDescr78,	"2nd-level cache: 1 MBytes, 4-way set associative, 64 bytes line size"
+	JclResources_RsIntelCacheDescr29,	"3rd level cache: 4 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr2C,	"1st level data cache: 32 KBytes, 8-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr30,	"1st level instruction cache: 32 KBytes, 8-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr40,	"No 2nd-level cache or, if processor contains a valid 2nd-level cache, no 3rd-level cache"
@@ -833,7 +836,7 @@ BEGIN
 	JclResources_RsIntelCacheDescr4A,	"3rd-level cache: 6MByte, 12-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr4B,	"3rd-level cache: 8MByte, 16-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr4D,	"3rd-level cache: 16MByte, 16-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr4E,	"2nd-level cache: 6MByte, 24-way set associative, 64 byte line size"
+	JclResources_RsHKCCShort,	"HKCC"
 	JclResources_RsHKDDShort,	"HKDD"
 	JclResources_RsIntelCacheDescr00,	"Null descriptor"
 	JclResources_RsIntelCacheDescr01,	"Instruction TLB: 4 KByte pages, 4-way set associative, 32 entries"
@@ -849,7 +852,7 @@ BEGIN
 	JclResources_RsIntelCacheDescr22,	"3rd level cache: 512 KBytes, 4-way set associative, 64 byte line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr23,	"3rd level cache: 1 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr25,	"3rd level cache: 2 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
-	JclResources_RsIntelCacheDescr29,	"3rd level cache: 4 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
+	JclResources_RsAssertUnpairedEndUpdate,	"Unpaired BeginUpdate EndUpdate"
 	JclResources_RsCreateCompatibleDc,	"Could not create compatible DC"
 	JclResources_RsDibHandleAllocation,	"Could not allocate handle for DIB"
 	JclResources_RsSelectObjectInDc,	"Could not select object in DC"
@@ -865,7 +868,7 @@ BEGIN
 	JclResources_RsHKLMShort,	"HKLM"
 	JclResources_RsHKUSShort,	"HKUS"
 	JclResources_RsHKPDShort,	"HKPD"
-	JclResources_RsHKCCShort,	"HKCC"
+	ExtCtrls_clNameWindowFrame,	"Window Frame"
 	ExtCtrls_clNameWindowText,	"Window Text"
 	ComStrs_sTabFailClear,	"Failed to clear tab control"
 	ComStrs_sTabFailDelete,	"Failed to delete tab at index %d"
@@ -881,7 +884,7 @@ BEGIN
 	ComStrs_sInvalidComCtl32,	"This control requires version 4.70 or greater of COMCTL32.DLL"
 	WinHelpViewer_hNoKeyword,	"No help keyword specified."
 	PEInfoFunctions_strInvalidFile,	"Invalid file"
-	JclResources_RsAssertUnpairedEndUpdate,	"Unpaired BeginUpdate EndUpdate"
+	ExtCtrls_clNameDefault,	"Default"
 	ExtCtrls_clNameGrayText,	"Gray Text"
 	ExtCtrls_clNameHighlight,	"Highlight Background"
 	ExtCtrls_clNameHighlightText,	"Highlight Text"
@@ -897,7 +900,7 @@ BEGIN
 	ExtCtrls_clName3DDkShadow,	"3D Dark Shadow"
 	ExtCtrls_clName3DLight,	"3D Light"
 	ExtCtrls_clNameWindow,	"Window Background"
-	ExtCtrls_clNameWindowFrame,	"Window Frame"
+	ExtCtrls_clNameFuchsia,	"Fuchsia"
 	ExtCtrls_clNameAqua,	"Aqua"
 	ExtCtrls_clNameWhite,	"White"
 	ExtCtrls_clNameMoneyGreen,	"Money Green"
@@ -913,7 +916,7 @@ BEGIN
 	ExtCtrls_clNameBtnShadow,	"Button Shadow"
 	ExtCtrls_clNameBtnText,	"Button Text"
 	ExtCtrls_clNameCaptionText,	"Caption Text"
-	ExtCtrls_clNameDefault,	"Default"
+	HelpIntfs_hNothingFound,	"No help found for %s"
 	HelpIntfs_hNoContext,	"No context-sensitive help installed"
 	HelpIntfs_hNoTopics,	"No topic-based help system installed"
 	ExtCtrls_clNameBlack,	"Black"
@@ -929,7 +932,7 @@ BEGIN
 	ExtCtrls_clNameLime,	"Lime"
 	ExtCtrls_clNameYellow,	"Yellow"
 	ExtCtrls_clNameBlue,	"Blue"
-	ExtCtrls_clNameFuchsia,	"Fuchsia"
+	Consts_SDockedCtlNeedsName,	"Docked control must have a name"
 	Consts_SDockTreeRemoveError,	"Error removing control from dock tree"
 	Consts_SDockZoneNotFound,	" - Dock zone not found"
 	Consts_SDockZoneHasNoCtl,	" - Dock zone has no control"
@@ -945,7 +948,7 @@ BEGIN
 	Consts_SListBoxMustBeVirtual,	"Listbox (%s) style must be virtual in order to set Count"
 	Consts_SNoGetItemEventHandler,	"No OnGetItem event handler assigned"
 	HelpIntfs_hNoTableOfContents,	"Unable to find a Table of Contents"
-	HelpIntfs_hNothingFound,	"No help found for %s"
+	Consts_SmkcShift,	"Shift+"
 	Consts_SmkcCtrl,	"Ctrl+"
 	Consts_SmkcAlt,	"Alt+"
 	Consts_srNone,	"(None)"
@@ -961,7 +964,7 @@ BEGIN
 	Consts_SPictureLabel,	"Picture:"
 	Consts_SPictureDesc,	" (%dx%d)"
 	Consts_SPreviewLabel,	"Preview"
-	Consts_SDockedCtlNeedsName,	"Docked control must have a name"
+	Consts_SMsgDlgYesToAll,	"Yes to &All"
 	Consts_SmkcBkSp,	"BkSp"
 	Consts_SmkcTab,	"Tab"
 	Consts_SmkcEsc,	"Esc"
@@ -977,7 +980,7 @@ BEGIN
 	Consts_SmkcDown,	"Down"
 	Consts_SmkcIns,	"Ins"
 	Consts_SmkcDel,	"Del"
-	Consts_SmkcShift,	"Shift+"
+	Consts_SMaskErr,	"Invalid input value"
 	Consts_SMaskEditErr,	"Invalid input value.  Use escape key to abandon changes"
 	Consts_SMsgDlgWarning,	"Warning"
 	Consts_SMsgDlgError,	"Error"
@@ -993,7 +996,7 @@ BEGIN
 	Consts_SMsgDlgIgnore,	"&Ignore"
 	Consts_SMsgDlgAll,	"&All"
 	Consts_SMsgDlgNoToAll,	"N&o to All"
-	Consts_SMsgDlgYesToAll,	"Yes to &All"
+	Consts_SControlParentSetToSelf,	"A control cannot have itself as its parent"
 	Consts_SOKButton,	"OK"
 	Consts_SCancelButton,	"Cancel"
 	Consts_SYesButton,	"&Yes"
@@ -1009,7 +1012,7 @@ BEGIN
 	Consts_SVEnhMetafiles,	"Enhanced Metafiles"
 	Consts_SVIcons,	"Icons"
 	Consts_SVBitmaps,	"Bitmaps"
-	Consts_SMaskErr,	"Invalid input value"
+	Consts_SParentGivenNotAParent,	"Parent given is not a parent of '%s'"
 	Consts_SMDIChildNotVisible,	"Cannot hide an MDI Child Form"
 	Consts_SVisibleChanged,	"Cannot change Visible in OnShow or OnHide"
 	Consts_SCannotShowModal,	"Cannot make a visible window modal"
@@ -1025,7 +1028,6 @@ BEGIN
 	Consts_SDeviceOnPort,	"%s on %s"
 	Consts_SGroupIndexTooLow,	"GroupIndex cannot be less than a previous menu item's GroupIndex"
 	Consts_SNoMDIForm,	"Cannot create form. No MDI forms are currently active"
-	Consts_SControlParentSetToSelf,	"A control cannot have itself as its parent"
 	Consts_SScanLine,	"Scan line index out of range"
 	Consts_SChangeIconSize,	"Cannot change the size of an icon"
 	Consts_SUnknownExtension,	"Unknown picture file extension (.%s)"

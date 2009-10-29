@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 525
-  Top = 326
+  Left = 826
+  Top = 311
   Width = 532
   Height = 568
   Hint = ' '
@@ -2446,14 +2446,6 @@ object MainForm: TMainForm
         TabOrder = 2
         OnChange = tbSpeedChange
       end
-    end
-    object Button3: TButton
-      Left = 280
-      Top = 304
-      Width = 75
-      Height = 25
-      Caption = 'Delayed test'
-      TabOrder = 28
     end
   end
   object UpdateTimer: TTimer

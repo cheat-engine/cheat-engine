@@ -19,15 +19,19 @@ uses
 
 exports NtAllocateVirtualMemoryOrig;
 exports NtFreeVirtualMemoryOrig;
+exports RtlAllocateHeapOrig;
+exports RtlFreeHeapOrig;
+exports RtlDestroyHeapOrig;
 
 exports CeAllocateVirtualMemory;
 exports CeFreeVirtualMemory;
+exports CeRtlAllocateHeap;
+exports CeRtlFreeHeap;
+exports CeRtlDestroyHeap;
 
-exports CreateEventData;
-exports FreeEventData;
 exports HasSetupDataEvent;
 exports CEHasHandledItEvent;
-exports eventtype;
+exports HookEventData;
 
 begin
 end.

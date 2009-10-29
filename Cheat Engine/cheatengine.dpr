@@ -151,7 +151,9 @@ uses
   frmMemoryAllocHandlerUnit in 'frmMemoryAllocHandlerUnit.pas' {frmMemoryAllocHandler},
   stacktrace2 in 'stacktrace2.pas',
   byteinterpreter in 'byteinterpreter.pas',
-  frmMemoryAllocHandlerSearchFingerprintUnit in 'frmMemoryAllocHandlerSearchFingerprintUnit.pas' {frmMemoryAllocHandlerSearchFingerprint};
+  frmMemoryAllocHandlerSearchFingerprintUnit in 'frmMemoryAllocHandlerSearchFingerprintUnit.pas' {frmMemoryAllocHandlerSearchFingerprint},
+  simpleaobscanner in 'simpleaobscanner.pas',
+  circularBuffer in 'circularBuffer.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

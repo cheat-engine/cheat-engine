@@ -293,6 +293,7 @@ type
     addressFile: TFileStream;
     memoryFile: TFileStream;
     savescannerresults: boolean; //tells the epilogue to save the results to addressfile and memoryfile
+    isdoneEvent: TEvent; //gets set when the scan has finished
 
     procedure updategui;
     procedure errorpopup;
@@ -399,7 +400,7 @@ type
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: dword; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
-
+    procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
     constructor create(progressbar: TProgressbar);
@@ -2747,7 +2748,8 @@ procedure TScanController.updategui;
 var totaladdressestoscan, currentlyscanned: dword;
 begin
   //runs in mainthread
-  OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
+  if OwningMemScan.progressbar<>nil then
+    OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
 end;
 
 procedure TScanController.errorpopup;
@@ -2961,7 +2963,8 @@ begin
         while not (terminated or scanners[i].isdone) do
         begin
           WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-          synchronize(updategui);
+          if OwningMemScan.progressbar<>nil then
+            synchronize(updategui);
         end;
 
         //If terminated then stop the scanner thread and wait for it to finish
@@ -2981,7 +2984,9 @@ begin
         inc(OwningMemScan.found,scanners[i].totalfound);
       end;
 
-      synchronize(updategui);
+      if OwningMemScan.progressbar<>nil then
+        synchronize(updategui);
+        
       if haserror then
       begin
         //synchronize(errorpopup);
@@ -3162,7 +3167,8 @@ begin
     while not (terminated or scanners[i].isdone) do
     begin
       WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-      synchronize(updategui);
+      if OwningMemScan.progressbar<>nil then
+        synchronize(updategui);
     end;
 
     //If terminated then stop the scanner thread and wait for it to finish
@@ -3184,7 +3190,9 @@ begin
     inc(OwningMemScan.found,scanners[i].totalfound);
   end;
 
-  synchronize(updategui);
+  if OwningMemScan.progressbar<>nil then
+    synchronize(updategui);
+    
   if haserror then
   begin
     //synchronize(errorpopup);
@@ -3529,7 +3537,8 @@ begin
       while not (terminated or scanners[i].isdone) do
       begin
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-        synchronize(updategui);
+        if OwningMemScan.progressbar<>nil then
+          synchronize(updategui);
       end;
 
       //If terminated then stop the scanner thread and wait for it to finish
@@ -3559,7 +3568,9 @@ begin
       end;
     end;
 
-    synchronize(updategui);
+    if OwningMemScan.progressbar<>nil then
+      synchronize(updategui);
+      
     if haserror then
     begin
       OwningMemScan.found:=0;
@@ -3701,7 +3712,10 @@ begin
 
     //send message saying it's done
     isdone:=true;
-    postMessage(notifywindow,notifymessage,err,0);
+    if notifywindow<>0 then
+      postMessage(notifywindow,notifymessage,err,0);
+
+    isdoneevent.setevent;
 
     try
       if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
@@ -3776,6 +3790,7 @@ end;
 
 constructor TScanController.create(suspended: boolean);
 begin
+  isdoneevent:=TEvent.create(nil,true,false,'');
   scannersCS:=TCriticalSection.Create;
   resultsaveCS:=TCriticalsection.create;
   
@@ -3823,14 +3838,18 @@ begin
 
       end;
 
+      if notifywindow<>0 then
+        PostMessage(notifywindow, notifymessage,0,0);
 
-      PostMessage(notifywindow, notifymessage,0,0);
+      scanController.isDoneEvent.SetEvent;
     end;
   end
   else
     raise exception.Create('For some reason the scanController does not exist');
   //and now the caller has to wait
 end;
+
+
 
 function TMemscan.GetErrorString: string;
 begin
@@ -3842,6 +3861,12 @@ begin
       result:=scancontroller.errorstring;
   end;
 
+end;
+
+procedure TMemscan.waittilldone;
+begin
+  if scancontroller<>nil then
+    scancontroller.isdoneEvent.WaitFor(INFINITE);
 end;
 
 function TMemscan.GetOnlyOneResult(var address: dword):boolean;

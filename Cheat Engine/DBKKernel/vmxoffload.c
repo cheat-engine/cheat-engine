@@ -205,6 +205,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			DbgPrint("Initializing filename\n");			
 			DbgPrint("original=%S\n", dbvmimgpath);
 			RtlInitUnicodeString(&filename, dbvmimgpath);
+			
 
 			DbgPrint("after=%S\n", filename.Buffer);
 			

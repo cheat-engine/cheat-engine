@@ -7,6 +7,45 @@ It'll read the results of the first scan and provides an inteface for the
 scanroutines for quick lookup of the previous value of a specific address
 }
 
+
+{
+function BinSearchEntry(Strings: TStrings; address: dword; var Pivot: integer): integer;
+var
+  First: Integer;
+  Last: Integer;
+  Found: Boolean;
+begin
+  try
+    First  := 0; //Sets the first item of the range
+    Last   := Strings.Count-1; //Sets the last item of the range
+    Found  := False; //Initializes the Found flag (Not found yet)
+    Result := -1; //Initializes the Result
+
+    while (First <= Last) and (not Found) do
+    begin
+
+      //Gets the middle of the selected range
+      Pivot := (First + Last) div 2;
+      //Compares the String in the middle with the searched one
+      if TMemoryAllocEvent(strings.Objects[Pivot]).BaseAddress = address then
+      begin
+        Found  := True;
+        Result := Pivot;
+      end
+      //If the Item in the middle has a bigger value than
+      //the searched item, then select the first half
+      else if TMemoryAllocEvent(strings.Objects[Pivot]).BaseAddress > address then
+        Last := Pivot - 1
+          //else select the second half
+      else
+        First := Pivot + 1;
+    end;
+  except
+    outputdebugstring('Exception in BinSearchEntry');
+  end;
+end;   }
+
+
 interface
 
 uses windows,classes,sysutils,syncobjs;

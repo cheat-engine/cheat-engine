@@ -2,7 +2,7 @@ unit autoassembler;
 
 interface
 
-uses assemblerunit,classes,{$ifndef autoassemblerdll}cefuncproc,{$endif}windows,symbolhandler,sysutils,dialogs,controls
+uses assemblerunit, classes,{$ifndef autoassemblerdll}cefuncproc,{$endif}windows,symbolhandler,sysutils,dialogs,controls
 {$ifdef netclient}
 ,netapis;
 {$else}
@@ -26,6 +26,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
+uses simpleaobscanner;
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -363,15 +364,19 @@ begin
         try
           currentline:=code[i];
 
-
-
           currentline:=trim(currentline);
+
+          for j:=0 to length(defines)-1 do
+            currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+                      
 
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
 
           setlength(assemblerlines,length(assemblerlines)+1);
           assemblerlines[length(assemblerlines)-1]:=currentline;
+
+
 
           if uppercase(copy(currentline,1,12))='GLOBALALLOC(' then
           begin
@@ -616,6 +621,31 @@ begin
             continue;
           end;
 
+          //AOBSCAN(variable,aobstring)  (works like define)
+          if uppercase(copy(currentline,1,8))='AOBSCAN(' then
+          begin
+            //convert this line from AOBSCAN(varname,bytestring) to DEFINE(varname,address)
+            a:=pos('(',currentline);
+            b:=pos(',',currentline);
+            c:=pos(')',currentline);
+
+            if (a>0) and (b>0) and (c>0) then
+            begin
+              s1:=copy(currentline,a+1,b-a-1);
+              s2:=copy(currentline,b+1,c-b-1);
+
+              //s1=varname
+              //s2=AOBstring
+              testdword:=findaob(s2);
+              if testdword=0 then
+                raise exception.Create('The array of byte '''+s2+''' could not be found');
+
+              currentline:='DEFINE('+s1+','+inttohex(testdword,8)+')';
+              //NO CONTINUE LINE HERE
+            end else raise exception.Create('Wrong syntax. AOBSCAN(name,11 22 33 44 55)');
+          end;
+
+
           //define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
           begin
@@ -638,10 +668,9 @@ begin
               defines[length(defines)-1].whatever:=s2;
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
-              continue;          
+              continue;
             end else raise exception.Create('Wrong syntax. DEFINE(name,whatever)');
           end;
-
 
           if uppercase(copy(currentline,1,11))='FULLACCESS(' then
           begin
@@ -800,8 +829,7 @@ begin
           for j:=0 to length(allocs)-1 do
             currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
 
-          for j:=0 to length(defines)-1 do
-            currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+
 
 
           {$ifndef net}

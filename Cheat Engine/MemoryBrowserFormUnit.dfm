@@ -23,7 +23,7 @@ object MemoryBrowser: TMemoryBrowser
   TextHeight = 16
   object Splitter1: TSplitter
     Left = 0
-    Top = 350
+    Top = 300
     Width = 657
     Height = 5
     Cursor = crVSplit
@@ -37,14 +37,14 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Top = 0
     Width = 657
-    Height = 350
+    Height = 300
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
       Left = 426
       Top = 0
-      Height = 350
+      Height = 300
       Align = alRight
       AutoSnap = False
     end
@@ -52,7 +52,7 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Top = 0
       Width = 426
-      Height = 350
+      Height = 300
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
@@ -61,14 +61,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 429
       Top = 0
       Width = 228
-      Height = 350
+      Height = 300
       Align = alRight
       TabOrder = 1
       object ScrollBox1: TScrollBox
         Left = 1
         Top = 1
         Width = 226
-        Height = 348
+        Height = 298
         Align = alClient
         TabOrder = 0
         object EAXLabel: TLabel
@@ -459,7 +459,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object sbShowFloats: TSpeedButton
           Left = 197
-          Top = 167
+          Top = 135
           Width = 21
           Height = 31
           Hint = 'Floating point registers'
@@ -473,9 +473,9 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Top = 355
+    Top = 305
     Width = 657
-    Height = 143
+    Height = 193
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -538,7 +538,7 @@ object MemoryBrowser: TMemoryBrowser
       Left = 640
       Top = 1
       Width = 16
-      Height = 141
+      Height = 191
       Align = alRight
       Kind = sbVertical
       Max = 101
@@ -551,7 +551,7 @@ object MemoryBrowser: TMemoryBrowser
       Left = 1
       Top = 1
       Width = 639
-      Height = 141
+      Height = 191
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 3
@@ -568,7 +568,7 @@ object MemoryBrowser: TMemoryBrowser
         Left = 0
         Top = 16
         Width = 639
-        Height = 125
+        Height = 175
         Align = alClient
         PopupMenu = memorypopup
         OnDblClick = MBCanvasDblClick

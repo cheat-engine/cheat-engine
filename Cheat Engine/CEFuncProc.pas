@@ -193,6 +193,7 @@ function GetCPUCount: integer;
 procedure SaveFormPosition(form: Tform; extra: array of integer);
 function LoadFormPosition(form: Tform; var x: array of integer):boolean; 
 
+function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
 function allocationprotecttostring(protect: dword): string;
 function freetypetostring(freetype: dword):string;
@@ -3132,6 +3133,42 @@ begin
         result:=floattostr(pdouble(@buf[0])^);
     end;
   end;
+end;
+
+const HEAP_NO_SERIALIZE               =$00000001;
+const HEAP_GROWABLE                   =$00000002;
+const HEAP_GENERATE_EXCEPTIONS        =$00000004;
+const HEAP_ZERO_MEMORY                =$00000008;
+const HEAP_REALLOC_IN_PLACE_ONLY      =$00000010;
+const HEAP_TAIL_CHECKING_ENABLED      =$00000020;
+const HEAP_FREE_CHECKING_ENABLED      =$00000040;
+const HEAP_DISABLE_COALESCE_ON_FREE   =$00000080;
+const HEAP_CREATE_ALIGN_16            =$00010000;
+const HEAP_CREATE_ENABLE_TRACING      =$00020000;
+const HEAP_CREATE_ENABLE_EXECUTE      =$00040000;
+const HEAP_MAXIMUM_TAG                =$0FFF;
+const HEAP_PSEUDO_TAG_FLAG            =$8000;
+const HEAP_TAG_SHIFT                  =18;
+
+function heapflagstostring(heapflags: dword): string;
+begin
+  result:='';
+  if (heapflags and HEAP_NO_SERIALIZE) > 0 then result:=result+'HEAP_NO_SERIALIZE+';
+  if (heapflags and HEAP_GROWABLE) > 0 then result:=result+'HEAP_GROWABLE+';
+  if (heapflags and HEAP_GENERATE_EXCEPTIONS) > 0 then result:='HEAP_GENERATE_EXCEPTIONS+';
+  if (heapflags and HEAP_ZERO_MEMORY) > 0 then result:=result+'HEAP_ZERO_MEMORY+';
+  if (heapflags and HEAP_REALLOC_IN_PLACE_ONLY) > 0 then result:=result+'HEAP_REALLOC_IN_PLACE_ONLY+';
+  if (heapflags and HEAP_TAIL_CHECKING_ENABLED) > 0 then result:=result+'HEAP_TAIL_CHECKING_ENABLED+';
+  if (heapflags and HEAP_FREE_CHECKING_ENABLED) > 0 then result:=result+'HEAP_FREE_CHECKING_ENABLED+';
+  if (heapflags and HEAP_DISABLE_COALESCE_ON_FREE) > 0 then result:=result+'HEAP_DISABLE_COALESCE_ON_FREE+';
+  if (heapflags and HEAP_CREATE_ALIGN_16) > 0 then result:=result+'HEAP_CREATE_ALIGN_16+';
+  if (heapflags and HEAP_CREATE_ENABLE_TRACING) > 0 then result:=result+'HEAP_CREATE_ENABLE_TRACING+';
+  if (heapflags and HEAP_CREATE_ENABLE_EXECUTE) > 0 then result:=result+'HEAP_CREATE_ENABLE_EXECUTE+';
+  if (heapflags and HEAP_PSEUDO_TAG_FLAG) > 0 then result:=result+'HEAP_PSEUDO_TAG_FLAG+';
+
+
+  if length(result)>0 then
+    result:=Copy(result,1,length(result)-1)+'('+inttohex(heapflags,1)+')';
 end;
 
 function allocationtypetostring(alloctype: dword): string;

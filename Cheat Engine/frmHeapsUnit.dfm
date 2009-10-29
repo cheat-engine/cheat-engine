@@ -8,31 +8,31 @@ object frmHeaps: TfrmHeaps
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Panel1: TPanel
     Left = 0
-    Top = 241
-    Width = 221
-    Height = 41
+    Top = 221
+    Width = 211
+    Height = 50
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      221
-      41)
+      211
+      50)
     object Button1: TButton
-      Left = 72
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 89
+      Top = 10
+      Width = 92
+      Height = 31
       Anchors = [akTop]
       Caption = 'Close'
       ModalResult = 1
@@ -43,8 +43,8 @@ object frmHeaps: TfrmHeaps
   object TreeView1: TTreeView
     Left = 0
     Top = 0
-    Width = 221
-    Height = 241
+    Width = 211
+    Height = 221
     Align = alClient
     HideSelection = False
     Indent = 19

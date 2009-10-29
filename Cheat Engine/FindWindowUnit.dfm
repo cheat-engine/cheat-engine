@@ -1,90 +1,90 @@
 object FindWindow: TFindWindow
-  Left = 1680
-  Top = 399
+  Left = 583
+  Top = 483
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find'
-  ClientHeight = 151
-  ClientWidth = 232
+  ClientHeight = 186
+  ClientWidth = 286
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object labelType: TLabel
-    Left = 16
+    Left = 20
     Top = 0
-    Width = 27
-    Height = 13
+    Width = 35
+    Height = 16
     Caption = 'Type:'
   end
   object Label2: TLabel
-    Left = 128
-    Top = 20
-    Width = 23
-    Height = 13
+    Left = 150
+    Top = 25
+    Width = 31
+    Height = 16
     Caption = 'From'
   end
   object Label3: TLabel
-    Left = 136
-    Top = 44
-    Width = 13
-    Height = 13
+    Left = 167
+    Top = 54
+    Width = 17
+    Height = 16
     Caption = 'To'
   end
   object labelArray: TLabel
-    Left = 152
+    Left = 187
     Top = 0
-    Width = 62
-    Height = 13
+    Width = 78
+    Height = 16
     Caption = 'Array to scan'
   end
   object btnOK: TButton
-    Left = 40
-    Top = 120
-    Width = 75
-    Height = 25
+    Left = 49
+    Top = 148
+    Width = 93
+    Height = 30
     Caption = 'OK'
     Default = True
     TabOrder = 5
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 120
-    Top = 120
-    Width = 75
-    Height = 25
+    Left = 148
+    Top = 148
+    Width = 92
+    Height = 30
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 6
   end
   object Scanvalue: TEdit
-    Left = 8
-    Top = 72
-    Width = 217
+    Left = 10
+    Top = 89
+    Width = 267
     Height = 21
     TabOrder = 0
   end
   object editStart: TEdit
-    Left = 152
-    Top = 16
-    Width = 73
+    Left = 187
+    Top = 20
+    Width = 90
     Height = 21
     MaxLength = 8
     TabOrder = 3
     Text = '00400000'
   end
   object EditStop: TEdit
-    Left = 152
-    Top = 40
-    Width = 73
+    Left = 187
+    Top = 49
+    Width = 90
     Height = 21
     MaxLength = 8
     TabOrder = 4
@@ -92,9 +92,9 @@ object FindWindow: TFindWindow
   end
   object rbText: TRadioButton
     Left = 0
-    Top = 18
-    Width = 49
-    Height = 17
+    Top = 22
+    Width = 60
+    Height = 21
     Caption = 'Text'
     Checked = True
     TabOrder = 1
@@ -102,25 +102,25 @@ object FindWindow: TFindWindow
   end
   object rbArByte: TRadioButton
     Left = 0
-    Top = 34
-    Width = 89
-    Height = 17
+    Top = 42
+    Width = 110
+    Height = 21
     Caption = '(Array of) byte'
     TabOrder = 2
   end
   object ProgressBar: TProgressBar
-    Left = 8
-    Top = 96
-    Width = 217
-    Height = 16
+    Left = 10
+    Top = 118
+    Width = 267
+    Height = 20
     Step = 1
     TabOrder = 7
   end
   object cbUnicode: TCheckBox
-    Left = 56
-    Top = 16
-    Width = 65
-    Height = 17
+    Left = 69
+    Top = 20
+    Width = 80
+    Height = 21
     Caption = 'Unicode'
     TabOrder = 8
   end

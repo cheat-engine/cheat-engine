@@ -125,6 +125,9 @@ begin
   if not canceled then
     SymEnumerateModules(processhandle,@EM,self);
 
+  if symbolcount>0 then
+    synchronize(addsymbol);
+
   synchronize(done);
 end;
 

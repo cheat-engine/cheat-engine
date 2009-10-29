@@ -8,33 +8,33 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Label2: TLabel
     Left = 0
     Top = 0
-    Width = 353
-    Height = 13
+    Width = 351
+    Height = 16
     Align = alTop
     Alignment = taCenter
     Caption = 'Symbols'
   end
   object TreeView1: TTreeView
     Left = 0
-    Top = 13
-    Width = 353
-    Height = 214
+    Top = 16
+    Width = 351
+    Height = 192
     Align = alClient
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
+    Font.Height = -15
     Font.Name = 'Courier'
     Font.Style = []
     HideSelection = False
@@ -48,20 +48,20 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   end
   object Panel1: TPanel
     Left = 0
-    Top = 227
-    Width = 353
-    Height = 40
+    Top = 208
+    Width = 351
+    Height = 50
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      353
-      40)
+      351
+      50)
     object Button1: TButton
-      Left = 142
-      Top = 7
-      Width = 75
-      Height = 25
+      Left = 135
+      Top = 9
+      Width = 92
+      Height = 30
       Anchors = [akBottom]
       Caption = 'Close'
       TabOrder = 0
@@ -69,9 +69,9 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
     end
     object Button2: TButton
       Left = 0
-      Top = 24
-      Width = 75
-      Height = 17
+      Top = 30
+      Width = 92
+      Height = 20
       Caption = 'Cancel Enum'
       TabOrder = 1
       OnClick = Button2Click
