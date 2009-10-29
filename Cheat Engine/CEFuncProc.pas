@@ -190,6 +190,7 @@ Procedure InjectDll(dllname: string; functiontocall: string='');
 Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
+function HasHyperthreading: boolean;
 procedure SaveFormPosition(form: Tform; extra: array of integer);
 function LoadFormPosition(form: Tform; var x: array of integer):boolean; 
 
@@ -2804,6 +2805,41 @@ begin
   FlushInstructionCache(processhandle,pointer(address),size);
 end;
 
+function HasHyperthreading: boolean;
+var a,b,c,d: dword;
+begin
+  result:=false;
+  asm
+    pushad
+    mov eax,0
+    cpuid
+    mov a,eax
+    mov b,ebx
+    mov c,ecx
+    mov d,edx
+    popad
+  end;
+
+  if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+  begin
+    //intel cpu
+    asm
+      pushad
+      mov eax,1
+      cpuid
+      mov a,eax
+      mov b,ebx
+      mov c,ecx
+      mov d,edx
+      popad
+    end;
+
+    if ((d shr 28) and 1)=1 then
+      result:=true; //it has hyperthreading
+  end;
+
+
+end;
 
 function GetCPUCount: integer;
 {
@@ -2815,7 +2851,7 @@ begin
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
-  cpucount:=0; 
+  cpucount:=0;
   while pa>0 do
   begin
     if (pa mod 2)=1 then inc(cpucount);

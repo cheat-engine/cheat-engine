@@ -101,7 +101,6 @@ type
     GroupBox1: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
-    Dos: TRadioButton;
     Windows: TRadioButton;
     Readonly: TCheckBox;
     FromAddress: TMemo;
@@ -141,7 +140,7 @@ type
     Settogroup42: TMenuItem;
     Settogroup51: TMenuItem;
     cbFasterScan: TCheckBox;
-    AllClick: TRadioButton;
+    rbAllMemory: TRadioButton;
     Panel7: TPanel;
     SpeedButton1: TSpeedButton;
     cbPauseWhileScanning: TCheckBox;
@@ -309,7 +308,6 @@ type
     procedure ScanTypeChange(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
     procedure LogoClick(Sender: TObject);
-    procedure DosClick(Sender: TObject);
     procedure WindowsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure SpeedButton2Click(Sender: TObject);
@@ -379,7 +377,7 @@ type
     procedure Showashexadecimal1Click(Sender: TObject);
     procedure OpenMemorybrowser1Click(Sender: TObject);
     procedure cbFastScanClick(Sender: TObject);
-    procedure AllClickClick(Sender: TObject);
+    procedure rbAllMemoryClick(Sender: TObject);
     procedure cbPauseWhileScanningClick(Sender: TObject);
     procedure btnSetSpeedhackClick(Sender: TObject);
     procedure Description1Click(Sender: TObject);
@@ -4415,8 +4413,7 @@ begin
   tempbitmap:=TBitmap.create;
 
   scanvalue.text:='';
-  fromaddress.Text:='00400000';
-  toaddress.Text:='7FFFFFFF';
+  windows.OnClick(windows);
   isbit:=false;
 
 
@@ -4591,9 +4588,6 @@ end;
 procedure TMainForm.AddressKeyPress(Sender: TObject; var Key: Char);
 begin
   hexadecimal(key);
-
-  windows.checked:=false;
-  dos.checked:=false;
 end;
 
 procedure TMainForm.Panel1DragOver(Sender, Source: TObject; X, Y: Integer;
@@ -6218,15 +6212,9 @@ begin
 
 end;
 
-procedure TMainForm.DosClick(Sender: TObject);
-begin
-    FromAddress.text:='80000000';
-    ToAddress.text:='BFFFFFFF';
-end;
-
 procedure TMainForm.WindowsClick(Sender: TObject);
 begin
-  FromAddress.text:='00400000';
+  FromAddress.text:='00000000';
   ToAddress.text:='7FFFFFFF';
 end;
 
@@ -10056,7 +10044,7 @@ begin
 
 end;
 
-procedure TMainForm.AllClickClick(Sender: TObject);
+procedure TMainForm.rbAllMemoryClick(Sender: TObject);
 begin
   FromAddress.text:='00000000';
   ToAddress.text:='FFFFFFFF';

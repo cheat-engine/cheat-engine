@@ -953,10 +953,6 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49236
         OnClick = CreateThread1Click
       end
-      object Watchmemoryallocations1: TMenuItem
-        Caption = 'Watch memory allocations'
-        OnClick = Watchmemoryallocations1Click
-      end
       object N8: TMenuItem
         Caption = '-'
       end
@@ -987,6 +983,11 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Pointer scan'
         ShortCut = 16464
         OnClick = Dissectdata1Click
+      end
+      object Watchmemoryallocations1: TMenuItem
+        Caption = 'Watch memory allocations'
+        ShortCut = 24653
+        OnClick = Watchmemoryallocations1Click
       end
       object Findstaticpointers1: TMenuItem
         Caption = 'Find static addresses'

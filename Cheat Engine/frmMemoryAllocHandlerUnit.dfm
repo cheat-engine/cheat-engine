@@ -1,10 +1,11 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   Left = 623
   Top = 544
+  BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'
-  ClientHeight = 155
-  ClientWidth = 463
+  ClientHeight = 168
+  ClientWidth = 499
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,8 +21,8 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   TextHeight = 16
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 136
-    Width = 463
+    Top = 149
+    Width = 499
     Height = 19
     Panels = <
       item
@@ -34,8 +35,8 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   object GroupBox1: TGroupBox
     Left = 0
     Top = 41
-    Width = 463
-    Height = 95
+    Width = 499
+    Height = 108
     Align = alClient
     Caption = 'Data'
     TabOrder = 1
@@ -95,11 +96,22 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 463
+    Width = 499
     Height = 41
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
+    object Label5: TLabel
+      Left = 274
+      Top = 0
+      Width = 225
+      Height = 41
+      Align = alRight
+      Caption = 
+        'You can close this window if you want. Allocations will keep get' +
+        'ting tracked'
+      WordWrap = True
+    end
     object Edit1: TEdit
       Left = 8
       Top = 8

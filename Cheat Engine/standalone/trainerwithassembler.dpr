@@ -16,7 +16,9 @@ uses
   Filehandler in '..\Filehandler.pas',
   symbolhandler in '..\symbolhandler.pas',
   autoassembler in '..\autoassembler.pas',
-  ProcessHandlerUnit in '..\ProcessHandlerUnit.pas';
+  ProcessHandlerUnit in '..\ProcessHandlerUnit.pas',
+  simpleaobscanner in '..\simpleaobscanner.pas',
+  memscan in '..\memscan.pas';
 
 {$R *.res}
 

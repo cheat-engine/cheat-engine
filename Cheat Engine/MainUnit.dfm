@@ -1531,25 +1531,15 @@ object MainForm: TMainForm
         Caption = 'To'
         Enabled = False
       end
-      object Dos: TRadioButton
-        Left = 16
-        Top = 16
-        Width = 49
-        Height = 17
-        Caption = '16-Bit'
-        Enabled = False
-        TabOrder = 0
-        OnClick = DosClick
-      end
       object Windows: TRadioButton
-        Left = 88
+        Left = 8
         Top = 16
-        Width = 49
+        Width = 145
         Height = 17
-        Caption = '32-Bit'
+        Caption = 'Usermode'
         Checked = True
         Enabled = False
-        TabOrder = 1
+        TabOrder = 0
         TabStop = True
         OnClick = WindowsClick
       end
@@ -1566,7 +1556,7 @@ object MainForm: TMainForm
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 5
       end
       object FromAddress: TMemo
         Left = 3
@@ -1576,10 +1566,10 @@ object MainForm: TMainForm
         Alignment = taRightJustify
         Enabled = False
         Lines.Strings = (
-          '00400000')
+          '00000000')
         MaxLength = 8
         PopupMenu = emptypopup
-        TabOrder = 3
+        TabOrder = 2
         WantReturns = False
         WordWrap = False
         OnKeyPress = AddressKeyPress
@@ -1595,7 +1585,7 @@ object MainForm: TMainForm
           '7FFFFFFF')
         MaxLength = 8
         PopupMenu = emptypopup
-        TabOrder = 4
+        TabOrder = 3
         WantReturns = False
         WordWrap = False
         OnKeyPress = AddressKeyPress
@@ -1613,7 +1603,7 @@ object MainForm: TMainForm
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 7
+        TabOrder = 6
         OnClick = cbFastScanClick
       end
       object btnShowRegions: TButton
@@ -1623,7 +1613,7 @@ object MainForm: TMainForm
         Height = 25
         Caption = 'Show'
         Enabled = False
-        TabOrder = 5
+        TabOrder = 4
         OnClick = btnShowRegionsClick
       end
       object cbFasterScan: TCheckBox
@@ -1633,18 +1623,18 @@ object MainForm: TMainForm
         Height = 17
         Caption = 'Hyper Scan'
         Enabled = False
-        TabOrder = 8
+        TabOrder = 7
         OnClick = cbFastScanClick
       end
-      object AllClick: TRadioButton
-        Left = 160
+      object rbAllMemory: TRadioButton
+        Left = 152
         Top = 16
-        Width = 33
+        Width = 41
         Height = 17
         Caption = 'All'
         Enabled = False
-        TabOrder = 2
-        OnClick = AllClickClick
+        TabOrder = 1
+        OnClick = rbAllMemoryClick
       end
       object cbPauseWhileScanning: TCheckBox
         Left = 3
@@ -1653,7 +1643,7 @@ object MainForm: TMainForm
         Height = 17
         Caption = 'Pause the game while scanning'
         Enabled = False
-        TabOrder = 9
+        TabOrder = 8
         OnClick = cbPauseWhileScanningClick
       end
     end

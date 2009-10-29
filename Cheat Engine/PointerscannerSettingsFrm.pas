@@ -76,6 +76,7 @@ type
     Edit3: TEdit;
     Label14: TLabel;
     cbOnlyStackAsBase: TCheckBox;
+    cbUseHeapData: TCheckBox;
     procedure ListBox1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -122,6 +123,8 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 implementation
 
 {$R *.dfm}
+
+uses frmMemoryAllocHandlerunit;
 
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
@@ -223,6 +226,8 @@ begin
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
+  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil;
+
   bitcount:=0;
   while pa>0 do
   begin
@@ -231,7 +236,10 @@ begin
   end;
 
   {$else}
-  bitcount:=GetCPUCount+1;
+  bitcount:=GetCPUCount;
+
+  if HasHyperthreading then
+    bitcount:=1+(bitcount div 2);
   {$endif}
   edtThreadcount.text:=inttostr(bitcount);
 

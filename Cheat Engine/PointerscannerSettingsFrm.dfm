@@ -29,7 +29,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 10
     Top = 28
     Width = 247
-    Height = 21
+    Height = 24
     CharCase = ecUpperCase
     MaxLength = 8
     TabOrder = 0
@@ -235,7 +235,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object Label14: TLabel
         Left = 0
-        Top = 148
+        Top = 164
         Width = 150
         Height = 16
         Caption = 'Maximum offset to accept'
@@ -256,7 +256,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 128
         Top = 89
         Width = 80
-        Height = 21
+        Height = 24
         CharCase = ecUpperCase
         MaxLength = 8
         TabOrder = 1
@@ -267,7 +267,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 39
         Top = 89
         Width = 80
-        Height = 21
+        Height = 24
         CharCase = ecUpperCase
         MaxLength = 8
         TabOrder = 2
@@ -286,7 +286,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStackAsBase: TCheckBox
         Left = 0
-        Top = 128
+        Top = 144
         Width = 415
         Height = 21
         Caption = 
@@ -297,9 +297,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object Edit3: TEdit
         Left = 0
-        Top = 167
+        Top = 183
         Width = 149
-        Height = 21
+        Height = 24
         Enabled = False
         TabOrder = 5
         Text = '4096'
@@ -307,12 +307,21 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyStackAsBase: TCheckBox
         Left = 0
-        Top = 197
+        Top = 213
         Width = 257
         Height = 21
         Caption = 'Only use the maintread stack as a base'
         TabOrder = 6
         Visible = False
+      end
+      object cbUseHeapData: TCheckBox
+        Left = 0
+        Top = 120
+        Width = 425
+        Height = 17
+        Caption = 'Improve pointerscan with gathered heap data'
+        Enabled = False
+        TabOrder = 7
       end
     end
   end
@@ -378,7 +387,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Left = 158
       Top = 38
       Width = 60
-      Height = 21
+      Height = 24
       TabOrder = 1
       Text = '2048'
     end
@@ -386,7 +395,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Left = 286
       Top = 37
       Width = 80
-      Height = 21
+      Height = 24
       TabOrder = 2
       Text = '5'
     end
@@ -404,7 +413,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Left = 158
       Top = 6
       Width = 60
-      Height = 21
+      Height = 24
       TabOrder = 4
       Text = '2'
     end

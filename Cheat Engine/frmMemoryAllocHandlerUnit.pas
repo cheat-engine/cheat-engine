@@ -149,6 +149,7 @@ type
     Panel1: TPanel;
     Edit1: TEdit;
     Button1: TButton;
+    Label5: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
