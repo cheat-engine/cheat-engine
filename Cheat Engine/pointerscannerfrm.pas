@@ -201,6 +201,7 @@ type
     writableonly: boolean;
     unallignedbase: boolean;
 
+    useheapdata: boolean;
     mustEndWithSpecificOffset: boolean;
     offsetlist: array of dword;
 
@@ -368,7 +369,7 @@ implementation
 
 {$R *.dfm}
 
-uses PointerscannerSettingsFrm;
+uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit;
 
 
 procedure TExecuter.execute;
@@ -953,7 +954,11 @@ var x: tfilestream;
     i: integer;
 begin
   if staticscanner=nil then exit;
-  
+
+  if staticscanner.useHeapData then
+    frmMemoryAllocHandler.displaythread.Resume; //continue adding new entries
+
+
   //now combile all thread results to 1 file
   result:=tfilestream.Create(cheatenginedir+'result.ptr',fmcreate);
   for i:=0 to length(staticscanner.filenames)-1 do
@@ -983,6 +988,9 @@ begin
 
 
   doneui;
+
+
+
 end;
 
 
@@ -1158,7 +1166,7 @@ end;
 
 procedure TReverseScanWorker.rscan(address:dword; level: integer);
 {
-scan through tht memory for a address that points in the region of level, if found, recursive call till level maxlevel
+scan through the memory for a address that points in the region of address, if found, recursive call till level maxlevel
 }
 var p: ^byte;
     pd: ^dword absolute p;
@@ -1172,6 +1180,7 @@ var p: ^byte;
     mbi: _MEMORY_BASIC_INFORMATION;
 
     ExactOffset: boolean;
+    mae: TMemoryAllocEvent;
 begin
   currentlevel:=level;
   if (level>=maxlevel) or
@@ -1188,12 +1197,26 @@ begin
 
 
   p:=vm.GetBuffer;
+
   exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.offsetlist)-1>=level);
 
   if exactOffset then
     AddressMinusMaxStructSize:=address-staticscanner.offsetlist[level]
   else
+  begin
+    //normal
     AddressMinusMaxStructSize:=address-structsize;
+    if staticscanner.useheapdata then
+    begin
+      mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, address);
+      if mae<>nil then
+      begin
+        exactoffset:=true;
+        AddressMinusMaxStructSize:=address-mae.BaseAddress;
+      end;
+    end
+
+  end;
     
   maxaddress:=dword(p)+vm.GetBufferSize;
   lastaddresS:=maxaddress;
@@ -1778,6 +1801,12 @@ begin
         for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
           staticscanner.offsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
+
+      staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
+
+      if staticscanner.useHeapData then
+        frmMemoryAllocHandler.displaythread.Suspend; //stop adding entries to the list
+        
 
       progressbar1.Max:=staticscanner.stop-staticscanner.start;
 

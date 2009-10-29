@@ -180,8 +180,6 @@ type
 var
   frmMemoryAllocHandler: TfrmMemoryAllocHandler;
 
-  maxaddress: dword;
-
 implementation
 
 {$R *.dfm}
@@ -269,8 +267,6 @@ end;
 
 procedure TDisplayThread.AddObject_HeapAlloc(o: TMemoryAllocEvent);
 begin
-  maxaddress:=max(maxaddress,o.BaseAddress);
-  
   addaddress(@frmMemoryAllocHandler.HeapBaseLevel, o);
 end;
 
@@ -719,6 +715,7 @@ begin
 end;
 
 function TfrmMemoryAllocHandler.FindAddress(addresslist: PMemrecTableArray; address: dword): TMemoryAllocEvent;
+  //only call this when displaythread is suspended
 var
   level: integer;
   entrynr: integer;
@@ -728,10 +725,11 @@ var
   i: integer;
 begin
   zeromemory(@lvl,sizeof(TMemrectablearraylist));
-  
+
   result:=nil;
-  memrecCS.Enter;
-  try
+
+  //memrecCS.Enter;
+ // try
     level:=0;
     currentarray:=addresslist;
 
@@ -775,10 +773,10 @@ begin
 
     if (result<>nil) and (not InRange(address,result.BaseAddress,result.BaseAddress+result.HookEvent.HeapAllocEvent.Size)) then
       result:=nil;
-
+  {
   finally
-    memrecCS.Leave;
-  end;
+    //memrecCS.Leave;
+  end;}
 end;
 
 end.
