@@ -186,7 +186,7 @@ implementation
 
 {$R *.dfm}
 
-uses frmautoinjectunit, memorybrowserformunit, frmMemoryAllocHandlerSearchFingerprintunit;
+uses frmautoinjectunit, memorybrowserformunit;
 
 procedure TDisplayThread.removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
 var
