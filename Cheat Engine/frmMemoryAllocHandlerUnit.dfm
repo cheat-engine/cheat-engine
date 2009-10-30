@@ -1,6 +1,6 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 623
-  Top = 544
+  Left = 594
+  Top = 546
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'

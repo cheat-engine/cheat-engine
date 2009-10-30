@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 427
-  Top = 131
+  Left = 357
+  Top = 138
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 484
@@ -235,7 +235,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object Label14: TLabel
         Left = 0
-        Top = 164
+        Top = 180
         Width = 150
         Height = 16
         Caption = 'Maximum offset to accept'
@@ -286,7 +286,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStackAsBase: TCheckBox
         Left = 0
-        Top = 144
+        Top = 160
         Width = 415
         Height = 21
         Caption = 
@@ -297,7 +297,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object Edit3: TEdit
         Left = 0
-        Top = 183
+        Top = 199
         Width = 149
         Height = 24
         Enabled = False
@@ -307,7 +307,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyStackAsBase: TCheckBox
         Left = 0
-        Top = 213
+        Top = 229
         Width = 257
         Height = 21
         Caption = 'Only use the maintread stack as a base'
@@ -322,6 +322,16 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Caption = 'Improve pointerscan with gathered heap data'
         Enabled = False
         TabOrder = 7
+        OnClick = cbUseHeapDataClick
+      end
+      object cbHeapOnly: TCheckBox
+        Left = 16
+        Top = 136
+        Width = 409
+        Height = 17
+        Caption = 'Only allow static and heap addresses in the path'
+        Enabled = False
+        TabOrder = 8
       end
     end
   end

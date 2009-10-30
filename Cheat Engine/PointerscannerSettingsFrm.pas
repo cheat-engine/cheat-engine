@@ -77,6 +77,7 @@ type
     Label14: TLabel;
     cbOnlyStackAsBase: TCheckBox;
     cbUseHeapData: TCheckBox;
+    cbHeapOnly: TCheckBox;
     procedure ListBox1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -89,6 +90,7 @@ type
     procedure edtFilterStartChange(Sender: TObject);
     procedure edtFilterStopChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
+    procedure cbUseHeapDataClick(Sender: TObject);
   private
     { Private declarations }
     procedure btnAddClick(sender: TObject);
@@ -413,6 +415,11 @@ begin
 
 
 
+end;
+
+procedure TfrmPointerScannerSettings.cbUseHeapDataClick(Sender: TObject);
+begin
+  cbHeapOnly.Enabled:=cbUseHeapData.Checked;
 end;
 
 end.

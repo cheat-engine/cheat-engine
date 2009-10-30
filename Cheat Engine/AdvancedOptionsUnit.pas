@@ -737,12 +737,20 @@ var codelength: integer;
     nops: array of byte;
     a,b: dword;
     original: dword;
+    mi: TModuleInfo;
 begin
   //search dselected in the addresslist
   for j:=0 to codelist.Items.Count-1 do
   begin
     index:=j;
     if code[index].changed then continue;
+
+    if code[index].modulename<>'' then //update modulebase
+    begin
+      symhandler.getmodulebyname(code[index].modulename,mi);
+      code[index].Address:=mi.baseaddress+code[index].offset;
+    end;
+
 
     a:=code[index].Address;
     codelength:=length(code[index].actualopcode);

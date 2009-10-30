@@ -202,6 +202,7 @@ type
     unallignedbase: boolean;
 
     useheapdata: boolean;
+    useOnlyHeapData: boolean;
     mustEndWithSpecificOffset: boolean;
     offsetlist: array of dword;
 
@@ -1212,8 +1213,11 @@ begin
       if mae<>nil then
       begin
         exactoffset:=true;
-        AddressMinusMaxStructSize:=address-mae.BaseAddress;
-      end;
+        AddressMinusMaxStructSize:=mae.BaseAddress;
+      end
+      else //not static and not in heap
+        if staticscanner.useOnlyHeapData then
+          exit;
     end
 
   end;
@@ -1803,6 +1807,7 @@ begin
       end;
 
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
+      staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 
       if staticscanner.useHeapData then
         frmMemoryAllocHandler.displaythread.Suspend; //stop adding entries to the list
