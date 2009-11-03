@@ -565,7 +565,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm8;bytes:1;bt1:$6b),
 
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$6b),
-  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype3:par_imm8;bytes:1;bt1:$6b),
+  (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_imm8;bytes:1;bt1:$6b),
 
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_iw;paramtype1:par_r16;paramtype2:par_rm16;paramtype3:par_imm16;bytes:2;bt1:$66;bt2:$69),
   (mnemonic:'IMUL';opcode1:eo_reg;opcode2:eo_id;paramtype1:par_r32;paramtype2:par_rm32;paramtype3:par_imm32;bytes:1;bt1:$69),
@@ -3757,7 +3757,9 @@ begin
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         addopcode(bytes,j);
-        createmodrm(bytes,getreg(parameter1),parameter2);
+
+
+        createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
         add(bytes,[byte(v)]);
         result:=true;
         exit;
