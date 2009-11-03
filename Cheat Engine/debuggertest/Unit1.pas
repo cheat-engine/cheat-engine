@@ -4,7 +4,17 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, syncobjs;
+
+type TChangeHealthThread=class(tthread)
+  public
+    healthaddress: PDWORD;
+    changehealthevent: TEvent;
+    procedure updatehealth;
+    procedure execute; override;
+    constructor create(suspended: boolean);
+    destructor destroy; override;
+end;
 
 type
   TForm1 = class(TForm)
@@ -23,6 +33,7 @@ type
     Button5: TButton;
     Button6: TButton;
     Label9: TLabel;
+    Button7: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -30,9 +41,12 @@ type
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure Button7Click(Sender: TObject);
   private
     { Private declarations }
     h: dword;
+    cht: TChangeHealthThread;
   public
     { Public declarations }
   end;
@@ -46,9 +60,41 @@ implementation
 
 {$R *.dfm}
 
+destructor TChangeHealthThread.destroy;
+begin
+  terminate;
+  changehealthevent.SetEvent;
+  waitfor;
+  inherited destroy;
+end;
+
+constructor TChangeHealthThread.create(suspended: boolean);
+begin
+  changehealthevent:=TEvent.Create(nil,false,false,'');
+  inherited create(suspended);
+end;
+
+procedure TChangeHealthThread.execute;
+begin
+  while not terminated do
+  begin
+    if (changehealthevent.waitfor(10000)=wrSignaled) and not terminated then
+    begin
+      health:=random(1000);
+      synchronize(updatehealth);
+    end;
+  end;
+end;
+
+procedure TChangeHealthThread.updatehealth;
+begin
+  Form1.label1.Caption:=format('%p : %d',[@health, health]);
+end;
+
 procedure x; stdcall;
 var a: dword;
 begin
+  a:=0;
   asm
     nop
     nop
@@ -146,6 +192,8 @@ begin
   button4.click;
 
   label9.caption:=format('%p',[@h]);
+
+  cht:=tchangehealththread.create(false);
 end;
 
 
@@ -194,6 +242,16 @@ asm
   int 14
 end;
 
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  cht.free;
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+begin
+  cht.changehealthevent.SetEvent;
 end;
 
 end.

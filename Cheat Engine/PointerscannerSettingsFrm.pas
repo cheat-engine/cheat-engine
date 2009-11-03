@@ -126,7 +126,9 @@ implementation
 
 {$R *.dfm}
 
+{$ifndef injectedpscan}
 uses frmMemoryAllocHandlerunit;
+{$endif}
 
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
@@ -236,14 +238,17 @@ begin
   end;
 
   {$else}
+  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil; //never enable for injected pscan
+  
   bitcount:=GetCPUCount;
 
   if HasHyperthreading then
     bitcount:=1+(bitcount div 2);
   {$endif}
 
-  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil;
-    
+
+
+
   edtThreadcount.text:=inttostr(bitcount);
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
@@ -424,6 +429,7 @@ begin
 end;
 
 end.
+
 
 
 

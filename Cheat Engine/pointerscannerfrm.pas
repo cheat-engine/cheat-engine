@@ -201,8 +201,11 @@ type
     writableonly: boolean;
     unallignedbase: boolean;
 
+{$ifndef injectedpscan}
     useheapdata: boolean;
     useOnlyHeapData: boolean;
+{$endif}
+
     mustEndWithSpecificOffset: boolean;
     offsetlist: array of dword;
 
@@ -370,7 +373,11 @@ implementation
 
 {$R *.dfm}
 
+{$ifdef injectedpscan}
+uses PointerscannerSettingsFrm;
+{$else}
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit;
+{$endif}
 
 
 procedure TExecuter.execute;
@@ -844,7 +851,8 @@ procedure TMethod2Scanner.execute;
 var wr: twaitresult;
     err: integer;
 begin
-  filename:=cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
+
+  filename:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
   
@@ -954,14 +962,17 @@ var x: tfilestream;
     result: tfilestream;
     i: integer;
 begin
+
   if staticscanner=nil then exit;
 
+{$ifndef injectedpscan}
   if staticscanner.useHeapData then
     frmMemoryAllocHandler.displaythread.Resume; //continue adding new entries
+{$endif}
 
 
   //now combile all thread results to 1 file
-  result:=tfilestream.Create(cheatenginedir+'result.ptr',fmcreate);
+  result:=tfilestream.Create({$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+'result.ptr',fmcreate);
   for i:=0 to length(staticscanner.filenames)-1 do
   begin
     x:=tfilestream.Create(staticscanner.filenames[i],fmopenread);
@@ -972,7 +983,7 @@ begin
   result.Free;
 
   setlength(staticscanner.filenames,1);
-  staticscanner.filenames[0]:=cheatenginedir+'result.ptr';
+  staticscanner.filenames[0]:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+'result.ptr';
 
   loadpointers;
 
@@ -1080,7 +1091,7 @@ end;
 procedure TReverseScanWorker.execute;
 var wr: twaitresult;
 begin
-  filename:=cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
+  filename:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
   
@@ -1181,7 +1192,9 @@ var p: ^byte;
     mbi: _MEMORY_BASIC_INFORMATION;
 
     ExactOffset: boolean;
+{$ifndef injectedpscan}
     mae: TMemoryAllocEvent;
+{$endif}
 begin
   currentlevel:=level;
   if (level>=maxlevel) or
@@ -1207,6 +1220,7 @@ begin
   begin
     //normal
     AddressMinusMaxStructSize:=address-structsize;
+{$ifndef injectedpscan}
     if staticscanner.useheapdata then
     begin
       mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, address);
@@ -1219,6 +1233,7 @@ begin
         if staticscanner.useOnlyHeapData then
           exit;
     end
+{$endif}    
 
   end;
     
@@ -1806,11 +1821,14 @@ begin
           staticscanner.offsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
 
+{$ifndef injectedpscan}      
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
       staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 
+
       if staticscanner.useHeapData then
         frmMemoryAllocHandler.displaythread.Suspend; //stop adding entries to the list
+{$endif}        
         
 
       progressbar1.Max:=staticscanner.stop-staticscanner.start;

@@ -1612,6 +1612,7 @@ begin
 
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
     KDebugger.startDebugger; //start the kerneldebugger
+
     
 
   originaladdress:=address;
@@ -10974,20 +10975,9 @@ var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
 begin
  //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 
- loaddbk32;
- showmessage('launch');
- LaunchDBVM;
- showmessage('Somehow I did not totally crash...');
-
-
-
-
-
-exit;
-
   LoadDBK32;
 
-  DBKDebug_StartDebugging(ProcessID);
+  DBKDebug_StartDebugging(processid);
 
   if DBKDebug_WaitForDebugEvent(1000) then
   begin

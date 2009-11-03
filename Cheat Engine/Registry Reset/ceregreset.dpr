@@ -11,6 +11,7 @@ var reg: tregistry;
     silent: boolean;
     i: integer;
 begin
+  silent:=false;
   { TODO -oUser -cConsole Main : Insert code here }
 
 

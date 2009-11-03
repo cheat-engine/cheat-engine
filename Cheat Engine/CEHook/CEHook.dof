@@ -90,8 +90,8 @@ MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=..
-UnitOutputDir=
+OutputDir=..\bin
+UnitOutputDir=unitbin
 PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
@@ -134,24 +134,34 @@ OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
-[Excluded Packages]
-c:\program files\borland\delphi7\Bin\dclmcn70.bpl=Borland DataSnap Connection Components
-c:\program files\borland\delphi7\Bin\dcldbx70.bpl=Borland dbExpress Components
-c:\program files\borland\delphi7\Bin\dcldbxcds70.bpl=Borland SimpleDataset Component (DBX)
-c:\program files\borland\delphi7\Bin\DBWEBXPRT.BPL=Borland Web Wizard Package
-c:\program files\borland\delphi7\Bin\dclwbm70.bpl=Borland InternetExpress Components
-c:\program files\borland\delphi7\Bin\dclwebsnap70.bpl=Borland WebSnap Components
-c:\program files\borland\delphi7\Bin\dclado70.bpl=Borland ADO DB Components
-c:\program files\borland\delphi7\Bin\dclbde70.bpl=Borland BDE DB Components
-c:\program files\borland\delphi7\Bin\dcldb70.bpl=Borland Database Components
-c:\program files\borland\delphi7\Bin\DCLIB70.bpl=InterBase Data Access Components
-c:\program files\borland\delphi7\Bin\dcltee70.bpl=TeeChart Components
-c:\program files\borland\delphi7\Bin\dcldss70.bpl=Borland Decision Cube Components
-c:\program files\borland\delphi7\Bin\dclclxdb70.bpl=Borland CLX Database Components
-c:\program files\borland\delphi7\Bin\dclmid70.bpl=Borland MyBase DataAccess Components
+[HistoryLists\hlDebugSourcePath]
+Count=2
+Item0=.\SynEdit\Source\
+Item1=C:\svnx\Cheat Engine\SynEdit\Source\
+[HistoryLists\hlConditionals]
+Count=12
+Item0=cemain;NOcrashtest;DEBUG
+Item1=cemain;NOcrashtest;NODEBUG
+Item2=cemain;crashtest;DEBUG
+Item3=cemain;crashtest
+Item4=cemain;DEBUG
+Item5=cemain;debugmemscan
+Item6=cemain
+Item7=beta52
+Item8=DEU
+Item9=RUS
+Item10=debug2
+Item11=debug
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlSearchPath]
+Count=2
+Item0=.\SynEdit\Source;.\KIcon;.\jedi\source;.\jedi\source\vcl;.\jedi\source\common;.\jedi\source\windows
+Item1=.\SynEdit\Source
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=.\unitbin
 [HistoryLists\hlOutputDirectorry]
 Count=1
-Item0=..
+Item0=.\bin

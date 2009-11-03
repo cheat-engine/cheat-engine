@@ -13,19 +13,20 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 96
-    Top = 53
+    Top = 61
     Width = 32
     Height = 13
     Caption = 'Label1'
   end
   object Label2: TLabel
     Left = 97
-    Top = 93
+    Top = 117
     Width = 32
     Height = 13
     Caption = 'Label2'
@@ -92,14 +93,14 @@ object Form1: TForm1
     Left = 8
     Top = 48
     Width = 81
-    Height = 25
+    Height = 17
     Caption = 'Change health'
     TabOrder = 1
     OnClick = Button2Click
   end
   object Button3: TButton
     Left = 8
-    Top = 88
+    Top = 112
     Width = 81
     Height = 25
     Caption = 'Execute code'
@@ -132,5 +133,14 @@ object Form1: TForm1
     Caption = 'Crash'
     TabOrder = 5
     OnClick = Button6Click
+  end
+  object Button7: TButton
+    Left = 8
+    Top = 72
+    Width = 81
+    Height = 17
+    Caption = 'With Thread'
+    TabOrder = 6
+    OnClick = Button7Click
   end
 end

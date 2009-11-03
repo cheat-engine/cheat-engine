@@ -1227,7 +1227,14 @@ begin
   crashcounter:=0;
 
   {$ifndef net}
-  if debuggerthread=nil then exit else debuggerthread.Terminate;
+  if debuggerthread=nil then
+  begin
+    if kdebugger.isactive then
+      KDebugger.StopDebugger;
+
+    exit;
+  end
+  else debuggerthread.Terminate;
 
   if @DebugActiveProcessStop=@DebugActiveProcessStopProstitute then //lets help it a hand if it cant detach gracefully
     terminateprocess(processhandle,0)

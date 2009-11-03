@@ -195,7 +195,7 @@ begin
         inc(address,2);
         dec(BreakLength,2);
       end else
-      if (breaklength=4) then
+      if (breaklength>=4) then
       begin
         atleastone:=true;
         SetBreakpoint(address, BreakType, bl_4byte, BreakOption, ChangeReg, threadid, breakonce);
@@ -970,10 +970,15 @@ begin
 
     if (pos('REP',opcode)=0) then
     begin
-      if (currentdebuggerstate.ecx=0) then addressfound:=previousopcode(currentdebuggerstate.eip);
+      addressfound:=previousopcode(currentdebuggerstate.eip);
     end
     else
-      addressfound:=previousopcode(currentdebuggerstate.eip);
+    begin
+      if (currentdebuggerstate.ecx=0) then
+        addressfound:=previousopcode(currentdebuggerstate.eip)
+      else
+        addressfound:=currentdebuggerstate.eip;
+    end;
 
 
     for i:=0 to length(foundcodedialog.coderecords)-1 do
