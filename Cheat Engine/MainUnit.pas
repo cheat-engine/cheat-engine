@@ -5058,6 +5058,8 @@ begin
   askfordifferentsizesonce:=false;
   asked:=false;
 
+  if scrollbar1.position+(sender as TLabel).tag>=NumberOfRecords then exit;
+
   if memrec[scrollbar1.position+(sender as TLabel).tag].VarType=255 then
   begin
     //auto assembler script

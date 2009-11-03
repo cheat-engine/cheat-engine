@@ -64,7 +64,7 @@ object AddForm: TAddForm
       Left = 118
       Top = 2
       Width = 51
-      Height = 21
+      Height = 24
       PopupMenu = MainForm.emptypopup
       TabOrder = 0
       Text = '1'
@@ -125,7 +125,7 @@ object AddForm: TAddForm
     Left = 79
     Top = 34
     Width = 464
-    Height = 21
+    Height = 24
     MaxLength = 50
     TabOrder = 1
     Text = 'No Description!'
@@ -270,7 +270,7 @@ object AddForm: TAddForm
       Left = 266
       Top = 5
       Width = 45
-      Height = 21
+      Height = 24
       TabOrder = 8
       Text = '1'
     end
@@ -279,7 +279,7 @@ object AddForm: TAddForm
     Left = 79
     Top = 5
     Width = 129
-    Height = 21
+    Height = 24
     TabOrder = 0
     Text = '00400000'
     OnKeyPress = NewAddressKeyPress

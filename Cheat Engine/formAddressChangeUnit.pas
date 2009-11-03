@@ -203,7 +203,7 @@ begin
         7: radiobutton8.checked:=true;
       end;
 
-      width:=288;
+      clientwidth:=bitpanel.Left+bitpanel.width;
     end else clientwidth:=button4.Left+button4.Width+5;
   end;
 
@@ -234,65 +234,25 @@ end;
 
 procedure TformAddressChange.cbPointerClick(Sender: TObject);
 var i: integer;
+    startoffset,inputoffset,rowheight: integer;
 begin
   if cbpointer.checked then
   begin
-    width:=435;
+
     editAddress.Enabled:=false;
 
     button3.visible:=true;
     button4.visible:=true;
-
     //create a address+offset combination and disable the normal address
 
+    startoffset:=button3.Top+button3.Height+2;
+
     setlength(pointerinfo,1);
-    pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
-    with pointerinfo[length(pointerinfo)-1].addresstext do
-    begin
-      top:=112;
-      left:=4;
-      caption:='Address of pointer';
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].address do
-    begin
-      top:=110;
-      left:=92;
-      width:=105;
-      onkeypress:=editAddress.onkeypress;
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
-    with pointerinfo[length(pointerinfo)-1].offsettext do
-    begin
-      top:=112;
-      left:=212;
-      caption:='Offset (Hex)';
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].offset do
-    begin
-      top:=110;
-      left:=275;
-      width:=70;
-      text:='0';
-      hint:='Fill in the nr. of bytes after the location the pointer points to';
-      showhint:=true;
-      onkeypress:=offsetKeyPress;
-      parent:=self;
-    end;
-
     pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
     with pointerinfo[length(pointerinfo)-1].ValueAtAddressText do
     begin
-      top:=96;
+      top:=startoffset;
       left:=4;
-//      width:=57;
       caption:='This pointer points to address ????????.';// The offset you chose brings it to ????????';
       showhint:=true;
       onkeypress:=offsetKeyPress;
@@ -302,16 +262,59 @@ begin
     pointerinfo[length(pointerinfo)-1].FinalDestination:=TLabel.Create(self);
     with pointerinfo[length(pointerinfo)-1].FinalDestination do
     begin
-      top:=96;
-      left:=212;
-//      width:=57;
+      top:=startoffset;
+      left:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.left+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.width+20;
       caption:='The offset you chose brings it to ????????';
       showhint:=true;
       onkeypress:=offsetKeyPress;
       parent:=self;
     end;
 
+    inputoffset:=startoffset+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
 
+    pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
+    with pointerinfo[length(pointerinfo)-1].addresstext do
+    begin
+      top:=inputoffset+2;
+      left:=4;
+      caption:='Address of pointer';
+      parent:=self;
+    end;  
+
+    pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
+    with pointerinfo[length(pointerinfo)-1].address do
+    begin
+      top:=inputoffset;
+      left:=pointerinfo[length(pointerinfo)-1].addresstext.left+pointerinfo[length(pointerinfo)-1].addresstext.width+3;
+      width:=105;
+      onkeypress:=editAddress.onkeypress;
+      parent:=self;
+    end;
+
+    pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
+    with pointerinfo[length(pointerinfo)-1].offsettext do
+    begin
+      top:=inputoffset+2;
+      left:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
+      caption:='Offset (Hex)';
+      parent:=self;
+    end;
+
+    pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
+    with pointerinfo[length(pointerinfo)-1].offset do
+    begin
+      top:=inputoffset;
+      left:=pointerinfo[length(pointerinfo)-1].offsettext.left+pointerinfo[length(pointerinfo)-1].offsettext.width+5;
+      width:=70;
+      text:='0';
+      hint:='Fill in the nr. of bytes after the location the pointer points to';
+      showhint:=true;
+      onkeypress:=offsetKeyPress;
+      parent:=self;
+    end;
+
+
+    clientwidth:=pointerinfo[length(pointerinfo)-1].FinalDestination.left+pointerinfo[length(pointerinfo)-1].FinalDestination.width+5;
 
     height:=height+66;
   end
@@ -320,10 +323,10 @@ begin
     if mainform.memrec[index].VarType=5 then
     begin
       bitpanel.Visible:=true;
-      width:=288;
-    end else width:=158;
+      clientwidth:=bitpanel.left+bitpanel.Width+5;
+    end else clientwidth:=editaddress.Left+editaddress.Width+5;
 
-    height:=134;
+    clientheight:=cbPointer.Top+cbPointer.Height+8+button1.Height+8;
     editaddress.enabled:=true;
     button3.visible:=false;
     button4.visible:=false;
@@ -334,6 +337,8 @@ begin
       pointerinfo[i].address.Free;
       pointerinfo[i].offsettext.Free;
       pointerinfo[i].offset.Free;
+      pointerinfo[i].ValueAtAddressText.Free;
+      pointerinfo[i].FinalDestination.Free;
     end;
 
     setlength(pointerinfo,0);

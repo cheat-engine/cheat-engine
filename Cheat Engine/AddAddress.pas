@@ -501,7 +501,7 @@ begin
   end
   else
   begin
-    height:=170;
+    clientheight:=cbPointer.Top+cbPointer.Height+8+button1.Height+8;
     newaddress.enabled:=true;
     button3.visible:=false;
     button4.visible:=false;

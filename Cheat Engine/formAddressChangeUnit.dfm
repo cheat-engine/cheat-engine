@@ -5,7 +5,7 @@ object formAddressChange: TformAddressChange
   BorderStyle = bsSingle
   Caption = 'Change address'
   ClientHeight = 123
-  ClientWidth = 346
+  ClientWidth = 349
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,7 +17,7 @@ object formAddressChange: TformAddressChange
   OnClose = FormClose
   OnShow = FormShow
   DesignSize = (
-    346
+    349
     123)
   PixelsPerInch = 120
   TextHeight = 16
@@ -32,7 +32,7 @@ object formAddressChange: TformAddressChange
     Left = 10
     Top = 30
     Width = 168
-    Height = 21
+    Height = 24
     TabOrder = 0
     OnKeyPress = editAddressKeyPress
   end
