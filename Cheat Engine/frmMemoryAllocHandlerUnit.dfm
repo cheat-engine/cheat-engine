@@ -1,6 +1,6 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 594
-  Top = 546
+  Left = 283
+  Top = 322
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'
@@ -91,6 +91,21 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       Top = 32
       Width = 3
       Height = 16
+    end
+    object lblErr: TLabel
+      Left = 40
+      Top = 88
+      Width = 387
+      Height = 16
+      Caption = 
+        'Couldn'#39't find in heap. Found using the Alloc hook. (Not very use' +
+        'ful)'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -14
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
     end
   end
   object Panel1: TPanel

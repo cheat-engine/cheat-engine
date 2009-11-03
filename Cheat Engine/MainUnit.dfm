@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 563
-  Top = 0
+  Left = 747
+  Top = 272
   Width = 532
   Height = 552
   Hint = ' '
@@ -27,12 +27,12 @@ object MainForm: TMainForm
   OnDragDrop = Panel1DragDrop
   OnDragOver = Panel1DragOver
   OnShow = FormShow
-  PixelsPerInch = 120
+  PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
     Left = 0
     Top = 345
-    Width = 514
+    Width = 516
     Height = 3
     Cursor = crVSplit
     Align = alTop
@@ -46,8 +46,8 @@ object MainForm: TMainForm
     Tag = 777
     Left = 0
     Top = 348
-    Width = 514
-    Height = 117
+    Width = 516
+    Height = 131
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -125,8 +125,8 @@ object MainForm: TMainForm
     object ScrollBox1: TScrollBox
       Left = 1
       Top = 1
-      Width = 496
-      Height = 115
+      Width = 498
+      Height = 129
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -137,7 +137,7 @@ object MainForm: TMainForm
       object HeaderControl1: THeaderControl
         Left = 0
         Top = 0
-        Width = 496
+        Width = 498
         Height = 17
         Sections = <
           item
@@ -176,8 +176,8 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 17
-        Width = 496
-        Height = 98
+        Width = 498
+        Height = 112
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -189,8 +189,8 @@ object MainForm: TMainForm
         OnMouseDown = Panel1MouseDown
         OnResize = Panel1Resize
         DesignSize = (
-          496
-          98)
+          498
+          112)
         object Label30: TLabel
           Tag = 6
           Left = 0
@@ -1074,10 +1074,10 @@ object MainForm: TMainForm
       end
     end
     object vscrollpanel: TPanel
-      Left = 497
+      Left = 499
       Top = 1
       Width = 16
-      Height = 115
+      Height = 129
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 16
-        Height = 115
+        Height = 129
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1099,13 +1099,13 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 465
-    Width = 514
+    Top = 479
+    Width = 516
     Height = 17
     Align = alBottom
     TabOrder = 1
     DesignSize = (
-      514
+      516
       17)
     object Label7: TLabel
       Left = 147
@@ -1160,7 +1160,7 @@ object MainForm: TMainForm
   object Panel5: TPanel
     Left = 0
     Top = 0
-    Width = 514
+    Width = 516
     Height = 345
     Align = alTop
     BevelOuter = bvNone
@@ -1168,7 +1168,7 @@ object MainForm: TMainForm
     Locked = True
     TabOrder = 2
     DesignSize = (
-      514
+      516
       345)
     object ProcessLabel: TLabel
       Left = -24

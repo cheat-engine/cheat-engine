@@ -228,8 +228,6 @@ begin
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
-  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil;
-
   bitcount:=0;
   while pa>0 do
   begin
@@ -243,6 +241,9 @@ begin
   if HasHyperthreading then
     bitcount:=1+(bitcount div 2);
   {$endif}
+
+  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil;
+    
   edtThreadcount.text:=inttostr(bitcount);
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);

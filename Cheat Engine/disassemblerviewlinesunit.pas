@@ -45,6 +45,8 @@ end;
 
 implementation
 
+uses MemoryBrowserFormUnit;
+
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
   oldpenstyle: Tpenstyle;
@@ -261,15 +263,22 @@ begin
   end;
 
   splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring);
-  addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+  if symhandler.showmodules then
+    addressString:=symbolname
+  else
+    addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+    
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
   opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
   specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
-  fcanvas.TextOut(fHeaders.Items[0].Left+1,linestart,addressString);
-  fcanvas.TextOut(fHeaders.Items[1].Left+1,linestart,bytestring);
-  fcanvas.TextOut(fHeaders.Items[2].Left+1,linestart,opcodestring);
-  fcanvas.TextOut(fHeaders.Items[3].Left+1,linestart,specialstring);
+  if MemoryBrowser.EIPv=faddress then
+    addressString:='>>'+addressString;
+
+  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart,addressString);
+  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart,bytestring);
+  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart,opcodestring);
+  fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart,specialstring);
 
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 

@@ -1,8 +1,8 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 624
-  Top = 233
-  Width = 675
-  Height = 568
+  Left = 268
+  Top = 311
+  Width = 709
+  Height = 600
   HelpContext = 12
   Caption = 'Memory Viewer'
   Color = clBtnFace
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 300
-    Width = 657
+    Width = 691
     Height = 5
     Cursor = crVSplit
     Align = alTop
@@ -36,13 +36,13 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 657
+    Width = 691
     Height = 300
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 426
+      Left = 460
       Top = 0
       Height = 300
       Align = alRight
@@ -51,14 +51,14 @@ object MemoryBrowser: TMemoryBrowser
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 426
+      Width = 460
       Height = 300
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object RegisterView: TPanel
-      Left = 429
+      Left = 463
       Top = 0
       Width = 228
       Height = 300
@@ -474,8 +474,8 @@ object MemoryBrowser: TMemoryBrowser
   object Panel4: TPanel
     Left = 0
     Top = 305
-    Width = 657
-    Height = 193
+    Width = 691
+    Height = 225
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -535,10 +535,10 @@ object MemoryBrowser: TMemoryBrowser
       OnKeyPress = TextEditKeyPress
     end
     object ScrollBar2: TScrollBar
-      Left = 640
+      Left = 674
       Top = 1
       Width = 16
-      Height = 191
+      Height = 223
       Align = alRight
       Kind = sbVertical
       Max = 101
@@ -550,8 +550,8 @@ object MemoryBrowser: TMemoryBrowser
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 639
-      Height = 191
+      Width = 673
+      Height = 223
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 3
@@ -559,7 +559,7 @@ object MemoryBrowser: TMemoryBrowser
         Tag = 2
         Left = 0
         Top = 0
-        Width = 639
+        Width = 673
         Height = 16
         Align = alTop
         Caption = 'Protection'
@@ -567,8 +567,8 @@ object MemoryBrowser: TMemoryBrowser
       object MBCanvas: TPaintBox
         Left = 0
         Top = 16
-        Width = 639
-        Height = 175
+        Width = 673
+        Height = 207
         Align = alClient
         PopupMenu = memorypopup
         OnDblClick = MBCanvasDblClick

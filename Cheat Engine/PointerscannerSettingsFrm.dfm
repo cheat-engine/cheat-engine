@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 357
-  Top = 138
+  Left = 865
+  Top = 401
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 484
@@ -229,9 +229,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object Label13: TLabel
         Left = 4
         Top = 49
-        Width = 255
+        Width = 253
         Height = 16
-        Caption = 'Pointer path must only be inside this region:'
+        Caption = 'Pointer path may only be inside this region:'
       end
       object Label14: TLabel
         Left = 0
@@ -260,7 +260,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         CharCase = ecUpperCase
         MaxLength = 8
         TabOrder = 1
-        Text = '70000000'
+        Text = '7FFFFFFFF'
         OnChange = Edit1Change
       end
       object Edit2: TEdit

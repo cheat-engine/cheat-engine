@@ -150,6 +150,7 @@ type
     Edit1: TEdit;
     Button1: TButton;
     Label5: TLabel;
+    lblErr: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -634,12 +635,27 @@ begin
     lblflags.Caption:=heapflagstostring(result.HookEvent.HeapAllocEvent.Flags);
     lblbaseaddress.caption:=inttohex(dword(result.HookEvent.HeapAllocEvent.address),8);
     lblsize.Caption:=inttostr(result.HookEvent.HeapAllocEvent.Size);
+    if lblErr.Visible then
+      lblErr.Visible:=false;
   end else
   begin
     lblHeapHandle.caption:='-';
     lblflags.Caption:='-';
-    lblbaseaddress.caption:='-';
-    lblsize.Caption:='-';
+
+
+    if FindAddress(@AllocBaseLevel,strtoint('$'+edit1.Text))<>nil then
+    begin
+      lblbaseaddress.caption:=inttohex(dword(result.HookEvent.HeapAllocEvent.address),8);
+      lblsize.Caption:=inttostr(result.HookEvent.HeapAllocEvent.Size);
+      lblErr.Visible:=true;
+    end
+    else
+    begin
+      lblbaseaddress.caption:='-';
+      lblsize.Caption:='-';
+      if lblErr.Visible then
+        lblErr.Visible:=false;
+    end;
   end;
 end;
 

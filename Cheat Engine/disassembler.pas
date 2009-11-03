@@ -2,7 +2,7 @@ unit disassembler;
 //eric, voeg int3 afhandeling toe
 interface
 
-uses imagehlp,sysutils,windows,symbolhandler,cefuncproc{$ifdef net}{$ifndef netserver},NetAPIs{$endif}{$endif}{$ifndef netclient},NewKernelHandler{$endif};
+uses imagehlp,sysutils,windows,byteinterpreter, symbolhandler,cefuncproc{$ifdef net}{$ifndef netserver},NetAPIs{$endif}{$endif}{$ifndef netclient},NewKernelHandler{$endif};
 
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
@@ -8966,6 +8966,12 @@ var offset,value:dword;
     tokens: ttokens;
     fvalue: single;
     fvalue2: double;
+    tempbuf: array [0..15] of byte;
+
+    pc: pchar;
+    pwc: pwidechar;
+
+    variableType: TVariableType;
 begin
   result:=disassembled;
 
@@ -8981,6 +8987,7 @@ begin
         if offset<$80000000 then
         begin
           //decide what kind of value it is
+          
 
           valuetype:=2; //4 bytehex by default
           setlength(tokens,0); //init
@@ -9020,12 +9027,22 @@ begin
                 ttRegister32Bit: valuetype:=2;
                 else valuetype:=2;
               end;
-            end; //else no ideam check instruction
+            end; //else no idea, check instruction
 
             if valuetype=2 then
             begin
               //default or not decided yet, check the instruction for the float
-             // if pos('
+              if ReadProcessMemory(processhandle, pointer(offset), @tempbuf[0], 16, actualread) then
+              begin
+                variableType:=FindTypeOfData(offset, @tempbuf[0],16);
+                case variableType of
+                  vtSingle: ValueType:=3;
+                  vtDouble: ValueType:=4;
+                  vtString: ValueType:=5;
+                  vtUnicodeString: ValueType:=6;
+                end;
+                
+              end; //else leave it to a 4 byte
             end;
 
           end;
@@ -9040,8 +9057,22 @@ begin
             0: if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then ts:=' : '+inttohex(value,2);
             1: if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then ts:=' : '+inttohex(value,4);
             2: if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then ts:=' : '+symhandler.getNameFromAddress(value);
-            3: if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then ts:=' : '+format('%.4f',[fvalue]);
-            4: if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then ts:=' : '+format('%.4f',[fvalue2]);
+            3: if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then ts:=' : f('+format('%.4f',[fvalue])+')';
+            4: if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then ts:=' : d('+format('%.4f',[fvalue2])+')';
+            5:
+            begin
+              tempbuf[15]:=0;
+              pc:=@tempbuf[0];
+              ts:=' : "'+ pc+'"';
+            end;
+
+            6:
+            begin
+              tempbuf[15]:=0;
+              tempbuf[14]:=0;              
+              pwc:=@tempbuf[0];
+              ts:=' : ""'+ pwc+'""';
+            end;
           end;
         end
         else ts:='';

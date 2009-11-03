@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 854
-  Top = 241
+  Left = 186
+  Top = 147
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -56,7 +56,7 @@ object frmStructures: TfrmStructures
       Left = 5
       Top = 5
       Width = 95
-      Height = 21
+      Height = 24
       PopupMenu = PopupMenu2
       TabOrder = 0
       Text = '00000000'
