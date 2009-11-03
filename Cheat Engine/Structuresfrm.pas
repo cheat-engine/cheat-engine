@@ -1368,6 +1368,7 @@ begin
   selectedelement:=selectednode.Index;
 
   i:=selectedstructure.basestructure;
+  if i<0 then exit;
   
   size:=definedstructures[i].structelement[selectedelement].bytesize;
 
@@ -1434,8 +1435,14 @@ begin
       else
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=bytesize;
 
+      if tvStructureView.Selected.HasChildren then
+        tvStructureView.Selected.DeleteChildren;
+        
+
       self.update(true);
       mainform.itemshavechanged:=true;
+
+
     end;
   end;
 
@@ -1482,7 +1489,7 @@ begin
   if selectednode<>nil then
   begin
     selectedstructure:=tstructure(selectednode.Data);
-    if selectedstructure<>nil then
+    if (selectedstructure<>nil) and (selectedstructure.basestructure>=0) then
     begin
       selectedelement:=selectednode.Index;
       a:=selectedstructure.addresses[selectedsection-1];
