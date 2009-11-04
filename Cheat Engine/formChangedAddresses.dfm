@@ -1,8 +1,8 @@
 object frmChangedAddresses: TfrmChangedAddresses
   Left = 942
   Top = 241
-  Width = 321
-  Height = 280
+  Width = 349
+  Height = 293
   Caption = 'Changed Addresses'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,13 +13,15 @@ object frmChangedAddresses: TfrmChangedAddresses
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 120
   TextHeight = 16
   object lblInfo: TLabel
     Left = 0
     Top = 0
-    Width = 303
+    Width = 331
     Height = 32
     Align = alTop
     Caption = 
@@ -29,8 +31,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Top = 184
-    Width = 303
+    Top = 197
+    Width = 331
     Height = 51
     Align = alBottom
     TabOrder = 0
@@ -65,8 +67,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   object Changedlist: TListView
     Left = 0
     Top = 32
-    Width = 303
-    Height = 152
+    Width = 331
+    Height = 165
     Align = alClient
     Columns = <
       item

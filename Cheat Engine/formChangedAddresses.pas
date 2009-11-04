@@ -24,6 +24,8 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure Showregisterstates1Click(Sender: TObject);
     procedure Browsethismemoryregion1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     procedure refetchValues;
@@ -196,6 +198,18 @@ begin
     memorybrowser.memoryaddress:=strtoint('$'+changedlist.Selected.Caption);
     memorybrowser.refreshmb;
   end;
+end;
+
+procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);
+end;
+
+procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x, 0);
+  loadformposition(self,x);
 end;
 
 end.
