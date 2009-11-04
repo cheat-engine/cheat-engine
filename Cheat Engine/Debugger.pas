@@ -737,12 +737,14 @@ procedure TDebugger.tracersync;
 var s: string;
     i: integer;
     d: TTraceDebugInfo;
+    temp: dword;
 {$endif}
 begin
 {$ifndef net}
   if frmtracer<>nil then
   begin
-    s:=disassemble(context.eip);
+    temp:=context.eip;
+    s:=disassemble(temp);
     i:=posex('-',s);
     i:=posex('-',s,i+1);
     s:=copy(s,i+2,length(s));
