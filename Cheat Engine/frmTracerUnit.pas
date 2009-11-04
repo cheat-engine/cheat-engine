@@ -287,10 +287,10 @@ begin
       Oflabel.Font.Color:=clred;
       Oflabel.caption:=temp;
     end else Oflabel.Font.Color:=clWindowText;
-  end;
 
-  if fpp<>nil then
-    fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+    if fpp<>nil then
+      fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+  end;
 end;
 
 procedure TfrmTracer.EAXLabelDblClick(Sender: TObject);

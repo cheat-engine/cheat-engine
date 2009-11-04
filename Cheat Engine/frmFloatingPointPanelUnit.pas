@@ -49,6 +49,7 @@ procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
 begin
   self.context:=context;
   self.contextCopy:=context^;
+  UpdatedContext;
 end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
