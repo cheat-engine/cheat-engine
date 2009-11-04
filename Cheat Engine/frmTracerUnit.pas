@@ -49,6 +49,7 @@ type
     procedure EAXLabelDblClick(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     traceaddress: dword;
@@ -318,6 +319,11 @@ begin
   fpp.Top:=self.top;
   fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
   fpp.show;//pop to foreground
+end;
+
+procedure TfrmTracer.FormShow(Sender: TObject);
+begin
+  sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.Height div 2);
 end;
 
 end.
