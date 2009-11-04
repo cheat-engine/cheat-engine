@@ -49,7 +49,6 @@ type Tbasestucture=record
     Structures1: TMenuItem;
     Definenewstructure1: TMenuItem;
     N1: TMenuItem;
-    tvStructureView: TTreeView;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     Addelement1: TMenuItem;
@@ -64,7 +63,6 @@ type Tbasestucture=record
     N3: TMenuItem;
     Addextraaddress1: TMenuItem;
     edtAddress: TEdit;
-    HeaderControl1: THeaderControl;
     PopupMenu2: TPopupMenu;
     Paste1: TMenuItem;
     Copy1: TMenuItem;
@@ -81,6 +79,9 @@ type Tbasestucture=record
     Commands1: TMenuItem;
     Deletecurrentstructure1: TMenuItem;
     Renamestructure1: TMenuItem;
+    ScrollBox1: TScrollBox;
+    tvStructureView: TTreeView;
+    HeaderControl1: THeaderControl;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -1741,8 +1742,13 @@ end;
 
 procedure TfrmStructures.HeaderControl1SectionResize(
   HeaderControl: THeaderControl; Section: THeaderSection);
+var x: integer;
 begin
+  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
+  scrollbox1.HorzScrollBar.Range:=x;
+
   tvStructureView.refresh;
+  ShowScrollBar(tvStructureView.Handle,SB_HORZ		, false);
 end;
 
 procedure TfrmStructures.FormCreate(Sender: TObject);
@@ -1966,6 +1972,7 @@ begin
   end;
 
   DefaultDraw:=true;
+  ShowScrollBar(tvStructureView.Handle,SB_HORZ		, false);
 end;
 
 procedure TfrmStructures.FormDestroy(Sender: TObject);

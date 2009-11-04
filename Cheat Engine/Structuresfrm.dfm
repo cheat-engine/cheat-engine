@@ -1,6 +1,6 @@
 object frmStructures: TfrmStructures
-  Left = 186
-  Top = 147
+  Left = 851
+  Top = 169
   Width = 614
   Height = 392
   Caption = 'Memory dissect'
@@ -18,31 +18,6 @@ object frmStructures: TfrmStructures
   OnDestroy = FormDestroy
   PixelsPerInch = 120
   TextHeight = 16
-  object tvStructureView: TTreeView
-    Left = 0
-    Top = 62
-    Width = 596
-    Height = 260
-    Align = alClient
-    BorderStyle = bsNone
-    Font.Charset = ANSI_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -15
-    Font.Name = 'Courier'
-    Font.Style = []
-    HideSelection = False
-    Indent = 19
-    ParentFont = False
-    PopupMenu = PopupMenu1
-    ReadOnly = True
-    RowSelect = True
-    TabOrder = 0
-    OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
-    OnCollapsing = tvStructureViewCollapsing
-    OnDblClick = tvStructureViewDblClick
-    OnExpanding = tvStructureViewExpanding
-    OnMouseDown = tvStructureViewMouseDown
-  end
   object Panel1: TPanel
     Left = 0
     Top = 0
@@ -51,7 +26,7 @@ object frmStructures: TfrmStructures
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    TabOrder = 1
+    TabOrder = 0
     object edtAddress: TEdit
       Left = 5
       Top = 5
@@ -63,27 +38,61 @@ object frmStructures: TfrmStructures
       OnChange = edtAddressChange
     end
   end
-  object HeaderControl1: THeaderControl
+  object ScrollBox1: TScrollBox
     Left = 0
     Top = 41
     Width = 596
-    Height = 21
-    HotTrack = True
-    Sections = <
-      item
-        ImageIndex = -1
-        MinWidth = 20
-        Text = 'Offset-description'
-        Width = 250
-      end
-      item
-        ImageIndex = -1
-        MinWidth = 20
-        Text = 'Address: Value'
-        Width = 200
-      end>
-    Style = hsFlat
-    OnSectionResize = HeaderControl1SectionResize
+    Height = 281
+    HorzScrollBar.Tracking = True
+    Align = alClient
+    TabOrder = 1
+    object tvStructureView: TTreeView
+      Left = 0
+      Top = 21
+      Width = 592
+      Height = 256
+      Align = alClient
+      BorderStyle = bsNone
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'Courier'
+      Font.Style = []
+      HideSelection = False
+      Indent = 19
+      ParentFont = False
+      PopupMenu = PopupMenu1
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
+      OnCollapsing = tvStructureViewCollapsing
+      OnDblClick = tvStructureViewDblClick
+      OnExpanding = tvStructureViewExpanding
+      OnMouseDown = tvStructureViewMouseDown
+    end
+    object HeaderControl1: THeaderControl
+      Left = 0
+      Top = 0
+      Width = 592
+      Height = 21
+      HotTrack = True
+      Sections = <
+        item
+          ImageIndex = -1
+          MinWidth = 50
+          Text = 'Offset-description'
+          Width = 250
+        end
+        item
+          ImageIndex = -1
+          MinWidth = 20
+          Text = 'Address: Value'
+          Width = 200
+        end>
+      Style = hsFlat
+      OnSectionResize = HeaderControl1SectionResize
+    end
   end
   object MainMenu1: TMainMenu
     Left = 256
