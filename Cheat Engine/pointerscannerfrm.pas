@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus,
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math, frmRescanPointerUnit,
 
   {$ifdef injectedpscan}
   virtualmemorystub, symbolhandlerlite, globals;
@@ -58,11 +58,21 @@ type TDissectData = class(tthread)
 end;
 
 type trescanpointers=class(tthread)
+  private
+    function ismatchtovalue(p: pointer): boolean;
   public
     progressbar: tprogressbar;
     oldpointerlist: tmemorystream;
     newpointerlist: tmemorystream;
     address: dword;
+    forvalue: boolean;
+    valuetype: TVariableType;
+    valuescandword: dword;
+    valuescansingle: single;
+    valuescandouble: double;
+    valuescansinglemax: single;
+    valuescandoublemax: double;
+
     procedure execute; override;
 end;
 
@@ -167,6 +177,9 @@ type
     //procedure done;
 //    procedure automaticfinish;
 //    procedure addentry;
+
+
+    function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
     procedure method2scan(address:dword);
     procedure reversescan;
 
@@ -205,6 +218,15 @@ type
     useheapdata: boolean;
     useOnlyHeapData: boolean;
 {$endif}
+
+    findValueInsteadOfAddress: boolean;
+    valuetype: TVariableType;
+    valuescandword: dword;
+    valuescansingle: single;
+    valuescandouble: double;
+    valuescansinglemax: single;
+    valuescandoublemax: double;
+
 
     mustEndWithSpecificOffset: boolean;
     offsetlist: array of dword;
@@ -374,7 +396,7 @@ implementation
 {$R *.dfm}
 
 {$ifdef injectedpscan}
-uses PointerscannerSettingsFrm;
+uses PointerscannerSettingsFrm, CEFuncProc;
 {$else}
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit;
 {$endif}
@@ -1148,6 +1170,8 @@ begin
   begin
     if staticonly then exit; //don't save
 
+    if staticscanner.findValueInsteadOfAddress and (level=0) then exit; //not for this one
+
     mi.modulename:=inttohex(tempresults[level],8);
     mi.baseaddress:=tempresults[level];
   end;
@@ -1155,9 +1179,19 @@ begin
   //fill in the offset list
   inc(pointersfound);
 
-  offsetlist[level]:=addresstofind-pdword(vm.AddressToPointer(tempresults[0]))^;
-  for i:=1 to level do
-    offsetlist[level-i]:=tempresults[i-1]-pdword(vm.AddressToPointer(tempresults[i]))^;
+  if staticscanner.findValueInsteadOfAddress then
+  begin
+    offsetlist[level-1]:=addresstofind-pdword(vm.AddressToPointer(tempresults[1]))^;
+    for i:=2 to level-1 do
+      offsetlist[level-i]:=addresstofind-pdword(vm.AddressToPointer(tempresults[i+1]))^;
+
+  end
+  else
+  begin
+    offsetlist[level]:=addresstofind-pdword(vm.AddressToPointer(tempresults[0]))^;
+    for i:=1 to level do
+      offsetlist[level-i]:=tempresults[i-1]-pdword(vm.AddressToPointer(tempresults[i]))^;
+  end;
 
   x:=length(mi.modulename);
   results.WriteBuffer(x,sizeof(x));
@@ -1167,7 +1201,11 @@ begin
   results.WriteBuffer(x,sizeof(x));
 
 
-  i:=level+1;
+  if staticscanner.findValueInsteadOfAddress then
+    i:=level
+  else
+    i:=level+1;
+    
   results.WriteBuffer(i,sizeof(i));
   results.WriteBuffer(offsetlist[0], i*sizeof(offsetlist[0]) );
 
@@ -1254,7 +1292,7 @@ begin
       currentaddress:=p;
 
       if (exactOffset and (pd^=AddressMinusMaxStructSize)) or
-         ((pd^<=address) and (pd^>AddressMinusMaxStructSize))
+         ((not exactOffset) and (pd^<=address) and (pd^>AddressMinusMaxStructSize))
       then
       begin
         //found one
@@ -1316,6 +1354,15 @@ begin
   end;
 end;
 
+function TStaticScanner.ismatchtovalue(p: pointer): boolean;
+begin
+  case valuetype of
+    vtDword: result:=pdword(p)^=valuescandword;
+    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
+    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
+  end;
+end;
+
 procedure TStaticScanner.reversescan;
 {
 Do a reverse pointer scan
@@ -1336,12 +1383,16 @@ var p: ^byte;
     {$endif}
 
     exactoffset: boolean;
+{$ifndef injectedpscan}
+    mae: TMemoryAllocEvent;
+{$endif}    
 begin
     //scan the buffer
     fcount:=0; //debug counter to 0
     scount:=0;
 
-    maxlevel:=maxlevel-1; //adjustment for this kind of scan
+    if not findValueInsteadOfAddress then
+      maxlevel:=maxlevel-1; //adjustment for this kind of scan
 
     setlength(results,maxlevel);
     p:=vm.GetBuffer;
@@ -1349,12 +1400,30 @@ begin
     exactOffset:=self.mustEndWithSpecificOffset and (length(self.offsetlist)-1>=0); //level 0 here
 
     if exactOffset then
+    begin
       automaticAddressMinusMaxStructSize:=automaticAddress-self.offsetlist[0]
+    end
     else
+    begin
       automaticAddressMinusMaxStructSize:=automaticAddress-sz;
+      if useheapdata then
+      begin
+        mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, automaticAddress);
+        if mae<>nil then
+        begin
+          exactoffset:=true;
+          automaticAddressMinusMaxStructSize:=mae.BaseAddress;
+        end
+        else //not static and not in heap
+          if useOnlyHeapData then
+            exit;
+      end;
+    end;
 
     lookingformin:=automaticAddressMinusMaxStructSize;
     lookingformax:=automaticAddress;
+
+
 
     maxaddress:=dword(p)+vm.GetBufferSize;
 
@@ -1369,11 +1438,16 @@ begin
       {$ifdef injectedpscan}
       try
       {$endif}
-        if (exactOffset and (pd^=automaticAddressMinusMaxStructSize)) or
-           ((pd^<=automaticaddress) and (pd^>automaticAddressMinusMaxStructSize))
+
+        if (findValueInsteadOfAddress and (ismatchtovalue(p))) or
+           (exactOffset and (pd^=automaticAddressMinusMaxStructSize)) or
+           ((not exactOffset) and (not findValueInsteadOfAddress) and (pd^<=automaticaddress) and (pd^>automaticAddressMinusMaxStructSize))
         then
         begin
           //found one
+          if findValueInsteadOfAddress then
+            automaticaddress:=vm.PointerToAddress(p);
+
 
           reversescansemaphore.Aquire; //aquire here, the thread will release it when done
 
@@ -1396,7 +1470,9 @@ begin
 
               reversescanners[i].startaddress:=vm.PointerToAddress(p);
               reversescanners[i].addresstofind:=self.automaticaddress;
-              reversescanners[i].tempresults[0]:=reversescanners[i].startaddress;
+              if findValueInsteadOfAddress then
+                reversescanners[i].tempresults[0]:=0 else
+                reversescanners[i].tempresults[0]:=reversescanners[i].startaddress;
               reversescanners[i].startlevel:=0;
               reversescanners[i].structsize:=sz;
               reversescanners[i].startworking.SetEvent;
@@ -1702,9 +1778,12 @@ end;   }
 procedure Tfrmpointerscanner.Method3Fastspeedandaveragememoryusage1Click(
   Sender: TObject);
 var
-    i: integer;
+  i: integer;
+  floataccuracy: integer;
+  floatsettings: TFormatSettings;
 begin
-
+  GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
+  
   start:=now;
   if frmpointerscannersettings=nil then
     frmpointerscannersettings:=tfrmpointerscannersettings.create(nil);
@@ -1829,7 +1908,42 @@ begin
       if staticscanner.useHeapData then
         frmMemoryAllocHandler.displaythread.Suspend; //stop adding entries to the list
 {$endif}        
-        
+
+      //check if the user choose to scan for addresses or for values
+      staticscanner.findValueInsteadOfAddress:=frmpointerscannersettings.rbFindValue.checked;
+      if staticscanner.findValueInsteadOfAddress then
+      begin
+        //if values, check what type of value
+        floataccuracy:=pos(FloatSettings.DecimalSeparator,frmpointerscannersettings.edtAddress.Text);
+        if floataccuracy>0 then
+          floataccuracy:=length(frmpointerscannersettings.edtAddress.Text)-floataccuracy;
+
+        case frmpointerscannersettings.cbValueType.ItemIndex of
+          0:
+          begin
+            staticscanner.valuetype:=vtDword;
+            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandword, i);
+            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid 4 byte value');
+          end;
+
+          1:
+          begin
+            staticscanner.valuetype:=vtSingle;
+            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescansingle, i);
+            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid floating point value');
+            staticscanner.valuescansingleMax:=staticscanner.valuescansingle+(1/(power(10,floataccuracy)));
+          end;
+
+          2:
+          begin
+            staticscanner.valuetype:=vtDouble;
+            val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandouble, i);
+            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid double value');
+            staticscanner.valuescandoubleMax:=staticscanner.valuescandouble+(1/(power(10,floataccuracy)));            
+          end;
+        end;
+      end;
+
 
       progressbar1.Max:=staticscanner.stop-staticscanner.start;
 
@@ -1863,8 +1977,12 @@ begin
 
       pgcPScandata.Visible:=true;
     except
-      staticscanner.Free;
-      staticscanner:=nil;
+      on e: exception do
+      begin
+        staticscanner.Free;
+        staticscanner:=nil;
+        raise e;
+      end;
     end;
 
   end;
@@ -2130,9 +2248,19 @@ begin
 end;
 
 
+function TRescanpointers.ismatchtovalue(p: pointer): boolean;
+begin
+  case valuetype of
+    vtDword: result:=pdword(p)^=valuescandword;
+    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
+    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
+  end;
+end;
+
 procedure TRescanpointers.execute;
 var offsetsize: dword;
     offsetlist: array of dword;
+    tempbuf: array [0..7] of byte;
     x,br: dword;
     i: integer;
     mi: TModuleInfo;
@@ -2141,6 +2269,7 @@ var offsetsize: dword;
     ssize: dword;
     s: pchar;
     offset: dword;
+    pointermatch: boolean;
 begin
   pointersfound:=0;
 
@@ -2189,6 +2318,7 @@ begin
         begin
           if not readprocessmemory(processhandle,pointer(x),@x,sizeof(x),br) then
           begin
+            //unreadable pointer
             progressbar.Position:=oldpointerlist.Position;
             x:=address+1;
             break;
@@ -2197,12 +2327,29 @@ begin
           inc(x,offsetlist[i]);
         end;
 
-        if x=address then
+        
+        if forvalue then
+        begin
+          //also check that x contains the proper value
+          if valuetype=vtdouble then //8 bytes long
+            pointermatch:=readprocessmemory(processhandle,pointer(x),@tempbuf[0],8,br)
+          else
+            pointermatch:=readprocessmemory(processhandle,pointer(x),@tempbuf[0],4,br);
+
+          pointermatch:=pointermatch and ismatchtovalue(@tempbuf[0]);
+          
+        end
+        else
+        begin
+          pointermatch:=x=address;
+        end;
+
+        if pointermatch then
         begin
           newpointerlist.WriteBuffer(stringlength,sizeof(stringlength));
           newpointerlist.WriteBuffer(s^,stringlength);
           newpointerlist.WriteBuffer(offset,sizeof(offset));
-        
+
           newpointerlist.WriteBuffer(offsetsize,sizeof(offsetsize));
           newpointerlist.WriteBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
           inc(pointersfound);
@@ -2223,23 +2370,100 @@ end;
 procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
 var address: dword;
     saddress: string;
+    FloatSettings: TFormatSettings;
+    floataccuracy: integer;
+    i: integer;
 begin
+  GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
   saddress:='';
-  if inputquery('Rescan pointers','What is the current address?',saddress) then
-  begin
-    address:=strtoint('$'+saddress);
 
-    Rescanmemory1.Enabled:=false;
-    Save1.Enabled:=false;
-    new1.Enabled:=false;
-    showresults1.Enabled:=false;
+  rescan:=trescanpointers.create(true);
+  rescan.progressbar:=progressbar1;
+  rescan.oldpointerlist:=pointerlist;
 
-    //rescan the pointerlist
-    rescan:=trescanpointers.create(true);
-    rescan.progressbar:=progressbar1;
-    rescan.oldpointerlist:=pointerlist;
-    rescan.address:=address;
-    rescan.resume;
+
+  try
+
+    with TFrmRescanPointer.Create(self) do
+    begin
+      try
+        if showmodal=mrok then
+        begin
+          Rescanmemory1.Enabled:=false;
+          Save1.Enabled:=false;
+          new1.Enabled:=false;
+          showresults1.Enabled:=false;
+
+          if rbFindAddress.Checked then
+          begin
+            address:=strtoint('$'+edtAddress.Text);
+
+            //rescan the pointerlist
+
+            rescan.address:=address;
+            rescan.forvalue:=false;
+
+          end
+          else
+          begin
+
+            //if values, check what type of value
+            floataccuracy:=pos(FloatSettings.DecimalSeparator,frmpointerscannersettings.edtAddress.Text);
+            if floataccuracy>0 then
+              floataccuracy:=length(frmpointerscannersettings.edtAddress.Text)-floataccuracy;
+
+            case cbValueType.ItemIndex of
+              0:
+              begin
+                rescan.valuetype:=vtDword;
+                val(edtAddress.Text, rescan.valuescandword, i);
+                if i>0 then raise exception.Create(edtAddress.Text+' is not a valid 4 byte value');
+              end;
+
+              1:
+              begin
+                rescan.valuetype:=vtSingle;
+                val(edtAddress.Text, rescan.valuescansingle, i);
+                if i>0 then raise exception.Create(edtAddress.Text+' is not a valid floating point value');
+                rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
+              end;
+
+              2:
+              begin
+                rescan.valuetype:=vtDouble;
+                val(edtAddress.Text, rescan.valuescandouble, i);
+                if i>0 then raise exception.Create(edtAddress.Text+' is not a valid double value');
+                rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
+              end;
+            end;
+
+
+
+            rescan.forvalue:=true;
+
+          end;
+        end;
+
+        rescan.resume;
+      finally
+        free;
+      end;
+    end;
+
+
+  except
+    on e: exception do
+    begin
+      Rescanmemory1.Enabled:=true;
+      Save1.Enabled:=true;
+      new1.Enabled:=true;
+      showresults1.Enabled:=true;
+
+
+      freeandnil(rescan);
+      raise e;
+    end;
+
   end;
 
 end;

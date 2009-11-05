@@ -30,7 +30,6 @@ end;
 
 type
   TfrmPointerScannerSettings = class(TForm)
-    Label7: TLabel;
     edtAddress: TEdit;
     rbDefault: TRadioButton;
     rbReverse: TRadioButton;
@@ -54,8 +53,8 @@ type
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     CbAlligned: TCheckBox;
-    Edit1: TEdit;
-    Edit2: TEdit;
+    edtReverseStop: TEdit;
+    edtReverseStart: TEdit;
     Label10: TLabel;
     Label11: TLabel;
     Label13: TLabel;
@@ -78,6 +77,10 @@ type
     cbOnlyStackAsBase: TCheckBox;
     cbUseHeapData: TCheckBox;
     cbHeapOnly: TCheckBox;
+    cbValueType: TComboBox;
+    Panel2: TPanel;
+    rbFindAddress: TRadioButton;
+    rbFindValue: TRadioButton;
     procedure ListBox1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -85,12 +88,13 @@ type
     procedure rbDefaultClick(Sender: TObject);
     procedure rbReverseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Edit2Change(Sender: TObject);
-    procedure Edit1Change(Sender: TObject);
+    procedure edtReverseStartChange(Sender: TObject);
+    procedure edtReverseStopChange(Sender: TObject);
     procedure edtFilterStartChange(Sender: TObject);
     procedure edtFilterStopChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
     procedure cbUseHeapDataClick(Sender: TObject);
+    procedure rbFindValueClick(Sender: TObject);
   private
     { Private declarations }
     procedure btnAddClick(sender: TObject);
@@ -239,12 +243,17 @@ begin
 
   {$else}
   cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil; //never enable for injected pscan
-  
+
   bitcount:=GetCPUCount;
 
   if HasHyperthreading then
     bitcount:=1+(bitcount div 2);
   {$endif}
+
+  rbFindValueClick(rbFindAddress);
+  edtFilterStart.Text:=edtReverseStart.Text;
+  edtFilterStop.Text:=edtReverseStop.text;
+
 
 
 
@@ -285,11 +294,15 @@ end;
 procedure TfrmPointerScannerSettings.rbDefaultClick(Sender: TObject);
 begin
   pssettings.ActivePage:=PSDefault;
+  cbMustEndWithSpecificOffset.Checked:=cbMustEndWithSpecificOffset.checked and rbReverse.Checked;
+  cbMustEndWithSpecificOffset.Enabled:=rbReverse.Checked;  
 end;
 
 procedure TfrmPointerScannerSettings.rbReverseClick(Sender: TObject);
 begin
   pssettings.ActivePage:=PSReverse;
+  cbMustEndWithSpecificOffset.Checked:=cbMustEndWithSpecificOffset.checked and rbReverse.Checked;
+  cbMustEndWithSpecificOffset.Enabled:=rbReverse.Checked;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
@@ -298,24 +311,24 @@ begin
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
 end;
 
-procedure TfrmPointerScannerSettings.Edit2Change(Sender: TObject);
+procedure TfrmPointerScannerSettings.edtReverseStartChange(Sender: TObject);
 begin
-  edtFilterStart.Text:=edit2.Text;
+  edtFilterStart.Text:=edtReverseStart.Text;
 end;
 
-procedure TfrmPointerScannerSettings.Edit1Change(Sender: TObject);
+procedure TfrmPointerScannerSettings.edtReverseStopChange(Sender: TObject);
 begin
-  edtFilterStop.text:=edit1.text;
+  edtFilterStop.text:=edtReverseStop.text;
 end;
 
 procedure TfrmPointerScannerSettings.edtFilterStartChange(Sender: TObject);
 begin
-  edit2.Text:=edtFilterStart.Text;
+  edtReverseStart.Text:=edtFilterStart.Text;
 end;
 
 procedure TfrmPointerScannerSettings.edtFilterStopChange(Sender: TObject);
 begin
-  edit1.text:=edtFilterStop.Text;
+  edtReverseStop.text:=edtFilterStop.Text;
 end;
 
 procedure tfrmPointerScannerSettings.btnAddClick(sender: TObject);
@@ -379,7 +392,7 @@ begin
     begin
       caption:='Add';
       left:=offsetentry.Left+offsetentry.Width+3;
-      width:=50;
+      width:=60;
       height:=offsetentry.Height;
       top:=offsetentry.top;
       parent:=self;
@@ -394,7 +407,7 @@ begin
     begin
       caption:='Remove';
       left:=btnAddOffset.Left+btnAddOffset.Width+3;
-      width:=50;
+      width:=60;
       height:=offsetentry.Height;
       top:=offsetentry.top;
       parent:=self;
@@ -426,6 +439,23 @@ end;
 procedure TfrmPointerScannerSettings.cbUseHeapDataClick(Sender: TObject);
 begin
   cbHeapOnly.Enabled:=cbUseHeapData.Checked;
+end;
+
+procedure TfrmPointerScannerSettings.rbFindValueClick(Sender: TObject);
+begin
+  if rbFindAddress.Checked then
+  begin
+    edtAddress.Width:=cbValueType.Left+cbValueType.Width-edtAddress.Left;
+    cbValueType.Visible:=false;
+    editMaxLevel.Text:='5';
+  end
+  else
+  begin
+    edtAddress.Width:=rbFindAddress.Width;
+    cbValueType.Visible:=true;
+    editMaxLevel.Text:='1';
+  end;
+  edtAddress.SetFocus;
 end;
 
 end.

@@ -7210,6 +7210,8 @@ end;
 
 procedure TMainForm.PopupMenu1Popup(Sender: TObject);
 begin
+  Browsethismemoryregioninthedisassembler1.Enabled:=Foundlist3.SelCount>=1;
+
   if foundlist3.Items.Count=0 then
   begin
     Removeselectedaddresses1.enabled:=false;

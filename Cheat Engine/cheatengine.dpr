@@ -152,7 +152,8 @@ uses
   stacktrace2 in 'stacktrace2.pas',
   byteinterpreter in 'byteinterpreter.pas',
   simpleaobscanner in 'simpleaobscanner.pas',
-  circularBuffer in 'circularBuffer.pas';
+  circularBuffer in 'circularBuffer.pas',
+  frmRescanPointerUnit in 'frmRescanPointerUnit.pas' {frmRescanPointer};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

@@ -1082,9 +1082,9 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       TabOrder = 2
       object ScrollBar1: TScrollBar
-        Left = 0
+        Left = 1
         Top = 0
-        Width = 16
+        Width = 15
         Height = 115
         Align = alRight
         Kind = sbVertical
