@@ -1,8 +1,8 @@
 object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
-  Left = 373
-  Top = 499
-  Width = 393
-  Height = 335
+  Left = 468
+  Top = 331
+  Width = 455
+  Height = 310
   Caption = 'Trainer maker: Add records'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,83 +15,24 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
   Scaled = False
   OnClose = FormClose
   OnCreate = FormCreate
-  DesignSize = (
-    385
-    301)
-  PixelsPerInch = 96
+  PixelsPerInch = 120
   TextHeight = 13
-  object Label3: TLabel
-    Left = 62
-    Top = 232
-    Width = 31
-    Height = 13
-    Anchors = [akBottom]
-    Caption = 'Effect:'
-  end
-  object Label4: TLabel
-    Left = 200
-    Top = 232
-    Width = 37
-    Height = 13
-    Anchors = [akBottom]
-    Caption = 'Hotkey:'
-  end
-  object Button1: TButton
-    Left = 110
-    Top = 275
-    Width = 75
-    Height = 25
-    Anchors = [akBottom]
-    Caption = 'OK'
-    Default = True
-    TabOrder = 0
-    OnClick = Button1Click
-  end
-  object Button2: TButton
-    Left = 200
-    Top = 275
-    Width = 75
-    Height = 25
-    Anchors = [akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 1
-  end
-  object editDescription: TEdit
-    Left = 62
-    Top = 248
-    Width = 121
-    Height = 21
-    Anchors = [akBottom]
-    TabOrder = 2
-  end
-  object editHotkey: TEdit
-    Left = 200
-    Top = 248
-    Width = 121
-    Height = 21
-    Anchors = [akBottom]
-    TabOrder = 3
-    OnKeyDown = editHotkeyKeyDown
-    OnKeyPress = editHotkeyKeyPress
-  end
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 385
-    Height = 230
-    ActivePage = TabSheet2
-    Align = alTop
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 4
+    Width = 437
+    Height = 186
+    ActivePage = TabSheet1
+    Align = alClient
+    TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = 'Code'
       object Label2: TLabel
         Left = 0
         Top = 0
-        Width = 373
-        Height = 26
+        Width = 429
+        Height = 28
+        Align = alTop
         Caption = 
           'Select the address(es) from below that you want to get replaced ' +
           'with code that does nothing'
@@ -99,9 +40,10 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       end
       object ListBox1: TListBox
         Left = 0
-        Top = 32
-        Width = 377
-        Height = 170
+        Top = 28
+        Width = 429
+        Height = 130
+        Align = alClient
         ItemHeight = 13
         MultiSelect = True
         TabOrder = 0
@@ -111,12 +53,12 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       Caption = 'Addresses'
       ImageIndex = 1
       DesignSize = (
-        377
-        202)
+        429
+        158)
       object Label5: TLabel
         Left = 0
-        Top = 189
-        Width = 377
+        Top = 145
+        Width = 429
         Height = 13
         Hint = 
           'Dynamic memory allocation is when a game doesnt store it'#39's stats' +
@@ -130,7 +72,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       end
       object btnDelete: TButton
         Left = 96
-        Top = 157
+        Top = 113
         Width = 75
         Height = 25
         Anchors = [akLeft, akBottom]
@@ -141,7 +83,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       end
       object Button3: TButton
         Left = 8
-        Top = 157
+        Top = 113
         Width = 75
         Height = 25
         Anchors = [akLeft, akBottom]
@@ -152,8 +94,8 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       object Listview: TListView
         Left = 0
         Top = 0
-        Width = 377
-        Height = 153
+        Width = 429
+        Height = 109
         Align = alTop
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
@@ -181,13 +123,90 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       end
     end
   end
-  object Button4: TButton
-    Left = 328
-    Top = 248
-    Width = 49
-    Height = 17
-    Caption = 'Clear'
-    TabOrder = 5
-    OnClick = Button4Click
+  object Panel1: TPanel
+    Left = 0
+    Top = 186
+    Width = 437
+    Height = 79
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 1
+    object Panel2: TPanel
+      Left = 232
+      Top = 41
+      Width = 205
+      Height = 38
+      Align = alRight
+      BevelOuter = bvNone
+      TabOrder = 0
+      object Button2: TButton
+        Left = 118
+        Top = 8
+        Width = 75
+        Height = 25
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 0
+      end
+      object Button1: TButton
+        Left = 38
+        Top = 8
+        Width = 75
+        Height = 25
+        Caption = 'OK'
+        Default = True
+        TabOrder = 1
+        OnClick = Button1Click
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Top = 0
+      Width = 437
+      Height = 41
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 1
+      object Label3: TLabel
+        Left = 8
+        Top = 2
+        Width = 53
+        Height = 13
+        Caption = 'Description'
+      end
+      object Label4: TLabel
+        Left = 257
+        Top = 2
+        Width = 37
+        Height = 13
+        Caption = 'Hotkey:'
+      end
+      object editDescription: TEdit
+        Left = 8
+        Top = 18
+        Width = 241
+        Height = 21
+        TabOrder = 0
+      end
+      object editHotkey: TEdit
+        Left = 257
+        Top = 18
+        Width = 121
+        Height = 21
+        TabOrder = 1
+        OnKeyDown = editHotkeyKeyDown
+        OnKeyPress = editHotkeyKeyPress
+      end
+      object Button4: TButton
+        Left = 376
+        Top = 20
+        Width = 49
+        Height = 17
+        Caption = 'Clear'
+        TabOrder = 2
+        OnClick = Button4Click
+      end
+    end
   end
 end

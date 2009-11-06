@@ -9,20 +9,22 @@ uses
 const wm_fw_scandone=wm_user+1;
 type
   TFindWindow = class(TForm)
-    btnOK: TButton;
-    btnCancel: TButton;
-    Scanvalue: TEdit;
-    editStart: TEdit;
-    EditStop: TEdit;
+    ProgressBar: TProgressBar;
+    Panel1: TPanel;
     labelType: TLabel;
-    rbText: TRadioButton;
-    rbArByte: TRadioButton;
     Label2: TLabel;
     Label3: TLabel;
     labelArray: TLabel;
-    ProgressBar: TProgressBar;
-    Timer1: TTimer;
+    editStart: TEdit;
+    EditStop: TEdit;
+    rbText: TRadioButton;
+    rbArByte: TRadioButton;
     cbUnicode: TCheckBox;
+    Timer1: TTimer;
+    Panel2: TPanel;
+    btnOK: TButton;
+    btnCancel: TButton;
+    Scanvalue: TEdit;
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);

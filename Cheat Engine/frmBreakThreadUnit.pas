@@ -14,6 +14,7 @@ type
     Button2: TButton;
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure ThreadlistboxDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -48,6 +49,11 @@ begin
     for i:=0 to length(threadlist)-1 do
       threadlistbox.Items.Add(inttohex(threadlist[i,0],8));
   end;
+end;
+
+procedure Tfrmbreakthread.ThreadlistboxDblClick(Sender: TObject);
+begin
+  button1.Click;
 end;
 
 end.

@@ -1,65 +1,65 @@
 object frmMemoryModifier: TfrmMemoryModifier
-  Left = 560
-  Top = 393
+  Left = 435
+  Top = 238
   HelpContext = 14
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Trainer maker'
-  ClientHeight = 506
-  ClientWidth = 447
+  ClientHeight = 623
+  ClientWidth = 550
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object lblWidthHeight: TLabel
-    Left = 288
-    Top = 26
-    Width = 145
-    Height = 13
+    Left = 354
+    Top = 32
+    Width = 179
+    Height = 16
     Alignment = taCenter
     AutoSize = False
     Caption = '(80x310)'
   end
   object Icon: TImage
-    Left = 287
-    Top = 40
-    Width = 32
-    Height = 32
+    Left = 353
+    Top = 49
+    Width = 40
+    Height = 40
   end
   object Label4: TLabel
-    Left = 288
-    Top = 80
-    Width = 20
-    Height = 13
+    Left = 354
+    Top = 98
+    Width = 26
+    Height = 16
     Caption = 'Title'
   end
   object Label2: TLabel
-    Left = 288
-    Top = 120
-    Width = 55
-    Height = 13
+    Left = 354
+    Top = 148
+    Width = 66
+    Height = 16
     Caption = 'Launch file:'
   end
   object Label3: TLabel
-    Left = 288
-    Top = 160
-    Width = 41
-    Height = 13
+    Left = 354
+    Top = 197
+    Width = 53
+    Height = 16
     Caption = 'Process:'
   end
   object LoadButton: TSpeedButton
-    Left = 418
-    Top = 134
-    Width = 25
-    Height = 25
+    Left = 514
+    Top = 165
+    Width = 31
+    Height = 31
     Hint = 'Load'
     Glyph.Data = {
       D6020000424DD6020000000000003600000028000000100000000E0000000100
@@ -90,34 +90,34 @@ object frmMemoryModifier: TfrmMemoryModifier
     OnClick = LoadButtonClick
   end
   object Label5: TLabel
-    Left = 288
-    Top = 240
-    Width = 146
-    Height = 13
+    Left = 354
+    Top = 295
+    Width = 187
+    Height = 16
     Caption = 'Freeze Interval (in milliseconds)'
   end
   object Label6: TLabel
-    Left = 288
-    Top = 283
-    Width = 51
-    Height = 13
+    Left = 354
+    Top = 348
+    Width = 61
+    Height = 16
     Caption = 'About text:'
   end
   object Button1: TButton
-    Left = 288
-    Top = 471
-    Width = 155
-    Height = 25
+    Left = 354
+    Top = 580
+    Width = 191
+    Height = 30
     Caption = 'Generate trainer'
     Default = True
     TabOrder = 0
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 288
+    Left = 354
     Top = 2
-    Width = 155
-    Height = 25
+    Width = 191
+    Height = 31
     Caption = 'Change Image'
     TabOrder = 1
     OnClick = Button2Click
@@ -125,28 +125,28 @@ object frmMemoryModifier: TfrmMemoryModifier
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 281
-    Height = 506
+    Width = 346
+    Height = 623
     Align = alLeft
     TabOrder = 2
     DesignSize = (
-      281
-      506)
+      346
+      623)
     object Label1: TLabel
       Left = 1
       Top = 1
-      Width = 279
-      Height = 13
+      Width = 344
+      Height = 16
       Align = alTop
       Alignment = taCenter
       AutoSize = False
       Caption = 'List of items in the trainer:'
     end
     object spbUp: TSpeedButton
-      Left = 259
-      Top = 418
-      Width = 17
-      Height = 22
+      Left = 319
+      Top = 514
+      Width = 21
+      Height = 28
       Anchors = [akLeft, akBottom]
       Enabled = False
       Glyph.Data = {
@@ -166,10 +166,10 @@ object frmMemoryModifier: TfrmMemoryModifier
       OnClick = spbUpClick
     end
     object spbDown: TSpeedButton
-      Left = 259
-      Top = 442
-      Width = 17
-      Height = 22
+      Left = 319
+      Top = 544
+      Width = 21
+      Height = 27
       Anchors = [akLeft, akBottom]
       Enabled = False
       Glyph.Data = {
@@ -189,19 +189,19 @@ object frmMemoryModifier: TfrmMemoryModifier
       OnClick = spbDownClick
     end
     object recordview: TListView
-      Left = 9
-      Top = 16
-      Width = 246
-      Height = 451
+      Left = 11
+      Top = 20
+      Width = 303
+      Height = 555
       Anchors = [akLeft, akTop, akBottom]
       Columns = <
         item
           Caption = 'Description'
-          Width = 120
+          Width = 148
         end
         item
           Caption = 'Hotkey'
-          Width = 120
+          Width = 148
         end>
       ReadOnly = True
       RowSelect = True
@@ -212,10 +212,10 @@ object frmMemoryModifier: TfrmMemoryModifier
       OnDblClick = recordviewDblClick
     end
     object Button4: TButton
-      Left = 112
-      Top = 474
-      Width = 73
-      Height = 25
+      Left = 138
+      Top = 583
+      Width = 90
+      Height = 31
       Anchors = [akLeft, akBottom]
       Caption = 'Add Entry'
       Default = True
@@ -223,10 +223,10 @@ object frmMemoryModifier: TfrmMemoryModifier
       OnClick = Button4Click
     end
     object Button6: TButton
-      Left = 192
-      Top = 474
-      Width = 75
-      Height = 25
+      Left = 236
+      Top = 583
+      Width = 93
+      Height = 31
       Anchors = [akLeft, akBottom]
       Caption = 'Delete Entry'
       TabOrder = 2
@@ -234,36 +234,36 @@ object frmMemoryModifier: TfrmMemoryModifier
     end
   end
   object Button3: TButton
-    Left = 288
-    Top = 442
-    Width = 155
-    Height = 25
+    Left = 354
+    Top = 544
+    Width = 191
+    Height = 31
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 3
     OnClick = Button3Click
   end
   object Button5: TButton
-    Left = 328
-    Top = 44
-    Width = 115
-    Height = 25
+    Left = 404
+    Top = 54
+    Width = 141
+    Height = 31
     Caption = 'Change Icon'
     TabOrder = 4
     OnClick = Button5Click
   end
   object editTitle: TEdit
-    Left = 288
-    Top = 96
-    Width = 155
+    Left = 354
+    Top = 118
+    Width = 191
     Height = 21
     TabOrder = 5
     OnChange = editTitleChange
   end
   object Edit2: TEdit
-    Left = 288
-    Top = 136
-    Width = 123
+    Left = 354
+    Top = 167
+    Width = 152
     Height = 21
     Hint = 
       'This will be the file the trainer starts when you press launch. ' +
@@ -272,30 +272,30 @@ object frmMemoryModifier: TfrmMemoryModifier
     OnChange = Edit2Change
   end
   object ComboBox1: TComboBox
-    Left = 288
-    Top = 176
-    Width = 155
-    Height = 21
+    Left = 354
+    Top = 217
+    Width = 191
+    Height = 24
     Hint = 'Type here (or select) the process that this trainer will affect.'
-    ItemHeight = 13
+    ItemHeight = 16
     ParentShowHint = False
     ShowHint = True
     TabOrder = 7
     OnChange = ComboBox1Change
   end
   object CheckBox1: TCheckBox
-    Left = 288
-    Top = 200
-    Width = 145
-    Height = 17
+    Left = 354
+    Top = 246
+    Width = 179
+    Height = 21
     Caption = 'Popup trainer on keypress'
     TabOrder = 8
     OnClick = CheckBox1Click
   end
   object EditHotkey: TEdit
-    Left = 288
-    Top = 216
-    Width = 121
+    Left = 354
+    Top = 266
+    Width = 149
     Height = 21
     Enabled = False
     TabOrder = 9
@@ -303,10 +303,10 @@ object frmMemoryModifier: TfrmMemoryModifier
     OnKeyPress = EditHotkeyKeyPress
   end
   object Button7: TButton
-    Left = 288
-    Top = 384
-    Width = 155
-    Height = 25
+    Left = 354
+    Top = 473
+    Width = 191
+    Height = 30
     Hint = 'Think the default userinterface sucks? Then design your own!'
     Caption = 'Design own userinterface'
     ParentShowHint = False
@@ -315,18 +315,18 @@ object frmMemoryModifier: TfrmMemoryModifier
     OnClick = Button7Click
   end
   object CheckBox2: TCheckBox
-    Left = 348
-    Top = 118
-    Width = 97
-    Height = 17
+    Left = 428
+    Top = 145
+    Width = 120
+    Height = 21
     Caption = 'and Autolaunch'
     TabOrder = 11
   end
   object Memo1: TMemo
-    Left = 288
-    Top = 298
-    Width = 155
-    Height = 81
+    Left = 354
+    Top = 367
+    Width = 191
+    Height = 99
     Hint = 'This will show up when you press the about box'
     Lines.Strings = (
       'This trainer was made by '
@@ -338,18 +338,18 @@ object frmMemoryModifier: TfrmMemoryModifier
     TabOrder = 12
   end
   object editFreezeInterval: TEdit
-    Left = 288
-    Top = 256
-    Width = 153
+    Left = 354
+    Top = 315
+    Width = 189
     Height = 21
     TabOrder = 13
     Text = '250'
   end
   object cbPreventReopening: TCheckBox
-    Left = 288
-    Top = 416
-    Width = 113
-    Height = 17
+    Left = 354
+    Top = 512
+    Width = 140
+    Height = 21
     Hint = 
       'Prevents CE from reopening and editing this trainer. (Only someo' +
       'ne with an IQ higher than that of a rock will be able to edit it' +
@@ -360,10 +360,10 @@ object frmMemoryModifier: TfrmMemoryModifier
     TabOrder = 14
   end
   object Button8: TButton
-    Left = 411
-    Top = 218
-    Width = 33
-    Height = 17
+    Left = 506
+    Top = 268
+    Width = 40
+    Height = 21
     Caption = 'Clear'
     TabOrder = 15
     OnClick = Button8Click

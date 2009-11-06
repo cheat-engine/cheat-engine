@@ -45,6 +45,9 @@ const reg0set= $3;          //(00000000000000000000000000000011)
       reg2len0=0;
       reg3len0=0;
 
+
+type TWindowsDebuggerContinueOption = (wdco_run=0, wdco_stepinto, wdco_stepover, wdco_runtill);
+
 type TReadonly = record
   pagebase: dword;
   pagesize: dword;
@@ -151,6 +154,8 @@ type TDebugger = class(TThread)
     procedure tracersync;
     function tracer(devent: _Debug_EVENT):boolean;
 
+    function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+    function continueDebugEvent(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL;
   public
     //semaphore: THandle;
     Processes: array of process;
@@ -161,7 +166,7 @@ type TDebugger = class(TThread)
 
     running: boolean;
     continueprocess: boolean;
-    continuehow: integer;
+    continuehow: TWindowsDebuggerContinueOption;
 
     DRRegs: _CONTEXT;
 
@@ -1234,7 +1239,7 @@ begin
       context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
       getthreadcontext(threadlist[i,1],context);
 
-      context.ContextFlags:=CONTEXT_FULL; //CONTEXT_CONTROL;
+      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT; //CONTEXT_CONTROL;
       context.EFlags:=context.EFlags or $100;
       setthreadcontext(threadlist[i,1],context);
       break;
@@ -1420,6 +1425,40 @@ begin
 end;
 
 
+function TDebugger.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+begin
+  if not terminated then
+    result:=newkernelhandler.WaitForDebugEvent(lpDebugEvent, dwMilliseconds)
+  else
+    result:=false;
+end;
+
+function TDebugger.continueDebugEvent(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL;
+var i: integer;
+begin
+  if terminated then
+  begin
+    RemoveBreakpoint;
+
+    context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+    getthreadcontext(pausedthreadhandle,context);
+
+    context.ContextFlags:=CONTEXT_FULL; //CONTEXT_CONTROL;
+    context.EFlags:=context.EFlags and (not $100);
+    setthreadcontext(pausedthreadhandle,context);
+
+    result:=newkernelhandler.ContinueDebugEvent(dwProcessID, dwThreadID, dwContinueStatus);
+
+    for i:=0 to length(processes)-1 do
+      if processes[i].running then DebugActiveProcessStop(processes[i].ProcessID); //this sometimes works
+  end
+  else
+    result:=newkernelhandler.ContinueDebugEvent(dwProcessID, dwThreadID, dwContinueStatus);
+
+
+
+end;
+
 procedure TDebugger.Execute;
 var startupinfo:_STARTUPINFOA;
     int3: byte;
@@ -1602,6 +1641,7 @@ begin
   running:=true;
 
 
+  continuehow:=wdco_run;
   while not terminated and debugging do
   begin
     if WaitForDebugEvent(devent,4000) then  //4 seconds wont cause a hog I hope
@@ -1822,6 +1862,7 @@ begin
                           SetSingleStepping(devent.dwThreadId);
                           debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
 
+                          
                           j:=devent.dwThreadId;
                           if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
 
@@ -1864,7 +1905,7 @@ begin
 
 
                     continueprocess:=false;
-                    continuehow:=0;
+                    continuehow:=wdco_run;
                     suspendallthreads;
 
                     synchronize(updateregisters);
@@ -1882,22 +1923,22 @@ begin
                     debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
 
                     j:=devent.dwThreadId;
-                    if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+                    WaitForDebugEvent(devent,10000);
 
                     while j<>devent.dwthreadid do
                     begin
                       debugging:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
-                      if not WaitForDebugEvent(devent,10000) then application.MessageBox('userbreakpoint bug','Cheat Engine Debugger',0);
+                      WaitForDebugEvent(devent,10000);
                     end;
 
                     //set the breakpoint back if needed
                     resetbreakpoint;
                     releasesemaphore(semaphore,1,nil);
 
-                    if continuehow=1 then //it was a step, so
+                    if continuehow=wdco_stepinto then //it was a step, so
                     begin
                       continueprocess:=false;
-                      continuehow:=0;
+                      continuehow:=wdco_run;
                       suspendallthreads;
 
                       for j:=0 to length(threadlist)-1 do
@@ -1918,8 +1959,10 @@ begin
 
                       resumeallthreads;
 
+
+
                       //make a step
-                      if continuehow=1 then SetSingleStepping(devent.dwThreadId);
+                      if continuehow=wdco_stepinto then SetSingleStepping(devent.dwThreadId);
                     end;
                   end;
 
@@ -2147,7 +2190,7 @@ begin
 
 
                   continueprocess:=false;
-                  continuehow:=0;
+                  continuehow:=wdco_run;
                   suspendallthreads;
 
                   synchronize(updateregisters);
@@ -2184,7 +2227,7 @@ begin
                      break;
                     end;
 
-                  if ((canusedebugregs) and (drregs.Dr3=context.Eip)) or (continuehow=1) then
+                  if ((canusedebugregs) and (drregs.Dr3=context.Eip)) or (continuehow=wdco_stepinto) then
                   begin
 
                     if (canusedebugregs) and (drregs.dr3=context.Eip) then
@@ -2193,14 +2236,20 @@ begin
                       resetbreakpoint;
                     end;
 
+                    suspendallthreads;
+
                     synchronize(updateregisters);
                     continueprocess:=false;
-                    continuehow:=0;
+                    continuehow:=wdco_run;
                     running:=false;
                     while not continueprocess do;
                     running:=true;
 
-                    if continuehow=1 then SetSingleStepping(devent.dwThreadId);
+                    resumeallthreads;
+
+
+
+                    if continuehow=wdco_stepinto then SetSingleStepping(devent.dwThreadId);
                   end;
 
                 end;

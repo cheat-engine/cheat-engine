@@ -179,6 +179,8 @@ type
     Panel2: TPanel;
     Protectlabel: TLabel;
     MBCanvas: TPaintBox;
+    Continueanddetachdebugger1: TMenuItem;
+    N16: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -299,6 +301,7 @@ type
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
     procedure Watchmemoryallocations1Click(Sender: TObject);
+    procedure Continueanddetachdebugger1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -1771,7 +1774,7 @@ begin
     debuggerthread.DRRegs.Dr2:=0;
     debuggerthread.DRRegs.Dr3:=0;
 
-    debuggerthread.continuehow:=0;
+    debuggerthread.continuehow:=wdco_run;
 
     setlength(debuggerthread.userbreakpoints,0);
     setlength(debuggerthread.int3userbreakpoints,0);
@@ -1808,7 +1811,7 @@ begin
   else
   if debuggerthread<>nil then
   begin
-    debuggerthread.continuehow:=0;   //note: I could also have the debuggerthread suspend itself, and resume it here
+    debuggerthread.continuehow:=wdco_run;   //note: I could also have the debuggerthread suspend itself, and resume it here
     debuggerthread.continueprocess:=true;
     caption:='Memory Viewer - Running';
   end;
@@ -1825,7 +1828,7 @@ begin
   else
   if debuggerthread<>nil then
   begin
-    debuggerthread.continuehow:=1; //single step
+    debuggerthread.continuehow:=wdco_stepinto; //single step
     debuggerthread.continueprocess:=true;
     caption:='Memory Viewer - Running';
   end;
@@ -1851,7 +1854,7 @@ begin
   else
   if debuggerthread<>nil then
   begin
-    debuggerthread.continuehow:=0; //step over
+    debuggerthread.continuehow:=wdco_stepOver; //step over
     x:=eipv;
     disassemble(x,temp);
 
@@ -1912,7 +1915,7 @@ begin
   else
   if debuggerthread<>nil then
   begin
-    debuggerthread.continuehow:=0; //step over
+    debuggerthread.continuehow:=wdco_stepOver; //step over
     x:=disassemblerview.SelectedAddress;
     disassemble(x,temp);
 
@@ -3922,6 +3925,20 @@ begin
   end;
 
   frmMemoryAllocHandler.Show;
+end;
+
+procedure TMemoryBrowser.Continueanddetachdebugger1Click(Sender: TObject);
+begin
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.Terminate;
+    debuggerthread.continuehow:=wdco_run;   //note: I could also have the debuggerthread suspend itself, and resume it here
+    debuggerthread.continueprocess:=true;
+    caption:='Memory Viewer - Detaching';
+    debuggerthread.WaitFor;
+    open_process;
+    caption:='Memory Viewer - Detached';
+  end;
 end;
 
 end.

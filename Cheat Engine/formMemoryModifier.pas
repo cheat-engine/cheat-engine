@@ -106,10 +106,11 @@ type
     procedure Button8Click(Sender: TObject);
   private
     { Private declarations }
-    currentIcon: TKIcon;
+
     procedure changeicon(filename: string);
   public
     { Public declarations }
+    currentIcon: TKIcon;    
     trainerdata: array of TTrainerdata;
     changed: boolean;
     popuphotkey: tkeycombo;
@@ -720,7 +721,7 @@ begin
 
 
     CurrentIcon.MaskFromColor(0,clBlack);
-    CurrentIcon.SaveToFile('c:\bla.ico');
+    //CurrentIcon.SaveToFile('c:\bla.ico');
 
     icon.Picture.Icon.Handle:=HI;
     {test:=TMemoryStream.Create;

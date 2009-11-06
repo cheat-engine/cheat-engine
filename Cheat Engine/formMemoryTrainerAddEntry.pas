@@ -17,12 +17,6 @@ end;
 
 type
   TFrmMemoryTrainerAddEntry = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
-    editDescription: TEdit;
-    Label3: TLabel;
-    Label4: TLabel;
-    editHotkey: TEdit;
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
@@ -32,6 +26,15 @@ type
     Button3: TButton;
     Label5: TLabel;
     Listview: TListView;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Button2: TButton;
+    Button1: TButton;
+    Panel3: TPanel;
+    Label3: TLabel;
+    Label4: TLabel;
+    editDescription: TEdit;
+    editHotkey: TEdit;
     Button4: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);

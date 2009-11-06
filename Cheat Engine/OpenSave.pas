@@ -8,7 +8,7 @@ uses unit2,dialogs,windows,Classes,Graphics,Controls,commentsunit,advancedoption
 uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
-     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, structuresfrm, XMLDoc, XMLIntf;
+     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, structuresfrm, XMLDoc, XMLIntf, KIcon;
 {$endif}
 
 
@@ -3291,6 +3291,8 @@ begin
   frmMemoryModifier.Icon.Picture.Icon.Handle:=hi;
   frmMemoryTrainerPreview.Icon:=frmMemoryModifier.Icon.Picture.Icon;
 
+  frmMemoryModifier.CurrentIcon.LoadFromHandle(hi);
+
   trainer:=tfilestream.Create(filename,fmopenread);
   try
     //load stuff from the trainer
@@ -3335,35 +3337,85 @@ var newrec: MemoryRecordV6;
     offsetlist: array of dword;
     invoffsetlist: array of dword;
     offsetsize: dword;
+    stringlength: dword;
     i,j: integer;
+
+    ssize: integer;
+    s: pchar;
+    offset: dword;
 begin
 {$ifndef net}
   setlength(offsetlist,0);
 
-  x:=tfilestream.Create(filename,fmopenread);
+  x:=tfilestream.Create(filename,fmopenread or fmShareDenyNone);
+  getmem(s,100);
+  ssize:=100;
   try
     while x.Position<x.Size do
     begin
+      //get the size of the string
+      x.ReadBuffer(stringlength,sizeof(stringlength));
+      if ssize<=stringlength then
+      begin
+        freemem(s);
+        s:=nil;
+        getmem(s,stringlength+1);
+        ssize:=stringlength+1;
+      end;
+
+      //read the string
+      x.ReadBuffer(s^,stringlength);
+      s[stringlength]:=#0; //and place a 0 terminator
+
+      x.ReadBuffer(offset,sizeof(offset)); //read the offset part of modulename+offset
+
       x.ReadBuffer(offsetsize,sizeof(offsetsize));
-      if length(offsetlist)<(offsetsize+1) then
+
+      if offsetsize>0 then
       begin
-        setlength(offsetlist,offsetsize*2);
-        setlength(invoffsetlist,length(offsetlist));
+        if length(offsetlist)<(offsetsize+1) then
+        begin
+          setlength(offsetlist,offsetsize*2);
+          setlength(invoffsetlist,length(offsetlist));
+        end;
+
+        x.ReadBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
+        j:=0;
+        for i:=offsetsize-1 downto 0 do
+        begin
+          invoffsetlist[j]:=offsetlist[i];
+          inc(j);
+        end;
       end;
 
-      x.ReadBuffer(offsetlist[0],(offsetsize+1)*sizeof(offsetlist[0]));
-      j:=0;
-      for i:=offsetsize downto 2 do
+      with mainform do
       begin
-        invoffsetlist[j]:=offsetlist[i];
-        inc(j);
+        inc(numberofrecords);
+        reservemem;
+
+        memrec[numberofrecords-1].Description:='pointerscan result';
+        memrec[numberofrecords-1].VarType:=2;
+        memrec[numberofrecords-1].Address:=0;
+        memrec[numberofrecords-1].interpretableaddress:=s+'+'+inttohex(offset,8);
+        memrec[numberofrecords-1].IsPointer:=offsetsize>0;
+        setlength(memrec[numberofrecords-1].pointers, offsetsize);
+        for i:=0 to offsetsize-1 do
+        begin
+          memrec[numberofrecords-1].pointers[i].Interpretableaddress:=s+'+'+inttohex(offset,8);
+          memrec[numberofrecords-1].pointers[i].offset:=invoffsetlist[i];
+        end;
       end;
 
-      mainform.addaddress('pointerscan result',offsetlist[0],invoffsetlist[0],offsetsize-1,true,2,0,0,false,false);
+
+      //mainform.addaddress('pointerscan result',offsetlist[0],invoffsetlist[0],offsetsize-1,true,2,0,0,false,false);
     end;
   finally
     x.free;
+    if s<>nil then freemem(s);
   end;
+
+  mainform.UpdateScreen;
+  mainform.updatelist;
 {$endif}
 end;
 

@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 268
-  Top = 311
+  Left = 530
+  Top = 270
   Width = 709
   Height = 600
   HelpContext = 12
@@ -73,7 +73,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         object EAXLabel: TLabel
           Left = 10
-          Top = 20
+          Top = 19
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -89,7 +89,7 @@ object MemoryBrowser: TMemoryBrowser
         object EBXlabel: TLabel
           Tag = 1
           Left = 10
-          Top = 31
+          Top = 32
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -105,7 +105,7 @@ object MemoryBrowser: TMemoryBrowser
         object ECXlabel: TLabel
           Tag = 2
           Left = 10
-          Top = 43
+          Top = 45
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -121,7 +121,7 @@ object MemoryBrowser: TMemoryBrowser
         object EDXlabel: TLabel
           Tag = 3
           Left = 10
-          Top = 55
+          Top = 58
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -137,7 +137,7 @@ object MemoryBrowser: TMemoryBrowser
         object ESIlabel: TLabel
           Tag = 4
           Left = 10
-          Top = 66
+          Top = 70
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -153,7 +153,7 @@ object MemoryBrowser: TMemoryBrowser
         object EDIlabel: TLabel
           Tag = 5
           Left = 10
-          Top = 78
+          Top = 83
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -169,7 +169,7 @@ object MemoryBrowser: TMemoryBrowser
         object EBPlabel: TLabel
           Tag = 6
           Left = 10
-          Top = 90
+          Top = 96
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -185,7 +185,7 @@ object MemoryBrowser: TMemoryBrowser
         object ESPlabel: TLabel
           Tag = 7
           Left = 10
-          Top = 102
+          Top = 109
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -201,7 +201,7 @@ object MemoryBrowser: TMemoryBrowser
         object EIPlabel: TLabel
           Tag = 8
           Left = 10
-          Top = 113
+          Top = 121
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -924,6 +924,13 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = ogglebreakpoint1Click
       end
       object N3: TMenuItem
+        Caption = '-'
+      end
+      object Continueanddetachdebugger1: TMenuItem
+        Caption = 'Continue and  detach debugger'
+        OnClick = Continueanddetachdebugger1Click
+      end
+      object N16: TMenuItem
         Caption = '-'
       end
       object Break1: TMenuItem
