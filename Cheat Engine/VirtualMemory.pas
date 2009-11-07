@@ -83,7 +83,12 @@ begin
   offset:=dword(p)-dword(buffer); //difference from start of the buffer till p
   for i:=0 to length(memoryregion)-1 do
   begin
-    if dword(memoryregion[i].startaddress) > (dword(memoryregion[0].startaddress)+offset) then exit;
+    if dword(memoryregion[i].startaddress) > (dword(memoryregion[0].startaddress)+offset) then
+    begin
+//      raise exception.Create('Invalid address is being accessed');
+
+      exit;
+    end;
 
     if (
          (dword(p) >= dword(memoryregion[i].startaddress) ) and
@@ -101,23 +106,24 @@ end;
 function TVirtualMemory.AddressToPointer(address: dword): pointer;
 var i: integer;
 begin
-try
   result:=nil;
+  try
 
-  for i:=0 to length(memoryregion)-1 do
-  begin
-    if memoryregion[i].BaseAddress>address then exit; //sorted so higher will never be found
-    if (memoryregion[i].BaseAddress+memoryregion[i].MemorySize)>address then
+
+    for i:=0 to length(memoryregion)-1 do
     begin
-      result:=pointer(dword(memoryregion[i].startaddress)+(address-memoryregion[i].BaseAddress));
-      exit;
+      if memoryregion[i].BaseAddress>address then exit; //sorted so higher will never be found
+      if (memoryregion[i].BaseAddress+memoryregion[i].MemorySize)>address then
+      begin
+        result:=pointer(dword(memoryregion[i].startaddress)+(address-memoryregion[i].BaseAddress));
+        exit;
+      end;
     end;
-  end;
 
-except
-  //messagebox(0,pchar(format('address=%.8x i=%d length(memoryregion)=%d',[address,i,length(memoryregion)])),'error',mb_ok);
-  //raise exception.create('unnhandled error');
-end;
+  except
+    //messagebox(0,pchar(format('address=%.8x i=%d length(memoryregion)=%d',[address,i,length(memoryregion)])),'error',mb_ok);
+    //raise exception.create('unnhandled error');
+  end;
 
   //still here
 
@@ -163,15 +169,12 @@ var RMPointer: ^Byte;
 
     actualread: dword;
     TotalToRead: Dword;
-    Total: dword;
-
-    NO: boolean;
 begin
   address:=start;
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
   begin
-    if (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and (mbi.type_9=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+    if (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and ((mbi.type_9 and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
       if Skip_PAGE_NOCACHE then
         if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
@@ -265,13 +268,11 @@ begin
 
   RMPointer:=pointer(buffer);
 
-  total:=0;
   for i:=0 to length(memoryregion)-1 do
   begin
     actualread:=0;
     readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),RMPointer,Memoryregion[i].MemorySize,actualread);
 
-    inc(total,actualread);
     Memoryregion[i].MemorySize:=actualread;
     Memoryregion[i].startaddress:=RMPointer;
     inc(RMPointer,actualread);

@@ -84,11 +84,11 @@ type
 
   TReverseScanWorker = class (tthread)
   private
-    tempresults: array of dword;
+    offsetlist: array of dword;
     results: tmemorystream;
     resultsfile: tfilestream;
 
-    offsetlist: array of dword;
+
     procedure flushresults;
     procedure rscan(address:dword; level: integer);
     procedure StorePath(level: integer);
@@ -107,6 +107,8 @@ type
     stop: boolean;
 
     staticscanner: TStaticscanner;
+    tempresults: array of dword;
+
 
     //info:
     currentaddress: pointer;
@@ -1299,10 +1301,12 @@ begin
         found:=true;
         tempresults[level]:=vm.PointerToAddress(p);
 
+        createdworker:=false;
+        
         //check if I can offload it to another thread
         if staticscanner.isdone and ((level+1)<maxlevel) then //best only do it when staticscanner is done
         begin
-          createdworker:=false;
+
           reverseScanCS.Enter;
         
           //scan the worker thread array for a idle one, if found use it
@@ -1314,24 +1318,35 @@ begin
               staticscanner.reversescanners[i].maxlevel:=maxlevel;
               staticscanner.reversescanners[i].addresstofind:=addresstofind; //in case it wasn't set yet...
 
-              staticscanner.reversescanners[i].startaddress:=vm.PointerToAddress(p);
+              staticscanner.reversescanners[i].startaddress:=tempresults[level];
               for j:=0 to maxlevel-1 do
                 staticscanner.reversescanners[i].tempresults[j]:=tempresults[j]; //copy results
 
               staticscanner.reversescanners[i].startlevel:=level;
               staticscanner.reversescanners[i].structsize:=structsize;
               staticscanner.reversescanners[i].startworking.SetEvent;
+              createdworker:=true;
               break;
             end;
           end;
 
           reverseScanCS.Leave;
 
-          if createdworker then continue;  //stop processing the rest of this routine and continue scanning
+          if createdworker then
+          begin
+            //NEXT!
+            if alligned then
+              inc(pd) //dword pointer+1
+            else
+              inc(p); //byte pointer+1
+            continue;  //stop processing the rest of this routine and continue scanning
+          end;
         end;
 
 
+        //can't offload, do it myself
         rscan(tempresults[level],level+1);
+          
         //messagebox(0,pchar(inttohex(address,8)),'',0);
       end;
 
@@ -1446,7 +1461,7 @@ begin
         begin
           //found one
           if findValueInsteadOfAddress then
-            automaticaddress:=vm.PointerToAddress(p);
+            automaticaddress:=vm.PointerToAddress(p); //do a pointerscan for this address
 
 
           reversescansemaphore.Aquire; //aquire here, the thread will release it when done
@@ -1582,10 +1597,15 @@ begin
     try
       vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar);
     except
-      //e.g failure in allocating mem
-      postmessage(frmpointerscanner.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
-      terminate;
-      exit;
+//      try
+//        vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar,true); //memory safe, but slower
+//      except
+        //e.g failure in allocating mem
+        postmessage(frmpointerscanner.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
+        terminate;
+        exit;    
+//      end;
+
     end;
   end;
 
@@ -2069,7 +2089,12 @@ begin
 
           if vm<>nil then
           begin
-            tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel);
+            s:='';
+            for j:=0 to staticscanner.reversescanners[i].currentlevel-1 do
+              s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
+
+
+            tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
             tn2:=tn2.getNextSibling;
             tn2.text:='Current Address:'+inttohex(vm.PointerToAddress(staticscanner.reversescanners[i].currentaddress),8);
             tn2:=tn2.getNextSibling;
