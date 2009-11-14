@@ -1,7 +1,7 @@
 object frmHeaps: TfrmHeaps
   Left = 408
   Top = 186
-  Width = 229
+  Width = 220
   Height = 316
   BorderIcons = [biSystemMenu]
   Caption = 'Current Heaplist'
@@ -20,16 +20,16 @@ object frmHeaps: TfrmHeaps
   object Panel1: TPanel
     Left = 0
     Top = 221
-    Width = 211
+    Width = 202
     Height = 50
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      211
+      202
       50)
     object Button1: TButton
-      Left = 89
+      Left = 54
       Top = 10
       Width = 92
       Height = 31
@@ -40,26 +40,25 @@ object frmHeaps: TfrmHeaps
       OnClick = Button1Click
     end
   end
-  object TreeView1: TTreeView
+  object ListView1: TListView
     Left = 0
     Top = 0
-    Width = 211
+    Width = 202
     Height = 221
     Align = alClient
-    HideSelection = False
-    Indent = 19
-    ParentShowHint = False
+    Columns = <
+      item
+        Caption = 'Address'
+        Width = 128
+      end
+      item
+        AutoSize = True
+        Caption = 'Size'
+      end>
     ReadOnly = True
-    ShowHint = False
+    RowSelect = True
     TabOrder = 1
-    OnDblClick = TreeView1DblClick
-    OnExpanding = TreeView1Expanding
-    Items.Data = {
-      030000001A0000000000000000000000FFFFFFFFFFFFFFFF0000000003000000
-      01611B0000000000000000000000FFFFFFFFFFFFFFFF00000000000000000261
-      311B0000000000000000000000FFFFFFFFFFFFFFFF0000000000000000026132
-      1B0000000000000000000000FFFFFFFFFFFFFFFF00000000000000000261331A
-      0000000000000000000000FFFFFFFFFFFFFFFF000000000000000001621A0000
-      000000000000000000FFFFFFFFFFFFFFFF00000000000000000163}
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
   end
 end

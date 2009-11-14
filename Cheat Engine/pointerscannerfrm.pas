@@ -231,7 +231,7 @@ type
 
 
     mustEndWithSpecificOffset: boolean;
-    offsetlist: array of dword;
+    mustendwithoffsetlist: array of dword;
 
 
     threadcount: integer;
@@ -299,6 +299,8 @@ type
     Panel3: TPanel;
     Button1: TButton;
     Label6: TLabel;
+    view1: TMenuItem;
+    Sortlist1: TMenuItem;
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Showresults1Click(Sender: TObject);
@@ -312,6 +314,7 @@ type
     procedure New1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure Sortlist1Click(Sender: TObject);
   private
     { Private declarations }
     start:tdatetime;
@@ -324,6 +327,8 @@ type
     procedure drawtreeviewdone(var message: tmessage); message wm_drawtreeviewdone;
     procedure drawtreeviewAddToList(var message: tmessage); message wm_drawtreeviewAddToList;
     {$endif}
+    procedure tvResultCompare(Sender: TObject; Node1, Node2: TTreeNode; Data: Integer; var Compare: Integer);
+    
 
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
@@ -1240,7 +1245,7 @@ begin
   if (level>=maxlevel) or
      (symhandler.getmodulebyaddress(address,mi)) then //static address
   begin
-    //reached max level, store this results entry
+    //reached max level or a static, store this results entry
     StorePath(level-1);
     exit;
   end;
@@ -1252,10 +1257,10 @@ begin
 
   p:=vm.GetBuffer;
 
-  exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.offsetlist)-1>=level);
+  exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.mustendwithoffsetlist)-1>=level);
 
   if exactOffset then
-    AddressMinusMaxStructSize:=address-staticscanner.offsetlist[level]
+    AddressMinusMaxStructSize:=address-staticscanner.mustendwithoffsetlist[level]  //look for a specific value
   else
   begin
     //normal
@@ -1339,6 +1344,7 @@ begin
               inc(pd) //dword pointer+1
             else
               inc(p); //byte pointer+1
+
             continue;  //stop processing the rest of this routine and continue scanning
           end;
         end;
@@ -1412,11 +1418,11 @@ begin
     setlength(results,maxlevel);
     p:=vm.GetBuffer;
 
-    exactOffset:=self.mustEndWithSpecificOffset and (length(self.offsetlist)-1>=0); //level 0 here
+    exactOffset:=self.mustEndWithSpecificOffset and (length(self.mustendwithoffsetlist)-1>=0); //level 0 here
 
     if exactOffset then
     begin
-      automaticAddressMinusMaxStructSize:=automaticAddress-self.offsetlist[0]
+      automaticAddressMinusMaxStructSize:=automaticAddress-self.mustendwithoffsetlist[0]
     end
     else
     begin
@@ -1915,9 +1921,9 @@ begin
       staticscanner.mustEndWithSpecificOffset:=frmpointerscannersettings.cbMustEndWithSpecificOffset.checked;
       if staticscanner.mustEndWithSpecificOffset then
       begin
-        setlength(staticscanner.offsetlist, frmpointerscannersettings.offsetlist.count);
+        setlength(staticscanner.mustendwithoffsetlist, frmpointerscannersettings.offsetlist.count);
         for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
-          staticscanner.offsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
+          staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
 
 {$ifndef injectedpscan}      
@@ -2467,9 +2473,10 @@ begin
             rescan.forvalue:=true;
 
           end;
+          rescan.resume;
         end;
 
-        rescan.resume;
+
       finally
         free;
       end;
@@ -2736,6 +2743,28 @@ begin
   end;
 
   postmessage(handle,wm_close,0,0);
+end;
+
+procedure Tfrmpointerscanner.tvResultCompare(Sender: TObject; Node1, Node2: TTreeNode; Data: Integer; var Compare: Integer);
+begin
+  compare:=0;
+  if (node1.Level>0) or (node2.level>0) then exit;
+
+  if node1.Text<node2.Text then
+    compare:=-1
+  else
+  if node1.Text>node2.Text then
+    compare:=1;
+
+
+end;
+
+
+procedure Tfrmpointerscanner.Sortlist1Click(Sender: TObject);
+var i,j: integer;
+begin
+  tvResults.OnCompare:=tvResultCompare;
+  tvResults.AlphaSort(false);
 end;
 
 end.

@@ -8,7 +8,7 @@ object frmAutoInject: TfrmAutoInject
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -18,22 +18,22 @@ object frmAutoInject: TfrmAutoInject
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Panel1: TPanel
     Left = 0
-    Top = 237
-    Width = 415
-    Height = 38
+    Top = 215
+    Width = 413
+    Height = 46
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     OnResize = Panel1Resize
     object Button1: TButton
-      Left = 174
-      Top = 8
-      Width = 75
-      Height = 25
+      Left = 214
+      Top = 10
+      Width = 92
+      Height = 31
       Caption = 'Execute'
       TabOrder = 0
       OnClick = Button1Click
@@ -42,8 +42,8 @@ object frmAutoInject: TfrmAutoInject
   object TabControl1: TTabControl
     Left = 0
     Top = 0
-    Width = 415
-    Height = 237
+    Width = 413
+    Height = 215
     Align = alClient
     Style = tsFlatButtons
     TabOrder = 0

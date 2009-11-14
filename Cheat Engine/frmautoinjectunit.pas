@@ -644,6 +644,12 @@ var originalcode: array of string;
     codesize: integer;
     a,b: dword;
     x: string;
+
+    enablepos,disablepos: integer;
+    disablescript: tstringlist;
+    enablescript: tstringlist;
+
+    originalcodebuffer: Pbytearray;
 begin
 {$ifndef standalonetrainerwithassembler}
   //disassemble the old code
@@ -665,6 +671,10 @@ begin
       raise exception.create(addresstogoto+':'+e.message);
   end;
 
+  disablescript:=tstringlist.Create;
+  enablescript:=tstringlist.Create;
+
+
   codesize:=0;
   b:=a;
   while codesize<5 do
@@ -677,7 +687,23 @@ begin
     codesize:=a-b;
   end;
 
-  with script do
+  getmem(originalcodebuffer,codesize);
+  if ReadProcessMemory(processhandle,pointer(b), originalcodebuffer, codesize, a) then
+  begin
+    disablescript.Add(address+':');
+    x:='db';
+
+    for i:=0 to a-1 do
+      x:=x+' '+inttohex(originalcodebuffer[i],2);
+
+    disablescript.Add(x);      
+  end;
+
+  freemem(originalcodebuffer);
+
+
+
+  with enablescript do
   begin
     add('alloc(originalcall'+nameextension+',2048) //2kb should be enough');
     add('label(returnhere'+nameextension+')');
@@ -706,10 +732,30 @@ begin
     add('returnhere'+nameextension+':');
 
     add('');
-
-
-
   end;
+
+
+  getenableanddisablepos(script,enablepos,disablepos);
+
+  if disablepos<>-1 then
+  begin
+    for i:=0 to disablescript.Count-1 do
+      script.Insert(disablepos+i+1,disablescript[i]);
+  end;
+
+  getenableanddisablepos(script,enablepos,disablepos); //idiots putting disable first 
+
+  if enablepos<>-1 then
+  begin
+    for i:=0 to enablescript.Count-1 do
+      script.Insert(enablepos+i+1,enablescript[i]);
+  end
+  else
+    script.AddStrings(enablescript);
+
+  disablescript.free;
+  enablescript.free;
+  
 {$endif}
 end;
 

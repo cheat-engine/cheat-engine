@@ -106,6 +106,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       Font.Name = 'MS Sans Serif'
       Font.Style = []
       ParentFont = False
+      Visible = False
     end
   end
   object Panel1: TPanel
@@ -116,17 +117,6 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 2
-    object Label5: TLabel
-      Left = 274
-      Top = 0
-      Width = 225
-      Height = 41
-      Align = alRight
-      Caption = 
-        'You can close this window if you want. Allocations will keep get' +
-        'ting tracked'
-      WordWrap = True
-    end
     object Edit1: TEdit
       Left = 8
       Top = 8
@@ -142,6 +132,24 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       Caption = 'Check Address'
       TabOrder = 1
       OnClick = Button1Click
+    end
+    object btnReload: TButton
+      Left = 416
+      Top = 8
+      Width = 75
+      Height = 25
+      Caption = 'Reload'
+      TabOrder = 2
+      OnClick = btnReloadClick
+    end
+    object cbHookAllocs: TCheckBox
+      Left = 256
+      Top = 12
+      Width = 145
+      Height = 17
+      Caption = 'Hook alloc functions'
+      TabOrder = 3
+      OnClick = cbHookAllocsClick
     end
   end
   object Timer1: TTimer

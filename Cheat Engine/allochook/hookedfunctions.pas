@@ -18,6 +18,7 @@ function CeRtlAllocateHeap(HeapHandle: pointer; Flags: DWORD; size: integer): po
 function CeRtlFreeHeap(HeapHandle: pointer; Flags: DWORD; HeapBase: pointer): BOOL; stdcall;
 function CeRtlDestroyHeap(HeapHandle: pointer): pointer; stdcall;
 
+function CeInitializeAllocHook: BOOL; stdcall;
 
 var
   NtAllocateVirtualMemoryOrig: TNtAllocateVirtualMemory;
@@ -101,10 +102,71 @@ var
 
 var HasSetupDataEvent: THandle; //set by this routine
 var CEHasHandledItEvent: THandle; //set by ce
+var CEInitializationFinished: THandle; //set by CeInitializeAllocHook, and reset by ce (or never)
 
 implementation
 
 var allocCS: TCriticalSection;
+
+function CeInitializeAllocHook: BOOL; stdcall;
+//this function will gather the start memory situation using a heapwalk and pass off that information to ce (ce's lookup is faster for the pointerscan)
+//call this after the hooks are in place and all configuration has been completed (handles)
+var heaphandles: array of cardinal;
+    size: integer;
+    temp: dword;
+    i: integer;
+    phe: PROCESS_HEAP_ENTRY;
+begin
+  ResetEvent(CEInitializationFinished); //in case ce forgot to reset it...
+
+  size:=GetProcessHeaps(0,temp);
+
+  if size>0 then
+  begin
+    setlength(heaphandles,size);
+    size:=GetProcessHeaps(size,heaphandles[0]);
+
+    if size>0 then
+    begin
+      for i:=0 to size-1 do
+      begin
+        heaplock(heaphandles[i]);
+        try
+          ZeroMemory(@phe,sizeof(phe));
+          while HeapWalk(heaphandles[i], phe) do
+          begin
+            if phe.wFlags=PROCESS_HEAP_ENTRY_BUSY then
+            begin
+              allocCS.Enter;
+              try
+                HookEventData.eventtype:=HOOKEVENT_HEAPALLOC;
+                HookEventData.HeapAllocEvent.HeapHandle:=pointer(heaphandles[i]);
+                HookEventData.HeapAllocEvent.flags:=0;
+                HookEventData.HeapAllocEvent.size:=phe.cbData;
+                HookEventData.HeapAllocEvent.esp:=0;
+                HookEventData.HeapAllocEvent.address:=phe.lpData;
+
+                //signal ce that the event has been filled in
+                SetEvent(HasSetupDataEvent);
+
+                //and wait till ce is done with it
+                if waitforsingleobject(CEHasHandledItEvent,5000)<>WAIT_OBJECT_0	then
+                  outputdebugstring('CeRtlAllocateHeap:timeout on CEHasHandledItEvent');
+              finally
+                allocCS.Leave;
+              end;
+            end;
+          end;
+        finally
+          heapunlock(heaphandles[i]);
+        end;
+      end;
+    end;
+  end;
+
+  result:=true;
+  setevent(CEInitializationFinished);
+end;
 
 function CeRtlAllocateHeap(HeapHandle: pointer; Flags: DWORD; size: integer): pointer; stdcall;
 var

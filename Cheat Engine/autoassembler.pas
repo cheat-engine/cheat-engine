@@ -1622,6 +1622,7 @@ begin
   end;
 end;
 
+
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 var aa: TCEAllocArray;
 begin

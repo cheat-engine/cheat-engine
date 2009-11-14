@@ -4,13 +4,17 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls,tlhelp32,cefuncproc;
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls,tlhelp32,cefuncproc, frmMemoryAllocHandlerUnit;
 
-type TFillHeapEntryList=class(tthread)
+type TFillHeapList=class(tthread)
   private
     c: integer;
-    list: array [0..14] of string;
+    list: array [0..14] of record
+      address: dword;
+      size: integer;
+    end;
     expanded: boolean;
+    procedure enumerateHeapList(memreclist: PMemRecTableArray; level: integer);
     procedure updatelist;
   public
     node: ttreenode;
@@ -21,19 +25,16 @@ type
   TfrmHeaps = class(TForm)
     Panel1: TPanel;
     Button1: TButton;
-    TreeView1: TTreeView;
+    ListView1: TListView;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure TreeView1DblClick(Sender: TObject);
-    procedure TreeView1Expanding(Sender: TObject; Node: TTreeNode;
-      var AllowExpansion: Boolean);
+    procedure ListView1DblClick(Sender: TObject);
   private
     { Private declarations }
-    SNAPHandle: THandle;
+    fillthread: TFillHeapList;
   public
     { Public declarations }
-    procedure Getheap;
   end;
 
 var
@@ -45,63 +46,68 @@ implementation
 
 uses memorybrowserformunit;
 
-procedure TFillHeapEntryList.updatelist;
+procedure TFillHeapList.updatelist;
 var i:integer;
+  li: tlistitem;
 begin
   if frmheaps<>nil then
   begin
     with frmheaps do
     begin
-      treeview1.Items.BeginUpdate;
+      listview1.Items.BeginUpdate;
       for i:=0 to c-1 do
-        treeview1.items.addchild(node,list[i]);
-
-      if expanded and (not node.Expanded) then
       begin
-        terminate;
-        node.DeleteChildren;
-        node.HasChildren:=true;
-        node.data:=nil;
+        li:=listview1.Items.Add;
+        li.Caption:=inttohex(list[i].address,8);
+        li.SubItems.Add(inttostr(list[i].size));
       end;
 
-      if not expanded then
-      begin
-        expanded:=true;
-        node.Expand(false);
-      end;
-
-      treeview1.Items.EndUpdate;
+      listview1.Items.EndUpdate;
     end;
   end else terminate;
 
   c:=0;
 end;
 
-procedure TFillHeapEntryList.execute;
+procedure TFillHeapList.enumerateHeapList(memreclist: PMemRecTableArray; level: integer);
+var i: integer;
+begin
+  if terminated then exit;
+  
+  if level=7 then
+  begin
+    //add all <>nil entries
+    for i:=0 to 15 do
+    begin
+      if memreclist[i].memallocevent<>nil then
+      begin
+        list[c].address:=memreclist[i].memallocevent.BaseAddress;
+        list[c].size:=memreclist[i].memallocevent.HookEvent.HeapAllocEvent.Size;
+        inc(c);
+        if c=15 then
+          synchronize(updatelist);
+      end;
+    end;
+
+  end
+  else
+  begin
+    for i:=0 to 15 do
+    begin
+      if memreclist[i].MemrecArray<>nil then
+        enumerateHeapList(memreclist[i].MemrecArray, level+1);
+    end;
+  end;
+end;
+
+procedure TFillHeapList.execute;
 var check: boolean;
-    HeapEntry: HEAPENTRY32;
     id: dword;
     i: integer;
 begin
-  freeonterminate:=true;
-
-  id:=strtoint('$'+node.text);
-
-  zeromemory(@heapentry,sizeof(heapentry));
-  heapentry.dwSize:=sizeof(heapentry);
-
   c:=0;
-  check:=Heap32First(HeapEntry,processid,id);
-  while check and (not terminated) do
-  begin
 
-    list[c]:=IntTohex(heapentry.dwAddress,8)+' - '+IntToHex(heapentry.dwAddress+heapentry.dwBlockSize,8);
-    inc(c);
-    if c=15 then
-      synchronize(updatelist);
-
-    check:=Heap32Next(heapentry);
-  end;
+  enumerateHeapList(@frmMemoryAllocHandler.HeapBaselevel, 0);
 
   if c>0 then
     synchronize(updatelist);
@@ -109,38 +115,23 @@ end;
 
 procedure TfrmHeaps.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  fillthread.Terminate;
+  fillthread.WaitFor;
+  fillthread.Free;
+  
   action:=caFree;
   frmheaps:=nil;
-  closehandle(snaphandle);
-end;
-
-procedure TFrmHeaps.getheap;
-var
-    Heaplist: HEAPLIST32;
-    check: boolean;
-    x: TTreenode;
-begin
-  treeview1.Items.Clear;
-
-  if snaphandle>0 then
-  begin
-    Heaplist.dwSize:=sizeof(Heaplist);
-    Heaplist.th32ProcessID:=Processid;
-    Heaplist.dwFlags:=0;
-    check:=Heap32ListFirst(SNAPHandle,heaplist);
-
-    while check do
-    begin
-      treeview1.Items.add(nil,IntToHex(heaplist.th32HeapID,8)).haschildren:=true;
-      check:=Heap32ListNext(SNAPHandle,heaplist);
-    end;
-  end;
 end;
 
 procedure TfrmHeaps.FormCreate(Sender: TObject);
 begin
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST,ProcessID);
-  getheap;
+  frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self); //just not show
+  frmMemoryAllocHandler.WaitForInitializationToFinish;
+
+  //start the thread that enumerates the heaplist
+  button1.Left:=(clientwidth div 2) - (button1.Width div 2);
+
+  fillthread:=TFillHeapList.Create(false);
 end;
 
 procedure TfrmHeaps.Button1Click(Sender: TObject);
@@ -148,40 +139,13 @@ begin
   close;
 end;
 
-procedure TfrmHeaps.TreeView1DblClick(Sender: TObject);
-var
-  tnode: ttreenode;
-  e: integer;
+procedure TfrmHeaps.ListView1DblClick(Sender: TObject);
 begin
-  tnode:=treeview1.selected;
-
-  if (tnode<>nil) and (tnode.count=0) and (integer(tnode.Data)<>-1) then
+  if listview1.ItemIndex<>-1 then
   begin
-    if tnode.level=1 then
-    begin
-      val('$'+tnode.Text,memorybrowser.memoryaddress,e);
-      memorybrowser.RefreshMB;
-    end
-    else
-    begin
-      //not (being) filled
-      tnode.Data:=pointer(-1);
-      with TFillHeapEntryList.create(true) do
-      begin
-        node:=tnode;
-        resume;
-      end;
-    end;
-
+    memorybrowser.memoryaddress:=strtoint('$'+listview1.Items[listview1.ItemIndex].Caption);
+    memorybrowser.RefreshMB;
   end;
-end;
-
-procedure TfrmHeaps.TreeView1Expanding(Sender: TObject; Node: TTreeNode;
-  var AllowExpansion: Boolean);
-begin
-  allowexpansion:=true;
-  treeview1.Selected:=node;
-  treeview1DblClick(sender);
 end;
 
 end.

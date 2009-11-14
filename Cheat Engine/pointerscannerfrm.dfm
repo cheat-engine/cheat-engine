@@ -42,7 +42,7 @@ object frmPointerScanner: TfrmPointerScanner
     Top = 21
     Width = 609
     Height = 320
-    ActivePage = tsPSDefault
+    ActivePage = tsPSReverse
     Align = alClient
     TabOrder = 2
     object tsPSDefault: TTabSheet
@@ -307,6 +307,13 @@ object frmPointerScanner: TfrmPointerScanner
         Caption = 'Show results'
         Enabled = False
         OnClick = Showresults1Click
+      end
+    end
+    object view1: TMenuItem
+      Caption = 'view'
+      object Sortlist1: TMenuItem
+        Caption = 'Sort list'
+        OnClick = Sortlist1Click
       end
     end
   end

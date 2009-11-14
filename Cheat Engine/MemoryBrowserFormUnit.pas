@@ -3019,12 +3019,14 @@ end;
 procedure TMemoryBrowser.Heaps1Click(Sender: TObject);
 begin
   {$ifndef net}
+  if processid=0 then raise exception.Create('Please target a process first');
+  if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
+    freeandnil(frmMemoryAllocHandler);
+
   if frmheaps=nil then
-  begin
     frmheaps:=tfrmheaps.create(self);
-    frmheaps.Show;
-  end
-  else frmheaps.getheap;
+
+  frmheaps.show;
   {$endif}
 
 end;
@@ -3919,8 +3921,9 @@ begin
 
   if frmMemoryAllocHandler=nil then
   begin
-    if MessageDlg('This function will inject a dll into the target process and hook some memory allocation/free routines. Continue?',mtConfirmation, [mbyes,mbno],0)<>mryes then exit;
-    
+    {if MessageDlg('This function will inject a dll into the target process and hook some memory allocation/free routines. Continue?',mtConfirmation, [mbyes,mbno],0)<>mryes then exit;
+
+    }
     frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self);
   end;
 

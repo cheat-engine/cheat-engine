@@ -11245,17 +11245,44 @@ var
     trace: tstringlist;
     bla: pointer;
 
+
+var heaphandles: array of cardinal;
+    size: integer;
+    temp: dword;
+    i: integer;
+    phe: PROCESS_HEAP_ENTRY;
 begin
-  x:=findaob('90 90 90');
-  showmessage(inttohex(x,8));
-  asm
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
+  size:=GetProcessHeaps(0,temp);
+
+  if size>0 then
+  begin
+    setlength(heaphandles,size);
+    size:=GetProcessHeaps(size,heaphandles[0]);
+
+    if size>0 then
+    begin
+      for i:=0 to size-1 do
+      begin
+        heaplock(heaphandles[i]);
+        try
+          ZeroMemory(@phe,sizeof(phe));
+          while HeapWalk(heaphandles[i], phe) do
+          begin
+
+
+          end;
+        finally
+          heapunlock(heaphandles[i]);
+        end;
+      end;
+    end;
   end;
+
+  // heaplock
+
+ // heapunlock
+
+
   exit;
 
 
@@ -11271,7 +11298,7 @@ exit;
   {
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;
-    
+
   stealtheditor.StartEdit($00452000,4096);
 
   {

@@ -31,7 +31,10 @@ exports CeRtlDestroyHeap;
 
 exports HasSetupDataEvent;
 exports CEHasHandledItEvent;
+exports CEInitializationFinished;
 exports HookEventData;
+
+exports CeInitializeAllocHook;
 
 begin
 end.

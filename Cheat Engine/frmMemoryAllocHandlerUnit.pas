@@ -79,8 +79,9 @@ type
   PMemRecTable=^TMemRecTable;
   PMemRecTableArray=^TMemRecTableArray;
   TMemRecTable=record
-    memallocevent: TmemoryAllocevent; //if this is the last level, memallocevent pointer is not nil
-    MemrecArray: PMemRecTableArray;   //else it's a PMemrectablearray
+    case integer of
+      1: (memallocevent: TmemoryAllocevent); //if this is the last level (7) this is a memallocevent pointer
+      2: (MemrecArray: PMemRecTableArray);   //else it's a PMemrectablearray
   end;
   TMemRecTableArray=array [0..15] of TMemRecTable;
 
@@ -149,18 +150,25 @@ type
     Panel1: TPanel;
     Edit1: TEdit;
     Button1: TButton;
-    Label5: TLabel;
     lblErr: TLabel;
+    btnReload: TButton;
+    cbHookAllocs: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure btnReloadClick(Sender: TObject);
+    procedure cbHookAllocsClick(Sender: TObject);
   private
     { Private declarations }
     HasSetupDataEvent: THandle;
     CEHasHandledItEvent: THandle;
+    CEInitializationFinished: THandle;
     watcher: TAllocWatcher;
     HookEventDataAddress: dword;
+
+    hookscript: tstringlist;
+    hookallocarray: TCEAllocArray;
   public
     { Public declarations }
 
@@ -176,6 +184,7 @@ type
     displaythread: TDisplayThread;
 
     function FindAddress(addresslist: PMemrecTableArray; address: dword): TMemoryAllocEvent;
+    function WaitForInitializationToFinish: boolean;
   end;
 
 var
@@ -555,7 +564,7 @@ end;
 
 procedure TfrmMemoryAllocHandler.FormCreate(Sender: TObject);
 var injectionscript: TStringlist;
-var x,y: THandle;
+var x,y,z: THandle;
 begin
   memrecCS:=TCriticalSection.Create;
   displaythread:=TDisplayThread.create(false);
@@ -568,6 +577,7 @@ begin
 
     HasSetupDataEvent:=CreateEvent(nil, false, false, nil);
     CEHasHandledItEvent:=CreateEvent(nil,false,false,nil);
+    CEInitializationFinished:=CreateEvent(nil,true,false,nil);
 
     x:=0;
     if not DuplicateHandle(GetCurrentProcess, HasSetupDataEvent, processhandle, @x, 0, false, DUPLICATE_SAME_ACCESS	) then
@@ -577,18 +587,17 @@ begin
     if not DuplicateHandle(GetCurrentProcess, CEHasHandledItEvent, processhandle, @y, 0, false, DUPLICATE_SAME_ACCESS	) then
       raise exception.Create('Event2 failure:'+inttostr(getlasterror));
 
+    z:=0;
+    if not DuplicateHandle(GetCurrentProcess, CEInitializationFinished, processhandle, @z, 0, false, DUPLICATE_SAME_ACCESS	) then
+      raise exception.Create('Event3 failure:'+inttostr(getlasterror));
+
     //set event handles
     injectionscript.Add('HasSetupDataEvent:');
     injectionscript.Add('DD '+inttohex(x,8));
     injectionscript.Add('CEHasHandledItEvent:');
     injectionscript.Add('DD '+inttohex(y,8));
-
-    //hook apis
-    generateAPIHookScript(injectionscript,'NtAllocateVirtualMemory','CeAllocateVirtualMemory', 'NtAllocateVirtualMemoryOrig','0');
-    generateAPIHookScript(injectionscript,'NtFreeVirtualMemory','CeFreeVirtualMemory', 'NtFreeVirtualMemoryOrig','1');
-    generateAPIHookScript(injectionscript,'RtlAllocateHeap','CeRtlAllocateHeap', 'RtlAllocateHeapOrig','2');
-    generateAPIHookScript(injectionscript,'RtlFreeHeap','CeRtlFreeHeap', 'RtlFreeHeapOrig','3');
-    generateAPIHookScript(injectionscript,'RtlDestroyHeap','CeRtlDestroyHeap', 'RtlDestroyHeapOrig','4');
+    injectionscript.Add('CEInitializationFinished:');
+    injectionscript.Add('DD '+inttohex(z,8));
 
 
     if not autoassemble(injectionscript,false) then raise exception.Create('Failure hooking apis');
@@ -597,10 +606,19 @@ begin
 
     //everything configured successful, start thread that watches for HasSetupDataEvent events
     watcher:=TAllocWatcher.create(false, HasSetupDataEvent, CEHasHandledItEvent, HookEventDataAddress);
+
+    hookedprocessid:=processid;
+
+    injectionscript.Clear;
+    injectionscript.Add('CreateThread(CeInitializeAllocHook)');
+    if not autoassemble(injectionscript,false) then raise exception.Create('Failure initialing');
+
+    
   finally
     injectionscript.Free;
   end;
-  hookedprocessid:=processid;
+
+
 end;
 
 
@@ -730,6 +748,11 @@ begin
   end;
 end;
 
+function TfrmMemoryAllocHandler.WaitForInitializationToFinish: boolean;
+begin
+  result:=WaitForSingleObject(CEInitializationFinished,5000)=WAIT_OBJECT_0;
+end;
+
 function TfrmMemoryAllocHandler.FindAddress(addresslist: PMemrecTableArray; address: dword): TMemoryAllocEvent;
   //only call this when displaythread is suspended
 var
@@ -793,6 +816,103 @@ begin
   finally
     //memrecCS.Leave;
   end;}
+end;
+
+procedure DeletePath(addresslist: PMemrecTableArray; level: integer);
+var
+  i: integer;
+begin
+  if level=7 then
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].memallocevent<>nil then
+        freeandnil(addresslist[i].memallocevent);
+    end;
+  end
+  else
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].MemrecArray<>nil then
+      begin
+        deletepath(addresslist[i].MemrecArray,level+1);
+        freemem(addresslist[i].MemrecArray);
+        addresslist[i].MemrecArray:=nil;
+      end;
+    end;
+
+
+
+  end;
+
+
+
+end;
+
+procedure TfrmMemoryAllocHandler.btnReloadClick(Sender: TObject);
+var
+  injectionscript: TStringlist;
+  i: integer;
+begin
+  WaitForInitializationToFinish;
+
+  injectionscript:=TStringList.Create;
+  memrecCS.Enter;
+  displaythread.csObjectList.Enter;
+  try
+    //whipe the old list
+    DeletePath(@HeapBaselevel, 0);
+    displaythread.heapcount:=0;
+
+
+    injectionscript.Add('CreateThread(CeInitializeAllocHook)');
+    ResetEvent(CEInitializationFinished);
+    if not autoassemble(injectionscript,false) then raise exception.Create('Failure to initialize');
+  finally
+    displaythread.csObjectList.Leave;
+    memrecCS.Leave;
+    injectionscript.Free;
+  end;
+
+end;
+
+procedure TfrmMemoryAllocHandler.cbHookAllocsClick(Sender: TObject);
+begin
+  if cbHookAllocs.Checked then
+  begin
+    if hookscript=nil then
+      hookscript:=tstringlist.Create;
+
+    hookscript.Clear;
+    hookscript.Add('[Enable]');
+    hookscript.Add('');
+    hookscript.Add('[Disable]');
+    hookscript.Add('');    
+
+
+    //hook apis
+    generateAPIHookScript(hookscript,'NtAllocateVirtualMemory','CeAllocateVirtualMemory', 'NtAllocateVirtualMemoryOrig','0');
+    generateAPIHookScript(hookscript,'NtFreeVirtualMemory','CeFreeVirtualMemory', 'NtFreeVirtualMemoryOrig','1');
+    generateAPIHookScript(hookscript,'RtlAllocateHeap','CeRtlAllocateHeap', 'RtlAllocateHeapOrig','2');
+    generateAPIHookScript(hookscript,'RtlFreeHeap','CeRtlFreeHeap', 'RtlFreeHeapOrig','3');
+    generateAPIHookScript(hookscript,'RtlDestroyHeap','CeRtlDestroyHeap', 'RtlDestroyHeapOrig','4');
+
+    if not autoassemble(hookscript,false,true,false,false,hookallocarray) then raise exception.Create('Failure to hook');
+  end
+  else
+  begin
+    //unload
+    if hookscript=nil then exit; //should never happen
+
+    if not autoassemble(hookscript,false,false,false,false,hookallocarray) then raise exception.Create('Failure to hook');
+
+    freeandnil(hookscript);
+  end;
+
+
+
+
 end;
 
 end.

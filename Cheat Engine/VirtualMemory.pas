@@ -2,7 +2,7 @@ unit VirtualMemory;
 
 interface
 
-uses SysUtils,windows,newkernelhandler,cefuncproc,ComCtrls;
+uses SysUtils,windows,newkernelhandler,cefuncproc,ComCtrls, symbolhandler;
 
 type TMemoryRegion2 = record
   Address: dword;
@@ -174,8 +174,10 @@ begin
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
   begin
-    if (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and ((mbi.type_9 and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+    if (not symhandler.inSystemModule(dword(mbi.baseAddress))) and (not (not scan_mem_private and (mbi.type_9=mem_private))) and (not (not scan_mem_image and (mbi.type_9=mem_image))) and (not (not scan_mem_mapped and ((mbi.type_9 and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
+
+
       if Skip_PAGE_NOCACHE then
         if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
         begin
