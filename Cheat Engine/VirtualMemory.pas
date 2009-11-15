@@ -229,7 +229,7 @@ begin
   address:=memoryregion[0].BaseAddress;
   size:=memoryregion[0].MemorySize;
 
-  for i:=1 to length(memoryregion) do
+  for i:=1 to length(memoryregion)-1 do
   begin
     if memoryregion[i].BaseAddress=address+size then
       inc(size,memoryregion[i].MemorySize)

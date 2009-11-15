@@ -11,7 +11,7 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  XMLDoc, XMLIntf,  simpleaobscanner;
+  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist;
 
   //the following are just for compatibility
 
@@ -11251,8 +11251,28 @@ var heaphandles: array of cardinal;
     temp: dword;
     i: integer;
     phe: PROCESS_HEAP_ENTRY;
+
+    abc: TReversePointerListHandler;
+    aaaa: dword;
+
+    starttime: dword;
 begin
-  size:=GetProcessHeaps(0,temp);
+  abc:=TReversePointerListHandler.create(0,$7fffffff,true, progressbar1);
+
+
+  starttime:=gettickcount;
+  for i:=0 to 90000 do
+  begin
+    aaaa:=0;
+    abc.findPointerValue(aaaa,$7f000000);
+  end;
+
+  showmessage(inttostr(gettickcount-starttime));
+
+  //showmessage(inttohex(aaaa,8));
+
+
+{  size:=GetProcessHeaps(0,temp);
 
   if size>0 then
   begin
@@ -11276,7 +11296,7 @@ begin
         end;
       end;
     end;
-  end;
+  end;  }
 
   // heaplock
 

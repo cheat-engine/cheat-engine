@@ -153,7 +153,8 @@ uses
   byteinterpreter in 'byteinterpreter.pas',
   simpleaobscanner in 'simpleaobscanner.pas',
   circularBuffer in 'circularBuffer.pas',
-  frmRescanPointerUnit in 'frmRescanPointerUnit.pas' {frmRescanPointer};
+  frmRescanPointerUnit in 'frmRescanPointerUnit.pas' {frmRescanPointer},
+  pointervaluelist in 'pointervaluelist.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

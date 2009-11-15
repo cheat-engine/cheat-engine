@@ -12,7 +12,6 @@ type TSaveFirstScanThread=class(tthread)
     pmemRegionPos: pinteger;
     buffer: pointer;  
     procedure execute; override;
-    constructor create(suspended: boolean); overload;
     constructor create(suspended: boolean; memRegion: PMemoryRegions; pmemRegionPos: pinteger; buffer: pointer); overload;
 end;
 
@@ -83,13 +82,6 @@ begin
   end;
 end;
 
-constructor TSaveFirstScanThread.create(suspended: boolean);
-begin
-  self.memRegion:=@cefuncproc.memoryregion; //old method, so point to cefuncproc.memoryregion
-  self.pmemRegionPos:=@cefuncproc.memoryregions;
-  self.buffer:=cefuncproc.memory;
-  inherited create(suspended);
-end;
 
 constructor TSaveFirstScanThread.create(suspended: boolean; memRegion: PMemoryRegions; pmemRegionPos: pinteger; buffer: pointer);
 begin

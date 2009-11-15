@@ -118,8 +118,9 @@ function HexStrToInt64(const S: string): Int64;
 
 function readAndParseAddress(address: dword; variableType: TVariableType): string;
 function isjumporcall(address: dword; var addresstojumpto: dword): boolean;
-
-procedure quicksortmemoryregions(lo,hi: integer);
+{
+procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
+}
 
 procedure rewritecode(processhandle: thandle; address:dword; buffer: pointer; size:dword);
 procedure rewritedata(processhandle: thandle; address:dword; buffer: pointer; size:dword);
@@ -178,7 +179,6 @@ function BinToInt(s: string): int64;
 procedure decimal(var key: char);
 procedure hexadecimal(var key: char);
 
-function scanbits(var found: dword;number:dword;var bytep: pbyte;nrofbits,i,actualread: integer): boolean;
 function GetSystemType: Integer;
 function Is64bitOS: boolean;
 
@@ -612,8 +612,8 @@ var
 
 
 
-  MemoryRegion: array of TMemoryRegion;
-  MemoryRegions: Integer;
+//  MemoryRegion: array of TMemoryRegion;
+//  MemoryRegions: Integer;
   
 //  Memory: Array of Byte;
   Memory: ^Byte;
@@ -2014,77 +2014,6 @@ end;
 
 
 
-function scanbits(var found: dword;number:dword;var bytep: pbyte;nrofbits,i,actualread: integer): boolean;
-var j,k,l,m: integer;
-    actualwrite: dword;
-    tempcount: integer;
-    tempj,tempk: integer;
-    tempb: pbyte;
-begin
-  for j:=0 to actualread-1 do
-  begin
-
-    //scan each bit till you find  bitarray[bittofind]
-    for k:=0 to 7 do
-    begin
-      tempb:=bytep;
-      //see if there are enough bits to scan, if not, save the bits to be scanned and exit
-      //bitsleft=((actualread-j)*8) - k
-      if nrofbits>(((actualread-j)*8) - k) then
-      begin
-        tempcount:=(((actualread-j)*8) - k);     //should always be nrofbits-1
-        setlength(tempbits,nrofbits);
-
-        tempk:=k;
-        for l:=1 to tempcount do
-        begin
-          tempbits[l]:=getbit(tempk,bytep^);
-          inc(tempk);
-          if tempk>7 then
-          begin
-            inc(bytep);
-            tempk:=0;
-          end;
-        end;
-        result:=true;
-        exit;
-      end;
-
-      m:=k;
-      for l:=0 to nrofbits-1 do
-      begin
-        if bitscan[l]<>2 then
-          if getbit(m,tempb^)<>bitscan[l] then break;
-
-        if l=nrofbits-1 then
-        begin
-          //foundit
-          foundaddressb[found].address:=memoryregion[i].BaseAddress+j;
-          foundaddressb[found].bit:=k;
-          inc(found);
-          if found=number then
-          begin
-            blockwrite(Addressfile,pointer(foundaddressB)^,found*(sizeof(Tbitaddress)),actualwrite);
-            found:=0;
-          end;
-        end;
-
-        inc(m);
-        if m>7 then
-        begin
-          m:=0;
-          inc(tempb);
-        end;
-      end;
-
-    end;
-    inc(bytep);
-  end;
-
-
-  result:=true;
-end;
-
 function getbit(bitnr: integer; bt: dword):integer;
 begin
   result:=(bt shr bitnr) and 1;
@@ -2490,7 +2419,7 @@ begin
 end;
            }
 
-
+      {
 procedure quicksortmemoryregions(lo,hi: integer);
 var i,j: integer;
     x,h: TMemoryRegion;
@@ -2518,7 +2447,7 @@ begin
   if (lo<j) then quicksortmemoryregions(lo,j);
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
-
+         }
 
      {
 procedure GetProcessListSmall(ProcessList: TListBox);
