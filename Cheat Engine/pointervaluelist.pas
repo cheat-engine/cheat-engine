@@ -13,7 +13,7 @@ uses windows, dialogs, SysUtils, classes, ComCtrls, cefuncproc, newkernelhandler
 type
   PStaticData=^TStaticData;
   TStaticData=record
-    modulename: pchar;
+    moduleindex: dword; //for searching the saved modulelist
     offset: dword;
   end;
 
@@ -52,7 +52,13 @@ type
 
     procedure addpointer(pointervalue: dword; pointerwiththisvalue: dword);
 
+
   public
+    count: dword;
+
+    modulelist: tstringlist;
+
+    procedure saveModuleListToResults(s: TStream);
     function findPointerValue(var startvalue: dword; stopvalue: dword): PPointerList;
     constructor create(start, stop: dword; alligned: boolean; progressbar: tprogressbar);
   end;
@@ -85,7 +91,7 @@ begin
     //Gets the middle of the selected range
     Pivot := (First + Last) div 2;
     //Compares the String in the middle with the searched one
-    if memoryregion[Pivot].BaseAddress = address then
+    if (memoryregion[Pivot].BaseAddress >= address) and (address<memoryregion[Pivot].BaseAddress+memoryregion[Pivot].MemorySize) then
     begin
       Found  := True;
       Result := Pivot;
@@ -189,10 +195,7 @@ begin
   begin
     //it's a static, so create and fill in the static data
     getmem(currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata, sizeof(TStaticData));
-    getmem(currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.modulename, length(mi.modulename)+1);
-    CopyMemory(currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.modulename, @mi.modulename[1], length(mi.modulename));
-    currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.modulename[length(mi.modulename)]:=#0;
-
+    currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
     currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
   end
   else
@@ -201,11 +204,30 @@ begin
   inc(currentarray[entrynr].pointerlist.pos);
 end;
 
+procedure TReversePointerListHandler.saveModuleListToResults(s: TStream);
+var i: integer;
+  x: dword;
+begin
+  //save the number of modules
+  x:=modulelist.Count;
+  s.Write(x,sizeof(x));
+
+  for i:=0 to modulelist.Count-1 do
+  begin
+    //for each module
+    //save the length
+    x:=length(modulelist[i]);
+    s.Write(x,sizeof(x));
+
+    //and the name
+    s.Write(modulelist[i][1],x);
+  end;
+end;
+
 type TMemrectablearraylist = array [0..7] of record
  arr:PReversePointerListArray;
  entrynr: integer;
  end;
-
 
 
 function TReversePointerListHandler.findPointerValue(var startvalue: dword; stopvalue: dword): PPointerList;
@@ -219,7 +241,7 @@ begin
   level:=0;
   a[0].arr:=level0list;
 
-  while startvalue<stopvalue do
+  while startvalue<=stopvalue do
   begin
     currentarray:=a[level].arr;
     entrynr:=startvalue shr ((7-level)*4) and $f;
@@ -256,20 +278,9 @@ begin
 
   end;
 
-  if result<>nil then
-    startvalue:=(a[0].entrynr shl (7*4)) or
-                (a[1].entrynr shl (6*4)) or
-                (a[2].entrynr shl (5*4)) or
-                (a[3].entrynr shl (4*4)) or
-                (a[4].entrynr shl (3*4)) or
-                (a[5].entrynr shl (2*4)) or
-                (a[6].entrynr shl (1*4)) or
-                (a[7].entrynr shl (0*4));
-
-  //fill startvalue with the data from A
-
-
 end;
+
+
 
 constructor TReversePointerListHandler.create(start, stop: dword; alligned: boolean; progressbar: tprogressbar);
 var bytepointer: PByte;
@@ -292,8 +303,13 @@ var bytepointer: PByte;
 
     memoryregion2: array of TMemoryRegion2;
     lastaddress: dword;
-    count: dword;
+
+
 begin
+  modulelist:=tstringlist.create;
+  symhandler.getModuleList(modulelist);
+
+
   count:=0;
 
   address:=start;

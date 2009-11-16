@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math, frmRescanPointerUnit,
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
+  frmRescanPointerUnit, pointervaluelist, 
 
   {$ifdef injectedpscan}
   virtualmemorystub, symbolhandlerlite, globals;
@@ -33,29 +34,13 @@ type TDrawTreeview=class(tthread)
     pointerlist: tmemorystream;
     progressbar: tprogressbar;
     procedure execute; override;
-    procedure done;
+    //procedure done;
     procedure AddToList;
 end;
 
 type TMatches = array of ttreenode;
 type tpath = array of dword;
 
-type TDissectData = class(tthread)
-  private
-    output: array [0..63] of string;
-    addresses: array [0..63] of dword;
-    ispointer: array [0..64] of boolean;
-
-    outputpos: integer;
-  public
-    dissectaddress: dword;
-    treenode: ttreenode;
-    structsize,structsize0: dword;
-    automatic: boolean;
-    maxlevel: integer;
-    filterstart,filterstop: integer;
-    unalligned: boolean;
-end;
 
 type trescanpointers=class(tthread)
   private
@@ -90,14 +75,14 @@ type
 
 
     procedure flushresults;
-    procedure rscan(address:dword; level: integer);
-    procedure StorePath(level: integer);
+    procedure rscan(valuetofind:dword; level: integer);
+    procedure StorePath(level: integer; staticdata: PStaticData=nil);
 
   public
-    addresstofind: dword;
+    valuetofind: dword;
     maxlevel: integer;
     structsize: integer;
-    startaddress: dword;
+//    startaddress: dword;
     startlevel: integer;
     alligned: boolean;
     staticonly: boolean;
@@ -123,46 +108,6 @@ type
     destructor destroy; override;
   end;
 
-  TMethod2scanner = class (tthread)
-  private
-    results: tmemorystream;
-    resultsfile: tfilestream;
-
-
-    pathlist: array of dword;
-
-//    procedure updatelist;
-    function haspossiblepath(level: integer; address: dword;var recnr: integer):boolean;
-    procedure addpossiblepath(address:dword; level: integer);
-    procedure ScanAddress(saddress:dword; currentlevel: integer);
-  public
-
-    method3: boolean;
-    startworking: tevent;
-    isdone: boolean;
-    stop: boolean;
-
-
-    //--------------
-    address: dword;
-    addresstofind: dword;
-    maxlevel: integer;
-    structsize,structsize0: integer;
-    filterstart,filterstop: integer;
-    unalligned: boolean;
-    paintlevel: integer;
-    offsetlist: toffsetlist;
-    fast: boolean;
-    psychotic: boolean;
-
-    filename: string;
-    procedure flushresults;
-
-    procedure execute; override;
-    constructor create(suspended: boolean);
-    destructor destroy; override;
-  end;
-
   TStaticscanner = class(TThread)
   private
     updateline: integer; //not used for addentry
@@ -172,7 +117,6 @@ type
     addnode: ttreenode;
     addnodeextension: tmatches;
 
-    method2scanners: array of tmethod2scanner;
     reversescanners: array of treversescanworker;
 
 //    procedure UpdateList;
@@ -182,7 +126,6 @@ type
 
 
     function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
-    procedure method2scan(address:dword);
     procedure reversescan;
 
   public
@@ -195,12 +138,11 @@ type
     lookingformax: dword;
     //reverse^
 
-    reuse: boolean;
     reverse: boolean;
     automatic: boolean;
     automaticaddress: dword;
-    filterstart:dword;
-    filterstop:dword;
+//    filterstart:dword;
+//    filterstop:dword;
     start: dword;
     stop: dword;
     progressbar: TProgressbar;
@@ -208,8 +150,8 @@ type
     maxlevel: integer;
     unalligned: boolean;
     codescan: boolean;
-    method2: boolean;
-    method3: boolean;
+//    method2: boolean;
+//    method3: boolean;
 
     fast: boolean;
     psychotic: boolean;
@@ -232,6 +174,7 @@ type
 
     mustEndWithSpecificOffset: boolean;
     mustendwithoffsetlist: array of dword;
+    onlyOneStaticInPath: boolean;
 
 
     threadcount: integer;
@@ -250,6 +193,14 @@ type
     procedure execute; override;
    // destructor destroy; override;
   end;
+
+type TPointerEntry=record
+  modulenumber: integer;
+  offset: dword;
+  level: integer;  
+  offsetlist: array of dword;
+end;
+
 
 type
   Tfrmpointerscanner = class(TForm)
@@ -293,7 +244,6 @@ type
     tvRSThreads: TTreeView;
     Panel2: TPanel;
     Label5: TLabel;
-    lblRSCurrentAddress: TLabel;
     lblRSTotalStaticPaths: TLabel;
     lblRSTotalPaths: TLabel;
     Panel3: TPanel;
@@ -301,6 +251,7 @@ type
     Label6: TLabel;
     view1: TMenuItem;
     Sortlist1: TMenuItem;
+    ListView1: TListView;
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Showresults1Click(Sender: TObject);
@@ -315,6 +266,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Sortlist1Click(Sender: TObject);
+    procedure ListView1Data(Sender: TObject; Item: TListItem);
   private
     { Private declarations }
     start:tdatetime;
@@ -335,12 +287,20 @@ type
     procedure openscanner(var message: tmessage); message open_scanner;
     procedure drawtreeview;
     procedure doneui;
-    procedure loadpointers;
   public
     { Public declarations }
     pointerlist: tmemorystream;
     Staticscanner:TStaticScanner;
-    tvResults: TTreeview;
+
+
+    pointerfile: TfileStream;
+    modulelist: tstringlist;
+    pointerfileoffsetlength: integer;
+    pointerfileStartPosition: integer;
+
+    sizeOfEntry: integer;
+    startinfexoflist: integer;
+    pointerentrylist: array of TPointerEntry;
   end;
 
 type TExecuter = class(tthread)
@@ -356,9 +316,9 @@ var
   staticlist: array of dword;
   dissectedstatics: dword=0;
 
-  dissectedpointersLevelpos:array of integer;
-  dissectedpointersLevel: array of array of dword;
-  dissectedpointersLevelMREWS: array of TMultiReadExclusiveWriteSynchronizer; //every level has it's own lock
+//  dissectedpointersLevelpos:array of integer;
+//  dissectedpointersLevel: array of array of dword;
+//  dissectedpointersLevelMREWS: array of TMultiReadExclusiveWriteSynchronizer; //every level has it's own lock
 
 
   treenodeswithchildrenpos: integer;
@@ -370,14 +330,14 @@ var
   matchednodespos: integer;
 
   reverseScanCS: TCriticalSection;
-
-
-  PossiblepathsLevelMREWS: array of TMultiReadExclusiveWriteSynchronizer;
-  possiblepathsLevel: array of array of dword; //all addresses that finished in a address
-  possiblepathsLevelpos: array of integer;
-
-  method2semaphore: tsemaphore;
   reverseScanSemaphore: tsemaphore;
+
+//  PossiblepathsLevelMREWS: array of TMultiReadExclusiveWriteSynchronizer;
+//  possiblepathsLevel: array of array of dword; //all addresses that finished in a address
+//  possiblepathsLevelpos: array of integer;
+//  method2semaphore: tsemaphore;
+
+
 
 
 
@@ -395,7 +355,8 @@ var
   incorrectresult: dword;
   continued: dword;
 
-  vm: tvirtualmemory;
+//  vm: tvirtualmemory;
+  pointerlisthandler: TReversePointerListHandler;
 
 
 implementation
@@ -433,109 +394,6 @@ begin
   end;
 end;
 
-function isdissected(level: integer; address: dword;var recnr: integer):boolean;
-{
-check if this address has already been taken appart
-}
-var i: integer;
-    first,last: integer;
-begin
-  result:=false;
-  recnr:=0;
-  first:=0;
-
-  if level>0 then
-  begin
-    result:=isdissected(level-1,address,recnr); //recnr is only used when it is NOT found
-    if result then exit;
-  end;
-
-  //no need for a critical section, it doesnt become shorter, only thing that can happen is a address being added twice, but thats not the end of the world
-  last:=dissectedpointerslevelpos[level];
-
-  while first<last do
-  begin
-    i:=first+((last-first) div 2);
-    if (i=first) or (i=last) then
-    begin
-      for i:=first to last-1 do
-      begin
-        if dissectedpointerslevel[level][i]=address then
-        begin
-          recnr:=i;
-          result:=true;
-          exit;
-        end;
-        if dissectedpointerslevel[level][i]>address then break;
-      end;
-
-      break;
-    end;
-
-    if dissectedpointerslevel[level][i]=address then
-    begin
-      recnr:=i;
-      result:=true;
-      exit;
-    end;
-
-    if address<dissectedpointerslevel[level][i] then
-      last:=i
-    else
-      first:=i;
-  end;
-  recnr:=last;
-end;
-
-
-procedure adddisectedaddress(level:integer; dissectedaddress:dword);
-var i,j: integer;
-begin
-  if not isdissected(level,dissectedaddress,i) then
-  begin
-    dissectedpointersLevelMREWS[level].beginwrite;
-    try
-
-      if dissectedpointerslevelpos[level]+1>=length(dissectedpointerslevel[level]) then //reallocate array
-        setlength(dissectedpointerslevel[level],length(dissectedpointerslevel[level])*2); //double the memory (4mb, 8mb, 16mb,32mb,64mb,128mb,256mb,512mb,1024mb.....)
-
-      //not found so add , i is a good indication of where
-      dec(i);
-      while (i>=0) and (dissectedpointerslevel[level][i]>dissectedaddress) do dec(i);
-      if i=-1 then i:=0;
-
-      while (i<dissectedpointerslevelpos[level]) and (dissectedpointerslevel[level][i]<dissectedaddress) do inc(i);
-
-      //add it to the spot of i
-
-      //first move evrything else to the right
-      for j:=dissectedpointerslevelpos[level]-1 downto i do
-        dissectedpointerslevel[level][j+1]:=dissectedpointerslevel[level][j];
-
-      dissectedpointerslevel[level][i]:=dissectedaddress;
-
-      dissectedpointerslevelpos[level]:=dissectedpointerslevelpos[level]+1;
-    finally
-      dissectedpointersLevelMREWS[level].EndWrite;
-    end;
-  end;
-
-end;
-
-
-
-
-procedure TDrawTreeview.done;
-begin
-  if frmpointerscanner<>nil then
-  begin
-    frmpointerscanner.tvResults.Items.EndUpdate;
-    frmpointerscanner.progressbar1.position:=0;
-    frmpointerscanner.file1.Enabled:=true;
-    frmpointerscanner.Pointerscanner1.Enabled:=true;
-  end;
-end;
-
 procedure TDrawtreeView.AddToList;
 var y: ttreenode;
     i,j: integer;
@@ -543,7 +401,7 @@ begin
   y:=treeview.Items.Add(nil,st+inttohex(offset,8));
 
   for j:=0 to offsetsize-1 do
-    treeview.Items.AddChild(y,inttohex(offsetlist[j],1));
+    treeview.Items.AddChild(y,inttohex(offsetlist[j],1)); 
 end;
 
 procedure TDrawTreeview.execute;
@@ -553,7 +411,8 @@ var total: integer;
     stringlength: dword;
 begin
 //frmpointerscanner can nevr be closed while this routine is running. See the onclose event for why
-
+  s:=nil;
+ { 
   try
     pointerlist.Seek(0,sofrombeginning);
 
@@ -561,7 +420,7 @@ begin
     total:=0;
     setlength(offsetlist,10);
 
-    s:=nil;
+
     getmem(s,100);
     ssize:=100;
 
@@ -591,13 +450,13 @@ begin
         pointerlist.ReadBuffer(offsetlist[0],(offsetsize)*sizeof(offsetlist[0]));
 
         if st<>'' then st:=st+'+';
-
-        {$ifdef injectedpscan}
-        if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewAddToList,0,0);
-        {$else}
-        if not terminated then synchronize(AddToList);
-        {$endif}
-
+        }
+//        {$ifdef injectedpscan}
+//        if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewAddToList,0,0);
+//        {$else}
+//        if not terminated then synchronize(AddToList);
+//        {$endif}
+{
         inc(total);
 
         if (total mod 50)=0 then
@@ -617,327 +476,15 @@ begin
 
   setlength(offsetlist,0);
 
+  }
   {$ifdef injectedpscan}
-  if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewdone,0,0);
+ // if not terminated then sendmessage(frmpointerscanner.Handle,wm_drawtreeviewdone,0,0);
   {$else}
-  if not terminated then synchronize(done);
+ // if not terminated then synchronize(done);
   {$endif}
 end;
 
 //----------------------- scanner info --------------------------
-
-
-//----------------------- method2scanner-------------------------
-
-procedure TMethod2scanner.flushresults;
-begin
-  resultsfile.WriteBuffer(results.Memory^,results.Size);
-  results.Seek(0,sofrombeginning);
-  results.Clear;
-end;
-
-
-function TMethod2scanner.haspossiblepath(level: integer; address: dword;var recnr: integer):boolean;
-var i: integer;
-    first,last: integer;
-begin
-  result:=false;
-  recnr:=0;
-  first:=0;
-
-
-  //check possible paths in higher levels
-  if level<self.maxlevel then
-  begin
-    result:=haspossiblepath(level+1,address,recnr); //recnr is only used when it is NOT found
-    if result then exit;
-  end;
-
-  //no need for a critical section, it doesnt become shorter, only thing that can happen is a address being added twice, but thats not the end of the world
-  last:=possiblepathslevelpos[level];
-
-  while first<last do
-  begin
-    i:=first+((last-first) div 2);
-    if (i=first) or (i=last) then
-    begin
-      for i:=first to last-1 do
-      begin
-        if possiblepathslevel[level][i]=address then
-        begin
-          recnr:=i;
-          result:=true;
-          exit;
-        end;
-        if possiblepathslevel[level][i]>address then break;
-      end;
-
-      break;
-    end;
-
-    if possiblepathslevel[level][i]=address then
-    begin
-      recnr:=i;
-      result:=true;
-      exit;
-    end;
-
-    if address<possiblepathslevel[level][i] then
-      last:=i
-    else
-      first:=i;
-  end;
-  recnr:=last;
-end;
-
-
-
-procedure TMethod2scanner.addpossiblepath(address: dword; level: integer);
-var x,y: dword;
-    i,j: integer;
-    originalpos: integer;
-begin
-  //offsetlist now contains a pointer path
-  if not haspossiblepath(level,address,i) then
-  begin
-    possiblepathsLevelMREWS[level].beginwrite;
-    try
-
-      if possiblepathslevelpos[level]+1>=length(possiblepathslevel[level]) then //reallocate array
-        setlength(possiblepathslevel[level],length(possiblepathslevel[level])*2); //double the memory (4mb, 8mb, 16mb,32mb,64mb,128mb,256mb,512mb,1024mb.....)
-
-      //not found so add , i is a good indication of where
-      dec(i);
-      while (i>=0) and (possiblepathslevel[level][i]>address) do dec(i);
-      if i=-1 then i:=0;
-
-      while (i<possiblepathslevelpos[level]) and (possiblepathslevel[level][i]<address) do inc(i);
-
-      //add it to the spot of i
-
-      //first move evrything else to the right
-      for j:=possiblepathslevelpos[level]-1 downto i do
-        possiblepathslevel[level][j+1]:=possiblepathslevel[level][j];
-
-      possiblepathslevel[level][i]:=address;
-
-      possiblepathslevelpos[level]:=possiblepathslevelpos[level]+1;
-    finally
-      possiblepathsLevelMREWS[level].EndWrite;
-    end;
-  end;
-end;
-
-
-procedure TMethod2Scanner.ScanAddress(saddress:dword; currentlevel: integer);
-type
-    PDWordArray = ^TDWordArray;
-    TDWordArray = array[0..0] of DWORD;
-
-var struct: PDWordArray;
-    x: dword;
-    i,j,k,l,m: integer;
-
-    tempoffsetlist: array of toffsetlist;
-
-    tempoffset: toffsetlist;
-
-    sz: integer;
-    mi: tmoduleinfo;
-
-begin
-  inc(scanaddresscount);
-  
-  if terminated then exit;
-
-  if currentlevel=1 then
-    sz:=structsize0
-  else
-    sz:=structsize;
-
-  try
-    if frmPointerScanner.Staticscanner=nil then
-    begin
-      terminate;
-      exit; //it got freed
-    end;
-
-    if frmPointerScanner.Staticscanner.Terminated then
-    begin
-      terminate;
-      exit;
-    end;
-  except
-    terminate;
-    exit;
-  end;
-
-  if (addresstofind>=saddress) and (addresstofind<(saddress+sz)) then
-  begin
-    //found it
-
-    offsetlist[currentlevel]:=addresstofind-saddress;
-
-
-    if results.Size>50*1024*1024 then flushresults;
-
-    try
-      //recheck to see if one of the poitners have changed in the meantime
-      x:=offsetlist[0];
-      pathlist[1]:=x;
-
-      for i:=2 to currentlevel do
-      begin
-        x:=pdword(vm.AddressToPointer(x))^+offsetlist[i];
-        pathlist[i]:=x;
-      end;
-
-      if x<>addresstofind then inc(incorrectresult)
-      else
-      begin
-        //correct so add it to the list of possible paths
-        if not fast then
-        begin
-          for i:=1 to currentlevel do
-            addpossiblepath(pathlist[i],i);
-        end;
-
-
-        if not symhandler.getmodulebyaddress(offsetlist[0],mi) then
-        begin
-          mi.modulename:='';
-          mi.baseaddress:=0;
-          mi.basesize:=$7fffffff;
-        end;
-
-        x:=length(mi.modulename);
-        results.WriteBuffer(x,sizeof(x));
-        results.WriteBuffer(mi.modulename[1],x);
-
-        x:=offsetlist[0]-mi.baseaddress; //offset
-        results.WriteBuffer(x,sizeof(x));
-
-        i:=currentlevel-1;
-        results.WriteBuffer(i,sizeof(i));
-        results.WriteBuffer(offsetlist[2],(currentlevel-1)*sizeof(offsetlist[0]));
-        inc(pointersfound);
-      end;
-    except
-      inc(incorrectresult);
-    end;
-
-    
-  end;
-
-
-  if (not psychotic) and method3 and (currentlevel>1) and isdissected(currentlevel-1,saddress,i) then
-  begin
-    if fast then exit;
-
-    //else see if it is in a possible path and if so continue, else exit
-    if haspossiblepath(currentlevel-1,saddress,i) then
-    begin
-      //I see hope in this path
-      inc(continued);
-    end
-    else
-    begin
-      inc(skipped);
-      exit;
-    end;
-  end;
-
-
-
-  try
-    if frmPointerScanner.staticscanner=nil then exit;
-  except
-    exit;
-  end;
-
-  struct:=pointer(vm.AddressToPointer(dword(saddress)));
-
-
-  try
-    for i:=0 to (sz-1) div 4 do
-    begin
-      if (unalligned or ((struct[i] mod 4)=0)) and vm.isvalid(struct[i]) and (currentlevel<maxlevel) and (struct[i]>=filterstart) and (struct[i]<=filterstop) then
-      begin
-        if currentlevel>1 then offsetlist[currentlevel]:=i*4;
-        
-        scanaddress(struct[i],currentlevel+1);
-        if not psychotic then adddisectedaddress(currentlevel,struct[i]);
-      end;
-    end;
-  except
-    //end of structure reached
-  end;
-end;
-
-
-
-procedure TMethod2Scanner.execute;
-var wr: twaitresult;
-    err: integer;
-begin
-
-  filename:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
-  resultsfile:= tfilestream.Create(filename,fmcreate);
-
-  
-  while not terminated do
-  begin
-    wr:=startworking.WaitFor(infinite);
-    if stop then exit; //happens when the thread was idle and the staticscanner already terminated so send it it event to go out of idle
-
-    if wr=wrSignaled then
-    begin
-      try
-        err:=0;
-        if length(offsetlist)<maxlevel*2+1 then
-        begin
-          setlength(offsetlist,maxlevel*2+1);
-          setlength(pathlist,maxlevel*2+1);
-        end;
-
-        offsetlist[0]:=address;
-        offsetlist[1]:=address;
-        scanaddress(address,1);
-        err:=3;
-        //adddisectedaddress(0,address);
-      except
-      end;
-
-      isdone:=true;  //set isdone to true
-      try
-        method2semaphore.release;  //release the mainthead if it was waiting
-      except
-        messagebox(0,'err','err',0);
-      end;
-    end;
-  end;
-end;
-
-
-constructor Tmethod2scanner.create(suspended:boolean);
-begin
-  results:= tmemorystream.Create;
-
-  startworking:=tevent.create(nil,false,false,'');
-  isdone:=true;
-
-  inherited create(suspended);
-end;
-
-destructor TMethod2scanner.destroy;
-begin
-  if results<>nil then freeandnil(results);
-  if resultsfile<>nil then freeandnil(resultsfile);
-  if startworking<>nil then freeandnil(startworking);
-  setlength(pathlist,0);
-end;
-
-
 //----------------------- staticscanner -------------------------
 
 {$ifdef injectedpscan}
@@ -957,33 +504,27 @@ end;
 
 procedure Tfrmpointerscanner.drawtreeview;
 begin
-  file1.Enabled:=false;
+ { file1.Enabled:=false;
   Pointerscanner1.Enabled:=false;
   tvResults.Items.BeginUpdate;
   DrawTreeviewthread:=TDrawtreeview.Create(true);
   DrawTreeviewThread.pointerlist:=pointerlist;
   DrawTreeviewThread.treeview:=tvResults;
   DrawTreeviewThread.progressbar:=progressbar1;
-  DrawTreeviewThread.Resume;
+  DrawTreeviewThread.Resume;   }
 end;
 
-procedure TFrmpointerscanner.loadpointers;
-begin
-  if pointerlist=nil then pointerlist:=tmemorystream.create;
-  pointerlist.loadfromfile(staticscanner.filenames[0]);
-end;
 
 procedure TFrmpointerscanner.doneui;
 begin
   progressbar1.position:=0;
 
   pgcPScandata.Visible:=false;
-  tvResults.Visible:=true;
-  tvResults.Align:=alclient;
   open1.Enabled:=true;
   new1.enabled:=true;
   save1.Enabled:=true;
   rescanmemory1.Enabled:=true;
+  showmessage('The results are saved in results.ptr');
 end;
 
 procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
@@ -1002,6 +543,12 @@ begin
 
   //now combile all thread results to 1 file
   result:=tfilestream.Create({$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+'result.ptr',fmcreate);
+  pointerlisthandler.saveModuleListToResults(result);
+
+  result.Write(message.LParam,sizeof(message.LParam)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
+
+
+
   for i:=0 to length(staticscanner.filenames)-1 do
   begin
     x:=tfilestream.Create(staticscanner.filenames[i],fmopenread);
@@ -1013,8 +560,6 @@ begin
 
   setlength(staticscanner.filenames,1);
   staticscanner.filenames[0]:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+'result.ptr';
-
-  loadpointers;
 
   showresults1.Enabled:=true;
   showresults1.Click;
@@ -1039,68 +584,19 @@ end;
 
 
 
-procedure TStaticScanner.method2scan(address:dword);
-var i,j: integer;
-begin
-  //find one that is either empty or done
-
-  j:=-1;
-  method2semaphore.Aquire; //allow cpucount+1 to go through
-
-  //this only gets called by 1 thread, so no threadchooser cs needed
-
-  if terminated then
-  begin
-    method2semaphore.Release;
-    exit;
-  end;
-
-  for i:=0 to length(method2scanners)-1 do
-  begin
-    if method2scanners[i].isdone then
-    begin
-      j:=i;
-      break;
-    end;
-  end;
-
-  if j<>-1 then //otherwhise impossible, but for debugging purposes... (mem corruption)
-  begin
-    method2scanners[j].address:=address;
-    method2scanners[j].addresstofind:=automaticaddress;
-    method2scanners[j].maxlevel:=maxlevel;
-    method2scanners[j].structsize:=sz;
-    method2scanners[j].structsize0:=sz0;
-    method2scanners[j].unalligned:=unalligned;
-    method2scanners[j].filterstart:=filterstart;
-    method2scanners[j].filterstop:=filterstop;
-    method2scanners[j].method3:=method3;
-    method2scanners[j].fast:=fast;
-    method2scanners[j].psychotic:=psychotic;
-    method2scanners[j].isdone:=false;
-   
-
-    method2scanners[j].startworking.SetEvent; //it should start working now...
-  end
-  else
-    messagebox(0,'error','error',mb_ok);
-end;
-
-
-
-
-//-----------
 
 procedure TReverseScanWorker.flushresults;
 begin
-  resultsfile.WriteBuffer(results.Memory^,results.Size);
+  resultsfile.WriteBuffer(results.Memory^,results.Position);
   results.Seek(0,sofrombeginning);
-  results.Clear;
+ // results.Clear;
 end;
 
 constructor TReverseScanWorker.create(suspended:boolean);
 begin
   results:=tmemorystream.Create;
+  results.SetSize(16*1024*1024);
+ // results.WriteBuffer('WEEEEEEEE',9);
 
   startworking:=tevent.create(nil,false,false,'');
   isdone:=true;
@@ -1123,7 +619,6 @@ begin
   filename:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+inttostr(getcurrentprocessid)+'-'+inttostr(getcurrentthreadid)+'.ptr';
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
-  
   while not terminated do
   begin
     wr:=startworking.WaitFor(infinite);
@@ -1132,7 +627,7 @@ begin
     if wr=wrSignaled then
     begin
       try
-        rscan(startaddress,startlevel+1);
+        rscan(valuetofind,startlevel);
       finally
         isdone:=true;  //set isdone to true
         reversescansemaphore.release;
@@ -1146,7 +641,7 @@ end;
 var fcount:integer=0;
 var scount:integer=0;
 
-procedure TReverseScanWorker.StorePath(level: integer);
+procedure TReverseScanWorker.StorePath(level: integer; staticdata: PStaticData=nil);
 {Store the current path to memory and flush if needed}
 var i: integer;
     x: dword;
@@ -1154,74 +649,31 @@ var i: integer;
     foundstatic: boolean;
     mi: tmoduleinfo;
 begin
+  inc(fcount); //increme
+  if (staticdata=nil) and staticonly then exit; //don't store it
 
+  inc(scount);
 
-  foundstatic:=false;
-  for i:=0 to level do
-    if symhandler.getmodulebyaddress(tempresults[i],mi) then
-    begin
-      //we found a static address in the path!!!
-      {$ifdef injectedpscan}
-      if mi.modulename='pscan.dll' then exit; //certainly NOT through the pointerscan dll.
-      {$endif}
-      
-      level:=i; //cut it off at i, not level
-      inc(scount);
-      foundstatic:=true;
-      break;
-    end;
-
-  inc(fcount);
-
-  if not foundstatic then
-  begin
-    if staticonly then exit; //don't save
-
-    if staticscanner.findValueInsteadOfAddress and (level=0) then exit; //not for this one
-
-    mi.modulename:=inttohex(tempresults[level],8);
-    mi.baseaddress:=tempresults[level];
-  end;
 
   //fill in the offset list
   inc(pointersfound);
 
-  if staticscanner.findValueInsteadOfAddress then
-  begin
-    offsetlist[level-1]:=addresstofind-pdword(vm.AddressToPointer(tempresults[1]))^;
-    for i:=2 to level-1 do
-      offsetlist[level-i]:=addresstofind-pdword(vm.AddressToPointer(tempresults[i+1]))^;
-
-  end
-  else
-  begin
-    offsetlist[level]:=addresstofind-pdword(vm.AddressToPointer(tempresults[0]))^;
-    for i:=1 to level do
-      offsetlist[level-i]:=tempresults[i-1]-pdword(vm.AddressToPointer(tempresults[i]))^;
-  end;
-
-  x:=length(mi.modulename);
-  results.WriteBuffer(x,sizeof(x));
-  results.WriteBuffer(mi.modulename[1],x);
-
-  x:=tempresults[level]-mi.baseaddress;
-  results.WriteBuffer(x,sizeof(x));
+  //for i:=0 to level do
+  //  offsetlist[level-i]:=tempresults[i];
 
 
-  if staticscanner.findValueInsteadOfAddress then
-    i:=level
-  else
-    i:=level+1;
-    
+  results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
+  results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
+  i:=level+1; //store many offsets are actually used (since all are saved)
   results.WriteBuffer(i,sizeof(i));
-  results.WriteBuffer(offsetlist[0], i*sizeof(offsetlist[0]) );
+  results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
 
-  if results.Size>25*1024*1024 then //bigger than 25mb
+  if results.position>15*1024*1024 then //bigger than 15mb
     flushresults;
 
 end;
 
-procedure TReverseScanWorker.rscan(address:dword; level: integer);
+procedure TReverseScanWorker.rscan(valuetofind:dword; level: integer);
 {
 scan through the memory for a address that points in the region of address, if found, recursive call till level maxlevel
 }
@@ -1230,7 +682,7 @@ var p: ^byte;
     maxaddress: dword;
     AddressMinusMaxStructSize: dword;
     found: boolean;
-    i,j: integer;
+    i,j,k: integer;
     createdworker: boolean;
 
     mi: tmoduleinfo;
@@ -1240,13 +692,18 @@ var p: ^byte;
 {$ifndef injectedpscan}
     mae: TMemoryAllocEvent;
 {$endif}
+
+  originalStartvalue: dword;
+  startvalue: dword;
+  stopvalue: dword;
+  plist: PPointerlist;
 begin
   currentlevel:=level;
-  if (level>=maxlevel) or
-     (symhandler.getmodulebyaddress(address,mi)) then //static address
+  if (level>=maxlevel) then //in the previous version the check if it was a static was done here, that is now done earlier
   begin
-    //reached max level or a static, store this results entry
-    StorePath(level-1);
+    //reached max level
+    if (not staticonly) then //store this results entry
+      StorePath(level-1);
     exit;
   end;
 
@@ -1254,124 +711,127 @@ begin
     exit;
 
 
-
-  p:=vm.GetBuffer;
+ {
+  p:=vm.GetBuffer;  }
 
   exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.mustendwithoffsetlist)-1>=level);
 
   if exactOffset then
-    AddressMinusMaxStructSize:=address-staticscanner.mustendwithoffsetlist[level]  //look for a specific value
+  begin
+    startvalue:=valuetofind-staticscanner.mustendwithoffsetlist[level];
+    stopvalue:=startvalue;
+  end
   else
   begin
-    //normal
-    AddressMinusMaxStructSize:=address-structsize;
-{$ifndef injectedpscan}
+    startvalue:=valuetofind-structsize;
+    stopvalue:=valuetofind;
+
     if staticscanner.useheapdata then
     begin
-      mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, address);
+      mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, valuetofind);
       if mae<>nil then
       begin
         exactoffset:=true;
-        AddressMinusMaxStructSize:=mae.BaseAddress;
+        startvalue:=mae.BaseAddress;
+        stopvalue:=startvalue;
       end
       else //not static and not in heap
-        if staticscanner.useOnlyHeapData then
-          exit;
-    end
-{$endif}    
-
+       if staticscanner.useOnlyHeapData then
+         exit;
+    end;
   end;
-    
-  maxaddress:=dword(p)+vm.GetBufferSize;
-  lastaddresS:=maxaddress;
-  
-  currentaddress:=p;
-  LookingForMin:=AddressMinusMaxStructSize;
-  LookingForMax:=address;  
+ {
+  maxaddress:=dword(p)+vm.GetBufferSize;   }
+  lastaddress:=maxaddress;
+
+  LookingForMin:=startvalue;
+  LookingForMax:=stopvalue;
 
 
-
-  while dword(p)<maxaddress do
+  found:=false;
+  while startvalue<=stopvalue do
   begin
-    {$ifdef injectedpscan}
-    try
-    {$endif}
-      currentaddress:=p;
-
-      if (exactOffset and (pd^=AddressMinusMaxStructSize)) or
-         ((not exactOffset) and (pd^<=address) and (pd^>AddressMinusMaxStructSize))
-      then
+    plist:=pointerlisthandler.findPointerValue(startvalue, stopvalue);
+    if plist<>nil then
+    begin
+      found:=true;
+      for j:=0 to plist.pos-1 do
       begin
-        //found one
-        found:=true;
-        tempresults[level]:=vm.PointerToAddress(p);
 
-        createdworker:=false;
-        
-        //check if I can offload it to another thread
-        if staticscanner.isdone and ((level+1)<maxlevel) then //best only do it when staticscanner is done
+        tempresults[level]:=valuetofind-startvalue; //store the offset
+        if plist.list[j].staticdata=nil then
         begin
+          //check if whe should go deeper into these results (not if max level has been reached)
 
-          reverseScanCS.Enter;
-        
-          //scan the worker thread array for a idle one, if found use it
-          for i:=0 to length(staticscanner.reversescanners)-1 do
+          if (level+1) >= maxlevel then
           begin
-            if staticscanner.reversescanners[i].isdone then
+            if (not staticonly) then //store this results entry
+              StorePath(level-1);
+          end
+          else
+          begin
+            //not at max level, so scan for it
+            //scan for this address
+            //either spawn of a new thread that can do this, or do it myself
+
+            createdworker:=false;
+            reverseScanCS.Enter;
+
+            //scan the worker thread array for a idle one, if found use it
+            for i:=0 to length(staticscanner.reversescanners)-1 do
             begin
-              staticscanner.reversescanners[i].isdone:=false;
-              staticscanner.reversescanners[i].maxlevel:=maxlevel;
-              staticscanner.reversescanners[i].addresstofind:=addresstofind; //in case it wasn't set yet...
+              if staticscanner.reversescanners[i].isdone then
+              begin
+                staticscanner.reversescanners[i].isdone:=false;
+                staticscanner.reversescanners[i].maxlevel:=maxlevel;
+                staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
 
-              staticscanner.reversescanners[i].startaddress:=tempresults[level];
-              for j:=0 to maxlevel-1 do
-                staticscanner.reversescanners[i].tempresults[j]:=tempresults[j]; //copy results
+                for k:=0 to maxlevel-1 do
+                  staticscanner.reversescanners[i].tempresults[k]:=tempresults[k]; //copy results
 
-              staticscanner.reversescanners[i].startlevel:=level;
-              staticscanner.reversescanners[i].structsize:=structsize;
-              staticscanner.reversescanners[i].startworking.SetEvent;
-              createdworker:=true;
-              break;
+                staticscanner.reversescanners[i].startlevel:=level+1;
+                staticscanner.reversescanners[i].structsize:=structsize;
+                staticscanner.reversescanners[i].startworking.SetEvent;
+                createdworker:=true;
+                break;
+              end;
+            end;
+
+            reverseScanCS.Leave;
+
+
+            if not createdworker then
+            begin
+              //I'll have to do it myself
+              rscan(plist.list[j].address,level+1);
             end;
           end;
 
-          reverseScanCS.Leave;
+        end
+        else
+        begin
+          //found a static one
+          StorePath(level, plist.list[j].staticdata);
 
-          if createdworker then
-          begin
-            //NEXT!
-            if alligned then
-              inc(pd) //dword pointer+1
-            else
-              inc(p); //byte pointer+1
-
-            continue;  //stop processing the rest of this routine and continue scanning
-          end;
+          if staticscanner.onlyOneStaticInPath then exit;
         end;
-
-
-        //can't offload, do it myself
-        rscan(tempresults[level],level+1);
-          
-        //messagebox(0,pchar(inttohex(address,8)),'',0);
       end;
 
-      if alligned then
-        inc(pd) //dword pointer+1
+      if not staticscanner.unalligned then
+        startvalue:=startvalue+4
       else
-        inc(p); //byte pointer+1
-    {$ifdef injectedpscan}
-    except
-      VirtualQuery(p,mbi,sizeof(mbi));
-      inc(p,mbi.RegionSize); //try next region
+        startvalue:=startvalue+1;
+        
+    end else
+    begin
+      if (not found) and (not staticonly) then
+      begin
+        //nothing was found, let's just say this is the final level and store it...
+        StorePath(level-1);
+      end;
+      exit;
     end;
-    {$endif}
-  end;
 
-  if (not found) and (not staticonly) then
-  begin
-    //nothing was found, let's just say this is the final level and store it...
-    StorePath(level-1);
   end;
 end;
 
@@ -1387,9 +847,6 @@ end;
 procedure TStaticScanner.reversescan;
 {
 Do a reverse pointer scan
-The level0 seperately so it's easier to spawn of the child threads.
-Of course, if there's only 1 top level entry it only spawns 1 thread... but someday
-I may update it to spawn the threads inside a recursive function... (hmm, or not)
 }
 var p: ^byte;
     pd: ^dword absolute p;
@@ -1406,161 +863,71 @@ var p: ^byte;
     exactoffset: boolean;
 {$ifndef injectedpscan}
     mae: TMemoryAllocEvent;
-{$endif}    
+{$endif}
+
+  startvalue: dword;
+  stopvalue: dword;
+
+  plist: PPointerList;
 begin
-    //scan the buffer
-    fcount:=0; //debug counter to 0
-    scount:=0;
+  //scan the buffer
+  fcount:=0; //debug counter to 0
+  scount:=0;
+  alldone:=false;
 
-    if not findValueInsteadOfAddress then
-      maxlevel:=maxlevel-1; //adjustment for this kind of scan
+  if not findValueInsteadOfAddress then
+    maxlevel:=maxlevel-1; //adjustment for this kind of scan
 
-    setlength(results,maxlevel);
-    p:=vm.GetBuffer;
+  setlength(results,maxlevel);  
 
-    exactOffset:=self.mustEndWithSpecificOffset and (length(self.mustendwithoffsetlist)-1>=0); //level 0 here
+  //initialize the first reverse scan worker
+  //that one will spawn of all his other siblings
 
-    if exactOffset then
-    begin
-      automaticAddressMinusMaxStructSize:=automaticAddress-self.mustendwithoffsetlist[0]
-    end
-    else
-    begin
-      automaticAddressMinusMaxStructSize:=automaticAddress-sz;
-      if useheapdata then
-      begin
-        mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, automaticAddress);
-        if mae<>nil then
-        begin
-          exactoffset:=true;
-          automaticAddressMinusMaxStructSize:=mae.BaseAddress;
-        end
-        else //not static and not in heap
-          if useOnlyHeapData then
-            exit;
-      end;
-    end;
+  reversescanners[0].isdone:=false;
+  reversescanners[0].maxlevel:=maxlevel;
 
-    lookingformin:=automaticAddressMinusMaxStructSize;
-    lookingformax:=automaticAddress;
+  reversescanners[0].valuetofind:=self.automaticaddress;
+  reversescanners[0].structsize:=sz;
+  reversescanners[0].startlevel:=0;
+  reversescanners[0].startworking.SetEvent;
 
 
+  //wait till all threads are in isdone state
+  while (not alldone) do
+  begin
+    sleep(500);
+    alldone:=true;
 
-    maxaddress:=dword(p)+vm.GetBufferSize;
-
-    lastaddress:=pointer(maxaddress); //variable for progressbar calculation
-    currentaddress:=p;
-    j:=0;
-
-    start:=gettickcount;
-    while dword(p)<maxaddress do
-    begin
-      currentaddress:=p;
-      {$ifdef injectedpscan}
-      try
-      {$endif}
-
-        if (findValueInsteadOfAddress and (ismatchtovalue(p))) or
-           (exactOffset and (pd^=automaticAddressMinusMaxStructSize)) or
-           ((not exactOffset) and (not findValueInsteadOfAddress) and (pd^<=automaticaddress) and (pd^>automaticAddressMinusMaxStructSize))
-        then
-        begin
-          //found one
-          if findValueInsteadOfAddress then
-            automaticaddress:=vm.PointerToAddress(p); //do a pointerscan for this address
-
-
-          reversescansemaphore.Aquire; //aquire here, the thread will release it when done
-
-          //activate a worker thread to do this path
-          
-          //quick check if we didn't wait to long and the user clicked terminate
-          if terminated then
-          begin
-            reversescansemaphore.release;
-            break;
-          end;
-
-          //find an inactive thread (there has to be at least one since we got through the semaphore)
-          for i:=0 to length(reversescanners)-1 do
-          begin
-            if reversescanners[i].isdone then
-            begin
-              reversescanners[i].isdone:=false;
-              reversescanners[i].maxlevel:=maxlevel;
-
-              reversescanners[i].startaddress:=vm.PointerToAddress(p);
-              reversescanners[i].addresstofind:=self.automaticaddress;
-              if findValueInsteadOfAddress then
-                reversescanners[i].tempresults[0]:=0 else
-                reversescanners[i].tempresults[0]:=reversescanners[i].startaddress;
-              reversescanners[i].startlevel:=0;
-              reversescanners[i].structsize:=sz;
-              reversescanners[i].startworking.SetEvent;
-              break;
-            end;
-          end;
-
-          //results[0]:=vm.PointerToAddress(p);
-          //rscan(results[0],1,results);
-          //messagebox(0,pchar(inttohex(address,8)),'',0);
-        end;
-
-        if unalligned then
-          inc(p) //byte pointer+1
-        else
-          inc(pd); //dword pointer+1
-      {$ifdef injectedpscan}
-      except
-        VirtualQuery(p,mbi,sizeof(mbi));
-        inc(p,mbi.RegionSize); //try next region
-      end;
-      {$endif}
-
-      currentaddress:=p;
-    end;
-
-    isdone:=true;
-    alldone:=false;
-    //wait till all threads are in isdone state
-    while (not alldone) do
-    begin
-      sleep(500);
-      alldone:=true;
-
-      //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
-      for i:=0 to length(reversescanners)-1 do
-      begin
-        if not reversescanners[i].isdone then
-        begin
-          alldone:=false;
-          break;
-        end;
-      end;
-    end;
-
-
-    setlength(filenames,length(reversescanners));
-
+    //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
     for i:=0 to length(reversescanners)-1 do
     begin
-      reversescanners[i].stop:=true;
-      reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
-      reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
-      reversescanners[i].flushresults;  //write results to disk
-      filenames[i]:=reversescanners[i].filename;
-      reversescanners[i].Free;
+      if not reversescanners[i].isdone then
+      begin
+        alldone:=false;
+        break;
+      end;
     end;
+  end;
 
-    postmessage(frmpointerscanner.Handle,staticscanner_done,0,0);
-    terminate;
-    freeandnil(reversescansemaphore);
-
-
-    stop:=gettickcount;
-    //messagebox(0,'scan done','',mb_ok);
+  isdone:=true;
 
 
+  //all threads are done
+  setlength(filenames,length(reversescanners));
+
+  for i:=0 to length(reversescanners)-1 do
+  begin
+    reversescanners[i].stop:=true;
+    reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
+    reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
+    reversescanners[i].flushresults;  //write results to disk
+    filenames[i]:=reversescanners[i].filename;
+    reversescanners[i].Free;
+  end;
+
+  postmessage(frmpointerscanner.Handle,staticscanner_done,0,maxlevel);
+  terminate;
+  freeandnil(reversescansemaphore);
 end;
 
 procedure TStaticScanner.execute;
@@ -1577,7 +944,6 @@ var
     mbi: _MEMORY_BASIC_INFORMATION;
 
     tn,tempnode: ttreenode;
-    th: TDissectData;
     lastnode: ttreenode;
     oldshowsymbols: boolean;
     oldshowmodules: boolean;
@@ -1593,27 +959,18 @@ var
 begin
   if terminated then exit;
 
-  if (vm<>nil) and (not reuse) then
-    freeandnil(vm);  //free so the next piece of code will do a whole new scan
-
-  if vm=nil then
+  if pointerlisthandler=nil then
   begin
     phase:=1;
     progressbar.Position:=0;
     try
-      vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar);
+      pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar);
     except
-//      try
-//        vm:=tvirtualmemory.Create(filterstart,filterstop,progressbar,true); //memory safe, but slower
-//      except
-        //e.g failure in allocating mem
-        postmessage(frmpointerscanner.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
-        terminate;
-        exit;    
-//      end;
-
+      postmessage(frmpointerscanner.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
+      terminate;
+      exit;
     end;
-  end;
+  end; 
 
 
   phase:=2;
@@ -1627,7 +984,7 @@ begin
 
   i:=0;
 
-  if reverse then
+  if reverse then  //always true since 5.6
   begin
     reverseScanCS:=tcriticalsection.Create;
     try
@@ -1651,142 +1008,11 @@ begin
       reverseScanCS.Free;
     end;
 
-  end
-  else
-  begin
-    Method2semaphore:=tsemaphore.create(threadcount);
-    setlength(method2scanners,threadcount);
-    for i:=0 to threadcount-1 do
-    begin
-      method2scanners[i]:=tmethod2scanner.create(false);
-      method2scanners[i].Priority:=scannerpriority;
-    end;
-
-
-    try
-      //create some regions it should scan
-      setlength(scanregions,0);
-
-      if not unallignedbase then
-      begin
-        if (start mod 4)>0 then
-          start:=start+(4-(start mod 4));
-      end;
-
-      symhandler.fillMemoryRegionsWithModuleData(scanregions,start,stop-start);
-
-
-      if length(scanregions)=0 then
-      begin
-        //no memory found (e.g failed to open process)
-        setlength(scanregions,1);
-        scanregions[0].BaseAddress:=start;
-        scanregions[0].MemorySize:=stop-start;
-        scanregions[0].IsChild:=false;
-        scanregions[0].startaddress:=nil;
-      end;
-
-      currentregion:=0;
-      currentpos:=pointer(scanregions[currentregion].BaseAddress);
-
-      progressbar.Position:=0;
-      progressbar.Max:=stop-start;
-
-      maxpos:=scanregions[currentregion].BaseAddress+scanregions[currentregion].MemorySize-4;
-
-      while (not terminated) and (dword(currentpos)<=stop) do
-      begin
-        isstatic:=false;
-
-        try
-          if (unalligned) or ((pdword(vm.AddressToPointer(dword(currentpos)))^ mod 4)=0) then //unaligned check after the first one so it includes a readable check
-            isstatic:=true;
-
-          if (writableonly) and ((dword(currentpos) mod 4096)=0) then
-          begin
-            if vm.isbadwriteptr(currentpos,4) then
-            begin
-              inc(pbyte(currentpos),4096);
-
-              isstatic:=false;
-              if dword(currentpos)>=maxpos then
-              begin
-                inc(currentregion);
-                if currentregion=length(scanregions) then break; //no more regions
-                currentpos:=pointer(scanregions[currentregion].BaseAddress);
-
-                maxpos:=scanregions[currentregion].BaseAddress+scanregions[currentregion].MemorySize-4;
-              end;
-
-              inc(i);
-              i:=i mod 40;
-              if i=0 then progressbar.position:=(dword(currentpos)-start);
-              continue;
-
-            end;
-
-          end;
-
-
-          if isstatic and (pdword(vm.AddressToPointer(dword(currentpos)))^>=filterstart) and (pdword(vm.AddressToPointer(dword(currentpos)))^<=filterstop) then
-          begin
-            method2scan(dword(currentpos));
-          end;
-
-          inc(i);
-          i:=i mod 40;
-          if i=0 then progressbar.position:=(dword(currentpos)-start);
-
-          if unallignedbase then
-            inc(pbyte(currentpos))
-          else
-            inc(pbyte(currentpos),4);
-
-          if dword(currentpos)>=maxpos then
-          begin
-            inc(currentregion);
-            if currentregion=length(scanregions) then break; //no more regions
-            currentpos:=pointer(scanregions[currentregion].BaseAddress);
-
-            maxpos:=scanregions[currentregion].BaseAddress+scanregions[currentregion].MemorySize-4;
-          end;
-        except
-          inc(currentregion);
-          if currentregion=length(scanregions) then break; //no more regions
-          currentpos:=pointer(scanregions[currentregion].BaseAddress);
-
-          maxpos:=scanregions[currentregion].BaseAddress+scanregions[currentregion].MemorySize-4;
-        end;
-
-      end;
-
-
-      //done
-    finally
-      setlength(filenames,length(method2scanners));
-
-      for i:=0 to length(method2scanners)-1 do
-      begin
-        method2scanners[i].stop:=true;
-        method2scanners[i].startworking.SetEvent;  //run it in case it was waiting
-        method2scanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
-        method2scanners[i].flushresults;
-        filenames[i]:=method2scanners[i].filename; //save the filename
-        method2scanners[i].Free;
-      end;
-
-      setlength(method2scanners,0);
-
-      postmessage(frmpointerscanner.Handle,staticscanner_done,0,0);
-      terminate;
-      freeandnil(Method2semaphore);
-    end;
-
   end;
 
-
+  {
   if (vm<>nil) and (not reuse) then
-    freeandnil(vm);
+    freeandnil(vm);   }
     
 end;
 
@@ -1816,14 +1042,13 @@ begin
 
   if frmpointerscannersettings.Visible then exit; //already open, so no need to make again
 
+  {
   if vm<>nil then
-    frmpointerscannersettings.cbreuse.Caption:='Reuse memory copy from previous scan';
+    frmpointerscannersettings.cbreuse.Caption:='Reuse memory copy from previous scan';}
 
   if frmpointerscannersettings.Showmodal=mrok then
   begin
     new1.click;
-    
-    tvResults.Visible:=false;
 
     pgcPScandata.Visible:=false;
     open1.Enabled:=false;
@@ -1847,55 +1072,21 @@ begin
 
 
     //initialize array's
-    setlength(dissectedpointersLevelpos,frmpointerscannersettings.maxlevel+1);
-    setlength(dissectedpointersLevel,frmpointerscannersettings.maxlevel+1);
-    setlength(dissectedpointersLevelMREWS,frmpointerscannersettings.maxlevel+1);
-
-    for i:=0 to length(dissectedpointersLevelpos)-1 do
-      dissectedpointersLevelpos[i]:=0;
-
-    for i:=0 to length(dissectedpointersLevelMREWS)-1 do
- 	    dissectedpointersLevelMREWS[i]:=TMultiReadExclusiveWriteSynchronizer.create;
-
- 	  for i:=0 to length(dissectedpointerslevel)-1 do
- 	    setlength(dissectedpointerslevel[i],1024*1024); //1mb default
-
-
-    setlength(possiblepathslevelpos,frmpointerscannersettings.maxlevel+1);
-    setlength(possiblepathslevel,frmpointerscannersettings.maxlevel+1);
-    setlength(possiblepathslevelMREWS,frmpointerscannersettings.maxlevel+1);
-
-    for i:=0 to length(possiblepathslevelpos)-1 do
-      possiblepathslevelpos[i]:=0;
-
-    for i:=0 to length(possiblepathslevelMREWS)-1 do
-      possiblepathslevelMREWS[i]:=TMultiReadExclusiveWriteSynchronizer.create;
-
-    for i:=0 to length(possiblepathslevel)-1 do
-      setlength(possiblepathslevel[i],1024*1024); //1mb default
    
     //default scan
     staticscanner:=TStaticscanner.Create(true);
 
     try
 
-      staticscanner.reverse:=frmpointerscannersettings.rbreverse.checked;
+      staticscanner.reverse:=true; //since 5.6 this is always true
 
       staticscanner.start:=frmpointerscannersettings.start;
       staticscanner.stop:=frmpointerscannersettings.Stop;
-      staticscanner.filterstart:=frmpointerscannersettings.FilterStart;
-      staticscanner.filterstop:=frmpointerscannersettings.FilterStop;
-      if staticscanner.reverse then
-      begin
-        staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
-        pgcPScandata.ActivePage:=tsPSReverse;
-        tvRSThreads.Items.Clear;
-      end
-      else
-      begin
-        staticscanner.unalligned:=frmpointerscannersettings.unalligned;
-        pgcPScandata.ActivePage:=tsPSDefault;
-      end;
+
+      staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
+      pgcPScandata.ActivePage:=tsPSReverse;
+      tvRSThreads.Items.Clear;
+
 
       staticscanner.codescan:=frmpointerscannersettings.codescan;
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
@@ -1906,13 +1097,6 @@ begin
       staticscanner.sz:=frmpointerscannersettings.structsize;
       staticscanner.sz0:=frmpointerscannersettings.level0structsize;
       staticscanner.maxlevel:=frmpointerscannersettings.maxlevel;
-      staticscanner.method2:=true;
-      staticscanner.method3:=true;
-      staticscanner.fast:=frmpointerscannersettings.CheckBox1.Checked;
-      staticscanner.psychotic:=frmpointerscannersettings.psychotic;
-      staticscanner.writableonly:=frmpointerscannersettings.writableonly;
-      staticscanner.unallignedbase:=frmpointerscannersettings.unallignedbase;
-      staticscanner.reuse:=frmpointerscannersettings.cbreuse.checked;
 
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
@@ -1926,7 +1110,9 @@ begin
           staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
 
-{$ifndef injectedpscan}      
+      staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
+
+{$ifndef injectedpscan}
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
       staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 
@@ -2034,18 +1220,32 @@ begin
 
   if staticscanner<>nil then
   try
+    if staticscanner.isdone then
+    begin
+      if tvRSThreads.Items.Count>0 then
+        tvRSThreads.Items.Clear;
+        
+      exit;
+    end;
+
     if staticscanner.reverse then
     begin
       lblRSTotalPaths.caption:=format('Total pointer paths encountered: %d ',[fcount]);
       lblRSTotalStaticPaths.caption:=format('Of those %d have a static base',[scount]);
 
-      {$ifdef injectedpscan}
-      lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
-      {$else}
-      if vm<>nil then
-        lblRSCurrentAddress.Caption:=format('Currently at address %0.8x (going till %0.8x)',[vm.PointerToAddress(staticscanner.currentaddress), vm.PointerToAddress(staticscanner.lastaddress)]);
-      {$endif}
+      if scount>fcount then  lblRSTotalStaticPaths.caption:= lblRSTotalStaticPaths.caption+' WTF?';
 
+      if pointerlisthandler<>nil then
+        label6.caption:='Pointer addresses found in the whole process:'+inttostr(pointerlisthandler.count);
+        
+      //{$ifdef injectedpscan
+      //lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
+     // {$else
+      //if vm<>nil then
+  //    lblRSCurrentAddress.Caption:=format('Currently at address %0.8x (going till %0.8x)',[vm.PointerToAddress(staticscanner.currentaddress), vm.PointerToAddress(staticscanner.lastaddress)]);
+      //{$endif
+
+      {
 
       label2.Caption:=inttostr(scount)+' of '+inttostr(fcount);
       label6.caption:='Looking for :'+inttohex(staticscanner.lookingformin,8)+'-'+inttohex(staticscanner.lookingformax,8);;
@@ -2057,6 +1257,7 @@ begin
         done:=dword(staticscanner.currentaddress)-dword(staticscanner.firstaddress);
       end;
 
+      }
       if tvRSThreads.Items.Count<length(staticscanner.reversescanners) then
       begin
         //add them
@@ -2065,9 +1266,7 @@ begin
         begin
           tn:=tvRSThreads.Items.Add(nil,'Thread '+inttostr(i+1));
           tvRSThreads.Items.AddChild(tn,'Current Level:0');
-          tvRSThreads.Items.AddChild(tn,'Current Address:0');
-          tvRSThreads.Items.AddChild(tn,'Going till :0');
-          tvRSThreads.Items.AddChild(tn,'Looking for :0-0');          
+          tvRSThreads.Items.AddChild(tn,'Looking for :0-0');
         end;
       end;
 
@@ -2082,18 +1281,12 @@ begin
           tn2.text:='Sleeping';
           tn2:=tn2.getNextSibling;
           tn2.text:='Sleeping';
-          tn2:=tn2.getNextSibling;
-          tn2.text:='Sleeping';
-          tn2:=tn2.getNextSibling;
-          tn2.text:='Sleeping';
         end
         else
         begin
           tn.text:='Thread '+inttostr(i+1)+' (Active)';
           tn2:=tn.getFirstChild;
 
-
-          if vm<>nil then
           begin
             s:='';
             for j:=0 to staticscanner.reversescanners[i].currentlevel-1 do
@@ -2102,10 +1295,6 @@ begin
 
             tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
             tn2:=tn2.getNextSibling;
-            tn2.text:='Current Address:'+inttohex(vm.PointerToAddress(staticscanner.reversescanners[i].currentaddress),8);
-            tn2:=tn2.getNextSibling;
-            tn2.text:='Going till:'+inttohex(vm.PointerToAddress(pointer(staticscanner.reversescanners[i].lastaddress)),8);
-            tn2:=tn2.getNextSibling;
             tn2.text:='Looking for :'+inttohex(staticscanner.reversescanners[i].lookingformin,8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax,8);;
           end;
         end;
@@ -2113,65 +1302,16 @@ begin
         tn:=tn.getNextSibling;
         inc(i);
       end;
-
     end
     else
     begin
-      l:=length(staticscanner.method2scanners);
-      s:=inttostr(l);
-
-      a:='';
-      j:=0;
-      for i:=0 to l-1 do
-      begin
-        if staticscanner.method2scanners[i].isdone then inc(j);
-        if i=0 then smallestaddress:=staticscanner.method2scanners[i].address
-        else
-          if staticscanner.method2scanners[i].address<smallestaddress then smallestaddress:=staticscanner.method2scanners[i].address;
-
-        a:=a+'   '+inttostr(i)+':'+inttohex(staticscanner.method2scanners[i].address,8);
-      end;
-
-      label11.caption:=s+' ('+inttostr(j)+')'+a;
-
-      label15.Caption:=inttohex(smallestaddress,8);
-
-      if staticscanner.phase=2 then
-      begin
-        //calculate time left
-        todo:=staticscanner.stop-dword(staticscanner.currentpos);
-        done:=dword(staticscanner.currentpos)-staticscanner.start;
-      end;
-
+     
     end;
-
-
-    if staticscanner.phase=2 then
-    begin
-      label18.Caption:='Scanning';
-      donetime:=gettickcount-staticscanner.starttime; //time(in ms) it did about 'done' addresses
-      oneaddresstime:=donetime/done;
-      todotime:=trunc(todo*oneaddresstime);
-
-      _h:=todotime div 3600000;
-      todotime:=todotime mod 3600000;
-
-      _m:=todotime div 60000;
-      todotime:=todotime mod 60000;
-
-      _s:=todotime div 1000;
-
-      label19.Caption:=inttostr(_h)+':'+inttostr(_m)+':'+inttostr(_s);
-
-    end
-    else
-      label18.caption:='Copying memory';
 
 
   except
     label11.caption:='0 (0)';
   end else label18.Caption:='Idle';
-
 
   label4.Caption:=inttostr(scanaddresscount);
 end;
@@ -2203,78 +1343,61 @@ begin
 end;
 
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
-var x: tfilestream;
-    offset: dword;
-    offsetsize: dword;
-    offsetlist: array of dword;
-    stringlength: dword;
-    s: pchar;
-    ssize: dword;
-    st: string;
+var
+  modulelistlength: dword;
+  i: integer;
+  x: dword;
+  temppchar: pchar;
+  temppcharmaxlength: integer;
+
+  col_baseaddress:TListColumn;
+  col_offsets: Array of TListColumn; 
 begin
-  ssize:=0;
-  setlength(offsetlist,10);
+  temppcharmaxlength:=256;
+  getmem(temppchar, temppcharmaxlength);
 
   if opendialog1.Execute then
   begin
-    if staticscanner=nil then
+    pointerfile:=tfilestream.Create(opendialog1.Filename, fmopenRead);
+    pointerfile.Read(modulelistlength,sizeof(modulelistlength)); //modulelistcount
+    modulelist:=tstringlist.Create;
+
+    for i:=0 to modulelistlength-1 do
     begin
-      staticscanner:=tstaticscanner.Create(true);
-      staticscanner.Terminate;
-      staticscanner.Resume;
-    end;
-
-
-    setlength(staticscanner.filenames,1);
-    staticscanner.filenames[0]:=opendialog1.FileName;
-
-    pointersfound:=0;
-    x:=tfilestream.Create(opendialog1.FileName,fmopenread);
-
-    s:=nil;
-    getmem(s,100);
-    ssize:=100;
-    try
-      while x.Position<x.Size do
+      pointerfile.Read(x,sizeof(x));
+      while x>temppcharmaxlength do
       begin
-        x.ReadBuffer(stringlength,sizeof(stringlength));
-        if ssize<=stringlength then
-        begin
-          freemem(s);
-          s:=nil;
-          getmem(s,stringlength+1);
-          ssize:=stringlength+1;
-        end;
-
-        x.ReadBuffer(s^,stringlength);
-        s[stringlength]:=#0;
-
-        x.ReadBuffer(offset,sizeof(offset));
-
-        x.ReadBuffer(offsetsize,sizeof(offsetsize));
-        if length(offsetlist)<(offsetsize+1) then
-          setlength(offsetlist,offsetsize*2);
-
-        x.ReadBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
-
-        inc(pointersfound);
+        temppcharmaxlength:=temppcharmaxlength*2;
+        getmem(temppchar, temppcharmaxlength);
       end;
-    finally
-      x.free;
-      if s<>nil then
-        freemem(s);
+
+      pointerfile.Read(temppchar[0], x);
+      temppchar[x]:=#0;
+
+      modulelist.Add(temppchar);
     end;
 
-    loadpointers;
+    //modulelist has been loaded
+    pointerfile.read(pointerfileoffsetlength, sizeof(pointerfileoffsetlength));
+    pointerfileStartPosition:=pointerfile.Position;
 
-    doneui;
-    
-    showresults1.Enabled:=true;
-    Rescanmemory1.Enabled:=true;
-    Save1.Enabled:=true;
-    new1.Enabled:=true;
+    listview1.Columns.Clear;
 
-    showresults1.Click;
+    col_baseaddress:=listview1.Columns.Add;
+    col_baseaddress.Caption:='Base Address';
+    col_baseaddress.Width:=100;
+
+    setlength(col_offsets, pointerfileoffsetlength);
+    for i:=0 to pointerfileoffsetlength-1 do
+    begin
+      col_offsets[i]:=listview1.Columns.Add;
+      col_offsets[i].Caption:='Offset '+inttostr(i);
+      col_offsets[i].Width:=50;
+    end;
+
+    sizeOfEntry:=(12+pointerfileoffsetlength*4);
+
+    listview1.Items.Count:=(pointerfile.size-pointerfileStartPosition) div sizeOfEntry;
   end;
 end;
 
@@ -2607,7 +1730,7 @@ var base :ttreenode;
     i: integer;
     t: string;
 begin
-  base:=tvResults.Selected;
+ { base:=tvResults.Selected;
   if base<>nil then
   begin
     if base.Level=1 then
@@ -2629,7 +1752,7 @@ begin
 
     mainform.addaddress('pointerscan result',baseaddress,offsets,length(offsets),true,2,0,0,false);
     mainform.memrec[length(mainform.memrec)-1].pointers[length(mainform.memrec[length(mainform.memrec)-1].pointers)-1].Interpretableaddress:=t;
-  end;
+  end;    }
 end;
 {$endif}
 
@@ -2640,7 +1763,7 @@ begin
   if staticscanner<>nil then
     freeandnil(staticscanner);
 
-  tvResults.Visible:=false;
+ 
   pgcPScandata.Visible:=false;
   panel1.Caption:='';
   open1.Enabled:=true;
@@ -2659,23 +1782,14 @@ begin
   end;
 
 
+  {
   if vm<>nil then
-    freeandnil(vm);
+    freeandnil(vm);  }
 
 
     
   setlength(staticlist,0);
-  setlength(dissectedpointersLevelpos,0);
 
-  for i:=0 to length(dissectedpointersLevel)-1 do
-    setlength(dissectedpointersLevel[i],0);
-  setlength(dissectedpointersLevel,0);
-
-  for i:=0 to length(dissectedpointersLevelMREWS)-1 do
-    if dissectedpointersLevelMREWS[i]<>nil then
-      freeandnil(dissectedpointersLevelMREWS[i]);
-
-  setlength(dissectedpointersLevelMREWS,0);
 
   for i:=0 to length(treenodeswithchildren)-1 do
     freeandnil(treenodeswithchildren[i]);
@@ -2688,21 +1802,6 @@ begin
     setlength(matchednodes[i],0);
   setlength(matchednodes,0);
 
-  tvResults.Items.Clear;
-
-  for i:=0 to length(PossiblepathsLevelMREWS)-1 do
-    freeandnil(PossiblepathsLevelMREWS[i]);
-  setlength(PossiblepathsLevelMREWS,0);
-
-  for i:=0 to length(possiblepathsLevel)-1 do
-    setlength(possiblepathsLevel[i],0);
-  setlength(possiblepathsLevel,0);
-
-  setlength(possiblepathsLevelpos,0);
-
-  if (method2semaphore<>nil) then
-    freeandnil(method2semaphore);
-
   if pointerlist<>nil then freeandnil(pointerlist);  
 end;
 
@@ -2710,12 +1809,6 @@ end;
 
 procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
 begin
-  tvresults:=TTreeview.Create(self);
-  tvResults.ReadOnly:=true;
-  tvResults.Visible:=false;
-  tvResults.Parent:=self;
-  tvResults.OnDblClick:=tvResultsDblClick;
-
   tsPSDefault.TabVisible:=false;
   tsPSReverse.TabVisible:=false;
 
@@ -2763,8 +1856,41 @@ end;
 procedure Tfrmpointerscanner.Sortlist1Click(Sender: TObject);
 var i,j: integer;
 begin
-  tvResults.OnCompare:=tvResultCompare;
-  tvResults.AlphaSort(false);
+ { tvResults.OnCompare:=tvResultCompare;
+  tvResults.AlphaSort(false);  }
+end;
+
+procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;
+  Item: TListItem);
+var i: integer;
+    offset: dword;
+    actualoffsetcount: integer;
+begin
+  pointerfile.Position:=pointerfileStartPosition+item.Index*sizeofentry;
+  pointerfile.Read(i,sizeof(i));
+  pointerfile.read(offset,sizeof(offset));
+  item.Caption:=modulelist[i]+'+'+inttohex(offset,1);
+
+  pointerfile.Read(actualoffsetcount,sizeof(actualoffsetcount));
+
+
+  {
+  results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
+  i:=level+1; //store many offsets are actually used (since all are saved)
+  results.WriteBuffer(i,sizeof(i));
+  results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
+  }
+  for i:=0 to actualoffsetcount-1 do
+  begin
+    pointerfile.Read(offset,sizeof(offset));
+    if i>=item.SubItems.Count then
+      item.SubItems.Add(inttohex(offset,1))
+    else
+      item.SubItems[i]:=inttohex(offset,1);
+  end;
+
+  for i:=actualoffsetcount to item.SubItems.Count-1 do
+    item.SubItems[i]:='';
 end;
 
 end.

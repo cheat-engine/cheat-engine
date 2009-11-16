@@ -11261,10 +11261,10 @@ begin
 
 
   starttime:=gettickcount;
-  for i:=0 to 90000 do
+  for i:=0 to 9000000 do
   begin
     aaaa:=0;
-    abc.findPointerValue(aaaa,$7f000000);
+    abc.findPointerValue(aaaa,256);
   end;
 
   showmessage(inttostr(gettickcount-starttime));

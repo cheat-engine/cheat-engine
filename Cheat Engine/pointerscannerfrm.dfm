@@ -1,6 +1,6 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 606
-  Top = 448
+  Left = 690
+  Top = 299
   Width = 627
   Height = 432
   Caption = 'Pointer scan'
@@ -206,13 +206,6 @@ object frmPointerScanner: TfrmPointerScanner
           Height = 16
           Caption = 'Threads'
         end
-        object lblRSCurrentAddress: TLabel
-          Left = 0
-          Top = 59
-          Width = 125
-          Height = 16
-          Caption = 'Currently at address :'
-        end
         object lblRSTotalStaticPaths: TLabel
           Left = 0
           Top = 30
@@ -230,9 +223,9 @@ object frmPointerScanner: TfrmPointerScanner
         object Label6: TLabel
           Left = 0
           Top = 79
-          Width = 69
+          Width = 149
           Height = 16
-          Caption = 'Looking for:'
+          Caption = 'Pointer addresses found:'
         end
       end
       object Panel3: TPanel
@@ -259,6 +252,17 @@ object frmPointerScanner: TfrmPointerScanner
         end
       end
     end
+  end
+  object ListView1: TListView
+    Left = 384
+    Top = 0
+    Width = 225
+    Height = 329
+    Columns = <>
+    OwnerData = True
+    TabOrder = 3
+    ViewStyle = vsReport
+    OnData = ListView1Data
   end
   object MainMenu1: TMainMenu
     Left = 144

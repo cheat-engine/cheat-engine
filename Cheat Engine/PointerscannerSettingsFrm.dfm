@@ -13,7 +13,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 120
@@ -26,6 +25,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     CharCase = ecUpperCase
     MaxLength = 8
     TabOrder = 0
+    OnChange = edtAddressChange
   end
   object rbDefault: TRadioButton
     Left = 266
@@ -37,7 +37,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       'ncounters the target address'
     Caption = 'Old pointer scan'
     TabOrder = 1
-    OnClick = rbDefaultClick
   end
   object rbReverse: TRadioButton
     Left = 266
@@ -60,175 +59,34 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 267
     ActivePage = PSReverse
     TabOrder = 3
-    object PSDefault: TTabSheet
-      Caption = 'Default'
-      TabVisible = False
-      object Label1: TLabel
-        Left = 187
-        Top = 138
-        Width = 31
-        Height = 16
-        Caption = 'From'
-      end
-      object Label2: TLabel
-        Left = 276
-        Top = 138
-        Width = 20
-        Height = 16
-        Caption = 'To:'
-      end
-      object Label4: TLabel
-        Left = 151
-        Top = 187
-        Width = 255
-        Height = 16
-        Caption = 'Pointer path must only be inside this region:'
-      end
-      object Label5: TLabel
-        Left = 187
-        Top = 207
-        Width = 31
-        Height = 16
-        Caption = 'From'
-      end
-      object Label6: TLabel
-        Left = 276
-        Top = 207
-        Width = 20
-        Height = 16
-        Caption = 'To:'
-      end
-      object Label8: TLabel
-        Left = 153
-        Top = 118
-        Width = 238
-        Height = 16
-        Caption = 'Address range to scan for static pointers'
-      end
-      object edtStart: TEdit
-        Left = 187
-        Top = 158
-        Width = 80
-        Height = 24
-        CharCase = ecUpperCase
-        MaxLength = 8
-        TabOrder = 0
-        Text = '00401000'
-      end
-      object edtStop: TEdit
-        Left = 276
-        Top = 158
-        Width = 80
-        Height = 24
-        CharCase = ecUpperCase
-        MaxLength = 8
-        TabOrder = 1
-        Text = '00700000'
-      end
-      object edtFilterStart: TEdit
-        Left = 187
-        Top = 226
-        Width = 80
-        Height = 24
-        CharCase = ecUpperCase
-        MaxLength = 8
-        TabOrder = 2
-        Text = '00400000'
-        OnChange = edtFilterStartChange
-      end
-      object edtFilterStop: TEdit
-        Left = 276
-        Top = 226
-        Width = 80
-        Height = 24
-        CharCase = ecUpperCase
-        MaxLength = 8
-        TabOrder = 3
-        Text = '70000000'
-        OnChange = edtFilterStopChange
-      end
-      object cbunaligned: TCheckBox
-        Left = 0
-        Top = 69
-        Width = 366
-        Height = 21
-        Caption = 'Also dissect unalligned pointers (slow and almost useless)'
-        TabOrder = 4
-      end
-      object ListBox1: TListBox
-        Left = 0
-        Top = 118
-        Width = 149
-        Height = 139
-        ItemHeight = 16
-        TabOrder = 5
-        OnClick = ListBox1Click
-      end
-      object CheckBox1: TCheckBox
-        Left = 0
-        Top = 30
-        Width = 425
-        Height = 20
-        Caption = 
-          'Fast: Skip already dissected pointers (May miss some important o' +
-          'nes)'
-        TabOrder = 6
-      end
-      object CheckBox2: TCheckBox
-        Left = 0
-        Top = 0
-        Width = 434
-        Height = 21
-        Caption = 'Writable memory as base only'
-        Checked = True
-        State = cbChecked
-        TabOrder = 7
-      end
-      object CheckBox3: TCheckBox
-        Left = 0
-        Top = 89
-        Width = 434
-        Height = 21
-        Caption = 'Base pointers can be unalligned'
-        TabOrder = 8
-      end
-      object CheckBox4: TCheckBox
-        Left = 0
-        Top = 49
-        Width = 415
-        Height = 21
-        Caption = 'Psychotic: Do not skip any memory (slow, REALLY slow....)'
-        TabOrder = 9
-      end
-    end
     object PSReverse: TTabSheet
       Caption = 'Reverse'
       ImageIndex = 1
       TabVisible = False
       object Label10: TLabel
         Left = 39
-        Top = 69
+        Top = 85
         Width = 31
         Height = 16
         Caption = 'From'
       end
       object Label11: TLabel
         Left = 128
-        Top = 69
+        Top = 85
         Width = 20
         Height = 16
         Caption = 'To:'
       end
       object Label13: TLabel
         Left = 4
-        Top = 49
+        Top = 65
         Width = 253
         Height = 16
         Caption = 'Pointer path may only be inside this region:'
       end
       object Label14: TLabel
         Left = 0
-        Top = 180
+        Top = 196
         Width = 150
         Height = 16
         Caption = 'Maximum offset to accept'
@@ -247,25 +105,23 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object edtReverseStop: TEdit
         Left = 128
-        Top = 89
+        Top = 105
         Width = 80
         Height = 24
         CharCase = ecUpperCase
         MaxLength = 8
         TabOrder = 1
         Text = '7FFFFFFF'
-        OnChange = edtReverseStopChange
       end
       object edtReverseStart: TEdit
         Left = 39
-        Top = 89
+        Top = 105
         Width = 80
         Height = 24
         CharCase = ecUpperCase
         MaxLength = 8
         TabOrder = 2
         Text = '00000000'
-        OnChange = edtReverseStartChange
       end
       object cbStaticOnly: TCheckBox
         Left = 0
@@ -279,7 +135,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStackAsBase: TCheckBox
         Left = 0
-        Top = 160
+        Top = 176
         Width = 415
         Height = 21
         Caption = 
@@ -290,7 +146,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object Edit3: TEdit
         Left = 0
-        Top = 199
+        Top = 215
         Width = 149
         Height = 24
         Enabled = False
@@ -300,7 +156,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyStackAsBase: TCheckBox
         Left = 0
-        Top = 229
+        Top = 237
         Width = 257
         Height = 21
         Caption = 'Only use the maintread stack as a base'
@@ -309,34 +165,34 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbUseHeapData: TCheckBox
         Left = 0
-        Top = 121
+        Top = 137
         Width = 425
         Height = 16
         Caption = 'Improve pointerscan with gathered heap data'
-        Enabled = False
         TabOrder = 7
         OnClick = cbUseHeapDataClick
       end
       object cbHeapOnly: TCheckBox
         Left = 16
-        Top = 137
+        Top = 153
         Width = 409
         Height = 16
         Caption = 'Only allow static and heap addresses in the path'
         Enabled = False
         TabOrder = 8
+        OnClick = cbHeapOnlyClick
+      end
+      object cbOnlyOneStatic: TCheckBox
+        Left = 0
+        Top = 40
+        Width = 345
+        Height = 17
+        Caption = 'Stop traversing a path when a static has been found'
+        Checked = True
+        State = cbChecked
+        TabOrder = 9
       end
     end
-  end
-  object cbreuse: TCheckBox
-    Left = 10
-    Top = 329
-    Width = 424
-    Height = 21
-    Caption = 
-      'Do not free the memory copy when finished, but reuse it for next' +
-      ' scan'
-    TabOrder = 4
   end
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 10
@@ -344,7 +200,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 247
     Height = 21
     Caption = 'Pointers must end with specific offsets'
-    TabOrder = 5
+    TabOrder = 4
     OnClick = cbMustEndWithSpecificOffsetClick
   end
   object Panel1: TPanel
@@ -354,7 +210,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 107
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 6
+    TabOrder = 5
     object Label3: TLabel
       Left = 59
       Top = 43
@@ -447,7 +303,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Style = csDropDownList
     ItemHeight = 16
     ItemIndex = 0
-    TabOrder = 7
+    TabOrder = 6
     Text = '4 Byte'
     Items.Strings = (
       '4 Byte'
@@ -460,7 +316,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 249
     Height = 25
     BevelOuter = bvNone
-    TabOrder = 8
+    TabOrder = 7
     object rbFindAddress: TRadioButton
       Left = 0
       Top = 8

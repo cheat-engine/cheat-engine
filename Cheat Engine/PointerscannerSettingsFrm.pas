@@ -34,24 +34,7 @@ type
     rbDefault: TRadioButton;
     rbReverse: TRadioButton;
     PSSettings: TPageControl;
-    PSDefault: TTabSheet;
     PSReverse: TTabSheet;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
-    Label8: TLabel;
-    edtStart: TEdit;
-    edtStop: TEdit;
-    edtFilterStart: TEdit;
-    edtFilterStop: TEdit;
-    cbunaligned: TCheckBox;
-    ListBox1: TListBox;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
-    CheckBox4: TCheckBox;
     CbAlligned: TCheckBox;
     edtReverseStop: TEdit;
     edtReverseStart: TEdit;
@@ -59,7 +42,6 @@ type
     Label11: TLabel;
     Label13: TLabel;
     cbStaticOnly: TCheckBox;
-    cbreuse: TCheckBox;
     cbMustEndWithSpecificOffset: TCheckBox;
     Panel1: TPanel;
     Label3: TLabel;
@@ -81,20 +63,16 @@ type
     Panel2: TPanel;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
-    procedure ListBox1Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    cbOnlyOneStatic: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure rbDefaultClick(Sender: TObject);
     procedure rbReverseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure edtReverseStartChange(Sender: TObject);
-    procedure edtReverseStopChange(Sender: TObject);
-    procedure edtFilterStartChange(Sender: TObject);
-    procedure edtFilterStopChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
     procedure cbUseHeapDataClick(Sender: TObject);
     procedure rbFindValueClick(Sender: TObject);
+    procedure edtAddressChange(Sender: TObject);
+    procedure cbHeapOnlyClick(Sender: TObject);
   private
     { Private declarations }
     procedure btnAddClick(sender: TObject);
@@ -104,18 +82,13 @@ type
     reverse: boolean; //indicates to use the reverse method
     start:dword;
     stop: dword;
-    filterstart: dword;
-    filterstop: dword;
     unalligned: boolean;
     automaticaddress: dword;
     structsize: integer;
     level0structsize: integer;
     maxlevel: integer;
     codescan: boolean;
-    writableonly: boolean;
-    unallignedbase: boolean;
     threadcount: integer;
-    psychotic: boolean;
 
     offsetlist: TComponentList;
     btnAddOffset: TButton;
@@ -161,48 +134,23 @@ begin
   text:=inttohex(x,1);
 end;
 
-procedure TfrmPointerScannerSettings.ListBox1Click(Sender: TObject);
-begin
-  if listbox1.ItemIndex<>-1 then
-  begin
-    edtStart.Text:=inttohex(tmoduledata(listbox1.Items.Objects[listbox1.ItemIndex]).moduleaddress,8);
-    edtstop.text:=inttohex(tmoduledata(listbox1.Items.Objects[listbox1.ItemIndex]).moduleaddress+tmoduledata(listbox1.Items.Objects[listbox1.ItemIndex]).modulesize,8);
-  end;
-end;
-
-procedure TfrmPointerScannerSettings.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-var i: integer;
-begin
-  for i:=0 to listbox1.Count-1 do
-    if listbox1.Items.Objects[i]<>nil then
-      tmoduledata(listbox1.Items.Objects[i]).Free;
-
-  listbox1.Clear;
-end;
-
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
 begin
-  start:=strtoint('$'+edtStart.text);
-  stop:=strtoint('$'+edtStop.text);
+
+  start:=strtoint('$'+edtReverseStart.text);
+  stop:=strtoint('$'+edtReverseStop.text);
 
   if stop>$7fffffff then stop:=$7fffffff;
 
-  
-  filterstart:=strtoint('$'+edtfilterstart.text);
-  filterstop:=strtoint('$'+edtfilterstop.text);
-
   automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 
-  unalligned:=cbunaligned.checked;
+  unalligned:=not cballigned.checked;
 
   structsize:=strtoint(editstructsize.text);
   level0structsize:=4;
   maxlevel:=strtoint(editMaxLevel.text)+1;
 
   codescan:=false;
-  writableonly:=checkbox2.checked;
-  unallignedbase:=checkbox3.checked;
 
   threadcount:=strtoint(edtthreadcount.text);
   case combobox1.itemindex of
@@ -214,9 +162,6 @@ begin
     5: scannerpriority:=tpHighest;
     6: scannerpriority:=tpTimeCritical;
   end;
-
-
-  psychotic:=checkbox4.checked;
 
   modalresult:=mrok;
 end;
@@ -242,8 +187,6 @@ begin
   end;
 
   {$else}
-  cbUseHeapData.enabled:=frmMemoryAllocHandler<>nil; //never enable for injected pscan
-
   bitcount:=GetCPUCount;
 
   if HasHyperthreading then
@@ -251,51 +194,9 @@ begin
   {$endif}
 
   rbFindValueClick(rbFindAddress);
-  edtFilterStart.Text:=edtReverseStart.Text;
-  edtFilterStop.Text:=edtReverseStop.text;
-
-
-
 
 
   edtThreadcount.text:=inttostr(bitcount);
-
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
-  if ths<>0 then
-  begin
-    try
-      first:=true;
-      zeromemory(@me32,sizeof(me32));
-      me32.dwSize:=sizeof(me32);
-      if module32first(ths,me32) then
-      repeat
-        x:=@me32.szModule[0];
-
-        moduledata:=tmoduledata.Create;
-        moduledata.moduleaddress:=dword(me32.modBaseAddr);
-        moduledata.modulesize:=me32.modBaseSize;
-
-        if first then
-        begin
-          edtstart.text:=inttohex(moduledata.moduleaddress,8);
-          edtstop.text:=inttohex(moduledata.moduleaddress+moduledata.modulesize,8);
-          first:=false;
-        end;
-
-        listbox1.Items.AddObject(x,moduledata);
-      until module32next(ths,me32)=false;
-
-    finally
-      closehandle(ths);
-    end;
-  end;
-end;
-
-procedure TfrmPointerScannerSettings.rbDefaultClick(Sender: TObject);
-begin
-  pssettings.ActivePage:=PSDefault;
-  cbMustEndWithSpecificOffset.Checked:=cbMustEndWithSpecificOffset.checked and rbReverse.Checked;
-  cbMustEndWithSpecificOffset.Enabled:=rbReverse.Checked;  
 end;
 
 procedure TfrmPointerScannerSettings.rbReverseClick(Sender: TObject);
@@ -309,26 +210,6 @@ procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
 begin
   pssettings.ActivePage:=PSReverse;
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
-end;
-
-procedure TfrmPointerScannerSettings.edtReverseStartChange(Sender: TObject);
-begin
-  edtFilterStart.Text:=edtReverseStart.Text;
-end;
-
-procedure TfrmPointerScannerSettings.edtReverseStopChange(Sender: TObject);
-begin
-  edtFilterStop.text:=edtReverseStop.text;
-end;
-
-procedure TfrmPointerScannerSettings.edtFilterStartChange(Sender: TObject);
-begin
-  edtReverseStart.Text:=edtFilterStart.Text;
-end;
-
-procedure TfrmPointerScannerSettings.edtFilterStopChange(Sender: TObject);
-begin
-  edtReverseStop.text:=edtFilterStop.Text;
 end;
 
 procedure tfrmPointerScannerSettings.btnAddClick(sender: TObject);
@@ -429,16 +310,18 @@ begin
   end;
 
 
-
-
-
-
-
 end;
 
 procedure TfrmPointerScannerSettings.cbUseHeapDataClick(Sender: TObject);
 begin
   cbHeapOnly.Enabled:=cbUseHeapData.Checked;
+  if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
+    freeandnil(frmMemoryAllocHandler);
+
+  frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self);
+  frmMemoryAllocHandler.WaitForInitializationToFinish;
+
+  edtAddressChange(edtAddress);
 end;
 
 procedure TfrmPointerScannerSettings.rbFindValueClick(Sender: TObject);
@@ -456,6 +339,27 @@ begin
     editMaxLevel.Text:='1';
   end;
   edtAddress.SetFocus;
+end;
+
+procedure TfrmPointerScannerSettings.edtAddressChange(Sender: TObject);
+var haserror: boolean;
+begin
+  automaticaddress:=symhandler.getAddressFromName(edtAddress.text, false,haserror); //ignore error
+
+
+  if cbHeapOnly.Checked then
+  begin
+   if (frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, automaticaddress)<>nil) then
+     edtAddress.Font.Color:=clGreen
+   else
+     edtAddress.Font.Color:=clRed; //BAD
+  end else edtAddress.Font.Color:=clWindowText;
+
+end;
+
+procedure TfrmPointerScannerSettings.cbHeapOnlyClick(Sender: TObject);
+begin
+  edtAddressChange(edtAddress);
 end;
 
 end.
