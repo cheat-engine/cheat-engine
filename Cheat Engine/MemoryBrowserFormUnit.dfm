@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 530
-  Top = 270
+  Left = 592
+  Top = 372
   Width = 709
   Height = 600
   HelpContext = 12
@@ -535,9 +535,9 @@ object MemoryBrowser: TMemoryBrowser
       OnKeyPress = TextEditKeyPress
     end
     object ScrollBar2: TScrollBar
-      Left = 674
+      Left = 673
       Top = 1
-      Width = 16
+      Width = 17
       Height = 223
       Align = alRight
       Kind = sbVertical
@@ -550,7 +550,7 @@ object MemoryBrowser: TMemoryBrowser
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 673
+      Width = 672
       Height = 223
       Align = alClient
       BevelOuter = bvNone
@@ -559,7 +559,7 @@ object MemoryBrowser: TMemoryBrowser
         Tag = 2
         Left = 0
         Top = 0
-        Width = 673
+        Width = 672
         Height = 16
         Align = alTop
         Caption = 'Protection'
@@ -567,7 +567,7 @@ object MemoryBrowser: TMemoryBrowser
       object MBCanvas: TPaintBox
         Left = 0
         Top = 16
-        Width = 673
+        Width = 672
         Height = 207
         Align = alClient
         PopupMenu = memorypopup

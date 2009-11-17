@@ -10629,6 +10629,8 @@ var res: integer;
     check: boolean;
     i: integer;
     findpointeroffsets: boolean;
+
+    frmPointerScanner: TfrmPointerScanner;
 begin
   findpointeroffsets:=false;
   try
@@ -10666,10 +10668,8 @@ begin
   if res=mryes then
   begin
     //default
-    if frmpointerscanner=nil then
-      frmpointerscanner:=tfrmpointerscanner.create(self);
-
-    frmpointerscanner.show;
+    frmPointerScanner:=tfrmpointerscanner.create(self);
+    frmPointerScanner.show;
 
     if frmpointerscannersettings=nil then
       frmpointerscannersettings:=tfrmpointerscannersettings.create(self);

@@ -51,7 +51,7 @@ type
     procedure quicksortmemoryregions(lo,hi: integer);
 
     procedure addpointer(pointervalue: dword; pointerwiththisvalue: dword);
-
+    procedure DeletePath(addresslist: PReversePointerListArray; level: integer);
 
   public
     count: dword;
@@ -61,6 +61,7 @@ type
     procedure saveModuleListToResults(s: TStream);
     function findPointerValue(var startvalue: dword; stopvalue: dword): PPointerList;
     constructor create(start, stop: dword; alligned: boolean; progressbar: tprogressbar);
+    destructor destroy; override;
   end;
 
 implementation
@@ -280,6 +281,46 @@ begin
 
 end;
 
+
+procedure TReversePointerListHandler.DeletePath(addresslist: PReversePointerListArray; level: integer);
+var
+  i,j: integer;
+begin
+  if level=7 then
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].pointerlist<>nil then
+      begin
+        for j:=0 to addresslist[i].pointerlist.pos-1 do
+          freemem(addresslist[i].pointerlist.list[j].staticdata);
+
+        freemem(addresslist[i].pointerlist.list);
+
+        freemem(addresslist[i].pointerlist);
+        addresslist[i].pointerlist:=nil;
+      end;
+    end;
+  end
+  else
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].ReversePointerlistArray<>nil then
+      begin
+        deletepath(addresslist[i].ReversePointerlistArray,level+1);
+        freemem(addresslist[i].ReversePointerlistArray);
+        addresslist[i].ReversePointerlistArray:=nil;
+      end;
+    end;
+  end;
+end;
+
+destructor TReversePointerListHandler.destroy;
+begin
+  setlength(memoryregion,0);
+  deletepath(level0list,0);
+end;
 
 
 constructor TReversePointerListHandler.create(start, stop: dword; alligned: boolean; progressbar: tprogressbar);

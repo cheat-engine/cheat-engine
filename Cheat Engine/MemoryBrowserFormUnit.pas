@@ -3214,10 +3214,8 @@ end;
 procedure TMemoryBrowser.Dissectdata1Click(Sender: TObject);
 begin
 {$ifndef net}
-  if frmpointerscanner=nil then
-    frmpointerscanner:=tfrmpointerscanner.create(self);
-
-  frmpointerscanner.show;
+  with tfrmpointerscanner.create(self) do
+    show;
 {$endif}
 end;
 

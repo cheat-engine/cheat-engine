@@ -8,131 +8,131 @@
   resources were bound to the produced executable.
 */
 
-#define MainUnit_strUnhideAll 64944
-#define MainUnit_strhappybirthday 64945
-#define MainUnit_strXMess 64946
-#define MainUnit_strNewyear 64947
-#define MainUnit_strfuture 64948
-#define MainUnit_strdontbother 64949
-#define MainUnit_strneeddebugger 64950
-#define MainUnit_strfailuretosetspeed 64951
-#define MainUnit_strIncorrectspeed 64952
-#define MainUnit_strCantSetSpeed 64953
-#define MainUnit_strHyperscanFailed 64954
-#define MainUnit_strUnknownExtension 64955
-#define MainUnit_strCustomScanConfig 64956
-#define MainUnit_strUnfreezeAddressInList 64960
-#define MainUnit_strDeleteAddress 64961
-#define MainUnit_strRecalculateAddress 64962
-#define MainUnit_strRecalculateSelectedAddresses 64963
-#define MainUnit_strRecalculateAllAddresses 64964
-#define MainUnit_strRemoveFromGroup 64965
-#define MainUnit_strEnableCheat 64966
-#define MainUnit_strDisableCheat 64967
-#define MainUnit_strFindWhatWritesToPointer 64968
-#define MainUnit_strFindWhatWritesToPointer2 64969
-#define MainUnit_strcantdebugnow 64970
-#define MainUnit_strpointercantberead 64971
-#define MainUnit_strconfirmUndo 64972
-#define MainUnit_strHideForeground 64973
-#define MainUnit_strHideAll 64974
-#define MainUnit_strUnHideForeground 64975
-#define MainUnit_strDeleteMultipleAddresses 64976
-#define MainUnit_strDelete1Group 64977
-#define MainUnit_strDeleteMoreGroups 64978
-#define MainUnit_strSelectedAddressIsAPointer 64979
-#define MainUnit_strMorePointers 64980
-#define MainUnit_strMorePointers2 64981
-#define MainUnit_strNotAValidValue 64982
-#define MainUnit_strdeleteall 64983
-#define MainUnit_stralreadyin 64984
-#define MainUnit_stralreadyinlistmultiple 64985
-#define MainUnit_strsethotkey 64986
-#define MainUnit_strshowasdecimal 64987
-#define MainUnit_strshowashex 64988
-#define MainUnit_strFreezeAddressInList 64989
-#define MainUnit_strFreezeAllAddresses 64990
-#define MainUnit_strUnfreezeAllAddresses 64991
-#define MainUnit_strfillInSomething 64992
-#define MainUnit_strFirstSelectAProcess 64993
-#define MainUnit_strCantdoNextScan 64994
-#define MainUnit_strClickToGoHome 64995
-#define MainUnit_strChangeDescription1 64996
-#define MainUnit_strChangeDescription2 64997
-#define MainUnit_strNotTheSameSize1 64998
-#define MainUnit_strNotTheSameSize2 64999
-#define MainUnit_strAdd0 65000
-#define MainUnit_strNotAValidNotation 65001
-#define MainUnit_strNotSameAmmountofBytes 65002
-#define MainUnit_strNotAValidBinaryNotation 65003
-#define MainUnit_strValue 65004
-#define MainUnit_strChange1Value 65005
-#define MainUnit_strChangeMoreValues 65006
-#define MainUnit_strDelete1Address 65007
-#define MainUnit_strAccessed 65008
-#define MainUnit_strOpcodeChanged 65009
-#define MainUnit_strAllowNegative 65010
-#define MainUnit_strAllowPositive 65011
-#define MainUnit_strNormalFreeze 65012
-#define MainUnit_strAskToSave 65013
-#define MainUnit_strScantextcaptiontotext 65014
-#define MainUnit_strScantextcaptiontoValue 65015
-#define MainUnit_strsearchForText 65016
-#define MainUnit_strSearchForArray 65017
-#define MainUnit_strConfirmProcessTermination 65018
-#define MainUnit_strError 65019
-#define MainUnit_strErrorwhileOpeningProcess 65020
-#define MainUnit_strKeepList 65021
-#define MainUnit_strInfoAboutTable 65022
-#define MainUnit_strPhysicalMemory 65023
-#define MainUnit2_strNeedNewerWindowsVersion 65024
-#define MainUnit2_strexact 65025
-#define MainUnit2_strexactvalue 65026
-#define MainUnit2_strbiggerThan 65027
-#define MainUnit2_strSmallerThan 65028
-#define MainUnit2_strIncreasedValue 65029
-#define MainUnit2_strIncreasedValueBy 65030
-#define MainUnit2_strDecreasedValue 65031
-#define MainUnit2_strDecreasedValueBy 65032
-#define MainUnit2_strValueBetween 65033
-#define MainUnit2_strChangedValue 65034
-#define MainUnit2_strUnchangedValue 65035
-#define MainUnit2_strUnknownInitialValue 65036
-#define MainUnit2_strSameAsFirstScan 65037
-#define MainUnit2_strtoolong 65038
-#define MainUnit_strWindowFailedToHide 65039
-#define AdvancedOptionsUnit_strcouldntrestorecode 65040
-#define AdvancedOptionsUnit_strnotthesame 65041
-#define AdvancedOptionsUnit_strcouldntwrite 65042
-#define AdvancedOptionsUnit_StrSelectExeFor3D 65043
-#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65044
-#define FoundCodeUnit_strClose 65045
-#define formsettingsunit_strProcessWatcherWillPreventUnloader 65046
-#define MainUnit2_strStart 65047
-#define MainUnit2_strStop 65048
-#define MainUnit2_strOK 65049
-#define MainUnit2_strBug 65050
-#define MainUnit2_strAutoAssemble 65051
-#define MainUnit2_strAddressHasToBeReadable 65052
-#define MainUnit2_strNewScan 65053
-#define MainUnit2_strFirstScan 65054
-#define MainUnit2_strNoDescription 65055
-#define frmFindstaticsUnit_strScan 65056
-#define frmFindstaticsUnit_strStop 65057
-#define frmFindstaticsUnit_strStopping 65058
-#define frmLoadMemoryunit_strinvalidfile 65059
-#define AdvancedOptionsUnit_strnotreadable 65060
-#define AdvancedOptionsUnit_strNotWhatitshouldbe 65061
-#define AdvancedOptionsUnit_stralreadyinthelist 65062
-#define AdvancedOptionsUnit_strPartOfOpcodeInTheList 65063
-#define AdvancedOptionsUnit_strAddressAlreadyInTheList 65064
-#define AdvancedOptionsUnit_strCECode 65065
-#define AdvancedOptionsUnit_strNameCECode 65066
-#define AdvancedOptionsUnit_strChangeOf 65067
-#define AdvancedOptionsUnit_strCode 65068
-#define AdvancedOptionsUnit_strFindWhatCodeaccesses 65069
-#define AdvancedOptionsUnit_strFindWhatCodeReads 65070
-#define AdvancedOptionsUnit_strFindWhatCodeWrites 65071
+#define MainUnit2_strexactvalue 64944
+#define MainUnit2_strbiggerThan 64945
+#define MainUnit2_strSmallerThan 64946
+#define MainUnit2_strIncreasedValue 64947
+#define MainUnit2_strIncreasedValueBy 64948
+#define MainUnit2_strDecreasedValue 64949
+#define MainUnit2_strDecreasedValueBy 64950
+#define MainUnit2_strValueBetween 64951
+#define MainUnit2_strChangedValue 64952
+#define MainUnit2_strUnchangedValue 64953
+#define MainUnit2_strUnknownInitialValue 64954
+#define MainUnit2_strSameAsFirstScan 64955
+#define MainUnit2_strtoolong 64956
+#define AdvancedOptionsUnit_strcouldntwrite 64960
+#define AdvancedOptionsUnit_StrSelectExeFor3D 64961
+#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 64962
+#define FoundCodeUnit_strClose 64963
+#define formsettingsunit_strProcessWatcherWillPreventUnloader 64964
+#define MainUnit2_strStart 64965
+#define MainUnit2_strStop 64966
+#define MainUnit2_strOK 64967
+#define MainUnit2_strBug 64968
+#define MainUnit2_strAutoAssemble 64969
+#define MainUnit2_strAddressHasToBeReadable 64970
+#define MainUnit2_strNewScan 64971
+#define MainUnit2_strFirstScan 64972
+#define MainUnit2_strNoDescription 64973
+#define MainUnit2_strNeedNewerWindowsVersion 64974
+#define MainUnit2_strexact 64975
+#define frmFindstaticsUnit_strStopping 64976
+#define frmLoadMemoryunit_strinvalidfile 64977
+#define AdvancedOptionsUnit_strnotreadable 64978
+#define AdvancedOptionsUnit_strNotWhatitshouldbe 64979
+#define AdvancedOptionsUnit_stralreadyinthelist 64980
+#define AdvancedOptionsUnit_strPartOfOpcodeInTheList 64981
+#define AdvancedOptionsUnit_strAddressAlreadyInTheList 64982
+#define AdvancedOptionsUnit_strCECode 64983
+#define AdvancedOptionsUnit_strNameCECode 64984
+#define AdvancedOptionsUnit_strChangeOf 64985
+#define AdvancedOptionsUnit_strCode 64986
+#define AdvancedOptionsUnit_strFindWhatCodeaccesses 64987
+#define AdvancedOptionsUnit_strFindWhatCodeReads 64988
+#define AdvancedOptionsUnit_strFindWhatCodeWrites 64989
+#define AdvancedOptionsUnit_strcouldntrestorecode 64990
+#define AdvancedOptionsUnit_strnotthesame 64991
+#define MainUnit_strUnHideForeground 64992
+#define MainUnit_strUnhideAll 64993
+#define MainUnit_strhappybirthday 64994
+#define MainUnit_strXMess 64995
+#define MainUnit_strNewyear 64996
+#define MainUnit_strfuture 64997
+#define MainUnit_strdontbother 64998
+#define MainUnit_strneeddebugger 64999
+#define MainUnit_strfailuretosetspeed 65000
+#define MainUnit_strIncorrectspeed 65001
+#define MainUnit_strCantSetSpeed 65002
+#define MainUnit_strHyperscanFailed 65003
+#define MainUnit_strUnknownExtension 65004
+#define MainUnit_strCustomScanConfig 65005
+#define frmFindstaticsUnit_strScan 65006
+#define frmFindstaticsUnit_strStop 65007
+#define MainUnit_strUnfreezeAllAddresses 65008
+#define MainUnit_strUnfreezeAddressInList 65009
+#define MainUnit_strDeleteAddress 65010
+#define MainUnit_strRecalculateAddress 65011
+#define MainUnit_strRecalculateSelectedAddresses 65012
+#define MainUnit_strRecalculateAllAddresses 65013
+#define MainUnit_strRemoveFromGroup 65014
+#define MainUnit_strEnableCheat 65015
+#define MainUnit_strDisableCheat 65016
+#define MainUnit_strFindWhatWritesToPointer 65017
+#define MainUnit_strFindWhatWritesToPointer2 65018
+#define MainUnit_strcantdebugnow 65019
+#define MainUnit_strpointercantberead 65020
+#define MainUnit_strconfirmUndo 65021
+#define MainUnit_strHideForeground 65022
+#define MainUnit_strHideAll 65023
+#define MainUnit_strDelete1Address 65024
+#define MainUnit_strDeleteMultipleAddresses 65025
+#define MainUnit_strDelete1Group 65026
+#define MainUnit_strDeleteMoreGroups 65027
+#define MainUnit_strSelectedAddressIsAPointer 65028
+#define MainUnit_strMorePointers 65029
+#define MainUnit_strMorePointers2 65030
+#define MainUnit_strNotAValidValue 65031
+#define MainUnit_strdeleteall 65032
+#define MainUnit_stralreadyin 65033
+#define MainUnit_stralreadyinlistmultiple 65034
+#define MainUnit_strsethotkey 65035
+#define MainUnit_strshowasdecimal 65036
+#define MainUnit_strshowashex 65037
+#define MainUnit_strFreezeAddressInList 65038
+#define MainUnit_strFreezeAllAddresses 65039
+#define MainUnit_strPhysicalMemory 65040
+#define MainUnit_strfillInSomething 65041
+#define MainUnit_strFirstSelectAProcess 65042
+#define MainUnit_strCantdoNextScan 65043
+#define MainUnit_strClickToGoHome 65044
+#define MainUnit_strChangeDescription1 65045
+#define MainUnit_strChangeDescription2 65046
+#define MainUnit_strNotTheSameSize1 65047
+#define MainUnit_strNotTheSameSize2 65048
+#define MainUnit_strAdd0 65049
+#define MainUnit_strNotAValidNotation 65050
+#define MainUnit_strNotSameAmmountofBytes 65051
+#define MainUnit_strNotAValidBinaryNotation 65052
+#define MainUnit_strValue 65053
+#define MainUnit_strChange1Value 65054
+#define MainUnit_strChangeMoreValues 65055
+#define MainUnit_strWindowFailedToHide 65056
+#define MainUnit_strAccessed 65057
+#define MainUnit_strOpcodeChanged 65058
+#define MainUnit_strAllowNegative 65059
+#define MainUnit_strAllowPositive 65060
+#define MainUnit_strNormalFreeze 65061
+#define MainUnit_strAskToSave 65062
+#define MainUnit_strScantextcaptiontotext 65063
+#define MainUnit_strScantextcaptiontoValue 65064
+#define MainUnit_strsearchForText 65065
+#define MainUnit_strSearchForArray 65066
+#define MainUnit_strConfirmProcessTermination 65067
+#define MainUnit_strError 65068
+#define MainUnit_strErrorwhileOpeningProcess 65069
+#define MainUnit_strKeepList 65070
+#define MainUnit_strInfoAboutTable 65071
 #define SynEditStrConst_SYNS_AttrNumber 65072
 #define SynEditStrConst_SYNS_AttrOctal 65073
 #define SynEditStrConst_SYNS_AttrPreprocessor 65074
@@ -599,6 +599,52 @@
 #define SysConst_SRangeError 65535
 STRINGTABLE
 BEGIN
+	MainUnit2_strexactvalue,	"Exact Value"
+	MainUnit2_strbiggerThan,	"Bigger than..."
+	MainUnit2_strSmallerThan,	"Smaller than..."
+	MainUnit2_strIncreasedValue,	"Increased value"
+	MainUnit2_strIncreasedValueBy,	"Increased value by ..."
+	MainUnit2_strDecreasedValue,	"Decreased value"
+	MainUnit2_strDecreasedValueBy,	"Decreased value by ..."
+	MainUnit2_strValueBetween,	"Value between..."
+	MainUnit2_strChangedValue,	"Changed value"
+	MainUnit2_strUnchangedValue,	"Unchanged value"
+	MainUnit2_strUnknownInitialValue,	"Unknown initial value"
+	MainUnit2_strSameAsFirstScan,	"Same as first scan"
+	MainUnit2_strtoolong,	"Too long"
+	AdvancedOptionsUnit_strcouldntwrite,	"The memory at this address couldn't be written"
+	AdvancedOptionsUnit_StrSelectExeFor3D,	"Select the executable of the Direct-3D game"
+	AdvancedOptionsUnit_StrSelectExeForOpenGL3D,	"Select the executable of the OpenGL game"
+	FoundCodeUnit_strClose,	"Close"
+	formsettingsunit_strProcessWatcherWillPreventUnloader,	"Enabling the process watcher will prevent the unloader from working"
+	MainUnit2_strStart,	"Start"
+	MainUnit2_strStop,	"Stop"
+	MainUnit2_strOK,	"OK"
+	MainUnit2_strBug,	"BUG!"
+	MainUnit2_strAutoAssemble,	"Assembler"
+	MainUnit2_strAddressHasToBeReadable,	"The address has to be readable if you want to use this function"
+	MainUnit2_strNewScan,	"New Scan"
+	MainUnit2_strFirstScan,	"First Scan"
+	MainUnit2_strNoDescription,	"No description"
+	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
+	MainUnit2_strexact,	"Exact"
+	frmFindstaticsUnit_strStopping,	"Stopping..."
+	frmLoadMemoryunit_strinvalidfile,	"This is a invalid memory region file. I'll assume this file has no header data"
+	AdvancedOptionsUnit_strnotreadable,	"This address is not readable"
+	AdvancedOptionsUnit_strNotWhatitshouldbe,	"The memory at this address is'nt what it should be! Continue?"
+	AdvancedOptionsUnit_stralreadyinthelist,	"This byte is already part of another opcode already present in the list"
+	AdvancedOptionsUnit_strPartOfOpcodeInTheList,	"At least one of these bytes is already in the list"
+	AdvancedOptionsUnit_strAddressAlreadyInTheList,	"This address is already in the list"
+	AdvancedOptionsUnit_strCECode,	"Cheat Engine code:"
+	AdvancedOptionsUnit_strNameCECode,	"What name do you want to give this code?"
+	AdvancedOptionsUnit_strChangeOf,	"Change of "
+	AdvancedOptionsUnit_strCode,	"Code :"
+	AdvancedOptionsUnit_strFindWhatCodeaccesses,	"Find out what addresses this code accesses"
+	AdvancedOptionsUnit_strFindWhatCodeReads,	"Find out what addresses this code reads from"
+	AdvancedOptionsUnit_strFindWhatCodeWrites,	"Find out what addresses this code writes to"
+	AdvancedOptionsUnit_strcouldntrestorecode,	"Error when trying to restore this code!"
+	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
+	MainUnit_strUnHideForeground,	"will bring the foreground window back"
 	MainUnit_strUnhideAll,	"will bring all windows back"
 	MainUnit_strhappybirthday,	"Let's sing Happy Birthday for Dark Byte today!"
 	MainUnit_strXMess,	"Merry christmas and happy new year"
@@ -612,6 +658,9 @@ BEGIN
 	MainUnit_strHyperscanFailed,	"The hyperthread failed to respond with the right answer"
 	MainUnit_strUnknownExtension,	"Unknown extension"
 	MainUnit_strCustomScanConfig,	"Custom scan config"
+	frmFindstaticsUnit_strScan,	"Scan"
+	frmFindstaticsUnit_strStop,	"Stop"
+	MainUnit_strUnfreezeAllAddresses,	"Unfreeze all addresses in this list"
 	MainUnit_strUnfreezeAddressInList,	"Unfreeze the address in this list"
 	MainUnit_strDeleteAddress,	"Delete this address"
 	MainUnit_strRecalculateAddress,	"Recalculate address"
@@ -627,7 +676,7 @@ BEGIN
 	MainUnit_strconfirmUndo,	"Do you really want to go back to the results of the previous scan?"
 	MainUnit_strHideForeground,	"will hide the foreground window"
 	MainUnit_strHideAll,	"will hide all windows"
-	MainUnit_strUnHideForeground,	"will bring the foreground window back"
+	MainUnit_strDelete1Address,	"Delete this address?"
 	MainUnit_strDeleteMultipleAddresses,	"Delete these addresses?"
 	MainUnit_strDelete1Group,	"Also delete the group this address is a member of?"
 	MainUnit_strDeleteMoreGroups,	"Also delete the groups of the addresses you selected?"
@@ -643,7 +692,7 @@ BEGIN
 	MainUnit_strshowashex,	"Show as hexadecimal value"
 	MainUnit_strFreezeAddressInList,	"Freeze the address in this list"
 	MainUnit_strFreezeAllAddresses,	"Freeze all addresses in this list"
-	MainUnit_strUnfreezeAllAddresses,	"Unfreeze all addresses in this list"
+	MainUnit_strPhysicalMemory,	"Physical Memory"
 	MainUnit_strfillInSomething,	"Please fill in something!"
 	MainUnit_strFirstSelectAProcess,	"First select a process"
 	MainUnit_strCantdoNextScan,	"You can't do a Next Scan with the current selected way of scanning!"
@@ -659,7 +708,7 @@ BEGIN
 	MainUnit_strValue,	"Value"
 	MainUnit_strChange1Value,	"Change this value to:"
 	MainUnit_strChangeMoreValues,	"Change these values to:"
-	MainUnit_strDelete1Address,	"Delete this address?"
+	MainUnit_strWindowFailedToHide,	"A window failed to hide"
 	MainUnit_strAccessed,	"The following opcodes accessed the selected address"
 	MainUnit_strOpcodeChanged,	"The following opcodes changed the selected address"
 	MainUnit_strAllowNegative,	"Allow negative changes"
@@ -675,55 +724,6 @@ BEGIN
 	MainUnit_strErrorwhileOpeningProcess,	"Error while opening this process"
 	MainUnit_strKeepList,	"Keep the current address list/code list?"
 	MainUnit_strInfoAboutTable,	"Info about this table:"
-	MainUnit_strPhysicalMemory,	"Physical Memory"
-	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
-	MainUnit2_strexact,	"Exact"
-	MainUnit2_strexactvalue,	"Exact Value"
-	MainUnit2_strbiggerThan,	"Bigger than..."
-	MainUnit2_strSmallerThan,	"Smaller than..."
-	MainUnit2_strIncreasedValue,	"Increased value"
-	MainUnit2_strIncreasedValueBy,	"Increased value by ..."
-	MainUnit2_strDecreasedValue,	"Decreased value"
-	MainUnit2_strDecreasedValueBy,	"Decreased value by ..."
-	MainUnit2_strValueBetween,	"Value between..."
-	MainUnit2_strChangedValue,	"Changed value"
-	MainUnit2_strUnchangedValue,	"Unchanged value"
-	MainUnit2_strUnknownInitialValue,	"Unknown initial value"
-	MainUnit2_strSameAsFirstScan,	"Same as first scan"
-	MainUnit2_strtoolong,	"Too long"
-	MainUnit_strWindowFailedToHide,	"A window failed to hide"
-	AdvancedOptionsUnit_strcouldntrestorecode,	"Error when trying to restore this code!"
-	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
-	AdvancedOptionsUnit_strcouldntwrite,	"The memory at this address couldn't be written"
-	AdvancedOptionsUnit_StrSelectExeFor3D,	"Select the executable of the Direct-3D game"
-	AdvancedOptionsUnit_StrSelectExeForOpenGL3D,	"Select the executable of the OpenGL game"
-	FoundCodeUnit_strClose,	"Close"
-	formsettingsunit_strProcessWatcherWillPreventUnloader,	"Enabling the process watcher will prevent the unloader from working"
-	MainUnit2_strStart,	"Start"
-	MainUnit2_strStop,	"Stop"
-	MainUnit2_strOK,	"OK"
-	MainUnit2_strBug,	"BUG!"
-	MainUnit2_strAutoAssemble,	"Assembler"
-	MainUnit2_strAddressHasToBeReadable,	"The address has to be readable if you want to use this function"
-	MainUnit2_strNewScan,	"New Scan"
-	MainUnit2_strFirstScan,	"First Scan"
-	MainUnit2_strNoDescription,	"No description"
-	frmFindstaticsUnit_strScan,	"Scan"
-	frmFindstaticsUnit_strStop,	"Stop"
-	frmFindstaticsUnit_strStopping,	"Stopping..."
-	frmLoadMemoryunit_strinvalidfile,	"This is a invalid memory region file. I'll assume this file has no header data"
-	AdvancedOptionsUnit_strnotreadable,	"This address is not readable"
-	AdvancedOptionsUnit_strNotWhatitshouldbe,	"The memory at this address is'nt what it should be! Continue?"
-	AdvancedOptionsUnit_stralreadyinthelist,	"This byte is already part of another opcode already present in the list"
-	AdvancedOptionsUnit_strPartOfOpcodeInTheList,	"At least one of these bytes is already in the list"
-	AdvancedOptionsUnit_strAddressAlreadyInTheList,	"This address is already in the list"
-	AdvancedOptionsUnit_strCECode,	"Cheat Engine code:"
-	AdvancedOptionsUnit_strNameCECode,	"What name do you want to give this code?"
-	AdvancedOptionsUnit_strChangeOf,	"Change of "
-	AdvancedOptionsUnit_strCode,	"Code :"
-	AdvancedOptionsUnit_strFindWhatCodeaccesses,	"Find out what addresses this code accesses"
-	AdvancedOptionsUnit_strFindWhatCodeReads,	"Find out what addresses this code reads from"
-	AdvancedOptionsUnit_strFindWhatCodeWrites,	"Find out what addresses this code writes to"
 	SynEditStrConst_SYNS_AttrNumber,	"Number"
 	SynEditStrConst_SYNS_AttrOctal,	"Octal"
 	SynEditStrConst_SYNS_AttrPreprocessor,	"Preprocessor"

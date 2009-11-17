@@ -125,7 +125,7 @@ object MainForm: TMainForm
     object ScrollBox1: TScrollBox
       Left = 1
       Top = 1
-      Width = 496
+      Width = 495
       Height = 115
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
@@ -137,7 +137,7 @@ object MainForm: TMainForm
       object HeaderControl1: THeaderControl
         Left = 0
         Top = 0
-        Width = 496
+        Width = 495
         Height = 17
         Sections = <
           item
@@ -176,7 +176,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 17
-        Width = 496
+        Width = 495
         Height = 98
         Align = alClient
         BevelOuter = bvNone
@@ -189,13 +189,13 @@ object MainForm: TMainForm
         OnMouseDown = Panel1MouseDown
         OnResize = Panel1Resize
         DesignSize = (
-          496
+          495
           98)
         object Label30: TLabel
           Tag = 6
           Left = 0
           Top = 96
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -217,7 +217,7 @@ object MainForm: TMainForm
           Tag = 5
           Left = 0
           Top = 80
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -238,7 +238,7 @@ object MainForm: TMainForm
         object Label12: TLabel
           Left = 0
           Top = 0
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -260,7 +260,7 @@ object MainForm: TMainForm
           Tag = 4
           Left = 0
           Top = 64
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -282,7 +282,7 @@ object MainForm: TMainForm
           Tag = 3
           Left = 0
           Top = 48
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -304,7 +304,7 @@ object MainForm: TMainForm
           Tag = 2
           Left = 0
           Top = 32
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -402,7 +402,7 @@ object MainForm: TMainForm
           Tag = 1
           Left = 0
           Top = 16
-          Width = 529
+          Width = 528
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -1074,17 +1074,17 @@ object MainForm: TMainForm
       end
     end
     object vscrollpanel: TPanel
-      Left = 497
+      Left = 496
       Top = 1
-      Width = 16
+      Width = 17
       Height = 115
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
       object ScrollBar1: TScrollBar
-        Left = 1
+        Left = 0
         Top = 0
-        Width = 15
+        Width = 17
         Height = 115
         Align = alRight
         Kind = sbVertical

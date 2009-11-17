@@ -31,8 +31,6 @@ end;
 type
   TfrmPointerScannerSettings = class(TForm)
     edtAddress: TEdit;
-    rbDefault: TRadioButton;
-    rbReverse: TRadioButton;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;
     CbAlligned: TCheckBox;
@@ -66,7 +64,6 @@ type
     cbOnlyOneStatic: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure rbReverseClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
     procedure cbUseHeapDataClick(Sender: TObject);
@@ -197,13 +194,6 @@ begin
 
 
   edtThreadcount.text:=inttostr(bitcount);
-end;
-
-procedure TfrmPointerScannerSettings.rbReverseClick(Sender: TObject);
-begin
-  pssettings.ActivePage:=PSReverse;
-  cbMustEndWithSpecificOffset.Checked:=cbMustEndWithSpecificOffset.checked and rbReverse.Checked;
-  cbMustEndWithSpecificOffset.Enabled:=rbReverse.Checked;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);

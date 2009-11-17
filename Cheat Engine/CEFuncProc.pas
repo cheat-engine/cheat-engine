@@ -294,16 +294,16 @@ type
         FrozenValue : Dword;
   end;
 
-type TDwordArray=array[0..0] of dword;
+type TDwordArray=array[0..100] of dword;
 type PDwordArray=^TDwordArray;
 
-type TSingleArray=array[0..0] of single;
+type TSingleArray=array[0..100] of single;
 type PSingleArray=^TSingleArray;
 
-type TdoubleArray=array[0..0] of double;
+type TdoubleArray=array[0..100] of double;
 type PdoubleArray=^TdoubleArray;
 
-type Tint64Array=array[0..0] of int64;
+type Tint64Array=array[0..100] of int64;
 type Pint64Array=^Tint64Array;
 
 type Tuint64Array=array[0..100] of uint64;

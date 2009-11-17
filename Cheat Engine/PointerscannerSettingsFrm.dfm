@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 865
-  Top = 401
+  Left = 738
+  Top = 356
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 484
@@ -27,38 +27,13 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 0
     OnChange = edtAddressChange
   end
-  object rbDefault: TRadioButton
-    Left = 266
-    Top = 10
-    Width = 149
-    Height = 21
-    Hint = 
-      'Starts from static addresses and then follows the path till it e' +
-      'ncounters the target address'
-    Caption = 'Old pointer scan'
-    TabOrder = 1
-  end
-  object rbReverse: TRadioButton
-    Left = 266
-    Top = 30
-    Width = 159
-    Height = 20
-    Hint = 
-      'Starts from the target address and finds all addresses that poin' +
-      't near there, and then go back further and further'
-    Caption = 'Reverse pointer scan'
-    Checked = True
-    TabOrder = 2
-    TabStop = True
-    OnClick = rbReverseClick
-  end
   object PSSettings: TPageControl
     Left = 10
     Top = 59
     Width = 434
     Height = 267
     ActivePage = PSReverse
-    TabOrder = 3
+    TabOrder = 1
     object PSReverse: TTabSheet
       Caption = 'Reverse'
       ImageIndex = 1
@@ -200,7 +175,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 247
     Height = 21
     Caption = 'Pointers must end with specific offsets'
-    TabOrder = 4
+    TabOrder = 2
     OnClick = cbMustEndWithSpecificOffsetClick
   end
   object Panel1: TPanel
@@ -210,7 +185,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 107
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 5
+    TabOrder = 3
     object Label3: TLabel
       Left = 59
       Top = 43
@@ -303,7 +278,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Style = csDropDownList
     ItemHeight = 16
     ItemIndex = 0
-    TabOrder = 6
+    TabOrder = 4
     Text = '4 Byte'
     Items.Strings = (
       '4 Byte'
@@ -316,7 +291,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Width = 249
     Height = 25
     BevelOuter = bvNone
-    TabOrder = 7
+    TabOrder = 5
     object rbFindAddress: TRadioButton
       Left = 0
       Top = 8
