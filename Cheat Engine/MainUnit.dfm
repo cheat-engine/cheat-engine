@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 606
-  Top = 268
+  Left = 1115
+  Top = 427
   Width = 532
   Height = 552
   Hint = ' '
@@ -1881,7 +1881,6 @@ object MainForm: TMainForm
         Top = 3
         Width = 25
         Height = 25
-        Hint = 'Let'#39's you select the program you want to cheat with'
         Glyph.Data = {
           46050000424D4605000000000000360400002800000010000000110000000100
           08000000000010010000C40E0000C40E00000001000000000000000000000000
@@ -2738,6 +2737,10 @@ object MainForm: TMainForm
       Caption = 'actMemoryView'
       ShortCut = 16461
       OnExecute = btnMemoryViewClick
+    end
+    object actOpenProcesslist: TAction
+      ShortCut = 16464
+      OnExecute = actOpenProcesslistExecute
     end
   end
   object ImageList1: TImageList

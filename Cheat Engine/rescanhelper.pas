@@ -22,17 +22,34 @@ type
   TPointerListArray=array [0..15] of TPointerTable;
 
 
+
+type
+  PAddressTable=^TAddressTable;
+  PAddressListArray=^TAddressListArray;
+  TAddressTable=record
+    case integer of
+      1: (addressvalue: pointer); //if this is the last level (7) this is a pointer to a type of the value to scan for (4 byute and single are 4 byte, double is 8 byte)
+      2: (AddresslistArray: PAddressListArray);   //else it's a PReversePointerListArray
+  end;
+  TAddressListArray=array [0..15] of TAddressTable;
+
 type TRescanHelper=class
   private
     level0list: PPointerListArray;
+    addresslist: PAddressListArray;
     dne: TPointerAddress;
     memoryregion: array of TMemoryRegion;
     function BinSearchMemRegions(address: dword): integer;
     procedure DeletePath(addresslist: PPointerListArray; level: integer);
+    procedure DeleteAddressPath(addresslist: PAddressListArray; level: integer);
+    procedure quicksortmemoryregions(lo,hi: integer);
   public
     function ispointer(address: dword): boolean;
     function AddPointer(Address: dword; value: dword): PPointerAddress;
     function findPointer(Address: dword): PPointerAddress;
+
+    function AddAddress(Address: dword; value: pointer; valuesize: integer): pointer;
+    function findAddress(Address: dword): pointer;
 
     constructor create;
     destructor destroy; override;
@@ -58,7 +75,7 @@ begin
     //Gets the middle of the selected range
     Pivot := (First + Last) div 2;
     //Compares the String in the middle with the searched one
-    if (memoryregion[Pivot].BaseAddress >= address) and (address<memoryregion[Pivot].BaseAddress+memoryregion[Pivot].MemorySize) then
+    if (address >= memoryregion[Pivot].BaseAddress) and (address<memoryregion[Pivot].BaseAddress+memoryregion[Pivot].MemorySize) then
     begin
       Found  := True;
       Result := Pivot;
@@ -126,8 +143,6 @@ var
   temp, currentarray: PPointerListArray;
   temp2: PPointeraddress;
 begin
-  result:=@dne;
-
   currentarray:=level0list;
 
   level:=0;
@@ -153,10 +168,74 @@ begin
   begin
     getmem(temp2, sizeof(TPointerAddress));
     temp2.value:=value;
-    currentarray[entrynr].pointeraddress:=temp2; //publish (sure, there might be a small memleak here, but it's worth it)
+    currentarray[entrynr].pointeraddress:=temp2; //publish
     result:=temp2;
   end else result:=currentarray[entrynr].pointeraddress;
 end;
+
+function TRescanHelper.findAddress(Address: dword): pointer;
+var
+  level: integer;
+  entrynr: integer;
+  currentarray: PAddressListArray;
+begin
+  //first check if this address actually exists inside a memory region, if not, just tell it the "does not exist" pointeraddress
+  result:=nil;
+
+  //find the exact address
+  level:=0;
+  currentarray:=addresslist;
+  while level<7 do
+  begin
+    entrynr:=address shr ((7-level)*4) and $f;
+    if currentarray[entrynr].AddresslistArray=nil then exit; //not found
+
+    currentarray:=currentarray[entrynr].AddresslistArray;
+    inc(level);
+  end;
+
+  entrynr:=address shr ((7-level)*4) and $f;
+  if currentarray[entrynr].addressvalue<>nil then
+    result:=currentarray[entrynr].addressvalue;
+end;
+
+function TRescanHelper.AddAddress(Address: dword; value: pointer; valuesize: integer): pointer;
+var
+  level: integer;
+  entrynr: integer;
+  temp, currentarray: PAddressListArray;
+  temp2: pointer;
+begin
+  currentarray:=addresslist;
+
+  level:=0;
+  while level<7 do
+  begin
+    //add the path if needed
+    entrynr:=address shr ((7-level)*4) and $f;
+    if currentarray[entrynr].addresslistArray=nil then //allocate
+    begin
+      getmem(temp, sizeof(TaddressListArray));
+      ZeroMemory(temp, sizeof(TaddressListArray));
+      //the list has been created and initialized, tell the others:
+      currentarray[entrynr].addresslistArray:=temp;
+    end;
+
+    currentarray:=currentarray[entrynr].addresslistArray;
+    inc(level);
+  end;
+
+  //got till level 7
+  entrynr:=address shr ((7-level)*4) and $f;
+  if currentarray[entrynr].addressvalue=nil then //allocate one
+  begin
+    getmem(temp2, valuesize);
+    copymemory(temp2,value,valuesize);
+    currentarray[entrynr].addressvalue:=temp2; //publish
+    result:=temp2;
+  end else result:=currentarray[entrynr].addressvalue;
+end;
+
 
 procedure TRescanHelper.DeletePath(addresslist: PPointerListArray; level: integer);
 var
@@ -187,15 +266,77 @@ begin
   end;
 end;
 
+procedure TRescanHelper.DeleteAddressPath(addresslist: PAddressListArray; level: integer);
+var
+  i: integer;
+begin
+  if level=7 then
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].addressvalue<>nil then
+      begin
+        freemem(addresslist[i].addressvalue);
+        addresslist[i].addressvalue:=nil;
+      end;
+    end;
+  end
+  else
+  begin
+    for i:=0 to 15 do
+    begin
+      if addresslist[i].AddresslistArray<>nil then
+      begin
+        deleteAddresspath(addresslist[i].AddresslistArray,level+1);
+        freemem(addresslist[i].AddresslistArray);
+        addresslist[i].AddresslistArray:=nil;
+      end;
+    end;
+  end;
+end;
+
+procedure TRescanHelper.quicksortmemoryregions(lo,hi: integer);
+var i,j: integer;
+    x,h: TMemoryRegion;
+begin
+  i:=lo;
+  j:=hi;
+
+  x:=memoryregion[(lo+hi) div 2];
+
+  repeat
+    while (memoryregion[i].BaseAddress<x.BaseAddress) do inc(i);
+    while (memoryregion[j].BaseAddress>x.BaseAddress) do dec(j);
+
+    if i<=j then
+    begin
+      h:=memoryregion[i];
+      memoryregion[i]:=memoryregion[j];
+      memoryregion[j]:=h;
+      inc(i);
+      dec(j);
+    end;
+
+  until i>j;
+
+  if (lo<j) then quicksortmemoryregions(lo,j);
+  if (i<hi) then quicksortmemoryregions(i,hi);
+end;
+
 constructor TRescanHelper.create;
 var
   mbi : _MEMORY_BASIC_INFORMATION;
   address: Dword;
+  i: integer;
 begin
   dne.value:=0;
 
   getmem(level0list, sizeof(TPointerListArray));
   ZeroMemory(level0list, sizeof(TPointerListArray));
+
+  getmem(addresslist, sizeof(TAddressListArray));
+  ZeroMemory(addresslist, sizeof(TAddressListArray));
+
 
   //enumerate all memory regions
   address:=0;
@@ -221,6 +362,26 @@ begin
 
     address:=dword(mbi.baseaddress)+mbi.RegionSize;
   end;
+
+  //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
+  i:=0;
+  while i<length(memoryregion) do
+  begin
+    if memoryregion[i].MemorySize>512*1024 then
+    begin
+      //too big, so cut into pieces
+      //create new entry with 512KB less
+      setlength(memoryregion,length(memoryregion)+1);
+      memoryregion[length(memoryregion)-1].BaseAddress:=memoryregion[i].BaseAddress+512*1024;
+      memoryregion[length(memoryregion)-1].MemorySize:=memoryregion[i].MemorySize-512*1024;
+      memoryregion[i].MemorySize:=512*1024; //set the current region to be 512KB
+
+    end;
+    inc(i); //next item. Eventually the new items will be handled, and they will also be split untill the list is finally cut into small enough chunks    
+  end;
+
+  //sort memoryregions from small to high
+  quicksortmemoryregions(0,length(memoryregion)-1);  
   
 end;
 
@@ -228,6 +389,8 @@ destructor TRescanHelper.destroy;
 begin
   setlength(memoryregion,0);
   deletepath(level0list,0);
+
+  deleteAddressPath(addresslist,0);
 
   inherited destroy;
 end;

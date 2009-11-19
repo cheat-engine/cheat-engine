@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 690
-  Top = 299
-  Width = 627
+  Left = 669
+  Top = 317
+  Width = 622
   Height = 432
   Caption = 'Pointer scan'
   Color = clBtnFace
@@ -20,7 +20,7 @@ object frmPointerScanner: TfrmPointerScanner
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 341
-    Width = 609
+    Width = 604
     Height = 21
     Align = alBottom
     Step = 1
@@ -29,17 +29,32 @@ object frmPointerScanner: TfrmPointerScanner
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 609
-    Height = 21
+    Width = 604
+    Height = 24
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
+    object cbType: TComboBox
+      Left = 0
+      Top = 0
+      Width = 145
+      Height = 24
+      Style = csDropDownList
+      ItemHeight = 16
+      TabOrder = 0
+      Visible = False
+      OnChange = cbTypeChange
+      Items.Strings = (
+        '4 Byte'
+        'Float'
+        'Double')
+    end
   end
   object pgcPScandata: TPageControl
     Left = 0
-    Top = 21
-    Width = 609
-    Height = 320
+    Top = 24
+    Width = 604
+    Height = 317
     ActivePage = tsPSReverse
     Align = alClient
     TabOrder = 2
@@ -49,8 +64,8 @@ object frmPointerScanner: TfrmPointerScanner
       object tvRSThreads: TTreeView
         Left = 0
         Top = 119
-        Width = 601
-        Height = 135
+        Width = 596
+        Height = 132
         Align = alClient
         Indent = 19
         TabOrder = 0
@@ -58,7 +73,7 @@ object frmPointerScanner: TfrmPointerScanner
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 601
+        Width = 596
         Height = 119
         Align = alTop
         BevelOuter = bvNone
@@ -94,8 +109,8 @@ object frmPointerScanner: TfrmPointerScanner
       end
       object Panel3: TPanel
         Left = 0
-        Top = 254
-        Width = 601
+        Top = 251
+        Width = 596
         Height = 35
         Align = alBottom
         BevelOuter = bvNone
@@ -124,6 +139,7 @@ object frmPointerScanner: TfrmPointerScanner
     Height = 329
     Columns = <>
     ColumnClick = False
+    HideSelection = False
     OwnerData = True
     ReadOnly = True
     RowSelect = True
@@ -132,6 +148,7 @@ object frmPointerScanner: TfrmPointerScanner
     ViewStyle = vsReport
     Visible = False
     OnData = ListView1Data
+    OnDblClick = ListView1DblClick
   end
   object MainMenu1: TMainMenu
     Left = 144

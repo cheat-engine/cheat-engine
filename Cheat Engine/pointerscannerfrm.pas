@@ -6,7 +6,8 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper, 
-  virtualmemory, symbolhandler,mainunit,disassembler,cefuncproc,newkernelhandler;
+  virtualmemory, symbolhandler,mainunit,disassembler,cefuncproc,newkernelhandler,
+  valuefinder;
 
 
 const staticscanner_done=wm_user+1;
@@ -18,12 +19,22 @@ type
   TRescanWorker=class(TThread)
   private
     procedure flushresults;
+    function isMatchToValue(p: pointer): boolean;
   public
     filename: string;
     tempfile: tfilestream;
     tempbuffer: TMemoryStream;
 
     PointerAddressToFind: dword;
+    forvalue: boolean;
+    valuetype: TVariableType;
+    valuescandword: dword;
+    valuescansingle: single;
+    valuescandouble: double;
+    valuescansinglemax: single;
+    valuescandoublemax: double;
+
+
     //---
     OriginalFilename: string;
     OriginalFileEntrySize: integer;
@@ -43,7 +54,6 @@ type
 
   Trescanpointers=class(tthread)
   private
-    function ismatchtovalue(p: pointer): boolean;
   public
     ownerform: TFrmPointerScanner;
     progressbar: tprogressbar;
@@ -75,7 +85,7 @@ type
 
     procedure flushresults;
     procedure rscan(valuetofind:dword; level: integer);
-    procedure StorePath(level: integer; staticdata: PStaticData=nil);
+    procedure StorePath(level: integer; staticdata: PStaticData);
 
   public
     ownerform: TFrmPointerscanner;
@@ -131,7 +141,6 @@ type
     lookingformax: dword;
 
     reverseScanCS: TCriticalSection;
-    reverseScanSemaphore: tsemaphore;
         
     //reverse^
 
@@ -220,6 +229,7 @@ type
     ListView1: TListView;
     PopupMenu1: TPopupMenu;
     Resyncmodulelist1: TMenuItem;
+    cbType: TComboBox;
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -230,6 +240,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure Resyncmodulelist1Click(Sender: TObject);
+    procedure ListView1DblClick(Sender: TObject);
+    procedure cbTypeChange(Sender: TObject);
   private
     { Private declarations }
     start:tdatetime;
@@ -288,8 +300,14 @@ begin
   new1.enabled:=true;
   rescanmemory1.Enabled:=true;
 
-  OpenPointerfile(staticscanner.filename);
+  if staticscanner<>nil then
+    OpenPointerfile(staticscanner.filename);
 
+  if rescan<>nil then
+  begin
+    OpenPointerfile(rescan.filename);
+    freeandnil(rescan);
+  end;
 end;
 
 procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
@@ -393,7 +411,6 @@ begin
         rscan(valuetofind,startlevel);
       finally
         isdone:=true;  //set isdone to true
-        staticscanner.reversescansemaphore.release;
       end;
     end;
   end;
@@ -404,7 +421,7 @@ end;
 var fcount:uint64=0;
 var scount:uint64=0;
 
-procedure TReverseScanWorker.StorePath(level: integer; staticdata: PStaticData=nil);
+procedure TReverseScanWorker.StorePath(level: integer; staticdata: PStaticData);
 {Store the current path to memory and flush if needed}
 var i: integer;
     x: dword;
@@ -413,7 +430,7 @@ var i: integer;
     mi: tmoduleinfo;
 begin
   inc(fcount); //increme
-  if (staticdata=nil) and staticonly then exit; //don't store it
+  if (staticdata=nil) then exit; //don't store it
 
   inc(scount);
 
@@ -423,7 +440,6 @@ begin
 
   //for i:=0 to level do
   //  offsetlist[level-i]:=tempresults[i];
-
 
   results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
   results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
@@ -460,15 +476,12 @@ var p: ^byte;
   startvalue: dword;
   stopvalue: dword;
   plist: PPointerlist;
+
+  nostatic: TStaticData;
 begin
   currentlevel:=level;
-  if (level>=maxlevel) then //in the previous version the check if it was a static was done here, that is now done earlier
-  begin
-    //reached max level
-    if (not staticonly) then //store this results entry
-      StorePath(level-1);
+  if (level>=maxlevel) then 
     exit;
-  end;
 
   if self.staticscanner.Terminated then
     exit;
@@ -512,9 +525,8 @@ begin
 
 
   found:=false;
-  while startvalue<=stopvalue do
+  while stopvalue>=startvalue do
   begin
-
     plist:=ownerform.pointerlisthandler.findPointerValue(startvalue, stopvalue);
     if plist<>nil then
     begin
@@ -522,7 +534,7 @@ begin
       for j:=0 to plist.pos-1 do
       begin
 
-        tempresults[level]:=valuetofind-startvalue; //store the offset
+        tempresults[level]:=valuetofind-stopvalue; //store the offset
         if plist.list[j].staticdata=nil then
         begin
           //check if whe should go deeper into these results (not if max level has been reached)
@@ -530,7 +542,11 @@ begin
           if (level+1) >= maxlevel then
           begin
             if (not staticonly) then //store this results entry
-              StorePath(level-1);
+            begin
+              nostatic.moduleindex:=$FFFFFFFF;
+              nostatic.offset:=plist.list[j].address;
+              StorePath(level,@nostatic);
+            end;
           end
           else
           begin
@@ -582,17 +598,24 @@ begin
       end;
 
       if not staticscanner.unalligned then
-        startvalue:=startvalue+4
+        stopvalue:=stopvalue-4
       else
-        startvalue:=startvalue+1;
+        stopvalue:=stopvalue-1;
         
     end else
     begin
-      if (not found) and (not staticonly) then
+     { if (not found) and (not staticonly) then
       begin
         //nothing was found, let's just say this is the final level and store it...
-        StorePath(level-1);
-      end;
+
+        if level>0 then
+        begin
+          nostatic.moduleindex:=$FFFFFFFF;
+          nostatic.offset:=startvalue;
+          StorePath(level-1);
+        end;
+
+      end;}
       exit;
     end;
 
@@ -633,42 +656,102 @@ var p: ^byte;
   stopvalue: dword;
 
   plist: PPointerList;
+
+  currentaddress: integer;
+  createdWorker: boolean;
+
+  valuefinder: TValueFinder;
 begin
   //scan the buffer
   fcount:=0; //debug counter to 0
   scount:=0;
   alldone:=false;
 
-  if not findValueInsteadOfAddress then
-    maxlevel:=maxlevel-1; //adjustment for this kind of scan
+  maxlevel:=maxlevel-1; //adjustment for this scan
 
-  setlength(results,maxlevel);  
-
-  //initialize the first reverse scan worker
-  //that one will spawn of all his other siblings
-
-  reversescanners[0].isdone:=false;
-  reversescanners[0].maxlevel:=maxlevel;
-
-  reversescanners[0].valuetofind:=self.automaticaddress;
-  reversescanners[0].structsize:=sz;
-  reversescanners[0].startlevel:=0;
-  reversescanners[0].startworking.SetEvent;
-
-
-  //wait till all threads are in isdone state
-  while (not alldone) do
+  if maxlevel>0 then
   begin
-    sleep(500);
-    alldone:=true;
+    setlength(results,maxlevel);
 
-    //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
-    for i:=0 to length(reversescanners)-1 do
+    //initialize the first reverse scan worker
+    //that one will spawn of all his other siblings if needed
+
+    if Self.findValueInsteadOfAddress then
     begin
-      if not reversescanners[i].isdone then
+      //scan the memory for the value
+      ValueFinder:=TValueFinder.create(start,stop);
+      ValueFinder.alligned:=not unalligned;
+      ValueFinder.valuetype:=valuetype;
+      ValueFinder.valuescandword:=valuescandword;
+      ValueFinder.valuescansingle:=valuescansingle;
+      ValueFinder.valuescandouble:=valuescandouble;
+      ValueFinder.valuescansinglemax:=valuescansinglemax;
+      ValueFinder.valuescandoublemax:=valuescandoublemax;
+
+      currentaddress:=dword(ValueFinder.FindValue(start));
+      while currentaddress>0 do
       begin
-        alldone:=false;
-        break;
+        //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
+        createdWorker:=false;
+        while not createdworker do
+        begin
+          reversescancs.Enter;
+          for i:=0 to length(reversescanners)-1 do
+            if reversescanners[i].isdone then
+            begin
+              reversescanners[i].isdone:=false;
+              reversescanners[i].maxlevel:=maxlevel;
+
+              reversescanners[i].valuetofind:=currentaddress;
+              reversescanners[i].structsize:=sz;
+              reversescanners[i].startlevel:=0;
+              reversescanners[i].startworking.SetEvent;
+              reversescancs.Leave;
+              createdworker:=true;
+              break;
+            end;
+          
+          if not createdworker then
+            sleep(500) //note: change this to an event based wait
+          else
+          begin //next
+            if unalligned then
+              currentaddress:=dword(ValueFinder.FindValue(currentaddress+1))
+            else
+              currentaddress:=dword(ValueFinder.FindValue(currentaddress+4));
+          end;
+        end;
+
+      end;
+
+      //done with the value finder, wait till all threads are done
+      valuefinder.free;
+    end
+    else
+    begin
+      reversescanners[0].isdone:=false;
+      reversescanners[0].maxlevel:=maxlevel;
+
+      reversescanners[0].valuetofind:=self.automaticaddress;
+      reversescanners[0].structsize:=sz;
+      reversescanners[0].startlevel:=0;
+      reversescanners[0].startworking.SetEvent;
+    end;
+
+    //wait till all threads are in isdone state
+    while (not alldone) do
+    begin
+      sleep(500);
+      alldone:=true;
+
+      //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
+      for i:=0 to length(reversescanners)-1 do
+      begin
+        if not reversescanners[i].isdone then
+        begin
+          alldone:=false;
+          break;
+        end;
       end;
     end;
   end;
@@ -694,7 +777,6 @@ begin
 
   postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
   terminate;
-  freeandnil(reversescansemaphore);
 end;
 
 procedure TStaticScanner.execute;
@@ -755,7 +837,6 @@ begin
   begin
     reverseScanCS:=tcriticalsection.Create;
     try
-      reverseScanSemaphore:=tsemaphore.create(threadcount);
       setlength(reversescanners,threadcount);
       for i:=0 to threadcount-1 do
       begin
@@ -789,9 +870,6 @@ destructor TStaticscanner.destroy;
 begin
   terminate;
   waitfor;
-
-  if reverseScanSemaphore<>nil then
-    freeandnil(reverseScanSemaphore);
 
   //clean up other stuff
   inherited destroy;
@@ -829,6 +907,10 @@ begin
     open1.Enabled:=false;
     new1.enabled:=false;
     rescanmemory1.Enabled:=false;
+
+    cbType.Visible:=false;
+    listview1.Visible:=false;
+
 
     timer2.Enabled:=true;
 
@@ -955,6 +1037,8 @@ var i,j,l: integer;
     _h,_m,_s: integer;
     tn,tn2: TTreenode;
 begin
+  if pointerlisthandler<>nil then
+    label6.caption:='Pointer addresses found in the whole process:'+inttostr(pointerlisthandler.count);
 
   if staticscanner<>nil then
   try
@@ -962,7 +1046,7 @@ begin
     begin
       if tvRSThreads.Items.Count>0 then
         tvRSThreads.Items.Clear;
-        
+
       exit;
     end;
 
@@ -973,9 +1057,7 @@ begin
 
       if scount>fcount then  lblRSTotalStaticPaths.caption:= lblRSTotalStaticPaths.caption+' WTF?';
 
-      if pointerlisthandler<>nil then
-        label6.caption:='Pointer addresses found in the whole process:'+inttostr(pointerlisthandler.count);
-        
+
       //{$ifdef injectedpscan
       //lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
      // {$else
@@ -1065,6 +1147,8 @@ var
   col_offsets: Array of TListColumn;
   tempmodulelist: tstringlist;
 begin
+  new1.Click;
+  
   temppcharmaxlength:=256;
   getmem(temppchar, temppcharmaxlength);
 
@@ -1129,18 +1213,30 @@ begin
   col_pointsto.Caption:='Points to:';
   col_pointsto.Width:=80;
   col_pointsto.MinWidth:=10;
+  col_pointsto.AutoSize:=true;
 
   OpenedPointerfile.sizeOfEntry:=(12+OpenedPointerfile.offsetlength*4);
 
   OpenedPointerFile.TotalPointers:=(OpenedPointerfile.pointerfile.size-OpenedPointerfile.StartPosition) div OpenedPointerfile.sizeofentry;
   listview1.Items.Count:=OpenedPointerFile.TotalPointers;
 
+  if listview1.Items.Count=0 then
+  begin
+    listview1.Items.Count:=min(100000000, OpenedPointerFile.TotalPointers);
+    showmessage('Due to OS restrictions only the first 100000000 entries will be displayed. Rescan will still work with all results');
+  end;
+
 
   listview1.Align:=alClient;
   listview1.Visible:=true;
 
+  cbtype.top:=0;
+  cbtype.height:=panel1.ClientHeight;
+  cbtype.Visible:=true;
+
 
   Rescanmemory1.Enabled:=true;
+  new1.Enabled:=true;
 end;
 
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
@@ -1149,6 +1245,14 @@ begin
     OpenPointerfile(Opendialog1.filename);
 end;
 
+function TRescanWorker.isMatchToValue(p:pointer): boolean;
+begin
+  case valuetype of
+    vtDword: result:=pdword(p)^=valuescandword;
+    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
+    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
+  end;
+end;
 
 procedure TRescanWorker.flushresults;
 begin
@@ -1168,13 +1272,21 @@ var origin: TFileStream;
     address,address2: dword;
     pa: PPointerAddress;
     x: dword;
-    found: integer;
+    valid: boolean;
+
+    tempvalue: pointer;
+    value: pointer;
+    valuesize: integer;
 begin
-  found:=0;
   pointercache:=nil;
   origin:=nil;
   tempfile:=nil;
   tempbuffer:=nil;
+
+  if forvalue and (valuetype=vtDouble) then valuesize:=8 else valuesize:=4;
+
+  getmem(tempvalue,valuesize);
+
   try
 
     origin:=tfilestream.Create(OriginalFilename, fmOpenRead or fmShareDenyNone);
@@ -1185,7 +1297,7 @@ begin
     getmem(pointercache, self.OriginalFileEntrySize*256);
 
     evaluated:=0;
-    origin.Position:=self.OriginalFileStartPosition+(self.startentry*self.OriginalFileEntrySize);
+    origin.Position:=uint64(uint64(self.OriginalFileStartPosition)+(uint64(self.startentry)*uint64(self.OriginalFileEntrySize)));
 
     while evaluated < self.EntriesToCheck do
     begin
@@ -1211,9 +1323,15 @@ begin
         //pointercached[4]=offset1
         //....
 
-        address:=dword(self.modulelist.Objects[pointercached[0]]); //base address
+        if pointercached[0]=$ffffffff then
+          address:=$ffffffff else
+          address:=dword(self.modulelist.Objects[pointercached[0]]); //base address
         if address>0 then
         begin
+          valid:=true;
+
+          if address=$ffffffff then address:=0;
+          
           address:=address+pointercached[1]; //offset
 
           for i:=pointercached[2]-1 downto 0 do
@@ -1231,13 +1349,44 @@ begin
               address:=pa.value+pointercached[3+i]
             else
             begin
-              address:=PointerAddressToFind-1;
+              valid:=false;
               break; //invalid pointer
             end;
           end;
 
-          if address=PointerAddressToFind then
+          if valid then
           begin
+            if forvalue then
+            begin
+              //evaluate the address (address must be accessible)
+              if rescanhelper.ispointer(address) then
+              begin
+                value:=rescanhelper.findAddress(address);
+                if value=nil then
+                begin
+                  //value is not yet stored, fetch it and add it to the list
+                  if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
+                    value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
+                  else
+                    valid:=false; //unreadable even though ispointer returned true....
+                end;
+
+
+                if (value=nil) or (not isMatchToValue(value)) then
+                  valid:=false; //invalid value
+              end else valid:=false; //unreadable address
+            end
+            else
+            begin
+              //check if the address matches
+              if address<>PointerAddressToFind then
+                valid:=false;
+            end;
+          end;
+
+          if valid then
+          begin
+            //checks passed, it's valid
             tempbuffer.Write(pointercached[0],OriginalFileEntrySize);
             if tempbuffer.Position>16*1024*1024 then flushresults;
           end;
@@ -1252,6 +1401,8 @@ begin
 
     flushresults;
   finally
+    freemem(tempvalue);
+    
     if origin<>nil then
       origin.Free;
 
@@ -1263,15 +1414,6 @@ begin
 
     if pointercache<>nil then
       freemem(pointercache);
-  end;
-end;
-
-function TRescanpointers.ismatchtovalue(p: pointer): boolean;
-begin
-  case valuetype of
-    vtDword: result:=pdword(p)^=valuescandword;
-    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
-    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
   end;
 end;
 
@@ -1342,6 +1484,14 @@ begin
       rescanworkers[i].offsetlength:=ownerform.OpenedPointerfile.offsetlength;
       rescanworkers[i].modulelist:=ownerform.OpenedPointerfile.modulelist;
       rescanworkers[i].PointerAddressToFind:=self.address;
+      rescanworkers[i].forvalue:=forvalue;
+      rescanworkers[i].valuetype:=valuetype;
+      rescanworkers[i].valuescandword:=valuescandword;
+      rescanworkers[i].valuescansingle:=valuescansingle;
+      rescanworkers[i].valuescandouble:=valuescandouble;
+      rescanworkers[i].valuescansinglemax:=valuescansinglemax;
+      rescanworkers[i].valuescandoublemax:=valuescandoublemax;
+
       rescanworkers[i].rescanhelper:=rescanhelper;
 
       rescanworkers[i].filename:=self.filename+'.'+inttostr(rescanworkers[i].ThreadID);
@@ -1454,9 +1604,9 @@ begin
             begin
 
               //if values, check what type of value
-              floataccuracy:=pos(FloatSettings.DecimalSeparator,frmpointerscannersettings.edtAddress.Text);
+              floataccuracy:=pos(FloatSettings.DecimalSeparator,edtAddress.Text);
               if floataccuracy>0 then
-                floataccuracy:=length(frmpointerscannersettings.edtAddress.Text)-floataccuracy;
+                floataccuracy:=length(edtAddress.Text)-floataccuracy;
 
               case cbValueType.ItemIndex of
                 0:
@@ -1520,10 +1670,10 @@ The rescan is done. rescan.oldpointerlist (the current pointerlist) can be delet
 and the new pointerlist becomes the current pointerlist
 }
 begin
+  doneui;
+
   if rescan<>nil then
     freeandnil(rescan);
-
-  doneui;
     
   Rescanmemory1.Enabled:=true;
   new1.Enabled:=true;
@@ -1572,6 +1722,19 @@ begin
   open1.Enabled:=true;
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
+
+  if OpenedPointerfile.pointerfile<>nil then
+    freeandnil(OpenedPointerfile.pointerfile);
+
+  OpenedPointerfile.filename:='';
+  if OpenedPointerfile.modulelist<>nil then
+    freeandnil(OpenedPointerfile.modulelist);
+  OpenedPointerfile.offsetlength:=0;
+  OpenedPointerfile.StartPosition:=0;
+  OpenedPointerfile.SizeOfEntry:=0;
+  OpenedPointerfile.TotalPointers:=0;
+  listview1.Columns.Clear;
+  listview1.Items.Count:=0;
 end;
 
 
@@ -1594,24 +1757,34 @@ var i: integer;
 
     address,address2: dword;
     x: dword;
+    s: string;
+
+    doublevalue: double;
+    dwordvalue: dword absolute doublevalue; //make sure of the same memory
+    floatvalue: single absolute doublevalue;
+
+    check: boolean;
 begin
   if OpenedPointerfile.pointerfile<>nil then
   begin
-    OpenedPointerfile.pointerfile.Position:=OpenedPointerfile.StartPosition+item.Index*OpenedPointerfile.sizeofentry;
+    OpenedPointerfile.pointerfile.Position:=uint64(uint64(OpenedPointerfile.StartPosition)+uint64(item.Index)*uint64(OpenedPointerfile.sizeofentry));
     OpenedPointerfile.pointerfile.Read(i,sizeof(i));
     OpenedPointerfile.pointerfile.read(offset,sizeof(offset));
-    item.Caption:=OpenedPointerfile.modulelist[i]+'+'+inttohex(offset,1);
+
+    if i=-1 then
+      item.Caption:=inttohex(offset,1)
+    else
+      item.Caption:=OpenedPointerfile.modulelist[i]+'+'+inttohex(offset,1);
+
+
 
     OpenedPointerfile.pointerfile.Read(actualoffsetcount,sizeof(actualoffsetcount));
 
-    address:=dword(OpenedPointerfile.modulelist.Objects[i])+offset;
+    if i=-1 then
+      address:=offset
+    else
+      address:=dword(OpenedPointerfile.modulelist.Objects[i])+offset;
 
-    {
-    results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
-    i:=level+1; //store many offsets are actually used (since all are saved)
-    results.WriteBuffer(i,sizeof(i));
-    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
-    }
     OpenedPointerfile.pointerfile.Read(tempoffset[0],sizeof(tempoffset[0])*actualoffsetcount);
 
     for i:=actualoffsetcount-1 downto 0 do
@@ -1634,7 +1807,28 @@ begin
       end;
     end;
 
-    item.SubItems.Add(inttohex(address,8));
+    s:=inttohex(address,8);
+
+    if cbType.ItemIndex<>-1 then
+    begin
+      s:=s+' = ';
+      if cbType.ItemIndex=2 then
+        check:=readprocessmemory(processhandle, pointer(address),@doublevalue,8,x) else
+        check:=readprocessmemory(processhandle, pointer(address),@doublevalue,4,x);
+
+      if check then
+      begin
+        case cbType.ItemIndex of
+          0: s:=s+inttostr(dwordvalue);
+          1: s:=s+floattostr(floatvalue);
+          2: s:=s+floattostr(doublevalue);
+        end;
+      end else s:=s+'??';
+    end;
+
+    item.SubItems.Add(s);
+
+
   end;
 end;
 
@@ -1663,8 +1857,57 @@ end;
 procedure Tfrmpointerscanner.Resyncmodulelist1Click(Sender: TObject);
 begin
   resyncloadedmodulelist;
+  listview1.Refresh;
+end;
+
+procedure Tfrmpointerscanner.ListView1DblClick(Sender: TObject);
+var
+  li: tlistitem;
+  err: boolean;
+  i: integer;
+  baseaddress: dword;
+  offsets: array of dword;
+  t: string;
+  c: integer;
+
+  vtype: integer;
+begin
+  if listview1.ItemIndex<>-1 then
+  begin
+    err:=false;
+    li:=listview1.Items.Item[listview1.ItemIndex];
+    t:=li.caption;
+    baseaddress:=symhandler.getAddressFromName(t,false,err);
+    if err then exit;
 
 
+    try
+      setlength(offsets,li.SubItems.Count);
+      c:=0;
+
+      for i:=li.SubItems.Count-2 downto 0 do
+      begin
+        if li.SubItems[i]='' then continue;
+        offsets[c]:=strtoint('$'+li.SubItems[i]);
+        inc(c);
+      end;
+
+
+      if cbType.ItemIndex=1 then vtype:=3 else
+      if cbtype.itemindex=2 then vtype:=4 else
+      vtype:=2;
+
+      mainform.addaddress('pointerscan result',baseaddress,offsets,c,true,vtype,0,0,false);
+      mainform.memrec[length(mainform.memrec)-1].pointers[length(mainform.memrec[length(mainform.memrec)-1].pointers)-1].Interpretableaddress:=t;
+    except
+
+    end;
+  end;
+end;
+
+procedure Tfrmpointerscanner.cbTypeChange(Sender: TObject);
+begin
+  listview1.Refresh;
 end;
 
 end.

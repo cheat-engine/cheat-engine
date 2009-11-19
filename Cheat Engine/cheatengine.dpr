@@ -155,7 +155,8 @@ uses
   circularBuffer in 'circularBuffer.pas',
   frmRescanPointerUnit in 'frmRescanPointerUnit.pas' {frmRescanPointer},
   pointervaluelist in 'pointervaluelist.pas',
-  rescanhelper in 'rescanhelper.pas';
+  rescanhelper in 'rescanhelper.pas',
+  ValueFinder in 'ValueFinder.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

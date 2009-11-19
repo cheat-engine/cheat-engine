@@ -29,6 +29,7 @@ type
   PPointerList=^TPointerList;
   TPointerlist=record
     maxsize: integer;
+    expectedsize: integer;
     pos: integer;
     list: PPointerDataArray;
   end;
@@ -50,7 +51,7 @@ type
     function ispointer(address: dword): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
 
-    procedure addpointer(pointervalue: dword; pointerwiththisvalue: dword);
+    procedure addpointer(pointervalue: dword; pointerwiththisvalue: dword; add:boolean);
     procedure DeletePath(addresslist: PReversePointerListArray; level: integer);
 
   public
@@ -59,7 +60,7 @@ type
     modulelist: tstringlist;
 
     procedure saveModuleListToResults(s: TStream);
-    function findPointerValue(var startvalue: dword; stopvalue: dword): PPointerList;
+    function findPointerValue(startvalue: dword; var stopvalue: dword): PPointerList;
     constructor create(start, stop: dword; alligned: boolean; progressbar: tprogressbar);
     destructor destroy; override;
   end;
@@ -92,7 +93,7 @@ begin
     //Gets the middle of the selected range
     Pivot := (First + Last) div 2;
     //Compares the String in the middle with the searched one
-    if (memoryregion[Pivot].BaseAddress >= address) and (address<memoryregion[Pivot].BaseAddress+memoryregion[Pivot].MemorySize) then
+    if (address>=memoryregion[Pivot].BaseAddress ) and (address<memoryregion[Pivot].BaseAddress+memoryregion[Pivot].MemorySize) then
     begin
       Found  := True;
       Result := Pivot;
@@ -143,7 +144,7 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
-procedure TReversePointerListHandler.addpointer(pointervalue: dword; pointerwiththisvalue: dword);
+procedure TReversePointerListHandler.addpointer(pointervalue: dword; pointerwiththisvalue: dword; add: boolean);
 var
   level: integer;
   entrynr: integer;
@@ -151,6 +152,9 @@ var
   mi: Tmoduleinfo;
 
   templist: PPointerDataArray;
+
+  plist: PPointerList;
+  stage: integer;
 begin
   currentarray:=level0list;
 
@@ -171,38 +175,56 @@ begin
   end;
 
   //got till level 7
+
   entrynr:=pointervalue shr ((7-level)*4) and $f;
-  if currentarray[entrynr].pointerlist=nil then //allocate one
+  plist:=currentarray[entrynr].pointerlist;
+    
+  if plist=nil then //allocate one
   begin
     getmem(currentarray[entrynr].pointerlist, sizeof(TPointerlist));
-    ZeroMemory(currentarray[entrynr].pointerlist, sizeof(TPointerlist));
-
-    getmem(templist, 2*sizeof(TPointerDataArray));
-    ZeroMemory(templist, 2*sizeof(TPointerDataArray));
-
-    currentarray[entrynr].pointerlist.list:=templist;
-    currentarray[entrynr].pointerlist.pos:=0;
-    currentarray[entrynr].pointerlist.maxsize:=2;
+    plist:=currentarray[entrynr].pointerlist;
+    
+    plist.list:=nil;
+    plist.pos:=0;
+    plist.maxsize:=0;
+    if not add then
+      plist.expectedsize:=0
+    else
+      plist.expectedsize:=2;
   end;
 
-  if currentarray[entrynr].pointerlist.pos>=currentarray[entrynr].pointerlist.maxsize then
-  begin
-    currentarray[entrynr].pointerlist.maxsize:=currentarray[entrynr].pointerlist.maxsize*2; //double the storage
-    ReallocMem(currentarray[entrynr].pointerlist.list, currentarray[entrynr].pointerlist.maxsize*sizeof(TPointerDataArray)); //realloc
-  end;
-
-  currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].address:=pointerwiththisvalue;
-  if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
-  begin
-    //it's a static, so create and fill in the static data
-    getmem(currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata, sizeof(TStaticData));
-    currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
-    currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
-  end
+  if not add then
+    inc(plist.expectedsize)
   else
-    currentarray[entrynr].pointerlist.list[currentarray[entrynr].pointerlist.pos].staticdata:=nil;
+  begin
+    //actually add a pointer address for this value
+    if plist.list=nil then //create the list
+    begin
+      getmem(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
+      ZeroMemory(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
 
-  inc(currentarray[entrynr].pointerlist.pos);
+      plist.maxsize:=plist.expectedsize;
+    end;
+
+    if plist.pos>=plist.maxsize then
+    begin
+      plist.maxsize:=plist.maxsize*4; //quadrupple the storage
+      ReallocMem(plist.list, plist.maxsize*sizeof(TPointerDataArray)); //realloc
+    end;
+
+    plist.list[plist.pos].address:=pointerwiththisvalue;
+    if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
+    begin
+      //it's a static, so create and fill in the static data
+      getmem(plist.list[plist.pos].staticdata, sizeof(TStaticData));
+      plist.list[plist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
+      plist.list[plist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
+    end
+    else
+      plist.list[plist.pos].staticdata:=nil;
+
+    inc(plist.pos);
+  end;
 end;
 
 procedure TReversePointerListHandler.saveModuleListToResults(s: TStream);
@@ -230,22 +252,173 @@ type TMemrectablearraylist = array [0..7] of record
  entrynr: integer;
  end;
 
+type PMemrectablearraylist=^TMemrectablearraylist;
 
-function TReversePointerListHandler.findPointerValue(var startvalue: dword; stopvalue: dword): PPointerList;
+
+function findMaxOfPath(lvl: PMemrectablearraylist; a: PReversePointerListArray; level: integer):PPointerList;
+var
+  i: integer;
+begin
+  result:=nil;
+  if level=7 then
+  begin
+    for i:=15 downto 0 do
+    begin
+      if a[i].pointerlist<>nil then
+      begin
+        lvl[level].entrynr:=i;
+        result:=a[i].pointerlist;
+        exit;
+      end;
+    end;
+  end
+  else
+  begin
+    for i:=15 downto 0 do
+    begin
+      if a[i].ReversePointerlistArray<>nil then
+      begin
+        lvl[level].entrynr:=i;
+        lvl[level+1].arr:=a[i].ReversePointerlistArray;
+        result:=findMaxOfPath(lvl, a[i].ReversePointerlistArray,level+1);
+        if result<>nil then exit;
+      end;
+    end;
+  end;
+end;
+
+function findprevious(lvl: PMemrectablearraylist; level: integer):PPointerList;
+var
+  i: integer;
+  currentarray: PReversePointerListArray;
+begin
+  result:=nil;
+  if level=7 then
+  begin
+    currentarray:=lvl[level].arr;
+    for i:=lvl[level].entrynr-1 downto 0 do
+    begin
+      if currentarray[i].pointerlist<>nil then
+      begin
+        lvl[level].entrynr:=i;
+        result:=currentarray[i].pointerlist;
+        exit;
+      end;
+    end;
+
+    asm
+      nop
+    end;
+  end
+  else
+  begin
+    currentarray:=lvl[level].arr;
+    for i:=lvl[level].entrynr-1 downto 0 do
+    begin
+      if currentarray[i].ReversePointerlistArray<>nil then
+      begin
+        lvl[level].entrynr:=i;
+        lvl[level+1].arr:=currentarray[i].ReversePointerlistArray;
+        result:=findMaxOfPath(lvl, currentarray[i].ReversePointerlistArray,level+1);
+        if result<>nil then exit;
+      end;
+    end;
+
+  end;
+
+  //still here, so try a higher level
+  if level>0 then
+  begin
+    lvl[level].entrynr:=$f;
+    result:=findprevious(lvl,level-1);
+  end;
+end;
+
+
+function TReversePointerListHandler.findPointerValue(startvalue: dword; var stopvalue: dword): PPointerList;
 var
   a: TMemrectablearraylist;
   level: integer;
   currentarray: PReversePointerListArray;
   entrynr: integer;
+  i: integer;
 begin
+
+  result:=nil;
+  level:=0;
+  a[0].arr:=level0list;
+
+  while stopvalue>=startvalue do
+  begin
+    currentarray:=a[level].arr;
+    entrynr:=stopvalue shr ((7-level)*4) and $f;
+    a[level].entrynr:=entrynr;
+    if currentarray[entrynr].ReversePointerlistArray=nil then
+    begin
+      //not found, find the closest item near here
+      //the list is a static list once it it running, and no items are ever deleted unless the whole list is destroyed
+      //so just track back untill you encounter a entry that isn't nil and then seek the max path of that
+      result:=findprevious(@a,level);
+
+      if result<>nil then
+      begin
+        stopvalue:=a[0].entrynr shl 28+
+                   a[1].entrynr shl 24+
+                   a[2].entrynr shl 20+
+                   a[3].entrynr shl 16+
+                   a[4].entrynr shl 12+
+                   a[5].entrynr shl 08+
+                   a[6].entrynr shl 04+
+                   a[7].entrynr;
+
+
+        if stopvalue<startvalue then
+          result:=nil;
+      end;
+      exit;
+    end
+    else
+    begin
+      if level=7 then
+      begin
+        result:=currentarray[entrynr].pointerlist;
+        break;
+      end
+      else
+      begin
+        a[level+1].arr:=currentarray[entrynr].ReversePointerlistArray;
+
+        inc(level);
+      end;
+    end;
+
+  end;
+
+end;
+
+{
+function TReversePointerListHandler.findPointerValueForward(var startvalue: dword; stopvalue: dword): PPointerList;
+var
+  a: TMemrectablearraylist;
+  level: integer;
+  currentarray: PReversePointerListArray;
+  entrynr: integer;
+  originalstart: dword; //debug
+  i: integer;
+begin
+  originalstart:=startvalue;
+
+
   result:=nil;
   level:=0;
   a[0].arr:=level0list;
 
   while startvalue<=stopvalue do
   begin
+    if originalstart=0 then beep;
     currentarray:=a[level].arr;
     entrynr:=startvalue shr ((7-level)*4) and $f;
+    a[level].entrynr:=entrynr;
     if currentarray[entrynr].ReversePointerlistArray=nil then
     begin
       //select next entry
@@ -253,13 +426,19 @@ begin
       startvalue:=startvalue+1;
       startvalue:=startvalue shl ((7-level)*4);
 
-      if entrynr=15 then
+      while level>0 do
       begin
-        if level>0 then
+        if a[level].entrynr=$f then
+        begin
+          a[level].entrynr:=0;
           dec(level)
+        end
         else
-          exit;
+          break;
       end;
+
+      if level<0 then exit; //nothing found
+
 
     end
     else
@@ -272,15 +451,16 @@ begin
       else
       begin
         a[level+1].arr:=currentarray[entrynr].ReversePointerlistArray;
-        a[level].entrynr:=entrynr;
+
         inc(level);
       end;
     end;
 
   end;
 
-end;
 
+end;
+       }
 
 procedure TReversePointerListHandler.DeletePath(addresslist: PReversePointerListArray; level: integer);
 var
@@ -432,6 +612,23 @@ begin
   memoryregion[j].MemorySize:=size;
   setlength(memoryregion,j+1);
 
+  //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
+  i:=0;
+  while i<length(memoryregion) do
+  begin
+    if memoryregion[i].MemorySize>512*1024 then
+    begin
+      //too big, so cut into pieces
+      //create new entry with 512KB less
+      setlength(memoryregion,length(memoryregion)+1);
+      memoryregion[length(memoryregion)-1].BaseAddress:=memoryregion[i].BaseAddress+512*1024;
+      memoryregion[length(memoryregion)-1].MemorySize:=memoryregion[i].MemorySize-512*1024;
+      memoryregion[i].MemorySize:=512*1024; //set the current region to be 512KB
+
+    end;
+    inc(i); //next item. Eventually the new items will be handled, and they will also be split untill the list is finally cut into small enough chunks    
+  end;
+
   //sort memoryregions from small to high
   quicksortmemoryregions(0,length(memoryregion)-1);
 
@@ -442,7 +639,7 @@ begin
   progressbar.Min:=0;
   progressbar.Step:=1;
   progressbar.Position:=0;
-  progressbar.max:=length(memoryregion)+1;
+  progressbar.max:=length(memoryregion)*2+1;
 
 
   maxsize:=0;
@@ -457,6 +654,7 @@ begin
 
   buffersize:=totaltoread;
 
+  //initial scan to fetch the counts of memory
 
 
   for i:=0 to length(memoryregion)-1 do
@@ -464,7 +662,7 @@ begin
     actualread:=0;
     if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
     begin
-      bytepointer:=buffer;    
+      bytepointer:=buffer;
       lastaddress:=dword(buffer)+Memoryregion[i].MemorySize;
 
       while dword(bytepointer)<lastaddress do
@@ -472,8 +670,37 @@ begin
         if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
            ((not alligned) and ispointer(dwordpointer^) ) then
         begin
-          //add it
-          addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(dword(dwordpointer)-dword(buffer)));
+          //initial add
+          addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(dword(dwordpointer)-dword(buffer)),false);
+        end;
+
+        if alligned then
+          inc(dwordpointer)
+        else
+          inc(bytepointer);
+      end;
+    end;
+
+    progressbar.StepIt;
+  end;
+
+  //actual add
+
+  for i:=0 to length(memoryregion)-1 do
+  begin
+    actualread:=0;
+    if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+    begin
+      bytepointer:=buffer;
+      lastaddress:=dword(buffer)+Memoryregion[i].MemorySize;
+
+      while dword(bytepointer)<lastaddress do
+      begin
+        if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
+           ((not alligned) and ispointer(dwordpointer^) ) then
+        begin
+          //initial add
+          addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(dword(dwordpointer)-dword(buffer)),true);
           inc(count);
         end;
 

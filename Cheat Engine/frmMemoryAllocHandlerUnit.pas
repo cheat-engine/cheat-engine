@@ -728,6 +728,7 @@ begin
         exit;
       end;
     end;
+
   end
   else
   begin
@@ -741,10 +742,12 @@ begin
       end;
     end;
 
-    //still here
-    if level>0 then
-      result:=findprevious(lvl,level-1);
-
+  end;
+  //still here
+  if level>0 then
+  begin
+    lvl[level].entrynr:=$f;
+    result:=findprevious(lvl,level-1);
   end;
 end;
 

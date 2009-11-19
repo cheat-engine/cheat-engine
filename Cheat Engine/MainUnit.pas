@@ -275,6 +275,7 @@ type
     Plugins2: TMenuItem;
     actMemoryView: TAction;
     Label61: TLabel;
+    actOpenProcesslist: TAction;
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -434,6 +435,7 @@ type
     procedure actScriptEngineExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
     procedure Label61Click(Sender: TObject);
+    procedure actOpenProcesslistExecute(Sender: TObject);
   private
     fcontrol: tfcontrol;
     aaa:single;
@@ -11231,6 +11233,9 @@ begin
 
 end;
 
+
+var    abc: TReversePointerListHandler;
+
 procedure TMainForm.Label38Click(Sender: TObject);
 var
   x: dword;
@@ -11252,23 +11257,12 @@ var heaphandles: array of cardinal;
     i: integer;
     phe: PROCESS_HEAP_ENTRY;
 
-    abc: TReversePointerListHandler;
     aaaa: dword;
 
     starttime: dword;
 begin
-  abc:=TReversePointerListHandler.create(0,$7fffffff,true, progressbar1);
 
-
-  starttime:=gettickcount;
-  for i:=0 to 9000000 do
-  begin
-    aaaa:=0;
-    abc.findPointerValue(aaaa,256);
-  end;
-
-  showmessage(inttostr(gettickcount-starttime));
-
+  abc:=TReversePointerListHandler.create(0,$7fffffff,true,progressbar1);
   //showmessage(inttohex(aaaa,8));
 
 
@@ -12118,12 +12112,39 @@ begin
 end;
 
 procedure TMainForm.Label61Click(Sender: TObject);
+var c: string;
+  startvalue,stopvalue: dword;
+  s: tstringlist;
+  i: integer;
+  plist:PPointerlist;
 begin
-  if DBKDebug_WaitForDebugEvent(1000) then
+
+  s:=tstringlist.create;
+  c:='2c90d2ac';
+  inputquery('a','b',c);
+
+  stopvalue:=strtoint('$'+c);
+  startvalue:=stopvalue-4096;
+
+  while stopvalue>startvalue do
   begin
-    DBKDebug_ContinueDebugEvent(true);
-    showmessage('handled');
-  end else showmessage('failed');
+    plist:=abc.findPointerValue(startvalue, stopvalue);
+    for i:=0 to plist.pos-1 do
+    begin
+
+      s.Add(inttohex(plist.list[i].address,8));
+    end;
+    stopvalue:=stopvalue-4;
+  end;
+
+  showmessage(s.Text);
+
+
+end;
+
+procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);
+begin
+  speedbutton1.Click;
 end;
 
 initialization
