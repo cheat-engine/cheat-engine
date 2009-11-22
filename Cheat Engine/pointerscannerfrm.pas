@@ -326,26 +326,7 @@ begin
 {$endif}
 
 
-  result:=TfileStream.create(staticscanner.filename,fmcreate);
 
-  //save header (modulelist, and levelsize)
-  pointerlisthandler.saveModuleListToResults(result);
-
-  //levelsize
-  result.Write(message.LParam,sizeof(message.LParam)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
-
-  //pointerstores
-  temp:=length(staticscanner.filenames);
-  result.Write(temp,sizeof(temp));
-  for i:=0 to length(staticscanner.filenames)-1 do
-  begin
-    tempstring:=ExtractFileName(staticscanner.filenames[i]);
-    temp:=length(tempstring);
-    result.Write(temp,sizeof(temp));
-    result.Write(tempstring[1],temp);
-  end;
-
-  result.Free;
 
   setlength(staticscanner.filenames,0);
 
@@ -401,6 +382,8 @@ procedure TReverseScanWorker.execute;
 var wr: twaitresult;
 begin
   resultsfile:= tfilestream.Create(filename,fmcreate);
+  resultsfile.free;
+  resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
 
   while not terminated do
   begin
@@ -673,8 +656,6 @@ begin
   scount:=0;
   alldone:=false;
 
-  maxlevel:=maxlevel-1; //adjustment for this scan
-
   if maxlevel>0 then
   begin
     setlength(results,maxlevel);
@@ -811,6 +792,9 @@ var
     maxpos: dword;
     dw: byte;
 
+    result: tfilestream;
+    temp: dword;
+    tempstring: string;
 begin
   if terminated then exit;
 
@@ -841,6 +825,7 @@ begin
 
   if reverse then  //always true since 5.6
   begin
+    maxlevel:=maxlevel-1; //for reversescan
     reverseScanCS:=tcriticalsection.Create;
     try
       setlength(reversescanners,threadcount);
@@ -858,6 +843,30 @@ begin
 
         reversescanners[i].Resume;
       end;
+
+      //create the headerfile
+      result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
+
+      //save header (modulelist, and levelsize)
+      ownerform.pointerlisthandler.saveModuleListToResults(result);
+
+      //levelsize
+      result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
+
+      //pointerstores
+      temp:=length(reversescanners);
+      result.Write(temp,sizeof(temp));
+      for i:=0 to length(reversescanners)-1 do
+      begin
+        tempstring:=ExtractFileName(reversescanners[i].filename);
+        temp:=length(tempstring);
+        result.Write(temp,sizeof(temp));
+        result.Write(tempstring[1],temp);
+      end;
+
+      result.Free;
+
+
       reversescan;
     finally
       freeandnil(reverseScanCS);
