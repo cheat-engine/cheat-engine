@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper, 
   virtualmemory, symbolhandler,mainunit,disassembler,cefuncproc,newkernelhandler,
-  valuefinder;
+  valuefinder, PointerscanresultReader;
 
 
 const staticscanner_done=wm_user+1;
@@ -36,11 +36,7 @@ type
 
 
     //---
-    OriginalFilename: string;
-    OriginalFileEntrySize: integer;
-    OriginalFileStartPosition: integer;
-    offsetlength: integer;
-    modulelist: tstringlist;
+    Pointerscanresults: TPointerscanresultReader;
 
     startentry: uint64;
     EntriesToCheck: uint64;
@@ -49,6 +45,7 @@ type
 
     evaluated: uint64;
     procedure execute; override;
+    destructor destroy;
   end;
 
 
@@ -260,6 +257,8 @@ type
     { Public declarations }
     Staticscanner:TStaticScanner;
 
+    Pointerscanresults: TPointerscanresultReader;
+        {
     OpenedPointerfile: record
       filename: string;
       pointerfile: Tfilestream;
@@ -271,6 +270,7 @@ type
     end;
 
     tempoffset: array of dword; //used by ondata
+    }
 
   end;
 
@@ -314,6 +314,8 @@ procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
 var x: tfilestream;
     result: tfilestream;
     i: integer;
+    temp: dword;
+    tempstring: string;
 begin
 
   if staticscanner=nil then exit;
@@ -324,27 +326,28 @@ begin
 {$endif}
 
 
-  //now combile all thread results to 1 file
   result:=TfileStream.create(staticscanner.filename,fmcreate);
 
   //save header (modulelist, and levelsize)
   pointerlisthandler.saveModuleListToResults(result);
 
+  //levelsize
   result.Write(message.LParam,sizeof(message.LParam)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
 
-
-
+  //pointerstores
+  temp:=length(staticscanner.filenames);
+  result.Write(temp,sizeof(temp));
   for i:=0 to length(staticscanner.filenames)-1 do
   begin
-    x:=tfilestream.Create(staticscanner.filenames[i],fmopenread);
-    result.CopyFrom(x,0);
-    x.free;
-    deletefile(staticscanner.filenames[i]);
+    tempstring:=ExtractFileName(staticscanner.filenames[i]);
+    temp:=length(tempstring);
+    result.Write(temp,sizeof(temp));
+    result.Write(tempstring[1],temp);
   end;
+
   result.Free;
 
-  setlength(staticscanner.filenames,1);
-  staticscanner.filenames[0]:={$ifdef injectedpscan}scansettings.{$endif}cheatenginedir+'result.ptr';
+  setlength(staticscanner.filenames,0);
 
   //update the treeview
   if message.WParam<>0 then
@@ -397,7 +400,6 @@ end;
 procedure TReverseScanWorker.execute;
 var wr: twaitresult;
 begin
-  filename:=staticscanner.filename+'.'+inttostr(getcurrentthreadid);
   resultsfile:= tfilestream.Create(filename,fmcreate);
 
   while not terminated do
@@ -478,6 +480,7 @@ var p: ^byte;
   plist: PPointerlist;
 
   nostatic: TStaticData;
+  DontGoDeeper: boolean;
 begin
   currentlevel:=level;
   if (level>=maxlevel) then 
@@ -525,6 +528,7 @@ begin
 
 
   found:=false;
+  dontGoDeeper:=false;
   while stopvalue>=startvalue do
   begin
     plist:=ownerform.pointerlisthandler.findPointerValue(startvalue, stopvalue);
@@ -535,65 +539,67 @@ begin
       begin
 
         tempresults[level]:=valuetofind-stopvalue; //store the offset
-        if plist.list[j].staticdata=nil then
+        if (plist.list[j].staticdata=nil) then
         begin
-          //check if whe should go deeper into these results (not if max level has been reached)
-
-          if (level+1) >= maxlevel then
+          if (not dontGoDeeper) then
           begin
-            if (not staticonly) then //store this results entry
-            begin
-              nostatic.moduleindex:=$FFFFFFFF;
-              nostatic.offset:=plist.list[j].address;
-              StorePath(level,@nostatic);
-            end;
-          end
-          else
-          begin
-            //not at max level, so scan for it
-            //scan for this address
-            //either spawn of a new thread that can do this, or do it myself
+            //check if whe should go deeper into these results (not if max level has been reached)
 
-            createdworker:=false;
-            staticscanner.reverseScanCS.Enter;
-
-            //scan the worker thread array for a idle one, if found use it
-            for i:=0 to length(staticscanner.reversescanners)-1 do
+            if (level+1) >= maxlevel then
             begin
-              if staticscanner.reversescanners[i].isdone then
+              if (not staticonly) then //store this results entry
               begin
-                staticscanner.reversescanners[i].isdone:=false;
-                staticscanner.reversescanners[i].maxlevel:=maxlevel;
-                staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
+                nostatic.moduleindex:=$FFFFFFFF;
+                nostatic.offset:=plist.list[j].address;
+                StorePath(level,@nostatic);
+              end;
+            end
+            else
+            begin
+              //not at max level, so scan for it
+              //scan for this address
+              //either spawn of a new thread that can do this, or do it myself
 
-                for k:=0 to maxlevel-1 do
-                  staticscanner.reversescanners[i].tempresults[k]:=tempresults[k]; //copy results
+              createdworker:=false;
+              staticscanner.reverseScanCS.Enter;
 
-                staticscanner.reversescanners[i].startlevel:=level+1;
-                staticscanner.reversescanners[i].structsize:=structsize;
-                staticscanner.reversescanners[i].startworking.SetEvent;
-                createdworker:=true;
-                break;
+              //scan the worker thread array for a idle one, if found use it
+              for i:=0 to length(staticscanner.reversescanners)-1 do
+              begin
+                if staticscanner.reversescanners[i].isdone then
+                begin
+                  staticscanner.reversescanners[i].isdone:=false;
+                  staticscanner.reversescanners[i].maxlevel:=maxlevel;
+                  staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
+
+                  for k:=0 to maxlevel-1 do
+                    staticscanner.reversescanners[i].tempresults[k]:=tempresults[k]; //copy results
+
+                  staticscanner.reversescanners[i].startlevel:=level+1;
+                  staticscanner.reversescanners[i].structsize:=structsize;
+                  staticscanner.reversescanners[i].startworking.SetEvent;
+                  createdworker:=true;
+                  break;
+                end;
+              end;
+
+              staticscanner.reverseScanCS.Leave;
+
+
+              if not createdworker then
+              begin
+                //I'll have to do it myself
+                rscan(plist.list[j].address,level+1);
               end;
             end;
-
-            staticscanner.reverseScanCS.Leave;
-
-
-            if not createdworker then
-            begin
-              //I'll have to do it myself
-              rscan(plist.list[j].address,level+1);
-            end;
           end;
-
         end
         else
         begin
           //found a static one
           StorePath(level, plist.list[j].staticdata);
 
-          if staticscanner.onlyOneStaticInPath then exit;
+          if staticscanner.onlyOneStaticInPath then DontGoDeeper:=true;
         end;
       end;
 
@@ -848,7 +854,7 @@ begin
         setlength(reversescanners[i].offsetlist,maxlevel);
         reversescanners[i].staticonly:=staticonly;
         reversescanners[i].alligned:=not self.unalligned;
-
+        reversescanners[i].filename:=self.filename+'.'+inttostr(i);
 
         reversescanners[i].Resume;
       end;
@@ -1148,65 +1154,29 @@ var
   tempmodulelist: tstringlist;
 begin
   new1.Click;
-  
-  temppcharmaxlength:=256;
-  getmem(temppchar, temppcharmaxlength);
 
-  OpenedPointerfile.filename:=filename;
-  OpenedPointerfile.pointerfile:=tfilestream.Create(Filename, fmopenRead or fmShareDenyNone);
-  OpenedPointerfile.pointerfile.Read(modulelistlength,sizeof(modulelistlength)); //modulelistcount
-  OpenedPointerfile.modulelist:=tstringlist.Create;
+  if Pointerscanresults<>nil then
+    freeandnil(Pointerscanresults);
 
+  Pointerscanresults:=TPointerscanresultReader.create(filename);
 
-  tempmodulelist:=tstringlist.Create;
-  symhandler.getModuleList(tempmodulelist);
-  //sift through the list filling in the modulelist of the opened pointerfile
-
-
-  for i:=0 to modulelistlength-1 do
-  begin
-    OpenedPointerfile.pointerfile.Read(x,sizeof(x));
-    while x>temppcharmaxlength do
-    begin
-      temppcharmaxlength:=temppcharmaxlength*2;
-      getmem(temppchar, temppcharmaxlength);
-    end;
-
-    OpenedPointerfile.pointerfile.Read(temppchar[0], x);
-    temppchar[x]:=#0;
-
-    j:=tempmodulelist.IndexOf(temppchar);
-    if j<>-1 then
-      OpenedPointerfile.modulelist.Addobject(temppchar, tempmodulelist.Objects[j])
-    else
-      OpenedPointerfile.modulelist.Add(temppchar);
-  end;
-
-  tempmodulelist.free;
-
-
-
-  //modulelist has been loaded
-  OpenedPointerfile.pointerfile.read(OpenedPointerfile.offsetlength, sizeof(OpenedPointerfile.offsetlength));
-  OpenedPointerfile.StartPosition:=OpenedPointerfile.pointerfile.Position;
-
-  setlength(tempoffset, OpenedPointerfile.offsetlength);
-
+  listview1.Items.BeginUpdate;
+  listview1.Columns.BeginUpdate;  
+  listview1.Items.Count:=0;
   listview1.Columns.Clear;
 
   col_baseaddress:=listview1.Columns.Add;
   col_baseaddress.Caption:='Base Address';
-  col_baseaddress.Width:=130;
+  col_baseaddress.Width:=150;
   col_baseaddress.MinWidth:=20;
 
-  setlength(col_offsets, OpenedPointerfile.offsetlength);
-  for i:=0 to OpenedPointerfile.offsetlength-1 do
+  setlength(col_offsets, Pointerscanresults.offsetCount);
+  for i:=0 to Pointerscanresults.offsetCount-1 do
   begin
     col_offsets[i]:=listview1.Columns.Add;
     col_offsets[i].Caption:='Offset '+inttostr(i);
     col_offsets[i].Width:=80;
     col_offsets[i].MinWidth:=10;
-
   end;
 
   col_pointsto:=listview1.Columns.Add;
@@ -1215,28 +1185,28 @@ begin
   col_pointsto.MinWidth:=10;
   col_pointsto.AutoSize:=true;
 
-  OpenedPointerfile.sizeOfEntry:=(12+OpenedPointerfile.offsetlength*4);
 
-  OpenedPointerFile.TotalPointers:=(OpenedPointerfile.pointerfile.size-OpenedPointerfile.StartPosition) div OpenedPointerfile.sizeofentry;
-  listview1.Items.Count:=OpenedPointerFile.TotalPointers;
-
-  if listview1.Items.Count=0 then
+  listview1.Items.Count:=Pointerscanresults.count;
+  if (listview1.Items.Count=0) and (Pointerscanresults.count>0) then
   begin
-    listview1.Items.Count:=min(100000000, OpenedPointerFile.TotalPointers);
+    listview1.Items.Count:=min(100000000, Pointerscanresults.count);
     showmessage('Due to OS restrictions only the first 100000000 entries will be displayed. Rescan will still work with all results');
   end;
 
-
   listview1.Align:=alClient;
   listview1.Visible:=true;
+
+  listview1.Columns.EndUpdate;
+  listview1.Items.EndUpdate;
 
   cbtype.top:=0;
   cbtype.height:=panel1.ClientHeight;
   cbtype.Visible:=true;
 
-
   Rescanmemory1.Enabled:=true;
   new1.Enabled:=true;
+
+  caption:='Pointer scan : '+extractfilename(filename);
 end;
 
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
@@ -1260,12 +1230,17 @@ begin
   tempbuffer.Seek(0,sofrombeginning);
 end;
 
+destructor TRescanworker.destroy;
+begin
+  if Pointerscanresults<>nil then
+    Pointerscanresults.Free;
+end;
 
 procedure TRescanWorker.execute;
-var origin: TFileStream;
-    pointercache: pbytearray;  //holds a chunk of memory from the original file
-    pointercached: pdwordarray;
-    batchsize: integer;
+var
+
+
+
     currentEntry: integer;
     i,j: integer;
 
@@ -1277,9 +1252,9 @@ var origin: TFileStream;
     tempvalue: pointer;
     value: pointer;
     valuesize: integer;
+
+    p: ppointerscanresult;
 begin
-  pointercache:=nil;
-  origin:=nil;
   tempfile:=nil;
   tempbuffer:=nil;
 
@@ -1288,53 +1263,27 @@ begin
   getmem(tempvalue,valuesize);
 
   try
-
-    origin:=tfilestream.Create(OriginalFilename, fmOpenRead or fmShareDenyNone);
     tempfile:=tfilestream.Create(self.filename, fmCreate);
     tempbuffer:=TMemoryStream.Create;
     tempbuffer.SetSize(16*1024*1024);
 
-    getmem(pointercache, self.OriginalFileEntrySize*256);
-
     evaluated:=0;
-    origin.Position:=uint64(uint64(self.OriginalFileStartPosition)+(uint64(self.startentry)*uint64(self.OriginalFileEntrySize)));
+    currentEntry:=self.startentry;
 
     while evaluated < self.EntriesToCheck do
     begin
-      batchsize:=min(256, self.EntriesToCheck-evaluated);
-      origin.ReadBuffer(pointercache[0], batchsize*OriginalFileEntrySize);
-      currentEntry:=0;
-
-      while currententry<batchsize do
+      p:=Pointerscanresults.getPointer(currentEntry);
+      if p<>nil then
       begin
-        pointercached:=@pointercache[currententry*originalfileentrysize];
-        //pointercached now points to the start of the current entry
+        valid:=true;
+        if p.modulenr=-1 then
+          address:=p.moduleoffset
+        else
+          address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset;
 
-        //format:
-        //moduleindex
-        //offset
-        //numberofoffsets used
-        //offset x0, x1, x2, x3....
-        //--------------------------
-        //pointercached[0]=moduleindex
-        //pointercached[1]=offset
-        //pointercached[2]=offsetcount
-        //pointercached[3]=offset0
-        //pointercached[4]=offset1
-        //....
-
-        if pointercached[0]=$ffffffff then
-          address:=$ffffffff else
-          address:=dword(self.modulelist.Objects[pointercached[0]]); //base address
         if address>0 then
-        begin
-          valid:=true;
-
-          if address=$ffffffff then address:=0;
-          
-          address:=address+pointercached[1]; //offset
-
-          for i:=pointercached[2]-1 downto 0 do
+        begin                    
+          for i:=p.offsetcount-1 downto 0 do
           begin
             pa:=rescanhelper.findPointer(address);
             if pa=nil then
@@ -1346,7 +1295,7 @@ begin
             end;
 
             if pa.value>0 then
-              address:=pa.value+pointercached[3+i]
+              address:=pa.value+p.offsets[i]
             else
             begin
               valid:=false;
@@ -1387,33 +1336,29 @@ begin
           if valid then
           begin
             //checks passed, it's valid
-            tempbuffer.Write(pointercached[0],OriginalFileEntrySize);
+            tempbuffer.Write(p^,Pointerscanresults.entrySize);
             if tempbuffer.Position>16*1024*1024 then flushresults;
           end;
 
-        end;
 
-        inc(evaluated);
-        inc(currententry);
+
+        end; //else not a valid module
       end;
 
+      inc(evaluated);
+      inc(currentEntry);
     end;
 
     flushresults;
   finally
     freemem(tempvalue);
     
-    if origin<>nil then
-      origin.Free;
-
     if tempfile<>nil then
-      tempfile.Free;
+      freeandnil(tempfile);
 
     if tempbuffer<>nil then
-      tempbuffer.free;
+      freeandnil(tempbuffer);
 
-    if pointercache<>nil then
-      freemem(pointercache);
   end;
 end;
 
@@ -1421,6 +1366,8 @@ procedure TRescanpointers.execute;
 var offsetsize: dword;
     offsetlist: array of dword;
     tempbuf: array [0..7] of byte;
+
+    tempstring: string;
 
     i,j: integer;
     mi: TModuleInfo;
@@ -1461,7 +1408,7 @@ begin
 
 
     //the modulelist now holds the baseaddresses (0 if otherwhise)
-    TotalPointersToEvaluate:=ownerform.OpenedPointerfile.TotalPointers;
+    TotalPointersToEvaluate:=ownerform.pointerscanresults.count;
 
 
     //spawn all threads
@@ -1478,11 +1425,14 @@ begin
     for i:=0 to rescanworkercount-1 do
     begin
       rescanworkers[i]:=TRescanWorker.Create(true);
-      rescanworkers[i].OriginalFilename:=ownerform.OpenedPointerfile.filename;
-      rescanworkers[i].OriginalFileEntrySize:=ownerform.OpenedPointerfile.sizeOfEntry;
-      rescanworkers[i].OriginalFileStartPosition:=ownerform.OpenedPointerfile.StartPosition;
+
+
+      rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(ownerform.Pointerscanresults.filename);
+     { rescanworkers[i].OriginalFilename:=ownerform.pointerscanresults.filename;
+      rescanworkers[i].OriginalFileEntrySize:=ownerform.pointerscanresults.sizeOfEntry;
+      rescanworkers[i].OriginalFileStartPosition:=ownerform.pointerscanresults.StartPosition;
       rescanworkers[i].offsetlength:=ownerform.OpenedPointerfile.offsetlength;
-      rescanworkers[i].modulelist:=ownerform.OpenedPointerfile.modulelist;
+      rescanworkers[i].modulelist:=ownerform.OpenedPointerfile.modulelist;    }
       rescanworkers[i].PointerAddressToFind:=self.address;
       rescanworkers[i].forvalue:=forvalue;
       rescanworkers[i].valuetype:=valuetype;
@@ -1494,7 +1444,7 @@ begin
 
       rescanworkers[i].rescanhelper:=rescanhelper;
 
-      rescanworkers[i].filename:=self.filename+'.'+inttostr(rescanworkers[i].ThreadID);
+      rescanworkers[i].filename:=self.filename+'.'+inttostr(i);
 
       rescanworkers[i].startEntry:=blocksize*i;
       rescanworkers[i].entriestocheck:=blocksize;
@@ -1507,19 +1457,24 @@ begin
 
 
     result:=TFileStream.Create(filename,fmCreate);
+
     //write header
+    //modulelist
+    ownerform.pointerscanresults.saveModulelistToResults(result);
 
-    modulecount:=ownerform.OpenedPointerfile.modulelist.count;
-    result.Write(modulecount, sizeof(modulecount));
+    //offsetlength
+    result.Write(ownerform.pointerscanresults.offsetcount, sizeof(dword));
 
-    for i:=0 to modulecount-1 do
+    //pointerstores
+    temp:=length(rescanworkers);
+    result.Write(temp,sizeof(temp));
+    for i:=0 to length(rescanworkers)-1 do
     begin
-      temp:=length(ownerform.OpenedPointerfile.modulelist[i]);
+      tempstring:=ExtractFileName(rescanworkers[i].filename);
+      temp:=length(tempstring);
       result.Write(temp,sizeof(temp));
-      result.Write(ownerform.OpenedPointerfile.modulelist[i][1],temp);
+      result.Write(tempstring[1],temp);
     end;
-
-    result.Write(ownerform.OpenedPointerfile.offsetlength, sizeof(ownerform.OpenedPointerfile.offsetlength));
 
     //loop:
 
@@ -1535,22 +1490,16 @@ begin
     //no timeout, so finished or crashed
 
 
-    //append all results into one new file
+    //destroy workers
     for i:=0 to rescanworkercount-1 do
     begin
       rescanworkers[i].WaitFor; //just to be sure
-      x:=tfilestream.Create(rescanworkers[i].filename,fmopenread);
-      result.CopyFrom(x,0);
-      x.free;
-      deletefile(rescanworkers[i].filename);
-
       rescanworkers[i].Free;
     end;
     result.Free;
 
-
-
-
+    rescanworkercount:=0;
+    setlength(rescanworkers,0);
 
 
   finally
@@ -1569,24 +1518,30 @@ var address: dword;
     floataccuracy: integer;
     i: integer;
 begin
-  if savedialog1.Execute then
-  begin
-    GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
-    saddress:='';
 
-    rescan:=trescanpointers.create(true);
-    rescan.ownerform:=self;
-    rescan.progressbar:=progressbar1;
-    rescan.filename:=savedialog1.filename;
+  GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
+  saddress:='';
+
+  if rescan<>nil then
+    freeandnil(rescan);
+
+  rescan:=trescanpointers.create(true);
+  rescan.ownerform:=self;
+  rescan.progressbar:=progressbar1;
 
 
-    try
 
-      with TFrmRescanPointer.Create(self) do
-      begin
-        try
-          if showmodal=mrok then
+  try
+
+    with TFrmRescanPointer.Create(self) do
+    begin
+      try
+        if showmodal=mrok then
+        begin
+          if savedialog1.Execute then
           begin
+            rescan.filename:=savedialog1.filename;
+
             Rescanmemory1.Enabled:=false;
             new1.Enabled:=false;
 
@@ -1640,27 +1595,28 @@ begin
             end;
             rescan.resume;
           end;
-
-
-        finally
-          free;
         end;
+
+
+      finally
+        free;
       end;
-
-
-    except
-      on e: exception do
-      begin
-        Rescanmemory1.Enabled:=true;
-        new1.Enabled:=true;
-
-
-        freeandnil(rescan);
-        raise e;
-      end;
-
     end;
+
+
+  except
+    on e: exception do
+    begin
+      Rescanmemory1.Enabled:=true;
+      new1.Enabled:=true;
+
+
+      freeandnil(rescan);
+      raise e;
+    end;
+
   end;
+
 
 end;
 
@@ -1723,16 +1679,6 @@ begin
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
 
-  if OpenedPointerfile.pointerfile<>nil then
-    freeandnil(OpenedPointerfile.pointerfile);
-
-  OpenedPointerfile.filename:='';
-  if OpenedPointerfile.modulelist<>nil then
-    freeandnil(OpenedPointerfile.modulelist);
-  OpenedPointerfile.offsetlength:=0;
-  OpenedPointerfile.StartPosition:=0;
-  OpenedPointerfile.SizeOfEntry:=0;
-  OpenedPointerfile.TotalPointers:=0;
   listview1.Columns.Clear;
   listview1.Items.Count:=0;
 end;
@@ -1751,107 +1697,76 @@ end;
 
 procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;
   Item: TListItem);
-var i: integer;
+var
+  p: PPointerscanResult;
+  i: integer;
+  s: string;
+  check: boolean; 
+  doublevalue: double;
+  dwordvalue: dword absolute doublevalue; //make sure of the same memory
+  floatvalue: single absolute doublevalue;
+  x: dword;
+  
+  {
     offset: dword;
     actualoffsetcount: integer;
 
     address,address2: dword;
-    x: dword;
-    s: string;
 
-    doublevalue: double;
-    dwordvalue: dword absolute doublevalue; //make sure of the same memory
-    floatvalue: single absolute doublevalue;
 
-    check: boolean;
+
+
+         }
+    address: dword;
+    
 begin
-  if OpenedPointerfile.pointerfile<>nil then
+  if Pointerscanresults<>nil then
   begin
-    OpenedPointerfile.pointerfile.Position:=uint64(uint64(OpenedPointerfile.StartPosition)+uint64(item.Index)*uint64(OpenedPointerfile.sizeofentry));
-    OpenedPointerfile.pointerfile.Read(i,sizeof(i));
-    OpenedPointerfile.pointerfile.read(offset,sizeof(offset));
-
-    if i=-1 then
-      item.Caption:=inttohex(offset,1)
-    else
-      item.Caption:=OpenedPointerfile.modulelist[i]+'+'+inttohex(offset,1);
-
-
-
-    OpenedPointerfile.pointerfile.Read(actualoffsetcount,sizeof(actualoffsetcount));
-
-    if i=-1 then
-      address:=offset
-    else
-      address:=dword(OpenedPointerfile.modulelist.Objects[i])+offset;
-
-    OpenedPointerfile.pointerfile.Read(tempoffset[0],sizeof(tempoffset[0])*actualoffsetcount);
-
-    for i:=actualoffsetcount-1 downto 0 do
+    p:=Pointerscanresults.getPointer(item.index, address);
+    if p<>nil then //just to be safe
     begin
-      item.SubItems.Add(inttohex(tempoffset[i],1))
-    end;
-
-
-    for i:=actualoffsetcount to OpenedPointerfile.offsetlength-1 do
-      item.SubItems.Add('');
-
-    for i:=actualoffsetcount-1 downto 0 do
-    begin
-      if readprocessmemory(processhandle, pointer(address),@address2,4,x) then
-        address:=address2+tempoffset[i]
+      if p.modulenr=-1 then
+        item.Caption:=inttohex(p.moduleoffset,8)
       else
+        item.Caption:=pointerscanresults.getModulename(p.modulenr)+'+'+inttohex(p.moduleoffset,8);
+
+      for i:=p.offsetcount-1 downto 0 do
+        item.SubItems.Add(inttohex(p.offsets[i],1));
+
+      for i:=p.offsetcount to Pointerscanresults.offsetCount-1 do
+        item.SubItems.Add('');
+
+      if address=0 then
+        item.SubItems.Add('-') else
       begin
-        item.SubItems.Add('-');
-        exit;
+        s:=inttohex(address,8);
+        if cbType.ItemIndex<>-1 then
+        begin
+          s:=s+' = ';
+          if cbType.ItemIndex=2 then
+            check:=readprocessmemory(processhandle, pointer(address),@doublevalue,8,x) else
+            check:=readprocessmemory(processhandle, pointer(address),@doublevalue,4,x);
+
+          if check then
+          begin
+            case cbType.ItemIndex of
+              0: s:=s+inttostr(dwordvalue);
+              1: s:=s+floattostr(floatvalue);
+              2: s:=s+floattostr(doublevalue);
+            end;
+          end else s:=s+'??';
+        end;
+
+        item.SubItems.Add(s);
+
       end;
     end;
-
-    s:=inttohex(address,8);
-
-    if cbType.ItemIndex<>-1 then
-    begin
-      s:=s+' = ';
-      if cbType.ItemIndex=2 then
-        check:=readprocessmemory(processhandle, pointer(address),@doublevalue,8,x) else
-        check:=readprocessmemory(processhandle, pointer(address),@doublevalue,4,x);
-
-      if check then
-      begin
-        case cbType.ItemIndex of
-          0: s:=s+inttostr(dwordvalue);
-          1: s:=s+floattostr(floatvalue);
-          2: s:=s+floattostr(doublevalue);
-        end;
-      end else s:=s+'??';
-    end;
-
-    item.SubItems.Add(s);
-
-
   end;
 end;
 
 procedure Tfrmpointerscanner.resyncloadedmodulelist;
-var
-  tempmodulelist: TStringList;
-  i,j: integer;
 begin
-  tempmodulelist:=tstringlist.Create;
-  try
-    symhandler.getModuleList(tempmodulelist);
-    //sift through the list filling in the modulelist of the opened pointerfile
-
-
-    for i:=0 to OpenedPointerfile.modulelist.Count-1 do
-    begin
-      j:=tempmodulelist.IndexOf(OpenedPointerfile.modulelist[i]);
-      if j<>-1 then
-        OpenedPointerfile.modulelist.Objects[i]:=tempmodulelist.Objects[j];
-    end;
-  finally
-    tempmodulelist.free;
-  end;
+  pointerscanresults.resyncModulelist;
 end;
 
 procedure Tfrmpointerscanner.Resyncmodulelist1Click(Sender: TObject);

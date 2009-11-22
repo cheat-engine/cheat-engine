@@ -4341,8 +4341,11 @@ var pid: dword;
     reg: tregistry;
     differentWidth: integer;
     x: array of integer;
-begin
 
+    errormode: dword;
+begin
+  errormode:=SetErrorMode(0);
+  setErrorMode(errormode or SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
 
   foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
   actScriptEngine.ShortCut:=TextToShortCut('Ctrl+Shift+C');

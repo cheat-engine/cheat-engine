@@ -188,16 +188,20 @@ begin
     end;
   end;
 
-
-
   fdisassembled:=disassemble(address,fdescription);
-  fcanvas.Font.Style:=[fsbold];
+
+
+  //fcanvas.Font.Style:=[fsbold];
   height:=height+fcanvas.TextHeight(fdisassembled)+1;
-  fcanvas.Font.Style:=[];
+ // fcanvas.Font.Style:=[];
+
+
+
+  height:=16;
 
   isbp:=((kdebugger.isactive) and (kdebugger.isExecutableBreakpoint(faddress))) or
         ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(faddress)));
-
+  
   if selected then
   begin
     if not isbp then

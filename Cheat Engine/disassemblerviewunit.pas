@@ -482,7 +482,7 @@ begin
     if processid>0 then
       statusinfolabel.Caption:='Symbols are being loaded'
     else
-      statusinfolabel.Caption:='Please open a process first';    
+      statusinfolabel.Caption:='Please open a process first';
 
   end
   else
@@ -494,7 +494,6 @@ begin
 
     statusinfolabel.Caption:=symhandler.getnamefromaddress(TopAddress);
   end;
-
 
   //initialize bitmap dimensions
   if discanvas.width>scrollbox.HorzScrollBar.Range then
@@ -516,14 +515,14 @@ begin
 
   while currenttop<offscreenbitmap.Height do
   begin
-    if disassemblerlines.Count<=i then //add a new line
+    if i>=disassemblerlines.Count then //add a new line
       disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections, DissectCode));
 
     currentline:=disassemblerlines[i];
 
     currentline.renderLine(currentAddress,currenttop, inrange(currentAddress,selStart,selStop), currentAddress=fSelectedAddress);
 
-    inc(currenttop, currentline.getHeight);
+    inc(currenttop, currentline.getHeight); 
     inc(i);
   end;
 
@@ -801,3 +800,4 @@ begin
 end;
 
 end.
+

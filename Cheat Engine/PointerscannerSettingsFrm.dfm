@@ -1,6 +1,6 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 738
-  Top = 356
+  Left = 532
+  Top = 285
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 484

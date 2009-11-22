@@ -761,7 +761,7 @@ begin
   if Visible then
   begin
     refreshMB;
-    disassemblerview.Update;;
+    disassemblerview.Update;
 
     //refresh the modulelist
     lastmodulelistupdate:=(lastmodulelistupdate+1) mod 10;

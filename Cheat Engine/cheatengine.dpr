@@ -156,7 +156,8 @@ uses
   frmRescanPointerUnit in 'frmRescanPointerUnit.pas' {frmRescanPointer},
   pointervaluelist in 'pointervaluelist.pas',
   rescanhelper in 'rescanhelper.pas',
-  ValueFinder in 'ValueFinder.pas';
+  ValueFinder in 'ValueFinder.pas',
+  PointerscanresultReader in 'PointerscanresultReader.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
