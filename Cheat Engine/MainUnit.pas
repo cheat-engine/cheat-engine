@@ -437,6 +437,7 @@ type
     procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
   private
+    oldscanvalue2text: string;
     fcontrol: tfcontrol;
     aaa:single;
     hotkeypressed: integer;
@@ -2550,24 +2551,28 @@ begin
       scanvalue2.Parent:=scanvalue.Parent;
       scanvalue2.Anchors:=scanvalue.Anchors;
       scanvalue2.TabOrder:=scanvalue.TabOrder+1;
+      scanvalue2.Text:=oldscanvalue2text;
 
       scantext2:=tlabel.create(self);
       scantext2.caption:=scantext.caption;
       scantext2.Left:=scanvalue2.Left;
       scantext2.Top:=scantext.top;
       scantext2.Parent:=scantext.parent;
+      scantext2.Anchors:=scantext.Anchors;
 
       andlabel:=tlabel.Create(self);
       andlabel.Caption:='and';
       andlabel.Left:=scanvalue2.Left-20;
       andlabel.Top:=scanvalue2.Top+2;
       andlabel.Parent:=scanvalue2.Parent;
+      andlabel.Anchors:=scantext.Anchors;
     end
   end else
   begin
     if scanvalue2<>nil then
     begin
       scanvalue.Width:=scanvalue.width+20+scanvalue2.width;
+      oldscanvalue2text:=scanvalue2.Text;
       freeandnil(scanvalue2);
       freeandnil(scantext2);
       freeandnil(andlabel);
@@ -6211,6 +6216,14 @@ begin
 
   //set the old vartype
   oldvartype:=vartype.itemindex;
+
+  for i:=0 to panel5.ControlCount-1 do
+  begin
+    panel5.Controls[i].Refresh;
+    panel5.Controls[i].Repaint;
+    panel5.Controls[i].Invalidate;
+  end;
+
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
@@ -10662,11 +10675,12 @@ begin
   end;
 
 
-  with tfrmInjectedpointerscanornot.create(self) do
-  begin
-    res:=showmodal;
-    free;
-  end;
+  res:=mryes;
+ // with tfrmInjectedpointerscanornot.create(self) do
+//  begin
+//    res:=showmodal;
+//    free;
+//  end;
 
   if res=mrcancel then exit;
 

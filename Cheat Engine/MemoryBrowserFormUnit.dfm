@@ -1,6 +1,6 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 592
-  Top = 372
+  Left = 589
+  Top = 268
   Width = 709
   Height = 600
   HelpContext = 12
@@ -30,6 +30,8 @@ object MemoryBrowser: TMemoryBrowser
     Align = alTop
     AutoSnap = False
     Beveled = True
+    Color = clGreen
+    ParentColor = False
     OnCanResize = Splitter1CanResize
     OnMoved = Splitter1Moved
   end
@@ -47,6 +49,8 @@ object MemoryBrowser: TMemoryBrowser
       Height = 300
       Align = alRight
       AutoSnap = False
+      Color = clGreen
+      ParentColor = False
     end
     object Panel5: TPanel
       Left = 0
@@ -483,100 +487,126 @@ object MemoryBrowser: TMemoryBrowser
     OnEnter = Panel4Enter
     OnMouseDown = Panel4MouseDown
     OnResize = Panel4Resize
-    object HexEdit: TEdit
-      Left = 128
-      Top = 39
-      Width = 22
-      Height = 18
-      BevelOuter = bvNone
-      BorderStyle = bsNone
-      Color = clHighlight
-      Ctl3D = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clHighlightText
-      Font.Height = -15
-      Font.Name = 'Courier'
-      Font.Style = []
-      MaxLength = 2
-      ParentCtl3D = False
-      ParentFont = False
-      PopupMenu = memorypopup
-      TabOrder = 0
-      Text = 'EE'
-      Visible = False
-      OnDblClick = HexEditDblClick
-      OnExit = HexEditExit
-      OnKeyDown = HexEditKeyDown
-      OnKeyPress = HexEditKeyPress
-    end
-    object TextEdit: TEdit
-      Left = 679
-      Top = 59
-      Width = 13
-      Height = 17
-      BevelOuter = bvNone
-      BorderStyle = bsNone
-      Color = clHighlight
-      Ctl3D = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clHighlightText
-      Font.Height = -15
-      Font.Name = 'Courier'
-      Font.Style = []
-      MaxLength = 1
-      ParentCtl3D = False
-      ParentFont = False
-      PopupMenu = memorypopup
-      TabOrder = 1
-      Text = 'E'
-      Visible = False
-      OnExit = TextEditExit
-      OnKeyDown = TextEditKeyDown
-      OnKeyPress = TextEditKeyPress
-    end
-    object ScrollBar2: TScrollBar
-      Left = 673
+    object Splitter3: TSplitter
+      Left = 552
       Top = 1
-      Width = 17
       Height = 223
       Align = alRight
-      Kind = sbVertical
-      Max = 101
-      PageSize = 2
-      Position = 50
-      TabOrder = 2
-      OnScroll = ScrollBar2Scroll
+      Color = clGreen
+      ParentColor = False
     end
-    object Panel2: TPanel
+    object Panel3: TPanel
       Left = 1
       Top = 1
-      Width = 672
+      Width = 551
       Height = 223
       Align = alClient
       BevelOuter = bvNone
-      TabOrder = 3
-      object Protectlabel: TLabel
-        Tag = 2
+      TabOrder = 0
+      object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 672
-        Height = 16
-        Align = alTop
-        Caption = 'Protection'
-      end
-      object MBCanvas: TPaintBox
-        Left = 0
-        Top = 16
-        Width = 672
-        Height = 207
+        Width = 534
+        Height = 223
         Align = alClient
-        PopupMenu = memorypopup
-        OnDblClick = MBCanvasDblClick
-        OnMouseDown = MBCanvasMouseDown
-        OnMouseMove = MBCanvasMouseMove
-        OnMouseUp = MBCanvasMouseUp
-        OnPaint = MBCanvasPaint
+        BevelOuter = bvNone
+        TabOrder = 0
+        object Protectlabel: TLabel
+          Tag = 2
+          Left = 0
+          Top = 0
+          Width = 534
+          Height = 16
+          Align = alTop
+          Caption = 'Protection'
+        end
+        object MBCanvas: TPaintBox
+          Left = 0
+          Top = 16
+          Width = 534
+          Height = 207
+          Align = alClient
+          PopupMenu = memorypopup
+          OnDblClick = MBCanvasDblClick
+          OnMouseDown = MBCanvasMouseDown
+          OnMouseMove = MBCanvasMouseMove
+          OnMouseUp = MBCanvasMouseUp
+          OnPaint = MBCanvasPaint
+        end
+        object HexEdit: TEdit
+          Left = 128
+          Top = 39
+          Width = 22
+          Height = 18
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          Color = clHighlight
+          Ctl3D = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clHighlightText
+          Font.Height = -15
+          Font.Name = 'Courier'
+          Font.Style = []
+          MaxLength = 2
+          ParentCtl3D = False
+          ParentFont = False
+          PopupMenu = memorypopup
+          TabOrder = 0
+          Text = 'EE'
+          Visible = False
+          OnDblClick = HexEditDblClick
+          OnExit = HexEditExit
+          OnKeyDown = HexEditKeyDown
+          OnKeyPress = HexEditKeyPress
+        end
+        object TextEdit: TEdit
+          Left = 659
+          Top = 59
+          Width = 13
+          Height = 17
+          BevelOuter = bvNone
+          BorderStyle = bsNone
+          Color = clHighlight
+          Ctl3D = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clHighlightText
+          Font.Height = -15
+          Font.Name = 'Courier'
+          Font.Style = []
+          MaxLength = 1
+          ParentCtl3D = False
+          ParentFont = False
+          PopupMenu = memorypopup
+          TabOrder = 1
+          Text = 'E'
+          Visible = False
+          OnExit = TextEditExit
+          OnKeyDown = TextEditKeyDown
+          OnKeyPress = TextEditKeyPress
+        end
       end
+      object ScrollBar2: TScrollBar
+        Left = 534
+        Top = 0
+        Width = 17
+        Height = 223
+        Align = alRight
+        Kind = sbVertical
+        Max = 101
+        PageSize = 2
+        Position = 50
+        TabOrder = 1
+        OnScroll = ScrollBar2Scroll
+      end
+    end
+    object pnlStacktrace: TPanel
+      Left = 555
+      Top = 1
+      Width = 135
+      Height = 223
+      Align = alRight
+      BevelInner = bvLowered
+      TabOrder = 1
     end
   end
   object memorypopup: TPopupMenu

@@ -182,6 +182,7 @@ begin
   begin
     with TRegisters.create(self) do
     begin
+      borderstyle:=bsSingle;
       SetContextPointer(changedlist.Selected.Data);
       show;
     end;

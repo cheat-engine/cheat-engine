@@ -8,6 +8,7 @@ uses
 
 type
   TRegisters = class(TForm)
+    Panel1: TPanel;
     EAXLabel: TLabel;
     EBXlabel: TLabel;
     ECXlabel: TLabel;
@@ -19,13 +20,17 @@ type
     EIPlabel: TLabel;
     Label14: TLabel;
     Shape1: TShape;
+    Panel2: TPanel;
     sbShowFloats: TSpeedButton;
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure EAXLabelDblClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     context: PContext;
     fpp: TfrmFloatingPointPanel;
+    function TagToValue(tag: integer): dword;
   public
     { Public declarations }
     procedure SetContextPointer(context: PContext);
@@ -35,7 +40,7 @@ implementation
 
 {$R *.dfm}
 
-
+uses memorybrowserformunit;
 
 
 procedure TRegisters.SetContextPointer(context: PContext);
@@ -68,6 +73,32 @@ procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   fpp.free;
   action:=cafree;
+end;
+
+function TRegisters.TagToValue(tag: integer): dword;
+begin
+  case tag of
+    0: result:=context.Eax;
+    1: result:=context.Ebx;
+    2: result:=context.Ecx;
+    3: result:=context.Edx;
+    4: result:=context.esi;
+    5: result:=context.Edi;
+    6: result:=context.Ebp;
+    7: result:=context.Esp;
+    8: result:=context.Eip;
+  end;
+end;
+
+procedure TRegisters.EAXLabelDblClick(Sender: TObject);
+begin
+  memorybrowser.memoryaddress:=TagToValue(tlabel(sender).tag);
+  memorybrowser.RefreshMB;
+end;
+
+procedure TRegisters.FormResize(Sender: TObject);
+begin
+  sbShowFloats.Top:=(clientheight div 2)-(height div 2);
 end;
 
 end.

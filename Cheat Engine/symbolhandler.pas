@@ -1027,7 +1027,12 @@ begin
             modulelist[modulelistpos].modulename:=extractfilename(x);
             modulelist[modulelistpos].modulepath:=x;
             //I say that physxcore is also a system module even if it isn't located in the windows dir 
-            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) or (lowercase(modulelist[modulelistpos].modulename)='physxcore.dll') or (lowercase(modulelist[modulelistpos].modulename)='binkw32.dll');
+            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) or
+                                                      (lowercase(modulelist[modulelistpos].modulename)='physxcore.dll') or
+                                                      (lowercase(modulelist[modulelistpos].modulename)='binkw32.dll') or
+                                                      (lowercase(modulelist[modulelistpos].modulename)='iconv.dll') or
+                                                      (lowercase(modulelist[modulelistpos].modulename)='gameoverlayrenderer.dll') or
+                                                      (lowercase(modulelist[modulelistpos].modulename)='mss32.dll');
 
             modulelist[modulelistpos].baseaddress:=dword(me32.modBaseAddr);
             modulelist[modulelistpos].basesize:=me32.modBaseSize;

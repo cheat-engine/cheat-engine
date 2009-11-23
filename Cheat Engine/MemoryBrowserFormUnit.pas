@@ -84,7 +84,6 @@ type
     Run1: TMenuItem;
     Threadlist1: TMenuItem;
     Assemble1: TMenuItem;
-    HexEdit: TEdit;
     N3: TMenuItem;
     Break1: TMenuItem;
     Extra1: TMenuItem;
@@ -95,7 +94,6 @@ type
     N4: TMenuItem;
     OpenMemory: TOpenDialog;
     Debugstrings1: TMenuItem;
-    TextEdit: TEdit;
     CreateThread1: TMenuItem;
     MemoryRegions1: TMenuItem;
     FillMemory1: TMenuItem;
@@ -175,12 +173,17 @@ type
     Showjumplines1: TMenuItem;
     Onlyshowjumplineswithinrange1: TMenuItem;
     Watchmemoryallocations1: TMenuItem;
-    ScrollBar2: TScrollBar;
+    Continueanddetachdebugger1: TMenuItem;
+    N16: TMenuItem;
+    Panel3: TPanel;
     Panel2: TPanel;
     Protectlabel: TLabel;
     MBCanvas: TPaintBox;
-    Continueanddetachdebugger1: TMenuItem;
-    N16: TMenuItem;
+    HexEdit: TEdit;
+    TextEdit: TEdit;
+    ScrollBar2: TScrollBar;
+    Splitter3: TSplitter;
+    pnlStacktrace: TPanel;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);

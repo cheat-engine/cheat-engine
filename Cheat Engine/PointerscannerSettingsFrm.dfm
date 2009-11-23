@@ -3,7 +3,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   Top = 285
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 484
+  ClientHeight = 473
   ClientWidth = 443
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -152,8 +152,13 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 153
         Width = 409
         Height = 16
+        Hint = 
+          'If the address you search for isn'#39't a heap address, the scan wil' +
+          'l return 0 results'
         Caption = 'Only allow static and heap addresses in the path'
         Enabled = False
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 8
         OnClick = cbHeapOnlyClick
       end
@@ -170,8 +175,8 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
   end
   object cbMustEndWithSpecificOffset: TCheckBox
-    Left = 10
-    Top = 354
+    Left = 8
+    Top = 346
     Width = 247
     Height = 21
     Caption = 'Pointers must end with specific offsets'
@@ -180,7 +185,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object Panel1: TPanel
     Left = 0
-    Top = 377
+    Top = 366
     Width = 443
     Height = 107
     Align = alBottom
@@ -312,5 +317,16 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabOrder = 1
       OnClick = rbFindValueClick
     end
+  end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Top = 328
+    Width = 281
+    Height = 17
+    Caption = 'Use pointermap from previous pointerscan'
+    Checked = True
+    Enabled = False
+    State = cbChecked
+    TabOrder = 6
   end
 end

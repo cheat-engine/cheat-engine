@@ -62,6 +62,7 @@ type
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
     cbOnlyOneStatic: TCheckBox;
+    CheckBox1: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
