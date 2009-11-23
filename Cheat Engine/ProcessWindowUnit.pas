@@ -341,6 +341,8 @@ begin
     processlist.Items.Insert(0,'00000000-[Physical Memory]');
 
   Filterlist;
+
+  processlist.ItemIndex:=processlist.Items.Count-1;
 end;
 
 procedure TProcessWindow.Button2Click(Sender: TObject);
@@ -349,6 +351,8 @@ begin
 
   getwindowlist(processlist{,icons});
   filterlist;
+
+  processlist.ItemIndex:=processlist.Items.Count-1;  
 end;
 
 procedure TProcessWindow.Button3Click(Sender: TObject);

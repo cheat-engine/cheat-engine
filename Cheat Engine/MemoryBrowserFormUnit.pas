@@ -9,7 +9,7 @@ uses
   {$ifdef netclient}
   ,NetAPIs, ComCtrls
   {$else}
-  ,stealthedit, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
+  ,stacktrace2, stealthedit, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
   {$endif}
   ;
 
@@ -42,7 +42,6 @@ type
     Splitter1: TSplitter;
     Panel5: TPanel;
     RegisterView: TPanel;
-    Splitter2: TSplitter;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     Loadsymbolfile1: TMenuItem;
@@ -155,7 +154,6 @@ type
     Back1: TMenuItem;
     Showvaluesofstaticaddresses1: TMenuItem;
     Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
-    sbShowFloats: TSpeedButton;
     ScriptConsole1: TMenuItem;
     DisplayType1: TMenuItem;
     N15: TMenuItem;
@@ -184,6 +182,14 @@ type
     ScrollBar2: TScrollBar;
     Splitter3: TSplitter;
     pnlStacktrace: TPanel;
+    sbShowFloats: TSpeedButton;
+    pmStacktrace: TPopupMenu;
+    All1: TMenuItem;
+    Modulesonly1: TMenuItem;
+    Nonsystemmodulesonly1: TMenuItem;
+    lvStacktrace: TListView;
+    N17: TMenuItem;
+    Maxstacktracesize1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -201,9 +207,6 @@ type
     procedure MBCanvasDblClick(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure Replacewithnops1Click(Sender: TObject);
-    procedure Panel4Enter(Sender: TObject);
-    procedure Panel4MouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure FControl2KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FControl2KeyPress(Sender: TObject; var Key: Char);
@@ -221,7 +224,6 @@ type
     procedure Addthisopcodetothecodelist1Click(Sender: TObject);
     procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
       var Accept: Boolean);
-    procedure Panel4Resize(Sender: TObject);
     procedure ScrollBar2Scroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -305,6 +307,14 @@ type
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
     procedure Watchmemoryallocations1Click(Sender: TObject);
     procedure Continueanddetachdebugger1Click(Sender: TObject);
+    procedure Panel2Resize(Sender: TObject);
+    procedure Panel2MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ScrollBox1Resize(Sender: TObject);
+    procedure Maxstacktracesize1Click(Sender: TObject);
+    procedure All1Click(Sender: TObject);
+    procedure Modulesonly1Click(Sender: TObject);
+    procedure Nonsystemmodulesonly1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -359,10 +369,16 @@ type
 
     lastspecialwidth: integer;
     FShowValues: boolean;
+    FShowDebugPanels: boolean;
+    FStacktraceSize: integer;
+
+    procedure SetStacktraceSize(size: integer);
+    procedure setShowDebugPanels(state: boolean);
     procedure UpdateRWAddress(disasm: string);
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
     function getShowValues: boolean;
     procedure setShowValues(newstate: boolean);
+
 
     procedure disassemblerviewDblClick(Sender: TObject);
   public
@@ -399,6 +415,9 @@ type
     procedure plugintype1click(sender:tobject);
     procedure setcodeanddatabase;
     property showvalues: boolean read getShowValues write setShowValues;
+    property showDebugPanels: boolean read fShowDebugPanels write setShowDebugPanels;
+    property stacktraceSize: integer read FStacktraceSize write SetStacktraceSize;
+    procedure reloadStacktrace;
   end;
 
 var
@@ -481,6 +500,20 @@ begin
   disassemblerview.setCommentsTab(FShowValues);
 end;
 
+procedure TMemoryBrowser.setShowDebugPanels(state: boolean);
+begin
+  FShowDebugPanels:=state;
+  registerview.Visible:=state;
+  pnlStacktrace.Visible:=state;
+  //splitter2.Visible:=state;
+  splitter3.Visible:=state;
+end;
+
+procedure TMemoryBrowser.SetStacktraceSize(size: integer);
+begin
+  FStacktraceSize:=size;
+  reloadStacktrace;
+end;
 
 //^^^^
 
@@ -681,6 +714,11 @@ not enough time to add header supports
   bytelength:=MBImage.Canvas.TextWidth('   ');
   chrlength:=MBImage.Canvas.TextWidth(' ');
 
+  hexedit.Height:=textheight;
+  hexedit.Width:=chrlength*2;
+  textedit.Height:=hexedit.Height;
+  textedit.Width:=chrlength;
+
   memoryaddress:=$00400000;
   memorylabelcount:=0;
 
@@ -693,13 +731,10 @@ not enough time to add header supports
   backlist:=TStack.create;
 
   showvalues:=true;
+  sbShowFloats.left:=scrollbox1.Clientwidth-sbShowFloats.width;
 
-
-
-//  FControl1KeyDown
-
-
-
+  FStacktraceSize:=4096;
+  
 
   setlength(x, 6);
 
@@ -1211,7 +1246,7 @@ begin
     if x<(a+20*8*rows8) then //byteclick
     begin
       part:=1; //a byte
-      srow:=((y-7) div textheight);
+      srow:=y div textheight;
       scolumn:=(x-a) div 20;
 
       i:=(srow*8*rows8)+scolumn;
@@ -1232,7 +1267,7 @@ begin
           end;
         end;
 
-        top:=(srow+1)*(textheight)+3;
+        top:=(srow+1)*(textheight)+5;
         left:=1+a+20*(scolumn);
 
         acr:=0;
@@ -1435,17 +1470,6 @@ begin
     refreshMB;
     disassemblerview.Update;;
   end;
-end;
-
-procedure TMemoryBrowser.Panel4Enter(Sender: TObject);
-begin
-//  fcontrol2.SetFocus;
-end;
-
-procedure TMemoryBrowser.Panel4MouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fcontrol2.SetFocus;
 end;
 
 procedure TMemoryBrowser.FControl2KeyDown(Sender: TObject; var Key: Word;
@@ -1722,22 +1746,6 @@ begin
     accept:=false;
   end;
 
-end;
-
-procedure TMemoryBrowser.Panel4Resize(Sender: TObject);
-begin
-  mbcanvas.Height:=panel4.Height-2-9;
-  mbcanvas.Width:=panel4.Width;
-
-  mbimage.Width:=mbcanvas.Width;
-  mbimage.Height:=mbcanvas.Height;
-
-  mbimage.Canvas.FillRect(rect(0,0,mbimage.Width,mbimage.Height));
-  MBCanvas.Invalidate;
-  MBCanvas.Repaint;
-  refreshMB;
-
-  if hexedit.visible or textedit.visible then fcontrol2.SetFocus;
 end;
 
 procedure TMemoryBrowser.ScrollBar2Scroll(Sender: TObject;
@@ -3420,7 +3428,7 @@ begin
       end;
       
       part:=1; //a byte
-      srow:=((y-7) div textheight);
+      srow:=(y div textheight);
       scolumn:=(x-a) div 20;
 
       i:=(srow*8*rows8)+scolumn;
@@ -3434,7 +3442,7 @@ begin
       for i:=1 to 8*rows8 do
         temp:=temp+'D';
 
-      srow:=((y-7) div textheight);
+      srow:=y div textheight;
 
 
       i:=(x-(1+a+20*8*rows8));
@@ -3624,8 +3632,8 @@ begin
     inc(mbchildcount);
     name:='MemoryBrowser'+inttostr(mbchildcount);
     debug1.Visible:=false;
-    registerview.Visible:=false;
-    splitter2.Visible:=false;
+    //registerview.Visible:=false;
+    //splitter2.Visible:=false;
     sbShowFloats.Visible:=false;
     caption:=caption+'* ('+inttostr(mbchildcount)+')';
 
@@ -3945,5 +3953,98 @@ begin
   end;
 end;
 
-end.
+procedure TMemoryBrowser.Panel2Resize(Sender: TObject);
+begin
+  mbcanvas.Height:=panel4.Height-2-9;
+  mbcanvas.Width:=panel4.Width;
 
+  mbimage.Width:=mbcanvas.Width;
+  mbimage.Height:=mbcanvas.Height;
+
+  mbimage.Canvas.FillRect(rect(0,0,mbimage.Width,mbimage.Height));
+  MBCanvas.Invalidate;
+  MBCanvas.Repaint;
+  refreshMB;
+
+  if hexedit.visible or textedit.visible then fcontrol2.SetFocus;
+end;
+
+procedure TMemoryBrowser.Panel2MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  fcontrol2.SetFocus;
+end;
+
+procedure TMemoryBrowser.ScrollBox1Resize(Sender: TObject);
+begin
+  sbShowFloats.Top:=scrollbox1.ClientHeight div 2-sbShowFloats.Height div 2; 
+end;
+
+procedure TMemoryBrowser.reloadStacktrace;
+var s: pdwordarray;
+    x: dword;
+    trace: tstringlist;
+    i: integer;
+    address, bytes, details: string;
+    li: tlistitem;
+begin
+  lvStacktrace.Clear;
+  trace:=tstringlist.Create;
+  getmem(s,FStacktraceSize);
+  try
+    readprocessmemory(processhandle, pointer(espv),s, FStacktraceSize,x);
+    ce_stacktrace(espv, ebpv, eipv, s,x, trace,false,modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+
+    for i:=0 to trace.count-1 do
+    begin
+      seperatestacktraceline(trace[i], address,bytes,details);
+      li:=lvStacktrace.Items.Add;
+      li.Caption:=address;
+      li.SubItems.Add(bytes);
+      li.SubItems.Add(details);
+    end;
+  finally
+    freemem(s);
+    trace.free;
+  end;
+
+end;
+
+procedure TMemoryBrowser.Maxstacktracesize1Click(Sender: TObject);
+var
+  s: string;
+begin
+  s:=inttostr(stacktraceSize);
+  InputQuery('Stacktrace','New size:',s);
+  try
+    stacktraceSize:=strtoint(s);
+    Maxstacktracesize1.Caption:='Max stacktrace size: '+inttostr(stacktracesize);
+  except
+  end;
+end;
+
+procedure TMemoryBrowser.All1Click(Sender: TObject);
+begin
+  all1.checked:=true;
+  Modulesonly1.Checked:=false;
+  Nonsystemmodulesonly1.Checked:=false;
+  reloadstacktrace;
+end;
+
+procedure TMemoryBrowser.Modulesonly1Click(Sender: TObject);
+begin
+  all1.checked:=false;
+  Modulesonly1.Checked:=true;
+  Nonsystemmodulesonly1.Checked:=false;
+  reloadstacktrace;
+end;
+
+procedure TMemoryBrowser.Nonsystemmodulesonly1Click(Sender: TObject);
+begin
+  all1.checked:=false;
+  Modulesonly1.Checked:=false;
+  Nonsystemmodulesonly1.Checked:=true;
+  reloadstacktrace;
+end;
+
+end.

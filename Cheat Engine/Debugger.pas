@@ -569,8 +569,8 @@ begin
 
       memorybrowser.view1.Visible:=true;
       memorybrowser.Debug1.Visible:=true;
-      memorybrowser.Splitter2.Visible:=true;
-      memorybrowser.RegisterView.Visible:=true;
+      //memorybrowser.Splitter2.Visible:=true;
+      //memorybrowser.RegisterView.Visible:=true;
 
       Memorybrowser.UpdateRegisterview;
       {$endif}
@@ -1225,6 +1225,9 @@ begin
 
 
     disassemblerview.Update;
+
+    showDebugPanels:=true;
+    reloadStacktrace;
   end;
   {$endif}
 

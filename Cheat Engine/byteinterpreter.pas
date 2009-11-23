@@ -18,6 +18,50 @@ var x: string;
     v: dword;
     e: integer;
 begin
+  //check if it matches a string
+  isstring:=true;
+  i:=0;
+  while i<4 do
+  begin
+    //check if the first 4 characters match with a standard ascii values (32 to 127)
+    if (buf[i]<32) or (buf[i]>127) then
+    begin
+      isstring:=false;
+      break;
+    end;
+    inc(i);
+  end;
+
+  if isstring then
+  begin
+    result:=vtString;
+    exit;
+  end;
+
+  //check if unicode
+  isstring:=true;
+  i:=0;
+  if size>=8 then
+  begin
+    while i<8 do
+    begin
+      //check if the first 4 characters match with a standard ascii values (32 to 127)
+      if (buf[i]<32) or (buf[i]>127) then
+      begin
+        isstring:=false;
+        break;
+      end;
+      inc(i,2);
+    end;
+  end else isstring:=false;
+
+  if isstring then
+  begin
+    result:=vtUnicodeString;
+    exit;
+  end;  
+  
+
   i:=address mod 4;
   case i of
     1: //1 byte
@@ -88,48 +132,6 @@ begin
     end;
   end;
 
-  //still here, so check if it matches a string
-  isstring:=true;
-  i:=0;
-  while i<4 do
-  begin
-    //check if the first 4 characters match with a standard ascii values (32 to 127)
-    if (buf[i]<32) or (buf[i]>127) then
-    begin
-      isstring:=false;
-      break;
-    end;
-    inc(i);
-  end;
-
-  if isstring then
-  begin
-    result:=vtString;
-    exit;
-  end;
-
-  //check if unicode
-  isstring:=false;
-  i:=0;
-  if size>=8 then
-  begin
-    while i<8 do
-    begin
-      //check if the first 4 characters match with a standard ascii values (32 to 127)
-      if (buf[i]<32) or (buf[i]>127) then
-      begin
-        isstring:=false;
-        break;
-      end;
-      inc(i,2);
-    end;
-  end;
-
-  if isstring then
-  begin
-    result:=vtUnicodeString;
-    exit;
-  end;
 
   //check if it's a pointer
   if isreadable(pdword(@buf[0])^) then

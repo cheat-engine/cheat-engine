@@ -110,7 +110,7 @@ begin
       vtString:
       begin
         pchar(@pbytearray(alignedstack)[sizeinbytes-1])[0]:=#0; //make sure it has an end
-        secondary:='"'+pchar(@alignedstack[i])+'"';
+        secondary:=pchar(@alignedstack[i]);
 
         if force4byteblocks then
         begin
@@ -123,6 +123,8 @@ begin
           if (length(secondary) mod 4)>0 then
             inc(i);
         end;
+
+        secondary:='"'+secondary+'"';
       end;
 
       vtUnicodeString:

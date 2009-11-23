@@ -9712,27 +9712,27 @@ begin
     with memorybrowser do
     begin
       panel5.visible:=false;
-      splitter2.visible:=false;
+      //splitter2.visible:=false;
       registerview.visible:=false;
 
       panel5.Visible:=true;
-      splitter2.Visible:=true;
+      //splitter2.Visible:=true;
       registerview.Visible:=true;
     end;
 
 
-    memorybrowser.view1.Visible:=true;
-    memorybrowser.Debug1.Visible:=true;
-    memorybrowser.Splitter2.Visible:=true;
-    memorybrowser.RegisterView.Visible:=true;
-    memorybrowser.Splitter2.Visible:=true;
+   // memorybrowser.view1.Visible:=true;
+   // memorybrowser.Debug1.Visible:=true;
+   // memorybrowser.Splitter2.Visible:=true;
+   // memorybrowser.RegisterView.Visible:=true;
+   // memorybrowser.Splitter2.Visible:=true;
   end
   else
   begin
-    memorybrowser.RegisterView.Visible:=false;
-    memorybrowser.Splitter2.Visible:=false;
-    memorybrowser.Debug1.Visible:=false;
-    memorybrowser.view1.Visible:=false;
+  //  memorybrowser.RegisterView.Visible:=false;
+  //  memorybrowser.Splitter2.Visible:=false;
+  //  memorybrowser.Debug1.Visible:=false;
+  //  memorybrowser.view1.Visible:=false;
   end;
 
   if (formsettings.cbStealth.checked) or (formsettings.cbProtectme.Checked) then

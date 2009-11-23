@@ -703,6 +703,9 @@ begin
     EBPv:=currentdebuggerstate.Ebp;
     ESPv:=currentdebuggerstate.Esp;
     EIPv:=currentdebuggerstate.Eip;
+
+    showDebugPanels:=true;
+    reloadStacktrace;
   end;
 end;
 

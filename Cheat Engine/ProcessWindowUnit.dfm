@@ -18,13 +18,13 @@ object ProcessWindow: TProcessWindow
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize
-  PixelsPerInch = 96
+  PixelsPerInch = 120
   TextHeight = 13
   object ProcessList: TListBox
     Left = 0
     Top = 0
-    Width = 238
-    Height = 150
+    Width = 236
+    Height = 141
     Style = lbOwnerDrawFixed
     Align = alClient
     ItemHeight = 16
@@ -37,8 +37,8 @@ object ProcessWindow: TProcessWindow
   end
   object Panel1: TPanel
     Left = 0
-    Top = 150
-    Width = 238
+    Top = 141
+    Width = 236
     Height = 169
     Align = alBottom
     BevelInner = bvLowered
@@ -47,7 +47,7 @@ object ProcessWindow: TProcessWindow
     object Panel2: TPanel
       Left = 1
       Top = 1
-      Width = 236
+      Width = 234
       Height = 167
       Align = alClient
       BevelOuter = bvNone

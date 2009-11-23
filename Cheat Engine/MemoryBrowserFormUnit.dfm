@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
   Left = 589
   Top = 268
-  Width = 709
+  Width = 713
   Height = 600
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -24,7 +24,7 @@ object MemoryBrowser: TMemoryBrowser
   object Splitter1: TSplitter
     Left = 0
     Top = 300
-    Width = 691
+    Width = 695
     Height = 5
     Cursor = crVSplit
     Align = alTop
@@ -38,43 +38,36 @@ object MemoryBrowser: TMemoryBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 691
+    Width = 695
     Height = 300
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
-    object Splitter2: TSplitter
-      Left = 460
-      Top = 0
-      Height = 300
-      Align = alRight
-      AutoSnap = False
-      Color = clGreen
-      ParentColor = False
-    end
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 460
+      Width = 508
       Height = 300
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object RegisterView: TPanel
-      Left = 463
+      Left = 508
       Top = 0
-      Width = 228
+      Width = 187
       Height = 300
       Align = alRight
       TabOrder = 1
+      Visible = False
       object ScrollBox1: TScrollBox
         Left = 1
         Top = 1
-        Width = 226
+        Width = 185
         Height = 298
         Align = alClient
         TabOrder = 0
+        OnResize = ScrollBox1Resize
         object EAXLabel: TLabel
           Left = 10
           Top = 19
@@ -316,7 +309,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object cflabel: TLabel
           Tag = 20
-          Left = 167
+          Left = 143
           Top = 20
           Width = 32
           Height = 13
@@ -331,7 +324,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object pflabel: TLabel
           Tag = 21
-          Left = 167
+          Left = 143
           Top = 31
           Width = 32
           Height = 13
@@ -346,7 +339,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object aflabel: TLabel
           Tag = 22
-          Left = 167
+          Left = 143
           Top = 43
           Width = 32
           Height = 13
@@ -361,7 +354,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object zflabel: TLabel
           Tag = 23
-          Left = 167
+          Left = 143
           Top = 55
           Width = 32
           Height = 13
@@ -376,7 +369,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object sflabel: TLabel
           Tag = 24
-          Left = 167
+          Left = 143
           Top = 66
           Width = 32
           Height = 13
@@ -391,7 +384,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object oflabel: TLabel
           Tag = 26
-          Left = 167
+          Left = 143
           Top = 90
           Width = 32
           Height = 13
@@ -419,14 +412,14 @@ object MemoryBrowser: TMemoryBrowser
           Brush.Color = clBlack
         end
         object Label15: TLabel
-          Left = 167
+          Left = 143
           Top = 0
           Width = 34
           Height = 16
           Caption = 'Flags'
         end
         object Shape2: TShape
-          Left = 166
+          Left = 142
           Top = 16
           Width = 35
           Height = 2
@@ -448,7 +441,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object dflabel: TLabel
           Tag = 25
-          Left = 167
+          Left = 143
           Top = 78
           Width = 32
           Height = 13
@@ -462,7 +455,7 @@ object MemoryBrowser: TMemoryBrowser
           OnDblClick = EAXLabelDblClick
         end
         object sbShowFloats: TSpeedButton
-          Left = 197
+          Left = 157
           Top = 135
           Width = 21
           Height = 31
@@ -478,17 +471,14 @@ object MemoryBrowser: TMemoryBrowser
   object Panel4: TPanel
     Left = 0
     Top = 305
-    Width = 691
+    Width = 695
     Height = 225
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
     TabOrder = 1
-    OnEnter = Panel4Enter
-    OnMouseDown = Panel4MouseDown
-    OnResize = Panel4Resize
     object Splitter3: TSplitter
-      Left = 552
+      Left = 481
       Top = 1
       Height = 223
       Align = alRight
@@ -498,7 +488,7 @@ object MemoryBrowser: TMemoryBrowser
     object Panel3: TPanel
       Left = 1
       Top = 1
-      Width = 551
+      Width = 480
       Height = 223
       Align = alClient
       BevelOuter = bvNone
@@ -506,16 +496,18 @@ object MemoryBrowser: TMemoryBrowser
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 534
+        Width = 463
         Height = 223
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
+        OnMouseDown = Panel2MouseDown
+        OnResize = Panel2Resize
         object Protectlabel: TLabel
           Tag = 2
           Left = 0
           Top = 0
-          Width = 534
+          Width = 463
           Height = 16
           Align = alTop
           Caption = 'Protection'
@@ -523,7 +515,7 @@ object MemoryBrowser: TMemoryBrowser
         object MBCanvas: TPaintBox
           Left = 0
           Top = 16
-          Width = 534
+          Width = 463
           Height = 207
           Align = alClient
           PopupMenu = memorypopup
@@ -586,7 +578,7 @@ object MemoryBrowser: TMemoryBrowser
         end
       end
       object ScrollBar2: TScrollBar
-        Left = 534
+        Left = 463
         Top = 0
         Width = 17
         Height = 223
@@ -600,13 +592,38 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object pnlStacktrace: TPanel
-      Left = 555
+      Left = 484
       Top = 1
-      Width = 135
+      Width = 210
       Height = 223
       Align = alRight
       BevelInner = bvLowered
+      PopupMenu = pmStacktrace
       TabOrder = 1
+      object lvStacktrace: TListView
+        Left = 2
+        Top = 2
+        Width = 206
+        Height = 219
+        Align = alClient
+        Columns = <
+          item
+            Caption = 'Address'
+            Width = 80
+          end
+          item
+            Caption = 'DWORD'
+            Width = 80
+          end
+          item
+            AutoSize = True
+            Caption = 'Value'
+          end>
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+      end
     end
   end
   object memorypopup: TPopupMenu
@@ -955,9 +972,11 @@ object MemoryBrowser: TMemoryBrowser
       end
       object N3: TMenuItem
         Caption = '-'
+        Visible = False
       end
       object Continueanddetachdebugger1: TMenuItem
         Caption = 'Continue and  detach debugger'
+        Visible = False
         OnClick = Continueanddetachdebugger1Click
       end
       object N16: TMenuItem
@@ -1103,5 +1122,29 @@ object MemoryBrowser: TMemoryBrowser
     Filter = 'Dll-file (*.dll)|*.dll|All files (*.*)|*.*'
     Title = 'Select the module you want to inject'
     Top = 64
+  end
+  object pmStacktrace: TPopupMenu
+    Left = 498
+    Top = 324
+    object All1: TMenuItem
+      Caption = 'All'
+      Checked = True
+      OnClick = All1Click
+    end
+    object Modulesonly1: TMenuItem
+      Caption = 'Modules only'
+      OnClick = Modulesonly1Click
+    end
+    object Nonsystemmodulesonly1: TMenuItem
+      Caption = 'Non system modules only'
+      OnClick = Nonsystemmodulesonly1Click
+    end
+    object N17: TMenuItem
+      Caption = '-'
+    end
+    object Maxstacktracesize1: TMenuItem
+      Caption = 'Max stacktrace size: 4096'
+      OnClick = Maxstacktracesize1Click
+    end
   end
 end
