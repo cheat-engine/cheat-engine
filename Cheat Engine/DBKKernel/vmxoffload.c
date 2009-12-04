@@ -181,21 +181,20 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	//allocate 4MB of contigues physical memory
 	minPA.QuadPart=0;
 	maxPA.QuadPart=0xffffffffff000000ULL;
-	boundary.QuadPart=0x00400000; //4 mb boundaries
+	boundary.QuadPart=0x00400000ULL; //4 mb boundaries
 
 
 	DbgPrint("vmxoffload\n");
 
 	if (!initializedvmm)
-	{	
+	{			
 		DbgPrint("First time run. Initializing vmm section");
 	
 		vmm=MmAllocateContiguousMemorySpecifyCache(4*1024*1024, minPA, maxPA, boundary, MmCached);
-
 		
-		if ((vmm) && ((UINT_PTR)vmm % 0x00400000))
+		if ((vmm) && (MmGetPhysicalAddress(vmm).QuadPart % 0x00400000))
 		{
-			DbgPrint("Allocated memory but windows did not give a proper boundary\n");
+			DbgPrint("Allocated memory (%p (%llx)) but windows did not give a proper boundary\n", vmm, MmGetPhysicalAddress(vmm));
 			MmFreeContiguousMemorySpecifyCache(vmm, 4*1024*1024, MmCached);
 			vmm=NULL;
 		}
@@ -203,8 +202,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		if (!vmm)
 		{
 			
+			
 			DbgPrint("Failure allocating 4MB on a 4MB boundary. Trying 8MB with no boundary\n");
 			vmm=MmAllocateContiguousMemory(8*1024*1024, maxPA);
+
+			
+			//find out by how much to shift
+
 			if (!vmm)
 			{
 				DbgPrint("Failure at allocating 8MB of contiguous memory\n");
@@ -213,11 +217,16 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			else
 			{
 				//adjust vmm to a 4mb boundary myself
-				UINT_PTR v=(UINT_PTR)vmm;
-				
-				v=0x00400000-(v % 0x00400000);
+				UINT64 vmmPA=MmGetPhysicalAddress(vmm).QuadPart;
+				UINT64 v=vmmPA % 0x00400000;
+			
+				if (v>0) 
+				{
+					//it needs adjustment
+					(UINT_PTR)vmm=(UINT_PTR)vmm+(0x00400000-v);
+				}
 
-				DbgPrint("Allocated memory at %p shifting to %.8x\n",vmm,v);
+				DbgPrint("Allocated 8MB at %llx shifting to %llx\n",vmmPA, MmGetPhysicalAddress(vmm).QuadPart);
 				vmm=(unsigned char *)v;
 			}
 		}
@@ -528,7 +537,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			}
 			else
 			{
-				DbgPrint("Failure opening the file. Status=%x\n",OpenedFile);
+				DbgPrint("Failure opening the file. Status=%x  (filename=%S)\n",OpenedFile, filename.Buffer);
 
 			
 			}

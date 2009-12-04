@@ -213,6 +213,8 @@ implementation
 
 uses vmxfunctions;
 
+var dataloc: string;
+    applicationPath: string;
 
 
 function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
@@ -1570,7 +1572,8 @@ begin
     Outputdebugstring('LaunchDBVM');
     cc:=IOCTL_CE_LAUNCHDBVM;
 
-    temp:='\??\'+GetCurrentDir+'\vmdisk.img';
+
+    temp:='\??\'+applicationpath+'vmdisk.img';
 
 
     input.dbvmimgpath:=dword(@temp[1]);
@@ -1798,14 +1801,12 @@ var hscManager: thandle;
     hservicE: thandle;
 
 var sav: pchar;
-
     apppath: pchar;
+
 
 
     win32kaddress,win32size:dword;
     servicename,sysfile: string;
-    dataloc: string;
-
     vmx_p1_txt,vmx_p2_txt: string;
 
 
@@ -1833,6 +1834,8 @@ begin
   try
     getmem(apppath,250);
     GetModuleFileName(0,apppath,250);
+
+    applicationpath:=extractfilepath(apppath);
 
     dataloc:=extractfilepath(apppath);
     if not iswow64 then

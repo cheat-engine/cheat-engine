@@ -122,7 +122,7 @@ weee2:
 	or eax,10000h
 	mov cr0,rax ;enable WP bit
 	
-	mov rax,rdi ;tell dbvm it's an OS entry and what location the start info is	
+	mov rax,r15 ;tell dbvm it's an OS entry and what location the start info is	
 		
 	nop
 	nop
@@ -187,7 +187,7 @@ enterVMMPrologue:
 	
 	
 	
-	jmp enterVMMEpilogue ;test to see if the loader is bugged
+	;jmp enterVMMEpilogue ;test to see if the loader is bugged
 	
 	;still here, loader didn't crash, start executing the move to the dbvm environment
 	xchg bx,bx ;bochs break
@@ -196,9 +196,9 @@ enterVMMPrologue:
 	lgdt fword ptr [rbx]
 	
 	mov rcx,pagedirptrbasePA
-	mov rdx,TemporaryPagingSetupPA ;for the mov cr3,rcx
+	mov rdx,TemporaryPagingSetupPA 
 	mov rsi,enterVMM2PA
-	mov rdi,originalstatePA
+	mov r15,originalstatePA
 	
 
 	jmp [enterVMM2]
