@@ -223,7 +223,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 				if (v>0) 
 				{
 					//it needs adjustment
-					(UINT_PTR)vmm=(UINT_PTR)vmm+(0x00400000-v);
+					(UINT_PTR)vmm=(UINT_PTR)vmm+(UINT_PTR)(0x00400000-v);
 				}
 
 				DbgPrint("Allocated 8MB at %llx shifting to %llx\n",vmmPA, MmGetPhysicalAddress(vmm).QuadPart);
@@ -306,7 +306,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						DbgPrint("pagedirptrbase=%x (physical address %llx)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
 
-						pagedirptrbasePA=MmGetPhysicalAddress((PVOID)pagedirptrbase).QuadPart;
+						pagedirptrbasePA=(UINT_PTR)MmGetPhysicalAddress((PVOID)pagedirptrbase).QuadPart;
 						
 						//blame MS for making this hard to read
 						DbgPrint("Setting up initial paging table for vmm\n");
@@ -437,7 +437,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						DbgPrint("TemporaryPagingSetup is located at %p (%llx)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart);
 
 
-						TemporaryPagingSetupPA=MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart;
+						TemporaryPagingSetupPA=(UINT_PTR)MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart;
 						
 #ifdef AMD64			
 						DbgPrint("Setting up temporary paging setup for x64\n");
@@ -518,7 +518,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						
 
-						enterVMM2PA=MmGetPhysicalAddress(enterVMM2).QuadPart;
+						enterVMM2PA=(UINT_PTR)MmGetPhysicalAddress(enterVMM2).QuadPart;
 						
 						minPA.QuadPart=0;
 						maxPA.QuadPart=0xfffffffffffff000;
@@ -526,7 +526,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						originalstate=MmAllocateContiguousMemory(((sizeof(OriginalState)>4096) ? sizeof(OriginalState) : 4096), maxPA);
 						RtlZeroMemory(originalstate, sizeof(OriginalState));
 
-						originalstatePA=MmGetPhysicalAddress(originalstate).QuadPart;
+						originalstatePA=(UINT_PTR)MmGetPhysicalAddress(originalstate).QuadPart;
 						DbgPrint("enterVMM2PA=%llx\n",enterVMM2PA);
 						DbgPrint("originalstatePA=%llx\n",originalstatePA);
 
