@@ -1578,9 +1578,12 @@ begin
   end else result:=false;
 end;
 
+var cpunr:integer=0;
 procedure LaunchDBVM; stdcall;
 begin
-  forspecificcpu(0,internal_LaunchDBVM,nil);
+  forspecificcpu(cpunr,internal_LaunchDBVM,nil);
+
+  inc(cpunr);
 //  foreachcpu(internal_LaunchDBVM, nil);
 end;
 

@@ -5,7 +5,7 @@ This unit provides some routines that make it easier to pinpoint which cpu will 
 
 interface
 
-uses windows,classes;
+uses windows,classes, sysutils;
 
 type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
@@ -35,7 +35,14 @@ begin
   result:=true;
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
-  if ((1 shl cpunr) and SA) = 0 then exit; //cpu doesn't exist
+  if ((1 shl cpunr) and SA) = 0 then
+  begin
+    //cpu doesn't exist, do nothing
+    OutputDebugString(pchar(format('forspecificcpu:Cpu number %d does not exist',[cpunr])));
+    exit;
+  end;
+
+
 
   SetProcessAffinityMask(GetCurrentProcess,(1 shl cpunr));
   sleep(0);

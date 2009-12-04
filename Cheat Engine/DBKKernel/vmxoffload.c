@@ -173,15 +173,15 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	EFLAGS eflags;
 
 	int i;
-	PHYSICAL_ADDRESS minPA, maxPA,bam;
+	PHYSICAL_ADDRESS minPA, maxPA,boundary;
 	GDT gdt;
 	IDT idt;
 	
 	
 	//allocate 4MB of contigues physical memory
-	minPA.QuadPart=0x00400000; //at least start from 4MB
-	maxPA.QuadPart=0xfffff000;
-	bam.QuadPart=0x00400000; //4 mb boundaries
+	minPA.QuadPart=0;
+	maxPA.QuadPart=0xffffffffff000000ULL;
+	boundary.QuadPart=0x00400000; //4 mb boundaries
 
 
 	DbgPrint("vmxoffload\n");
@@ -190,7 +190,39 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	{	
 		DbgPrint("First time run. Initializing vmm section");
 	
-		vmm=MmAllocateContiguousMemorySpecifyCache(4*1024*1024, minPA, maxPA, bam, MmCached);
+		vmm=MmAllocateContiguousMemorySpecifyCache(4*1024*1024, minPA, maxPA, boundary, MmCached);
+
+		
+		if ((vmm) && ((UINT_PTR)vmm % 0x00400000))
+		{
+			DbgPrint("Allocated memory but windows did not give a proper boundary\n");
+			MmFreeContiguousMemorySpecifyCache(vmm, 4*1024*1024, MmCached);
+			vmm=NULL;
+		}
+
+		if (!vmm)
+		{
+			
+			DbgPrint("Failure allocating 4MB on a 4MB boundary. Trying 8MB with no boundary\n");
+			vmm=MmAllocateContiguousMemory(8*1024*1024, maxPA);
+			if (!vmm)
+			{
+				DbgPrint("Failure at allocating 8MB of contiguous memory\n");
+
+			}
+			else
+			{
+				//adjust vmm to a 4mb boundary myself
+				UINT_PTR v=(UINT_PTR)vmm;
+				
+				v=0x00400000-(v % 0x00400000);
+
+				DbgPrint("Allocated memory at %p shifting to %.8x\n",vmm,v);
+				vmm=(unsigned char *)v;
+			}
+		}
+
+
 		if (vmm)
 		{	
 			HANDLE dbvmimghandle;
@@ -199,16 +231,11 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			OBJECT_ATTRIBUTES oa;
 			NTSTATUS OpenedFile;
 
-			DbgPrint("Allocated 4MB at virtual address %p (physical address %x)\n",vmm,MmGetPhysicalAddress(vmm));
-			RtlZeroMemory(vmm,4*1024*1024);
+			DbgPrint("Allocated memory at virtual address %p (physical address %llx)\n",vmm,MmGetPhysicalAddress(vmm));
+			RtlZeroMemory(vmm,4*1024*1024); //initialize
 
-			DbgPrint("Initializing filename\n");			
-			DbgPrint("original=%S\n", dbvmimgpath);
 			RtlInitUnicodeString(&filename, dbvmimgpath);
-			
-
-			DbgPrint("after=%S\n", filename.Buffer);
-			
+		
 			
 			//Load the .img file
 			InitializeObjectAttributes(&oa, &filename, 0, NULL, NULL);
@@ -219,47 +246,36 @@ void vmxoffload(PCWSTR dbvmimgpath)
 				LARGE_INTEGER byteoffset;
 				FILE_STANDARD_INFORMATION fsi;
 				NTSTATUS ReadFile;
-				DbgPrint("Opened the file. Handle=%x\n", dbvmimghandle);
-
-				DbgPrint("Getting filesize\n");
-
+				
+				//Getting filesize
 				ZwQueryInformationFile(dbvmimghandle, &statusblock, &fsi, sizeof(fsi),  FileStandardInformation);
-				DbgPrint("fsi.EndOfFile=%d",fsi.EndOfFile);
+				
+				//fsi.EndOfFile contains the filesize
 
 				if (fsi.EndOfFile.QuadPart>4*1024*1024)
 				{
-					DbgPrint("File bigger than 4MB. Retard detected\n");
+					DbgPrint("File bigger than 4MB. Big retard detected\n");
 					return;
 				}
 
 
 				byteoffset.QuadPart=0x8; //offset containing sectornumber of the vmm location
 				ReadFile=ZwReadFile(dbvmimghandle, NULL, NULL, NULL, &statusblock, &startsector, 2, &byteoffset, NULL);
-				DbgPrint("ReadFile=%x\n",ReadFile);
 
-				DbgPrint("statusblock.Status=%x (read %d)\n",statusblock.Status,statusblock.Information);
 				if (ReadFile==STATUS_PENDING)
-				{		
-					
-					if (ZwWaitForSingleObject(dbvmimghandle, FALSE, NULL)==STATUS_SUCCESS)
+				{							
+					if (ZwWaitForSingleObject(dbvmimghandle, FALSE, NULL)!=STATUS_SUCCESS)
 					{
-						DbgPrint("Wait was a success\n");
-					}
-					else DbgPrint("Wait was a failure\n");
-					
+					  DbgPrint("Read failure\n");
+					  return;
+					}					
 				}
-
-				DbgPrint("statusblock.Status=%x (read %d)\n",statusblock.Status,statusblock.Information);
 
 				if (statusblock.Status==STATUS_SUCCESS)
 				{
 					DWORD vmmsize=fsi.EndOfFile.LowPart-(startsector*512);
-								
 
-					
-
-
-					//now read the VMM				
+					//now read the vmdisk into the allocated memory
 					DbgPrint("The startsector=%d (that's offset %d)\n",startsector,startsector*512);
 
 					byteoffset.QuadPart=startsector*512; 
@@ -267,7 +283,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 					if (ReadFile==STATUS_PENDING)
 						ZwWaitForSingleObject(dbvmimghandle, FALSE, NULL);
 
-					vmmsize=(vmmsize+4096) & 0xfffff000; //adjust the size internally to a page boundary (sure, there's some mem loss, but it's predicted, dbvm assumes first 10 pages are scratch pages)
+					vmmsize=(vmmsize+4096) & 0xfffffffffffff000ULL; //adjust the size internally to a page boundary (sure, there's some mem loss, but it's predicted, dbvm assumes first 10 pages are scratch pages)
 
 					if (statusblock.Status==STATUS_SUCCESS )
 					{
@@ -279,23 +295,24 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						PUINT64		PageDirPtr=(PUINT64)(pagedirptrbase+4096);
 						PUINT64		PageDir=(PUINT64)(pagedirptrbase+4096+4096);
 
-						DbgPrint("pagedirptrbase=%x (physical address %x)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
+						DbgPrint("pagedirptrbase=%x (physical address %llx)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
 
-						pagedirptrbasePA=MmGetPhysicalAddress((PVOID)pagedirptrbase).LowPart;
+						pagedirptrbasePA=MmGetPhysicalAddress((PVOID)pagedirptrbase).QuadPart;
 						
-						DbgPrint("sizeof(PageDirPtr[0])=%d",sizeof(PageDirPtr[0]));
-					
 						//blame MS for making this hard to read
 						DbgPrint("Setting up initial paging table for vmm\n");
 
-						PageMapLevel4[0]=MmGetPhysicalAddress(PageDirPtr).LowPart;					
+						PageMapLevel4[0]=MmGetPhysicalAddress(PageDirPtr).QuadPart;					
 						((PPDPTE_PAE)(&PageMapLevel4[0]))->P=1;
 						((PPDPTE_PAE)(&PageMapLevel4[0]))->RW=1;
+
+						DbgPrint("PageMapLevel4[0]=%llx\n",PageMapLevel4[0]);
 						
 
-						PageDirPtr[0]=MmGetPhysicalAddress(PageDir).LowPart;
+						PageDirPtr[0]=MmGetPhysicalAddress(PageDir).QuadPart;
 						((PPDPTE_PAE)(&PageDirPtr[0]))->P=1;
 						((PPDPTE_PAE)(&PageDirPtr[0]))->RW=1;
+						DbgPrint("PageDirPtr[0]=%llx\n",PageDirPtr[0]);
 						
 
 						PageDir[0]=0;
@@ -303,26 +320,29 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						((PPDE2MB_PAE)(&PageDir[0]))->US=1;
 						((PPDE2MB_PAE)(&PageDir[0]))->RW=0;
 						((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB*/
+						DbgPrint("PageDir[0]=%llx\n",PageDir[0]);
 
 
-						PageDir[1]=0x00200000;
-						
+
+						PageDir[1]=0x00200000;						
 						((PPDE2MB_PAE)(&PageDir[1]))->P=1;
 						((PPDE2MB_PAE)(&PageDir[1]))->US=1;
 						((PPDE2MB_PAE)(&PageDir[1]))->RW=0;
 						((PPDE2MB_PAE)(&PageDir[1]))->PS=1; //2MB
+						DbgPrint("PageDir[1]=%llx\n",PageDir[1]);
 						
 
-						PageDir[2]=MmGetPhysicalAddress(vmm).LowPart;
+						PageDir[2]=MmGetPhysicalAddress(vmm).QuadPart;
 						((PPDE2MB_PAE)(&PageDir[2]))->P=1;
 						((PPDE2MB_PAE)(&PageDir[2]))->RW=1;
 						((PPDE2MB_PAE)(&PageDir[2]))->PS=1; //2MB
+						DbgPrint("PageDir[2]=%llx\n",PageDir[2]);
 
-
-						PageDir[3]=MmGetPhysicalAddress(vmm+0x200000).LowPart; 
+						PageDir[3]=MmGetPhysicalAddress(vmm+0x200000).QuadPart; 
 						((PPDE2MB_PAE)(&PageDir[3]))->P=1;
 						((PPDE2MB_PAE)(&PageDir[3]))->RW=1;
 						((PPDE2MB_PAE)(&PageDir[3]))->PS=1; //2MB
+						DbgPrint("PageDir[3]=%llx\n",PageDir[3]);
 
 
 
@@ -345,27 +365,27 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 
 						NewGDTDescriptor.limit=0x6f; //111
-						NewGDTDescriptor.base=0x00400000+vmmsize+4096;
+						NewGDTDescriptor.base=0x00400000+vmmsize+4096; //virtual address to the gdt
 
 						DbgPrint("&NewGDTDescriptor=%p, &NewGDTDescriptor.limit=%p, &NewGDTDescriptor.base=%p\n",&NewGDTDescriptor,&NewGDTDescriptor.limit, &NewGDTDescriptor.base); 
 						DbgPrint("NewGDTDescriptor.limit=%x\n",NewGDTDescriptor.limit);
-						DbgPrint("NewGDTDescriptor.base=%x\n",NewGDTDescriptor.base);
+						DbgPrint("NewGDTDescriptor.base=%p\n",NewGDTDescriptor.base);
 
 						NewGDTDescriptorVA=(UINT_PTR)&NewGDTDescriptor;
 
 						
-						DbgPrint("Before enterVMM2 alloc: minPA=%x, maxPA=%x, bam=%x\n",minPA.LowPart, maxPA.LowPart, bam.LowPart);
-
-
 						
-						maxPA.QuadPart=0x003fffffULL; //allocate below 00400000
+						
+						maxPA.QuadPart=0x003fffffULL; //allocate 4k at the lower 4MB
+						DbgPrint("Before enterVMM2 alloc: maxPA=%llx, bam=%llx\n", maxPA.QuadPart);
+
 						enterVMM2=MmAllocateContiguousMemory(4096,maxPA);
 						if (enterVMM2)
 						{
 							unsigned char *original=(unsigned char *)enterVMM;
 							RtlZeroMemory(enterVMM2,4096);
-							DbgPrint("enterVMM is located at %p (%x)\n", enterVMM, MmGetPhysicalAddress(enterVMM).LowPart);
-							DbgPrint("enterVMM2 is located at %p (%x)\n", enterVMM2, MmGetPhysicalAddress(enterVMM2).LowPart);
+							DbgPrint("enterVMM is located at %p (%llx)\n", enterVMM, MmGetPhysicalAddress(enterVMM).QuadPart);
+							DbgPrint("enterVMM2 is located at %p (%llx)\n", enterVMM2, MmGetPhysicalAddress(enterVMM2).QuadPart);
 
 
 							DbgPrint("Copying function till end\n");
@@ -390,35 +410,25 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 
 						//now create a paging setup where enterVMM2 is identity mapped AND mapped at the current virtual address, needed to be able to go down to nonpaged mode
-						//easiest way, make every 2MB page point to enterVMM2 (which is why it's set to a 2MB boundary)
-					
-						
-						
-						//bam.QuadPart=4096;	 (fails on win2k)					
+						//easiest way, make every page point to enterVMM2				
 
-						//TemporaryPagingSetup=ExAllocatePool(NonPagedPool, 4096*3);
-						//allocate 4 pages under the 4 GB boundary (just so i'm sure none of the reserved bits(40-51) are used, even though there's currently no system capable to support that much ram...)
+						//allocate 4 pages
 						DbgPrint("Allocating memory for the temp pagedir\n");
 						minPA.QuadPart=0;
-						maxPA.QuadPart=0xffff0000;
-						bam.QuadPart=0x00400000;
-
+						maxPA.QuadPart=0xffffffffffff0000ULL;
 						
-						TemporaryPagingSetup=MmAllocateContiguousMemorySpecifyCache(4096*4, minPA, maxPA, bam, MmWriteCombined);
+						TemporaryPagingSetup=MmAllocateContiguousMemory(4096*4, maxPA);
 						if (TemporaryPagingSetup==NULL)
 						{
-							DbgPrint("TemporaryPagingSetup==NULL!!! minPA=%x, maxPA=%x, bam=%x\n",minPA.LowPart, maxPA.LowPart, bam.LowPart);
+							DbgPrint("TemporaryPagingSetup==NULL!!!\n");
 							return;
 						}
 
 						RtlZeroMemory(TemporaryPagingSetup,4096*4);
-						DbgPrint("TemporaryPagingSetup is located at %p (%x)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).LowPart);
+						DbgPrint("TemporaryPagingSetup is located at %p (%llx)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart);
 
 
-						TemporaryPagingSetupPA=MmGetPhysicalAddress(TemporaryPagingSetup).LowPart;
-
-						
-
+						TemporaryPagingSetupPA=MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart;
 						
 #ifdef AMD64			
 						DbgPrint("Setting up temporary paging setup for x64\n");
@@ -431,24 +441,19 @@ void vmxoffload(PCWSTR dbvmimgpath)
 							DbgPrint("PAE paging\n");
 							for (i=0; i<512; i++)
 							{
-								PML4Table[i]=MmGetPhysicalAddress(PageDirPtr).LowPart;
+								PML4Table[i]=MmGetPhysicalAddress(PageDirPtr).QuadPart;
 								((PPDPTE_PAE)(&PML4Table[i]))->P=1;
 
-								PageDirPtr[i]=MmGetPhysicalAddress(PageDir).LowPart;
-								((PPDPTE_PAE)(&PageDirPtr[i]))->P=1;
-								
+								PageDirPtr[i]=MmGetPhysicalAddress(PageDir).QuadPart;
+								((PPDPTE_PAE)(&PageDirPtr[i]))->P=1;								
 
-
-								PageDir[i]=MmGetPhysicalAddress(PageTable).LowPart;
+								PageDir[i]=MmGetPhysicalAddress(PageTable).QuadPart;
 								((PPDE_PAE)(&PageDir[i]))->P=1;								
 								((PPDE_PAE)(&PageDir[i]))->PS=0; //4KB
 
-								PageTable[i]=MmGetPhysicalAddress(enterVMM2).LowPart;
+								PageTable[i]=MmGetPhysicalAddress(enterVMM2).QuadPart;
 								((PPTE_PAE)(&PageTable[i]))->P=1;
-												
-
 							}
-
 						}
 						
 #else
@@ -462,17 +467,17 @@ void vmxoffload(PCWSTR dbvmimgpath)
 							DbgPrint("PAE paging\n");
 							for (i=0; i<512; i++)
 							{
-								PageDirPtr[i]=MmGetPhysicalAddress(PageDir).LowPart;
+								PageDirPtr[i]=MmGetPhysicalAddress(PageDir).QuadPart;
 								((PPDPTE_PAE)(&PageDirPtr[i]))->P=1;
 								//((PPDPTE_PAE)(&PageDirPtr[i]))->RW=1;
 
 
-								PageDir[i]=MmGetPhysicalAddress(PageTable).LowPart;
+								PageDir[i]=MmGetPhysicalAddress(PageTable).QuadPart;
 								((PPDE_PAE)(&PageDir[i]))->P=1;
 								//((PPDE_PAE)(&PageDir[i]))->RW=1;							
 								((PPDE_PAE)(&PageDir[i]))->PS=0; //4KB
 
-								PageTable[i]=MmGetPhysicalAddress(enterVMM2).LowPart;
+								PageTable[i]=MmGetPhysicalAddress(enterVMM2).QuadPart;
 								((PPTE_PAE)(&PageTable[i]))->P=1;
 								//((PPTE_PAE)(&PageTable[i]))->RW=1;					
 
@@ -481,6 +486,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						}	
 						else
 						{
+							//normal(old) 4 byte page entries
 							PDWORD PageDir=(PDWORD)TemporaryPagingSetup;
 							PDWORD PageTable=(PDWORD)((DWORD)TemporaryPagingSetup+4096);
 							DbgPrint("Normal paging\n");
@@ -503,26 +509,21 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 						
 
-						enterVMM2PA=MmGetPhysicalAddress(enterVMM2).LowPart;
+						enterVMM2PA=MmGetPhysicalAddress(enterVMM2).QuadPart;
 						
 						minPA.QuadPart=0;
-						maxPA.QuadPart=0xfffff000; //keep it under the 4GB range (parameter passed can only be 32 bits)
-						bam.QuadPart=0;
-						originalstate=MmAllocateContiguousMemorySpecifyCache(((sizeof(OriginalState)>4096) ? sizeof(OriginalState) : 4096), minPA, maxPA, bam, MmCached);
+						maxPA.QuadPart=0xfffffffffffff000;
+						boundary.QuadPart=0;
+						originalstate=MmAllocateContiguousMemory(((sizeof(OriginalState)>4096) ? sizeof(OriginalState) : 4096), maxPA);
 						RtlZeroMemory(originalstate, sizeof(OriginalState));
 
-						originalstatePA=MmGetPhysicalAddress(originalstate).LowPart;
-						DbgPrint("enterVMM2PA=%x\n",enterVMM2PA);
+						originalstatePA=MmGetPhysicalAddress(originalstate).QuadPart;
+						DbgPrint("enterVMM2PA=%llx\n",enterVMM2PA);
+						DbgPrint("originalstatePA=%llx\n",originalstatePA);
 
-						initializedvmm=TRUE;
-
-						
+						initializedvmm=TRUE;						
 					}
-
 				}
-				
-
-
 				ZwClose(dbvmimghandle);
 			}
 			else
@@ -670,13 +671,14 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		{
 
 			LARGE_INTEGER wait;
-			wait.QuadPart=-10000LL * 5000; //5 seconds should be enough time
+			wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
 			
 			KeDelayExecutionThread(KernelMode, TRUE, &wait);
 		}
 
 		//call to entervmmprologue, pushes the return value on the stack
 		enterVMMPrologue();
+
 		disableInterrupts();
 		disableInterrupts();
 		disableInterrupts();

@@ -776,7 +776,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		//check if this should break
 		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{
-			UINT_PTR originaldebugregs[5];
+			UINT_PTR originaldebugregs[6];
 
 			originaldebugregs[0]=DebuggerState.FakedDebugRegisterState[cpunr()].DR0;
 			originaldebugregs[1]=DebuggerState.FakedDebugRegisterState[cpunr()].DR1;

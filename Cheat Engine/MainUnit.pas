@@ -11000,6 +11000,13 @@ begin
 
   LoadDBK32;
 
+  launchdbvm;
+  showmessage('not crashed yet');
+
+  exit;
+
+
+   {
   DBKDebug_StartDebugging(processid);
 
   if DBKDebug_WaitForDebugEvent(1000) then

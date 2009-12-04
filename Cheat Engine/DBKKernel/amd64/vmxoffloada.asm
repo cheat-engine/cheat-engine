@@ -187,8 +187,9 @@ enterVMMPrologue:
 	
 	
 	
-	jmp enterVMMEpilogue ;test
+	jmp enterVMMEpilogue ;test to see if the loader is bugged
 	
+	;still here, loader didn't crash, start executing the move to the dbvm environment
 	xchg bx,bx ;bochs break
 	
 	mov rbx,NewGDTDescriptorVA
@@ -204,7 +205,6 @@ enterVMMPrologue:
 			
 PUBLIC enterVMMEpilogue
 enterVMMEpilogue:
-jmp enterVMMEpilogue ;test2
 	nop
 	nop
 	push rax

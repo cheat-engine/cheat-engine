@@ -1453,9 +1453,9 @@ object MainForm: TMainForm
     object Label59: TLabel
       Left = 408
       Top = 304
-      Width = 54
+      Width = 70
       Height = 13
-      Caption = 'Test debug'
+      Caption = 'Launch DBVM'
       OnClick = Label59Click
     end
     object Label61: TLabel
