@@ -16,8 +16,8 @@ object ProcessWindow: TProcessWindow
   Position = poMainFormCenter
   Scaled = False
   OnClose = FormClose
-  OnCreate = FormCreate
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 120
   TextHeight = 13
   object ProcessList: TListBox

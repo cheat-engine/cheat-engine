@@ -37,7 +37,6 @@ type
     OKButton: TButton;
     btnProcessListLong: TButton;
     procedure CancelButtonClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -54,6 +53,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ProcessListDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     currentchar: integer;
@@ -246,16 +246,6 @@ begin
 
 end;
 
-procedure TProcessWindow.FormCreate(Sender: TObject);
-var icons: Tbytes;
-begin
-  currentchar:=1;
-  button1.click;
-
-
-  setbuttons;
-end;
-
 procedure TProcessWindow.PWOP(ProcessIDString:string);
 var i:integer;
 begin
@@ -304,8 +294,7 @@ begin
 end;
 
 procedure TProcessWindow.OKButtonClick(Sender: TObject);
-var ProcessIDString: String;
-    i:               Integer;
+var ProcessIDString: String; 
 begin
   if formsettings.cbUndoMemoryChanges.checked then CheckForChanges;
 
@@ -314,14 +303,7 @@ begin
     unpause;
     DetachIfPossible;
 
-
-    ProcessIDString:='';
-    i:=1;
-    while ProcessList.Items[Processlist.ItemIndex][i]<>'-' do
-    begin
-      ProcessIDString:=ProcessIDString+ProcessList.Items[Processlist.ItemIndex][i];
-      inc(i);
-    end;
+    ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
     PWOP(ProcessIDString);
     MainForm.ProcessLabel.caption:=ProcessList.Items[Processlist.ItemIndex];
@@ -332,9 +314,21 @@ end;
 
 
 
+//button1click specific:
 procedure TProcessWindow.Button1Click(Sender: TObject);
+var oldselection: string;
+    oldselectionIndex: integer;
+    i,j: integer;
+    found: boolean;
 begin
-  currentlisT:=0;
+
+  oldselectionindex:=processlist.ItemIndex;
+
+  if oldselectionindex<>-1 then
+    oldselection:=processlist.Items[oldselectionIndex];
+
+
+  currentlist:=0;
   getprocesslist(processlist);
 
   if formsettings.cbKernelReadWriteProcessMemory.checked or (assigned(dbvm_version) and (dbvm_version>=$ce000004)) then //driver is active
@@ -342,7 +336,32 @@ begin
 
   Filterlist;
 
-  processlist.ItemIndex:=processlist.Items.Count-1;
+  if oldselectionindex=-1 then
+    processlist.ItemIndex:=processlist.Items.Count-1 //go to the end
+  else
+  begin
+    i:=processlist.Items.IndexOf(oldselection);
+    if i>=0 then
+      processlist.ItemIndex:=i
+    else
+    begin
+      //strip out the processid part and search for a entry with the appropriate processname (e.g restarted game)
+      oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
+
+      found:=false;
+      for i:=0 to processlist.Items.Count-1 do
+        if pos(oldselection, processlist.items[i])>0 then
+        begin
+          processlist.ItemIndex:=i;
+          found:=true;
+
+          break;
+        end;
+
+      if not found then
+        processlist.ItemIndex:=processlist.Items.Count-1;
+    end;
+  end;
 end;
 
 procedure TProcessWindow.Button2Click(Sender: TObject);
@@ -598,6 +617,14 @@ begin
     x.Free;
   end;
     
+end;
+
+procedure TProcessWindow.FormShow(Sender: TObject);
+begin
+  currentchar:=1;
+  button1.click;
+
+  setbuttons;
 end;
 
 end.

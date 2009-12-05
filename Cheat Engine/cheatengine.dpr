@@ -183,8 +183,8 @@ begin
   Application.CreateForm(TfrmdissectWindow, frmdissectWindow);
   Application.CreateForm(TfrmChangeValue, frmChangeValue);
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
-  Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
   Application.CreateForm(TfrmCScript, frmCScript);
+  Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
   initcetitle;
   Application.Run;
 end.

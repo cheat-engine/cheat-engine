@@ -3770,11 +3770,10 @@ begin
   oldprocess:=processID;
   oldprocesshandle:=processhandle;
 
-  ProcessWindow:=TProcessWindow.Create(nil);
+  if Processwindow=nil then
+    ProcessWindow:=TProcessWindow.Create(nil);
+    
   resu:=ProcessWindow.ShowModal;
-
-  ProcessWindow.free;
-  ProcessWindow:=nil;
 
   if resu=mrCancel then exit;
 
