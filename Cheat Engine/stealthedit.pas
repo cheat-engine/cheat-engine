@@ -2,7 +2,7 @@ unit stealthedit;
 
 interface
 
-uses windows, sysutils, strutils, assemblerunit, disassembler, symbolhandler, cefuncproc, newkernelhandler;
+uses windows, sysutils, strutils, assemblerunit, disassembler, symbolhandler, cefuncproc, newkernelhandler, dialogs;
 
 type TStealthEdit=class
   private
@@ -30,12 +30,15 @@ var cr4: dword;
 begin
   loaddbk32;
 
-  cr4:=GetCR4();
+  if loaddbvmifneeded then
+  begin
+    cr4:=GetCR4();
 
-  if getbit(6,cr4)=0 then raise exception.create('Your system needs to run in PAE paging mode');  
+    if getbit(6,cr4)=0 then raise exception.create('Your system needs to run in PAE paging mode');
 
-  if (not stealthedit_InitializeHooks) then
-    raise exception.Create('Failure initializing the stealtheditor. Remember, this function only works on 32-bit windows with admin rights, or in 64-bit with dbvm loaded');
+    if (not stealthedit_InitializeHooks) then
+      raise exception.Create('Failure initializing the stealtheditor. Remember, this function only works on 32-bit windows with admin rights, or in 64-bit with dbvm loaded');
+  end;
 end;
 
 function TStealthEdit.isRelocated(address: dword): boolean;

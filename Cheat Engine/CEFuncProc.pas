@@ -180,7 +180,7 @@ procedure decimal(var key: char);
 procedure hexadecimal(var key: char);
 
 function GetSystemType: Integer;
-function Is64bitOS: boolean;
+
 
 procedure ToggleOtherWindows;
 
@@ -1759,17 +1759,7 @@ else
   result := cOsUnknown;
 end;
 
-function Is64bitOS: boolean;
-var iswow64: BOOL;
-begin
-  result:=false;
-  if assigned(IsWow64Process) then
-  begin
-    iswow64:=false;
-    if IsWow64Process(GetCurrentProcess,iswow64) and iswow64 then
-      result:=true;
-  end;
-end;
+
 
 function KeyToStr(key:word):string;
 begin

@@ -27,6 +27,8 @@ type TDisassemblerLine=class
     bytestring: string;
     opcodestring: string;
     specialstring: string;
+    boldheight: integer;
+    textheight: integer;
     function truncatestring(s: string; maxwidth: integer): string;
     function buildReferencedByString: string;
   public
@@ -151,7 +153,10 @@ begin
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin
-    height:=height+fcanvas.TextHeight(symbolname)+1+10;
+    if textheight=-1 then
+      textheight:=fcanvas.TextHeight(symbolname);
+
+    height:=height+textheight+1+10;
   end;
 
   refferencedbylinecount:=0;
@@ -191,13 +196,15 @@ begin
   fdisassembled:=disassemble(address,fdescription);
 
 
-  //fcanvas.Font.Style:=[fsbold];
-  height:=height+fcanvas.TextHeight(fdisassembled)+1;
- // fcanvas.Font.Style:=[];
+  if boldheight=-1 then
+  begin
+    fcanvas.Font.Style:=[fsbold];
+    boldheight:=fcanvas.TextHeight(fdisassembled)+1;
+    fcanvas.Font.Style:=[];
+  end;
 
+  height:=height+boldheight+1;
 
-
-  height:=16;
 
   isbp:=((kdebugger.isactive) and (kdebugger.isExecutableBreakpoint(faddress))) or
         ((debuggerthread<>nil) and (debuggerthread.userisdebugging) and (debuggerthread.isBreakpoint(faddress)));
@@ -313,6 +320,8 @@ begin
   fCanvas:=bitmap.canvas;
   fBitmap:=bitmap;
   fheaders:=headersections;
+  boldheight:=-1; //bypass for memory leak
+  textheight:=-1;
 
   height:=fCanvas.TextHeight('X');
 end;

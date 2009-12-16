@@ -33,6 +33,7 @@ type
     procedure Label9Click(Sender: TObject);
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure lblDBVMClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -79,6 +80,32 @@ begin
 
   Loaddbk32;
 
+  if not isDBVMCapable then
+  begin
+    lblDBVM.Font.Color:=clRed;
+    lbldbvm.caption:='Your system DOES NOT support DBVM';
+    lbldbvm.Hint:='This means that you will need a new cpu (intel) to be abnle to use the advanced dbvm options';
+    lbldbvm.ShowHint:=true;
+  end
+  else
+  begin
+    if dbvm_version>0 then
+    begin
+      lblDBVM.Font.Color:=clLime;
+      lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
+      lbldbvm.Hint:='This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
+      lbldbvm.ShowHint:=true;
+    end
+    else
+    begin
+      lblDBVM.Font.Color:=clGreen;
+      lbldbvm.caption:='Your system supports DBVM';
+      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it';
+      lbldbvm.ShowHint:=true;
+    end;
+  end;
+
+
   if (not assigned(dbvm_version)) or (dbvm_version=0) then
   begin
     supportsdbvm:=false;
@@ -119,8 +146,9 @@ begin
     begin
       lblDBVM.Font.Color:=clGreen;
       lbldbvm.caption:='Your system supports DBVM';
-      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it';
+      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it (click this to launch dbvm)';
       lbldbvm.ShowHint:=true;
+      lbldbvm.Cursor:=crHandPoint;
     end
     else
     begin
@@ -128,6 +156,7 @@ begin
       lbldbvm.caption:='Your system DOES NOT support DBVM';
       lbldbvm.Hint:='This means that you will need a new cpu (intel) to be abnle to use the advanced dbvm options';
       lbldbvm.ShowHint:=true;
+      lbldbvm.Cursor:=crNo;
     end;
   end
   else
@@ -136,6 +165,7 @@ begin
     lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
     lbldbvm.Hint:='This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
     lbldbvm.ShowHint:=true;
+    lbldbvm.Cursor:=crDefault;
   end;
 end;
 
@@ -157,6 +187,15 @@ begin
     ShowMessage('Did you really think you''d find an easter egg by doing this? Well, you know what? You where right!');
     with TTlg.create(self) do show;
   end;
+end;
+
+procedure TAbout.lblDBVMClick(Sender: TObject);
+begin
+  if not isRunningDBVM then
+    if loaddbvmifneeded then
+    begin
+      formshow(self);
+    end;
 end;
 
 end.

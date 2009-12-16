@@ -436,6 +436,7 @@ object About: TAbout
       Top = 207
       Width = 3
       Height = 16
+      OnClick = lblDBVMClick
     end
     object Button1: TButton
       Left = 276

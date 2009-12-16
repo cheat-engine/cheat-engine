@@ -989,6 +989,8 @@ begin
 
   dec(rowsof8);
 
+  if rowsof8=0 then rowsof8:=1;
+  
   rows8:=rowsof8;
 
   if length(memorytext)<8*rowsof8 then
@@ -3856,7 +3858,6 @@ var newaddress: dword;
 begin
   if stealtheditor=nil then
     stealtheditor:=tstealthedit.create;
-
 
   newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, 4096);
   disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);

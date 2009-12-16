@@ -1,7 +1,7 @@
 unit NewKernelHandler;
 
 interface
-uses windows,sysutils,tlhelp32;
+uses windows,sysutils,tlhelp32, dialogs, controls;
 
 const dbkdll='DBK32.dll';
 
@@ -186,6 +186,12 @@ Procedure ProtectCE;
 procedure OutputDebugString(msg: string);
 
 
+function loaddbvmifneeded: boolean;
+function isRunningDBVM: boolean;
+function isDBVMCapable: boolean;
+
+function Is64bitOS: boolean;
+
 //I could of course have made it a parameter thing, but I'm lazy
 
 var
@@ -338,6 +344,80 @@ uses
      {$endif}
      filehandler; //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
 
+function Is64bitOS: boolean;
+var iswow64: BOOL;
+begin
+  result:=false;
+  if assigned(IsWow64Process) then
+  begin
+    iswow64:=false;
+    if IsWow64Process(GetCurrentProcess,iswow64) and iswow64 then
+      result:=true;
+  end;
+end;
+
+function loaddbvmifneeded: boolean;
+begin
+  result:=false;
+  if Is64bitOS and (not isRunningDBVM) then
+  begin
+    if isDBVMCapable then
+    begin
+      if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data. Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+      begin
+        LaunchDBVM;
+        if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
+        result:=true;
+      end;
+    end else raise exception.Create('Your cpu is not able to use this function.');
+  end else result:=true;
+end;
+
+function isRunningDBVM: boolean;
+begin
+  result:=assigned(dbvm_version) and (dbvm_version>0);
+end;
+
+function isDBVMCapable: boolean;
+var a,b,c,d: dword;
+begin
+  result:=false;
+  if not isRunningDBVM then
+  begin
+    asm
+      pushad
+      mov eax,0
+      cpuid
+      mov a,eax
+      mov b,ebx
+      mov c,ecx
+      mov d,edx
+      popad
+    end;
+
+    //GenuineIntel check
+    if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+    begin
+      //it's an intel
+      asm
+        pushad
+        mov eax,1
+        cpuid
+        mov a,eax
+        mov b,ebx
+        mov c,ecx
+        mov d,edx
+        popad
+      end;
+
+      if ((c shr 5) and 1)=1 then //check for the intel-vt flag
+        result:=true;
+    end;
+
+  end
+  else result:=true; //dbvm might tell the system it's not vm-x capable, getting the dbvm version will show you if that's fake or not
+
+end;
 
 procedure LoadDBK32;
 begin

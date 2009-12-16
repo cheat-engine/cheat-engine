@@ -269,14 +269,12 @@ var processevents: pointer;
     res: dword;
 
 begin
-  freeonterminate:=true;
-
   getmem(processevents,50*sizeof(tprocesseventstruct)+1);
   getmem(threadevents,50*sizeof(tthreadeventstruct)+1);
 
   while not terminated do
   begin
-    res:=WaitForProcessListData(processevents,threadevents,10000);
+    res:=WaitForProcessListData(processevents,threadevents,3000);
 
     //processevent
     count:=pbyte(processevents)^;
@@ -309,7 +307,9 @@ begin
       self.pid:=z^.ProcessID;
       self.tid:=z^.threadid;
 
-      synchronize(updatelist2);
+      if not terminated then
+        synchronize(updatelist2);
+        
       inc(z); //next element
     end;
 
@@ -508,6 +508,9 @@ end;
 
 procedure TfrmProcessWatcher.FormDestroy(Sender: TObject);
 begin
+  processwatchthread.Terminate;
+  processwatchthread.WaitFor;
+  processwatchthread.Free;
   frmProcessWatcher:=nil;
 end;
 

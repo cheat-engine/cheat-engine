@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 505
-      ActivePage = ScanSettings
+      ActivePage = Extra
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -682,7 +682,7 @@ object formSettings: TformSettings
           object Label22: TLabel
             Left = 0
             Top = 0
-            Width = 512
+            Width = 210
             Height = 16
             Align = alTop
             Caption = 'The following plugins are available:'
@@ -704,7 +704,7 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 609
+          Width = 592
           Height = 48
           Align = alTop
           Caption = 
@@ -742,7 +742,7 @@ object formSettings: TformSettings
         object Label9: TLabel
           Left = 0
           Top = 155
-          Width = 585
+          Width = 574
           Height = 32
           Caption = 
             'Disadvantage: Memory intensive so slows down the game. And might' +

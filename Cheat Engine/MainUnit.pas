@@ -8123,6 +8123,8 @@ begin
     //
   end;
 
+  freeandnil(frmProcessWatcher);
+
   try
   tempbitmap.free;
   shutdown;
