@@ -51,11 +51,11 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 		if (InterruptHook[intnr].dbvmInterruptEmulation)
 		{
 			if (intnr==1)
-				vmx_redirect_interrupt1(0, 1, 0, 0);
+				vmx_redirect_interrupt1(virt_differentInterrupt, 1, 0, 0);
 			else if (intnr==3)
-				vmx_redirect_interrupt3(0, 3, 0, 0); 
+				vmx_redirect_interrupt3(virt_differentInterrupt, 3, 0, 0); 
 			else
-				vmx_redirect_interrupt14(0, 14, 0, 0); 
+				vmx_redirect_interrupt14(virt_differentInterrupt, 14, 0, 0); 
 
 			return TRUE; //that's all we need
 		}
@@ -66,8 +66,8 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 		{
 			INT_VECTOR newVector;
 			
-			newVector.bAccessFlags=0x8e;
-			newVector.bUnused=0;
+			//newVector.bAccessFlags=0x8e;
+			//newVector.bUnused=0;
 			/*
 			newVector.gatetype=6; //interrupt gate
 			newVector.gatesize=1; //32-bit
@@ -100,13 +100,18 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 {
 	IDT idt;	
 	GetIDT(&idt);
-	DbgPrint("inthook_HookInterrupt for cpu %d\n",cpunr());
+	DbgPrint("inthook_HookInterrupt for cpu %d (vmxusable=%d)\n",cpunr(), vmxusable);
 
 	if (!InterruptHook[intnr].hooked)
 	{
 		//new hook, so save the originals
 		InterruptHook[intnr].originalCS=idt.vector[intnr].wSelector;
 		InterruptHook[intnr].originalEIP=idt.vector[intnr].wLowOffset+(idt.vector[intnr].wHighOffset << 16);
+#ifdef AMD64
+		InterruptHook[intnr].originalEIP+=(UINT64)((UINT64)idt.vector[intnr].TopOffset << 32);
+#endif
+
+
 	}
 
 	if (jumpback)
@@ -116,19 +121,20 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	}
 
 	if (vmxusable && ((intnr==1) || (intnr==3) || (intnr==14)) )
-	{		
+	{	
+		
 		switch (intnr)
 		{
 			case 1:
-				vmx_redirect_interrupt1(1, 0, newCS, newEIP);
+				vmx_redirect_interrupt1(virt_emulateInterrupt, 0, newCS, newEIP);
 				break;
 
 			case 3:
-				vmx_redirect_interrupt3(1, 0, newCS, newEIP);
+				vmx_redirect_interrupt3(virt_emulateInterrupt, 0, newCS, newEIP);
 				break;
 
 			case 14:
-				vmx_redirect_interrupt14(1, 0, newCS, newEIP);
+				vmx_redirect_interrupt14(virt_emulateInterrupt, 0, newCS, newEIP);
 				break;
 		}
 
@@ -137,7 +143,7 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	else
 	{
 #ifdef AMD64
-		DbgPrint("DBVM is not loaded or a non dbvm hookable interrupt is being hooked\n");
+		DbgPrint("64-bit: DBVM is not loaded or a non dbvm hookable interrupt is being hooked\n");
 		return FALSE;
 #else
 		//old fashioned hook
@@ -157,9 +163,12 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		enableInterrupts();	
 
 		InterruptHook[intnr].dbvmInterruptEmulation=0;
+
+		DbgPrint("int %d will now go to %x:%x\n",intnr, newCS, newEIP);
 #endif
 	}
 
 	InterruptHook[intnr].hooked=1;
 	return TRUE;
 }
+

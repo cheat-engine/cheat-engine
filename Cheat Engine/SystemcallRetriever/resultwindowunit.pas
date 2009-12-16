@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, ExtCtrls;
 
 type
   Tresultwindow = class(TForm)
@@ -23,7 +23,9 @@ type
     Edit5: TEdit;
     Edit6: TEdit;
     Edit7: TEdit;
+    Panel1: TPanel;
     Label8: TLabel;
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
   public
@@ -36,5 +38,10 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure Tresultwindow.FormResize(Sender: TObject);
+begin
+  button1.Left:=(clientwidth div 2)-(button1.Width div 2);
+end;
 
 end.

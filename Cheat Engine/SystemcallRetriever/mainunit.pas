@@ -140,6 +140,8 @@ begin
   timer2.Enabled:=false;
   progressbar1.Position:=0;
 
+  outputdebugstring('systemcallretriever done();');
+
   if m.WParam=1 then //it was a cancel, it took too long so it might have been crashed
   begin
     terminateprocess(debuggedprocesshandle,0);
@@ -149,6 +151,7 @@ begin
 
   if phase<=2 then //prepare for next debugging sesion
   begin
+    outputdebugstring('phase<2');
     inc(phase);
     debugger:=tdebugger.Create(false);
     timer1.Enabled:=true;
@@ -156,174 +159,171 @@ begin
   end
   else
   begin
+    outputdebugstring('phase>2');
+
     //this was the last one , now lets check everything
-
-    //NtUserBuildHwndListCallnumber
-    setlength(PossibleNtUserBuildHwndListCallnumbers,0);
-    for i:=0 to length(callnumbers[0])-1 do
+    if sdtshadow<>0 then
     begin
-      //search the list for a callnumber that takes $1c parameters (if there are more ask)
-      if callnumbers[0][i].parametercount=$1c then
+      //NtUserBuildHwndListCallnumber
+      setlength(PossibleNtUserBuildHwndListCallnumbers,0);
+      for i:=0 to length(callnumbers[0])-1 do
       begin
-        setlength(PossibleNtUserBuildHwndListCallnumbers,length(PossibleNtUserBuildHwndListCallnumbers)+1);
-        PossibleNtUserBuildHwndListCallnumbers[length(PossibleNtUserBuildHwndListCallnumbers)-1]:=callnumbers[0][i].callnumber;
-      end;
-    end;
-
-    if length(PossibleNtUserBuildHwndListCallnumbers)=1 then
-    begin
-      NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[0]
-    end
-    else //not 1, not 0, so multiple
-    begin
-      input:='0';
-      question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
-      for i:=0 to length(PossibleNtUserBuildHwndListCallnumbers)-1 do
-        question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserBuildHwndListCallnumbers[i],4);
-
-      if inputquery('Systemcall retriever error',question ,input) then
-      begin
-        try
-          i:=StrToInt(input);
-          if i>=length(PossibleNtUserBuildHwndListCallnumbers) then raise exception.Create('I can''t do that dave');
-
-          NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[i];
-        except
-          NtUserBuildHwndListCallnumber:=0;
+        //search the list for a callnumber that takes $1c parameters (if there are more ask)
+        if callnumbers[0][i].parametercount=$1c then
+        begin
+          setlength(PossibleNtUserBuildHwndListCallnumbers,length(PossibleNtUserBuildHwndListCallnumbers)+1);
+          PossibleNtUserBuildHwndListCallnumbers[length(PossibleNtUserBuildHwndListCallnumbers)-1]:=callnumbers[0][i].callnumber;
         end;
-      end
-      else //choose the first one
-        NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[0];
-
-    end;
-
-    //NtUserqueryWindow
-    setlength(PossibleNtUserQueryWindowCallnumbers,0);
-    for i:=0 to length(callnumbers[1])-1 do
-    begin
-      //search the list for a callnumber that takes $08 parameters (if there are more ask)
-      if callnumbers[1][i].parametercount=$08 then
-      begin
-        setlength(PossibleNtUserQueryWindowCallnumbers,length(PossibleNtUserQueryWindowCallnumbers)+1);
-        PossibleNtUserQueryWindowCallnumbers[length(PossibleNtUserQueryWindowCallnumbers)-1]:=callnumbers[1][i].callnumber;
       end;
-    end;
 
-    if length(PossibleNtUserQueryWindowCallnumbers)=1 then
-    begin
-      NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[0]
-    end
-    else //not 1, not 0, so multiple
-    begin
-      input:='0';
-      question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
-      for i:=0 to length(PossibleNtUserQueryWindowCallnumbers)-1 do
-        question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserQueryWindowCallnumbers[i],4);
-
-      if inputquery('Systemcall retriever error',question ,input) then
+      if length(PossibleNtUserBuildHwndListCallnumbers)=1 then
       begin
-        try
-          i:=StrToInt(input);
-          if i>=length(PossibleNtUserQueryWindowCallnumbers) then raise exception.Create('I can''t do that dave');
-
-          NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[i];
-        except
-          NtUserQueryWindowCallnumber:=0;
-        end;
+        NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[0]
       end
-      else //choose the first one
-        NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[0];
-
-    end;
-
-    //NtUserFindWindowEx
-    setlength(PossibleNtUserFindWindowExCallnumbers,0);
-    for i:=0 to length(callnumbers[2])-1 do
-    begin
-      //search the list for a callnumber that takes $14 parameters (if there are more ask)
-      if callnumbers[2][i].parametercount=$14 then
+      else //not 1, not 0, so multiple
       begin
-        setlength(PossibleNtUserFindWindowExCallnumbers,length(PossibleNtUserFindWindowExCallnumbers)+1);
-        PossibleNtUserFindWindowExCallnumbers[length(PossibleNtUserFindWindowExCallnumbers)-1]:=callnumbers[2][i].callnumber;
+        input:='0';
+        question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
+        for i:=0 to length(PossibleNtUserBuildHwndListCallnumbers)-1 do
+          question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserBuildHwndListCallnumbers[i],4);
+
+        if inputquery('Systemcall retriever error',question ,input) then
+        begin
+          try
+            i:=StrToInt(input);
+            if i>=length(PossibleNtUserBuildHwndListCallnumbers) then raise exception.Create('I can''t do that dave');
+
+            NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[i];
+          except
+            NtUserBuildHwndListCallnumber:=0;
+          end;
+        end
+        else //choose the first one
+          NtUserBuildHwndListCallnumber:=PossibleNtUserBuildHwndListCallnumbers[0];
+
       end;
-    end;
 
-    if length(PossibleNtUserFindWindowExCallnumbers)=1 then
-    begin
-      NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[0]
-    end
-    else //not 1, not 0, so multiple
-    begin
-      input:='0';
-      question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
-      for i:=0 to length(PossibleNtUserFindWindowExCallnumbers)-1 do
-        question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserFindWindowExCallnumbers[i],4);
-
-      if inputquery('Systemcall retriever error',question ,input) then
+      //NtUserqueryWindow
+      setlength(PossibleNtUserQueryWindowCallnumbers,0);
+      for i:=0 to length(callnumbers[1])-1 do
       begin
-        try
-          i:=StrToInt(input);
-          if i>=length(PossibleNtUserFindWindowExCallnumbers) then raise exception.Create('I can''t do that dave');
-
-          NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[i];
-        except
-          NtUserFindWindowExCallnumber:=0;
+        //search the list for a callnumber that takes $08 parameters (if there are more ask)
+        if callnumbers[1][i].parametercount=$08 then
+        begin
+          setlength(PossibleNtUserQueryWindowCallnumbers,length(PossibleNtUserQueryWindowCallnumbers)+1);
+          PossibleNtUserQueryWindowCallnumbers[length(PossibleNtUserQueryWindowCallnumbers)-1]:=callnumbers[1][i].callnumber;
         end;
-      end
-      else //choose the first one
-        NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[0];
-
-    end;
-
-    //NtUserGetForegroundWindow
-    setlength(PossibleNtUserGetForegroundWindowCallnumbers,0);
-    for i:=0 to length(callnumbers[3])-1 do
-    begin
-      //search the list for a callnumber that takes 0 parameters (if there are more ask)
-      if callnumbers[3][i].parametercount=0 then
-      begin
-        setlength(PossibleNtUserGetForegroundWindowCallnumbers,length(PossibleNtUserGetForegroundWindowCallnumbers)+1);
-        PossibleNtUserGetForegroundWindowCallnumbers[length(PossibleNtUserGetForegroundWindowCallnumbers)-1]:=callnumbers[3][i].callnumber;
       end;
-    end;
 
-    if length(PossibleNtUserGetForegroundWindowCallnumbers)=1 then
-    begin
-      NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[0]
-    end
-    else //not 1, not 0, so multiple
-    begin
-      input:='0';
-      question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
-      for i:=0 to length(PossibleNtUserGetForegroundWindowCallnumbers)-1 do
-        question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserGetForegroundWindowCallnumbers[i],4);
-
-      if inputquery('Systemcall retriever error',question ,input) then
+      if length(PossibleNtUserQueryWindowCallnumbers)=1 then
       begin
-        try
-          i:=StrToInt(input);
-          if i>=length(PossibleNtUserGetForegroundWindowCallnumbers) then raise exception.Create('I can''t do that dave');
-
-          NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[i];
-        except
-          NtUserGetForegroundWindowCallnumber:=0;
-        end;
+        NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[0]
       end
-      else //choose the first one
-        NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[0];
+      else //not 1, not 0, so multiple
+      begin
+        input:='0';
+        question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
+        for i:=0 to length(PossibleNtUserQueryWindowCallnumbers)-1 do
+          question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserQueryWindowCallnumbers[i],4);
+
+        if inputquery('Systemcall retriever error',question ,input) then
+        begin
+          try
+            i:=StrToInt(input);
+            if i>=length(PossibleNtUserQueryWindowCallnumbers) then raise exception.Create('I can''t do that dave');
+
+            NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[i];
+          except
+            NtUserQueryWindowCallnumber:=0;
+          end;
+        end
+        else //choose the first one
+          NtUserQueryWindowCallnumber:=PossibleNtUserQueryWindowCallnumbers[0];
+
+      end;
+
+      //NtUserFindWindowEx
+      setlength(PossibleNtUserFindWindowExCallnumbers,0);
+      for i:=0 to length(callnumbers[2])-1 do
+      begin
+        //search the list for a callnumber that takes $14 parameters (if there are more ask)
+        if callnumbers[2][i].parametercount=$14 then
+        begin
+          setlength(PossibleNtUserFindWindowExCallnumbers,length(PossibleNtUserFindWindowExCallnumbers)+1);
+          PossibleNtUserFindWindowExCallnumbers[length(PossibleNtUserFindWindowExCallnumbers)-1]:=callnumbers[2][i].callnumber;
+        end;
+      end;
+
+      if length(PossibleNtUserFindWindowExCallnumbers)=1 then
+      begin
+        NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[0]
+      end
+      else //not 1, not 0, so multiple
+      begin
+        input:='0';
+        question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
+        for i:=0 to length(PossibleNtUserFindWindowExCallnumbers)-1 do
+          question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserFindWindowExCallnumbers[i],4);
+
+        if inputquery('Systemcall retriever error',question ,input) then
+        begin
+          try
+            i:=StrToInt(input);
+            if i>=length(PossibleNtUserFindWindowExCallnumbers) then raise exception.Create('I can''t do that dave');
+
+            NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[i];
+          except
+            NtUserFindWindowExCallnumber:=0;
+          end;
+        end
+        else //choose the first one
+          NtUserFindWindowExCallnumber:=PossibleNtUserFindWindowExCallnumbers[0];
+
+      end;
+
+      //NtUserGetForegroundWindow
+      setlength(PossibleNtUserGetForegroundWindowCallnumbers,0);
+      for i:=0 to length(callnumbers[3])-1 do
+      begin
+        //search the list for a callnumber that takes 0 parameters (if there are more ask)
+        if callnumbers[3][i].parametercount=0 then
+        begin
+          setlength(PossibleNtUserGetForegroundWindowCallnumbers,length(PossibleNtUserGetForegroundWindowCallnumbers)+1);
+          PossibleNtUserGetForegroundWindowCallnumbers[length(PossibleNtUserGetForegroundWindowCallnumbers)-1]:=callnumbers[3][i].callnumber;
+        end;
+      end;
+
+      if length(PossibleNtUserGetForegroundWindowCallnumbers)=1 then
+      begin
+        NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[0]
+      end
+      else //not 1, not 0, so multiple
+      begin
+        input:='0';
+        question:='Multiple systemcalls where recorded with the same ammount of parameters. Select the right one. (default=0)';
+        for i:=0 to length(PossibleNtUserGetForegroundWindowCallnumbers)-1 do
+          question:=question+#13#10+IntToStr(i)+':'+IntTohex(PossibleNtUserGetForegroundWindowCallnumbers[i],4);
+
+        if inputquery('Systemcall retriever error',question ,input) then
+        begin
+          try
+            i:=StrToInt(input);
+            if i>=length(PossibleNtUserGetForegroundWindowCallnumbers) then raise exception.Create('I can''t do that dave');
+
+            NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[i];
+          except
+            NtUserGetForegroundWindowCallnumber:=0;
+          end;
+        end
+        else //choose the first one
+          NtUserGetForegroundWindowCallnumber:=PossibleNtUserGetForegroundWindowCallnumbers[0];
+
+      end;
 
     end;
-
 
     winversion.dwOSVersionInfoSize:=sizeof(winversion);
     getversionex(winversion);
-
-
-    if (debugportoffset=0) and (getsystemtype=6) then
-    begin
-      if messagedlg('It seems the debugport wasn''t found. But I see windows XP is used. So it should be safe to assume that the debugport offset is 188. Do you want to fill that in?',mtConfirmation,[mbyes,mbno],0)=mryes then
-        debugportoffset:=188;
-    end;
 
     with tresultwindow.create(self) do
     begin
@@ -337,6 +337,13 @@ begin
       edit6.text:=inttostr(processnameoffset);
       edit7.text:=inttostr(debugportoffset);
 
+      if (debugportoffset=0) and (getsystemtype=6) then
+      begin
+        if messagedlg('It seems the debugport wasn''t found. But I see windows XP is used. So it should be safe to assume that the debugport offset is 188. Do you want to fill that in?',mtConfirmation,[mbyes,mbno],0)=mryes then
+          debugportoffset:=188;
+      end;
+
+
       if showmodal =mrok then
       begin
         NtUserBuildHwndListCallnumber:=strtoint(edit1.text);
@@ -349,6 +356,9 @@ begin
       end;
       //fill the data with the data from the window
     end;
+
+
+
 
 
     callnumbersfile:=tfilestream.Create(extractfilepath(application.ExeName)+'kerneldata.dat',fmcreate,fmsharedenynone);
@@ -371,39 +381,41 @@ begin
     end;
 
 
-    application.Terminate;
-
+   // application.Terminate;
   end;
-
 end;
+
+type puint64=^uint64;
 
 procedure TForm1.GetPEProcessData;
 var ths: thandle;
     pe32: tagProcessentry32;
     process1name: string;
     process1processid: dword;
-    process1peprocess:dword;
-    process1buffer: array [0..1023] of byte;
+    process1peprocess:UINT64;
+    process1buffer: array [0..4096] of byte;
     process2name: string;
     process2processid: dword;
-    process2peprocess:dword;
-    process2buffer: array [0..1023] of byte;
+    process2peprocess:UINT64;
+    process2buffer: array [0..4096] of byte;
     process3name: string;
     process3processid: dword;
-    process3peprocess:dword;
-    process3buffer: array [0..1023] of byte;
+    process3peprocess:UINT64;
+    process3buffer: array [0..4096] of byte;
     nobr: dword;
     a,b,c: boolean;
     p,p2: ^dword;
+    p64,p642: ^uint64;
     offset: dword;
     temp:dword;
+    temp64: uint64;
     currentchar: byte;
     i: integer;
     tempname: pchar;
 
-    idleprocesspeprocess: dword;
-    idleprocessbuffer: array [0..512] of byte;
-    idleprocesswithdebuggerbuffer: array [0..512] of byte;
+    idleprocesspeprocess: uint64;
+    idleprocessbuffer: array [0..4096] of byte;
+    idleprocesswithdebuggerbuffer: array [0..4096] of byte;
 
     processhandle1,processhandl2: thandle;
     si:_startupinfoa;
@@ -411,7 +423,12 @@ var ths: thandle;
     si2:_startupinfoa;
     pi2:_process_information;
 
+    wow64: BOOL;
 begin
+
+  if not IsWow64Process(getcurrentprocess, wow64) then
+    wow64:=false;
+    
 
   listbox1.lines.Add('Get Processlist');
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
@@ -460,16 +477,15 @@ begin
         exit;
       end;
 
-
       listbox1.Lines.Add(format('%x (%x) - %s',[process1processid, process1peprocess, process1name]));
       listbox1.Lines.Add(format('%x (%x) - %s',[process2processid, process2peprocess, process2name]));
       listbox1.Lines.Add(format('%x (%x) - %s',[process3processid, process3peprocess, process3name]));
 
 
       listbox1.Lines.Add('Reading the PEProcess structures');
-      a:=ReadProcessmemory(processhandle,pointer(process1peprocess),@process1buffer[0],1024,nobr);
-      b:=ReadProcessmemory(processhandle,pointer(process2peprocess),@process2buffer[0],1024,nobr);
-      c:=ReadProcessmemory(processhandle,pointer(process3peprocess),@process3buffer[0],1024,nobr);
+      a:=ReadProcessmemory64(processhandle,process1peprocess,@process1buffer[0],4096,nobr);
+      b:=ReadProcessmemory64(processhandle,process2peprocess,@process2buffer[0],4096,nobr);
+      c:=ReadProcessmemory64(processhandle,process3peprocess,@process3buffer[0],4096,nobr);
 
       if not (a and b and c) then
       begin
@@ -479,7 +495,7 @@ begin
 
       listbox1.Lines.Add('Finding the offset for the name');
       currentchar:=1;
-      for i:=0 to 511 do
+      for i:=0 to 4095 do
       begin
         if uppercase(chr(process1buffer[i]))=uppercase(process1name[currentchar]) then
         begin
@@ -543,17 +559,22 @@ begin
       listbox1.Lines.Add('');
       listbox1.Lines.Add('Finding out the activeprocess offset');
       p:=@process1buffer;
+      p64:=pointer(p);
       offset:=0;
+
       //scan till p^ finds (process2peprocess+offset)
-      while offset<2048 do
+      listbox1.lines.add('Looking for a link to process2:'+inttohex(int64(process2peprocess),16));
+      while offset<4096 do
       begin
-        if (p^=process2peprocess+offset) then
+        if (wow64 and (p64^=process2peprocess+offset)) or
+           ((not wow64) and (p^=dword(process2peprocess)+offset)) then
         begin
           activelinkoffset:=offset;
-          listbox1.Lines.Add('The activeprocess linked list is propably at '+IntToHex(offset,3));
+          listbox1.Lines.Add('The activeprocess linked list is probably at '+IntToHex(offset,3));
           break;
         end;
         inc(p);
+        p64:=pointer(p);
         inc(offset,4);
       end;
 
@@ -563,17 +584,35 @@ begin
         exit;
       end;
 
-      temp:=pdword(@process2buffer[activelinkoffset+4])^-activelinkoffset;
-      listbox1.Lines.Add('According to process2 the previous peprocess in the list is '+IntToHex(temp,8));
-      listbox1.Lines.Add('PEProcess of process1 is at '+IntToHex(process1peprocess,8));
+      if wow64 then
+      begin
+        temp64:=puint64(@process2buffer[activelinkoffset+8])^-activelinkoffset;
+        listbox1.Lines.Add('According to process2 the previous peprocess in the list is '+IntToHex(int64(temp64),8));
+        listbox1.Lines.Add('PEProcess of process1 is at '+IntToHex(int64(process1peprocess),8));
 
-      if temp=process1peprocess then
-        listbox1.Lines.Add('This seems to be alright')
+        if temp64=process1peprocess then
+          listbox1.Lines.Add('This seems to be alright')
+        else
+        begin
+          listbox1.Lines.Add('This isn''t what I was expecting...');
+          activelinkoffset:=0;
+          exit;
+        end;
+      end
       else
       begin
-        listbox1.Lines.Add('This isn''t what I was expecting...');
-        activelinkoffset:=0;
-        exit;
+        temp:=pdword(@process2buffer[activelinkoffset+4])^-activelinkoffset;
+        listbox1.Lines.Add('According to process2 the previous peprocess in the list is '+IntToHex(temp,8));
+        listbox1.Lines.Add('PEProcess of process1 is at '+IntToHex(process1peprocess,8));
+
+        if temp=process1peprocess then
+          listbox1.Lines.Add('This seems to be alright')
+        else
+        begin
+          listbox1.Lines.Add('This isn''t what I was expecting...');
+          activelinkoffset:=0;
+          exit;
+        end;
       end;
 
       listbox1.Lines.Add('');
@@ -592,7 +631,7 @@ begin
 
         try
           idleprocesspeprocess:=getpeprocess(pi.dwProcessId);
-          if not readprocessmemory(processhandle,pointeR(idleprocesspeprocess),@idleprocessbuffer[0],512,nobr) then
+          if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocessbuffer[0],4096,nobr) then
           begin
             listbox1.Lines.Add('The peprocess structure of the idle process couldn''t be read');
             exit;
@@ -605,7 +644,7 @@ begin
           begin
             sleep(1000);
 
-            if not readprocessmemory(processhandle,pointeR(idleprocesspeprocess),@idleprocesswithdebuggerbuffer[0],512,nobr) then
+            if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocesswithdebuggerbuffer[0],4096,nobr) then
             begin
               listbox1.Lines.Add('Failed to get the peprocess structure of the idle process AFTER the debugger was attached. (What kind of shit is this?)');
               exit;
@@ -613,20 +652,42 @@ begin
 
             listbox1.Lines.Add('Obtained a copy of the peprocess structure WITH and WITHOUT a debugger. Now going to do a compare and hopefully find the debugport');
             offset:=0;
-            p:=@idleprocessbuffer[0];
-            p2:=@idleprocesswithdebuggerbuffer[0];
 
-            while offset<512 do
+            if wow64 then
             begin
-              if (p^=0) and (p2^>$80000000) then
-              begin
-                debugportoffset:=offset;
-                break;
-              end;
+              p64:=@idleprocessbuffer[0];
+              p642:=@idleprocesswithdebuggerbuffer[0];
 
-              inc(p);
-              inc(p2);
-              inc(offset,4);
+              while offset<4096 do
+              begin
+                if (p64^=0) and (p642^>$fffff00000000000) then
+                begin
+                  debugportoffset:=offset;
+                  break;
+                end;
+
+                inc(p64);
+                inc(p642);
+                inc(offset,8);
+              end;
+            end
+            else
+            begin
+              p:=@idleprocessbuffer[0];
+              p2:=@idleprocesswithdebuggerbuffer[0];
+
+              while offset<4096 do
+              begin
+                if (p^=0) and (p2^>$80000000) then
+                begin
+                  debugportoffset:=offset;
+                  break;
+                end;
+
+                inc(p);
+                inc(p2);
+                inc(offset,4);
+              end;
             end;
 
             if debugportoffset=0 then
@@ -671,7 +732,6 @@ begin
       listbox1.Lines.SaveToFile('c:\kernellog.txt');
   end;
 
-  exit;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -722,6 +782,7 @@ end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
+  //it took 30 seconds. Tell the retriever to cancel
   postmessage(sharedmem^.RetrieverWindowHandle,wm_user+1,1,0);
 end;
 
@@ -731,10 +792,12 @@ begin
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
+var m: tmessage;
 begin
   //get peprocessinfo
   application.ProcessMessages;
   GetPEProcessData;
+
 
   if sdtshadow<>0 then
   begin
@@ -743,7 +806,16 @@ begin
 
     debugger:=tdebugger.Create(false);
     timer1.Enabled:=true;
-  end else listbox1.Lines.Add('Done! You can close this window now')   
+  end else
+  begin
+    timer2.Enabled:=false;
+    phase:=3;
+    m.WParam:=0;
+    done(m);
+
+    //timer1.enabled:=true;
+//    listbox1.Lines.Add('Done! You can close this window now')
+  end;
 end;
 
 end.

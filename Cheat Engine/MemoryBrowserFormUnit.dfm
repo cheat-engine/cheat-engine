@@ -30,7 +30,6 @@ object MemoryBrowser: TMemoryBrowser
     Align = alTop
     AutoSnap = False
     Beveled = True
-    Color = clGreen
     ParentColor = False
     OnCanResize = Splitter1CanResize
     OnMoved = Splitter1Moved
@@ -482,8 +481,8 @@ object MemoryBrowser: TMemoryBrowser
       Top = 1
       Height = 223
       Align = alRight
-      Color = clGreen
       ParentColor = False
+      Visible = False
     end
     object Panel3: TPanel
       Left = 1
@@ -600,6 +599,7 @@ object MemoryBrowser: TMemoryBrowser
       BevelInner = bvLowered
       PopupMenu = pmStacktrace
       TabOrder = 1
+      Visible = False
       object lvStacktrace: TListView
         Left = 2
         Top = 2

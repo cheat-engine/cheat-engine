@@ -95,8 +95,10 @@ begin
         popad
       end;
 
+      //GenuineIntel check
       if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
       begin
+        //it's an intel
         asm
           pushad
           mov eax,1
@@ -108,7 +110,7 @@ begin
           popad
         end;
 
-        if ((c shr 5) and 1)=1 then
+        if ((c shr 5) and 1)=1 then //check for the intel-vt flag
           supportsdbvm:=true;
       end;
     end;
@@ -117,17 +119,23 @@ begin
     begin
       lblDBVM.Font.Color:=clGreen;
       lbldbvm.caption:='Your system supports DBVM';
+      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it';
+      lbldbvm.ShowHint:=true;
     end
     else
     begin
       lblDBVM.Font.Color:=clRed;
       lbldbvm.caption:='Your system DOES NOT support DBVM';
+      lbldbvm.Hint:='This means that you will need a new cpu (intel) to be abnle to use the advanced dbvm options';
+      lbldbvm.ShowHint:=true;
     end;
   end
   else
   begin
     lblDBVM.Font.Color:=clLime;
     lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
+    lbldbvm.Hint:='This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
+    lbldbvm.ShowHint:=true;
   end;
 end;
 

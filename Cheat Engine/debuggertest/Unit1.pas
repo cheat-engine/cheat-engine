@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, syncobjs;
+  Dialogs, StdCtrls, syncobjs, psapi, imagehlp;
 
 type TChangeHealthThread=class(tthread)
   public
@@ -34,6 +34,7 @@ type
     Button6: TButton;
     Label9: TLabel;
     Button7: TButton;
+    Button8: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -43,8 +44,10 @@ type
     procedure Button6Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button7Click(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
   private
     { Private declarations }
+    originalIntegrityValue: dword;
     h: dword;
     cht: TChangeHealthThread;
   public
@@ -59,6 +62,44 @@ var
 implementation
 
 {$R *.dfm}
+
+function generateIntegrityValue: dword;
+var
+  size: dword;
+  mi: MODULEINFO;
+  i: integer;
+  p: pbytearray;
+
+  img: PIMAGENTHEADERS;
+  ish: PImageSectionHeader;
+  lastvalue: byte;
+begin
+  result:=0;
+  
+  if GetModuleInformation(GetCurrentProcess, GetModuleHandle(0), @mi, sizeof(mi)) then
+  begin
+    p:=mi.lpBaseOfDll;
+
+    img:=ImageNtHeader(p);
+
+    p:=pointer(dword(p)+img.OptionalHeader.BaseOfCode);
+
+    lastvalue:=$ce;
+    for i:=0 to img.OptionalHeader.SizeOfCode-1 do
+    begin
+      result:=result+(p[i] xor lastvalue);
+      lastvalue:=p[i];
+    end;
+  end;
+
+
+  if result=0 then
+  begin
+    showmessage('Integrity calculation failed');
+    application.Terminate;
+  end;
+
+end;
 
 destructor TChangeHealthThread.destroy;
 begin
@@ -98,6 +139,7 @@ begin
   asm
     nop
     nop
+    mov a,ebx
     nop
     nop
     nop
@@ -185,6 +227,8 @@ begin
   label1.caption:=format('%p : %d',[@health, health]);
 end;
 
+
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   label1.caption:=format('%p : %d',[@health, health]);
@@ -194,6 +238,7 @@ begin
   label9.caption:=format('%p',[@h]);
 
   cht:=tchangehealththread.create(false);
+  originalIntegrityValue:=generateIntegrityValue;
 end;
 
 
@@ -234,6 +279,8 @@ var old: dword;
 begin
   if VirtualProtect(@x, 1, PAGE_READWRITE, old) then
     showmessage('yes');
+
+  x;
 end;
 
 procedure TForm1.Button6Click(Sender: TObject);
@@ -252,6 +299,15 @@ end;
 procedure TForm1.Button7Click(Sender: TObject);
 begin
   cht.changehealthevent.SetEvent;
+end;
+
+procedure TForm1.Button8Click(Sender: TObject);
+begin
+  if generateIntegrityValue<>originalIntegrityValue then
+    raise exception.Create('!!!INTEGRITY FAILED!!!')
+  else
+    showmessage('Everything is fine');
+
 end;
 
 end.

@@ -49,6 +49,8 @@ This will either raise a unhandled opcode exception, or return the used dbvm ver
 		unsigned int command;
 	} vmcallinfo;
 
+	DbgPrint("vmx_getversion()\n");
+
 	vmcallinfo.structsize=sizeof(vmcallinfo);
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_GETVERSION;
@@ -104,7 +106,7 @@ unsigned int vmx_getRealCR4()
 	return dovmcall(&vmcallinfo, vmx_password1);
 }
 
-unsigned int vmx_redirect_interrupt1(unsigned int redirecttype, unsigned int newintvector, unsigned int int1cs, UINT_PTR int1eip)
+unsigned int vmx_redirect_interrupt1(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int1cs, UINT_PTR int1eip)
 {
 	#pragma pack(1)
 	struct
@@ -114,12 +116,12 @@ unsigned int vmx_redirect_interrupt1(unsigned int redirecttype, unsigned int new
 		unsigned int command;
 		unsigned int redirecttype;
 		unsigned int newintvector;
-		unsigned long long int1eip;
+		UINT64 int1eip;
 		unsigned int int1cs;
 	} vmcallinfo;
 	#pragma pack()
 
-	DbgPrint("vmx_redirect_interrupt1: int1cs=%x int1eip=%x sizeof(vmcallinfo)=%x\n", int1cs, int1eip, sizeof(vmcallinfo));
+	DbgPrint("vmx_redirect_interrupt1: redirecttype=%d int1cs=%x int1eip=%llx sizeof(vmcallinfo)=%x\n", redirecttype, int1cs, int1eip, sizeof(vmcallinfo));
 	vmcallinfo.structsize=sizeof(vmcallinfo);
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_REDIRECTINT1;
@@ -131,7 +133,7 @@ unsigned int vmx_redirect_interrupt1(unsigned int redirecttype, unsigned int new
 	return dovmcall(&vmcallinfo, vmx_password1);
 }
 
-unsigned int vmx_redirect_interrupt3(unsigned int redirecttype, unsigned int newintvector, unsigned int int3cs, UINT_PTR int3eip)
+unsigned int vmx_redirect_interrupt3(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int3cs, UINT_PTR int3eip)
 {
 	#pragma pack(1)
 	struct
@@ -159,7 +161,7 @@ unsigned int vmx_redirect_interrupt3(unsigned int redirecttype, unsigned int new
 }
 
 
-unsigned int vmx_redirect_interrupt14(unsigned int redirecttype, unsigned int newintvector, unsigned int int14cs, UINT_PTR int14eip)
+unsigned int vmx_redirect_interrupt14(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int14cs, UINT_PTR int14eip)
 {
 	#pragma pack(1)
 	struct

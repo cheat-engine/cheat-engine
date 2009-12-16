@@ -155,6 +155,7 @@ object frmStructures: TfrmStructures
     object ChangeElement1: TMenuItem
       Caption = 'Change element'
       Default = True
+      ShortCut = 16397
       OnClick = ChangeElement1Click
     end
     object Addelement1: TMenuItem
@@ -172,7 +173,14 @@ object frmStructures: TfrmStructures
     end
     object Addtoaddresslist1: TMenuItem
       Caption = 'Add to address list'
+      ShortCut = 65
       OnClick = Addtoaddresslist1Click
+    end
+    object Memorybrowsepointer1: TMenuItem
+      Caption = 'Memory browse pointer'
+      ShortCut = 70
+      Visible = False
+      OnClick = Memorybrowsepointer1Click
     end
     object N3: TMenuItem
       Caption = '-'

@@ -8,6 +8,34 @@ A		 		qword ?
 S				qword ?
 CALLBACK        ends
 
+
+ASMENTRY_STACK	struct ;keep this aligned
+	Scratchspace	qword ?
+	Scratchspace2	qword ? 
+	Originalmxcsr	qword ?	
+	OriginalRAX		qword ?
+	OriginalRBX		qword ?
+	OriginalRCX		qword ?
+	OriginalRDX		qword ?
+	OriginalRSI		qword ?
+	OriginalRDI		qword ?
+	OriginalRBP		qword ?
+	OriginalRSP		qword ? ;not really 'original'
+	OriginalR8		qword ?
+	OriginalR9		qword ?
+	OriginalR10		qword ?
+	OriginalR11		qword ?
+	OriginalR12		qword ?
+	OriginalR13		qword ?
+	OriginalR14		qword ?
+	OriginalR15		qword ?
+	OriginalES		qword ?
+	OriginalDS		qword ?		
+	OriginalSS		qword ?	
+	
+ASMENTRY_STACK	ends
+
+
 _TEXT SEGMENT 'CODE'
 
 EXTERN interrupt1_centry : proc
@@ -16,99 +44,124 @@ EXTERN Int1JumpBackLocation : CALLBACK
 PUBLIC interrupt1_asmentry
 interrupt1_asmentry:
 		;save stack position
-		push 0 ;push an errorcode on the stack so the stackindex can stay the same relative to interrupts that do have an errorcode (int 14)
-		push rbp
-		mov rbp,rsp
+		cld			
+		push 0 ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14)
+		
+		;stack is aligned at this point
+		sub rsp,SIZEOF ASMENTRY_STACK
+		
+		
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRBP,rbp
+		lea rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRAX
+		
+		
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRAX,rax	
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRBX,rbx
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRCX,rcx
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRDX,rdx
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRSI,rsi
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRDI,rdi
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalRSP,rsp
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR8,r8
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR9,r9
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR10,r10
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR11,r11
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR12,r12
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR13,r13
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR14,r14
+		mov (ASMENTRY_STACK PTR [rsp]).OriginalR15,r15
 
-		;save state
-		push rax
-		push rcx
-		push rdx
-		push rbx
-		push rsp
-		push rbp
-		push rsi
-		push rdi
+
 	
-		xor rax,rax
+		
+		
+		
 		mov ax,ds
-		push rax
-
+		mov word ptr (ASMENTRY_STACK PTR [rsp]).OriginalDS,ax
+		
 		mov ax,es
-		push rax
+		mov word ptr (ASMENTRY_STACK PTR [rsp]).OriginalES,ax
 		
-		mov ax,fs
-		push rax
+		mov ax,ss
+		mov word ptr (ASMENTRY_STACK PTR [rsp]).OriginalSS,ax		
 		
-		mov ax,gs
-		push rax		
 
-		
-		;and now the extra registers
-		push r8
-		push r9
-		push r10
-		push r11
-		push r12
-		push r13
-		push r14
-		push r15
-		
 		mov ax,2bh 
 		mov ds,ax
 		mov es,ax
-		mov gs,ax
-		mov ax,53h
-		mov fs,ax
+		
+		mov ax,18h
+		mov ss,ax
+		
+		
+		cmp qword ptr [rbp+8*21],010h ;check if origin is in kernelmode
+		je skipswap1 ;if so, skip the swapgs
+		
+		swapgs ;swap gs with the kernel version (not to self fix when called from inside kernel)
+		
+skipswap1:
+		
+		
+		
+		stmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
+		
+		mov (ASMENTRY_STACK PTR [rsp]).scratchspace2,1f80h		
+		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).scratchspace2
+
 		
 		mov rcx,rbp
 		call interrupt1_centry
 		
-		cmp al,1 ;set flag
+		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
+		
+		cmp qword ptr [rbp+8*21],10h ;was is a kernelmode interrupt ?
+		je skipswap2 ;if so, skip the swapgs part
+				
+		swapgs ;swap back
+skipswap2:
+
+		cmp al,1
+
 
 		;restore state
-		pop r15
-		pop r14
-		pop r13
-		pop r12
-		pop r11
-		pop r10
-		pop r9
-		pop r8
-		
-		pop rax
-		mov gs,ax
-		pop rax
-		mov fs,ax
-		pop rax
-		mov es,ax
-		pop rax
+		mov ax,word ptr (ASMENTRY_STACK PTR [rsp]).OriginalDS
 		mov ds,ax
 		
-		pop rdi
-		pop rsi
-		pop rbp
-		pop rax ;skip pop rsp
-		pop rbx
-		pop rdx
-		pop rcx
-		pop rax
+		mov ax,word ptr (ASMENTRY_STACK PTR [rsp]).OriginalES
+		mov es,ax
+		
+		mov ax,word ptr (ASMENTRY_STACK PTR [rsp]).OriginalSS
+		mov ss,ax
+		
+		
+		mov rax,(ASMENTRY_STACK PTR [rsp]).OriginalRAX
+		mov rbx,(ASMENTRY_STACK PTR [rsp]).OriginalRBX
+		mov rcx,(ASMENTRY_STACK PTR [rsp]).OriginalRCX
+		mov rdx,(ASMENTRY_STACK PTR [rsp]).OriginalRDX
+		mov rsi,(ASMENTRY_STACK PTR [rsp]).OriginalRSI
+		mov rdi,(ASMENTRY_STACK PTR [rsp]).OriginalRDI
+		mov r8,(ASMENTRY_STACK PTR [rsp]).OriginalR8
+		mov r9,(ASMENTRY_STACK PTR [rsp]).OriginalR9
+		mov r10,(ASMENTRY_STACK PTR [rsp]).OriginalR10
+		mov r11,(ASMENTRY_STACK PTR [rsp]).OriginalR11
+		mov r12,(ASMENTRY_STACK PTR [rsp]).OriginalR12
+		mov r13,(ASMENTRY_STACK PTR [rsp]).OriginalR13
+		mov r14,(ASMENTRY_STACK PTR [rsp]).OriginalR14
+		mov r15,(ASMENTRY_STACK PTR [rsp]).OriginalR15
 
-		pop rbp
-		
+	
 		je skip_original_int1
-		;not skipping the original int1
-		add rsp,8 ;undo errorcode push (shame it affects the eflags reg)
-			
-		push Int1JumpBackLocation.S ;cs
-		push Int1JumpBackLocation.A ;address		
-		retf
-		;jmp far [Int1JumpBackLocation] just won't work here
 		
+		;stack unwind
+		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
+		add rsp,SIZEOF ASMENTRY_STACK+8  ;+8 for the push 0
+		jmp [Int1JumpBackLocation.A] ;<-works fine	
 
 
 skip_original_int1:
-		add rsp,8 ;undo errorcode push
+		;stack unwind
+		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
+		add rsp,SIZEOF ASMENTRY_STACK+8  ;+8 for the push 0		
 		iretq
 
 	

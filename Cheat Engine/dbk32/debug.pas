@@ -65,12 +65,14 @@ begin
   
 end;
 
+var KernelDebugStarted: boolean;
 function StartCEKernelDebug:BOOL; stdcall;
 begin
   outputdebugstring('StartCEKernelDebug');
-  foreachcpu(internal_hookints, nil);
+  if not KernelDebugStarted then
+    KernelDebugStarted:=foreachcpu(internal_hookints, nil);
 
-  result:=true;
+  result:=KernelDebugStarted;
 end;
 
 function internal_SetGlobalDebugState(state: pointer): BOOL; stdcall;

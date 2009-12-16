@@ -123,11 +123,12 @@ UINT64 getDR7(void)
 }
 
 int cpunr(void)
-{
+{	
 	DWORD x[4];
-	__cpuid(x,1);
-
+	__cpuid(&x[0],1);
+	
 	return (x[1] >> 24)+1;
+
 }
 
 EFLAGS getEflags(void)

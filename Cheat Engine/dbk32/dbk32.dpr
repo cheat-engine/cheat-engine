@@ -27,6 +27,7 @@ exports OP;//OpenProcess;
 exports OT;//OpenThread
 exports NOP;//NtOpenProcess;
 exports RPM;//ReadProcessMemory;
+exports RPM64;//ReadProcessMemory64;
 exports WPM;//WriteProcessMemory;
 exports VAE; //VirtualAllocEx
 exports CreateRemoteAPC;

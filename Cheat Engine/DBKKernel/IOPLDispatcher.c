@@ -369,7 +369,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				else
 				{
 					if (PsLookupProcessByProcessId((PVOID)(UINT_PTR)(processid),&selectedprocess)==STATUS_SUCCESS)
+					{
+#ifdef AMD64
 						*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(UINT64)selectedprocess;
+#else
+						*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(DWORD)selectedprocess;
+#endif
+						//DbgPrint("PEProcess=%llx\n", *(PUINT64)Irp->AssociatedIrp.SystemBuffer);
+					}
 					else
 						*(PUINT64)Irp->AssociatedIrp.SystemBuffer=0;
 				}
@@ -481,7 +488,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
-				DbgPrint("IOCTL_CE_GETPHYSICALADDRESS. ProcessID(%p)=%x BaseAddress(%p)=%x\n",&pinp->ProcessID, pinp->ProcessID, &pinp->BaseAddress, pinp->BaseAddress);
+				//DbgPrint("IOCTL_CE_GETPHYSICALADDRESS. ProcessID(%p)=%x BaseAddress(%p)=%x\n",&pinp->ProcessID, pinp->ProcessID, &pinp->BaseAddress, pinp->BaseAddress);
 
 				__try
 				{
@@ -513,7 +520,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				if (ntStatus==STATUS_SUCCESS)
 				{
-					DbgPrint("physical.LowPart=%x",physical.LowPart);
+					//DbgPrint("physical.LowPart=%x",physical.LowPart);
                     RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer,&physical.QuadPart,8);
 
 				}
@@ -900,10 +907,10 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct intput
 				{
-					DWORD ProcessID;
+					UINT64 ProcessID;
 					UINT64 pagebase;
 					UINT64 relocatedpagebase;
-					int	  size;
+					UINT64 size;
 				} *pinp;
 
 				DbgPrint("IOCTL_CE_ADDCLOAKEDSECTION\n");
@@ -920,7 +927,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct intput
 				{
-					DWORD ProcessID;
+					UINT64 ProcessID;
 					UINT64 pagebase;
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
@@ -991,7 +998,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DWORD	ProcessID;
 				} *pinp;
 
-			
+				DbgPrint("IOCTL_CE_DEBUGPROCESS\n");			
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 				debugger_startDebugging(pinp->ProcessID);
 
@@ -1478,12 +1485,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 					}
 					i++;
-				}	
+				}
+#else
+				*(UINT_PTR*)Irp->AssociatedIrp.SystemBuffer=(UINT_PTR)0;
 #endif
 
 				break;
 			}
-			/*
+			
 
 		case IOCTL_CE_VMXCONFIG:
 			{
@@ -1507,7 +1516,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					__try
 					{
 						vmx_version=vmx_getversion();
-						DbgPrint("Still here, so vmx is loaded. vmx_version=%d\n",vmx_version);	
+						DbgPrint("Still here, so vmx is loaded. vmx_version=%x\n",vmx_version);	
 						vmxusable = 1;
 					}
 					__except(1)
@@ -1527,10 +1536,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
-
-			*/
-
         default:
+			//DbgPrint("Unhandled IO request: %x\n", irpStack->Parameters.DeviceIoControl.IoControlCode);			
             break;
     }
 

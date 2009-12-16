@@ -103,11 +103,11 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 
 	if (selectedprocess==NULL)
 	{
-		DbgPrint("WriteProcessMemory:Getting PEPROCESS\n");
+		//DbgPrint("WriteProcessMemory:Getting PEPROCESS\n");
         if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
-		DbgPrint("Retrieved peprocess");  
+		//DbgPrint("Retrieved peprocess");  
 	}
 
 	//selectedprocess now holds a valid peprocess value
@@ -125,14 +125,14 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 			char* source;
 			unsigned int i;	
 
-			DbgPrint("Checking safety of memory\n");
+			//DbgPrint("Checking safety of memory\n");
 
 			if ((!IsAddressSafe((UINT_PTR)Address)) || (!IsAddressSafe((UINT_PTR)Address+Size-1)))
 				return FALSE; //if the first or last byte of this region is not safe then exit; //I know I should also check the regions inbetween, but since my own dll doesn't request more than 512 bytes it wont overlap
 
     		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
 
-			DbgPrint("Copying memory to target\n");
+			//DbgPrint("Copying memory to target\n");
 			target=Address;
 			source=Buffer;
 			for (i=0; i<Size; i++)
@@ -149,7 +149,7 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 	}			
 	__except(1)
 	{
-		DbgPrint("Error while writing\n");
+		//DbgPrint("Error while writing\n");
 		ntStatus = STATUS_UNSUCCESSFUL;
 	}
 	
@@ -259,7 +259,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	}			
 	__except(1)
 	{
-		DbgPrint("Error while reading: ReadProcessMemory(%x,%p, %p, %d, %p\n", PID, PEProcess, Address, Size, Buffer);
+		//DbgPrint("Error while reading: ReadProcessMemory(%x,%p, %p, %d, %p\n", PID, PEProcess, Address, Size, Buffer);
 
 		ntStatus = STATUS_UNSUCCESSFUL;
 	}

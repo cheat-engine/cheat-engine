@@ -6228,7 +6228,7 @@ end;
 procedure TMainForm.LogoClick(Sender: TObject);
 begin
   if messagedlg('Do you want to go to the Cheat Engine website?',mtconfirmation,[mbyes,mbno],0)=mryes then
-    ShellExecute(0, pchar('open'),pchar('http://www.cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
+    ShellExecute(0, pchar('open'),pchar('http://www.cheatengine.org/?referedby=CE56'), pchar(''),pchar(''), SW_MAXIMIZE	);
 
 end;
 
@@ -11000,13 +11000,14 @@ begin
   LoadDBK32;
 
   launchdbvm;
+
   showmessage('not crashed yet');
 
   exit;
 
 
    {
-  DBKDebug_StartDebugging(processid);
+  
 
   if DBKDebug_WaitForDebugEvent(1000) then
   begin
@@ -11284,7 +11285,11 @@ var heaphandles: array of cardinal;
 
     starttime: dword;
 begin
+  OutputDebugString('calling stealthedit_InitializeHooks');
+  stealthedit_InitializeHooks;
+//  DBKDebug_StartDebugging(processid);
 
+  {
   abc:=TReversePointerListHandler.create(0,$7fffffff,true,progressbar1);
   //showmessage(inttohex(aaaa,8));
 
@@ -12141,28 +12146,11 @@ var c: string;
   i: integer;
   plist:PPointerlist;
 begin
-
-  s:=tstringlist.create;
-  c:='2c90d2ac';
-  inputquery('a','b',c);
-
-  stopvalue:=strtoint('$'+c);
-  startvalue:=stopvalue-4096;
-
-  while stopvalue>startvalue do
+  if DBKDebug_WaitForDebugEvent(1000) then
   begin
-    plist:=abc.findPointerValue(startvalue, stopvalue);
-    for i:=0 to plist.pos-1 do
-    begin
-
-      s.Add(inttohex(plist.list[i].address,8));
-    end;
-    stopvalue:=stopvalue-4;
-  end;
-
-  showmessage(s.Text);
-
-
+    DBKDebug_ContinueDebugEvent(false);
+  end
+  else showmessage('timeout');
 end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);

@@ -2,7 +2,7 @@ unit PEInfounit;
 
 {
 Changed title from PE info to Portable Executable (PE) info. I have this feeling
-that 'some people' (idiots) would nout understand that it isn't a packet editor
+that 'some people' (idiots) would not understand that it isn't a packet editor
 }
 
 interface

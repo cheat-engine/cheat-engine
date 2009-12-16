@@ -9,15 +9,20 @@ uses
 
 const structureversion=1;
 
+
+type TStructElement=record
+                      offset: dword;
+                      description:string;
+                      pointerto: boolean;  //determines if it's a pointer to a structure, or the structure itself
+                      pointertosize: dword;
+                      structurenr: integer; //-1 and lower=base element   (they can't be both -1)
+                      bytesize: dword; //size in bytes of how big this element is. (also for base elements)
+                    end;
+
+
 type Tbasestucture=record
   name: string;
-  structelement: array of record
-                            description:string;
-                            pointerto: boolean;  //determines if it's a pointer to a structure, or the structure itself
-                            pointertosize: dword;
-                            structurenr: integer; //-1 and lower=base element   (they can't be both -1)
-                            bytesize: dword; //size in bytes of how big this element is. (also for base elements)
-                          end;
+  structelement: array of TStructElement;
   end;
 
   //TfrmStructures = class;
@@ -82,6 +87,7 @@ type Tbasestucture=record
     ScrollBox1: TScrollBox;
     tvStructureView: TTreeView;
     HeaderControl1: THeaderControl;
+    Memorybrowsepointer1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -120,6 +126,7 @@ type Tbasestucture=record
     procedure Renamestructure1Click(Sender: TObject);
     procedure Deletecurrentstructure1Click(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
+    procedure Memorybrowsepointer1Click(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
@@ -143,6 +150,8 @@ type Tbasestucture=record
 var
   frmStructures: array of TfrmStructures;
   definedstructures: array of Tbasestucture;
+
+procedure sortStructure(struct: Tbasestucture);
 
 implementation
 
@@ -259,20 +268,22 @@ begin
     treeviewused.Items.GetFirstNode.Text:=definedstructures[basestructure].name+#13;
   end;
 
-
-
-  elementoffset:=0;
   setlength(currentvalues,length(addresses));
 
   for i:=0 to length(objects)-1 do
   begin
+
+    
     //define the text for this element
     if basestructure<0 then
     begin
       snr:=basestructure;
+      elementoffset:=0;
     end
     else
     begin
+      elementoffset:=definedstructures[basestructure].structelement[i].offset;
+      
       if definedstructures[basestructure].structelement[i].pointerto then
         typename:='pointer to '
       else
@@ -526,7 +537,6 @@ begin
         objects[i].child.refresh;
       end;
 
-      inc(elementoffset,definedstructures[basestructure].structelement[i].bytesize);
     end;
   end;
 
@@ -535,6 +545,39 @@ begin
     treeviewused.Items.GetFirstNode.Expand(false);
 
   //treeviewused.Items.endupdate;
+end;
+
+procedure sortStructure(struct: Tbasestucture);
+var
+  i,j: integer;
+  l: integer;
+  temp: TStructElement;
+begin
+  //bubblesort
+  i:=1;
+  l:=length(struct.structelement);
+  for i:=1 to l-1 do
+  begin
+    if struct.structelement[i-1].offset>struct.structelement[i].offset then
+    begin
+      //the previous entry is bigger than the current entry
+
+      //find a entry that's smaller
+      for j:=i to l-1 do
+      begin
+        if struct.structelement[j-1].offset>struct.structelement[j].offset then
+        begin
+          //swap
+          temp:=struct.structelement[j-1];
+          struct.structelement[j-1]:=struct.structelement[j];
+          struct.structelement[j]:=temp;
+        end;
+
+      end;
+    end;
+  end;
+
+
 end;
 
 procedure TfrmStructures.update(doOthers: boolean);
@@ -718,7 +761,6 @@ begin
   refreshmenuitems;
   structures1.Items[structures1.Count-1].Click;
 
-
   if autofillin=mryes then
   begin
     sstructsize:='4096';
@@ -736,8 +778,8 @@ begin
       begin
         i:=length(definedstructures[length(definedstructures)-1].structelement);
         setlength(definedstructures[length(definedstructures)-1].structelement,i+1);
+        definedstructures[length(definedstructures)-1].structelement[i].offset:=x;
         definedstructures[length(definedstructures)-1].structelement[i].pointerto:=false;
-
 
         //value
         //check what type it is
@@ -745,6 +787,8 @@ begin
         if t2=vtPointer then
         begin
           //pointer
+
+
           definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
           definedstructures[length(definedstructures)-1].structelement[i].pointertoSize:=8;
           definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
@@ -768,6 +812,8 @@ begin
 
 
         definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
+
+
 
         case t of
           -1: //byte
@@ -886,6 +932,7 @@ var d,i,j,k,l:integer;
     selectedstructure: tstructure;
     selectedelement: integer;
     selectednode: ttreenode;
+    base: dword;
 begin
   if currentstructure=nil then exit;
 
@@ -950,6 +997,10 @@ begin
 
 
 
+    if selectednode.index>=0 then
+      edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectednode.index].offset-1,1);
+
+
     if showmodal=mrok then
     begin
       if cbtype.ItemIndex=-1 then exit;
@@ -966,6 +1017,7 @@ begin
 
       definedstructures[selectedstructure.basestructure].structelement[i].pointerto:=cbpointerto.checked;
       definedstructures[selectedstructure.basestructure].structelement[i].description:=edtDescription.text;
+      base:=strToInt('$'+edtOffset.text);
 
       if definedstructures[selectedstructure.basestructure].structelement[i].pointerto then
       begin
@@ -981,6 +1033,7 @@ begin
       begin
         if cbtype.ItemIndex<=14 then //basetype
         begin
+          definedstructures[selectedstructure.basestructure].structelement[i].offset:=base;
           definedstructures[selectedstructure.basestructure].structelement[i].structurenr:=-(cbtype.ItemIndex+1);
           definedstructures[selectedstructure.basestructure].structelement[i].bytesize:=bytesize;
         end
@@ -1000,11 +1053,13 @@ begin
           begin
             definedstructures[selectedstructure.basestructure].structelement[i]:=definedstructures[j].structelement[k];
             definedstructures[selectedstructure.basestructure].structelement[i].description:=edtDescription.text+'_'+definedstructures[j].structelement[k].description;
+            inc(definedstructures[selectedstructure.basestructure].structelement[i].offset, base);
             inc(i);
           end;
         end;
       end;
 
+      sortStructure(definedstructures[selectedstructure.basestructure]);
       self.update(true);
       mainform.itemshavechanged:=true;
 
@@ -1091,15 +1146,27 @@ begin
 end;
 
 procedure TfrmStructures.PopupMenu1Popup(Sender: TObject);
-var i: integer;
+var
+  i: integer;
+  s: Tstructure;
+  elementnr: integer;
 begin
   for i:=0 to popupmenu1.Items.Count-1 do
     popupmenu1.Items[i].Visible:=currentstructure<>nil;
 
 
-
-
   n3.Visible:=(tvStructureView.selected<>nil) and (tvStructureView.selected.Level=1);
+
+
+  if (tvStructureView.selected<>nil) then
+  begin
+    s:=tstructure(tvStructureView.Selected.Data);
+    elementnr:=tvStructureView.Selected.Index;
+
+    Memorybrowsepointer1.Visible:=(elementnr>=0) and definedstructures[s.basestructure].structelement[elementnr].pointerto;
+  end;
+
+
   Recalculateaddress1.visible:=n3.Visible;
 end;
 
@@ -1418,6 +1485,8 @@ begin
 //    else
 //      edtByteSize.Text
 
+    edtOffset.Text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset,1);
+
     cbType.OnChange(cbType);
 
     if showmodal=mrok then
@@ -1425,6 +1494,7 @@ begin
       definedstructures[selectedstructure.basestructure].structelement[selectedelement].description:=edtDescription.text;
       definedstructures[selectedstructure.basestructure].structelement[selectedelement].pointerto:=cbpointerto.checked;
       definedstructures[selectedstructure.basestructure].structelement[selectedelement].pointertosize:=bytesize;
+      definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset:=strtoint('$'+edtOffset.text);
 
       if cbtype.itemindex<=14 then
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr:=-(cbtype.ItemIndex+1)
@@ -1438,7 +1508,8 @@ begin
 
       if tvStructureView.Selected.HasChildren then
         tvStructureView.Selected.DeleteChildren;
-        
+
+      sortstructure(definedstructures[selectedstructure.basestructure]);
 
       self.update(true);
       mainform.itemshavechanged:=true;
@@ -1712,8 +1783,7 @@ begin
 
     oldaddress:=addresses[section];
 
-    for i:=0 to selectedelement-1 do
-      inc(oldaddress,definedstructures[snr].structelement[i].bytesize);
+    inc(oldaddress,definedstructures[snr].structelement[selectedelement].offset);
 
     a:=inttohex(memorybrowser.memoryaddress,8);
     if inputquery('Recalculate base of structure','Give the address of this element',a) then
@@ -2048,6 +2118,58 @@ begin
   end;
 end;
 
+procedure TfrmStructures.Memorybrowsepointer1Click(Sender: TObject);
+var
+  i: integer;
+  s: Tstructure;
+  elementnr: integer;
+  tvrect: trect;
+  clickpos: tpoint;
+  section: integer;
+  address: dword;
+  x: dword;
+begin
+  if (tvStructureView.selected<>nil) then
+  begin
+    s:=tstructure(tvStructureView.Selected.Data);
+    elementnr:=tvStructureView.Selected.Index;
+
+    if (elementnr>=0) then
+    begin
+      //find the position that is clicked
+      GetWindowRect(TTreeview(sender).Handle, tvrect);
+
+      clickpos.X:=popupmenu1.PopupPoint.X-tvrect.Left;
+      clickpos.Y:=popupmenu1.PopupPoint.Y-tvrect.Top;
+
+      section:=headercontrol1.Sections.Count-1;
+      for i:=0 to headercontrol1.Sections.Count-1 do
+      begin
+        if (clickpos.x>=headercontrol1.Sections[i].Left)
+          and
+           (clickpos.x<headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width) then
+        begin
+          //found it
+          section:=i;
+          break;
+        end;
+      end;
+
+      if section>0 then
+        section:=section-1; //count starts from 1, so decrease
+
+      if readprocessmemory(processhandle, pointer(s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset), @address,4,x) then
+      begin
+        memorybrowser.memoryaddress:=address;
+        memorybrowser.RefreshMB;
+      end;
+
+    end;
+   // definedstructures[s.basestructure].structelement[elementnr].
+  end;
+end;
+
 end.
+
 
 

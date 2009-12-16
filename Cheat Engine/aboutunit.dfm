@@ -5,68 +5,68 @@ object About: TAbout
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
-  ClientHeight = 188
-  ClientWidth = 260
+  ClientHeight = 231
+  ClientWidth = 320
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object GroupBox1: TGroupBox
     Left = 0
     Top = 0
-    Width = 260
-    Height = 188
+    Width = 320
+    Height = 231
     Align = alClient
     Caption = 'Cheat Engine 5.6'
     TabOrder = 0
     object Label1: TLabel
-      Left = 72
-      Top = 16
-      Width = 94
-      Height = 13
+      Left = 89
+      Top = 20
+      Width = 118
+      Height = 16
       Caption = 'Made by: Dark Byte'
     end
     object Label2: TLabel
-      Left = 8
-      Top = 112
-      Width = 51
-      Height = 13
+      Left = 10
+      Top = 138
+      Width = 62
+      Height = 16
       Caption = 'Thanks to:'
     end
     object Label3: TLabel
-      Left = 8
-      Top = 128
-      Width = 32
-      Height = 13
+      Left = 10
+      Top = 158
+      Width = 41
+      Height = 16
       Caption = 'Metael'
     end
     object Label4: TLabel
-      Left = 108
-      Top = 128
-      Width = 57
-      Height = 13
+      Left = 133
+      Top = 158
+      Width = 72
+      Height = 16
       Caption = 'A. Wiseman'
     end
     object Label5: TLabel
-      Left = 8
-      Top = 144
-      Width = 203
-      Height = 13
+      Left = 10
+      Top = 177
+      Width = 253
+      Height = 16
       Caption = 'And all the other people that helped me out'
     end
     object Image1: TImage
-      Left = 8
-      Top = 16
-      Width = 57
-      Height = 73
+      Left = 10
+      Top = 20
+      Width = 70
+      Height = 90
       Picture.Data = {
         07544269746D617076260000424D762600000000000036000000280000002F00
         000044000000010018000000000040260000C40E0000C40E0000000000000000
@@ -381,92 +381,92 @@ object About: TAbout
       OnMouseDown = Image1MouseDown
     end
     object Label6: TLabel
-      Left = 55
-      Top = 128
-      Width = 34
-      Height = 13
+      Left = 68
+      Top = 158
+      Width = 40
+      Height = 16
       Caption = 'wh1t3y'
     end
     object Label7: TLabel
-      Left = 181
-      Top = 128
-      Width = 66
-      Height = 13
+      Left = 223
+      Top = 158
+      Width = 84
+      Height = 16
       Caption = 'SWAT-Squad'
     end
     object Label8: TLabel
-      Left = 88
-      Top = 48
-      Width = 39
-      Height = 13
+      Left = 108
+      Top = 59
+      Width = 50
+      Height = 16
       Cursor = crHandPoint
       Caption = 'Website'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = Label8Click
     end
     object Label9: TLabel
-      Left = 88
-      Top = 64
-      Width = 74
-      Height = 13
+      Left = 108
+      Top = 79
+      Width = 97
+      Height = 16
       Cursor = crHandPoint
       Caption = 'Message Board'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlue
-      Font.Height = -11
+      Font.Height = -15
       Font.Name = 'MS Sans Serif'
       Font.Style = [fsUnderline]
       ParentFont = False
       OnClick = Label9Click
     end
     object Label10: TLabel
-      Left = 8
-      Top = 94
-      Width = 213
-      Height = 13
+      Left = 10
+      Top = 116
+      Width = 267
+      Height = 16
       Caption = 'Script engine powered by the UnderC Project'
     end
     object lblDBVM: TLabel
-      Left = 8
-      Top = 168
+      Left = 10
+      Top = 207
       Width = 3
-      Height = 13
+      Height = 16
     end
     object Button1: TButton
-      Left = 224
-      Top = 163
-      Width = 33
-      Height = 17
+      Left = 276
+      Top = 201
+      Width = 40
+      Height = 21
       Caption = 'OK'
       TabOrder = 0
       OnClick = Button1Click
     end
     object Panel1: TPanel
-      Left = 192
-      Top = 8
-      Width = 65
-      Height = 33
+      Left = 236
+      Top = 10
+      Width = 80
+      Height = 40
       ParentBackground = True
       ParentColor = True
       TabOrder = 1
       object Panel2: TPanel
-        Left = 5
-        Top = 6
-        Width = 55
-        Height = 22
+        Left = 6
+        Top = 7
+        Width = 68
+        Height = 27
         ParentBackground = True
         ParentColor = True
         TabOrder = 0
         object Button2: TButton
-          Left = 5
+          Left = 6
           Top = 2
-          Width = 46
-          Height = 17
+          Width = 57
+          Height = 21
           Hint = 
             'If you like Cheat Engine and want to contribute something to the' +
             ' development, just send a donation using Paypal.'

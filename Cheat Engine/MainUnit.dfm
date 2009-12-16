@@ -1409,11 +1409,11 @@ object MainForm: TMainForm
     end
     object Label38: TLabel
       Tag = 1
-      Left = 376
+      Left = 328
       Top = 304
-      Width = 17
+      Width = 68
       Height = 13
-      Caption = 'test'
+      Caption = 'stealthedit test'
       OnClick = Label38Click
     end
     object Label53: TLabel

@@ -12,7 +12,7 @@ uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,comment
 {$endif}
 
 
-var CurrentTableVersion: dword=8;
+var CurrentTableVersion: dword=9;
 procedure SaveTable(Filename: string);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address,size:dword);
@@ -3538,8 +3538,11 @@ var tempnode: IXMLNode;
     elements: IXMLNode;
     element: IXMLNode;
     i: integer;
+    currentOffset: dword;
+    findoffset: boolean;
 begin
 
+  currentoffset:=0;
   if Structure.NodeName='Structure' then
   begin
     tempnode:=Structure.ChildNodes.FindNode('Name');
@@ -3552,12 +3555,33 @@ begin
     for i:=0 to length(struct.structelement)-1 do
     begin
       element:=elements.ChildNodes[i];
+
+      findoffset:=true;
+      tempnode:=element.ChildNodes.FindNode('Offset');
+      if tempnode<>nil then
+      begin
+        try
+          struct.structelement[i].offset:=strtoint('$'+tempnode.text);
+          findoffset:=false;
+        except
+
+        end;
+      end;
+
+      if findoffset then
+      begin
+        //no offset given, or faulty offset
+        struct.structelement[i].offset:=currentoffset;
+      end;
+
+
       tempnode:=element.ChildNodes.FindNode('Description');
       if tempnode<>nil then
         struct.structelement[i].description:=tempnode.Text;
 
       tempnode:=element.ChildNodes.FindNode('PointerTo');
       struct.structelement[i].pointerto:=(tempnode<>nil) and (tempnode.Text='1');
+        
       tempnode:=element.ChildNodes.FindNode('PointerToSize');
       if tempnode<>nil then
         struct.structelement[i].pointertosize:=strtoint(tempnode.Text);
@@ -3570,8 +3594,11 @@ begin
       if tempnode<>nil then
         struct.structelement[i].Bytesize:=strtoint(tempnode.Text);
 
+      currentoffset:=struct.structelement[i].offset+struct.structelement[i].Bytesize;
     end;
   end;
+
+  sortStructure(struct);
 end;
 {
 procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
@@ -4143,36 +4170,11 @@ begin
           ctfile.ReadBuffer(definedstructures[i].structelement[j].pointertoSize,sizeof(definedstructures[i].structelement[j].pointertoSize));
           ctfile.ReadBuffer(definedstructures[i].structelement[j].structurenr,sizeof(definedstructures[i].structelement[j].structurenr));
           ctfile.ReadBuffer(definedstructures[i].structelement[j].bytesize,sizeof(definedstructures[i].structelement[j].bytesize));
+          if tableversion>=9 then //version 9 added offsets
+            ctfile.ReadBuffer(definedstructures[i].structelement[j].offset,sizeof(definedstructures[i].structelement[j].offset));
+
         end;
-
       end;
-{
-    //structure definitions
-    records:=length(definedstructures);
-    blockwrite(savefile,records,sizeof(temp));
-    for i:=0 to records-1 do
-    begin
-      x:=pchar(definedstructures[i].name);
-      temp:=length(x);
-      blockwrite(savefile,temp,sizeof(temp));
-      blockwrite(savefile,pointer(x)^,temp);
-
-      subrecords:=length(definedstructures[i].structelement);
-      blockwrite(savefile,subrecords,sizeof(temp));
-      for j:=0 to subrecords-1 do
-      begin
-        x:=pchar(definedstructures[i].structelement[j].description);
-        temp:=length(x);
-        blockwrite(savefile,temp,sizeof(temp));
-        blockwrite(savefile,pointer(x)^,temp);
-
-        blockwrite(savefile, definedstructures[i].structelement[j].pointerto, sizeof(definedstructures[i].structelement[j].pointerto));
-        blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointerto));
-        blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
-        blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
-      end;
-    end;
-}
     end;
 
     //comments
@@ -5891,6 +5893,7 @@ begin
   for i:=0 to length(struct.structelement)-1 do
   begin
     element:=elements.AddChild('Element');
+    element.AddChild('Offset').Text:=inttostr(struct.structelement[i].offset);
     element.AddChild('Description').Text:=struct.structelement[i].description;
 
     if struct.structelement[i].pointerto then
@@ -5901,6 +5904,7 @@ begin
 
     element.AddChild('Structurenr').Text:=inttostr(struct.structelement[i].structurenr);
     element.AddChild('Bytesize').Text:=inttostr(struct.structelement[i].bytesize);
+
   end;
 end;
 
@@ -6224,6 +6228,7 @@ begin
           blockwrite(savefile, definedstructures[i].structelement[j].pointertoSize, sizeof(definedstructures[i].structelement[j].pointertoSize));
           blockwrite(savefile, definedstructures[i].structelement[j].structurenr, sizeof(definedstructures[i].structelement[j].structurenr));
           blockwrite(savefile, definedstructures[i].structelement[j].bytesize, sizeof(definedstructures[i].structelement[j].bytesize));
+          blockwrite(savefile, definedstructures[i].structelement[j].offset, sizeof(definedstructures[i].structelement[j].offset));          
         end;
       end;
 
@@ -6283,5 +6288,6 @@ end;
 
 
 end.
+
 
 

@@ -13,7 +13,7 @@ end;
 
 type tprocessdata=record
   processid: DWORD;
-  peprocess: DWORD;
+  peprocess: uint64;
   threadlist: array of tthreaddata;
 end;
 
@@ -22,7 +22,7 @@ type tprocesswatchthread=class(tthread)
     error: string;
     created:boolean;
     pid: dword;
-    peprocess: dword;
+    peprocess: uint64;
     tid:dword;
     procedure crash;
     procedure UpdateList;
@@ -46,6 +46,7 @@ type
     procedure btnAttachClick(Sender: TObject);
     procedure ShowThreadIDs1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Panel1Resize(Sender: TObject);
   private
     { Private declarations }
     processwatchthread: tprocesswatchthread;
@@ -508,6 +509,13 @@ end;
 procedure TfrmProcessWatcher.FormDestroy(Sender: TObject);
 begin
   frmProcessWatcher:=nil;
+end;
+
+procedure TfrmProcessWatcher.Panel1Resize(Sender: TObject);
+begin
+  btnOpen.Left:=(panel1.clientwidth div 2) - (btnopen.width div 2);
+  btnAttach.Left:=(panel1.clientwidth div 2) - (btnAttach.width div 2);
+  
 end;
 
 end.

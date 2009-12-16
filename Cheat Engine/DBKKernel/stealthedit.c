@@ -168,6 +168,7 @@ int stealthedit_RemoveCloakedSection(DWORD ProcessID, UINT_PTR pagebase)
 		}
 	}
 
+	DbgPrint("Failed finding the section\n");
 	return FALSE;
 }
 
@@ -175,11 +176,11 @@ int stealthedit_initStealthEditHooksForCurrentCPU(void)
 {
 	int result1=TRUE,result2=TRUE;
 	DbgPrint("Hooking int14 for this cpu\n");	
-	result1=inthook_HookInterrupt(14,0x8, (ULONG_PTR)interrupt14_asmentry, &Int14JumpBackLocation);	
+	result1=inthook_HookInterrupt(14, getCS() & 0xfff8, (ULONG_PTR)interrupt14_asmentry, &Int14JumpBackLocation);	
 	DbgPrint("result1=%d\n",result1);
 
 	DbgPrint("Hooking int3 for this cpu\n");
-	result2=inthook_HookInterrupt(3,0x8, (ULONG_PTR)interrupt3_asmentry, &Int3JumpBackLocation);	
+	result2=inthook_HookInterrupt(3, getCS() & 0xfff8, (ULONG_PTR)interrupt3_asmentry, &Int3JumpBackLocation);	
 	DbgPrint("result2=%d\n",result2);
 
 	
@@ -194,6 +195,8 @@ int interrupt3_centry(UINT_PTR *stackpointer)
 	UINT_PTR eip=stackpointer[si_eip]-1;
 
 	DbgPrint("interrupt 3. PID=%x eip=%x\n", currentPID, eip);
+
+
 	csEnter(&CloakedSections_CS);
 	for (i=0; i<CloakedSections.pos; i++)
 	{
@@ -273,10 +276,14 @@ skip_original_int3:
 
 int interrupt14_centry(UINT_PTR *stackpointer)
 {
-	PErrorcodePF errorcode=(PErrorcodePF)&stackpointer[si_errorcode];
 	int handled=0;
+	LARGE_INTEGER wt;	
+	NTSTATUS s;
+	EFLAGS e=getEflags();
+	PErrorcodePF errorcode=(PErrorcodePF)&stackpointer[si_errorcode];
 
-	if ((errorcode->P) && (errorcode->US) && (errorcode->ID))
+
+	if ((errorcode->P) && (errorcode->US) && (errorcode->ID)) //if 64-bit, yeah, this is the only one you get till dbvm is fixed
 	{
 		int i;
 		HANDLE currentPID=PsGetCurrentProcessId();

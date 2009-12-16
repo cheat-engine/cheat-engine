@@ -46,6 +46,7 @@ type TBreakLength=(bl_1byte=0, bl_2byte=1, bl_8byte=2{Only when in 64-bit}, bl_4
 
 
 type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
+type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;
 type TSetThreadContext=function(hThread: THandle; const lpContext: TContext): BOOL; stdcall;
@@ -73,8 +74,8 @@ type TVirtualQueryEx=function(hProcess: THandle; lpAddress: Pointer; var lpBuffe
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 type TCreateRemoteThread=function(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
 type TOpenThread=function(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
-type TGetPEProcess=function(ProcessID:DWORD):DWORD; stdcall;
-type TGetPEThread=function(Threadid: dword):dword; stdcall;
+type TGetPEProcess=function(ProcessID:DWORD):UINT64; stdcall;
+type TGetPEThread=function(Threadid: dword):UINT64; stdcall;
 type TGetDebugportOffset=function:DWORD; stdcall;
 type TGetProcessnameOffset=function:DWORD; stdcall;
 type TGetThreadsProcessOffset=function: dword; stdcall;
@@ -107,7 +108,7 @@ type TCreateRemoteAPC=function(threadid: dword; lpStartAddress: TFNAPCProc): THa
 //type TRetrieveDebugData=function(Buffer: pointer):integer; stdcall;
 
 type TGetProcessNameFromID=function(processid:dword; buffer:pchar;buffersize:dword):integer; stdcall;
-type TGetProcessNameFromPEProcess=function(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
+type TGetProcessNameFromPEProcess=function(peprocess:uint64; buffer:pchar;buffersize:dword):integer; stdcall;
 
 type TStartProcessWatch=function:BOOL;stdcall;
 type TWaitForProcessListData=function(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
@@ -189,6 +190,7 @@ procedure OutputDebugString(msg: string);
 
 var
   ReadProcessMemory     :TReadProcessMemory;
+  ReadProcessMemory64   :TReadProcessMemory64;  
   WriteProcessMemory    :TWriteProcessMemory;
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
@@ -252,6 +254,7 @@ var
 
   KernelOpenProcess       :TOpenProcess;
   KernelReadProcessMemory :TReadProcessMemory;
+  KernelReadProcessMemory64 :TReadProcessMemory64;  
   KernelWriteProcessMemory:TWriteProcessMemory;
   KernelVirtualAllocEx    :TVirtualAllocEx;
 
@@ -348,7 +351,9 @@ begin
     KernelVirtualAllocEx:=GetProcAddress(darkbytekernel,'VAE');
     KernelOpenProcess:=GetProcAddress(darkbytekernel,'OP');
     KernelReadProcessMemory:=GetProcAddresS(darkbytekernel,'RPM');
+    KernelReadProcessMemory64:=GetProcAddresS(darkbytekernel,'RPM64');    
     KernelWriteProcessMemory:=GetProcAddress(darkbytekernel,'WPM');
+    ReadProcessMemory64:=GetProcAddress(DarkByteKernel,'RPM64');
 
     GetPEProcess:=GetProcAddress(DarkByteKernel,'GetPEProcess');
     GetPEThread:=GetProcAddress(DarkByteKernel,'GetPEThread');

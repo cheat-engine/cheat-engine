@@ -30,10 +30,10 @@ end;
 function stealthedit_AddCloakedSection(processid: DWORD; pagebase: dword; relocatedpagebase: dword; size: integer ):BOOl; stdcall;
 var
   input: record
-    ProcessID: dword;
+    ProcessID: uint64;
 		pagebase:  uint64;
 	  relocatedpagebase: uint64;
-		size: integer;
+		size: uint64;
   end;
   cc,br: dword;
 begin
@@ -52,7 +52,7 @@ end;
 function stealthedit_RemoveCloakedSection(processid: DWORD; pagebase: dword):BOOl; stdcall;
 var
   input: record
-    ProcessID: dword;
+    ProcessID: uint64;
 		pagebase:  uint64;
   end;
   cc,br: dword;

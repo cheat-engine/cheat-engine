@@ -133,6 +133,7 @@ function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 Function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 Function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function {ReadProcessMemory64}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
@@ -141,8 +142,8 @@ Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAl
 Function CreateRemoteAPC(threadid: dword; lpStartAddress: TFNAPCProc): THandle; stdcall;
 
 
-Function GetPEProcess(ProcessID: dword):dword; stdcall;
-Function GetPEThread(Threadid: dword):dword; stdcall;
+Function GetPEProcess(ProcessID: dword):UINT64; stdcall;
+Function GetPEThread(Threadid: dword):UINT64; stdcall;
 function GetDebugportOffset: DWORD; stdcall;
 function GetProcessnameOffset: dword; stdcall;
 function GetThreadsProcessOffset: dword; stdcall;
@@ -165,7 +166,7 @@ function GetSDTShadow:DWORD; stdcall;
 
 function StartProcessWatch:BOOL;stdcall;
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
-function GetProcessNameFromPEProcess(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
+function GetProcessNameFromPEProcess(peprocess:uint64; buffer:pchar;buffersize:dword):integer; stdcall;
 function GetProcessNameFromID(processid:dword; buffer:pointer;buffersize:dword):integer; stdcall;
 function MakeWritable(Address,Size:dword;copyonwrite:boolean): boolean; stdcall;
 function RewriteKernel32:boolean; stdcall;
@@ -339,7 +340,7 @@ begin
   result:=p.currentindex;
 end;
 
-function GetProcessNameFromPEProcess(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
+function GetProcessNameFromPEProcess(peprocess:uint64; buffer:pchar;buffersize:dword):integer; stdcall;
 var ar:dword;
     i:integer;
 begin
@@ -349,7 +350,7 @@ begin
   if processname=0 then exit;
   if (hdevice<>INVALID_HANDLE_VALUE) and (ownprocess<>0) then
   begin
-    if rpm(ownprocess,pointer(peprocess+processname),buffer,buffersize,ar) then
+    if rpm64(ownprocess,peprocess+processname,buffer,buffersize,ar) then
     begin
       for i:=0 to buffersize-1 do
         if buffer[i]=#0 then
@@ -762,7 +763,7 @@ begin
   end;
 end;
 
-Function GetPEThread(Threadid: dword):dword; stdcall;
+Function GetPEThread(Threadid: dword):UINT64; stdcall;
 var cc:dword;
     x: dword;
     pethread: uint64;
@@ -778,7 +779,7 @@ begin
 end;
 
 
-Function GetPEProcess(ProcessID: dword):dword; stdcall;
+Function GetPEProcess(ProcessID: dword):UINT64; stdcall;
 var cc:dword;
     x: dword;
     peprocess: uint64;
@@ -805,7 +806,12 @@ begin
     end;
 end;
 
-function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function {ReadProcessMemory64}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+begin
+  result:=rpm64(hProcess, uint64(lpBaseAddress), lpBuffer, nSize, NumberOfBytesRead);
+end;
+
+function {ReadProcessMemory}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -819,7 +825,7 @@ var //ao: array [0..600] of byte; //give it some space
     ok: boolean;
     br: dword;
 
-    mempointer: dword;
+    mempointer: UINT64;
     bufpointer: dword;
     bufpointer2: pointer;
     toread: dword;
@@ -834,7 +840,7 @@ begin
       if hdevice<>INVALID_HANDLE_VALUE then
       begin
         cc:=IOCTL_CE_READMEMORY;
-        mempointer:=dword(lpBaseAddress);
+        mempointer:=lpBaseAddress;
         bufpointer:=dword(lpbuffer);
 
         ok:=true;
@@ -876,7 +882,7 @@ begin
     end;
 
   //not found so ....
-  result:=windows.ReadProcessMemory(hProcess,lpBaseAddress,lpBuffer,nSize,NumberOfBytesRead);
+  result:=windows.ReadProcessMemory(hProcess,pointer(lpBaseAddress),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
 
@@ -1155,171 +1161,6 @@ begin
   end;
 end;
 
-{
-function setAlternateDebugMethod(var int1apihook:dword; var OriginalInt1handler:dword):BOOL; stdcall;
-var
-  x:record
-    int1apihook: dword;
-    Originalint1handler: dword;
-  end;
-    br,cc: dword;
-    i:integer;
-begin
-  outputdebugstring('setAlternateDebugMethod');
-  result:=false;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_USEALTERNATEMETHOD;
-
-    if deviceiocontrol(hdevice,cc,nil,0,@x,sizeof(x),br,nil) then
-    begin
-      //this data will be send to cheat engine. it will know what to do with it...
-      int1apihook:=x.int1apihook;
-      OriginalInt1handler:=x.Originalint1handler;
-      result:=true;
-    end;
-
-    usealternatedebugmethod:=result; //once set you can't unset it
-  end;
-end;
-
-function getAlternateDebugMethod:BOOL; stdcall;
-var
-    x: boolean;
-    br,cc: dword;
-begin
-  outputdebugstring('getAlternateDebugMethod');
-  
-  //check the kernel if this method has been set
-  result:=false;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_ISUSINGALTERNATEMETHOD;
-    if deviceiocontrol(hdevice,cc,nil,0,@x,sizeof(x),br,nil) then
-      result:=x;
-
-    usealternatedebugmethod:=x;
-  end else result:=false;
-end;
-}
-
-
-
-
-{
-
-function StopRegisterChange(regnr:integer):BOOL; stdcall;
-var x,cc: dword;
-begin
-  outputdebugstring('DBK32: StopRegisterChange called');
-  result:=false;
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    cc:=IOCTL_CE_STOP_DEBUGPROCESS_CHANGEREG;
-    result:=deviceiocontrol(hdevice,cc,@regnr,4,nil,0,x,nil);
-  end;
-end;}
-
-
-
-{
-function DebugProcess(processid:dword;address:DWORD;size: byte;debugtype:byte):BOOL; stdcall;
-begin
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    result:=StartCEKernelDebug;
-    result:=result and SetMemoryAccessWatch(processid,address,size,debugtype);
-  end;
-end;
-
-function ChangeRegOnBP(Processid:dword; address: dword; debugreg: integer; changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP,changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN; newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP:DWORD; newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN):BOOLEAN; stdcall;
-type TChangeReg=record
-  BreakAddress: DWORD;
-  newEAX,newEBX,newECX,newEDX,newESI,newEDI,newEBP,newESP,newEIP: DWORD;
-  newCF,newPF,newAF,newZF,newSF,newOF:BOOLEAN;
-  changeEAX,changeEBX,changeECX,changeEDX,changeESI,changeEDI,changeEBP,changeESP,changeEIP:BOOLEAN;
-  changeCF,changePF,changeAF,changeZF,changeSF,changeOF:BOOLEAN;
-  Active:BOOLEAN;
-end;
-
-type TBuf=record
-  ProcessID: DWORD;
-  debugreg: integer;
-  ChangeReg: TChangeReg;
-end;
-var buf: TBuf;
-    x,cc: dword;
-begin
-  outputdebugstring('DBK32: ChangeRegOnBP called');
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    result:=StartCEKernelDebug;
-
-    if not result then exit;
-    buf.ProcessID:=Processid;
-    buf.debugreg:=debugreg;
-    buf.ChangeReg.BreakAddress:=address;
-    buf.ChangeReg.newEAX:=neweax;
-    buf.ChangeReg.newEBX:=newebx;
-    buf.ChangeReg.newECX:=newecx;
-    buf.ChangeReg.newEDX:=newedx;
-    buf.ChangeReg.newESI:=newesi;
-    buf.ChangeReg.newEDI:=newedi;
-    buf.ChangeReg.newEBP:=newebp;
-    buf.ChangeReg.newESP:=newesp;
-    buf.ChangeReg.newEIP:=neweip;
-    buf.ChangeReg.newCF:=newcf;
-    buf.ChangeReg.newPF:=newpf;
-    buf.ChangeReg.newAF:=newaf;
-    buf.ChangeReg.newZF:=newzf;
-    buf.ChangeReg.newSF:=newsf;
-    buf.ChangeReg.newOF:=newof;
-
-    buf.ChangeReg.changeEAX:=changeeax;
-    buf.ChangeReg.changeEBX:=changeebx;
-    buf.ChangeReg.changeECX:=changeecx;
-    buf.ChangeReg.changeEDX:=changeedx;
-    buf.ChangeReg.changeESI:=changeesi;
-    buf.ChangeReg.changeEDI:=changeedi;
-    buf.ChangeReg.changeEBP:=changeebp;
-    buf.ChangeReg.changeESP:=changeesp;
-    buf.ChangeReg.changeEIP:=changeeip;
-    buf.ChangeReg.changeCF:=changecf;
-    buf.ChangeReg.changePF:=changepf;
-    buf.ChangeReg.changeAF:=changeaf;
-    buf.ChangeReg.changeZF:=changezf;
-    buf.ChangeReg.changeSF:=changesf;
-    buf.ChangeReg.changeOF:=changeof;
-
-    cc:=IOCTL_CE_DEBUGPROCESS_CHANGEREG;
-    result:=result and deviceiocontrol(hdevice,cc,@buf,sizeof(buf),@buf,0,x,nil);
-
-
-  end;
-end;
-
-
-function RetrieveDebugData(Buffer: pointer):integer; stdcall; //buffer has to be at least 1800 bytes
-var x,cc: dword;
-    buf: pointer;
-begin
-//50*35 bytes=
-  result:=-1; //-1=error
-  if (hdevice<>INVALID_HANDLE_VALUE) then
-  begin
-    getmem(buf,1801); //1801 because the first byte is the count
-    cc:=IOCTL_CE_RETRIEVEDEBUGDATA;
-    if deviceiocontrol(hdevice,cc,buf,1801,buf,1801,x,nil) then
-    begin
-      result:=pbyte(buf)^;
-      copymemory(buffer,pointeR(dword(buf)+1),1801);
-    end;
-
-    freemem(buf);
-  end;
-end;
-}
-
 function WaitForProcessListData(processpointer:pointer;threadpointer:pointer;timeout:dword):dword; stdcall;
 type tprocesseventstruct=record
   Created:UINT64;
@@ -1581,13 +1422,15 @@ begin
   end else result:=false;
 end;
 
-var cpunr:integer=0;
 procedure LaunchDBVM; stdcall;
 begin
-  forspecificcpu(cpunr,internal_LaunchDBVM,nil);
+  if not vmx_enabled then
+  begin
+    foreachcpu(internal_LaunchDBVM,nil);
 
-  inc(cpunr);
-//  foreachcpu(internal_LaunchDBVM, nil);
+    configure_vmx(vmx_password1, vmx_password2);
+    configure_vmx_kernel;
+  end;
 end;
 
 
@@ -1728,7 +1571,7 @@ begin
     end;
 
     cc:=IOCTL_CE_INITIALIZE;
-    if deviceiocontrol(hdevice,cc,@buf,sizeof(tinput),@buf,sizeof(tinput),x,nil) then
+    if deviceiocontrol(hdevice,cc,@buf,sizeof(tinput),@buf,8,x,nil) then
     begin
       result:=true;
       SDTShadow:=res;
@@ -1817,6 +1660,7 @@ var sav: pchar;
 //    servicestatus: _service_status;
 initialization
 begin
+  outputdebugstring('a');
 
   ioctl:=true;
   kernel32dll:=loadlibrary('kernel32.dll');
@@ -1843,8 +1687,10 @@ begin
     else
       dataloc:=dataloc+'driver64.dat';
 
+    outputdebugstring('b');
     if not fileexists(dataloc) then
     begin
+      outputdebugstring('b1');
       servicename:='CEDRIVER55';
       processeventname:='DBKProcList55';
       threadeventname:='DBKThreadList55';
@@ -1858,6 +1704,7 @@ begin
     end
     else
     begin
+      outputdebugstring('b2');
       assignfile(driverdat,dataloc);
       reset(driverdat);
       readln(driverdat,servicename);
@@ -1877,12 +1724,16 @@ begin
   finally
     freemem(apppath);
   end;
+  outputdebugstring('c');
 
   try
     configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
   except
     //couldn't parse the password
+    outputdebugstring('c-ex');
   end;
+
+  outputdebugstring('d');
 
 
 
@@ -2028,9 +1879,7 @@ begin
     closeservicehandle(hscmanager);
   end;
 
-
-
-
+  configure_vmx_kernel;
 end;
 
 

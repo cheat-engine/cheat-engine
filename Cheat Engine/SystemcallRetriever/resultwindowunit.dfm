@@ -1,8 +1,8 @@
 object resultwindow: Tresultwindow
-  Left = 197
-  Top = 120
-  Width = 426
-  Height = 359
+  Left = 577
+  Top = 289
+  Width = 487
+  Height = 354
   Caption = 'Results'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,6 +12,11 @@ object resultwindow: Tresultwindow
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
+  OnResize = FormResize
+  DesignSize = (
+    469
+    309)
   PixelsPerInch = 120
   TextHeight = 16
   object Label1: TLabel
@@ -63,22 +68,9 @@ object resultwindow: Tresultwindow
     Height = 16
     Caption = 'debugportoffset'
   end
-  object Label8: TLabel
-    Left = 20
-    Top = 10
-    Width = 361
-    Height = 16
-    Caption = 'If you have no idea what the following means then just click ok'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clRed
-    Font.Height = -15
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
-  end
   object Button1: TButton
-    Left = 158
-    Top = 273
+    Left = 174
+    Top = 265
     Width = 92
     Height = 31
     Caption = 'OK'
@@ -88,50 +80,79 @@ object resultwindow: Tresultwindow
   object Edit1: TEdit
     Left = 255
     Top = 44
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
   end
   object Edit2: TEdit
     Left = 255
     Top = 74
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 2
   end
   object Edit3: TEdit
     Left = 255
     Top = 103
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
   end
   object Edit4: TEdit
     Left = 255
     Top = 133
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 4
   end
   object Edit5: TEdit
     Left = 255
     Top = 172
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 5
   end
   object Edit6: TEdit
     Left = 255
     Top = 202
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 6
   end
   object Edit7: TEdit
     Left = 255
     Top = 231
-    Width = 149
-    Height = 21
+    Width = 210
+    Height = 24
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 7
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 469
+    Height = 41
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 8
+    object Label8: TLabel
+      Left = 52
+      Top = 10
+      Width = 361
+      Height = 16
+      Caption = 'If you have no idea what the following means then just click ok'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -15
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+    end
   end
 end

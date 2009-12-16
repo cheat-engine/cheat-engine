@@ -139,7 +139,7 @@ Return Value:
 
 --*/
 {
-	
+	ULONG			cr4reg;
     NTSTATUS        ntStatus;
     PVOID           BufDriverString=NULL,BufProcessEventString=NULL,BufThreadEventString=NULL;
     UNICODE_STRING  uszDriverString;
@@ -147,7 +147,6 @@ Return Value:
     UNICODE_STRING  uszProcessEventString;
 	UNICODE_STRING	uszThreadEventString;
     PDEVICE_OBJECT  pDeviceObject;
-	ULONG cr4reg;
 	HANDLE reg;
 	OBJECT_ATTRIBUTES oa;
 
@@ -174,10 +173,16 @@ Return Value:
 	this_fs=getFS();
 	this_gs=getGS();	
 
-	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",this_cs, this_ss, this_ds, this_es, this_fs, this_gs);
+#ifdef AMD64
+	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",getCS(), getSS(), getDS(), getES(), getFS(), getGS());
 
-	DbgPrint("fsbase=%llx gsbase=%llx\n", readMSR(0xc0000100), readMSR(0xc0000101));
+	DbgPrint("fsbase=%llx gsbase=%llx gskernel=%llx\n", readMSR(0xc0000100), readMSR(0xc0000101), readMSR(0xc0000102));
+
 	DbgPrint("rbp=%llx\n", getRBP());
+
+	DbgPrint("gs:188=%llx\n", __readgsqword(0x188));
+	DbgPrint("current csr=%x\n", _mm_getcsr());
+#endif
 	
 	
 
@@ -449,8 +454,6 @@ NTSTATUS DispatchClose(IN PDEVICE_OBJECT DeviceObject,
 }
 
 
-
-
 typedef NTSTATUS (*PSRCTNR)(__in PCREATE_THREAD_NOTIFY_ROUTINE NotifyRoutine);
 PSRCTNR PsRemoveCreateThreadNotifyRoutine2;
 
@@ -491,6 +494,7 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	{
 		PVOID x;
 		UNICODE_STRING temp;
+
 		RtlInitUnicodeString(&temp, L"PsRemoveCreateThreadNotifyRoutine");
 		PsRemoveCreateThreadNotifyRoutine2=MmGetSystemRoutineAddress(&temp);
 

@@ -35,7 +35,7 @@ begin
   if getbit(6,cr4)=0 then raise exception.create('Your system needs to run in PAE paging mode');  
 
   if (not stealthedit_InitializeHooks) then
-    raise exception.Create('Failure initializing the stealtheditor. Remember, this function only works on 32-bit windows with admin rights');
+    raise exception.Create('Failure initializing the stealtheditor. Remember, this function only works on 32-bit windows with admin rights, or in 64-bit with dbvm loaded');
 end;
 
 function TStealthEdit.isRelocated(address: dword): boolean;

@@ -3859,7 +3859,7 @@ begin
 
 
   newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, 4096);
-  disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
+  disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
 end;
 
 procedure TMemoryBrowser.Stealteditmultiplepages1Click(Sender: TObject);
@@ -3878,7 +3878,7 @@ begin
     size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
     
     newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
-    disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
+    disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
   end;
 end;
 
@@ -3897,7 +3897,7 @@ begin
       size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
 
       newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
-      disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress or $fff);
+      disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
     end;
   end;
 end;

@@ -33,6 +33,8 @@ function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; si
 function dbvm_raise_privilege: DWORD; stdcall;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
+procedure configure_vmx_kernel;
+
 
 var
   vmx_password1: dword;
@@ -260,15 +262,9 @@ end;
 
 
 procedure configure_vmx(userpassword1,userpassword2: dword); //warning: not multithreaded, take care to only run at init!
-type TInput=record
-  Virtualization_Enabled: DWORD;
-	Password1: DWORD;
-  Password2: DWORD;
-end;
-var cc: dword;
-    x: TInput;
 begin
   //configure dbvm if possible
+  OutputDebugString('configure_vmx');
 
   //first try the default password and if it works change the password to the userdefined one
   vmx_password1:=$76543210;
@@ -281,10 +277,22 @@ begin
   vmx_password2:=userpassword2;
   if (dbvm_version>=$ce000000) then
     vmx_enabled:=true;
+end;
 
 
+procedure configure_vmx_kernel;
+type TInput=record
+  Virtualization_Enabled: DWORD;
+	Password1: DWORD;
+  Password2: DWORD;
+end;
+var cc: dword;
+    x: TInput;
+begin
   if (vmx_enabled) then //tell the driver it can use vmcall instructions
   begin
+    OutputDebugString('vmx_enabled=TRUE');
+    
     x.Virtualization_Enabled:=1;
     x.Password1:=vmx_password1;
     x.Password2:=vmx_password2;
@@ -294,7 +302,7 @@ begin
       cc:=IOCTL_CE_VMXCONFIG;
       deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
     end;
-  end;
+  end else OutputDebugString('vmx_enabled=FALSE');
 end;
 
 end.

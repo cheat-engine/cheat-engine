@@ -96,8 +96,8 @@ begin
       x:=floattostr(pdouble(@buf[0])^);
       if (pos('E',x)=0) then  //no exponent
       begin
-        //check if the value isn't bigger or smaller than 1000000 or smaller than -1000000
-        if (pdouble(@buf[0])^<1000000) and (pdouble(@buf[0])^>-1000000) then
+        //check if the value isn't bigger or smaller than 100000 or smaller than -100000
+        if (pdouble(@buf[0])^<100000) and (pdouble(@buf[0])^>-100000) then
         begin
           result:=vtDouble;
           exit;
@@ -123,8 +123,8 @@ begin
     x:=floattostr(psingle(@buf[0])^);
     if (pos('E',x)=0) then  //no exponent
     begin
-      //check if the value isn't bigger or smaller than 1000000 or smaller than -1000000
-      if (psingle(@buf[0])^<1000000) and (psingle(@buf[0])^>-1000000) then
+      //check if the value isn't bigger or smaller than 100000 or smaller than -100000
+      if (psingle(@buf[0])^<100000) and (psingle(@buf[0])^>-100000) then
       begin
         result:=vtSingle;
         exit;

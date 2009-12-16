@@ -7,7 +7,7 @@ object frmPEInfo: TfrmPEInfo
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
@@ -16,21 +16,21 @@ object frmPEInfo: TfrmPEInfo
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object GroupBox2: TGroupBox
-    Left = 144
+    Left = 177
     Top = 0
-    Width = 333
-    Height = 284
+    Width = 290
+    Height = 273
     Align = alClient
     Caption = 'Info'
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 2
-      Top = 15
-      Width = 329
-      Height = 267
+      Top = 18
+      Width = 286
+      Height = 253
       ActivePage = TabSheet1
       Align = alClient
       TabOrder = 0
@@ -39,8 +39,8 @@ object frmPEInfo: TfrmPEInfo
         object PEItv: TTreeView
           Left = 0
           Top = 0
-          Width = 321
-          Height = 239
+          Width = 278
+          Height = 222
           Align = alClient
           Indent = 19
           TabOrder = 0
@@ -52,8 +52,8 @@ object frmPEInfo: TfrmPEInfo
         object lbImports: TListBox
           Left = 0
           Top = 0
-          Width = 321
-          Height = 239
+          Width = 395
+          Height = 294
           Align = alClient
           ItemHeight = 13
           TabOrder = 0
@@ -65,8 +65,8 @@ object frmPEInfo: TfrmPEInfo
         object lbExports: TListBox
           Left = 0
           Top = 0
-          Width = 321
-          Height = 239
+          Width = 395
+          Height = 294
           Align = alClient
           ItemHeight = 13
           TabOrder = 0
@@ -78,8 +78,8 @@ object frmPEInfo: TfrmPEInfo
         object lbBaseReloc: TListBox
           Left = 0
           Top = 0
-          Width = 321
-          Height = 239
+          Width = 395
+          Height = 294
           Align = alClient
           ItemHeight = 13
           TabOrder = 0
@@ -90,16 +90,16 @@ object frmPEInfo: TfrmPEInfo
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 144
-    Height = 284
+    Width = 177
+    Height = 273
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
     object LoadButton: TSpeedButton
-      Left = 48
-      Top = 163
-      Width = 25
-      Height = 25
+      Left = 59
+      Top = 201
+      Width = 31
+      Height = 30
       Glyph.Data = {
         D6020000424DD6020000000000003600000028000000100000000E0000000100
         180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -129,65 +129,65 @@ object frmPEInfo: TfrmPEInfo
       OnClick = LoadButtonClick
     end
     object Label1: TLabel
-      Left = 8
-      Top = 192
-      Width = 69
-      Height = 13
+      Left = 10
+      Top = 236
+      Width = 88
+      Height = 16
       Caption = 'No file opened'
     end
     object Label2: TLabel
-      Left = 8
-      Top = 208
-      Width = 37
-      Height = 13
+      Left = 10
+      Top = 256
+      Width = 50
+      Height = 16
       Caption = 'address'
     end
     object GroupBox1: TGroupBox
-      Left = 8
-      Top = 16
-      Width = 131
-      Height = 145
+      Left = 10
+      Top = 20
+      Width = 161
+      Height = 178
       Caption = 'MZ-Start'
       TabOrder = 0
       object edtAddress: TEdit
-        Left = 8
-        Top = 16
-        Width = 87
+        Left = 10
+        Top = 20
+        Width = 107
         Height = 21
         TabOrder = 0
       end
       object modulelist: TListBox
-        Left = 8
-        Top = 40
-        Width = 115
-        Height = 97
-        ItemHeight = 13
+        Left = 10
+        Top = 49
+        Width = 141
+        Height = 120
+        ItemHeight = 16
         TabOrder = 1
         OnClick = modulelistClick
       end
       object Button1: TButton
-        Left = 98
-        Top = 16
-        Width = 25
-        Height = 17
+        Left = 121
+        Top = 20
+        Width = 30
+        Height = 21
         Caption = 'Info'
         TabOrder = 2
         OnClick = Button1Click
       end
     end
     object RadioButton1: TRadioButton
-      Left = 8
-      Top = 168
-      Width = 39
-      Height = 17
+      Left = 10
+      Top = 207
+      Width = 48
+      Height = 21
       Caption = 'File'
       TabOrder = 1
     end
     object RadioButton2: TRadioButton
-      Left = 8
+      Left = 10
       Top = 0
-      Width = 113
-      Height = 17
+      Width = 139
+      Height = 21
       Caption = 'Memory'
       Checked = True
       TabOrder = 2

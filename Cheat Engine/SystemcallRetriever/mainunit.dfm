@@ -7,20 +7,20 @@ object Form1: TForm1
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Image1: TImage
     Left = 0
     Top = 0
-    Width = 230
-    Height = 203
+    Width = 220
+    Height = 188
     Align = alClient
     Picture.Data = {
       07544269746D6170D61C0200424DD61C0200000000003600000028000000E600
@@ -4354,9 +4354,9 @@ object Form1: TForm1
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 203
-    Width = 230
-    Height = 17
+    Top = 188
+    Width = 220
+    Height = 21
     Align = alBottom
     Max = 30
     Step = 1
@@ -4365,8 +4365,8 @@ object Form1: TForm1
   object listbox1: TMemo
     Left = 0
     Top = 0
-    Width = 230
-    Height = 203
+    Width = 220
+    Height = 188
     Align = alClient
     ReadOnly = True
     ScrollBars = ssVertical

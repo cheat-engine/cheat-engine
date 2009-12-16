@@ -16,8 +16,11 @@ type
     edtDescription: TEdit;
     edtByteSize: TEdit;
     Label2: TLabel;
+    edtOffset: TEdit;
+    Label3: TLabel;
     procedure cbTypeChange(Sender: TObject);
     procedure edtByteSizeChange(Sender: TObject);
+    procedure edtOffsetChange(Sender: TObject);
   private
     { Private declarations }
   public
@@ -43,6 +46,12 @@ procedure TfrmStructuresAddElement.edtByteSizeChange(Sender: TObject);
 begin
   bytesize:=strtoint(edtbytesize.text);
   cbtype.Items.Objects[cbtype.itemindex]:=pointer(bytesize);
+end;
+
+procedure TfrmStructuresAddElement.edtOffsetChange(Sender: TObject);
+var x: integer;
+begin
+  button1.Enabled:=TryStrToInt('$'+edtOffset.Text,x);
 end;
 
 end.
