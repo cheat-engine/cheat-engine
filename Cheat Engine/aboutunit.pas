@@ -192,10 +192,23 @@ end;
 procedure TAbout.lblDBVMClick(Sender: TObject);
 begin
   if not isRunningDBVM then
-    if loaddbvmifneeded then
+  begin
+    if not Is64bitOS then
     begin
-      formshow(self);
+      if messagedlg('Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly',mtWarning,[mbno,mbyes],0)=mryes then
+      begin
+        launchdbvm;
+        formshow(self);
+      end;
+    end
+    else
+    begin
+      if loaddbvmifneeded then
+      begin
+        formshow(self);
+      end;
     end;
+  end;
 end;
 
 end.

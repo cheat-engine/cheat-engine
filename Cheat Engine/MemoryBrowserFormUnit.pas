@@ -190,6 +190,7 @@ type
     lvStacktrace: TListView;
     N17: TMenuItem;
     Maxstacktracesize1: TMenuItem;
+    Disablestealthedit1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -3584,6 +3585,10 @@ begin
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
   follow1.visible:=isjumporcall(disassemblerview.SelectedAddress,x);
   back1.Visible:=backlist.Count>0;
+
+
+  stealthedit1.Visible:=(stealtheditor=nil) or (not stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));
+  disablestealthedit1.Visible:=(stealtheditor<>nil) and (stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));  
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);

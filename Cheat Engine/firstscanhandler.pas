@@ -84,7 +84,7 @@ end;
 
 implementation
 
-uses cefuncproc;
+uses cefuncproc, Math;
 
 type TArrMemoryRegion= array [0..0] of TMemoryRegion;
 
@@ -127,7 +127,7 @@ begin
 end;
 
 function TFirstScanHandler.getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
-var i,j,k: integer;
+var j: integer;
     pm: ^TArrMemoryRegion;
     pa: PDwordArray;
     pab: PBitAddressArray;
@@ -139,8 +139,9 @@ var i,j,k: integer;
     p5: PDoubleArray;
     p6: PInt64Array;
 
-    first,last: dword;
+    first,last: integer;
 
+    pivot: integer;
 begin
   result:=nil;
 
@@ -159,50 +160,30 @@ begin
     //find the region this address belongs to
     //the region list should be sorted
 
-    
 
     first:=0;
     last:=maxnumberofregions-1;
-    k:=0;
-    repeat
-      j:=first+((last-first) div 2);
-      if k=j then
+
+    while (First <= Last) do
+    begin
+
+      //Gets the middle of the selected range
+      Pivot := (First + Last) div 2;
+      //Compares the String in the middle with the searched one
+      if InRange(address, pm[pivot].BaseAddress, pm[pivot].BaseAddress + pm[pivot].MemorySize) then
       begin
-        if k=first then
-        begin
-          first:=last;
-          j:=last;
-        end;
-
-        if k=last then
-        begin
-          last:=first;
-          j:=last;
-        end;
-      end;
-
-      k:=j;
-
-      if j<0 then break;
-      
-
-
-      if address<pm[j].baseaddress then
-        last:=j
+        //found it
+        result:=loadifnotloadedRegion(pointer(dword(pm[pivot].startaddress)+(address-pm[pivot].baseaddress)));
+        exit;
+      end
+      //If the Item in the middle has a bigger value than
+      //the searched item, then select the first half
+      else if pm[pivot].baseaddress > address then
+        Last := Pivot - 1
+          //else select the second half
       else
-      begin
-        if (address>=pm[j].baseaddress) and (address < (pm[j].BaseAddress + pm[j].MemorySize)) then
-        begin
-          //found it
-          result:=loadifnotloadedRegion(pointer(dword(pm[j].startaddress)+(address-pm[j].baseaddress)));
-          exit;
-
-        end;
-
-        first:=j;
-      end;
-    until (first>=last);
-
+        First := Pivot + 1;
+    end;
   end
   else
   begin
@@ -224,47 +205,36 @@ begin
       //the list is sorted so do a quickscan
       first:=0;
       last:=j-1;
-      k:=0;
-      while (first<last) do
+
+      while (First <= Last) do
       begin
-        j:=first+((last-first) div 2);
-        if k=j then
+
+        //Gets the middle of the selected range
+        Pivot := (First + Last) div 2;
+        //Compares the String in the middle with the searched one
+        if address=pa[pivot] then
         begin
-          if k=first then
-          begin
-            first:=last;
-            j:=last;
+          //found it
+          case valuetype of
+            vt_byte : result:=loadifnotloadedregion(@p1[pivot]);
+            vt_word : result:=loadifnotloadedregion(@p2[pivot]);
+            vt_dword : result:=loadifnotloadedregion(@p3[pivot]);
+            vt_single: result:=loadifnotloadedregion(@p4[pivot]);
+            vt_double: result:=loadifnotloadedregion(@p5[pivot]);
+            vt_int64: result:=loadifnotloadedregion(@p6[pivot]);
           end;
-
-          if k=last then
-          begin
-            last:=first;
-            j:=last;
-          end;
-        end;
-
-        k:=j;
-
-        if address<pa[j] then
-          last:=j
+          exit;
+        end
+        //If the Item in the middle has a bigger value than
+        //the searched item, then select the first half
+        else if pa[pivot] > address then
+          Last := Pivot - 1
+            //else select the second half
         else
-        begin
-          if address=pa[j] then
-          begin
-            case valuetype of
-              vt_byte : result:=loadifnotloadedregion(@p1[j]);
-              vt_word : result:=loadifnotloadedregion(@p2[j]);
-              vt_dword : result:=loadifnotloadedregion(@p3[j]);
-              vt_single: result:=loadifnotloadedregion(@p4[j]);
-              vt_double: result:=loadifnotloadedregion(@p5[j]);
-              vt_int64: result:=loadifnotloadedregion(@p6[j]);
-            end;
-            exit; //found it
-          end;
-
-          first:=j;
-        end;
+          First := Pivot + 1;
       end;
+
+
       exit; //not found
     end
     else
@@ -276,39 +246,28 @@ begin
       //the list is sorted so do a quickscan
       first:=0;
       last:=j-1;
-      k:=0;
-      while (first<last) do
+
+      while (First <= Last) do
       begin
-        j:=first+((last-first) div 2);
-        if k=j then
+
+        //Gets the middle of the selected range
+        Pivot := (First + Last) div 2;
+        //Compares the String in the middle with the searched one
+        if address=pab[pivot].address then
         begin
-          if k=first then
-          begin
-            first:=last;
-            j:=last;
-          end;
-
-          if k=last then
-          begin
-            last:=first;
-            j:=last;
-          end;
-        end;
-
-        k:=j;
-
-        if address<pab[j].address then
-          last:=j
+          //found it
+          result:=loadifnotloadedregion(@p6[pivot]); //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+          exit;
+        end
+        //If the Item in the middle has a bigger value than
+        //the searched item, then select the first half
+        else if pab[pivot].address > address then
+          Last := Pivot - 1
+            //else select the second half
         else
-        begin
-          if address=pab[i].address then
-          begin
-            result:=loadifnotloadedregion(@p6[i]); //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
-            exit;
-          end;
-          first:=j;
-        end;
-      end;      
+          First := Pivot + 1;
+      end;
+
     end;
   end;
 

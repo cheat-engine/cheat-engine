@@ -30,6 +30,7 @@ object MemoryBrowser: TMemoryBrowser
     Align = alTop
     AutoSnap = False
     Beveled = True
+    Color = clBtnFace
     ParentColor = False
     OnCanResize = Splitter1CanResize
     OnMoved = Splitter1Moved
@@ -481,6 +482,7 @@ object MemoryBrowser: TMemoryBrowser
       Top = 1
       Height = 223
       Align = alRight
+      Color = clBtnFace
       ParentColor = False
       Visible = False
     end
@@ -786,6 +788,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Stealthedit1: TMenuItem
       Caption = 'Stealthedit'
+      Visible = False
       object miStealthEditPage: TMenuItem
         Caption = 'Stealthedit this page'
         Default = True
@@ -799,6 +802,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Manually input stealth parameters'
         OnClick = miManualStealthEditClick
       end
+    end
+    object Disablestealthedit1: TMenuItem
+      Caption = 'Disable stealthedit'
+      Visible = False
     end
   end
   object Timer2: TTimer

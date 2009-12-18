@@ -16,7 +16,7 @@ type TStealthEdit=class
     function ManualStartEdit(address: dword; relocationpagebase: dword; size: integer): dword;
     function StartEdit(address: dword; size: integer): dword;
     function RestoreEdit(address: dword): boolean;
-    function isRelocated(address: dword): boolean;     
+    function isRelocated(address: dword; var relocatesto: dword): boolean;
   end;
 
 var stealtheditor: TStealthEdit;
@@ -41,7 +41,7 @@ begin
   end;
 end;
 
-function TStealthEdit.isRelocated(address: dword): boolean;
+function TStealthEdit.isRelocated(address: dword; var relocatesto: dword): boolean;
 var i: integer;
 begin
   result:=false;
@@ -50,6 +50,8 @@ begin
     if (address>relocations[i].baseaddress) and (address<(relocations[i].baseaddress+relocations[i].size)) then
     begin
       result:=true;
+
+      relocatesto:=relocations[i].relocationpagebase+(address-relocations[i].baseaddress);
       exit;
     end;
   end;

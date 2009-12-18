@@ -3,7 +3,7 @@ unit disassemblerviewlinesunit;
 interface
 
 uses windows,sysutils, classes,ComCtrls, graphics, cefuncproc, disassembler,
-     debugger, kerneldebugger, symbolhandler, dissectCodeThread;
+     debugger, kerneldebugger, symbolhandler, dissectCodeThread, stealthedit;
 
 type TDisassemblerLine=class
   private
@@ -140,6 +140,7 @@ var isbp: boolean;
     refferencedbyheight: integer;
     refferencedbystrings: array of string;
     i,j: integer;
+    relocatesTo: dword;
 begin
   top:=linestart;
   faddress:=address;
@@ -273,12 +274,13 @@ begin
 
   end;
 
+
   splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring);
   if symhandler.showmodules then
     addressString:=symbolname
   else
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
-    
+
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
   opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
   specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
@@ -286,7 +288,18 @@ begin
   if MemoryBrowser.EIPv=faddress then
     addressString:='>>'+addressString;
 
+  relocatesTo:=0;
+  if stealtheditor<>nil then
+  begin
+    stealtheditor.isRelocated(faddress, relocatesTo);
+    addressString:=addressString+'->'+inttohex(relocatesTo,8);
+    fcanvas.Font.Color:=clBlue;
+  end;
+
   fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart,addressString);
+  if relocatesTo>0 then
+    fcanvas.Font.Color:=clWindowText;
+
   fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart,bytestring);
   fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart,opcodestring);
   fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart,specialstring);

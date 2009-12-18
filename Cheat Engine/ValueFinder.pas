@@ -15,6 +15,7 @@ type TValueFinder=class
     memregions: TMemoryRegions;
     stopaddress: dword;
     function ismatchtovalue(p: pointer): boolean;
+    procedure quicksortmemoryregions(lo,hi: integer);
   public
     valuetype: TVariableType;
     valuescandword: dword;
@@ -30,6 +31,34 @@ type TValueFinder=class
 end;
 
 implementation
+
+procedure TValueFinder.quicksortmemoryregions(lo,hi: integer);
+var i,j: integer;
+    x,h: TMemoryRegion;
+begin
+  i:=lo;
+  j:=hi;
+
+  x:=memregions[(lo+hi) div 2];
+
+  repeat
+    while (memregions[i].BaseAddress<x.BaseAddress) do inc(i);
+    while (memregions[j].BaseAddress>x.BaseAddress) do dec(j);
+
+    if i<=j then
+    begin
+      h:=memregions[i];
+      memregions[i]:=memregions[j];
+      memregions[j]:=h;
+      inc(i);
+      dec(j);
+    end;
+
+  until i>j;
+
+  if (lo<j) then quicksortmemoryregions(lo,j);
+  if (i<hi) then quicksortmemoryregions(i,hi);
+end;
 
 function TValueFinder.ismatchtovalue(p: pointer): boolean;
 begin
@@ -139,6 +168,26 @@ begin
 
     address:=dword(mbi.baseaddress)+mbi.RegionSize;
   end;
+
+  //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
+  i:=0;
+  while i<length(memregions) do
+  begin
+    if memregions[i].MemorySize>512*1024 then
+    begin
+      //too big, so cut into pieces
+      //create new entry with 512KB less
+      setlength(memregions,length(memregions)+1);
+      memregions[length(memregions)-1].BaseAddress:=memregions[i].BaseAddress+512*1024;
+      memregions[length(memregions)-1].MemorySize:=memregions[i].MemorySize-512*1024;
+      memregions[i].MemorySize:=512*1024; //set the current region to be 512KB
+
+    end;
+    inc(i); //next item. Eventually the new items will be handled, and they will also be split untill the list is finally cut into small enough chunks    
+  end;
+
+  //sort memoryregions from small to high
+  quicksortmemoryregions(0,length(memregions)-1);  
 
 
   //let's load the first region (assuming the user wants to start from the beginning)

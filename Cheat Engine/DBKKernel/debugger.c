@@ -964,23 +964,24 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
 	int i;
 
-	DbgPrint("interrupt1_centry:%d\n",cpunr());
+	//DbgPrint("interrupt1_centry:%d\n",cpunr());
 
 	before=getRSP();
 
 	
 #ifdef AMD64
-	DbgPrint("gs:180=%x\n", __readgsdword(0x180));
+	//DbgPrint("gs:180=%x\n", __readgsdword(0x180));
 	
 
-	DbgPrint("current csr=%x\n", _mm_getcsr());
+	//DbgPrint("current csr=%x\n", _mm_getcsr());
 
-	DbgPrint("stackpointer RAX=%llx\n",stackpointer[si_eax]);
-	DbgPrint("stackpointer RBX=%llx\n",stackpointer[si_ebx]);
-	DbgPrint("stackpointer RCX=%llx\n",stackpointer[si_ecx]);
-	DbgPrint("stackpointer RDX=%llx\n",stackpointer[si_edx]);
-	DbgPrint("stackpointer cs:rip=%llx:%llx\n",stackpointer[si_cs], stackpointer[si_eip]);
-	DbgPrint("stackpointer ss:rsp=%llx:%llx\n",stackpointer[si_ss], stackpointer[si_esp]);
+	//DbgPrint("stackpointer RAX=%llx\n",stackpointer[si_eax]);
+	//DbgPrint("stackpointer RBX=%llx\n",stackpointer[si_ebx]);
+	//DbgPrint("stackpointer RCX=%llx\n",stackpointer[si_ecx]);
+	//DbgPrint("stackpointer RDX=%llx\n",stackpointer[si_edx]);
+	//DbgPrint("stackpointer cs:rip=%llx:%llx\n",stackpointer[si_cs], stackpointer[si_eip]);
+	//DbgPrint("stackpointer ss:rsp=%llx:%llx\n",stackpointer[si_ss], stackpointer[si_esp]);
+
 #endif
 
 	

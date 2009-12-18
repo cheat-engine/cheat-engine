@@ -715,7 +715,9 @@ begin
   end;
 
   progressbar.Position:=0;
+
  // showmessage('count='+inttostr(count));
 end;
 
 end.
+

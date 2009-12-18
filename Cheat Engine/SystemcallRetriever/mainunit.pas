@@ -381,7 +381,7 @@ begin
     end;
 
 
-   // application.Terminate;
+    application.Terminate;
   end;
 end;
 
@@ -483,9 +483,9 @@ begin
 
 
       listbox1.Lines.Add('Reading the PEProcess structures');
-      a:=ReadProcessmemory64(processhandle,process1peprocess,@process1buffer[0],4096,nobr);
-      b:=ReadProcessmemory64(processhandle,process2peprocess,@process2buffer[0],4096,nobr);
-      c:=ReadProcessmemory64(processhandle,process3peprocess,@process3buffer[0],4096,nobr);
+      a:=ReadProcessmemory64(processhandle,process1peprocess,@process1buffer[0],1024,nobr);
+      b:=ReadProcessmemory64(processhandle,process2peprocess,@process2buffer[0],1024,nobr);
+      c:=ReadProcessmemory64(processhandle,process3peprocess,@process3buffer[0],1024,nobr);
 
       if not (a and b and c) then
       begin
@@ -631,7 +631,7 @@ begin
 
         try
           idleprocesspeprocess:=getpeprocess(pi.dwProcessId);
-          if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocessbuffer[0],4096,nobr) then
+          if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocessbuffer[0],1024,nobr) then
           begin
             listbox1.Lines.Add('The peprocess structure of the idle process couldn''t be read');
             exit;
@@ -644,7 +644,7 @@ begin
           begin
             sleep(1000);
 
-            if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocesswithdebuggerbuffer[0],4096,nobr) then
+            if not readprocessmemory64(processhandle,idleprocesspeprocess,@idleprocesswithdebuggerbuffer[0],1024,nobr) then
             begin
               listbox1.Lines.Add('Failed to get the peprocess structure of the idle process AFTER the debugger was attached. (What kind of shit is this?)');
               exit;
@@ -658,7 +658,7 @@ begin
               p64:=@idleprocessbuffer[0];
               p642:=@idleprocesswithdebuggerbuffer[0];
 
-              while offset<4096 do
+              while offset<1024 do
               begin
                 if (p64^=0) and (p642^>$fffff00000000000) then
                 begin
@@ -676,7 +676,7 @@ begin
               p:=@idleprocessbuffer[0];
               p2:=@idleprocesswithdebuggerbuffer[0];
 
-              while offset<4096 do
+              while offset<1024 do
               begin
                 if (p^=0) and (p2^>$80000000) then
                 begin

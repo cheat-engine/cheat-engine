@@ -370,7 +370,8 @@ begin
         result:=true;
       end;
     end else raise exception.Create('Your cpu is not able to use this function.');
-  end else result:=true;
+  end
+  else result:=true;
 end;
 
 function isRunningDBVM: boolean;

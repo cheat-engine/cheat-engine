@@ -194,7 +194,7 @@ int interrupt3_centry(UINT_PTR *stackpointer)
 	int handled=0;
 	UINT_PTR eip=stackpointer[si_eip]-1;
 
-	DbgPrint("interrupt 3. PID=%x eip=%x\n", currentPID, eip);
+	//DbgPrint("interrupt 3. PID=%x eip=%x\n", currentPID, eip);
 
 
 	csEnter(&CloakedSections_CS);
@@ -204,14 +204,14 @@ int interrupt3_centry(UINT_PTR *stackpointer)
 		{
 			int offset; //int on purpose!
 			offset=(int)(eip-CloakedSections.cs[i].relocatedpagebase);
-			DbgPrint("offset=%d\n",offset);
+			//DbgPrint("offset=%d\n",offset);
 
 			if ((offset>-4096) && (offset<CloakedSections.cs[i].size+4096))
 			{
-				DbgPrint("Inside\n");
-				DbgPrint("old eip=%x\n",stackpointer[si_eip]);
+				//DbgPrint("Inside\n");
+				//DbgPrint("old eip=%x\n",stackpointer[si_eip]);
 				stackpointer[si_eip]=CloakedSections.cs[i].pagebase+offset;				
-				DbgPrint("new eip=%x\n",stackpointer[si_eip]);
+				//DbgPrint("new eip=%x\n",stackpointer[si_eip]);
 				handled=1;
 			}
 
@@ -290,7 +290,7 @@ int interrupt14_centry(UINT_PTR *stackpointer)
 		UINT_PTR cr2=(UINT_PTR)getCR2();
 
 		//NO EXECUTE PAGEFAULT
-		DbgPrint("interrupt14_centry for a NO EXECUTE PF: pid= %x, CR2=%x, errorcode(%x): P=%d WR=%d US=%d RSVD=%d ID=%d\n",currentPID, cr2, stackpointer[si_errorcode], errorcode->P, errorcode->WR, errorcode->US, errorcode->RSVD, errorcode->ID);
+		//DbgPrint("interrupt14_centry for a NO EXECUTE PF: pid= %x, CR2=%x, errorcode(%x): P=%d WR=%d US=%d RSVD=%d ID=%d\n",currentPID, cr2, stackpointer[si_errorcode], errorcode->P, errorcode->WR, errorcode->US, errorcode->RSVD, errorcode->ID);
 
 		//check if in one of my ranges
 		//if so, change eip and don't tell windows
@@ -305,13 +305,13 @@ int interrupt14_centry(UINT_PTR *stackpointer)
 					UINT_PTR eip=stackpointer[si_eip];					
 					UINT_PTR offset=eip-CloakedSections.cs[i].pagebase; //eip CAN be lower than pagebase on a pageboundary, but as long as DWORD's are used, it's safe enough (and assuming the usermode part has the first bytes of the instruction saved as well on the prologue region)
 
-					DbgPrint("%d: No-execute in relocated region. EIP=%x\n",i,eip);
-                    DbgPrint("%d: PID=%d pagebase=%x relocatedpagebase=%x size=%d\n",i,currentPID, CloakedSections.cs[i].pagebase, CloakedSections.cs[i].relocatedpagebase, CloakedSections.cs[i].size);
+					//DbgPrint("%d: No-execute in relocated region. EIP=%x\n",i,eip);
+                    //DbgPrint("%d: PID=%d pagebase=%x relocatedpagebase=%x size=%d\n",i,currentPID, CloakedSections.cs[i].pagebase, CloakedSections.cs[i].relocatedpagebase, CloakedSections.cs[i].size);
 					stackpointer[si_eip]=CloakedSections.cs[i].relocatedpagebase+offset;
 					
-					DbgPrint("%d: Changing eip from %x to %x",i, eip,stackpointer[si_eip]);					
+					//DbgPrint("%d: Changing eip from %x to %x",i, eip,stackpointer[si_eip]);					
 					csLeave(&CloakedSections_CS); //unlock (I might be able to do a try/finally but not sure it'd work in this context)
-					DbgPrint("Returning handled\n");
+					//DbgPrint("Returning handled\n");
 					return 1;
 				}
 			}

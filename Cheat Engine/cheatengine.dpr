@@ -157,7 +157,8 @@ uses
   pointervaluelist in 'pointervaluelist.pas',
   rescanhelper in 'rescanhelper.pas',
   ValueFinder in 'ValueFinder.pas',
-  PointerscanresultReader in 'PointerscanresultReader.pas';
+  PointerscanresultReader in 'PointerscanresultReader.pas',
+  bigmemallochandler in 'bigmemallochandler.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -167,7 +168,7 @@ begin
   Application.Initialize;
   getcedir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.5';
+  Application.Title := 'Cheat Engine 5.6';
   Application.HelpFile := 'CheatEngine.chm';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);
