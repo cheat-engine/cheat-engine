@@ -1092,11 +1092,11 @@ Function {VirtualAllocEx}VAE(hProcess: THandle; lpAddress: Pointer; dwSize, flAl
 var i: integer;
     br,cc: dword;
     x: record
-      processid: dword;
+      processid: uint64;
       baseaddress: uint64;
-      size: dword;
-      AllocationType: dword;
-      Protect: dword;
+      size: uint64;
+      AllocationType: uint64;
+      Protect: uint64;
     end;
     r: uint64;
 begin

@@ -915,7 +915,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				DbgPrint("IOCTL_CE_ADDCLOAKEDSECTION\n");
 				pinp=Irp->AssociatedIrp.SystemBuffer;
-				if (stealthedit_AddCloakedSection(pinp->ProcessID, (UINT_PTR)pinp->pagebase, (UINT_PTR)pinp->relocatedpagebase, pinp->size))
+				if (stealthedit_AddCloakedSection((DWORD)pinp->ProcessID, (UINT_PTR)pinp->pagebase, (UINT_PTR)pinp->relocatedpagebase, (int)pinp->size))
 					ntStatus=STATUS_SUCCESS;
 				else
 					ntStatus=STATUS_UNSUCCESSFUL;
@@ -932,7 +932,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
-				if (stealthedit_RemoveCloakedSection(pinp->ProcessID, (UINT_PTR)pinp->pagebase))
+				if (stealthedit_RemoveCloakedSection((DWORD)pinp->ProcessID, (UINT_PTR)pinp->pagebase))
 					ntStatus=STATUS_SUCCESS;
 				else
 					ntStatus=STATUS_UNSUCCESSFUL;
@@ -1167,11 +1167,11 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					ULONG ProcessID;
+					UINT64 ProcessID;
 					UINT64 BaseAddress;
-					ULONG Size;
-					ULONG AllocationType;
-					ULONG Protect;
+					UINT64 Size;
+					UINT64 AllocationType;
+					UINT64 Protect;
 				} *inp;
 				PEPROCESS selectedprocess;
 
@@ -1198,7 +1198,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 						__try
 						{
 							DbgPrint("Calling ZwAllocateVirtualMemory\n");
-							ntStatus=ZwAllocateVirtualMemory((HANDLE)-1,&BaseAddress,0,  &RegionSize,      inp->AllocationType,    inp->Protect);
+							ntStatus=ZwAllocateVirtualMemory((HANDLE)-1, &BaseAddress, 0, &RegionSize, (ULONG)inp->AllocationType, (ULONG)inp->Protect);
 
 							if ((ntStatus==STATUS_SUCCESS) && (HiddenDriver))
 							{

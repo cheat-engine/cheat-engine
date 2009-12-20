@@ -140,6 +140,7 @@ var isbp: boolean;
     refferencedbyheight: integer;
     refferencedbystrings: array of string;
     i,j: integer;
+    relocated: boolean;
     relocatesTo: dword;
 begin
   top:=linestart;
@@ -289,15 +290,19 @@ begin
     addressString:='>>'+addressString;
 
   relocatesTo:=0;
+  relocated:=false;
   if stealtheditor<>nil then
   begin
-    stealtheditor.isRelocated(faddress, relocatesTo);
-    addressString:=addressString+'->'+inttohex(relocatesTo,8);
-    fcanvas.Font.Color:=clBlue;
+    relocated:=stealtheditor.isRelocated(faddress, relocatesTo);
+    if relocated then
+    begin
+      addressString:=addressString+'->'+inttohex(relocatesTo,8);
+      fcanvas.Font.Color:=clBlue;
+    end;
   end;
 
   fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart,addressString);
-  if relocatesTo>0 then
+  if relocated then
     fcanvas.Font.Color:=clWindowText;
 
   fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart,bytestring);

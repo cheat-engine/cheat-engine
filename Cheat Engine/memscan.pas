@@ -734,8 +734,14 @@ end;
 function TScanner.BinaryExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
-  for i:=0 to 7 do
-    binaryresults[i]:=((puint64(newvalue)^ shr i) and andmask)=bitmask;
+  try
+    for i:=0 to 7 do
+      binaryresults[i]:=((puint64(newvalue)^ shr i) and andmask)=bitmask;
+
+  except
+    raise exception.Create('newvalue='+inttohex(dword(newvalue),8));
+
+  end;
 
   //no need for a result here, for binary that isn't checked (special case)
   result:=true; //let the store result routine deal with it
@@ -2565,7 +2571,7 @@ begin
     if scanOption<>soUnknownValue then
     begin
       //not unknown initial
-      memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
+      memorybuffer:=virtualAlloc(nil,maxregionsize+16,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
       configurescanroutine;
     end
     else //it is a unknown initial value, so use the previousmemorybuffer instead

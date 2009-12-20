@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 946
-  Top = 399
+  Left = 697
+  Top = 262
   Width = 532
   Height = 552
   Hint = ' '
@@ -1414,6 +1414,7 @@ object MainForm: TMainForm
       Width = 68
       Height = 13
       Caption = 'stealthedit test'
+      Visible = False
       OnClick = Label38Click
     end
     object Label53: TLabel
@@ -1456,6 +1457,7 @@ object MainForm: TMainForm
       Width = 70
       Height = 13
       Caption = 'Launch DBVM'
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1464,6 +1466,7 @@ object MainForm: TMainForm
       Width = 38
       Height = 13
       Caption = 'Label61'
+      Visible = False
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox

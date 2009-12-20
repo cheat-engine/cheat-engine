@@ -157,8 +157,7 @@ uses
   pointervaluelist in 'pointervaluelist.pas',
   rescanhelper in 'rescanhelper.pas',
   ValueFinder in 'ValueFinder.pas',
-  PointerscanresultReader in 'PointerscanresultReader.pas',
-  bigmemallochandler in 'bigmemallochandler.pas';
+  PointerscanresultReader in 'PointerscanresultReader.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

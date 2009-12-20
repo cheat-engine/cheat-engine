@@ -9277,6 +9277,13 @@ begin
 
   if (month=4) and (day=1) then aprilfools:=true;
 
+  //beta
+  if (year>2010) or ((year=2010) and (month>1)) then
+  begin
+    showmessage('please ask dark byte for a new version');
+    application.Terminate;
+  end;
+
   if aprilfools=true then
     Messagedlg('Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for only $1800.'+' If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)',mtwarning,[mbok],0);
 

@@ -61,6 +61,7 @@ EXTERN originalstatePA: QWORD
 EXTERN enterVMM2: QWORD
 
 EXTERN originalstate: PS_ORIGNALSTATE
+EXTERN vmmPA: QWORD
 
 
 _TEXT SEGMENT 'CODE'
@@ -86,17 +87,35 @@ begin:
 	jmp short weee
 weee:
 
+
+
+
 	
 	;now jump to the physical address (identity mapped to the same virtual address)
 	mov rax,secondentry
 	mov r8,enterVMM
     sub rax,r8
-	add rax,rsi ;add the physical address to the offset location
+	add rax,rsi ;add the physical address to the offset location	
+	
 	jmp rax
 
 secondentry:
 	;contrary to the 32-bit setup, we don't disable paging to make the switch to 64-bit, we're already there
 	;we can just set the CR3 value
+	
+	
+;----------TEST----------
+;	waitforready:
+;	mov dx,0ef05h
+;	in al,dx
+;	and al,20h
+;	cmp al,20h
+;	jne waitforready
+;	
+;	mov dx,0ef00h
+;	mov al,'1'
+;	out dx,al
+;^^^^^^^^TEST^^^^^^^^
 	
 
 	;enable PAE and PSE (just to make sure)
@@ -121,8 +140,6 @@ weee2:
 	mov rax,cr0
 	or eax,10000h
 	mov cr0,rax ;enable WP bit
-	
-	mov rax,r15 ;tell dbvm it's an OS entry and what location the start info is	
 		
 	nop
 	nop
@@ -185,8 +202,6 @@ enterVMMPrologue:
 	mov rbx,enterVMMEpilogue
 	mov (S_ORIGINALSTATE PTR [rax])._rip,rbx
 	
-	
-	
 	;jmp enterVMMEpilogue ;test to see if the loader is bugged
 	
 	;still here, loader didn't crash, start executing the move to the dbvm environment
@@ -198,7 +213,6 @@ enterVMMPrologue:
 	mov rcx,pagedirptrbasePA
 	mov rdx,TemporaryPagingSetupPA 
 	mov rsi,enterVMM2PA
-	mov r15,originalstatePA
 	
 
 	jmp [enterVMM2]

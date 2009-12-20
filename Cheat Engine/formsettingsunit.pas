@@ -989,6 +989,9 @@ begin
     TauntOldOsUser.Caption:='Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
 
     panel1.Visible:=false;   //there is no stealth in 64-bit
+
+    cbKernelQueryMemoryRegion.Visible:=false; //currently no 64-bit paging support (yet)
+    cbKernelQueryMemoryRegion.Enabled:=false;
   end;
 
 

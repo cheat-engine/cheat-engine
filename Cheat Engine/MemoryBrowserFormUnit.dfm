@@ -806,6 +806,7 @@ object MemoryBrowser: TMemoryBrowser
     object Disablestealthedit1: TMenuItem
       Caption = 'Disable stealthedit'
       Visible = False
+      OnClick = Disablestealthedit1Click
     end
   end
   object Timer2: TTimer

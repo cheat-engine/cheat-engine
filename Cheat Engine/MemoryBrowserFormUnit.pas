@@ -316,6 +316,7 @@ type
     procedure All1Click(Sender: TObject);
     procedure Modulesonly1Click(Sender: TObject);
     procedure Nonsystemmodulesonly1Click(Sender: TObject);
+    procedure Disablestealthedit1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -4051,6 +4052,12 @@ begin
   Modulesonly1.Checked:=false;
   Nonsystemmodulesonly1.Checked:=true;
   reloadstacktrace;
+end;
+
+procedure TMemoryBrowser.Disablestealthedit1Click(Sender: TObject);
+begin
+  if stealtheditor<>nil then
+    stealtheditor.RestoreEdit(disassemblerview.SelectedAddress);
 end;
 
 end.

@@ -49,7 +49,7 @@ begin
     else
       generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount', 'realgettickcount');
 
-//    showmessage(script.Text);
+
 
     try
       setlength(AllocArray,0);
@@ -78,6 +78,7 @@ begin
     end;
 
 
+    script.clear;
     x:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
     y:=0;
     readprocessmemory(processhandle,pointer(x),@y,4,x);
@@ -88,7 +89,7 @@ begin
 
     try
       autoassemble(script,false);
-    except //don't mind
+    except //do mind
       raise exception.Create('Failure configuring speedhack part 2');
     end;
 

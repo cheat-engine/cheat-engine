@@ -392,23 +392,6 @@ begin
           assemblerlines[length(assemblerlines)-1]:=currentline;
 
 
-          //replace ALLOC identifiers with values so the assemble error check doesnt crash on that
-          for j:=0 to length(allocs)-1 do
-            currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
-
-          //replace KALLOC identifiers with values so the assemble error check doesnt crash on that
-          for j:=0 to length(kallocs)-1 do
-            currentline:=replacetoken(currentline,kallocs[j].varname,'00000000');
-
-          //replace label references with 00000000 so the assembler check doesn't complain about it
-          for j:=0 to length(labels)-1 do
-            currentline:=replacetoken(currentline,labels[j].labelname,'00000000');
-
-          //replace stealthedit references with 00000000 so the assembler check doesn't complain about it
-          for j:=0 to length(stealthedits)-1 do
-            currentline:=replacetoken(currentline,stealthedits[j].name,'00000000');
-
-
           if uppercase(copy(currentline,1,12))='GLOBALALLOC(' then
           begin
             a:=pos('(',currentline);
@@ -714,6 +697,11 @@ begin
             end else raise exception.Create('Wrong syntax. STEALTHEDIT(varname, address, size)');
           end;
 
+          //replace stealthedit references with 00000000 so the assembler check doesn't complain about it
+          for j:=0 to length(stealthedits)-1 do
+            currentline:=replacetoken(currentline,stealthedits[j].name,'00000000');
+          
+
           if uppercase(copy(currentline,1,14))='UNSTEALTHEDIT(' then
           begin
             if (ceallocarray<>nil) then//memory dealloc=possible
@@ -927,6 +915,9 @@ begin
           end;
 
 
+          //replace ALLOC identifiers with values so the assemble error check doesnt crash on that
+          for j:=0 to length(allocs)-1 do
+            currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
 
           {$ifndef net}
           //memory kalloc
@@ -980,8 +971,13 @@ begin
             end else raise exception.Create('Wrong syntax. kalloc(identifier,sizeinbytes)');
           end;
 
-
           {$endif}
+
+          //replace KALLOC identifiers with values so the assemble error check doesnt crash on that
+          for j:=0 to length(kallocs)-1 do
+            currentline:=replacetoken(currentline,kallocs[j].varname,'00000000');
+
+
 
           //check for assembler errors
           //address
@@ -1013,7 +1009,9 @@ begin
             end;
           end;
 
-
+          //replace label references with 00000000 so the assembler check doesn't complain about it
+          for j:=0 to length(labels)-1 do
+            currentline:=replacetoken(currentline,labels[j].labelname,'00000000');
 
           try
             //replace identifiers in the line with their address
@@ -1182,7 +1180,7 @@ begin
       for i:=0 to length(allocs)-1 do
        inc(x,allocs[i].size);
 
-      allocs[0].address:=dword(virtualallocex(processhandle,nil,x,MEM_COMMIT,page_execute_readwrite));
+      allocs[0].address:=dword(virtualallocex(processhandle,nil,x+4096,MEM_COMMIT,page_execute_readwrite));
 
       for i:=1 to length(allocs)-1 do
         allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
@@ -1324,8 +1322,8 @@ begin
 
       inc(currentaddress,length(assembled[length(assembled)-1].bytes));
     end;
-
-
+    //end of loop
+    
     ok2:=true;
 
     //unprotectmemory

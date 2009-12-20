@@ -488,15 +488,15 @@ begin
         begin
           //convert what i need to a string of bits
           temp:='';
-          j:=addresslistb[j].bit;
+          l:=addresslistb[j].bit;
           read9:=@read8[0];
           for k:=1 to varlength do
           begin
-            temp:=temp+IntToStr(getbit(j,read9^));
-            inc(j);
-            if j>=8 then
+            temp:=temp+IntToStr(getbit(l,read9^));
+            inc(l);
+            if l>=8 then
             begin
-              j:=0;
+              l:=0;
               inc(read9);
             end;
           end;

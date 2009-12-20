@@ -23,6 +23,8 @@ var stealtheditor: TStealthEdit;
   
 implementation
 
+uses Math;
+
 
 
 constructor TStealthEdit.create;
@@ -214,9 +216,9 @@ begin
   result:=false;
   for i:=0 to length(relocations)-1 do
   begin
-    if relocations[i].baseaddress=address then
+    if InRange(address, relocations[i].baseaddress, relocations[i].baseaddress+relocations[i].size) then
     begin
-      result:=stealthedit_RemoveCloakedSection(processid, address);
+      result:=stealthedit_RemoveCloakedSection(processid, relocations[i].baseaddress);
       if result then
       begin
         //shift items
