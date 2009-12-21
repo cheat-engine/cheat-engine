@@ -269,8 +269,18 @@ begin
   begin
     //manually set the breakpoints in the global debug register context
     OutputDebugString('fGlobalDebug=false, Setting breakpoint manually');
+    OutputDebugString(pchar(format('debugreg=%d breaktype=%d breaklength=%d',[debugreg, integer(breaktype), integer(breaklength)])));
 
-    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl debugreg) or (3 shl 16+debugreg*2))) or (integer(breaktype) shl debugreg) or (integer(breaklength) shl 16+debugreg*2);
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 or (1 shl 10); //just to make it look nicer set the flag that will always be 1
+
+    //unset the bits for the given debugreg
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl (debugreg*2)) or ($f shl 16+debugreg*2))); // disable local bp and unset the 4 bits for LEN and R/W 
+
+    //set the specific bits
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 or (integer(breaklength) shl (16+debugreg*2+2)) or (integer(breaktype) shl (16+debugreg*2));
+
+    //enable local breakpoint
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 or (1 shl (debugreg*2));
     OutputDebugString(pchar(format('Setting DR7 to %x',[generaldebugregistercontext.Dr7])));
 
     case debugreg of
@@ -328,7 +338,7 @@ begin
   end
   else
   begin
-    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl bp) or (3 shl 16+bp*2)));
+    generaldebugregistercontext.Dr7:=generaldebugregistercontext.Dr7 and (not ((1 shl bp) or ($f shl 16+bp*2)));
 
     case bp of
       0: generaldebugregistercontext.Dr0:=0;
@@ -360,7 +370,7 @@ end;
 
 procedure TKDebugger.ApplyDebugRegistersForThread(threadhandle: DWORD);
 begin
-  OutputDebugString(format('Calling TKDebugger.ApplyDebugRegistersForThread(%x)',[threadhandle]));
+  OutputDebugString(format('Calling TKDebugger.ApplyDebugRegistersForThread with handle %x',[threadhandle]));
   if not globaldebug then
   begin
     Debuggerthread.threadlistCS.Enter;

@@ -739,7 +739,7 @@ begin
       binaryresults[i]:=((puint64(newvalue)^ shr i) and andmask)=bitmask;
 
   except
-    raise exception.Create('newvalue='+inttohex(dword(newvalue),8));
+    raise exception.Create('scanner:'+inttostr(scannernr)+'newvalue='+inttohex(dword(newvalue),8));
 
   end;
 
@@ -3123,6 +3123,9 @@ begin
         inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
 
+        scanners[i].maxregionsize:=currentblocksize; 
+
+        //find the maximum blocksize
         while (currentblocksize<blocksize) and (j<memregionpos) do
         begin
           if scanners[i].maxregionsize<memregion[j].MemorySize then
@@ -3474,6 +3477,7 @@ begin
         inc(currentblocksize,memregion[j].MemorySize-offsetincurrentregion);
         inc(j);
 
+        scanners[i].maxregionsize:=currentblocksize;        
 
         while (currentblocksize<blocksize) and (j<memregionpos) do
         begin

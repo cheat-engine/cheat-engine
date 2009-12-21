@@ -5003,7 +5003,7 @@ begin
       3: LoadV3(filename,ctfile,merge);
       4: LoadV4(filename,ctfile,merge);
       5: LoadV5(filename,ctfile,merge);
-      6,7,8: LoadV6(filename,ctfile,merge);
+      6,7,8,9: LoadV6(filename,ctfile,merge);
       else raise exception.Create('This table was made with a version of Cheat Engine that isn''t supported anymore! (The table is propably messed up)');
     end;
 

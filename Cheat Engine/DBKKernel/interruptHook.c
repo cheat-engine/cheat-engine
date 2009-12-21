@@ -66,7 +66,7 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 		{
 			INT_VECTOR newVector;
 			
-			//newVector.bAccessFlags=0x8e;
+			
 			//newVector.bUnused=0;
 			/*
 			newVector.gatetype=6; //interrupt gate
@@ -83,7 +83,10 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 				IDT idt;	
 				GetIDT(&idt);
 
-				disableInterrupts();				
+				
+				newVector.bAccessFlags=idt.vector[intnr].bAccessFlags;
+
+				disableInterrupts();
 				idt.vector[intnr]=newVector;
 				enableInterrupts();				
 			}

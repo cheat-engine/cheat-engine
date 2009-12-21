@@ -8123,7 +8123,12 @@ begin
     //
   end;
 
-  freeandnil(frmProcessWatcher);
+  if frmProcessWatcher<>nil then
+  begin
+    frmProcessWatcher.Free;
+    frmProcessWatcher:=nil;
+  end;
+
 
   try
   tempbitmap.free;

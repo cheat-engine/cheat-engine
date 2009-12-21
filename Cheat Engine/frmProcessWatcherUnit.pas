@@ -508,10 +508,12 @@ end;
 
 procedure TfrmProcessWatcher.FormDestroy(Sender: TObject);
 begin
-  processwatchthread.Terminate;
-  processwatchthread.WaitFor;
-  processwatchthread.Free;
-  frmProcessWatcher:=nil;
+  if processwatchthread<>nil then
+  begin
+    processwatchthread.Terminate;
+    processwatchthread.WaitFor;
+    processwatchthread.Free;
+  end;
 end;
 
 procedure TfrmProcessWatcher.Panel1Resize(Sender: TObject);

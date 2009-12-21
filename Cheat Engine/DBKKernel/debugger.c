@@ -964,7 +964,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
 	int i;
 
-	//DbgPrint("interrupt1_centry:%d\n",cpunr());
+	DbgPrint("interrupt1_centry:%d\n",cpunr());
 
 	before=getRSP();
 
@@ -999,7 +999,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	
 
-	//DbgPrint("handled=%d\n",handled);
+	DbgPrint("handled=%d\n",handled);
 
 	//DbgPrint("After interrupt1_handler dr6=%x\n",currentdebugregs[4]);
 	

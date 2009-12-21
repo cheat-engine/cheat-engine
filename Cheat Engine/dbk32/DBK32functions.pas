@@ -641,7 +641,7 @@ begin
       begin
         input.ProcessID:=handlelist[i].processid;
         input.BaseAddress:=dword(lpBaseAddresS);
-        outputdebugstring(pchar(format('ProcessID(%p)=%x Baseaddress(%p)=%x',[@input.ProcessID, input.processid, @input.BaseAddress, input.baseaddress])));
+//        outputdebugstring(pchar(format('ProcessID(%p)=%x Baseaddress(%p)=%x',[@input.ProcessID, input.processid, @input.BaseAddress, input.baseaddress])));
 
         result:=deviceiocontrol(hdevice,cc,@input,sizeof(TInputstruct),@physicaladdress,8,x,nil);
         if result then address:=physicaladdress else address:=0;
@@ -935,7 +935,7 @@ begin
           bufpointer2:=pointer(bufpointer);
           copymemory(@ao[sizeof(tinputstruct)],bufpointer2,towrite);
 
-          OutputDebugString(pchar('sizeof(TInputstruct)='+inttostr(sizeof(TInputstruct))));
+//          OutputDebugString(pchar('sizeof(TInputstruct)='+inttostr(sizeof(TInputstruct))));
           if not deviceiocontrol(hdevice,cc,@ao[0],512,@ao[0],512,br,nil) then exit;
 
           inc(mempointer,towrite);
