@@ -1,26 +1,27 @@
 object frmDissectCode: TfrmDissectCode
-  Left = 1156
-  Top = 433
-  Width = 317
-  Height = 317
+  Left = 886
+  Top = 270
+  Width = 379
+  Height = 369
   Caption = 'Dissect Code'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
   OnClose = FormClose
   OnShow = FormShow
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 264
-    Width = 301
-    Height = 17
+    Top = 303
+    Width = 361
+    Height = 21
     Align = alBottom
     ParentShowHint = False
     ShowHint = True
@@ -29,151 +30,146 @@ object frmDissectCode: TfrmDissectCode
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 161
-    Height = 264
+    Width = 200
+    Height = 303
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object ListBox1: TListBox
       Left = 0
-      Top = 33
-      Width = 161
-      Height = 231
+      Top = 57
+      Width = 200
+      Height = 246
       Align = alClient
-      ItemHeight = 13
+      ItemHeight = 16
       MultiSelect = True
       TabOrder = 0
-      OnClick = ListBox1Click
     end
     object Panel2: TPanel
       Left = 0
       Top = 0
-      Width = 161
-      Height = 33
+      Width = 200
+      Height = 57
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 1
       object Label2: TLabel
         Left = 0
         Top = 0
-        Width = 144
-        Height = 13
+        Width = 182
+        Height = 16
         Caption = 'Select the module(s) to dissect'
       end
       object Label3: TLabel
         Left = 0
-        Top = 16
-        Width = 134
-        Height = 13
+        Top = 20
+        Width = 169
+        Height = 16
         Caption = 'Hold CTRL to select multiple'
+      end
+      object cbIncludesystemModules: TCheckBox
+        Left = 0
+        Top = 40
+        Width = 193
+        Height = 17
+        Caption = 'Include system modules'
+        TabOrder = 0
+        OnClick = cbIncludesystemModulesClick
       end
     end
   end
   object Panel3: TPanel
-    Left = 161
+    Left = 200
     Top = 0
-    Width = 140
-    Height = 264
+    Width = 161
+    Height = 303
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 2
-    object Label1: TLabel
-      Left = 6
-      Top = 8
-      Width = 99
-      Height = 26
-      Caption = 'Or fill in the region to scan yourself:'
-      WordWrap = True
-    end
     object Label6: TLabel
-      Left = 9
-      Top = 176
-      Width = 88
-      Height = 13
+      Left = 19
+      Top = 9
+      Width = 111
+      Height = 16
       Caption = 'Estimated time left:'
     end
     object Label7: TLabel
-      Left = 8
-      Top = 187
-      Width = 113
-      Height = 13
+      Left = 10
+      Top = 22
+      Width = 139
+      Height = 16
       Alignment = taCenter
       AutoSize = False
       Caption = 'Label7'
     end
-    object Label8: TLabel
-      Left = 4
-      Top = 130
-      Width = 45
-      Height = 13
-      Caption = 'Accuracy'
+    object Label4: TLabel
+      Left = 8
+      Top = 56
+      Width = 140
+      Height = 16
+      Caption = 'String references found:'
+    end
+    object lblStringRef: TLabel
+      Left = 8
+      Top = 72
+      Width = 69
+      Height = 16
+      Caption = 'lblStringRef'
+    end
+    object Label5: TLabel
+      Left = 8
+      Top = 96
+      Width = 113
+      Height = 16
+      Caption = 'Conditional Jumps:'
+    end
+    object lblConditionalJumps: TLabel
+      Left = 8
+      Top = 112
+      Width = 121
+      Height = 16
+      Caption = 'lblConditionalJumps'
+    end
+    object Label9: TLabel
+      Left = 8
+      Top = 136
+      Width = 128
+      Height = 16
+      Caption = 'Unconditional Jumps:'
+    end
+    object lblUnConditionalJumps: TLabel
+      Left = 8
+      Top = 152
+      Width = 138
+      Height = 16
+      Caption = 'lblUnConditionalJumps'
+    end
+    object Label11: TLabel
+      Left = 8
+      Top = 176
+      Width = 33
+      Height = 16
+      Caption = 'Calls:'
+    end
+    object lblCalls: TLabel
+      Left = 8
+      Top = 192
+      Width = 44
+      Height = 16
+      Caption = 'lblCalls'
     end
     object Button1: TButton
-      Left = 16
-      Top = 212
-      Width = 89
-      Height = 25
+      Left = 20
+      Top = 261
+      Width = 109
+      Height = 31
       Caption = 'Start'
       TabOrder = 0
       OnClick = Button1Click
-    end
-    object edtAccuracy: TEdit
-      Left = 8
-      Top = 146
-      Width = 105
-      Height = 21
-      Hint = 
-        'This will determine how much effort ce will put into filtering o' +
-        'ut wrong instructions (Setting this too high will severely decre' +
-        'ase the speed while browsing through the code)'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 1
-      Text = '2'
-    end
-    object GroupBox1: TGroupBox
-      Left = 8
-      Top = 40
-      Width = 113
-      Height = 89
-      Caption = 'User specified'
-      TabOrder = 2
-      object Label4: TLabel
-        Left = 3
-        Top = 12
-        Width = 23
-        Height = 13
-        Caption = 'From'
-      end
-      object Label5: TLabel
-        Left = 4
-        Top = 44
-        Width = 13
-        Height = 13
-        Caption = 'To'
-      end
-      object edtFrom: TEdit
-        Left = 3
-        Top = 24
-        Width = 99
-        Height = 21
-        TabOrder = 0
-        OnChange = edtFromChange
-      end
-      object edtTo: TEdit
-        Left = 3
-        Top = 55
-        Width = 99
-        Height = 21
-        TabOrder = 1
-        OnChange = edtFromChange
-      end
     end
   end
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer
-    Left = 16
-    Top = 40
   end
 end

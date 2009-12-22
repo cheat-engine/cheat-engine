@@ -6,6 +6,26 @@ uses imagehlp,sysutils,windows,byteinterpreter, symbolhandler,cefuncproc{$ifdef 
 
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
+type TIntToHexS=function(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+
+type TDisassembler=class
+  private
+    inttohexs: TIntToHexS;
+    function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; overload;
+
+    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
+  public
+    isdefault: boolean;
+    showsymbols: boolean;
+    showmodules: boolean;
+    function disassemble(var offset: dword; var description: string): string;
+    function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+end;
+
+
+
 
 function rd(bt: byte): string;
 function rd8(bt:byte): string;
@@ -28,9 +48,6 @@ function getmod(bt: byte): byte;
 function getRM(bt: byte): byte;
 function getREG(bt: byte): byte;
 
-function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
-function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
-
 function disassemble(var offset: dword): string; overload;
 function disassemble(var offset: dword; var description: string): string; overload;
 
@@ -39,7 +56,13 @@ function previousopcode(address: dword):dword;
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 
-function inttohexs(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+
+
+
+function inttohexs_withoutsymbols(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+function inttohexs_withsymbols(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+
+
 
 var mode16: boolean;
 
@@ -51,6 +74,8 @@ implementation
 uses assemblerunit,debugger, StrUtils;
 {$endif}
 {$endif}
+
+var defaultDisassembler: TDisassembler;
 
 
 function rd(bt:byte):string;
@@ -244,7 +269,7 @@ begin
 end;
 
 
-function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
+function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
 var dwordptr: ^dword;
 begin
 
@@ -418,12 +443,12 @@ begin
 end;
 
 
-function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string; overload;
+function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
 begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
 end;
 
-function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; overload;
+function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; 
 begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
   if (length(result)>0) and (result[1]='[') then
@@ -439,7 +464,7 @@ begin
   end;
 end;
 
-function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
+function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
 var dwordptr: ^dword;
 begin
   case memory[sibbyte] of
@@ -2207,6 +2232,12 @@ begin
 end;
 
 function disassemble(var offset: dword; var description: string): string; overload;
+begin
+  result:=defaultDisassembler.disassemble(offset,description);
+end;
+
+
+function TDisassembler.disassemble(var offset: dword; var description: string): string;
 var memory: TMemory;
     actualread: dword;
     startoffset: dword;
@@ -2228,6 +2259,16 @@ var memory: TMemory;
     last: dword;
     foundit: boolean;
 begin
+  if isdefault then
+    showsymbols:=symhandler.showsymbols;
+
+  if showsymbols then
+    intToHexs:=inttohexs_withsymbols
+  else
+    intToHexs:=inttohexs_withoutsymbols;
+
+
+
   result:=inttohex(offset,8)+' - ';
 
   isprefix:=true;
@@ -8954,8 +8995,12 @@ begin
  // if x<>address then result:=address-1 else result:=y;
 end;
 
-//function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+begin
+  result:=defaultDisassembler.splitDisassembledString(disassembled, showvalues, address,bytes, opcode, special);
+end;
+
+function tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 var offset,value:dword;
     e: integer;
     i,j,j2,k,l: integer;
@@ -9110,8 +9155,12 @@ begin
 
 end;
 
+function inttohexs_withoutsymbols(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+begin
+  result:=sysutils.IntToHex(address,chars);
+end;
 
-function inttohexs(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+function inttohexs_withsymbols(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 var symbol: PImagehlpSymbol;
     disp: dword;
 begin
@@ -9132,6 +9181,10 @@ begin
       result:=sysutils.IntToHex(address,chars);
   end;
 end;
+
+initialization
+  defaultDisassembler:=TDisassembler.create;
+  defaultDisassembler.isdefault:=true;
 
 end.
 

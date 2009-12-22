@@ -4222,86 +4222,86 @@ begin
     try
       UpdateFoundlisttimer.Enabled:=false;
 
-    if not((Stype=Advanced_scan) or (Stype=string_scan)) then
-    begin
-      if vtype=5 then
+      if not((Stype=Advanced_scan) or (Stype=string_scan)) then
       begin
-        bitoffsetchange:=0;
+        if vtype=5 then
+        begin
+          bitoffsetchange:=0;
 
-        //open the memoryfile end check to see if the length of the bits are what they need to be
-        assignfile(Memoryfile,cheatenginedir+'MEMORY.TMP');
+          //open the memoryfile end check to see if the length of the bits are what they need to be
+          assignfile(Memoryfile,cheatenginedir+'MEMORY.TMP');
 
-        reset(memoryfile,1);
-        blockread(memoryfile,temp,4,temp2);
-        setlength(bitscan,temp);
-        blockread(memoryfile,pointer(bitscan)^,temp,temp2);
-        closefile(memoryfile);
+          reset(memoryfile,1);
+          blockread(memoryfile,temp,4,temp2);
+          setlength(bitscan,temp);
+          blockread(memoryfile,pointer(bitscan)^,temp,temp2);
+          closefile(memoryfile);
 
-        if rbbit.Checked then
-          if temp<>length(scanvalue.Text) then
-          begin
-            formDifferentBitSize:=tformDifferentBitSize.create(self);
-            formDifferentBitSize.newbit:=scanvalue.Text;
-            formDifferentBitSize.showmodal;
-            bitoffsetchange:=formdifferentbitsize.delta;
-            formdifferentbitsize.free;
-          end;
+          if rbbit.Checked then
+            if temp<>length(scanvalue.Text) then
+            begin
+              formDifferentBitSize:=tformDifferentBitSize.create(self);
+              formDifferentBitSize.newbit:=scanvalue.Text;
+              formDifferentBitSize.showmodal;
+              bitoffsetchange:=formdifferentbitsize.delta;
+              formdifferentbitsize.free;
+            end;
 
-        if rbdec.checked then
-          if temp<>length(inttobin(strtoint(scanvalue.Text))) then
-          begin
-            formDifferentBitSize:=tformDifferentBitSize.create(self);
-            formDifferentBitSize.newbit:=inttobin(strtoint(scanvalue.Text));
-            formDifferentBitSize.showmodal;
-            bitoffsetchange:=formdifferentbitsize.delta;
-            formdifferentbitsize.free;
-          end;
+          if rbdec.checked then
+            if temp<>length(inttobin(strtoint(scanvalue.Text))) then
+            begin
+              formDifferentBitSize:=tformDifferentBitSize.create(self);
+              formDifferentBitSize.newbit:=inttobin(strtoint(scanvalue.Text));
+              formDifferentBitSize.showmodal;
+              bitoffsetchange:=formdifferentbitsize.delta;
+              formdifferentbitsize.free;
+            end;
 
-        if cbfasterscan.checked then
-          hyperscanview.bitoffsetchange:=bitoffsetchange;
+          if cbfasterscan.checked then
+            hyperscanview.bitoffsetchange:=bitoffsetchange;
 
-      end;
-
-
-      vartype.Enabled:=false;
-
-      foundlist.Clear;
-      foundcountlabel.caption:='';
-
-      if formsettings.checkThread.checked or cbfasterscan.checked then
-      begin
-        val('$'+FromAddress.text,FromAdd,error);
-        val('$'+ToAddress.text,ToAdd,error);
-
-        formscanning:=TFormscanning.create(self);
-        formscanning.button:=1;
-        formscanning.scan:=2;
-        formscanning.stype:=stype;
-        formscanning.vtype:=vtype;
-        formscanning.fromadd:=fromadd;
-        formscanning.toadd:=toadd;
-        formscanning.fastscan:=fastscan;
-        formscanning.scanvalue:=scanvalue.Text;
-        formscanning.scanvalue2:=value2;
-        formscanning.hexadecimal:=hexadecimalcheckbox.checked;
-        formscanning.unicode:=cbunicode.Checked;
-        formscanning.percentage:=percentage;
-
-        formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
-        formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
-        formscanning.ExtremeScan:=cbFasterscan.Checked;
-        formscanning.roundingtype:=roundingtype;
-        res:=formscanning.showmodal;
-      end else
-      foundcount:=0; //obsolete: nextscan2(scanvalue.text,value2,stype,vtype,roundingtype,hexadecimalcheckbox.Checked,progressbar1,fastscan,cbunicode.checked,percentage);
-
-      foundlist.Clear;
-
-      Beep;
+        end;
 
 
+        vartype.Enabled:=false;
 
-    end else showmessage(strCantDoNextScan);
+        foundlist.Clear;
+        foundcountlabel.caption:='';
+
+        if formsettings.checkThread.checked or cbfasterscan.checked then
+        begin
+          val('$'+FromAddress.text,FromAdd,error);
+          val('$'+ToAddress.text,ToAdd,error);
+
+          formscanning:=TFormscanning.create(self);
+          formscanning.button:=1;
+          formscanning.scan:=2;
+          formscanning.stype:=stype;
+          formscanning.vtype:=vtype;
+          formscanning.fromadd:=fromadd;
+          formscanning.toadd:=toadd;
+          formscanning.fastscan:=fastscan;
+          formscanning.scanvalue:=scanvalue.Text;
+          formscanning.scanvalue2:=value2;
+          formscanning.hexadecimal:=hexadecimalcheckbox.checked;
+          formscanning.unicode:=cbunicode.Checked;
+          formscanning.percentage:=percentage;
+
+          formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
+          formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
+          formscanning.ExtremeScan:=cbFasterscan.Checked;
+          formscanning.roundingtype:=roundingtype;
+          res:=formscanning.showmodal;
+        end else
+        foundcount:=0; //obsolete: nextscan2(scanvalue.text,value2,stype,vtype,roundingtype,hexadecimalcheckbox.Checked,progressbar1,fastscan,cbunicode.checked,percentage);
+
+        foundlist.Clear;
+
+        Beep;
+
+
+
+      end else showmessage(strCantDoNextScan);
 
 
     finally
@@ -4583,7 +4583,8 @@ begin
   oldhandle:=mainform.handle;
   OnChangedHandle:=ChangedHandle;
 
-  
+
+  symhandler.loadCommonModuleList;  
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);

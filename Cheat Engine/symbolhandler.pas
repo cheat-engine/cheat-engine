@@ -2,6 +2,7 @@ unit symbolhandler;
 
 interface
 
+
 uses classes,windows,imagehlp,psapi,sysutils,syncobjs,tlhelp32{$ifndef autoassemblerdll},cefuncproc,newkernelhandler{$endif};
 
 {$ifdef autoassemblerdll}
@@ -82,6 +83,8 @@ type
     UserdefinedSymbolCallback: TUserdefinedSymbolCallback;
     searchpath: string;
 
+    commonModuleList: tstringlist;
+
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
     function getisloaded:boolean;
@@ -136,6 +139,7 @@ type
     function ParseAsPointer(s: string; list:tstrings): boolean;
     function GetAddressFromPointer(s: string; var error: boolean):dword;
 
+    procedure loadCommonModuleList;
     procedure RegisterUserdefinedSymbolCallback(callback: TUserdefinedSymbolCallback);
     constructor create;
     destructor destroy; override;
@@ -1026,13 +1030,13 @@ begin
             x:=me32.szExePath;
             modulelist[modulelistpos].modulename:=extractfilename(x);
             modulelist[modulelistpos].modulepath:=x;
-            //I say that physxcore is also a system module even if it isn't located in the windows dir 
-            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) or
-                                                      (lowercase(modulelist[modulelistpos].modulename)='physxcore.dll') or
-                                                      (lowercase(modulelist[modulelistpos].modulename)='binkw32.dll') or
-                                                      (lowercase(modulelist[modulelistpos].modulename)='iconv.dll') or
-                                                      (lowercase(modulelist[modulelistpos].modulename)='gameoverlayrenderer.dll') or
-                                                      (lowercase(modulelist[modulelistpos].modulename)='mss32.dll');
+            //I say that physxcore is also a system module even if it isn't located in the windows dir
+            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0);
+
+            if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
+              modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+
+
 
             modulelist[modulelistpos].baseaddress:=dword(me32.modBaseAddr);
             modulelist[modulelistpos].basesize:=me32.modBaseSize;
@@ -1170,6 +1174,45 @@ begin
   result:=ispointer;
 end;
 
+procedure TSymhandler.loadCommonModuleList;
+{
+Loads the commonmodules list which is used by the module enumaration to flag modules as a system dll's
+}
+var
+  s: string;
+  f: tstringlist;
+  i,j: integer;
+begin
+  s:=cheatenginedir+'commonmodulelist.txt';
+  if FileExists(s) then //if the list exists
+  begin
+    if commonModuleList=nil then
+      commonModuleList:=tstringlist.create;
+
+    commonModuleList.Clear;  
+    try
+      commonModuleList.LoadFromFile(s);
+
+      i:=0;
+      while i<commonModuleList.Count do
+      begin
+        j:=pos('#', commonModuleList[i]);
+        if j>0 then
+          commonModuleList[i]:=trim(copy(commonModuleList[i], 1, j-1));
+
+        commonModuleList[i]:=lowercase(commonModuleList[i]);
+
+        if commonModuleList[i]='' then
+          commonModuleList.Delete(i)
+        else
+          inc(i);
+      end;
+    except
+      //don't care if file can't be loaded anyhow
+    end;
+  end;
+end;
+
 
 destructor TSymhandler.destroy;
 begin
@@ -1179,6 +1222,9 @@ begin
     symbolloaderthread.WaitFor;
     symbolloaderthread.free;
   end;
+
+  if commonModuleList<>nil then
+    commonModuleList.free;
 
   modulelistpos:=0;
 

@@ -734,14 +734,8 @@ end;
 function TScanner.BinaryExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
-  try
-    for i:=0 to 7 do
-      binaryresults[i]:=((puint64(newvalue)^ shr i) and andmask)=bitmask;
-
-  except
-    raise exception.Create('scanner:'+inttostr(scannernr)+'newvalue='+inttohex(dword(newvalue),8));
-
-  end;
+  for i:=0 to 7 do
+    binaryresults[i]:=((puint64(newvalue)^ shr i) and andmask)=bitmask;
 
   //no need for a result here, for binary that isn't checked (special case)
   result:=true; //let the store result routine deal with it

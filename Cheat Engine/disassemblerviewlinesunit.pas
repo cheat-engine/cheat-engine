@@ -27,6 +27,7 @@ type TDisassemblerLine=class
     bytestring: string;
     opcodestring: string;
     specialstring: string;
+    referencedbylineheight: integer;
     boldheight: integer;
     textheight: integer;
     function truncatestring(s: string; maxwidth: integer): string;
@@ -165,10 +166,14 @@ begin
   if fdissectcode<>nil then
   begin
 
-    fcanvas.Font.Style:=[fsBold, fsItalic];
+
     refferencedby:=buildReferencedByString;
     if refferencedby<>'' then
     begin
+      fcanvas.Font.Style:=[fsBold, fsItalic];
+      if referencedbylineheight=-1 then
+        referencedbylineheight:=fcanvas.textheight('xxx');
+
       refferencedbylinecount:=1+(fcanvas.TextWidth(refferencedby) div (fbitmap.width - 10 ));
 
       setlength(refferencedbystrings, refferencedbylinecount);
@@ -185,7 +190,7 @@ begin
           inc(j);
         end;
 
-        refferencedbyheight:=refferencedbyheight+fcanvas.TextHeight(refferencedbystrings[i]);
+        refferencedbyheight:=refferencedbyheight+referencedbylineheight;
 
         inc(i);
       end;
@@ -340,6 +345,7 @@ begin
   fheaders:=headersections;
   boldheight:=-1; //bypass for memory leak
   textheight:=-1;
+  referencedbylineheight:=-1;
 
   height:=fCanvas.TextHeight('X');
 end;

@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls,dissectCodeThread,tlhelp32,cefuncproc;
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls,dissectCodeThread,tlhelp32,cefuncproc,
+  symbolhandler;
 
 type tmoduledata =class
   public
@@ -22,26 +23,28 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Panel3: TPanel;
-    Label1: TLabel;
     Label6: TLabel;
     Label7: TLabel;
-    Label8: TLabel;
     Button1: TButton;
-    edtAccuracy: TEdit;
-    GroupBox1: TGroupBox;
+    cbIncludesystemModules: TCheckBox;
     Label4: TLabel;
+    lblStringRef: TLabel;
     Label5: TLabel;
-    edtFrom: TEdit;
-    edtTo: TEdit;
+    lblConditionalJumps: TLabel;
+    Label9: TLabel;
+    lblUnConditionalJumps: TLabel;
+    Label11: TLabel;
+    lblCalls: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure ListBox1Click(Sender: TObject);
-    procedure edtFromChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure cbIncludesystemModulesClick(Sender: TObject);
   private
     { Private declarations }
-    starttime: int64;
+    starttime: dword;
+    procedure cleanModuleList;
+    procedure fillModuleList(withSystemModules: boolean);
   public
     { Public declarations }
     dissectcode: tdissectcodethread;
@@ -81,25 +84,7 @@ begin
     exit;
   end;
 
-  try
-    dissectcode.accuracy:=strtoint(edtAccuracy.text);
-  except
-    raise exception.Create('Please fill in a valid value for accuracy');
-  end;
-
-  if edtfrom.Text<>'' then
-  begin
-    //user input
-    try
-      start:=strtoint('$'+edtfrom.Text);
-      stop:=strtoint('$'+edtto.Text);
-    except
-      raise exception.Create('Please fill in a valid ange to scan');
-    end;
-
-    getexecutablememoryregionsfromregion(start,stop,dissectcode.memoryregion);
-  end
-  else
+ 
   begin
     setlength(dissectcode.memoryregion,0);
     if listbox1.SelCount=0 then raise exception.Create('Please select something to scan');
@@ -140,8 +125,7 @@ begin
   button1.Caption:='Stop';
   timer1.Enabled:=true;
 
-  decodetime(now,h,m,s,ms);
-  starttime:=ms+s*1000+m*60*1000+h*60*60*1000;
+  starttime:=gettickcount;
 
   dissectcode.Resume;
 end;
@@ -152,8 +136,7 @@ var h,m,s,ms: word;
 
     x: double;
 begin
-  decodetime(now,h,m,s,ms);
-  currenttime:=ms+s*1000+m*60*1000+h*60*60*1000;
+  currenttime:=gettickcount;
   currenttime:=currenttime-starttime;
   //currenttime holds the number of milliseconds that have passed (usually devidable by 1000 because of the timer)
 
@@ -175,6 +158,13 @@ begin
   h:=currenttime;
   label7.caption:=format('%.2d:%.2d:%.2d',[h,m,s]);
 
+
+  lblStringRef.caption:=inttostr(dissectcode.nrofdata);
+  lblConditionalJumps.caption:=inttostr(dissectcode.nrofconditionaljumps);
+  lblUnConditionalJumps.caption:=inttostr(dissectcode.nrofunconditionaljumps);
+  lblCalls.caption:=inttostr(dissectcode.nrofcalls);
+
+
   progressbar1.position:=dissectcode.percentagedone;
 
   progressbar1.Hint:=inttohex(dissectcode.currentaddress,8);
@@ -186,39 +176,26 @@ procedure TfrmDissectCode.FormClose(Sender: TObject;
 var i: integer;
 begin
   action:=cafree;
+  cleanModuleList;
+
+end;
+
+procedure TfrmDissectCode.cleanModuleList;
+var i: integer;
+begin
   for i:=0 to listbox1.Count-1 do
     tmoduledata(listbox1.Items.Objects[i]).Free;
 
+  listbox1.items.Clear;
 end;
 
-procedure TfrmDissectCode.ListBox1Click(Sender: TObject);
-begin
-  if listbox1.SelCount>0 then
-  begin
-    edtfrom.OnChange:=nil;
-    edtto.OnChange:=nil;
-
-    edtfrom.text:='';
-    edtto.text:='';
-
-    edtfrom.OnChange:=edtFromChange;
-    edtto.OnChange:=edtFromChange;
-  end;
-end;
-
-procedure TfrmDissectCode.edtFromChange(Sender: TObject);
-var i: integer;
-begin
-  for i:=0 to listbox1.Items.Count-1 do
-    listbox1.Selected[i]:=false;
-end;
-
-procedure TfrmDissectCode.FormShow(Sender: TObject);
+procedure TfrmDissectCode.fillModuleList(withSystemModules: boolean);
 var ths: thandle;
     me32: MODULEENTRY32;
     x: pchar;
     moduledata: tmoduledata;
 begin
+  cleanModuleList;
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
   if ths<>0 then
   begin
@@ -229,17 +206,35 @@ begin
       repeat
         x:=@me32.szModule[0];
 
-        moduledata:=tmoduledata.Create;
-        moduledata.moduleaddress:=dword(me32.modBaseAddr);
-        moduledata.modulesize:=me32.modBaseSize;
-
-        listbox1.Items.AddObject(x,moduledata);
+        if (withSystemModules) or (not symhandler.inSystemModule(dword(me32.modBaseAddr))) then
+        begin
+          moduledata:=tmoduledata.Create;
+          moduledata.moduleaddress:=dword(me32.modBaseAddr);
+          moduledata.modulesize:=me32.modBaseSize;
+          
+          listbox1.Items.AddObject(x,moduledata);
+        end;
       until module32next(ths,me32)=false;
 
     finally
       closehandle(ths);
     end;
   end;
+end;
+
+procedure TfrmDissectCode.FormShow(Sender: TObject);
+begin
+  fillModuleList(false);
+  if listbox1.Count>0 then
+  begin
+    listbox1.ItemIndex:=0;
+    listbox1.Selected[0]:=true;
+  end;
+end;
+
+procedure TfrmDissectCode.cbIncludesystemModulesClick(Sender: TObject);
+begin
+  fillmodulelist(cbIncludesystemModules.checked);
 end;
 
 end.
