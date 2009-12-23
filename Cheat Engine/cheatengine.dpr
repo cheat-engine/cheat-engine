@@ -157,7 +157,8 @@ uses
   pointervaluelist in 'pointervaluelist.pas',
   rescanhelper in 'rescanhelper.pas',
   ValueFinder in 'ValueFinder.pas',
-  PointerscanresultReader in 'PointerscanresultReader.pas';
+  PointerscanresultReader in 'PointerscanresultReader.pas',
+  frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings};
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -185,6 +186,7 @@ begin
   Application.CreateForm(TfrmCapturedTimers, frmCapturedTimers);
   Application.CreateForm(TfrmCScript, frmCScript);
   Application.CreateForm(TfrmFloatingPointPanel, frmFloatingPointPanel);
+  Application.CreateForm(TfrmReferencedStrings, frmReferencedStrings);
   initcetitle;
   Application.Run;
 end.

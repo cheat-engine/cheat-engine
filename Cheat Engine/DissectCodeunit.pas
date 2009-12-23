@@ -5,13 +5,15 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,dissectCodeThread,tlhelp32,cefuncproc,
-  symbolhandler;
+  symbolhandler, frmReferencedStringsUnit;
 
 type tmoduledata =class
   public
     moduleaddress: dword;
     modulesize: dword;
 end;
+
+type TOnDoneDissect=(odDoNothing, odOpenReferedStringList);
 
 type
   TfrmDissectCode = class(TForm)
@@ -25,7 +27,7 @@ type
     Panel3: TPanel;
     Label6: TLabel;
     Label7: TLabel;
-    Button1: TButton;
+    btnStart: TButton;
     cbIncludesystemModules: TCheckBox;
     Label4: TLabel;
     lblStringRef: TLabel;
@@ -35,7 +37,7 @@ type
     lblUnConditionalJumps: TLabel;
     Label11: TLabel;
     lblCalls: TLabel;
-    procedure Button1Click(Sender: TObject);
+    procedure btnStartClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -47,8 +49,8 @@ type
     procedure fillModuleList(withSystemModules: boolean);
   public
     { Public declarations }
+    ondone: TOnDoneDissect;
     dissectcode: tdissectcodethread;
-    constructor create(aowner: tcomponent; dc: tdissectcodethread);
   end;
 
 var
@@ -58,14 +60,7 @@ implementation
 
 {$R *.dfm}
 
-constructor TfrmDissectCode.create(aowner: tcomponent; dc: tdissectcodethread);
-var i: integer;
-begin
-  dissectcode:=dc;
-  inherited create(aowner);
-end;
-
-procedure TfrmDissectCode.Button1Click(Sender: TObject);
+procedure TfrmDissectCode.btnStartClick(Sender: TObject);
 var start,stop:dword;
     tempregions: tmemoryregions;
     i,j: integer;
@@ -74,15 +69,27 @@ var start,stop:dword;
     n: integer;
     flipped: boolean;
 begin
-  if button1.caption='Stop' then
+  if btnStart.caption='Stop' then
   begin
     timer1.Enabled:=false;
     dissectcode.terminate;
+    dissectcode.WaitFor;
+    dissectcode.done:=true;
+    Timer1Timer(timer1);
 
-    button1.Caption:='Start';
-    showmessage('dissected till address '+inttohex(dissectcode.currentaddress,8));
+    btnStart.Caption:='Start';
+    //showmessage('dissected till address '+inttohex(dissectcode.currentaddress,8));
     exit;
   end;
+
+  if dissectcode<>nil then
+  begin
+    dissectcode.Terminate;
+    dissectcode.WaitFor;
+    dissectcode.Free;
+  end;
+
+  dissectcode:=TDissectCodeThread.create(true);
 
  
   begin
@@ -122,7 +129,7 @@ begin
 
   end;
 
-  button1.Caption:='Stop';
+  btnStart.Caption:='Stop';
   timer1.Enabled:=true;
 
   starttime:=gettickcount;
@@ -159,7 +166,7 @@ begin
   label7.caption:=format('%.2d:%.2d:%.2d',[h,m,s]);
 
 
-  lblStringRef.caption:=inttostr(dissectcode.nrofdata);
+  lblStringRef.caption:=inttostr(dissectcode.nrofstring);
   lblConditionalJumps.caption:=inttostr(dissectcode.nrofconditionaljumps);
   lblUnConditionalJumps.caption:=inttostr(dissectcode.nrofunconditionaljumps);
   lblCalls.caption:=inttostr(dissectcode.nrofcalls);
@@ -168,7 +175,20 @@ begin
   progressbar1.position:=dissectcode.percentagedone;
 
   progressbar1.Hint:=inttohex(dissectcode.currentaddress,8);
-  if dissectcode.done then close;
+  if dissectcode.done then
+  begin
+    close;
+
+    if ondone=odOpenReferedStringList then
+    begin
+      if frmReferencedStrings=nil then
+        frmReferencedStrings:=tfrmReferencedStrings.Create(self);
+
+      frmReferencedStrings.Show;
+    end;
+
+    ondone:=odDoNothing;
+  end;
 end;
 
 procedure TfrmDissectCode.FormClose(Sender: TObject;

@@ -43,10 +43,17 @@ object MemoryBrowser: TMemoryBrowser
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 0
+    object Splitter2: TSplitter
+      Left = 505
+      Top = 0
+      Height = 300
+      Align = alRight
+      Visible = False
+    end
     object Panel5: TPanel
       Left = 0
       Top = 0
-      Width = 508
+      Width = 505
       Height = 300
       Align = alClient
       BevelOuter = bvNone
@@ -885,6 +892,11 @@ object MemoryBrowser: TMemoryBrowser
       end
       object N5: TMenuItem
         Caption = '-'
+      end
+      object Referencedstrings1: TMenuItem
+        Caption = 'Referenced strings'
+        ShortCut = 49234
+        OnClick = Referencedstrings1Click
       end
       object MemoryRegions1: TMenuItem
         Caption = 'Memory Regions'

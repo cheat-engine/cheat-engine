@@ -158,18 +158,19 @@ object frmDissectCode: TfrmDissectCode
       Height = 16
       Caption = 'lblCalls'
     end
-    object Button1: TButton
+    object btnStart: TButton
       Left = 20
       Top = 261
       Width = 109
       Height = 31
       Caption = 'Start'
       TabOrder = 0
-      OnClick = Button1Click
+      OnClick = btnStartClick
     end
   end
   object Timer1: TTimer
     Enabled = False
+    Interval = 500
     OnTimer = Timer1Timer
   end
 end

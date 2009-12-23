@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 505
-      ActivePage = Extra
+      ActivePage = Assembler
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1

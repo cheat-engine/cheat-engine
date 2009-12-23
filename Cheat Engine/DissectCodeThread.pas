@@ -45,6 +45,15 @@ type tjumpdata = record
 
 type tjumparray=array of tjumpdata;
 
+
+type TStringReference=class(tobject)
+  address: dword;
+  s: string;
+  references: array of dword;
+end;
+
+
+
 type
   TDissectCodeThread = class(TThread)
   private
@@ -63,7 +72,8 @@ type
     function hasAddress(d: string; var address: dword):boolean;
     function isAddress(address: dword): boolean;
 
-    procedure addAddress(list: PDissectDataArray; address: dword; referencedBy: dword; mustbestring: boolean=false);
+
+    procedure addAddress(list: PDissectDataArray; address: dword; referencedBy: dword; couldbestring: boolean=false);
     function findaddress(address:dword; const list: tjumparray; currentsize: integer; var recnr: integer):boolean;
   public
     percentagedone: dword;
@@ -79,16 +89,20 @@ type
     nrofunconditionaljumps: integer;
     nrofconditionaljumps: integer;
     nrofcalls: integer;
-    nrofdata: integer;    
+    nrofdata: integer;
+    nrofstring: integer;    
 
     function CheckAddress(address: dword; var aresult: tdissectarray):boolean;
-
+    procedure getstringlist(s: tstrings);
     constructor create(suspended: boolean);
   protected
     procedure Execute; override;
   end;
 
+
+
 implementation
+
 
 { TDissectCodeThread }
 
@@ -97,6 +111,16 @@ This thread will scan the memory for jumps and conditional jumps
 that data will be added to a list that the disassemblerview can read out for data
 
 }
+
+type TDatapath=array[0..7] of record
+  list: PDissectDataArray;
+  entrynr: integer;
+end;
+
+type PDatapath=^TDatapath;
+
+
+
 function TDissectCodeThread.findaddress(address:dword; const list: tjumparray; currentsize: integer; var recnr: integer):boolean;
 var i: integer;
     first,last: integer;
@@ -202,7 +226,85 @@ begin
 
 end;
 
-procedure TDissectCodeThread.addAddress(list: PDissectDataArray; address: dword; referencedBy: dword; mustbestring: boolean=false);
+
+procedure addaddresstostringlist(al: PAddresslist; address: dword; s: tstrings);
+var o: TStringReference;
+begin
+  o:=TStringReference.create;
+  o.address:=address;
+  setlength(o.references, al.pos);
+  CopyMemory(@o.references[0], al.a, al.pos*sizeof(dword));
+  
+  s.AddObject(IntToHex(address,8), o);
+end;
+
+
+function datapathToAddress(datapath: PDatapath): dword;
+begin
+  result:=datapath[0].entrynr shl 28+
+          datapath[1].entrynr shl 24+
+          datapath[2].entrynr shl 20+
+          datapath[3].entrynr shl 16+
+          datapath[4].entrynr shl 12+
+          datapath[5].entrynr shl 8+
+          datapath[6].entrynr shl 4+
+          datapath[7].entrynr;
+end;
+
+
+procedure fillstringlist(datapath: PDatapath; level: integer; s: tstrings);
+var
+  i: integer;
+  list: PDissectDataArray;
+begin
+  list:=datapath[level].list;
+ 
+  if level<7 then
+  begin
+    for i:=0 to 15 do
+    begin
+      if list[i].DissectDataArray<>nil then
+      begin
+        datapath[level].entrynr:=i;
+        datapath[level+1].list:=list[i].DissectDataArray;
+        fillstringlist(datapath, level+1, s);
+      end;
+    end;
+  end
+  else
+  begin
+    //final level
+    for i:=0 to 15 do
+    begin
+      if list[i].addresslist<>nil then
+      begin
+        if list[i].addresslist.isstring then
+        begin
+          datapath[level].entrynr:=i;
+
+          //evaluate datapath to find the address
+          addaddresstostringlist(list[i].addresslist, datapathToAddress(datapath), s);
+
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TDissectCodeThread.getstringlist(s: tstrings);
+var
+  datapath: TDatapath;
+begin
+  ZeroMemory(@datapath, sizeof(datapath));
+
+  datapath[0].list:=memorylist;
+  fillstringlist(@datapath, 0, s);
+
+
+end;
+
+
+procedure TDissectCodeThread.addAddress(list: PDissectDataArray; address: dword; referencedBy: dword; couldbestring: boolean=false);
 var
   level: integer;
   entrynr: integer;
@@ -233,31 +335,24 @@ begin
     getmem(currentarray[entrynr].addresslist,sizeof(Taddresslist));
     ZeroMemory(currentarray[entrynr].addresslist,sizeof(Taddresslist));
 
-    if mustbestring then currentarray[entrynr].addresslist.isstring:=isString(address);
+    if couldbestring then currentarray[entrynr].addresslist.isstring:=isString(address);
 
-    if (not mustbestring) or (currentarray[entrynr].addresslist.isstring) then
-    begin
-      //allocate some space for it
-      currentarray[entrynr].addresslist.maxsize:=2;
-      getmem(currentarray[entrynr].addresslist.a, 2*sizeof(pointer));
-    end;
+    //allocate some space for it
+    currentarray[entrynr].addresslist.maxsize:=2;
+    getmem(currentarray[entrynr].addresslist.a, 2*sizeof(pointer));
   end;
 
-  if (not mustbestring) or (currentarray[entrynr].addresslist.isstring) then
+
+  if currentarray[entrynr].addresslist.pos>=currentarray[entrynr].addresslist.maxsize then //realloc
   begin
-    //add it, it's eiher a string, or it doesn't matter what type it is
-    if currentarray[entrynr].addresslist.pos>=currentarray[entrynr].addresslist.maxsize then //realloc
-    begin
-      ReallocMem(currentarray[entrynr].addresslist.a, currentarray[entrynr].addresslist.maxsize*2*sizeof(pointer));
-      currentarray[entrynr].addresslist.maxsize:=currentarray[entrynr].addresslist.maxsize*2;
-    end;
-
-    currentarray[entrynr].addresslist.a[currentarray[entrynr].addresslist.pos]:=referencedby;
-    inc(currentarray[entrynr].addresslist.pos);
-
-    if mustbestring then inc(nrofdata);
+    ReallocMem(currentarray[entrynr].addresslist.a, currentarray[entrynr].addresslist.maxsize*2*sizeof(pointer));
+    currentarray[entrynr].addresslist.maxsize:=currentarray[entrynr].addresslist.maxsize*2;
   end;
 
+  currentarray[entrynr].addresslist.a[currentarray[entrynr].addresslist.pos]:=referencedby;
+  inc(currentarray[entrynr].addresslist.pos);
+
+  if couldbestring and currentarray[entrynr].addresslist.isstring then inc(nrofstring);
 
 end;
 
@@ -272,7 +367,7 @@ begin
   begin
     //check if ascii string
     result:=true;
-    for i:=0 to 3 do //only interested in the first 4 for ascii
+    for i:=0 to 4 do //only interested in the first 5 for ascii
     begin
       if not (tempbuf[i] in [32..127]) then
       begin
@@ -371,7 +466,7 @@ begin
     currentAddress:=memoryregion[i].BaseAddress;
 
 
-    while currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize do
+    while (not terminated) and (currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize) do
     begin
       oldaddress:=currentaddress;
       s:=d.disassemble(currentaddress, x);
@@ -387,8 +482,11 @@ begin
         case o[1] of
           'c' : //call
           begin
-            addAddress(calllist, tempaddress, oldaddress);
-            inc(nrofcalls);
+            if (o[2]='a') and (o[3]='l') then
+            begin
+              addAddress(calllist, tempaddress, oldaddress);
+              inc(nrofcalls);
+            end;
           end;
 
           'j' : //jmp, conditional or not
@@ -411,7 +509,7 @@ begin
           begin
             //memoryaccess/indicator
             addAddress(memorylist, tempaddress, oldaddress, true);
-
+            inc(nrofdata);
           end;
 
         end;

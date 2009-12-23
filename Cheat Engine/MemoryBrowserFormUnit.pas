@@ -191,6 +191,8 @@ type
     N17: TMenuItem;
     Maxstacktracesize1: TMenuItem;
     Disablestealthedit1: TMenuItem;
+    Splitter2: TSplitter;
+    Referencedstrings1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -317,6 +319,7 @@ type
     procedure Modulesonly1Click(Sender: TObject);
     procedure Nonsystemmodulesonly1Click(Sender: TObject);
     procedure Disablestealthedit1Click(Sender: TObject);
+    procedure Referencedstrings1Click(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -357,7 +360,7 @@ type
     part: integer;
 
     {$ifndef net}
-    dissectcode: TDissectCodeThread;
+
     {$endif}
 
 
@@ -426,6 +429,7 @@ var
   MemoryBrowser: TMemoryBrowser;
   mbchildcount: integer; //global so all other children can increase it as well
 
+  
 implementation
 
 uses Valuechange,
@@ -469,7 +473,8 @@ uses Valuechange,
 
   {$ifndef net}symbolconfigunit,frmTracerUnit,Structuresfrm,dissectcodeunit,pointerscannerfrm,driverlist,ServiceDescriptorTables,{$endif}
   frmDisassemblyscanunit, frmGDTunit, frmIDTunit, peINFOunit,
-  formChangedAddresses, frmFloatingPointPanelUnit;
+  formChangedAddresses, frmFloatingPointPanelUnit,
+  frmReferencedStringsUnit;
 
 
 
@@ -507,7 +512,7 @@ begin
   FShowDebugPanels:=state;
   registerview.Visible:=state;
   pnlStacktrace.Visible:=state;
-  //splitter2.Visible:=state;
+  splitter2.Visible:=state;
   splitter3.Visible:=state;
 end;
 
@@ -3104,17 +3109,10 @@ end;
 procedure TMemoryBrowser.Dissectcode1Click(Sender: TObject);
 begin
   {$ifndef net}
-  dissectcode:=nil;
-  if dissectcode<>nil then freeandnil(dissectcode);
+  if frmdissectcode=nil then
+    frmdissectcode:=tfrmDissectcode.create(self);
 
-  if dissectcode=nil then
-  begin
-    Dissectcode1.Caption:='Dissect code(...)';
-    dissectcode:=tdissectcodethread.create(true);
-    frmdissectcode:=tfrmDissectcode.create(self,dissectcode);
-    frmdissectcode.showmodal;
-    disassemblerview.dissectCode:=dissectcode;
-  end;
+  frmdissectcode.Show;
   {$endif}
 end;
 
@@ -4058,6 +4056,25 @@ procedure TMemoryBrowser.Disablestealthedit1Click(Sender: TObject);
 begin
   if stealtheditor<>nil then
     stealtheditor.RestoreEdit(disassemblerview.SelectedAddress);
+end;
+
+procedure TMemoryBrowser.Referencedstrings1Click(Sender: TObject);
+begin
+  if (frmDissectCode=nil) or (frmDissectCode.dissectcode=nil) then
+  begin
+    if MessageDlg('You will need to run the dissect code routine first before this window is usable. Run it now?', mtConfirmation, [mbyes, mbno], 0)=mryes then
+    begin
+      Dissectcode1Click(sender);
+      frmDissectCode.ondone:=odOpenReferedStringList;
+      frmDissectCode.btnStart.click;
+    end;
+  end else
+  begin
+    if frmReferencedStrings=nil then
+      frmReferencedStrings:=tfrmReferencedStrings.Create(self);
+
+    frmReferencedStrings.Show;
+  end;
 end;
 
 end.

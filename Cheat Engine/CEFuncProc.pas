@@ -112,6 +112,8 @@ type TFreememoryThread = class(tthread)
     procedure execute; override;
 end;
 
+
+
 function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
