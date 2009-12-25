@@ -69,12 +69,9 @@ type
 
 
     function isstring(address: dword): boolean;
-    function hasAddress(d: string; var address: dword):boolean;
-    function isAddress(address: dword): boolean;
-
 
     procedure addAddress(list: PDissectDataArray; address: dword; referencedBy: dword; couldbestring: boolean=false);
-    function findaddress(address:dword; const list: tjumparray; currentsize: integer; var recnr: integer):boolean;
+    function findaddress(list: PDissectDataArray; address:dword):PAddresslist;
   public
     percentagedone: dword;
     processid: dword;
@@ -120,13 +117,31 @@ end;
 type PDatapath=^TDatapath;
 
 
-
-function TDissectCodeThread.findaddress(address:dword; const list: tjumparray; currentsize: integer; var recnr: integer):boolean;
-var i: integer;
-    first,last: integer;
+function TDissectCodeThread.findaddress(list: PDissectDataArray; address:dword):PAddresslist;
+{
+locates the given address and returns the AddressList object pointer if found.
+returns nil if not found
+}
+var
+  level: integer;
+  entrynr: integer;
+  currentArray: PDissectDataArray;
+  i: integer;
 begin
-  result:=false;
+  result:=nil;
+  level:=0;
+  currentarray:=list;
+  while level<7 do
+  begin
+    entrynr:=address shr ((7-level)*4) and $f;
+    if currentarray[entrynr].DissectDataArray=nil then exit; //not in the list
 
+    currentarray:=currentarray[entrynr].DissectDataArray;
+    inc(level);
+  end;
+
+  entrynr:=address shr ((7-level)*4) and $f;
+  result:=currentarray[entrynr].addresslist;
 end;
 
 function TDissectCodeThread.CheckAddress(address: dword; var aresult: tdissectarray):boolean;
@@ -134,9 +149,65 @@ var a,b,c: integer;
     fa,fb,fc: boolean;
     i,j: integer;
     totalsize: integer;
+
+    unclist, condlist, clist: PAddresslist;
 begin
-  result:=false;
-  if not done then exit;
+  totalsize:=0;
+  unclist:=findaddress(unconditionaljumplist, address);
+  if unclist<>nil then //it has unconditonal jumps jumping to it
+    inc(totalsize, unclist.pos);
+
+  condlist:=findaddress(conditionaljumplist, address);
+  if condlist<>nil then
+    inc(totalsize, condlist.pos);
+
+  clist:=findaddress(calllist, address);
+  if clist<>nil then
+    inc(totalsize, clist.pos);
+
+  if totalsize>0 then
+  begin
+    //has results
+    setlength(aresult,totalsize);
+    j:=0;
+    if condlist<>nil then
+    begin
+      for i:=0 to condlist.pos-1 do
+      begin
+        aresult[j].address:=condlist.a[i];
+        aresult[j].jumptype:=jtConditional;
+        inc(j);
+      end;
+
+    end;
+
+    if unclist<>nil then
+    begin
+      for i:=0 to unclist.pos-1 do
+      begin
+        aresult[j].address:=unclist.a[i];
+        aresult[j].jumptype:=jtUnconditional;
+        inc(j);
+      end;
+
+    end;
+
+    if clist<>nil then
+    begin
+      for i:=0 to clist.pos-1 do
+      begin
+        aresult[j].address:=clist.a[i];
+        aresult[j].jumptype:=jtCall;
+        inc(j);
+      end;
+
+    end;
+
+    result:=true;
+  end
+  else result:=false;
+
+{  if not done then exit;
 
   totalsize:=0;
 
@@ -222,7 +293,7 @@ begin
         inc(j);
       end;
     end;
-  end;
+  end;  }
 
 end;
 
@@ -240,6 +311,9 @@ end;
 
 
 function datapathToAddress(datapath: PDatapath): dword;
+{
+for use when find the address of a map after traversing it
+}
 begin
   result:=datapath[0].entrynr shl 28+
           datapath[1].entrynr shl 24+
@@ -395,47 +469,7 @@ begin
 end;
 
 
-function TDissectCodeThread.isAddress(address: dword):boolean;
-var mbi: TMemoryBasicInformation;
-begin
-  result:=false;
-  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
-    result:=(mbi.State=MEM_COMMIT) and (mbi.AllocationProtect<>PAGE_NOACCESS);
-end;
 
-function TDissectCodeThread.hasAddress(d: string; var address: dword):boolean;
-var
-  s: string;
-  i: integer;
-  hexcount: integer;
-begin
-
-  result:=false;
-
-  if pos('+',d)>0 then exit; //it has an offset
-  
-  //check O for a hexadecimal value of 8 bytes and longer.
-  hexcount:=0;
-  for i:=1 to length(d) do
-  begin
-    if d[i] in ['a'..'f','A'..'F','0'..'9'] then
-    begin
-      inc(hexcount);
-      if hexcount=8 then
-      begin
-        //it has a 4 byte hexadecimal value
-        s:=copy('$'+d,i-6,8);
-        address:=strtoint('$'+s);
-
-        result:=isAddress(address);
-      end;
-    end else hexcount:=0;
-
-  end;
-
-
-
-end;
 
 
 procedure TDissectCodeThread.Execute;

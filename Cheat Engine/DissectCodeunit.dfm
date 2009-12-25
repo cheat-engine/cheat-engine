@@ -112,9 +112,9 @@ object frmDissectCode: TfrmDissectCode
     object lblStringRef: TLabel
       Left = 8
       Top = 72
-      Width = 69
+      Width = 7
       Height = 16
-      Caption = 'lblStringRef'
+      Caption = '0'
     end
     object Label5: TLabel
       Left = 8
@@ -126,9 +126,9 @@ object frmDissectCode: TfrmDissectCode
     object lblConditionalJumps: TLabel
       Left = 8
       Top = 112
-      Width = 121
+      Width = 7
       Height = 16
-      Caption = 'lblConditionalJumps'
+      Caption = '0'
     end
     object Label9: TLabel
       Left = 8
@@ -140,9 +140,9 @@ object frmDissectCode: TfrmDissectCode
     object lblUnConditionalJumps: TLabel
       Left = 8
       Top = 152
-      Width = 138
+      Width = 7
       Height = 16
-      Caption = 'lblUnConditionalJumps'
+      Caption = '0'
     end
     object Label11: TLabel
       Left = 8
@@ -154,9 +154,9 @@ object frmDissectCode: TfrmDissectCode
     object lblCalls: TLabel
       Left = 8
       Top = 192
-      Width = 44
+      Width = 7
       Height = 16
-      Caption = 'lblCalls'
+      Caption = '0'
     end
     object btnStart: TButton
       Left = 20

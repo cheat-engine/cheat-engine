@@ -74,7 +74,6 @@ type TDisassemblerview=class(tpanel)
     procedure renderJumpLines;
     procedure setJumpLines(state: boolean);
     procedure setJumplineState(state: tshowjumplinestate);
-    procedure setDissectCodeThread(dc: TdissectCodeThread);
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
@@ -101,22 +100,10 @@ type TDisassemblerview=class(tpanel)
     property TopAddress: dword read fTopAddress write setTopAddress;
     property ShowJumplines: boolean read fShowJumplines write setJumpLines;
     property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
-    property DissectCode: TDissectCodeThread read fDissectCode write setDissectCodeThread;
-
     constructor create(AOwner: TComponent); override;
 end;
 
 implementation
-
-procedure TDisassemblerview.setDissectCodeThread(dc: TdissectCodeThread);
-var i: integer;
-begin
-  for i:=0 to disassemblerlines.count-1 do
-    TDisassemblerline(disassemblerlines[i]).dissectcode:=dc;
-
-  fdissectCode:=dc;
-  update;
-end;
 
 procedure TDisassemblerview.setJumplineState(state: tshowjumplinestate);
 begin
@@ -516,7 +503,7 @@ begin
   while currenttop<offscreenbitmap.Height do
   begin
     if i>=disassemblerlines.Count then //add a new line
-      disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections, DissectCode));
+      disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
 
     currentline:=disassemblerlines[i];
 

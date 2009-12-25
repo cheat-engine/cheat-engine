@@ -1,6 +1,6 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 669
-  Top = 317
+  Left = 474
+  Top = 282
   Width = 622
   Height = 432
   Caption = 'Pointer scan'
@@ -63,9 +63,9 @@ object frmPointerScanner: TfrmPointerScanner
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
-        Top = 119
+        Top = 65
         Width = 596
-        Height = 132
+        Height = 186
         Align = alClient
         Indent = 19
         TabOrder = 0
@@ -74,34 +74,27 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Top = 0
         Width = 596
-        Height = 119
+        Height = 65
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
         object Label5: TLabel
           Left = 0
-          Top = 103
+          Top = 47
           Width = 51
           Height = 16
           Caption = 'Threads'
         end
         object lblRSTotalStaticPaths: TLabel
           Left = 0
-          Top = 30
+          Top = 6
           Width = 171
           Height = 16
           Caption = 'Of those # have a static base'
         end
-        object lblRSTotalPaths: TLabel
-          Left = 0
-          Top = 10
-          Width = 195
-          Height = 16
-          Caption = 'Total pointer paths encountered: '
-        end
         object Label6: TLabel
           Left = 0
-          Top = 79
+          Top = 23
           Width = 149
           Height = 16
           Caption = 'Pointer addresses found:'

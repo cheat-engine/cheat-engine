@@ -111,6 +111,9 @@ type
     
     filename: string;
 
+    haserror: boolean;
+    errorstring: string;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -181,7 +184,6 @@ type
     threadcount: integer;
     scannerpriority: TThreadPriority;
 
-    filenames: array of string;
     filename: string; //the final filename
     phase: integer;
     currentpos: ^Dword;
@@ -193,6 +195,9 @@ type
     staticonly: boolean; //for reverse
 
     pointersfound: uint64;
+
+    hasError: boolean;
+    errorString: string;
 
     procedure execute; override;
     destructor destroy; override;
@@ -219,7 +224,6 @@ type
     Panel2: TPanel;
     Label5: TLabel;
     lblRSTotalStaticPaths: TLabel;
-    lblRSTotalPaths: TLabel;
     Panel3: TPanel;
     btnStopScan: TButton;
     Label6: TLabel;
@@ -326,10 +330,6 @@ begin
 {$endif}
 
 
-
-
-  setlength(staticscanner.filenames,0);
-
   //update the treeview
   if message.WParam<>0 then
   begin
@@ -380,24 +380,46 @@ end;
 
 procedure TReverseScanWorker.execute;
 var wr: twaitresult;
+i: integer;
 begin
-  resultsfile:= tfilestream.Create(filename,fmcreate);
-  resultsfile.free;
-  resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
+  try
+    try
+      resultsfile:= tfilestream.Create(filename,fmcreate);
+      resultsfile.free;
+      resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
 
-  while not terminated do
-  begin
-    wr:=startworking.WaitFor(infinite);
-    if stop then exit;
+      while not terminated do
+      begin
+        wr:=startworking.WaitFor(infinite);
+        if stop then exit;
 
-    if wr=wrSignaled then
-    begin
-      try
-        rscan(valuetofind,startlevel);
-      finally
-        isdone:=true;  //set isdone to true
+        if wr=wrSignaled then
+        begin
+          try
+            rscan(valuetofind,startlevel);
+          finally
+            isdone:=true;  //set isdone to true
+          end;
+        end;
+      end;
+
+    except
+      on e: exception do
+      begin
+        haserror:=true;
+        errorstring:='ReverseScanWorker:'+e.message;
+
+        //tell all siblings they should terminate
+        staticscanner.reverseScanCS.Enter;
+        for i:=0 to length(staticscanner.reversescanners)-1 do
+          staticscanner.reversescanners[i].Terminate;
+
+        staticscanner.reverseScanCS.leave;
+        terminate;
       end;
     end;
+  finally
+    isdone:=true;
   end;
 
 end;
@@ -611,6 +633,8 @@ begin
   end;
 end;
 
+
+//--------------------------STATICSCANNER------------------
 function TStaticScanner.ismatchtovalue(p: pointer): boolean;
 begin
   case valuetype of
@@ -716,6 +740,7 @@ begin
     end
     else
     begin
+      //initialize the first thread (it'll spawn all other threads)
       reversescanners[0].isdone:=false;
       reversescanners[0].maxlevel:=maxlevel;
 
@@ -734,6 +759,17 @@ begin
       //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
       for i:=0 to length(reversescanners)-1 do
       begin
+        if reversescanners[i].haserror then
+        begin
+          haserror:=true;
+          errorstring:=reversescanners[i].errorstring;
+
+          for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
+
+          alldone:=true; 
+          break;
+        end;
+
         if not reversescanners[i].isdone then
         begin
           alldone:=false;
@@ -747,22 +783,23 @@ begin
 
 
   //all threads are done
-  setlength(filenames,length(reversescanners));
-
   for i:=0 to length(reversescanners)-1 do
   begin
     reversescanners[i].stop:=true;
     reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
     reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
-    reversescanners[i].flushresults;  //write results to disk
-    filenames[i]:=reversescanners[i].filename;
+    if not haserror then
+      reversescanners[i].flushresults;  //write unsaved results to disk
     reversescanners[i].Free;
     reversescanners[i]:=nil;
   end;
 
   setlength(reversescanners,0);
 
-  postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
+  if haserror then
+    postmessage(ownerform.Handle,staticscanner_done,1,dword(pchar(errorstring)))
+  else
+    postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
   terminate;
 end;
 
@@ -797,83 +834,94 @@ var
     tempstring: string;
 begin
   if terminated then exit;
+  try
 
-  if ownerform.pointerlisthandler=nil then
-  begin
-    phase:=1;
+    if ownerform.pointerlisthandler=nil then
+    begin
+      phase:=1;
+      progressbar.Position:=0;
+      try
+        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar);
+      except
+        postmessage(ownerform.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
+        terminate;
+        exit;
+      end;
+    end; 
+
+
+    phase:=2;
     progressbar.Position:=0;
-    try
-      ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar);
-    except
-      postmessage(ownerform.Handle,staticscanner_done,1,dword(pchar('Failure copying target process memory'))); //I can just priovide this string as it's static in the .code section
-      terminate;
-      exit;
-    end;
-  end; 
-
-
-  phase:=2;
-  progressbar.Position:=0;
   
-  currentpos:=pointer(start);
+    currentpos:=pointer(start);
 
 
 
 
 
-  i:=0;
+    i:=0;
 
-  if reverse then  //always true since 5.6
-  begin
-    maxlevel:=maxlevel-1; //for reversescan
-    reverseScanCS:=tcriticalsection.Create;
-    try
-      setlength(reversescanners,threadcount);
-      for i:=0 to threadcount-1 do
-      begin
-        reversescanners[i]:=TReverseScanWorker.Create(true);
-        reversescanners[i].ownerform:=ownerform;
-        reversescanners[i].Priority:=scannerpriority;
-        reversescanners[i].staticscanner:=self;
-        setlength(reversescanners[i].tempresults,maxlevel);
-        setlength(reversescanners[i].offsetlist,maxlevel);
-        reversescanners[i].staticonly:=staticonly;
-        reversescanners[i].alligned:=not self.unalligned;
-        reversescanners[i].filename:=self.filename+'.'+inttostr(i);
+    if reverse then  //always true since 5.6
+    begin
+      maxlevel:=maxlevel-1; //for reversescan
+      reverseScanCS:=tcriticalsection.Create;
+      try
+        setlength(reversescanners,threadcount);
+        for i:=0 to threadcount-1 do
+        begin
+          reversescanners[i]:=TReverseScanWorker.Create(true);
+          reversescanners[i].ownerform:=ownerform;
+          reversescanners[i].Priority:=scannerpriority;
+          reversescanners[i].staticscanner:=self;
+          setlength(reversescanners[i].tempresults,maxlevel);
+          setlength(reversescanners[i].offsetlist,maxlevel);
+          reversescanners[i].staticonly:=staticonly;
+          reversescanners[i].alligned:=not self.unalligned;
+          reversescanners[i].filename:=self.filename+'.'+inttostr(i);
 
-        reversescanners[i].Resume;
-      end;
+          reversescanners[i].Resume;
+        end;
 
-      //create the headerfile
-      result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
+        //create the headerfile
+        result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
 
-      //save header (modulelist, and levelsize)
-      ownerform.pointerlisthandler.saveModuleListToResults(result);
+        //save header (modulelist, and levelsize)
+        ownerform.pointerlisthandler.saveModuleListToResults(result);
 
-      //levelsize
-      result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
+        //levelsize
+        result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
 
-      //pointerstores
-      temp:=length(reversescanners);
-      result.Write(temp,sizeof(temp));
-      for i:=0 to length(reversescanners)-1 do
-      begin
-        tempstring:=ExtractFileName(reversescanners[i].filename);
-        temp:=length(tempstring);
+        //pointerstores
+        temp:=length(reversescanners);
         result.Write(temp,sizeof(temp));
-        result.Write(tempstring[1],temp);
+        for i:=0 to length(reversescanners)-1 do
+        begin
+          tempstring:=ExtractFileName(reversescanners[i].filename);
+          temp:=length(tempstring);
+          result.Write(temp,sizeof(temp));
+          result.Write(tempstring[1],temp);
+        end;
+
+        result.Free;
+
+
+        reversescan;
+      finally
+        freeandnil(reverseScanCS);
       end;
 
-      result.Free;
-
-
-      reversescan;
-    finally
-      freeandnil(reverseScanCS);
     end;
 
-  end;
 
+  except
+    on e: exception do
+    begin
+      haserror:=true;
+      errorstring:='StaticScanner:'+e.message;
+      postmessage(ownerform.Handle,staticscanner_done,1,dword(pchar(errorstring))); //I can just priovide this string as it's static in the .code section
+      terminate;
+    end;
+  end;
   {
   if (vm<>nil) and (not reuse) then
     freeandnil(vm);   }
@@ -1028,6 +1076,8 @@ begin
 
 
       pgcPScandata.Visible:=true;
+
+      Method3Fastspeedandaveragememoryusage1.Enabled:=false;
     except
       on e: exception do
       begin
@@ -1053,7 +1103,7 @@ var i,j,l: integer;
     tn,tn2: TTreenode;
 begin
   if pointerlisthandler<>nil then
-    label6.caption:='Pointer addresses found in the whole process:'+inttostr(pointerlisthandler.count);
+    label6.caption:='Address specifiers found in the whole process:'+inttostr(pointerlisthandler.count);
 
   if staticscanner<>nil then
   try
@@ -1067,10 +1117,7 @@ begin
 
     if staticscanner.reverse then
     begin
-      lblRSTotalPaths.caption:=format('Total pointer paths encountered: %d ',[fcount]);
-      lblRSTotalStaticPaths.caption:=format('Of those %d have a static base',[scount]);
-
-      if scount>fcount then  lblRSTotalStaticPaths.caption:= lblRSTotalStaticPaths.caption+' WTF?';
+      lblRSTotalStaticPaths.caption:=format('Pointer paths found: %d',[scount]);
 
 
       //{$ifdef injectedpscan
@@ -1163,9 +1210,6 @@ var
   tempmodulelist: tstringlist;
 begin
   new1.Click;
-
-  if Pointerscanresults<>nil then
-    freeandnil(Pointerscanresults);
 
   Pointerscanresults:=TPointerscanresultReader.create(filename);
 
@@ -1688,8 +1732,18 @@ begin
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
 
+  listview1.Items.BeginUpdate;
+  listview1.columns.BeginUpdate;
   listview1.Columns.Clear;
   listview1.Items.Count:=0;
+
+  listview1.Items.EndUpdate;
+  listview1.Columns.EndUpdate;
+
+  Method3Fastspeedandaveragememoryusage1.Enabled:=true;
+
+  if Pointerscanresults<>nil then
+    freeandnil(Pointerscanresults);
 end;
 
 

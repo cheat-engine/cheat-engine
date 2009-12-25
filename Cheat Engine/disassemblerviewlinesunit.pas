@@ -3,7 +3,7 @@ unit disassemblerviewlinesunit;
 interface
 
 uses windows,sysutils, classes,ComCtrls, graphics, cefuncproc, disassembler,
-     debugger, kerneldebugger, symbolhandler, dissectCodeThread, stealthedit;
+     debugger, kerneldebugger, symbolhandler, stealthedit;
 
 type TDisassemblerLine=class
   private
@@ -21,7 +21,7 @@ type TDisassemblerLine=class
 
     fisJump: boolean;
     fJumpsTo: dword;
-    fdissectcode: TDissectCodethread;
+
 
     addressstring: string;
     bytestring: string;
@@ -40,15 +40,14 @@ type TDisassemblerLine=class
     function getTop: integer;
     property description:string read fdescription;
     property disassembled:string read fdisassembled;
-    property dissectcode: TDissectCodeThread read fdissectcode write fdissectcode;
     procedure renderLine(var address: dword; linestart: integer; selected: boolean=false; focused: boolean=false);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
-    constructor create(bitmap: TBitmap; headersections: THeaderSections; dc: TdissectCodeThread);
+    constructor create(bitmap: TBitmap; headersections: THeaderSections);
 end;
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, dissectcodeunit, dissectCodeThread;
 
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
@@ -114,19 +113,23 @@ var addresses: tdissectarray;
 begin
   result:='';
   setlength(addresses,0);
-  if fdissectcode.CheckAddress(address, addresses) then
+
+  if (frmDissectCode<>nil) and (frmDissectCode.dissectcode<>nil) and (frmDissectCode.dissectcode.done) then
   begin
-    for i:=0 to length(addresses)-1 do
+    if frmDissectCode.dissectcode.CheckAddress(address, addresses) then
     begin
-      case addresses[i].jumptype of
-        jtUnconditional:
-          result:=result+' '+inttohex(addresses[i].address,8)+'(Un)';
+      for i:=0 to length(addresses)-1 do
+      begin
+        case addresses[i].jumptype of
+          jtUnconditional:
+            result:=result+' '+inttohex(addresses[i].address,8)+'(Un)';
 
-        jtConditional:
-          result:=result+' '+inttohex(addresses[i].address,8)+'(Con)';
+          jtConditional:
+            result:=result+' '+inttohex(addresses[i].address,8)+'(Con)';
 
-        jtCall:
-          result:=result+' '+inttohex(addresses[i].address,8)+'(Call)';
+          jtCall:
+            result:=result+' '+inttohex(addresses[i].address,8)+'(Call)';
+        end;
       end;
     end;
   end;
@@ -163,10 +166,8 @@ begin
   end;
 
   refferencedbylinecount:=0;
-  if fdissectcode<>nil then
+  if (frmDissectCode<>nil) and (frmDissectCode.dissectcode<>nil) and (frmDissectCode.dissectcode.done) then
   begin
-
-
     refferencedby:=buildReferencedByString;
     if refferencedby<>'' then
     begin
@@ -268,7 +269,7 @@ begin
     fcanvas.Font.Style:=[];
   end;
 
-  if (fdissectcode<>nil) and (refferencedbylinecount>0) then
+  if (refferencedbylinecount>0) then
   begin
     fcanvas.Font.Style:=[fsBold,fsItalic];
     for i:=0 to refferencedbylinecount-1 do
@@ -338,7 +339,7 @@ begin
   result:=top;
 end;
 
-constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections; dc: TDissectCodethread);
+constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections);
 begin
   fCanvas:=bitmap.canvas;
   fBitmap:=bitmap;

@@ -20,8 +20,9 @@ type TDisassembler=class
     isdefault: boolean;
     showsymbols: boolean;
     showmodules: boolean;
+//    showvalues: boolean;
     function disassemble(var offset: dword; var description: string): string;
-    function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+    procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string);
 end;
 
 
@@ -52,9 +53,10 @@ function disassemble(var offset: dword): string; overload;
 function disassemble(var offset: dword; var description: string): string; overload;
 
 function previousopcode(address: dword):dword;
+function hasAddress(d: string; var address: dword):boolean;
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean):string;
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
-function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string);
 
 
 
@@ -8995,12 +8997,59 @@ begin
  // if x<>address then result:=address-1 else result:=y;
 end;
 
-function splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+
+function hasAddress(d: string; var address: dword):boolean;
+var
+  s: string;
+  i: integer;
+  x: dword;
+  hexcount: integer;
+  indirectAccess: boolean;
 begin
-  result:=defaultDisassembler.splitDisassembledString(disassembled, showvalues, address,bytes, opcode, special);
+
+  result:=false;
+
+  if pos('+',d)>0 then exit; //it has an offset
+  
+  //check O for a hexadecimal value of 8 bytes and longer.
+  hexcount:=0;
+  for i:=1 to length(d) do
+  begin
+    if d[i] in ['a'..'f','A'..'F','0'..'9'] then
+    begin
+      inc(hexcount);
+      if hexcount=8 then
+      begin
+        //it has a 4 byte hexadecimal value
+        //indirectAccess:=(d[i-8]='[') and (d[1]<>'l') and (d[2]<>'e') and (d[2]<>'a'); //[xxxxxxxx] and not LEA
+
+        s:=copy('$'+d,i-6,8);
+        address:=strtoint('$'+s);
+
+        result:=isAddress(address);
+
+        //if result and indirectaccess then
+        //begin
+        //  result:=readprocessmemory(processhandle, pointer(address), @address, 4,x);
+        //  result:=result and isaddress(address);
+        //end;
+      end;
+    end else hexcount:=0;
+
+  end;
+
+
+
 end;
 
-function tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
+
+
+procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string);
+begin
+  defaultDisassembler.splitDisassembledString(disassembled, showvalues, address,bytes, opcode, special);
+end;
+
+procedure tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string);
 var offset,value:dword;
     e: integer;
     i,j,j2,k,l: integer;
@@ -9008,151 +9057,185 @@ var offset,value:dword;
     actualread: dword;
     valuetype: integer;
 
-    tokens: ttokens;
+//    tokens: ttokens;
     fvalue: single;
     fvalue2: double;
-    tempbuf: array [0..15] of byte;
+    tempbuf: array [0..16] of byte;
 
     pc: pchar;
     pwc: pwidechar;
 
     variableType: TVariableType;
+    tempaddress: dword;
+    err: boolean;
+    isjumper: boolean;
 begin
-  result:=disassembled;
+  i:=pos(' - ',disassembled);
+  address:=uppercase(copy(disassembled,1,i-1));
 
+  inc(i,3);
+  j:=PosEx(' - ',disassembled,i);
+  if j=0 then j:=length(disassembled)+1;
+  bytes:=copy(disassembled,i,(j-i));
+
+  inc(j,3);
+  k:=PosEx(' : ',disassembled,j);
+  l:=k;
+  if k=0 then
+    k:=length(disassembled)+1;
+
+  opcode:=copy(disassembled,j,(k-j));
 
   if showvalues then
   begin
-    i:=pos('[',disassembled);
-    if i>0 then
+    ts:='';
+    special:='';
+
+    if (hasAddress(opcode, tempaddress)) or ((length(opcode)>3) and (opcode[1]='l') and (opcode[2]='e') and (opcode[3]='a')) then
     begin
-      ts:=copy(disassembled,i+1,pos(']',disassembled)-i-1);
       try
-        offset:=symhandler.getAddressFromName(ts,false);
-        if offset<$80000000 then
+        if (opcode[1]='l') and (opcode[2]='e') and (opcode[3]='a') then //lea
         begin
-          //decide what kind of value it is
-          
-
-          valuetype:=2; //4 bytehex by default
-          setlength(tokens,0); //init
-
-          ts2:=copy(disassembled,pos('-',disassembled)+2,length(disassembled));
-          ts2:=copy(ts2,pos('-',ts2)+2,length(ts2));
+          j:=pos('[',opcode);
+          j2:=pos(']',opcode);
+          ts2:=copy(opcode,j+1,j2-j-1);
 
 
-          if pos('dword ptr',ts2)>0 then valuetype:=2 else
-          if pos('byte ptr',ts2)>0 then valuetype:=0 else
-          if pos('word ptr',ts2)>0 then valuetype:=1 else
-          begin
-            //check the register used
-            j2:=pos(',[',ts2);
-            k:=pos('],',ts2);
-            if j2>0 then //register in front
-            begin
-              l:=pos(' ',ts2);
-              ts3:=copy(ts2,l+1,j2-l-1);
+          tempaddress:=symhandler.getAddressFromName(ts2,false,err);
+          if err then exit; //error
 
-              case TokenToRegisterbit(uppercase(ts3)) of
-                ttRegister8Bit: ValueType:=0;
-                ttRegister16Bit: valuetype:=1;
-                ttRegister32Bit: valuetype:=2;
-                else valuetype:=2;
-              end;
-            end
-            else
-            if k>0 then  //register after ],
-            begin
-              l:=pos('],',ts2);
-              ts3:=copy(ts2,l+2,length(ts2)-l-1);
-              
-              case TokenToRegisterbit(uppercase(ts3)) of
-                ttRegister8Bit: valuetype:=0;
-                ttRegister16Bit: valuetype:=1;
-                ttRegister32Bit: valuetype:=2;
-                else valuetype:=2;
-              end;
-            end; //else no idea, check instruction
-
-            if valuetype=2 then
-            begin
-              //default or not decided yet, check the instruction for the float
-              if ReadProcessMemory(processhandle, pointer(offset), @tempbuf[0], 16, actualread) then
-              begin
-                variableType:=FindTypeOfData(offset, @tempbuf[0],16);
-                case variableType of
-                  vtSingle: ValueType:=3;
-                  vtDouble: ValueType:=4;
-                  vtString: ValueType:=5;
-                  vtUnicodeString: ValueType:=6;
-                end;
-                
-              end; //else leave it to a 4 byte
-            end;
-
-          end;
-
-          setlength(tokens,0);
-
-          ts:='';
-          value:=0;
-          fvalue:=0;
-          fvalue2:=0;
-          case valuetype of
-            0: if readprocessmemory(processhandle,pointer(offset),@value,1,actualread) then ts:=' : '+inttohex(value,2);
-            1: if readprocessmemory(processhandle,pointer(offset),@value,2,actualread) then ts:=' : '+inttohex(value,4);
-            2: if readprocessmemory(processhandle,pointer(offset),@value,4,actualread) then ts:=' : '+symhandler.getNameFromAddress(value);
-            3: if readprocessmemory(processhandle,pointer(offset),@fvalue,4,actualread) then ts:=' : f('+format('%.4f',[fvalue])+')';
-            4: if readprocessmemory(processhandle,pointer(offset),@fvalue2,8,actualread) then ts:=' : d('+format('%.4f',[fvalue2])+')';
-            5:
-            begin
-              tempbuf[15]:=0;
-              pc:=@tempbuf[0];
-              ts:=' : "'+ pc+'"';
-            end;
-
-            6:
-            begin
-              tempbuf[15]:=0;
-              tempbuf[14]:=0;              
-              pwc:=@tempbuf[0];
-              ts:=' : ""'+ pwc+'""';
-            end;
-          end;
-        end
-        else ts:='';
+        end;
       except
-        ts:='';
+        tempaddress:=0;
       end;
 
-    end else ts:='';
+      isjumper:=false;
+      if opcode[1]='j' then isjumper:=true; //jmp, jx
+      if (opcode[1]='l') and (opcode[2]='o') and (opcode[3]='o') then isjumper:=true; //loop
+      if (opcode[1]='c') and (opcode[2]='a') then isjumper:=true; //call
 
-  end else ts:='';
 
-  result:=result+ts;
 
-  i:=pos(' - ',result);
-  address:=uppercase(copy(result,1,i-1));
+      valuetype:=2;
 
-  inc(i,3);
-  j:=PosEx(' - ',result,i);
-  if j=0 then j:=length(result)+1;
-  bytes:=copy(result,i,(j-i));
+      i:=pos('[',disassembled);
+      if i>0 then
+      begin
+        //it might have an override
+        if pos('dword ptr',opcode)>0 then valuetype:=2 else
+        if pos('byte ptr',opcode)>0 then valuetype:=0 else
+        if pos('word ptr',opcode)>0 then valuetype:=1 else
+        begin
+          //check the register used
+          j2:=pos(',[',opcode);
+          k:=pos('],',opcode);
+          if j2>0 then //register in front
+          begin
+            l:=pos(' ',opcode);
+            ts3:=copy(opcode,l+1,j2-l-1);
 
-  inc(j,3);
-  k:=PosEx(' : ',result,j);
-  l:=k;
-  if k=0 then
-    k:=length(result)+1;
+            case TokenToRegisterbit(uppercase(ts3)) of
+              ttRegister8Bit: ValueType:=0;
+              ttRegister16Bit: valuetype:=1;
+              ttRegister32Bit: valuetype:=2;
+              else valuetype:=2;
+            end;
+          end
+          else
+          if k>0 then  //register after ],
+          begin
+            l:=pos('],',opcode);
+            ts3:=copy(opcode,l+2,length(opcode)-l-1);
 
-  opcode:=copy(result,j,(k-j));
+            case TokenToRegisterbit(uppercase(ts3)) of
+              ttRegister8Bit: valuetype:=0;
+              ttRegister16Bit: valuetype:=1;
+              ttRegister32Bit: valuetype:=2;
+              else valuetype:=2;
+            end;
+          end; //else no idea, check var
+        end;
+      end; //not an address specifier
 
-  if l>0 then
-  begin
-    special:=copy(result,l+3,length(result));
+      if valuetype=2 then
+      begin
+        if ReadProcessMemory(processhandle, pointer(tempaddress), @tempbuf[0], 16, actualread) then
+        begin
+          variableType:=FindTypeOfData(tempaddress, @tempbuf[0],16);
+
+          case variableType of
+            vtSingle: ValueType:=3;
+            vtDouble: ValueType:=4;
+            vtString: ValueType:=5;
+            vtUnicodeString: ValueType:=6;
+          end;
+
+        end;
+
+      end;
+
+
+        if isjumper then
+          valuetype:=2; //handle it as a dword
+
+      value:=0;
+      fvalue:=0;
+      fvalue2:=0;
+      case valuetype of
+        0: if readprocessmemory(processhandle,pointer(tempaddress),@value,1,actualread) then ts:=inttohex(value,2);
+        1: if readprocessmemory(processhandle,pointer(tempaddress),@value,2,actualread) then ts:=inttohex(value,4);
+        2: if readprocessmemory(processhandle,pointer(tempaddress),@value,4,actualread) then
+        begin
+
+          if isjumper and ((value and $ffff)=$25ff) then //it's a jmp [xxxxxxxx]    / call [xxxxxx] ...
+          begin
+            if readprocessmemory(processhandle,pointer(tempaddress+2),@value,4,actualread) then
+            begin
+              if readprocessmemory(processhandle,pointer(value),@value,4,actualread) then
+              begin
+                ts:='->'+symhandler.getNameFromAddress(value);
+              end;
+            end;
+          end
+          else
+          begin
+            ts:=symhandler.getNameFromAddress(value);
+          end;
+
+
+          if isjumper then
+          begin
+            //check if ts is a name or a hexadecimal value
+            //if hex, don't use it
+            val('$'+ts,j, i);
+            if i=0 then
+              ts:=''; //zero the string, it's a hexadecimal string
+          end;
+
+        end;
+        3: if readprocessmemory(processhandle,pointer(tempaddress),@fvalue,4,actualread) then ts:=format('(float)%.4f',[fvalue]);
+        4: if readprocessmemory(processhandle,pointer(tempaddress),@fvalue2,8,actualread) then ts:=format('(double)%.4f',[fvalue2]);
+        5:
+        begin
+          tempbuf[15]:=0;
+          pc:=@tempbuf[0];
+          ts:='"'+ pc+'"';
+        end;
+
+        6:
+        begin
+          tempbuf[15]:=0;
+          tempbuf[14]:=0;
+          pwc:=@tempbuf[0];
+          ts:='""'+ pwc+'""';
+        end;
+      end;
+
+    end;
+
+    special:=ts;
+
   end else special:='';
-
-
 end;
 
 function inttohexs_withoutsymbols(address:dword;chars: integer; signed: boolean=false; signedsize: integer=0):string;

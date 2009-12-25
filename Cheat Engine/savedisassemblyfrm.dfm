@@ -3,82 +3,82 @@ object frmSavedisassembly: TfrmSavedisassembly
   Top = 393
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'
-  ClientHeight = 136
-  ClientWidth = 246
+  ClientHeight = 167
+  ClientWidth = 303
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnDestroy = FormDestroy
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Label1: TLabel
-    Left = 40
-    Top = 32
-    Width = 23
-    Height = 13
+    Left = 49
+    Top = 39
+    Width = 31
+    Height = 16
     Caption = 'From'
   end
   object Label2: TLabel
-    Left = 48
-    Top = 56
-    Width = 13
-    Height = 13
+    Left = 59
+    Top = 69
+    Width = 17
+    Height = 16
     Caption = 'To'
   end
   object Button1: TButton
-    Left = 88
-    Top = 88
-    Width = 75
-    Height = 25
+    Left = 108
+    Top = 108
+    Width = 93
+    Height = 31
     Caption = 'Save'
     Default = True
     TabOrder = 0
     OnClick = Button1Click
   end
   object Edit1: TEdit
-    Left = 72
-    Top = 32
-    Width = 121
+    Left = 89
+    Top = 39
+    Width = 149
     Height = 21
     TabOrder = 1
   end
   object Edit2: TEdit
-    Left = 72
-    Top = 56
-    Width = 121
+    Left = 89
+    Top = 69
+    Width = 149
     Height = 21
     TabOrder = 2
   end
   object CheckBox1: TCheckBox
-    Left = 8
-    Top = 8
-    Width = 57
-    Height = 17
+    Left = 10
+    Top = 10
+    Width = 70
+    Height = 21
     Caption = 'Address'
     Checked = True
     State = cbChecked
     TabOrder = 3
   end
   object CheckBox2: TCheckBox
-    Left = 96
-    Top = 8
-    Width = 49
-    Height = 17
+    Left = 118
+    Top = 10
+    Width = 60
+    Height = 21
     Caption = 'bytes'
     Checked = True
     State = cbChecked
     TabOrder = 4
   end
   object CheckBox3: TCheckBox
-    Left = 176
-    Top = 8
-    Width = 57
-    Height = 17
+    Left = 217
+    Top = 10
+    Width = 70
+    Height = 21
     Caption = 'opcode'
     Checked = True
     State = cbChecked
@@ -86,9 +86,9 @@ object frmSavedisassembly: TfrmSavedisassembly
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 119
-    Width = 246
-    Height = 17
+    Top = 146
+    Width = 303
+    Height = 21
     Align = alBottom
     TabOrder = 6
   end

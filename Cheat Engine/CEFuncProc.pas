@@ -200,6 +200,7 @@ function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
 function allocationprotecttostring(protect: dword): string;
 function freetypetostring(freetype: dword):string;
+function isAddress(address: dword):boolean;
 
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:dword; sourceaddress:dword; sizeofcave: integer);
@@ -3177,6 +3178,14 @@ begin
   result:=Copy(result,1,length(result)-1)+'('+inttohex(freetype,1)+')';
 end;
 
+
+function isAddress(address: dword):boolean;
+var mbi: TMemoryBasicInformation;
+begin
+  result:=false;
+  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
+    result:=(mbi.State=MEM_COMMIT) and (mbi.AllocationProtect<>PAGE_NOACCESS);
+end;
 
 initialization
   GetWindir;

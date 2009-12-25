@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 697
-  Top = 262
+  Left = 603
+  Top = 248
   Width = 532
   Height = 552
   Hint = ' '
@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AlphaBlendValue = 127
-  Caption = 'Cheat Engine 5.5'
+  Caption = 'Cheat Engine 5.6'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
