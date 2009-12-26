@@ -186,6 +186,7 @@ object frmPointerScanner: TfrmPointerScanner
   object SaveDialog1: TSaveDialog
     DefaultExt = 'PTR'
     Filter = 'Cheat Engine Injected Pointerlist|*.PTR'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Specify the filename you want to store the results'
     Left = 176
     Top = 288

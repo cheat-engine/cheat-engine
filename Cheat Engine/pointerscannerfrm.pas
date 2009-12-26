@@ -1701,10 +1701,14 @@ procedure Tfrmpointerscanner.FormClose(Sender: TObject; var Action: TCloseAction
 begin
   if Staticscanner<>nil then
   begin
-    Staticscanner.FreeOnTerminate:=true; //I don't feel like waiting for it to clean up
     Staticscanner.Terminate;
+    Staticscanner.WaitFor;
+    freeandnil(Staticscanner);
   end;
-  
+
+  if pointerlisthandler<>nil then
+    freeandnil(pointerlisthandler);
+
   action:=cafree; //on close free itself
 end;
 

@@ -3586,8 +3586,8 @@ begin
   back1.Visible:=backlist.Count>0;
 
 
-  stealthedit1.Visible:=(stealtheditor=nil) or (not stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));
-  disablestealthedit1.Visible:=(stealtheditor<>nil) and (stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));  
+  stealthedit1.Visible:=false; //(stealtheditor=nil) or (not stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));
+  disablestealthedit1.Visible:=false; //(stealtheditor<>nil) and (stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));  
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
