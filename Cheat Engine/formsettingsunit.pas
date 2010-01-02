@@ -97,13 +97,6 @@ type
     cbKernelQueryMemoryRegion: TCheckBox;
     cbKernelReadWriteProcessMemory: TCheckBox;
     cbKernelOpenProcess: TCheckBox;
-    Panel1: TPanel;
-    Label25: TLabel;
-    cbStealth: TCheckBox;
-    cbProtectMe: TCheckBox;
-    btnMoreStealth: TButton;
-    cbUndoMemoryChanges: TCheckBox;
-    cbForceUndo: TCheckBox;
     cbProcessWatcher: TCheckBox;
     cbKdebug: TCheckBox;
     CheckBox3: TCheckBox;
@@ -163,9 +156,7 @@ type
     procedure btnExcludeProcessesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbKernelQueryMemoryRegionClick(Sender: TObject);
-    procedure cbUndoMemoryChangesClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure cbProtectMeClick(Sender: TObject);
     procedure cbKdebugClick(Sender: TObject);
     procedure cbProcessWatcherClick(Sender: TObject);
     procedure btnMoreStealthClick(Sender: TObject);
@@ -559,12 +550,6 @@ begin
 
 
       {$endif}
-
-      reg.WriteBool('StealthOnExecute',cbStealth.Checked);
-      reg.WriteBool('Protect CE',cbProtectMe.Checked);
-
-      reg.WriteBool('Undo memory changes',cbUndoMemoryChanges.checked);
-      reg.WriteBool('Undo memory changes:Force writable',cbForceUndo.checked);
 
       reg.WriteBool('Use dbk32 QueryMemoryRegionEx',cbKernelQueryMemoryRegion.checked);
       reg.WriteBool('Use dbk32 ReadWriteProcessMemory',cbKernelReadWriteProcessMemory.checked);
@@ -965,7 +950,7 @@ begin
 
   btnUnrandomizerconfig.Visible:=false;
   {$else}
-  cbstealth.Visible:=fileexists(cheatenginedir+'stealth.dll');
+
   {$endif}
 
 
@@ -988,10 +973,7 @@ begin
     TauntOldOsUser.Visible:=true;
     TauntOldOsUser.Caption:='Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
 
-    panel1.Visible:=false;   //there is no stealth in 64-bit
-
-    cbKernelQueryMemoryRegion.Visible:=false; //currently no 64-bit paging support (yet)
-    cbKernelQueryMemoryRegion.Enabled:=false;
+    cbKernelQueryMemoryRegion.enabled:=false; //currently no 64-bit paging support (yet)
   end;
 
 
@@ -1013,15 +995,6 @@ begin
   end
   else cbKernelOpenProcess.Enabled:=true;
 
-end;
-
-procedure TformSettings.cbUndoMemoryChangesClick(Sender: TObject);
-begin
-  if (cbUndoMemoryChanges.checked) and (not LoadingSettingsFromRegistry) then
-    cbUndoMemoryChanges.checked:=Messagedlg('Are you sure the memory is clean from any alterations?',mtconfirmation,[mbyes,mbno],0)=mryes;
-
-  cbforceundo.Enabled:=cbUndoMemoryChanges.checked;
-  if not cbforceundo.enabled then cbforceundo.Checked:=false;
 end;
 
 procedure TformSettings.FormClose(Sender: TObject;
@@ -1067,14 +1040,6 @@ begin
     end;
   end;
 
-end;
-
-procedure TformSettings.cbProtectMeClick(Sender: TObject);
-begin
-  btnmorestealth.enabled:=cbProtectme.checked;
-
-  if cbprotectme.Checked then
-    startsystemcallretrieverifneeded;
 end;
 
 procedure TformSettings.cbKdebugClick(Sender: TObject);

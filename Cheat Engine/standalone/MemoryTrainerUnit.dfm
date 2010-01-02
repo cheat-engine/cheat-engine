@@ -4,36 +4,36 @@ object frmMemoryTrainer: TfrmMemoryTrainer
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'frmMemoryTrainer'
-  ClientHeight = 335
-  ClientWidth = 406
+  ClientHeight = 412
+  ClientWidth = 500
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Panel2: TPanel
-    Left = 85
+    Left = 105
     Top = 0
-    Width = 321
-    Height = 335
+    Width = 395
+    Height = 412
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      321
-      335)
+      395
+      412)
     object Button1: TButton
-      Left = 126
-      Top = 304
-      Width = 75
-      Height = 25
+      Left = 155
+      Top = 374
+      Width = 92
+      Height = 31
       Anchors = [akBottom]
       Caption = 'Close'
       TabOrder = 0
@@ -42,8 +42,8 @@ object frmMemoryTrainer: TfrmMemoryTrainer
     object ScrollBox1: TScrollBox
       Left = 0
       Top = 0
-      Width = 321
-      Height = 297
+      Width = 395
+      Height = 366
       Align = alTop
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelInner = bvNone
@@ -51,25 +51,25 @@ object frmMemoryTrainer: TfrmMemoryTrainer
       BorderStyle = bsNone
       TabOrder = 1
       object Label1: TLabel
-        Left = 8
+        Left = 10
         Top = 0
-        Width = 37
-        Height = 13
+        Width = 46
+        Height = 16
         Caption = 'Hotkey:'
       end
       object Label2: TLabel
-        Left = 112
+        Left = 138
         Top = 0
-        Width = 28
-        Height = 13
+        Width = 33
+        Height = 16
         Caption = 'Effect'
       end
     end
     object Button3: TButton
-      Left = 8
-      Top = 296
-      Width = 57
-      Height = 25
+      Left = 10
+      Top = 364
+      Width = 70
+      Height = 31
       Caption = 'Button3'
       TabOrder = 2
       Visible = False
@@ -79,33 +79,33 @@ object frmMemoryTrainer: TfrmMemoryTrainer
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 85
-    Height = 335
+    Width = 105
+    Height = 412
     Align = alLeft
     BevelInner = bvLowered
     BevelOuter = bvLowered
     TabOrder = 1
     DesignSize = (
-      85
-      335)
+      105
+      412)
     object Image1: TImage
       Left = 2
-      Top = 27
-      Width = 80
-      Height = 282
+      Top = 33
+      Width = 99
+      Height = 347
       Anchors = [akLeft, akTop, akRight, akBottom]
       Stretch = True
     end
     object btnLaunch: TButton
       Left = 2
       Top = 2
-      Width = 81
-      Height = 25
+      Width = 100
+      Height = 31
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Launch'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -20
       Font.Name = 'MS Serif'
       Font.Style = [fsBold]
       ParentFont = False
@@ -114,9 +114,9 @@ object frmMemoryTrainer: TfrmMemoryTrainer
     end
     object Button2: TButton
       Left = 2
-      Top = 307
-      Width = 80
-      Height = 26
+      Top = 378
+      Width = 99
+      Height = 32
       Anchors = [akLeft, akRight, akBottom]
       Caption = 'About'
       TabOrder = 1

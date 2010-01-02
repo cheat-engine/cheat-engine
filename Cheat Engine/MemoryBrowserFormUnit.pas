@@ -9,7 +9,7 @@ uses
   {$ifdef netclient}
   ,NetAPIs, ComCtrls
   {$else}
-  ,stacktrace2, stealthedit, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
+  ,stacktrace2, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
   {$endif}
   ;
 
@@ -163,10 +163,6 @@ type
     dispFloat: TMenuItem;
     dispDouble: TMenuItem;
     dispInts: TMenuItem;
-    Stealthedit1: TMenuItem;
-    miStealthEditPage: TMenuItem;
-    miManualStealthEdit: TMenuItem;
-    Stealteditmultiplepages1: TMenuItem;
     Jumplines1: TMenuItem;
     Showjumplines1: TMenuItem;
     Onlyshowjumplineswithinrange1: TMenuItem;
@@ -190,7 +186,6 @@ type
     lvStacktrace: TListView;
     N17: TMenuItem;
     Maxstacktracesize1: TMenuItem;
-    Disablestealthedit1: TMenuItem;
     Splitter2: TSplitter;
     Referencedstrings1: TMenuItem;
     procedure Button4Click(Sender: TObject);
@@ -303,9 +298,6 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
     procedure ScriptConsole1Click(Sender: TObject);
     procedure DisplayTypeClick(Sender: TObject);
-    procedure miStealthEditPageClick(Sender: TObject);
-    procedure Stealteditmultiplepages1Click(Sender: TObject);
-    procedure miManualStealthEditClick(Sender: TObject);
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
     procedure Watchmemoryallocations1Click(Sender: TObject);
@@ -318,7 +310,6 @@ type
     procedure All1Click(Sender: TObject);
     procedure Modulesonly1Click(Sender: TObject);
     procedure Nonsystemmodulesonly1Click(Sender: TObject);
-    procedure Disablestealthedit1Click(Sender: TObject);
     procedure Referencedstrings1Click(Sender: TObject);
   private
     { Private declarations }
@@ -393,15 +384,17 @@ type
     thhandle: Thandle;
 
     disassemblerview: TDisassemblerview;
-    EAXv: dword;
-    EBXv: dword;
-    ECXv: dword;
-    EDXv: dword;
-    ESIv: dword;
-    EDIv: dword;
-    EBPv: dword;
-    ESPv: dword;
-    EIPv: dword;
+
+    lastdebugcontext: _Context;
+    //EAXv: dword;
+    //EBXv: dword;
+    //ECXv: dword;
+    //EDXv: dword;
+    //ESIv: dword;
+    //EDIv: dword;
+    //EBPv: dword;
+    //ESPv: dword;
+    //EIPv: dword;
     FControl2:Tedit2;
     rows8: integer;
     disassembler: boolean;
@@ -418,6 +411,7 @@ type
     procedure AssemblePopup(x: string);
 
     procedure plugintype1click(sender:tobject);
+    procedure plugintype6click(sender:tobject);
     procedure setcodeanddatabase;
     property showvalues: boolean read getShowValues write setShowValues;
     property showDebugPanels: boolean read fShowDebugPanels write setShowDebugPanels;
@@ -663,7 +657,12 @@ begin
   {$endif}
 
 
-  
+
+  Sericedescriptortable1.visible:=not Is64bitOS;
+  GDTlist1.Visible:=not is64bitos;
+  IDTlist1.Visible:=not is64bitos;
+
+
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
@@ -676,6 +675,8 @@ var x: array of integer;
 begin
   displaytype:=dtByte;
   scriptconsole1.ShortCut:=TextToShortCut('Ctrl+Shift+C');
+
+
 {
 not enough time to add header supports
 
@@ -1875,7 +1876,7 @@ begin
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=wdco_stepOver; //step over
-    x:=eipv;
+    x:=lastdebugcontext.Eip;
     disassemble(x,temp);
 
     if formsettings.rbDebugAsBreakpoint.checked then
@@ -3362,6 +3363,20 @@ begin
   {$endif}
 end;
 
+procedure TMemoryBrowser.plugintype6click(sender:tobject);
+var
+  x: TPluginfunctionType6;
+  selectedaddress: dword;
+begin
+  x:=TPluginfunctionType6(tmenuitem(sender).Tag);
+  if x<>nil then
+  begin
+    selectedaddress:=disassemblerview.SelectedAddress;
+    x.callback(@selectedaddress);
+    disassemblerview.SelectedAddress:=selectedaddress;
+  end;
+end;
+
 procedure TMemoryBrowser.plugintype1click(sender:tobject);
 {$ifndef net}
 var x: TPluginfunctionType1;
@@ -3585,9 +3600,7 @@ begin
   follow1.visible:=isjumporcall(disassemblerview.SelectedAddress,x);
   back1.Visible:=backlist.Count>0;
 
-
-  stealthedit1.Visible:=false; //(stealtheditor=nil) or (not stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));
-  disablestealthedit1.Visible:=false; //(stealtheditor<>nil) and (stealtheditor.isRelocated(disassemblerview.SelectedAddress,x));  
+  pluginhandler.handledisassemblerContextPopup(disassemblerview.SelectedAddress);
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
@@ -3857,56 +3870,6 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.miStealthEditPageClick(Sender: TObject);
-var newaddress: dword;
-begin
-  if stealtheditor=nil then
-    stealtheditor:=tstealthedit.create;
-
-  newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, 4096);
-  disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
-end;
-
-procedure TMemoryBrowser.Stealteditmultiplepages1Click(Sender: TObject);
-var
-  newaddress: dword;
-  sizestring: string;
-  size: dword;
-begin
-  if stealtheditor=nil then
-    stealtheditor:=tstealthedit.create;
-
-  sizestring:='4096';
-  if inputquery('StealthEdit','how much memory do you want to stealthedit ?',sizestring) then
-  begin
-    size:=strtoint('$'+sizestring);
-    size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
-    
-    newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
-    disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
-  end;
-end;
-
-procedure TMemoryBrowser.miManualStealthEditClick(Sender: TObject);
-var basestring, sizestring: string;
-    base,size: dword;
-    newaddress: dword;
-begin
-  if InputQuery('StealthEdit','What is the address of the copy? (not counting in the int3 array in front)', basestring) then
-  begin
-    base:=symhandler.getAddressFromName(basestring);
-
-    if InputQuery('StealthEdit','What is the size of the copy? (again, not counting in the int3 array in front and back)', sizestring) then
-    begin
-      size:=strtoint('$'+sizestring);
-      size:=(1+((size -1) div 4096)) * 4096; //force to page boundary
-
-      newaddress:=stealtheditor.StartEdit(disassemblerview.SelectedAddress and $fffff000, size);
-      disassemblerview.SelectedAddress:=newaddress or (disassemblerview.SelectedAddress and $fff);
-    end;
-  end;
-end;
-
 procedure TMemoryBrowser.Showjumplines1Click(Sender: TObject);
 begin
   showjumplines1.checked:=not showjumplines1.checked;
@@ -3997,8 +3960,8 @@ begin
   trace:=tstringlist.Create;
   getmem(s,FStacktraceSize);
   try
-    readprocessmemory(processhandle, pointer(espv),s, FStacktraceSize,x);
-    ce_stacktrace(espv, ebpv, eipv, s,x, trace,false,modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+    readprocessmemory(processhandle, pointer(lastdebugcontext.Esp),s, FStacktraceSize,x);
+    ce_stacktrace(lastdebugcontext.esp, lastdebugcontext.ebp, lastdebugcontext.eip, s,x, trace,false,modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
 
     for i:=0 to trace.count-1 do
     begin
@@ -4050,12 +4013,6 @@ begin
   Modulesonly1.Checked:=false;
   Nonsystemmodulesonly1.Checked:=true;
   reloadstacktrace;
-end;
-
-procedure TMemoryBrowser.Disablestealthedit1Click(Sender: TObject);
-begin
-  if stealtheditor<>nil then
-    stealtheditor.RestoreEdit(disassemblerview.SelectedAddress);
 end;
 
 procedure TMemoryBrowser.Referencedstrings1Click(Sender: TObject);

@@ -6,7 +6,7 @@ uses windows, sysutils;
 
 const PluginVersionSDK=2;
 
-type TPluginType=(ptAddressList, ptMemoryView, ptOnDebugEvent, ptProcesswatcherEvent, ptFunctionPointerchange, ptMainMenu);
+type TPluginType=(ptAddressList, ptMemoryView, ptOnDebugEvent, ptProcesswatcherEvent, ptFunctionPointerchange, ptMainMenu, ptDisassemblerContext);
 
 type TDWordArray = array[0..0] of DWord;
      PDWordArray = ^TDWordArray;
@@ -61,6 +61,7 @@ end;
 type TFunction3=TFunction2;
 type TFunction4=TFunction2;
 type TFunction5=TFunction1;
+type TFunction6=TFunction1;
 
 
 type PFunction0=^TFunction0;
@@ -69,6 +70,7 @@ type PFunction2=^TFunction2;
 type PFunction3=^TFunction3;
 type PFunction4=^TFunction4;
 type PFunction5=^TFunction5;
+type PFunction6=^TFunction6;
 
 type Tce_showmessage=procedure (s: pchar); stdcall;
 type Tce_registerfunction=function (pluginid: integer; functiontype:TPluginType; init: pointer):integer; stdcall;
@@ -82,7 +84,7 @@ type Tce_InjectDLL=function(dllname: pchar; functiontocall: pchar):BOOL; stdcall
 
 type Tce_freezemem= function (address: dword; size: integer):integer; stdcall;
 type Tce_unfreezemem =function (id: integer):BOOL; stdcall;
-type Tce_fixmem=function:BOOL; stdcall;
+//type Tce_fixmem=function:BOOL; stdcall; //obsolete, don't use it
 type Tce_processlist=function(listbuffer: pchar; listsize: integer):BOOL; stdcall;
 type Tce_reloadsettings=function:BOOL; stdcall;
 type Tce_getaddressfrompointer=function(baseaddress: dword; offsetcount: integer; offsets: PDwordArray):dword; stdcall;
@@ -128,7 +130,7 @@ type TExportedFunctions = record
   InjectDLL: Tce_InjectDLL;
   freezemem: Tce_freezemem;
   unfreezemem: Tce_unfreezemem;
-  fixmem: Tce_fixmem;
+  fixmem: pointer;
   processlist: Tce_processlist;
   reloadsettings: Tce_reloadsettings;
   getaddressfrompointer: Tce_getaddressfrompointer;

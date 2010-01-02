@@ -44,6 +44,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Width = 130
       Height = 190
       Align = alClient
+      Alignment = taCenter
       AutoSize = False
       WordWrap = True
     end

@@ -8,7 +8,7 @@ uses Classes,windows,sysutils,cefuncproc,Messages,forms,SyncObjs,
      dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils,
      ComCtrls
      {$ifndef net}
-     ,undochanges,assemblerunit,addressparser  //handled in the client version or not at all
+     ,assemblerunit,addressparser  //handled in the client version or not at all
      {$endif}
      {$ifdef netserver}      
      ,unit1
@@ -142,8 +142,6 @@ type TDebugger = class(TThread)
 
     procedure addtochangeslist;
     procedure ProcessCreated;
-
-    procedure RestoreNTOpenProcess;
 
     procedure ResetBreakpoint;
     procedure SetSingleStepping(Threadid: dword);
@@ -633,8 +631,6 @@ begin
   if debuggerthread3<>nil then raise exception.Create('Please stop the kernelmode debugging routines and breakpoints before starting this debugger');
      }
      
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
-
   if formsettings.cbBreakOnAttach.checked and (ProcessWindow<>nil) then    //created using the process list
     createdusingprocesswindow:=true;
   {$endif}
@@ -674,8 +670,6 @@ begin
     freeandnil(debuggerthread2);
   end;  }
   
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
-
   if formsettings.cbBreakOnAttach.checked and (ProcessWindow<>nil) then    //created using the process list
     createdusingprocesswindow:=true;
   {$endif}
@@ -813,45 +807,6 @@ begin
     result:=ContinueDebugEvent(devent.dwProcessId,devent.dwThreadId,DBG_CONTINUE);
 end;
 
-procedure TDebugger.RestoreNTOpenProcess;
-var NTOpenProcessPos: dword;
-    MyNTOpenProcessPos: dword;
-    x: dword;
-    y: array [0..4] of byte;
-    mykernel: thandle;
-begin
-  NTOpenProcessPos:=dword(getprocaddress(ntdlllib,'NtOpenProcess'));
-
-  LoadDbk32;
-  if GetLoadedState then
-  begin
-    MyNTOpenProcessPos:=dword(getprocaddress(DarkByteKernel,'NOP'));
-
-    If MyNTOpenProcessPos<>0 then
-    begin
-      if VirtualProtect(pointer(NTOpenProcessPos-50),55,PAGE_EXECUTE_READWRITE,x) then
-      begin
-        y[0]:=$e9;
-        pdword(@y[1])^:=MyNTOpenProcessPos-NTOpenProcessPos-5;
-
-        try
-          asm
-            push edi
-            push esi
-            lea esi,y[0]
-            mov edi,NTOpenProcessPos
-            movsd
-            movsb
-            pop esi
-            pop edi
-          end;
-        except
-
-        end;
-      end;
-    end;
-  end;
-end;
 
 
 procedure TDebugger.AddDebugString;
@@ -871,7 +826,7 @@ begin
 
   with memorybrowser do
   begin
-    EAXv:=context.Eax;
+   { EAXv:=context.Eax;
     EBXv:=context.Ebx;
     ECXv:=context.Ecx;
     EDXv:=context.Edx;
@@ -879,7 +834,8 @@ begin
     EDIv:=context.Edi;
     EBPv:=context.Ebp;
     ESPv:=context.Esp;
-    EIPv:=context.Eip;
+    EIPv:=context.Eip;}
+    lastdebugcontext:=context;
   end;
 
   try
@@ -1207,6 +1163,8 @@ begin
     end else Oflabel.Font.Color:=clWindowText;
 
 
+    lastdebugcontext:=context;
+    {
     EAXv:=context.Eax;
     EBXv:=context.Ebx;
     ECXv:=context.Ecx;
@@ -1216,7 +1174,7 @@ begin
     EBPv:=context.Ebp;
     ESPv:=context.Esp;
     EIPv:=context.Eip;
-
+                        }
     if frmFloatingpointpanel<>nil then
     begin
       frmFloatingpointpanel.SetContextPointer(@context);
@@ -1616,15 +1574,6 @@ begin
 //    }
 
     //attach to a running process
-    //rewrite nt
-
-    {$ifdef netserver}
-    RestoreNTOpenProcess;
-    {$else}
-    if formsettings.cbKernelOpenProcess.checked then
-      RestoreNTOpenProcess;
-    {$endif}
-
 
     if not DebugActiveProcess(Openprocessid) then
     begin

@@ -9,19 +9,19 @@ object frmTrainerDesignObjectView: TfrmTrainerDesignObjectView
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object ValueListEditor1: TValueListEditor
     Left = 0
     Top = 0
-    Width = 181
-    Height = 334
+    Width = 171
+    Height = 323
     Align = alClient
     Color = clBtnFace
     DisplayOptions = [doAutoColResize]
@@ -61,7 +61,7 @@ object frmTrainerDesignObjectView: TfrmTrainerDesignObjectView
   end
   object OpenPictureDialog1: TOpenPictureDialog
     DefaultExt = 'bmp'
-    Filter = 'Bitmaps (*.bmp)|*.bmp'
+    Filter = 'Images (*.bmp,*.jpg)|*.bmp;*.jpg'
     Left = 72
     Top = 56
   end

@@ -7,7 +7,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls,settingsunit,tlhelp32,shellapi,math,extratrainercomponents,
   userdefinedformunit, newkernelhandler, symbolhandler, cefuncproc,
-  autoassembler,hotkeyhandler;
+  autoassembler,hotkeyhandler, jpeg;
 
 
 
@@ -90,6 +90,8 @@ type
     { Private declarations }
 
     reinitializedesired: boolean;
+
+    filecount: integer;
 
     procedure redefinecodeentries;
     procedure reinterpretaddresses;
@@ -411,7 +413,9 @@ var i,j,k,l,m,err: integer;
     sl: tstringlist;
 
     aa: tCEAllocArray;
+    dobeep: boolean;
 begin
+  dobeep:=false;
   checkforprocess;
   //handle the hotkeys
   i:=message.HotKey;
@@ -776,16 +780,23 @@ begin
 
 
     //indicate that this hotkey got pressed
-    beep;
+
     if userdefinedform<>nil then
     begin
       for j:=0 to length(userdefinedform.cheat)-1 do
         if userdefinedform.cheat[j].cheatnr=i then
+        begin
           userdefinedform.cheat[j].activated:=true;
+          if userdefinedform.cheat[j].beeponactivate then
+            dobeep:=true;
+        end;
 
       for j:=0 to length(userdefinedform.cheatlist)-1 do
         userdefinedform.cheatlist[j].Items[i].activated:=true;
-    end;
+    end else dobeep:=true; //always beep
+
+    if dobeep then beep;
+
     frmMemoryTrainer.clist.Items[i].activated:=true;
     //and activate the thread that sleeps 500 ms and keeps the collor to activated when active , and black when not
 
@@ -817,6 +828,7 @@ var temp: dword;
     bp1,bp2: ^byte;
     imagestream: Tmemorystream;
     buf: pchar;
+
     temp2: integer;
 
     temptb: TBytes;
@@ -843,7 +855,10 @@ var temp: dword;
     hotkey: TKeyCombo;
 
     ReturnLength: Dword;
+
+    f: tfilestream;
 begin
+  f:=nil;
   pid:=GetCurrentProcessID;
 
   ownprocesshandle:=OpenProcess(PROCESS_ALL_ACCESS,true,pid);
@@ -1096,9 +1111,27 @@ begin
   begin
     //default uid
     //image
-    trainerfile.ReadBuffer(temp,4); //size of image
-    if temp>0 then
-      image1.Picture.Bitmap.LoadFromStream(trainerfile);
+    trainerfile.ReadBuffer(temp,4); //size of extension
+    getmem(x,temp+1);
+    trainerfile.ReadBuffer(x^,temp);
+    x[temp]:=#0;
+
+    temps:=tempdir+inttostr(getcurrentprocessid)+'-'+inttostr(filecount)+x;
+    freemem(x);
+
+    f:=tfilestream.Create(temps, fmCreate or fmShareDenyNone);
+
+    trainerfile.ReadBuffer(temp,4);
+    getmem(x,temp);
+    trainerfile.ReadBuffer(x^,temp);
+    f.WriteBuffer(x^,temp);
+    freemem(x);
+    f.free;
+
+    image1.Picture.LoadFromFile(temps);
+
+    DeleteFile(temps);
+
 
     trainerfile.ReadBuffer(temp2,sizeof(width));
     width:=temp2;
@@ -1233,6 +1266,8 @@ begin
                trainerfile.ReadBuffer(tempb,sizeof(boolean));
                hascheckbox:=tempb;
                trainerfile.ReadBuffer(tempb,sizeof(boolean));
+               beeponactivate:=tempb;
+               trainerfile.ReadBuffer(tempb,sizeof(boolean));
                showhotkeys:=tempb;
 
                parent:=userdefinedform;
@@ -1273,6 +1308,8 @@ begin
 
                trainerfile.ReadBuffer(tempb,sizeof(boolean));
                hascheckbox:=tempb;
+               trainerfile.ReadBuffer(tempb,sizeof(boolean));
+               beeponactivate:=tempb;               
                trainerfile.ReadBuffer(tempb,sizeof(boolean));
                showhotkey:=tempb;
 
@@ -1315,9 +1352,27 @@ begin
                end;
              end;
 
+             trainerfile.ReadBuffer(temp,4); //size of extension
+             getmem(x,temp+1);
+             trainerfile.ReadBuffer(x^,temp);
+             x[temp]:=#0;
+
+             temps:=tempdir+inttostr(getcurrentprocessid)+'-'+inttostr(filecount)+x;
+             inc(filecount);
+             freemem(x);
+
+             f:=tfilestream.Create(temps, fmCreate or fmShareDenyNone);
+
              trainerfile.ReadBuffer(temp,4);
-             if temp>0 then
-               picture.Bitmap.LoadFromStream(trainerfile);
+             getmem(x,temp);
+             trainerfile.ReadBuffer(x^,temp);
+             f.WriteBuffer(x^,temp);
+             freemem(x);
+             f.free;
+
+             Picture.LoadFromFile(temps);
+
+             DeleteFile(temps);
 
              trainerfile.ReadBuffer(temp,4);
              getmem(x,temp+1);

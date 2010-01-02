@@ -471,7 +471,12 @@ begin
         else
         begin
           for j:=0 to ImageExportDirectory.NumberOfFunctions-1 do
-            lbExports.Items.Add(format('%x - %s',[pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfFunctions))[j], pchar(dword(loadedmodule)+pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNames))[j])]));
+          begin
+            //get name ordinal
+            k:=pwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNameOrdinals))[j];
+
+            lbExports.Items.Add(format('%x - %s',[pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfFunctions))[k], pchar(dword(loadedmodule)+pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNames))[j])]));
+          end;
 
 
         end;
@@ -506,9 +511,9 @@ begin
 
           if j>0 then
             lbImports.Items.Add('');
-            
+
           lbImports.Items.Add(format('%s', [pchar(dword(loadedmodule)+ImageImportDirectory.name)]));
-          
+
 
           tempnode2:=PEItv.Items.addchild(tempnode,format('Import %d : %s',[j, pchar(dword(loadedmodule)+ImageImportDirectory.name)]));
           PEItv.Items.addchild(tempnode2, format('Characteristics/OriginalFirstThunk=%x', [ImageImportDirectory.characteristicsOrFirstThunk]));
@@ -519,7 +524,7 @@ begin
 
           tempnode3:=PEItv.Items.addchild(tempnode2, format('imports:',[]));
 
-        
+
           if ImageImportDirectory.ForwarderChain<>$ffffffff then
           begin
             importmodulename:=pchar(dword(loadedmodule)+ImageImportDirectory.name);
@@ -529,6 +534,7 @@ begin
 
             k:=0;
             if is64bit then
+            begin
               while PUINT64(dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
               begin
                 importaddress:=dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k;
@@ -544,8 +550,10 @@ begin
                 end;
 
                 inc(k);
-              end
+              end;
+            end
             else
+            begin
               while PDWORD(dword(loadedmodule)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
               begin
                 importaddress:=dword(@pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k]);
@@ -576,9 +584,7 @@ begin
 
                 inc(k);
               end;
-
-
-
+            end;
           end
           else
           begin

@@ -2,9 +2,9 @@ unit plugin;
 
 interface
 
-uses sysutils,windows,checklst,menus,dialogs,cefuncproc,newkernelhandler;
+uses sysutils,windows,checklst,menus,dialogs,cefuncproc,newkernelhandler, graphics;
 
-const CurrentPluginVersion=2;
+const CurrentPluginVersion=3;
 
 //structures
 type TPluginVersion = record
@@ -12,6 +12,112 @@ type TPluginVersion = record
   pluginname: pchar; //pointer to a 0-terminated string in the dll
 end;
 type PPluginVersion=^TPluginVersion;
+
+type TExportedFunctions3 = record
+  sizeofExportedFunctions: integer;
+  showmessage: pointer;
+  registerfunction: pointer;
+  unregisterfunction: pointer;
+  OpenedProcessID: ^dword;
+  OpenedProcessHandle: ^thandle;
+
+  GetMainWindowHandle: pointer;
+  AutoAssemble: pointer;
+  assembler: pointer;
+  disassembler: pointer;
+  ChangeRegistersAtAddress: pointer;
+  InjectDLL: pointer;
+  freezemem: pointer;
+  unfreezemem: pointer;
+  fixmem: pointer;
+  processlist: pointer;
+  reloadsettings: pointer;
+  getaddressfrompointer: pointer;
+
+  //pointers to the address that contains the pointers to the functions
+  ReadProcessMemory     :pointer;
+  WriteProcessMemory    :pointer;
+  GetThreadContext      :pointer;
+  SetThreadContext      :pointer;
+  SuspendThread         :pointer;
+  ResumeThread          :pointer;
+  OpenProcess           :pointer;
+  WaitForDebugEvent     :pointer;
+  ContinueDebugEvent    :pointer;
+  DebugActiveProcess    :pointer;
+  StopDebugging         :pointer;
+  StopRegisterChange    :pointer;
+  VirtualProtect        :pointer;
+  VirtualProtectEx      :pointer;
+  VirtualQueryEx        :pointer;
+  VirtualAllocEx        :pointer;
+  CreateRemoteThread    :pointer;
+  OpenThread            :pointer;
+  GetPEProcess          :pointer;
+  GetPEThread           :pointer;
+  GetThreadsProcessOffset:pointer;
+  GetThreadListEntryOffset:pointer;
+  GetProcessnameOffset  :pointer;
+  GetDebugportOffset    :pointer;
+  GetPhysicalAddress    :pointer;
+  ProtectMe             :pointer;
+  GetCR4                :pointer;
+  GetCR3                :pointer;
+  SetCR3                :pointer;
+  GetSDT                :pointer;
+  GetSDTShadow          :pointer;
+  setAlternateDebugMethod: pointer;
+  getAlternateDebugMethod: pointer;
+  DebugProcess          :pointer;
+  ChangeRegOnBP         :pointer;
+  RetrieveDebugData     :pointer;
+  StartProcessWatch     :pointer;
+  WaitForProcessListData:pointer;
+  GetProcessNameFromID  :pointer;
+  GetProcessNameFromPEProcess:pointer;
+  KernelOpenProcess       :pointer;
+  KernelReadProcessMemory :pointer;
+  KernelWriteProcessMemory:pointer;
+  KernelVirtualAllocEx    :pointer;
+  IsValidHandle           :pointer;
+  GetIDTCurrentThread     :pointer;
+  GetIDTs                 :pointer;
+  MakeWritable            :pointer;
+  GetLoadedState          :pointer;
+  DBKSuspendThread        :pointer;
+  DBKResumeThread         :pointer;
+  DBKSuspendProcess       :pointer;
+  DBKResumeProcess        :pointer;
+  KernelAlloc             :pointer;
+  GetKProcAddress         :pointer;
+  CreateToolhelp32Snapshot:pointer;
+  Process32First          :pointer;
+  Process32Next           :pointer;
+  Thread32First           :pointer;
+  Thread32Next            :pointer;
+  Module32First           :pointer;
+  Module32Next            :pointer;
+  Heap32ListFirst         :pointer;
+  Heap32ListNext          :pointer;
+
+  //advanced for delphi 7 enterprise dll programmers only
+  mainform                :pointer;
+  memorybrowser           :pointer;
+
+  //version 2 extension:
+  sym_nameToAddress         : pointer;
+  sym_addressToName         : pointer;
+  sym_generateAPIHookScript : pointer;
+
+  //version 3 extension
+  loadDBK32         : pointer;
+  loaddbvmifneeded  : pointer;
+  previousOpcode    : pointer;
+  nextOpcode        : pointer;
+  disassembleEx     : pointer;
+  loadModule        : pointer;
+end;
+type PExportedFunctions3 = ^TExportedFunctions3;
 
 type TExportedFunctions2 = record
   sizeofExportedFunctions: integer;
@@ -108,7 +214,6 @@ type TExportedFunctions2 = record
   sym_nameToAddress         : pointer;
   sym_addressToName         : pointer;
   sym_generateAPIHookScript : pointer;
-
 end;
 type PExportedFunctions2 = ^TExportedFunctions2;
 
@@ -202,12 +307,13 @@ type TExportedFunctions1 = record
   //advanced for delphi 7 enterprise dll programmers only
   mainform                :pointer;
   memorybrowser           :pointer;
+  previousOpcode          :pointer;
 end;
 type PExportedFunctions1 = ^TExportedFunctions1;  
 
 //exported functions of the plugin
 type TGetVersion=function(var PluginVersion:TPluginVersion; TPluginVersionSize: integer):BOOL; stdcall;
-type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions2; pluginid: dword):BOOL; stdcall;
+type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions3; pluginid: dword):BOOL; stdcall;
 type TDisablePlugin=function:BOOL; stdcall;
 
 
@@ -297,6 +403,33 @@ type TPluginfunctionType5=class
 end;
 
 
+//plugin type 6:
+//where: rightclick context of the disassembler
+type TPluginfunction6=function(selectedAddress: pdword):bool; stdcall;
+type Tpluginfuntion6OnContext=function(selectedAddress: dword; addressofname: pointer):bool; stdcall;
+
+//private plugin data
+type TPluginfunctionType6=class
+  public
+    pluginid: integer;
+    functionid: integer;
+    name:string;
+    callback: TPluginfunction6;
+    callbackOnContext: Tpluginfuntion6OnContext;
+    menuitem: TMenuItem;
+end;
+
+//plugin type 7:
+//where: when a disassembler line is being rendered
+type TPluginFunction7=procedure(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
+type TPluginfunctionType7=class
+  public
+    pluginid: integer;
+    functionid: integer;
+    callback: TPluginFunction7;
+end;
+
+
 type TPlugin = record
   dllname: string;
   filepath: string;
@@ -314,6 +447,8 @@ type TPlugin = record
   RegisteredFunctions3: array of TPluginfunctionType3;
   RegisteredFunctions4: array of TPluginfunctionType4;
   RegisteredFunctions5: array of TPluginfunctionType5;
+  RegisteredFunctions6: array of TPluginfunctionType6;
+  RegisteredFunctions7: array of TPluginfunctionType7;
 end;
 
 
@@ -329,6 +464,8 @@ type TPluginHandler=class
     procedure FillCheckListBox(clb: TCheckListbox);
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
+    procedure handledisassemblerContextPopup(address: dword); 
+    procedure handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     function handledebuggerplugins(devent:PDebugEvent):integer;
     function handlenewprocessplugins(processid: dword; peprocess:dword; created: boolean):boolean;
     function handlechangedpointers(section: integer):boolean;
@@ -339,7 +476,7 @@ type TPluginHandler=class
 end;
 
 var pluginhandler: TPluginhandler;
-    exportedfunctions: TExportedFunctions2;
+    exportedfunctions: TExportedFunctions3;
 
 implementation
 
@@ -365,12 +502,20 @@ end;
 type TFunction2=record
   callbackroutine: pointer;
 end;
+type Tfunction6=record
+  name: pchar;
+  callbackroutine: pointer;
+  callbackroutineOnContext: pointer;
+  shortcut: pchar;
+end;
 type PFunction0=^TFunction0;
 type Pfunction1=^TFunction1;   //same
 type Pfunction2=^TFunction2;
 type PFunction3=^TFunction2;
 type PFunction4=^TFunction2;
 type PFunction5=^TFunction1;
+type PFunction6=^TFunction6;
+type PFunction7=^TFunction2;
 
 var i: integer;
     newmenuitem: TMenuItem;
@@ -380,6 +525,8 @@ var i: integer;
     f3: TPluginfunctionType3;
     f4: TPluginfunctionType4;
     f5: TPluginfunctionType5;
+    f6: TPluginfunctionType6;
+    f7: TPluginfunctionType7;
 begin
   result:=-1;
 
@@ -488,7 +635,6 @@ begin
 
       5: begin
            //main menu
-           //plugin for the memorybrowser
            f5:=TPluginfunctionType5.Create;
            f5.pluginid:=pluginid;
            f5.functionid:=plugins[pluginid].nextid;
@@ -517,6 +663,50 @@ begin
 
            result:=plugins[pluginid].nextid;
 
+         end;
+
+      6: begin
+           //memorybrowser rightclick on disassembler
+           f6:=TPluginfunctionType6.Create;
+           f6.pluginid:=pluginid;
+           f6.functionid:=plugins[pluginid].nextid;
+           f6.name:=Pfunction6(init).name;
+           f6.callback:=Pfunction6(init).callbackroutine;
+           f6.callbackOnContext:=Pfunction6(init).callbackroutineOnContext;
+
+           newmenuitem:=tmenuitem.Create(memorybrowser);
+           newmenuitem.Caption:=f6.name;
+           newmenuitem.Tag:=dword(f6);
+           newmenuitem.onclick:=memorybrowser.plugintype6click;
+
+           memorybrowser.debuggerpopup.Items.Add(newmenuitem);
+           try
+             newmenuitem.ShortCut:=TextToShortCut(PFunction6(init).shortcut);
+           except
+
+           end;
+
+           f6.menuitem:=newmenuitem;
+
+           setlength(plugins[pluginid].Registeredfunctions6,length(plugins[pluginid].Registeredfunctions6)+1);
+           plugins[pluginid].Registeredfunctions6[length(plugins[pluginid].Registeredfunctions6)-1]:=f6;
+
+           result:=plugins[pluginid].nextid;
+
+
+         end;
+
+      7: begin
+           //disassemblerlines render
+           f7:=TPluginfunctionType7.Create;
+           f7.pluginid:=pluginid;
+           f7.functionid:=plugins[pluginid].nextid;
+           f7.callback:=Pfunction7(init).callbackroutine;
+
+           setlength(plugins[pluginid].RegisteredFunctions7,length(plugins[pluginid].RegisteredFunctions7)+1);
+           plugins[pluginid].RegisteredFunctions7[length(plugins[pluginid].RegisteredFunctions7)-1]:=f7;
+
+           result:=plugins[pluginid].nextid;
          end;
 
 
@@ -646,19 +836,59 @@ begin
         exit;
       end;
 
+    //function6 check
+    for i:=0 to length(plugins[pluginid].RegisteredFunctions6)-1 do
+      if plugins[pluginid].RegisteredFunctions6[i].functionid=functionid then
+      begin
+        if plugins[pluginid].RegisteredFunctions6[i].menuitem.Parent<>nil then
+        begin
+          if plugins[pluginid].RegisteredFunctions6[i].menuitem.Parent.Count=1 then
+            plugins[pluginid].RegisteredFunctions6[i].menuitem.Parent.Visible:=false;
+        end;
+        plugins[pluginid].RegisteredFunctions6[i].menuitem.Free;
+        plugins[pluginid].RegisteredFunctions6[i].Free;
+
+        for j:=i to length(plugins[pluginid].RegisteredFunctions6)-2 do
+          plugins[pluginid].RegisteredFunctions6[j]:=plugins[pluginid].RegisteredFunctions6[j+1];
+
+        setlength(plugins[pluginid].RegisteredFunctions6,length(plugins[pluginid].RegisteredFunctions6)-1);
+
+        result:=true;
+        exit;
+      end;
+
+    //function7 check
+    for i:=0 to length(plugins[pluginid].RegisteredFunctions7)-1 do
+      if plugins[pluginid].RegisteredFunctions7[i].functionid=functionid then
+      begin
+        plugins[pluginid].RegisteredFunctions7[i].Free;
+
+        for j:=i to length(plugins[pluginid].RegisteredFunctions7)-2 do
+          plugins[pluginid].RegisteredFunctions7[j]:=plugins[pluginid].RegisteredFunctions7[j+1];
+
+        setlength(plugins[pluginid].RegisteredFunctions7,length(plugins[pluginid].RegisteredFunctions7)-1);
+
+        result:=true;
+        exit;
+      end;
+
+
   finally
     pluginmrew.EndWrite;
   end;
 end;
 
 procedure TPluginHandler.EnablePlugin(pluginid: integer);
-var e: texportedfunctions2;
+var e: texportedfunctions3;
     x: boolean;
 begin
   e:=exportedfunctions;  //save it to prevent plugins from fucking it up
 
   if plugins[pluginid].pluginversion=1 then
     e.sizeofExportedFunctions:=sizeof(Texportedfunctions1); //Just say it's smaller (order stays the same)
+
+  if plugins[pluginid].pluginversion=2 then
+    e.sizeofExportedFunctions:=sizeof(Texportedfunctions2);
 
   pluginMREW.BeginRead;
   if pluginid>=length(plugins) then exit;
@@ -705,6 +935,12 @@ begin
 
       while length(plugins[pluginid].Registeredfunctions5)>0 do
         unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions5[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions6)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions6[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions7)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions7[0].functionid);
 
     end;
   finally
@@ -838,6 +1074,39 @@ begin
   pluginMREW.EndRead;
 end;
 
+procedure TPluginHandler.handledisassemblerContextPopup(address: dword);
+var i,j: integer;
+    addressofmenuitemstring: pchar;
+    s: string;
+begin
+  pluginMREW.BeginRead;
+  try
+    for i:=0 to length(plugins)-1 do
+      for j:=0 to length(plugins[i].RegisteredFunctions6)-1 do
+      begin
+        s:=plugins[i].RegisteredFunctions6[j].menuitem.Caption;
+        addressofmenuitemstring:=@s[1];
+        plugins[i].RegisteredFunctions6[j].callbackOnContext(address, @addressofmenuitemstring);
+        plugins[i].RegisteredFunctions6[j].menuitem.Caption:=addressofmenuitemstring;
+      end;
+  finally
+    pluginMREW.EndRead;
+  end;
+end;
+
+procedure TPluginHandler.handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
+var i,j: integer;
+begin
+  pluginMREW.BeginRead;
+  try
+    for i:=0 to length(plugins)-1 do
+      for j:=0 to length(plugins[i].RegisteredFunctions7)-1 do
+        plugins[i].RegisteredFunctions7[j].callback(address, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
+  finally
+    pluginMREW.EndRead;
+  end;
+end;
+
 function TPluginHandler.handledebuggerplugins(devent: PDebugEvent):integer;
 var i,j: integer;
 begin
@@ -890,7 +1159,7 @@ constructor TPluginHandler.create;
 var test: pchar;
 begin
   pluginMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
-  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions2);
+  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions3);
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;
   exportedfunctions.unregisterfunction:=@ce_unregisterfunction;
@@ -906,7 +1175,7 @@ begin
   exportedfunctions.InjectDLL:=@ce_injectdll;
   exportedfunctions.freezemem:=@ce_freezemem;
   exportedfunctions.unfreezemem:=@ce_unfreezemem;
-  exportedfunctions.fixmem:=@ce_fixmem;
+  exportedfunctions.fixmem:=nil; //obsolete
   exportedfunctions.processlist:=@ce_processlist;
   exportedfunctions.reloadsettings:=@ce_reloadsettings;
   exportedfunctions.getaddressfrompointer:=@ce_getaddressfrompointer;
@@ -938,7 +1207,7 @@ begin
   exportedfunctions.GetProcessnameOffset:=@@GetProcessnameOffset;
   exportedfunctions.GetDebugportOffset:=@@GetDebugportOffset;
   exportedfunctions.GetPhysicalAddress:=@@GetPhysicalAddress;
-  exportedfunctions.ProtectMe:=@@ProtectMe;
+  exportedfunctions.ProtectMe:=nil;
   exportedfunctions.GetCR4:=@@GetCR4;
   exportedfunctions.GetCR3:=@@GetCR3;
   exportedfunctions.SetCR3:=@@SetCR3;
@@ -989,6 +1258,14 @@ begin
   exportedfunctions.sym_nameToAddress:=@ce_sym_nameToAddress;
   exportedfunctions.sym_addressToName:=@ce_sym_addressToName;
   exportedfunctions.sym_generateAPIHookScript:=@ce_generateAPIHookScript;
+
+  //version3 init
+  exportedfunctions.loadDBK32:=@LoadDBK32;
+  exportedfunctions.loaddbvmifneeded:=@loaddbvmifneeded;
+  exportedfunctions.previousOpcode:=@ce_previousOpcode;
+  exportedfunctions.nextOpcode:=@ce_nextOpcode;
+  exportedfunctions.disassembleEx:=@ce_disassemble;
+  exportedfunctions.loadModule:=@ce_loadModule;
 end;
 
 end.

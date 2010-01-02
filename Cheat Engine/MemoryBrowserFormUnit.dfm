@@ -793,28 +793,6 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Create jump and initialize Code-Cave'
       OnClick = Createjumptocodecave1Click
     end
-    object Stealthedit1: TMenuItem
-      Caption = 'Stealthedit'
-      Visible = False
-      object miStealthEditPage: TMenuItem
-        Caption = 'Stealthedit this page'
-        Default = True
-        OnClick = miStealthEditPageClick
-      end
-      object Stealteditmultiplepages1: TMenuItem
-        Caption = 'Stealtedit multiple pages'
-        OnClick = Stealteditmultiplepages1Click
-      end
-      object miManualStealthEdit: TMenuItem
-        Caption = 'Manually input stealth parameters'
-        OnClick = miManualStealthEditClick
-      end
-    end
-    object Disablestealthedit1: TMenuItem
-      Caption = 'Disable stealthedit'
-      Visible = False
-      OnClick = Disablestealthedit1Click
-    end
   end
   object Timer2: TTimer
     Interval = 500

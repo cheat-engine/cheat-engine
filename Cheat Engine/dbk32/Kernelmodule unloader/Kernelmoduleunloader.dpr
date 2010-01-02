@@ -336,28 +336,12 @@ begin
 
         if hdevice<>INVALID_HANDLE_VALUE then
         begin
-          outputdebugstring('Calling unprotect');
-
           //unhook (in case it was protecting something)
-          cc:=CTL_CODE(IOCTL_UNKNOWN_BASE, $080e {unprotect}, METHOD_BUFFERED, FILE_READ_ACCESS or FILE_WRITE_ACCESS);
-          ok:=deviceiocontrol(hdevice,cc,@x,4,@x,4,x,nil);
-          if not ok then
-          begin
-            outputdebugstring('Unprotect returned false');
-            if not setup then messageboxA(0,'The driver was found and present. But it can''t unload itself right now','driver error',mb_ok or MB_ICONERROR);
-//            closehandle(hdevice);
-//            CloseServiceHandle(hservice);
-//            CloseServiceHandle(hSCManager);
-//            exit;
-          end
-          else //still here so it can be unloaded, try to stop the debugger if possible
-          begin
-            outputdebugstring('Calling disableglobaldebug');
-            foreachcpu(disableGlobalDebug,nil);
+          outputdebugstring('Calling disableglobaldebug');
+          foreachcpu(disableGlobalDebug,nil);
 
-            outputdebugstring('calling disableInterruptHooks');
-            foreachcpu(disableInterruptHooks,nil);
-          end;
+          outputdebugstring('calling disableInterruptHooks');
+          foreachcpu(disableInterruptHooks,nil);
 
           closehandle(hdevice);
         end else ok:=false;

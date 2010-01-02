@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="mykerneldriver"
 	ProjectGUID="{A4B29F18-5AA7-466A-A658-4F886949BE32}"
+	RootNamespace="mykerneldriver"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -397,6 +398,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\deepkernel.c"
+				>
+			</File>
+			<File
 				RelativePath=".\interruptHook.c"
 				>
 			</File>
@@ -413,27 +418,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\newkernel.c"
-				>
-			</File>
-			<File
 				RelativePath=".\newopcodes.c"
 				>
 			</File>
 			<File
 				RelativePath=".\processlist.c"
-				>
-			</File>
-			<File
-				RelativePath=".\rootkit.c"
-				>
-			</File>
-			<File
-				RelativePath=".\stealthedit.c"
-				>
-			</File>
-			<File
-				RelativePath=".\amd64\stealthedita.asm"
 				>
 			</File>
 			<File
@@ -487,6 +476,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\deepkernel.h"
+				>
+			</File>
+			<File
 				RelativePath=".\extradefines.h"
 				>
 			</File>
@@ -511,10 +504,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\newkernel.h"
-				>
-			</File>
-			<File
 				RelativePath=".\newopcodes.h"
 				>
 			</File>
@@ -524,14 +513,6 @@
 			</File>
 			<File
 				RelativePath=".\processlist.h"
-				>
-			</File>
-			<File
-				RelativePath=".\rootkit.h"
-				>
-			</File>
-			<File
-				RelativePath=".\stealthedit.h"
 				>
 			</File>
 			<File

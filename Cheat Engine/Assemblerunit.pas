@@ -1516,7 +1516,7 @@ type TAssemblerBytes=array of byte;
 function Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
 function GetOpcodesIndex(opcode: string): integer;
 
-function tokenize(opcode:string; var tokens: ttokens): boolean;
+//function tokenize(opcode:string; var tokens: ttokens): boolean;
 function gettokentype(var token:string;token2: string): TTokenType;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 function getreg(reg: string): integer; overload;
@@ -1531,6 +1531,8 @@ var parameter1,parameter2,parameter3: integer;
 implementation
 
 uses {$ifndef autoassemblerdll}cefuncproc,{$endif}symbolhandler;
+
+
 
 function GetOpcodesIndex(opcode: string): integer;
 {
@@ -4562,12 +4564,15 @@ end;
 
 
 var i,j,k,l,m: integer;
-    lastentry: integer=1;
-    lastentry2: integer=1;
+    lastentry: integer;
+    lastentry2: integer;
     lastindex: PIndexArray;
 
 initialization
 //setup the index for the assembler
+  lastentry:=1;
+  lastentry2:=1;
+
   for i:=0 to 25 do
   begin
     assemblerindex[i].startentry:=-1;

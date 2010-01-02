@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, CEFuncProc,debugger, ComCtrls, ImgList,
-  undochanges,filehandler, Menus,tlhelp32,newkernelhandler, KIcon;
+  filehandler, Menus,tlhelp32,newkernelhandler, KIcon;
 
 type tprocesslistlong = class(tthread)
 private
@@ -46,8 +46,6 @@ type
     procedure InputPIDmanually1Click(Sender: TObject);
     procedure Filter1Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
-    procedure ProcessListKeyPress(Sender: TObject; var Key: Char);
-    procedure ProcessListClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure btnProcessListLongClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -106,7 +104,6 @@ var i: dword;
     pe: dword;
 
 begin
-  freeonterminate:=true;
   i:=0;
 
  { //failed experiment: processlist by trying each pid and peprocess lookup (good theory, but windows crashes)
@@ -146,7 +143,6 @@ begin
     end;
   end;   }
 
-  freeonterminate:=true;
   me32.dwSize:=sizeof(MODULEENTRY32);
 
 
@@ -180,7 +176,6 @@ begin
 
     inc(i);
   end;
-
 
   if processcount>0 then synchronize(drawprocesses);
 end;
@@ -296,8 +291,6 @@ end;
 procedure TProcessWindow.OKButtonClick(Sender: TObject);
 var ProcessIDString: String; 
 begin
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges;
-
   if Processlist.ItemIndex>-1 then
   begin
     unpause;
@@ -477,8 +470,6 @@ begin
   pid:='0';
   if InputQuery('Manual PID','Enter the ProcessID:',pid) then
   begin
-    if formsettings.cbUndoMemoryChanges.checked then CheckForChanges;
-
     unpause;
     DetachIfPossible;
 
@@ -504,43 +495,6 @@ begin
   modalresult:=mrcancel;
 end;
 
-const pr='protectthis';
-procedure TProcessWindow.ProcessListKeyPress(Sender: TObject;
-  var Key: Char);
-var processid: dword;
-    processidstring: string;
-    i:integer;
-begin
-  if lowercase(key)=pr[currentchar] then
-  begin
-    if currentchar=length(pr) then
-    begin
-      if messagedlg('You can only protect one process at a time (And that includes cheat engine).  Are you sure you want to protect this process?',mtconfirmation,[mbyes,mbno],0)=mryes then
-      begin
-        ProcessIDString:='';
-        i:=1;
-        while ProcessList.Items[Processlist.ItemIndex][i]<>'-' do
-        begin
-          ProcessIDString:=ProcessIDString+ProcessList.Items[Processlist.ItemIndex][i];
-          ProcessID:=strtoint('$'+processIDString);
-          inc(i);
-        end;
-        protectprocess(ProcessID);
-      end;
-
-    end;
-
-    inc(currentchar);
-  end else currentchar:=1;
-
-
-end;
-
-procedure TProcessWindow.ProcessListClick(Sender: TObject);
-begin
-  currentchar:=1;
-end;
-
 procedure TProcessWindow.FormResize(Sender: TObject);
 begin
 //reset the button positions
@@ -563,6 +517,9 @@ begin
   begin
     btnprocesslistlong.Caption:='Process List(long)';
     processlistlong.terminate;
+    processlistlong.WaitFor;
+    processlistlong.Free;
+    processlistlong:=nil;    
   end;
 end;
 
@@ -570,7 +527,13 @@ procedure TProcessWindow.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   if processlistlong<>nil then
+  begin
     processlistlong.terminate;
+    processlistlong.WaitFor;
+    processlistlong.Free;
+    processlistlong:=nil;
+    btnprocesslistlong.Caption:='Process List(long)';
+  end;
 end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;

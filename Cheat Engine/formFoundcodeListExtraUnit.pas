@@ -41,6 +41,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
     procedure Copyguesstoclipboard1Click(Sender: TObject);
+    procedure Panel6Resize(Sender: TObject);
   private
     { Private declarations }
     fprobably: dword;
@@ -107,6 +108,18 @@ s: string;
 begin
   s:=inttohex(probably,8);
   clipboard.SetTextBuf(pchar(s));
+end;
+
+procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
+begin
+  label12.Left:=panel6.ClientWidth-label12.width-label7.Left;
+  label13.left:=label12.left;
+  label15.Left:=label12.Left;
+
+  label11.Left:=(panel6.ClientWidth div 2)-(label11.Width div 2);
+  label16.left:=label11.left;
+  label14.Left:=label11.left;
+
 end;
 
 end.

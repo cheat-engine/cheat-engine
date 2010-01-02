@@ -1,6 +1,6 @@
 object frmMemoryModifier: TfrmMemoryModifier
-  Left = 435
-  Top = 238
+  Left = 316
+  Top = 233
   HelpContext = 14
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -256,7 +256,7 @@ object frmMemoryModifier: TfrmMemoryModifier
     Left = 354
     Top = 118
     Width = 191
-    Height = 21
+    Height = 24
     TabOrder = 5
     OnChange = editTitleChange
   end
@@ -264,7 +264,7 @@ object frmMemoryModifier: TfrmMemoryModifier
     Left = 354
     Top = 167
     Width = 152
-    Height = 21
+    Height = 24
     Hint = 
       'This will be the file the trainer starts when you press launch. ' +
       '(in case the process isnt already running)'
@@ -296,7 +296,7 @@ object frmMemoryModifier: TfrmMemoryModifier
     Left = 354
     Top = 266
     Width = 149
-    Height = 21
+    Height = 24
     Enabled = False
     TabOrder = 9
     OnKeyDown = EditHotkeyKeyDown
@@ -341,7 +341,7 @@ object frmMemoryModifier: TfrmMemoryModifier
     Left = 354
     Top = 315
     Width = 189
-    Height = 21
+    Height = 24
     TabOrder = 13
     Text = '250'
   end

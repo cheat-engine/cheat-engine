@@ -709,6 +709,8 @@ begin
     end else Oflabel.Font.Color:=clWindowText;
 
 
+    ConvertDebuggerStateToContext(currentdebuggerstate, lastdebugcontext);
+ {
     EAXv:=currentdebuggerstate.Eax;
     EBXv:=currentdebuggerstate.Ebx;
     ECXv:=currentdebuggerstate.Ecx;
@@ -717,7 +719,7 @@ begin
     EDIv:=currentdebuggerstate.Edi;
     EBPv:=currentdebuggerstate.Ebp;
     ESPv:=currentdebuggerstate.Esp;
-    EIPv:=currentdebuggerstate.Eip;
+    EIPv:=currentdebuggerstate.Eip;  }
 
     showDebugPanels:=true;
     reloadStacktrace;
@@ -731,6 +733,7 @@ var i: integer;
     x: PContext;
     bpa: dword;
 begin
+{
   with memorybrowser do
   begin
     EAXv:=currentdebuggerstate.Eax;
@@ -742,7 +745,7 @@ begin
     EBPv:=currentdebuggerstate.Ebp;
     ESPv:=currentdebuggerstate.Esp;
     EIPv:=currentdebuggerstate.Eip;
-  end;
+  end;   }
 
   try
     bpa:=getaddress(tempaddressspecifier);

@@ -78,7 +78,6 @@ uses
   HotkeyHandler in 'hotkeyhandler.pas',
   frmautoinjectunit in 'frmautoinjectunit.pas' {frmAutoInject},
   frmFindstaticsUnit in 'frmFindstaticsUnit.pas' {frmFindStatics},
-  UndoChanges in 'UndoChanges.pas',
   MainUnit2 in 'MainUnit2.pas',
   frmCodecaveScannerUnit in 'frmCodecaveScannerUnit.pas' {frmCodecaveScanner},
   KernelDebugger in 'KernelDebugger.pas',
@@ -145,7 +144,6 @@ uses
   frmRegistersunit in 'frmRegistersunit.pas' {Registers},
   dbvmPhysicalMemoryHandler in 'dbvmPhysicalMemoryHandler.pas',
   frmCScriptUnit in 'frmCScriptUnit.pas' {frmCScript},
-  stealthedit in 'stealthedit.pas',
   disassemblerviewunit in 'disassemblerviewunit.pas',
   disassemblerviewlinesunit in 'disassemblerviewlinesunit.pas',
   frmMemoryAllocHandlerUnit in 'frmMemoryAllocHandlerUnit.pas' {frmMemoryAllocHandler},
@@ -158,7 +156,8 @@ uses
   rescanhelper in 'rescanhelper.pas',
   ValueFinder in 'ValueFinder.pas',
   PointerscanresultReader in 'PointerscanresultReader.pas',
-  frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings};
+  frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings},
+  ManualModuleLoader in 'ManualModuleLoader.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

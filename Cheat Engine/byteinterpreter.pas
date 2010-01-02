@@ -22,6 +22,7 @@ var x: string;
 begin
   //check if it matches a string
   result:=vtDword;
+  floathasseperator:=false;
 
   isstring:=true;
   i:=0;
@@ -118,7 +119,7 @@ begin
           floathasseperator:=true;
 
         result:=vtSingle;
-        if not floathasseperator then exit;
+        if not floathasseperator then exit;  //it's a full floating point value
       end;
     end;
   end;
@@ -144,9 +145,6 @@ begin
       end;
     end;
   end;
-
-
-
 
   //check if it's a pointer
   if isreadable(pdword(@buf[0])^) then

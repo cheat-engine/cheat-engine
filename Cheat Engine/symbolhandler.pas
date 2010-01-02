@@ -20,12 +20,20 @@ type TMemoryregions = array of tmemoryregion;
   
 {$endif}
 
+type TUDSEnum=record
+  address: dword;
+  allocsize: dword;
+  addressstring: pchar; //points to the string
+end;
+
 type symexception=class(Exception);
 
 
 type TUserdefinedsymbol=record
   symbolname: string;
   address: dword;
+  addressstring: string;
+
   allocsize: dword; //if it is a global alloc, allocsize>0
   processid: dword; //the processid this memory was allocated to (in case of processswitches)
 end;
@@ -63,6 +71,8 @@ type
     destructor destroy; override;
   end;
 
+  TTokens=array of string;
+
   TSymHandler=class
   private
     symbolloaderthread: TSymbolloaderthread;
@@ -94,6 +104,7 @@ type
 
     procedure setshowmodules(x: boolean);
     procedure setshowsymbols(x: boolean);
+    procedure tokenize(s: string; var tokens: TTokens);
   public
 
     kernelsymbols: boolean;
@@ -112,6 +123,7 @@ type
     procedure waitforsymbolsloaded;
     procedure reinitialize;
     procedure loadmodulelist;
+    procedure ReinitializeUserdefinedSymbolList;
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
     procedure getModuleList(list: tstrings);
     function getmodulebyaddress(address: dword; var mi: TModuleInfo):BOOLEAN;
@@ -124,6 +136,7 @@ type
     function getAddressFromName(name: string):dword; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):dword; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):dword; overload;
+    function getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean; context: PContext):dword; overload;    
 
     function getsearchpath:string;
     procedure setsearchpath(path:string);
@@ -133,7 +146,7 @@ type
     function GetUserdefinedSymbolByName(symbolname:string):dword;
     function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
     function GetUserdefinedSymbolByAddress(address:dword):string;
-    procedure AddUserdefinedSymbol(address: dword; symbolname: string);
+    procedure AddUserdefinedSymbol(addressstring: string; symbolname: string);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
@@ -273,6 +286,44 @@ begin
   inherited create(CreateSuspended);
 end;
 
+//-------------------Symhandler-----------------------
+
+procedure TSymhandler.tokenize(s: string; var tokens: TTokens);
+{
+Just a tokenizer for simple address specifiers
+}
+var
+  i: integer;
+  last: integer;
+  t: string;
+begin
+  last:=1;
+  for i:=1 to length(s) do
+  begin
+    if s[i] in ['[',']','+','-','*'] then
+    begin
+      t:=trim(copy(s, last, i-last));
+      if t<>'' then
+      begin
+        setlength(tokens,length(tokens)+1);
+        tokens[length(tokens)-1]:=t;
+      end;
+
+      setlength(tokens,length(tokens)+1);
+      tokens[length(tokens)-1]:=s[i];
+      last:=i+1;
+    end;
+  end;
+
+  //last part
+  t:=trim(copy(s, last,length(s)));
+  if t<>'' then
+  begin
+    setlength(tokens,length(tokens)+1);
+    tokens[length(tokens)-1]:=t;
+  end;
+end;
+
 function TSymhandler.geterror:boolean;
 begin
   symbolloadervalid.beginread;
@@ -283,6 +334,7 @@ begin
 
   symbolloadervalid.endread;
 end;
+
 
 function TSymhandler.getisloaded:boolean;
 begin
@@ -354,6 +406,8 @@ begin
   symbolloaderthread.Resume;
 
   symbolloadervalid.EndWrite;
+
+  ReinitializeUserdefinedSymbolList;
 end;
 
 procedure TSymhandler.Waitforsymbolsloaded;
@@ -363,6 +417,25 @@ begin
     symbolloaderthread.WaitFor;
   symbolloadervalid.endread;
 end;
+
+procedure TSymhandler.ReinitializeUserdefinedSymbolList;
+var i: integer;
+ x: dword;
+ err: integer;
+ haserror: boolean;
+begin
+  for i:=0 to userdefinedsymbolspos-1 do
+  begin
+    val('$'+userdefinedsymbols[i].addressstring, x, err);
+    if err>0 then //iot's not a hexadecimal value
+    begin
+      x:=getAddressFromName(userdefinedsymbols[i].addressstring, false,haserror);
+      if not haserror then
+        userdefinedsymbols[i].address:=x;
+    end;
+  end;
+end;
+
 
 function TSymhandler.DeleteUserdefinedSymbol(symbolname:string):boolean;
 var i,j: integer;
@@ -413,7 +486,7 @@ begin
       p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
       if p=nil then
         raise exception.Create('Error allocating memory');
-      AddUserdefinedSymbol(dword(p),symbolname);
+      AddUserdefinedSymbol(inttohex(dword(p),8),symbolname);
       i:=GetUserdefinedSymbolByNameIndex(symbolname);
       userdefinedsymbols[i].allocsize:=size;
       userdefinedsymbols[i].processid:=processid;
@@ -510,13 +583,18 @@ begin
   end;
 end;
 
-procedure TSymhandler.AddUserdefinedSymbol(address: dword; symbolname: string);
+procedure TSymhandler.AddUserdefinedSymbol(addressstring: string; symbolname: string);
 {
 This routine will add the symbolname+address combination to the symbollist
 }
+var
+  address: dword;
+  error: boolean;
 begin
-  if address=0 then raise symexception.Create('You can''t add a symbol with address 0');
   if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' already exists');
+  
+  address:=getAddressFromName(addressstring);
+  if address=0 then raise symexception.Create('You can''t add a symbol with address 0');
 
   userdefinedsymbolsMREW.beginwrite;
   try
@@ -524,6 +602,7 @@ begin
       setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
 
     userdefinedsymbols[userdefinedsymbolspos].address:=address;
+    userdefinedsymbols[userdefinedsymbolspos].addressstring:=addressstring;
     userdefinedsymbols[userdefinedsymbolspos].symbolname:=symbolname;
     userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
     userdefinedsymbols[userdefinedsymbolspos].processid:=0;
@@ -541,20 +620,18 @@ procedure TSymhandler.EnumerateUserdefinedSymbols(list:tstrings);
 Enumerates all userdefined symbols and stores them in a list
 NOTE: The caller must free the object info added
 }
-type TExtradata=record
-  address: dword;
-  allocsize: dword;
-end;
+
 var i: integer;
-    extradata: ^TExtradata;
+    extradata: ^TUDSEnum;
 begin
   list.Clear;
   userdefinedsymbolsMREW.BeginRead;
   for i:=0 to userdefinedsymbolspos-1 do
   begin
-    getmem(extradata,sizeof(TExtradata));
+    getmem(extradata,sizeof(TUDSEnum));
     extradata.address:=userdefinedsymbols[i].address;
     extradata.allocsize:=userdefinedsymbols[i].allocsize;
+    extradata.addressstring:=@userdefinedsymbols[i].addressstring[1];
 
     list.Addobject(userdefinedsymbols[i].symbolname,pointer(extradata));
     //just don't forget to free it at the caller's end
@@ -809,7 +886,7 @@ end;
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean): dword;
 var x: boolean;
 begin
-  result:=getAddressFromName(name,true,x);
+  result:=getAddressFromName(name,true,x,nil);
   {
   debugger hell:
   tools->debugger options->Language Exceptions
@@ -824,6 +901,12 @@ begin
 end;
 
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):dword;
+begin
+  result:=getAddressFromName(name, waitforsymbols, haserror,nil);
+end;
+
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean; context: PContext):dword;
+type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     symbol :PImagehlpSymbol;
     offset: dword;
@@ -836,6 +919,14 @@ var mi: tmoduleinfo;
     error: boolean;
 
     processhandle: thandle;
+
+    tokens: TTokens;
+    x: dword;
+    mathstring: string;
+    hasMultiplication, hasPointer: boolean;
+
+    nextoperation: TCalculation;
+    regnr: integer;
 begin
   haserror:=false;
   
@@ -852,141 +943,222 @@ begin
   end;
 {$endif}
 
-  val(ConvertHexStrToRealStr(name),result,i);
+  val('$'+name,result,i);
   if i=0 then exit; //it's a valid hexadecimal string
 
+  //not a hexadecimal string
+  tokenize(name, tokens);
 
+  //first check the most basic thing
+  if length(tokens)=0 then
+  begin
+    haserror:=true;
+    exit;
+  end;
+
+  //if it starts with a *, - or + or ends with it, then it's a bad formula
+  if (tokens[0][1] in ['*','+','-']) or (tokens[length(tokens)-1][1] in ['*','+','-']) then
+  begin
+    haserror:=true;
+    exit;
+  end;
+
+  //convert the tokens into hexadecimal values
+
+  symbolloadervalid.beginread;
   try
-    //first cut of the name from the offset
-    offset:=0;
-    for i:=length(name) downto 1 do
-      if name[i] in ['+','-'] then
+
+    for i:=0 to length(tokens)-1 do
+    begin
+      if not (tokens[i][1] in ['[',']','+','-','*']) then
       begin
-        sn:=copy(name,i+1,length(name));
-        val('$'+sn,offset,j);
-        if j=0 then
+        val('$'+tokens[i],result,j);
+        if j>0 then
         begin
-          if name[i]='-' then
-            offset:=-offset;
+          //not a hexadecimal value
+          if getmodulebyname(tokens[i],mi) then
+          begin
+            tokens[i]:=inttohex(mi.baseaddress,8);
+            continue;
+          end
+          else
+          begin
+            //not a modulename
+            regnr:=getreg(uppercase(tokens[i]),false);
 
-          name:=copy(name,1,i-1);
+            if regnr<>9 then
+            begin
+              if (context<>nil) and (context^.Eip<>0) then
+              begin
+                //get the register value, and because this is an address specifier, use the full 32-bits
+                case regnr of
+                  0: tokens[i]:=inttohex(context^.Eax,8);
+                  1: tokens[i]:=inttohex(context^.Ecx,8);
+                  2: tokens[i]:=inttohex(context^.Edx,8);
+                  3: tokens[i]:=inttohex(context^.Ebx,8);
+                  4: tokens[i]:=inttohex(context^.Esp,8);
+                  5: tokens[i]:=inttohex(context^.Ebp,8);
+                  6: tokens[i]:=inttohex(context^.Esi,8);
+                  7: tokens[i]:=inttohex(context^.Edi,8);
+                end;
+                continue; //handled
+              end;
+
+              //not handled, but since it's a register, quit now
+            end
+            else
+            begin
+              //no context or not a register
+              result:=GetUserdefinedSymbolByName(tokens[i]);
+              if result>0 then
+              begin
+                tokens[i]:=inttohex(result,8);
+                continue;
+              end;
+
+              //not a userdefined symbol
+              {$ifndef autoassemblerdll}
+              if (darkbytekernel<>0) and (length(tokens[i])>6) and (pos('KERNEL_',uppercase(tokens[i]))>0) then
+              begin
+                tokens[i]:=copy(tokens[i],8,length(tokens[i])-7);
+                ws:=tokens[i];
+                pws:=@ws[1];
+                result:=dword(GetKProcAddress(pws));
+                if result<>0 then
+                begin
+                  tokens[i]:=inttohex(result,8);
+                  continue;
+                end;
+              end;
+              //not a kernel symbol
+              {$endif}
+
+              //check the symbols
+              if (symbolloaderthread<>nil) then
+              begin
+                if symbolloaderthread.isloading and not waitforsymbols then
+                begin
+                  if not waitforsymbols then
+                  begin
+                    haserror:=true;
+                    exit;
+                  end;
+
+                  symbolloaderthread.WaitFor;
+                end;
+
+                //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a module
+
+                tokens[i]:=StringReplace(tokens[i],'.','!',[]);
+
+                getmem(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
+                try
+                  zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
+                  symbol.SizeOfStruct:=sizeof(IMAGEHLP_SYMBOL)+255;
+                  symbol.MaxNameLength:=254;
+
+                  if SymGetSymFromName(processhandle,pchar(tokens[i]),symbol^) then
+                  begin
+                    tokens[i]:=inttohex(symbol.Address,8);
+                    continue;
+                  end;
+                finally
+                  freemem(symbol);
+                end;
+              end;
+            end;
+
+
+            //not a register or symbol
+            haserror:=true;
+            exit;
+          end;
         end;
-
-        break;
       end
       else
-      if name[i] in ['[',']'] then
-        break;
-
-
-  except
-    haserror:=true;
-    exit;
-  end;
-
-  if name='' then name:='0';
-  val('$'+name,result,i);
-  if i=0 then
-  begin
-    result:=result+offset;
-    exit; //it was a simple +/- calculation
-  end;
-
-  {
-  debugger hell:
-  tools->debugger options->Language Exceptions
-  click add...
-  type in "symexception" without the quotes
-
-  this will cause you to still break on normal exception like memory access violations, but not on these
-  }
-  if getreg(uppercase(name),false)<>9 then
-  begin
-    haserror:=true;
-    exit;
-//    raise symexception.create('Register'); //can happen in case of eax+# //speed improvement
-
-  end;
-   
-  //see if it is a module
-  if getmodulebyname(name,mi) then
-    result:=mi.baseaddress+offset
-  else
-  begin
-
-
-    //if not, see if you can find it as a symbol
-    //first check the userdefined symbols (small list, so faster than the symbols)
-    result:=GetUserdefinedSymbolByName(name);
-    if result<>0 then
-    begin
-      result:=result+offset;
-      exit;
-    end;
-
-    {$ifndef autoassemblerdll}
-    if (darkbytekernel<>0) and (length(name)>6) and (pos('KERNEL_',uppercase(name))>0) then
-    begin
-      name:=copy(name,8,length(name)-7);
-      ws:=name;
-      pws:=@ws[1];
-      result:=dword(GetKProcAddress(pws));
-      if result<>0 then
       begin
-        result:=result+offset;
-        exit;
+        //it's not a real token
+        case tokens[i][1] of
+          '*' : hasMultiplication:=true;
+          '[',']': hasPointer:=true;
+        end;
       end;
     end;
-    {$endif}
 
-    { 5.4: check if it is a pointer notation }
-    result:=GetAddressFromPointer(name,error);
+  finally
+    symbolloadervalid.endread;
+  end;
+
+
+  mathstring:='';
+  for i:=0 to length(tokens)-1 do
+    mathstring:=mathstring+tokens[i];
+
+  if haspointer then
+  begin
+    result:=GetAddressFromPointer(mathstring,error);
     if not error then
     begin
       result:=result+offset;
       exit;
+    end
+    else
+    begin
+      //it has a pointer notation but the pointer didn't get handled... ERROR!
+      haserror:=true;
+      exit;
     end;
-    { 5.4 ^^^ }
+  end;
 
 
-    symbolloadervalid.beginread;
-    try
-      if (symbolloaderthread<>nil) then
+  //handle the mathstring
+  if hasmultiplication then
+  begin
+    //first do the multiplications
+    for i:=0 to length(tokens)-1 do
+    begin
+      if tokens[i]='*' then
       begin
-        if symbolloaderthread.isloading and not waitforsymbols then
-          raise symexception.create('This is not a valid address');
+        //multiply the left and right
+        tokens[i-1]:=inttohex(strtoint('$'+tokens[i-1])*strtoint('$'+tokens[i+1]),8);
+        tokens[i]:='';
+        tokens[i+1]:='';
+      end;
+    end;
+  end;
 
-        symbolloaderthread.WaitFor; //wait for it to finish if it's still busy
-        //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a module
-
-        name:=StringReplace(name,'.','!',[]);
-
-        getmem(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
-        try
-          zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
-          symbol.SizeOfStruct:=sizeof(IMAGEHLP_SYMBOL)+255;
-          symbol.MaxNameLength:=254;
-
-          if SymGetSymFromName(processhandle,pchar(name),symbol^) then
-            result:=symbol.Address+offset
-          else
-          begin
-            haserror:=true;
-            exit;
-          end;
-        finally
-          freemem(symbol);
+  result:=0;
+  //handle addition and subtraction
+  nextoperation:=calcAddition;
+  for i:=0 to length(tokens)-1 do
+  begin
+    if length(tokens[i])>0 then
+    begin
+      case tokens[i][1] of
+        '+' : nextoperation:=calcAddition;
+        '-' :
+        begin
+          if nextoperation=calcSubstraction then
+            nextoperation:=calcAddition else //--=+
+            nextoperation:=calcSubstraction;
         end;
-      end
-      else
-      begin
-        haserror:=true;
-        exit;
+
+        else
+        begin
+          //do the calculation
+          case nextoperation of
+            calcAddition:
+              result:=result+strtoint('$'+tokens[i]);
+
+            calcSubstraction:
+              result:=result-strtoint('$'+tokens[i]);
+
+          end;
+
+        end;
       end;
 
-    finally
-      symbolloadervalid.endread;
-    end;   
+    end;
   end;
 
 end;
@@ -1052,6 +1224,8 @@ begin
     modulelistmrew.EndWrite;
   end;
 end;
+
+
 
 function TSymhandler.GetAddressFromPointer(s: string; var error: boolean):dword;
 {

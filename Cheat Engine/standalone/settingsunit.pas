@@ -2,11 +2,13 @@ unit settingsunit;
 
 interface
 
-uses forms,classes, SysUtils,dialogs;
+uses windows, forms,classes, SysUtils,dialogs;
 
 
-var trainerfile: TFileStream;
-protect:boolean;
+var
+  trainerfile: TFileStream;
+  protect:boolean;
+  tempdir: string;
 
 function openself: boolean;
 
@@ -14,7 +16,14 @@ implementation
 
 function openself: boolean;
 var temp: integer;
+buf: pchar;
 begin
+
+  getmem(buf,100);
+  GetTempPath(100,buf);
+  tempdir:=buf;
+  freemem(buf);
+
   //use c:\bla.exe till the final build (just to simplify debugging)
   try
     {$ifdef trainerbeta}

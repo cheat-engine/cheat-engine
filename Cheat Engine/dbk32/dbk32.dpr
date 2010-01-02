@@ -16,7 +16,6 @@ uses
   DBK32functions in 'DBK32functions.pas',
   vmxfunctions in 'vmxfunctions.pas',
   debug in 'debug.pas',
-  stealthedit in 'stealthedit.pas',
   multicpuexecution in 'multicpuexecution.pas';
 
 {$R *.res}
@@ -29,6 +28,7 @@ exports NOP;//NtOpenProcess;
 exports RPM;//ReadProcessMemory;
 exports RPM64;//ReadProcessMemory64;
 exports WPM;//WriteProcessMemory;
+exports WPM64;
 exports VAE; //VirtualAllocEx
 exports CreateRemoteAPC;
 exports ReadPhysicalMemory;
@@ -36,8 +36,8 @@ exports WritePhysicalMemory;
 exports GetPhysicalAddress;
 exports GetPEProcess;
 exports GetPEThread;
-exports ProtectMe;
-exports UnprotectMe;
+//exports ProtectMe;
+//exports UnprotectMe;
 exports IsValidHandle;
 exports GetCR4;
 exports GetCR3;
@@ -74,18 +74,17 @@ exports DBKSuspendProcess;
 exports DBKResumeProcess;
 
 exports KernelAlloc;
+exports KernelAlloc64;
 exports GetKProcAddress;
+exports GetKProcAddress64;
 
 exports GetSDTEntry;
-exports SetSDTEntry;
 exports GetSSDTEntry;
-exports SetSSDTEntry;
 
 exports GetGDT;
 
-exports test;
-exports useIOCTL;
-exports MakeKernelCopy;
+exports UserdefinedInterruptHook;
+exports executeKernelCode;
 
 //debug
 exports DBKDebug_ContinueDebugEvent;
@@ -96,11 +95,6 @@ exports DBKDebug_SetGlobalDebugState;
 exports DBKDebug_StartDebugging;
 exports DBKDebug_StopDebugging;
 exports DBKDebug_GD_SetBreakpoint;
-
-//stealthedit
-exports stealthedit_InitializeHooks;
-exports stealthedit_AddCloakedSection;
-exports stealthedit_RemoveCloakedSection;
 
 exports LaunchDBVM;
 

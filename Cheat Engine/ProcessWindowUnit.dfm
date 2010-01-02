@@ -30,10 +30,8 @@ object ProcessWindow: TProcessWindow
     ItemHeight = 16
     PopupMenu = PopupMenu1
     TabOrder = 0
-    OnClick = ProcessListClick
     OnDblClick = OKButtonClick
     OnDrawItem = ProcessListDrawItem
-    OnKeyPress = ProcessListKeyPress
   end
   object Panel1: TPanel
     Left = 0

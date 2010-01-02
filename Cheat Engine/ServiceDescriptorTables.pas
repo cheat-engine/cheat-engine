@@ -33,7 +33,6 @@ type
     PopupMenu1: TPopupMenu;
     Find1: TMenuItem;
     GotoSTDaddress1: TMenuItem;
-    Changesdt1: TMenuItem;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Scancallnumbersandnames1Click(Sender: TObject);
@@ -44,7 +43,6 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure Find1Click(Sender: TObject);
     procedure GotoSTDaddress1Click(Sender: TObject);
-    procedure Changesdt1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -376,38 +374,6 @@ begin
   memorybrowser.memoryaddress:=y;
   memorybrowser.RefreshMB;
   
-end;
-
-procedure TfrmServiceDescriptorTables.Changesdt1Click(Sender: TObject);
-var table: integer;
-    x: dword;
-    y: byte;
-    a,b: string;
-begin
-  if (treeview1.Selected=nil) or (treeview1.Selected.Level<>1) then exit;
-  table:=treeview1.Selected.Parent.Index;
-
-  if table=0 then
-    GetSDTEntry(treeview1.Selected.Index,@x,@y)
-  else
-    GetSSDTEntry(treeview1.Selected.Index,@x,@y);
-
-  a:=inttohex(x,8);
-  b:=inttostr(y);
-
-  if inputquery('Change SDT','New address:',a) then
-  begin
-    if inputquery('Change SDT','New paramcount:',b) then
-    begin
-      x:=strtoint('$'+a);
-      y:=strtoint(b);
-      if table=0 then
-        SetSDTEntry(treeview1.Selected.Index,x,y)
-      else
-        SetSSDTEntry(treeview1.Selected.Index,x,y)     
-
-    end;
-  end;
 end;
 
 end.

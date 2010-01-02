@@ -698,8 +698,8 @@ initialization
   scandisplayroutinetype:=2;
 
   //and register these symbols with the selfsymhandler so the symbolhandler can use it
-  selfsymhandler.AddUserdefinedSymbol(dword(temppointer),'scandisplayroutine');
-  selfsymhandler.AddUserdefinedSymbol(dword(@scandisplayroutinetype),'scandisplayroutinetype');
+  selfsymhandler.AddUserdefinedSymbol(inttohex(dword(temppointer),8),'scandisplayroutine');
+  selfsymhandler.AddUserdefinedSymbol(inttohex(dword(@scandisplayroutinetype),8),'scandisplayroutinetype');
 
 
 end.

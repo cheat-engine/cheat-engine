@@ -104,6 +104,11 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	IDT idt;	
 	GetIDT(&idt);
 	DbgPrint("inthook_HookInterrupt for cpu %d (vmxusable=%d)\n",cpunr(), vmxusable);
+#ifdef AMD64
+	DbgPrint("interrupt %d newCS=%x newEIP=%llx jumpbacklocation=%p\n",intnr, newCS, newEIP, jumpback);
+#else
+	DbgPrint("interrupt %d newCS=%x newEIP=%x jumpbacklocation=%p\n",intnr, newCS, newEIP, jumpback);
+#endif
 
 	if (!InterruptHook[intnr].hooked)
 	{
@@ -145,13 +150,14 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	}
 	else
 	{
+		
+
 #ifdef AMD64
 		DbgPrint("64-bit: DBVM is not loaded or a non dbvm hookable interrupt is being hooked\n");
 		return FALSE;
 #else
 		//old fashioned hook
 		INT_VECTOR newVector;
-
 		DbgPrint("sizeof newVector=%d\n",sizeof(INT_VECTOR));
 		
 		

@@ -22,7 +22,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
     Top = 0
     Width = 437
     Height = 186
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -31,7 +31,7 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
         Left = 0
         Top = 0
         Width = 429
-        Height = 28
+        Height = 26
         Align = alTop
         Caption = 
           'Select the address(es) from below that you want to get replaced ' +
@@ -40,9 +40,9 @@ object FrmMemoryTrainerAddEntry: TFrmMemoryTrainerAddEntry
       end
       object ListBox1: TListBox
         Left = 0
-        Top = 28
+        Top = 26
         Width = 429
-        Height = 130
+        Height = 132
         Align = alClient
         ItemHeight = 13
         MultiSelect = True

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,newkernelhandler, ExtCtrls, ComCtrls, StdCtrls,undochanges,debugger,kerneldebugger,
+  Dialogs,newkernelhandler, ExtCtrls, ComCtrls, StdCtrls,debugger,kerneldebugger,
   cefuncproc, Menus,tlhelp32, symbolhandler;
 
 type tthreaddata=record
@@ -374,8 +374,6 @@ var ProcessIDString: String;
     i:               Integer;
     processnode:      ttreenode;
 begin
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges;
-
   if (tvprocesslist.Selected<>nil) then
   begin
     unpause;

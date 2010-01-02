@@ -192,11 +192,11 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     BevelOuter = bvNone
     TabOrder = 3
     object Label3: TLabel
-      Left = 59
-      Top = 43
-      Width = 93
+      Left = 24
+      Top = 42
+      Width = 131
       Height = 16
-      Caption = 'Size of structure'
+      Caption = 'Maximum offset value:'
     end
     object Label12: TLabel
       Left = 226
@@ -206,7 +206,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Caption = 'Max level'
     end
     object Label9: TLabel
-      Left = 10
+      Left = 16
       Top = 10
       Width = 139
       Height = 16

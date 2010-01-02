@@ -1,8 +1,8 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 536
-  Top = 342
-  Width = 456
-  Height = 400
+  Left = 807
+  Top = 302
+  Width = 486
+  Height = 347
   Caption = 'Extra info'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 438
+    Width = 468
     Height = 101
     Align = alTop
     BevelOuter = bvNone
@@ -106,7 +106,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel2: TPanel
     Left = 0
     Top = 101
-    Width = 438
+    Width = 468
     Height = 11
     Align = alTop
     BevelOuter = bvNone
@@ -115,7 +115,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel3: TPanel
     Left = 0
     Top = 112
-    Width = 438
+    Width = 468
     Height = 60
     Align = alTop
     BevelOuter = bvNone
@@ -123,7 +123,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     object Panel4: TPanel
       Left = 30
       Top = 0
-      Width = 486
+      Width = 516
       Height = 70
       Align = alCustom
       Anchors = [akLeft, akTop, akRight]
@@ -132,7 +132,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       object Label6: TLabel
         Left = 0
         Top = 0
-        Width = 486
+        Width = 516
         Height = 16
         Align = alTop
         AutoSize = False
@@ -142,7 +142,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       object Label17: TLabel
         Left = 0
         Top = 16
-        Width = 486
+        Width = 516
         Height = 54
         Align = alClient
         AutoSize = False
@@ -154,17 +154,17 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel5: TPanel
     Left = 0
-    Top = 323
-    Width = 438
+    Top = 270
+    Width = 468
     Height = 32
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
     DesignSize = (
-      438
+      468
       32)
     object Button1: TButton
-      Left = 175
+      Left = 190
       Top = 0
       Width = 92
       Height = 32
@@ -180,14 +180,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel6: TPanel
     Left = 0
     Top = 172
-    Width = 438
-    Height = 151
+    Width = 468
+    Height = 98
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
+    OnResize = Panel6Resize
     DesignSize = (
-      438
-      151)
+      468
+      98)
     object Label7: TLabel
       Left = 10
       Top = 12
@@ -306,16 +307,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label18: TLabel
-      Left = 10
+      Left = 0
       Top = 76
-      Width = 517
-      Height = 51
+      Width = 429
+      Height = 21
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
       Caption = 
         'The registers shown here are AFTER the instruction has been exec' +
-        'uted. To show them before the instruction is executed use Access' +
-        ' Exceptions instead of Debug Registers'
+        'uted'
       Visible = False
       WordWrap = True
     end
@@ -333,7 +333,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 190
     Top = 112
     object Copyguesstoclipboard1: TMenuItem
-      Caption = 'Copy easy gues to clipboard'
+      Caption = 'Copy easy guess to clipboard'
       OnClick = Copyguesstoclipboard1Click
     end
   end

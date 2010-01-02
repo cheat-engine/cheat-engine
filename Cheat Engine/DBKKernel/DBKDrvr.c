@@ -5,18 +5,13 @@
 #include <windef.h>
 #include "DBKDrvr.h"
 
-#include "rootkit.h"
+#include "deepkernel.h"
 #include "processlist.h"
 #include "memscan.h"
 #include "threads.h"
 #include "vmxhelper.h"
 #include "debugger.h"
 
-
-
-#include "newkernel.h"
-
-#include "stealthedit.h"
 
 #include "IOPLDispatcher.h"
 #include "interruptHook.h"
@@ -58,8 +53,6 @@ typedef NTSTATUS (*ZWSUSPENDPROCESS)
     IN ULONG ProcessHandle  // Handle to the process
 );
 ZWSUSPENDPROCESS ZwSuspendProcess;
-
-void Unhook(void);
 
 NTSTATUS ZwCreateThread(
 	OUT PHANDLE  ThreadHandle,
@@ -350,18 +343,6 @@ Return Value:
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
 
 
-		
-#ifndef AMD64
-	ProtectOn=FALSE;
-	ImageNotifyRoutineLoaded=FALSE;
-
-	LastForegroundWindow=0;
-	ProtectedProcessID=0;
-
-	ModuleList=NULL;
-	ModuleListSize=0;
-	KernelCopy=0;
-#endif
 	newthreaddatafiller=IoAllocateWorkItem(pDeviceObject);
 
 	//Processlist init
@@ -413,11 +394,6 @@ Return Value:
 	DbgPrint("Initializing debugger\n");
 	debugger_initialize();
 
-	DbgPrint("Initializing stealthedit\n");	
-	stealthedit_initialize();
-	
-
-	
 
 	// Return success (don't do the devicestring, I need it for unload)
 	DbgPrint("Cleaning up initialization buffers\n");
@@ -464,10 +440,6 @@ PSRLINR PsRemoveLoadImageNotifyRoutine2;
 
 void UnloadDriver(PDRIVER_OBJECT DriverObject)
 {
-
-	if (ProtectOn) //can't unload when protection is enabled
-		return;
-
 	if (!debugger_stopDebugging())
 	{
 		DbgPrint("Can not unload the driver because of debugger\n");
@@ -523,10 +495,6 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		else return;  //leave now!!!!!		
 	}
 
-#ifndef AMD64
-	Unhook();
-#endif
-
 
 	DbgPrint("Driver unloading\n");
 
@@ -545,44 +513,3 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 #endif
 
 }
-
-#ifndef AMD64
-void Unhook(void)
-{
-
-    if (ProtectOn)
-	{
-        __asm
-		{
-			cli 
-			mov eax,CR0
-			and eax,not 0x10000 //disable bit
-			mov CR0,eax
-		}
-		(ZWOPENPROCESS)(SYSTEMSERVICE(ZwOpenProcess))=OldZwOpenProcess;
-		(ZWQUERYSYSTEMINFORMATION)(SYSTEMSERVICE(ZwQuerySystemInformation))=OldZwQuerySystemInformation;
-
-        if ((NtUserBuildHwndList_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-          (NTUSERBUILDHWNDLIST)(KeServiceDescriptorTableShadow->ServiceTable[NtUserBuildHwndList_callnumber])=OldNtUserBuildHwndList;
-
-        if ((NtUserQueryWindow_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-          (NTUSERQUERYWINDOW)(KeServiceDescriptorTableShadow->ServiceTable[NtUserQueryWindow_callnumber])=OldNtUserQueryWindow;
-
-        if ((NtUserFindWindowEx_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-          (NTUSERFINDWINDOWEX)(KeServiceDescriptorTableShadow->ServiceTable[NtUserFindWindowEx_callnumber])=OldNtUserFindWindowEx;
-
-        if ((NtUserGetForegroundWindow_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-		  (NTUSERGETFOREGROUNDWINDOW)(KeServiceDescriptorTableShadow->ServiceTable[NtUserGetForegroundWindow_callnumber])=OldNtUserGetForegroundWindow;
-
-		__asm
-		{
-			mov eax,CR0
-			or  eax,0x10000 //re-enable this bit
-			mov CR0,eax
-			sti
-		}
-		ProtectOn=FALSE;
-	}
-
-}
-#endif

@@ -203,6 +203,7 @@ begin
       valuelisteditor1.InsertRow('Edit width',Inttostr(tcheatlist(selectedobject).editwidth),true);
       valuelisteditor1.InsertRow('Show hotkeys',booltostr(tcheatlist(selectedobject).ShowHotkeys,true),true);
       valuelisteditor1.InsertRow('Show checkboxes',booltostr(tcheatlist(selectedobject).HasCheckbox,true),true);
+      valuelisteditor1.InsertRow('Beep on activate',booltostr(tcheatlist(selectedobject).beepOnActivate,true),true);      
 
       valuelisteditor1.InsertRow('Bevel Inner',bevelinout(tcheatlist(selectedobject).BevelInner),true);
       valuelisteditor1.InsertRow('Bevel Outer',bevelinout(tcheatlist(selectedobject).BevelOuter),true);
@@ -223,6 +224,7 @@ begin
 
       fillboolean('Show hotkeys');
       fillboolean('Show checkboxes');
+      fillboolean('Beep on activate');
     end;
 
     if (selectedobject is tcheat) then
@@ -248,6 +250,7 @@ begin
 
       valuelisteditor1.InsertRow('Show hotkey',booltostr(tcheat(selectedobject).showhotkey,true),true);
       valuelisteditor1.InsertRow('Show checkbox',booltostr(tcheat(selectedobject).HasCheckbox,true),true);
+      valuelisteditor1.InsertRow('Beep on activate',booltostr(tcheat(selectedobject).beeponactivate,true),true);
 
       valuelisteditor1.ItemProps['Activation color'].EditStyle:=esEllipsis;
       valuelisteditor1.ItemProps['Background color'].EditStyle:=esEllipsis;
@@ -255,6 +258,7 @@ begin
 
       fillboolean('Show hotkey');
       fillboolean('Show checkbox');
+      fillboolean('Beep on activate');
     end;
 
     if (selectedobject is timage2) then

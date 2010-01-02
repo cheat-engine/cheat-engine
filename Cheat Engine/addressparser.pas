@@ -4,23 +4,39 @@ interface
 
 uses windows,SysUtils,dialogs,symbolhandler;
 
-type TSeperator = (plus,minus,multiply); //the things the disassembler shows (NO DIVIDE)
+type
+  TSeperator = (plus,minus,multiply); //the things the disassembler shows (NO DIVIDE)
 
-var STR: string;
+  TAddressParser=class
+  private
+    STR: string;
     ch: integer;
     address: dword;
     increase: boolean;
     total: array of byte; //0=seperator 1=value
     values: array of int64;
     seperators: array of TSeperator;
+    procedure seperator;
+    procedure value;
+    procedure aregister;
+    procedure e;
+    function simplify3: boolean;
+    function simplify2: boolean;
+    function simplify1: boolean;
+  public
+    function getaddress(S: string):dword;
+  end;
 
-function getaddress(S: string):dword;
+
+var mainthreadAddressParser: TAddressParser;
+
+function getaddress(S: string):dword; //for old code
 
 implementation
 
 uses memorybrowserformunit;
 
-procedure seperator;
+procedure TAddressParser.seperator;
 //sets the seperator
 begin
   setlength(total,length(total)+1);
@@ -35,7 +51,7 @@ begin
   inc(ch);
 end;
 
-procedure value;
+procedure TAddressParser.value;
 //copy all characters of 0 to 9 in tempstr
 var tmp: dword;
     strp: pchar;
@@ -54,21 +70,21 @@ begin
   if count=0 then ch:=length(str)+1;   //it went to the end
 end;
 
-procedure aregister;
+procedure TAddressParser.aregister;
 var tmp: dword;
     tmps: string;
 begin
   tmp:=0;
   tmps:=copy(str,ch,3);
-  if tmps='EAX' then tmp:=memorybrowser.eaxv else
-  if tmps='EBX' then tmp:=memorybrowser.ebxv else
-  if tmps='ECX' then tmp:=memorybrowser.ecxv else
-  if tmps='EDX' then tmp:=memorybrowser.edxv else
-  if tmps='ESI' then tmp:=memorybrowser.esiv else
-  if tmps='EDI' then tmp:=memorybrowser.ediv else
-  if tmps='EBP' then tmp:=memorybrowser.ebpv else
-  if tmps='ESP' then tmp:=memorybrowser.espv else
-  if tmps='EIP' then tmp:=memorybrowser.eipv;
+  if tmps='EAX' then tmp:=memorybrowser.lastdebugcontext.eax else
+  if tmps='EBX' then tmp:=memorybrowser.lastdebugcontext.ebx else
+  if tmps='ECX' then tmp:=memorybrowser.lastdebugcontext.ecx else
+  if tmps='EDX' then tmp:=memorybrowser.lastdebugcontext.edx else
+  if tmps='ESI' then tmp:=memorybrowser.lastdebugcontext.esi else
+  if tmps='EDI' then tmp:=memorybrowser.lastdebugcontext.edi else
+  if tmps='EBP' then tmp:=memorybrowser.lastdebugcontext.ebp else
+  if tmps='ESP' then tmp:=memorybrowser.lastdebugcontext.esp else
+  if tmps='EIP' then tmp:=memorybrowser.lastdebugcontext.eip;
 
   setlength(total,length(total)+1);
   total[length(total)-1]:=1;  //value
@@ -79,7 +95,7 @@ begin
   inc(ch,3);
 end;
 
-procedure E;
+procedure TAddressParser.E;
 //find out if this is a register or a value
 begin
   if (ch+2<=length(str)) then  //the 3th char of a reg is a X,I or P , so no A to F
@@ -92,7 +108,7 @@ begin
   else value;
 end;
 
-function simplify3: boolean;
+function TAddressParser.simplify3: boolean;
 var scount,vcount: integer;
     i,j: integer;
 begin
@@ -134,7 +150,7 @@ begin
 end;
 
 
-function simplify2: boolean;
+function TAddressParser.simplify2: boolean;
 var scount: integer;
     i,j: integer;
 begin
@@ -177,7 +193,7 @@ begin
 end;
 
 
-function simplify1: boolean;
+function TAddressParser.simplify1: boolean;
 var scount,vcount: integer;
     i,j: integer;
 begin
@@ -202,13 +218,13 @@ begin
   result:=false;
 end;
 
-function getaddress(S: string):dword;
+
+function TAddressParser.getaddress(s: string): dword;
 var i,j: integer;
     scount,vcount: integer;
     tempstr: string;
 begin
   try
-    result:=0;
     result:=symhandler.getaddressfromname(s);
     if result<>0 then exit;
   except
@@ -255,6 +271,18 @@ begin
 
   for i:=0 to length(values)-1 do inc(address,values[i]);
   result:=address;
+
 end;
+
+function getaddress(S: string):dword;
+begin
+  result:=mainthreadAddressParser.getaddress(s);
+end;
+
+initialization
+  mainthreadAddressParser:=TAddressParser.create;
+
+finalization
+  mainthreadAddressParser.free;
 
 end.

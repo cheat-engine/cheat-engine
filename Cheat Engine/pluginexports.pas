@@ -3,7 +3,7 @@ unit pluginexports;
 interface
 
 uses StdCtrls,sysutils,Controls, SyncObjs,dialogs,windows,classes,autoassembler,
-     cefuncproc,newkernelhandler,debugger,kerneldebugger,tlhelp32, plugin;
+     cefuncproc,newkernelhandler,debugger,kerneldebugger,tlhelp32, plugin, math;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
@@ -14,16 +14,17 @@ function ce_ChangeRegistersAtAddress(address:dword; changereg: pregistermodifica
 
 function ce_assembler(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):BOOL; stdcall;
 function ce_disassembler(address: dword; output: pchar; maxsize: integer): BOOL; stdcall;
+function ce_disassemble(address: pdword; output: pchar; maxsize: integer): BOOL; stdcall;
+function ce_previousOpcode(address:dword): dword; stdcall;
+function ce_nextOpcode(address:dword): dword; stdcall;
 function ce_InjectDLL(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
 function ce_processlist(listbuffer: pchar; listsize: integer):BOOL; stdcall;
-function ce_fixmem:BOOL; stdcall;
 function ce_reloadsettings:BOOL; stdcall;
 function ce_getaddressfrompointer(baseaddress: dword; offsetcount: integer; offsets: PDwordArray):dword; stdcall;
 
 function ce_freezemem(address: dword; size: integer):integer; stdcall;
 function ce_unfreezemem(id: integer):BOOL; stdcall;
 
-//version 2:
 function ce_sym_addressToName(address:dword; name: pchar; maxnamesize: integer):BOOL; stdcall;
 function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
 function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress, script: pchar; maxscriptsize: integer): BOOL; stdcall;
@@ -34,10 +35,15 @@ function addresslist_getitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOO
 function addresslist_setitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
        }
 
+function ce_loadModule(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
+
+
 implementation
 
 uses mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
-     formsettingsunit,undochanges, symbolhandler, frmautoinjectunit;
+     formsettingsunit, symbolhandler, frmautoinjectunit, manualModuleLoader;
+
+var plugindisassembler: TDisassembler;
 
 type TFreezeMem_Entry=record
   id: integer;
@@ -184,14 +190,10 @@ end;
 
 
 function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
+var haserror: boolean;
 begin
-  result:=false;
-  try
-    address^:=symhandler.getAddressFromName(name);
-    result:=true;
-  except
-
-  end;
+  address^:=symhandler.getAddressFromName(name,false,haserror);
+  result:=not haserror;
 end;
 
 
@@ -283,17 +285,6 @@ begin
     end;
     
   freezemem.cs.Leave;
-end;
-
-function ce_fixmem:BOOL; stdcall;
-begin
-  if formsettings.cbUndoMemoryChanges.checked then
-  begin
-    CheckForChanges;
-    result:=true;
-  end
-  else
-    result:=false;
 end;
 
 function ce_processlist(listbuffer: pchar; listsize: integer):BOOL; stdcall;
@@ -518,8 +509,9 @@ end;
 function ce_disassembler(address: dword; output: pchar; maxsize: integer): BOOL; stdcall;
 var s: string;
     p: pchar;
+    extra: string;
 begin
-  s:=disassemble(address);
+  s:=plugindisassembler.disassemble(address,extra);
   if length(s)>maxsize then
   begin
     setlasterror(ERROR_NOT_ENOUGH_MEMORY);
@@ -532,6 +524,75 @@ begin
   result:=true;
 end;
 
+function ce_disassemble(address: pdword; output: pchar; maxsize: integer): BOOL; stdcall;
+var s: string;
+    p: pchar;
+    extra: string;
+    a: dword;
+begin
+  a:=address^;
+  s:=plugindisassembler.disassemble(a,extra);
+  if length(s)>maxsize then
+  begin
+    setlasterror(ERROR_NOT_ENOUGH_MEMORY);
+    result:=false;
+    exit;
+  end;
+
+  address^:=a;
+
+  p:=pchar(s);
+  StrCopy(output,p);
+  result:=true;
+end;
+
+function ce_previousOpcode(address:dword): dword; stdcall;
+begin
+  result:=previousopcode(address);
+end;
+
+function ce_nextOpcode(address:dword): dword; stdcall;
+var x: string;
+begin
+  plugindisassembler.disassemble(address, x);
+  result:=address;
+end;
+
+function ce_loadModule(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
+var
+  ml: TModuleLoader;
+  s: string;
+  i: integer;
+begin
+  result:=false;
+  try
+    ml:=TModuleLoader.create(modulepath);
+    if ml.loaded then
+    begin
+      s:=ml.Exporttable.Text;
+      i:=min(maxsize^, length(s));
+      CopyMemory(exportlist, @s[1], i);
+      maxsize^:=i;
+
+      result:=true;
+    end;
+
+  except
+  end;
+end;
+
+initialization
+  plugindisassembler:=TDisassembler.create;
+  plugindisassembler.showsymbols:=false;
+  plugindisassembler.showmodules:=false;
+  plugindisassembler.isdefault:=false;
+
+
+finalization
+  if plugindisassembler<>nil then
+    plugindisassembler.free;
 end.
+
+
 
 

@@ -126,6 +126,10 @@ begin
       if key='Show checkboxes' then
         tcheatlist(frmtrainerdesigner.selectedobject).HasCheckbox:=strtobool(value);
 
+      if key='Beep on activate' then
+        tcheatlist(frmtrainerdesigner.selectedobject).beepOnActivate:=strtobool(value);
+
+
       //'Description left' =handled at validate
       //'Edit left' same
 
@@ -174,6 +178,9 @@ begin
 
       if key='Show checkbox' then
         tcheat(frmtrainerdesigner.selectedobject).HasCheckbox:=strtobool(value);
+
+      if key='Beep on activate' then
+        tcheat(frmtrainerdesigner.selectedobject).beeponactivate:=strtobool(value);
     end;
 
     if (frmtrainerdesigner.selectedobject is timage2) then
@@ -293,7 +300,15 @@ begin
       if key='Picture' then
       begin
         if openpicturedialog1.Execute then
-          timage(frmtrainerdesigner.selectedobject).Picture.LoadFromFile(openpicturedialog1.FileName);
+        begin
+          timage2(frmtrainerdesigner.selectedobject).Picture.LoadFromFile(openpicturedialog1.FileName);
+          timage2(frmtrainerdesigner.selectedobject).extension:=extractfileext(openpicturedialog1.FileName);
+          if timage2(frmtrainerdesigner.selectedobject).imagedata <> nil then
+            timage2(frmtrainerdesigner.selectedobject).imagedata.Free;
+
+          timage2(frmtrainerdesigner.selectedobject).imagedata:=Tmemorystream.Create;
+          timage2(frmtrainerdesigner.selectedobject).imagedata.LoadFromFile(openpicturedialog1.FileName);
+        end;
       end;
     end;
 

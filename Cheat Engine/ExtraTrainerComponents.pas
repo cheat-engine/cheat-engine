@@ -12,6 +12,8 @@ end;
 
 type TImage2 = class (Timage)
   public
+    extension: string;
+    imagedata: tmemorystream;
     command: string;
 end;
 
@@ -57,6 +59,7 @@ type tcheat = class (twincontrol)
   public
     cheatnr: integer;
     activationcolor: tcolor;
+    beeponactivate: boolean;
     property activated: boolean read factivated write SetActivated;
     property textcolor:tcolor read ftextcolor write SetTextcolor;
     property hotkeyleft: integer read gethotkeyleft write sethotkeyleft;
@@ -92,6 +95,7 @@ type tcheatlist = class (twincontrol)
     ftextcolor:tcolor;
     fhascheckbox: boolean;
     fshowhotkeys: boolean;
+    fBeepOnActivate: boolean;
     Function GetItem(i:integer):tcheat;
     procedure SetAutosize(x:boolean);
     procedure sethotkeyleft(i:integer);
@@ -101,8 +105,10 @@ type tcheatlist = class (twincontrol)
     procedure setTextColor(c:tcolor);
     procedure setCheckbox(x: boolean);
     procedure setShowHotkeys(x: boolean);
+    procedure setBeepOnActivate(x: boolean);
   public
     activationcolor: tcolor;
+    property beepOnActivate: boolean read fBeepOnActivate write setBeepOnActivate;
     property HasCheckbox: boolean read fhascheckbox write setcheckbox;
     property ShowHotkeys: boolean read fshowhotkeys write setshowhotkeys;
     property TextColor: tcolor read ftextcolor write settextcolor;
@@ -327,6 +333,8 @@ begin
   hotkeylabel.OnMouseDown:=md;
   checkbox.OnMouseDown:=md;
   checkbox.enabled:=false;
+
+  beeponactivate:=true; //default
 end;
 
 
@@ -353,12 +361,20 @@ begin
     cheats[i].textcolor:=c;
 end;
 
+procedure TCheatlist.setBeepOnActivate(x: boolean);
+var i: integer;
+begin
+  fBeepOnActivate:=x;
+  for i:=0 to cheatcount-1 do
+    cheats[i].beeponactivate:=x;
+end;
+
 procedure TCheatlist.setShowHotkeys(x: boolean);
 var i: integer;
 begin
   fshowhotkeys:=x;
   for i:=0 to cheatcount-1 do
-    cheats[i].showhotkey:=x;          
+    cheats[i].showhotkey:=x;
 end;
 
 procedure TCheatlist.setcheckbox(x: boolean);
@@ -440,6 +456,7 @@ begin
     editwidth:=self.feditwidth;
     activationcolor:=self.activationcolor;
     hascheckbox:=self.HasCheckbox;
+    beeponactivate:=fbeepOnactivate;    
     parent:=self;
   end;
 
@@ -470,6 +487,8 @@ begin
  // self.BevelKind:=bknone;
  // self.BevelInner:=bvlowered;
  // self.BorderWidth:=2;
+
+ fBeepOnActivate:=true;
 
 end;
 

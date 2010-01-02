@@ -3,7 +3,7 @@ unit DissectCodeThread;
 interface
 
 uses
-  cefuncproc,windows,sysutils,syncobjs,Classes,disassembler, newkernelhandler;
+  cefuncproc,windows,sysutils,syncobjs,Classes,disassembler, newkernelhandler, math;
 
 
 type
@@ -87,8 +87,10 @@ type
     nrofconditionaljumps: integer;
     nrofcalls: integer;
     nrofdata: integer;
-    nrofstring: integer;    
+    nrofstring: integer;
+    maxoffset: integer;
 
+    function FindOffset(s: string):dword;
     function CheckAddress(address: dword; var aresult: tdissectarray):boolean;
     procedure getstringlist(s: tstrings);
     constructor create(suspended: boolean);
@@ -207,94 +209,6 @@ begin
   end
   else result:=false;
 
-{  if not done then exit;
-
-  totalsize:=0;
-
-  fa:=false;
-  fb:=false;
-  fc:=false;
-  
-  //check the unconditionaljump list
-  if findaddress(address,unconditionaljump,nrofunconditionaljumps,a) then
-  begin
-    totalsize:=unconditionaljump[a].codes+unconditionaljump[a].nrofextracodes;
-    fa:=true;
-  end;
-
-  //check the conditionaljump list
-  if findaddress(address,conditionaljump,nrofconditionaljumps,b) then
-  begin
-    inc(totalsize,conditionaljump[b].codes+conditionaljump[b].nrofextracodes);
-    fb:=true;
-  end;
-
-  //check the calllist
-  if findaddress(address,calls,nrofcalls,c) then
-  begin
-    inc(totalsize,calls[c].codes+calls[c].nrofextracodes);
-    fc:=true;
-  end;
-
-  result:=fa or fb or fc;
-
-  if result then
-  begin
-    setlength(aresult,totalsize);
-    j:=0;
-
-    if fa then
-    begin
-      for i:=0 to unconditionaljump[a].codes-1 do
-      begin
-        aresult[j].address:=unconditionaljump[a].code[i];
-        aresult[j].jumptype:=jtUnconditional;
-        inc(j);
-      end;
-
-      for i:=0 to unconditionaljump[a].nrofextracodes-1 do
-      begin
-        aresult[j].address:=unconditionaljump[a].extracodes[i];
-        aresult[j].jumptype:=jtUnconditional;
-        inc(j);
-      end;
-    end;
-
-    if fb then
-    begin
-      for i:=0 to conditionaljump[b].codes-1 do
-      begin
-        aresult[j].address:=conditionaljump[b].code[i];
-        aresult[j].jumptype:=jtConditional;
-        inc(j);
-      end;
-
-      for i:=0 to conditionaljump[b].nrofextracodes-1 do
-      begin
-        aresult[j].address:=conditionaljump[b].extracodes[i];
-        aresult[j].jumptype:=jtConditional;
-        inc(j);
-      end;
-    end;
-
-    if fc then
-    begin
-      for i:=0 to calls[c].codes-1 do
-      begin
-        aresult[j].address:=calls[c].code[i];
-        aresult[j].jumptype:=jtCall;
-        inc(j);
-      end;
-
-      for i:=0 to calls[c].nrofextracodes-1 do
-      begin
-        aresult[j].address:=calls[c].extracodes[i];
-        aresult[j].jumptype:=jtCall;
-        inc(j);
-      end;
-    end;
-  end;  }
-
 end;
 
 
@@ -305,7 +219,7 @@ begin
   o.address:=address;
   setlength(o.references, al.pos);
   CopyMemory(@o.references[0], al.a, al.pos*sizeof(dword));
-  
+
   s.AddObject(IntToHex(address,8), o);
 end;
 
@@ -470,11 +384,43 @@ end;
 
 
 
+function TDissectCodeThread.FindOffset(s: string):dword;
+//check an address specifier for an offset
+//returns 0 if no offset
+//yes yes, I know this also finds the EAx EBx, ECx EDx, but I bet there are bigger offsets to be found
+var
+  i: integer;
+  first: integer;
+  o: string;
+begin
+  result:=0;
+  first:=0;
+  for i:=1 to length(s) do
+  begin
+    if first=0 then //find a start
+    begin
+      if s[i] in ['0'..'9','A'..'F','a'..'f'] then
+        first:=i;
+    end else  //find an end
+    begin
+      if not (s[i] in ['0'..'9','A'..'F','a'..'f']) then
+      begin
+        o:=copy(s, first, i-first);
+        result:=strtoint('$'+o);
+
+        if result>=$10000 then result:=0;
+        if isAddress(result) then result:=0;
+
+        first:=0;
+      end;
+    end;
+  end;
+end;
 
 
 procedure TDissectCodeThread.Execute;
 var
-  i: integer;
+  i,j: integer;
   d: TDisassembler;
   currentAddress: dword;
   oldaddress: dword;
@@ -483,6 +429,7 @@ var
   tempaddress: dword;
 
   a, b, o,special: string;
+
 
 begin
   d:=TDisassembler.Create;
@@ -548,6 +495,15 @@ begin
 
         end;
 
+      end else
+      begin
+        //it doesn't have an address
+        j:=pos('[',o);
+        if j>0 then
+        begin
+          //it has an address specifier
+          //maxoffset:=max(maxoffset, FindOffset(copy(o,j,pos(']',o)-j+1)));
+        end;
       end;
     end;
   end;

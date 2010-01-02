@@ -15,7 +15,8 @@ begin
   { TODO -oUser -cConsole Main : Insert code here }
 
 
-  for i:=0 to ParamCount-1 do
+
+  for i:=1 to ParamCount do
     if lowercase(ParamStr(i))='-silent' then silent:=true;
     
   try

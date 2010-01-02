@@ -35,12 +35,12 @@ const IOCTL_CE_GETPEPROCESS				    = (IOCTL_UNKNOWN_BASE shl 16) or ($0805 shl 2
 const IOCTL_CE_READPHYSICALMEMORY		  = (IOCTL_UNKNOWN_BASE shl 16) or ($0806 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_WRITEPHYSICALMEMORY	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0807 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETPHYSICALADDRESS		  = (IOCTL_UNKNOWN_BASE shl 16) or ($0808 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_PROTECTME					    = (IOCTL_UNKNOWN_BASE shl 16) or ($0809 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const IOCTL_CE_PROTECTME					    = (IOCTL_UNKNOWN_BASE shl 16) or ($0809 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETCR3 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 //you really don't want to do this in usermode const IOCTL_CE_SETCR3 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETSDT 					      = (IOCTL_UNKNOWN_BASE shl 16) or ($080c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_INITIALIZE     		    = (IOCTL_UNKNOWN_BASE shl 16) or ($080d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_DONTPROTECTME			    = (IOCTL_UNKNOWN_BASE shl 16) or ($080e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const IOCTL_CE_DONTPROTECTME			    = (IOCTL_UNKNOWN_BASE shl 16) or ($080e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETIDT 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($080f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_HOOKINTS 					    = (IOCTL_UNKNOWN_BASE shl 16) or ($0810 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_DEBUGPROCESS 			    = (IOCTL_UNKNOWN_BASE shl 16) or ($0811 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -68,14 +68,15 @@ const IOCTL_CE_RESUMEPROCESS			    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0825 shl 2
 
 const IOCTL_CE_ALLOCATEMEM_NONPAGED   =	(IOCTL_UNKNOWN_BASE shl 16) or ($0826 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETPROCADDRESS			    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0827 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETSDTADDRESS 			    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0828 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const IOCTL_CE_SETSDTADDRESS 			    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0828 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETSDTADDRESS 			    =	(IOCTL_UNKNOWN_BASE shl 16) or ($0829 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_GETGDT 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_SETCR4 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_VMXCONFIG				  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETCR0 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_MAKEKERNELCOPY		  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_USERDEFINEDINTERRUPTHOOK = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+//const IOCTL_CE_MAKEKERNELCOPY		  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_SETGLOBALDEBUGSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_CONTINUEDEBUGEVENT 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0831 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -85,12 +86,10 @@ const IOCTL_CE_GETDEBUGGERSTATE 	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl
 const IOCTL_CE_SETDEBUGGERSTATE  	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GD_SETBREAKPOINT     	= (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_TOUCHDEBUGREGISTER    	= (IOCTL_UNKNOWN_BASE shl 16) or ($0836 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_HOOKSTEALTHEDITINTS  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0837 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-
-const IOCTL_CE_ADDCLOAKEDSECTION  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0838 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_REMOVECLOAKEDSECTION  	= (IOCTL_UNKNOWN_BASE shl 16) or ($0839 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 const IOCTL_CE_LAUNCHDBVM           	= (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_UNHOOKALLINTERRUPTS    = (IOCTL_UNKNOWN_BASE shl 16) or ($083b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_EXECUTE_CODE           = (IOCTL_UNKNOWN_BASE shl 16) or ($083c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -135,6 +134,7 @@ Function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWO
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function {ReadProcessMemory64}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function {WriteProcessMemory}WPM64(hProcess:THANDLE;BaseAddress:uint64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
@@ -152,10 +152,6 @@ function GetThreadListEntryOffset: dword; stdcall;
 function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
-
-function ProtectMe(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall; //or should I give it a array of processid's?
-function UnprotectMe:bool; stdcall;
-function MakeKernelCopy(Base: dword; size: dword): bool; stdcall;
 
 function GetCR4:DWORD; stdcall;
 function GetCR3(hProcess:THANDLE;var CR3:DWORD):BOOL; stdcall;
@@ -181,21 +177,21 @@ function GetIDTs(idtstore: pointer; maxidts: integer):integer; stdcall;
 
 function GetLoadedState: BOOLEAN; stdcall;
 
-function test: boolean; stdcall;
-procedure useIOCTL(use: boolean); stdcall;
-
 function DBKSuspendThread(ThreadID:dword):boolean; stdcall;
 function DBKResumeThread(ThreadID:dword):boolean; stdcall;
 function DBKSuspendProcess(ProcessID:dword):boolean; stdcall;
 function DBKResumeProcess(ProcessID:dword):boolean; stdcall;
 
 function KernelAlloc(size: dword):pointer; stdcall;
+function KernelAlloc64(size: dword):uint64; stdcall;
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
+function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 
 function GetSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
-function SetSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
-function SetSSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
+
+function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
+function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
 
 procedure LaunchDBVM; stdcall;
 
@@ -206,8 +202,6 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 
 
 var kernel32dll: thandle;
-    ioctl: boolean;
-
     IsWow64Process: TIsWow64Process;
 
 implementation
@@ -237,36 +231,7 @@ begin
   result:=(hdevice<>INVALID_HANDLE_VALUE) and Successfullyloaded;
 end;
 
-procedure useIOCTL(use: boolean); stdcall;
-begin
-  ioctl:=use;
-end;
-
-function Test:boolean; stdcall;
 {$W+}
-procedure test_noioctl(p1:integer; p2: integer); stdcall;
-asm
-  pop ebp //used parameters so the stupid compiler added a push ebp
-  mov eax,$2000
-  call fsc
-  ret 8
-end;
-{$W-}
-
-var cc,br: dword;
-    threadid: dword;
-begin
-  result:=true;
-  if ioctl then
-  begin
-    cc:=IOCTL_CE_TEST;
-    result:=deviceiocontrol(hdevice,cc,@threadid,sizeof(threadid),nil,0,br,nil);
-  end
-  else
-  begin
-    test_noioctl(1,2);
-  end;
-end;
 
 
 function GetGDT(limit: pword):dword; stdcall;
@@ -494,75 +459,7 @@ begin
 end;  }
 
 
-function ProtectMe(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall; //or should I give it a array of processid's?
-type tinput=record
-  processid: dword;
-  DenyList: DWORD;
-  GlobalDenyList: DWORD;
-  ListSize:DWORD;
-end;
-var cc,x: dword;
-    input: ^tinput;
-    win32kaddress,win32size:dword;
-begin
-  OutputDebugString('Protectme called');
-  result:=false;
 
-  if GetWin32KAddress(win32kAddress,win32size) then
-    if not InitializeDriver(win32kAddress,win32size) then exit;
-
-  if hdevice<>INVALID_HANDLE_VALUE then
-  begin
-    getmem(input,sizeof(tinput)+listsize);
-    try
-      input.processid:=ProtectedProcessID;
-      if denylist then
-        input.DenyList:=1 else input.DenyList:=0;
-
-      if globaldenylist then
-        input.GlobalDenyList:=1 else input.GlobalDenyList:=0;
-        
-      input.ListSize:=listsize;
-      copymemory(pointer(dword(@input.listsize)+4),list,listsize);
-
-      cc:=IOCTL_CE_PROTECTME;
-      result:=deviceiocontrol(hdevice,cc,input,sizeof(tinput)+listsize,input,4,x,nil);
-    finally
-      freemem(input);
-    end;
-    Iamprotected:=result;
-  end;
-end;
-
-function UnprotectMe:bool; stdcall;
-var cc,x: dword;
-begin
-  result:=false;
-  if (hdevice<>INVALID_HANDLE_VALUE) and (Iamprotected) then
-  begin
-    cc:=IOCTL_CE_DONTPROTECTME;
-    result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,x,nil);
-  end;
-end;
-
-function MakeKernelCopy(Base: dword; size: dword): bool; stdcall;
-var cc: dword;
-    inp: record
-      base: dword;
-      size: dword;
-    end;
-    x: dword;
-begin
-
-  result:=false;
-  if (hdevice<>INVALID_HANDLE_VALUE)  then
-  begin
-    cc:=IOCTL_CE_MAKEKERNELCOPY;
-    inp.base:=base;
-    inp.size:=size;
-    result:=deviceiocontrol(hdevice,cc,@inp,sizeof(inp),nil,0,x,nil);
-  end;
-end;
 
 function DBKSuspendThread(ThreadID:dword):boolean; stdcall;
 var cc,x: dword;
@@ -619,9 +516,53 @@ begin
 
 end;
 
+
+function internal_UserdefinedInterruptHook(parameters: pointer): BOOL; stdcall;
+type
+  TParams=record
+    interruptNumber: uint64;
+    newcs: uint64;
+    neweip: uint64;
+    addressofjumpback: uint64;
+  end;
+
+  PParams=^TParams;
+
+var
+  cc: dword;
+  pinput: PParams;
+  x: dword;
+begin
+  outputdebugstring('internal_UserdefinedInterruptHook');
+  result:=false;
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_USERDEFINEDINTERRUPTHOOK;
+    pinput:=parameters;
+    result:=deviceiocontrol(hdevice,cc,pinput,sizeof(TParams),nil,0,x,nil);
+  end;
+end;
+
+function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
+var params: record
+  interruptNumber: uint64;
+  newcs: uint64;
+  neweip: uint64;
+  addressofjumpback: uint64;
+end;
+begin
+  params.interruptNumber:=interruptnr;
+  params.newcs:=newcs;
+  params.neweip:=neweip;
+  params.addressofjumpback:=addressofjumpback;
+  result:=foreachcpu(internal_UserdefinedInterruptHook, @params);
+end;
+
+
+
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 type TInputstruct=record
-  ProcessID: dword;
+  ProcessID: UINT64;
   BaseAddress: UINT64;
 end;
 var cc: dword;
@@ -657,8 +598,7 @@ end;
 var ao: array [0..511] of byte;
     input: TInputstruct absolute ao[0];
     cc:dword;
-
-    i: integer;
+    
     ok: boolean;
     br: dword;
 
@@ -885,8 +825,12 @@ begin
   result:=windows.ReadProcessMemory(hProcess,pointer(lpBaseAddress),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
-
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+begin
+  result:=wpm64(hprocess, uint64(lpBaseAddress), lpbuffer, nsize, NumberofbytesWritten);
+end;
+
+function {WriteProcessMemory}WPM64(hProcess:THANDLE;BaseAddress:uint64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -900,7 +844,7 @@ var ao: array [0..511] of byte;
     ok: boolean;
     br: dword;
 
-    mempointer: dword;
+    mempointer: uint64;
     bufpointer: dword;
     bufpointer2: pointer;
     towrite: dword;
@@ -915,7 +859,7 @@ begin
       if hdevice<>INVALID_HANDLE_VALUE then
       begin
         cc:=IOCTL_CE_WRITEMEMORY;
-        mempointer:=dword(lpBaseAddress);
+        mempointer:=BaseAddress;
         bufpointer:=dword(lpbuffer);
 
         ok:=true;
@@ -954,7 +898,7 @@ begin
     end;
 
   //not found so ....
-  result:=windows.writeProcessMemory(hProcess,lpBaseAddress,lpBuffer,nSize,NumberOfByteswritten);
+  result:=windows.writeProcessMemory(hProcess,pointer(dword(BaseAddress)),lpBuffer,nSize,NumberOfByteswritten);
 end;
 
 function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
@@ -1245,25 +1189,34 @@ begin
 end;
 
 function KernelAlloc(size: dword):pointer; stdcall;
-type TInput=record
-  Size: DWORD;
+begin
+  result:=pointer(dword(kernelalloc64(size)));
 end;
+
+function KernelAlloc64(size: dword):uint64; stdcall;
 var cc: dword;
-    x: TInput;
+    x: record
+      Size: dword;
+    end;
     output: uint64;
 begin
-  result:=nil;
+  result:=0;
   x.Size:=size;
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_ALLOCATEMEM_NONPAGED;
     if deviceiocontrol(hdevice,cc,@x,sizeof(x),@output,sizeof(output),cc,nil) then
-      result:=pointer(dword(output)); //useless in 64-bit for this 32-bit dll
+      result:=output;
   end;
 end;
 
 function GetKProcAddress(s: pwidechar):pointer; stdcall;
+begin
+  result:=pointer(dword(GetKProcAddress64(s)));
+end;
+
+function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 var cc: dword;
     output: uint64;
     d: dword;
@@ -1271,14 +1224,14 @@ var cc: dword;
     st: string;
     sp: uint64;
 begin
-  result:=nil;
+  result:=0;
 
   st:=s;
 
   if length(st)<4 then exit;
 
   val('$'+st,d,err);
-  if err=0 then exit;
+  if err=0 then exit; //windows BSOD's if it's a hexadecimal value
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
@@ -1286,7 +1239,7 @@ begin
     output:=0;
     sp:=dword(s);
     if deviceiocontrol(hdevice,cc,@sp,sizeof(sp),@output,sizeof(output),cc,nil) then
-      result:=pointer(dword(output));
+      result:=output;
   end;
 
 end;
@@ -1321,30 +1274,6 @@ begin
   end;
 end;
 
-function SetSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
-type TInput=record
-  table: dword;
-  nr: dword;
-  address:dword;
-  paramcount:byte;
-end;
-
-var cc: dword;
-    x: TInput;
-begin
-  result:=false;
-  x.table:=0;
-  x.nr:=nr;
-  x.address:=address;
-  x.paramcount:=paramcount;
-
-  if (hdevice<>INVALID_HANDLE_VALUE) then
-  begin
-    cc:=IOCTL_CE_SETSDTADDRESS;
-    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
-  end;
-end;
-
 function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
 type TInput=record
   table: dword;
@@ -1375,30 +1304,22 @@ begin
   end;
 end;
 
-function SetSSDTEntry(nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
-type TInput=record
-  table: dword;
-  nr: dword;
-  address:dword;
-  paramcount:byte;
-end;
-
-var cc: dword;
-    x: TInput;
+function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
+var
+  cc: dword;
+  input: record
+    address: uint64;
+    parameters: uint64;
+  end;
 begin
-  result:=false;
-  x.table:=1;
-  x.nr:=nr;
-  x.address:=address;
-  x.paramcount:=paramcount;
-
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
-    cc:=IOCTL_CE_SETSDTADDRESS;
-    result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
+    input.address:=address;
+    input.parameters:=parameters;
+    cc:=IOCTL_CE_EXECUTE_CODE;
+    result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end;
 end;
-
 
 function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
 var cc: dword;
@@ -1660,9 +1581,6 @@ var sav: pchar;
 //    servicestatus: _service_status;
 initialization
 begin
-  outputdebugstring('a');
-
-  ioctl:=true;
   kernel32dll:=loadlibrary('kernel32.dll');
   IsWow64Process:=GetProcAddress(kernel32dll, 'IsWow64Process');
   if not assigned(IsWow64Process) then IsWow64Process:=noIsWow64;
@@ -1704,7 +1622,6 @@ begin
     end
     else
     begin
-      outputdebugstring('b2');
       assignfile(driverdat,dataloc);
       reset(driverdat);
       readln(driverdat,servicename);
@@ -1724,16 +1641,16 @@ begin
   finally
     freemem(apppath);
   end;
-  outputdebugstring('c');
+
 
   try
     configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
   except
     //couldn't parse the password
-    outputdebugstring('c-ex');
+
   end;
 
-  outputdebugstring('d');
+
 
 
 

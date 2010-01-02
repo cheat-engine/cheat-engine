@@ -5,9 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Menus, ExtDlgs, ComCtrls, Buttons, ExtCtrls,shellapi,tlhelp32,
-  cefuncproc,ExtraTrainerComponents, KIcon;
+  cefuncproc,ExtraTrainerComponents, jpeg, KIcon;
 
-const trainerversion=7;
+const trainerversion=8;
 
 type TcodeEntry = record
   address: dword;
@@ -110,11 +110,13 @@ type
     procedure changeicon(filename: string);
   public
     { Public declarations }
-    currentIcon: TKIcon;    
+    currentIcon: TKIcon;
     trainerdata: array of TTrainerdata;
     changed: boolean;
     popuphotkey: tkeycombo;
     dontshowdefault:boolean;
+    leftimage: tmemorystream;
+    leftimageext: string;
   end;
 
 var
@@ -142,10 +144,16 @@ procedure TfrmMemoryModifier.Button2Click(Sender: TObject);
 begin
   if openpicturedialog1.execute then
   begin
-    if uppercase(extractfileext(openpicturedialog1.filename))<>'.BMP' then
-      raise exception.create ('Sorry, but I cant use this filetype');
+    frmMemorytrainerpreview.Image1.Picture.LoadFromFile(openpicturedialog1.filename);
 
-    frmMemorytrainerpreview.Image1.Picture.Bitmap.LoadFromFile(openpicturedialog1.filename);
+    //no error
+    if leftimage=nil then
+      freeandnil(leftimage);
+
+    leftimage:=tmemorystream.create;
+    leftimage.loadfromfile(openpicturedialog1.filename);
+    leftimageext:=ExtractFileExt(openpicturedialog1.filename);
+
     changed:=true;
   end;
 end;
@@ -234,49 +242,7 @@ begin
 
     //load back in memory
     trainer.LoadFromFile(savedialog1.FileName);
-  {
-    //search for the icon
-    searcher:=trainer.memory;
-    scanstring:='And so, Dark Byte, wrote the text into the icon, So he could find it back...';
 
-    i:=0;
-    j:=1;
-    while (i<trainer.size) do
-    begin
-      if searcher^=scanstring[j] then
-      begin
-        if j=length(scanstring) then
-        begin
-//          dec(searcher,j);
-          dec(i,j+199);
-          break;
-        end;
-        inc(j);
-      end else j:=1;
-
-      inc(searcher);
-      inc(i);
-    end;
-
-    if j<length(scanstring) then raise exception.create('Please, dont mess with the exe!');
-
-    //replace it
-    iconstream:=TMemorystream.Create;
-    icon.Picture.Icon.SaveToStream(iconstream);
-
-    getmem(iconbuf,744);
-
-    iconstream.Position:=22;
-    iconstream.ReadBuffer(iconbuf^,744);
-
-    iconstream.Free;
-
-    trainer.Position:=i;
-    trainer.WriteBuffer(iconbuf^,744);
-
-    freemem(iconbuf);
-    //append the settingsdata behind that file
-         }
     temp:=trainer.Size;
     trainer.position:=80;
     trainer.Writebuffer(temp,4);
@@ -482,18 +448,15 @@ begin
 
 
       //leftside image
-      imagestream:=TMemorystream.Create;
-      frmMemorytrainerpreview.image1.Picture.Bitmap.SaveToStream(imagestream);
-
-      temp:=imagestream.Size;
+      //size of extension
+      temp:=length(leftimageext);
       trainer.WriteBuffer(temp,4);
+      trainer.WriteBuffer(leftimageext[1],temp);
 
-      getmem(iconbuf,temp);
-      imagestream.Position:=0;
-      imagestream.ReadBuffer(pointer(iconbuf)^,temp);
-      trainer.WriteBuffer(pointer(iconbuf)^,temp);
-      imagestream.Free;
-      freemem(iconbuf);
+      temp:=leftimage.Size;
+      trainer.WriteBuffer(temp,4);
+      leftimage.SaveToStream(trainer);
+
 
       //windowwidth
       trainer.writebuffer(frmMemorytrainerpreview.Width,sizeof(frmMemorytrainerpreview.Width));
@@ -575,6 +538,7 @@ begin
           trainer.Writebuffer(tcheatlist(frmtrainerdesigner.Components[i]).bevelkind,sizeof(tbevelkind));
 
           trainer.Writebuffer(tcheatlist(frmtrainerdesigner.Components[i]).HasCheckbox,sizeof(boolean));
+          trainer.Writebuffer(tcheatlist(frmtrainerdesigner.Components[i]).beepOnActivate,sizeof(boolean));
           trainer.Writebuffer(tcheatlist(frmtrainerdesigner.Components[i]).ShowHotkeys,sizeof(boolean));          
         end;
 
@@ -602,6 +566,7 @@ begin
           trainer.Writebuffer(temp,4);
 
           trainer.Writebuffer(tcheat(frmtrainerdesigner.Components[i]).HasCheckbox,sizeof(boolean));
+          trainer.Writebuffer(tcheat(frmtrainerdesigner.Components[i]).beeponActivate,sizeof(boolean));          
           trainer.Writebuffer(tcheat(frmtrainerdesigner.Components[i]).ShowHotkey,sizeof(boolean));
         end;
 
@@ -619,19 +584,18 @@ begin
           trainer.WriteBuffer(timage2(frmtrainerdesigner.Components[i]).transparent,sizeof(boolean));
           trainer.WriteBuffer(timage2(frmtrainerdesigner.Components[i]).tag,sizeof(integer));
 
-          //image
-          imagestream:=TMemorystream.Create;
-          timage2(frmtrainerdesigner.Components[i]).Picture.Bitmap.SaveToStream(imagestream);
+          //image extension
+          temp:=length(timage2(frmtrainerdesigner.Components[i]).extension);
+          trainer.writebuffer(temp,4);         //size of extension
+          x:=pchar(timage2(frmtrainerdesigner.Components[i]).extension);
+          trainer.writebuffer(pointer(x)^,temp); //ext
 
-          temp:=imagestream.Size;
+          temp:=timage2(frmtrainerdesigner.Components[i]).imagedata.size;  //size of imagedata
           trainer.WriteBuffer(temp,4);
+          timage2(frmtrainerdesigner.Components[i]).imagedata.savetostream(trainer); //imagedata
 
-          getmem(iconbuf,temp);
-          imagestream.Position:=0;
-          imagestream.ReadBuffer(pointer(iconbuf)^,temp);
-          trainer.WriteBuffer(pointer(iconbuf)^,temp);
-          imagestream.Free;
-          freemem(iconbuf);
+
+
 
           //command
           temp:=length(timage2(frmtrainerdesigner.Components[i]).Command);

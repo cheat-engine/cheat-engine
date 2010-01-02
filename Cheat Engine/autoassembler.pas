@@ -4,9 +4,6 @@ interface
 
 uses assemblerunit, classes,{$ifndef autoassemblerdll}cefuncproc,{$endif}
 windows,symbolhandler,sysutils,dialogs,controls
-{$ifndef standalonetrainer}
-,stealthedit
-{$endif}
 
 {$ifdef netclient}
 ,netapis;
@@ -299,11 +296,9 @@ var i,j,k,l,e: integer;
     labels: array of tlabel;
     defines: array of tdefine;
     fullaccess: array of tfullaccess;
-    stealthedits: array of TStealthEdits;
     dealloc: array of dword;
     addsymbollist: array of string;
     deletesymbollist: array of string;
-    deletestealthedit: array of dword;
     createthread: array of string;
 
     a,b,c,d: integer;
@@ -357,8 +352,6 @@ begin
     setlength(deletesymbollist,0);
     setlength(defines,0);
     setlength(loadbinary,0);
-    setlength(stealthedits,0);
-    setlength(deletestealthedit,0);
 
     tokens:=tstringlist.Create;
 
@@ -658,82 +651,6 @@ begin
               //NO CONTINUE LINE HERE
             end else raise exception.Create('Wrong syntax. AOBSCAN(name,11 22 33 ** 55)');
           end;
-
-{$ifndef standalonetrainer}
-          //STEALTHEDIT(variable,address,size)  (also works like define)
-          if uppercase(copy(currentline,1,12))='STEALTHEDIT(' then
-          begin
-            a:=pos('(',currentline);
-            b:=pos(',',currentline);
-
-            if b>0 then
-            begin
-              c:=PosEx(',',currentline, b+1);
-            end else c:=0;
-
-            d:=pos(')',currentline);
-
-            if (a>0) and (b>0) and (c>0) and (d>0) then
-            begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
-              s3:=copy(currentline,c+1,d-c-1);
-
-              if stealtheditor=nil then
-                stealtheditor:=TStealthEdit.create; //spawn it so that even the test will say it needs something...
-
-              setlength(stealthedits,length(stealthedits)+1);
-              stealthedits[length(stealthedits)-1].name:=s1;
-              try
-                stealthedits[length(stealthedits)-1].originaladdress:=symhandler.getAddressFromName(s2);
-                stealthedits[length(stealthedits)-1].newaddress:='00000000'; //filled in later
-              except
-                raise exception.Create(s2+' is an invalid address for STEALTHEDIT');
-              end;
-              stealthedits[length(stealthedits)-1].size:=strtoint(s3);
-
-              setlength(assemblerlines,length(assemblerlines)-1); //remove this line, it's not an assembler instruction
-              continue;
-            end else raise exception.Create('Wrong syntax. STEALTHEDIT(varname, address, size)');
-          end;
-
-          //replace stealthedit references with 00000000 so the assembler check doesn't complain about it
-          for j:=0 to length(stealthedits)-1 do
-            currentline:=replacetoken(currentline,stealthedits[j].name,'00000000');
-          
-
-          if uppercase(copy(currentline,1,14))='UNSTEALTHEDIT(' then
-          begin
-            if (ceallocarray<>nil) then//memory dealloc=possible
-            begin
-              //add this symbol to the register symbollist
-              a:=pos('(',currentline);
-              b:=pos(')',currentline);
-
-              if (a>0) and (b>0) then
-              begin
-                s1:=copy(currentline,a+1,b-a-1);
-
-                //find s1 in the ceallocarray
-                for j:=0 to length(ceallocarray)-1 do
-                begin
-                  if uppercase(ceallocarray[j].varname)=uppercase(s1) then
-                  begin
-                    setlength(deletestealthedit,length(deletestealthedit)+1);
-                    deletestealthedit[length(deletestealthedit)-1]:=ceallocarray[j].address;
-                  end;
-                end;
-
-
-              end
-              else raise exception.Create('Syntax error');
-
-              setlength(assemblerlines,length(assemblerlines)-1);
-              continue;
-            end;
-          end;
-{$endif}
-
 
           //define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
@@ -1201,13 +1118,6 @@ begin
     end;
     {$endif}
 
-    //stealth edits
-    if length(stealthedits)>0 then
-    begin
-      for i:=0 to length(stealthedits)-1 do
-        stealthedits[i].newaddress:=inttohex(stealtheditor.StartEdit(stealthedits[i].originalAddress, stealthedits[i].size),8);
-    end;
-
     //-----------------------2nd pass------------------------
     //assemblerlines only contains label specifiers and assembler instructions
     
@@ -1227,10 +1137,6 @@ begin
 
       for j:=0 to length(defines)-1 do
         currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
-
-      for j:=0 to length(stealthedits)-1 do
-        currentline:=replacetoken(currentline,stealthedits[j].name,stealthedits[j].newaddress);
-
 
       ok1:=false;
       if currentline[length(currentline)]<>':' then //if it's not a definition then
@@ -1417,7 +1323,7 @@ begin
       //if ceallocarray<>nil then
       begin
         //see if all allocs are deallocated
-        if length(dealloc)+length(deletestealthedit)=length(ceallocarray) then //free everything
+        if length(dealloc)=length(ceallocarray) then //free everything
         begin
           baseaddress:=$FFFFFFFF;
 
@@ -1428,14 +1334,6 @@ begin
           end;
           virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;
-
-        //undo stealthedits
-        if stealtheditor<>nil then
-        begin
-          for i:=0 to length(deletestealthedit)-1 do
-            stealtheditor.RestoreEdit(deletestealthedit[i]);
-        end;
-
 
         setlength(ceallocarray,length(allocs));
         for i:=0 to length(allocs)-1 do
@@ -1461,7 +1359,7 @@ begin
           begin
             try
               symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
-              symhandler.AddUserdefinedSymbol(allocs[j].address,addsymbollist[i]);
+              symhandler.AddUserdefinedSymbol(inttohex(allocs[j].address,8),addsymbollist[i]);
               ok1:=true;
             except
               //don't crash when it's already defined or address=0
@@ -1476,7 +1374,7 @@ begin
             begin
               try
                 symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
-                symhandler.AddUserdefinedSymbol(labels[j].address,addsymbollist[i]);
+                symhandler.AddUserdefinedSymbol(inttohex(labels[j].address,8),addsymbollist[i]);
                 ok1:=true;
               except
                 //don't crash when it's already defined or address=0

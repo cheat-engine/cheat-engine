@@ -100,7 +100,7 @@ object frmDissectCode: TfrmDissectCode
       Height = 16
       Alignment = taCenter
       AutoSize = False
-      Caption = 'Label7'
+      Caption = '00:00:00'
     end
     object Label4: TLabel
       Left = 8
@@ -157,6 +157,22 @@ object frmDissectCode: TfrmDissectCode
       Width = 7
       Height = 16
       Caption = '0'
+    end
+    object Label1: TLabel
+      Left = 8
+      Top = 216
+      Width = 95
+      Height = 16
+      Caption = 'Maximum offset:'
+      Visible = False
+    end
+    object lblMaxOffset: TLabel
+      Left = 8
+      Top = 232
+      Width = 7
+      Height = 16
+      Caption = '0'
+      Visible = False
     end
     object btnStart: TButton
       Left = 20

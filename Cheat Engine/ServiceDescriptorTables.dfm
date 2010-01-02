@@ -1,13 +1,13 @@
 object frmServiceDescriptorTables: TfrmServiceDescriptorTables
-  Left = 790
-  Top = 428
+  Left = 826
+  Top = 357
   Width = 469
   Height = 343
   Caption = 'Service Descriptor Table'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   Menu = MainMenu1
@@ -15,13 +15,13 @@ object frmServiceDescriptorTables: TfrmServiceDescriptorTables
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object TreeView1: TTreeView
     Left = 0
     Top = 0
-    Width = 461
-    Height = 289
+    Width = 451
+    Height = 273
     Align = alClient
     HideSelection = False
     Indent = 19
@@ -88,11 +88,6 @@ object frmServiceDescriptorTables: TfrmServiceDescriptorTables
       Caption = 'Go to sdt entry'
       ShortCut = 16455
       OnClick = GotoSTDaddress1Click
-    end
-    object Changesdt1: TMenuItem
-      Caption = 'Change sdt entry'
-      ShortCut = 16451
-      OnClick = Changesdt1Click
     end
   end
 end

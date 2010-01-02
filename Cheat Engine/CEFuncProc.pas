@@ -186,8 +186,6 @@ function GetSystemType: Integer;
 
 procedure ToggleOtherWindows;
 
-procedure EnableStealth;
-procedure DisableStealth;
 Procedure InjectDll(dllname: string; functiontocall: string='');
 Function GetRelativeFilePath(filename: string):string;
 
@@ -665,6 +663,8 @@ var
   useAPCtoInjectDLL: boolean;
   {$endif}
   {$endif}
+
+  tempdir: pchar;
 
 
   processhandler: TProcessHandler;
@@ -1501,73 +1501,6 @@ begin
       virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
   end;
 
-end;
-
-procedure EnableStealth;
-var hookloc: pointer;
-    dll: thandle;
-    dllloc: string;
-    dllloc1: string;
-    dllloc2: string;
-    i: integer;
-begin
-  if stealthhook>0 then exit;
-
-  createdir(cheatenginedir+'temp'); //in case it doesn't exist
-
-  dllloc1:=cheatenginedir+'temp\';
-  dllloc2:=cheatenginedir+'temp\';
-
-
-   //random sized name
-
-  for i:=1 to 3+random(6) do
-    dllloc1:=dllloc1+chr(64+random(26));
-
-  dllloc1:=dllloc1+'.DLL';
-  dllloc:=cheatenginedir+'stealth.dll';
-
-
-  if copyfile(pchar(dllloc),pchar(dllloc1),false) then
-    dll:=LoadLibrary(pchar(dllloc1))
-  else
-    dll:=loadlibrary(pchar(dllloc));
-
-
-  hookloc:=getprocaddress(dll,'hook');
-  hyperscanview.formscanningHandle:=setwindowshookex(WH_CALLWNDPROCRET	,hookloc,DLL,0); //just to get the dll inside the process
-  stealthhook:=hyperscanview.formscanningHandle;
-end;
-
-procedure DisableStealth;
-var i: integer;
-    filedata:_WIN32_FIND_DATAA;
-    f: thandle;
-    filelist: array of string;
-begin
-  if stealthhook<>0 then Unhookwindowshookex(stealthhook);
-  stealthhook:=0;
-  //delete tempdir
-
-  f:=FindFirstFile(pchar(cheatenginedir+'temp\*.DLL'),filedata);
-  if f<>invalid_handle_value then
-  begin
-    setlength(filelist,1);
-    filelist[length(filelist)-1]:=cheatenginedir+'temp\'+filedata.cFileName;
-    while findnextfile(f,filedata) do
-    begin
-      setlength(filelist,length(filelist)+1);
-      filelist[length(filelist)-1]:=cheatenginedir+'temp\'+filedata.cFileName;
-    end;
-
-    windows.FindClose(f);
-  end;
-
-  for i:=0 to length(filelist)-1 do
-    deletefile(filelist[i]);
-
-  setlength(filelist,0);
-  removedirectory(pchar(cheatenginedir+'temp'));
 end;
 
 procedure ToggleOtherWindows;
@@ -2996,6 +2929,7 @@ var buf: array [0..31] of byte;
     i,j: integer;
     st: string;
     offset: dword;
+    haserror: boolean;
 begin
 {$ifndef standalonetrainer}
   result:=false;
@@ -3040,12 +2974,8 @@ begin
             begin
               st:=copy(st,i,pos(']',st)-i+1);
 
-              try
-                addresstojumpto:=symhandler.getAddressFromName(st); //the pointer interpreter code can do this
-                result:=true;
-              except
-
-              end;
+              addresstojumpto:=symhandler.getAddressFromName(st, false, haserror); //the pointer interpreter code can do this
+              result:=not haserror;
             end;
 
           end;
@@ -3187,7 +3117,11 @@ begin
     result:=(mbi.State=MEM_COMMIT) and (mbi.AllocationProtect<>PAGE_NOACCESS);
 end;
 
+
+
 initialization
+  getmem(tempdir,256);
+  GetTempPath(256,tempdir);
   GetWindir;
   keysfilemapping:=0;
   keys:=nil;
@@ -3211,6 +3145,9 @@ finalization
     flushthread.WaitFor;
     flushthread.free;
   end;
+
+  if tempdir<>nil then
+    freemem(tempdir);
 
 end.
 

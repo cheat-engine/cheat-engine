@@ -609,32 +609,9 @@ begin
           try cbLowMemoryUsage.Checked:=reg.ReadBool('Low Memory Usage'); except end;
           try cbEnableHyperscanWhenPossible.Checked:=reg.ReadBool('Use Hyperscan if posible'); except end;
 
-          if reg.ValueExists('StealthOnExecute') then
-            cbStealth.Checked:=reg.ReadBool('StealthOnExecute')
-          else
-            cbstealth.Checked:=false;
-
-          if reg.ValueExists('Protect CE') then
-           cbProtectMe.Checked:=reg.readbool('Protect CE')
-          else
-           cbprotectme.checked:=false;
-
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
           try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
-
-
-          if reg.ValueExists('Undo memory changes') then
-            cbUndoMemoryChanges.checked:=reg.ReadBool('Undo memory changes');
-
-          if reg.ValueExists('Undo memory changes:Force writable') then
-            cbForceUndo.checked:=reg.ReadBool('Undo memory changes:Force writable');
-
-          if not cbUndoMemorychanges.Checked then
-          begin
-            cbforceundo.Checked:=false;
-            cbforceundo.Enabled:=false;
-          end;
 
           {$ifndef net}
 
@@ -671,7 +648,7 @@ begin
           mainform.ools1.Visible:=cbShowTools.Checked;
 
 
-          if cbForceUndo.checked or cbGlobalDebug.checked then LoadDBK32;
+          if cbGlobalDebug.checked then LoadDBK32;
 
           if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
           if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
@@ -685,40 +662,8 @@ begin
           KDebugger.GlobalDebug:=cbGlobalDebug.checked;
           {$endif}
 
-          if cbUndoMemoryChanges.checked then
-            if not fileexists(cheatenginedir+'ceprotect.dat') then
-            begin
-              cbUndoMemoryChanges.Checked:=false;
-              cbforceundo.Enabled:=false;
-              cbforceundo.Checked:=false;
-            end;
 
 
-
-
-          //load the exclude list
-          try
-            i:=0;
-            go:=true;
-            while go do
-            begin
-              setlength(donthidelist,length(donthidelist)+1);
-              donthidelist[i]:=reg.readstring('Do not hide '+IntToStr(i));
-              if donthidelist[i]='' then
-              begin
-                setlength(donthidelist,length(donthidelist)-1);
-                go:=false;
-              end;
-
-              inc(i);
-            end;
-          except
-            if length(donthidelist)=0 then
-            begin
-              setlength(donthidelist,1);
-              donthidelist[0]:='explorer.exe';
-            end;
-          end;
 
 
         end;
@@ -783,7 +728,7 @@ begin
               if names[i][10]='B' then //enabled or not
               begin
                 if reg.ReadBool(names[i]) then
-                  pluginhandler.EnablePlugin(i);
+                  pluginhandler.EnablePlugin(j);
               end;
             except
 

@@ -48,6 +48,7 @@ type TBreakLength=(bl_1byte=0, bl_2byte=1, bl_8byte=2{Only when in 64-bit}, bl_4
 type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+type TWriteProcessMemory64=function(hProcess: THandle; BaseAddress: UINT64; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;
 type TSetThreadContext=function(hThread: THandle; const lpContext: TContext): BOOL; stdcall;
 type TSuspendThread=function(hThread: THandle): DWORD; stdcall;
@@ -84,7 +85,6 @@ type TGetThreadListEntryOffset=function: dword; stdcall;
 
 
 type TGetPhysicalAddress=function(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
-type TProtectMe=function(ProtectedProcessID: dword; denylist,globaldenylist:BOOL;list:pchar; listsize:dword):BOOL; stdcall;
 type TGetCR4=function:DWORD; stdcall;
 type TGetCR3=function(hProcess:THANDLE;var CR3: DWORD):BOOL; stdcall;
 type TSetCR3=function(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
@@ -119,25 +119,21 @@ type TGetIDTs=function(idtstore: pointer; maxidts: integer):integer; stdcall;
 type TMakeWritable=function(Address,Size:dword;copyonwrite:boolean): boolean; stdcall;
 type TGetLoadedState=function : BOOLEAN; stdcall;
 
-type TDBKTest=function:boolean; stdcall;
 type TDBKSuspendThread=function(ThreadID:dword):boolean; stdcall;
 type TDBKResumeThread=function(ThreadID:dword):boolean; stdcall;
 type TDBKSuspendProcess=function(ProcessID:dword):boolean; stdcall;
 type TDBKResumeProcess=function(ProcessID:dword):boolean; stdcall;
 
 type TKernelAlloc=function(size: dword):pointer; stdcall;
+type TKernelAlloc64=function(size: dword):UINT64; stdcall;
 type TGetKProcAddress=function(s: pwidechar):pointer; stdcall;
+type TGetKProcAddress64=function(s: pwidechar):UINT64; stdcall;
 
 type TGetSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
-type TSetSDTEntry=function (nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 type TGetSSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
-type TSetSSDTEntry=function (nr: integer; address: DWORD; paramcount: BYTE):boolean; stdcall;
 type TGetGDT=function(var limit: word):dword; stdcall;
 
 type TLaunchDBVM=procedure; stdcall;
-
-type TuseIOCTL=procedure(use: boolean); stdcall;
-type TMakeKernelCopy=function(Base: dword; size: dword): bool; stdcall;
 
 
 type TDBKDebug_ContinueDebugEvent=function(handled: BOOL): boolean; stdcall;
@@ -148,11 +144,6 @@ type TDBKDebug_SetGlobalDebugState=function(state: BOOL): BOOL; stdcall;
 type TDBKDebug_StartDebugging=function(processid:dword):BOOL; stdcall;
 type TDBKDebug_StopDebugging=function:BOOL; stdcall;
 type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
-
-type Tstealthedit_InitializeHooks=function: bool; stdcall;
-type Tstealthedit_AddCloakedSection=function(processid: DWORD; pagebase: dword; relocatedpagebase: dword; size: integer ):BOOl; stdcall;
-type Tstealthedit_RemoveCloakedSection=function(processid: DWORD; pagebase: dword):BOOl; stdcall;
-
 
 //-----------------------------------DBVM-------------------------------------//
 type Tdbvm_version=function: dword; stdcall;
@@ -178,15 +169,12 @@ procedure DBKFileAsMemory; overload;
 procedure DBKPhysicalMemory;
 procedure DBKPhysicalMemoryDBVM;
 procedure DBKProcessMemory;
-procedure LoadDBK32;
-
-Procedure ProtectProcess(processid: dword);
-Procedure ProtectCE;
+procedure LoadDBK32; stdcall;
 
 procedure OutputDebugString(msg: string);
 
 
-function loaddbvmifneeded: boolean;
+function loaddbvmifneeded: BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
 
@@ -198,6 +186,7 @@ var
   ReadProcessMemory     :TReadProcessMemory;
   ReadProcessMemory64   :TReadProcessMemory64;  
   WriteProcessMemory    :TWriteProcessMemory;
+  WriteProcessMemory64  :TWriteProcessMemory64;
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
   SuspendThread         :TSuspendThread;
@@ -235,7 +224,6 @@ var
 
   GetDebugportOffset    :TGetDebugportOffset;
   GetPhysicalAddress    :TGetPhysicalAddress;
-  ProtectMe             :TProtectMe;
   GetCR4                :TGetCR4;
   GetCR3                :TGetCR3;
   SetCR3                :TSetCR3;
@@ -270,19 +258,18 @@ var
   MakeWritable            :TMakeWritable;
   GetLoadedState          :TGetLoadedState;
 
-  dbktest                 :TDBKTest;
   DBKSuspendThread        :TDBKSuspendThread;
   DBKResumeThread         :TDBKResumeThread;
   DBKSuspendProcess       :TDBKSuspendProcess;
   DBKResumeProcess        :TDBKResumeProcess;
 
   KernelAlloc             :TKernelAlloc;
+  KernelAlloc64           :TKernelAlloc64;  
   GetKProcAddress         :TGetKProcAddress;
+  GetKProcAddress64       :TGetKProcAddress64;
 
   GetSDTEntry             :TGetSDTEntry;
-  SetSDTEntry             :TSetSDTEntry;
   GetSSDTEntry            :TGetSSDTEntry;
-  SetSSDTEntry            :TSetSSDTEntry;
 
   LaunchDBVM              :TLaunchDBVM;
 
@@ -293,9 +280,6 @@ var
   CreateRemoteAPC         :TCreateRemoteAPC;
   GetGDT                  :TGetGDT;
 
-  useIOCTL                :TuseIOCTL;
-  MakeKernelCopy          :TMakeKernelCopy;
-
   DBKDebug_ContinueDebugEvent : TDBKDebug_ContinueDebugEvent;
   DBKDebug_WaitForDebugEvent  : TDBKDebug_WaitForDebugEvent;
   DBKDebug_GetDebuggerState   : TDBKDebug_GetDebuggerState;
@@ -304,10 +288,6 @@ var
   DBKDebug_StartDebugging     : TDBKDebug_StartDebugging;
   DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
-
-  stealthedit_InitializeHooks : Tstealthedit_InitializeHooks;
-  stealthedit_AddCloakedSection : Tstealthedit_AddCloakedSection;
-  stealthedit_RemoveCloakedSection : Tstealthedit_RemoveCloakedSection;
 
 
   //dbvm ce000000+
@@ -356,7 +336,7 @@ begin
   end;
 end;
 
-function loaddbvmifneeded: boolean;
+function loaddbvmifneeded: BOOL;  stdcall;
 begin
   result:=false;
   if Is64bitOS and (not isRunningDBVM) then
@@ -420,7 +400,7 @@ begin
 
 end;
 
-procedure LoadDBK32;
+procedure LoadDBK32; stdcall;
 begin
   if DarkByteKernel=0 then
   begin
@@ -435,6 +415,7 @@ begin
     KernelReadProcessMemory64:=GetProcAddresS(darkbytekernel,'RPM64');    
     KernelWriteProcessMemory:=GetProcAddress(darkbytekernel,'WPM');
     ReadProcessMemory64:=GetProcAddress(DarkByteKernel,'RPM64');
+    WriteProcessMemory64:=GetProcAddress(DarkByteKernel,'WPM64');
 
     GetPEProcess:=GetProcAddress(DarkByteKernel,'GetPEProcess');
     GetPEThread:=GetProcAddress(DarkByteKernel,'GetPEThread');
@@ -468,8 +449,6 @@ begin
     GetGDT:=GetProcAddress(DarkByteKernel,'GetGDT');
     MakeWritable:=GetProcAddress(DarkByteKernel,'MakeWritable');
     GetLoadedState:=GetProcAddress(darkbytekernel,'GetLoadedState');
-    DBKTest:=GetProcAddress(darkbytekernel,'test');
-    useIOCTL:=GetProcAddress(darkbytekernel,'useIOCTL');
 
     DBKResumeThread:=GetProcAddress(darkByteKernel,'DBKResumeThread');
     DBKSuspendThread:=GetProcAddress(darkByteKernel,'DBKSuspendThread');
@@ -478,19 +457,18 @@ begin
     DBKSuspendProcess:=GetProcAddress(darkByteKernel,'DBKSuspendProcess');
 
     KernelAlloc:=GetProcAddress(darkbyteKernel,'KernelAlloc');
+    KernelAlloc64:=GetProcAddress(darkbyteKernel,'KernelAlloc64');    
     GetKProcAddress:=GetProcAddress(darkbytekernel,'GetKProcAddress');
+    GetKProcAddress64:=GetProcAddress(darkbytekernel,'GetKProcAddress64');    
 
     GetSDTEntry:= GetProcAddress(darkbyteKernel,'GetSDTEntry');
-    SetSDTEntry:= GetProcAddress(darkbyteKernel,'SetSDTEntry');
     GetSSDTEntry:=GetProcAddress(darkbyteKernel,'GetSSDTEntry');
-    SetSSDTEntry:=GetProcAddress(darkbyteKernel,'SetSSDTEntry');
 
     LaunchDBVM:=GetProcAddress(darkbyteKernel,'LaunchDBVM');
 
     ReadPhysicalMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
     WritePhysicalMemory:=GetProcAddress(DarkByteKernel,'WritePhysicalMemory');
 
-    MakeKernelCopy:=GetProcAddress(DarkByteKernel,'MakeKernelCopy');
     CreateRemoteAPC:=GetProcAddress(darkByteKernel,'CreateRemoteAPC');
 //    SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'SetGlobalDebugState');
 
@@ -503,11 +481,6 @@ begin
     DBKDebug_StartDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StartDebugging');
     DBKDebug_StopDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StopDebugging');
     DBKDebug_GD_SetBreakpoint:=GetProcAddress(DarkByteKernel,'DBKDebug_GD_SetBreakpoint');
-
-    stealthedit_InitializeHooks:=GetProcAddress(DarkByteKernel,'stealthedit_InitializeHooks');
-    stealthedit_AddCloakedSection:=GetProcAddress(DarkByteKernel,'stealthedit_AddCloakedSection');
-    stealthedit_RemoveCloakedSection:=GetProcAddress(DarkByteKernel,'stealthedit_RemoveCloakedSection');
-
 
     dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');
     dbvm_changeselectors:=GetProcAddress(DarkByteKernel,'dbvm_changeselectors');
@@ -527,42 +500,6 @@ begin
   end;
 end;
 
-Procedure ProtectProcess(processid: dword);
-var list:pointer;
-    listsize:pointer;
-begin
-  LoadDBK32;
-  If DarkByteKernel=0 then LoadDBK32;
-  If DarkByteKernel=0 then exit;
-
-  ProtectMe:=GetProcAddress(DarkByteKernel,'ProtectMe');
-  ProtectMe(processid,denylist,DenyListGlobal,modulelist,modulelistsize);
-
-  {$ifdef cemain}
-  if pluginhandler<>nil then
-    pluginhandler.handlechangedpointers(1);
-  {$endif}
-
-end;
-
-
-Procedure ProtectCE;
-var list:pointer;
-    listsize:pointer;
-begin
-  LoadDBK32;
-  If DarkByteKernel=0 then LoadDBK32;
-  If DarkByteKernel=0 then exit;
-
-  ProtectMe:=GetProcAddress(DarkByteKernel,'ProtectMe');
-  ProtectMe(getcurrentprocessid,denylist,DenyListGlobal,modulelist,modulelistsize);
-
-  {$ifdef cemain}
-  if pluginhandler<>nil then
-    pluginhandler.handlechangedpointers(2);
-  {$endif}
-
-end;
 
 procedure DBKFileAsMemory; overload;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }

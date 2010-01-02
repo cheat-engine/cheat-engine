@@ -7,16 +7,15 @@
 
 #include "memscan.h"
 
-#include "rootkit.h"
+#include "deepkernel.h"
 
 #include "processlist.h"
 #include "threads.h"
 
-#include "newkernel.h"
-#include "vmxhelper.h"
 #include "interruptHook.h"
 #include "debugger.h"
-#include "stealthedit.h"
+
+#include "vmxhelper.h"
 #include "vmxoffload.h"
 
 
@@ -478,7 +477,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct input
 				{
-					DWORD  ProcessID;
+					UINT64  ProcessID;
 					UINT64 BaseAddress; 
 				} *pinp;
 
@@ -529,206 +528,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 			
-
-		case IOCTL_CE_PROTECTME:
-			{
-#ifdef AMD64
-				DbgPrint("Stealthmode is not available for 64-bit\n");
-				ntStatus=STATUS_UNSUCCESSFUL;
-#else
-				struct input
-				{
-					HANDLE ProcessID; 
-					ULONG DenyList;
-					ULONG GlobalDenyList; //ignored if it is a includelist
-					ULONG ListSize;
-				} *pinp;
-
-				UINT_PTR NextProcess;
-				UINT_PTR PreviousProcess;
-
-
-				pinp=Irp->AssociatedIrp.SystemBuffer;
-
-				
-				if (ModuleList!=NULL)
-					MmFreeNonCachedMemory(ModuleList,ModuleListSize);
-
-				ModuleList=NULL;
-				ModuleListSize=0;
-
-				if (pinp->ListSize>0)
-				{
-					ModuleList=MmAllocateNonCachedMemory(pinp->ListSize);
-					if (ModuleList!=NULL)
-					{
-						__try
-						{
-							
-                            RtlCopyMemory(ModuleList,(PVOID)((UINT_PTR)(&(pinp->ListSize))+sizeof(pinp->ListSize)),pinp->ListSize);
-							ModuleListSize=pinp->ListSize;
-						}
-						__except(1)
-						{
-						}
-					}
-					
-				}
-
-				DenyList=pinp->DenyList==1;
-				GlobalDenyList=pinp->GlobalDenyList==1;
-
-				ProtectedProcessID=pinp->ProcessID;
-				PsLookupProcessByProcessId((PVOID)(pinp->ProcessID),&ProtectedPEProcess);			
-
-				if (ActiveLinkOffset!=0)
-				{
-					NextProcess=*(PUINT_PTR)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset)-ActiveLinkOffset;
-					PreviousProcess=*(PUINT_PTR)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset+4)-ActiveLinkOffset;
-	
-					*(PUINT_PTR)(PreviousProcess+ActiveLinkOffset)=*(PULONG)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset); //the previous process points to me next process
-					*(PUINT_PTR)(NextProcess+ActiveLinkOffset+4)=*(PULONG)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset+4); //the next process points to the previous process
-
-					*(PUINT_PTR)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset)=(UINT_PTR)ProtectedPEProcess+ActiveLinkOffset;
-					*(PUINT_PTR)((UINT_PTR)ProtectedPEProcess+ActiveLinkOffset+4)=(UINT_PTR)ProtectedPEProcess+ActiveLinkOffset;			
-				}
-
-
-				if (!ProtectOn)
-				{
-					//unlink this process from the activeprocess list
-
-					if (!ImageNotifyRoutineLoaded)
-						ImageNotifyRoutineLoaded=(PsSetLoadImageNotifyRoutine(LoadImageNotifyRoutine)==STATUS_SUCCESS);
-
-
-					//Hook
-					OldZwOpenProcess=(ZWOPENPROCESS)SYSTEMSERVICE(ZwOpenProcess);
-					OldZwQuerySystemInformation=(ZWQUERYSYSTEMINFORMATION)SYSTEMSERVICE(ZwQuerySystemInformation);
-
-
-					if ((KeServiceDescriptorTableShadow!=NULL) && (NtUserBuildHwndList_callnumber!=0) && (NtUserBuildHwndList_callnumber!=0) && (NtUserFindWindowEx_callnumber!=0) && (NtUserGetForegroundWindow_callnumber!=0))
-					{
-						OldNtUserQueryWindow=(NTUSERQUERYWINDOW)KeServiceDescriptorTableShadow->ServiceTable[NtUserQueryWindow_callnumber];						
-						OldNtUserBuildHwndList=(NTUSERBUILDHWNDLIST)KeServiceDescriptorTableShadow->ServiceTable[NtUserBuildHwndList_callnumber];
-						OldNtUserFindWindowEx=(NTUSERFINDWINDOWEX)KeServiceDescriptorTableShadow->ServiceTable[NtUserFindWindowEx_callnumber];
-                        OldNtUserGetForegroundWindow=(NTUSERGETFOREGROUNDWINDOW)KeServiceDescriptorTableShadow->ServiceTable[NtUserGetForegroundWindow_callnumber];
-
-						//now a extra check before I screw up the system
-						if (((UCHAR)KeServiceDescriptorTableShadow->ServiceTable[NtUserBuildHwndList_callnumber]!=0x1c) || 
-						    ((UCHAR)KeServiceDescriptorTableShadow->ServiceTable[NtUserQueryWindow_callnumber]!=0x08)  ||
-							((UCHAR)KeServiceDescriptorTableShadow->ServiceTable[NtUserFindWindowEx_callnumber]!=0x14) ||
-							((UCHAR)KeServiceDescriptorTableShadow->ServiceTable[NtUserGetForegroundWindow_callnumber]!=0x0)
-							)
-							
-						{
-							//NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO!
-							KeServiceDescriptorTableShadow=NULL; //disable it
-							NtUserBuildHwndList_callnumber=0;
-							NtUserQueryWindow_callnumber=0;
-							NtUserFindWindowEx_callnumber=0;
-							NtUserGetForegroundWindow_callnumber=0;							
-						}	
-					} else KeServiceDescriptorTableShadow=NULL; //do not enable hooking. All have to work, else none
-					ProtectOn=TRUE;
-				}
-
-				
-				__asm
-				{
-					cli 
-					mov eax,CR0
-					and eax,not 0x10000
-					mov CR0,eax
-				}
-				(ZWOPENPROCESS)(SYSTEMSERVICE(ZwOpenProcess))=NewZwOpenProcess;
-				(ZWQUERYSYSTEMINFORMATION)(SYSTEMSERVICE(ZwQuerySystemInformation))=NewZwQuerySystemInformation;
-
-
-		        if ((NtUserQueryWindow_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-				  (NTUSERQUERYWINDOW)(KeServiceDescriptorTableShadow->ServiceTable[NtUserQueryWindow_callnumber])=NewNtUserQueryWindow;
-
-		        if ((NtUserFindWindowEx_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-				  (NTUSERFINDWINDOWEX)(KeServiceDescriptorTableShadow->ServiceTable[NtUserFindWindowEx_callnumber])=NewNtUserFindWindowEx;
-
-		        if ((NtUserGetForegroundWindow_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-				  (NTUSERGETFOREGROUNDWINDOW)(KeServiceDescriptorTableShadow->ServiceTable[NtUserGetForegroundWindow_callnumber])=NewNtUserGetForegroundWindow;
-
-				if ((NtUserBuildHwndList_callnumber!=0) && (KeServiceDescriptorTableShadow!=NULL))
-                  (NTUSERBUILDHWNDLIST)(KeServiceDescriptorTableShadow->ServiceTable[NtUserBuildHwndList_callnumber])=NewNtUserBuildHwndList;
-
-
-				__asm
-				{
-					mov eax,CR0
-					xor eax,0x10000
-					mov CR0,eax
-					sti
-				}						
-
-				ntStatus=STATUS_SUCCESS;
-#endif //not amd64
-				break;
-			}	
-
-		case IOCTL_CE_DONTPROTECTME:
-			{
-#ifdef AMD64
-				DbgPrint("What doesn't go up, can't crash down\n");
-				ntStatus=STATUS_SUCCESS;
-#else
-				//Unhook();
-				if (ProtectOn)
-					ntStatus=STATUS_UNSUCCESSFUL;
-				else
-					ntStatus=STATUS_SUCCESS;
-
-				//ProtectOn=FALSE;
-#endif
-
-				break;
-			}
-
-
-		case IOCTL_CE_SETSDTADDRESS:
-			{
-#ifdef AMD64
-				DbgPrint("Changing the sdt is not allowed in 64-bit windows\n");
-				ntStatus=STATUS_UNSUCCESSFUL;
-#else
-				struct input
-				{
-					int table; //0=SDT, 1=SSDT
-				  	int nr;	
-					ULONG address;
-					UCHAR paramcount;
-				} *pinp;
-				pinp=Irp->AssociatedIrp.SystemBuffer;
-			
-
-				disableInterrupts();
-				setCR0(getCR0() & (~(0x10000)));
-
-				
-				if (pinp->table==0)
-				{
-					(ULONG)(KeServiceDescriptorTable->ServiceTable[pinp->nr])=pinp->address;
-					(UCHAR)(KeServiceDescriptorTable->ArgumentTable[pinp->nr])=pinp->paramcount;
-				}
-				else if (pinp->table==1)
-				{
-					(ULONG)(KeServiceDescriptorTableShadow->ServiceTable[pinp->nr])=pinp->address;
-					(UCHAR)(KeServiceDescriptorTableShadow->ArgumentTable[pinp->nr])=pinp->paramcount;
-				}
-				setCR0(getCR0() ^ 0x10000);
-				enableInterrupts();
-
-				ntStatus=STATUS_SUCCESS;
-#endif
-				break;
-			}
-
-
 		case IOCTL_CE_GETSDTADDRESS:
 			{
 #ifdef AMD64
@@ -878,68 +677,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 			
-
-
-		case IOCTL_CE_HOOKSTEALTHEDITINTS:
-			{
-				DbgPrint("IOCTL_CE_HOOKSTEALTHEDITINTS\n");
-
-
-				if (stealthedit_initStealthEditHooksForCurrentCPU())
-				{
-					DbgPrint("stealthedit_initStealthEditHooksForCurrentCPU returned TRUE\n");
-					ntStatus=STATUS_SUCCESS;
-				}
-				else
-				{
-					DbgPrint("stealthedit_initStealthEditHooksForCurrentCPU returned FALSE\n");
-					ntStatus=STATUS_UNSUCCESSFUL;
-				}
-
-				break;
-
-			}
-		
-
-
-
-		case IOCTL_CE_ADDCLOAKEDSECTION:
-			{
-				struct intput
-				{
-					UINT64 ProcessID;
-					UINT64 pagebase;
-					UINT64 relocatedpagebase;
-					UINT64 size;
-				} *pinp;
-
-				DbgPrint("IOCTL_CE_ADDCLOAKEDSECTION\n");
-				pinp=Irp->AssociatedIrp.SystemBuffer;
-				if (stealthedit_AddCloakedSection((DWORD)pinp->ProcessID, (UINT_PTR)pinp->pagebase, (UINT_PTR)pinp->relocatedpagebase, (int)pinp->size))
-					ntStatus=STATUS_SUCCESS;
-				else
-					ntStatus=STATUS_UNSUCCESSFUL;
-
-				break;
-			}
-
-		case IOCTL_CE_REMOVECLOAKEDSECTION:
-			{
-				struct intput
-				{
-					UINT64 ProcessID;
-					UINT64 pagebase;
-				} *pinp;
-				pinp=Irp->AssociatedIrp.SystemBuffer;
-
-				if (stealthedit_RemoveCloakedSection((DWORD)pinp->ProcessID, (UINT_PTR)pinp->pagebase))
-					ntStatus=STATUS_SUCCESS;
-				else
-					ntStatus=STATUS_UNSUCCESSFUL;
-				break;
-			}
-
-			
 		case IOCTL_CE_LAUNCHDBVM:
 			{
 				struct intput
@@ -956,7 +693,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}
 			
 
-		case IOCTL_CE_HOOKINTS:
+		case IOCTL_CE_HOOKINTS: //hooks the DEBUG interrupts
 			{
 				DbgPrint("IOCTL_CE_HOOKINTS for cpu %d\n", cpunr());
 				if (debugger_initHookForCurrentCPU())
@@ -966,6 +703,27 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				break;
 			}
+
+		case IOCTL_CE_USERDEFINEDINTERRUPTHOOK:
+			{
+				struct intput
+				{
+					UINT64 interruptnumber;
+					UINT64 newCS;
+					UINT64 newRIP;
+					UINT64 addressofjumpback;
+				} *pinp;
+				DbgPrint("IOCTL_CE_USERDEFINEDINTERRUPTHOOK\n");
+
+				pinp=Irp->AssociatedIrp.SystemBuffer;
+
+
+				inthook_HookInterrupt((unsigned char)(pinp->interruptnumber), (int)pinp->newCS, (ULONG_PTR)pinp->newRIP, (PJUMPBACK)(pinp->addressofjumpback));
+				DbgPrint("After the hook\n");
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}
+
 
 		case IOCTL_CE_UNHOOKALLINTERRUPTS:
 			{
@@ -1181,7 +939,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				inp=Irp->AssociatedIrp.SystemBuffer;
 				BaseAddress=(PVOID)(UINT_PTR)inp->BaseAddress;
-				RegionSize=inp->Size;
+				RegionSize=(SIZE_T)(inp->Size);
 
 
 
@@ -1192,7 +950,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					{
 						KAPC_STATE apc_state;
 						RtlZeroMemory(&apc_state,sizeof(apc_state));					
-    						KeAttachProcess((PVOID)selectedprocess); //local process is much more fun!!!!
+    					KeAttachProcess((PVOID)selectedprocess); //local process is much more fun!!!!
 
 						DbgPrint("Switched Process\n");
 						__try
@@ -1213,7 +971,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 							DbgPrint("ntStatus=%x\n");
 							DbgPrint("BaseAddress=%p\n",BaseAddress);
 							DbgPrint("RegionSize=%x\n",RegionSize);
-							*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(UINT64)BaseAddress;
+							*(PUINT64)Irp->AssociatedIrp.SystemBuffer=0;
+							*(PUINT_PTR)Irp->AssociatedIrp.SystemBuffer=(UINT_PTR)BaseAddress;
 
 						}
 						__finally
@@ -1250,8 +1009,10 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				inp=Irp->AssociatedIrp.SystemBuffer;
 				size=inp->Size;
 
-				address=ExAllocatePoolWithTag(NonPagedPool,size,0);
-				*(PUINT64)Irp->AssociatedIrp.SystemBuffer=(UINT64)address;
+				address=ExAllocatePool(NonPagedPool,size);
+				*(PUINT64)Irp->AssociatedIrp.SystemBuffer=0;
+				*(PUINT_PTR)Irp->AssociatedIrp.SystemBuffer=(UINT_PTR)address;
+				
 
 				if (address==0)
 					ntStatus=STATUS_UNSUCCESSFUL;
@@ -1260,10 +1021,11 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					DbgPrint("Alloc success. Cleaning memory... (size=%d)\n",size);					
 					
 					x=address;
-					DbgPrint("x=%p\n",x);
-					for (i=0; i<size; i++)					
-						x[i]=0;
-					
+					DbgPrint("x=%p\n", x);
+					RtlZeroMemory(x, size);
+
+					x=Irp->AssociatedIrp.SystemBuffer;
+				
 					ntStatus=STATUS_SUCCESS;
 				}
 
@@ -1379,6 +1141,33 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 			}
 
+		case IOCTL_CE_EXECUTE_CODE:
+			{
+				typedef NTSTATUS (*PARAMETERLESSFUNCTION)(UINT64 parameters);
+				PARAMETERLESSFUNCTION functiontocall;
+
+				struct input
+				{
+					UINT64	functionaddress; //function address to call
+					UINT64	parameters;
+				} *inp=Irp->AssociatedIrp.SystemBuffer;
+				DbgPrint("IOCTL_CE_EXECUTE_CODE\n");
+
+				functiontocall=(PARAMETERLESSFUNCTION)(inp->functionaddress);
+
+				__try
+				{
+					ntStatus=functiontocall(inp->parameters);
+					DbgPrint("Still alive\n");
+				}
+				__except(1)
+				{
+					DbgPrint("Exception occured\n");
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
+				break;
+			}
+
 
 		case IOCTL_CE_GETVERSION:
 			{
@@ -1422,10 +1211,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				               
 #ifndef AMD64
 				ntStatus=STATUS_UNSUCCESSFUL; 
-				NtUserBuildHwndList_callnumber=(ULONG)pinp->NtUserBuildHwndList_callnumber;
-				NtUserQueryWindow_callnumber=(ULONG)pinp->NtUserQueryWindow_callnumber;
-				NtUserFindWindowEx_callnumber=(ULONG)pinp->NtUserFindWindowEx_callnumber;
-				NtUserGetForegroundWindow_callnumber=(ULONG)pinp->NtUserGetForegroundWindow_callnumber;
 #endif
 				ActiveLinkOffset=(UINT_PTR)pinp->ActiveLinkOffset;
 				ProcessNameOffset=(UINT_PTR)pinp->ProcessNameOffset;

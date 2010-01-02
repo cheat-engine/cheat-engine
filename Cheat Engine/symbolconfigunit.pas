@@ -53,14 +53,10 @@ end;
 
 
 procedure TfrmSymbolhandler.refreshlist;
-type TExtradata=record
-  address: dword;
-  allocsize: dword;
-end;
 var sl: tstringlist;
     i: integer;
     li: tlistitem;
-    extradata: ^TExtraData;
+    extradata: ^TUDSEnum;
 
 begin
   listview1.Items.Clear;
@@ -73,7 +69,7 @@ begin
       li:=listview1.Items.Add;
       li.Caption:=sl[i];
       extradata:=pointer(sl.objects[i]);
-      li.SubItems.Add(inttohex(dword(extradata^.address),8));
+      li.SubItems.Add(extradata^.addressstring);
       if extradata^.allocsize>0 then
         li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
 
@@ -95,12 +91,11 @@ var symbolname:string;
     li: tlistitem;
 begin
   symbolname:=edtsymbolname.Text;
-  address:=strtoint('$'+edtaddress.Text);
-  symhandler.AddUserdefinedSymbol(address,symbolname);
+  symhandler.AddUserdefinedSymbol(edtaddress.Text,symbolname);
 
   li:=listview1.Items.Add;
   li.Caption:=symbolname;
-  li.SubItems.Add(inttohex(address,8));
+  li.SubItems.Add(edtaddress.Text);
 
   edtSymbolname.SetFocus;
   edtSymbolname.SelectAll;

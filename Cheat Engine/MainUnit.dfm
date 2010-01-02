@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 603
-  Top = 248
+  Left = 830
+  Top = 257
   Width = 532
-  Height = 552
+  Height = 612
   Hint = ' '
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -47,7 +47,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 348
     Width = 514
-    Height = 117
+    Height = 177
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -126,7 +126,7 @@ object MainForm: TMainForm
       Left = 1
       Top = 1
       Width = 495
-      Height = 115
+      Height = 175
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
       VertScrollBar.Visible = False
@@ -177,7 +177,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 17
         Width = 495
-        Height = 98
+        Height = 158
         Align = alClient
         BevelOuter = bvNone
         FullRepaint = False
@@ -190,10 +190,10 @@ object MainForm: TMainForm
         OnResize = Panel1Resize
         DesignSize = (
           495
-          98)
+          158)
         object Label30: TLabel
           Tag = 6
-          Left = 0
+          Left = -1
           Top = 96
           Width = 528
           Height = 16
@@ -215,7 +215,7 @@ object MainForm: TMainForm
         end
         object Label29: TLabel
           Tag = 5
-          Left = 0
+          Left = -1
           Top = 80
           Width = 528
           Height = 16
@@ -236,7 +236,7 @@ object MainForm: TMainForm
           OnMouseDown = SlectItem
         end
         object Label12: TLabel
-          Left = 0
+          Left = -1
           Top = 0
           Width = 528
           Height = 16
@@ -258,7 +258,7 @@ object MainForm: TMainForm
         end
         object Label27: TLabel
           Tag = 4
-          Left = 0
+          Left = -1
           Top = 64
           Width = 528
           Height = 16
@@ -280,7 +280,7 @@ object MainForm: TMainForm
         end
         object Label15: TLabel
           Tag = 3
-          Left = 0
+          Left = -1
           Top = 48
           Width = 528
           Height = 16
@@ -302,7 +302,7 @@ object MainForm: TMainForm
         end
         object Label16: TLabel
           Tag = 2
-          Left = 0
+          Left = -1
           Top = 32
           Width = 528
           Height = 16
@@ -400,7 +400,7 @@ object MainForm: TMainForm
         end
         object Label3: TLabel
           Tag = 1
-          Left = 0
+          Left = -1
           Top = 16
           Width = 528
           Height = 16
@@ -1077,7 +1077,7 @@ object MainForm: TMainForm
       Left = 496
       Top = 1
       Width = 17
-      Height = 115
+      Height = 175
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 2
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 17
-        Height = 115
+        Height = 175
         Align = alRight
         Kind = sbVertical
         Max = 0
@@ -1099,7 +1099,7 @@ object MainForm: TMainForm
   end
   object Panel4: TPanel
     Left = 0
-    Top = 465
+    Top = 525
     Width = 514
     Height = 17
     Align = alBottom
@@ -1415,7 +1415,6 @@ object MainForm: TMainForm
       Height = 13
       Caption = 'stealthedit test'
       Visible = False
-      OnClick = Label38Click
     end
     object Label53: TLabel
       Left = 208
@@ -2454,7 +2453,8 @@ object MainForm: TMainForm
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
-    Top = 368
+    Left = 184
+    Top = 376
     object Deletethisrecord1: TMenuItem
       Caption = 'Delete this record'
       OnClick = Deletethisrecord1Click

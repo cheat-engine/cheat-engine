@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 505
-      ActivePage = Assembler
+      ActivePage = Extra
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -927,128 +927,50 @@ object formSettings: TformSettings
             TabOrder = 2
           end
         end
-        object Panel1: TPanel
-          Left = 0
-          Top = 236
-          Width = 602
-          Height = 110
-          BevelOuter = bvLowered
-          TabOrder = 1
-          object Label25: TLabel
-            Left = 2
-            Top = 59
-            Width = 580
-            Height = 48
-            Caption = 
-              'Warning: If the system keeps crashing each time you run Cheat En' +
-              'gine making it impossible to turn these options off then run Che' +
-              'at Engine with the /NOSTEALTH parameter, or rename dbk32.sys and' +
-              ' stealth.dll to something else'
-            WordWrap = True
-          end
-          object cbStealth: TCheckBox
-            Left = 4
-            Top = 10
-            Width = 598
-            Height = 21
-            Caption = 'Stealth mode (Usermode)'
-            TabOrder = 0
-          end
-          object cbProtectMe: TCheckBox
-            Left = 4
-            Top = 30
-            Width = 598
-            Height = 20
-            Caption = 'Stealth mode (Kernelmode)'
-            TabOrder = 1
-            OnClick = cbProtectMeClick
-          end
-          object btnMoreStealth: TButton
-            Left = 187
-            Top = 30
-            Width = 92
-            Height = 20
-            Caption = 'More...'
-            Enabled = False
-            TabOrder = 2
-            OnClick = btnMoreStealthClick
-          end
-        end
-        object cbUndoMemoryChanges: TCheckBox
-          Left = 9
-          Top = 89
-          Width = 593
-          Height = 21
-          Hint = 
-            'This will check some often used memory locations of and undo any' +
-            ' changes if it finds them'
-          Caption = 'Undo changes to CE'
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 2
-          OnClick = cbUndoMemoryChangesClick
-        end
-        object cbForceUndo: TCheckBox
-          Left = 9
-          Top = 107
-          Width = 593
-          Height = 21
-          Hint = 
-            'If by some means that normal way of changing the protection of m' +
-            'emory isn'#39't working then change the protection from the kernelsi' +
-            'de. (this requires the kernel mode routines)'
-          Caption = 
-            'Force memory to be writable in case the standard method is block' +
-            'ed'
-          Enabled = False
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 3
-        end
         object cbProcessWatcher: TCheckBox
-          Left = 9
-          Top = 171
+          Left = 1
+          Top = 91
           Width = 593
           Height = 21
           Caption = 'Enable use of the Process Watcher'
-          TabOrder = 4
+          TabOrder = 1
           OnClick = cbProcessWatcherClick
         end
         object cbKdebug: TCheckBox
-          Left = 9
-          Top = 191
+          Left = 1
+          Top = 111
           Width = 593
           Height = 21
           Caption = 'Use kernelmode debugger options when possible'
-          TabOrder = 5
+          TabOrder = 2
           OnClick = cbKdebugClick
         end
         object CheckBox3: TCheckBox
-          Left = 9
-          Top = 128
+          Left = 1
+          Top = 296
           Width = 593
           Height = 21
           Caption = 'Use APC to inject dll'#39's'
-          TabOrder = 6
+          TabOrder = 3
           Visible = False
         end
         object CheckBox4: TCheckBox
-          Left = 9
-          Top = 148
+          Left = 1
+          Top = 316
           Width = 593
           Height = 21
           Caption = 'Use APC to create new threads'
-          TabOrder = 7
+          TabOrder = 4
           Visible = False
         end
         object cbGlobalDebug: TCheckBox
-          Left = 30
-          Top = 209
+          Left = 22
+          Top = 129
           Width = 572
           Height = 21
           Caption = 'Use Global Debug routines'
           Enabled = False
-          TabOrder = 8
+          TabOrder = 5
         end
       end
       object tsTools: TTabSheet

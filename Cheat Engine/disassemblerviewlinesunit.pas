@@ -3,7 +3,7 @@ unit disassemblerviewlinesunit;
 interface
 
 uses windows,sysutils, classes,ComCtrls, graphics, cefuncproc, disassembler,
-     debugger, kerneldebugger, symbolhandler, stealthedit;
+     debugger, kerneldebugger, symbolhandler, plugin;
 
 type TDisassemblerLine=class
   private
@@ -42,6 +42,7 @@ type TDisassemblerLine=class
     property disassembled:string read fdisassembled;
     procedure renderLine(var address: dword; linestart: integer; selected: boolean=false; focused: boolean=false);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
+    procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(bitmap: TBitmap; headersections: THeaderSections);
 end;
 
@@ -144,8 +145,13 @@ var isbp: boolean;
     refferencedbyheight: integer;
     refferencedbystrings: array of string;
     i,j: integer;
-    relocated: boolean;
-    relocatesTo: dword;
+
+    paddressstring: pchar;
+    pbytestring: pchar;
+    popcodestring: pchar;
+    pspecialstring: pchar;
+
+    textcolor: TColor;
 begin
   top:=linestart;
   faddress:=address;
@@ -282,7 +288,7 @@ begin
   end;
 
 
-  splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring);
+  splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring, @MemoryBrowser.lastdebugcontext);
   if symhandler.showmodules then
     addressString:=symbolname
   else
@@ -292,28 +298,26 @@ begin
   opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
   specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
-  if MemoryBrowser.EIPv=faddress then
+  if MemoryBrowser.lastdebugcontext.EIP=faddress then
     addressString:='>>'+addressString;
 
-  relocatesTo:=0;
-  relocated:=false;
-  if stealtheditor<>nil then
-  begin
-    relocated:=stealtheditor.isRelocated(faddress, relocatesTo);
-    if relocated then
-    begin
-      addressString:=addressString+'->'+inttohex(relocatesTo,8);
-      fcanvas.Font.Color:=clBlue;
-    end;
-  end;
 
-  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart,addressString);
-  if relocated then
-    fcanvas.Font.Color:=clWindowText;
+  //set pointers to strings
+  paddressstring:=@addressstring[1];
+  pbytestring:=@bytestring[1];
+  popcodestring:=@opcodestring[1];
+  pspecialstring:=@specialstring[1];
 
-  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart,bytestring);
-  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart,opcodestring);
-  fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart,specialstring);
+
+  textcolor:=fcanvas.Font.Color;
+  handledisassemblerplugins(@paddressString, @pbytestring, @popcodestring, @pspecialstring, @textcolor);
+  fcanvas.font.color:=textcolor;
+
+
+  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
+  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
+  fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, pspecialstring);
 
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 
@@ -326,7 +330,11 @@ begin
     fcanvas.Font.Color:=clWindowText;
     fcanvas.Refresh;
   end;
+end;
 
+procedure TDisassemblerLine.handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
+begin
+  pluginhandler.handledisassemblerplugins(faddress, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
 end;
 
 function TDisassemblerLine.getHeight: integer;

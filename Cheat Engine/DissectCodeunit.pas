@@ -37,6 +37,8 @@ type
     lblUnConditionalJumps: TLabel;
     Label11: TLabel;
     lblCalls: TLabel;
+    Label1: TLabel;
+    lblMaxOffset: TLabel;
     procedure btnStartClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -170,6 +172,7 @@ begin
   lblConditionalJumps.caption:=inttostr(dissectcode.nrofconditionaljumps);
   lblUnConditionalJumps.caption:=inttostr(dissectcode.nrofunconditionaljumps);
   lblCalls.caption:=inttostr(dissectcode.nrofcalls);
+  lblMaxOffset.caption:=inttostr(dissectcode.maxoffset);
 
 
   progressbar1.position:=dissectcode.percentagedone;

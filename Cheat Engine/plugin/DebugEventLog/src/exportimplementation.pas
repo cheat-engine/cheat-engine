@@ -18,7 +18,6 @@ implementation
 uses frmEventLogUnit;
 
 
-
 function Menuitemclick(disassembleraddress: DWORD; selected_disassembler_address: PDWORD; hexviewaddress: PDWORD): BOOL; stdcall;
 begin
   if frmEventLog=nil then
@@ -32,6 +31,12 @@ begin
 
   result:=false;
 end;
+
+function MenuitemclickFromDisassembler(selectedaddress: PDWORD): BOOL; stdcall;
+begin
+  result:=Menuitemclick(0, selectedaddress, selectedaddress);
+end;
+
 
 function GetVersion(var PluginVersion:TpluginVersion; sizeofpluginversion:integer):BOOL; stdcall;
 var s: string;
@@ -53,7 +58,7 @@ begin
 end;
 
 function InitializePlugin(ExportedFunctions: PExportedFunctions; pluginid: dword):BOOL; stdcall;
-var init: Tfunction1;
+var init, init2: Tfunction1;
 begin
   ce_exported:=ExportedFunctions^;
   thispluginid:=pluginid;
@@ -62,7 +67,12 @@ begin
   init.callbackroutine:=@Menuitemclick;
   init.name:='View debug events';
   init.shortcut:='Shift+Ctrl+D';
+
+  init2.callbackroutine:=@MenuitemclickFromDisassembler;
+  init2.name:='View debug events';
+  init2.shortcut:=nil;
   ce_exported.registerfunction(thispluginid, ptMemoryView, @init);
+  ce_exported.registerfunction(thispluginid, ptDisassemblerContext, @init2);
 
   result:=true;
 end;

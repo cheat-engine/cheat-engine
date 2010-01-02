@@ -7,11 +7,11 @@ uses
   ComCtrls, StdCtrls,  Menus, CEFuncproc, Buttons,shellapi,
   ExtCtrls, Dialogs, Clipbrd,debugger,kerneldebugger, assemblerunit,
   registry,{xpman,}math,hexeditor, Gauges, ImgList,commctrl,NewKernelHandler,
-  hotkeyhandler,tlhelp32,undochanges,winsvc,imagehlp,unrandomizer,symbolhandler,
+  hotkeyhandler,tlhelp32,winsvc,imagehlp,unrandomizer,symbolhandler,
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist;
+  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist, ManualModuleLoader;
 
   //the following are just for compatibility
 
@@ -410,7 +410,6 @@ type
       Shift: TShiftState);
     procedure mode16Click(Sender: TObject);
     procedure Label59Click(Sender: TObject);
-    procedure Label38Click(Sender: TObject);
     procedure Browsethismemoryregioninthedisassembler1Click(
       Sender: TObject);
     procedure AutoAttachTimerTimer(Sender: TObject);
@@ -3547,7 +3546,6 @@ resourcestring
 function TMainform.openprocessPrologue:boolean;
 begin
   result:=false;
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
   if flashprocessbutton<>nil then
   begin
@@ -3906,8 +3904,6 @@ begin
   try
     if scanvalue2<>nil then value2:=scanvalue2.Text;
 
-    if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
-
     screen.Cursor:=crhourglass;
 
     advanced:=false;
@@ -4199,7 +4195,6 @@ begin
   foundlist.Deinitialize;
 
   try
-    if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
     screen.Cursor:=crhourglass;
 
@@ -4413,7 +4408,7 @@ begin
     OnKeyPress:=FControlKeyPress;
     PopupMenu:=PopupMenu2;
     helpcontext:=10;
-    left:=0;
+    left:=5;
     top:=57;
     height:=21;
     width:=81;
@@ -8090,8 +8085,6 @@ begin
   //undo unrandomize
   if unrandomize<>nil then
     freeandnil(unrandomize);
-    
-  disablestealth;
 
   numberofrecords:=0;
   reservemem;
@@ -9289,11 +9282,13 @@ begin
   if (month=4) and (day=1) then aprilfools:=true;
 
   //beta
-  if (year>2010) or ((year=2010) and (month>1)) then
+  {$ifdef betatest}
+  if (year>2010) or ((year=2010) and (month>3)) then
   begin
-    showmessage('please ask dark byte for a new version');
+    showmessage('please ask dark byte for a new version (and no, this is not an april fools joke)');
     application.Terminate;
   end;
+  {$endif}
 
   if aprilfools=true then
     Messagedlg('Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for only $1800.'+' If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)',mtwarning,[mbok],0);
@@ -9305,26 +9300,6 @@ begin
   if paramcount>=1 then
   begin
     loadt:=true;
-
-    if not (uppercase(paramstr(1))='/NOSTEALTH') then
-    begin
-
-      //moved to oncreate
-      reg:=tregistry.Create;
-      try
-        Reg.RootKey := HKEY_CURRENT_USER;
-        if Reg.OpenKey('\Software\Cheat Engine',false) then
-        begin
-          if reg.ValueExists('Protect CE') and reg.ReadBool('Protect CE') then
-            ProtectCE;
-
-          if reg.ValueExists('StealthOnExecute') and reg.ReadBool('StealthOnExecute') then
-            EnableStealth;            
-        end;
-      finally
-        reg.Free;
-      end;
-    end else loadt:=false;
 
     if uppercase(paramstr(1))='-O' then
     begin
@@ -9354,8 +9329,7 @@ begin
     end;
   end else
   begin
-    if formsettings.cbStealth.checked then EnableStealth;
-    if formsettings.cbProtectme.Checked then protectce;
+
   end;
 
   if loadt then
@@ -9386,16 +9360,11 @@ begin
       cbKernelQueryMemoryRegion.enabled:=false;
       cbKernelReadWriteProcessMemory.enabled:=false;
       cbKernelOpenProcess.enabled:=false;
-      cbStealth.enabled:=false;
-      cbprotectme.Enabled:=false;
-      cbUndoMemoryChanges.Enabled:=false;
-      cbForceUndo.enabled:=false;
       cbProcessWatcher.Enabled:=false;
       cbKDebug.enabled:=false;
       cbGlobalDebug.enabled:=false;
 
       TauntOldOsUser.Visible:=true;
-      panel1.Enabled:=false;
       label25.Enabled:=false;
     end;
   end;
@@ -9526,17 +9495,6 @@ var tlhlp: thandle;
     i:integer;
     Savedata: tfilestream;
 
-    KernelBase:DWORD;
-    NTDLLBase: DWORD;
-    User32Base:DWORD;
-    KernelDLLRegions: array of tregiondata;
-    NTDLLRegions: array of tregiondata;
-    User32DLLRegions: Array of tregiondata;
-
-    oldstealthhook: thandle;
-    stealth1,stealth2: boolean;
-    showstealthanim: boolean;
-    ceprotect: boolean;
 
     ntdll,kernel32,user32:thandle;
 
@@ -9544,9 +9502,6 @@ var tlhlp: thandle;
 begin
   suspendhotkeyhandler;
 
-  stealth1:=formsettings.cbStealth.Checked;
-  stealth2:=formsettings.cbProtectMe.checked;
-  ceprotect:=formsettings.cbUndoMemoryChanges.Checked;
   oldmodulelist:=modulelist;
 
   if formsettings.ShowModal<>mrok then
@@ -9558,160 +9513,6 @@ begin
 
 
   resumehotkeyhandler;
-
-  //save the memory (if needed)
-  if ceprotect and (not formsettings.cbUndoMemoryChanges.Checked) then
-  begin
-    //stop the memory restore
-
-  end;
-
-  if (not ceprotect) and (formsettings.cbUndoMemoryChanges.Checked) then
-  begin
-    //start the memory restore
-    setlength(kerneldllregions,0);
-    setlength(ntdllregions,0);
-    setlength(user32dllregions,0);
-
-    //locate kernel32.dll and ntdll.dll and save them to file (I could of course read the files from harddisk, but I like this better)
-    tlhlp:=createtoolhelp32snapshot(TH32CS_SNAPMODULE, getcurrentprocessid);
-    m.dwSize:=sizeof(tagModuleentry32);
-
-    DONTUseDBKQueryMemoryRegion; //I need to find out the executable locations. (and since the user told me the memory was unchanged this will not cause any problems, unless the user was braindead and clicked yes, in wich case the "Kill User" command has to be activated)
-    savedata:=tfilestream.Create(cheatenginedir+'CEProtect.dat',fmCreate);
-    try
-      if module32first(tlhlp,m) then
-      begin
-        repeat
-          if uppercase(pchar(@m.szModule[0]))='NTDLL.DLL' then
-          begin
-            ntdllbase:=dword(m.modBaseAddr);
-            x:=dword(m.modBaseAddr);
-
-            while (virtualqueryex(getcurrentprocess,pointer(x),mbi,sizeof(mbi))>0) and (x<(dword(m.modbaseaddr)+m.modBaseSize)) do
-            begin
-              if (mbi.Protect and (page_execute or page_execute_read or page_execute_readwrite))>0 then
-              begin
-                //it's executable, so save it
-                setlength(NTDLLRegions,length(ntdllregions)+1);
-                NTDLLRegions[length(NTDLLRegions)-1].dllnr:=1;
-                NTDLLRegions[length(NTDLLRegions)-1].address:=x;
-                NTDLLRegions[length(NTDLLRegions)-1].size:=mbi.RegionSize;
-              end;
-              inc(x,mbi.RegionSize);
-            end;
-          end;
-
-          if uppercase(pchar(@m.szModule[0]))='KERNEL32.DLL' then
-          begin
-            kernelbase:=dword(m.modBaseAddr);
-            x:=dword(m.modBaseAddr);
-
-            while (virtualqueryex(getcurrentprocess,pointer(x),mbi,sizeof(mbi))>0) and (x<(dword(m.modbaseaddr)+m.modBaseSize)) do
-            begin
-              if (mbi.Protect and (page_execute or page_execute_read or page_execute_readwrite))>0 then
-              begin
-                //it's executable, so save it
-                setlength(KERNELDLLRegions,length(KERNELDLLRegions)+1);
-                KERNELDLLRegions[length(KERNELDLLRegions)-1].dllnr:=1;
-                KERNELDLLRegions[length(KERNELDLLRegions)-1].address:=x;
-                KERNELDLLRegions[length(KERNELDLLRegions)-1].size:=mbi.RegionSize;
-              end;
-              inc(x,mbi.RegionSize);
-            end;
-          end;
-
-          if uppercase(pchar(@m.szModule[0]))='USER32.DLL' then
-          begin
-            user32base:=dword(m.modBaseAddr); //can change
-            x:=dword(m.modBaseAddr);
-
-            while (virtualqueryex(getcurrentprocess,pointer(x),mbi,sizeof(mbi))>0) and (x<(dword(m.modbaseaddr)+m.modBaseSize)) do
-            begin
-              if (mbi.Protect and (page_execute or page_execute_read or page_execute_readwrite))>0 then
-              begin
-                //it's executable, so save it
-                setlength(user32DLLRegions,length(user32DLLRegions)+1);
-                user32DLLRegions[length(user32DLLRegions)-1].dllnr:=1;
-                user32DLLRegions[length(user32DLLRegions)-1].address:=x;
-                user32DLLRegions[length(user32DLLRegions)-1].size:=mbi.RegionSize;
-              end;
-              inc(x,mbi.RegionSize);
-            end;
-          end;
-
-
-
-        until not module32next(tlhlp,m);
-
-      end;
-
-      x:=undoversion;
-      savedata.WriteBuffer(x,4); //version (let's just say I don't want to load the data of a older/newer version of CE)
-      savedata.WriteBuffer(Kernelbase,4);
-      savedata.WriteBuffer(ntdllbase,4);
-      savedata.WriteBuffer(user32base,4);
-
-      x:=length(KERNELDLLRegions); //shuld be 1 for both, but let's be safe
-      savedata.WriteBuffer(x,4);
-      savedata.Writebuffer(KERNELDLLRegions[0],x*sizeof(tregiondata));
-
-      //save the memory
-      for i:=0 to x-1 do
-        savedata.WriteBuffer(pbyte(KERNELDLLRegions[i].address)^,KERNELDLLRegions[i].size);
-
-      x:=length(ntdllRegions);
-      savedata.WriteBuffer(x,4);
-      savedata.Writebuffer(ntdllRegions[0],x*sizeof(tregiondata));
-      //save the memory
-      for i:=0 to x-1 do
-        savedata.WriteBuffer(pbyte(NTDLLRegions[i].address)^,NTDLLRegions[i].size);
-
-      x:=length(user32dllRegions);
-      savedata.WriteBuffer(x,4);
-      savedata.Writebuffer(user32dllregions[0],x*sizeof(tregiondata));
-      //save the memory
-      for i:=0 to x-1 do
-        savedata.WriteBuffer(pbyte(user32DLLRegions[i].address)^,user32DLLRegions[i].size);
-
-
-      //save the location of the api's to check. (I doubt they'd hook getprocaddress to point to a unhooked version, but let's take the safe side.....)
-      //the user told us the memory is clean so getprocaddress gives us the right addresses
-      kernel32:=loadlibrary('kernel32.dll');
-      x:=dword(GetProcAddress(kernel32,'OpenProcess'));
-      savedata.WriteBuffer(x,4);
-      x:=dword(GetProcAddress(kernel32,'DebugActiveProcess'));
-      savedata.WriteBuffer(x,4);
-      x:=dword(GetProcAddress(kernel32,'SuspendThread'));
-      savedata.WriteBuffer(x,4);
-      x:=dword(GetProcAddress(kernel32,'ResumeThread'));
-      savedata.WriteBuffer(x,4);
-      x:=dword(GetProcAddress(kernel32,'ReadProcessMemory'));
-      savedata.WriteBuffer(x,4);
-      x:=dword(GetProcAddress(kernel32,'WriteProcessMemory'));
-      savedata.WriteBuffer(x,4);
-      FreeLibrary(kernel32);
-
-      ntdll:=loadlibrary('ntdll.dll');
-      x:=dword(GetProcAddress(ntdll,'NtOpenProcess'));
-      savedata.WriteBuffer(x,4);
-      freelibrary(ntdll);
-
-      user32:=loadlibrary('user32.dll');
-      x:=dworD(GetProcAddresS(user32,'SetWindowsHookExA'));
-      savedata.WriteBuffer(x,4);
-      freelibrary(user32);
-      
-
-      firstrun:=true;
-    finally
-      savedata.Free;
-    end;
-  end;
-
-
-  //reset the hotkeys
-  
 
   //set the memorybrowser settings if they changed
   if formsettings.cbShowDisassembler.checked then
@@ -9725,29 +9526,6 @@ begin
     memorybrowser.Panel1.Visible:=false;
     memorybrowser.splitter1.Visible:=false;
   end;
-
-  if (formsettings.cbStealth.checked) or (formsettings.cbProtectme.Checked) then
-  begin
-    showstealthanim:=false;
-    if (not stealth1) and (formsettings.cbStealth.checked) then
-      showstealthanim:=true;
-
-    if (not stealth2) and (formsettings.cbprotectme.checked) then
-      showstealthanim:=true;
-
-    if showstealthanim then
-      animatewindow(mainform.Handle,1500,AW_BLEND or AW_HIDE);
-
-
-    if formsettings.cbStealth.checked then EnableStealth;
-    if formsettings.cbProtectme.Checked then protectce;
-
-    if showstealthanim then
-      showwindow(mainform.Handle,sw_show);
-  end;
-
-  if not formsettings.cbStealth.checked then disablestealth;
-
 
 
   if formsettings.cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
@@ -9992,8 +9770,6 @@ begin
       vartype.Items.add('Custom');
 
   end;
-
-  if formsettings.cbUndoMemoryChanges.checked then CheckForChanges; //place this line at important places
 
   if (sender=cbspeedhack) then
   begin
@@ -10960,197 +10736,16 @@ var raaa: packed record
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
-{type TKeGetCurrentIrql=function: dword; stdcall;
-     TExAllocatePool=function(Pooltype: dword; NumberOfBytes: dword):pointer; stdcall;
-
-var new_cs,new_ss,new_ds,new_es,new_fs,new_gs: word;
-    i,j: integer;
-    cr0_value: dword;
-
-    KeGetCurrentIrql: TKeGetCurrentIrql;
-    ExAllocatePool:   TExAllocatePool;
-    z: pointer;
-label lp;    }
-label ex;
-var oldcs,oldss, oldds,oldes,oldfs,oldgs: word;
-
-  oldflags: dword;
-  i: integer;
-
-  a: dword;
-  b: dword;
-
-  sgdtdesc: uint64;
-  state: TDebuggerstate;
-
-
-  x: tcanvas;
-
+var x: TModuleLoader;
 begin
- //type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+  x:=TModuleloader.create('C:\source\stealtheditplugin\plugin\stealthedit64.sys');
 
-  LoadDBK32;
-
-  launchdbvm;
-
-  showmessage('not crashed yet');
-
-  exit;
-
-
-   {
-  
-
-  if DBKDebug_WaitForDebugEvent(1000) then
+  if x.loaded then
   begin
-    ShowMessage('Wait was TRUE');
+    showmessage(x.Exporttable.Text);
 
-    if DBKDebug_GetDebuggerState(@state) then
-    begin
-      showmessage('obtained state: ebp='+inttohex(state.ebp,8)+'esp='+inttohex(state.esp,8)+'eax='+inttohex(state.eax,8));
-    end;
-
-//    state.eax:=$9b00b135;
-//    state.eflags:=state.eflags or (1 shl 16); //set Resume flag
-
-//    DBKDebug_SetDebuggerState(@state);
-
-    if DBKDebug_ContinueDebugEvent(false) then
-      ShowMessage('Continued unhandled')
-    else
-      ShowMessage('No continue?');
-
-
-  end
-  else
-    ShowMessage('Wait was FALSE');
-
-  {
-
-  sgdtdesc:=0;
-
-
-
-  asm
-    nop
-    mov ax,cs
-    mov raaa.segment,ax
-    lea eax,[ex]
-    mov raaa.eip,eax
-    db $ff
-    db $2d
-    dd raaa
-  end;
-
-
-  ex:
-  
-
-  showmessage(inttohex(sgdtdesc,16)+':'+inttohex(b,8)+' ('+inttostr(a)+')');
-
-   }
-   {
-
-
-  asm
-    xchg bx,bx
-  end;
-
-  dbvm_block_interrupts;
-  asm
-
-    push eax
-    push ebx
-
-    //save old segment registers , needed to come back from it
-
-    mov ax,cs
-    mov oldcs,ax
-    mov ax,ss
-    mov oldss,ax
-    mov ax,ds
-    mov oldds,ax
-    mov ax,es
-    mov oldes,ax
-    mov ax,fs
-    mov oldfs,ax
-    mov ax,gs
-    mov oldgs,ax
-
-
-
-    pushfd
-    pop eax
-    mov oldflags,eax
-
-    pop ebx
-    pop eax
 
   end;
-
-  if dbvm_raise_privilege=0 then
-  begin
-    //do your ring0 stuff
-
-
-    asm
-      sgdt [sgdtdesc]
-
-      mov eax,oldflags
-      push eax
-      popfd
-    end;
-    dbvm_changeselectors(oldcs,oldss,oldds,oldes,oldfs,oldgs);
-  end;
-
-
-  dbvm_restore_interrupts;
-
-
-  showmessage(inttohex(sgdtdesc.base,8)+' ('+inttostr(sgdtdesc.limit)+')');
-     }
-
-{  //get the original segment selectors, just to be sure
-  asm
-    mov ax,cs
-    mov [new_cs],ax
-    mov ax,ss
-    mov [new_ss],ax
-    mov ax,ds
-    mov [new_ds],ax
-    mov ax,es
-    mov [new_es],ax
-    mov ax,fs
-    mov [new_fs],ax
-    mov ax,gs
-    mov [new_gs],ax
-  end;
-
-  i:=0;
-
-  KeGetCurrentIrql:=TKeGetCurrentIrql(GetKProcAddress('KeGetCurrentIrql'));
-  ExAllocatePool:=TExAllocatePool(GetKProcAddress('ExAllocatePool'));
-
-
-  showmessage('CS='+inttohex(new_cs,2)+' SS='+inttohex(new_ss,2)+' DS='+inttohex(new_ds,2)+' ES='+inttohex(new_es,2)+' FS='+inttohex(new_fs,2)+' GS='+inttohex(new_gs,2));
-  dbvm_block_interrupts;
-  dbvm_changeselectors($8,$10,$23,$23,$30,0);
-
-
-
-  //mainform.Caption:='blaaaaaaa';
-
-  i:=KeGetCurrentIrql;
-  z:=ExAllocatePool(0,4096);
-
-  dbvm_changeselectors(new_cs,new_ss,new_ds,new_es,new_fs,new_gs);
-
-  dbvm_restore_interrupts;
-
-
-
-  showmessage('Still alive! IRQL='+inttohex(i,8)+' Allocated nonpaged memory at '+inttohex(dword(z),8));
-  }
 end;
 
 {
@@ -11251,130 +10846,6 @@ end;
 
 
 var    abc: TReversePointerListHandler;
-
-procedure TMainForm.Label38Click(Sender: TObject);
-var
-  x: dword;
-{resh: thandle;
-    s: tmemorystream;
-    ki: TKIcon;
-    tid: TIconData;
-    x: array [0..4095] of byte;
-    y: integer;
-    old: dword;}
-
-    trace: tstringlist;
-    bla: pointer;
-
-
-var heaphandles: array of cardinal;
-    size: integer;
-    temp: dword;
-    i: integer;
-    phe: PROCESS_HEAP_ENTRY;
-
-    aaaa: dword;
-
-    starttime: dword;
-begin
-  OutputDebugString('calling stealthedit_InitializeHooks');
-  stealthedit_InitializeHooks;
-//  DBKDebug_StartDebugging(processid);
-
-  {
-  abc:=TReversePointerListHandler.create(0,$7fffffff,true,progressbar1);
-  //showmessage(inttohex(aaaa,8));
-
-
-{  size:=GetProcessHeaps(0,temp);
-
-  if size>0 then
-  begin
-    setlength(heaphandles,size);
-    size:=GetProcessHeaps(size,heaphandles[0]);
-
-    if size>0 then
-    begin
-      for i:=0 to size-1 do
-      begin
-        heaplock(heaphandles[i]);
-        try
-          ZeroMemory(@phe,sizeof(phe));
-          while HeapWalk(heaphandles[i], phe) do
-          begin
-
-
-          end;
-        finally
-          heapunlock(heaphandles[i]);
-        end;
-      end;
-    end;
-  end;  }
-
-  // heaplock
-
- // heapunlock
-
-
-  exit;
-
-
-{
-asm
-  db $9b,$d9, $83, $28, $03, $00, $00
-end;
-exit;
-
-  LoadDBK32;
-
-  DBKDebug_StartDebugging(ProcessID);       }
-  {
-  if stealtheditor=nil then
-    stealtheditor:=tstealthedit.create;
-
-  stealtheditor.StartEdit($00452000,4096);
-
-  {
-  if assigned(stealthedit_InitializeHooks) then
-  begin
-    if stealthedit_InitializeHooks then
-    begin
-      showmessage('hooked');
-      if stealthedit_AddCloakedSection(processid, $00452000, $2000, 4096) then
-        showmessage('Registered')
-      else
-        showmessage('registration failed');
-        
-    end
-    else
-    begin
-      showmessage('failed');
-    end;
-  end else showmessage('not assigned');
-  }
- 
-{  //find the current kernel, and get the base of it
-  //
-  
-  findusedkernel;
-  getmem(header,4096*4);
-  try
-    ph:=newkernelhandler.KernelOpenProcess(PROCESS_ALL_ACCESS	,true,getcurrentprocessid);
-    if newkernelhandler.KernelReadProcessMemory(ph,pointer(usedkernelbase),header,4096*4,bytesread) then
-    begin
-      if MakeKernelCopy(usedkernelbase,peinfo_getheadersize(header)+peinfo_getcodesize(header)) then
-      begin
-
-
-      end else showmessage('MakeKernelCopy failed');
-    end
-    else
-      showmessage('bla');
-  finally
-    freemem(header);
-  end;  }
-end;
 
 procedure TMainForm.Browsethismemoryregioninthedisassembler1Click(
   Sender: TObject);
