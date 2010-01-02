@@ -4,16 +4,20 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,newkernelhandler, cefuncproc, ComCtrls,imagehlp,debugger;
+  Dialogs,newkernelhandler, cefuncproc, ComCtrls,imagehlp,debugger, kerneldebugger,
+  Menus;
 
 type
   TfrmStacktrace = class(TForm)
     ListView1: TListView;
+    PopupMenu1: TPopupMenu;
+    Refresh1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure Refresh1Click(Sender: TObject);
   private
     { Private declarations }
-
+    procedure refreshtrace;
   public
     { Public declarations }
     procedure stacktrace(threadhandle:thandle;context:_context);
@@ -73,9 +77,26 @@ begin
 
 end;
 
+procedure TfrmstackTrace.refreshtrace;
+var c: _CONTEXT;
+begin
+
+  if debuggerthread<>nil then
+    stacktrace(debuggerthread.pausedthreadhandle,debuggerthread.context)
+  else
+  begin
+    if kdebugger <> nil then
+    begin
+      Kdebugger.GetContext(c);
+      stacktrace(0, c);
+    end;
+  end;
+end;
+
+
 procedure TfrmStacktrace.FormCreate(Sender: TObject);
 begin
-  stacktrace(debuggerthread.pausedthreadhandle,debuggerthread.context);
+  refreshtrace;
 end;
 
 procedure TfrmStacktrace.FormClose(Sender: TObject;
@@ -83,6 +104,11 @@ procedure TfrmStacktrace.FormClose(Sender: TObject;
 begin
   frmstacktrace:=nil;
   action:=cafree;
+end;
+
+procedure TfrmStacktrace.Refresh1Click(Sender: TObject);
+begin
+  refreshtrace;
 end;
 
 end.

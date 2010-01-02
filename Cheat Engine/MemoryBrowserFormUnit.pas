@@ -4,14 +4,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,tlhelp32, frmMemoryAllocHandlerUnit,
-  math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,{$ifndef net}plugin,debugger,kerneldebugger,{$endif}assemblerunit,disassembler,addressparser,
-  Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions {$ifndef net},dissectcodethread{$endif}
-  {$ifdef netclient}
-  ,NetAPIs, ComCtrls
-  {$else}
-  ,stacktrace2, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit
-  {$endif}
-  ;
+  math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,plugin,debugger,kerneldebugger, assemblerunit,disassembler,addressparser,
+  Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions ,dissectcodethread
+  ,stacktrace2, NewKernelHandler, ComCtrls,FormsExtra, frmCScriptUnit , byteinterpreter, StrUtils;
 
 
 type
@@ -183,11 +178,14 @@ type
     All1: TMenuItem;
     Modulesonly1: TMenuItem;
     Nonsystemmodulesonly1: TMenuItem;
-    lvStacktrace: TListView;
+    lvStacktraceData: TListView;
     N17: TMenuItem;
     Maxstacktracesize1: TMenuItem;
     Splitter2: TSplitter;
     Referencedstrings1: TMenuItem;
+    N18: TMenuItem;
+    stacktrace2: TMenuItem;
+    Executetillreturn1: TMenuItem;
     procedure Button4Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -311,6 +309,9 @@ type
     procedure Modulesonly1Click(Sender: TObject);
     procedure Nonsystemmodulesonly1Click(Sender: TObject);
     procedure Referencedstrings1Click(Sender: TObject);
+    procedure stacktrace2Click(Sender: TObject);
+    procedure Executetillreturn1Click(Sender: TObject);
+    procedure lvStacktraceDataData(Sender: TObject; Item: TListItem);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -368,6 +369,8 @@ type
     FShowDebugPanels: boolean;
     FStacktraceSize: integer;
 
+    strace: Tstringlist;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     procedure UpdateRWAddress(disasm: string);
@@ -417,6 +420,7 @@ type
     property showDebugPanels: boolean read fShowDebugPanels write setShowDebugPanels;
     property stacktraceSize: integer read FStacktraceSize write SetStacktraceSize;
     procedure reloadStacktrace;
+    function GetReturnaddress: dword;
   end;
 
 var
@@ -675,6 +679,8 @@ var x: array of integer;
 begin
   displaytype:=dtByte;
   scriptconsole1.ShortCut:=TextToShortCut('Ctrl+Shift+C');
+
+  strace:=tstringlist.create;
 
 
 {
@@ -1859,14 +1865,31 @@ end;
 
 procedure TMemoryBrowser.StepOver1Click(Sender: TObject);
 var x: dword;
-    i: integer;
-    temp:string;
+    i,j: integer;
+    s,s1,s2,temp:string;
     int3: byte;
     original,a,written:dword;
+
 begin
   {$ifndef net}
   int3:=$cc;
   //place a invisble for the user breakpoint on the following upcode
+
+  x:=lastdebugcontext.Eip;
+  s:=disassemble(x,temp);
+  i:=posex('-',s);
+  i:=posex('-',s,i+1);
+  s:=copy(s,i+2,length(s));
+
+  i:=pos(' ',s);
+  s1:=copy(s,1,i-1);
+  s2:=copy(s,i+1,length(s));
+
+  if not ((s1='call') or (s1='loop')) then //not a call or loop
+  begin
+    Step1.Click;
+    exit;
+  end;
 
   if kdebugger.isactive then
   begin
@@ -1876,8 +1899,8 @@ begin
   if debuggerthread<>nil then
   begin
     debuggerthread.continuehow:=wdco_stepOver; //step over
-    x:=lastdebugcontext.Eip;
-    disassemble(x,temp);
+
+
 
     if formsettings.rbDebugAsBreakpoint.checked then
     begin
@@ -3624,6 +3647,9 @@ end;
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
 var h0,h1,h2,h3: integer;
 begin
+  if strace<>nil then
+    strace.free;
+
   disassemblerHistory.free;
   memorybrowserHistory.free;
   assemblerHistory.free;
@@ -3951,17 +3977,98 @@ end;
 procedure TMemoryBrowser.reloadStacktrace;
 var s: pdwordarray;
     x: dword;
-    trace: tstringlist;
+    
     i: integer;
     address, bytes, details: string;
     li: tlistitem;
+    c: TListcolumn;
 begin
-  lvStacktrace.Clear;
+  lvStacktraceData.Items.BeginUpdate;
+  try
+    if stacktrace2.Checked then
+    begin
+      //setup view for stacktrace if it isn't setup yet
+      if lvStacktraceData.columns.Count=3 then
+      begin
+        lvstacktracedata.Columns.BeginUpdate;
+        try
+          lvstacktracedata.Columns.Clear;
+          c:=lvstacktracedata.Columns.Add;
+          c.Caption:='Return Address';
+          c.Width:=120;
+
+          c:=lvstacktracedata.Columns.Add;
+          c.Caption:='Parameters';
+          c.Width:=200;
+          c.AutoSize:=true;
+
+        finally
+          lvstacktracedata.Columns.EndUpdate;
+        end;
+      end;
+
+      if frmstacktrace=nil then
+        frmstacktrace:=tfrmstacktrace.create(self);
+
+
+      lvstacktracedata.Items.Count:=frmstacktrace.ListView1.Items.Count;
+    end
+    else
+    begin
+      //setup view for stackview if it isn't setup yet
+      if lvStacktraceData.columns.Count<>3 then
+      begin
+        lvstacktracedata.Columns.BeginUpdate;
+        try
+          lvstacktracedata.Columns.Clear;
+          c:=lvstacktracedata.Columns.Add;
+          c.Caption:='Address';
+          c.Width:=80;
+          c:=lvstacktracedata.Columns.Add;
+          c.Caption:='DWORD';
+          c.Width:=80;
+          c:=lvstacktracedata.Columns.Add;
+          c.Caption:='Value';
+          c.Width:=100;
+          c.AutoSize:=true;
+        finally
+          lvstacktracedata.Columns.EndUpdate;
+        end;
+      end;
+
+      if all1.checked =false then
+      begin
+        //just get the list
+        getmem(s,FStacktraceSize);
+        try
+          readprocessmemory(processhandle, pointer(lastdebugcontext.Esp),s, FStacktraceSize,x);
+          strace.Clear;
+          ce_stacktrace(lastdebugcontext.esp, lastdebugcontext.ebp, lastdebugcontext.eip, s,x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+
+          lvstacktracedata.Items.Count:=strace.Count;
+        finally
+          freemem(s);
+        end;
+      end else
+      begin
+        lvstacktracedata.Items.Count:=4096 div 4;
+      end;
+
+    end;
+  finally
+    lvStacktraceData.Items.EndUpdate;
+  end;
+{
+  lvStacktraceData.Items.BeginUpdate;
+  lvStacktraceData.count:=0;
+
+  lvStacktraceData.Items.EndUpdate;
+
   trace:=tstringlist.Create;
   getmem(s,FStacktraceSize);
   try
     readprocessmemory(processhandle, pointer(lastdebugcontext.Esp),s, FStacktraceSize,x);
-    ce_stacktrace(lastdebugcontext.esp, lastdebugcontext.ebp, lastdebugcontext.eip, s,x, trace,false,modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+    ce_stacktrace(lastdebugcontext.esp, lastdebugcontext.ebp, lastdebugcontext.eip, s,x, trace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
 
     for i:=0 to trace.count-1 do
     begin
@@ -3974,7 +4081,7 @@ begin
   finally
     freemem(s);
     trace.free;
-  end;
+  end;}
 
 end;
 
@@ -3996,6 +4103,7 @@ begin
   all1.checked:=true;
   Modulesonly1.Checked:=false;
   Nonsystemmodulesonly1.Checked:=false;
+  stacktrace2.Checked:=false;
   reloadstacktrace;
 end;
 
@@ -4004,6 +4112,7 @@ begin
   all1.checked:=false;
   Modulesonly1.Checked:=true;
   Nonsystemmodulesonly1.Checked:=false;
+  stacktrace2.Checked:=false;
   reloadstacktrace;
 end;
 
@@ -4012,6 +4121,16 @@ begin
   all1.checked:=false;
   Modulesonly1.Checked:=false;
   Nonsystemmodulesonly1.Checked:=true;
+  stacktrace2.Checked:=false;
+  reloadstacktrace;
+end;
+
+procedure TMemoryBrowser.stacktrace2Click(Sender: TObject);
+begin
+  all1.checked:=false;
+  Modulesonly1.Checked:=false;
+  Nonsystemmodulesonly1.Checked:=false;
+  stacktrace2.Checked:=true;
   reloadstacktrace;
 end;
 
@@ -4031,6 +4150,94 @@ begin
       frmReferencedStrings:=tfrmReferencedStrings.Create(self);
 
     frmReferencedStrings.Show;
+  end;
+end;
+
+
+function TMemoryBrowser.GetReturnaddress: dword;
+var haserror: boolean;
+begin
+  result:=0;
+
+  //do a stacktrace and find the return address
+  if frmstacktrace=nil then
+    frmstacktrace:=tfrmstacktrace.create(self);
+
+  if frmStacktrace.ListView1.Items.Count>0 then
+  begin
+    result:=symhandler.getAddressFromName(frmStacktrace.ListView1.Items[0].SubItems[2], false,haserror);
+    if haserror then result:=0;
+  end;
+
+end;
+
+procedure TMemoryBrowser.Executetillreturn1Click(Sender: TObject);
+var x: dword;
+begin
+  x:=getreturnaddress;
+  if x>0 then
+  begin
+    disassemblerview.SelectedAddress:=x;
+    Runtill1.Click;
+  end;
+end;
+
+procedure TMemoryBrowser.lvStacktraceDataData(Sender: TObject; Item: TListItem);
+var
+  value,x: dword;
+  a: dword;
+  address,bytes,details: string;
+  v: TVariableType;
+begin
+  if stacktrace2.checked then
+  begin
+    //show frmstacktrace
+    if frmStacktrace=nil then
+      frmstacktrace:=TfrmStacktrace.Create(self); //should never happen
+
+    if item.Index<frmStacktrace.ListView1.Items.Count then
+    begin
+      item.Caption:=frmStacktrace.ListView1.Items[item.index].SubItems[2]; //returnaddress
+      item.SubItems.Add(frmStacktrace.ListView1.Items[item.index].SubItems[3]); //subitems address
+    end;
+  end
+  else
+  if all1.checked then
+  begin
+    //show for each dword what it is
+    a:=lastdebugcontext.Esp+item.Index*4;
+    item.Caption:=inttohex(a,8);
+    if readprocessmemory(processhandle, pointer(a), @value, sizeof(value),x) then
+    begin
+      item.SubItems.Add(inttohex(value,8));
+      v:=FindTypeOfData(a,@value,sizeof(value));
+      case v of
+        vtSingle:
+          item.SubItems.Add(format('%.4f',[psingle(@value)^]));
+
+        vtPointer:
+        begin
+          item.SubItems.Add(symhandler.getNameFromAddress(value));
+        end;
+
+        else
+          item.SubItems.Add(inttostr(value));
+
+      end;
+    end;
+  end else
+  begin
+    //show strace
+    if strace<>nil then
+    begin
+      if item.index<strace.count then
+      begin
+        seperatestacktraceline(strace[item.index], address,bytes,details);
+        item.Caption:=address;
+        item.SubItems.Add(bytes);
+        item.SubItems.Add(details);
+      end;
+    end;
   end;
 end;
 

@@ -7,7 +7,7 @@
 
 #include <windows.h>
 #include <stdio.h>
-#include "ceplugin.h"
+#include "cepluginsdk.h"
 
 int selfid;
 int memorybrowserpluginid=-1; //initialize it to -1 to indicate failure (used by the DisablePlugin routine)
@@ -94,7 +94,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 BOOL __stdcall GetVersion(PPluginVersion pv , int sizeofpluginversion)
 {
 	pv->version=CESDK_VERSION;
-	pv->pluginname="C Example v1.1"; //exact strings like this are pointers to the string in the dll, so workable
+	pv->pluginname="C Example v1.2 (SDK version 3: 5.6+)"; //exact strings like this are pointers to the string in the dll, so workable
 	return TRUE;
 }
 

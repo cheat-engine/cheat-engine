@@ -56,7 +56,13 @@ begin
         isstring:=false;
         break;
       end;
-      inc(i,2);
+      inc(i);
+      if buf[i]<>0 then
+      begin
+        isstring:=false;
+        break;
+      end;
+      inc(i);
     end;
   end else isstring:=false;
 

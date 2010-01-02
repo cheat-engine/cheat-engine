@@ -45,12 +45,12 @@ begin
   if sizeofpluginversion<>sizeof(TPluginVersion) then exit;
 
 
-  s:='Basic debug event list for CE v5.5';
+  s:='Basic debug event list for CE v5.6+';
   getmem(versionname,length(s)+1);
   copymemory(versionname,@s[1],length(s));
   versionname[length(s)]:=#0;
   
-  PluginVersion.version:=2;
+  PluginVersion.version:=PluginVersionSDK;
   PluginVersion.pluginname:=VersionName;
 
 

@@ -991,6 +991,7 @@ begin
     stepover1.Enabled:=true;
     runtill1.Enabled:=true;
     stacktrace1.Enabled:=true;
+    Executetillreturn1.Enabled:=true;
 
     for i:=0 to length(threadlist)-1 do
     begin

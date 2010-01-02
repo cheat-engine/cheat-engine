@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.5
-AppVerName=Cheat Engine 5.5
+AppName=Cheat Engine 5.6 BETA
+AppVerName=Cheat Engine 5.6 BETA
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.5
+DefaultGroupName=Cheat Engine 5.6 BETA
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine55
+OutputBaseFilename=CheatEngine56Beta3
 PrivilegesRequired=admin
 ChangesAssociations=yes
 
@@ -127,9 +127,9 @@ Name: "{app}"; permissions: everyone-full;
 
 
 [Files]
-Source: "..\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
-Source: "..\CEHook.dll"; DestDir: "{app}"; DestName: "CEHook.dll"; Flags: ignoreversion
-Source: "..\speedhack.dll"; DestDir: "{app}"; DestName: "speedhack.dll"; Flags: ignoreversion
+Source: "..\bin\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
+Source: "..\bin\CEHook.dll"; DestDir: "{app}"; DestName: "CEHook.dll"; Flags: ignoreversion
+Source: "..\bin\speedhack.dll"; DestDir: "{app}"; DestName: "speedhack.dll"; Flags: ignoreversion
 
 Source: "..\LockedString.bmp"; DestDir: "{app}"; DestName: "LockedString.bmp"; Flags: ignoreversion
 Source: "..\UnLockedString.bmp"; DestDir: "{app}"; DestName: "UnLockedString.bmp"; Flags: ignoreversion
@@ -138,27 +138,27 @@ Source: "..\targettexture.bmp"; DestDir: "{app}"; DestName: "targettexture.bmp";
 Source: "..\movementtexture.bmp"; DestDir: "{app}"; DestName: "movementtexture.bmp"; Flags: ignoreversion
 Source: "..\Locktexture.bmp"; DestDir: "{app}"; DestName: "Locktexture.bmp"; Flags: ignoreversion
 Source: "..\Black.bmp"; DestDir: "{app}"; DestName: "Black.bmp"; Flags: ignoreversion
-Source: "..\dxhook.dll"; DestDir: "{app}"; DestName: "dxhook.dll"; Flags: ignoreversion
-Source: "..\pscan.dll"; DestDir: "{app}"; DestName: "pscan.dll"; Flags: ignoreversion
+Source: "..\bin\dxhook.dll"; DestDir: "{app}"; DestName: "dxhook.dll"; Flags: ignoreversion
 Source: "..\directxhook\D3DX81ab.dll"; DestDir: "{sys}"; DestName: "D3DX81ab.dll";
 Source: "..\directxhook\d3dx9.dll"; DestDir: "{sys}"; DestName: "d3dx9.dll";
 
-Source: "..\Registry Reset\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
-Source: "..\Kernelmoduleunloader.exe"; DestDir: "{app}"; DestName: "Kernelmoduleunloader.exe"; Flags: ignoreversion
-Source: "..\driver.dat"; DestDir: "{app}"; DestName: "driver.dat"; Flags: ignoreversion
+Source: "..\bin\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
+Source: "..\bin\Kernelmoduleunloader.exe"; DestDir: "{app}"; DestName: "Kernelmoduleunloader.exe"; Flags: ignoreversion
+;Source: "..\driver.dat"; DestDir: "{app}"; DestName: "driver.dat"; Flags: ignoreversion
 ;comment the next 2 lines for the baby version
-Source: "..\dbk32.dll"; DestDir: "{app}"; DestName: "dbk32.dll"; Flags: ignoreversion
-Source: "..\dbk32.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion; BeforeInstall: UninstallDriver
-Source: "..\EmptyProcess.exe"; DestDir: "{app}"; DestName: "EmptyProcess.exe"; Flags: ignoreversion
-Source: "..\EmptyDLL.dll"; DestDir: "{app}"; DestName: "EmptyDLL.exe"; Flags: ignoreversion
-Source: "..\Systemcallretriever.exe"; DestDir: "{app}"; DestName: "Systemcallretriever.exe"; Flags: ignoreversion
-Source: "..\systemcallsignal.exe"; DestDir: "{app}"; DestName: "systemcallsignal.exe"; Flags: ignoreversion
+Source: "..\bin\dbk32.dll"; DestDir: "{app}"; DestName: "dbk32.dll"; Flags: ignoreversion
+Source: "..\bin\dbk32.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion; BeforeInstall: UninstallDriver
+Source: "..\bin\dbk64.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion;
+Source: "..\bin\EmptyProcess.exe"; DestDir: "{app}"; DestName: "EmptyProcess.exe"; Flags: ignoreversion
+Source: "..\bin\EmptyDLL.dll"; DestDir: "{app}"; DestName: "EmptyDLL.dll"; Flags: ignoreversion
+Source: "..\bin\Systemcallretriever.exe"; DestDir: "{app}"; DestName: "Systemcallretriever.exe"; Flags: ignoreversion
+Source: "..\bin\systemcallsignal.exe"; DestDir: "{app}"; DestName: "systemcallsignal.exe"; Flags: ignoreversion
 
-Source: "..\stealth.dll"; DestDir: "{app}"; DestName: "stealth.dll"; Flags: ignoreversion
+;Source: "..\stealth.dll"; DestDir: "{app}"; DestName: "stealth.dll"; Flags: ignoreversion
 
-Source: "..\CheatEngine.chm"; DestDir: "{app}"; DestName: "CheatEngine.chm"; Flags: ignoreversion
+Source: "..\bin\CheatEngine.chm"; DestDir: "{app}"; DestName: "CheatEngine.chm"; Flags: ignoreversion
 
-Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
+Source: "..\bin\tutorial.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
 
 ;Source: "..\Cheat Engine Net\Client\client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Server\ceserver.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
@@ -166,11 +166,15 @@ Source: "..\Tutorial\Project1.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; 
 ;Source: "..\Cheat Engine Server.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion
 
 
+;plugin sdk
+Source: "..\plugin\cepluginsdk.pas"; DestDir: "{app}\Plugins\"; Flags: ignoreversion
+Source: "..\plugin\cepluginsdk.h"; DestDir: "{app}\Plugins\"; Flags: ignoreversion
+
 ; Plugin example
 Source: "..\plugin\example-c\release\example-c.dll"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.dll"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.c"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.c"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.def"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.def"; Flags: ignoreversion
-Source: "..\plugin\example-c\ceplugin.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "plugin.h"; Flags: ignoreversion
+;Source: "..\plugin\example-c\ceplugin.h"; DestDir: "{app}\Plugins\example-c\"; DestName: "plugin.h"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.sln"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.sln"; Flags: ignoreversion
 Source: "..\plugin\example-c\example-c.vcproj"; DestDir: "{app}\Plugins\example-c\"; DestName: "example-c.vcproj"; Flags: ignoreversion
 
@@ -183,8 +187,8 @@ Source: "..\plugin\example\exampleplugin.dpr"; DestDir: "{app}\Plugins\example-d
 Source: "..\plugin\example\Unit1.pas"; DestDir: "{app}\Plugins\example-delphi\"; DestName: "Unit1.pas"; Flags: ignoreversion
 
 ;Packet editor plugin example
-Source: "..\plugin\packet editor\packeteditor.dll"; DestDir: "{app}\Plugins\example packet editor\"; Flags: ignoreversion
-Source: "..\plugin\packet editor\inject\cepe.dll"; DestDir: "{app}\Plugins\example packet editor\inject\"; Flags: ignoreversion
+;Source: "..\plugin\packet editor\packeteditor.dll"; DestDir: "{app}\Plugins\example packet editor\"; Flags: ignoreversion
+;Source: "..\plugin\packet editor\inject\cepe.dll"; DestDir: "{app}\Plugins\example packet editor\inject\"; Flags: ignoreversion
 
 ;Packet editor plugin example source
 Source: "..\plugin\packet editor\src\packeteditor.cfg"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
@@ -193,7 +197,7 @@ Source: "..\plugin\packet editor\src\packeteditor.dpr"; DestDir: "{app}\Plugins\
 Source: "..\plugin\packet editor\src\packeteditor.res"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\src\Unit1.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\src\injector.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
-Source: "..\plugin\packet editor\src\cepluginsdk.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
+;Source: "..\plugin\packet editor\src\cepluginsdk.pas"; DestDir: "{app}\Plugins\example packet editor\src\"; Flags: ignoreversion
 
 Source: "..\plugin\packet editor\inject\src\cepe.cfg"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 Source: "..\plugin\packet editor\inject\src\cepe.dof"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
@@ -227,12 +231,9 @@ Source: "..\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.5"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.6 Beta"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\CheatEngine.chm"
-;Name: "{group}\Plugin Documentation"; Filename: "{app}\Plugins\plugins.rtf"
-;Name: "{group}\Network\Cheat Engine Client"; Filename: "{app}\Cheat Engine Client.exe"
-;Name: "{group}\Network\Cheat Engine Server"; Filename: "{app}\Cheat Engine Server.exe"
 
 Name: "{group}\Kernel stuff\Unload kernel module"; Filename: "{app}\Kernelmoduleunloader.exe"
 Name: "{group}\Kernel stuff\Gather kernel data"; Filename: "{app}\Systemcallretriever.exe"

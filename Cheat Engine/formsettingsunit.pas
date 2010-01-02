@@ -159,7 +159,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cbKdebugClick(Sender: TObject);
     procedure cbProcessWatcherClick(Sender: TObject);
-    procedure btnMoreStealthClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
@@ -877,83 +876,6 @@ begin
   aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
   aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;
 
-
-  {$ifdef net}
-
-  tabsheet7.TabVisible:=false;
-  
-  button3.visible:=false;
-  cbHideAllWindows.visible:=false;
-  btnExcludeProcesses.visible:=false;
-  cbCenterOnPopup.visible:=false;
-
-  cbHideAllWindows.Visible:=false;
-  btnExcludeProcesses.visible:=false;
-  cbCenterOnPopup.visible:=false;
-  cbUpdatefoundList.Visible:=false;
-  cbShowAdvanced.Visible:=false;
-  cbShowUndo.Visible:=false;
-
-  cbfastscan.Visible:=false;
-  cbEnableHyperscanWhenPossible.Visible:=false;
-  cbLowMemoryUsage.Visible:=false;
-
-  label21.Visible:=false;
-  cbMemprivate.Visible:=false;
-  cbMemImage.Visible:=false;
-  cbMemMapped.Visible:=false;
-
-  label2.visible:=false;
-  checkthread.Visible:=false;
-  label3.Visible:=false;
-  combothreadpriority.Visible:=false;
-
-  checkbox1.visible:=false;
-  checkbox2.visible:=false;
-
-  cbshowdebugoptions.enableD:=false;
-  rbDebugAsBreakpoint.Enabled:=false;
-  rbInt3AsBreakpoint.Enabled:=false;
-  cbBreakOnAttach.Enabled:=false;
-  cbBreakOnAttach.Visible:=false;
-  checkbox2.Visible:=false;
-  checkbox1.Visible:=false;
-  cbstealth.Visible:=false;
-  cbprotectme.visible:=false;
-
-  label25.Visible:=false;
-
-  cbUndoMemoryChanges.Visible:=false;
-  cbForceUndo.Visible:=false;
-  panel1.Visible:=false;
-
-
-  formsettings.Height:=formsettings.Height+24;
-  pagecontrol1.Height:=pagecontrol1.Height+24;
-  button1.top:=button1.top+24;
-  button2.top:=button2.top+24;
-
-
-  label16.Visible:=true;
-  EditNetworkUpdateInterval.Visible:=true;
-  Label17.Visible:=true;
-
-  Label13.top:=label13.top+24;
-  editUpdateInterval.top:=editUpdateInterval.top+24;
-  label17.Top:=label17.Top+24;
-
-  label14.top:=label14.top+24;
-  editFreezeInterval.top:=editFreezeInterval.Top+24;
-  label12.Top:=label12.top+24;
-  cbprocesswatcher.Visible:=false;
-  cbKdebug.Visible:=false;
-
-  btnUnrandomizerconfig.Visible:=false;
-  {$else}
-
-  {$endif}
-
-
   //set the default popup
   laststatePopupHide:=vk_next;
   lastpopupmodifier:=MOD_CONTROL or MOD_ALT;
@@ -1075,65 +997,6 @@ begin
   if cbprocesswatcher.checked then
     startsystemcallretrieverifneeded('To get more detailed information about processes, like the processname, it''s recommended to run the kerneldataretriever program. Do you want to run it ?');
 end;
-
-procedure TformSettings.btnMoreStealthClick(Sender: TObject);
-var i: integer;
-    p:pbyte;
-    p2: pchar;
-begin
-{$ifndef net}
-  if frmModuleSafety=nil then
-  begin
-    //fill the list with all the modules
-    frmModuleSafety:=TfrmModuleSafety.create(self);
-
-    with frmModuleSafety do
-    begin
-      rbDenyList.checked:=DenyList;
-      rbAllowList.Checked:=not Denylist;
-      cbGlobalDeny.Checked:=DenyListGlobal;
-
-      p:=modulelist;
-      p2:=modulelist;
-      i:=0;
-
-      while i<modulelistsize do
-      begin
-        if p^=0 then
-        begin
-          ListBox1.Items.Add(p2);
-          p2:=pointer(p);
-        end;
-
-        inc(p);
-        inc(i);
-      end;
-    end;
-  end;
-
-  frmModuleSafety.showmodal;
-
-  //now fill the tempmodulelist with the data of the list
-  //get the size
-  if tempmodulelist<>nil then freemem(tempmodulelist);
-  tempmodulelistsize:=0;
-  for i:=0 to frmmodulesafety.ListBox1.items.count-1 do
-    inc(tempmodulelistsize,length(frmmodulesafety.ListBox1.Items[i])+1); //+1 because of the 0 terminator
-
-  getmem(tempmodulelist,tempmodulelistsize);
-  p:=pointer(tempmodulelist);
-
-  for i:=0 to frmmodulesafety.ListBox1.items.count-1 do
-  begin
-    copymemory(p,@frmmodulesafety.ListBox1.items[i][1],length(frmmodulesafety.ListBox1.items[i])+1);
-    inc(p,length(frmmodulesafety.ListBox1.items[i])+1);
-  end;
-
-  tempdenylist:=frmModuleSafety.rbDenyList.checked;
-  tempDenyListGlobal:=frmModuleSafety.cbGlobalDeny.Checked;
-{$endif}
-end;
-
 
 procedure TformSettings.Button4Click(Sender: TObject);
 var pluginname: string;

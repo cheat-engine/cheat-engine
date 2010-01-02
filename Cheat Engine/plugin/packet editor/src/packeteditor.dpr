@@ -15,7 +15,7 @@ uses
   Classes,
   Unit1 in 'Unit1.pas',
   injector in 'injector.pas',
-  cepluginsdk in 'cepluginsdk.pas';
+  cepluginsdk in '..\..\cepluginsdk.pas';
 
 {$R *.res}
 

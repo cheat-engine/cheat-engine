@@ -3114,7 +3114,7 @@ var mbi: TMemoryBasicInformation;
 begin
   result:=false;
   if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
-    result:=(mbi.State=MEM_COMMIT) and (mbi.AllocationProtect<>PAGE_NOACCESS);
+    result:=(mbi.State=MEM_COMMIT);// and (mbi.AllocationProtect<>PAGE_NOACCESS);
 end;
 
 

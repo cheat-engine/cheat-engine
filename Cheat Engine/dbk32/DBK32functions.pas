@@ -197,12 +197,15 @@ procedure LaunchDBVM; stdcall;
 
 function GetGDT(limit: pword):dword; stdcall;
 
+function isDriverLoaded(SigningIsTheCause: PBOOL): BOOL; stdcall;
+
 
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 
 
 var kernel32dll: thandle;
     IsWow64Process: TIsWow64Process;
+    failedduetodriversigning: boolean;
 
 implementation
 
@@ -211,6 +214,14 @@ uses vmxfunctions;
 var dataloc: string;
     applicationPath: string;
 
+function isDriverLoaded(SigningIsTheCause: PBOOL): BOOL; stdcall;
+begin
+  result:=true;
+  if hdevice=INVALID_HANDLE_VALUE then
+  begin
+    SigningIsTheCause^:=failedduetodriversigning;
+  end;
+end;
 
 function noIsWow64(processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
 begin
@@ -1726,7 +1737,7 @@ begin
         if getlasterror=577 then
         begin
           messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
-
+          failedduetodriversigning:=true;
         end; //else could already be started
       end;
 

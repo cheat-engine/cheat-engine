@@ -41,6 +41,7 @@ type
 
   public
     active: boolean;
+    tempcontext: _CONTEXT;
 
     procedure Continue(continueOption: TContinueOption; runtilladdress: dword=0);
     procedure execute; override;
@@ -82,6 +83,8 @@ type
     procedure DisableBreakpoint(bp: integer);
     procedure DisableAllBreakpoints;
 
+
+    procedure GetContext(var context: _CONTEXT);
     procedure Continue(continueOption: TContinueOption; runtilladdress: dword=0);
 
     //address specific toggle bp
@@ -417,9 +420,16 @@ begin
   result:=DebuggerThread <> nil;
 end;
 
+procedure TKDebugger.GetContext(var context: _CONTEXT);
+begin
+  if DebuggerThread<>nil then
+    context:=DebuggerThread.tempcontext;
+end;
+
 procedure TKDebugger.Continue(continueOption: TContinueOption; runtilladdress: dword=0);
 begin
-  debuggerthread.Continue(continueoption, runtilladdress);
+  if debuggerthread<>nil then
+    debuggerthread.Continue(continueoption, runtilladdress);
 end;
 
 constructor TKDebugger.create;
@@ -533,7 +543,6 @@ end;
 
 procedure TKDebuggerThread.UpdateGui;
 var
-  tempcontext: _CONTEXT;
   temp: string;
 begin
   with memorybrowser do
@@ -544,6 +553,7 @@ begin
     stepover1.Enabled:=true;
     runtill1.Enabled:=true;
     stacktrace1.Enabled:=true;
+    Executetillreturn1.Enabled:=true;
     caption:='Memory Viewer - Currently debugging thread';
 
     if frmstacktrace<>nil then

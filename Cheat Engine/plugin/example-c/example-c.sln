@@ -1,5 +1,5 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example-c", "example-c.vcproj", "{3A688B63-7CE8-4993-BEC5-E7FE48B73F03}"
 EndProject
 Global

@@ -223,13 +223,10 @@ function TAddressParser.getaddress(s: string): dword;
 var i,j: integer;
     scount,vcount: integer;
     tempstr: string;
+    haserror: boolean;
 begin
-  try
-    result:=symhandler.getaddressfromname(s);
-    if result<>0 then exit;
-  except
-    //it couldn't be found by getaddressfromname, so let's see if it's a more complex calculation or registers are involved
-  end;
+  result:=symhandler.getaddressfromname(s,false,haserror);
+  if (result<>0) and (not haserror) then exit;
 
   if s='' then s:='0';
   setlength(total,2);

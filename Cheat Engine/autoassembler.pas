@@ -265,12 +265,6 @@ type tlabel=record
   references: array of integer; //index of assembled array
   references2: array of integer; //index of assemblerlines array
 end;
-type TStealthEdits=record
-  name: string;
-  originalAddress: dword;
-  size: dword;
-  newaddress: string;
-end;
 type tfullaccess=record
   address: dword;
   size: dword;

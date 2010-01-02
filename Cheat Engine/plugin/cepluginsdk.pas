@@ -2,11 +2,11 @@ unit cepluginsdk;
 
 interface
 
-uses windows, sysutils;
+uses windows, sysutils, graphics;
 
-const PluginVersionSDK=2;
+const PluginVersionSDK=3;
 
-type TPluginType=(ptAddressList, ptMemoryView, ptOnDebugEvent, ptProcesswatcherEvent, ptFunctionPointerchange, ptMainMenu, ptDisassemblerContext);
+type TPluginType=(ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7);
 
 type TDWordArray = array[0..0] of DWord;
      PDWordArray = ^TDWordArray;
@@ -58,10 +58,16 @@ end;
 type Tfunction2=record
   callbackroutine: pointer;
 end;
+type Tfunction6=record
+  name: pchar;
+  callbackroutine: pointer;
+  callbackroutineOnContext: pointer;
+  shortcut: pchar;
+end;
 type TFunction3=TFunction2;
 type TFunction4=TFunction2;
 type TFunction5=TFunction1;
-type TFunction6=TFunction1;
+type TFunction7=TFunction2;
 
 
 type PFunction0=^TFunction0;
@@ -71,6 +77,7 @@ type PFunction3=^TFunction3;
 type PFunction4=^TFunction4;
 type PFunction5=^TFunction5;
 type PFunction6=^TFunction6;
+type PFunction7=^TFunction7;
 
 type Tce_showmessage=procedure (s: pchar); stdcall;
 type Tce_registerfunction=function (pluginid: integer; functiontype:TPluginType; init: pointer):integer; stdcall;
@@ -78,6 +85,8 @@ type Tce_unregisterfunction=function (pluginid,functionid: integer): BOOL; stdca
 type Tce_AutoAssembler=function (s: pchar):BOOL; stdcall;
 type Tce_assembler=function(address:dword; instruction: pchar; output: PByteArray; maxlength: integer; actualsize: pinteger):BOOL; stdcall;
 type Tce_disassembler=function(address: dword; output: pchar; maxsize: integer): BOOL; stdcall;
+
+
 type Tce_ChangeRegistersAtAddress=function(address:dword; changereg: pregistermodificationBP):BOOL; stdcall;
 
 type Tce_InjectDLL=function(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
@@ -105,6 +114,13 @@ type TWriteProcessMemory=function (hProcess: THandle; const lpBaseAddress: Point
 type TGetProcessNameFromPEProcess=function(peprocess:dword; buffer:pchar;buffersize:dword):integer; stdcall;
 type TOpenProcess=function(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwProcessId: DWORD): THandle; stdcall;
 
+
+type TLoadDBK32=procedure; stdcall;
+type TLoadDBVMifneeded=function: BOOL; stdcall;
+type TPreviousOpcode=function(address:dword): dword; stdcall;
+type TNextOpcode=function(address:dword): dword; stdcall;
+type TloadModule=function(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
+type TDisassembleEx=function(address: pdword; output: pchar; maxsize: integer): BOOL; stdcall;
 
 type TPluginVersion =record
   version : integer; //write here the minimum version this dll is compatible with
@@ -209,6 +225,14 @@ type TExportedFunctions = record
   sym_nameToAddress         : Tce_sym_NameToAddress;
   sym_addressToName         : Tce_sym_addressToName;
   ce_generateAPIHookScript  : Tce_generateAPIHookScript;
+
+  //version 3
+  loadDBK32         : TLoadDBK32;
+  loaddbvmifneeded  : TLoadDBVMifneeded;
+  previousOpcode    : TPreviousOpcode;
+  nextopcode        : TNextOpcode;
+  disassembleEx     : TDisassembleEx;
+  loadModule        : TloadModule;
 end;
 
 type PExportedFunctions=^TExportedFunctions;
@@ -227,6 +251,28 @@ type TSelectedRecord=record
   size: byte; //stringlenth or bitlength (max 255);
 end;
 type PSelectedRecord=^TSelectedRecord;
+
+
+//callback function declarations:
+type TPlugin0_SelectedRecord=record
+  interpretedaddress: pchar; //pointer to a 255 bytes long string (0 terminated)
+  address: dword; //this is a read-only representaion of the address. Change interpretedaddress if you want to change this
+  ispointer: BOOL; //readonly
+  countoffsets: integer; //readonly
+  offsets: PDWordArray; //pointer to a array of dwords randing from 0 to countoffsets-1 (readonly)
+  description: pchar; //pointer to a 255 bytes long string
+  valuetype: byte;
+  size: byte; //stringlenth or bitlength (max 255);
+end;
+type PPlugin0_SelectedRecord=^TPlugin0_SelectedRecord;
+type TPluginfunction0=function(selectedrecord: PPlugin0_SelectedRecord):bool; stdcall;
+type TPluginfunction1=function(disassembleraddress: pdword; selected_disassembler_address: pdword; hexviewaddress:pdword ):bool; stdcall;
+type TPluginFunction2=function(debugevent: PDebugEvent):integer; stdcall;
+type TPluginFunction3=function(processid: dword; peprocess:dword; created: BOOL):integer; stdcall;
+type TPluginFunction4=function(section: integer):boolean; stdcall;
+type TPluginfunction5=procedure; stdcall;
+type TPluginfunction6=function(selectedAddress: pdword):bool; stdcall;
+type TPluginFunction7=procedure(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
 
 implementation
 

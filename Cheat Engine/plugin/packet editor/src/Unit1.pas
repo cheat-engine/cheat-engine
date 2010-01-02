@@ -23,7 +23,7 @@ begin
   if sizeofpluginversion<>sizeof(TPluginVersion) then exit;
 
 
-  s:='Example packet editor plugin for CE v5.5';
+  s:='Example packet editor plugin for CE v5.6';
   getmem(versionname,length(s)+1);
   copymemory(versionname,@s[1],length(s));
   versionname[length(s)]:=#0;

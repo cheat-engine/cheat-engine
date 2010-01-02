@@ -10736,16 +10736,8 @@ var raaa: packed record
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var x: TModuleLoader;
 begin
-  x:=TModuleloader.create('C:\source\stealtheditplugin\plugin\stealthedit64.sys');
 
-  if x.loaded then
-  begin
-    showmessage(x.Exporttable.Text);
-
-
-  end;
 end;
 
 {

@@ -13,9 +13,9 @@ library DebugEventLog;
 uses
   SysUtils,
   Classes,
-  cepluginsdk in '..\..\packet editor\src\cepluginsdk.pas',  //i'm lazy
   exportimplementation in 'exportimplementation.pas',
-  frmEventLogUnit in 'frmEventLogUnit.pas' {frmEventLog};
+  frmEventLogUnit in 'frmEventLogUnit.pas' {frmEventLog},
+  cepluginsdk in '..\..\cepluginsdk.pas';
 
 //i'm just reusing this unit (i'm lazy)
 

@@ -85,6 +85,7 @@ exports GetGDT;
 
 exports UserdefinedInterruptHook;
 exports executeKernelCode;
+exports isDriverLoaded;
 
 //debug
 exports DBKDebug_ContinueDebugEvent;

@@ -133,6 +133,7 @@ type TGetSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):boo
 type TGetSSDTEntry=function (nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
 type TGetGDT=function(var limit: word):dword; stdcall;
 
+type TisDriverLoaded=function(SigningIsTheCause: PBOOL): BOOL; stdcall;
 type TLaunchDBVM=procedure; stdcall;
 
 
@@ -271,6 +272,7 @@ var
   GetSDTEntry             :TGetSDTEntry;
   GetSSDTEntry            :TGetSSDTEntry;
 
+  isDriverLoaded          :TisDriverLoaded;
   LaunchDBVM              :TLaunchDBVM;
 
   ReadPhysicalMemory      :TReadProcessMemory;
@@ -279,6 +281,7 @@ var
 
   CreateRemoteAPC         :TCreateRemoteAPC;
   GetGDT                  :TGetGDT;
+
 
   DBKDebug_ContinueDebugEvent : TDBKDebug_ContinueDebugEvent;
   DBKDebug_WaitForDebugEvent  : TDBKDebug_WaitForDebugEvent;
@@ -337,17 +340,33 @@ begin
 end;
 
 function loaddbvmifneeded: BOOL;  stdcall;
+var signed: BOOL;
 begin
   result:=false;
   if Is64bitOS and (not isRunningDBVM) then
   begin
     if isDBVMCapable then
     begin
-      if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data. Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+      signed:=false;
+      if isDriverLoaded(@signed) then
       begin
-        LaunchDBVM;
-        if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
-        result:=true;
+        if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data. Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+        begin
+          LaunchDBVM;
+          if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
+          result:=true;
+        end;
+      end else
+      begin
+        //the driver isn't loaded
+        if signed then
+        begin
+          raise exception.Create('Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business class certificicate and sign the driver yourself (or try debug signing)');
+        end
+        else
+        begin
+          raise exception.Create('The driver needs to be loaded to be able to use this function.');
+        end;
       end;
     end else raise exception.Create('Your cpu is not able to use this function.');
   end
@@ -464,6 +483,7 @@ begin
     GetSDTEntry:= GetProcAddress(darkbyteKernel,'GetSDTEntry');
     GetSSDTEntry:=GetProcAddress(darkbyteKernel,'GetSSDTEntry');
 
+    isDriverLoaded:=GetProcAddress(darkbyteKernel,'isDriverLoaded');
     LaunchDBVM:=GetProcAddress(darkbyteKernel,'LaunchDBVM');
 
     ReadPhysicalMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
@@ -699,7 +719,6 @@ begin
 end;
 
 procedure UseDBKOpenProcess;
-var x: pointer;
 begin
   LoadDBK32;
   If DarkByteKernel=0 then exit;

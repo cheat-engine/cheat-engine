@@ -608,8 +608,7 @@ object MemoryBrowser: TMemoryBrowser
       BevelInner = bvLowered
       PopupMenu = pmStacktrace
       TabOrder = 1
-      Visible = False
-      object lvStacktrace: TListView
+      object lvStacktraceData: TListView
         Left = 2
         Top = 2
         Width = 206
@@ -628,10 +627,12 @@ object MemoryBrowser: TMemoryBrowser
             AutoSize = True
             Caption = 'Value'
           end>
+        OwnerData = True
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
         ViewStyle = vsReport
+        OnData = lvStacktraceDataData
       end
     end
   end
@@ -957,6 +958,12 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 119
         OnClick = StepOver1Click
       end
+      object Executetillreturn1: TMenuItem
+        Caption = 'Execute till return'
+        Enabled = False
+        ShortCut = 8311
+        OnClick = Executetillreturn1Click
+      end
       object Runtill1: TMenuItem
         Caption = 'Run till...'
         Enabled = False
@@ -1125,23 +1132,37 @@ object MemoryBrowser: TMemoryBrowser
     Left = 498
     Top = 324
     object All1: TMenuItem
-      Caption = 'All'
-      Checked = True
+      Caption = 'Full stack'
+      GroupIndex = 1
       OnClick = All1Click
     end
     object Modulesonly1: TMenuItem
       Caption = 'Modules only'
+      GroupIndex = 1
       OnClick = Modulesonly1Click
     end
     object Nonsystemmodulesonly1: TMenuItem
       Caption = 'Non system modules only'
+      GroupIndex = 1
       OnClick = Nonsystemmodulesonly1Click
     end
     object N17: TMenuItem
       Caption = '-'
+      GroupIndex = 1
+    end
+    object stacktrace2: TMenuItem
+      Caption = 'Stacktrace'
+      Checked = True
+      GroupIndex = 1
+      OnClick = stacktrace2Click
+    end
+    object N18: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
     end
     object Maxstacktracesize1: TMenuItem
-      Caption = 'Max stacktrace size: 4096'
+      Caption = 'Max stack: 4096'
+      GroupIndex = 1
       OnClick = Maxstacktracesize1Click
     end
   end
