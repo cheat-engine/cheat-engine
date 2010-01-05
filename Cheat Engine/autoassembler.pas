@@ -3,13 +3,7 @@ unit autoassembler;
 interface
 
 uses assemblerunit, classes,{$ifndef autoassemblerdll}cefuncproc,{$endif}
-windows,symbolhandler,sysutils,dialogs,controls
-
-{$ifdef netclient}
-,netapis;
-{$else}
-,NewKernelHandler;
-{$endif}
+windows,symbolhandler,sysutils,dialogs,controls, NewKernelHandler, plugin;
 
 {$ifdef autoassemblerdll}
 type TCEAlloc=record
@@ -275,6 +269,7 @@ type tdefine=record
 end;
 var i,j,k,l,e: integer;
     currentline: string;
+    currentlinep: pchar;
 
     currentaddress: dword;
     assembled: array of tassembled;
@@ -371,12 +366,28 @@ begin
           for j:=0 to length(defines)-1 do
             currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
 
-
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
 
           setlength(assemblerlines,length(assemblerlines)+1);
           assemblerlines[length(assemblerlines)-1]:=currentline;
+
+          //plugins
+          currentlinep:=@currentline[1];
+          pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
+          currentline:=currentlinep;
+
+          //if the newline is empty then it has been handled and the plugin doesn't want it to be added for phase2
+          if length(currentline)=0 then
+          begin
+            setlength(assemblerlines,length(assemblerlines)-1);
+            continue;
+          end;
+          //otherwhise it hasn't been handled, or it has been handled and the string is a compatible string that passes the phase1 tests (so variablenames converted to 00000000 and whatever else is needed)
+          //plugins^^^
+
+
+
 
 
           if uppercase(copy(currentline,1,12))='GLOBALALLOC(' then
@@ -1119,6 +1130,18 @@ begin
     for i:=0 to length(assemblerlines)-1 do
     begin
       currentline:=assemblerlines[i];
+
+      //plugin
+      if length(currentline)>0 then
+      begin
+        currentlinep:=@currentline[1];
+        pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 2);
+        currentline:=currentlinep;
+        //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
+        //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
+      end;
+      //plugin
+
 
       tokenize(currentline,tokens);
       //if alloc then replace with the address

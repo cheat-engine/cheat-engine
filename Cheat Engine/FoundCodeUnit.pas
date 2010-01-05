@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,cefuncproc,ExtCtrls, Menus{$ifdef net},NetAPIs{$endif};
+  Dialogs, StdCtrls,disassembler,cefuncproc,ExtCtrls, Menus, newkernelhandler;
 
 type Tcoderecord = record
   address: dword;
@@ -12,6 +12,7 @@ type Tcoderecord = record
   opcode: string;
   description: string;
   eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
+  context: TContext;
 end;
 
 type
@@ -81,15 +82,9 @@ begin
   begin
     FormFoundCodeListExtra:=TFormFoundCodeListExtra.Create(nil);
     if useexceptions then
-    begin
-      FormFoundCodeListExtra.Label18.Visible:=false;
-      FormFoundCodeListExtra.Height:=260;
-    end
+      FormFoundCodeListExtra.Label18.Visible:=false
     else
-    begin
       FormFoundCodeListExtra.Label18.Visible:=true;
-      FormFoundCodeListExtra.Height:=301;
-    end;
 
     address:=coderecords[ItemIndex].address;
     address:=previousopcode(address);
@@ -202,6 +197,7 @@ begin
       formfoundcodelistextra.Width:=max+5;
 
 
+    formfoundcodelistextra.context:=coderecords[itemindex].context;
     FormFoundCodeListExtra.Show;
   //  FormFoundCodeListExtra.free;
   end;
@@ -382,8 +378,13 @@ begin
 end;
 
 procedure TFoundCodeDialog.btnAddToCodeListClick(Sender: TObject);
+var i: integer;
 begin
-  advancedoptions.AddToCodeList(coderecords[foundcodelist.itemindex].address,coderecords[foundcodelist.itemindex].size,false);
+  for i:=0 to foundcodelist.count-1 do
+  begin
+    if foundcodelist.Selected[i] then
+      advancedoptions.AddToCodeList(coderecords[i].address,coderecords[i].size,false);
+  end;
   advancedoptions.Show;
 end;
 

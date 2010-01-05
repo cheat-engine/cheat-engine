@@ -648,7 +648,7 @@ begin
           mainform.ools1.Visible:=cbShowTools.Checked;
 
 
-          if cbGlobalDebug.checked then LoadDBK32;
+          
 
           if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
           if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;

@@ -1240,9 +1240,9 @@ begin
 
 
   listview1.Items.Count:=Pointerscanresults.count;
-  if (listview1.Items.Count=0) and (Pointerscanresults.count>0) then
+  if (listview1.Items.Count=0) and (Pointerscanresults.count>100000000) then
   begin
-    listview1.Items.Count:=min(100000000, Pointerscanresults.count);
+    listview1.Items.Count:=100000000;
     showmessage('Due to OS restrictions only the first 100000000 entries will be displayed. Rescan will still work with all results');
   end;
 

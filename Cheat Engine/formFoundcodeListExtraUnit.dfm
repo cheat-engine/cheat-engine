@@ -1,8 +1,8 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 807
-  Top = 302
+  Left = 532
+  Top = 211
   Width = 486
-  Height = 347
+  Height = 358
   Caption = 'Extra info'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -154,18 +154,18 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel5: TPanel
     Left = 0
-    Top = 270
+    Top = 271
     Width = 468
-    Height = 32
+    Height = 42
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
     DesignSize = (
       468
-      32)
+      42)
     object Button1: TButton
       Left = 190
-      Top = 0
+      Top = 5
       Width = 92
       Height = 32
       Anchors = [akBottom]
@@ -181,16 +181,16 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Top = 172
     Width = 468
-    Height = 98
+    Height = 99
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
     OnResize = Panel6Resize
     DesignSize = (
       468
-      98)
+      99)
     object Label7: TLabel
-      Left = 10
+      Left = 26
       Top = 12
       Width = 108
       Height = 16
@@ -203,7 +203,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label8: TLabel
-      Left = 10
+      Left = 26
       Top = 32
       Width = 108
       Height = 16
@@ -216,7 +216,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label9: TLabel
-      Left = 10
+      Left = 26
       Top = 52
       Width = 108
       Height = 16
@@ -229,7 +229,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label11: TLabel
-      Left = 130
+      Left = 146
       Top = 12
       Width = 108
       Height = 16
@@ -242,7 +242,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label12: TLabel
-      Left = 252
+      Left = 268
       Top = 12
       Width = 108
       Height = 16
@@ -255,7 +255,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label13: TLabel
-      Left = 252
+      Left = 268
       Top = 32
       Width = 108
       Height = 16
@@ -268,7 +268,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label14: TLabel
-      Left = 130
+      Left = 146
       Top = 52
       Width = 108
       Height = 16
@@ -281,7 +281,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label15: TLabel
-      Left = 252
+      Left = 268
       Top = 52
       Width = 108
       Height = 16
@@ -294,7 +294,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
     end
     object Label16: TLabel
-      Left = 130
+      Left = 146
       Top = 32
       Width = 108
       Height = 16
@@ -318,6 +318,17 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         'uted'
       Visible = False
       WordWrap = True
+    end
+    object sbShowFloats: TSpeedButton
+      Left = 448
+      Top = 28
+      Width = 21
+      Height = 30
+      Hint = 'Floating point registers'
+      Caption = '>'
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = sbShowFloatsClick
     end
   end
   object pmCopy: TPopupMenu

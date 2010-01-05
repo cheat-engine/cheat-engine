@@ -4179,7 +4179,7 @@ begin
   begin
     disassemblerview.SelectedAddress:=x;
     Runtill1.Click;
-  end;
+  end else beep; //not possible
 end;
 
 procedure TMemoryBrowser.lvStacktraceDataData(Sender: TObject; Item: TListItem);

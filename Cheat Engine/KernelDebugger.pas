@@ -403,16 +403,20 @@ end;
 
 procedure TKDebugger.setGlobalDebug(x: boolean);
 begin
-  LoadDBK32;
   fGlobalDebug:=x;
-  if x then
-    OutputDebugString('setGlobalDebug(true)')
-  else
-    OutputDebugString('setGlobalDebug(false)');
 
-  
-  if assigned(newkernelhandler.DBKDebug_SetGlobalDebugState) then
-    DBKDebug_SetGlobalDebugState(x);
+  if isActive then
+  begin
+    LoadDBK32;
+    if x then
+      OutputDebugString('setGlobalDebug(true)')
+    else
+      OutputDebugString('setGlobalDebug(false)');
+
+
+    if assigned(newkernelhandler.DBKDebug_SetGlobalDebugState) then
+      DBKDebug_SetGlobalDebugState(x);
+  end;
 end;
 
 function TKDebugger.isActive: boolean;
@@ -801,6 +805,7 @@ begin
     coderecords[length(coderecords)-1].ebp:=currentdebuggerstate.Ebp;
     coderecords[length(coderecords)-1].esp:=currentdebuggerstate.Esp;
     coderecords[length(coderecords)-1].eip:=currentdebuggerstate.Eip;
+    coderecords[length(coderecords)-1].context.ContextFlags:=0;
     Foundcodelist.Items.Add(opcode);
   end;
 end;
@@ -1058,6 +1063,8 @@ var
   handled: boolean;
 begin
   active:=true;
+  KDebugger.setGlobalDebug(KDebugger.GlobalDebug); //actually set it now
+
   try
 
     while not terminated do

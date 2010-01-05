@@ -7,10 +7,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, debugger;
+  Dialogs, StdCtrls, ExtCtrls, debugger, ComCtrls, newkernelhandler;
 
 type
   TfrmFloatingPointPanel = class(TForm)
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
     pnlFloatdata: TPanel;
     Panel2: TPanel;
     Label1: TLabel;
@@ -23,6 +26,10 @@ type
     Label8: TLabel;
     Label9: TLabel;
     ComboBox1: TComboBox;
+    Panel1: TPanel;
+    ComboBox3: TComboBox;
+    ComboBox2: TComboBox;
+    Memo1: TMemo;
     procedure FormShow(Sender: TObject);
     procedure ComboBox1Select(Sender: TObject);
     procedure Label4Click(Sender: TObject);
@@ -57,7 +64,7 @@ procedure TfrmFloatingPointPanel.UpdatedContext;
 Called by the debugger and initial display
 Will fetch the debuggerthread's context and show the floating point values
 }
-var i: integer;
+var i,j: integer;
     line, row: integer;
     lbl: tlabel;
     s: single;
@@ -65,6 +72,7 @@ var i: integer;
     center: integer;
     temp: integer;
     e: extended;
+    str: string;
 begin
   if context=nil then exit;
 
@@ -84,6 +92,135 @@ begin
     begin
       lbl:=tlabel(pnlFloatdata.Controls[0]);
       lbl.Free;
+    end;
+
+    memo1.Clear;
+    case combobox3.ItemIndex of
+      0: //fpu
+      begin
+        if combobox2.Items.Count=6 then
+          combobox2.Items.Add('Extended');
+
+        for i:=0 to 7 do
+        begin
+          case combobox2.ItemIndex of
+            0: //byte
+            begin
+              str:='';
+              for j:=0 to 7 do
+              begin
+                str:=str+inttohex(context.ext.FPURegisters[i].Data.MMRegister.bytes[j],2);
+                if j<7 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+            1:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[0],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[1],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[2],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[3],4)); //2byte
+            2:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.dwords[0],8)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.dwords[1],8)); //4byte
+            3:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.qwords,16)); //8 byte
+            4:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.MMRegister.Singles[0])+' - '+floattostr(context.ext.FPURegisters[i].Data.MMRegister.Singles[1])); //2 singles
+            5:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.MMRegister.Doubles)); //double
+            6:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.FloatValue)); //extended
+          end;
+
+        end;
+      end;
+
+      1: //xmm
+      begin
+        if combobox2.Items.Count>6 then
+        begin
+          if combobox2.ItemIndex=6 then
+            combobox2.ItemIndex:=5;
+
+          combobox2.Items.Delete(6);
+        end;
+
+        for i:=0 to 7 do
+        begin
+          case combobox2.ItemIndex of
+            0: //byte
+            begin
+              str:='';
+              for j:=0 to 15 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].Bytes[j],2);
+                if j<15 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+
+            1: //word
+            begin
+              str:='';
+              for j:=0 to 7 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].words[j],4);
+                if j<7 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+
+            2: //dword
+            begin
+              str:='';
+              for j:=0 to 3 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].dwords[j],8);
+                if j<3 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+
+            3:   //8 byte
+            begin
+              str:='';
+              for j:=0 to 3 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].qwords[j],16);
+                if j<3 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+
+            4:
+            begin
+              str:='';
+              for j:=0 to 3 do
+              begin
+                str:=str+floattostr(context.ext.XMMRegisters.LegacyXMM[i].singles[j]);
+                if j<3 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+
+            5:
+            begin
+              str:='';
+              for j:=0 to 1 do
+              begin
+                str:=str+floattostr(context.ext.XMMRegisters.LegacyXMM[i].doubles[j]);
+                if j<1 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add(str);
+            end;
+          end;
+
+        end;
+      end;
     end;
 
 

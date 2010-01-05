@@ -469,7 +469,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'FNINIT';bytes:2;bt1:$db;bt2:$e3),
   (mnemonic:'FNLEX';bytes:2;bt1:$Db;bt2:$e2),
-  (mnemonic:'FNOP';bytes:2;bt1:$d6;bt2:$d0),
+  (mnemonic:'FNOP';bytes:2;bt1:$d9;bt2:$d0),
   (mnemonic:'FNSAVE';opcode1:eo_reg6;paramtype1:par_m32;bytes:1;bt1:$dd),
 
   (mnemonic:'FNSTCW';opcode1:eo_reg7;paramtype1:par_m16;bytes:1;bt1:$d9),
@@ -1618,6 +1618,18 @@ begin
   add(bytes,[byte(a shr 24)]);
 end;
 
+procedure AddQword(var bytes: tassemblerbytes; a: int64);
+begin
+  add(bytes,[byte(a)]);
+  add(bytes,[byte(a shr 8)]);
+  add(bytes,[byte(a shr 16)]);
+  add(bytes,[byte(a shr 24)]);
+  add(bytes,[byte(a shr 32)]);
+  add(bytes,[byte(a shr 40)]);
+  add(bytes,[byte(a shr 48)]);
+  add(bytes,[byte(a shr 56)]);
+end;
+
 procedure AddString(var bytes: Tassemblerbytes; s: string);
 var i,j: integer;
 begin
@@ -1797,6 +1809,7 @@ end;
 function gettokentype(var token:string;token2: string): TTokenType;
 var i,err: integer;
     temp:string;
+    i64: int64;
 begin
   result:=ttInvalidtoken;
   if length(token)=0 then exit;
@@ -1809,7 +1822,7 @@ begin
   token:=StringReplace(token,'FAR ','',[rfIgnoreCase]);   
 
   temp:=ConvertHexStrToRealStr(token);
-  val(temp,i,err);
+  val(temp,i64,err);
   if err=0 then
   begin
     result:=ttValue;
@@ -1905,7 +1918,7 @@ var i,j,k,err,err2: integer;
     disp: dword;
 
     temp: string;
-
+    haserror: boolean;
 begin
   setlength(tokens,0);
   result:=false;
@@ -1917,7 +1930,11 @@ begin
     //looks like a pointer in a address specifier (idiot user detected...)
 
 
-    token:='['+inttohex(symhandler.getaddressfromname(copy(token,2,length(token)-2)),8)+']';
+    temp:='['+inttohex(symhandler.getaddressfromname(copy(token,2,length(token)-2), false,haserror),8)+']';
+    if not haserror then
+      token:=temp
+    else
+      raise exception.create('Invalid');
   end;
 
 
@@ -1966,12 +1983,9 @@ begin
           disp:=0;
 
 
-          try
-            tokens[i]:=inttohex(symhandler.getaddressfromname(tokens[i]),8);
-          except
-
-          end;
-
+          temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
+          if not haserror then
+            tokens[i]:=temp;
 
 
         end;
@@ -2584,21 +2598,7 @@ begin
     exit;
   end;
 
-  if tokens[0]='DW' then
-  begin
-    for i:=1 to nroftokens-1 do
-      addword(bytes,strtoint('$'+tokens[i]));
-    result:=true;
-    exit;
-  end;
 
-  if tokens[0]='DD' then
-  begin
-    for i:=1 to nroftokens-1 do
-      adddword(bytes,strtoint('$'+tokens[i]));
-    result:=true;
-    exit;
-  end;
 
 
   mnemonic:=-1;
@@ -2638,6 +2638,30 @@ begin
   paramtype1:=gettokentype(parameter1,parameter2);
   paramtype2:=gettokentype(parameter2,parameter1);
   paramtype3:=gettokentype(parameter3,'');
+
+  if tokens[0]='DW' then
+  begin
+    for i:=1 to nroftokens-1 do
+      addword(bytes,strtoint(parameter1));
+    result:=true;
+    exit;
+  end;
+
+  if tokens[0]='DD' then
+  begin
+    for i:=1 to nroftokens-1 do
+      adddword(bytes,strtoint(parameter1));
+    result:=true;
+    exit;
+  end;
+
+  if tokens[0]='DQ' then
+  begin
+    for i:=1 to nroftokens-1 do
+      addqword(bytes,strtoint64(parameter1));
+    result:=true;
+    exit;
+  end;  
 
   if (paramtype1>=ttMemorylocation) and (paramtype1<=ttMemorylocation128) then
   begin

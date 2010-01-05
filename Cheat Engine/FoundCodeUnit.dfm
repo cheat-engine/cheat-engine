@@ -24,6 +24,7 @@ object FoundCodeDialog: TFoundCodeDialog
     Height = 400
     Align = alClient
     ItemHeight = 16
+    MultiSelect = True
     PopupMenu = pmOptions
     TabOrder = 0
     OnClick = FoundcodeListClick

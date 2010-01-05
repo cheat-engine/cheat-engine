@@ -8,7 +8,7 @@ AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
-DefaultDirName={pf}\Cheat Engine
+DefaultDirName={pf}\Cheat Engine Beta3
 DefaultGroupName=Cheat Engine 5.6 BETA
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
@@ -128,9 +128,11 @@ Name: "{app}"; permissions: everyone-full;
 
 [Files]
 Source: "..\bin\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
+Source: "..\bin\vmdisk.img"; DestDir: "{app}"; DestName: "vmdisk.img"; Flags: ignoreversion
 Source: "..\bin\CEHook.dll"; DestDir: "{app}"; DestName: "CEHook.dll"; Flags: ignoreversion
 Source: "..\bin\speedhack.dll"; DestDir: "{app}"; DestName: "speedhack.dll"; Flags: ignoreversion
 
+Source: "..\bin\commonmodulelist.txt"; DestDir: "{app}"; DestName: "commonmodulelist.txt"; Flags: ignoreversion
 Source: "..\LockedString.bmp"; DestDir: "{app}"; DestName: "LockedString.bmp"; Flags: ignoreversion
 Source: "..\UnLockedString.bmp"; DestDir: "{app}"; DestName: "UnLockedString.bmp"; Flags: ignoreversion
 Source: "..\TextureString.bmp"; DestDir: "{app}"; DestName: "TextureString.bmp"; Flags: ignoreversion
@@ -148,7 +150,7 @@ Source: "..\bin\Kernelmoduleunloader.exe"; DestDir: "{app}"; DestName: "Kernelmo
 ;comment the next 2 lines for the baby version
 Source: "..\bin\dbk32.dll"; DestDir: "{app}"; DestName: "dbk32.dll"; Flags: ignoreversion
 Source: "..\bin\dbk32.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion; BeforeInstall: UninstallDriver
-Source: "..\bin\dbk64.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion;
+Source: "..\bin\dbk64.sys"; DestDir: "{app}"; DestName: "dbk64.sys"; Flags: ignoreversion;
 Source: "..\bin\EmptyProcess.exe"; DestDir: "{app}"; DestName: "EmptyProcess.exe"; Flags: ignoreversion
 Source: "..\bin\EmptyDLL.dll"; DestDir: "{app}"; DestName: "EmptyDLL.dll"; Flags: ignoreversion
 Source: "..\bin\Systemcallretriever.exe"; DestDir: "{app}"; DestName: "Systemcallretriever.exe"; Flags: ignoreversion
@@ -211,7 +213,8 @@ Source: "..\plugin\packet editor\inject\src\mainunit.pas"; DestDir: "{app}\Plugi
 Source: "..\plugin\packet editor\inject\src\packetfilter.pas"; DestDir: "{app}\Plugins\example packet editor\inject\src\"; Flags: ignoreversion
 
 ;Debug event log example
-Source: "..\plugin\DebugEventLog\DebugEventLog.dll"; DestDir: "{app}\Plugins\DebugEventLog\"; Flags: ignoreversion
+
+Source: "..\plugin\DebugEventLog\src\DebugEventLog.dll"; DestDir: "{app}\Plugins\DebugEventLog\"; Flags: ignoreversion
 
 ;Debug event log example source
 Source: "..\plugin\DebugEventLog\src\DebugEventLog.cfg"; DestDir: "{app}\Plugins\DebugEventLog\src"; Flags: ignoreversion
@@ -225,8 +228,8 @@ Source: "..\plugin\DebugEventLog\src\frmEventLogUnit.pas"; DestDir: "{app}\Plugi
 
 Source: "..\include\*"; DestDir: "{app}\include\";
 Source: "..\example scripts\*"; DestDir: "{app}\example scripts\";
-Source: "..\ucc12.dll"; DestDir: "{app}";
-Source: "..\undercdll.dll"; DestDir: "{app}";
+Source: "..\bin\ucc12.dll"; DestDir: "{app}";
+Source: "..\bin\undercdll.dll"; DestDir: "{app}";
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

@@ -1,57 +1,54 @@
-Cheat Engine 5.5
+Cheat Engine 5.6
 
 Changes:
-added 'short' and 'long' overrides to the jump instructions. (Mainly usefull for auto assembler scripts that by default pick the long one)
-Copied the "Find out what addresses this code accesses" from advanced options to memory view
-Made the above function display the current value so you don't have to add them first
-And made it non-modal so you can do other stuff while it's working.
-Improved custom scan so it can now also display the results
-New speedhack implementation
-New AutoAssembler window
-Removed the question if you want a new scan. (You must now click on new scan yourself)
-Added GlobalAlloc to the autoassembler
-The dissect structure window can now be opened multiple times (for comparison)
-Structures are now saved in the cheat table
-The main ce window now has a menu (can be disabled in settings if you don't like it)
-The processlist can now show process icons. (could be slow, so can be disabled in settings)
-The settings window has been changed from tabs to a list
-Added a tools menu so people can add quicklaunch apps. (e.g: calc)
-Added the option to save and load tables as XML
-Changed copy/pasting of entries to XML
-Helpfile changed from .HLP to .CHM , also incorporated the plugin documentaion in the helpfile instead of a seperate .RTF
-Added a few new functions to the plugin system and made the examples easier to understand (Mainly for helping with assembly scripts)
-Added a packet editor example plugin
-Assembler can now work with " and ' strings
-Changed the reverse pointer scan to give more details about what is going on
-The positions of the main window and memoryview can now be saved
-The about window now tells you which version of dbvm is loaded if dbvm is running
-If DBVM is running and you choose phsyical memory, it goes through dbvm's read physical memory instead of windows'
-Added a floating point panel to several windows that use system context to display variables
-Added the option to the memoryview hexview part to display 2 bytes, 4 byte, float or double instead of bytes
-Improved the dissect data window to show addresses next to eachother
-The bottom part of the memory view window (hexview) can now display as different types (byte, 2 byte, 4 byte, decimal 4 byte, float, double)
-Changed the multi pointer tutorial step so it now represents a real game situation
+Pointerscanner speed has been increased a lot
+New Icon (thanks to Phox from the forum)
+The pointerscanner can now scan for values
+The pointerscanner now lets you specify an offset list that it has to end with.
+Removed the injected pointerscanner
+The auto assembler now supports code outside of [enable] and [disable] sections so it affects both
+Resultcount is now comma seperator (thanks to infinito)
+New kernelmode debugger
+Added the ability to offload the current OS to dbvm (if your cpu supports it)
+The driver is now 64-bit compatible. (You will have to sign it yourself, or reboot with unsigned driver support)
+Rewrote the disassemblerview
+Deleting addresses from a scanresult is now a bit faster
+Changed the hotkey handler to be more controllable
+New heaplist that works based on dll injection instead of toolhelp32
+Dissectcode now helps finding referenced strings
+Added a new Auto assembler command "aobscan(varname, arrayofbytestring)"
+Dissect data now works with offsets instead of sizes
+Added the ability to follow pointers easily with Dissect Data
+There's now a stacktrace visible during debugging
+The registerview is gone as long as you're not debugging
+CE now suppresses the "No disk" message when the searchpath is invalid
+Added a common modulelist to the ce folder that you can edit. Include files that you do NOT want to go through when doing memory inspection
+You can now open another pointerscanner window while another pointerscan is running and read the results.
+Added a string reference windows
+Improved the plugin system with some extra disassembler commands and a command to load modules into memory
+Added (float)#, (double)# and (int)# support to the assembler, (double) is mainly usable in combination with the new DQ command though
 
 
 Fixes:
-Fixed the multicore scan crash
-Fixed the MEMORYFIRST.TMP file showing up in a weird location
-Fixed several hotkey setting bugs
-Fixed loading back the speedhack hotkey values
-Fixed a crash when opening a process with a broken PE-header
-Fixed several assembler and disassembler instructions
-Fixed memoryviewers "copy to clipboard" option where it picks the wrong option
-Fixed binary scan crash on nextscan
-Fixed huge memory leak in pointerscanner
-Fixed the "No error message" on error during a scan
-Fixed bug with calling kernel_XXXX functions in assembler
-Fixed a trainer bug regarding clicking on cheats
-Fixed 32-bit icons in the trainer maker
-Fixed the terminate scan option
-Fixed a DPI bug on several windows
-Fixed a crash when loading of the symbols failed
-
-
+Fix mov [reg],reg disassembly when a 16-bit prefix is used
+Fixed some floating point assembler instructions
+Taborder fix for "Value between scan" (infinito)
+Fixed the Auto assembler code injection template with regard to the "Alt:" line
+Jmp FAR instruction not shown properly in the disassembler
+Fixed disassembler instructions that had a rep/repe prefix while they shouldn't
+Fixed xorps instruction
+Fixed assembler where segment registers are used
+Fixed rm32,imm16 notations getting dowsized to rm32,imm8 while they should go rm32,imm32 
+Fixed hang when setting the window on top and then doing a scan
+Fixed FILD qword instruction
+Fixed FNSTSW AX instruction
+Fixed FCOM instruction
+Fixed IMUL,0a instruction
+Fixed broken alt-key when the disassemblerview is focused
+Fixed the bug where removing a assigned hotkey to a cheat table didn't work
+Fixed the floating point panel. It now actually shows the floating point values...
+Fixed several bugs in the Dissect Data window
+Several gui fixes for high dpi systems
 
 
 

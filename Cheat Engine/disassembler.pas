@@ -2,7 +2,7 @@ unit disassembler;
 //eric, voeg int3 afhandeling toe
 interface
 
-uses imagehlp,sysutils,windows,byteinterpreter, symbolhandler,cefuncproc{$ifdef net}{$ifndef netserver},NetAPIs{$endif}{$endif}{$ifndef netclient},NewKernelHandler{$endif};
+uses imagehlp,sysutils,windows,byteinterpreter, symbolhandler,cefuncproc,NewKernelHandler;
 
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
@@ -2736,13 +2736,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Low Packed Double-FP';
-                          tempresult:=tempresult+'MOVLPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          tempresult:=tempresult+'MOVLPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Low Packed Single-FP';
-                          tempresult:=tempresult+'MOVLPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          tempresult:=tempresult+'MOVLPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end;
                       end;
@@ -2891,9 +2893,20 @@ begin
                       end;
 
                 $29 : begin
-                        description:='Move Aligned Four Packed Single-FP';
-                        tempresult:=tempresult+'MOVAPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
-                        inc(offset,last-1);
+                        if $66 in prefix2 then
+                        begin
+                          description:='Move Aligned Packed Fouble-FP Values';
+                          tempresult:=tempresult+'MOVAPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          inc(offset,last-1);
+                        end
+                        else
+                        begin
+                          description:='Move Aligned Four Packed Single-FP';
+                          tempresult:=tempresult+'MOVAPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          inc(offset,last-1);
+                        end;
                       end;
 
 

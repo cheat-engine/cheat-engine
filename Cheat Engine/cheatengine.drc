@@ -84,38 +84,38 @@
 #define MainUnit_strInfoAboutTable 65021
 #define MainUnit_strPhysicalMemory 65022
 #define MainUnit_strfillInSomething 65023
-#define MainUnit2_strexact 65024
-#define MainUnit2_strexactvalue 65025
-#define MainUnit2_strbiggerThan 65026
-#define MainUnit2_strSmallerThan 65027
-#define MainUnit2_strIncreasedValue 65028
-#define MainUnit2_strIncreasedValueBy 65029
-#define MainUnit2_strDecreasedValue 65030
-#define MainUnit2_strDecreasedValueBy 65031
-#define MainUnit2_strValueBetween 65032
-#define MainUnit2_strChangedValue 65033
-#define MainUnit2_strUnchangedValue 65034
-#define MainUnit2_strUnknownInitialValue 65035
-#define MainUnit2_strSameAsFirstScan 65036
-#define MainUnit2_strtoolong 65037
+#define MainUnit2_strexactvalue 65024
+#define MainUnit2_strbiggerThan 65025
+#define MainUnit2_strSmallerThan 65026
+#define MainUnit2_strIncreasedValue 65027
+#define MainUnit2_strIncreasedValueBy 65028
+#define MainUnit2_strDecreasedValue 65029
+#define MainUnit2_strDecreasedValueBy 65030
+#define MainUnit2_strValueBetween 65031
+#define MainUnit2_strChangedValue 65032
+#define MainUnit2_strUnchangedValue 65033
+#define MainUnit2_strUnknownInitialValue 65034
+#define MainUnit2_strSameAsFirstScan 65035
+#define MainUnit2_strtoolong 65036
+#define FoundCodeUnit_strClose 65037
 #define MainUnit_strWindowFailedToHide 65038
 #define MainUnit_strAccessed 65039
 #define AdvancedOptionsUnit_strnotthesame 65040
 #define AdvancedOptionsUnit_strcouldntwrite 65041
 #define AdvancedOptionsUnit_StrSelectExeFor3D 65042
 #define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65043
-#define FoundCodeUnit_strClose 65044
-#define formsettingsunit_strProcessWatcherWillPreventUnloader 65045
-#define MainUnit2_strStart 65046
-#define MainUnit2_strStop 65047
-#define MainUnit2_strOK 65048
-#define MainUnit2_strBug 65049
-#define MainUnit2_strAutoAssemble 65050
-#define MainUnit2_strAddressHasToBeReadable 65051
-#define MainUnit2_strNewScan 65052
-#define MainUnit2_strFirstScan 65053
-#define MainUnit2_strNoDescription 65054
-#define MainUnit2_strNeedNewerWindowsVersion 65055
+#define formsettingsunit_strProcessWatcherWillPreventUnloader 65044
+#define MainUnit2_strStart 65045
+#define MainUnit2_strStop 65046
+#define MainUnit2_strOK 65047
+#define MainUnit2_strBug 65048
+#define MainUnit2_strAutoAssemble 65049
+#define MainUnit2_strAddressHasToBeReadable 65050
+#define MainUnit2_strNewScan 65051
+#define MainUnit2_strFirstScan 65052
+#define MainUnit2_strNoDescription 65053
+#define MainUnit2_strNeedNewerWindowsVersion 65054
+#define MainUnit2_strexact 65055
 #define frmFindstaticsUnit_strStop 65056
 #define frmFindstaticsUnit_strStopping 65057
 #define frmLoadMemoryunit_strinvalidfile 65058
@@ -674,7 +674,6 @@ BEGIN
 	MainUnit_strInfoAboutTable,	"Info about this table:"
 	MainUnit_strPhysicalMemory,	"Physical Memory"
 	MainUnit_strfillInSomething,	"Please fill in something!"
-	MainUnit2_strexact,	"Exact"
 	MainUnit2_strexactvalue,	"Exact Value"
 	MainUnit2_strbiggerThan,	"Bigger than..."
 	MainUnit2_strSmallerThan,	"Smaller than..."
@@ -688,13 +687,13 @@ BEGIN
 	MainUnit2_strUnknownInitialValue,	"Unknown initial value"
 	MainUnit2_strSameAsFirstScan,	"Same as first scan"
 	MainUnit2_strtoolong,	"Too long"
+	FoundCodeUnit_strClose,	"Close"
 	MainUnit_strWindowFailedToHide,	"A window failed to hide"
 	MainUnit_strAccessed,	"The following opcodes accessed the selected address"
 	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
 	AdvancedOptionsUnit_strcouldntwrite,	"The memory at this address couldn't be written"
 	AdvancedOptionsUnit_StrSelectExeFor3D,	"Select the executable of the Direct-3D game"
 	AdvancedOptionsUnit_StrSelectExeForOpenGL3D,	"Select the executable of the OpenGL game"
-	FoundCodeUnit_strClose,	"Close"
 	formsettingsunit_strProcessWatcherWillPreventUnloader,	"Enabling the process watcher will prevent the unloader from working"
 	MainUnit2_strStart,	"Start"
 	MainUnit2_strStop,	"Stop"
@@ -706,6 +705,7 @@ BEGIN
 	MainUnit2_strFirstScan,	"First Scan"
 	MainUnit2_strNoDescription,	"No description"
 	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
+	MainUnit2_strexact,	"Exact"
 	frmFindstaticsUnit_strStop,	"Stop"
 	frmFindstaticsUnit_strStopping,	"Stopping..."
 	frmLoadMemoryunit_strinvalidfile,	"This is a invalid memory region file. I'll assume this file has no header data"

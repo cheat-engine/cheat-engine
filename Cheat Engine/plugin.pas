@@ -429,6 +429,18 @@ type TPluginfunctionType7=class
     callback: TPluginFunction7;
 end;
 
+//plugin type 8
+//where: when the autoassembler is used in the first and 2nd stage
+type TPluginFunction8=procedure(line: ppchar; phase: integer); stdcall;
+type TPluginfunctionType8=class
+  public
+    pluginid: integer;
+    functionid: integer;
+    callback: TPluginFunction8;
+end;
+
+
+
 
 type TPlugin = record
   dllname: string;
@@ -449,6 +461,7 @@ type TPlugin = record
   RegisteredFunctions5: array of TPluginfunctionType5;
   RegisteredFunctions6: array of TPluginfunctionType6;
   RegisteredFunctions7: array of TPluginfunctionType7;
+  RegisteredFunctions8: array of TPluginfunctionType8;
 end;
 
 
@@ -464,6 +477,7 @@ type TPluginHandler=class
     procedure FillCheckListBox(clb: TCheckListbox);
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
+    procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer);
     procedure handledisassemblerContextPopup(address: dword); 
     procedure handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     function handledebuggerplugins(devent:PDebugEvent):integer;
@@ -516,6 +530,7 @@ type PFunction4=^TFunction2;
 type PFunction5=^TFunction1;
 type PFunction6=^TFunction6;
 type PFunction7=^TFunction2;
+type PFunction8=^TFunction2;
 
 var i: integer;
     newmenuitem: TMenuItem;
@@ -527,6 +542,7 @@ var i: integer;
     f5: TPluginfunctionType5;
     f6: TPluginfunctionType6;
     f7: TPluginfunctionType7;
+    f8: TPluginfunctionType8;
 begin
   result:=-1;
 
@@ -709,6 +725,19 @@ begin
            result:=plugins[pluginid].nextid;
          end;
 
+      8: begin
+           //autoassembler
+           f8:=TPluginfunctionType8.Create;
+           f8.pluginid:=pluginid;
+           f8.functionid:=plugins[pluginid].nextid;
+           f8.callback:=Pfunction8(init).callbackroutine;
+
+           setlength(plugins[pluginid].RegisteredFunctions8,length(plugins[pluginid].RegisteredFunctions8)+1);
+           plugins[pluginid].RegisteredFunctions8[length(plugins[pluginid].RegisteredFunctions8)-1]:=f8;
+
+           result:=plugins[pluginid].nextid;
+         end;
+
 
     end;
 
@@ -872,6 +901,21 @@ begin
         exit;
       end;
 
+    //function8 check
+    for i:=0 to length(plugins[pluginid].RegisteredFunctions8)-1 do
+      if plugins[pluginid].RegisteredFunctions8[i].functionid=functionid then
+      begin
+        plugins[pluginid].RegisteredFunctions8[i].Free;
+
+        for j:=i to length(plugins[pluginid].RegisteredFunctions8)-2 do
+          plugins[pluginid].RegisteredFunctions8[j]:=plugins[pluginid].RegisteredFunctions8[j+1];
+
+        setlength(plugins[pluginid].RegisteredFunctions8,length(plugins[pluginid].RegisteredFunctions8)-1);
+
+        result:=true;
+        exit;
+      end;
+
 
   finally
     pluginmrew.EndWrite;
@@ -941,6 +985,9 @@ begin
 
       while length(plugins[pluginid].Registeredfunctions7)>0 do
         unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions7[0].functionid);
+
+      while length(plugins[pluginid].Registeredfunctions8)>0 do
+        unregisterfunction(pluginid,plugins[pluginid].Registeredfunctions8[0].functionid);
 
     end;
   finally
@@ -1072,6 +1119,19 @@ begin
     clb.Checked[j]:=plugins[i].enabled;
   end;
   pluginMREW.EndRead;
+end;
+
+procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer);
+var i,j: integer;
+begin
+  pluginMREW.BeginRead;
+  try
+    for i:=0 to length(plugins)-1 do
+      for j:=0 to length(plugins[i].RegisteredFunctions8)-1 do
+        plugins[i].RegisteredFunctions8[j].callback(line,phase);
+  finally
+    pluginMREW.EndRead;
+  end;
 end;
 
 procedure TPluginHandler.handledisassemblerContextPopup(address: dword);

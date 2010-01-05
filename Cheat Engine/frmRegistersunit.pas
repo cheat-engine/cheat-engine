@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit;
+  Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, newkernelhandler;
 
 type
   TRegisters = class(TForm)

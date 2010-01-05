@@ -6,14 +6,7 @@ interface
 
 uses Classes,windows,sysutils,cefuncproc,Messages,forms,SyncObjs,
      dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils,
-     ComCtrls
-     {$ifndef net}
-     ,assemblerunit,addressparser  //handled in the client version or not at all
-     {$endif}
-     {$ifdef netserver}      
-     ,unit1
-     ,idtcpserver
-     {$endif};
+     ComCtrls, assemblerunit, addressparser;
 
 const reg0set= $3;          //(00000000000000000000000000000011)
       reg1set= $C;          //(00000000000000000000000000001100)
@@ -135,10 +128,6 @@ type TDebugger = class(TThread)
 
     CurrentProcess: integer;
 
-
-    {$ifdef netserver}
-    coderecords: array of dword;
-    {$endif}
 
     procedure addtochangeslist;
     procedure ProcessCreated;
@@ -300,7 +289,7 @@ var DebuggerThread: TDebugger;
 
 implementation
 
-uses {$ifndef net}Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,{$endif}disassembler{$ifndef net},frmTracerUnit,foundcodeunit,kerneldebugger,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit{$endif};
+uses Mainunit,frmFloatingPointPanelUnit,Memorybrowserformunit,disassembler,frmTracerUnit,foundcodeunit,kerneldebugger,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin,frmCreatedProcessListUnit;
 
 function ToggleBreakpoint(address:dword):boolean;
 {$ifndef net}
@@ -599,7 +588,7 @@ begin
 
   zeromemory(@c,sizeof(c));
 
-  c.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_DEBUG_REGISTERS;
+  c.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_DEBUG_REGISTERS or CONTEXT_EXTENDED_REGISTERS;
 
   debuggerthread.suspend;
   suspendthread(threadhandle);
@@ -783,7 +772,8 @@ begin
     begin
       if threadlist[i,0]=devent.dwThreadId then
       begin
-        context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+        ZeroMemory(@context,sizeof(context));
+        context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
         getthreadcontext(threadlist[i,1],context);
         break;
       end;
@@ -913,6 +903,8 @@ begin
     coderecords[length(coderecords)-1].ebp:=context.Ebp;
     coderecords[length(coderecords)-1].esp:=context.Esp;
     coderecords[length(coderecords)-1].eip:=context.Eip;
+    coderecords[length(coderecords)-1].context:=context;
+
     Foundcodelist.Items.Add(opcode);
   end;
   {$else}
@@ -1198,10 +1190,11 @@ begin
   for i:=0 to length(threadlist)-1 do
     if threadlist[i,0]=ThreadId then
     begin
-      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+      ZeroMemory(@context,sizeof(context));
+      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
       getthreadcontext(threadlist[i,1],context);
 
-      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT; //CONTEXT_CONTROL;
+      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS; //CONTEXT_CONTROL;
       context.EFlags:=context.EFlags or $100;
       setthreadcontext(threadlist[i,1],context);
       break;
@@ -1402,7 +1395,8 @@ begin
   begin
     RemoveBreakpoint;
 
-    context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+    ZeroMemory(@context,sizeof(context));
+    context.ContextFlags:=CONTEXT_FULL;
     getthreadcontext(pausedthreadhandle,context);
 
     context.ContextFlags:=CONTEXT_FULL; //CONTEXT_CONTROL;
@@ -1650,7 +1644,8 @@ begin
               for i:=0 to length(threadlist)-1 do
                 if threadlist[i,0]=devent.dwThreadId then
                 begin
-                  context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+                  ZeroMemory(@context,sizeof(context));
+                  context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
                   getthreadcontext(threadlist[i,1],context);
                   pausedthreadhandle:=threadlist[i,1];
                   break;
@@ -1897,7 +1892,8 @@ begin
                       for j:=0 to length(threadlist)-1 do
                         if threadlist[j,0]=devent.dwThreadId then
                         begin
-                          context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+                          ZeroMemory(@context,sizeof(context));
+                          context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
                           getthreadcontext(threadlist[j,1],context);
                           pausedthreadhandle:=threadlist[j,1];
                           break;
@@ -2174,10 +2170,11 @@ begin
                   for i:=0 to length(threadlist)-1 do
                     if threadlist[i,0]=devent.dwThreadId then
                     begin
-                     context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
-                     getthreadcontext(threadlist[i,1],context);
-                     pausedthreadhandle:=threadlist[i,1];
-                     break;
+                      ZeroMemory(@context,sizeof(context));
+                      context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
+                      getthreadcontext(threadlist[i,1],context);
+                      pausedthreadhandle:=threadlist[i,1];
+                      break;
                     end;
 
                   if ((canusedebugregs) and (drregs.Dr3=context.Eip)) or (continuehow=wdco_stepinto) then
@@ -2286,7 +2283,8 @@ begin
                         if threadlist[i,0]=devent.dwThreadId then
                         begin
                           hthr:=threadlist[i,1];
-                          context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+                          ZeroMemory(@context,sizeof(context));
+                          context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
                           getthreadcontext(hthr,context);
 
                           context.ContextFlags:=CONTEXT_FULL; //CONTEXT_CONTROL;
@@ -2304,7 +2302,8 @@ begin
                       if threadlist[i,0]=devent.dwThreadId then
                       begin
                         hthr:=threadlist[i,1];
-                        context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+                        ZeroMemory(@context,sizeof(context));
+                        context.ContextFlags:=CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
                         getthreadcontext(hthr,context);
 
                         context.ContextFlags:=CONTEXT_FULL; //CONTEXT_CONTROL;

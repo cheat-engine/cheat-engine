@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls;
+  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit, newkernelhandler;
 
 type
   TFormFoundCodeListExtra = class(TForm)
@@ -37,17 +37,21 @@ type
     Label18: TLabel;
     pmCopy2: TPopupMenu;
     Copyguesstoclipboard1: TMenuItem;
+    sbShowFloats: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
     procedure Copyguesstoclipboard1Click(Sender: TObject);
     procedure Panel6Resize(Sender: TObject);
+    procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
     fprobably: dword;
+    fpp: TfrmFloatingPointPanel;
     procedure setprobably(address:dword);
   public
     { Public declarations }
+    context: Context;
     property probably: dword read fprobably write setprobably;
   end;
 
@@ -68,6 +72,9 @@ end;
 procedure TFormFoundCodeListExtra.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
+  if fpp<>nil then
+    freeandnil(fpp);
+    
   action:=cafree;
 end;
 
@@ -112,14 +119,27 @@ end;
 
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
 begin
-  label12.Left:=panel6.ClientWidth-label12.width-label7.Left;
+  label12.Left:=(panel6.ClientWidth-sbShowFloats.width)-label12.width-label7.Left;
   label13.left:=label12.left;
   label15.Left:=label12.Left;
 
-  label11.Left:=(panel6.ClientWidth div 2)-(label11.Width div 2);
+  label11.Left:=((panel6.ClientWidth-sbShowFloats.width) div 2)-(label11.Width div 2);
   label16.left:=label11.left;
   label14.Left:=label11.left;
 
+  sbShowFloats.top:=label13.Top+(label13.height div 2)-(sbShowFloats.height div 2);
+  sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
+end;
+
+procedure TFormFoundCodeListExtra.sbShowFloatsClick(Sender: TObject);
+begin
+  if fpp=nil then
+    fpp:=TfrmFloatingPointPanel.create(self);
+
+  fpp.Left:=self.left+self.Width;
+  fpp.Top:=self.top;
+  fpp.SetContextPointer(@context);
+  fpp.show;//pop to foreground
 end;
 
 end.

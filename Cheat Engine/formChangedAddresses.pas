@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,cefuncproc, ExtCtrls, ComCtrls, Menus;
+  Dialogs, StdCtrls,cefuncproc, ExtCtrls, ComCtrls, Menus, newkernelhandler;
 
 type
   TfrmChangedAddresses = class(TForm)

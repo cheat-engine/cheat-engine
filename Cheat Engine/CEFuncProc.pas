@@ -2856,6 +2856,9 @@ var ishex: string;
     i,j,k: integer;
 
     bytes: string;
+    t: string;
+    f: single;
+    d: double;
 begin
   if s='' then
   begin
@@ -2898,6 +2901,63 @@ begin
         start:=2;
         break;
       end;
+
+      '(' :
+      begin
+        if copy(s,1,5)='(INT)' then
+        begin
+          t:=copy(s,6,length(s));
+          val(t, k,j);
+          if j=0 then
+          begin
+            result:='$'+inttohex(k,8);
+
+            if s[1]='-' then
+              result:='-'+result;
+
+            if s[1]='+' then
+              result:='+'+result;
+              
+            exit;
+          end;
+        end;
+
+        if copy(s,1,8)='(DOUBLE)' then
+        begin
+          t:=copy(s,9,length(s));
+          val(t, d,j);
+          if j=0 then
+          begin
+            result:='$'+inttohex(PINT64(@d)^,8);
+
+            if s[1]='-' then
+              result:='-'+result;
+
+            if s[1]='+' then
+              result:='+'+result;
+              
+            exit;
+          end;
+        end;
+
+        if copy(s,1,7)='(FLOAT)' then
+        begin
+          t:=copy(s,8,length(s));
+          val(t, f,j);
+          if j=0 then
+          begin
+            result:='$'+inttohex(pdword(@f)^,8);
+
+            if s[1]='-' then
+              result:='-'+result;
+
+            if s[1]='+' then
+              result:='+'+result;
+              
+            exit;
+          end;
+        end;
+      end;
     end;
 
 
@@ -2910,7 +2970,10 @@ begin
   begin
     result:='+'+ishex+copy(s,start+1,length(s));
   end
-  else result:=ishex+copy(s,start,length(s));
+  else
+  begin
+    result:=ishex+copy(s,start,length(s));
+  end;
 end;
 
 function HexStrToInt(const S: string): Integer;

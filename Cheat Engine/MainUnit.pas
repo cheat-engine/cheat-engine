@@ -658,7 +658,7 @@ uses mainunit2,ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   formAddressChangeUnit, formmemoryregionsunit,formPointerOrPointeeUnit,
   frmProcessWatcherUnit, formProcessInfo, frmautoinjectunit,
   PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
-  InjectedpointerscanornotFRM, frmGDTunit, frmFunctionlistUnit;
+  InjectedpointerscanornotFRM, frmGDTunit, frmFunctionlistUnit, frmFloatingPointPanelUnit;
 
 {$R *.DFM}
 
@@ -2881,6 +2881,7 @@ end;
 procedure TMainform.reinterpretaddresses;
 var i: integer;
     a: dword;
+    haserror: boolean;
 begin
   //a:=gettickcount;
 
@@ -2895,20 +2896,15 @@ begin
   begin
     if memrec[i].interpretableaddress<>'' then
     begin
-      try
-        memrec[i].address:=symhandler.getAddressFromName(memrec[i].interpretableaddress,false); //don't wait for symbols here
-      except
-
-      end;
+      a:=symhandler.getAddressFromName(memrec[i].interpretableaddress,false, haserror); //don't wait for symbols here
+      if not haserror then memrec[i].address:=a;
     end;
 
     if memrec[i].IsPointer and (memrec[i].pointers[length(memrec[i].pointers)-1].interpretableaddress<>'') then
     begin
-      try
-        memrec[i].pointers[length(memrec[i].pointers)-1].Address:=symhandler.getAddressFromName(memrec[i].pointers[length(memrec[i].pointers)-1].interpretableaddress,false);
-      except
-
-      end;
+      a:=symhandler.getAddressFromName(memrec[i].pointers[length(memrec[i].pointers)-1].interpretableaddress,false,haserror);
+      if not haserror then
+        memrec[i].pointers[length(memrec[i].pointers)-1].Address:=a;
     end;
   end;
 
@@ -10735,9 +10731,24 @@ var raaa: packed record
   segment: word;  
 end;
 
+var
+  c: tcontext;
 procedure TMainForm.Label59Click(Sender: TObject);
+var
+  f: TfrmFloatingPointPanel;
 begin
+  ZeroMemory(@c,sizeof(c));
+  c.ContextFlags:=CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
+  if GetThreadContext(getcurrentthread, c) then
+  begin
+    f:=TfrmFloatingPointPanel.create(self);
+    f.SetContextPointer(@c);
+    memorybrowser.memoryaddress:=dword(@c);
+    f.show;
 
+    showmessage(inttohex(dword(@c)+sizeof(c),8))
+   
+  end else showmessage('fuck');
 end;
 
 {

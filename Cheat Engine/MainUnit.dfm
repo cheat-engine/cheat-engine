@@ -1456,7 +1456,6 @@ object MainForm: TMainForm
       Width = 70
       Height = 13
       Caption = 'Launch DBVM'
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
