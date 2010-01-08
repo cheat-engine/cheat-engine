@@ -341,7 +341,7 @@ end;
 procedure TFoundCodeDialog.btnReplacewithnopsClick(Sender: TObject);
 var codelength: integer;
     written: dword;
-    i: integer;
+    i,j: integer;
     nops: array of byte;
     a: dword;
     original: dword;
@@ -351,20 +351,26 @@ var codelength: integer;
 begin
   with foundcodelist do
   begin
-    codelength:=coderecords[itemindex].size;
-    //add it to the codelist
-    if advancedoptions.AddToCodeList(coderecords[itemindex].address,codelength,true) then
+    for j:=0 to foundcodelist.Count-1 do
     begin
-      setlength(nops,codelength);
-      for i:=0 to codelength-1 do
-        nops[i]:=$90;  //$90=nop
+      if foundcodelist.Selected[j] then
+      begin
+        codelength:=coderecords[itemindex].size;
+        //add it to the codelist
+        if advancedoptions.AddToCodeList(coderecords[itemindex].address,codelength,true, foundcodelist.SelCount>1) then
+        begin
+          setlength(nops,codelength);
+          for i:=0 to codelength-1 do
+            nops[i]:=$90;  //$90=nop
 
 
-      zeromemory(@mbi,sizeof(mbi));
+          zeromemory(@mbi,sizeof(mbi));
 
-      if debuggerthread<>nil then debuggerthread.Suspend;
-      RewriteCode(processhandle,coderecords[itemindex].address,@nops[0],codelength);
-      if debuggerthread<>nil then debuggerthread.Resume;
+          if debuggerthread<>nil then debuggerthread.Suspend;
+          RewriteCode(processhandle,coderecords[itemindex].address,@nops[0],codelength);
+          if debuggerthread<>nil then debuggerthread.Resume;
+        end;
+      end;
     end;
   end;
 end;
@@ -383,7 +389,7 @@ begin
   for i:=0 to foundcodelist.count-1 do
   begin
     if foundcodelist.Selected[i] then
-      advancedoptions.AddToCodeList(coderecords[i].address,coderecords[i].size,false);
+      advancedoptions.AddToCodeList(coderecords[i].address,coderecords[i].size,false, foundcodelist.SelCount>1);
   end;
   advancedoptions.Show;
 end;

@@ -1691,8 +1691,18 @@ begin
   
 
   if length(value)=9 then result:=32 else
-  if length(value)=5 then result:=16 else
-  if length(value)=3 then result:=8;
+  if length(value)=5 then
+  begin
+   result:=16;
+   if x>65535 then result:=32;
+  end
+  else
+  if length(value)=3 then
+  begin
+    result:=8;
+    if x>255 then
+      result:=16;
+  end;
 
   if result=0 then result:=ValueToType(x); //not a specific ammount of characters given
 end;

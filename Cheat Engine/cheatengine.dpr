@@ -157,7 +157,8 @@ uses
   ValueFinder in 'ValueFinder.pas',
   PointerscanresultReader in 'PointerscanresultReader.pas',
   frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings},
-  ManualModuleLoader in 'ManualModuleLoader.pas';
+  ManualModuleLoader in 'ManualModuleLoader.pas',
+  windows7taskbar in 'windows7taskbar.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

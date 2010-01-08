@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.6 BETA
-AppVerName=Cheat Engine 5.6 BETA
+AppName=Cheat Engine 5.6 BETA 4
+AppVerName=Cheat Engine 5.6 BETA 4
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
-DefaultDirName={pf}\Cheat Engine Beta3
-DefaultGroupName=Cheat Engine 5.6 BETA
+DefaultDirName={pf}\Cheat Engine Beta4
+DefaultGroupName=Cheat Engine 5.6 BETA 4
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine56Beta3
+OutputBaseFilename=CheatEngine56Beta4
 PrivilegesRequired=admin
 ChangesAssociations=yes
 

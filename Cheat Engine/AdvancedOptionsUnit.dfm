@@ -1,8 +1,8 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 468
-  Top = 203
-  Width = 377
-  Height = 258
+  Left = 772
+  Top = 158
+  Width = 415
+  Height = 297
   Anchors = []
   Caption = 'Advanced Options'
   Color = clBtnFace
@@ -13,40 +13,25 @@ object AdvancedOptions: TAdvancedOptions
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  Scaled = False
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 120
   TextHeight = 16
-  object codelist: TListBox
-    Left = 0
-    Top = 38
-    Width = 359
-    Height = 133
-    Style = lbOwnerDrawFixed
-    Align = alClient
-    ItemHeight = 13
-    MultiSelect = True
-    PopupMenu = PopupMenu2
-    TabOrder = 0
-    OnDblClick = Openthedisassemblerhere1Click
-    OnDrawItem = codelistDrawItem
-    OnKeyDown = codelistKeyDown
-    OnMouseDown = codelistMouseDown
-  end
   object Panel1: TPanel
     Left = 0
-    Top = 171
-    Width = 359
+    Top = 210
+    Width = 397
     Height = 42
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 1
+    TabOrder = 0
     OnResize = Panel1Resize
     DesignSize = (
-      359
+      397
       42)
     object Button1: TButton
-      Left = 181
+      Left = 205
       Top = 6
       Width = 92
       Height = 31
@@ -66,7 +51,7 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = Button4Click
     end
     object Button2: TButton
-      Left = 354
+      Left = 392
       Top = 21
       Width = 100
       Height = 21
@@ -80,14 +65,12 @@ object AdvancedOptions: TAdvancedOptions
   object Panel2: TPanel
     Left = 0
     Top = 0
-    Width = 359
+    Width = 397
     Height = 38
     Align = alTop
     BevelOuter = bvNone
-    TabOrder = 2
-    DesignSize = (
-      359
-      38)
+    TabOrder = 1
+    OnResize = Panel2Resize
     object Pausebutton: TSpeedButton
       Left = 42
       Top = 4
@@ -150,22 +133,46 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = SaveButtonClick
     end
     object Label1: TLabel
-      Left = 198
+      Left = 166
       Top = 20
       Width = 55
       Height = 16
-      Anchors = [akTop]
       Caption = 'Code list:'
     end
+  end
+  object Codelist2: TListView
+    Left = 0
+    Top = 38
+    Width = 397
+    Height = 172
+    Align = alClient
+    Columns = <
+      item
+        Caption = 'Address'
+        MinWidth = 10
+        Width = 120
+      end
+      item
+        AutoSize = True
+        Caption = 'Name'
+        MinWidth = 10
+      end>
+    ColumnClick = False
+    HideSelection = False
+    MultiSelect = True
+    RowSelect = True
+    PopupMenu = PopupMenu2
+    TabOrder = 2
+    ViewStyle = vsReport
+    OnDblClick = Codelist2DblClick
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
     Left = 112
-    Top = 96
+    Top = 104
     object Openthedisassemblerhere1: TMenuItem
       Caption = 'Open the disassembler at this location'
       Default = True
-      OnClick = Openthedisassemblerhere1Click
     end
     object N2: TMenuItem
       Caption = '-'
@@ -196,6 +203,7 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Remove1: TMenuItem
       Caption = 'Remove from list'
+      ShortCut = 46
       OnClick = Remove1Click
     end
     object N3: TMenuItem

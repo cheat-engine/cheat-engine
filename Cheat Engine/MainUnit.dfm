@@ -1127,8 +1127,11 @@ object MainForm: TMainForm
     object advancedbutton: TSpeedButton
       Left = 1
       Top = 1
-      Width = 104
+      Width = 96
       Height = 15
+      Hint = 
+        'Some extra functions like pause and trainer maker. And some save' +
+        'd instruction locations'
       Anchors = [akLeft, akBottom]
       Caption = 'Advanced options'
       Flat = True
@@ -1137,19 +1140,19 @@ object MainForm: TMainForm
       OnClick = advancedbuttonClick
     end
     object CommentButton: TSpeedButton
-      Left = 506
+      Left = 417
       Top = 1
-      Width = 18
+      Width = 96
       Height = 15
       Hint = 'abcdefg'
       Anchors = [akRight, akBottom]
-      Caption = '?'
+      Caption = 'Table Comments'
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -11
+      Font.Height = -12
       Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
+      Font.Style = []
       ParentFont = False
       ParentShowHint = False
       ShowHint = True
@@ -1882,6 +1885,7 @@ object MainForm: TMainForm
         Top = 3
         Width = 25
         Height = 25
+        Hint = 'Select a process to open'
         Glyph.Data = {
           46050000424D4605000000000000360400002800000010000000110000000100
           08000000000010010000C40E0000C40E00000001000000000000000000000000

@@ -73,8 +73,11 @@ begin
 end;
 
 procedure TFrmMemoryTrainerAddEntry.FormCreate(Sender: TObject);
+var i: integer;
 begin
-  listbox1.Items:=advancedoptions.codelist.Items;
+  listbox1.Items.Clear;
+  for i:=0 to advancedoptions.codelist2.Items.Count-1 do
+    listbox1.Items.Add(advancedoptions.codelist2.Items[i].SubItems[0]);
 end;
 
 procedure TFrmMemoryTrainerAddEntry.Button3Click(Sender: TObject);

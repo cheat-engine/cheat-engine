@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 505
-      ActivePage = CodeFinder
+      ActivePage = GeneralSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -353,6 +353,8 @@ object formSettings: TformSettings
           Width = 614
           Height = 21
           Caption = 'Pointer adding: Append pointerline instead of insert'
+          Checked = True
+          State = cbChecked
           TabOrder = 18
         end
       end
@@ -742,7 +744,7 @@ object formSettings: TformSettings
         object Label9: TLabel
           Left = 0
           Top = 155
-          Width = 609
+          Width = 595
           Height = 32
           Caption = 
             'Disadvantage: Memory intensive so slows down the game. And might' +
@@ -881,7 +883,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 455
-          Width = 609
+          Width = 424
           Height = 16
           Align = alBottom
           Alignment = taCenter

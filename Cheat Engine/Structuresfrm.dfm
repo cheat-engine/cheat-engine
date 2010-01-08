@@ -69,6 +69,7 @@ object frmStructures: TfrmStructures
       OnCollapsing = tvStructureViewCollapsing
       OnDblClick = tvStructureViewDblClick
       OnExpanding = tvStructureViewExpanding
+      OnKeyDown = tvStructureViewKeyDown
       OnMouseDown = tvStructureViewMouseDown
     end
     object HeaderControl1: THeaderControl
@@ -151,7 +152,7 @@ object frmStructures: TfrmStructures
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup
     Left = 240
-    Top = 200
+    Top = 208
     object ChangeElement1: TMenuItem
       Caption = 'Change element'
       Default = True

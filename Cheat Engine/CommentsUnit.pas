@@ -13,6 +13,7 @@ type
     Button1: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
@@ -24,6 +25,8 @@ var
   Comments: TComments;
 
 implementation
+
+uses MainUnit;
 
 {$R *.dfm}
 
@@ -42,10 +45,16 @@ end;
 
 procedure TComments.Panel1Resize(Sender: TObject);
 begin
-  button1.Left:=16;
-  button1.Width:=panel1.ClientWidth-32;
-  button1.top:=3;
-  button1.Height:=panel1.ClientHeight-6;
+  button1.Left:=(panel1.ClientWidth div 2) - (button1.Width div 2);
+
+end;
+
+procedure TComments.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if memo1.Lines.Count>0 then
+    mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
+  else
+    mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold]  
 end;
 
 end.

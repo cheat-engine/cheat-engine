@@ -18,7 +18,6 @@ type
     Rename1: TMenuItem;
     Findoutwhatthiscodechanges1: TMenuItem;
     Openthedisassemblerhere1: TMenuItem;
-    codelist: TListBox;
     Findthiscodeinsideabinaryfile1: TMenuItem;
     OpenDialog1: TOpenDialog;
     N1: TMenuItem;
@@ -35,8 +34,7 @@ type
     SaveButton: TSpeedButton;
     Label1: TLabel;
     N3: TMenuItem;
-    procedure codelistDrawItem(Control: TWinControl; Index: Integer;
-      Rect: TRect; State: TOwnerDrawState);
+    Codelist2: TListView;
     procedure FormShow(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure CC2Click(Sender: TObject);
@@ -44,23 +42,20 @@ type
     procedure Remove1Click(Sender: TObject);
     procedure Findoutwhatthiscodechanges1Click(Sender: TObject);
     procedure Rename1Click(Sender: TObject);
-    procedure Openthedisassemblerhere1Click(Sender: TObject);
     procedure Findthiscodeinsideabinaryfile1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure SaveButtonClick(Sender: TObject);
     procedure PausebuttonClick(Sender: TObject);
     procedure PausebuttonMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
-    procedure codelistMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure Replaceall1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
-    procedure codelistKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure Codelist2DblClick(Sender: TObject);
+    procedure Panel2Resize(Sender: TObject);
   private
     { Private declarations }
     plabel:string;
@@ -85,7 +80,7 @@ type
             Address: dword; //in case module offsets dont work
           end;
 
-    function AddToCodeList(address: Dword; sizeofopcode: integer; changed:boolean):boolean;
+    function AddToCodeList(address: dword; sizeofopcode: integer;changed: boolean; multiadd: boolean=false):boolean;
     procedure UpdateAdvancedOptions;
   end;
 
@@ -144,7 +139,7 @@ begin
 end;
 
 
-function TAdvancedOptions.AddToCodeList(address: dword; sizeofopcode: integer;changed: boolean):boolean;
+function TAdvancedOptions.AddToCodeList(address: dword; sizeofopcode: integer;changed: boolean; multiadd: boolean=false):boolean;
 resourcestring
   stralreadyinthelist = 'This byte is already part of another opcode already present in the list';
   strPartOfOpcodeInTheList='At least one of these bytes is already in the list';
@@ -167,12 +162,13 @@ var i: integer;
     me32:MODULEENTRY32;
     x: pchar;
     canceled: boolean;
-    newstring: string;
+    D,newstring: string;
+    li: tlistitem;
 begin
   //check if the address is already in the list
   for i:=0 to numberofcodes-1 do
   begin
-    if (code[i].Address=address) then raise exception.create(strAddressAlreadyInTheList);
+    //if (code[i].Address=address) then raise exception.create(strAddressAlreadyInTheList);
 
     //I want to see if address to address+sizeofopcode-1 is overlapping with addresses[i] to length(actualopcode[i])-1
     starta:=code[i].Address;
@@ -194,18 +190,31 @@ begin
   address2:=address;
 
 
-  if changed then newstring:=Inputboxtop(strCECode,strNameCECode, strChangeOf+disassemble(address2,ignore),true,canceled)
-             else newstring:=Inputboxtop(strCECode,strNameCECode, strCode+disassemble(address2,ignore),true,canceled);
+  d:=disassemble(address2,ignore);
+  splitDisassembledString(d, false, ignore,ignore,d,ignore);
+
+  if changed then
+    newstring:=strChangeOf+d
+  else
+    newstring:=strCode+d;
+
+  if not multiadd then
+  begin
+    newstring:=Inputboxtop(strCECode,strNameCECode, newstring,true,canceled)
+  end
+  else
+  begin
+    canceled:=false;
+
+  end;
+
 
   result:=not canceled;
 
   if not result then exit;
 
+  if newstring='' then newstring:=strNoDescription;
 
-  if newstring='' then
-    codelist.items.add(strNoDescription)
-  else
-    codelist.Items.Add(newstring);
 
   inc(numberofcodes);
   setlength(advancedoptions.code,numberofcodes);
@@ -263,40 +272,17 @@ begin
       closehandle(ths);
     end;
   end;
+
+  li:=self.Codelist2.Items.Add;
+
+  if code[numberofcodes-1].modulename<>'' then
+    li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+  else
+    li.Caption:=inttohex(address,8);
+
+  li.SubItems.Add(newstring);
 end;
 
-
-procedure TAdvancedOptions.codelistDrawItem(Control: TWinControl;
-  Index: Integer; Rect: TRect; State: TOwnerDrawState);
-{copy/paste from example in help}
-var
-  Bitmap: TBitmap;      { temporary variable for the item’s bitmap }
-  Offset: Integer;      { text offset width }
-  origcolor: tcolor;
-begin
-  origcolor:=clBlack;
-
-  with codelist.Canvas do  { draw on control canvas, not on the form }
-  begin
-    FillRect(Rect);       { clear the rectangle }
-    Offset := 2;          { provide default offset }
-    Bitmap := TBitmap(codelist.Items.Objects[Index]); { get the bitmap }
-    if Bitmap <> nil then
-    begin
-      Draw(Rect.Left + Offset, Rect.Top, Bitmap); {render bitmap}
-      Offset := Bitmap.width + 6;    { add four pixels between bitmap and text}
-    end;
-
-    if (code[index].changed) then
-    begin
-      origcolor:=font.color;
-      font.Color:=clRed;
-    end;
-    TextOut(Rect.Left + Offset, Rect.Top, codelist.Items[Index]);  { display the text }
-
-    if (code[index].changed) then font.color:=origcolor;
-  end;
-end;
 
 procedure TAdvancedOptions.FormShow(Sender: TObject);
 begin
@@ -316,7 +302,7 @@ resourcestring
   strFindWhatCodeReads='Find out what addresses this code reads from';
   strFindWhatCodeWrites='Find out what addresses this code writes to';
 begin
-  if codelist.ItemIndex=-1 then
+  if (codelist2.Items.Count=0) or (codelist2.ItemIndex=-1) then
   begin
     cc1.visible:=false;
     cc2.visible:=false;
@@ -325,21 +311,23 @@ begin
     Openthedisassemblerhere1.Visible:=false;
     Findoutwhatthiscodechanges1.visible:=false;
     Findthiscodeinsideabinaryfile1.Visible:=false;
+    Replaceall1.Visible:=false;
   end else
   begin
     rename1.visible:=true;
     remove1.visible:=true;
 
+    Replaceall1.Visible:=true;
     Openthedisassemblerhere1.visible:=true;
     Findthiscodeinsideabinaryfile1.Visible:=true;
 
-    if code[codelist.itemindex].modulename<>'' then
+    if code[codelist2.itemindex].modulename<>'' then
     begin
-      symhandler.getmodulebyname(code[codelist.itemindex].modulename,mi);
-      code[codelist.itemindex].Address:=mi.baseaddress+code[codelist.itemindex].offset;
+      symhandler.getmodulebyname(code[codelist2.itemindex].modulename,mi);
+      code[codelist2.itemindex].Address:=mi.baseaddress+code[codelist2.itemindex].offset;
     end;
 
-    if code[codelist.itemindex].changed then
+    if code[codelist2.itemindex].changed then
     begin
       cc1.visible:=false;
       cc2.visible:=true;
@@ -351,7 +339,7 @@ begin
 
       //disassemble this address, and see if it a writer or reader
       //if neither grey it out
-      offset:=code[codelist.itemindex].Address;
+      offset:=code[codelist2.itemindex].Address;
       opcode:=disassemble(offset,desc);
 
       Findoutwhatthiscodechanges1.Caption:=strFindWhatCodeAccesses;
@@ -405,9 +393,10 @@ var i,j: integer;
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';
                strnotthesame='The memory at this address isn''t what it should be! Continue?';
 begin
-  for i:=0 to codelist.Count-1 do
+  for i:=0 to codelist2.items.Count-1 do
   begin
-    if not codelist.Selected[i] then continue;
+
+    if not codelist2.Items[i].Selected then continue;
 
     lengthactualopcode:=length(code[i].actualopcode);
     //read the current list, if it isnt a NOP or the actualopcode give a warning
@@ -434,7 +423,7 @@ begin
       else
       begin
         code[i].changed:=false;
-        codelist.Repaint;
+        codelist2.Repaint;
         exit;
       end;
     end;
@@ -459,7 +448,7 @@ begin
     code[i].changed:=false;
   end;
 
-  codelist.Repaint;
+  codelist2.Repaint;
 
 end;
 
@@ -473,9 +462,9 @@ var codelength: integer;
 resourcestring strcouldntwrite='The memory at this address couldn''t be written';
 begin
   //search dselected in the addresslist
-  for index:=0 to codelist.Count-1 do
+  for index:=0 to codelist2.items.Count-1 do
   begin
-    if not codelist.Selected[index] then continue;
+    if not codelist2.items[index].Selected then continue;
 
     a:=code[index].Address;
     codelength:=length(code[index].actualopcode);
@@ -513,74 +502,59 @@ begin
 
     code[index].changed:=true;
   end;
-  codelist.Repaint;
+  codelist2.Repaint;
 end;
 
 procedure TAdvancedOptions.Remove1Click(Sender: TObject);
-var i,index: integer;
+var i,j,index: integer;
+  multidelete: boolean;
 begin
-
-  index:=codelist.ItemIndex;
-  if messagedlg('Delete '+codelist.Items[index]+' ?',mtConfirmation,[mbyes,mbno],0) = mrno then exit;
-
-
-  setlength(code[index].before,0);
-  setlength(code[index].actualopcode,0);
-  setlength(code[index].after,0);
-
-  for i:=index to numberofcodes-2 do
+  codelist2.Items.BeginUpdate;
+  multidelete:=codelist2.SelCount>1;
+  while codelist2.SelCount>0 do
   begin
-    code[i].before:=code[i+1].before;
-    code[i].actualopcode:=code[i+1].actualopcode;
-    code[i].after:=code[i+1].after;
-    code[i].Address:=code[i+1].Address;
-    code[i].changed:=code[i+1].changed;
-    code[i].modulename:=code[i+1].modulename;
-    code[i].offset:=code[i+1].offset;
+    index:=codelist2.Selected.Index;
+    if (index=-1) or (codelist2.Items.Count=0) then exit;
+
+    if not multidelete then
+      if messagedlg('Delete '+codelist2.Items[index].SubItems[0]+' ?',mtConfirmation,[mbyes,mbno],0) = mrno then exit;
+
+
+    setlength(code[index].before,0);
+    setlength(code[index].actualopcode,0);
+    setlength(code[index].after,0);
+
+    for i:=index to numberofcodes-2 do
+    begin
+      code[i].before:=code[i+1].before;
+      code[i].actualopcode:=code[i+1].actualopcode;
+      code[i].after:=code[i+1].after;
+      code[i].Address:=code[i+1].Address;
+      code[i].changed:=code[i+1].changed;
+      code[i].modulename:=code[i+1].modulename;
+      code[i].offset:=code[i+1].offset;
+    end;
+
+    dec(numberofcodes);
+    setlength(code,numberofcodes);
+
+    codelist2.Items.Delete(index);
   end;
-
-  dec(numberofcodes);
-  setlength(code,numberofcodes);  
-
-  codelist.Items.Delete(index);
+  codelist2.Items.endUpdate;
 end;
 
 procedure TAdvancedOptions.Findoutwhatthiscodechanges1Click(
   Sender: TObject);
-{var temp: dword;
-    int3: byte;
-    original: dword;}
-var i: integer;
 begin
-{$ifndef net}
-  MemoryBrowser.FindWhatThisCodeAccesses(code[codelist.ItemIndex].Address);
-  {
+  MemoryBrowser.FindWhatThisCodeAccesses(code[codelist2.ItemIndex].Address);
 
-     }
-  {$endif}
 end;
 
 procedure TAdvancedOptions.Rename1Click(Sender: TObject);
 var index: integer;
 begin
-  index:=codelist.ItemIndex;
-  codelist.Items[index]:=inputbox('New name','Give the new name of this entry',codelist.Items[index]);
-end;
-
-procedure TAdvancedOptions.Openthedisassemblerhere1Click(Sender: TObject);
-var mi: TModuleInfo;
-begin
-  if code[codelist.itemindex].modulename<>'' then
-  begin
-    symhandler.getmodulebyname(code[codelist.itemindex].modulename,mi);
-    code[codelist.itemindex].Address:=mi.baseaddress+code[codelist.itemindex].offset;
-  end;
-    
-  memorybrowser.disassemblerview.SelectedAddress:=code[codelist.itemindex].Address;
-
-  if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
-  memorybrowser.panel1.visible:=true;
-  memorybrowser.show;
+  index:=codelist2.ItemIndex;
+  codelist2.Items[index].SubItems[0]:=inputbox('New name','Give the new name of this entry',codelist2.Items[index].SubItems[0]);
 end;
 
 procedure TAdvancedOptions.Findthiscodeinsideabinaryfile1Click(
@@ -721,15 +695,6 @@ begin
     pausebutton.hint:='Pause the game'+pausehotkeystring;
 end;
 
-procedure TAdvancedOptions.codelistMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var tp: tpoint;
-begin
-  tp.x:=x;
-  tp.y:=y;
-  if codelist.ItemAtPos(tp,true)<>-1 then codelist.ItemIndex:=codelist.ItemAtPos(tp,true);
-end;
-
 procedure TAdvancedOptions.Replaceall1Click(Sender: TObject);
 var codelength: integer;
     written: dword;
@@ -740,7 +705,7 @@ var codelength: integer;
     mi: TModuleInfo;
 begin
   //search dselected in the addresslist
-  for j:=0 to codelist.Items.Count-1 do
+  for j:=0 to codelist2.Items.Count-1 do
   begin
     index:=j;
     if code[index].changed then continue;
@@ -790,7 +755,7 @@ begin
 
     code[index].changed:=true;
   end;
-  codelist.Repaint;
+  codelist2.Repaint;
 end;
 
 procedure TAdvancedOptions.Timer1Timer(Sender: TObject);
@@ -935,11 +900,25 @@ begin
   button1.Left:=panel1.Width div 2 - button1.width div 2;
 end;
 
-procedure TAdvancedOptions.codelistKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TAdvancedOptions.Codelist2DblClick(Sender: TObject);
+var mi: TModuleInfo;
 begin
-  if key=vk_delete then
-    Remove1.Click;
+  if code[codelist2.itemindex].modulename<>'' then
+  begin
+    symhandler.getmodulebyname(code[codelist2.itemindex].modulename,mi);
+    code[codelist2.itemindex].Address:=mi.baseaddress+code[codelist2.itemindex].offset;
+  end;
+    
+  memorybrowser.disassemblerview.SelectedAddress:=code[codelist2.itemindex].Address;
+
+  if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
+  memorybrowser.panel1.visible:=true;
+  memorybrowser.show;
+end;
+
+procedure TAdvancedOptions.Panel2Resize(Sender: TObject);
+begin
+  label1.left:=(panel2.Width div 2)-(label1.Width div 2);
 end;
 
 end.

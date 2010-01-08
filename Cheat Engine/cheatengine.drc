@@ -8,114 +8,113 @@
   resources were bound to the produced executable.
 */
 
-#define MainUnit_strhappybirthday 64944
-#define MainUnit_strXMess 64945
-#define MainUnit_strNewyear 64946
-#define MainUnit_strfuture 64947
-#define MainUnit_strdontbother 64948
-#define MainUnit_strneeddebugger 64949
-#define MainUnit_strfailuretosetspeed 64950
-#define MainUnit_strIncorrectspeed 64951
-#define MainUnit_strCantSetSpeed 64952
-#define MainUnit_strHyperscanFailed 64953
-#define MainUnit_strUnknownExtension 64954
-#define MainUnit_strCustomScanConfig 64955
-#define MainUnit_strDeleteAddress 64960
-#define MainUnit_strRecalculateAddress 64961
-#define MainUnit_strRecalculateSelectedAddresses 64962
-#define MainUnit_strRecalculateAllAddresses 64963
-#define MainUnit_strRemoveFromGroup 64964
-#define MainUnit_strEnableCheat 64965
-#define MainUnit_strDisableCheat 64966
-#define MainUnit_strFindWhatWritesToPointer 64967
-#define MainUnit_strFindWhatWritesToPointer2 64968
-#define MainUnit_strcantdebugnow 64969
-#define MainUnit_strpointercantberead 64970
-#define MainUnit_strconfirmUndo 64971
-#define MainUnit_strHideForeground 64972
-#define MainUnit_strHideAll 64973
-#define MainUnit_strUnHideForeground 64974
-#define MainUnit_strUnhideAll 64975
-#define MainUnit_strDelete1Group 64976
-#define MainUnit_strDeleteMoreGroups 64977
-#define MainUnit_strSelectedAddressIsAPointer 64978
-#define MainUnit_strMorePointers 64979
-#define MainUnit_strMorePointers2 64980
-#define MainUnit_strNotAValidValue 64981
-#define MainUnit_strdeleteall 64982
-#define MainUnit_stralreadyin 64983
-#define MainUnit_stralreadyinlistmultiple 64984
-#define MainUnit_strsethotkey 64985
-#define MainUnit_strshowasdecimal 64986
-#define MainUnit_strshowashex 64987
-#define MainUnit_strFreezeAddressInList 64988
-#define MainUnit_strFreezeAllAddresses 64989
-#define MainUnit_strUnfreezeAllAddresses 64990
-#define MainUnit_strUnfreezeAddressInList 64991
-#define MainUnit_strFirstSelectAProcess 64992
-#define MainUnit_strCantdoNextScan 64993
-#define MainUnit_strClickToGoHome 64994
-#define MainUnit_strChangeDescription1 64995
-#define MainUnit_strChangeDescription2 64996
-#define MainUnit_strNotTheSameSize1 64997
-#define MainUnit_strNotTheSameSize2 64998
-#define MainUnit_strAdd0 64999
-#define MainUnit_strNotAValidNotation 65000
-#define MainUnit_strNotSameAmmountofBytes 65001
-#define MainUnit_strNotAValidBinaryNotation 65002
-#define MainUnit_strValue 65003
-#define MainUnit_strChange1Value 65004
-#define MainUnit_strChangeMoreValues 65005
-#define MainUnit_strDelete1Address 65006
-#define MainUnit_strDeleteMultipleAddresses 65007
-#define MainUnit_strOpcodeChanged 65008
-#define MainUnit_strAllowNegative 65009
-#define MainUnit_strAllowPositive 65010
-#define MainUnit_strNormalFreeze 65011
-#define MainUnit_strAskToSave 65012
-#define MainUnit_strScantextcaptiontotext 65013
-#define MainUnit_strScantextcaptiontoValue 65014
-#define MainUnit_strsearchForText 65015
-#define MainUnit_strSearchForArray 65016
-#define MainUnit_strConfirmProcessTermination 65017
-#define MainUnit_strError 65018
-#define MainUnit_strErrorwhileOpeningProcess 65019
-#define MainUnit_strKeepList 65020
-#define MainUnit_strInfoAboutTable 65021
-#define MainUnit_strPhysicalMemory 65022
-#define MainUnit_strfillInSomething 65023
-#define MainUnit2_strexactvalue 65024
-#define MainUnit2_strbiggerThan 65025
-#define MainUnit2_strSmallerThan 65026
-#define MainUnit2_strIncreasedValue 65027
-#define MainUnit2_strIncreasedValueBy 65028
-#define MainUnit2_strDecreasedValue 65029
-#define MainUnit2_strDecreasedValueBy 65030
-#define MainUnit2_strValueBetween 65031
-#define MainUnit2_strChangedValue 65032
-#define MainUnit2_strUnchangedValue 65033
-#define MainUnit2_strUnknownInitialValue 65034
-#define MainUnit2_strSameAsFirstScan 65035
-#define MainUnit2_strtoolong 65036
-#define FoundCodeUnit_strClose 65037
-#define MainUnit_strWindowFailedToHide 65038
-#define MainUnit_strAccessed 65039
-#define AdvancedOptionsUnit_strnotthesame 65040
-#define AdvancedOptionsUnit_strcouldntwrite 65041
-#define AdvancedOptionsUnit_StrSelectExeFor3D 65042
-#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65043
-#define formsettingsunit_strProcessWatcherWillPreventUnloader 65044
-#define MainUnit2_strStart 65045
-#define MainUnit2_strStop 65046
-#define MainUnit2_strOK 65047
-#define MainUnit2_strBug 65048
-#define MainUnit2_strAutoAssemble 65049
-#define MainUnit2_strAddressHasToBeReadable 65050
-#define MainUnit2_strNewScan 65051
-#define MainUnit2_strFirstScan 65052
-#define MainUnit2_strNoDescription 65053
-#define MainUnit2_strNeedNewerWindowsVersion 65054
-#define MainUnit2_strexact 65055
+#define MainUnit_strXMess 64944
+#define MainUnit_strNewyear 64945
+#define MainUnit_strfuture 64946
+#define MainUnit_strdontbother 64947
+#define MainUnit_strneeddebugger 64948
+#define MainUnit_strfailuretosetspeed 64949
+#define MainUnit_strIncorrectspeed 64950
+#define MainUnit_strCantSetSpeed 64951
+#define MainUnit_strHyperscanFailed 64952
+#define MainUnit_strUnknownExtension 64953
+#define MainUnit_strCustomScanConfig 64954
+#define MainUnit_strRecalculateAddress 64960
+#define MainUnit_strRecalculateSelectedAddresses 64961
+#define MainUnit_strRecalculateAllAddresses 64962
+#define MainUnit_strRemoveFromGroup 64963
+#define MainUnit_strEnableCheat 64964
+#define MainUnit_strDisableCheat 64965
+#define MainUnit_strFindWhatWritesToPointer 64966
+#define MainUnit_strFindWhatWritesToPointer2 64967
+#define MainUnit_strcantdebugnow 64968
+#define MainUnit_strpointercantberead 64969
+#define MainUnit_strconfirmUndo 64970
+#define MainUnit_strHideForeground 64971
+#define MainUnit_strHideAll 64972
+#define MainUnit_strUnHideForeground 64973
+#define MainUnit_strUnhideAll 64974
+#define MainUnit_strhappybirthday 64975
+#define MainUnit_strDeleteMoreGroups 64976
+#define MainUnit_strSelectedAddressIsAPointer 64977
+#define MainUnit_strMorePointers 64978
+#define MainUnit_strMorePointers2 64979
+#define MainUnit_strNotAValidValue 64980
+#define MainUnit_strdeleteall 64981
+#define MainUnit_stralreadyin 64982
+#define MainUnit_stralreadyinlistmultiple 64983
+#define MainUnit_strsethotkey 64984
+#define MainUnit_strshowasdecimal 64985
+#define MainUnit_strshowashex 64986
+#define MainUnit_strFreezeAddressInList 64987
+#define MainUnit_strFreezeAllAddresses 64988
+#define MainUnit_strUnfreezeAllAddresses 64989
+#define MainUnit_strUnfreezeAddressInList 64990
+#define MainUnit_strDeleteAddress 64991
+#define MainUnit_strCantdoNextScan 64992
+#define MainUnit_strClickToGoHome 64993
+#define MainUnit_strChangeDescription1 64994
+#define MainUnit_strChangeDescription2 64995
+#define MainUnit_strNotTheSameSize1 64996
+#define MainUnit_strNotTheSameSize2 64997
+#define MainUnit_strAdd0 64998
+#define MainUnit_strNotAValidNotation 64999
+#define MainUnit_strNotSameAmmountofBytes 65000
+#define MainUnit_strNotAValidBinaryNotation 65001
+#define MainUnit_strValue 65002
+#define MainUnit_strChange1Value 65003
+#define MainUnit_strChangeMoreValues 65004
+#define MainUnit_strDelete1Address 65005
+#define MainUnit_strDeleteMultipleAddresses 65006
+#define MainUnit_strDelete1Group 65007
+#define MainUnit_strAllowNegative 65008
+#define MainUnit_strAllowPositive 65009
+#define MainUnit_strNormalFreeze 65010
+#define MainUnit_strAskToSave 65011
+#define MainUnit_strScantextcaptiontotext 65012
+#define MainUnit_strScantextcaptiontoValue 65013
+#define MainUnit_strsearchForText 65014
+#define MainUnit_strSearchForArray 65015
+#define MainUnit_strConfirmProcessTermination 65016
+#define MainUnit_strError 65017
+#define MainUnit_strErrorwhileOpeningProcess 65018
+#define MainUnit_strKeepList 65019
+#define MainUnit_strInfoAboutTable 65020
+#define MainUnit_strPhysicalMemory 65021
+#define MainUnit_strfillInSomething 65022
+#define MainUnit_strFirstSelectAProcess 65023
+#define MainUnit2_strbiggerThan 65024
+#define MainUnit2_strSmallerThan 65025
+#define MainUnit2_strIncreasedValue 65026
+#define MainUnit2_strIncreasedValueBy 65027
+#define MainUnit2_strDecreasedValue 65028
+#define MainUnit2_strDecreasedValueBy 65029
+#define MainUnit2_strValueBetween 65030
+#define MainUnit2_strChangedValue 65031
+#define MainUnit2_strUnchangedValue 65032
+#define MainUnit2_strUnknownInitialValue 65033
+#define MainUnit2_strSameAsFirstScan 65034
+#define MainUnit2_strtoolong 65035
+#define FoundCodeUnit_strClose 65036
+#define MainUnit_strWindowFailedToHide 65037
+#define MainUnit_strAccessed 65038
+#define MainUnit_strOpcodeChanged 65039
+#define AdvancedOptionsUnit_strcouldntwrite 65040
+#define AdvancedOptionsUnit_StrSelectExeFor3D 65041
+#define AdvancedOptionsUnit_StrSelectExeForOpenGL3D 65042
+#define formsettingsunit_strProcessWatcherWillPreventUnloader 65043
+#define MainUnit2_strStart 65044
+#define MainUnit2_strStop 65045
+#define MainUnit2_strOK 65046
+#define MainUnit2_strBug 65047
+#define MainUnit2_strAutoAssemble 65048
+#define MainUnit2_strAddressHasToBeReadable 65049
+#define MainUnit2_strNewScan 65050
+#define MainUnit2_strFirstScan 65051
+#define MainUnit2_strNoDescription 65052
+#define MainUnit2_strNeedNewerWindowsVersion 65053
+#define MainUnit2_strexact 65054
+#define MainUnit2_strexactvalue 65055
 #define frmFindstaticsUnit_strStop 65056
 #define frmFindstaticsUnit_strStopping 65057
 #define frmLoadMemoryunit_strinvalidfile 65058
@@ -123,15 +122,15 @@
 #define AdvancedOptionsUnit_strNotWhatitshouldbe 65060
 #define AdvancedOptionsUnit_stralreadyinthelist 65061
 #define AdvancedOptionsUnit_strPartOfOpcodeInTheList 65062
-#define AdvancedOptionsUnit_strAddressAlreadyInTheList 65063
-#define AdvancedOptionsUnit_strCECode 65064
-#define AdvancedOptionsUnit_strNameCECode 65065
-#define AdvancedOptionsUnit_strChangeOf 65066
-#define AdvancedOptionsUnit_strCode 65067
-#define AdvancedOptionsUnit_strFindWhatCodeaccesses 65068
-#define AdvancedOptionsUnit_strFindWhatCodeReads 65069
-#define AdvancedOptionsUnit_strFindWhatCodeWrites 65070
-#define AdvancedOptionsUnit_strcouldntrestorecode 65071
+#define AdvancedOptionsUnit_strCECode 65063
+#define AdvancedOptionsUnit_strNameCECode 65064
+#define AdvancedOptionsUnit_strChangeOf 65065
+#define AdvancedOptionsUnit_strCode 65066
+#define AdvancedOptionsUnit_strFindWhatCodeaccesses 65067
+#define AdvancedOptionsUnit_strFindWhatCodeReads 65068
+#define AdvancedOptionsUnit_strFindWhatCodeWrites 65069
+#define AdvancedOptionsUnit_strcouldntrestorecode 65070
+#define AdvancedOptionsUnit_strnotthesame 65071
 #define SynEditStrConst_SYNS_AttrOctal 65072
 #define SynEditStrConst_SYNS_AttrPreprocessor 65073
 #define SynEditStrConst_SYNS_AttrReservedWord 65074
@@ -180,13 +179,13 @@
 #define XMLConst_SNoDOMParseOptions 65117
 #define XMLConst_SNodeReadOnly 65118
 #define XMLConst_SNoRefresh 65119
-#define JclResources_RsIntelCacheDescrF0 65120
-#define JclResources_RsIntelCacheDescrF1 65121
-#define JclResources_RsUnknownAMDModel 65122
-#define ComConst_SOleError 65123
-#define ComConst_SNoMethod 65124
-#define ComConst_SVarNotObject 65125
-#define ComConst_STooManyParams 65126
+#define JclResources_RsIntelCacheDescrB0 65120
+#define JclResources_RsIntelCacheDescrB1 65121
+#define JclResources_RsIntelCacheDescrB3 65122
+#define JclResources_RsIntelCacheDescrB4 65123
+#define JclResources_RsIntelCacheDescrF0 65124
+#define JclResources_RsIntelCacheDescrF1 65125
+#define JclResources_RsUnknownAMDModel 65126
 #define JConsts_sChangeJPGSize 65127
 #define JConsts_sJPEGError 65128
 #define JConsts_sJPEGImageFile 65129
@@ -196,86 +195,86 @@
 #define KIcon_SIconFormatError 65133
 #define KIcon_SIconGDIError 65134
 #define KIcon_SIconResizingError 65135
-#define JclResources_RsIntelCacheDescr79 65136
-#define JclResources_RsIntelCacheDescr7A 65137
-#define JclResources_RsIntelCacheDescr7B 65138
-#define JclResources_RsIntelCacheDescr7C 65139
-#define JclResources_RsIntelCacheDescr7D 65140
-#define JclResources_RsIntelCacheDescr7F 65141
-#define JclResources_RsIntelCacheDescr82 65142
-#define JclResources_RsIntelCacheDescr83 65143
-#define JclResources_RsIntelCacheDescr84 65144
-#define JclResources_RsIntelCacheDescr85 65145
-#define JclResources_RsIntelCacheDescr86 65146
-#define JclResources_RsIntelCacheDescr87 65147
-#define JclResources_RsIntelCacheDescrB0 65148
-#define JclResources_RsIntelCacheDescrB1 65149
-#define JclResources_RsIntelCacheDescrB3 65150
-#define JclResources_RsIntelCacheDescrB4 65151
-#define JclResources_RsIntelCacheDescr50 65152
-#define JclResources_RsIntelCacheDescr51 65153
-#define JclResources_RsIntelCacheDescr52 65154
-#define JclResources_RsIntelCacheDescr56 65155
-#define JclResources_RsIntelCacheDescr57 65156
-#define JclResources_RsIntelCacheDescr5B 65157
-#define JclResources_RsIntelCacheDescr5C 65158
-#define JclResources_RsIntelCacheDescr5D 65159
-#define JclResources_RsIntelCacheDescr60 65160
-#define JclResources_RsIntelCacheDescr66 65161
-#define JclResources_RsIntelCacheDescr67 65162
-#define JclResources_RsIntelCacheDescr68 65163
-#define JclResources_RsIntelCacheDescr70 65164
-#define JclResources_RsIntelCacheDescr71 65165
-#define JclResources_RsIntelCacheDescr72 65166
-#define JclResources_RsIntelCacheDescr78 65167
-#define JclResources_RsIntelCacheDescr2C 65168
-#define JclResources_RsIntelCacheDescr30 65169
-#define JclResources_RsIntelCacheDescr40 65170
-#define JclResources_RsIntelCacheDescr41 65171
-#define JclResources_RsIntelCacheDescr42 65172
-#define JclResources_RsIntelCacheDescr43 65173
-#define JclResources_RsIntelCacheDescr44 65174
-#define JclResources_RsIntelCacheDescr45 65175
-#define JclResources_RsIntelCacheDescr46 65176
-#define JclResources_RsIntelCacheDescr47 65177
-#define JclResources_RsIntelCacheDescr48 65178
-#define JclResources_RsIntelCacheDescr49 65179
-#define JclResources_RsIntelCacheDescr4A 65180
-#define JclResources_RsIntelCacheDescr4B 65181
-#define JclResources_RsIntelCacheDescr4D 65182
-#define JclResources_RsIntelCacheDescr4E 65183
-#define JclResources_RsHKDDShort 65184
-#define JclResources_RsIntelCacheDescr00 65185
-#define JclResources_RsIntelCacheDescr01 65186
-#define JclResources_RsIntelCacheDescr02 65187
-#define JclResources_RsIntelCacheDescr03 65188
-#define JclResources_RsIntelCacheDescr04 65189
-#define JclResources_RsIntelCacheDescr05 65190
-#define JclResources_RsIntelCacheDescr06 65191
-#define JclResources_RsIntelCacheDescr08 65192
-#define JclResources_RsIntelCacheDescr0A 65193
-#define JclResources_RsIntelCacheDescr0B 65194
-#define JclResources_RsIntelCacheDescr0C 65195
-#define JclResources_RsIntelCacheDescr22 65196
-#define JclResources_RsIntelCacheDescr23 65197
-#define JclResources_RsIntelCacheDescr25 65198
-#define JclResources_RsIntelCacheDescr29 65199
-#define JclResources_RsCreateCompatibleDc 65200
-#define JclResources_RsDibHandleAllocation 65201
-#define JclResources_RsSelectObjectInDc 65202
-#define JclResources_RsHKCRLong 65203
-#define JclResources_RsHKCULong 65204
-#define JclResources_RsHKLMLong 65205
-#define JclResources_RsHKUSLong 65206
-#define JclResources_RsHKPDLong 65207
-#define JclResources_RsHKCCLong 65208
-#define JclResources_RsHKDDLong 65209
-#define JclResources_RsHKCRShort 65210
-#define JclResources_RsHKCUShort 65211
-#define JclResources_RsHKLMShort 65212
-#define JclResources_RsHKUSShort 65213
-#define JclResources_RsHKPDShort 65214
-#define JclResources_RsHKCCShort 65215
+#define JclResources_RsIntelCacheDescr70 65136
+#define JclResources_RsIntelCacheDescr71 65137
+#define JclResources_RsIntelCacheDescr72 65138
+#define JclResources_RsIntelCacheDescr78 65139
+#define JclResources_RsIntelCacheDescr79 65140
+#define JclResources_RsIntelCacheDescr7A 65141
+#define JclResources_RsIntelCacheDescr7B 65142
+#define JclResources_RsIntelCacheDescr7C 65143
+#define JclResources_RsIntelCacheDescr7D 65144
+#define JclResources_RsIntelCacheDescr7F 65145
+#define JclResources_RsIntelCacheDescr82 65146
+#define JclResources_RsIntelCacheDescr83 65147
+#define JclResources_RsIntelCacheDescr84 65148
+#define JclResources_RsIntelCacheDescr85 65149
+#define JclResources_RsIntelCacheDescr86 65150
+#define JclResources_RsIntelCacheDescr87 65151
+#define JclResources_RsIntelCacheDescr4A 65152
+#define JclResources_RsIntelCacheDescr4B 65153
+#define JclResources_RsIntelCacheDescr4D 65154
+#define JclResources_RsIntelCacheDescr4E 65155
+#define JclResources_RsIntelCacheDescr50 65156
+#define JclResources_RsIntelCacheDescr51 65157
+#define JclResources_RsIntelCacheDescr52 65158
+#define JclResources_RsIntelCacheDescr56 65159
+#define JclResources_RsIntelCacheDescr57 65160
+#define JclResources_RsIntelCacheDescr5B 65161
+#define JclResources_RsIntelCacheDescr5C 65162
+#define JclResources_RsIntelCacheDescr5D 65163
+#define JclResources_RsIntelCacheDescr60 65164
+#define JclResources_RsIntelCacheDescr66 65165
+#define JclResources_RsIntelCacheDescr67 65166
+#define JclResources_RsIntelCacheDescr68 65167
+#define JclResources_RsIntelCacheDescr22 65168
+#define JclResources_RsIntelCacheDescr23 65169
+#define JclResources_RsIntelCacheDescr25 65170
+#define JclResources_RsIntelCacheDescr29 65171
+#define JclResources_RsIntelCacheDescr2C 65172
+#define JclResources_RsIntelCacheDescr30 65173
+#define JclResources_RsIntelCacheDescr40 65174
+#define JclResources_RsIntelCacheDescr41 65175
+#define JclResources_RsIntelCacheDescr42 65176
+#define JclResources_RsIntelCacheDescr43 65177
+#define JclResources_RsIntelCacheDescr44 65178
+#define JclResources_RsIntelCacheDescr45 65179
+#define JclResources_RsIntelCacheDescr46 65180
+#define JclResources_RsIntelCacheDescr47 65181
+#define JclResources_RsIntelCacheDescr48 65182
+#define JclResources_RsIntelCacheDescr49 65183
+#define JclResources_RsHKLMShort 65184
+#define JclResources_RsHKUSShort 65185
+#define JclResources_RsHKPDShort 65186
+#define JclResources_RsHKCCShort 65187
+#define JclResources_RsHKDDShort 65188
+#define JclResources_RsIntelCacheDescr00 65189
+#define JclResources_RsIntelCacheDescr01 65190
+#define JclResources_RsIntelCacheDescr02 65191
+#define JclResources_RsIntelCacheDescr03 65192
+#define JclResources_RsIntelCacheDescr04 65193
+#define JclResources_RsIntelCacheDescr05 65194
+#define JclResources_RsIntelCacheDescr06 65195
+#define JclResources_RsIntelCacheDescr08 65196
+#define JclResources_RsIntelCacheDescr0A 65197
+#define JclResources_RsIntelCacheDescr0B 65198
+#define JclResources_RsIntelCacheDescr0C 65199
+#define ComConst_SVarNotObject 65200
+#define ComConst_STooManyParams 65201
+#define PEInfoFunctions_strInvalidFile 65202
+#define JclResources_RsAssertUnpairedEndUpdate 65203
+#define JclResources_RsCreateCompatibleDc 65204
+#define JclResources_RsDibHandleAllocation 65205
+#define JclResources_RsSelectObjectInDc 65206
+#define JclResources_RsHKCRLong 65207
+#define JclResources_RsHKCULong 65208
+#define JclResources_RsHKLMLong 65209
+#define JclResources_RsHKUSLong 65210
+#define JclResources_RsHKPDLong 65211
+#define JclResources_RsHKCCLong 65212
+#define JclResources_RsHKDDLong 65213
+#define JclResources_RsHKCRShort 65214
+#define JclResources_RsHKCUShort 65215
 #define ExtCtrls_clNameWindowText 65216
 #define ComStrs_sTabFailClear 65217
 #define ComStrs_sTabFailDelete 65218
@@ -290,8 +289,8 @@
 #define ComStrs_sPageIndexError 65227
 #define ComStrs_sInvalidComCtl32 65228
 #define WinHelpViewer_hNoKeyword 65229
-#define PEInfoFunctions_strInvalidFile 65230
-#define JclResources_RsAssertUnpairedEndUpdate 65231
+#define ComConst_SOleError 65230
+#define ComConst_SNoMethod 65231
 #define ExtCtrls_clNameGrayText 65232
 #define ExtCtrls_clNameHighlight 65233
 #define ExtCtrls_clNameHighlightText 65234
@@ -598,7 +597,6 @@
 #define SysConst_SRangeError 65535
 STRINGTABLE
 BEGIN
-	MainUnit_strhappybirthday,	"Let's sing Happy Birthday for Dark Byte today!"
 	MainUnit_strXMess,	"Merry christmas and happy new year"
 	MainUnit_strNewyear,	"And what are your good intentions for this year? ;-)"
 	MainUnit_strfuture,	"Wow,I never imagined people would use Cheat Engine up to today"
@@ -610,7 +608,6 @@ BEGIN
 	MainUnit_strHyperscanFailed,	"The hyperthread failed to respond with the right answer"
 	MainUnit_strUnknownExtension,	"Unknown extension"
 	MainUnit_strCustomScanConfig,	"Custom scan config"
-	MainUnit_strDeleteAddress,	"Delete this address"
 	MainUnit_strRecalculateAddress,	"Recalculate address"
 	MainUnit_strRecalculateSelectedAddresses,	"Recalculate selected addresses"
 	MainUnit_strRecalculateAllAddresses,	"Recalculate all addresses"
@@ -626,7 +623,7 @@ BEGIN
 	MainUnit_strHideAll,	"will hide all windows"
 	MainUnit_strUnHideForeground,	"will bring the foreground window back"
 	MainUnit_strUnhideAll,	"will bring all windows back"
-	MainUnit_strDelete1Group,	"Also delete the group this address is a member of?"
+	MainUnit_strhappybirthday,	"Let's sing Happy Birthday for Dark Byte today!"
 	MainUnit_strDeleteMoreGroups,	"Also delete the groups of the addresses you selected?"
 	MainUnit_strSelectedAddressIsAPointer,	"The selected address is a pointer. Are you sure? (the base pointer will get the address)"
 	MainUnit_strMorePointers,	"There are more pointers selected. Do you want to change them as well?"
@@ -642,7 +639,7 @@ BEGIN
 	MainUnit_strFreezeAllAddresses,	"Freeze all addresses in this list"
 	MainUnit_strUnfreezeAllAddresses,	"Unfreeze all addresses in this list"
 	MainUnit_strUnfreezeAddressInList,	"Unfreeze the address in this list"
-	MainUnit_strFirstSelectAProcess,	"First select a process"
+	MainUnit_strDeleteAddress,	"Delete this address"
 	MainUnit_strCantdoNextScan,	"You can't do a Next Scan with the current selected way of scanning!"
 	MainUnit_strClickToGoHome,	"Click here to go to the Cheat Engine homepage"
 	MainUnit_strChangeDescription1,	"Description"
@@ -658,7 +655,7 @@ BEGIN
 	MainUnit_strChangeMoreValues,	"Change these values to:"
 	MainUnit_strDelete1Address,	"Delete this address?"
 	MainUnit_strDeleteMultipleAddresses,	"Delete these addresses?"
-	MainUnit_strOpcodeChanged,	"The following opcodes changed the selected address"
+	MainUnit_strDelete1Group,	"Also delete the group this address is a member of?"
 	MainUnit_strAllowNegative,	"Allow negative changes"
 	MainUnit_strAllowPositive,	"Allow positive changes"
 	MainUnit_strNormalFreeze,	"Don't allow any change"
@@ -674,7 +671,7 @@ BEGIN
 	MainUnit_strInfoAboutTable,	"Info about this table:"
 	MainUnit_strPhysicalMemory,	"Physical Memory"
 	MainUnit_strfillInSomething,	"Please fill in something!"
-	MainUnit2_strexactvalue,	"Exact Value"
+	MainUnit_strFirstSelectAProcess,	"First select a process"
 	MainUnit2_strbiggerThan,	"Bigger than..."
 	MainUnit2_strSmallerThan,	"Smaller than..."
 	MainUnit2_strIncreasedValue,	"Increased value"
@@ -690,7 +687,7 @@ BEGIN
 	FoundCodeUnit_strClose,	"Close"
 	MainUnit_strWindowFailedToHide,	"A window failed to hide"
 	MainUnit_strAccessed,	"The following opcodes accessed the selected address"
-	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
+	MainUnit_strOpcodeChanged,	"The following opcodes changed the selected address"
 	AdvancedOptionsUnit_strcouldntwrite,	"The memory at this address couldn't be written"
 	AdvancedOptionsUnit_StrSelectExeFor3D,	"Select the executable of the Direct-3D game"
 	AdvancedOptionsUnit_StrSelectExeForOpenGL3D,	"Select the executable of the OpenGL game"
@@ -706,6 +703,7 @@ BEGIN
 	MainUnit2_strNoDescription,	"No description"
 	MainUnit2_strNeedNewerWindowsVersion,	"This function only works in Windows 2000+ (perhaps also NT but not tested)"
 	MainUnit2_strexact,	"Exact"
+	MainUnit2_strexactvalue,	"Exact Value"
 	frmFindstaticsUnit_strStop,	"Stop"
 	frmFindstaticsUnit_strStopping,	"Stopping..."
 	frmLoadMemoryunit_strinvalidfile,	"This is a invalid memory region file. I'll assume this file has no header data"
@@ -713,7 +711,6 @@ BEGIN
 	AdvancedOptionsUnit_strNotWhatitshouldbe,	"The memory at this address is'nt what it should be! Continue?"
 	AdvancedOptionsUnit_stralreadyinthelist,	"This byte is already part of another opcode already present in the list"
 	AdvancedOptionsUnit_strPartOfOpcodeInTheList,	"At least one of these bytes is already in the list"
-	AdvancedOptionsUnit_strAddressAlreadyInTheList,	"This address is already in the list"
 	AdvancedOptionsUnit_strCECode,	"Cheat Engine code:"
 	AdvancedOptionsUnit_strNameCECode,	"What name do you want to give this code?"
 	AdvancedOptionsUnit_strChangeOf,	"Change of "
@@ -722,6 +719,7 @@ BEGIN
 	AdvancedOptionsUnit_strFindWhatCodeReads,	"Find out what addresses this code reads from"
 	AdvancedOptionsUnit_strFindWhatCodeWrites,	"Find out what addresses this code writes to"
 	AdvancedOptionsUnit_strcouldntrestorecode,	"Error when trying to restore this code!"
+	AdvancedOptionsUnit_strnotthesame,	"The memory at this address isn't what it should be! Continue?"
 	SynEditStrConst_SYNS_AttrOctal,	"Octal"
 	SynEditStrConst_SYNS_AttrPreprocessor,	"Preprocessor"
 	SynEditStrConst_SYNS_AttrReservedWord,	"Reserved Word"
@@ -770,13 +768,13 @@ BEGIN
 	XMLConst_SNoDOMParseOptions,	"DOM Implementation does not support IDOMParseOptions"
 	XMLConst_SNodeReadOnly,	"Node is readonly"
 	XMLConst_SNoRefresh,	"Refresh is only supported if the FileName or XML properties are set"
+	JclResources_RsIntelCacheDescrB0,	"Instruction TLB: 4 KByte pages, 4-way set associative, 128 entries"
+	JclResources_RsIntelCacheDescrB1,	"Instruction TLB: 2 MByte pages, 4-way, 8 entries or 4 MByte pages, 4-way, 4 entries"
+	JclResources_RsIntelCacheDescrB3,	"Data TLB: 4 KByte pages, 4-way set associative, 128 entries"
+	JclResources_RsIntelCacheDescrB4,	"Data TLB1: 4 KByte pages, 4-way set associative, 256 entries"
 	JclResources_RsIntelCacheDescrF0,	"64-Byte Prefetching"
 	JclResources_RsIntelCacheDescrF1,	"128-Byte Prefetching"
 	JclResources_RsUnknownAMDModel,	"Unknown AMD (Model %d)"
-	ComConst_SOleError,	"OLE error %.8x"
-	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
-	ComConst_SVarNotObject,	"Variant does not reference an automation object"
-	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
 	JConsts_sChangeJPGSize,	"Cannot change the size of a JPEG image"
 	JConsts_sJPEGError,	"JPEG error #%d"
 	JConsts_sJPEGImageFile,	"JPEG Image File"
@@ -786,6 +784,10 @@ BEGIN
 	KIcon_SIconFormatError,	"Invalid icon format"
 	KIcon_SIconGDIError,	"GDI object could not be created"
 	KIcon_SIconResizingError,	"Error while resizing icon"
+	JclResources_RsIntelCacheDescr70,	"Trace cache: 12 K-Ops, 8-way set associative"
+	JclResources_RsIntelCacheDescr71,	"Trace cache: 16 K-Ops, 8-way set associative"
+	JclResources_RsIntelCacheDescr72,	"Trace cache: 32 K-Ops, 8-way set associative"
+	JclResources_RsIntelCacheDescr78,	"2nd-level cache: 1 MBytes, 4-way set associative, 64 bytes line size"
 	JclResources_RsIntelCacheDescr79,	"2nd-level cache: 128 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr7A,	"2nd-level cache: 256 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr7B,	"2nd-level cache: 512 KBytes, 8-way set associative, 64 bytes line size, 2 lines per sector"
@@ -798,10 +800,10 @@ BEGIN
 	JclResources_RsIntelCacheDescr85,	"2nd-level cache: 2 MBytes, 8-way associative, 32 byte line size"
 	JclResources_RsIntelCacheDescr86,	"2nd-level cache: 512 KByte, 4-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr87,	"2nd-level cache: 1 MByte, 8-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescrB0,	"Instruction TLB: 4 KByte pages, 4-way set associative, 128 entries"
-	JclResources_RsIntelCacheDescrB1,	"Instruction TLB: 2 MByte pages, 4-way, 8 entries or 4 MByte pages, 4-way, 4 entries"
-	JclResources_RsIntelCacheDescrB3,	"Data TLB: 4 KByte pages, 4-way set associative, 128 entries"
-	JclResources_RsIntelCacheDescrB4,	"Data TLB1: 4 KByte pages, 4-way set associative, 256 entries"
+	JclResources_RsIntelCacheDescr4A,	"3rd-level cache: 6MByte, 12-way set associative, 64 byte line size"
+	JclResources_RsIntelCacheDescr4B,	"3rd-level cache: 8MByte, 16-way set associative, 64 byte line size"
+	JclResources_RsIntelCacheDescr4D,	"3rd-level cache: 16MByte, 16-way set associative, 64 byte line size"
+	JclResources_RsIntelCacheDescr4E,	"2nd-level cache: 6MByte, 24-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr50,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 64 Entries"
 	JclResources_RsIntelCacheDescr51,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 128 Entries"
 	JclResources_RsIntelCacheDescr52,	"Instruction TLB: 4 KByte and 2 MByte or 4 MByte pages, 256 Entries"
@@ -814,10 +816,10 @@ BEGIN
 	JclResources_RsIntelCacheDescr66,	"1st-level data cache: 8 KBytes, 4-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr67,	"1st-level data cache: 16 KBytes, 4-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr68,	"1st-level data cache: 32 KBytes, 4-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr70,	"Trace cache: 12 K-Ops, 8-way set associative"
-	JclResources_RsIntelCacheDescr71,	"Trace cache: 16 K-Ops, 8-way set associative"
-	JclResources_RsIntelCacheDescr72,	"Trace cache: 32 K-Ops, 8-way set associative"
-	JclResources_RsIntelCacheDescr78,	"2nd-level cache: 1 MBytes, 4-way set associative, 64 bytes line size"
+	JclResources_RsIntelCacheDescr22,	"3rd level cache: 512 KBytes, 4-way set associative, 64 byte line size, 2 lines per sector"
+	JclResources_RsIntelCacheDescr23,	"3rd level cache: 1 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
+	JclResources_RsIntelCacheDescr25,	"3rd level cache: 2 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
+	JclResources_RsIntelCacheDescr29,	"3rd level cache: 4 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
 	JclResources_RsIntelCacheDescr2C,	"1st level data cache: 32 KBytes, 8-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr30,	"1st level instruction cache: 32 KBytes, 8-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr40,	"No 2nd-level cache or, if processor contains a valid 2nd-level cache, no 3rd-level cache"
@@ -830,10 +832,10 @@ BEGIN
 	JclResources_RsIntelCacheDescr47,	"3rd-level cache: 8 MBytes, 4-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr48,	"3rd-level cache: 8 MByte, 8-way set associative, 64 byte line size"
 	JclResources_RsIntelCacheDescr49,	"2nd-level cache: 4 MBytes, 16-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr4A,	"3rd-level cache: 6MByte, 12-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr4B,	"3rd-level cache: 8MByte, 16-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr4D,	"3rd-level cache: 16MByte, 16-way set associative, 64 byte line size"
-	JclResources_RsIntelCacheDescr4E,	"2nd-level cache: 6MByte, 24-way set associative, 64 byte line size"
+	JclResources_RsHKLMShort,	"HKLM"
+	JclResources_RsHKUSShort,	"HKUS"
+	JclResources_RsHKPDShort,	"HKPD"
+	JclResources_RsHKCCShort,	"HKCC"
 	JclResources_RsHKDDShort,	"HKDD"
 	JclResources_RsIntelCacheDescr00,	"Null descriptor"
 	JclResources_RsIntelCacheDescr01,	"Instruction TLB: 4 KByte pages, 4-way set associative, 32 entries"
@@ -846,10 +848,10 @@ BEGIN
 	JclResources_RsIntelCacheDescr0A,	"1st level data cache: 8 KBytes, 2-way set associative, 32 byte line size"
 	JclResources_RsIntelCacheDescr0B,	"Instruction TLB: 4 MByte pages, 4-way set associative, 4 entries"
 	JclResources_RsIntelCacheDescr0C,	"1st level data cache: 16 KBytes, 4-way set associative, 32 byte line size"
-	JclResources_RsIntelCacheDescr22,	"3rd level cache: 512 KBytes, 4-way set associative, 64 byte line size, 2 lines per sector"
-	JclResources_RsIntelCacheDescr23,	"3rd level cache: 1 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
-	JclResources_RsIntelCacheDescr25,	"3rd level cache: 2 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
-	JclResources_RsIntelCacheDescr29,	"3rd level cache: 4 MBytes, 8-way set associative, 64 byte line size, 2 lines per sector"
+	ComConst_SVarNotObject,	"Variant does not reference an automation object"
+	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
+	PEInfoFunctions_strInvalidFile,	"Invalid file"
+	JclResources_RsAssertUnpairedEndUpdate,	"Unpaired BeginUpdate EndUpdate"
 	JclResources_RsCreateCompatibleDc,	"Could not create compatible DC"
 	JclResources_RsDibHandleAllocation,	"Could not allocate handle for DIB"
 	JclResources_RsSelectObjectInDc,	"Could not select object in DC"
@@ -862,10 +864,6 @@ BEGIN
 	JclResources_RsHKDDLong,	"HKEY_DYN_DATA"
 	JclResources_RsHKCRShort,	"HKCR"
 	JclResources_RsHKCUShort,	"HKCU"
-	JclResources_RsHKLMShort,	"HKLM"
-	JclResources_RsHKUSShort,	"HKUS"
-	JclResources_RsHKPDShort,	"HKPD"
-	JclResources_RsHKCCShort,	"HKCC"
 	ExtCtrls_clNameWindowText,	"Window Text"
 	ComStrs_sTabFailClear,	"Failed to clear tab control"
 	ComStrs_sTabFailDelete,	"Failed to delete tab at index %d"
@@ -880,8 +878,8 @@ BEGIN
 	ComStrs_sPageIndexError,	"%d is an invalid PageIndex value.  PageIndex must be between 0 and %d"
 	ComStrs_sInvalidComCtl32,	"This control requires version 4.70 or greater of COMCTL32.DLL"
 	WinHelpViewer_hNoKeyword,	"No help keyword specified."
-	PEInfoFunctions_strInvalidFile,	"Invalid file"
-	JclResources_RsAssertUnpairedEndUpdate,	"Unpaired BeginUpdate EndUpdate"
+	ComConst_SOleError,	"OLE error %.8x"
+	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
 	ExtCtrls_clNameGrayText,	"Gray Text"
 	ExtCtrls_clNameHighlight,	"Highlight Background"
 	ExtCtrls_clNameHighlightText,	"Highlight Text"

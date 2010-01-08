@@ -45,7 +45,9 @@ uses advancedoptionsunit, frmFindCodeInFileUnit, formPatcherMaker2,
 procedure TfrmPatcherMaker.FormShow(Sender: TObject);
 var i: integer;
 begin
-  patchcodelist.Items:=advancedoptions.codelist.items;
+  patchcodelist.Items.Clear;
+  for i:=0 to advancedoptions.codelist2.items.Count-1 do
+    patchcodelist.Items.Add(advancedoptions.codelist2.items[i].subitems[0]);
 end;
 
 procedure TfrmPatcherMaker.FormClose(Sender: TObject;

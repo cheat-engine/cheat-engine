@@ -11,7 +11,7 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist, ManualModuleLoader;
+  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist, ManualModuleLoader, windows7taskbar;
 
   //the following are just for compatibility
 
@@ -2319,7 +2319,7 @@ begin
   //result:=true;
   result:=not editedsincelastsave;
 
-  if advancedoptions.codelist.Count=oldcodelistcount then
+  if advancedoptions.codelist2.items.Count=oldcodelistcount then
   begin
     
 
@@ -3701,7 +3701,7 @@ begin
   cbunrandomizer.Enabled:=true;
 
 
-  if (numberofrecords>0) or (advancedoptions.codelist.Count>0) then
+  if (numberofrecords>0) or (advancedoptions.codelist2.items.Count>0) then
   begin
     if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0)=mrNo) then
     begin
@@ -3739,12 +3739,17 @@ begin
     expectedFilename:=FName+'.ct';
 
 
-  if fileexists(expectedfilename) then
+
+  if fileexists(expectedfilename) or fileexists(cheatenginedir+expectedfilename) then
   begin
     if messagedlg('Load the associated table? ('+expectedFilename+')',mtConfirmation, [mbyes,mbno],0)=mryes then
     begin
       autoopen:=true;
-      opendialog1.FileName:=expectedfilename;
+      if fileexists(expectedfilename) then
+        opendialog1.FileName:=expectedfilename
+      else
+        opendialog1.FileName:=cheatenginedir+expectedfilename;
+        
       LoadButton.Click;
     end;
   end;
@@ -8170,7 +8175,7 @@ procedure TMainForm.CommentButtonMouseMove(Sender: TObject;
 begin
   if comments.Memo1.Lines.Count=0 then
   begin
-    Commentbutton.Hint:='No Comments!';
+    Commentbutton.Hint:='No Comments';
     exit;
   end;
 
@@ -10189,7 +10194,7 @@ begin
 
   end;
 
-  if advancedoptions.codelist.Count>0 then
+  if advancedoptions.codelist2.items.Count>0 then
   begin
     advancedoptions.Position:=podesigned;
     advancedoptions.Left:=mainform.left-advancedoptions.Width;
@@ -10960,6 +10965,9 @@ begin
   button4.tag:=0;
   progressbar1.Position:=0;
 
+  SetProgressState(tbpsNone);
+
+
   foundcount:=memscan.GetFoundCount;
 
 
@@ -11000,7 +11008,6 @@ begin
   UpdateScanType;
 
   scanepilogue(canceled);
-
 end;
 
 procedure Tmainform.CancelbuttonClick(sender: TObject);
@@ -11588,7 +11595,7 @@ begin
   Comments.Memo1.Clear;
   comments.Memo1.Lines.Add(strInfoAboutTable);
   Numberofrecords:=0;
-  advancedoptions.codelist.clear;
+  advancedoptions.codelist2.items.clear;
   advancedoptions.numberofcodes:=0;
   Updatescreen;
   Updatelist;

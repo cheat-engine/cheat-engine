@@ -81,9 +81,9 @@ object FoundCodeDialog: TFoundCodeDialog
         130
         169)
       object btnExtraInfo: TButton
-        Left = 6
+        Left = 4
         Top = 128
-        Width = 120
+        Width = 124
         Height = 31
         Hint = 
           'The selected addresses will be added to the code list in the adv' +
@@ -97,9 +97,9 @@ object FoundCodeDialog: TFoundCodeDialog
         OnClick = btnExtraInfoClick
       end
       object btnAddToCodeList: TButton
-        Left = 6
+        Left = 4
         Top = 89
-        Width = 120
+        Width = 124
         Height = 30
         Hint = 
           'The selected addresses will be added to the code list in the adv' +
@@ -112,9 +112,9 @@ object FoundCodeDialog: TFoundCodeDialog
         OnClick = btnAddToCodeListClick
       end
       object btnOpenDisassembler: TButton
-        Left = 6
+        Left = 4
         Top = 49
-        Width = 120
+        Width = 123
         Height = 31
         Hint = 
           'This will open the memoryview and bring the disassemblerview to ' +
@@ -127,9 +127,9 @@ object FoundCodeDialog: TFoundCodeDialog
         OnClick = btnOpenDisassemblerClick
       end
       object btnReplacewithnops: TButton
-        Left = 6
+        Left = 4
         Top = 10
-        Width = 120
+        Width = 124
         Height = 31
         Hint = 
           'This will replace the selected addresses with code that does not' +

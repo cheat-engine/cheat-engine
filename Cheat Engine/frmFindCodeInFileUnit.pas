@@ -90,7 +90,7 @@ begin
 
           a:=StrToInt(temp);
           inc(mempointer,a);
-          for j:=0 to length(code[codelist.itemindex].actualopcode)-1 do
+          for j:=0 to length(code[codelist2.itemindex].actualopcode)-1 do
           begin
             mempointer^:=$90;
             inc(mempointer);
@@ -134,7 +134,7 @@ begin
   begin
 
 
-    indeX:=codelist.itemindex;
+    indeX:=codelist2.itemindex;
     setlength(searchstring,length(code[index].before)+length(code[index].actualopcode)+length(code[index].after));
     j:=0;
     for k:=0 to length(code[index].before)-1 do

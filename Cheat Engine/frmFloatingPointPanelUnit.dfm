@@ -1,8 +1,8 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 1355
-  Top = 168
-  Width = 312
-  Height = 416
+  Left = 1313
+  Top = 239
+  Width = 353
+  Height = 322
   BorderStyle = bsSizeToolWin
   Caption = 'FPU'
   Color = clBtnFace
@@ -12,15 +12,16 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 120
   TextHeight = 16
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 294
-    Height = 371
-    ActivePage = TabSheet2
+    Width = 335
+    Height = 277
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -28,8 +29,8 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       object pnlFloatdata: TPanel
         Left = 0
         Top = 139
-        Width = 286
-        Height = 201
+        Width = 327
+        Height = 107
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
@@ -37,7 +38,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       object Panel2: TPanel
         Left = 0
         Top = 0
-        Width = 286
+        Width = 327
         Height = 139
         Align = alTop
         BevelOuter = bvNone
@@ -130,7 +131,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       object Panel1: TPanel
         Left = 0
         Top = 0
-        Width = 286
+        Width = 327
         Height = 57
         Align = alTop
         BevelOuter = bvNone
@@ -174,8 +175,8 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
       object Memo1: TMemo
         Left = 0
         Top = 57
-        Width = 286
-        Height = 283
+        Width = 327
+        Height = 189
         Align = alClient
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack

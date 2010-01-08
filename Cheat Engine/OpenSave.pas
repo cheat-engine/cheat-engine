@@ -6,7 +6,7 @@ interface
 uses forms, mainunit,windows,standaloneunit,SysUtils,advancedoptionsunit,commentsunit,
      cefuncproc,classes,formmemorymodifier,formMemoryTrainerUnit,shellapi,
      MemoryTrainerDesignUnit,StdCtrls,ExtraTrainerComponents,Graphics,Controls,
-     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, structuresfrm, XMLDoc, XMLIntf, KIcon;
+     ExtCtrls,Dialogs,newkernelhandler, hotkeyhandler, structuresfrm, XMLDoc, XMLIntf, KIcon, comctrls;
 
 
 var CurrentTableVersion: dword=9;
@@ -14,9 +14,7 @@ procedure SaveTable(Filename: string);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address,size:dword);
 
-{$ifndef net}
 procedure LoadExe(filename: string);
-{$endif}
 
 
 procedure SaveCTEntryToXMLNode(i: integer; Entries: IXMLNode);
@@ -4278,6 +4276,7 @@ var newrec: MemoryRecordV6;
 
     symbolname: string;
     address: dword;
+    li: tlistitem;
 begin
   doc:=TXMLDocument.Create(application);
   try
@@ -4408,7 +4407,13 @@ begin
             code[numberofcodes-1].modulename:=tempmodulename;
             code[numberofcodes-1].offset:=tempoffset;
 
-            codelist.Items.Add(tempdescription);
+            li:=codelist2.Items.Add;
+            if code[numberofcodes-1].modulename<>'' then
+              li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+            else
+              li.Caption:=inttohex(tempaddress,8);
+
+            li.SubItems.Add(tempdescription);
           end;
 
         end;
@@ -4494,6 +4499,7 @@ var newrec: MemoryRecordV6;
     address: dword;
     symbolname: string;
     addressstring: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -4665,7 +4671,13 @@ begin
           code[numberofcodes-1].modulename:=tempmodulename;
           code[numberofcodes-1].offset:=tempoffset;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -4790,6 +4802,7 @@ var newrec: MemoryRecordV5;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -4922,7 +4935,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -4954,6 +4973,7 @@ var newrec: MemoryRecordV4;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -5071,7 +5091,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -5104,6 +5130,7 @@ var newrec: MemoryRecordV3;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -5228,7 +5255,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -5260,6 +5293,7 @@ var newrec: MemoryRecordV2;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -5358,7 +5392,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -5389,6 +5429,7 @@ var newrec: MemoryRecordV1;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
     ctfile.ReadBuffer(records,4);
     for i:=0 to records-1 do
@@ -5486,7 +5527,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
 
@@ -5627,6 +5674,7 @@ var loadfile: File;
     tempafter: array of byte;
     tempaddress: dword;
     tempdescription: string;
+    li: tlistitem;
 begin
   assignfile(LoadFile,filename);
   reset(LoadFile,1);
@@ -5766,7 +5814,13 @@ begin
 
           code[numberofcodes-1].Address:=tempaddress;
 
-          codelist.Items.Add(tempdescription);
+          li:=codelist2.Items.Add;
+          if code[numberofcodes-1].modulename<>'' then
+            li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+          else
+            li.Caption:=inttohex(tempaddress,8);
+
+          li.SubItems.Add(tempdescription);
         end;
       end;
     end;
@@ -6370,8 +6424,6 @@ var
     charstoread: byte;
 
     nrofbytes:  byte;
-
-
 begin
   Extension:=uppercase(extractfileext(filename));
   {$ifndef net}
@@ -6396,10 +6448,8 @@ begin
         setlength(code[i].after,0);
       end;
 
-      advancedoptions.codelist.Clear;
+      Codelist2.Clear;
       setlength(code,0);
-
-      codelist.clear;
       numberofcodes:=0;
     end;
 
@@ -6423,7 +6473,7 @@ begin
   with mainform do
   begin
     oldnumberofrecords:=numberofrecords;
-    oldcodelistcount:=advancedoptions.codelist.Count;
+    oldcodelistcount:=advancedoptions.codelist2.Items.Count;
 
     setlength(oldmemrec,numberofrecords);
     for i:=0 to numberofrecords-1 do
@@ -6460,6 +6510,11 @@ begin
   end;
 
   mainform.editedsincelastsave:=false;
+
+  if comments.memo1.Lines.Count>0 then
+    mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
+  else
+    mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];
 end;
 
 type TExtradata=record
@@ -6589,7 +6644,7 @@ begin
       for i:=0 to advancedoptions.numberofcodes-1 do
       begin
         CodeRecord:=codes.AddChild('CodeEntry');
-        CodeRecord.AddChild('Description').Text:=advancedoptions.codelist.Items[i];
+        CodeRecord.AddChild('Description').Text:=advancedoptions.codelist2.Items[i].SubItems[0];
         CodeRecord.AddChild('Address').Text:=inttohex(advancedoptions.code[i].Address,8);
         CodeRecord.AddChild('ModuleName').Text:=advancedoptions.code[i].modulename;
         CodeRecord.AddChild('ModuleNameOffset').Text:=inttohex(advancedoptions.code[i].offset,4);
@@ -6763,7 +6818,7 @@ begin
         blockwrite(savefile,nrofbytes,1,actualwritten);
         blockwrite(savefile,pointer(advancedoptions.code[i].after)^,nrofbytes,actualwritten);
 
-        x:=pchar(advancedoptions.codelist.Items[i]);
+        x:=pchar(advancedoptions.codelist2.Items[i].SubItems[0]);
         nrofbytes:=length(x);
         blockwrite(savefile,nrofbytes,1,actualwritten);
         blockwrite(savefile,pointer(x)^,nrofbytes,actualwritten);
@@ -6837,7 +6892,7 @@ begin
       with mainform do
       begin
         oldnumberofrecords:=numberofrecords;
-        oldcodelistcount:=advancedoptions.codelist.Count;
+        oldcodelistcount:=advancedoptions.codelist2.items.count;
 
         setlength(oldmemrec,numberofrecords);
         for i:=0 to numberofrecords-1 do

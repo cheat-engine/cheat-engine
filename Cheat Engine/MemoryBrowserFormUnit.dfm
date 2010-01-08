@@ -608,6 +608,7 @@ object MemoryBrowser: TMemoryBrowser
       BevelInner = bvLowered
       PopupMenu = pmStacktrace
       TabOrder = 1
+      Visible = False
       object lvStacktraceData: TListView
         Left = 2
         Top = 2

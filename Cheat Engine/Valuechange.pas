@@ -111,7 +111,7 @@ begin
             {$endif}
             valuetext.text:=IntToStr(value1);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       1 : begin //word
@@ -123,7 +123,7 @@ begin
 
             valuetext.text:=IntToStr(value2);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       2 : begin  //dword
@@ -134,7 +134,7 @@ begin
             {$endif}
             valuetext.text:=IntToStr(value3);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       3 : begin //int64
@@ -145,7 +145,7 @@ begin
             {$endif}
             valuetext.text:=IntToStr(value6);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       4 : begin //float
@@ -156,7 +156,7 @@ begin
             {$endif}
             valuetext.text:=FloatToStr(value4);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       5 : begin //double
@@ -167,7 +167,7 @@ begin
             {$endif}
             valuetext.text:=floatToStr(value5);
 
-            cbunicode.visible:=true;
+            cbunicode.visible:=false;
           end;
 
       6 : begin //text

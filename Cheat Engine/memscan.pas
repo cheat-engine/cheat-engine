@@ -8,7 +8,7 @@ Special care should be taken to add multithreaded scanning routines
 interface
 
 uses windows,sysutils, classes,ComCtrls,dialogs, cefuncproc,
-     newkernelhandler, math, SyncObjs
+     newkernelhandler, math, SyncObjs, windows7taskbar
 {$ifndef standalonetrainerwithassemblerandaobscanner}
      ,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler
 {$endif}
@@ -2778,7 +2778,10 @@ var totaladdressestoscan, currentlyscanned: dword;
 begin
   //runs in mainthread
   if OwningMemScan.progressbar<>nil then
+  begin
     OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
+    SetProgressValue(OwningMemScan.progressbar.Position, OwningMemScan.progressbar.Max);
+  end;
 end;
 
 procedure TScanController.errorpopup;
@@ -3825,6 +3828,8 @@ end;
 
 constructor TScanController.create(suspended: boolean);
 begin
+  SetProgressstate(tbpsNormal);
+  
   isdoneevent:=TEvent.create(nil,true,false,'');
   scannersCS:=TCriticalSection.Create;
   resultsaveCS:=TCriticalsection.create;

@@ -14,6 +14,7 @@ object Comments: TComments
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   PixelsPerInch = 120
   TextHeight = 16
   object Memo1: TMemo
@@ -35,9 +36,9 @@ object Comments: TComments
     TabOrder = 1
     OnResize = Panel1Resize
     object Button1: TButton
-      Left = 11
+      Left = 184
       Top = 6
-      Width = 412
+      Width = 87
       Height = 31
       Caption = 'OK'
       TabOrder = 0

@@ -3672,12 +3672,14 @@ begin
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLBW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLBW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3687,12 +3689,14 @@ begin
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLWD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLWD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3702,12 +3706,14 @@ begin
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
                           tempresult:=tempresult+'PUNPCKLDQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end;
                       end;

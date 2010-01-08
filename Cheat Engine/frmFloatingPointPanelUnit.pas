@@ -34,6 +34,7 @@ type
     procedure ComboBox1Select(Sender: TObject);
     procedure Label4Click(Sender: TObject);
     procedure Label6DblClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     context: PContext;
@@ -73,6 +74,7 @@ var i,j: integer;
     temp: integer;
     e: extended;
     str: string;
+    tempstr: string;
 begin
   if context=nil then exit;
 
@@ -119,9 +121,9 @@ begin
             1:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[0],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[1],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[2],4)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.words[3],4)); //2byte
             2:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.dwords[0],8)+' - '+inttohex(context.ext.FPURegisters[i].Data.MMRegister.dwords[1],8)); //4byte
             3:  memo1.Lines.Add(inttohex(context.ext.FPURegisters[i].Data.MMRegister.qwords,16)); //8 byte
-            4:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.MMRegister.Singles[0])+' - '+floattostr(context.ext.FPURegisters[i].Data.MMRegister.Singles[1])); //2 singles
-            5:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.MMRegister.Doubles)); //double
-            6:  memo1.Lines.Add(floattostr(context.ext.FPURegisters[i].Data.FloatValue)); //extended
+            4:  memo1.Lines.Add(format('%f', [context.ext.FPURegisters[i].Data.MMRegister.Singles[0]]) +' - '+format('%f', [context.ext.FPURegisters[i].Data.MMRegister.Singles[1]])); //2 singles
+            5:  memo1.Lines.Add(format('%f', [context.ext.FPURegisters[i].Data.MMRegister.Doubles])); //double
+            6:  memo1.Lines.Add(format('%f', [context.ext.FPURegisters[i].Data.FloatValue])); //extended
           end;
 
         end;
@@ -150,7 +152,7 @@ begin
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             1: //word
@@ -163,7 +165,7 @@ begin
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             2: //dword
@@ -176,20 +178,20 @@ begin
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             3:   //8 byte
             begin
               str:='';
-              for j:=0 to 3 do
+              for j:=0 to 1 do
               begin
                 str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].qwords[j],16);
-                if j<3 then
+                if j<1 then
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             4:
@@ -197,12 +199,12 @@ begin
               str:='';
               for j:=0 to 3 do
               begin
-                str:=str+floattostr(context.ext.XMMRegisters.LegacyXMM[i].singles[j]);
+                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].singles[j]]);
                 if j<3 then
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
 
             5:
@@ -210,12 +212,12 @@ begin
               str:='';
               for j:=0 to 1 do
               begin
-                str:=str+floattostr(context.ext.XMMRegisters.LegacyXMM[i].doubles[j]);
+                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].doubles[j]]);
                 if j<1 then
                   str:=str+' - ';
               end;
 
-              memo1.Lines.Add(str);
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
             end;
           end;
 
@@ -403,6 +405,11 @@ procedure TfrmFloatingPointPanel.Label6DblClick(Sender: TObject);
 begin
   memorybrowser.memoryaddress:=self.contextCopy.FloatSave.DataOffset;
   memorybrowser.refreshmb;
+end;
+
+procedure TfrmFloatingPointPanel.FormCreate(Sender: TObject);
+begin
+  PageControl1.ActivePageIndex:=0;
 end;
 
 end.
