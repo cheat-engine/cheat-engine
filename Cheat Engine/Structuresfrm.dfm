@@ -69,7 +69,6 @@ object frmStructures: TfrmStructures
       OnCollapsing = tvStructureViewCollapsing
       OnDblClick = tvStructureViewDblClick
       OnExpanding = tvStructureViewExpanding
-      OnKeyDown = tvStructureViewKeyDown
       OnMouseDown = tvStructureViewMouseDown
     end
     object HeaderControl1: THeaderControl
@@ -182,6 +181,11 @@ object frmStructures: TfrmStructures
       ShortCut = 70
       Visible = False
       OnClick = Memorybrowsepointer1Click
+    end
+    object Memorybrowsethisaddress1: TMenuItem
+      Caption = 'Memory browse this address'
+      ShortCut = 32
+      OnClick = Memorybrowsethisaddress1Click
     end
     object N3: TMenuItem
       Caption = '-'

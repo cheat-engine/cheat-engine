@@ -246,4 +246,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.5"; Flags: nowait postinstall skipifsilent runascurrentuser
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.6"; Flags: nowait postinstall skipifsilent runascurrentuser

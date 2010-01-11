@@ -6,7 +6,8 @@ uses windows, sysutils, graphics;
 
 const PluginVersionSDK=3;
 
-type TPluginType=(ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7);
+type TAutoAssemblerPhase=(aaInitialize=0, aaPhase1=1, aaPhase2=2, aaFinalize=3);
+type TPluginType=(ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7, ptAutoAssembler=8);
 
 type TDWordArray = array[0..0] of DWord;
      PDWordArray = ^TDWordArray;
@@ -68,6 +69,7 @@ type TFunction3=TFunction2;
 type TFunction4=TFunction2;
 type TFunction5=TFunction1;
 type TFunction7=TFunction2;
+type TFunction8=TFunction2;
 
 
 type PFunction0=^TFunction0;
@@ -78,6 +80,7 @@ type PFunction4=^TFunction4;
 type PFunction5=^TFunction5;
 type PFunction6=^TFunction6;
 type PFunction7=^TFunction7;
+type PFunction8=^TFunction8;
 
 type Tce_showmessage=procedure (s: pchar); stdcall;
 type Tce_registerfunction=function (pluginid: integer; functiontype:TPluginType; init: pointer):integer; stdcall;
@@ -271,8 +274,10 @@ type TPluginFunction2=function(debugevent: PDebugEvent):integer; stdcall;
 type TPluginFunction3=function(processid: dword; peprocess:dword; created: BOOL):integer; stdcall;
 type TPluginFunction4=function(section: integer):boolean; stdcall;
 type TPluginfunction5=procedure; stdcall;
+type TPluginfunction6OnPoup=function(selectedAddress: dword; addressofname: pointer):bool; stdcall;
 type TPluginfunction6=function(selectedAddress: pdword):bool; stdcall;
 type TPluginFunction7=procedure(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
+type TPluginFunction8=procedure(line: ppchar; phase: TAutoAssemblerPhase); stdcall;
 
 implementation
 

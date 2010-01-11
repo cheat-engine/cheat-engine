@@ -155,7 +155,6 @@ type
     ype1: TMenuItem;
     Value1: TMenuItem;
     LabelModifiedmem: TLabel;
-    Timer4: TTimer;
     pnlFloat: TPanel;
     rt3: TRadioButton;
     rt1: TRadioButton;
@@ -386,7 +385,6 @@ type
     procedure ype1Click(Sender: TObject);
     procedure Value1Click(Sender: TObject);
     procedure ProcessLabelDblClick(Sender: TObject);
-    procedure Timer4Timer(Sender: TObject);
     procedure ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure cbUnrandomizerClick(Sender: TObject);
@@ -10006,13 +10004,6 @@ begin
   end;
 end;
 
-procedure TMainForm.Timer4Timer(Sender: TObject);
-begin
-  LabelModifiedmem.visible:=false;
-  timer4.Enabled:=false;
-end;
-
-
 procedure TMainForm.ProcessLabelMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
@@ -10871,6 +10862,7 @@ procedure TMainform.autoattachcheck;
 var pl: TStringlist;
     i,j,k: integer;
     newPID: dword;
+    pli: PProcessListInfo;
 begin
   //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
   if (not formsettings.cbAlwaysAutoAttach.checked) and ((processhandle<>0) or (processid<>0)) then
@@ -10883,7 +10875,7 @@ begin
   begin
     for j:=0 to pl.Count-1 do //can't do indexof
     begin
-      if pos(autoattachlist.Strings[i],pl.strings[j])=10 then
+      if pos(uppercase(autoattachlist.Strings[i]),uppercase(pl.strings[j]))=10 then
       begin
         //the process is found
 
@@ -10898,6 +10890,8 @@ begin
         Open_Process;
         enablegui(false);
 
+        openProcessEpilogue('',0,0);
+
         symhandler.reinitialize;
         reinterpretaddresses;
       end;
@@ -10905,6 +10899,16 @@ begin
 
   end;
 //  pl.IndexOf(autoattachlist.items[i]);
+
+  for i:=0 to pl.count-1 do
+    if pl.Objects[i]<>nil then
+    begin
+      pli:=pointer(pl.Objects[i]);
+      if pli.processIcon>0 then
+        DestroyIcon(pli.processIcon);
+      freemem(pli);
+    end;
+
   pl.free;
 end;
 

@@ -1,15 +1,14 @@
 /*
  cepluginsdk.h
- Updated January 2, 2010
- Because people thought THIS was an SDK they could use without any editing, i've decided
- to actually make it the default SDK for C and fill in the blanks
+ Updated January 9, 2010
 
- v1.0.1
+ v3.0.1
 */
 #include <windows.h>
 #define CESDK_VERSION 3
 
-typedef enum {ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5} PluginType;
+typedef enum {ptAddressList=0, ptMemoryView=1, ptOnDebugEvent=2, ptProcesswatcherEvent=3, ptFunctionPointerchange=4, ptMainMenu=5, ptDisassemblerContext=6, ptDisassemblerRenderLine=7, ptAutoAssembler=8} PluginType;
+typedef enum {aaInitialize=0, aaPhase1=1, aaPhase2=2, aaFinalize=3} AutoAssemblerPhase;
 
 typedef struct _PluginVersion
 {
@@ -36,6 +35,12 @@ typedef int (__stdcall *CEP_PLUGINTYPE2)(LPDEBUG_EVENT DebugEvent);
 typedef void (__stdcall *CEP_PLUGINTYPE3)(ULONG processid, ULONG peprocess, BOOL Created);
 typedef void (__stdcall *CEP_PLUGINTYPE4)(int reserved);
 typedef void (__stdcall *CEP_PLUGINTYPE5)(void);
+typedef BOOL (__stdcall *CEP_PLUGINTYPE6ONPOPUP)(ULONG selectedAddress, char **addressofname);
+typedef BOOL (__stdcall *CEP_PLUGINTYPE6)(ULONG *selectedAddress);
+typedef void (__stdcall *CEP_PLUGINTYPE7)(ULONG address, char **addressStringPointer, char **bytestringpointer, char **opcodestringpointer, char **specialstringpointer, ULONG *textcolor);
+typedef void (__stdcall *CEP_PLUGINTYPE8)(char **line, AutoAssemblerPhase phase);
+
+
 
 typedef struct _PLUGINTYPE0_INIT
 {
@@ -68,9 +73,17 @@ typedef struct _PLUGINTYPE4_INIT
 typedef struct _PLUGINTYPE5_INIT
 {
   char* name; //0 terminated string describing the name for the user's menu item
-  CEP_PLUGINTYPE5 callbackroutine; //pointer to a callback routine of the type 1 plugin
+  CEP_PLUGINTYPE5 callbackroutine; 
   char* shortcut; //0 terminated string containing the shortcut in textform. CE will try it's best to parse it to a valid shortcut
 } PLUGINTYPE5_INIT, MAINMENUPLUGIN_INIT, *PPLUGINTYPE5_INIT, *PMAINMENUPLUGIN_INIT;
+
+typedef struct _PLUGINTYPE6_INIT
+{
+  char* name; //0 terminated string describing the name for the user's menu item
+  CEP_PLUGINTYPE6ONPOPUP callbackroutineOnPopup; 
+  CEP_PLUGINTYPE6 callbackroutine; 
+  char* shortcut; //0 terminated string containing the shortcut in textform. CE will try it's best to parse it to a valid shortcut
+} PLUGINTYPE6_INIT, DISASSEMBLERCONTEXT_INIT, *PPLUGINTYPE6_INIT, *PDISASSEMBLERCONTEXT_INIT;
 
 
 typedef struct _REGISTERMODIFICATIONINFO

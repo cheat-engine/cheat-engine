@@ -88,6 +88,7 @@ type Tbasestucture=record
     tvStructureView: TTreeView;
     HeaderControl1: THeaderControl;
     Memorybrowsepointer1: TMenuItem;
+    Memorybrowsethisaddress1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -127,8 +128,7 @@ type Tbasestucture=record
     procedure Deletecurrentstructure1Click(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
     procedure Memorybrowsepointer1Click(Sender: TObject);
-    procedure tvStructureViewKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure Memorybrowsethisaddress1Click(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
@@ -1168,6 +1168,7 @@ begin
       Addtoaddresslist1.Visible:=true;
       Deleteelement1.Visible:=true;
       n2.Visible:=true;
+      Memorybrowsethisaddress1.Visible:=true;
       elementnr:=tvStructureView.Selected.Index;
 
       Memorybrowsepointer1.Visible:=(elementnr>=0) and definedstructures[s.basestructure].structelement[elementnr].pointerto;
@@ -1177,6 +1178,7 @@ begin
       n2.Visible:=false;
       Memorybrowsepointer1.Visible:=false;
       Addtoaddresslist1.Visible:=false;
+      Memorybrowsethisaddress1.Visible:=false;
     end;
   end;
 
@@ -2185,8 +2187,7 @@ begin
   end;
 end;
 
-procedure TfrmStructures.tvStructureViewKeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
+procedure TfrmStructures.Memorybrowsethisaddress1Click(Sender: TObject);
 var
   i: integer;
   s: Tstructure;
@@ -2195,49 +2196,44 @@ var
   clickpos: tpoint;
   section: integer;
   address: dword;
-  x: dword;  
+  x: dword;
 begin
-  if key=vk_space then
+  if (tvStructureView.selected<>nil) then
   begin
-    if (tvStructureView.selected<>nil) then
+    s:=tstructure(tvStructureView.Selected.Data);
+    elementnr:=tvStructureView.Selected.Index;
+    if s=nil then exit;
+
+
+    if (elementnr>=0) then
     begin
-      s:=tstructure(tvStructureView.Selected.Data);
-      elementnr:=tvStructureView.Selected.Index;
-      if s=nil then exit;
-      
+      //find the position that is clicked
+      GetWindowRect(tvStructureView.Handle, tvrect);
 
-      if (elementnr>=0) then
+      clickpos.X:=popupmenu1.PopupPoint.X-tvrect.Left;
+      clickpos.Y:=popupmenu1.PopupPoint.Y-tvrect.Top;
+
+      section:=headercontrol1.Sections.Count-1;
+      for i:=0 to headercontrol1.Sections.Count-1 do
       begin
-        //find the position that is clicked
-        GetWindowRect(tvStructureView.Handle, tvrect);
-
-        clickpos.X:=popupmenu1.PopupPoint.X-tvrect.Left;
-        clickpos.Y:=popupmenu1.PopupPoint.Y-tvrect.Top;
-
-        section:=headercontrol1.Sections.Count-1;
-        for i:=0 to headercontrol1.Sections.Count-1 do
+        if (clickpos.x>=headercontrol1.Sections[i].Left)
+          and
+           (clickpos.x<headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width) then
         begin
-          if (clickpos.x>=headercontrol1.Sections[i].Left)
-            and
-             (clickpos.x<headercontrol1.Sections[i].Left+headercontrol1.Sections[i].width) then
-          begin
-            //found it
-            section:=i;
-            break;
-          end;
+          //found it
+          section:=i;
+          break;
         end;
-
-        if section>0 then
-          section:=section-1; //count starts from 1, so decrease
-
-        memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
-        memorybrowser.RefreshMB;
       end;
-     // definedstructures[s.basestructure].structelement[elementnr].
+
+      if section>0 then
+        section:=section-1; //count starts from 1, so decrease
+
+      memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
+      memorybrowser.RefreshMB;
     end;
-
+   // definedstructures[s.basestructure].structelement[elementnr].
   end;
-
 
 
 end;

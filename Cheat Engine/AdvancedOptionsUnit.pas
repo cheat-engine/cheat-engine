@@ -56,6 +56,8 @@ type
     procedure Panel1Resize(Sender: TObject);
     procedure Codelist2DblClick(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
+    procedure Codelist2CustomDrawItem(Sender: TCustomListView;
+      Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
   private
     { Private declarations }
     plabel:string;
@@ -903,22 +905,31 @@ end;
 procedure TAdvancedOptions.Codelist2DblClick(Sender: TObject);
 var mi: TModuleInfo;
 begin
-  if code[codelist2.itemindex].modulename<>'' then
+  if codelist2.itemindex<>-1 then
   begin
-    symhandler.getmodulebyname(code[codelist2.itemindex].modulename,mi);
-    code[codelist2.itemindex].Address:=mi.baseaddress+code[codelist2.itemindex].offset;
-  end;
-    
-  memorybrowser.disassemblerview.SelectedAddress:=code[codelist2.itemindex].Address;
+    if code[codelist2.itemindex].modulename<>'' then
+    begin
+      symhandler.getmodulebyname(code[codelist2.itemindex].modulename,mi);
+      code[codelist2.itemindex].Address:=mi.baseaddress+code[codelist2.itemindex].offset;
+    end;
 
-  if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
-  memorybrowser.panel1.visible:=true;
-  memorybrowser.show;
+    memorybrowser.disassemblerview.SelectedAddress:=code[codelist2.itemindex].Address;
+
+    if memorybrowser.Height<(memorybrowser.Panel1.Height+100) then memorybrowser.height:=memorybrowser.Panel1.Height+100;
+    memorybrowser.panel1.visible:=true;
+    memorybrowser.show;
+  end;
 end;
 
 procedure TAdvancedOptions.Panel2Resize(Sender: TObject);
 begin
   label1.left:=(panel2.Width div 2)-(label1.Width div 2);
+end;
+
+procedure TAdvancedOptions.Codelist2CustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+begin
+  if code[item.index].changed then sender.Canvas.Font.Color:=clred;
 end;
 
 end.

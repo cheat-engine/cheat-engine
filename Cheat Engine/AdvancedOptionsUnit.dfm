@@ -164,6 +164,7 @@ object AdvancedOptions: TAdvancedOptions
     PopupMenu = PopupMenu2
     TabOrder = 2
     ViewStyle = vsReport
+    OnCustomDrawItem = Codelist2CustomDrawItem
     OnDblClick = Codelist2DblClick
   end
   object PopupMenu2: TPopupMenu
@@ -173,6 +174,7 @@ object AdvancedOptions: TAdvancedOptions
     object Openthedisassemblerhere1: TMenuItem
       Caption = 'Open the disassembler at this location'
       Default = True
+      OnClick = Codelist2DblClick
     end
     object N2: TMenuItem
       Caption = '-'

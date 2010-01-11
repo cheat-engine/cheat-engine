@@ -2,7 +2,7 @@ object formSettings: TformSettings
   Left = 257
   Top = 306
   Width = 785
-  Height = 599
+  Height = 574
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
   Color = clBtnFace
@@ -22,14 +22,14 @@ object formSettings: TformSettings
     Left = 0
     Top = 0
     Width = 767
-    Height = 507
+    Height = 482
     Align = alClient
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
       Top = 1
       Width = 148
-      Height = 505
+      Height = 480
       Align = alLeft
       HideSelection = False
       Indent = 19
@@ -57,7 +57,7 @@ object formSettings: TformSettings
       Left = 149
       Top = 1
       Width = 617
-      Height = 505
+      Height = 480
       ActivePage = GeneralSettings
       Align = alClient
       Style = tsFlatButtons
@@ -285,9 +285,9 @@ object formSettings: TformSettings
           OnClick = btnExcludeProcessesClick
         end
         object EditAutoAttach: TEdit
-          Left = 251
+          Left = 255
           Top = 340
-          Width = 149
+          Width = 143
           Height = 24
           Hint = 
             'Type the name of the process you want to automatically open. Not' +
@@ -365,29 +365,29 @@ object formSettings: TformSettings
           Left = 0
           Top = 0
           Width = 609
-          Height = 471
+          Height = 446
           Align = alClient
           TabOrder = 0
           inherited Panel1: TPanel
             Top = 62
             Width = 383
-            Height = 409
+            Height = 384
             inherited Label1: TLabel
               Width = 383
             end
             inherited ListBox1: TListBox
               Width = 383
-              Height = 393
+              Height = 368
             end
           end
           inherited Panel2: TPanel
             Left = 383
             Top = 62
             Width = 226
-            Height = 409
+            Height = 384
             DesignSize = (
               226
-              409)
+              384)
             inherited Label2: TLabel
               Left = 7
             end
@@ -406,10 +406,10 @@ object formSettings: TformSettings
               Left = 10
               Top = 79
               Width = 209
-              Height = 391
+              Height = 366
               DesignSize = (
                 209
-                391)
+                366)
               inherited Label52: TLabel
                 Left = 14
               end
@@ -684,7 +684,7 @@ object formSettings: TformSettings
           object Label22: TLabel
             Left = 0
             Top = 0
-            Width = 512
+            Width = 210
             Height = 16
             Align = alTop
             Caption = 'The following plugins are available:'
@@ -706,7 +706,7 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 609
+          Width = 592
           Height = 48
           Align = alTop
           Caption = 
@@ -1170,7 +1170,7 @@ object formSettings: TformSettings
   end
   object Panel6: TPanel
     Left = 0
-    Top = 507
+    Top = 482
     Width = 767
     Height = 47
     Align = alBottom

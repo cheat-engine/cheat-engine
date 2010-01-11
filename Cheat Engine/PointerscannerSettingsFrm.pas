@@ -321,14 +321,12 @@ begin
   begin
     edtAddress.Width:=cbValueType.Left+cbValueType.Width-edtAddress.Left;
     cbValueType.Visible:=false;
-    editMaxLevel.Text:='5';
     cbStaticOnly.Checked:=true;
   end
   else
   begin
     edtAddress.Width:=rbFindAddress.Width;
     cbValueType.Visible:=true;
-    editMaxLevel.Text:='1';
     cbStaticOnly.Checked:=false;
   end;
   edtAddress.SetFocus;

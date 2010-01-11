@@ -2403,13 +2403,19 @@ end;   }
 procedure GetProcessList(ProcessList: TListBox);
 var sl: tstringlist;
     i: integer;
+    pli: PProcessListInfo;
 begin
   sl:=tstringlist.create;
   try
     processlist.Sorted:=false;
     for i:=0 to processlist.Items.count-1 do
       if processlist.Items.Objects[i]<>nil then
-        freemem(pointer(processlist.Items.Objects[i]));
+      begin
+        pli:=pointer(processlist.Items.Objects[i]);
+        if pli.processIcon>0 then
+          DestroyIcon(pli.processIcon);
+        freemem(pli);
+      end;
 
     processlist.Items.Clear;
 
@@ -2455,7 +2461,12 @@ begin
 
   for i:=0 to processlist.count-1 do
     if processlist.Objects[i]<>nil then
-      freemem(pointer(processlist.Objects[i]));
+    begin
+      ProcessListInfo:= pointer( processlist.Objects[i]);
+      if ProcessListInfo.processIcon>0 then
+        DestroyIcon(ProcessListInfo.processIcon);
+      freemem(ProcessListInfo);
+    end;
 
   processlist.clear;
 

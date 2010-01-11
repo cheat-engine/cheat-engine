@@ -2709,13 +2709,6 @@ object MainForm: TMainForm
       OnClick = Paste2Click
     end
   end
-  object Timer4: TTimer
-    Enabled = False
-    Interval = 4000
-    OnTimer = Timer4Timer
-    Left = 16
-    Top = 264
-  end
   object ActionList1: TActionList
     Images = ImageList1
     Left = 48
