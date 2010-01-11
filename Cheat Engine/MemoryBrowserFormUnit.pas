@@ -3049,15 +3049,17 @@ procedure TMemoryBrowser.Savedisassemledoutput1Click(Sender: TObject);
 var x,y: string;
     start,stop: dword;
     output: textfile;
+
 begin
-{$ifndef net}
   with tfrmSavedisassembly.create(self) do
   begin
-    edit1.Text:=inttohex(min(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
-    edit2.Text:=inttohex(max(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
+    start:=min(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2);
+    stop:=max(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2);
+    disassemble(stop);
+    edit1.Text:=inttohex(start,8);
+    edit2.Text:=inttohex(stop,8);
     show;
   end;
-{$endif}
 end;
 
 procedure TMemoryBrowser.Heaps1Click(Sender: TObject);

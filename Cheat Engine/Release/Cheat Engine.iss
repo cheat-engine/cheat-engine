@@ -161,6 +161,7 @@ Source: "..\bin\systemcallsignal.exe"; DestDir: "{app}"; DestName: "systemcallsi
 Source: "..\bin\CheatEngine.chm"; DestDir: "{app}"; DestName: "CheatEngine.chm"; Flags: ignoreversion
 
 Source: "..\bin\tutorial.exe"; DestDir: "{app}"; DestName: "Tutorial.exe"; Flags: ignoreversion
+Source: "..\bin\allochook.dll"; DestDir: "{app}"; DestName: "allochook.dll"; Flags: ignoreversion
 
 ;Source: "..\Cheat Engine Net\Client\client.exe"; DestDir: "{app}"; DestName: "Cheat Engine Client.exe"; Flags: ignoreversion
 ;Source: "..\Cheat Engine Net\Server\ceserver.exe"; DestDir: "{app}"; DestName: "Cheat Engine Server.exe"; Flags: ignoreversion

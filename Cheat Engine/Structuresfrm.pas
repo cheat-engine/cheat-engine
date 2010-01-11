@@ -1163,7 +1163,7 @@ begin
   if (tvStructureView.selected<>nil) then
   begin
     s:=tstructure(tvStructureView.Selected.Data);
-    if s<>nil then
+    if (s<>nil) and (s.basestructure>=0) then
     begin
       Addtoaddresslist1.Visible:=true;
       Deleteelement1.Visible:=true;
@@ -1179,6 +1179,13 @@ begin
       Memorybrowsepointer1.Visible:=false;
       Addtoaddresslist1.Visible:=false;
       Memorybrowsethisaddress1.Visible:=false;
+
+      if (s.basestructure<0) then
+      begin
+        Addelement1.Visible:=false;
+        ChangeElement1.Visible:=false;
+      end;
+        
     end;
   end;
 
@@ -2229,8 +2236,11 @@ begin
       if section>0 then
         section:=section-1; //count starts from 1, so decrease
 
-      memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
-      memorybrowser.RefreshMB;
+      if s.basestructure>=0 then
+      begin
+        memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
+        memorybrowser.RefreshMB;
+      end;
     end;
    // definedstructures[s.basestructure].structelement[elementnr].
   end;
