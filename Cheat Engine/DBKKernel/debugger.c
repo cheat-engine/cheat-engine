@@ -158,7 +158,11 @@ DebugReg6 debugger_dr6_getValue(void)
 
 void debugger_touchDebugRegister(void)
 {
+	DbgPrint("Touching debug register. inepilogue=\n", DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue);
+
+	
 	debugger_dr0_setValue(debugger_dr0_getValue());
+	
 }
 
 void debugger_initialize(void)
@@ -222,17 +226,19 @@ int debugger_setGlobalDebugState(BOOL state)
 		int oldEpilogueState=DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue;
 
 		DbgPrint("Int 1 is hooked,%ssetting GD\n",(state ? "":"un"));
+		DbgPrint("oldEpilogueState=%d\n",oldEpilogueState);
 		//debugger_setInitialFakeState();
 
 		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=TRUE;
 		DebuggerState.globalDebug=state;
 		debugger_dr7_setGD(state);
-		//DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=oldEpilogueState;
-
+		
+		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=oldEpilogueState;
 		
 
 		DebuggerState.FakedDebugRegisterState[cpunr()].DR7=0x400;
 		debugger_dr7_setValueDword(0x400);		
+
 	}
 
 	return TRUE;
@@ -510,8 +516,10 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		//block other threads from breaking until this one has been handled
 		while (r != STATUS_SUCCESS)
 		{
-			r=KeWaitForSingleObject(&debugger_event_CanBreak,UserRequest, KernelMode, TRUE, NULL);
+			r=KeWaitForSingleObject(&debugger_event_CanBreak,Executive, KernelMode, FALSE, NULL);
 			//check r and handle specific events
+
+			DbgPrint("Woke up. r=%x\n",r);
 				
 		}
 
@@ -542,16 +550,21 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 
 			//LARGE_INTEGER wt;
-			NTSTATUS s;
+			NTSTATUS s=STATUS_UNSUCCESSFUL;
 			
 			//wt.QuadPart=-10000000LL; 
 			//s=KeDelayExecutionThread(KernelMode, FALSE, &wt);
 
 			DbgPrint("Waiting...\n");
 
-			s=KeWaitForSingleObject(&debugger_event_WaitForContinue, UserRequest, KernelMode, TRUE, NULL);
 
-			DbgPrint("KeWaitForSingleObject=%x\n",s);		
+			while (s != STATUS_SUCCESS)
+			{
+				s=KeWaitForSingleObject(&debugger_event_WaitForContinue, Executive, KernelMode, FALSE, NULL);
+				DbgPrint("KeWaitForSingleObject=%x\n",s);		
+			}
+
+			
 
 			if (s==STATUS_SUCCESS)
 			{
@@ -567,6 +580,8 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			}
 				
 		}
+
+
 
 		//i'm done, let other threads catch it
 		KeSetEvent(&debugger_event_CanBreak, 0, FALSE);
@@ -595,6 +610,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	DebugReg6 _dr6=*(DebugReg6 *)&currentdebugregs[4];
 	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
+	DbgPrint("interrupt1_handler\n");
 	
 	//check if this break should be handled or not
 	
@@ -829,11 +845,14 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	
 	if (DebuggerState.isDebugging)
 	{
+		DbgPrint("DebuggerState.isDebugging\n");
 		//check if this should break
 		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{	
 			UINT_PTR originaldebugregs[6];
 			UINT64 oldDR7=getDR7();
+
+			DbgPrint("CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID\n");
 
 			if (DebuggerState.globalDebug)
 			{
@@ -854,6 +873,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				//DbgPrint("Breakpoint while interrupts are disabled: %x\n",stackpointer[si_eip]);
 				((PEFLAGS)&stackpointer[si_eflags])->RF=1;
 				((PEFLAGS)&stackpointer[si_eflags])->TF=1; //keep going until IF=1
+				DbgPrint("IF==0\n");
 				return 1; //don't handle it but also don't tell windows
 			}
 
@@ -878,14 +898,48 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				debugger_dr6_setValue(0xffff0ff0);
 			}
 
+
+			//save the current stack
+			/*
+			{
+				int *p;
+				p=ExAllocatePool(NonPagedPool,4096*2);
+
+					RtlZeroMemory(p,4096*2);
+					DbgPrint("p=%p\n",p);
+
+					RtlCopyMemory((PVOID)((UINT_PTR)p+4096), (PVOID)getRSP(), (UINT_PTR)(&stackpointer[si_ss])-(UINT_PTR)getRSP());	
+
+					__asm
+					{
+						mov eax,p							
+						add eax,4096
+						
+						sub ebp,esp
+						add ebp,eax
+
+						
+						mov esp,eax
+				
+					}
+
+					return 1;
+	
+
+			}
+			*/
+
+
+
 			//start the windows taskswitching mode
+
 			enableInterrupts();
 			{
 				int rs=1;
-				//DbgPrint("calling breakpointHandler_kernel\n");
+				DbgPrint("calling breakpointHandler_kernel\n");
 				
 				rs=breakpointHandler_kernel(stackpointer, currentdebugregs);	
-				//DbgPrint("After handler dr6=%x and before handling it was %x\n",debugger_dr6_getValue(), DebuggerState.FakedDebugRegisterState[cpunr()].DR6); 
+				DbgPrint("After handler\n");
 
 				//DbgPrint("rs=%d\n",rs);
 
@@ -905,6 +959,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				}
 				else
 				{
+					
 					if (getDR7() != oldDR7)
 					{
 						DbgPrint("Something changed DR7. old=%llx new=%llx\n",oldDR7, getDR7());
@@ -918,7 +973,14 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					debugger_dr2_setValue(currentdebugregs[2]);
 					debugger_dr3_setValue(currentdebugregs[3]);
 					debugger_dr6_setValue(currentdebugregs[4]);
-					debugger_dr7_setValue(*(DebugReg7 *)&currentdebugregs[5]);					
+
+					if ((currentdebugregs[5] >> 11) & 1)
+					{
+						DbgPrint("WTF? GD is 1 in currentdebugregs[5]\n");
+					}
+					else
+						debugger_dr7_setValue(*(DebugReg7 *)&currentdebugregs[5]);	
+						
 				}
 				
 				return rs;
@@ -964,9 +1026,14 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
 	int i;
 
-	DbgPrint("interrupt1_centry:%d\n",cpunr());
+	DbgPrint("interrupt1_centry cpunr=%d esp=%x\n",cpunr(), getRSP());
 
 	before=getRSP();
+
+	for (i=-12; i<7; i++)
+	{	
+		DbgPrint("stackpointer %d=%x\n",i, stackpointer[i]);
+	}
 
 	
 #ifdef AMD64
@@ -975,12 +1042,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	//DbgPrint("current csr=%x\n", _mm_getcsr());
 
-	//DbgPrint("stackpointer RAX=%llx\n",stackpointer[si_eax]);
-	//DbgPrint("stackpointer RBX=%llx\n",stackpointer[si_ebx]);
-	//DbgPrint("stackpointer RCX=%llx\n",stackpointer[si_ecx]);
-	//DbgPrint("stackpointer RDX=%llx\n",stackpointer[si_edx]);
-	//DbgPrint("stackpointer cs:rip=%llx:%llx\n",stackpointer[si_cs], stackpointer[si_eip]);
-	//DbgPrint("stackpointer ss:rsp=%llx:%llx\n",stackpointer[si_ss], stackpointer[si_esp]);
+
 
 #endif
 
@@ -1211,24 +1273,50 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 		//not global debug, just clear all flags and be done with it
 		debugger_dr6_setValue(0xffff0ff0);
+		__nop();
 		
 	}
 
+	__nop();
+	__nop();
+	disableInterrupts();
+	disableInterrupts();
+	
+	__asm
+	{
+		cli
+	}
 
 	if (handled == 2)
 	{
+		__nop();
+		//DbgPrint("handled==2\n");		
 		handled = 1; //epilogue = 1 Dr handler
+		__nop();
 	}
 	else
 	{		
+		__nop();
 		//not handled by the epilogue set DR0, so the actual epilogue
-		DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=0;
-		debugger_dr7_setGD(DebuggerState.globalDebug);		
+		//DbgPrint("handled==1\n");
+		
+		if (DebuggerState.globalDebug)
+		{
+			DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=0;
+			debugger_dr7_setGD(DebuggerState.globalDebug); //set it back to 1		
+			__nop();
+			__nop();
+		}
+		__nop();
+		__nop();
 	}
 
-	after=getRSP();
+	__nop();
+	__nop();
 
-	DbgPrint("before=%llx after=%llx\n",before,after);
+	//after=getRSP();
+
+	//DbgPrint("before=%llx after=%llx\n",before,after);
 
 	return handled;
 }
@@ -1238,6 +1326,22 @@ _declspec( naked ) void interrupt1_asmentry( void )
 //This routine is called upon an interrupt 1, even before windows gets it
 {
 	__asm{
+		//change the start of the stack so that instructions like setthreadcontext do not affect the stack it when it's frozen and waiting for input
+		//meaning the setting of debug registers will have to be done with the changestate call
+
+		//sub esp,4096
+		//push [esp+4096+0+16] //optional ss
+		//push [esp+4096+4+12] //optional esp
+		//push [esp+4096+8+8] //eflags
+		//push [esp+4096+12+4] //cs
+		//push [esp+4096+16+0] //eip
+		
+		
+		
+		
+
+
+
 		//save stack position
 		push 0 //push an errorcode on the stack so the stackindex can stay the same
 		push ebp
@@ -1245,11 +1349,19 @@ _declspec( naked ) void interrupt1_asmentry( void )
 
 		//save state
 		pushad
-		push ds
-		push es
-		push fs
-		push gs
+		xor eax,eax
+		mov ax,ds
+		push eax
 
+		mov ax,es
+		push eax
+
+		mov ax,fs
+		push eax
+
+		mov ax,gs
+		push eax
+		
 		mov ax,0x23 //0x10 should work too, but even windows itself is using 0x23
 		mov ds,ax
 		mov es,ax

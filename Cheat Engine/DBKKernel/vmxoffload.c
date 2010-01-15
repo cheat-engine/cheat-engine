@@ -202,7 +202,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			OBJECT_ATTRIBUTES oa;
 			NTSTATUS OpenedFile;
 
-			vmmPA=MmGetPhysicalAddress(vmm).QuadPart;
+			vmmPA=(UINT_PTR)MmGetPhysicalAddress(vmm).QuadPart;
 			DbgPrint("Allocated memory at virtual address %p (physical address %llx)\n",vmm,MmGetPhysicalAddress(vmm));
 			RtlZeroMemory(vmm,4*1024*1024); //initialize
 
@@ -742,12 +742,17 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			cli //goodbye interrupts
 			xchg bx,bx
 			
+			mov ebx,vmmPA
+			__emit 0x8b
+			__emit 0xeb //mov ebp,ebx
+			
+
 			lea ebx,NewGDTDescriptor
 			mov ecx,pagedirptrbasePA
 			mov edx,TemporaryPagingSetupPA //for the mov cr3,ecx
 			mov esi,enterVMM2PA
 			mov edi,originalstatePA
-			mov ebp,vmmPA
+			
 			call [enterVMM2]
 			
 

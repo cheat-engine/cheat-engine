@@ -312,6 +312,7 @@ type
     procedure stacktrace2Click(Sender: TObject);
     procedure Executetillreturn1Click(Sender: TObject);
     procedure lvStacktraceDataData(Sender: TObject; Item: TListItem);
+    procedure lvStacktraceDataDblClick(Sender: TObject);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -1840,8 +1841,8 @@ begin
   begin
     debuggerthread.continuehow:=wdco_run;   //note: I could also have the debuggerthread suspend itself, and resume it here
     debuggerthread.continueprocess:=true;
-    caption:='Memory Viewer - Running';
   end;
+  caption:='Memory Viewer - Running';  
   {$endif}
 end;
 
@@ -1857,9 +1858,9 @@ begin
   begin
     debuggerthread.continuehow:=wdco_stepinto; //single step
     debuggerthread.continueprocess:=true;
-    caption:='Memory Viewer - Running';
   end;
 
+  caption:='Memory Viewer - Running';
   {$endif}
 end;
 
@@ -1869,9 +1870,7 @@ var x: dword;
     s,s1,s2,temp:string;
     int3: byte;
     original,a,written:dword;
-
 begin
-  {$ifndef net}
   int3:=$cc;
   //place a invisble for the user breakpoint on the following upcode
 
@@ -1936,9 +1935,9 @@ begin
     end;
 
     debuggerthread.continueprocess:=true;
-    caption:='Memory Viewer - Running';
+
   end;
-  {$endif}
+  caption:='Memory Viewer - Running';
 end;
 
 procedure TMemoryBrowser.Runtill1Click(Sender: TObject);
@@ -1954,7 +1953,7 @@ begin
 
   if kdebugger.isactive then
   begin
-    kdebugger.continue(co_runtill);
+    kdebugger.continue(co_runtill, disassemblerview.SelectedAddress);
   end
   else
   if debuggerthread<>nil then
@@ -1998,8 +1997,9 @@ begin
     end;
 
     debuggerthread.continueprocess:=true;
-    caption:='Memory Viewer - Running';
+
   end;
+  caption:='Memory Viewer - Running';
 
   {$endif}
 end;
@@ -3997,7 +3997,9 @@ begin
           lvstacktracedata.Columns.Clear;
           c:=lvstacktracedata.Columns.Add;
           c.Caption:='Return Address';
-          c.Width:=120;
+          c.Width:=lvstacktracedata.Canvas.TextWidth('DDDDDDDD');
+          c.AutoSize:=true;
+
 
           c:=lvstacktracedata.Columns.Add;
           c.Caption:='Parameters';
@@ -4157,7 +4159,11 @@ end;
 
 
 function TMemoryBrowser.GetReturnaddress: dword;
-var haserror: boolean;
+var
+  haserror: boolean;
+  stack: array [0..1023] of dword;
+  x: dword;
+  i: integer;
 begin
   result:=0;
 
@@ -4171,6 +4177,20 @@ begin
     if haserror then result:=0;
   end;
 
+  if result=0 then
+  begin
+
+    //go through the stack and find a entry that falls in executable memory
+    ReadProcessMemory(processhandle, pointer(lastdebugcontext.Esp), @stack[0], 4096, x);
+    for i:=0 to (x div 4) do
+    begin
+      if symhandler.inModule(stack[i]) and isExecutableAddress(stack[i]) then
+      begin
+        result:=stack[i]; //best guess, it's an address specifier, it falls inside a module, and it's executable
+        exit;
+      end;
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.Executetillreturn1Click(Sender: TObject);
@@ -4240,6 +4260,69 @@ begin
         item.SubItems.Add(details);
       end;
     end;
+  end;
+end;
+
+procedure TMemoryBrowser.lvStacktraceDataDblClick(Sender: TObject);
+var
+  hasError: boolean;
+  x: dword;
+
+  column : integer;
+  cursorpos: tpoint;
+  tvrect: trect;
+  i: integer;
+
+  currentleft: integer;
+  s: string;
+begin
+  if stacktrace2.checked then
+  begin
+    //go to the selected address
+    x:=symhandler.getAddressFromName(lvStacktraceData.Selected.Caption,false,haserror);
+    if not haserror then
+      disassemblerview.SelectedAddress:=x;
+  end
+  else
+  begin
+    //depending on what column is selected go to the disassembler/hexview part
+    cursorpos:=mouse.CursorPos;
+    GetWindowRect(lvStacktraceData.Handle, tvrect);
+
+    //get the relative position
+    cursorpos.X:=cursorpos.X-tvrect.Left;
+    cursorpos.Y:=cursorpos.Y-tvrect.Top;
+
+    column:=0;
+
+    currentleft:=0;
+    for i:=0 to lvStacktraceData.Columns.count-1 do
+    begin
+      if (cursorpos.X>currentleft) and (cursorpos.X<(currentleft+lvStacktraceData.Columns[i].width)) then
+      begin
+        column:=i;
+        break;
+      end;
+      inc(currentleft, lvStacktraceData.Columns[i].width);
+    end;
+
+    if column=0 then
+      s:=lvStacktraceData.Selected.Caption
+    else
+      s:=lvStacktraceData.Selected.SubItems[column-1];
+
+    x:=symhandler.getAddressFromName(lvStacktraceData.Selected.Caption,false,haserror);
+    if not haserror then
+    begin
+      if isExecutableAddress(x) then
+        disassemblerview.SelectedAddress:=x
+      else
+      begin
+        memoryaddress:=x;
+        RefreshMB;
+      end;
+    end;
+
   end;
 end;
 

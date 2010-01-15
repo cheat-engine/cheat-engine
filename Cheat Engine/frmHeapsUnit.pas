@@ -125,7 +125,9 @@ end;
 
 procedure TfrmHeaps.FormCreate(Sender: TObject);
 begin
-  frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self); //just not show
+  if frmMemoryAllocHandler=nil then
+    frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self); //just not show
+
   frmMemoryAllocHandler.WaitForInitializationToFinish;
 
   //start the thread that enumerates the heaplist

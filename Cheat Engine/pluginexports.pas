@@ -38,6 +38,7 @@ function addresslist_setitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOO
 function ce_loadModule(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
 
 
+
 implementation
 
 uses mainunit,mainunit2,Assemblerunit,disassembler,frmModifyRegistersUnit,

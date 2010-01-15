@@ -147,6 +147,8 @@ typedef DWORD (__stdcall *CEP_PREVIOUSOPCODE)(ULONG address);
 typedef DWORD (__stdcall *CEP_NEXTOPCODE)(ULONG address);
 typedef BOOL (__stdcall *CEP_LOADMODULE)(char *modulepath, char *exportlist, int *maxsize);
 typedef BOOL (__stdcall *CEP_DISASSEMBLEEX)(ULONG address, char *output, int maxsize);
+typedef VOID (__stdcall *CEP_AA_ADDCOMMAND)(void);
+typedef VOID (__stdcall *CEP_AA_DELCOMMAND)(void);
 
 typedef struct _ExportedFunctions
 {
@@ -254,6 +256,8 @@ typedef struct _ExportedFunctions
   CEP_NEXTOPCODE nextOpcode;
   CEP_DISASSEMBLEEX disassembleEx;
   CEP_LOADMODULE loadModule;
+  CEP_AA_ADDCOMMAND aa_AddExtraCommand;
+  CEP_AA_DELCOMMAND aa_RemoveExtraCommand;
 
 
 } ExportedFunctions, *PExportedFunctions;

@@ -124,6 +124,8 @@ type TPreviousOpcode=function(address:dword): dword; stdcall;
 type TNextOpcode=function(address:dword): dword; stdcall;
 type TloadModule=function(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
 type TDisassembleEx=function(address: pdword; output: pchar; maxsize: integer): BOOL; stdcall;
+type Taa_AddExtraCommand=procedure(command:pchar);
+type Taa_RemoveExtraCommand=procedure(command:pchar);
 
 type TPluginVersion =record
   version : integer; //write here the minimum version this dll is compatible with
@@ -236,6 +238,10 @@ type TExportedFunctions = record
   nextopcode        : TNextOpcode;
   disassembleEx     : TDisassembleEx;
   loadModule        : TloadModule;
+
+  aa_AddExtraCommand: Taa_AddExtraCommand;
+  aa_RemoveExtraCommand:Taa_RemoveExtraCommand;
+
 end;
 
 type PExportedFunctions=^TExportedFunctions;

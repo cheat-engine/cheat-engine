@@ -44,6 +44,8 @@ EXTERN Int1JumpBackLocation : CALLBACK
 PUBLIC interrupt1_asmentry
 interrupt1_asmentry:
 		;save stack position
+		sub esp,4096
+
 		cld			
 		push 0 ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14)
 		

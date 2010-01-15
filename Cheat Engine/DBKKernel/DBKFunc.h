@@ -83,18 +83,18 @@ typedef struct
 
 typedef struct tagDebugReg7
 {
-	unsigned L0			:1; // 
-	unsigned G0			:1; // 
-	unsigned L1			:1; // 
-	unsigned G1			:1; // 
-	unsigned L2			:1; // 
-	unsigned G2			:1; // 
-	unsigned L3			:1; // 
-	unsigned G3			:1; // 
-	unsigned GL			:1; // 
-	unsigned GE			:1; // 
-	unsigned undefined1	:3; // 001 
-	unsigned GD			:1; // 
+	unsigned L0			:1; //			0
+	unsigned G0			:1; //			1
+	unsigned L1			:1; //			2
+	unsigned G1			:1; //			3
+	unsigned L2			:1; //			4
+	unsigned G2			:1; //			5
+	unsigned L3			:1; //			6
+	unsigned G3			:1; //			7
+	unsigned GL			:1; //			8
+	unsigned GE			:1; //			9
+	unsigned undefined1	:3; // 001		10
+	unsigned GD			:1; //			11
 	unsigned undefined2	:2; // 00 
 	unsigned RW0		:2;
 	unsigned LEN0		:2;

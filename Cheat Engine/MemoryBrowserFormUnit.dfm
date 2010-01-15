@@ -76,7 +76,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         OnResize = ScrollBox1Resize
         object EAXLabel: TLabel
-          Left = 10
+          Left = 8
           Top = 19
           Width = 96
           Height = 13
@@ -92,8 +92,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EBXlabel: TLabel
           Tag = 1
-          Left = 10
-          Top = 32
+          Left = 8
+          Top = 35
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -108,8 +108,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ECXlabel: TLabel
           Tag = 2
-          Left = 10
-          Top = 45
+          Left = 8
+          Top = 51
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -124,8 +124,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EDXlabel: TLabel
           Tag = 3
-          Left = 10
-          Top = 58
+          Left = 8
+          Top = 67
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -140,8 +140,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESIlabel: TLabel
           Tag = 4
-          Left = 10
-          Top = 70
+          Left = 8
+          Top = 83
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -156,8 +156,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EDIlabel: TLabel
           Tag = 5
-          Left = 10
-          Top = 83
+          Left = 8
+          Top = 99
           Width = 96
           Height = 13
           Cursor = crHandPoint
@@ -172,10 +172,10 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EBPlabel: TLabel
           Tag = 6
-          Left = 10
-          Top = 96
+          Left = 8
+          Top = 115
           Width = 96
-          Height = 13
+          Height = 14
           Cursor = crHandPoint
           Caption = 'EBP 00000000'
           Font.Charset = DEFAULT_CHARSET
@@ -188,10 +188,10 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESPlabel: TLabel
           Tag = 7
-          Left = 10
-          Top = 109
+          Left = 8
+          Top = 131
           Width = 96
-          Height = 13
+          Height = 14
           Cursor = crHandPoint
           Caption = 'ESP 00000000'
           Font.Charset = DEFAULT_CHARSET
@@ -204,10 +204,10 @@ object MemoryBrowser: TMemoryBrowser
         end
         object EIPlabel: TLabel
           Tag = 8
-          Left = 10
-          Top = 121
+          Left = 8
+          Top = 147
           Width = 96
-          Height = 13
+          Height = 15
           Cursor = crHandPoint
           Caption = 'EIP 00000000'
           Font.Charset = DEFAULT_CHARSET
@@ -220,8 +220,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object CSLabel: TLabel
           Tag = 9
-          Left = 10
-          Top = 153
+          Left = 8
+          Top = 184
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -236,8 +236,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object DSLabel: TLabel
           Tag = 11
-          Left = 10
-          Top = 176
+          Left = 8
+          Top = 216
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -252,8 +252,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object SSlabel: TLabel
           Tag = 10
-          Left = 10
-          Top = 164
+          Left = 8
+          Top = 200
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -268,8 +268,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object ESlabel: TLabel
           Tag = 12
-          Left = 10
-          Top = 188
+          Left = 8
+          Top = 232
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -284,8 +284,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object FSlabel: TLabel
           Tag = 13
-          Left = 10
-          Top = 199
+          Left = 8
+          Top = 248
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -300,8 +300,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object GSlabel: TLabel
           Tag = 14
-          Left = 10
-          Top = 211
+          Left = 8
+          Top = 264
           Width = 56
           Height = 13
           Cursor = crHandPoint
@@ -316,8 +316,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object cflabel: TLabel
           Tag = 20
-          Left = 143
-          Top = 20
+          Left = 136
+          Top = 24
           Width = 32
           Height = 13
           Caption = 'CF 0'
@@ -331,8 +331,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object pflabel: TLabel
           Tag = 21
-          Left = 143
-          Top = 31
+          Left = 136
+          Top = 40
           Width = 32
           Height = 13
           Caption = 'PF 0'
@@ -346,8 +346,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object aflabel: TLabel
           Tag = 22
-          Left = 143
-          Top = 43
+          Left = 136
+          Top = 56
           Width = 32
           Height = 13
           Caption = 'AF 0'
@@ -361,8 +361,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object zflabel: TLabel
           Tag = 23
-          Left = 143
-          Top = 55
+          Left = 136
+          Top = 72
           Width = 32
           Height = 13
           Caption = 'ZF 0'
@@ -376,8 +376,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object sflabel: TLabel
           Tag = 24
-          Left = 143
-          Top = 66
+          Left = 136
+          Top = 88
           Width = 32
           Height = 13
           Caption = 'SF 0'
@@ -391,8 +391,8 @@ object MemoryBrowser: TMemoryBrowser
         end
         object oflabel: TLabel
           Tag = 26
-          Left = 143
-          Top = 90
+          Left = 136
+          Top = 120
           Width = 32
           Height = 13
           Caption = 'OF 0'
@@ -419,14 +419,14 @@ object MemoryBrowser: TMemoryBrowser
           Brush.Color = clBlack
         end
         object Label15: TLabel
-          Left = 143
+          Left = 139
           Top = 0
           Width = 34
           Height = 16
           Caption = 'Flags'
         end
         object Shape2: TShape
-          Left = 142
+          Left = 138
           Top = 16
           Width = 35
           Height = 2
@@ -434,22 +434,22 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label16: TLabel
           Left = 7
-          Top = 134
+          Top = 162
           Width = 115
           Height = 16
           Caption = 'Segment Registers'
         end
         object Shape3: TShape
           Left = 7
-          Top = 150
+          Top = 178
           Width = 111
           Height = 3
           Brush.Color = clBlack
         end
         object dflabel: TLabel
           Tag = 25
-          Left = 143
-          Top = 78
+          Left = 136
+          Top = 104
           Width = 32
           Height = 13
           Caption = 'DF 0'
@@ -462,8 +462,8 @@ object MemoryBrowser: TMemoryBrowser
           OnDblClick = EAXLabelDblClick
         end
         object sbShowFloats: TSpeedButton
-          Left = 157
-          Top = 135
+          Left = 153
+          Top = 159
           Width = 21
           Height = 31
           Hint = 'Floating point registers'
@@ -634,6 +634,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         ViewStyle = vsReport
         OnData = lvStacktraceDataData
+        OnDblClick = lvStacktraceDataDblClick
       end
     end
   end

@@ -10731,20 +10731,43 @@ var
   c: tcontext;
 procedure TMainForm.Label59Click(Sender: TObject);
 var
-  f: TfrmFloatingPointPanel;
+  i,j: integer;
+  temp: thandle;
+  found: boolean;
+  c: Tcontext;
 begin
-  ZeroMemory(@c,sizeof(c));
-  c.ContextFlags:=CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
-  if GetThreadContext(getcurrentthread, c) then
-  begin
-    f:=TfrmFloatingPointPanel.create(self);
-    f.SetContextPointer(@c);
-    memorybrowser.memoryaddress:=dword(@c);
-    f.show;
+    found:=false;
+    for i:=0 to length(frmprocesswatcher.processes)-1 do
+    begin
+      if frmprocesswatcher.processes[i].processid=processid then
+      begin
+        //open the threads
+        for j:=0 to length(frmprocesswatcher.processes[i].threadlist)-1 do
+        begin
 
-    showmessage(inttohex(dword(@c)+sizeof(c),8))
-   
-  end else showmessage('fuck');
+          temp:=Openthread(STANDARD_RIGHTS_REQUIRED or $3ff,true,frmprocesswatcher.processes[i].threadlist[j].threadid);
+          if temp<>0 then
+          begin
+            c.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+            GetThreadContext(temp,c);
+
+            c.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+            c.Dr0:=$12345678;
+            SetThreadContext(temp,c);
+
+//            setlength(threadlist,length(threadlist)+1);
+//            threadlist[length(threadlist)-1]:=temp;
+          end;
+        end;
+
+        found:=true;
+        showmessage('found');
+        break;
+
+      end;
+    end;
+
+    if not found then showmessage('error');
 end;
 
 {

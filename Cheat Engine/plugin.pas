@@ -116,6 +116,8 @@ type TExportedFunctions3 = record
   nextOpcode        : pointer;
   disassembleEx     : pointer;
   loadModule        : pointer;
+  aa_AddExtraCommand: pointer;
+  aa_RemoveExtraCommand: pointer;
 end;
 type PExportedFunctions3 = ^TExportedFunctions3;
 
@@ -494,7 +496,7 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses mainunit,memorybrowserformunit,formsettingsunit, pluginexports;
+uses mainunit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA;
 
 function TPluginHandler.GetDLLFilePath(pluginid: integer):string;
 begin
@@ -1326,6 +1328,10 @@ begin
   exportedfunctions.nextOpcode:=@ce_nextOpcode;
   exportedfunctions.disassembleEx:=@ce_disassemble;
   exportedfunctions.loadModule:=@ce_loadModule;
+
+  exportedfunctions.aa_AddExtraCommand:=@aa_AddExtraCommand;
+  exportedfunctions.aa_RemoveExtraCommand:=@aa_RemoveExtraCommand;
+
 end;
 
 end.

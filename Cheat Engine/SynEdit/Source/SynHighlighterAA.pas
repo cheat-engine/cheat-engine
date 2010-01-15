@@ -138,6 +138,7 @@ type
     function Func54: TtkTokenKind; //kalloc
     function Func59: TtkTokenKind; //readmem    
     function Func68: TtkTokenKind; //include
+    function Func82: TtkTokenKind; //assert
     function Func92: TtkTokenKind; //globalalloc
     function Func101: TtkTokenKind; //fullaccess/loadbinary
     function Func108: TtkTokenKind; //CreateThread
@@ -225,6 +226,11 @@ type
     property PackageSource: Boolean read fPackageSource write SetPackageSource default True;
   end;
 
+procedure aa_AddExtraCommand(command:pchar);
+procedure aa_RemoveExtraCommand(command:pchar);
+function isExtraCommand(token:string): boolean;
+
+
 implementation
 
 uses
@@ -237,6 +243,38 @@ uses
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable: array[#0..#255] of Integer;
+
+  extraCommands: Tstringlist;
+
+procedure aa_AddExtraCommand(command:pchar);
+begin
+  if extraCommands=nil then
+  begin
+    extraCommands:=tstringlist.create;
+    extraCommands.Duplicates:=dupIgnore;
+    extracommands.CaseSensitive:=false;
+  end;
+
+  extraCommands.Add(command);
+end;
+
+procedure aa_RemoveExtraCommand(command:pchar);
+begin
+  if extracommands<>nil then
+  begin
+    extracommands.Delete(extracommands.IndexOf(command));
+    if extracommands.Count=0 then
+      freeandnil(extracommands);
+  end;
+end;
+
+function isExtraCommand(token: string): boolean;
+begin
+  result:=false;
+  if extracommands<>nil then
+    result:=extracommands.IndexOf(token)<>-1;
+end;
+
 
 procedure MakeIdentTable;
 var
@@ -292,6 +330,7 @@ begin
   fIdentFuncTable[54] := Func54;
   fIdentFuncTable[59] := Func59;
   fIdentFuncTable[68] := Func68;
+  fIdentFuncTable[82] := Func82;  
   fIdentFuncTable[92] := Func92;
   fIdentFuncTable[101] := Func101;
   fIdentFuncTable[108] := Func108;
@@ -499,6 +538,12 @@ begin
     Result := tkIdentifier;
 end;
 
+function TSynAASyn.Func82: TtkTokenKind; //include
+begin
+  if KeyComp('assert') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
 function TSynAASyn.Func92: TtkTokenKind; //globalalloc
 begin
   if KeyComp('globalalloc') then Result := tkKey else
@@ -547,7 +592,7 @@ begin
   result:=s;
   for i:=1 to length(s) do
   begin
-    if (s[i]=' ') or (s[i]=#9) or (s[i]=',') or (s[i]=#10) or (s[i]=#13) then
+    if (s[i]='(') or (s[i]=' ') or (s[i]=#9) or (s[i]=',') or (s[i]=#10) or (s[i]=#13) then
     begin
       result:=copy(s,1,i-1);
       exit;
@@ -565,8 +610,16 @@ begin
     Result := tkIdentifier;
 
     
-  if (result=tkIdentifier) and (GetOpcodesIndex(getfirsttoken(maybe))<>-1) then
-    result:=tkKey;
+  if (result=tkIdentifier) then
+  begin
+    if GetOpcodesIndex(getfirsttoken(maybe))<>-1 then
+      result:=tkKey
+    else
+    if isExtraCommand(getfirsttoken(maybe)) then
+      result:=tkKey;
+  end;
+
+
 end;
 
 procedure TSynAASyn.MakeMethodTables;

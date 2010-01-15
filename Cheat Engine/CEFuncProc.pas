@@ -199,6 +199,7 @@ function allocationtypetostring(alloctype: dword): string;
 function allocationprotecttostring(protect: dword): string;
 function freetypetostring(freetype: dword):string;
 function isAddress(address: dword):boolean;
+function isExecutableAddress(address: dword):boolean;
 
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:dword; sourceaddress:dword; sizeofcave: integer);
@@ -3190,6 +3191,16 @@ begin
   if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
     result:=(mbi.State=MEM_COMMIT);// and (mbi.AllocationProtect<>PAGE_NOACCESS);
 end;
+
+function isExecutableAddress(address: dword):boolean;
+var mbi: TMemoryBasicInformation;
+begin
+  result:=false;
+  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
+    result:=(mbi.State=MEM_COMMIT) and (((mbi.Protect and PAGE_EXECUTE)=PAGE_EXECUTE) or ((mbi.Protect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ) or ((mbi.Protect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or ((mbi.Protect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY) );
+end;
+
+
 
 
 

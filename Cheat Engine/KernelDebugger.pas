@@ -39,6 +39,7 @@ type
 
     function getDebugReason: integer;
 
+
   public
     active: boolean;
     tempcontext: _CONTEXT;
@@ -378,8 +379,22 @@ begin
   begin
     Debuggerthread.threadlistCS.Enter;
     try
-      if not setthreadcontext(threadhandle, generaldebugregistercontext) then
-        OutputDebugString(format('Failed setting debug registers on thread %x with error %d',[threadhandle, GetLastError]));
+      if debuggerthread.stepping then
+      begin
+        OutputDebugString('debuggerthread.stepping is TRUE');
+        debuggerthread.currentdebuggerstate.dr0:=generaldebugregistercontext.Dr0;
+        debuggerthread.currentdebuggerstate.dr1:=generaldebugregistercontext.Dr1;
+        debuggerthread.currentdebuggerstate.dr2:=generaldebugregistercontext.Dr2;
+        debuggerthread.currentdebuggerstate.dr3:=generaldebugregistercontext.Dr3;
+        debuggerthread.currentdebuggerstate.dr6:=generaldebugregistercontext.Dr6;
+        debuggerthread.currentdebuggerstate.dr7:=generaldebugregistercontext.Dr7;
+      end
+      else
+      begin
+        OutputDebugString('debuggerthread.stepping is FALSE');      
+        if not setthreadcontext(threadhandle, generaldebugregistercontext) then
+          OutputDebugString(format('Failed setting debug registers on thread %x with error %d',[threadhandle, GetLastError]));
+      end;
     finally
       Debuggerthread.threadlistCS.Leave;
     end;
@@ -558,7 +573,10 @@ begin
     runtill1.Enabled:=true;
     stacktrace1.Enabled:=true;
     Executetillreturn1.Enabled:=true;
-    caption:='Memory Viewer - Currently debugging thread';
+    if stepping then
+      caption:='Memory Viewer - Currently debugging thread'
+    else
+      caption:='Memory Viewer - Running...';
 
     if frmstacktrace<>nil then
     begin
@@ -810,7 +828,6 @@ begin
   end;
 end;
 
-
 function TKDebuggerThread.getDebugReason: integer;
 //breakreason -2 = error
 //breakreason -1 = single step
@@ -926,7 +943,7 @@ begin
 
     co_stepover:
     begin
-      OutputDebugString('step over');
+      OutputDebugString('step over. Stepping='+booltostr(stepping,true));
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
       //find next instruction address
@@ -943,6 +960,7 @@ begin
       OutputDebugString('run till');    
       currentdebuggerstate.eflags:=eflags_setRF(currentdebuggerstate.eflags,1); //skip current instruction bp
       currentdebuggerstate.eflags:=eflags_setTF(currentdebuggerstate.eflags,0);
+      OutputDebugString('Setting breakpoint to '+inttohex(runtilladdress,8));
       KDebugger.SetBreakpoint(runtilladdress, bt_OnInstruction, 1, bo_Break, nil, currentdebuggerstate.threadid, true);
       stepping:=false;
     end;
@@ -1095,7 +1113,10 @@ begin
               begin
                 //delete if it belongs to this thread and it's a one time only break
                 if owner.breakpoint[breakreason].BreakOnce then
+                begin
+                  stepping:=true;
                   KDebugger.DisableBreakpoint(breakreason);
+                end;
               end
               else
               begin

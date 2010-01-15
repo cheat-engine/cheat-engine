@@ -1180,7 +1180,7 @@ begin
       Addtoaddresslist1.Visible:=false;
       Memorybrowsethisaddress1.Visible:=false;
 
-      if (s.basestructure<0) then
+      if (s<>nil) and (s.basestructure<0) then
       begin
         Addelement1.Visible:=false;
         ChangeElement1.Visible:=false;

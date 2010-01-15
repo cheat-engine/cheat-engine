@@ -565,14 +565,20 @@ end;
 procedure TfrmMemoryAllocHandler.FormCreate(Sender: TObject);
 var injectionscript: TStringlist;
 var x,y,z: THandle;
+mi: tmoduleinfo;
 begin
   memrecCS:=TCriticalSection.Create;
   displaythread:=TDisplayThread.create(false);
   injectionscript:=tstringlist.Create;
   try
     //inject allochook.dll
-    injectdll(CheatEngineDir+'allochook.dll');
-    symhandler.reinitialize;
+    if not symhandler.getmodulebyname('allochook.dll',mi) then
+    begin
+      injectdll(CheatEngineDir+'allochook.dll');
+      symhandler.reinitialize;
+    end;
+      
+
 
 
     HasSetupDataEvent:=CreateEvent(nil, false, false, nil);

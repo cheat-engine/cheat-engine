@@ -114,6 +114,7 @@ procedure DBKDebug_TouchDebugRegister;
 //this way when a breakpoint is set, it actually gets set, or unset the same
 //just make sure to disable the breakpoint before removing the handler
 begin
+  OutputDebugString('DBKDebug_TouchDebugRegister');
   foreachcpu(internal_touchdebugregister,nil);
 end;
 
