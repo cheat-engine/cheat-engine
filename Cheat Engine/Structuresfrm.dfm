@@ -146,6 +146,10 @@ object frmStructures: TfrmStructures
         Caption = 'Delete structure'
         OnClick = Deletecurrentstructure1Click
       end
+      object Autoguessoffsets1: TMenuItem
+        Caption = 'Automatically guess offset types'
+        OnClick = Autoguessoffsets1Click
+      end
     end
   end
   object PopupMenu1: TPopupMenu
@@ -258,6 +262,10 @@ object frmStructures: TfrmStructures
     object Remove1: TMenuItem
       Caption = 'Remove'
       OnClick = Remove1Click
+    end
+    object Setgroup1: TMenuItem
+      Caption = 'Set group'
+      OnClick = Setgroup1Click
     end
   end
 end

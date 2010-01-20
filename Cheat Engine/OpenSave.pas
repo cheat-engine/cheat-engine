@@ -137,8 +137,8 @@ type
   end;
 
 function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
-procedure LoadStructFromXMLNode(var struct: Tbasestucture; Structure: IXMLNode);
-procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
+procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: IXMLNode);
+procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: IXMLNode);
 
 {$ifdef net}
 var processhandle: thandle;
@@ -4096,7 +4096,7 @@ begin
   end;
 end;
 
-procedure LoadStructFromXMLNode(var struct: Tbasestucture; Structure: IXMLNode);
+procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: IXMLNode);
 var tempnode: IXMLNode;
     elements: IXMLNode;
     element: IXMLNode;
@@ -4164,7 +4164,7 @@ begin
   sortStructure(struct);
 end;
 {
-procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
+procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: IXMLNode);
 var structure: IXMLNode;
     elements: IXMLNode;
     element: IXMLNode;
@@ -6522,7 +6522,7 @@ type TExtradata=record
   allocsize: dword;
 end;
 
-procedure SaveStructToXMLNode(struct: Tbasestucture; Structures: IXMLNode);
+procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: IXMLNode);
 var structure: IXMLNode;
     elements: IXMLNode;
     element: IXMLNode;

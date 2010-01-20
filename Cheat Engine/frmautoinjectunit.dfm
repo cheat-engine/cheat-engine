@@ -3,7 +3,7 @@ object frmAutoInject: TfrmAutoInject
   Top = 496
   Width = 431
   Height = 331
-  HelpContext = 18
+  HelpContext = 1089
   Caption = 'Auto assemble'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,cefuncproc,newkernelhandler,
-  symbolhandler, XMLDoc, XMLIntf, byteinterpreter;
+  symbolhandler, XMLDoc, XMLIntf, byteinterpreter, underc;
 
 const structureversion=1;
 
@@ -20,7 +20,7 @@ type TStructElement=record
                     end;
 
 
-type Tbasestucture=record
+type TbaseStructure=record
   name: string;
   structelement: array of TStructElement;
   end;
@@ -89,6 +89,8 @@ type Tbasestucture=record
     HeaderControl1: THeaderControl;
     Memorybrowsepointer1: TMenuItem;
     Memorybrowsethisaddress1: TMenuItem;
+    Autoguessoffsets1: TMenuItem;
+    Setgroup1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -129,20 +131,30 @@ type Tbasestucture=record
     procedure Newwindow1Click(Sender: TObject);
     procedure Memorybrowsepointer1Click(Sender: TObject);
     procedure Memorybrowsethisaddress1Click(Sender: TObject);
+    procedure Autoguessoffsets1Click(Sender: TObject);
+    procedure Setgroup1Click(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
 
 
     addresses: array of dword;  //first address (old compat)
+
+    groupindex: array of integer; //e.g 1,3,9,10000000
+    groups: array of dword;               //the grouplist holds the groupnumbers provided by the user
+    internalgrouplist: array of dword;    //where as the internelgrouplist holds the entrypoints into the groupindex for each specific address 
     edits: array of tedit;
     lastnewedit: TEdit;
+
+
 
     procedure refreshmenuitems;
     procedure definedstructureselect(sender:tobject);
     function convertVariableTypeTostructnr(d: TVariableType): integer;
 //    function RawToType(address: dword; const buf: array of byte; size: integer):integer;
     procedure ExtraEnter(Sender: TObject);
+    procedure automaticallyGuessOffsets(baseOffset: dword; structsize: integer);
+    procedure UpdateGroupIndex;
   public
     { Public declarations }
     procedure setaddress(i: integer; x:dword);
@@ -151,9 +163,9 @@ type Tbasestucture=record
 
 var
   frmStructures: array of TfrmStructures;
-  definedstructures: array of Tbasestucture;
+  definedstructures: array of TbaseStructure;
 
-procedure sortStructure(struct: Tbasestucture);
+procedure sortStructure(struct: TbaseStructure);
 
 implementation
 
@@ -200,6 +212,7 @@ begin
       objects[j].child.removeAddress(i);
   refresh;
 end;
+
 
 procedure TStructure.setaddress(i: integer; x:dword);
 var j: integer;
@@ -549,7 +562,7 @@ begin
   //treeviewused.Items.endupdate;
 end;
 
-procedure sortStructure(struct: Tbasestucture);
+procedure sortStructure(struct: TbaseStructure);
 var
   i,j: integer;
   l: integer;
@@ -745,11 +758,7 @@ procedure TfrmStructures.Definenewstructure1Click(Sender: TObject);
 var sstructsize:string;
     autofillin,structsize: integer;
     structname: string;
-    buf: array of byte;
-    buf2: array of byte;
-    i,j,t: integer;
-    t2: TVariableType;
-    x,y: dword;
+
 begin
   structname:='unnamed structure';
   if not inputquery('Structure define','Give the name for this structure',structname) then exit;
@@ -765,114 +774,14 @@ begin
 
   if autofillin=mryes then
   begin
+
     sstructsize:='4096';
     if not inputquery('Structure define','Please give a starting size of the struct (You can change this later if needed)',Sstructsize) then exit;
     structsize:=strtoint(sstructsize);
 
-
-    setlength(buf,structsize);
-    setlength(buf2,8);
-    //now read the memory
-    if readprocessmemory(processhandle,pointer(addresses[0]),@buf[0],structsize,x) then
-    begin
-      x:=0;
-      while x<structsize do
-      begin
-        i:=length(definedstructures[length(definedstructures)-1].structelement);
-        setlength(definedstructures[length(definedstructures)-1].structelement,i+1);
-        definedstructures[length(definedstructures)-1].structelement[i].offset:=x;
-        definedstructures[length(definedstructures)-1].structelement[i].pointerto:=false;
-
-        //value
-        //check what type it is
-        t2:=FindTypeOfData(addresses[0]+x,@buf[x],structsize-x);
-        if t2=vtPointer then
-        begin
-          //pointer
-
-
-          definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
-          definedstructures[length(definedstructures)-1].structelement[i].pointertoSize:=8;
-          definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
-          definedstructures[length(definedstructures)-1].structelement[i].description:='pointer to ';
-
-          if readprocessmemory(processhandle,pointer(pdword(@buf[x])^),@buf2[0],8,y) then
-          begin
-            t2:=FindTypeOfData(pdword(@buf[x])^,@buf2[0],8);
-            t:=convertVariableTypeTostructnr(t2);
-            definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
-          end
-          else definedstructures[length(definedstructures)-1].structelement[i].structurenr:=-9;
-
-          inc(x,4);
-          continue;
-        end;
-
-
-        t:=convertVariableTypeTostructnr(t2);
-
-
-
-        definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
-
-
-
-        case t of
-          -1: //byte
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='Byte';
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=1;
-            inc(x,1);
-          end;
-
-          -4: //word
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='Word';
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=2;
-            inc(x,2);
-          end;
-
-          -7: //dword
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='Dword';
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
-            inc(x,4);
-          end;
-
-          -12: //single
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='Float';
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
-            inc(x,4);
-          end;
-
-          -13: //double
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='Double';
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=8;
-            inc(x,8);
-          end;
-
-          -14: //string
-          begin
-            definedstructures[length(definedstructures)-1].structelement[i].description:='String';
-
-            //find out how long this string is:
-            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=0;
-            while (x<structsize) and (buf[x]>=32) and (buf[x]<=127) do
-            begin
-              inc(x);
-              inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
-            end;
-          end;
-
-
-        end;
-      end;
-
-    end;
+    automaticallyGuessOffsets(0, structsize);
   end;
-  update(true); 
+  update(true);
 end;
 
 procedure TfrmStructures.definedstructureselect(sender:tobject);
@@ -1846,14 +1755,18 @@ end;
 
 procedure TfrmStructures.FormCreate(Sender: TObject);
 begin
+  setlength(groups,1);
   setlength(addresses,1);
   setlength(edits,1);
   edits[0]:=edtAddress;
+  groups[0]:=0;
   lastnewedit:=edtaddress;
   edtAddress.OnEnter:=extraenter;
 
   setlength(frmStructures,length(frmStructures)+1);
   frmStructures[length(frmStructures)-1]:=self;
+
+  UpdateGroupIndex;
 end;
 
 procedure TfrmStructures.ExtraEnter(Sender: TObject);
@@ -1883,6 +1796,12 @@ begin
 
   setlength(addresses,length(addresses)+1);
   addresses[length(addresses)-1]:=addresses[x.tag-1];
+
+  setlength(groups,length(groups)+1);
+  groups[length(groups)-1]:=0;
+  UpdateGroupIndex;
+
+
     
   setlength(edits,length(edits)+1);
 
@@ -1902,9 +1821,10 @@ var x: tedit;
 begin
   x:=TEdit(popupmenu2.PopupComponent);
   if x.tag=0 then exit; //can't remove the first one
-  
+
   for i:=x.tag to length(edits)-2 do
   begin
+    groups[i]:=groups[i+1];
     edits[i]:=edits[i+1];
     edits[i].Left:=edits[i].Left-edits[i].Width-16;
     edits[i].Tag:=i;
@@ -1916,6 +1836,8 @@ begin
   if currentstructure<>nil then
     currentstructure.removeAddress(x.tag);
 
+  UpdateGroupIndex;
+  
   x.free;
 end;
 
@@ -1952,8 +1874,13 @@ end;
 procedure TfrmStructures.tvStructureViewAdvancedCustomDrawItem(
   Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState;
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+{
+multigroup usage:
+If all entries of the same group are the same, mark them green, otherwhise red
+If the value of another group does not match the value of the first group, mark it red
+}
 var  
-  i: integer;
+  i,j: integer;
   laststart: integer;
   textrect: trect;
   linerect: trect;
@@ -1965,17 +1892,19 @@ var
   currentsection: integer;
   oldcolor: tcolor;
 
-  different: boolean;
-
   clip: trect;
+
+  currentGroup: integer;
+  groupmatches: array of boolean;
+  groupcolors: array of tcolor;
+  groupvalues: array of string;
 begin
   //looks like it's even called before create is done...
   if stage=cdPostPaint then
   begin
-    different:=false;
     textrect:=node.DisplayRect(true);
     linerect:=node.DisplayRect(false);
-  
+
     fulltextline:=linerect;
     fulltextline.Left:=textrect.Left;
     oldcolor:=sender.Canvas.Brush.Color;
@@ -1987,6 +1916,16 @@ begin
     setlength(sections,totalsections);
     setlength(sections2,totalsections);
     currentsection:=0;
+
+
+    setlength(groupvalues,length(groupindex));
+    setlength(groupcolors,length(groupindex));
+    setlength(groupmatches,length(groupindex));
+    for i:=0 to length(groupcolors)-1 do
+    begin
+      groupcolors[i]:=clGreen;
+      groupmatches[i]:=true;
+    end;
 
     laststart:=1;
     //search for seperators (#13)
@@ -2002,12 +1941,32 @@ begin
           break; //enough, if there is a rest, it has to be a bug
       end;
 
-    for i:=1 to length(sections2)-2 do
-      if sections2[i]<>sections2[i+1] then
+    //go through the values
+    for i:=1 to length(sections2)-1 do
+    begin
+      currentGroup:=internalgrouplist[i-1];
+
+      if groupvalues[currentGroup]='' then
+        groupvalues[currentGroup]:=sections2[i]
+      else
       begin
-        different:=true;
-        break;
+        if groupvalues[currentGroup]<>sections2[i] then
+        begin
+          groupcolors[currentGroup]:=clred;
+          groupmatches[currentGroup]:=false;
+        end;
       end;
+    end;
+
+    for i:=1 to length(groupvalues)-1 do
+    begin
+      if (groupmatches[i]) and (groupmatches[i-1]) then //both groups match
+      begin
+        if groupvalues[i-1]<>groupvalues[i] then  //but the values don't match with the previous group
+          groupcolors[i]:=clBlue;
+      end;
+    end;
+
 
     //if laststart=1 then
     //  sections[currentsection]:=node.text;
@@ -2025,10 +1984,10 @@ begin
       sender.Canvas.Brush.Style:=bsSolid;
       sender.Canvas.Brush.Color:=tvStructureView.Color;
       sender.Canvas.FillRect(textlinerect);
-      if different then
-        tvStructureView.canvas.Font.Color:=clRed
-      else
-        tvStructureView.canvas.Font.Color:=clWindowText;
+//      if different then
+//        tvStructureView.canvas.Font.Color:=clRed
+//      else
+//        tvStructureView.canvas.Font.Color:=clWindowText;
 
     end
     else
@@ -2037,13 +1996,13 @@ begin
       sender.Canvas.Brush.Color:=clHighlight;   
       sender.Canvas.FillRect(textlinerect);
       sender.Canvas.DrawFocusRect(textlinerect);
-      if different then
-      begin
-        tvStructureView.canvas.Font.Color:=clRed;
-        tvStructureView.canvas.Font.Style:=[fsBold];
-      end
-      else
-        tvStructureView.canvas.Font.Color:=clHighlightText;
+//      if different then
+//      begin
+//        tvStructureView.canvas.Font.Color:=clRed;
+//        tvStructureView.canvas.Font.Style:=[fsBold];
+//      end
+//      else
+//        tvStructureView.canvas.Font.Color:=clHighlightText;
 
     end;
 
@@ -2057,6 +2016,9 @@ begin
     sender.Canvas.Refresh;
     for i:=1 to totalsections-1 do
     begin
+      currentGroup:=internalgrouplist[i-1];
+      tvStructureView.canvas.Font.Color:=groupcolors[currentgroup];
+
       clip.Left:=headercontrol1.Sections[i].Left;
       clip.Right:=headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;
       sender.Canvas.TextRect(clip, headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
@@ -2088,8 +2050,13 @@ procedure TfrmStructures.PopupMenu2Popup(Sender: TObject);
 var x: tedit;
 begin
   x:=TEdit(popupmenu2.PopupComponent);
-  Remove1.Visible:=(x=nil) or (x.tag<>0);
+  Remove1.Visible:=(x<>nil) and (x.tag<>0);
   n6.Visible:=remove1.Visible;
+
+  if groups[x.Tag]<>0 then
+    setgroup1.Caption:='Change group ('+inttostr(groups[x.tag])+')'
+  else
+    setgroup1.Caption:='Set group';
 end;
 
 procedure TfrmStructures.Renamestructure1Click(Sender: TObject);
@@ -2246,6 +2213,192 @@ begin
   end;
 
 
+end;
+
+procedure TfrmStructures.automaticallyGuessOffsets(baseOffset: dword; structsize: integer);
+var
+  buf: array of byte;
+  buf2: array of byte;
+  i,j,t: integer;
+  t2: TVariableType;
+  x,y: dword;
+begin
+    setlength(buf,structsize);
+    setlength(buf2,8);
+    //now read the memory
+    if readprocessmemory(processhandle,pointer(addresses[0]+baseOffset),@buf[0],structsize,x) then
+    begin
+      x:=0;
+      while x<structsize do
+      begin
+        i:=length(definedstructures[length(definedstructures)-1].structelement);
+        setlength(definedstructures[length(definedstructures)-1].structelement,i+1);
+        definedstructures[length(definedstructures)-1].structelement[i].offset:=baseoffset+x;
+        definedstructures[length(definedstructures)-1].structelement[i].pointerto:=false;
+
+        //value
+        //check what type it is
+        t2:=FindTypeOfData(addresses[0]+baseoffset+x,@buf[x],structsize-x);
+        if t2=vtPointer then
+        begin
+          //pointer
+
+
+          definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
+          definedstructures[length(definedstructures)-1].structelement[i].pointertoSize:=8;
+          definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+          definedstructures[length(definedstructures)-1].structelement[i].description:='pointer to ';
+
+          if readprocessmemory(processhandle,pointer(pdword(@buf[x])^),@buf2[0],8,y) then
+          begin
+            t2:=FindTypeOfData(pdword(@buf[x])^,@buf2[0],8);
+            t:=convertVariableTypeTostructnr(t2);
+            definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
+          end
+          else definedstructures[length(definedstructures)-1].structelement[i].structurenr:=-9;
+
+          inc(x,4);
+          continue;
+        end;
+
+
+        t:=convertVariableTypeTostructnr(t2);
+
+
+
+        definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
+
+
+
+        case t of
+          -1: //byte
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Byte';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=1;
+            inc(x,1);
+          end;
+
+          -4: //word
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Word';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=2;
+            inc(x,2);
+          end;
+
+          -7: //dword
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Dword';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+            inc(x,4);
+          end;
+
+          -12: //single
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Float';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+            inc(x,4);
+          end;
+
+          -13: //double
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='Double';
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=8;
+            inc(x,8);
+          end;
+
+          -14: //string
+          begin
+            definedstructures[length(definedstructures)-1].structelement[i].description:='String';
+
+            //find out how long this string is:
+            definedstructures[length(definedstructures)-1].structelement[i].bytesize:=0;
+            while (x<structsize) and (buf[x]>=32) and (buf[x]<=127) do
+            begin
+              inc(x);
+              inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
+            end;
+          end;
+
+
+        end;
+      end;
+
+    end;
+end;
+
+procedure TfrmStructures.Autoguessoffsets1Click(Sender: TObject);
+var
+  sStartOffset: string;
+  sStructSize: string;
+  base: TbaseStructure;
+  startOffset: integer;
+  structSize: integer;
+begin
+  if currentstructure<>nil then
+  begin
+    base:=definedstructures[currentstructure.basestructure];
+    if length(base.structelement)>0 then
+      sStartOffset:=inttohex(base.structelement[length(base.structelement)-1].offset+base.structelement[length(base.structelement)-1].bytesize,1)
+    else
+      sStartOffset:='0';
+
+    if not inputquery('Structure define','Please give a starting offset to evaluate',sStartOffset) then exit;
+    startOffset:=StrToInt('$'+sStartOffset);
+
+    sStructSize:='4096';
+    if not inputquery('Structure define','Please give the size of the block to evaluate',sStructSize) then exit;
+    structSize:=StrToInt(sStructSize);
+
+    automaticallyGuessOffsets(startOffset, structsize);
+  end;
+end;
+
+procedure  TfrmStructures.UpdateGroupIndex;
+var i,j: integer;
+    alreadyIndexed: boolean;
+begin
+  setlength(groupindex,0);
+  setlength(internalgrouplist,length(groups));
+  for i:=0 to length(groups)-1 do
+  begin
+    alreadyIndexed:=false;
+    for j:=0 to length(groupindex)-1 do
+    begin
+      if groupindex[j]=groups[i] then
+      begin
+        alreadyIndexed:=true;
+        internalgrouplist[i]:=j;
+        break;
+      end;
+    end;
+
+    if not alreadyIndexed then
+    begin
+      setlength(groupindex,length(groupindex)+1);
+      groupindex[length(groupindex)-1]:=groups[i];
+      internalgrouplist[i]:=length(groupindex)-1;
+    end;
+
+
+  end;
+end;
+
+
+procedure TfrmStructures.Setgroup1Click(Sender: TObject);
+var
+  x: tedit;
+  sgroup: string;
+begin
+  x:=TEdit(popupmenu2.PopupComponent);
+
+  sgroup:=inttostr(groups[x.Tag]);
+
+  InputQuery('Structure definer', 'Which group do you want to set this address to?', sgroup);
+  groups[x.Tag]:=strtoint(sgroup);
+
+  updategroupindex;
+
+  tvStructureView.Refresh;
 end;
 
 end.

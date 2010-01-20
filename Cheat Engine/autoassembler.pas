@@ -18,7 +18,7 @@ type TCEAllocArray=array of TCEAlloc;
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 
 implementation
 
@@ -244,7 +244,10 @@ begin
 end;
 
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
+{
+registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
+}
 type tassembled=record
   address: dword;
   bytes: TAssemblerbytes;
@@ -314,6 +317,21 @@ var i,j,k,l,e: integer;
 
     symhandler: TSymhandler;
 begin
+  if syntaxcheckonly and (registeredsymbols<>nil) then
+  begin
+    //add the symbols as defined labels
+    setlength(labels,registeredsymbols.count);
+    for i:=0 to registeredsymbols.count-1 do
+    begin
+      labels[i].labelname:=registeredsymbols[i];
+      labels[i].defined:=true;
+      labels[i].address:=0;
+      labels[i].assemblerline:=0;
+      setlength(labels[i].references,0);
+      setlength(labels[i].references2,0);
+    end;
+  end;
+
   if targetself then
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
@@ -392,44 +410,47 @@ begin
 
           if uppercase(copy(currentline,1,7))='ASSERT(' then //assert(address,aob)
           begin
-            a:=pos('(',currentline);
-            b:=pos(',',currentline);
-            c:=pos(')',currentline);
-            if (a>0) and (b>0) and (c>0) then
+            if not syntaxcheckonly then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
-              testdword:= symhandler.getAddressFromName(s1,false);
-
-              setlength(bytes,0);
-              ConvertStringToBytes(s2, true, bytes);
-              if length(bytes)>0 then
+              a:=pos('(',currentline);
+              b:=pos(',',currentline);
+              c:=pos(')',currentline);
+              if (a>0) and (b>0) and (c>0) then
               begin
-                getmem(bytebuf,length(bytes));
-                if ReadProcessMemory(processhandle, pointer(testdword), bytebuf, length(bytes),x) then
+                s1:=copy(currentline,a+1,b-a-1);
+                s2:=copy(currentline,b+1,c-b-1);
+                testdword:= symhandler.getAddressFromName(s1,false);
+
+                setlength(bytes,0);
+                ConvertStringToBytes(s2, true, bytes);
+                if length(bytes)>0 then
                 begin
-                  try
-                    for j:=0 to length(bytes)-1 do
-                    begin
-                      if bytes[j]>=0 then
-                        if byte(bytes[j])<>bytebuf[j] then
-                          raise exception.Create('The bytes at '+s1+' are not what was expected');
+                  getmem(bytebuf,length(bytes));
+                  if ReadProcessMemory(processhandle, pointer(testdword), bytebuf, length(bytes),x) then
+                  begin
+                    try
+                      for j:=0 to length(bytes)-1 do
+                      begin
+                        if bytes[j]>=0 then
+                          if byte(bytes[j])<>bytebuf[j] then
+                            raise exception.Create('The bytes at '+s1+' are not what was expected');
+                      end;
+                    finally
+                      freemem(bytebuf);
                     end;
-                  finally
-                    freemem(bytebuf);
-                  end;
-                end else raise exception.Create('The memory at +'+s1+' can not be read');
+                  end else raise exception.Create('The memory at +'+s1+' can not be read');
 
+                end
+                else raise exception.Create(s2+' is not a valid bytestring');
+
+
+
+                setlength(assemblerlines,length(assemblerlines)-1);
+                continue;
               end
-              else raise exception.Create(s2+' is not a valid bytestring');
-
-
-
-              setlength(assemblerlines,length(assemblerlines)-1);
-              continue;
-            end
-            else
-              raise exception.Create('Wrong syntax. ASSERT(address,bvtes)');
+              else
+                raise exception.Create('Wrong syntax. ASSERT(address,bytes)');
+            end;
           end;
 
 
@@ -651,6 +672,9 @@ begin
 
               setlength(addsymbollist,length(addsymbollist)+1);
               addsymbollist[length(addsymbollist)-1]:=s1;
+
+              if registeredsymbols<>nil then
+                registeredsymbols.Add(s1);
             end
             else raise exception.Create('Syntax error');
 
@@ -693,7 +717,7 @@ begin
               //s1=varname
               //s2=AOBstring
               testdword:=findaob(s2);
-              if testdword=0 then
+              if (testdword=0) and (not syntaxcheckonly) then
                 raise exception.Create('The array of byte '''+s2+''' could not be found');
 
               currentline:='DEFINE('+s1+','+inttohex(testdword,8)+')';
@@ -1017,6 +1041,7 @@ begin
               ok1:=true;
               break;
             end;
+
 
         if not ok1 then raise exception.Create(addsymbollist[i]+' was supposed to be added to the symbollist, but it isn''t declared');
       end;
@@ -1630,7 +1655,7 @@ begin
 end;
 
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -1688,7 +1713,7 @@ begin
       end;
     end;
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols);
   finally
     tempstrings.Free;
   end;
@@ -1699,7 +1724,7 @@ function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 var aa: TCEAllocArray;
 begin
   setlength(aa,0);
-  result:=autoassemble(code,popupmessages,true,false,false,aa);
+  result:=autoassemble(code,popupmessages,true,false,false,aa,nil);
 end;
 
 

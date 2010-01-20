@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,cefuncproc,ExtCtrls, Menus, newkernelhandler;
+  Dialogs, StdCtrls,disassembler,cefuncproc,ExtCtrls, Menus, newkernelhandler, clipbrd;
 
 type Tcoderecord = record
   address: dword;
@@ -32,6 +32,8 @@ type
     btnAddToCodeList: TButton;
     btnOpenDisassembler: TButton;
     btnReplacewithnops: TButton;
+    N1: TMenuItem;
+    Copyselectiontoclipboard1: TMenuItem;
     procedure FoundcodeListClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -43,6 +45,8 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FoundcodeListContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure pmOptionsPopup(Sender: TObject);
+    procedure Copyselectiontoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
     procedure moreinfo;
@@ -422,6 +426,25 @@ begin
   Showthisaddressinthedisassembler1.enabled:=selected;
   Addtothecodelist1.enabled:=selected;
   MoreInfo1.Enabled:=selected;
+end;
+
+procedure TFoundCodeDialog.pmOptionsPopup(Sender: TObject);
+begin
+  n1.visible:=foundcodelist.ItemIndex<>-1;
+  Copyselectiontoclipboard1.visible:=foundcodelist.ItemIndex<>-1;
+end;
+
+procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);
+var
+  i: integer;
+  s: string;
+begin
+  s:='';
+  for i:=0 to FoundcodeList.Items.count-1 do
+    if FoundcodeList.Selected[i] then
+      s:=s+FoundcodeList.Items[i]+#13;
+
+  clipboard.AsText:=s;
 end;
 
 end.

@@ -136,6 +136,7 @@ type
     function Func43: TtkTokenKind; //alloc /define
     function Func52: TtkTokenKind; //dealloc / disable
     function Func54: TtkTokenKind; //kalloc
+    function Func55: TtkTokenKind; //aobscan
     function Func59: TtkTokenKind; //readmem    
     function Func68: TtkTokenKind; //include
     function Func82: TtkTokenKind; //assert
@@ -328,6 +329,7 @@ begin
   fIdentFuncTable[43] := Func43;
   fIdentFuncTable[52] := Func52;
   fIdentFuncTable[54] := Func54;
+  fIdentFuncTable[55] := Func55;  
   fIdentFuncTable[59] := Func59;
   fIdentFuncTable[68] := Func68;
   fIdentFuncTable[82] := Func82;  
@@ -525,6 +527,13 @@ begin
   if KeyComp('kalloc') then Result := tkKey else
     Result := tkIdentifier;
 end;
+
+function TSynAASyn.Func55: TtkTokenKind; //aobscan
+begin
+  if KeyComp('aobscan') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
 
 function TSynAASyn.Func59: TtkTokenKind; //readmem
 begin

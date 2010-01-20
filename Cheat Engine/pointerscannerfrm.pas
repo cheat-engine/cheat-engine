@@ -1240,6 +1240,9 @@ begin
 
 
   listview1.Items.Count:=Pointerscanresults.count;
+
+  panel1.Caption:='pointercount:'+inttostr(Pointerscanresults.count);
+
   if (listview1.Items.Count=0) and (Pointerscanresults.count>100000000) then
   begin
     listview1.Items.Count:=100000000;

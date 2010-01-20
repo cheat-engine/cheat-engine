@@ -591,22 +591,31 @@ end;
 procedure TfrmAutoInject.Assigntocurrentcheattable1Click(Sender: TObject);
 var a,b: integer;
     aa:TCEAllocArray;
+    registeredsymbols: TStringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
   {$ifndef net}
-  setlength(aa,1);
-  getenableanddisablepos(assemblescreen.Lines,a,b);
-  if (a=-1) and (b=-1) then raise exception.create('The code needs a [ENABLE] and a [DISABLE] section if you want to add it to a table');
+  registeredsymbols:=tstringlist.Create;
+  registeredsymbols.CaseSensitive:=false;
+  registeredsymbols.Duplicates:=dupIgnore;
+  
+  try
+    setlength(aa,0);
+    getenableanddisablepos(assemblescreen.Lines,a,b);
+    if (a=-1) and (b=-1) then raise exception.create('The code needs a [ENABLE] and a [DISABLE] section if you want to add it to a table');
 
-  if autoassemble(assemblescreen.lines,false,true,true,false,aa) and
-     autoassemble(assemblescreen.lines,false,false,true,false,aa) then
-  begin
-    //add a entry with type 255
-    mainform.AddAutoAssembleScript(assemblescreen.text);
+    if autoassemble(assemblescreen.lines,false,true,true,false,aa,registeredsymbols) and
+       autoassemble(assemblescreen.lines,false,false,true,false,aa,registeredsymbols) then
+    begin
+      //add a entry with type 255
+      mainform.AddAutoAssembleScript(assemblescreen.text);
 
 
-  end
-  else showmessage('Failed to add to table. Not all code is injectable');
+    end
+    else showmessage('Failed to add to table. Not all code is injectable');
+  finally
+    registeredsymbols.Free;
+  end;
   {$endif}
   {$endif}
 end;

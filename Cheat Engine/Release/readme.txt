@@ -22,11 +22,15 @@ Dissect data now works with offsets instead of sizes
 Added the ability to follow pointers easily with Dissect Data
 There's now a stacktrace visible during debugging
 The registerview is gone as long as you're not debugging
-CE now suppresses the "No disk" message when the searchpath is invalid
+CE now suppresses the "No disk" message when the systems searchpath is invalid
 Added a common modulelist to the ce folder that you can edit. Include files that you do NOT want to go through when doing memory inspection
 You can now open another pointerscanner window while another pointerscan is running and read the results.
 Added a string reference windows
-Improved the plugin system with some extra disassembler commands and a command to load modules into memory
+Improved the plugin system:
+  You can now add auto assembler commands
+  You can now get a callback when the disassembler is being rendered
+  You can now add a plugin item to the context of the disassemler
+  etc...
 Added (float)#, (double)# and (int)# support to the assembler, (double) is mainly usable in combination with the new DQ command though
 
 

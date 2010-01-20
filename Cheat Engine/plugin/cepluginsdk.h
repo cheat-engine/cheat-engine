@@ -67,7 +67,7 @@ typedef struct _PLUGINTYPE3_INIT
 
 typedef struct _PLUGINTYPE4_INIT
 {
-  CEP_PLUGINTYPE4 callbackroutine; //pointer to a callback routine of the type 3 plugin
+  CEP_PLUGINTYPE4 callbackroutine; //pointer to a callback routine of the type 4 plugin
 } PLUGINTYPE4_INIT, POINTERREASSIGNMENTPLUGIN_INIT, *PPLUGINTYPE4_INIT, *PPOINTERREASSIGNMENTPLUGIN_INIT; 
 
 typedef struct _PLUGINTYPE5_INIT
@@ -85,6 +85,15 @@ typedef struct _PLUGINTYPE6_INIT
   char* shortcut; //0 terminated string containing the shortcut in textform. CE will try it's best to parse it to a valid shortcut
 } PLUGINTYPE6_INIT, DISASSEMBLERCONTEXT_INIT, *PPLUGINTYPE6_INIT, *PDISASSEMBLERCONTEXT_INIT;
 
+typedef struct _PLUGINTYPE7_INIT
+{
+  CEP_PLUGINTYPE7 callbackroutine; //pointer to a callback routine of the type 7 plugin
+} PLUGINTYPE7_INIT, DISASSEMBLERLINEPLUGIN_INIT, *PPLUGINTYPE7_INIT, *PDISASSEMBLERLINEPLUGIN_INIT; 
+
+typedef struct _PLUGINTYPE8_INIT
+{
+  CEP_PLUGINTYPE8 callbackroutine; //pointer to a callback routine of the type 8 plugin
+} PLUGINTYPE8_INIT, AUTOASSEMBLERPLUGIN_INIT, *PPLUGINTYPE8_INIT, *PAUTOASSEMBLERPLUGIN_INIT; 
 
 typedef struct _REGISTERMODIFICATIONINFO
 {
@@ -147,8 +156,8 @@ typedef DWORD (__stdcall *CEP_PREVIOUSOPCODE)(ULONG address);
 typedef DWORD (__stdcall *CEP_NEXTOPCODE)(ULONG address);
 typedef BOOL (__stdcall *CEP_LOADMODULE)(char *modulepath, char *exportlist, int *maxsize);
 typedef BOOL (__stdcall *CEP_DISASSEMBLEEX)(ULONG address, char *output, int maxsize);
-typedef VOID (__stdcall *CEP_AA_ADDCOMMAND)(void);
-typedef VOID (__stdcall *CEP_AA_DELCOMMAND)(void);
+typedef VOID (__stdcall *CEP_AA_ADDCOMMAND)(char *command);
+typedef VOID (__stdcall *CEP_AA_DELCOMMAND)(char *command);
 
 typedef struct _ExportedFunctions
 {

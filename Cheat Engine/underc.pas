@@ -199,9 +199,8 @@ begin
 
 
 
-
-//  uc_init(nil,false);
-
+  //uc_init(pchar(' '),false);
+  Set8087CW($133f);
 
 
   result:=true;
@@ -216,21 +215,28 @@ begin
   if not checkthread then
     exit;
 
- // uc_finis;
-//  freelibrary(underclibrary);
+  uc_finis;
+
   currentthreadid:=0;
   scriptEngineCS.leave;
 
   result:=true;
+
+  //Set8087CW($133f);
 end;
 
 function TScriptEngine.execute_command(command: string): boolean;
+var x: pchar;
 begin
   result:=false;
   if not checkthread then
     exit;
 
-  result:=uc_exec(pchar(command));
+//  result:=uc_exec(pchar(command));
+
+getmem(x,256);
+  uc_compile(x,pchar(command));
+  freemem(x);
 end;
 
 function TScriptEngine.getResult: string;

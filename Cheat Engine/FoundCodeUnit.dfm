@@ -144,6 +144,7 @@ object FoundCodeDialog: TFoundCodeDialog
     end
   end
   object pmOptions: TPopupMenu
+    OnPopup = pmOptionsPopup
     Left = 64
     Top = 64
     object ReplacewithcodethatdoesnothingNOP1: TMenuItem
@@ -162,6 +163,14 @@ object FoundCodeDialog: TFoundCodeDialog
       Caption = 'More Info'
       Default = True
       OnClick = btnExtraInfoClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Copyselectiontoclipboard1: TMenuItem
+      Caption = 'Copy selection to clipboard'
+      ShortCut = 16451
+      OnClick = Copyselectiontoclipboard1Click
     end
   end
 end

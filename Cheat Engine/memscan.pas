@@ -431,7 +431,7 @@ var foundaddress: byte;
 function getBytecountArrayOfByteString(st: string): integer;
 var bytes: tbytes;
 begin
-  ConvertStringToBytes(st,false,bytes);
+  ConvertStringToBytes(st,true,bytes);
   result:=length(bytes);
 end;
 
