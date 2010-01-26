@@ -25,6 +25,7 @@ type
     Label9: TLabel;
     Label10: TLabel;
     lblDBVM: TLabel;
+    Label11: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);

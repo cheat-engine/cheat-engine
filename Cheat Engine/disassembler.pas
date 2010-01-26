@@ -9036,8 +9036,9 @@ var
   hexcount: integer;
   i: integer;
 begin
+  result:=false;
   hexcount:=0;
-  for i:=length(d) downto 1 do 
+  for i:=length(d) downto 1 do
   begin
     if d[i] in ['a'..'f','A'..'F','0'..'9'] then
     begin
@@ -9045,7 +9046,8 @@ begin
       if hexcount=8 then
       begin
         //it has a 4 byte hexadecimal value
-        hexstring:=copy('$'+d,i-6,8);
+        hexstring:='$'+copy(d,i,8);
+        result:=true;
         exit;
       end;
     end else hexcount:=0;
@@ -9083,7 +9085,7 @@ begin
     //check O for a hexadecimal value of 8 bytes and longer.
     if has4ByteHexString(d,s) then
     begin
-      address:=strtoint('$'+s);
+      address:=strtoint(s); //s already has the $ in front
       result:=isAddress(address);
     end;
   end else
@@ -9187,7 +9189,7 @@ var offset,value:dword;
 //    tokens: ttokens;
     fvalue: single;
     fvalue2: double;
-    tempbuf: array [0..16] of byte;
+    tempbuf: array [0..127] of byte;
 
     pc: pchar;
     pwc: pwidechar;
@@ -9359,15 +9361,42 @@ begin
           4: if readprocessmemory(processhandle,pointer(tempaddress),@fvalue2,8,actualread) then ts:=format('(double)%.4f',[fvalue2]);
           5:
           begin
-            tempbuf[15]:=0;
+            actualread:=0;
+            ReadProcessMemory(processhandle, pointer(tempaddress), @tempbuf[0], 128, actualread);
+
+            tempbuf[127]:=0;
+            tempbuf[126]:=ord('.');
+            tempbuf[125]:=ord('.');
+            tempbuf[124]:=ord('.');
+
+            if actualread>0 then
+              tempbuf[actualread-1]:=0;
+              
             pc:=@tempbuf[0];
             ts:='"'+ pc+'"';
           end;
 
           6:
           begin
-            tempbuf[15]:=0;
-            tempbuf[14]:=0;
+            actualread:=0;
+            ReadProcessMemory(processhandle, pointer(tempaddress), @tempbuf[0], 128, actualread);
+                      
+            tempbuf[127]:=0;
+            tempbuf[126]:=0;
+
+            tempbuf[125]:=0;
+            tempbuf[124]:=ord('.');
+            tempbuf[123]:=0;
+            tempbuf[122]:=ord('.');
+            tempbuf[121]:=0;            
+            tempbuf[120]:=ord('.');
+
+            if actualread>1 then
+            begin
+              tempbuf[actualread-1]:=0;
+              tempbuf[actualread-2]:=0;
+            end;
+
             pwc:=@tempbuf[0];
             ts:='""'+ pwc+'""';
           end;

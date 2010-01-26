@@ -442,7 +442,7 @@ begin
   s:='';
   for i:=0 to FoundcodeList.Items.count-1 do
     if FoundcodeList.Selected[i] then
-      s:=s+FoundcodeList.Items[i]+#13;
+      s:=s+FoundcodeList.Items[i]+#13#10;
 
   clipboard.AsText:=s;
 end;

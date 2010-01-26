@@ -4,12 +4,12 @@ object Form2: TForm2
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Step 2'
-  ClientHeight = 251
-  ClientWidth = 570
+  ClientHeight = 309
+  ClientWidth = 702
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
@@ -17,27 +17,27 @@ object Form2: TForm2
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Label1: TLabel
-    Left = 40
-    Top = 232
-    Width = 18
-    Height = 13
+    Left = 49
+    Top = 286
+    Width = 21
+    Height = 16
     Caption = '100'
   end
   object Label2: TLabel
     Left = 0
-    Top = 232
-    Width = 34
-    Height = 13
+    Top = 286
+    Width = 42
+    Height = 16
     Caption = 'Health:'
   end
   object SpeedButton1: TSpeedButton
-    Left = 544
-    Top = 232
-    Width = 25
-    Height = 17
+    Left = 670
+    Top = 286
+    Width = 30
+    Height = 20
     Caption = 'Skip'
     Flat = True
     OnClick = SpeedButton1Click
@@ -45,8 +45,8 @@ object Form2: TForm2
   object Memo1: TMemo
     Left = 0
     Top = 0
-    Width = 570
-    Height = 185
+    Width = 702
+    Height = 228
     Align = alTop
     Color = clBtnFace
     Lines.Strings = (
@@ -82,13 +82,13 @@ object Form2: TForm2
         'Then fill in the number your health is in the value box. And cli' +
         'ck '#39'First Scan'#39
       
-        'After a while (if you have a extremly slow pc) the scan is done ' +
-        'and the results are shown in the list on the '
+        'After a while (if you have a extremely slow pc) the scan is done' +
+        ' and the results are shown in the list on the '
       'left'
       ''
       
-        'If you find more than 1 address and you dont know for sure wich ' +
-        'address it is, click '#39'Hit me'#39', fill in the new '
+        'If you find more than 1 address and you don'#39't know for sure whic' +
+        'h address it is, click '#39'Hit me'#39', fill in the new '
       'health value into the value box, and click '#39'Next Scan'#39
       
         'repeat this until you'#39're sure you'#39've found it. (that includes th' +
@@ -117,20 +117,20 @@ object Form2: TForm2
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 248
-    Top = 192
-    Width = 75
-    Height = 25
+    Left = 305
+    Top = 236
+    Width = 93
+    Height = 31
     Caption = 'Next'
     Enabled = False
     TabOrder = 1
     OnClick = Button1Click
   end
   object Button2: TButton
-    Left = 64
-    Top = 230
-    Width = 41
-    Height = 17
+    Left = 79
+    Top = 283
+    Width = 50
+    Height = 21
     Caption = 'Hit me'
     TabOrder = 2
     OnClick = Button2Click

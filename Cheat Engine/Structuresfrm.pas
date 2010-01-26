@@ -1993,7 +1993,7 @@ begin
     else
     begin
       sender.Canvas.Brush.Style:=bsSolid;
-      sender.Canvas.Brush.Color:=clHighlight;   
+      sender.Canvas.Brush.Color:=clHighlight;
       sender.Canvas.FillRect(textlinerect);
       sender.Canvas.DrawFocusRect(textlinerect);
 //      if different then
@@ -2018,6 +2018,16 @@ begin
     begin
       currentGroup:=internalgrouplist[i-1];
       tvStructureView.canvas.Font.Color:=groupcolors[currentgroup];
+
+      if (cdsSelected in State) then
+      begin
+        case groupcolors[currentgroup] of
+          clGreen: sender.Canvas.font.Color:=clBlack;
+          clRed: sender.Canvas.font.Color:=clMaroon;
+          clBlue: sender.Canvas.font.Color:=clNavy;
+        end;
+
+      end;
 
       clip.Left:=headercontrol1.Sections[i].Left;
       clip.Right:=headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;
@@ -2053,10 +2063,7 @@ begin
   Remove1.Visible:=(x<>nil) and (x.tag<>0);
   n6.Visible:=remove1.Visible;
 
-  if groups[x.Tag]<>0 then
-    setgroup1.Caption:='Change group ('+inttostr(groups[x.tag])+')'
-  else
-    setgroup1.Caption:='Set group';
+  setgroup1.Caption:='Change group ('+inttostr(groups[x.tag])+')';
 end;
 
 procedure TfrmStructures.Renamestructure1Click(Sender: TObject);

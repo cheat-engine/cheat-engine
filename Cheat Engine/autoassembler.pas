@@ -418,39 +418,45 @@ begin
               if (a>0) and (b>0) and (c>0) then
               begin
                 s1:=copy(currentline,a+1,b-a-1);
-                s2:=copy(currentline,b+1,c-b-1);
+                s2:=trim(copy(currentline,b+1,c-b-1));
+
                 testdword:= symhandler.getAddressFromName(s1,false);
 
                 setlength(bytes,0);
-                ConvertStringToBytes(s2, true, bytes);
+                try
+                  ConvertStringToBytes(s2, true, bytes);
+                except
+                  raise exception.create(s2+' is not a valid bytestring');
+                end;
+
                 if length(bytes)>0 then
                 begin
                   getmem(bytebuf,length(bytes));
-                  if ReadProcessMemory(processhandle, pointer(testdword), bytebuf, length(bytes),x) then
-                  begin
-                    try
-                      for j:=0 to length(bytes)-1 do
-                      begin
-                        if bytes[j]>=0 then
-                          if byte(bytes[j])<>bytebuf[j] then
-                            raise exception.Create('The bytes at '+s1+' are not what was expected');
-                      end;
-                    finally
-                      freemem(bytebuf);
-                    end;
-                  end else raise exception.Create('The memory at +'+s1+' can not be read');
+                  try
+                    if ReadProcessMemory(processhandle, pointer(testdword), bytebuf, length(bytes),x) then
+                    begin
+
+                        for j:=0 to length(bytes)-1 do
+                        begin
+                          if bytes[j]>=0 then
+                            if byte(bytes[j])<>bytebuf[j] then
+                              raise exception.Create('The bytes at '+s1+' are not what was expected');
+                        end;
+                    end else raise exception.Create('The memory at +'+s1+' can not be read');
+                  finally
+                    freemem(bytebuf);
+                  end;
 
                 end
                 else raise exception.Create(s2+' is not a valid bytestring');
 
-
-
-                setlength(assemblerlines,length(assemblerlines)-1);
-                continue;
               end
               else
-                raise exception.Create('Wrong syntax. ASSERT(address,bytes)');
+                raise exception.Create('Wrong syntax. ASSERT(address,11 22 33 ** 55 66)');
             end;
+
+            setlength(assemblerlines,length(assemblerlines)-1);
+            continue;
           end;
 
 
@@ -712,7 +718,7 @@ begin
             if (a>0) and (b>0) and (c>0) then
             begin
               s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               //s1=varname
               //s2=AOBstring

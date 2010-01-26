@@ -197,7 +197,7 @@ var
   filenamecount: integer;
 begin
   FFilename:=filename;
-  configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
+  configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
   configfile.ReadBuffer(modulelistlength,sizeof(modulelistlength));
   modulelist:=tstringlist.create;
   tempmodulelist:=tstringlist.create;
@@ -249,7 +249,7 @@ begin
     temppchar[x]:=#0;
 
 
-    files[i].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyNone);
+    files[i].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite);
     files[i].startindex:=fcount;
     fcount:=fcount+uint64(files[i].f.Size div uint64(sizeofentry));
     files[i].lastindex:=fcount-1;

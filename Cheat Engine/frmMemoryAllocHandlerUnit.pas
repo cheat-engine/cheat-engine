@@ -225,7 +225,7 @@ begin
     currentarray[entrynr].memallocevent:=nil;
 
     if addresslist=@frmMemoryAllocHandler.HeapBaselevel then
-     dec(heapcount);
+      dec(heapcount);
      
     temp.Free;
   end;

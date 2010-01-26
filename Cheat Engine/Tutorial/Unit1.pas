@@ -172,7 +172,7 @@ end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  canclose:=MessageDlg('First step too hard eh? Better give up now!',mtconfirmation,[mbyes,mbno],0)=mryes;
+  canclose:=MessageDlg('First step too hard? Better give up now!',mtconfirmation,[mbyes,mbno],0)=mryes;
 end;
 
 end.

@@ -15,20 +15,20 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   Position = poScreenCenter
   Scaled = False
   OnClose = FormClose
-  PixelsPerInch = 96
+  PixelsPerInch = 120
   TextHeight = 13
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 262
-    Height = 196
+    Width = 252
+    Height = 185
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
     object Label1: TLabel
       Left = 0
       Top = 0
-      Width = 262
+      Width = 252
       Height = 13
       Align = alTop
       Caption = 'Add the region(s) of memory you want to save'
@@ -37,18 +37,18 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     object lbRegions: TListBox
       Left = 0
       Top = 13
-      Width = 155
-      Height = 183
+      Width = 145
+      Height = 172
       Align = alClient
       ItemHeight = 13
       TabOrder = 0
       OnDblClick = lbRegionsDblClick
     end
     object Panel4: TPanel
-      Left = 155
+      Left = 145
       Top = 13
       Width = 107
-      Height = 183
+      Height = 172
       Align = alRight
       BevelOuter = bvNone
       TabOrder = 1
@@ -95,14 +95,14 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   end
   object Panel2: TPanel
     Left = 0
-    Top = 196
-    Width = 262
+    Top = 185
+    Width = 252
     Height = 48
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
     DesignSize = (
-      262
+      252
       48)
     object DontInclude: TCheckBox
       Left = 3

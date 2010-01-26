@@ -49,7 +49,7 @@ object About: TAbout
       Caption = 'Metael'
     end
     object Label4: TLabel
-      Left = 133
+      Left = 110
       Top = 158
       Width = 72
       Height = 16
@@ -381,14 +381,14 @@ object About: TAbout
       OnMouseDown = Image1MouseDown
     end
     object Label6: TLabel
-      Left = 68
+      Left = 61
       Top = 158
       Width = 40
       Height = 16
       Caption = 'wh1t3y'
     end
     object Label7: TLabel
-      Left = 223
+      Left = 193
       Top = 158
       Width = 84
       Height = 16
@@ -437,6 +437,13 @@ object About: TAbout
       Width = 3
       Height = 16
       OnClick = lblDBVMClick
+    end
+    object Label11: TLabel
+      Left = 288
+      Top = 158
+      Width = 23
+      Height = 16
+      Caption = 'Psy'
     end
     object Button1: TButton
       Left = 276

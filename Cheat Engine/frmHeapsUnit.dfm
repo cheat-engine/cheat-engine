@@ -1,7 +1,7 @@
 object frmHeaps: TfrmHeaps
   Left = 408
   Top = 186
-  Width = 220
+  Width = 253
   Height = 316
   BorderIcons = [biSystemMenu]
   Caption = 'Current Heaplist'
@@ -20,16 +20,16 @@ object frmHeaps: TfrmHeaps
   object Panel1: TPanel
     Left = 0
     Top = 221
-    Width = 202
+    Width = 235
     Height = 50
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
     DesignSize = (
-      202
+      235
       50)
     object Button1: TButton
-      Left = 54
+      Left = 70
       Top = 10
       Width = 92
       Height = 31
@@ -43,13 +43,13 @@ object frmHeaps: TfrmHeaps
   object ListView1: TListView
     Left = 0
     Top = 0
-    Width = 202
+    Width = 235
     Height = 221
     Align = alClient
     Columns = <
       item
         Caption = 'Address'
-        Width = 128
+        Width = 120
       end
       item
         AutoSize = True

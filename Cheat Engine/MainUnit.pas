@@ -10894,45 +10894,49 @@ begin
   pl:=tstringlist.Create;
   getprocesslist(pl);
 
-  for i:=0 to autoattachlist.Count-1 do
-  begin
-    for j:=0 to pl.Count-1 do //can't do indexof
+  try
+
+    for i:=0 to autoattachlist.Count-1 do
     begin
-      if pos(uppercase(autoattachlist.Strings[i]),uppercase(pl.strings[j]))=10 then
+      for j:=0 to pl.Count-1 do //can't do indexof
       begin
-        //the process is found
+        if pos(uppercase(autoattachlist.Strings[i]),uppercase(pl.strings[j]))=10 then
+        begin
+          //the process is found
 
-        val('$'+pl.strings[j],newPID,k);
-        if processid=newPID then exit; //already attached to this one
+          val('$'+pl.strings[j],newPID,k);
+          if processid=newPID then exit; //already attached to this one
 
-        ProcessHandler.processid:=newPID;
-        unpause;
-        DetachIfPossible;
+          ProcessHandler.processid:=newPID;
+          unpause;
+          DetachIfPossible;
 
-        MainForm.ProcessLabel.caption:=pl.strings[j];
-        Open_Process;
-        enablegui(false);
+          MainForm.ProcessLabel.caption:=pl.strings[j];
+          Open_Process;
+          enablegui(false);
 
-        openProcessEpilogue('',0,0);
+          openProcessEpilogue('',0,0);
 
-        symhandler.reinitialize;
-        reinterpretaddresses;
+          symhandler.reinitialize;
+          reinterpretaddresses;
+        end;
       end;
-    end;
 
+    end;
+  //  pl.IndexOf(autoattachlist.items[i]);
+
+  finally
+    for i:=0 to pl.count-1 do
+      if pl.Objects[i]<>nil then
+      begin
+        pli:=pointer(pl.Objects[i]);
+        if pli.processIcon>0 then
+          DestroyIcon(pli.processIcon);
+        freemem(pli);
+      end;
+
+    pl.free;
   end;
-//  pl.IndexOf(autoattachlist.items[i]);
-
-  for i:=0 to pl.count-1 do
-    if pl.Objects[i]<>nil then
-    begin
-      pli:=pointer(pl.Objects[i]);
-      if pli.processIcon>0 then
-        DestroyIcon(pli.processIcon);
-      freemem(pli);
-    end;
-
-  pl.free;
 end;
 
 procedure TMainForm.AutoAttachTimerTimer(Sender: TObject);

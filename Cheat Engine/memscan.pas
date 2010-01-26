@@ -2013,7 +2013,7 @@ begin
       minsvalue:=svalue-(1/(power(10,floataccuracy)));
       maxsvalue:=svalue+(1/(power(10,floataccuracy)));
     end;
-
+                  
     if variableType = vtString then
     begin
       widescanvalue1:=scanvalue1;

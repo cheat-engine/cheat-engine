@@ -175,7 +175,7 @@ object MemoryBrowser: TMemoryBrowser
           Left = 8
           Top = 115
           Width = 96
-          Height = 14
+          Height = 13
           Cursor = crHandPoint
           Caption = 'EBP 00000000'
           Font.Charset = DEFAULT_CHARSET
@@ -191,7 +191,7 @@ object MemoryBrowser: TMemoryBrowser
           Left = 8
           Top = 131
           Width = 96
-          Height = 14
+          Height = 13
           Cursor = crHandPoint
           Caption = 'ESP 00000000'
           Font.Charset = DEFAULT_CHARSET
@@ -207,7 +207,7 @@ object MemoryBrowser: TMemoryBrowser
           Left = 8
           Top = 147
           Width = 96
-          Height = 15
+          Height = 13
           Cursor = crHandPoint
           Caption = 'EIP 00000000'
           Font.Charset = DEFAULT_CHARSET

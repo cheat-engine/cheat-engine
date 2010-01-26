@@ -74,15 +74,22 @@ begin
   if btnStart.caption='Stop' then
   begin
     timer1.Enabled:=false;
-    dissectcode.terminate;
-    dissectcode.WaitFor;
-    dissectcode.done:=true;
+    if dissectcode<>nil then
+    begin
+      dissectcode.terminate;
+      dissectcode.WaitFor;
+      dissectcode.done:=true;
+    end;
     Timer1Timer(timer1);
 
     btnStart.Caption:='Start';
     //showmessage('dissected till address '+inttohex(dissectcode.currentaddress,8));
     exit;
   end;
+
+
+
+  if listbox1.SelCount=0 then raise exception.Create('Please select something to scan');
 
   if dissectcode<>nil then
   begin
@@ -92,43 +99,38 @@ begin
   end;
 
   dissectcode:=TDissectCodeThread.create(true);
+  setlength(dissectcode.memoryregion,0);
 
- 
+  for i:=0 to listbox1.items.count-1 do
   begin
-    setlength(dissectcode.memoryregion,0);
-    if listbox1.SelCount=0 then raise exception.Create('Please select something to scan');
-    for i:=0 to listbox1.items.count-1 do
+    if listbox1.Selected[i] then
     begin
-      if listbox1.Selected[i] then
-      begin
-        getexecutablememoryregionsfromregion(tmoduledata(listbox1.Items.Objects[i]).moduleaddress,tmoduledata(listbox1.Items.Objects[i]).moduleaddress+tmoduledata(listbox1.Items.Objects[i]).modulesize,tempregions);
-        setlength(dissectcode.memoryregion,length(dissectcode.memoryregion)+length(tempregions));
+      getexecutablememoryregionsfromregion(tmoduledata(listbox1.Items.Objects[i]).moduleaddress,tmoduledata(listbox1.Items.Objects[i]).moduleaddress+tmoduledata(listbox1.Items.Objects[i]).modulesize,tempregions);
+      setlength(dissectcode.memoryregion,length(dissectcode.memoryregion)+length(tempregions));
 
-        for j:=0 to length(tempregions)-1 do
-          dissectcode.memoryregion[length(dissectcode.memoryregion)-length(tempregions)+j]:=tempregions[j];
+      for j:=0 to length(tempregions)-1 do
+        dissectcode.memoryregion[length(dissectcode.memoryregion)-length(tempregions)+j]:=tempregions[j];
+    end;
+  end;
+
+
+  //sort the regions so they are from big to small (bubblesort)
+  n:=length(dissectcode.memoryregion);
+  for i:=0 to n-1 do
+  begin
+    flipped:=false;
+    for j:=0 to n-2-i do
+    begin
+      if dissectcode.memoryregion[j+1].BaseAddress<dissectcode.memoryregion[j].BaseAddress then//swap
+      begin
+        temp:=dissectcode.memoryregion[j+1];
+        dissectcode.memoryregion[j+1]:=dissectcode.memoryregion[j];
+        dissectcode.memoryregion[j]:=temp;
+        flipped:=true;
       end;
     end;
 
-
-    //sort the regions so they are from big to small (bubblesort)
-    n:=length(dissectcode.memoryregion);
-    for i:=0 to n-1 do
-    begin
-      flipped:=false;
-      for j:=0 to n-2-i do
-      begin
-        if dissectcode.memoryregion[j+1].BaseAddress<dissectcode.memoryregion[j].BaseAddress then//swap
-        begin
-          temp:=dissectcode.memoryregion[j+1];
-          dissectcode.memoryregion[j+1]:=dissectcode.memoryregion[j];
-          dissectcode.memoryregion[j]:=temp;
-          flipped:=true;
-        end;
-      end;
-
-      if not flipped then break;
-    end;
-
+    if not flipped then break;
   end;
 
   btnStart.Caption:='Stop';
@@ -180,10 +182,16 @@ begin
   progressbar1.Hint:=inttohex(dissectcode.currentaddress,8);
   if dissectcode.done then
   begin
-    close;
+    timer1.Enabled:=false;
+    btnStart.Caption:='Start';
+    ProgressBar1.Position:=0;
+    label7.Caption:='done';
+
+
 
     if ondone=odOpenReferedStringList then
     begin
+      close;
       if frmReferencedStrings=nil then
         frmReferencedStrings:=tfrmReferencedStrings.Create(self);
 

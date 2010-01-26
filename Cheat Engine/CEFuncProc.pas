@@ -2614,7 +2614,7 @@ begin
   while scanvalue[length(scanvalue)]=' ' do
     scanvalue:=copy(scanvalue,1,length(scanvalue)-1);
 
-  if (pos('-',scanvalue)>0) or (pos(' ',scanvalue)>0) then
+  if (pos('-',scanvalue)>0) or (pos(' ',scanvalue)>0) or (pos(',',scanvalue)>0) then
   begin
     //syntax is xx-xx-xx or xx xx xx
     j:=1;
@@ -2623,7 +2623,7 @@ begin
 
     for i:=1 to length(scanvalue) do
     begin
-      if (scanvalue[i]=' ') or (scanvalue[i]='-') then
+      if (scanvalue[i] in [' ', '-', ',']) then
       begin
         helpstr:=copy(scanvalue,j,i-j);
         j:=i+1;

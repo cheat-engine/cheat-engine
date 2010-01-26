@@ -2966,6 +2966,7 @@ object MainForm: TMainForm
       Caption = 'Help'
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
+        ShortCut = 112
         OnClick = Helpindex1Click
       end
       object N8: TMenuItem

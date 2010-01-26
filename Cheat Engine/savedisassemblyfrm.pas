@@ -79,7 +79,7 @@ begin
 
   i:=0;
 
-  while (not terminated) and (currentaddress<stop) do
+  while (not terminated) and (currentaddress<=stop) do
   begin
     oldaddress:=currentaddress;
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part

@@ -45,16 +45,18 @@ type
 
     evaluated: uint64;
     procedure execute; override;
-    destructor destroy;
+    destructor destroy; override;
   end;
 
 
   Trescanpointers=class(tthread)
   private
+    procedure closeOldFile;
   public
     ownerform: TFrmPointerScanner;
     progressbar: tprogressbar;
     filename: string;
+    overwrite: boolean;
     address: dword;
     forvalue: boolean;
     valuetype: TVariableType;
@@ -1418,6 +1420,11 @@ begin
   end;
 end;
 
+procedure TRescanpointers.closeOldFile;
+begin
+  ownerform.New1Click(ownerform.new1);
+end;
+
 procedure TRescanpointers.execute;
 var offsetsize: dword;
     offsetlist: array of dword;
@@ -1449,6 +1456,7 @@ var offsetsize: dword;
     rescanhelper: TRescanHelper;
     temp: dword;
 begin
+ 
   progressbar.Min:=0;
   progressbar.Max:=100;
   progressbar.Position:=0;
@@ -1500,7 +1508,10 @@ begin
 
       rescanworkers[i].rescanhelper:=rescanhelper;
 
-      rescanworkers[i].filename:=self.filename+'.'+inttostr(i);
+      if overwrite then
+        rescanworkers[i].filename:=self.filename+'.'+inttostr(i)+'.overwrite'      
+      else
+        rescanworkers[i].filename:=self.filename+'.'+inttostr(i);
 
       rescanworkers[i].startEntry:=blocksize*i;
       rescanworkers[i].entriestocheck:=blocksize;
@@ -1512,7 +1523,10 @@ begin
     end;
 
 
-    result:=TFileStream.Create(filename,fmCreate);
+    if overwrite then
+      result:=TFileStream.Create(filename+'.overwrite',fmCreate)
+    else
+      result:=TFileStream.Create(filename,fmCreate);
 
     //write header
     //modulelist
@@ -1527,12 +1541,15 @@ begin
     for i:=0 to length(rescanworkers)-1 do
     begin
       tempstring:=ExtractFileName(rescanworkers[i].filename);
+      if overwrite then
+        tempstring:=copy(tempstring,1,length(tempstring)-10);
+        
       temp:=length(tempstring);
       result.Write(temp,sizeof(temp));
       result.Write(tempstring[1],temp);
     end;
 
-    //loop:
+    result.Free;
 
     while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 1000) = WAIT_TIMEOUT do      //wait
     begin
@@ -1545,14 +1562,26 @@ begin
     end;
     //no timeout, so finished or crashed
 
+    if overwrite then //delete the old ptr file
+    begin
+      synchronize(closeoldfile);
+      DeleteFile(filename);
+      RenameFile(filename+'.overwrite',filename);
+    end;
 
     //destroy workers
     for i:=0 to rescanworkercount-1 do
     begin
       rescanworkers[i].WaitFor; //just to be sure
       rescanworkers[i].Free;
+
+      if overwrite then
+      begin
+        DeleteFile(filename+'.'+inttostr(i));
+        RenameFile(filename+'.'+inttostr(i)+'.overwrite', filename+'.'+inttostr(i));
+      end;
     end;
-    result.Free;
+
 
     rescanworkercount:=0;
     setlength(rescanworkers,0);
@@ -1562,7 +1591,7 @@ begin
     progressbar.Position:=0;
     postmessage(ownerform.Handle,rescan_done,0,0);
     if rescanhelper<>nil then
-      freeandnil(rescanhelper);    
+      freeandnil(rescanhelper);
   end;
 
 end;
@@ -1597,6 +1626,11 @@ begin
           if savedialog1.Execute then
           begin
             rescan.filename:=savedialog1.filename;
+
+            if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then
+              rescan.overwrite:=true;
+
+
 
             Rescanmemory1.Enabled:=false;
             new1.Enabled:=false;

@@ -369,7 +369,6 @@ begin
   begin
     //not the selected address
 
-    if disassembleDescription.caption<>line.description then disassembleDescription.caption:=line.description;
     fSelectedAddress:=line.address;
 
     //set the secondary address to the same as the first if shift isn't pressed
@@ -463,6 +462,8 @@ var
   currentAddress: dword;
 
   selstart, selstop: dword;
+  description: string;
+  x: dword;
 begin
   if (not symhandler.isloaded) and (not symhandler.haserror) then
   begin
@@ -514,6 +515,11 @@ begin
   end;
 
   fTotalvisibledisassemblerlines:=i;
+
+  x:=fSelectedAddress;
+  disassemble(x,description);
+  if disassembleDescription.caption<>description then disassembleDescription.caption:=description;
+
 
   if ShowJumplines then
     renderjumplines;

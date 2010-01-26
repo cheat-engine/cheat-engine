@@ -99,7 +99,7 @@ begin
     fromaddress:=tregion(lbregions.Items.Objects[i]).fromaddress;
     toaddress:=tregion(lbregions.Items.Objects[i]).toaddress;
 
-    size:=toaddress-fromaddress;
+    size:=toaddress-fromaddress+1;
     getmem(buf[i],size);
 
     if (not readprocessmemory(processhandle,pointer(fromaddress),buf[i],size,temp)) or (temp<>size) then

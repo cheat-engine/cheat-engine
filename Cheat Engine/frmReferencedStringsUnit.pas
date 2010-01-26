@@ -258,7 +258,7 @@ begin
       x.free;
       stringlist.Objects[i]:=nil;
     end;
-    stringlist.Free;
+    freeandnil(stringlist);
   end;
 
 

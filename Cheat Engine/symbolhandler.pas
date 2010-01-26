@@ -1202,13 +1202,12 @@ begin
             x:=me32.szExePath;
             modulelist[modulelistpos].modulename:=extractfilename(x);
             modulelist[modulelistpos].modulepath:=x;
-            //I say that physxcore is also a system module even if it isn't located in the windows dir
-            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0);
+
+            //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
+            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
 
             if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
               modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
-
-
 
             modulelist[modulelistpos].baseaddress:=dword(me32.modBaseAddr);
             modulelist[modulelistpos].basesize:=me32.modBaseSize;

@@ -1,11 +1,11 @@
 inherited Form10: TForm10
   Left = 630
   Top = 563
-  Caption = 'Form10'
+  Caption = 'Step 9'
   OldCreateOrder = True
   Visible = True
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   inherited Memo1: TMemo
     Lines.Strings = (
       

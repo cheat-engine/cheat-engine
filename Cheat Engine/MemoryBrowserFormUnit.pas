@@ -1651,7 +1651,7 @@ begin
             
             disassemble(b); //b gets increased with size of selected instruction
             edit1.Text:=inttohex(a,8);
-            edit2.Text:=inttohex(b,8);
+            edit2.Text:=inttohex(b-1,8);
             copymode:=true;
             showmodal;
             free;
@@ -3069,6 +3069,8 @@ begin
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 
+
+
   if frmheaps=nil then
     frmheaps:=tfrmheaps.create(self);
 
@@ -3719,7 +3721,7 @@ begin
     
     disassemble(b); //b gets increased with size of selected instruction
     edit1.Text:=inttohex(a,8);
-    edit2.Text:=inttohex(b,8);
+    edit2.Text:=inttohex(b-1,8);
     copymode:=true;
 
     checkbox1.checked:=true;
@@ -3925,12 +3927,7 @@ begin
 
 
   if frmMemoryAllocHandler=nil then
-  begin
-    {if MessageDlg('This function will inject a dll into the target process and hook some memory allocation/free routines. Continue?',mtConfirmation, [mbyes,mbno],0)<>mryes then exit;
-
-    }
     frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self);
-  end;
 
   frmMemoryAllocHandler.Show;
 end;
