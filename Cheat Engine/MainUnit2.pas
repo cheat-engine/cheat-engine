@@ -22,7 +22,7 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
-const beta=' - Beta'; //empty this for a release
+const beta=''; //empty this for a release
 const cename='Cheat Engine 5.6';
 
 var

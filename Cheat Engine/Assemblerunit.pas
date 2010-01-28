@@ -4,7 +4,7 @@ interface
 
 uses windows,sysutils,imagehlp;
 
-const opcodecount=1072; //I wish there was a easier way than to handcount
+const opcodecount=1071; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -1147,7 +1147,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PUSH';opcode1:eo_ib;paramtype1:par_imm8;bytes:1;bt1:$6a),
   (mnemonic:'PUSH';opcode1:eo_id;paramtype1:par_imm32;bytes:1;bt1:$68),
-  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
+//  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
 
 
   (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50),

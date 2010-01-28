@@ -3893,7 +3893,7 @@ begin
 
 end;
 {$endif}
-
+     {
 procedure LoadPTR(filename: string; merge: boolean);
 var newrec: MemoryRecordV6;
     x: tfilestream;
@@ -3907,7 +3907,7 @@ var newrec: MemoryRecordV6;
     s: pchar;
     offset: dword;
 begin
-{$ifndef net}
+
   setlength(offsetlist,0);
 
   x:=tfilestream.Create(filename,fmopenread or fmShareDenyNone);
@@ -3979,8 +3979,8 @@ begin
 
   mainform.UpdateScreen;
   mainform.updatelist;
-{$endif}
-end;
+
+end;  }
 
 function GetmemrecFromXMLNode(CheatEntry: IXMLNode): MemoryRecord;
 var newrec: MemoryRecord;
@@ -4124,7 +4124,7 @@ begin
       if tempnode<>nil then
       begin
         try
-          struct.structelement[i].offset:=strtoint('$'+tempnode.text);
+          struct.structelement[i].offset:=strtoint(tempnode.text);
           findoffset:=false;
         except
 
@@ -6460,7 +6460,7 @@ begin
 
   end;
 
-  if Extension='.PTR' then LoadPTR(filename,merge) else
+ { if Extension='.PTR' then LoadPTR(filename,merge) else  }
   if Extension='.AMT' then LoadAMT(filename,merge) else
   if Extension='.GH' then LoadGH(filename,merge) else
   if Extension='.CET' then LoadCET(filename,merge) else

@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 480
-      ActivePage = GeneralSettings
+      ActivePage = Extra
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -882,8 +882,8 @@ object formSettings: TformSettings
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
-          Top = 455
-          Width = 424
+          Top = 430
+          Width = 609
           Height = 16
           Align = alBottom
           Alignment = taCenter

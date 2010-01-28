@@ -220,6 +220,7 @@ begin
   if hdevice=INVALID_HANDLE_VALUE then
   begin
     SigningIsTheCause^:=failedduetodriversigning;
+    result:=false;
   end;
 end;
 

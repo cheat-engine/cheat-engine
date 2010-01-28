@@ -6,13 +6,10 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,cefuncproc,ExtCtrls,tlhelp32,CheckLst,
   Buttons, frameHotkeyConfigUnit,
-  {$ifndef net}
-  kerneldebugger,plugin,newkernelhandler,debugger,hotkeyhandler, 
-  formhotkeyunit;
-  {$else}
-  ,netapis;
 
-  {$endif}
+  kerneldebugger,plugin,newkernelhandler,debugger,hotkeyhandler,
+  formhotkeyunit;
+
 
 type Tpathspecifier=class(TObject)
   public
@@ -872,6 +869,7 @@ end;
 
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
+  unsigned: BOOL;
 begin
   aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
   aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;
@@ -896,6 +894,11 @@ begin
     TauntOldOsUser.Caption:='Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
 
     cbKernelQueryMemoryRegion.enabled:=false; //currently no 64-bit paging support (yet)
+
+    cbKdebug.Enabled:=isDBVMCapable;
+    cbKdebug.Caption:=cbKdebug.Caption+' (Requires DBVM)';
+    if not cbKdebug.Enabled then
+      cbKdebug.checked:=false;
   end;
 
 

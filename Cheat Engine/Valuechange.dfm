@@ -4,7 +4,7 @@ object ValueChangeForm: TValueChangeForm
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change Offset: ########'
-  ClientHeight = 102
+  ClientHeight = 106
   ClientWidth = 263
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -64,7 +64,7 @@ object ValueChangeForm: TValueChangeForm
     Left = 21
     Top = 1
     Width = 236
-    Height = 21
+    Height = 24
     TabOrder = 3
     Text = 'ValueText'
   end

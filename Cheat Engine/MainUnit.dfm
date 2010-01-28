@@ -2664,7 +2664,7 @@ object MainForm: TMainForm
       'Cheat Engine Tables (*.CET;*.CT2,*.CT3;*.CT)|*.CT;*.CT3;*.CT2;*.' +
       'CET|Cheat Table XML|*.XML|Gamehack tables (*.GH)|*.GH|ArtMoney T' +
       'ables (*.AMT)|*.AMT|All files (*.*)|*.*|All supported cheat tabl' +
-      'es|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.PTR;*.XML'
+      'es|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.XML'
     FilterIndex = 6
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 48

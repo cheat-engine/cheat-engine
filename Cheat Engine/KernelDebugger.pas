@@ -111,7 +111,7 @@ Procedure TKDebugger.StartDebugger;
 begin
   if processid=0 then raise exception.Create('Please open a process first');
 
-  if not loaddbvmifneeded then raise exception.Create('You can''t use the kernel debugger');
+  if not loaddbvmifneeded then raise exception.Create('You can''t currently use the kernel debugger');
 
 
   if Debuggerthread=nil then

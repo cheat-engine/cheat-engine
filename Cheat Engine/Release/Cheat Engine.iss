@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.6 BETA 7
-AppVerName=Cheat Engine 5.6 BETA 7
+AppName=Cheat Engine 5.6 BETA 8
+AppVerName=Cheat Engine 5.6 BETA 8
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
-DefaultDirName={pf}\Cheat Engine Beta7
-DefaultGroupName=Cheat Engine 5.6 BETA 7
+DefaultDirName={pf}\Cheat Engine Beta8
+DefaultGroupName=Cheat Engine 5.6 BETA 8
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine56Beta7
+OutputBaseFilename=CheatEngine56Beta8
 PrivilegesRequired=admin
 ChangesAssociations=yes
 
@@ -247,4 +247,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.6 Beta 7"; Flags: nowait postinstall skipifsilent runascurrentuser
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.6 Beta 8"; Flags: nowait postinstall skipifsilent runascurrentuser

@@ -102,7 +102,7 @@ implementation
 {$R *.dfm}
 
 {$ifndef injectedpscan}
-uses frmMemoryAllocHandlerunit;
+uses frmMemoryAllocHandlerunit, MemoryBrowserFormUnit;
 {$endif}
 
 constructor TOffsetEntry.create(AOwner: TComponent);
@@ -309,7 +309,7 @@ begin
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 
-  frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(self);
+  frmMemoryAllocHandler:=TfrmMemoryAllocHandler.Create(memorybrowser);
   frmMemoryAllocHandler.WaitForInitializationToFinish;
 
   edtAddressChange(edtAddress);

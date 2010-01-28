@@ -479,7 +479,7 @@ begin
       signed:=false;
       if isDriverLoaded(@signed) then
       begin
-        if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data. Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+        if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data(So don''t forget to save first). Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
         begin
           LaunchDBVM;
           if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
@@ -497,7 +497,7 @@ begin
           raise exception.Create('The driver needs to be loaded to be able to use this function.');
         end;
       end;
-    end else raise exception.Create('Your cpu is not able to use this function.');
+    end else raise exception.Create('Your cpu must be able to run dbvm to use this function in 64-bit');
   end
   else result:=true;
 end;

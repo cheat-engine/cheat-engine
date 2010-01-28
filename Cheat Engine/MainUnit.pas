@@ -1607,15 +1607,13 @@ begin
   end;
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
+ 
+  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
+    KDebugger.startDebugger; //start the kerneldebugger
 
   foundcodedialog:=TFoundcodedialog.create(self);
   foundcodedialog.Caption:=strAccessed;
   foundcodedialog.btnOK.caption:=strStop;
-
-  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
-    KDebugger.startDebugger; //start the kerneldebugger
-
-    
 
   originaladdress:=address;
   originalsize:=size;
@@ -1849,12 +1847,12 @@ begin
 
   if foundcodedialog<>nil then raise exception.Create('The debugger is already trying to find out what reads,writes or accesses a certain address. First close the other window');
 
-  foundcodedialog:=TFoundcodedialog.create(self);
-  foundcodedialog.Caption:=strOpcodeChanged;
-  foundcodedialog.btnOK.caption:=strstop;
-
   if (formsettings.cbKdebug.checked) and (debuggerthread=nil) and (not KDebugger.isActive) then
     KDebugger.startDebugger;
+
+  foundcodedialog:=TFoundcodedialog.create(self);
+  foundcodedialog.Caption:=strOpcodeChanged;
+  foundcodedialog.btnOK.caption:=strstop;    
 
   originaladdress:=address;
   originalsize:=size;
@@ -9279,15 +9277,6 @@ begin
   if (month=1) and (day=1) and (year>=2010) then showmessage(strFuture);
 
   if (month=4) and (day=1) then aprilfools:=true;
-
-  //beta
-  {$ifdef betatest}
-  if (year>2010) or ((year=2010) and (month>3)) then
-  begin
-    showmessage('please ask dark byte for a new version (and no, this is not an april fools joke)');
-    application.Terminate;
-  end;
-  {$endif}
 
   if aprilfools=true then
     Messagedlg('Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for only $1800.'+' If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)',mtwarning,[mbok],0);

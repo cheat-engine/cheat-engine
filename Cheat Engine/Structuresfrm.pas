@@ -907,9 +907,16 @@ begin
     end;
 
 
-
-    if selectednode.index>=0 then
-      edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectednode.index].offset-1,1);
+    if selectedstructure.basestructure>=0 then
+    begin
+      if selectednode.index>=0 then
+        edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectednode.index].offset-1,1)
+      else
+      begin
+        if length(definedstructures[selectedstructure.basestructure].structelement)>0 then
+          edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[length(definedstructures[selectedstructure.basestructure].structelement)-1].offset+definedstructures[selectedstructure.basestructure].structelement[length(definedstructures[selectedstructure.basestructure].structelement)-1].bytesize,1);
+      end;
+    end;
 
 
     if showmodal=mrok then
@@ -991,6 +998,9 @@ procedure TfrmStructures.tvStructureViewCollapsing(Sender: TObject;
   Node: TTreeNode; var AllowCollapse: Boolean);
 begin
   allowcollapse:=not (node=tvStructureView.Items.GetFirstNode);
+
+
+  currentstructure.refresh;
 end;
 
 procedure TfrmStructures.edtAddressChange(Sender: TObject);
@@ -1346,7 +1356,7 @@ procedure TfrmStructures.ChangeElement1Click(Sender: TObject);
 var i,j: integer;
     size: dword;
     structtype: string;
-    selectedstructure: tstructure;
+    ts,selectedstructure: tstructure;
     selectedelement: integer;
     selectednode: ttreenode;
 begin
@@ -1439,7 +1449,14 @@ begin
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=bytesize;
 
       if tvStructureView.Selected.HasChildren then
+      begin
         tvStructureView.Selected.DeleteChildren;
+        freeandnil(selectedstructure.objects[selectedelement].child);
+      end;
+
+      tvStructureView.Selected.Collapse(true);
+
+      currentstructure.refresh;
 
       sortstructure(definedstructures[selectedstructure.basestructure]);
 
@@ -2130,6 +2147,7 @@ begin
   begin
     s:=tstructure(tvStructureView.Selected.Data);
     if s=nil then exit;
+    if s.basestructure<0 then exit;
 
     elementnr:=tvStructureView.Selected.Index;
 
@@ -2323,6 +2341,16 @@ begin
             begin
               inc(x);
               inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
+            end;
+
+            if (x<structsize-1) then
+            begin
+              //add the zero terminator if one exists
+              if buf[x]=0 then
+              begin
+                inc(x);
+                inc(definedstructures[length(definedstructures)-1].structelement[i].bytesize);
+              end;
             end;
           end;
 

@@ -79,7 +79,7 @@ begin
     groupbox1.Caption:=mainunit2.CEnorm;
   {$endif}
 
-  Loaddbk32;
+  
 
   if not isDBVMCapable then
   begin
@@ -90,6 +90,7 @@ begin
   end
   else
   begin
+    Loaddbk32;
     if dbvm_version>0 then
     begin
       lblDBVM.Font.Color:=clLime;
