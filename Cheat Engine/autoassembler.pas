@@ -3,7 +3,7 @@ unit autoassembler;
 interface
 
 uses assemblerunit, classes,{$ifndef autoassemblerdll}cefuncproc,{$endif}
-windows,symbolhandler,sysutils,dialogs,controls, NewKernelHandler, plugin;
+windows,symbolhandler,sysutils,dialogs,controls, NewKernelHandler{$ifndef standalonetrainerwithassemblerandaobscanner}, plugin{$endif};
 
 {$ifdef autoassemblerdll}
 type TCEAlloc=record
@@ -348,8 +348,9 @@ begin
 
   symhandler.waitforsymbolsloaded;
 
-
+{$ifndef standalonetrainer}
   pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
+{$endif}
 
 //2 pass scanner
   try
@@ -395,9 +396,11 @@ begin
           assemblerlines[length(assemblerlines)-1]:=currentline;
 
           //plugins
+          {$ifndef standalonetrainer}
           currentlinep:=@currentline[1];
           pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
           currentline:=currentlinep;
+          {$endif}
 
           //if the newline is empty then it has been handled and the plugin doesn't want it to be added for phase2
           if length(currentline)=0 then
@@ -1206,6 +1209,7 @@ begin
     begin
       currentline:=assemblerlines[i];
 
+{$ifndef standalonetrainer}
       //plugin
       if length(currentline)>0 then
       begin
@@ -1216,6 +1220,7 @@ begin
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
       end;
       //plugin
+{$endif}
 
 
       tokenize(currentline,tokens);
@@ -1569,8 +1574,9 @@ begin
     setlength(assembled,0);
     tokens.free;
 
-
+{$ifndef standalonetrainer}
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
+{$endif}    
   end;
 end;
 

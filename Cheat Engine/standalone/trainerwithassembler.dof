@@ -113,7 +113,7 @@ RootDir=
 IncludeVerInfo=1
 AutoIncBuild=0
 MajorVer=1
-MinorVer=7
+MinorVer=8
 Release=0
 Build=0
 Debug=0
@@ -126,7 +126,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=
 FileDescription=
-FileVersion=1.7.0.0
+FileVersion=1.8.0.0
 InternalName=Cheat Engine Trainer
 LegalCopyright=
 LegalTrademarks=

@@ -1128,7 +1128,9 @@ begin
     freemem(x);
     f.free;
 
-    image1.Picture.LoadFromFile(temps);
+
+    if temp<>0 then //size=0
+      image1.Picture.LoadFromFile(temps);
 
     DeleteFile(temps);
 

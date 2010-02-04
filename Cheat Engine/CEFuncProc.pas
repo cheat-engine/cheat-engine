@@ -129,7 +129,7 @@ procedure rewritedata(processhandle: thandle; address:dword; buffer: pointer; si
 
 procedure GetProcessList(ProcessList: TListBox); overload;
 procedure GetProcessList(ProcessList: TStrings); overload;
-procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
+procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 function AvailMem:dword;
 function isreadable(address:dword):boolean;
 
@@ -679,7 +679,7 @@ uses disassembler,debugger;
 {$ifndef net}
 
 {$ifndef standalonetrainer}
-uses disassembler,debugger,symbolhandler,frmProcessWatcherUnit,kerneldebugger;
+uses disassembler,debugger,symbolhandler,frmProcessWatcherUnit,kerneldebugger, formsettingsunit;
 {$else}
 uses symbolhandler;
 {$endif}
@@ -2513,16 +2513,17 @@ begin
   end else raise exception.Create('I can''t get the process list. You are propably using windows NT. Use the window list instead!');
 end;
 
-procedure GetWindowList(ProcessList: TListBox{; var ArrIcons: TBytes});
+procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
     winprocess: Dword;
     temp: Pchar;
     wintitle: string;
 
     x: tstringlist;
-    i:integer;
+    i,j:integer;
 
     ProcessListInfo: PProcessListInfo;
+    tempdword: dword;
 begin
   getmem(temp,101);
   try
@@ -2530,7 +2531,13 @@ begin
 
     for i:=0 to processlist.items.count-1 do
       if processlist.items.Objects[i]<>nil then
-        freemem(pointer(processlist.items.Objects[i]));
+      begin
+        ProcessListInfo:=PProcessListInfo(processlist.items.Objects[i]);
+        if ProcessListInfo.processIcon>0 then
+          DestroyIcon(ProcessListInfo.processIcon);
+
+        freemem(ProcessListInfo);
+      end;
     processlist.clear;
 
     winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
@@ -2538,21 +2545,46 @@ begin
     i:=0;
     while (winhandle<>0) and (i<10000) do
     begin
-      GetWindowThreadProcessId(winhandle,addr(winprocess));
-      temp[0]:=#0;
-      getwindowtext(winhandle,temp,100);
-      temp[100]:=#0;
-      wintitle:=temp;
-
-      if length(wintitle)>0 then
+      if showInvisible or IsWindowVisible(winhandle) then
       begin
-        getmem(ProcessListInfo,sizeof(TProcessListInfo));
-        ProcessListInfo.processID:=winprocess;
-        ProcessListInfo.processIcon:=SendMessage(winhandle,WM_GETICON,ICON_SMALL,0);
-        if ProcessListInfo.processIcon=0 then
-          ProcessListInfo.processIcon:=SendMessage(winhandle,WM_GETICON,ICON_BIG,0);
+        GetWindowThreadProcessId(winhandle,addr(winprocess));
+        temp[0]:=#0;
+        getwindowtext(winhandle,temp,100);
+        temp[100]:=#0;
+        wintitle:=temp;
 
-        x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
+
+
+        if length(wintitle)>0 then
+        begin
+          getmem(ProcessListInfo,sizeof(TProcessListInfo));
+          ProcessListInfo.processID:=winprocess;
+          ProcessListInfo.processIcon:=0;
+  {$ifndef standalonetrainer}
+          if formsettings.cbProcessIcons.checked then
+          begin
+            tempdword:=0;
+            if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempdword )<>0 then
+            begin
+              ProcessListInfo.processIcon:=tempdword;
+              if ProcessListInfo.processIcon=0 then
+              begin
+                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                  ProcessListInfo.processIcon:=tempdword;
+
+                if ProcessListInfo.processIcon=0 then
+                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempdword	)<>0 then
+                    ProcessListInfo.processIcon:=tempdword;
+              end;
+            end else
+            begin
+              inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
+            end;
+          end;
+  {$endif}
+
+          x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
+        end;
       end;
 
       previouswinhandle:=winhandle;

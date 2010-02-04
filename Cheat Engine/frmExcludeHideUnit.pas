@@ -4,25 +4,30 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,cefuncproc;
+  Dialogs, StdCtrls,cefuncproc, ExtCtrls;
 
 type
   TfrmExcludeHide = class(TForm)
-    Label1: TLabel;
-    ListBox1: TListBox;
-    ListBox2: TListBox;
-    Label2: TLabel;
-    Label3: TLabel;
-    Button1: TButton;
-    Button2: TButton;
-    RadioButton1: TRadioButton;
     Label4: TLabel;
+    Panel1: TPanel;
+    Label1: TLabel;
+    RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
+    Panel2: TPanel;
+    Label2: TLabel;
+    ListBox1: TListBox;
+    Panel3: TPanel;
+    Label3: TLabel;
+    ListBox2: TListBox;
+    Panel4: TPanel;
+    Button2: TButton;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure ListBox2DblClick(Sender: TObject);
     procedure RadioButton1Click(Sender: TObject);
+    procedure Panel1Resize(Sender: TObject);
   private
     { Private declarations }
   public
@@ -82,6 +87,16 @@ begin
   label3.Enabled:=rb1check;
   listbox1.Enabled:=rb1check;
   listbox2.Enabled:=rb1check;
+end;
+
+procedure TfrmExcludeHide.Panel1Resize(Sender: TObject);
+begin
+  panel2.Left:=0;
+  panel2.Width:=(panel1.ClientWidth div 2)-2;
+  panel3.Left:=panel2.Width+2;
+  panel3.Width:=(panel1.ClientWidth div 2)-2;
+
+  panel4.Left:=(panel1.ClientWidth div 2) - (panel4.Width div 2);
 end;
 
 end.

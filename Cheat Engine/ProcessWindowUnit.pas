@@ -36,6 +36,7 @@ type
     CancelButton: TButton;
     OKButton: TButton;
     btnProcessListLong: TButton;
+    Showinvisiblewindows1: TMenuItem;
     procedure CancelButtonClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -52,6 +53,7 @@ type
     procedure ProcessListDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormShow(Sender: TObject);
+    procedure Showinvisiblewindows1Click(Sender: TObject);
   private
     { Private declarations }
     currentchar: integer;
@@ -314,7 +316,7 @@ var oldselection: string;
     i,j: integer;
     found: boolean;
 begin
-
+  Showinvisiblewindows1.visible:=false;
   oldselectionindex:=processlist.ItemIndex;
 
   if oldselectionindex<>-1 then
@@ -360,8 +362,8 @@ end;
 procedure TProcessWindow.Button2Click(Sender: TObject);
 begin
   currentlist:=1;
-
-  getwindowlist(processlist{,icons});
+  Showinvisiblewindows1.visible:=true;
+  getwindowlist(processlist,Showinvisiblewindows1.Checked);
   filterlist;
 
   processlist.ItemIndex:=processlist.Items.Count-1;  
@@ -588,6 +590,15 @@ begin
   button1.click;
 
   setbuttons;
+end;
+
+procedure TProcessWindow.Showinvisiblewindows1Click(Sender: TObject);
+begin
+  if Showinvisiblewindows1.Visible then
+  begin
+    Showinvisiblewindows1.Checked:=not Showinvisiblewindows1.Checked;
+    button2.Click;
+  end;
 end;
 
 end.

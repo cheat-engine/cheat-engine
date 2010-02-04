@@ -509,6 +509,7 @@ begin
           raise exception.Create('Error allocating memory');
 
         userdefinedsymbols[i].address:=dword(p);
+        userdefinedsymbols[i].addressstring:=inttohex(dword(p),8);        
         userdefinedsymbols[i].allocsize:=size;
         userdefinedsymbols[i].processid:=processid;
       end;

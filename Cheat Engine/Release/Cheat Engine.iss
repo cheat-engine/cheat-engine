@@ -2,18 +2,18 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 [Setup]
-AppName=Cheat Engine 5.6 BETA 8
-AppVerName=Cheat Engine 5.6 BETA 8
+AppName=Cheat Engine 5.6
+AppVerName=Cheat Engine 5.6
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
-DefaultDirName={pf}\Cheat Engine Beta8
-DefaultGroupName=Cheat Engine 5.6 BETA 8
+DefaultDirName={pf}\Cheat Engine
+DefaultGroupName=Cheat Engine 5.6
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine56Beta8
+OutputBaseFilename=CheatEngine56
 PrivilegesRequired=admin
 ChangesAssociations=yes
 
@@ -147,7 +147,7 @@ Source: "..\directxhook\d3dx9.dll"; DestDir: "{sys}"; DestName: "d3dx9.dll";
 Source: "..\bin\ceregreset.exe"; DestDir: "{app}"; DestName: "ceregreset.exe"; Flags: ignoreversion
 Source: "..\bin\Kernelmoduleunloader.exe"; DestDir: "{app}"; DestName: "Kernelmoduleunloader.exe"; Flags: ignoreversion
 ;Source: "..\driver.dat"; DestDir: "{app}"; DestName: "driver.dat"; Flags: ignoreversion
-;comment the next 2 lines for the baby version
+;comment the next 3 lines for the baby version
 Source: "..\bin\dbk32.dll"; DestDir: "{app}"; DestName: "dbk32.dll"; Flags: ignoreversion
 Source: "..\bin\dbk32.sys"; DestDir: "{app}"; DestName: "dbk32.sys"; Flags: ignoreversion; BeforeInstall: UninstallDriver
 Source: "..\bin\dbk64.sys"; DestDir: "{app}"; DestName: "dbk64.sys"; Flags: ignoreversion;
@@ -235,7 +235,7 @@ Source: "..\bin\undercdll.dll"; DestDir: "{app}";
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\Cheat Engine 5.6 Beta"; Filename: "{app}\Cheat Engine.exe"
+Name: "{group}\Cheat Engine 5.6"; Filename: "{app}\Cheat Engine.exe"
 Name: "{group}\Cheat Engine tutorial"; Filename: "{app}\Tutorial.exe"
 Name: "{group}\Cheat Engine help"; Filename: "{app}\CheatEngine.chm"
 
@@ -247,4 +247,4 @@ Name: "{group}\Uninstall Cheat Engine"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Cheat Engine"; Filename: "{app}\Cheat Engine.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.6 Beta 8"; Flags: nowait postinstall skipifsilent runascurrentuser
+Filename: "{app}\Cheat Engine.exe"; Description: "Launch Cheat Engine 5.6"; Flags: nowait postinstall skipifsilent runascurrentuser

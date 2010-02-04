@@ -453,9 +453,15 @@ begin
       trainer.WriteBuffer(temp,4);
       trainer.WriteBuffer(leftimageext[1],temp);
 
-      temp:=leftimage.Size;
+      if leftimage<>nil then
+        temp:=leftimage.Size
+      else
+        temp:=0;
+
       trainer.WriteBuffer(temp,4);
-      leftimage.SaveToStream(trainer);
+
+      if leftimage<>nil then
+        leftimage.SaveToStream(trainer);
 
 
       //windowwidth

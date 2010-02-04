@@ -1104,6 +1104,9 @@ var i,j,l: integer;
     _h,_m,_s: integer;
     tn,tn2: TTreenode;
 begin
+  if listview1.Visible then
+    listview1.repaint;
+
   if pointerlisthandler<>nil then
     label6.caption:='Address specifiers found in the whole process:'+inttostr(pointerlisthandler.count);
 
@@ -1743,8 +1746,11 @@ begin
     freeandnil(Staticscanner);
   end;
 
+  new1.Click;
+
   if pointerlisthandler<>nil then
     freeandnil(pointerlisthandler);
+
 
   action:=cafree; //on close free itself
 end;
@@ -1796,7 +1802,7 @@ begin
   {$ifdef injectedpscan}
   caption:='CE Injected Pointerscan';
   {$endif}
-
+  listview1.DoubleBuffered:=true;
 end;
 
 procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;

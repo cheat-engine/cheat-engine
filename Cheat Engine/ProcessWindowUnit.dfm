@@ -156,5 +156,10 @@ object ProcessWindow: TProcessWindow
       ShortCut = 16454
       OnClick = Filter1Click
     end
+    object Showinvisiblewindows1: TMenuItem
+      Caption = 'Show invisible windows'
+      ShortCut = 16457
+      OnClick = Showinvisiblewindows1Click
+    end
   end
 end

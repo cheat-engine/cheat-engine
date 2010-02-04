@@ -61,6 +61,7 @@ begin
     //memory changer
     hide;
     frmMemoryModifier:=TFrmMemoryModifier.create(self);
+    frmMemoryModifier.SaveDialog1.FileName:=filename;
     frmMemoryModifier.showmodal;
   end;
 

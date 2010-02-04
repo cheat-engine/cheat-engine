@@ -364,6 +364,7 @@ begin
       f:=tfilestream.Create(temps, fmCreate or fmShareDenyNone);
       inc(filecount);
 
+      //size
       trainer.ReadBuffer(temp,4);
       getmem(x,temp);
       trainer.ReadBuffer(x^,temp);
@@ -371,11 +372,15 @@ begin
       freemem(x);
       f.free;
 
-      frmMemorytrainerpreview.Image1.Picture.LoadFromFile(temps);
       if leftimage<>nil then
-        leftimage.Free;
-      leftimage:=tmemorystream.Create;
-      leftimage.LoadFromFile(temps);
+        freeandnil(leftimage);
+
+      if temp<>0 then //not size 0
+      begin
+        frmMemorytrainerpreview.Image1.Picture.LoadFromFile(temps);
+        leftimage:=tmemorystream.Create;
+        leftimage.LoadFromFile(temps);
+      end;
 
       DeleteFile(temps);
 
@@ -3840,20 +3845,20 @@ begin
     frmMemoryModifier.Close;
 
   frmMemoryModifier:=TFrmMemoryModifier.create(nil);
+  frmMemoryModifier.SaveDialog1.filename:=filename;
   frmMemoryModifier.show;
 
   //extract icon
   hi:=ExtractIcon(hinstance,pchar(filename),0);
   if (hi=0) or (hi=1) then
   begin
-    frmMemorymodifier.Free;
-    raise exception.Create(strCorruptIcon);
+    hi:=0;
   end;
 
   frmMemoryModifier.Icon.Picture.Icon.Handle:=hi;
   frmMemoryTrainerPreview.Icon:=frmMemoryModifier.Icon.Picture.Icon;
-
   frmMemoryModifier.CurrentIcon.LoadFromHandle(hi);
+
 
   trainer:=tfilestream.Create(filename,fmopenread);
   try

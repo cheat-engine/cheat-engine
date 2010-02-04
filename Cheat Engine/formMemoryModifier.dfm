@@ -370,7 +370,10 @@ object frmMemoryModifier: TfrmMemoryModifier
   end
   object OpenPictureDialog1: TOpenPictureDialog
     DefaultExt = 'bmp'
-    Filter = 'bmp (*.bmp)|*.bmp'
+    Filter = 
+      'bmp (*.bmp)|*.bmp|jpg (*.jpg)|*.jpg|Images (*.bmp, *.jpg)|*.jpg;' +
+      '*.bmp'
+    FilterIndex = 3
     Left = 288
   end
   object SaveDialog1: TSaveDialog

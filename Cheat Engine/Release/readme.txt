@@ -16,11 +16,11 @@ Deleting addresses from a scanresult is now a bit faster
 Changed the hotkey handler to be more controllable
 New heaplist that works based on dll injection instead of toolhelp32
 Dissectcode now helps finding referenced strings
-Added a new Auto assembler command "aobscan(varname, arrayofbytestring)"
+Added a new Auto assembler command "aobscan(varname, arrayofbyte)"
 Added a new Auto assembler command "assert(address, arrayofbyte)" which will make an script fail if the bytes aren't what they should be
 Dissect data now works with offsets instead of sizes
 Added the ability to follow pointers easily with Dissect Data
-There's now a stacktrace visible during debugging
+There's now a stacktrace visible during debugging (2 different types)
 The registerview is gone as long as you're not debugging
 CE now suppresses the "No disk" message when the systems searchpath is invalid
 Added a common modulelist to the ce folder that you can edit. Include files that you do NOT want to go through when doing memory inspection

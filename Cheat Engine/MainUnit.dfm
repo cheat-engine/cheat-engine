@@ -2900,7 +2900,7 @@ object MainForm: TMainForm
     Left = 16
     Top = 72
     object File1: TMenuItem
-      Caption = 'File'
+      Caption = '&File'
       OnClick = File1Click
       object New1: TMenuItem
         Caption = 'New'
@@ -2919,14 +2919,14 @@ object MainForm: TMainForm
       end
     end
     object Edit3: TMenuItem
-      Caption = 'Edit'
+      Caption = '&Edit'
       object Settings1: TMenuItem
         Caption = 'Settings'
         OnClick = SettingsClick
       end
     end
     object Process1: TMenuItem
-      Caption = 'Process'
+      Caption = '&Process'
       OnClick = Process1Click
       object OpenProcess1: TMenuItem
         Caption = 'Open Process window'
@@ -2956,14 +2956,14 @@ object MainForm: TMainForm
       end
     end
     object ools1: TMenuItem
-      Caption = 'Tools'
+      Caption = '&Tools'
     end
     object Plugins2: TMenuItem
-      Caption = 'Plugins'
+      Caption = 'P&lugins'
       Visible = False
     end
     object Help1: TMenuItem
-      Caption = 'Help'
+      Caption = '&Help'
       object Helpindex1: TMenuItem
         Caption = 'Cheat Engine Help'
         ShortCut = 112

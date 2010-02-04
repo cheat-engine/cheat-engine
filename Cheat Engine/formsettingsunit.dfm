@@ -58,7 +58,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 617
       Height = 480
-      ActivePage = Extra
+      ActivePage = GeneralSettings
       Align = alClient
       Style = tsFlatButtons
       TabOrder = 1
@@ -130,7 +130,7 @@ object formSettings: TformSettings
           Caption = 'Automatically attach to processes named'
         end
         object Label24: TLabel
-          Left = 404
+          Left = 408
           Top = 345
           Width = 141
           Height = 16
@@ -285,7 +285,7 @@ object formSettings: TformSettings
           OnClick = btnExcludeProcessesClick
         end
         object EditAutoAttach: TEdit
-          Left = 255
+          Left = 259
           Top = 340
           Width = 143
           Height = 24
@@ -650,7 +650,7 @@ object formSettings: TformSettings
           Left = 512
           Top = 0
           Width = 97
-          Height = 471
+          Height = 446
           Align = alRight
           BevelOuter = bvNone
           TabOrder = 0
@@ -677,14 +677,14 @@ object formSettings: TformSettings
           Left = 0
           Top = 0
           Width = 512
-          Height = 471
+          Height = 446
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 1
           object Label22: TLabel
             Left = 0
             Top = 0
-            Width = 210
+            Width = 512
             Height = 16
             Align = alTop
             Caption = 'The following plugins are available:'
@@ -693,7 +693,7 @@ object formSettings: TformSettings
             Left = 0
             Top = 16
             Width = 512
-            Height = 455
+            Height = 430
             Align = alClient
             ItemHeight = 16
             TabOrder = 0
@@ -706,7 +706,7 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 592
+          Width = 609
           Height = 48
           Align = alTop
           Caption = 
@@ -780,7 +780,7 @@ object formSettings: TformSettings
         end
         object cbHandleBreakpoints: TCheckBox
           Left = 0
-          Top = 206
+          Top = 208
           Width = 602
           Height = 21
           Caption = 'Handle beakpoints not caused by CE'
@@ -883,7 +883,7 @@ object formSettings: TformSettings
         object TauntOldOsUser: TLabel
           Left = 0
           Top = 430
-          Width = 609
+          Width = 424
           Height = 16
           Align = alBottom
           Alignment = taCenter
@@ -1002,7 +1002,7 @@ object formSettings: TformSettings
           Left = 381
           Top = 26
           Width = 228
-          Height = 445
+          Height = 420
           Align = alRight
           BevelOuter = bvNone
           TabOrder = 1
@@ -1107,13 +1107,13 @@ object formSettings: TformSettings
           Left = 0
           Top = 26
           Width = 381
-          Height = 445
+          Height = 420
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
-            Top = 417
+            Top = 392
             Width = 381
             Height = 28
             Align = alBottom
@@ -1142,7 +1142,7 @@ object formSettings: TformSettings
             Left = 0
             Top = 0
             Width = 381
-            Height = 417
+            Height = 392
             Align = alClient
             Columns = <
               item
