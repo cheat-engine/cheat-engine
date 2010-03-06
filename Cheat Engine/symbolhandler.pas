@@ -930,6 +930,7 @@ var mi: tmoduleinfo;
     regnr: integer;
 begin
   haserror:=false;
+  hasPointer:=false;
   
 {$ifdef autoassemblerdll}
   processhandle:=symbolhandler.processhandle;

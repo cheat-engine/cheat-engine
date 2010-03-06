@@ -1628,6 +1628,16 @@ begin
         begin
           if savedialog1.Execute then
           begin
+            if cbDelay.Checked then
+            begin
+              try
+                sleep(strtoint(edtDelay.Text)*1000);
+              except
+
+              end;
+            end;
+
+
             rescan.filename:=savedialog1.filename;
 
             if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then

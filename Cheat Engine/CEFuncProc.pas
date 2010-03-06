@@ -534,10 +534,10 @@ var
   //ProcessID: Dword; //deperecated
   //ProcessHandle: Thandle;
 
-  Skip_PAGE_NOCACHE: boolean;
-  Scan_MEM_PRIVATE: boolean;
-  Scan_MEM_IMAGE: boolean;
-  Scan_MEM_MAPPED: boolean;
+  Skip_PAGE_NOCACHE: boolean=false;
+  Scan_MEM_PRIVATE: boolean=true;
+  Scan_MEM_IMAGE: boolean=true;
+  Scan_MEM_MAPPED: boolean=false;
 
   CheatEngineDir: String;
   WindowsDir: string;
@@ -627,7 +627,7 @@ var
   addressfile, memoryfile: File;
   newAddressfile,newmemoryfile: File;
 
-  buffersize: dword;
+  buffersize: dword=512*1024;
   overridedebug: boolean;
 
   totalbytes: dword;

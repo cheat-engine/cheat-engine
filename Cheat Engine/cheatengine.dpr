@@ -158,7 +158,8 @@ uses
   PointerscanresultReader in 'PointerscanresultReader.pas',
   frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings},
   ManualModuleLoader in 'ManualModuleLoader.pas',
-  windows7taskbar in 'windows7taskbar.pas';
+  windows7taskbar in 'windows7taskbar.pas',
+  bigmemallochandler in 'bigmemallochandler.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

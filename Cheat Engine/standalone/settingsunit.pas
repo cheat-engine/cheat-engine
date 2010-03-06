@@ -27,7 +27,7 @@ begin
   //use c:\bla.exe till the final build (just to simplify debugging)
   try
     {$ifdef trainerbeta}
-      trainerfile:=TFileStream.create('c:\xxx.exe',fmOpenRead or fmShareDenyNone);
+      trainerfile:=TFileStream.create('c:\tutorialhack.exe',fmOpenRead or fmShareDenyNone);
     {$else}
       trainerfile:=TFileStream.create(application.exename,fmOpenRead or fmShareDenyNone);
     {$endif}

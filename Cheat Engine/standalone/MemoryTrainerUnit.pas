@@ -505,7 +505,8 @@ begin
               sl.free;
             end;
           except
-            //failed
+            on e: exception do
+              raise exception.create(e.Message);
           end;
 
         end;
@@ -557,7 +558,7 @@ begin
         if trainerdata[i].addressentrys[j].memtyp=255 then
         begin
           //auto assemble script
-          //dissable it
+          //enable it
           sl:=tstringlist.Create;
           sl.Text:=trainerdata[i].addressentrys[j].autoassemblescript;
 
@@ -577,6 +578,8 @@ begin
             end;
           except
             //failed
+            on e: exception do
+              raise exception.create(e.Message);
           end;
 
         end;

@@ -76,18 +76,16 @@ var i,j,err,err2: integer;
     currentaddress,currentaddress2,currentoffset: dword;
     read:dword;
     check: boolean;
+    haserror: boolean;
 begin
   if length(pointerinfo)=0 then exit;
 
 
   for i:=length(pointerinfo)-1 downto 0 do
   begin
-    try
-      currentaddress:=symhandler.getaddressfromname(pointerinfo[i].address.Text);
-      err:=0; //no exception...
-    except
-      err:=1;
-    end;
+    haserror:=false;
+    currentaddress:=symhandler.getAddressFromName(  pointerinfo[i].address.Text, false, haserror);
+    if haserror then err:=1 else err:=0;
 
     if err>0 then
     begin

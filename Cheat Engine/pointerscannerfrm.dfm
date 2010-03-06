@@ -198,6 +198,7 @@ object frmPointerScanner: TfrmPointerScanner
     Top = 288
   end
   object Timer2: TTimer
+    Interval = 500
     OnTimer = Timer2Timer
     Left = 104
     Top = 312

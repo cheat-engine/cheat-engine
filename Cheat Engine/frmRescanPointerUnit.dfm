@@ -3,7 +3,7 @@ object frmRescanPointer: TfrmRescanPointer
   Top = 117
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 93
+  ClientHeight = 120
   ClientWidth = 267
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,6 +16,13 @@ object frmRescanPointer: TfrmRescanPointer
   OnCreate = FormCreate
   PixelsPerInch = 120
   TextHeight = 16
+  object Label1: TLabel
+    Left = 160
+    Top = 60
+    Width = 52
+    Height = 16
+    Caption = 'seconds'
+  end
   object edtAddress: TEdit
     Left = 10
     Top = 28
@@ -70,7 +77,7 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object Button1: TButton
     Left = 48
-    Top = 56
+    Top = 88
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -80,12 +87,28 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object Button2: TButton
     Left = 128
-    Top = 56
+    Top = 88
     Width = 75
     Height = 25
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
+  end
+  object cbDelay: TCheckBox
+    Left = 56
+    Top = 60
+    Width = 65
+    Height = 17
+    Caption = 'Delay'
+    TabOrder = 5
+  end
+  object edtDelay: TEdit
+    Left = 126
+    Top = 56
+    Width = 27
+    Height = 24
+    TabOrder = 6
+    Text = '5'
   end
 end

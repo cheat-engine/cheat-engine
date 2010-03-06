@@ -8,7 +8,7 @@ it also contains some extra information like if it's static just so the pointers
 interface
 
 uses windows, dialogs, SysUtils, classes, ComCtrls, cefuncproc, newkernelhandler,
-     symbolhandler, math;
+     symbolhandler, math, bigmemallochandler;
 
 type
   PStaticData=^TStaticData;
@@ -45,6 +45,7 @@ type
 
   TReversePointerListHandler=class
   private
+    bmah: TBigMemoryAllocHandler;
     memoryregion: array of TMemoryRegion;
     level0list: PReversePointerListArray;
     function BinSearchMemRegions(address: dword): integer;
@@ -165,7 +166,8 @@ begin
     entrynr:=pointervalue shr ((7-level)*4) and $f;
     if currentarray[entrynr].ReversePointerlistArray=nil then //allocate
     begin
-      getmem(temp, sizeof(TReversePointerListArray));
+//      getmem(temp, sizeof(TReversePointerListArray));
+      temp:=bmah.alloc(sizeof(TReversePointerListArray));
       ZeroMemory(temp, sizeof(TReversePointerListArray));
       currentarray[entrynr].ReversePointerlistArray:=temp;
     end;
@@ -181,7 +183,8 @@ begin
     
   if plist=nil then //allocate one
   begin
-    getmem(currentarray[entrynr].pointerlist, sizeof(TPointerlist));
+    currentarray[entrynr].pointerlist:=bmah.alloc(sizeof(TPointerlist));
+//    getmem(currentarray[entrynr].pointerlist, sizeof(TPointerlist));
     plist:=currentarray[entrynr].pointerlist;
     
     plist.list:=nil;
@@ -200,7 +203,8 @@ begin
     //actually add a pointer address for this value
     if plist.list=nil then //create the list
     begin
-      getmem(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
+      plist.list:=bmah.alloc(plist.expectedsize*sizeof(TPointerDataArray));
+     // getmem(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
       ZeroMemory(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
 
       plist.maxsize:=plist.expectedsize;
@@ -208,15 +212,18 @@ begin
 
     if plist.pos>=plist.maxsize then
     begin
-      plist.maxsize:=plist.maxsize*4; //quadrupple the storage
-      ReallocMem(plist.list, plist.maxsize*sizeof(TPointerDataArray)); //realloc
+
+      plist.list:=bmah.realloc(plist.list,plist.maxsize*sizeof(TPointerDataArray), 4*plist.maxsize*sizeof(TPointerDataArray)); //quadrupple the storage
+      plist.maxsize:=plist.maxsize*4;
+      //ReallocMem(plist.list, plist.maxsize*sizeof(TPointerDataArray)); //realloc
     end;
 
     plist.list[plist.pos].address:=pointerwiththisvalue;
     if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
     begin
       //it's a static, so create and fill in the static data
-      getmem(plist.list[plist.pos].staticdata, sizeof(TStaticData));
+//      getmem(plist.list[plist.pos].staticdata, sizeof(TStaticData));
+      plist.list[plist.pos].staticdata:=bmah.alloc(sizeof(TStaticData));
       plist.list[plist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
       plist.list[plist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
     end
@@ -499,7 +506,9 @@ end;
 destructor TReversePointerListHandler.destroy;
 begin
   setlength(memoryregion,0);
-  deletepath(level0list,0);
+//  deletepath(level0list,0);
+  if bmah<>nil then
+    bmah.Free;
 end;
 
 
@@ -527,15 +536,19 @@ var bytepointer: PByte;
 
 
 begin
+  bmah:=TBigMemoryAllocHandler.create;
+
   modulelist:=tstringlist.create;
   symhandler.getModuleList(modulelist);
 
+  buffer:=nil;
 
   count:=0;
 
   address:=start;
 
-  getmem(level0list, sizeof(TReversePointerListArray));
+  level0list:=bmah.alloc(sizeof(TReversePointerListArray));
+  //getmem(level0list, sizeof(TReversePointerListArray));
   ZeroMemory(level0list, sizeof(TReversePointerListArray));
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
@@ -716,6 +729,8 @@ begin
 
   progressbar.Position:=0;
 
+  if buffer<>nil then
+    freemem(buffer);
  // showmessage('count='+inttostr(count));
 end;
 

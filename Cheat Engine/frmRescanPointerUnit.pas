@@ -15,6 +15,9 @@ type
     rbFindValue: TRadioButton;
     Button1: TButton;
     Button2: TButton;
+    cbDelay: TCheckBox;
+    edtDelay: TEdit;
+    Label1: TLabel;
     procedure rbFindAddressClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
