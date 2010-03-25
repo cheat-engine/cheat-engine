@@ -2761,6 +2761,7 @@ end;
 constructor TScanner.create(suspended: boolean);
 begin
   inherited create(true); //do create the thread, I need the threadid
+
   AddressFilename:=CheatEngineDir+'Addresses-'+inttostr(ThreadID)+'.TMP';
   MemoryFilename:=CheatEngineDir+'Memory-'+inttostr(ThreadID)+'.TMP';
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
@@ -3700,7 +3701,6 @@ begin
       end;
     end;
 
-    if haserror then err:=1;
 
     if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
     
@@ -3747,6 +3747,11 @@ begin
       end;
     end;
 
+    if haserror then
+    begin
+      err:=1;
+      outputdebugstring('There was an error during the scan:'+errorstring);
+    end;
 
     //send message saying it's done
     isdone:=true;

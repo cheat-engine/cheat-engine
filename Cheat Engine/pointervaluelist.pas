@@ -566,6 +566,7 @@ begin
 
       memoryregion[length(memoryregion)-1].BaseAddress:=dword(mbi.baseaddress);  //just remember this location
       memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
+   //   outputdebugstring(inttohex(dword(mbi.baseaddress),8)); 
     end;
 
 

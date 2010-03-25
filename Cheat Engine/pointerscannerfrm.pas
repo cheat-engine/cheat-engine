@@ -280,8 +280,14 @@ type
 
   end;
 
-//var
-//  frmPointerScanner: TfrmPointerScanner;
+{$ifdef benchmarkps}
+var
+  totalpathsevaluated: uint64;
+
+  starttime: dword;
+  startcount: uint64;
+{$endif}
+           
 
 
 implementation
@@ -323,6 +329,9 @@ var x: tfilestream;
     temp: dword;
     tempstring: string;
 begin
+{$ifdef benchmarkps}
+  showmessage(format('Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/((gettickcount-starttime) / 1000))) ]));
+{$endif}
 
   if staticscanner=nil then exit;
 
@@ -443,7 +452,6 @@ begin
 
   inc(scount);
 
-
   //fill in the offset list
   inc(staticscanner.pointersfound);
 
@@ -489,6 +497,10 @@ var p: ^byte;
   nostatic: TStaticData;
   DontGoDeeper: boolean;
 begin
+  {$ifdef benchmarkps}
+  inc(totalpathsevaluated);
+  {$endif}     
+
   currentlevel:=level;
   if (level>=maxlevel) then 
     exit;
@@ -1124,6 +1136,16 @@ begin
     begin
       lblRSTotalStaticPaths.caption:=format('Pointer paths found: %d',[scount]);
 
+{$ifdef benchmarkps}
+      if (starttime=0) and (totalpathsevaluated<>0) then
+      begin
+        startcount:=totalpathsevaluated;  //get the count from this point on
+        starttime:=gettickcount;
+      end;
+
+      label5.caption:=format('Threads: Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/((gettickcount-starttime) / 1000))) ]);
+      label5.Width:=label5.Canvas.TextWidth(label5.caption);
+{$endif}    
 
       //{$ifdef injectedpscan
       //lblRSCurrentAddress.Caption:=format('Currently at address %p (going till %p)',[staticscanner.currentaddress, staticscanner.lastaddress]);
