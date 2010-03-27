@@ -83,7 +83,7 @@ Called when the debugger is paused on a breakpoint
 var c: _CONTEXT;
 begin
   if debuggerthread<>nil then
-    stacktrace(debuggerthread.CurrentThread.handle.pausedthreadhandle,debuggerthread.context)
+    stacktrace(debuggerthread.CurrentThread.handle,debuggerthread.CurrentThread.context^)
   else
   begin
     if kdebugger <> nil then
