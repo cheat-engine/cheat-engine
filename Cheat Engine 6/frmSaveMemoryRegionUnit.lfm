@@ -1,0 +1,157 @@
+object frmSaveMemoryRegion: TfrmSaveMemoryRegion
+  Left = 817
+  Height = 278
+  Top = 351
+  Width = 270
+  BorderIcons = [biSystemMenu]
+  Caption = 'Save memoryregion'
+  ClientHeight = 278
+  ClientWidth = 270
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Panel1: TPanel
+    Left = 0
+    Height = 230
+    Top = 0
+    Width = 270
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 230
+    ClientWidth = 270
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 0
+      Height = 14
+      Top = 0
+      Width = 270
+      Align = alTop
+      Caption = 'Add the region(s) of memory you want to save'
+      ParentColor = False
+      WordWrap = True
+    end
+    object lbRegions: TListBox
+      Left = 0
+      Height = 216
+      Top = 14
+      Width = 163
+      Align = alClient
+      ItemHeight = 0
+      OnDblClick = lbRegionsDblClick
+      TabOrder = 0
+    end
+    object Panel4: TPanel
+      Left = 163
+      Height = 216
+      Top = 14
+      Width = 107
+      Align = alRight
+      BevelOuter = bvNone
+      ClientHeight = 216
+      ClientWidth = 107
+      TabOrder = 1
+      object Label2: TLabel
+        Left = 8
+        Height = 14
+        Top = 2
+        Width = 24
+        Caption = 'From'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        Left = 8
+        Height = 14
+        Top = 43
+        Width = 14
+        Caption = 'To'
+        ParentColor = False
+      end
+      object editFrom: TEdit
+        Left = 7
+        Height = 21
+        Top = 16
+        Width = 90
+        MaxLength = 8
+        TabOrder = 0
+      end
+      object editTo: TEdit
+        Left = 7
+        Height = 21
+        Top = 56
+        Width = 89
+        MaxLength = 8
+        TabOrder = 1
+      end
+      object Button3: TButton
+        Left = 13
+        Height = 25
+        Top = 80
+        Width = 75
+        Caption = 'Add'
+        OnClick = Button3Click
+        TabOrder = 2
+      end
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 48
+    Top = 230
+    Width = 270
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 270
+    TabOrder = 1
+    object DontInclude: TCheckBox
+      Left = 3
+      Height = 23
+      Top = 31
+      Width = 216
+      Caption = 'Don''t include Cheat Engine header in file'
+      OnClick = DontIncludeClick
+      TabOrder = 0
+    end
+    object Panel3: TPanel
+      Left = 56
+      Height = 33
+      Top = 0
+      Width = 169
+      Anchors = [akTop]
+      BevelOuter = bvNone
+      ClientHeight = 33
+      ClientWidth = 169
+      TabOrder = 1
+      object Button1: TButton
+        Left = 0
+        Height = 25
+        Top = 3
+        Width = 75
+        Caption = 'Save'
+        Default = True
+        OnClick = Button1Click
+        TabOrder = 0
+      end
+      object Button2: TButton
+        Left = 86
+        Height = 25
+        Top = 3
+        Width = 75
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 1
+      end
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.CEM'
+    Filter = 'Cheat Engine Memory file(*.CEM)|*.CEM|All files(*.*)|*.*'
+    FilterIndex = 0
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    left = 8
+    top = 16
+  end
+end

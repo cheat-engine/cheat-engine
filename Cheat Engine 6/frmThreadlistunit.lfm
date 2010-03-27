@@ -1,0 +1,43 @@
+object frmThreadlist: TfrmThreadlist
+  Left = 795
+  Height = 187
+  Top = 582
+  Width = 313
+  BorderStyle = bsSizeToolWin
+  Caption = 'Threadlist'
+  ClientHeight = 187
+  ClientWidth = 313
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.29'
+  object threadlistview: TListView
+    Left = 0
+    Height = 187
+    Top = 0
+    Width = 313
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'ThreadID'
+        Width = 200
+      end>
+    ColumnClick = False
+    HideSelection = False
+    ItemIndex = -1
+    PopupMenu = PopupMenu1
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+  object PopupMenu1: TPopupMenu
+    left = 80
+    top = 40
+    object Break1: TMenuItem
+      Caption = 'Break'
+      OnClick = Break1Click
+    end
+  end
+end

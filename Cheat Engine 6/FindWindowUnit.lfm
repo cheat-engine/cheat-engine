@@ -1,0 +1,158 @@
+object FindWindow: TFindWindow
+  Left = 715
+  Height = 186
+  Top = 389
+  Width = 286
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Find'
+  ClientHeight = 186
+  ClientWidth = 286
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object ProgressBar: TProgressBar
+    Left = 0
+    Height = 20
+    Top = 116
+    Width = 286
+    Align = alBottom
+    Step = 1
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 116
+    Top = 0
+    Width = 286
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 116
+    ClientWidth = 286
+    TabOrder = 1
+    object labelType: TLabel
+      Left = 20
+      Height = 17
+      Top = 0
+      Width = 36
+      Caption = 'Type:'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 150
+      Height = 17
+      Top = 25
+      Width = 32
+      Caption = 'From'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 167
+      Height = 17
+      Top = 54
+      Width = 18
+      Caption = 'To'
+      ParentColor = False
+    end
+    object labelArray: TLabel
+      Left = 187
+      Height = 17
+      Top = 0
+      Width = 79
+      Caption = 'Array to scan'
+      ParentColor = False
+    end
+    object editStart: TEdit
+      Left = 187
+      Height = 24
+      Top = 20
+      Width = 90
+      MaxLength = 8
+      TabOrder = 0
+      Text = '00400000'
+    end
+    object EditStop: TEdit
+      Left = 187
+      Height = 24
+      Top = 49
+      Width = 90
+      MaxLength = 8
+      TabOrder = 1
+      Text = '7FFFFFFF'
+    end
+    object rbText: TRadioButton
+      Left = 0
+      Height = 23
+      Top = 22
+      Width = 50
+      Caption = 'Text'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+    end
+    object rbArByte: TRadioButton
+      Left = 0
+      Height = 23
+      Top = 42
+      Width = 107
+      Caption = '(Array of) byte'
+      TabOrder = 3
+      TabStop = False
+    end
+    object cbUnicode: TCheckBox
+      Left = 69
+      Height = 23
+      Top = 20
+      Width = 75
+      Caption = 'Unicode'
+      TabOrder = 4
+    end
+    object Scanvalue: TEdit
+      Left = 10
+      Height = 24
+      Top = 89
+      Width = 267
+      TabOrder = 5
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 50
+    Top = 136
+    Width = 286
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 50
+    ClientWidth = 286
+    TabOrder = 2
+    object btnOK: TButton
+      Left = 45
+      Height = 30
+      Top = 11
+      Width = 93
+      Caption = 'OK'
+      Default = True
+      OnClick = btnOKClick
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      Left = 145
+      Height = 30
+      Top = 11
+      Width = 92
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 5
+    OnTimer = Timer1Timer
+    left = 88
+    top = 40
+  end
+end

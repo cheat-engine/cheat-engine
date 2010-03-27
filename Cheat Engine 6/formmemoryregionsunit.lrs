@@ -1,0 +1,31 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TFormMemoryRegions','FORMDATA',[
+  'TPF0'#18'TFormMemoryRegions'#17'FormMemoryRegions'#4'Left'#3#155#2#6'Height'
+  +#3'r'#1#3'Top'#3#9#1#5'Width'#3'e'#2#11'BorderIcons'#11#12'biSystemMenu'#0#7
+  +'Caption'#6#14'Memory regions'#12'ClientHeight'#3'r'#1#11'ClientWidth'#3'e'#2
+  +#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormC'
+  +'lose'#6'OnShow'#7#8'FormShow'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVer'
+  +'sion'#6#6'0.9.29'#0#7'TButton'#7'Button1'#4'Left'#3'W'#1#6'Height'#2#31#3'T'
+  +'op'#3'l'#1#5'Width'#2']'#7'Anchors'#11#8'akBottom'#0#6'Cancel'#9#7'Caption'
+  +#6#2'OK'#7'Default'#9#11'ModalResult'#2#1#7'OnClick'#7#12'Button1Click'#8'Ta'
+  +'bOrder'#2#0#0#0#9'TListView'#9'ListView1'#4'Left'#2#0#6'Height'#3'r'#1#3'To'
+  +'p'#2#0#5'Width'#3'e'#2#5'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6#7
+  +'Address'#5'Width'#2'b'#0#1#7'Caption'#6#18'Allocation Protect'#5'Width'#3
+  +#135#0#0#1#7'Caption'#6#5'State'#5'Width'#2'J'#0#1#7'Caption'#6#7'Protect'#5
+  +'Width'#3#135#0#0#1#7'Caption'#6#4'Type'#5'Width'#2'>'#0#1#7'Caption'#6#4'Si'
+  +'ze'#5'Width'#2'V'#0#0#13'HideSelection'#8#9'ItemIndex'#2#255#11'MultiSelect'
+  +#9#9'PopupMenu'#7#10'PopupMenu1'#8'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#1
+  +#9'ViewStyle'#7#8'vsReport'#10'OnDblClick'#7#17'ListView1DblClick'#0#0#10'TP'
+  +'opupMenu'#10'PopupMenu1'#7'OnPopup'#7#15'PopupMenu1Popup'#4'left'#3#136#0#3
+  +'top'#2'H'#0#9'TMenuItem'#20'Saveselectedregions1'#7'Caption'#6#21'Save sele'
+  +'cted regions'#7'OnClick'#7#25'Saveselectedregions1Click'#0#0#9'TMenuItem'#24
+  +'SelectAllReadableMemory1'#7'Caption'#6#26'Select all readable memory'#7'OnC'
+  +'lick'#7#29'SelectAllReadableMemory1Click'#0#0#9'TMenuItem'#2'N1'#7'Caption'
+  +#6#1'-'#0#0#9'TMenuItem'#31'Setselectedregionstobewritable1'#7'Caption'#6'#S'
+  +'et selected regions to be writable'#7'OnClick'#7'$Setselectedregionstobewri'
+  +'table1Click'#0#0#0#11'TSaveDialog'#11'SaveDialog1'#5'Title'#6'@Give the bas'
+  +'ename of the regions to be saved. (Can be a CT file)'#7'Options'#11#14'ofHi'
+  +'deReadOnly'#15'ofPathMustExist'#14'ofEnableSizing'#0#4'left'#2' '#3'top'#2
+  +'8'#0#0#0
+]);

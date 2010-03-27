@@ -1,0 +1,48 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmFindStatics','FORMDATA',[
+  'TPF0'#15'TfrmFindStatics'#14'frmFindStatics'#4'Left'#3'I'#3#6'Height'#3'@'#1
+  +#3'Top'#3#158#1#5'Width'#3'_'#1#11'BorderStyle'#7#12'bsToolWindow'#7'Caption'
+  +#6#21'Find static addresses'#12'ClientHeight'#3'@'#1#11'ClientWidth'#3'_'#1
+  +#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormC'
+  +'lose'#8'OnCreate'#7#10'FormCreate'#6'OnShow'#7#8'FormShow'#8'Position'#7#14
+  +'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#12'TProgressBar'#12'ProgressBa'
+  +'r1'#4'Left'#2#0#6'Height'#2#17#3'Top'#3'/'#1#5'Width'#3'_'#1#5'Align'#7#8'a'
+  +'lBottom'#8'TabOrder'#2#0#0#0#6'TPanel'#6'Panel1'#4'Left'#3#14#1#6'Height'#3
+  +#28#1#3'Top'#2#0#5'Width'#2'Q'#5'Align'#7#7'alRight'#10'BevelOuter'#7#6'bvNo'
+  +'ne'#12'ClientHeight'#3#28#1#11'ClientWidth'#2'Q'#8'TabOrder'#2#1#0#6'TLabel'
+  +#6'Label1'#4'Left'#2#8#6'Height'#2#14#3'Top'#2'('#5'Width'#2#24#7'Caption'#6
+  +#4'From'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#8#6'Height'#2#14
+  +#3'Top'#2'P'#5'Width'#2#17#7'Caption'#6#3'To:'#11'ParentColor'#8#0#0#6'TLabe'
+  +'l'#6'Label4'#4'Left'#2#3#6'Height'#2#14#3'Top'#3#136#0#5'Width'#2'J'#7'Capt'
+  +'ion'#6#16'Filter addresses'#11'ParentColor'#8#0#0#6'TLabel'#6'Label5'#4'Lef'
+  +'t'#2#8#6'Height'#2#14#3'Top'#3#152#0#5'Width'#2#24#7'Caption'#6#4'From'#11
+  +'ParentColor'#8#0#0#6'TLabel'#6'Label6'#4'Left'#2#8#6'Height'#2#14#3'Top'#3
+  +#192#0#5'Width'#2#17#7'Caption'#6#3'To:'#11'ParentColor'#8#0#0#7'TButton'#7
+  +'Button1'#4'Left'#2#8#6'Height'#2#25#3'Top'#2#8#5'Width'#2'A'#7'Caption'#6#11
+  +'Stopping...'#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#0#0#0#5'TEdit'#5'E'
+  +'dit1'#4'Left'#2#8#6'Height'#2#21#3'Top'#2'8'#5'Width'#2'A'#8'CharCase'#7#11
+  +'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2#1#4'Text'#6#8'00401000'#0#0#5'T'
+  +'Edit'#5'Edit2'#4'Left'#2#8#6'Height'#2#21#3'Top'#2'`'#5'Width'#2'A'#8'CharC'
+  +'ase'#7#11'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2#2#4'Text'#6#8'0070000'
+  +'0'#0#0#5'TEdit'#5'Edit3'#4'Left'#2#8#6'Height'#2#21#3'Top'#3#168#0#5'Width'
+  +#2'A'#8'CharCase'#7#11'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2#3#4'Text'
+  +#6#8'00400000'#0#0#5'TEdit'#5'Edit4'#4'Left'#2#8#6'Height'#2#21#3'Top'#3#208
+  +#0#5'Width'#2'A'#8'CharCase'#7#11'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2
+  +#4#4'Text'#6#8'7FFFFFFF'#0#0#0#6'TPanel'#6'Panel2'#4'Left'#2#0#6'Height'#2#19
+  +#3'Top'#3#28#1#5'Width'#3'_'#1#5'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvN'
+  +'one'#12'ClientHeight'#2#19#11'ClientWidth'#3'_'#1#8'TabOrder'#2#2#0#9'TChec'
+  +'kBox'#9'CheckBox1'#4'Left'#2#0#6'Height'#2#23#3'Top'#2#0#5'Width'#3'_'#1#7
+  +'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#7'Caption'#6'*Only disassemble '
+  +'and check executable code'#7'Checked'#9#5'State'#7#9'cbChecked'#8'TabOrder'
+  +#2#0#0#0#0#6'TPanel'#6'Panel3'#4'Left'#2#0#6'Height'#3#28#1#3'Top'#2#0#5'Wid'
+  +'th'#3#14#1#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#12'ClientHeigh'
+  +'t'#3#28#1#11'ClientWidth'#3#14#1#8'TabOrder'#2#3#0#9'TListView'#9'ListView1'
+  +#4'Left'#2#0#6'Height'#3#28#1#3'Top'#2#0#5'Width'#3#14#1#5'Align'#7#8'alClie'
+  +'nt'#7'Columns'#14#1#7'Caption'#6#7'Address'#5'Width'#2'P'#0#1#9'Alignment'#7
+  +#8'taCenter'#7'Caption'#6#8'Pointer?'#5'Width'#2'U'#0#1#7'Caption'#6#15'Refe'
+  +'rence count'#5'Width'#2'd'#0#0#9'ItemIndex'#2#255#8'ReadOnly'#9#9'RowSelect'
+  +#9#8'SortType'#7#6'stText'#8'TabOrder'#2#0#9'ViewStyle'#7#8'vsReport'#13'OnC'
+  +'olumnClick'#7#20'ListView1ColumnClick'#9'OnCompare'#7#16'ListView1Compare'
+  +#10'OnDblClick'#7#17'ListView1DblClick'#0#0#0#0
+]);

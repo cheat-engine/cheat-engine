@@ -1,0 +1,49 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('THotKeyForm','FORMDATA',[
+  'TPF0'#11'THotKeyForm'#10'HotKeyForm'#4'Left'#3#239#3#6'Height'#3'K'#1#3'Top'
+  +#3'T'#1#5'Width'#3#198#1#11'BorderIcons'#11#0#11'BorderStyle'#7#8'bsSingle'#7
+  +'Caption'#6#17'Set/Change hotkey'#12'ClientHeight'#3'K'#1#11'ClientWidth'#3
+  +#198#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9
+  +'FormClose'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#14'poScreenCenter'#10
+  +'LCLVersion'#6#6'0.9.29'#0#9'TListView'#9'ListView1'#4'Left'#2#0#6'Height'#3
+  +#147#0#3'Top'#2#0#5'Width'#3#198#1#5'Align'#7#8'alClient'#7'Columns'#14#1#7
+  +'Caption'#6#6'Hotkey'#5'Width'#2'x'#0#1#7'Caption'#6#9'On Hotkey'#5'Width'#3
+  +#200#0#0#1#7'Caption'#6#5'Value'#5'Width'#2'P'#0#0#9'ItemIndex'#2#255#8'TabO'
+  +'rder'#2#0#9'ViewStyle'#7#8'vsReport'#12'OnSelectItem'#7#19'ListView1SelectI'
+  +'tem'#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#3#184#0#3'Top'#3#147#0#5
+  +'Width'#3#198#1#5'Align'#7#8'alBottom'#12'ClientHeight'#3#184#0#11'ClientWid'
+  +'th'#3#198#1#8'TabOrder'#2#1#0#12'TPageControl'#12'PageControl1'#4'Left'#2#1
+  +#6'Height'#3#142#0#3'Top'#2#1#5'Width'#3#196#1#10'ActivePage'#7#9'TabSheet2'
+  +#5'Align'#7#8'alClient'#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#8'Show'
+  +'Tabs'#8#8'TabIndex'#2#1#8'TabOrder'#2#0#0#9'TTabSheet'#9'TabSheet1'#7'Capti'
+  +'on'#6#9'TabSheet1'#12'ClientHeight'#3#134#0#11'ClientWidth'#3#188#1#0#7'TBu'
+  +'tton'#15'btnCreateHotkey'#4'Left'#2#11#6'Height'#2#25#3'Top'#2#7#5'Width'#2
+  +'K'#7'Caption'#6#13'Create hotkey'#7'OnClick'#7#20'btnCreateHotkeyClick'#8'T'
+  +'abOrder'#2#0#0#0#7'TButton'#13'btnEditHotkey'#4'Left'#2'\'#6'Height'#2#25#3
+  +'Top'#2#7#5'Width'#2'K'#7'Caption'#6#11'Edit Hotkey'#7'Enabled'#8#7'OnClick'
+  +#7#18'btnEditHotkeyClick'#8'TabOrder'#2#1#0#0#0#9'TTabSheet'#9'TabSheet2'#7
+  +'Caption'#6#9'TabSheet2'#12'ClientHeight'#3#134#0#11'ClientWidth'#3#188#1#0#6
+  +'TLabel'#6'Label1'#4'Left'#2#5#6'Height'#2#14#3'Top'#2#1#5'Width'#3#208#0#7
+  +'Caption'#6'+Type the keys you want to set the hotkey to'#11'ParentColor'#8#0
+  +#0#5'TEdit'#9'edtHotkey'#4'Left'#2#5#6'Height'#2#21#3'Top'#2#17#5'Width'#3#1
+  +#1#9'OnKeyDown'#7#16'edtHotkeyKeyDown'#8'ReadOnly'#9#8'TabOrder'#2#0#0#0#7'T'
+  +'Button'#7'Button2'#4'Left'#3#10#1#6'Height'#2#19#3'Top'#2#18#5'Width'#2'"'#7
+  +'Caption'#6#5'Clear'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#7'TBu'
+  +'tton'#8'btnApply'#4'Left'#2#5#6'Height'#2#25#3'Top'#2'`'#5'Width'#2'K'#7'Ca'
+  +'ption'#6#5'Apply'#7'OnClick'#7#13'btnApplyClick'#8'TabOrder'#2#2#0#0#9'TCom'
+  +'boBox'#17'cbFreezedirection'#4'Left'#2#5#6'Height'#2#21#3'Top'#2'&'#5'Width'
+  +#3#145#0#10'ItemHeight'#2#13#9'ItemIndex'#2#0#13'Items.Strings'#1#6#13'Toggl'
+  +'e freeze'#6' Toggle freeze and allow increase'#6' Toggle freeze and allow d'
+  +'ecrease'#6#13'Set value to:'#6#20'Decrease value with:'#6#20'Increase value'
+  +' with:'#0#8'OnSelect'#7#23'cbFreezedirectionSelect'#5'Style'#7#14'csDropDow'
+  +'nList'#8'TabOrder'#2#3#4'Text'#6#13'Toggle freeze'#0#0#5'TEdit'#14'edtFreez'
+  +'eValue'#4'Left'#2#4#6'Height'#2#21#3'Top'#2'B'#5'Width'#3#1#1#7'Enabled'#8#8
+  +'TabOrder'#2#4#0#0#7'TButton'#9'btnCancel'#4'Left'#2'S'#6'Height'#2#25#3'Top'
+  +#2'`'#5'Width'#2'K'#7'Caption'#6#6'Cancel'#7'OnClick'#7#14'btnCancelClick'#8
+  +'TabOrder'#2#5#0#0#0#0#6'TPanel'#6'Panel2'#4'Left'#2#1#6'Height'#2'('#3'Top'
+  +#3#143#0#5'Width'#3#196#1#5'Align'#7#8'alBottom'#12'ClientHeight'#2'('#11'Cl'
+  +'ientWidth'#3#196#1#8'TabOrder'#2#1#8'OnResize'#7#12'Panel2Resize'#0#7'TBitB'
+  +'tn'#7'BitBtn1'#4'Left'#3#191#0#6'Height'#2#22#3'Top'#2#6#5'Width'#2'A'#7'Ca'
+  +'ption'#6#2'OK'#7'OnClick'#7#12'BitBtn1Click'#8'TabOrder'#2#0#0#0#0#0#0
+]);

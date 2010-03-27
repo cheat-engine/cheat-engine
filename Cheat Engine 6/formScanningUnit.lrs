@@ -1,0 +1,25 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TformScanning','FORMDATA',[
+  'TPF0'#13'TformScanning'#12'formScanning'#4'Left'#3'N'#3#6'Height'#2'K'#3'Top'
+  +#3#232#0#5'Width'#3#140#0#11'BorderIcons'#11#0#11'BorderStyle'#7#8'bsSingle'
+  +#7'Caption'#6#11'Scanning...'#12'ClientHeight'#2'K'#11'ClientWidth'#3#140#0
+  +#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormC'
+  +'lose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#6
+  +'OnShow'#7#8'FormShow'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6#6
+  +'0.9.29'#0#6'TLabel'#6'Label1'#4'Left'#2#248#6'Height'#2#24#3'Top'#2#8#5'Wid'
+  +'th'#3#145#0#8'AutoSize'#8#7'Caption'#6'801000100010000100011010001000101010'
+  +'101100100010101010010'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2
+  +#231#9'Font.Name'#6#7'Courier'#10'Font.Style'#11#6'fsBold'#0#11'ParentColor'
+  +#8#10'ParentFont'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#14#3'Top'
+  +#2' '#5'Width'#2'S'#7'Caption'#6#19'Estimate time left:'#11'ParentColor'#8#0
+  +#0#6'TLabel'#6'Label3'#4'Left'#2'X'#6'Height'#2#14#3'Top'#2' '#5'Width'#2'+'
+  +#7'Caption'#6#8'00:00:00'#11'ParentColor'#8#0#0#7'TButton'#9'btnCancel'#4'Le'
+  +'ft'#2#12#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'i'#6'Cancel'#9#7'Caption'#6#6
+  +'Cancel'#7'OnClick'#7#14'btnCancelClick'#8'TabOrder'#2#1#0#0#7'TButton'#7'Bu'
+  +'tton1'#4'Left'#3' '#3#6'Height'#2#0#3'Top'#3' '#3#5'Width'#2#0#7'Caption'#6
+  +#7'Button1'#7'Default'#9#8'TabOrder'#2#0#0#0#6'TTimer'#6'Timer1'#7'OnTimer'#7
+  +#11'Timer1Timer'#4'left'#2#16#3'top'#2#16#0#0#6'TTimer'#6'Timer2'#7'Enabled'
+  +#8#8'Interval'#3#136#19#7'OnTimer'#7#11'Timer2Timer'#4'left'#2'X'#3'top'#2#16
+  +#0#0#0
+]);

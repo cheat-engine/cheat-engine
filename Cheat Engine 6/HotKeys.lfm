@@ -1,0 +1,184 @@
+object HotKeyForm: THotKeyForm
+  Left = 1007
+  Height = 331
+  Top = 340
+  Width = 454
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Set/Change hotkey'
+  ClientHeight = 331
+  ClientWidth = 454
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object ListView1: TListView
+    Left = 0
+    Height = 147
+    Top = 0
+    Width = 454
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Hotkey'
+        Width = 120
+      end    
+      item
+        Caption = 'On Hotkey'
+        Width = 200
+      end    
+      item
+        Caption = 'Value'
+        Width = 80
+      end>
+    ItemIndex = -1
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnSelectItem = ListView1SelectItem
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 184
+    Top = 147
+    Width = 454
+    Align = alBottom
+    ClientHeight = 184
+    ClientWidth = 454
+    TabOrder = 1
+    object PageControl1: TPageControl
+      Left = 1
+      Height = 142
+      Top = 1
+      Width = 452
+      ActivePage = TabSheet2
+      Align = alClient
+      Anchors = [akTop, akLeft, akRight]
+      ShowTabs = False
+      TabIndex = 1
+      TabOrder = 0
+      object TabSheet1: TTabSheet
+        Caption = 'TabSheet1'
+        ClientHeight = 134
+        ClientWidth = 444
+        object btnCreateHotkey: TButton
+          Left = 11
+          Height = 25
+          Top = 7
+          Width = 75
+          Caption = 'Create hotkey'
+          OnClick = btnCreateHotkeyClick
+          TabOrder = 0
+        end
+        object btnEditHotkey: TButton
+          Left = 92
+          Height = 25
+          Top = 7
+          Width = 75
+          Caption = 'Edit Hotkey'
+          Enabled = False
+          OnClick = btnEditHotkeyClick
+          TabOrder = 1
+        end
+      end
+      object TabSheet2: TTabSheet
+        Caption = 'TabSheet2'
+        ClientHeight = 134
+        ClientWidth = 444
+        object Label1: TLabel
+          Left = 5
+          Height = 14
+          Top = 1
+          Width = 208
+          Caption = 'Type the keys you want to set the hotkey to'
+          ParentColor = False
+        end
+        object edtHotkey: TEdit
+          Left = 5
+          Height = 21
+          Top = 17
+          Width = 257
+          OnKeyDown = edtHotkeyKeyDown
+          ReadOnly = True
+          TabOrder = 0
+        end
+        object Button2: TButton
+          Left = 266
+          Height = 19
+          Top = 18
+          Width = 34
+          Caption = 'Clear'
+          OnClick = Button2Click
+          TabOrder = 1
+        end
+        object btnApply: TButton
+          Left = 5
+          Height = 25
+          Top = 96
+          Width = 75
+          Caption = 'Apply'
+          OnClick = btnApplyClick
+          TabOrder = 2
+        end
+        object cbFreezedirection: TComboBox
+          Left = 5
+          Height = 21
+          Top = 38
+          Width = 145
+          ItemHeight = 13
+          ItemIndex = 0
+          Items.Strings = (
+            'Toggle freeze'
+            'Toggle freeze and allow increase'
+            'Toggle freeze and allow decrease'
+            'Set value to:'
+            'Decrease value with:'
+            'Increase value with:'
+          )
+          OnSelect = cbFreezedirectionSelect
+          Style = csDropDownList
+          TabOrder = 3
+          Text = 'Toggle freeze'
+        end
+        object edtFreezeValue: TEdit
+          Left = 4
+          Height = 21
+          Top = 66
+          Width = 257
+          Enabled = False
+          TabOrder = 4
+        end
+        object btnCancel: TButton
+          Left = 83
+          Height = 25
+          Top = 96
+          Width = 75
+          Caption = 'Cancel'
+          OnClick = btnCancelClick
+          TabOrder = 5
+        end
+      end
+    end
+    object Panel2: TPanel
+      Left = 1
+      Height = 40
+      Top = 143
+      Width = 452
+      Align = alBottom
+      ClientHeight = 40
+      ClientWidth = 452
+      TabOrder = 1
+      OnResize = Panel2Resize
+      object BitBtn1: TBitBtn
+        Left = 191
+        Height = 22
+        Top = 6
+        Width = 65
+        Caption = 'OK'
+        OnClick = BitBtn1Click
+        TabOrder = 0
+      end
+    end
+  end
+end

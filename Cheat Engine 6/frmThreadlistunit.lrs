@@ -1,0 +1,16 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmThreadlist','FORMDATA',[
+  'TPF0'#14'TfrmThreadlist'#13'frmThreadlist'#4'Left'#3#27#3#6'Height'#3#187#0#3
+  +'Top'#3'F'#2#5'Width'#3'9'#1#11'BorderStyle'#7#13'bsSizeToolWin'#7'Caption'#6
+  +#10'Threadlist'#12'ClientHeight'#3#187#0#11'ClientWidth'#3'9'#1#11'Font.Heig'
+  +'ht'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#8'OnCr'
+  +'eate'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6
+  +#6'0.9.29'#0#9'TListView'#14'threadlistview'#4'Left'#2#0#6'Height'#3#187#0#3
+  +'Top'#2#0#5'Width'#3'9'#1#5'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6
+  +#8'ThreadID'#5'Width'#3#200#0#0#0#11'ColumnClick'#8#13'HideSelection'#8#9'It'
+  +'emIndex'#2#255#9'PopupMenu'#7#10'PopupMenu1'#9'RowSelect'#9#8'TabOrder'#2#0
+  +#9'ViewStyle'#7#8'vsReport'#0#0#10'TPopupMenu'#10'PopupMenu1'#4'left'#2'P'#3
+  +'top'#2'('#0#9'TMenuItem'#6'Break1'#7'Caption'#6#5'Break'#7'OnClick'#7#11'Br'
+  +'eak1Click'#0#0#0#0
+]);

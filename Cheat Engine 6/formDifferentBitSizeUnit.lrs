@@ -1,0 +1,28 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TformDifferentBitSize','FORMDATA',[
+  'TPF0'#21'TformDifferentBitSize'#20'formDifferentBitSize'#4'Left'#3'q'#4#6'He'
+  +'ight'#3#163#0#3'Top'#3#147#0#5'Width'#3'I'#1#21'VertScrollBar.Visible'#8#11
+  +'BorderIcons'#11#12'biSystemMenu'#0#7'Caption'#6#27'Different sized row of b'
+  +'its'#12'ClientHeight'#3#163#0#11'ClientWidth'#3'I'#1#11'Font.Height'#2#245#9
+  +'Font.Name'#6#13'MS Sans Serif'#8'OnCreate'#7#10'FormCreate'#6'OnShow'#7#8'F'
+  +'ormShow'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TL'
+  +'abel'#8'Labelold'#4'Left'#2'x'#6'Height'#2#17#3'Top'#2'8'#5'Width'#2'I'#7'C'
+  +'aption'#6#8'LabelOld'#11'Font.Height'#2#240#9'Font.Name'#6#7'Courier'#11'Pa'
+  +'rentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#8'LabelNew'#4'Left'#2'x'#6'Heig'
+  +'ht'#2#17#3'Top'#2'H'#5'Width'#2'I'#7'Caption'#6#8'LabelNew'#11'Font.Height'
+  +#2#240#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TL'
+  +'abel'#6'Label1'#4'Left'#2#0#6'Height'#2')'#3'Top'#2#0#5'Width'#3'A'#1#8'Aut'
+  +'oSize'#8#7'Caption'#6#190'The last time you scanned the number of bits was '
+  +'90 and now it is 12. Please tell me how and how much i must change the bit '
+  +'offset to succesfully scan. (Left arrow+right arrow move the bits)'#11'Pare'
+  +'ntColor'#8#8'WordWrap'#9#0#0#5'TEdit'#5'Edit1'#4'Left'#3#136#0#6'Height'#2
+  +#21#3'Top'#2'h'#5'Width'#2'!'#7'Anchors'#11#0#9'OnKeyDown'#7#12'Edit1KeyDown'
+  +#10'OnKeyPress'#7#13'Edit1KeyPress'#9'PopupMenu'#7#10'PopupMenu1'#8'TabOrder'
+  +#2#0#4'Text'#6#5'Edit1'#0#0#7'TButton'#7'Button1'#4'Left'#2'x'#6'Height'#2#25
+  +#3'Top'#2'f'#5'Width'#2'K'#7'Anchors'#11#0#7'Caption'#6#2'OK'#7'Default'#9#7
+  +'OnClick'#7#12'Button1Click'#8'TabOrder'#2#1#7'TabStop'#8#0#0#10'TPopupMenu'
+  +#10'PopupMenu1'#4'left'#2'H'#3'top'#2'P'#0#9'TMenuItem'#15'OhnoYoufoundme1'#7
+  +'Caption'#6#22'Oh no! You found me!!!'#7'OnClick'#7#20'OhnoYoufoundme1Click'
+  +#0#0#0#0
+]);

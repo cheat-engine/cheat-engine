@@ -1,0 +1,32 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmChangedAddresses','FORMDATA',[
+  'TPF0'#20'TfrmChangedAddresses'#19'frmChangedAddresses'#4'Left'#3'q'#4#6'Heig'
+  +'ht'#3'%'#1#3'Top'#3#162#0#5'Width'#3'M'#1#7'Caption'#6#17'Changed Addresses'
+  +#12'ClientHeight'#3'%'#1#11'ClientWidth'#3'M'#1#11'Font.Height'#2#242#9'Font'
+  +'.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7#10'FormC'
+  +'reate'#9'OnDestroy'#7#11'FormDestroy'#6'OnShow'#7#8'FormShow'#8'Position'#7
+  +#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#7'lblInfo'#4'Left'
+  +#2#0#6'Height'#2'!'#3'Top'#2#0#5'Width'#3'M'#1#5'Align'#7#5'alTop'#7'Caption'
+  +#6'BThe following addresses have been changed by the code you selected'#11'P'
+  +'arentColor'#8#8'WordWrap'#9#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2
+  +'3'#3'Top'#3#242#0#5'Width'#3'M'#1#5'Align'#7#8'alBottom'#12'ClientHeight'#2
+  +'3'#11'ClientWidth'#3'M'#1#8'TabOrder'#2#0#0#7'TButton'#8'OKButton'#4'Left'#2
+  +#10#6'Height'#2#31#3'Top'#2#10#5'Width'#2'\'#7'Caption'#6#4'Stop'#7'Default'
+  +#9#7'OnClick'#7#13'OKButtonClick'#8'TabOrder'#2#0#0#0#9'TComboBox'#13'cbDisp'
+  +'layType'#4'Left'#2'v'#6'Height'#2#24#3'Top'#2#10#5'Width'#3#179#0#10'ItemHe'
+  +'ight'#2#16#9'ItemIndex'#2#2#13'Items.Strings'#1#6#4'Byte'#6#7'2 Bytes'#6#7
+  +'4 Bytes'#6#5'Float'#6#6'Double'#0#5'Style'#7#14'csDropDownList'#8'TabOrder'
+  +#2#1#4'Text'#6#7'4 Bytes'#0#0#0#9'TListView'#11'Changedlist'#4'Left'#2#0#6'H'
+  +'eight'#3#209#0#3'Top'#2'!'#5'Width'#3'M'#1#5'Align'#7#8'alClient'#7'Columns'
+  +#14#1#7'Caption'#6#7'Address'#5'Width'#2'{'#0#1#8'AutoSize'#9#7'Caption'#6#5
+  +'Value'#5'Width'#2'd'#0#0#9'ItemIndex'#2#255#9'PopupMenu'#7#10'PopupMenu1'#8
+  +'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#1#9'ViewStyle'#7#8'vsReport'#10'On'
+  +'DblClick'#7#19'ChangedlistDblClick'#0#0#6'TTimer'#6'Timer1'#8'Interval'#3
+  +#244#1#7'OnTimer'#7#11'Timer1Timer'#4'left'#2'8'#3'top'#2'@'#0#0#10'TPopupMe'
+  +'nu'#10'PopupMenu1'#4'left'#2'('#3'top'#2'h'#0#9'TMenuItem'#19'Showregisters'
+  +'tates1'#7'Caption'#6#20'Show register states'#7'OnClick'#7#24'Showregisters'
+  +'tates1Click'#0#0#9'TMenuItem'#23'Browsethismemoryregion1'#7'Caption'#6#25'B'
+  +'rowse this memory region'#7'OnClick'#7#28'Browsethismemoryregion1Click'#0#0
+  +#0#0
+]);

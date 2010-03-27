@@ -1,0 +1,51 @@
+object frmDisassemblyscan: TfrmDisassemblyscan
+  Left = 715
+  Height = 150
+  Top = 459
+  Width = 450
+  BorderStyle = bsDialog
+  Caption = 'Assemblyscan'
+  ClientHeight = 150
+  ClientWidth = 450
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 136
+    Width = 450
+    Align = alBottom
+    Alignment = taCenter
+    Caption = '                      '
+    ParentColor = False
+  end
+  object ListBox1: TListBox
+    Left = 0
+    Height = 136
+    Top = 0
+    Width = 377
+    Align = alLeft
+    ItemHeight = 0
+    OnDblClick = ListBox1DblClick
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 384
+    Height = 25
+    Top = 112
+    Width = 59
+    Caption = 'Cancel'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 344
+    top = 24
+  end
+end

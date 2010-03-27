@@ -1,0 +1,33 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmEnumerateDLLs','FORMDATA',[
+  'TPF0'#17'TfrmEnumerateDLLs'#16'frmEnumerateDLLs'#4'Left'#3#197#2#6'Height'#3
+  +'/'#1#3'Top'#3'&'#1#5'Width'#3'q'#1#11'BorderIcons'#11#12'biSystemMenu'#10'b'
+  +'iMaximize'#0#7'Caption'#6#15'Enumerate DLL''s'#12'ClientHeight'#3'/'#1#11'C'
+  +'lientWidth'#3'q'#1#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans Serif'#7
+  +'OnClose'#7#9'FormClose'#6'OnShow'#7#8'FormShow'#8'Position'#7#14'poScreenCe'
+  +'nter'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'
+  +#2#17#3'Top'#2#0#5'Width'#3'q'#1#5'Align'#7#5'alTop'#9'Alignment'#7#8'taCent'
+  +'er'#7'Caption'#6#7'Symbols'#11'ParentColor'#8#0#0#9'TTreeView'#9'TreeView1'
+  +#4'Left'#2#0#6'Height'#3#236#0#3'Top'#2#17#5'Width'#3'q'#1#5'Align'#7#8'alCl'
+  +'ient'#17'DefaultItemHeight'#2#15#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Fon'
+  +'t.Height'#2#241#9'Font.Name'#6#7'Courier'#13'HideSelection'#8#6'Indent'#2#19
+  +#10'ParentFont'#8#9'PopupMenu'#7#8'pmSymbol'#8'ReadOnly'#9#9'RowSelect'#9#8
+  +'TabOrder'#2#0#10'OnDblClick'#7#17'TreeView1DblClick'#7'Options'#11#17'tvoAu'
+  +'toItemHeight'#21'tvoKeepCollapsedNodes'#11'tvoReadOnly'#12'tvoRowSelect'#14
+  +'tvoShowButtons'#12'tvoShowLines'#11'tvoShowRoot'#11'tvoToolTips'#0#0#0#6'TP'
+  +'anel'#6'Panel1'#4'Left'#2#0#6'Height'#2'2'#3'Top'#3#253#0#5'Width'#3'q'#1#5
+  +'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2'2'#11'Cl'
+  +'ientWidth'#3'q'#1#8'TabOrder'#2#1#0#7'TButton'#7'Button1'#4'Left'#3#144#0#6
+  +'Height'#2#30#3'Top'#2#9#5'Width'#2'\'#7'Anchors'#11#8'akBottom'#0#7'Caption'
+  +#6#5'Close'#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#0#0#0#7'TButton'#7'B'
+  +'utton2'#4'Left'#2#0#6'Height'#2#20#3'Top'#2#30#5'Width'#2'\'#7'Caption'#6#11
+  +'Cancel Enum'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#0#11'TFindDi'
+  +'alog'#11'FindDialog1'#7'Options'#11#6'frDown'#10'frFindNext'#18'frDisableMa'
+  +'tchCase'#15'frDisableUpDown'#18'frDisableWholeWord'#0#6'OnFind'#7#15'FindDi'
+  +'alog1Find'#4'left'#2#8#3'top'#2'0'#0#0#11'TActionList'#11'ActionList1'#4'le'
+  +'ft'#2#8#3'top'#2#16#0#7'TAction'#4'Find'#7'Caption'#6#4'Find'#9'OnExecute'#7
+  +#11'FindExecute'#8'ShortCut'#3'F@'#0#0#0#10'TPopupMenu'#8'pmSymbol'#4'left'#3
+  +#184#0#3'top'#2'x'#0#9'TMenuItem'#5'Find1'#6'Action'#7#4'Find'#7'OnClick'#7
+  +#11'FindExecute'#0#0#0#0
+]);

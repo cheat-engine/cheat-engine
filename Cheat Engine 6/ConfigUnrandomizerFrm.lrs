@@ -1,0 +1,17 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmConfigUnrandomizer','FORMDATA',[
+  'TPF0'#22'TfrmConfigUnrandomizer'#21'frmConfigUnrandomizer'#4'Left'#3'0'#2#6
+  +'Height'#2']'#3'Top'#3'P'#1#5'Width'#3#234#0#7'Caption'#6#17'Randomizer conf'
+  +'ig'#12'ClientHeight'#2']'#11'ClientWidth'#3#234#0#11'Font.Height'#2#245#9'F'
+  +'ont.Name'#6#13'MS Sans Serif'#8'Position'#7#14'poScreenCenter'#10'LCLVersio'
+  +'n'#6#6'0.9.29'#0#6'TLabel'#6'Label1'#4'Left'#2#0#6'Height'#2#14#3'Top'#2#8#5
+  +'Width'#2'^'#7'Caption'#6#20'Default return value'#11'ParentColor'#8#0#0#7'T'
+  +'Button'#7'Button1'#4'Left'#2' '#6'Height'#2#25#3'Top'#2'8'#5'Width'#2'K'#7
+  +'Caption'#6#2'OK'#7'Default'#9#8'TabOrder'#2#0#0#0#7'TButton'#7'Button2'#4'L'
+  +'eft'#2'x'#6'Height'#2#25#3'Top'#2'8'#5'Width'#2'K'#6'Cancel'#9#7'Caption'#6
+  +#6'Cancel'#11'ModalResult'#2#2#8'TabOrder'#2#1#0#0#5'TEdit'#10'edtDefault'#4
+  +'Left'#2'`'#6'Height'#2#21#3'Top'#2#6#5'Width'#2'y'#8'TabOrder'#2#2#4'Text'#6
+  +#1'0'#0#0#9'TCheckBox'#13'cbIncremental'#4'Left'#2#1#6'Height'#2#23#3'Top'#2
+  +' '#5'Width'#2'l'#7'Caption'#6#17'Incremental value'#8'TabOrder'#2#3#0#0#0
+]);

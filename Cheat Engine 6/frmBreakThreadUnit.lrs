@@ -1,0 +1,19 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('Tfrmbreakthread','FORMDATA',[
+  'TPF0'#15'Tfrmbreakthread'#14'frmbreakthread'#4'Left'#3#202#1#6'Height'#3#204
+  +#0#3'Top'#3#226#0#5'Width'#3#183#1#11'BorderIcons'#11#12'biSystemMenu'#0#11
+  +'BorderStyle'#7#8'bsSingle'#7'Caption'#6#12'Break Thread'#12'ClientHeight'#3
+  +#204#0#11'ClientWidth'#3#183#1#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sa'
+  +'ns Serif'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'
+  +#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label1'#4'Left'#2#6#6'Height'#2#17
+  +#3'Top'#2#0#5'Width'#3#173#1#7'Caption'#6'HThis process has more than 1 thre'
+  +'ad. Select the thread you wish to break'#11'ParentColor'#8#0#0#8'TListBox'
+  +#13'Threadlistbox'#4'Left'#2#6#6'Height'#3#139#0#3'Top'#2#20#5'Width'#3#171#1
+  +#10'ItemHeight'#2#0#10'OnDblClick'#7#21'ThreadlistboxDblClick'#8'TabOrder'#2
+  +#0#0#0#7'TButton'#7'Button1'#4'Left'#2'v'#6'Height'#2#31#3'Top'#3#167#0#5'Wi'
+  +'dth'#2'\'#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#12'Button1Click'#8'T'
+  +'abOrder'#2#1#0#0#7'TButton'#7'Button2'#4'Left'#3#236#0#6'Height'#2#31#3'Top'
+  +#3#167#0#5'Width'#2']'#6'Cancel'#9#7'Caption'#6#6'Cancel'#11'ModalResult'#2#2
+  +#8'TabOrder'#2#2#0#0#0
+]);

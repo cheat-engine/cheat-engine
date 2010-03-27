@@ -1,0 +1,25 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmBreakpointlist','FORMDATA',[
+  'TPF0'#18'TfrmBreakpointlist'#17'frmBreakpointlist'#4'Left'#3#231#2#6'Height'
+  +#3'$'#1#3'Top'#3#164#0#5'Width'#3#160#2#7'Caption'#6#15'Breakpoint list'#12
+  +'ClientHeight'#3'$'#1#11'ClientWidth'#3#160#2#11'Font.Height'#2#242#9'Font.N'
+  +'ame'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7#10'FormCre'
+  +'ate'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#9'TListV'
+  +'iew'#9'ListView1'#4'Left'#2#0#6'Height'#3'$'#1#3'Top'#2#0#5'Width'#3#160#2#5
+  +'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6#7'Address'#5'Width'#2'Z'#0
+  +#1#7'Caption'#6#4'Size'#0#1#7'Caption'#6#7'Trigger'#5'Width'#2'Z'#0#1#7'Capt'
+  +'ion'#6#4'Type'#5'Width'#3#150#0#0#1#7'Caption'#6#6'On Hit'#5'Width'#2'Z'#0#1
+  +#9'Alignment'#7#8'taCenter'#7'Caption'#6#6'Active'#5'Width'#2'F'#0#1#9'Align'
+  +'ment'#7#8'taCenter'#7'Caption'#6#16'Pending deletion'#5'Width'#2'}'#0#0#9'I'
+  +'temIndex'#2#255#13'Items.LazData'#10#234#0#0#0#234#0#0#0#2#0#0#0#255#255#255
+  +#255#255#255#255#255#255#255#255#255#5#0#0#0#8#0#0#0'DDDDDDDD'#1#0#0#0'4'#9#0
+  +#0#0'On Access'#19#0#0#0'Hardware Breakpoint'#5#0#0#0'Break'#3#0#0#0'Yes'#255
+  +#255#255#255#255#255#255#255#255#255#255#255#6#0#0#0#8#0#0#0'FFFFFFFF'#1#0#0
+  +#0'1'#10#0#0#0'On Execute'#19#0#0#0'Software Breakpoint'#10#0#0#0'Change Reg'
+  +#2#0#0#0'No'#3#0#0#0'Yes'#255#255#255#255#255#255#255#255#255#255#255#255#255
+  +#255#255#255#255#255#255#255#255#255#255#255#255#255#255#255#255#255#255#255
+  +#255#255#255#255#255#255#255#255#255#255#255#255#8'TabOrder'#2#0#9'ViewStyle'
+  +#7#8'vsReport'#0#0#6'TTimer'#6'Timer1'#8'Interval'#3#136#19#7'OnTimer'#7#11
+  +'Timer1Timer'#4'left'#2'-'#3'top'#2'l'#0#0#0
+]);

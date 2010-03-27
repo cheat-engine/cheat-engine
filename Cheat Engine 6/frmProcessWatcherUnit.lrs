@@ -1,0 +1,25 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmProcessWatcher','FORMDATA',[
+  'TPF0'#18'TfrmProcessWatcher'#17'frmProcessWatcher'#4'Left'#3'G'#3#6'Height'#3
+  +'('#1#3'Top'#3#9#1#5'Width'#3#205#0#11'BorderIcons'#11#12'biSystemMenu'#0#7
+  +'Caption'#6#15'Process watcher'#12'ClientHeight'#3'('#1#11'ClientWidth'#3#205
+  +#0#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans Serif'#8'OnCreate'#7#10'F'
+  +'ormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'Position'#7#14'poScreenCenter'
+  +#10'LCLVersion'#6#6'0.9.29'#0#9'TTreeView'#13'tvProcesslist'#4'Left'#2#0#6'H'
+  +'eight'#3#228#0#3'Top'#2#0#5'Width'#3#205#0#5'Align'#7#8'alClient'#17'Defaul'
+  +'tItemHeight'#2#18#6'Indent'#2#19#9'PopupMenu'#7#10'pmthreadid'#8'ReadOnly'#9
+  +#8'ShowRoot'#8#8'TabOrder'#2#0#10'OnDblClick'#7#21'tvProcesslistDblClick'#7
+  +'Options'#11#17'tvoAutoItemHeight'#16'tvoHideSelection'#21'tvoKeepCollapsedN'
+  +'odes'#11'tvoReadOnly'#14'tvoShowButtons'#12'tvoShowLines'#11'tvoToolTips'#0
+  +#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2'D'#3'Top'#3#228#0#5'Width'#3
+  +#205#0#5'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2
+  +'D'#11'ClientWidth'#3#205#0#8'TabOrder'#2#1#8'OnResize'#7#12'Panel1Resize'#0
+  +#7'TButton'#7'btnOpen'#4'Left'#2''''#6'Height'#2#21#3'Top'#2#10#5'Width'#2'n'
+  +#7'Caption'#6#12'Open process'#7'OnClick'#7#12'btnOpenClick'#8'TabOrder'#2#0
+  +#0#0#7'TButton'#9'btnAttach'#4'Left'#2''''#6'Height'#2#21#3'Top'#2''''#5'Wid'
+  +'th'#2'n'#7'Caption'#6#17'Attach to process'#7'OnClick'#7#14'btnAttachClick'
+  +#8'TabOrder'#2#1#0#0#0#10'TPopupMenu'#10'pmthreadid'#4'left'#2'8'#3'top'#2'0'
+  +#0#9'TMenuItem'#14'ShowThreadIDs1'#7'Caption'#6#15'Show ThreadID''s'#7'OnCli'
+  +'ck'#7#19'ShowThreadIDs1Click'#0#0#0#0
+]);

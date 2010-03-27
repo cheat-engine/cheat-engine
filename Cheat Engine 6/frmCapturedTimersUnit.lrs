@@ -1,0 +1,26 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmCapturedTimers','FORMDATA',[
+  'TPF0'#18'TfrmCapturedTimers'#17'frmCapturedTimers'#4'Left'#3#233#1#6'Height'
+  +#3#179#0#3'Top'#3#140#0#5'Width'#3#251#1#7'Caption'#6#17'frmCapturedTimers'
+  +#12'ClientHeight'#3#179#0#11'ClientWidth'#3#251#1#11'Font.Height'#2#245#9'Fo'
+  +'nt.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#8'Position'#7#14'poS'
+  +'creenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label1'#4'Left'#2#0#6
+  +'Height'#2#14#3'Top'#2#0#5'Width'#3#251#1#5'Align'#7#5'alTop'#7'Caption'#6'2'
+  +'The following WM_TIMER messages have been received'#11'ParentColor'#8#0#0#7
+  +'TButton'#7'Button1'#4'Left'#3#210#0#6'Height'#2#25#3'Top'#2'{'#5'Width'#2'K'
+  +#7'Anchors'#11#8'akBottom'#0#7'Caption'#6#5'Close'#7'OnClick'#7#12'Button1Cl'
+  +'ick'#8'TabOrder'#2#0#0#0#9'TListView'#9'ListView1'#4'Left'#2#0#6'Height'#2
+  +'i'#3'Top'#2#14#5'Width'#3#251#1#5'Align'#7#5'alTop'#7'Anchors'#11#5'akTop'#6
+  +'akLeft'#7'akRight'#8'akBottom'#0#7'Columns'#14#1#7'Caption'#6#13'Window Han'
+  +'dle'#5'Width'#2'n'#0#1#7'Caption'#6#12'Window Title'#5'Width'#2'x'#0#1#7'Ca'
+  +'ption'#6#12'Window Class'#5'Width'#2'Z'#0#1#7'Caption'#6#8'Timer ID'#5'Widt'
+  +'h'#2'7'#0#1#7'Caption'#6#9'TimerProc'#5'Width'#2'F'#0#1#7'Caption'#6#5'Coun'
+  +'t'#0#0#13'HideSelection'#8#9'ItemIndex'#2#255#11'MultiSelect'#9#8'ReadOnly'
+  +#9#9'RowSelect'#9#8'TabOrder'#2#1#9'ViewStyle'#7#8'vsReport'#0#0#5'TEdit'#5
+  +'Edit1'#4'Left'#2#0#6'Height'#2#21#3'Top'#3#128#0#5'Width'#2'A'#7'Anchors'#11
+  +#6'akLeft'#8'akBottom'#0#8'TabOrder'#2#2#4'Text'#6#2'10'#0#0#7'TButton'#7'Bu'
+  +'tton2'#4'Left'#2'F'#6'Height'#2#17#3'Top'#3#130#0#5'Width'#2'y'#7'Anchors'
+  +#11#6'akLeft'#8'akBottom'#0#7'Caption'#6#19'Send timer messages'#7'OnClick'#7
+  +#12'Button2Click'#8'TabOrder'#2#3#0#0#0
+]);

@@ -1,0 +1,54 @@
+object frmFunctionList: TfrmFunctionList
+  Left = 677
+  Height = 228
+  Top = 244
+  Width = 313
+  BorderIcons = [biSystemMenu]
+  Caption = 'Functionlist'
+  ClientHeight = 228
+  ClientWidth = 313
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 0
+    Width = 313
+    Align = alTop
+    Caption = 'Select a function from the list'
+    ParentColor = False
+  end
+  object ListBox1: TListBox
+    Left = 0
+    Height = 183
+    Top = 14
+    Width = 313
+    Align = alClient
+    ItemHeight = 0
+    OnDblClick = ListBox1DblClick
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 31
+    Top = 197
+    Width = 313
+    Align = alBottom
+    ClientHeight = 31
+    ClientWidth = 313
+    TabOrder = 1
+    object Button1: TButton
+      Left = 120
+      Height = 25
+      Top = 3
+      Width = 75
+      Anchors = [akTop]
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+  end
+end

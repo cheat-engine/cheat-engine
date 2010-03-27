@@ -1,0 +1,68 @@
+object frmLoadMemory: TfrmLoadMemory
+  Left = 649
+  Height = 153
+  Top = 359
+  Width = 211
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Load Memory Region'
+  ClientHeight = 153
+  ClientWidth = 211
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 72
+    Width = 42
+    Caption = 'Address:'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 24
+    Height = 25
+    Top = 120
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 112
+    Height = 25
+    Top = 120
+    Width = 75
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object editAddress: TEdit
+    Left = 0
+    Height = 21
+    Top = 88
+    Width = 161
+    TabOrder = 2
+  end
+  object ListBox1: TListBox
+    Left = 0
+    Height = 65
+    Top = 0
+    Width = 209
+    ItemHeight = 0
+    OnClick = ListBox1Click
+    TabOrder = 3
+  end
+  object Button3: TButton
+    Left = 167
+    Height = 21
+    Top = 89
+    Width = 41
+    Caption = 'Edit'
+    OnClick = Button3Click
+    TabOrder = 4
+  end
+end

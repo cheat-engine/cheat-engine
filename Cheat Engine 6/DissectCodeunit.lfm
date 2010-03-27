@@ -1,0 +1,207 @@
+object frmDissectCode: TfrmDissectCode
+  Left = 793
+  Height = 369
+  Top = 276
+  Width = 379
+  Caption = 'Dissect Code'
+  ClientHeight = 369
+  ClientWidth = 379
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object ProgressBar1: TProgressBar
+    Left = 0
+    Height = 21
+    Top = 348
+    Width = 379
+    Align = alBottom
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 348
+    Top = 0
+    Width = 218
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 348
+    ClientWidth = 218
+    TabOrder = 0
+    object ListBox1: TListBox
+      Left = 0
+      Height = 291
+      Top = 57
+      Width = 218
+      Align = alClient
+      ItemHeight = 0
+      MultiSelect = True
+      TabOrder = 0
+    end
+    object Panel2: TPanel
+      Left = 0
+      Height = 57
+      Top = 0
+      Width = 218
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 57
+      ClientWidth = 218
+      TabOrder = 1
+      object Label2: TLabel
+        Left = 0
+        Height = 17
+        Top = 0
+        Width = 183
+        Caption = 'Select the module(s) to dissect'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        Left = 0
+        Height = 17
+        Top = 20
+        Width = 170
+        Caption = 'Hold CTRL to select multiple'
+        ParentColor = False
+      end
+      object cbIncludesystemModules: TCheckBox
+        Left = 0
+        Height = 23
+        Top = 40
+        Width = 168
+        Caption = 'Include system modules'
+        OnClick = cbIncludesystemModulesClick
+        TabOrder = 0
+      end
+    end
+  end
+  object Panel3: TPanel
+    Left = 218
+    Height = 348
+    Top = 0
+    Width = 161
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 348
+    ClientWidth = 161
+    TabOrder = 2
+    object Label6: TLabel
+      Left = 19
+      Height = 17
+      Top = 9
+      Width = 112
+      Caption = 'Estimated time left:'
+      ParentColor = False
+    end
+    object Label7: TLabel
+      Left = 10
+      Height = 16
+      Top = 22
+      Width = 139
+      Alignment = taCenter
+      AutoSize = False
+      Caption = '00:00:00'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 8
+      Height = 17
+      Top = 56
+      Width = 141
+      Caption = 'String references found:'
+      ParentColor = False
+    end
+    object lblStringRef: TLabel
+      Left = 8
+      Height = 17
+      Top = 72
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 8
+      Height = 17
+      Top = 96
+      Width = 114
+      Caption = 'Conditional Jumps:'
+      ParentColor = False
+    end
+    object lblConditionalJumps: TLabel
+      Left = 8
+      Height = 17
+      Top = 112
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label9: TLabel
+      Left = 8
+      Height = 17
+      Top = 136
+      Width = 129
+      Caption = 'Unconditional Jumps:'
+      ParentColor = False
+    end
+    object lblUnConditionalJumps: TLabel
+      Left = 8
+      Height = 17
+      Top = 152
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label11: TLabel
+      Left = 8
+      Height = 17
+      Top = 176
+      Width = 34
+      Caption = 'Calls:'
+      ParentColor = False
+    end
+    object lblCalls: TLabel
+      Left = 8
+      Height = 17
+      Top = 192
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 17
+      Top = 216
+      Width = 96
+      Caption = 'Maximum offset:'
+      ParentColor = False
+      Visible = False
+    end
+    object lblMaxOffset: TLabel
+      Left = 8
+      Height = 17
+      Top = 232
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+      Visible = False
+    end
+    object btnStart: TButton
+      Left = 20
+      Height = 31
+      Top = 261
+      Width = 109
+      Caption = 'Start'
+      OnClick = btnStartClick
+      TabOrder = 0
+    end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = Timer1Timer
+  end
+end

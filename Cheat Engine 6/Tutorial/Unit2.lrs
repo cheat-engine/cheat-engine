@@ -1,0 +1,49 @@
+LazarusResources.Add('TForm2','FORMDATA',[
+  'TPF0'#6'TForm2'#5'Form2'#4'Left'#3'Q'#2#3'Top'#3'x'#1#11'BorderIcons'#11#12
+  +'biSystemMenu'#0#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 2'#12'Cli'
+  +'entHeight'#3'5'#1#11'ClientWidth'#3#190#2#5'Color'#7#9'clBtnFace'#12'Font.C'
+  +'harset'#7#15'DEFAULT_CHARSET'#10'Font.Color'#7#12'clWindowText'#11'Font.Hei'
+  +'ght'#2#242#9'Font.Name'#6#13'MS Sans Serif'#10'Font.Style'#11#0#8'Position'
+  +#7#17'poOwnerFormCenter'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'For'
+  +'mCloseQuery'#8'OnCreate'#7#10'FormCreate'#13'PixelsPerInch'#2'x'#0#6'TLabel'
+  +#6'Label1'#4'Left'#2'1'#3'Top'#3#30#1#5'Width'#2#21#6'Height'#2#16#7'Caption'
+  +#6#3'100'#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#3'Top'#3#30#1#5'Width'#2'*'#6
+  +'Height'#2#16#7'Caption'#6#7'Health:'#0#0#12'TSpeedButton'#12'SpeedButton1'#4
+  +'Left'#3#158#2#3'Top'#3#30#1#5'Width'#2#30#6'Height'#2#20#7'Caption'#6#4'Ski'
+  +'p'#4'Flat'#9#7'OnClick'#7#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Lef'
+  +'t'#2#0#3'Top'#2#0#5'Width'#3#190#2#6'Height'#3#228#0#5'Align'#7#5'alTop'#5
+  +'Color'#7#9'clBtnFace'#13'Lines.Strings'#1#6'WNow that you have opened the t'
+  +'utorial with Cheat Engine lets get on with the next step.'#6#0#6'9You see a'
+  +'t the bottom of this window the text Health: xxx'#6'9Each time you click '''
+  +'Hit me''  your health gets decreased.'#6#0#6'ITo get to the next step you h'
+  +'ave to find this value and change it to 1000'#6#0#6'_To find the value ther'
+  +'e are different ways, but I''ll tell you about the easiest, ''Exact Value'''
+  +':'#6'}First make sure value type is set to at least 2 bytes or 4 bytes, 1 b'
+  +'yte will also work, but you''ll run into a (easy to fix) '#6'aproblem when '
+  +'you''ve found the address and want to change it. The 8-byte may perhaps wor'
+  +'ks if the '#6';bytes after the address are 0, but I wouldn''t take the bet.'
+  +#6'eSingle, double, and the other scans just don''t work, because they store'
+  +' the value in a different way.'#6#0#6'TWhen the value type is set correctly'
+  +', make sure the scantype is set to ''Exact Value'''#6'OThen fill in the num'
+  +'ber your health is in the value box. And click ''First Scan'''#6'nAfter a w'
+  +'hile (if you have a extremely slow pc) the scan is done and the results are'
+  +' shown in the list on the '#6#4'left'#6#0#6'qIf you find more than 1 addres'
+  +'s and you don''t know for sure which address it is, click ''Hit me'', fill '
+  +'in the new '#6'6health value into the value box, and click ''Next Scan'''#6
+  +'krepeat this until you''re sure you''ve found it. (that includes that there'
+  +'''s only 1 address in the list.....)'#6#0#6'oNow double click the address i'
+  +'n the list on the left. This makes the address pop-up in the list at the bo'
+  +'ttom, '#6#30'showing you the current value.'#6'UDouble click the value, (or'
+  +' select it and press enter), and change the value to 1000.'#6#0#6'`If every'
+  +'thing went ok the next button should become enabled, and you''re ready for '
+  +'the next step.'#6#0#6#0#6#5'Note:'#6'YIf you did anything wrong while scann'
+  +'ing, click "New Scan" and repeat the scanning again.'#6':Also, try playing '
+  +'around with the value and click ''hit me'''#0#8'ReadOnly'#9#10'ScrollBars'#7
+  +#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button1'#4'Left'#3'1'#1#3'T'
+  +'op'#3#236#0#5'Width'#2']'#6'Height'#2#31#7'Caption'#6#4'Next'#7'Enabled'#8#8
+  +'TabOrder'#2#1#7'OnClick'#7#12'Button1Click'#0#0#7'TButton'#7'Button2'#4'Lef'
+  +'t'#2'O'#3'Top'#3#27#1#5'Width'#2'2'#6'Height'#2#21#7'Caption'#6#6'Hit me'#8
+  +'TabOrder'#2#2#7'OnClick'#7#12'Button2Click'#0#0#6'TTimer'#6'Timer1'#8'Inter'
+  +'val'#3#250#0#7'OnTimer'#7#11'Timer1Timer'#4'Left'#3#136#0#3'Top'#3#176#0#0#0
+  +#0
+]);

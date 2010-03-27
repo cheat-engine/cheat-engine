@@ -1,0 +1,115 @@
+object frmRescanPointer: TfrmRescanPointer
+  Left = 740
+  Height = 121
+  Top = 318
+  Width = 267
+  BorderStyle = bsDialog
+  Caption = 'Rescan pointerlist'
+  ClientHeight = 121
+  ClientWidth = 267
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object edtAddress: TEdit
+    Left = 10
+    Height = 24
+    Top = 30
+    Width = 111
+    CharCase = ecUppercase
+    MaxLength = 8
+    TabOrder = 0
+  end
+  object cbValueType: TComboBox
+    Left = 126
+    Height = 24
+    Top = 30
+    Width = 132
+    ItemHeight = 16
+    ItemIndex = 0
+    Items.Strings = (
+      '4 Byte'
+      'Float'
+      'Double'
+    )
+    Style = csDropDownList
+    TabOrder = 1
+    Text = '4 Byte'
+  end
+  object Panel2: TPanel
+    Left = 8
+    Height = 25
+    Top = 0
+    Width = 249
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 249
+    TabOrder = 2
+    object rbFindAddress: TRadioButton
+      Left = 0
+      Height = 23
+      Top = 4
+      Width = 116
+      Caption = 'Address to find:'
+      Checked = True
+      OnClick = rbFindAddressClick
+      State = cbChecked
+      TabOrder = 0
+    end
+    object rbFindValue: TRadioButton
+      Left = 120
+      Height = 23
+      Top = 4
+      Width = 100
+      Caption = 'Value to find:'
+      OnClick = rbFindAddressClick
+      TabOrder = 1
+      TabStop = False
+    end
+  end
+  object Button1: TButton
+    Left = 48
+    Height = 25
+    Top = 88
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 3
+  end
+  object Button2: TButton
+    Left = 128
+    Height = 25
+    Top = 88
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object cbDelay: TCheckBox
+    Left = 8
+    Height = 23
+    Top = 62
+    Width = 122
+    Caption = 'Delay rescan for'
+    TabOrder = 5
+  end
+  object edtDelay: TEdit
+    Left = 128
+    Height = 24
+    Top = 61
+    Width = 32
+    TabOrder = 6
+    Text = '0'
+  end
+  object Label1: TLabel
+    Left = 160
+    Height = 17
+    Top = 64
+    Width = 53
+    Caption = 'seconds'
+    ParentColor = False
+  end
+end

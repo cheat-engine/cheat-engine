@@ -1,0 +1,349 @@
+object frmTracer: TfrmTracer
+  Left = 695
+  Height = 370
+  Top = 405
+  Width = 410
+  BorderIcons = [biSystemMenu]
+  Caption = 'Tracer'
+  ClientHeight = 370
+  ClientWidth = 410
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Splitter1: TSplitter
+    Left = 188
+    Height = 370
+    Top = 0
+    Width = 4
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object ListBox1: TListBox
+    Left = 0
+    Height = 370
+    Top = 0
+    Width = 188
+    Align = alClient
+    ItemHeight = 0
+    OnClick = ListBox1Click
+    OnDblClick = ListBox1DblClick
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 192
+    Height = 370
+    Top = 0
+    Width = 218
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 370
+    ClientWidth = 218
+    TabOrder = 1
+    OnResize = Panel1Resize
+    object EAXLabel: TLabel
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 0
+      Width = 97
+      Caption = 'EAX 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object EBXlabel: TLabel
+      Tag = 1
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 20
+      Width = 97
+      Caption = 'EBX 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object ECXlabel: TLabel
+      Tag = 2
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 39
+      Width = 97
+      Caption = 'ECX 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object EDXlabel: TLabel
+      Tag = 3
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 59
+      Width = 97
+      Caption = 'EDX 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object ESIlabel: TLabel
+      Tag = 4
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 79
+      Width = 97
+      Caption = 'ESI 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object EDIlabel: TLabel
+      Tag = 5
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 98
+      Width = 97
+      Caption = 'EDI 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object EBPlabel: TLabel
+      Tag = 6
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 118
+      Width = 97
+      Caption = 'EBP 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object ESPlabel: TLabel
+      Tag = 7
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 138
+      Width = 97
+      Caption = 'ESP 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object EIPlabel: TLabel
+      Tag = 8
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 158
+      Width = 97
+      Caption = 'EIP 00000000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = EAXLabelDblClick
+    end
+    object cflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 0
+      Width = 33
+      Caption = 'CF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object pflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 20
+      Width = 33
+      Caption = 'PF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object aflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 39
+      Width = 33
+      Caption = 'AF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object zflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 59
+      Width = 33
+      Caption = 'ZF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object sflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 79
+      Width = 33
+      Caption = 'SF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object oflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 118
+      Width = 33
+      Caption = 'OF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object CSLabel: TLabel
+      Tag = 9
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 197
+      Width = 57
+      Caption = 'CS 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object SSlabel: TLabel
+      Tag = 10
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 217
+      Width = 57
+      Caption = 'SS 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object DSLabel: TLabel
+      Tag = 11
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 236
+      Width = 57
+      Caption = 'DS 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object ESlabel: TLabel
+      Tag = 12
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 256
+      Width = 57
+      Caption = 'ES 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object FSlabel: TLabel
+      Tag = 13
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 276
+      Width = 57
+      Caption = 'FS 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object GSlabel: TLabel
+      Tag = 14
+      Cursor = crHandPoint
+      Left = 5
+      Height = 14
+      Top = 295
+      Width = 57
+      Caption = 'GS 0000'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object dflabel: TLabel
+      Left = 162
+      Height = 14
+      Top = 98
+      Width = 33
+      Caption = 'DF 0'
+      Font.Height = -15
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object sbShowFloats: TSpeedButton
+      Left = 197
+      Height = 30
+      Hint = 'Floating point registers'
+      Top = 142
+      Width = 21
+      Caption = '>'
+      Color = clBtnFace
+      NumGlyphs = 0
+      OnClick = sbShowFloatsClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object Button1: TButton
+      Left = 70
+      Height = 25
+      Top = 336
+      Width = 75
+      Caption = 'Close'
+      TabOrder = 0
+    end
+  end
+end

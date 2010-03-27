@@ -1,0 +1,169 @@
+object FoundCodeDialog: TFoundCodeDialog
+  Left = 930
+  Height = 445
+  Top = 323
+  Width = 383
+  BorderIcons = [biSystemMenu]
+  Caption = 'The following opcodes changed the selected address'
+  ClientHeight = 445
+  ClientWidth = 383
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.29'
+  object FoundcodeList: TListBox
+    Left = 0
+    Height = 445
+    Top = 0
+    Width = 253
+    Align = alClient
+    ItemHeight = 0
+    MultiSelect = True
+    OnClick = FoundcodeListClick
+    OnContextPopup = FoundcodeListContextPopup
+    OnDblClick = FoundcodeListDblClick
+    PopupMenu = pmOptions
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 253
+    Height = 445
+    Top = 0
+    Width = 130
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 445
+    ClientWidth = 130
+    TabOrder = 1
+    object Description: TLabel
+      Left = 0
+      Height = 235
+      Top = 169
+      Width = 130
+      Align = alClient
+      Alignment = taCenter
+      AutoSize = False
+      ParentColor = False
+      WordWrap = True
+    end
+    object Panel2: TPanel
+      Left = 0
+      Height = 41
+      Top = 404
+      Width = 130
+      Align = alBottom
+      BevelOuter = bvNone
+      ClientHeight = 41
+      ClientWidth = 130
+      TabOrder = 0
+      object btnOK: TButton
+        Left = 21
+        Height = 30
+        Top = 3
+        Width = 90
+        Cancel = True
+        Caption = 'OK'
+        Default = True
+        OnClick = btnOKClick
+        TabOrder = 0
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 169
+      Top = 0
+      Width = 130
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 169
+      ClientWidth = 130
+      TabOrder = 1
+      object btnExtraInfo: TButton
+        Left = 4
+        Height = 31
+        Hint = 'The selected addresses will be added to the code list in the advanced options window.'
+        Top = 128
+        Width = 124
+        Anchors = [akTop, akRight]
+        Caption = 'More information'
+        Enabled = False
+        OnClick = btnExtraInfoClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+      end
+      object btnAddToCodeList: TButton
+        Left = 4
+        Height = 30
+        Hint = 'The selected addresses will be added to the code list in the advanced options window.'
+        Top = 89
+        Width = 124
+        Caption = 'Add to the codelist'
+        Enabled = False
+        OnClick = btnAddToCodeListClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+      object btnOpenDisassembler: TButton
+        Left = 4
+        Height = 31
+        Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
+        Top = 49
+        Width = 123
+        Caption = 'Show disassembler'
+        Enabled = False
+        OnClick = btnOpenDisassemblerClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+      end
+      object btnReplacewithnops: TButton
+        Left = 4
+        Height = 31
+        Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
+        Top = 10
+        Width = 124
+        Caption = 'Replace'
+        Enabled = False
+        OnClick = btnReplacewithnopsClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+      end
+    end
+  end
+  object pmOptions: TPopupMenu
+    OnPopup = pmOptionsPopup
+    left = 64
+    top = 64
+    object ReplacewithcodethatdoesnothingNOP1: TMenuItem
+      Caption = 'Replace with code that does nothing (NOP)'
+      OnClick = btnReplacewithnopsClick
+    end
+    object Showthisaddressinthedisassembler1: TMenuItem
+      Caption = 'Show this address in the disassembler'
+      OnClick = btnOpenDisassemblerClick
+    end
+    object Addtothecodelist1: TMenuItem
+      Caption = 'Add to the codelist'
+      OnClick = btnAddToCodeListClick
+    end
+    object MoreInfo1: TMenuItem
+      Caption = 'More Info'
+      Default = True
+      OnClick = btnExtraInfoClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Copyselectiontoclipboard1: TMenuItem
+      Caption = 'Copy selection to clipboard'
+      ShortCut = 16451
+      OnClick = Copyselectiontoclipboard1Click
+    end
+  end
+end

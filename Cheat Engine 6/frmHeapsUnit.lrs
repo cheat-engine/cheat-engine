@@ -1,0 +1,19 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmHeaps','FORMDATA',[
+  'TPF0'#9'TfrmHeaps'#8'frmHeaps'#4'Left'#3#235#1#6'Height'#3'<'#1#3'Top'#3#199
+  +#0#5'Width'#3#253#0#11'BorderIcons'#11#12'biSystemMenu'#0#7'Caption'#6#16'Cu'
+  +'rrent Heaplist'#12'ClientHeight'#3'<'#1#11'ClientWidth'#3#253#0#11'Font.Hei'
+  +'ght'#2#242#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#8'OnC'
+  +'reate'#7#10'FormCreate'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6
+  +'0.9.29'#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2'2'#3'Top'#3#10#1#5'Wi'
+  +'dth'#3#253#0#5'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHei'
+  +'ght'#2'2'#11'ClientWidth'#3#253#0#8'TabOrder'#2#0#0#7'TButton'#7'Button1'#4
+  +'Left'#2'O'#6'Height'#2#31#3'Top'#2#10#5'Width'#2'\'#7'Anchors'#11#5'akTop'#0
+  +#7'Caption'#6#5'Close'#11'ModalResult'#2#1#7'OnClick'#7#12'Button1Click'#8'T'
+  +'abOrder'#2#0#0#0#0#9'TListView'#9'ListView1'#4'Left'#2#0#6'Height'#3#10#1#3
+  +'Top'#2#0#5'Width'#3#253#0#5'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'
+  +#6#7'Address'#5'Width'#2'x'#0#1#8'AutoSize'#9#7'Caption'#6#4'Size'#0#0#9'Ite'
+  +'mIndex'#2#255#8'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#1#9'ViewStyle'#7#8
+  +'vsReport'#10'OnDblClick'#7#17'ListView1DblClick'#0#0#0
+]);

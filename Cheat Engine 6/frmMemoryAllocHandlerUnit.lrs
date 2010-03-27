@@ -1,0 +1,42 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmMemoryAllocHandler','FORMDATA',[
+  'TPF0'#22'TfrmMemoryAllocHandler'#21'frmMemoryAllocHandler'#4'Left'#3#27#1#6
+  +'Height'#3#168#0#3'Top'#3'B'#1#5'Width'#3#243#1#11'BorderIcons'#11#12'biSyst'
+  +'emMenu'#10'biMinimize'#0#11'BorderStyle'#7#8'bsSingle'#7'Caption'#6#18'Memo'
+  +'ry Allocations'#12'ClientHeight'#3#168#0#11'ClientWidth'#3#243#1#11'Font.He'
+  +'ight'#2#242#9'Font.Name'#6#13'MS Sans Serif'#8'OnCreate'#7#10'FormCreate'#9
+  +'OnDestroy'#7#11'FormDestroy'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'
+  +#6#6'0.9.29'#0#10'TStatusBar'#10'StatusBar1'#4'Left'#2#0#6'Height'#2#28#3'To'
+  +'p'#3#140#0#5'Width'#3#243#1#6'Panels'#14#1#5'Width'#3','#1#0#1#5'Width'#2'2'
+  +#0#0#0#0#9'TGroupBox'#9'GroupBox1'#4'Left'#2#0#6'Height'#2'c'#3'Top'#2')'#5
+  +'Width'#3#243#1#5'Align'#7#8'alClient'#7'Caption'#6#4'Data'#12'ClientHeight'
+  +#2'M'#11'ClientWidth'#3#239#1#8'TabOrder'#2#1#0#6'TLabel'#6'Label1'#4'Left'#2
+  +'('#6'Height'#2#17#3'Top'#2'@'#5'Width'#2'&'#7'Caption'#6#6'Flags:'#11'Paren'
+  +'tColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2'('#6'Height'#2#17#3'Top'#2#16#5
+  +'Width'#2'Z'#7'Caption'#6#13'Base Address:'#11'ParentColor'#8#0#0#6'TLabel'
+  +#13'lblHeapHandle'#4'Left'#3#144#0#6'Height'#2#17#3'Top'#2'0'#5'Width'#2#1#11
+  +'ParentColor'#8#0#0#6'TLabel'#8'lblFlags'#4'Left'#3#144#0#6'Height'#2#17#3'T'
+  +'op'#2'@'#5'Width'#2#1#11'ParentColor'#8#0#0#6'TLabel'#14'lblBaseAddress'#4
+  +'Left'#3#144#0#6'Height'#2#17#3'Top'#2#16#5'Width'#2#1#11'ParentColor'#8#0#0
+  +#6'TLabel'#6'Label3'#4'Left'#2'('#6'Height'#2#17#3'Top'#2'0'#5'Width'#2'O'#7
+  +'Caption'#6#10'HeapHandle'#11'ParentColor'#8#0#0#6'TLabel'#6'Label4'#4'Left'
+  +#2'('#6'Height'#2#17#3'Top'#2' '#5'Width'#2#30#7'Caption'#6#5'Size:'#11'Pare'
+  +'ntColor'#8#0#0#6'TLabel'#7'lblSize'#4'Left'#3#144#0#6'Height'#2#17#3'Top'#2
+  +' '#5'Width'#2#1#11'ParentColor'#8#0#0#6'TLabel'#6'lblErr'#4'Left'#2'('#6'He'
+  +'ight'#2#17#3'Top'#2'X'#5'Width'#3#132#1#7'Caption'#6'DCouldn''t find in hea'
+  +'p. Found using the Alloc hook. (Not very useful)'#10'Font.Color'#7#5'clRed'
+  +#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans Serif'#11'ParentColor'#8#10
+  +'ParentFont'#8#7'Visible'#8#0#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2
+  +')'#3'Top'#2#0#5'Width'#3#243#1#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bvNon'
+  +'e'#12'ClientHeight'#2')'#11'ClientWidth'#3#243#1#8'TabOrder'#2#2#0#5'TEdit'
+  +#5'Edit1'#4'Left'#2#8#6'Height'#2#24#3'Top'#2#8#5'Width'#2'y'#8'TabOrder'#2#0
+  +#0#0#7'TButton'#7'Button1'#4'Left'#3#136#0#6'Height'#2#25#3'Top'#2#8#5'Width'
+  +#2'i'#7'Caption'#6#13'Check Address'#7'OnClick'#7#12'Button1Click'#8'TabOrde'
+  +'r'#2#1#0#0#7'TButton'#9'btnReload'#4'Left'#3#160#1#6'Height'#2#25#3'Top'#2#8
+  +#5'Width'#2'K'#7'Caption'#6#6'Reload'#7'OnClick'#7#14'btnReloadClick'#8'TabO'
+  +'rder'#2#2#0#0#9'TCheckBox'#12'cbHookAllocs'#4'Left'#3#0#1#6'Height'#2#23#3
+  +'Top'#2#12#5'Width'#3#144#0#7'Caption'#6#20'Hook alloc functions'#7'OnClick'
+  +#7#17'cbHookAllocsClick'#8'TabOrder'#2#3#0#0#0#6'TTimer'#6'Timer1'#7'OnTimer'
+  +#7#11'Timer1Timer'#4'left'#2#4#3'top'#2'S'#0#0#0
+]);

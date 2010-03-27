@@ -1,0 +1,34 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TForm1','FORMDATA',[
+  'TPF0'#6'TForm1'#5'Form1'#4'Left'#3#172#1#6'Height'#3#30#1#3'Top'#3#167#1#5'W'
+  +'idth'#3#191#2#11'BorderIcons'#11#12'biSystemMenu'#0#11'BorderStyle'#7#8'bsD'
+  +'ialog'#7'Caption'#6#24'Cheat Engine Tutorial v3'#12'ClientHeight'#3#30#1#11
+  +'ClientWidth'#3#191#2#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans Serif'
+  +#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#8'Positi'
+  +'on'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label1'#4
+  +'Left'#3''''#2#6'Height'#2#17#3'Top'#3#236#0#5'Width'#2'='#7'Caption'#6#8'Pa'
+  +'ssword'#11'ParentColor'#8#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3#228
+  +#0#3'Top'#2#0#5'Width'#3#191#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13
+  +'Lines.Strings'#1#6',Welcome to the Cheat Engine Tutorial. (v3.1)'#6#0#6'sTh'
+  +'is tutorial will try to explain the basics of cheating on games, and gettin'
+  +'g you more familiar with Cheat Engine.'#6#0#6'5First open Cheat Engine if i'
+  +'t hasn''t been opened yet.'#6'OThen click on the ''open process'' icon. (to'
+  +'p left icon, with the computer on it)'#6#0#6'kWhen the process window is op'
+  +'en find this tutorial. The process name is probably ''tutorial.exe'' unless'
+  +' you '#6#8'renamed '#6#3'it.'#6'ySelect it, and click ok. Just ignore all t'
+  +'he other buttons right now, but experiment with them later if you feel like'
+  +' it.'#6#0#6'jWhen everything went right, the process window should be gone '
+  +'now and at the top of CE the processname is '#6#6'shown.'#6#0#6'sNow, click'
+  +' NEXT to continue to the next step. (Or fill in the password to proceed to '
+  +'that particular step you want)'#0#8'ReadOnly'#9#10'ScrollBars'#7#10'ssVerti'
+  +'cal'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button1'#4'Left'#3'1'#1#6'Height'#2#31
+  +#3'Top'#3#246#0#5'Width'#2']'#7'Caption'#6#4'Next'#7'OnClick'#7#12'Button1Cl'
+  +'ick'#8'TabOrder'#2#1#0#0#5'TEdit'#5'Edit1'#4'Left'#3#251#1#6'Height'#2#24#4
+  +'Hint'#6'5Use this to go imeadiatly to the step you want to try'#3'Top'#3#0#1
+  +#5'Width'#3#149#0#10'OnKeyPress'#7#13'Edit1KeyPress'#14'ParentShowHint'#8#8
+  +'ShowHint'#9#8'TabOrder'#2#2#4'Text'#6#6'090453'#0#0#7'TButton'#7'Button2'#4
+  +'Left'#3#148#2#6'Height'#2#21#3'Top'#3#4#1#5'Width'#2#30#7'Caption'#6#2'OK'#7
+  +'OnClick'#7#12'Button2Click'#8'TabOrder'#2#3#0#0#6'TTimer'#6'Timer1'#8'Inter'
+  +'val'#3#250#0#7'OnTimer'#7#11'Timer1Timer'#4'left'#2'0'#3'top'#2'x'#0#0#0
+]);

@@ -1,0 +1,340 @@
+object AddForm: TAddForm
+  Left = 535
+  Height = 167
+  Top = 352
+  Width = 545
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Add address'
+  ClientHeight = 167
+  ClientWidth = 545
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 28
+    Height = 17
+    Top = 10
+    Width = 52
+    Caption = 'Address'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 47
+    Height = 17
+    Top = 68
+    Width = 33
+    Caption = 'Type'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 10
+    Height = 17
+    Top = 39
+    Width = 69
+    Caption = 'Description'
+    ParentColor = False
+  end
+  object ValuePanel: TPanel
+    Left = 209
+    Height = 33
+    Top = 62
+    Width = 285
+    BevelOuter = bvNone
+    ClientHeight = 33
+    ClientWidth = 285
+    TabOrder = 6
+    Visible = False
+    object Label12: TLabel
+      Left = 0
+      Height = 21
+      Top = 5
+      Width = 110
+      Alignment = taRightJustify
+      AutoSize = False
+      ParentBidiMode = False
+      ParentColor = False
+    end
+    object Edit1: TEdit
+      Left = 118
+      Height = 24
+      Top = 2
+      Width = 51
+      PopupMenu = MainForm.emptypopup
+      TabOrder = 0
+      Text = '1'
+    end
+    object cbUnicode: TCheckBox
+      Left = 177
+      Height = 23
+      Top = 5
+      Width = 75
+      Caption = 'Unicode'
+      TabOrder = 1
+    end
+  end
+  object VarType: TComboBox
+    Left = 79
+    Height = 24
+    Top = 63
+    Width = 129
+    DropDownCount = 9
+    ItemHeight = 16
+    Items.Strings = (
+      'Binary'
+      'Byte'
+      '2 Bytes'
+      '4 Bytes'
+      '8 Bytes'
+      'Float'
+      'Double'
+      'Text'
+      'Array of Byte'
+    )
+    OnChange = VarTypeChange
+    Style = csDropDownList
+    TabOrder = 2
+  end
+  object Button1: TButton
+    Left = 10
+    Height = 31
+    Top = 124
+    Width = 92
+    Anchors = [akLeft, akBottom]
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 3
+  end
+  object Button2: TButton
+    Left = 118
+    Height = 31
+    Top = 124
+    Width = 92
+    Anchors = [akLeft, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    OnClick = Button2Click
+    TabOrder = 4
+  end
+  object Description: TEdit
+    Left = 79
+    Height = 24
+    Top = 34
+    Width = 464
+    MaxLength = 50
+    TabOrder = 1
+    Text = 'No Description!'
+  end
+  object BitPanel: TPanel
+    Left = 208
+    Height = 33
+    Top = 62
+    Width = 316
+    BevelOuter = bvNone
+    ClientHeight = 33
+    ClientWidth = 316
+    TabOrder = 5
+    Visible = False
+    object Label4: TLabel
+      Left = 63
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 84
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '1'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 102
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '2'
+      ParentColor = False
+    end
+    object Label7: TLabel
+      Left = 123
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '3'
+      ParentColor = False
+    end
+    object Label8: TLabel
+      Left = 143
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '4'
+      ParentColor = False
+    end
+    object Label9: TLabel
+      Left = 162
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '5'
+      ParentColor = False
+    end
+    object Label10: TLabel
+      Left = 181
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '6'
+      ParentColor = False
+    end
+    object Label11: TLabel
+      Left = 202
+      Height = 17
+      Top = 0
+      Width = 8
+      Caption = '7'
+      ParentColor = False
+    end
+    object Label13: TLabel
+      Left = 10
+      Height = 17
+      Top = 10
+      Width = 45
+      Caption = 'Startbit:'
+      ParentColor = False
+    end
+    object Label14: TLabel
+      Left = 217
+      Height = 17
+      Top = 7
+      Width = 47
+      Caption = 'nrofbits:'
+      ParentColor = False
+    end
+    object RadioButton1: TRadioButton
+      Left = 59
+      Height = 23
+      Top = 15
+      Width = 24
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object RadioButton2: TRadioButton
+      Left = 79
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 1
+      TabStop = False
+    end
+    object RadioButton3: TRadioButton
+      Left = 98
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 2
+      TabStop = False
+    end
+    object RadioButton4: TRadioButton
+      Left = 118
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 3
+      TabStop = False
+    end
+    object RadioButton5: TRadioButton
+      Left = 138
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 4
+      TabStop = False
+    end
+    object RadioButton6: TRadioButton
+      Left = 158
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 5
+      TabStop = False
+    end
+    object RadioButton7: TRadioButton
+      Left = 177
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 6
+      TabStop = False
+    end
+    object RadioButton8: TRadioButton
+      Left = 197
+      Height = 23
+      Top = 15
+      Width = 24
+      TabOrder = 7
+      TabStop = False
+    end
+    object Edit2: TEdit
+      Left = 266
+      Height = 24
+      Top = 5
+      Width = 45
+      TabOrder = 8
+      Text = '1'
+    end
+  end
+  object NewAddress: TEdit
+    Left = 79
+    Height = 24
+    Top = 5
+    Width = 129
+    OnKeyPress = NewAddressKeyPress
+    TabOrder = 0
+    Text = '00400000'
+  end
+  object cbPointer: TCheckBox
+    Left = 23
+    Height = 23
+    Top = 98
+    Width = 66
+    Caption = 'Pointer'
+    OnClick = cbPointerClick
+    ParentBidiMode = False
+    TabOrder = 7
+  end
+  object Button3: TButton
+    Left = 10
+    Height = 25
+    Top = 126
+    Width = 90
+    Caption = 'Add pointer'
+    OnClick = Button3Click
+    TabOrder = 8
+    Visible = False
+  end
+  object Button4: TButton
+    Left = 108
+    Height = 25
+    Top = 126
+    Width = 90
+    Caption = 'Remove'
+    OnClick = Button4Click
+    TabOrder = 9
+    Visible = False
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 240
+    top = 88
+  end
+end

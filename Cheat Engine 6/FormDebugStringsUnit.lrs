@@ -1,0 +1,16 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TFormDebugStrings','FORMDATA',[
+  'TPF0'#17'TFormDebugStrings'#16'FormDebugStrings'#4'Left'#3'|'#2#6'Height'#3
+  +#221#0#3'Top'#3'='#1#5'Width'#3'A'#1#7'Caption'#6#13'Debug strings'#12'Clien'
+  +'tHeight'#3#221#0#11'ClientWidth'#3'A'#1#11'Font.Height'#2#245#9'Font.Name'#6
+  +#13'MS Sans Serif'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6#6'0.'
+  +'9.29'#0#8'TListBox'#8'ListBox1'#4'Left'#2#0#6'Height'#3#180#0#3'Top'#2#0#5
+  +'Width'#3'A'#1#5'Align'#7#8'alClient'#10'ItemHeight'#2#0#8'TabOrder'#2#0#0#0
+  +#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2')'#3'Top'#3#180#0#5'Width'#3'A'
+  +#1#5'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2')'#11
+  +'ClientWidth'#3'A'#1#8'TabOrder'#2#1#0#7'TButton'#7'Button1'#4'Left'#2'|'#6
+  +'Height'#2#25#3'Top'#2#8#5'Width'#2'K'#7'Anchors'#11#5'akTop'#0#7'Caption'#6
+  +#2'OK'#11'ModalResult'#2#1#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#0#0#0
+  +#0#0
+]);

@@ -1,0 +1,43 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmSaveMemoryRegion','FORMDATA',[
+  'TPF0'#20'TfrmSaveMemoryRegion'#19'frmSaveMemoryRegion'#4'Left'#3'1'#3#6'Heig'
+  +'ht'#3#22#1#3'Top'#3'_'#1#5'Width'#3#14#1#11'BorderIcons'#11#12'biSystemMenu'
+  +#0#7'Caption'#6#17'Save memoryregion'#12'ClientHeight'#3#22#1#11'ClientWidth'
+  +#3#14#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9
+  +'FormClose'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6
+  +'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#3#230#0#3'Top'#2#0#5'Width'#3#14#1#5
+  +'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3#230#0#11
+  +'ClientWidth'#3#14#1#8'TabOrder'#2#0#0#6'TLabel'#6'Label1'#4'Left'#2#0#6'Hei'
+  +'ght'#2#14#3'Top'#2#0#5'Width'#3#14#1#5'Align'#7#5'alTop'#7'Caption'#6',Add '
+  +'the region(s) of memory you want to save'#11'ParentColor'#8#8'WordWrap'#9#0
+  +#0#8'TListBox'#9'lbRegions'#4'Left'#2#0#6'Height'#3#216#0#3'Top'#2#14#5'Widt'
+  +'h'#3#163#0#5'Align'#7#8'alClient'#10'ItemHeight'#2#0#10'OnDblClick'#7#17'lb'
+  +'RegionsDblClick'#8'TabOrder'#2#0#0#0#6'TPanel'#6'Panel4'#4'Left'#3#163#0#6
+  +'Height'#3#216#0#3'Top'#2#14#5'Width'#2'k'#5'Align'#7#7'alRight'#10'BevelOut'
+  +'er'#7#6'bvNone'#12'ClientHeight'#3#216#0#11'ClientWidth'#2'k'#8'TabOrder'#2
+  +#1#0#6'TLabel'#6'Label2'#4'Left'#2#8#6'Height'#2#14#3'Top'#2#2#5'Width'#2#24
+  +#7'Caption'#6#4'From'#11'ParentColor'#8#0#0#6'TLabel'#6'Label3'#4'Left'#2#8#6
+  +'Height'#2#14#3'Top'#2'+'#5'Width'#2#14#7'Caption'#6#2'To'#11'ParentColor'#8
+  +#0#0#5'TEdit'#8'editFrom'#4'Left'#2#7#6'Height'#2#21#3'Top'#2#16#5'Width'#2
+  +'Z'#9'MaxLength'#2#8#8'TabOrder'#2#0#0#0#5'TEdit'#6'editTo'#4'Left'#2#7#6'He'
+  +'ight'#2#21#3'Top'#2'8'#5'Width'#2'Y'#9'MaxLength'#2#8#8'TabOrder'#2#1#0#0#7
+  +'TButton'#7'Button3'#4'Left'#2#13#6'Height'#2#25#3'Top'#2'P'#5'Width'#2'K'#7
+  +'Caption'#6#3'Add'#7'OnClick'#7#12'Button3Click'#8'TabOrder'#2#2#0#0#0#0#6'T'
+  +'Panel'#6'Panel2'#4'Left'#2#0#6'Height'#2'0'#3'Top'#3#230#0#5'Width'#3#14#1#5
+  +'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2'0'#11'Cl'
+  +'ientWidth'#3#14#1#8'TabOrder'#2#1#0#9'TCheckBox'#11'DontInclude'#4'Left'#2#3
+  +#6'Height'#2#23#3'Top'#2#31#5'Width'#3#216#0#7'Caption'#6')Don''t include Ch'
+  +'eat Engine header in file'#7'OnClick'#7#16'DontIncludeClick'#8'TabOrder'#2#0
+  +#0#0#6'TPanel'#6'Panel3'#4'Left'#2'8'#6'Height'#2'!'#3'Top'#2#0#5'Width'#3
+  +#169#0#7'Anchors'#11#5'akTop'#0#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2
+  +'!'#11'ClientWidth'#3#169#0#8'TabOrder'#2#1#0#7'TButton'#7'Button1'#4'Left'#2
+  +#0#6'Height'#2#25#3'Top'#2#3#5'Width'#2'K'#7'Caption'#6#4'Save'#7'Default'#9
+  +#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button2'#4'L'
+  +'eft'#2'V'#6'Height'#2#25#3'Top'#2#3#5'Width'#2'K'#6'Cancel'#9#7'Caption'#6#6
+  +'Cancel'#11'ModalResult'#2#2#8'TabOrder'#2#1#0#0#0#0#11'TSaveDialog'#11'Save'
+  +'Dialog1'#10'DefaultExt'#6#4'.CEM'#6'Filter'#6'8Cheat Engine Memory file(*.C'
+  +'EM)|*.CEM|All files(*.*)|*.*'#11'FilterIndex'#2#0#7'Options'#11#17'ofOverwr'
+  +'itePrompt'#14'ofHideReadOnly'#14'ofEnableSizing'#0#4'left'#2#8#3'top'#2#16#0
+  +#0#0
+]);

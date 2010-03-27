@@ -1,0 +1,341 @@
+object FormFoundCodeListExtra: TFormFoundCodeListExtra
+  Left = 814
+  Height = 335
+  Top = 312
+  Width = 486
+  Caption = 'Extra info'
+  ClientHeight = 335
+  ClientWidth = 486
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  PopupMenu = pmCopy
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Panel1: TPanel
+    Left = 0
+    Height = 101
+    Top = 0
+    Width = 486
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 101
+    ClientWidth = 486
+    TabOrder = 0
+    object Label10: TLabel
+      Left = 0
+      Height = 17
+      Top = 44
+      Width = 19
+      Caption = '>>'
+      Font.CharSet = ANSI_CHARSET
+      Font.Color = clRed
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 20
+      Height = 17
+      Top = 46
+      Width = 55
+      Caption = 'Label3'
+      Font.CharSet = ANSI_CHARSET
+      Font.Color = clRed
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label4: TLabel
+      Left = 20
+      Height = 17
+      Top = 65
+      Width = 55
+      Caption = 'Label4'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label5: TLabel
+      Left = 20
+      Height = 17
+      Top = 85
+      Width = 55
+      Caption = 'Label5'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label2: TLabel
+      Left = 20
+      Height = 17
+      Top = 26
+      Width = 55
+      Caption = 'Label2'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label1: TLabel
+      Left = 20
+      Height = 17
+      Top = 6
+      Width = 55
+      Caption = 'Label1'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 11
+    Top = 101
+    Width = 486
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 1
+  end
+  object Panel3: TPanel
+    Left = 0
+    Height = 60
+    Top = 112
+    Width = 486
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 60
+    ClientWidth = 486
+    TabOrder = 2
+    object Panel4: TPanel
+      Left = 30
+      Height = 70
+      Top = 0
+      Width = 534
+      Align = alCustom
+      Anchors = [akTop, akLeft, akRight]
+      BevelOuter = bvNone
+      ClientHeight = 70
+      ClientWidth = 534
+      TabOrder = 0
+      object Label6: TLabel
+        Left = 0
+        Height = 16
+        Top = 0
+        Width = 534
+        Align = alTop
+        AutoSize = False
+        Caption = 'xxx'
+        ParentColor = False
+        WordWrap = True
+      end
+      object Label17: TLabel
+        Left = 0
+        Height = 54
+        Top = 16
+        Width = 534
+        Align = alClient
+        AutoSize = False
+        Caption = 'yyy'
+        ParentColor = False
+        PopupMenu = pmCopy2
+        WordWrap = True
+      end
+    end
+  end
+  object Panel5: TPanel
+    Left = 0
+    Height = 42
+    Top = 293
+    Width = 486
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 42
+    ClientWidth = 486
+    TabOrder = 3
+    object Button1: TButton
+      Left = 199
+      Height = 32
+      Top = 5
+      Width = 92
+      Anchors = [akBottom]
+      Cancel = True
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+  object Panel6: TPanel
+    Left = 0
+    Height = 121
+    Top = 172
+    Width = 486
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 121
+    ClientWidth = 486
+    TabOrder = 4
+    OnResize = Panel6Resize
+    object Label7: TLabel
+      Left = 26
+      Height = 17
+      Top = 12
+      Width = 109
+      Caption = 'EAX=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label8: TLabel
+      Left = 26
+      Height = 17
+      Top = 32
+      Width = 109
+      Caption = 'EBX=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label9: TLabel
+      Left = 26
+      Height = 17
+      Top = 52
+      Width = 109
+      Caption = 'ECX=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label11: TLabel
+      Left = 146
+      Height = 17
+      Top = 12
+      Width = 109
+      Caption = 'EDX=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label12: TLabel
+      Left = 268
+      Height = 17
+      Top = 12
+      Width = 109
+      Caption = 'EBP=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label13: TLabel
+      Left = 268
+      Height = 17
+      Top = 32
+      Width = 109
+      Caption = 'ESP=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label14: TLabel
+      Left = 146
+      Height = 17
+      Top = 52
+      Width = 109
+      Caption = 'EDI=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label15: TLabel
+      Left = 268
+      Height = 17
+      Top = 52
+      Width = 109
+      Caption = 'EIP=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label16: TLabel
+      Left = 146
+      Height = 17
+      Top = 32
+      Width = 109
+      Caption = 'ESI=DDDDDDDD'
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -17
+      Font.Name = 'Courier'
+      ParentColor = False
+      ParentFont = False
+    end
+    object Label18: TLabel
+      Left = 0
+      Height = 21
+      Top = 76
+      Width = 447
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = False
+      Caption = 'The registers shown here are AFTER the instruction has been executed'
+      ParentColor = False
+      Visible = False
+      WordWrap = True
+    end
+    object sbShowFloats: TSpeedButton
+      Left = 448
+      Height = 30
+      Hint = 'Floating point registers'
+      Top = 28
+      Width = 21
+      Caption = '>'
+      Color = clBtnFace
+      NumGlyphs = 0
+      OnClick = sbShowFloatsClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+  end
+  object pmCopy: TPopupMenu
+    left = 112
+    top = 112
+    object Copyaddresstoclipboard1: TMenuItem
+      Caption = 'Copy info to clipboard'
+      ShortCut = 16451
+      OnClick = Copyaddresstoclipboard1Click
+    end
+  end
+  object pmCopy2: TPopupMenu
+    left = 190
+    top = 112
+    object Copyguesstoclipboard1: TMenuItem
+      Caption = 'Copy easy guess to clipboard'
+      OnClick = Copyguesstoclipboard1Click
+    end
+  end
+end
