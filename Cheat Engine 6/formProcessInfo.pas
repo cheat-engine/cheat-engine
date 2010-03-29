@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc,NewKernelHandler, LResources{,memorybrowserformunit};
+  Dialogs, StdCtrls,CEFuncProc,NewKernelHandler, LResources,memorybrowserformunit;
 
 type
   TfrmProcessInfo = class(TForm)
@@ -48,15 +48,15 @@ var
 implementation
 
 
-{uses threadlistexfrm;}
+uses threadlistexfrm;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
-var cr3: dword;
+var cr3: ptrUint;
     idt: array [0..31] of dword;
     i,j: integer;
     limit: word;
 begin
-  (*
+
   lblPEPROCESS.caption:=inttohex(GetPEProcess(processid),8);
   lblisvalid.caption:=booltostr(isvalidhandle(processhandle),true);
 
@@ -75,7 +75,7 @@ begin
   lblssdt.caption:=inttohex(GetSDTShadow,8);
 
   lblgdt.Caption:=inttohex(GetGDT(limit),8);
-  *)
+
 end;
 
 procedure TfrmProcessInfo.Button1Click(Sender: TObject);
@@ -86,41 +86,38 @@ end;
 procedure TfrmProcessInfo.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-  (*
+
   action:=cafree;
   if frmThreadlistEx<>nil then
     frmThreadlistEx.close;
-  frmThreadlistEx:=nil; *)
+  frmThreadlistEx:=nil;
 end;
 
 procedure TfrmProcessInfo.lblclick(Sender: TObject);
 begin
-  (*
+
   memorybrowser.memoryaddress:=strtoint('$'+tlabel(sender).caption);
 
   if not memorybrowser.visible then
     memorybrowser.show;
 
-  memorybrowser.RefreshMB; *)
 end;
 
 procedure TfrmProcessInfo.lbidtDblClick(Sender: TObject);
 begin
-  (*
+
   if lbidt.ItemIndex<>-1 then
   begin
     memorybrowser.memoryaddress:=strtoint('$'+lbidt.Items[lbidt.itemindex]);
 
     if not memorybrowser.visible then
       memorybrowser.show;
-
-    memorybrowser.RefreshMB;
-  end;  *)
+  end;
 end;
 
 procedure TfrmProcessInfo.Button2Click(Sender: TObject);
 begin
-  (*
+
   if frmThreadlistEx=nil then
   begin
     frmThreadlistEx:=tfrmThreadlistEx.create(self);
@@ -129,7 +126,7 @@ begin
     frmThreadlistEx.show;
   end;
 
-  frmThreadlistEx.updatelist;   *)
+  frmThreadlistEx.updatelist;
 end;
 
 initialization

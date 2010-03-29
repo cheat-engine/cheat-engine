@@ -225,14 +225,14 @@ begin
       //parse
       //find the biggest value, registers or exact value
       max:=0;
-      if pos('eax',temp)>0 then if coderecord.eax>max then max:=coderecord.eax;
-      if pos('ebx',temp)>0 then if coderecord.ebx>max then max:=coderecord.ebx;
-      if pos('ecx',temp)>0 then if coderecord.ecx>max then max:=coderecord.ecx;
-      if pos('edx',temp)>0 then if coderecord.edx>max then max:=coderecord.edx;
-      if pos('edi',temp)>0 then if coderecord.edi>max then max:=coderecord.edi;
-      if pos('esi',temp)>0 then if coderecord.esi>max then max:=coderecord.esi;
-      if pos('ebp',temp)>0 then if coderecord.ebp>max then max:=coderecord.ebp;
-      if pos('esp',temp)>0 then if coderecord.esp>max then max:=coderecord.esp;
+      if pos(firstchar+'ax',temp)>0 then if coderecord.eax>max then max:=coderecord.eax;
+      if pos(firstchar+'bx',temp)>0 then if coderecord.ebx>max then max:=coderecord.ebx;
+      if pos(firstchar+'cx',temp)>0 then if coderecord.ecx>max then max:=coderecord.ecx;
+      if pos(firstchar+'dx',temp)>0 then if coderecord.edx>max then max:=coderecord.edx;
+      if pos(firstchar+'di',temp)>0 then if coderecord.edi>max then max:=coderecord.edi;
+      if pos(firstchar+'si',temp)>0 then if coderecord.esi>max then max:=coderecord.esi;
+      if pos(firstchar+'bp',temp)>0 then if coderecord.ebp>max then max:=coderecord.ebp;
+      if pos(firstchar+'sp',temp)>0 then if coderecord.esp>max then max:=coderecord.esp;
 
       //the offset is always at the end, so read from back to front
       temp2:='';

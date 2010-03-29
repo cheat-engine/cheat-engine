@@ -11,13 +11,6 @@ uses
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
   MemoryRecordUnit;
 
-(*
-type TSynEditFix = class (TSynEdit)
-  private
-    procedure PasteFromClipboard;
-end;   *)
-
-
 type
 
   { TfrmAutoInject }
@@ -141,13 +134,6 @@ implementation
 {$ifndef standalonetrainerwithassembler}
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm;
 {$endif}
-
-(*
-procedure TSynEditFix.PasteFromClipboard;
-begin
-  inherited;
-  repaint;
-end;   *)
 
 procedure TfrmAutoInject.setcplusplus(state: boolean);
 begin
@@ -1024,7 +1010,6 @@ begin
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
-(*  assemblescreen.SearchEngine:=assembleSearch;  *)
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=2;
@@ -1032,10 +1017,9 @@ begin
 
   assemblescreen.Gutter.MarksPart.Visible:=false;
   assemblescreen.Gutter.Visible:=true;
-(*  assemblescreen.Gutter.ShowLineNumbers:=true;   *)
+  assemblescreen.Gutter.LineNumberPart.Visible:=true;
   assemblescreen.Gutter.LeftOffset:=1;
   assemblescreen.Gutter.RightOffset:=1;
-(*  assemblescreen.Gutter.DigitCount:=3; *)
 
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;

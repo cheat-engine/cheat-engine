@@ -50,7 +50,7 @@ end;
 
 implementation
 
-uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions{, dissectcodeunit, };
+uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit;
 
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
@@ -111,10 +111,10 @@ end;
 
 
 function TdisassemblerLine.buildReferencedByString: string;
-(*var addresses: tdissectarray;
-    i: integer;*)
+var addresses: tdissectarray;
+    i: integer;
 begin
-  (*
+
   result:='';
   setlength(addresses,0);
 
@@ -136,7 +136,7 @@ begin
         end;
       end;
     end;
-  end; *)
+  end;
 end;
 
 procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
@@ -178,7 +178,7 @@ begin
 
   refferencedbylinecount:=0;
 
-  (*
+
   if (frmDissectCode<>nil) and (frmDissectCode.dissectcode<>nil) and (frmDissectCode.dissectcode.done) then
   begin
     refferencedby:=buildReferencedByString;
@@ -212,7 +212,7 @@ begin
       height:=height+refferencedbyheight;
       fcanvas.Font.Style:=[];
     end;
-  end;*)
+  end;
 
   fdisassembled:=disassemble(address,fdescription);
 
@@ -310,9 +310,9 @@ begin
   opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
   specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
-  (*
-  if MemoryBrowser.lastdebugcontext.EIP=faddress then
-    addressString:='>>'+addressString;   *)
+
+  if MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=faddress then
+    addressString:='>>'+addressString;
 
 
   //set pointers to strings

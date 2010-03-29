@@ -537,23 +537,33 @@ end;
 
 procedure TKDebuggerThread.ConvertDebuggerStateToContext(debuggerstate: TDebuggerstate; var context: _CONTEXT);
 begin
-  (*
+
   ZeroMemory(@context,sizeof(_CONTEXT));
-  context.Eax:=debuggerstate.Eax;
-  context.Ebx:=debuggerstate.Ebx;
-  context.Ecx:=debuggerstate.Ecx;
-  context.Edx:=debuggerstate.Edx;
-  context.Esi:=debuggerstate.Esi;
-  context.Edi:=debuggerstate.Esi;
-  context.Ebp:=debuggerstate.Ebp;
-  context.Esp:=debuggerstate.Esp;
-  context.Eip:=debuggerstate.Eip;
+  context.{$ifdef cpu64}rax{$else}Eax{$endif}:=debuggerstate.Eax;
+  context.{$ifdef cpu64}rbx{$else}Ebx{$endif}:=debuggerstate.Ebx;
+  context.{$ifdef cpu64}rcx{$else}Ecx{$endif}:=debuggerstate.Ecx;
+  context.{$ifdef cpu64}rdx{$else}Edx{$endif}:=debuggerstate.Edx;
+  context.{$ifdef cpu64}rsi{$else}Esi{$endif}:=debuggerstate.Esi;
+  context.{$ifdef cpu64}rdi{$else}Edi{$endif}:=debuggerstate.Esi;
+  context.{$ifdef cpu64}rbp{$else}Ebp{$endif}:=debuggerstate.Ebp;
+  context.{$ifdef cpu64}rsp{$else}Esp{$endif}:=debuggerstate.Esp;
+  context.{$ifdef cpu64}rip{$else}Eip{$endif}:=debuggerstate.Eip;
+  {$ifdef cpu64}
+  debuggerstate.r8:=debuggerstate.r8;
+  debuggerstate.r9:=debuggerstate.r9;
+  debuggerstate.r10:=debuggerstate.r10;
+  debuggerstate.r11:=debuggerstate.r11;
+  debuggerstate.r12:=debuggerstate.r12;
+  debuggerstate.r13:=debuggerstate.r13;
+  debuggerstate.r14:=debuggerstate.r14;
+  debuggerstate.r15:=debuggerstate.r15;
+  {$endif}
   context.Dr0:=debuggerstate.dr0;
   context.Dr1:=debuggerstate.dr1;
   context.Dr2:=debuggerstate.dr2;
   context.Dr3:=debuggerstate.dr3;
   context.Dr6:=debuggerstate.dr6;
-  context.Dr7:=debuggerstate.dr7;  *)
+  context.Dr7:=debuggerstate.dr7;
 end;
 
 procedure TKDebuggerThread.Continue(continueOption: TContinueOption; runtilladdress: ptrUint=0);
@@ -567,227 +577,12 @@ procedure TKDebuggerThread.UpdateGui;
 var
   temp: string;
 begin
-  (*
-  with memorybrowser do
-  begin
-    //enable debug mode
-    run1.Enabled:=true;
-    step1.Enabled:=true;
-    stepover1.Enabled:=true;
-    runtill1.Enabled:=true;
-    stacktrace1.Enabled:=true;
-    Executetillreturn1.Enabled:=true;
-    if stepping then
-      caption:='Memory Viewer - Currently debugging thread'
-    else
-      caption:='Memory Viewer - Running...';
 
-    if frmstacktrace<>nil then
-    begin
-      ConvertDebuggerStateToContext(currentdebuggerstate, tempcontext);
-      frmstacktrace.stacktrace(currentdebuggerstate.threadid,tempcontext);
-    end;
-
-    disassemblerview.SelectedAddress:=currentdebuggerstate.Eip;
-
-    temp:='EAX '+IntToHex(currentdebuggerstate.Eax,8);
-    if temp<>eaxlabel.Caption then
-    begin
-      eaxlabel.Font.Color:=clred;
-      eaxlabel.Caption:=temp;
-    end else eaxlabel.Font.Color:=clWindowText;
-
-    temp:='EBX '+IntToHex(currentdebuggerstate.Ebx,8);
-    if temp<>ebxlabel.Caption then
-    begin
-      ebxlabel.Font.Color:=clred;
-      ebxlabel.Caption:=temp;
-    end else ebxlabel.Font.Color:=clWindowText;
-
-    temp:='ECX '+IntToHex(currentdebuggerstate.ECx,8);
-    if temp<>eCxlabel.Caption then
-    begin
-      eCXlabel.Font.Color:=clred;
-      eCXlabel.Caption:=temp;
-    end else eCXlabel.Font.Color:=clWindowText;
-
-    temp:='EDX '+IntToHex(currentdebuggerstate.EDx,8);
-    if temp<>eDxlabel.Caption then
-    begin
-      eDxlabel.Font.Color:=clred;
-      eDxlabel.Caption:=temp;
-    end else eDxlabel.Font.Color:=clWindowText;
-
-    temp:='ESI '+IntToHex(currentdebuggerstate.ESI,8);
-    if temp<>eSIlabel.Caption then
-    begin
-      eSIlabel.Font.Color:=clred;
-      eSIlabel.Caption:=temp;
-    end else eSIlabel.Font.Color:=clWindowText;
-
-    temp:='EDI '+IntToHex(currentdebuggerstate.EDI,8);
-    if temp<>eDIlabel.Caption then
-    begin
-      eDIlabel.Font.Color:=clred;
-      eDIlabel.Caption:=temp;
-    end else eDIlabel.Font.Color:=clWindowText;
-
-    temp:='EBP '+IntToHex(currentdebuggerstate.EBP,8);
-    if temp<>eBPlabel.Caption then
-    begin
-      eBPlabel.Font.Color:=clred;
-      eBPlabel.Caption:=temp;
-    end else eBPlabel.Font.Color:=clWindowText;
-
-    temp:='ESP '+IntToHex(currentdebuggerstate.ESP,8);
-    if temp<>eSPlabel.Caption then
-    begin
-      eSPlabel.Font.Color:=clred;
-      eSPlabel.Caption:=temp;
-    end else eSPlabel.Font.Color:=clWindowText;
-
-    temp:='EIP '+IntToHex(currentdebuggerstate.EIP,8);
-    if temp<>eIPlabel.Caption then
-    begin
-      eIPlabel.Font.Color:=clred;
-      eIPlabel.Caption:=temp;
-    end else eIPlabel.Font.Color:=clWindowText;
-
-    temp:='CS '+IntToHex(currentdebuggerstate.cs,4);
-    if temp<>CSlabel.Caption then
-    begin
-      CSlabel.Font.Color:=clred;
-      CSlabel.Caption:=temp;
-    end else CSlabel.Font.Color:=clWindowText;
-
-    temp:='DS '+IntToHex(currentdebuggerstate.ds,4);
-    if temp<>DSlabel.Caption then
-    begin
-      DSlabel.Font.Color:=clred;
-      DSlabel.Caption:=temp;
-    end else DSLabel.Font.Color:=clWindowText;
-
-    temp:='SS '+IntToHex(currentdebuggerstate.ss,4);
-    if temp<>SSlabel.Caption then
-    begin
-      SSlabel.Font.Color:=clred;
-      SSlabel.Caption:=temp;
-    end else SSlabel.Font.Color:=clWindowText;
-
-    temp:='ES '+IntToHex(currentdebuggerstate.es,4);
-    if temp<>ESlabel.Caption then
-    begin
-      ESlabel.Font.Color:=clred;
-      ESlabel.Caption:=temp;
-    end else ESlabel.Font.Color:=clWindowText;
-
-    temp:='FS '+IntToHex(currentdebuggerstate.fs,4);
-    if temp<>FSlabel.Caption then
-    begin
-      FSlabel.Font.Color:=clred;
-      FSlabel.Caption:=temp;
-    end else FSlabel.Font.Color:=clWindowText;
-
-    temp:='GS '+IntToHex(currentdebuggerstate.gs,4);
-    if temp<>GSlabel.Caption then
-    begin
-      GSlabel.Font.Color:=clred;
-      GSlabel.Caption:=temp;
-    end else GSlabel.Font.Color:=clWindowText;
-
-    temp:='CF '+IntToStr(GetBitOf(currentdebuggerstate.EFLAgs,0));
-    if temp<>cflabel.Caption then
-    begin
-      CFlabel.Font.Color:=clred;
-      CFlabel.caption:=temp;
-    end else cflabel.Font.Color:=clWindowText;
-
-    temp:='PF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,2));
-    if temp<>Pflabel.Caption then
-    begin
-      Pflabel.Font.Color:=clred;
-      Pflabel.caption:=temp;
-    end else Pflabel.Font.Color:=clWindowText;
-
-    temp:='AF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,4));
-    if temp<>Aflabel.Caption then
-    begin
-      Aflabel.Font.Color:=clred;
-      Aflabel.caption:=temp;
-    end else Aflabel.Font.Color:=clWindowText;
-
-    temp:='ZF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,6));
-    if temp<>Zflabel.Caption then
-    begin
-      Zflabel.Font.Color:=clred;
-      Zflabel.caption:=temp;
-    end else Zflabel.Font.Color:=clWindowText;
-
-    temp:='SF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,7));
-    if temp<>Sflabel.Caption then
-    begin
-      Sflabel.Font.Color:=clred;
-      Sflabel.caption:=temp;
-    end else Sflabel.Font.Color:=clWindowText;
-
-    temp:='DF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,10));
-    if temp<>Dflabel.Caption then
-    begin
-      Dflabel.Font.Color:=clred;
-      Dflabel.caption:=temp;
-    end else Dflabel.Font.Color:=clWindowText;
-
-    temp:='OF '+IntToStr(GetBitOf(currentdebuggerstate.EFlags,11));
-    if temp<>Oflabel.Caption then
-    begin
-      Oflabel.Font.Color:=clred;
-      Oflabel.caption:=temp;
-    end else Oflabel.Font.Color:=clWindowText;
-
-
-    ConvertDebuggerStateToContext(currentdebuggerstate, lastdebugcontext);
- {
-    EAXv:=currentdebuggerstate.Eax;
-    EBXv:=currentdebuggerstate.Ebx;
-    ECXv:=currentdebuggerstate.Ecx;
-    EDXv:=currentdebuggerstate.Edx;
-    ESIv:=currentdebuggerstate.ESi;
-    EDIv:=currentdebuggerstate.Edi;
-    EBPv:=currentdebuggerstate.Ebp;
-    ESPv:=currentdebuggerstate.Esp;
-    EIPv:=currentdebuggerstate.Eip;  }
-
-    showDebugPanels:=true;
-    reloadStacktrace;
-  end;*)
 end;
 
 procedure TKDebuggerThread.AddToChangesList;
-var i: integer;
-    lbs: string;
-    newitem: TListItem;
-    x: PContext;
-    bpa: ptrUint;
 begin
-   (*try
-    bpa:=getaddress(tempaddressspecifier);
-    lbs:=inttohex(bpa,8);
-    for i:=0 to frmchangedaddresses.Changedlist.Items.Count-1 do
-      if frmchangedaddresses.Changedlist.Items[i].Caption=lbs then exit;
 
-    newitem:=frmchangedaddresses.Changedlist.Items.Add;
-    getmem(x,sizeof(_CONTEXT));
-    ConvertDebuggerStateToContext(currentdebuggerstate, x^);
-    newitem.Data:=x;
-    newitem.Caption:=lbs;
-
-    //enable the timer if needed, there's data to be handled
-    if not frmchangedaddresses.Timer1.Enabled then
-      frmchangedaddresses.Timer1.Enabled:=true;
-  except
-    //
-  end;
-*)
 end;
 
 procedure TKDebuggerThread.foundone;

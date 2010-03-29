@@ -5,7 +5,7 @@ unit frmstacktraceunit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,NewKernelHandler, CEFuncProc, ComCtrls,imagehlp,CEDebugger, KernelDebugger,
   Menus, LResources, debughelper;
 
@@ -30,31 +30,49 @@ var
 
 implementation
 
+function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall;
+begin
+  result:=false;
+  {$ifndef cpu64}
+  if qwBaseAddress>$FFFFFFFF then exit;
+  {$endif}
+  result:=newkernelhandler.readprocessmemory(hProcess, pointer(qwBaseAddress), lpBuffer, nSize, lpNumberOfBytesRead^);
+end;
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
-var stackframe: PStackframe;
+var stackframe: PStackframe64;
     cxt:_context;
     a,b,c,d: dword;
     sa,sb,sc,sd:string;
+    machinetype: dword;
 begin
-  (*
+
   cxt:=context;
 
   getmem(stackframe,sizeof(tstackframe));
   zeromemory(stackframe,sizeof(tstackframe));
-  stackframe^.AddrPC.Offset:=context.eip;
+  stackframe^.AddrPC.Offset:=context.{$ifdef cpu64}rip{$else}eip{$endif};
   stackframe^.AddrPC.mode:=AddrModeFlat;
 
-  stackframe^.AddrStack.Offset:=context.Esp;
+  stackframe^.AddrStack.Offset:=context.{$ifdef cpu64}rsp{$else}esp{$endif};
   stackframe^.AddrStack.Mode:=addrmodeflat;
 
-  stackframe^.AddrFrame.Offset:=context.Ebp;
+  stackframe^.AddrFrame.Offset:=context.{$ifdef cpu64}rbp{$else}ebp{$endif};
   stackframe^.AddrFrame.Mode:=addrmodeflat;
 
   listview1.items.clear;
 
+
+//function StackWalk64(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer;  ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;external External_library name 'StackWalk64';
+
+  if processhandler.is64Bit then
+    machinetype:=IMAGE_FILE_MACHINE_AMD64
+  else
+    machinetype:=IMAGE_FILE_MACHINE_I386;
+
   //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
-  while stackwalk(IMAGE_FILE_MACHINE_I386,processhandle,threadhandle,stackframe,@cxt, newkernelhandler.readprocessmemory ,SymFunctionTableAccess,SymGetModuleBase,nil) do
+
+  while stackwalk64(machinetype,processhandle,threadhandle,stackframe,@cxt, rpm64 ,SymFunctionTableAccess64,SymGetModuleBase64,nil) do
   begin
     listview1.Items.Add.Caption:=inttohex(stackframe^.AddrPC.Offset,8);
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrStack.Offset,8));
@@ -73,7 +91,7 @@ begin
 
     listview1.items[listview1.Items.Count-1].SubItems.add(sa+','+sb+','+sc+','+sd+',...');
   end;
-  *)
+
 end;
 
 procedure TfrmstackTrace.refreshtrace;

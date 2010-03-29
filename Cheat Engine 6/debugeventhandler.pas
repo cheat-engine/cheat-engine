@@ -34,6 +34,8 @@ type
     traceWindow: TfrmTracer;
     //------------------
 
+    WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
+
     function HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     //even though it's private, it's accessible from this unit
     function CreateThreadDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
@@ -72,6 +74,7 @@ type
     destructor destroy; override;
 
     property isSingleStepping: boolean read singlestepping;
+    property isWaitingToContinue: boolean read WaitingToContinue;
   end;
 
   TDebugEventHandler = class
@@ -287,7 +290,9 @@ begin
 
   //go to sleep and wait for an event that wakes it up. No need to worry about deleted breakpoints, since the cleanup will not be called untill this routine exits
   onContinueEvent.ResetEvent;
+  WaitingToContinue:=true;
   onContinueEvent.WaitFor(infinite);
+  WaitingToContinue:=false;
 
   continueFromBreakpoint(bp, continueOption);
 end;
@@ -467,12 +472,18 @@ begin
 end;
 
 function TDebugThreadHandler.CreateThreadDebugEvent(debugevent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
+var i: integer;
 begin
   OutputDebugString('CreateThreadDebugEvent');
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
   handle    := debugevent.CreateThread.hThread;
   Result    := true;
+
+  //set all the debugregister breakpoints for this thread
+
+  TDebuggerThread(debuggerthread).UpdateDebugRegisterBreakpointsForThread(self);
+
   dwContinueStatus:=DBG_CONTINUE;
 end;
 

@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,{tlhelp32,}CEFuncProc,
-  symbolhandler, LResources{, frmReferencedStringsUnit};
+  symbolhandler, LResources, frmReferencedStringsUnit;
 
 type tmoduledata =class
   public
@@ -190,7 +190,7 @@ begin
 
 
 
-    (*
+
     if ondone=odOpenReferedStringList then
     begin
       close;
@@ -198,7 +198,7 @@ begin
         frmReferencedStrings:=tfrmReferencedStrings.Create(self);
 
       frmReferencedStrings.Show;
-    end;   *)
+    end;
 
     ondone:=odDoNothing;
   end;

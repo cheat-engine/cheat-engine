@@ -39,7 +39,7 @@ uses
   frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
   DebugHelper, debugeventhandler, formFoundcodeListExtraUnit, 
 debuggertypedefinitions, sfloat, addresslist, 
-addresslisthandlerunit, MemoryRecordUnit;
+addresslisthandlerunit, MemoryRecordUnit, ThreadlistExFRM, windows7taskbar;
 
 {$R cheatengine.res}
 

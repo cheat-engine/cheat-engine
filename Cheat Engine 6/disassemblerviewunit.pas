@@ -760,6 +760,7 @@ begin
 
 
   header:=THeaderControl.Create(self);
+
   with header do
   begin
     height:=20;
@@ -770,20 +771,17 @@ begin
   end;
 
 
+
   with header.Sections.Add do
   begin
-    (*AllowClick:=false;*)
     ImageIndex:=-1;
     MinWidth:=50;
     Text:='Address';
-
-
     Width:=80;
    end;
 
   with header.Sections.Add do
   begin
-    (*AllowClick:=false;*)
     ImageIndex:=-1;
     MinWidth:=50;
     Text:='Bytes';
@@ -792,7 +790,6 @@ begin
 
   with header.Sections.Add do
   begin
-    (*AllowClick:=false;*)
     ImageIndex:=-1;
     MinWidth:=50;
     Text:='Opcode';
@@ -801,7 +798,6 @@ begin
 
   with header.Sections.Add do
   begin
-    (*AllowClick:=false;*)
     ImageIndex:=-1;
     MinWidth:=5;
     Text:='Comment';

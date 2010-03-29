@@ -19,9 +19,7 @@ type
     Button3: TButton;
     Panel3: TPanel;
     Label52: TLabel;
-    Label51: TLabel;
     edtSHSpeed: TEdit;
-    edtSHSleep: TEdit;
     Panel4: TPanel;
     Label3: TLabel;
     Edit4: TEdit;
@@ -74,27 +72,22 @@ begin
     if currentspeed=1 then
     begin
       newspeedhackspeed1.speed:=StrToFloat(edtSHspeed.Text);
-      newspeedhackspeed1.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=2 then
     begin
       newspeedhackspeed2.speed:=StrToFloat(edtSHspeed.Text);
-      newspeedhackspeed2.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=3 then
     begin
       newspeedhackspeed3.speed:=StrToFloat(edtSHspeed.Text);
-      newspeedhackspeed3.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=4 then
     begin
       newspeedhackspeed4.speed:=StrToFloat(edtSHspeed.Text);
-      newspeedhackspeed4.sleeptime:=strtoint(edtSHSleep.Text);
     end else
     if currentspeed=5 then
     begin
       newspeedhackspeed5.speed:=StrToFloat(edtSHspeed.Text);
-      newspeedhackspeed5.sleeptime:=strtoint(edtSHSleep.Text);
     end;
   end;
 
@@ -105,31 +98,26 @@ begin
       1:
       begin
         edtSHSpeed.text:=format('%.2f',[newspeedhackspeed1.speed]);
-        edtSHSleep.text:=inttostr(newspeedhackspeed1.sleeptime);
       end;
 
       2:
       begin
         edtSHSpeed.text:=format('%.2f',[newspeedhackspeed2.speed]);
-        edtSHSleep.text:=inttostr(newspeedhackspeed2.sleeptime);
       end;
 
       3:
       begin
         edtSHSpeed.text:=format('%.2f',[newspeedhackspeed3.speed]);
-        edtSHSleep.text:=inttostr(newspeedhackspeed3.sleeptime);
       end;
 
       4:
       begin
         edtSHSpeed.text:=format('%.2f',[newspeedhackspeed4.speed]);
-        edtSHSleep.text:=inttostr(newspeedhackspeed4.sleeptime);
       end;
 
       5:
       begin
         edtSHSpeed.text:=format('%.2f',[newspeedhackspeed5.speed]);
-        edtSHSleep.text:=inttostr(newspeedhackspeed5.sleeptime);
       end;
     end;
 

@@ -6,75 +6,8 @@ object formScanning: TformScanning
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Scanning...'
-  ClientHeight = 75
-  ClientWidth = 140
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  OnClose = FormClose
-  OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
-  OnShow = FormShow
   Position = poOwnerFormCenter
   LCLVersion = '0.9.29'
-  object Label1: TLabel
-    Left = -8
-    Height = 24
-    Top = 8
-    Width = 145
-    AutoSize = False
-    Caption = '01000100010000100011010001000101010101100100010101010010'
-    Font.CharSet = ANSI_CHARSET
-    Font.Height = -25
-    Font.Name = 'Courier'
-    Font.Style = [fsBold]
-    ParentColor = False
-    ParentFont = False
-  end
-  object Label2: TLabel
-    Left = 0
-    Height = 14
-    Top = 32
-    Width = 83
-    Caption = 'Estimate time left:'
-    ParentColor = False
-  end
-  object Label3: TLabel
-    Left = 88
-    Height = 14
-    Top = 32
-    Width = 43
-    Caption = '00:00:00'
-    ParentColor = False
-  end
-  object btnCancel: TButton
-    Left = 12
-    Height = 25
-    Top = 48
-    Width = 105
-    Cancel = True
-    Caption = 'Cancel'
-    OnClick = btnCancelClick
-    TabOrder = 1
-  end
-  object Button1: TButton
-    Left = 800
-    Height = 0
-    Top = 800
-    Width = 0
-    Caption = 'Button1'
-    Default = True
-    TabOrder = 0
-  end
-  object Timer1: TTimer
-    OnTimer = Timer1Timer
-    left = 16
-    top = 16
-  end
-  object Timer2: TTimer
-    Enabled = False
-    Interval = 5000
-    OnTimer = Timer2Timer
-    left = 88
-    top = 16
-  end
 end

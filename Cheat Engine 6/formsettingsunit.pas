@@ -57,13 +57,11 @@ type
     EditAutoAttach: TEdit;
     cbAlwaysAutoAttach: TCheckBox;
     cbSaveWindowPos: TCheckBox;
-    cbOldSpeedhack: TCheckBox;
     Label2: TLabel;
     Label3: TLabel;
     Label1: TLabel;
     Label15: TLabel;
     Label21: TLabel;
-    checkThread: TCheckBox;
     combothreadpriority: TComboBox;
     cbFastscan: TCheckBox;
     cbSkip_PAGE_NOCACHE: TCheckBox;
@@ -71,7 +69,6 @@ type
     cbMemImage: TCheckBox;
     cbMemMapped: TCheckBox;
     cbMemPrivate: TCheckBox;
-    cbEnableHyperscanWhenPossible: TCheckBox;
     EditBufsize: TEdit;
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
@@ -89,7 +86,6 @@ type
     cbShowDebugoptions: TCheckBox;
     replacewithnops: TCheckBox;
     askforreplacewithnops: TCheckBox;
-    CheckBox2: TCheckBox;
     rbDebugAsBreakpoint: TRadioButton;
     rbInt3AsBreakpoint: TRadioButton;
     cbBreakOnAttach: TCheckBox;
@@ -150,6 +146,7 @@ type
     procedure Default1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
+    procedure pcSettingChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
     procedure CheckBox2Click(Sender: TObject);
@@ -349,7 +346,6 @@ begin
       //write the settings
       reg.WriteBool('Undo',cbshowundo.checked);
       reg.WriteBool('Advanced',cbShowAdvanced.checked);
-      reg.WriteBool('SeperateThread',checkThread.checked);
       reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
       case combothreadpriority.itemindex of
         0: scanpriority:=tpIdle;
@@ -394,7 +390,6 @@ begin
       {$endif}
 
       reg.WriteBool('Save window positions',cbSaveWindowPos.checked);
-      reg.WriteBool('Use old speedhack',cbOldSpeedhack.checked);
       reg.WriteBool('Show main menu',cbShowMainMenu.Checked);
       reg.WriteBool('Get process icons',cbProcessIcons.Checked);
       GetProcessIcons:=cbProcessIcons.Checked;
@@ -426,7 +421,6 @@ begin
       reg.WriteBool('MEM_MAPPED',cbMemMapped.Checked);
       onlyfront:=not temphideall;
       reg.WriteBool('Low Memory Usage',cbLowMemoryUsage.checked);
-      reg.writebool('Use Hyperscan if posible',cbEnableHyperscanWhenPossible.checked);
 
       //check the module list
 
@@ -683,16 +677,7 @@ end;
 
 procedure TformSettings.checkThreadClick(Sender: TObject);
 begin
-  if checkthread.checked then
-  begin
-    label3.Enabled:=true;
-    combothreadpriority.enabled:=true;
-  end
-  else
-  begin
-    label3.Enabled:=false;
-    combothreadpriority.enabled:=false;
-  end;
+
 end;
 
 procedure TformSettings.EditBufSizeKeyPress(Sender: TObject;
@@ -755,7 +740,6 @@ begin
   if IsDebuggerPresentLocation=0 then
   begin
     checkbox1.Enabled:=false;
-    checkbox2.Enabled:=false;
   end;
 
   {$ifndef net}
@@ -790,10 +774,6 @@ begin
   end;
   {$endif}
 
-  cbOldSpeedhack.enabled:=not mainform.cbSpeedhack.Checked; //don't change it while  you're using the speedhack
-
-
-
   //fill hotkey list
   for i:=0 to length(hotkeythread.hotkeylist)-1 do
     if hotkeythread.hotkeylist[i].handler2 then
@@ -827,6 +807,11 @@ begin
   end;
 end;
 
+procedure TformSettings.pcSettingChange(Sender: TObject);
+begin
+
+end;
+
 procedure TformSettings.replacewithnopsClick(Sender: TObject);
 begin
   askforreplacewithnops.Enabled:=replacewithnops.Checked;
@@ -834,12 +819,12 @@ end;
 
 procedure TformSettings.CheckBox1Click(Sender: TObject);
 begin
-  checkbox2.Checked:=checkbox1.checked;
+
 end;
 
 procedure TformSettings.CheckBox2Click(Sender: TObject);
 begin
-  Checkbox1.Checked:=checkbox2.Checked;
+
 end;
 
 procedure TformSettings.cbUpdatefoundListClick(Sender: TObject);

@@ -13,7 +13,11 @@ uses
   autoassembler, plugin, savefirstscan, menuitemExtra, speedhack2,AccessCheck,
   frmCScriptUnit, foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
-  frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit{, , formsextra ,KIcon, windows7taskbar};
+  frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
+  windows7taskbar
+
+
+  {, , formsextra ,KIcon, windows7taskbar};
 
 //the following are just for compatibility
 
@@ -130,16 +134,10 @@ type
     Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
-    cbFasterScan: TCheckBox;
     rbAllMemory: TRadioButton;
     Panel7: TPanel;
     SpeedButton1: TSpeedButton;
     cbPauseWhileScanning: TCheckBox;
-    btnSetSpeedhack: TButton;
-    Label51: TLabel;
-    Label52: TLabel;
-    Edit2: TEdit;
-    Edit1: TEdit;
     Change1: TMenuItem;
     Description1: TMenuItem;
     Address1: TMenuItem;
@@ -288,7 +286,6 @@ type
     procedure cbFastScanClick(Sender: TObject);
     procedure rbAllMemoryClick(Sender: TObject);
     procedure cbPauseWhileScanningClick(Sender: TObject);
-    procedure btnSetSpeedhackClick(Sender: TObject);
     procedure ProcessLabelDblClick(Sender: TObject);
     procedure ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: integer);
@@ -318,7 +315,6 @@ type
     procedure tbSpeedChange(Sender: TObject);
     procedure btnSetSpeedhack2Click(Sender: TObject);
     procedure cbSpeedhackClick(Sender: TObject);
-    procedure Edit2Change(Sender: TObject);
     procedure Process1Click(Sender: TObject);
     procedure About1Click(Sender: TObject);
     procedure CreateProcess1Click(Sender: TObject);
@@ -475,8 +471,6 @@ type
 
     procedure ClearList;
 
-    procedure EnableHypermode;
-    procedure disableHypermode;
     procedure UpdateScanType;
     procedure enableGui(isnextscan: boolean);
     procedure disableGui;
@@ -674,9 +668,8 @@ begin
         cbspeedhack.Checked := True;
         if cbspeedhack.Checked then
         begin
-          edit2.Text := format('%.2f', [speedhackspeed1.speed]);
-          edit1.Text := IntToStr(speedhackspeed1.sleeptime);
-          btnSetSpeedhack.Click;
+          editsh2.Text:=format('%.2f', [speedhackspeed1.speed]);
+          btnSetSpeedhack2.Click;
         end;
       end;
     end;
@@ -688,9 +681,8 @@ begin
         cbspeedhack.Checked := True;
         if cbspeedhack.Checked then
         begin
-          edit2.Text := format('%.2f', [speedhackspeed2.speed]);
-          edit1.Text := IntToStr(speedhackspeed2.sleeptime);
-          btnSetSpeedhack.Click;
+          editsh2.Text:=format('%.2f', [speedhackspeed2.speed]);
+          btnSetSpeedhack2.Click;
         end;
       end;
     end;
@@ -702,9 +694,8 @@ begin
         cbspeedhack.Checked := True;
         if cbspeedhack.Checked then
         begin
-          edit2.Text := format('%.2f', [speedhackspeed3.speed]);
-          edit1.Text := IntToStr(speedhackspeed3.sleeptime);
-          btnSetSpeedhack.Click;
+          editsh2.Text:=format('%.2f', [speedhackspeed3.speed]);
+          btnSetSpeedhack2.Click;
         end;
       end;
     end;
@@ -716,9 +707,8 @@ begin
         cbspeedhack.Checked := True;
         if cbspeedhack.Checked then
         begin
-          edit2.Text := format('%.2f', [speedhackspeed4.speed]);
-          edit1.Text := IntToStr(speedhackspeed4.sleeptime);
-          btnSetSpeedhack.Click;
+          editsh2.Text:=format('%.2f', [speedhackspeed4.speed]);
+          btnSetSpeedhack2.Click;
         end;
       end;
     end;
@@ -730,9 +720,8 @@ begin
         cbspeedhack.Checked := True;
         if cbspeedhack.Checked then
         begin
-          edit2.Text := format('%.2f', [speedhackspeed5.speed]);
-          edit1.Text := IntToStr(speedhackspeed5.sleeptime);
-          btnSetSpeedhack.Click;
+          editsh2.Text:=format('%.2f', [speedhackspeed5.speed]);
+          btnSetSpeedhack2.Click;
         end;
       end;
     end;
@@ -746,10 +735,10 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            a := strtofloat(edit2.Text);
+            a := strtofloat(editsh2.Text);
             a := a + speedupdelta;
-            edit2.Text := format('%.2f', [a]);
-            btnSetSpeedhack.Click;
+            editsh2.Text:=format('%.2f', [a]);
+            btnSetSpeedhack2.Click;
           end;
         end;
       except
@@ -767,10 +756,10 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            b := strtofloat(edit2.Text);
+            b := strtofloat(editsh2.Text);
             b := b - slowdowndelta;
-            edit2.Text := format('%.2f', [b]);
-            btnSetSpeedhack.Click;
+            editsh2.Text:=format('%.2f', [b]);
+            btnSetSpeedhack2.Click;
           end;
         end;
       except
@@ -936,9 +925,8 @@ begin
 
     28: //cancel current scan
     begin
-
-      if (formscanning<>nil) and (formscanning.btnCancel.Enabled) then
-        formscanning.btnCancel.Click;
+      if cancelbutton<>nil then
+        cancelbutton.Click;
     end;
 
     29: //debug->run
@@ -1417,14 +1405,8 @@ begin
                   ScanType.Items.Add(strDecreasedValueBy);
                   ScanType.Items.add(strChangedValue);
                   ScanType.Items.Add(strUnchangedValue);
-
-                  if (not advanced) and (not cbfasterscan.checked) then
-                  begin
-                    ScanType.Items.Add(strSameAsFirstScan);
-                    Scantype.DropDownCount:=11;
-                  end
-                  else
-                    Scantype.DropDownCount:=10;
+                  ScanType.Items.Add(strSameAsFirstScan);
+                  Scantype.DropDownCount:=11;
 
                 end else
                 begin
@@ -1802,9 +1784,6 @@ begin
     Updatescantype;
     Scantype.ItemIndex := 0;
 
-    if cefuncproc.hypermode <> nil then
-      FreeAndNil(cefuncproc.hypermode);
-
     cbSpeedhack.Enabled := False;
     cbUnrandomizer.Enabled := False;
 
@@ -2035,13 +2014,6 @@ begin
     freeandnil(SaveFirstScanThread);
   end;
 
-
-  if cbfasterscan.checked then //tell hyperscan it is a new scan
-  begin
-    if (cefuncproc.hypermode<>nil) and (cefuncproc.hypermode.HyperscanWindow<>0) then
-      sendmessage(cefuncproc.hypermode.HyperscanWindow,WM_USER+1,0,0);
-  end;
-
   fastscan:=formsettings.cbFastscan.checked;
   //close files in case of a bug i might have missed...
 
@@ -2077,480 +2049,14 @@ begin
   end
 end;
 
-resourcestring strfillInSomething='Please fill in something!';
-               strFirstSelectAProcess='First select a process';
 procedure TMainForm.NewScanClick(Sender: TObject);
-var FromAdd,ToAdd:Dword;
-    error: Integer;
-//    Tim,Tim2: TTimeStamp;
-    Vtype,SType: Integer;
-    Processhandle2: Thandle;
-    i,j: integer;
-    value: string;
-
-
-    res: word;
-    extra: boolean;
-
-    a,b: string;
-    winhandle:thandle;
-    winprocess: dword;
-    roundingtype: tfloatscan;
-
-    value2:string;
-    mi: tmoduleinfo;
-    fr: dword;
-
-    bytes: tbytes;
 begin
-  if (not cbfasterscan.checked) then
-  begin
-    button2.click;
-    exit;
-  end;
-
-
-  if (cefuncproc.hypermode<>nil) and advancedoptions.Pausebutton.down then
-    raise exception.Create('Please unpause the game first');
-
-  res:=mrcancel;
-
-  VType:=GetVarType;
-  SType:=GetScanType;
-
-
-  foundlist.Deinitialize;
-
-  try
-    if scanvalue2<>nil then value2:=scanvalue2.Text;
-
-    screen.Cursor:=crhourglass;
-
-    advanced:=false;
-    undoscan.enabled:=false;
-
-    lastscantype:=scantype.ItemIndex;
-
-    case self.roundingtype of
-      rtrounded:        roundingtype:=rounded;
-      rtExtremerounded: roundingtype:=extremerounded;
-      rtTruncated:      roundingtype:=truncated;
-    end;
-
-    foundlist.Clear;
-
-    if not nextscanbutton.Enabled then //it's a first scan
-    begin
-      try
-        if (not cbfasterscan.Checked) and (cbPauseWhileScanning.checked) then
-        begin
-          advancedoptions.Pausebutton.down:=true;
-          advancedoptions.Pausebutton.Click;
-        end;
-
-      if (scanvalue.visible) and (scanvalue.text='') then raise Exception.Create(strFillInSomething);
-      if (scanvalue2<>nil) and (value2='') then raise exception.Create(strFillInSomething);
-
-      if processid<>0 then
-      begin
-        FromAdd:=ScanStart;
-        ToAdd:=ScanStop;
-
-
-        //--------------------------------------------------
-
-        if (SType=Exact_value) or (SType=String_scan) or (SType=BiggerThan) or (SType=SmallerThan) or (Stype=ValueBetween) then
-        begin
-          foundcountlabel.visible:=true;
-
-          mainform.caption:=CERegionSearch;
-          application.ProcessMessages;
-          foundcountlabel.caption:='';
-
-          Processhandle2:=OpenProcess(PROCESS_ALL_ACCESS,false,GetCurrentProcessId);
-
-          try
-            if formsettings.checkThread.checked or cbFasterScan.checked then
-            begin
-              formscanning:=TFormscanning.create(self);
-              formscanning.button:=0;
-              formscanning.scan:=1;
-              formscanning.fromadd:=fromadd;
-              formscanning.toadd:=toadd;
-              formscanning.readonly:=readonly.checked;
-              formscanning.stype:=stype;
-              formscanning.vtype:=vtype;
-              formscanning.fastscan:=fastscan;
-              formscanning.scanvalue:=scanvalue.Text;
-              formscanning.scanvalue2:=value2;
-
-              formscanning.hexadecimal:=hexadecimalcheckbox.checked;
-              formscanning.unicode:=cbunicode.checked;
-              formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
-              formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
-              formscanning.ExtremeScan:=cbFasterscan.Checked;
-              formscanning.roundingtype:=roundingtype;
-
-
-              res:=formscanning.showmodal;
-
-            end else
-            begin
-              foundcount:=0; //obsolete: GetMemoryRangesAndScanValue2(fr,FromAdd,ToAdd,readonly.checked,false,SType,vtype,scanvalue.text,value2,roundingtype,hexadecimalcheckbox.checked,progressbar1,fastscan,cbunicode.checked);
-            end;
-
-            if aprilfools then aprilfoolsscan;
-
-
-            if vtype=5 then
-              foundlist3.Columns[0].Width:=90
-            else
-              foundlist3.Columns[0].Width:=82;
-
-            symhandler.loadmodulelist; //reload this to be sure
-
-            lastwashex:=HexadecimalCheckbox.checked;
-
-          finally
-
-            screen.Cursor:=crdefault;
-            progressbar1.Position:=0;
-            mainform.Caption:=CEnorm;
-            UpdateFoundlisttimer.Enabled:=true;
-          end;
-
-          if res=mrcancel then
-          begin
-            screen.Cursor:=crdefault;
-            exit;
-          end;
-
-          Groupbox1.Enabled:=false;
-          for i:=0 to groupbox1.ControlCount-1 do
-            groupbox1.Controls[i].Enabled:=false;
-
-          vartype.Enabled:=false;
-          nextscanbutton.enabled:=true;
-          newscan.Caption:=strNewScan;
-          beep;
-
-          UpdateScanType;
-
-          Scantype.ItemIndex:=lastscantype;
-          screen.Cursor:=crdefault;
-
-
-          if SaveFirstScanThread<>nil then
-          begin
-            SaveFirstScanThread.Terminate;
-            SaveFirstScanThread.WaitFor;
-            freeandnil(SaveFirstScanThread);
-          end;
-          SaveFirstScanThread:=TSaveFirstScanThread.Create(false);
-
-          exit;
-        end;
-
-        //---------------------------------------------------------
-
-        mainform.Caption:=CEregion;
-        application.ProcessMessages;
-
-
-
-        try
-          UpdateFoundlisttimer.Enabled:=false;
-
-          if formsettings.checkThread.checked or cbFasterScan.checked then
-          begin
-            formscanning:=TFormscanning.create(self);
-            formscanning.button:=0;
-            formscanning.scan:=0;
-            formscanning.fromadd:=fromadd;
-            formscanning.toadd:=toadd;
-            formscanning.readonly:=readonly.checked;
-            formscanning.stype:=stype;
-            formscanning.vtype:=vtype;
-            formscanning.scanvalue:=scanvalue.Text;
-            formscanning.scanvalue2:=value2;
-            formscanning.fastscan:=fastscan;
-
-
-            formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
-            formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
-            formscanning.ExtremeScan:=cbFasterscan.Checked;
-            res:=formscanning.showmodal;
-
-
-          end else
-          foundcount:=0; //obsolete: GetMemoryRanges2(FromAdd,ToAdd,readonly.checked,progressbar1,vtype,fastscan);
-
-          if aprilfools then aprilfoolsscan;
-
-        finally
-          progressbar1.Position:=0;
-          mainform.Caption:=CEnorm;
-          UpdateFoundlisttimer.Enabled:=true;
-
-        end;
-
-        if res=mrcancel then
-        begin
-          screen.Cursor:=crdefault;
-          exit;
-        end;
-
-        application.ProcessMessages;
-
-        // if Scantype.ItemIndex=String_Scan then foundlabel.caption:=IntToStr(TextSearch(scanvalue.text,foundlist));
-
-        //main datafiles have been generated. Now let Next Scan do the remaining work.
-        if not ((Stype=Advanced_scan) or (SType=string_scan)) then NextScanbutton.click else
-        begin
-          Beep;
-        end;
-
-        nextscanbutton.enabled:=true;
-        newscan.Caption:=strNewScan;
-        vartype.enabled:=false;
-
-        Groupbox1.Enabled:=false;
-        for i:=0 to groupbox1.ControlCount-1 do
-          groupbox1.Controls[i].Enabled:=false;
-
-        scantype.ItemIndex:=lastscantype;
-
-        //save the results of the fist scan
-        if SaveFirstScanThread<>nil then
-        begin
-          SaveFirstScanThread.Terminate;
-          SaveFirstScanThread.WaitFor;
-          freeandnil(SaveFirstScanThread);
-        end;
-        SaveFirstScanThread:=TSaveFirstScanThread.Create(false);
-
-
-
-      end else showmessage(strFirstSelectaProcess);
-
-      finally
-        if (not cbfasterscan.Checked) and (cbPauseWhileScanning.checked) then
-        begin
-          advancedoptions.Pausebutton.down:=false; //resume
-          advancedoptions.Pausebutton.Click;
-        end;
-      end;
-
-
-
-    end else  //it's a new scan
-      DoNewScan;
-
-    if stype=string_scan then nextscanbutton.enabled:=false;
-
-    if (foundcount=0) and (SType<>Advanced_scan) then NextScanButton.enabled:=false;
-
-    progressbar1.max:=10;
-    progressbar1.Position:=0;
-    UpdateScanType;
-    UpdateScanType; //second time to force the repaint
-
-
-
-    screen.Cursor:=crdefault;
-
-
-  finally
-    scanEpilogue(res=mrcancel);
-
-
-  end;
-
-
+  button2.click; //now completly replaced
 end;
 
-resourcestring
-  strCantdoNextScan = 'You can''t do a Next Scan with the current selected way of scanning!';
-
 procedure TMainForm.NextScanButtonClick(Sender: TObject);
-var error: Integer;
-    Vtype,SType: Integer;
-    hexvalue: string;
-    i,j: integer;
-
-    temp,temp2: dword;
-    a,b:string;
-    FromAdd,ToAdd:Dword;
-
-    roundingtype:tfloatscan;
-    value2: string;
-    percentage: boolean;
-
-    mi: tmoduleinfo;
-
-    res: word;
-    bytes: tbytes;
-
-    memoryfile: file;
-
 begin
-  if (not cbfasterscan.checked) then
-  begin
-    button4.click;
-    exit;
-  end;
-
-  if (cefuncproc.hypermode<>nil) and advancedoptions.Pausebutton.down then
-    raise exception.Create('Please unpause the game first');
-
-  if SaveFirstScanThread<>nil then
-  begin
-    SaveFirstScanThread.WaitFor; //wait till it's done
-    freeandnil(SaveFirstScanThread);
-  end;
-
-
-  if scanvalue2<>nil then value2:=scanvalue2.Text;
-  if cbpercentage<>nil then percentage:=cbpercentage.Checked;
-
-
-  VType:=GetVarType;
-  SType:=GetScanType;
-
-  foundlist.Deinitialize;
-
-  try
-
-    screen.Cursor:=crhourglass;
-
-
-    if (not cbfasterscan.Checked) and (cbPauseWhileScanning.checked) then
-    begin
-      advancedoptions.Pausebutton.down:=true;
-      advancedoptions.Pausebutton.Click;
-    end;
-
-    foundcountlabel.visible:=true;
-    VType:=GetVarType;
-    SType:=GetScanType;
-
-    if rt1.checked then roundingtype:=rounded;
-    if rt2.checked then roundingtype:=extremerounded;
-    if rt3.Checked then roundingtype:=truncated;
-
-    mainform.caption:=CESearch;
-    application.ProcessMessages;
-
-    try
-      UpdateFoundlisttimer.Enabled:=false;
-
-      if not((Stype=Advanced_scan) or (Stype=string_scan)) then
-      begin
-        if vtype=5 then
-        begin
-          bitoffsetchange:=0;
-
-          //open the memoryfile end check to see if the length of the bits are what they need to be
-          assignfile(Memoryfile,cheatenginedir+'MEMORY.TMP');
-
-          reset(memoryfile,1);
-          try
-            blockread(memoryfile,temp,4,temp2);
-            setlength(bitscan,temp);
-            blockread(memoryfile,pointer(bitscan)^,temp,temp2);
-          finally
-            closefile(memoryfile);
-          end;
-
-          if rbbit.Checked then
-            if temp<>length(scanvalue.Text) then
-            begin
-              formDifferentBitSize:=tformDifferentBitSize.create(self);
-              formDifferentBitSize.newbit:=scanvalue.Text;
-              formDifferentBitSize.showmodal;
-              bitoffsetchange:=formdifferentbitsize.delta;
-              formdifferentbitsize.free;
-            end;
-
-          if rbdec.checked then
-            if temp<>length(inttobin(strtoint64(scanvalue.Text))) then
-            begin
-              formDifferentBitSize:=tformDifferentBitSize.create(self);
-              formDifferentBitSize.newbit:=inttobin(strtoint64(scanvalue.Text));
-              formDifferentBitSize.showmodal;
-              bitoffsetchange:=formdifferentbitsize.delta;
-              formdifferentbitsize.free;
-            end;
-
-          if cbfasterscan.checked then
-            hyperscanview.bitoffsetchange:=bitoffsetchange;
-
-        end;
-
-
-        vartype.Enabled:=false;
-
-        foundlist.Clear;
-        foundcountlabel.caption:='';
-
-        if formsettings.checkThread.checked or cbfasterscan.checked then
-        begin
-          val('$'+FromAddress.text,FromAdd,error);
-          val('$'+ToAddress.text,ToAdd,error);
-
-          formscanning:=TFormscanning.create(self);
-          formscanning.button:=1;
-          formscanning.scan:=2;
-          formscanning.stype:=stype;
-          formscanning.vtype:=vtype;
-          formscanning.fromadd:=fromadd;
-          formscanning.toadd:=toadd;
-          formscanning.fastscan:=fastscan;
-          formscanning.scanvalue:=scanvalue.Text;
-          formscanning.scanvalue2:=value2;
-          formscanning.hexadecimal:=hexadecimalcheckbox.checked;
-          formscanning.unicode:=cbunicode.Checked;
-          formscanning.percentage:=percentage;
-
-          formscanning.LowMemoryUsage:=formsettings.cbLowMemoryUsage.checked;
-          formscanning.Skip_PAGE_NOCACHE:=Skip_PAGE_NOCACHE;
-          formscanning.ExtremeScan:=cbFasterscan.Checked;
-          formscanning.roundingtype:=roundingtype;
-          res:=formscanning.showmodal;
-        end else
-        foundcount:=0; //obsolete: nextscan2(scanvalue.text,value2,stype,vtype,roundingtype,hexadecimalcheckbox.Checked,progressbar1,fastscan,cbunicode.checked,percentage);
-
-        foundlist.Clear;
-
-        Beep;
-
-
-
-      end else showmessage(strCantDoNextScan);
-
-
-    finally
-      UpdateFoundlisttimer.Enabled:=true;
-      mainform.caption:=CENorm;
-      progressbar1.max:=10;
-      progressbar1.Position:=0;
-      screen.Cursor:=crdefault;
-
-      if scanvalue.Enabled then scanvalue.SelectAll;
-
-    end;
-
-  finally
-    scanepilogue(res=mrcancel);
-
-    if (not cbfasterscan.Checked) and (cbPauseWhileScanning.checked) then
-    begin
-      advancedoptions.Pausebutton.down:=false; //resume
-      advancedoptions.Pausebutton.Click;
-    end;
-
-    UpdateScanType;
-  end;
+  button4.click;
 end;
 
 procedure TMainForm.btnMemoryViewClick(Sender: TObject);
@@ -3678,7 +3184,6 @@ begin
     freeandnil(unrandomize);
 
   cbSpeedhack.Checked:=false;
-  cbFasterscan.Checked:=false;
 
   if flashprocessbutton<>nil then
   begin
@@ -4043,7 +3548,7 @@ begin
   SetSSECSR($1f80);
 
   loadt := False;
-  edit2.Text := format('%.1f', [1.0]);
+  editsh2.Text := format('%.1f', [1.0]);
 
   reg := Tregistry.Create;
   try
@@ -4056,8 +3561,6 @@ begin
         //write some default data into the register
         reg.WriteBool('Undo', True);
         reg.writeBool('Advanced', True);
-        reg.writeBool('SeperateThread', True);
-        reg.writebool('Use Hyperscan if posible', False);
 
         reg.WriteInteger('ScanThreadpriority',
           formsettings.combothreadpriority.ItemIndex);
@@ -4364,94 +3867,7 @@ end;
 
 
 procedure TMainForm.cbFastScanClick(Sender: TObject);
-var
-  i: integer;
 begin
-
-  if cbfasterscan.Checked then
-  begin
-    //hyperscan does not support this type
-    i:=vartype.Items.IndexOf('All (Byte to Double)');
-    if i>=0 then
-      vartype.Items.Delete(i);
-
-    i:=vartype.Items.IndexOf('Custom');
-    if i>=0 then
-      vartype.Items.Delete(i);
-  end
-  else
-  begin
-    i:=vartype.Items.IndexOf('All (Byte to Double)');
-    if i=-1 then //it isn't in the list (anymore)
-      vartype.Items.add('All (Byte to Double)'); //add it back
-
-    i:=vartype.Items.IndexOf('Custom');
-    if i=-1 then
-      vartype.Items.add('Custom');
-
-  end;
-
-  if (sender=cbspeedhack) then
-  begin
-    if GetSystemType<4 then
-      raise exception.Create(strNeedNewerWindowsVersion);
-  end;
-
-  if cbfasterscan.Checked or cbSpeedhack.Checked then
-  begin
-    if cefuncproc.hypermode=nil then
-    begin
-      try
-        cefuncproc.hypermode:=THypermode.create;
-      except
-        cefuncproc.hypermode:=nil;
-      end;
-    end;
-  end
-  else if cefuncproc.hypermode<>nil then
-  begin
-    freeandnil(cefuncproc.hypermode);
-  end;
-
-  label51.visible:=cbspeedhack.checked;
-  edit1.visible:=cbspeedhack.checked;
-  label52.visible:=cbspeedhack.checked;
-  edit2.visible:=cbspeedhack.checked;
-  btnSetSpeedhack.visible:=cbspeedhack.checked;
-
-  if cefuncproc.hypermode=nil then
-  begin
-    cbFasterscan.checked:=false;
-    if formsettings.cbOldSpeedhack.checked then
-      cbSpeedhack.Checked:=false;
-    exit;
-  end else cefuncproc.hypermode.WaitFor;
-
-  if cefuncproc.hypermode=nil then exit; //self destruct
-
-  if formsettings.cbOldSpeedhack.checked then
-  begin
-    if (cefuncproc.hypermode.speedhackenabled) and (not cbspeedhack.checked) then cefuncproc.hypermode.DisableSpeedhack;
-
-    if (cefuncproc.hypermode.hyperscanwindow<>0) and
-       (cbSpeedhack.checked) and
-       (sender=cbSpeedhack) then
-    begin
-      if sendmessage(cefuncproc.hypermode.hyperscanwindow,wm_user+4,0,0)=$11223344 then
-      begin
-        cbspeedhack.Enabled:=true;
-        cbunrandomizer.Enabled:=true;
-        label52.Enabled:=true;
-        label51.Enabled:=true;
-        edit2.Enabled:=true;
-        edit1.Enabled:=true;
-        btnsetspeedhack.Enabled:=true;
-        cefuncproc.hypermode.speedhackenabled:=true;
-        btnSetSpeedhack.Click;
-      end;
-    end;
-  end;
-
 end;
 
 
@@ -4475,115 +3891,6 @@ begin
     cbPauseWhileScanning.Checked:=false;
     messagedlg(strneeddebugger,mtInformation,[mbok],0);
   end;
-end;
-
-resourcestring
-  strfailuretosetspeed = 'Failure to set the speed';
-  strIncorrectspeed = 'The speed value is incorrect';
-  strCantSetSpeed = 'I can''t set this speed. (must be bigger than 0)';
-  strHyperscanFailed = 'The hyperthread failed to respond with the right answer';
-
-procedure TMainForm.btnSetSpeedhackClick(Sender: TObject);
-
-var
-  x: dword;
-  speedf: single;
-  speed: dword absolute speedf;
-  sleeptime: integer;
-  speedtext: string;
-  i: integer;
-begin
-  if formsettings.cbOldSpeedhack.checked=false then
-  begin
-    editSH2.text:=edit2.Text;
-    btnSetSpeedhack2.click;
-    exit;
-  end;
-
-  try
-    speedtext:=edit2.Text;
-    speedf:=strtofloat(speedtext);
-  except
-    try
-      if pos(',',speedtext)<>0 then
-      begin
-        //replace the , with a .
-        i:=pos(',',speedtext);
-        while i<>0 do
-        begin
-          speedtext[i]:='.';
-          i:=pos(',',speedtext);
-        end;
-      end
-      else
-      begin
-        //replace the . with a ,
-        i:=pos('.',speedtext);
-        while i<>0 do
-        begin
-          speedtext[i]:=',';
-          i:=pos('.',speedtext);
-        end;
-      end;
-
-      speedf:=strtofloat(speedtext);
-    except
-      raise exception.Create(strincorrectspeed);
-    end;
-  end;
-
-  sleeptime:=strtoint(edit1.text);
-
-  if speedf<=0 then raise exception.Create(strcantsetspeed);
-  if speedf*sleeptime<1 then
-  begin
-    try
-      sleeptime:=trunc(roundto(1/speedf,-1));
-      if sleeptime=0 then sleeptime:=1;
-
-      edit1.Text:=IntToStr(sleeptime);
-    except
-      exception.Create(strfailuretosetspeed);
-    end;
-  end;
-
-  x:=sendmessage(cefuncproc.hypermode.hyperscanwindow,wm_user+6,sleeptime,speed);
-
-  if x<>12345 then raise exception.Create(strHyperscanfailed);
-end;
-
-
-
-procedure TMainform.disableHypermode;
-var
-  i: integer;
-begin
-  if cefuncproc.hypermode<>nil then
-  begin
-    cefuncproc.hypermode.WaitFor;
-    if cefuncproc.hypermode.speedhackenabled then cefuncproc.hypermode.disablespeedhack;
-    freeandnil(cefuncproc.hypermode);
-  end;
-end;
-
-resourcestring
-  strhookfailed =
-    'I can''t set the hook required to get into the process. Check if there isn''t any anti-cheat protection running.';
-
-procedure TMainForm.enableHypermode;
-var
-  CEScanProcAddress: pointer;
-
-  winhandle, possiblewinhandle: thandle;
-  winprocess: dword;
-  winthreadid: dword;
-
-  x: ^byte;
-  i, j: integer;
-  s: string;
-begin
-  if cefuncproc.hypermode<>nil then exit;
-  cefuncproc.hypermode:=thypermode.create;
 end;
 
 procedure TMainForm.ProcessLabelDblClick(Sender: TObject);
@@ -5069,7 +4376,8 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var l: tstringlist;
 begin
-
+  SetProgressValue(50,100);
+  SetProgressState(tbpsError);
 
 //  l:=tstringlist.create;
 //  symhandler.getModuleList(l);
@@ -5675,12 +4983,6 @@ end;
 
 procedure TMainForm.cbSpeedhackClick(Sender: TObject);
 begin
-  if formsettings.cbOldSpeedhack.checked then
-  begin
-    cbfastscanclick(sender);
-    exit;
-  end;
-
   if cbSpeedhack.Checked then
   begin
     try
@@ -5703,11 +5005,6 @@ begin
   end;
 
   panel14.Visible:=cbSpeedhack.Checked;
-end;
-
-procedure TMainForm.Edit2Change(Sender: TObject);
-begin
-  editSH2.Text := edit2.Text;
 end;
 
 {--------Processlist menuitem--------}

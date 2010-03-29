@@ -348,10 +348,6 @@ begin
 
   with mainform do
   begin
-    cbFasterscan.checked:=false;
-    if formsettings.cbEnableHyperscanWhenPossible.checked then
-      cbFasterscan.Checked:=true;
-
     if GetSystemType>=4 then
     begin
       cbSpeedhack.checked:=false;

@@ -325,28 +325,6 @@ object MainForm: TMainForm
       NumGlyphs = 0
       OnClick = SettingsClick
     end
-    object Label51: TLabel
-      Left = 488
-      Height = 14
-      Top = 213
-      Width = 47
-      Anchors = [akTop, akRight]
-      Caption = 'Sleeptime'
-      Enabled = False
-      ParentColor = False
-      Visible = False
-    end
-    object Label52: TLabel
-      Left = 427
-      Height = 14
-      Top = 212
-      Width = 32
-      Anchors = [akTop, akRight]
-      Caption = 'Speed'
-      Enabled = False
-      ParentColor = False
-      Visible = False
-    end
     object LabelModifiedmem: TLabel
       Left = 88
       Height = 13
@@ -398,9 +376,9 @@ object MainForm: TMainForm
       Visible = False
     end
     object Label57: TLabel
-      Left = 424
+      Left = 423
       Height = 14
-      Top = 288
+      Top = 304
       Width = 82
       Caption = 'get dbvm version'
       ParentColor = False
@@ -446,7 +424,7 @@ object MainForm: TMainForm
       OnClick = cbSpeedhackClick
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 27
+      TabOrder = 24
       Visible = False
     end
     object NewScan: TButton
@@ -468,7 +446,7 @@ object MainForm: TMainForm
       Width = 64
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
-      TabOrder = 20
+      TabOrder = 17
       Visible = False
     end
     object GroupBox1: TGroupBox
@@ -589,16 +567,6 @@ object MainForm: TMainForm
         OnClick = btnShowRegionsClick
         TabOrder = 4
       end
-      object cbFasterScan: TCheckBox
-        Left = 96
-        Height = 23
-        Top = 89
-        Width = 80
-        Caption = 'Hyper Scan'
-        Enabled = False
-        OnClick = cbFastScanClick
-        TabOrder = 7
-      end
       object rbAllMemory: TRadioButton
         Left = 5
         Height = 23
@@ -619,7 +587,7 @@ object MainForm: TMainForm
         Caption = 'Pause the game while scanning'
         Enabled = False
         OnClick = cbPauseWhileScanningClick
-        TabOrder = 8
+        TabOrder = 7
       end
     end
     object NextScanButton: TButton
@@ -908,41 +876,6 @@ object MainForm: TMainForm
         ParentShowHint = False
       end
     end
-    object btnSetSpeedhack: TButton
-      Left = 423
-      Height = 20
-      Top = 252
-      Width = 113
-      Anchors = [akTop, akRight]
-      Caption = 'Set speed'
-      Enabled = False
-      OnClick = btnSetSpeedhackClick
-      TabOrder = 16
-      Visible = False
-    end
-    object Edit2: TEdit
-      Left = 425
-      Height = 21
-      Top = 227
-      Width = 46
-      Anchors = [akTop, akRight]
-      Enabled = False
-      OnChange = Edit2Change
-      TabOrder = 17
-      Text = '2'
-      Visible = False
-    end
-    object Edit1: TEdit
-      Left = 489
-      Height = 21
-      Top = 228
-      Width = 46
-      Anchors = [akTop, akRight]
-      Enabled = False
-      TabOrder = 18
-      Text = '3'
-      Visible = False
-    end
     object pnlFloat: TPanel
       Left = 420
       Height = 53
@@ -952,7 +885,7 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       ClientHeight = 53
       ClientWidth = 121
-      TabOrder = 19
+      TabOrder = 16
       object rt3: TRadioButton
         Left = 4
         Height = 19
@@ -995,7 +928,7 @@ object MainForm: TMainForm
       Enabled = False
       OnClick = cbUnrandomizerClick
       OnMouseDown = cbUnrandomizerMouseDown
-      TabOrder = 21
+      TabOrder = 18
     end
     object mode16: TCheckBox
       Left = 96
@@ -1003,7 +936,7 @@ object MainForm: TMainForm
       Top = 320
       Width = 62
       Caption = 'mode16'
-      TabOrder = 22
+      TabOrder = 19
       Visible = False
     end
     object Button2: TButton
@@ -1013,7 +946,7 @@ object MainForm: TMainForm
       Width = 75
       Caption = 'First Scan2'
       OnClick = Button2Click
-      TabOrder = 23
+      TabOrder = 20
       Visible = False
     end
     object Button4: TButton
@@ -1023,7 +956,7 @@ object MainForm: TMainForm
       Width = 75
       Caption = 'Next scan 2'
       OnClick = Button4Click
-      TabOrder = 24
+      TabOrder = 21
       Visible = False
     end
     object LogoPanel: TPanel
@@ -1037,7 +970,7 @@ object MainForm: TMainForm
       ClientHeight = 65
       ClientWidth = 50
       FullRepaint = False
-      TabOrder = 25
+      TabOrder = 22
       object Logo: TImage
         Cursor = crHandPoint
         Left = 0
@@ -1363,15 +1296,15 @@ object MainForm: TMainForm
       end
     end
     object Panel14: TPanel
-      Left = 423
+      Left = 421
       Height = 94
-      Top = 214
+      Top = 216
       Width = 119
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       ClientHeight = 94
       ClientWidth = 119
-      TabOrder = 26
+      TabOrder = 23
       Visible = False
       object Label54: TLabel
         Left = 13

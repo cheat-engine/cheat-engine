@@ -2,9 +2,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
   Left = 0
   Height = 414
   Top = 0
-  Width = 416
+  Width = 488
   ClientHeight = 414
-  ClientWidth = 416
+  ClientWidth = 488
   TabOrder = 0
   DesignLeft = 737
   DesignTop = 306
@@ -12,17 +12,17 @@ object frameHotkeyConfig: TframeHotkeyConfig
     Left = 0
     Height = 364
     Top = 50
-    Width = 233
+    Width = 305
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 364
-    ClientWidth = 233
+    ClientWidth = 305
     TabOrder = 0
     object Label1: TLabel
       Left = 0
       Height = 21
       Top = 0
-      Width = 233
+      Width = 305
       Align = alTop
       Caption = 'Functions'
       ParentColor = False
@@ -31,7 +31,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Left = 0
       Height = 343
       Top = 21
-      Width = 233
+      Width = 305
       Align = alClient
       ExtendedSelect = False
       Items.Strings = (
@@ -72,7 +72,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
   end
   object Panel2: TPanel
-    Left = 233
+    Left = 305
     Height = 364
     Top = 50
     Width = 183
@@ -127,15 +127,6 @@ object frameHotkeyConfig: TframeHotkeyConfig
         Caption = 'Speed'
         ParentColor = False
       end
-      object Label51: TLabel
-        Left = 38
-        Height = 21
-        Top = 2
-        Width = 68
-        Anchors = [akTop, akRight]
-        Caption = 'Sleeptime'
-        ParentColor = False
-      end
       object edtSHSpeed: TEdit
         Left = 4
         Height = 28
@@ -145,20 +136,11 @@ object frameHotkeyConfig: TframeHotkeyConfig
         TabOrder = 0
         Text = '2'
       end
-      object edtSHSleep: TEdit
-        Left = 60
-        Height = 28
-        Top = 18
-        Width = 46
-        Anchors = [akTop, akRight]
-        TabOrder = 1
-        Text = '3'
-      end
     end
     object Panel4: TPanel
-      Left = 8
+      Left = 5
       Height = 97
-      Top = 123
+      Top = 70
       Width = 173
       BevelOuter = bvNone
       ClientHeight = 97
@@ -187,11 +169,11 @@ object frameHotkeyConfig: TframeHotkeyConfig
     Left = 0
     Height = 50
     Top = 0
-    Width = 416
+    Width = 488
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 50
-    ClientWidth = 416
+    ClientWidth = 488
     TabOrder = 2
     object Label4: TLabel
       Left = 104

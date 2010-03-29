@@ -287,9 +287,6 @@ begin
           if reg.ValueExists('Advanced') then
             cbShowAdvanced.checked:=reg.ReadBool('Advanced');
 
-          if reg.ValueExists('SeperateThread') then
-            checkThread.checked:=reg.ReadBool('SeperateThread');
-
           if reg.ValueExists('ScanThreadpriority') then
             combothreadpriority.itemindex:=reg.ReadInteger('ScanThreadpriority');
 
@@ -591,9 +588,6 @@ begin
           if reg.ValueExists('Save window positions') then
             cbSaveWindowPos.checked:=reg.ReadBool('Save window positions');
 
-          if reg.ValueExists('Use old speedhack') then
-            cbOldSpeedhack.checked:=reg.ReadBool('Use old speedhack');
-
           if reg.ValueExists('Show main menu') then
             cbShowMainMenu.Checked:=reg.ReadBool('Show main menu');
 
@@ -636,7 +630,6 @@ begin
           Scan_MEM_MAPPED:=cbMemMapped.Checked;
 
           try cbLowMemoryUsage.Checked:=reg.ReadBool('Low Memory Usage'); except end;
-          try cbEnableHyperscanWhenPossible.Checked:=reg.ReadBool('Use Hyperscan if posible'); except end;
 
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;

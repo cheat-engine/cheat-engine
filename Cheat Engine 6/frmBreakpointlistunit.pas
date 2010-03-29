@@ -50,13 +50,6 @@ begin
   listview1.Clear;
   if debuggerthread<>nil then
     debuggerthread.updatebplist(ListView1);
-
-  if kdebugger.isactive then
-  begin
-   (* for i:=0 to 3 do
-      if debuggerthread2.breakpoints[i]<>0 then
-        listbox1.items.add(inttohex(debuggerthread2.breakpoints[i],8)); *)
-  end;
 end;
 
 procedure TfrmBreakpointlist.FormClose(Sender: TObject;

@@ -30,7 +30,7 @@ type
     fcurrentThread: TDebugThreadHandler;
     procedure cleanupDeletedBreakpoints;
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
-    procedure SetBreakpoint(breakpoint: PBreakpoint);
+    procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
     procedure UnsetBreakpoint(breakpoint: PBreakpoint);
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
     procedure defaultConstructorcode;
@@ -60,7 +60,7 @@ type
     procedure FindWhatWrites(address: uint_ptr; size: integer);
     function ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 
-
+    procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
     procedure RemoveBreakpoint(breakpoint: PBreakpoint);
     function GetUsableDebugRegister: integer;
 
@@ -69,9 +69,10 @@ type
     constructor MyCreate2(processID: THandle);
     destructor Destroy; override;
 
-
+    function isWaitingToContinue: boolean;
 
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
+
 
     procedure Terminate;
   end;
@@ -245,6 +246,10 @@ begin
   Result := fcurrentThread;
 end;
 
+function TDebuggerThread.isWaitingToContinue: boolean;
+begin
+  result:=(CurrentThread<>nil) and (currentthread.isWaitingToContinue);
+end;
 
 function TDebuggerThread.lockThreadlist: TList;
 begin
@@ -275,8 +280,20 @@ begin
   end;
 end;
 
+procedure TDebuggerThread.UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
+var i: integer;
+begin
+  breakpointCS.enter;
+  try
+    for i:=0 to BreakpointList.count-1 do
+      if (PBreakpoint(breakpointlist[i])^.active) and (PBreakpoint(breakpointlist[i])^.breakpointMethod=bpmDebugRegister) then
+        SetBreakpoint(PBreakpoint(breakpointlist[i]), thread);
+  finally
+    breakpointCS.Leave;
+  end;
+end;
 
-procedure TDebuggerThread.SetBreakpoint(breakpoint: PBreakpoint);
+procedure TDebuggerThread.SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
 {
 Will set the breakpoint.
 either by setting the appropriate byte in the code to $cc, or setting the appropriate debug registers the thread(s)
@@ -324,11 +341,14 @@ begin
 
     breakpoint^.active := True;
 
-    if breakpoint.ThreadID <> 0 then
+    if (breakpoint.ThreadID <> 0) or (UpdateForOneThread<>nil) then
     begin
       //only one thread
+      if updateForOneThread=nil then
+        currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID)
+      else
+        currentthread:=updateForOneThread;
 
-      currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID);
       if currentthread = nil then //thread has been destroyed
         exit;
 
@@ -348,7 +368,8 @@ begin
     end
     else
     begin
-      //do all threads
+      //update all threads with the new debug register data
+
       for i := 0 to ThreadList.Count - 1 do
       begin
         currentthread := threadlist.items[i];
@@ -360,8 +381,7 @@ begin
           2: currentthread.context.Dr2 := breakpoint.address;
           3: currentthread.context.Dr3 := breakpoint.address;
         end;
-        currentthread.context.Dr7 :=
-          (currentthread.context.Dr7 and clearmask) or Debugregistermask;
+        currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
         currentthread.setContext;
         currentthread.resume;
       end;

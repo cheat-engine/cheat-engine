@@ -622,8 +622,6 @@ var
   iswin2kplus: boolean;
   scanpriority: TThreadPriority; 
 
-
-  hypermode: thypermode;
   useAPCtoInjectDLL: boolean;
 
 
