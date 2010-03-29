@@ -5,7 +5,7 @@ unit autoassembler;
 interface
 
 uses jwawindows, windows, Assemblerunit, classes,{$ifndef autoassemblerdll}CEFuncProc,{$endif}
-LCLIntf,symbolhandler,sysutils,dialogs,controls, NewKernelHandler{$ifndef standalonetrainerwithassemblerandaobscanner} {,plugin}{$endif};
+LCLIntf,symbolhandler,sysutils,dialogs,controls, NewKernelHandler{$ifndef standalonetrainerwithassemblerandaobscanner} ,plugin{$endif};
 
 {$ifdef autoassemblerdll}
 type TCEAlloc=record
@@ -24,7 +24,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
-uses {simpleaobscanner,} StrUtils;
+uses simpleaobscanner, StrUtils;
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -351,7 +351,7 @@ begin
   symhandler.waitforsymbolsloaded;
 
 {$ifndef standalonetrainer}
-(*  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed*)
+  pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 
 //2 pass scanner

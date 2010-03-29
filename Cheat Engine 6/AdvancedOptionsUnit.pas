@@ -23,7 +23,6 @@ type
     Rename1: TMenuItem;
     Findoutwhatthiscodechanges1: TMenuItem;
     Openthedisassemblerhere1: TMenuItem;
-    Findthiscodeinsideabinaryfile1: TMenuItem;
     OpenDialog1: TOpenDialog;
     N1: TMenuItem;
     N2: TMenuItem;
@@ -33,7 +32,6 @@ type
     Panel1: TPanel;
     Button1: TButton;
     Button4: TButton;
-    Button2: TButton;
     Panel2: TPanel;
     Pausebutton: TSpeedButton;
     SaveButton: TSpeedButton;
@@ -322,7 +320,6 @@ begin
     remove1.Visible:=false;
     Openthedisassemblerhere1.Visible:=false;
     Findoutwhatthiscodechanges1.visible:=false;
-    Findthiscodeinsideabinaryfile1.Visible:=false;
     Replaceall1.Visible:=false;
   end else
   begin
@@ -331,7 +328,6 @@ begin
 
     Replaceall1.Visible:=true;
     Openthedisassemblerhere1.visible:=true;
-    Findthiscodeinsideabinaryfile1.Visible:=true;
 
     if code[codelist2.itemindex].modulename<>'' then
     begin
@@ -577,8 +573,7 @@ end;
 procedure TAdvancedOptions.Findthiscodeinsideabinaryfile1Click(
   Sender: TObject);
 begin
-(*  formFindCodeInFile:=TformFindCodeInFile.create(self);
-  if formFindcodeInfile.ok then formFindCodeInFile.showmodal;  *)
+
 end;
 
 procedure TAdvancedOptions.Button1Click(Sender: TObject);
@@ -596,14 +591,8 @@ procedure TAdvancedOptions.PausebuttonClick(Sender: TObject);
 var i: integer;
     ct: _Context;
 begin
-   (*
-  {$ifndef net}
 
-  if hypermode<>nil then
-  begin
-    pausebutton.down:=not pausebutton.down;
-    exit;
-  end;
+  {$ifndef net}
 
   if processhandle=0 then
   begin
@@ -620,30 +609,9 @@ begin
       exit;
     end;
 
+    if (assigned(ntsuspendprocess)) then
+      ntsuspendProcess(processhandle);
 
-    if (debuggerthread=nil) and (@ntsuspendprocess<>nil) then
-    begin
-      if ntsuspendprocess(processhandle)<>0 then //failed somehow, try the debugger from now on
-      begin
-        @ntsuspendprocess:=nil;
-        pausebuttonclick(sender);
-        exit;
-      end;
-    end
-    else
-    begin
-      if not startdebuggerifneeded(not pausedbyhotkey) then
-      begin
-        pausebutton.Down:=false;
-        exit;
-      end;
-
-
-
-      debuggerthread.Suspend;
-      for i:=0 to length(debuggerthread.threadlist)-1 do
-        suspendthread(debuggerthread.threadlist[i][1]);
-    end;
     pausebutton.Hint:='Resume the game'+pausehotkeystring;
     pausebutton.down:=true;
 
@@ -657,17 +625,8 @@ begin
   else
   begin
     //resume
-    if (debuggerthread=nil) and (@ntresumeprocess<>nil) then
-    begin
+    if assigned(ntresumeprocess) then
       ntresumeprocess(processhandle);
-    end
-    else
-    begin
-      for i:=length(debuggerthread.threadlist)-1 downto 0 do
-        resumethread(debuggerthread.threadlist[i][1]);
-
-      debuggerthread.Resume;
-    end;
 
     pausebutton.Hint:='Pause the game'+pausehotkeystring;
 
@@ -701,7 +660,7 @@ begin
     pausebutton.Hint:='Pause the game';
     pausebutton.Down:=false;
   end;
-{$endif}  *)
+{$endif}
 end;
 
 procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;
@@ -860,62 +819,9 @@ begin
   {$endif}
 end;
 
-resourcestring StrSelectExeForOpenGL3D='Select the executable of the OpenGL game';
 procedure TAdvancedOptions.Button2Click(Sender: TObject);
-var i:integer;
-    fname,expectedFilename: string;
-    oldtitle: string;
-
 begin
-  (*
-  {$ifndef net}
-  oldtitle:=opendialog1.Title;
-  opendialog1.Title:=StrSelectExeForOpenGL3D;
 
-  if Opendialog1.Execute then
-  begin
-    hyperscanview.HookDirect3d:=true;
-    hyperscanview.asktocontinue:=true;
-
-    KeysFileMapping:=CreateFileMapping($FFFFFFFF,nil,PAGE_READWRITE,0,sizeof(tkeys2),'CEKEYS2');
-    if KeysFileMapping=0 then
-      raise exception.Create('Error while trying to create the shared key structure! (Which efficiently renders this whole feature useless)');
-
-    keys2:=MapViewOfFile(KeysFileMapping,FILE_MAP_ALL_ACCESS,0,0,0);
-    if keys2=nil then
-    begin
-      closehandle(KeysFileMapping);
-      raise exception.Create('Cheat Engine failed to get into the config of the selected program.');
-    end;
-
-    keys2.configured:=false;
-
-    HyperscanView.HookDirect3d:=false;
-    HyperscanView.HookOpenGL:=true;
-
-    unpause;
-    detachIfPossible;
-    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
-
-    Debuggerthread:=TDebugger.MyCreate(opendialog1.FileName);
-
-    while (debuggerthread<>nil) and (debuggerthread.attaching) do sleep(1);
-
-    mainForm.ProcessLabel.caption:=IntToHex(processid,8)+'-'+ExtractFileName(opendialog1.FileName);
-
-
-    mainform.debugproc:=true;
-
-    if formsettings.cbBreakOnAttach.checked then
-      memorybrowser.show;
-
-    mainform.enablegui(false);
-
-//    with TfrmOpenGL.Create(self) do show;
-  end;
-
-  opendialog1.title:=oldtitle;
-  {$endif}  *)
 end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);

@@ -64,7 +64,7 @@ var
 
 implementation
 
-uses formsettingsunit, MainUnit,AdvancedOptionsUnit, {MemoryBrowserFormUnit,}
+uses formsettingsunit, MainUnit,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      frmProcesswatcherExtraUnit,plugin;
 
 
@@ -301,8 +301,8 @@ begin
 
     for i:=0 to count-1 do
     begin
-    (*  if (kdebugger.isactive) and (z^.Created>0) and (z^.processid=ProcessID) then
-          KDebugger.AddThread(z^.ThreadID);    *)
+      if (kdebugger.isactive) and (z^.Created>0) and (z^.processid=ProcessID) then
+          KDebugger.AddThread(z^.ThreadID);
 
       self.created:=z^.Created>0;
       self.pid:=z^.ProcessID;
@@ -431,30 +431,12 @@ begin
       ProcessHandler.ProcessHandle:=0;
     end;
 
- (*
-    Debuggerthread:=TDebugger.MyCreate2(processid);     *)
-
-
-  (*  i:=0;
-    while i<=90 do
-    begin
-      if i=100 then raise exception.Create('The thread that was supposed to attach the debugger to the process failed. I recommend restarting Cheat Engine.');
-      if not debuggerthread.attaching then i:=100;
-      inc(i);
-      sleep(100);
-    end;
-
-    if not debuggerthread.attached then
-      raise exception.Create('The thread that was supposed to attach the debugger to the process failed. ');
-       *)
+    Debuggerthread:=TDebuggerThread.MyCreate2(processid);
 
     mainform.ProcessLabel.Caption:=tvprocesslist.Selected.Text[i];
 
     ProcessSelected:=true;
     mainform.debugproc:=true;
-    (*
-    if formsettings.cbBreakOnAttach.checked then
-      memorybrowser.show; *)
 
     mainform.enableGui(false);
     close;

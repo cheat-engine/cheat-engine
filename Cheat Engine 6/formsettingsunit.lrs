@@ -29,8 +29,8 @@ LazarusResources.Add('TformSettings','FORMDATA',[
   +#255#255#255#255#255#0#0#0#0#0#0#0#0#0#17#0#0#0'Assembler Options'#255#255
   +#255#255#255#255#255#255#255#255#255#255#255#255#255#255#0#0#0#0#0#0#0#0#0#5
   +#0#0#0'Extra'#0#0#12'TPageControl'#9'pcSetting'#4'Left'#3#149#0#6'Height'#3
-  +#13#2#3'Top'#2#1#5'Width'#3#211#2#10'ActivePage'#7#9'tsHotkeys'#5'Align'#7#8
-  +'alClient'#8'TabIndex'#2#1#8'TabOrder'#2#1#8'OnChange'#7#15'pcSettingChange'
+  +#13#2#3'Top'#2#1#5'Width'#3#211#2#10'ActivePage'#7#9'Assembler'#5'Align'#7#8
+  +'alClient'#8'TabIndex'#2#6#8'TabOrder'#2#1#8'OnChange'#7#15'pcSettingChange'
   +#0#9'TTabSheet'#15'GeneralSettings'#7'Caption'#6#16'General Settings'#12'Cli'
   +'entHeight'#3#240#1#11'ClientWidth'#3#203#2#0#6'TLabel'#7'Label11'#4'Left'#3
   +#209#0#6'Height'#2#17#3'Top'#3#139#1#5'Width'#2#19#7'Caption'#6#2'ms'#11'Par'

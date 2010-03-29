@@ -59,9 +59,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 723
-      ActivePage = tsHotkeys
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 1
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet

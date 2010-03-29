@@ -53,6 +53,9 @@ type
     editingType: THexRegion;
     fDisplayType: TDisplayType; //determines what to display. If anything other than byte the editing/selecting mode will be disabled
 
+
+    lastupdate: dword;
+
     procedure LoadMemoryRegion;
     procedure UpdateMemoryInfo;
     procedure OnLostFocus(sender: TObject);
@@ -996,34 +999,38 @@ var oldAddressWidth: integer;
 defaultrange: ptrUint;
 {$endif}
 begin
-  if offscreenbitmap.Width<mbcanvas.width then
-    offscreenbitmap.Width:=mbcanvas.width;
+  //if (gettickcount-lastupdate)>50 then
+  begin
+    if offscreenbitmap.Width<mbcanvas.width then
+      offscreenbitmap.Width:=mbcanvas.width;
 
-  if offscreenbitmap.Height<mbCanvas.width then
-    offscreenbitmap.Height:=mbcanvas.Height;
+    if offscreenbitmap.Height<mbCanvas.width then
+      offscreenbitmap.Height:=mbcanvas.Height;
 
-  offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
-  offscreenbitmap.Canvas.FillRect(mbcanvas.ClientRect);
+    offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
+    offscreenbitmap.Canvas.FillRect(mbcanvas.ClientRect);
 
-  oldAddressWidth:=addresswidth;
-  {$ifdef cpu64}
-  defaultrange:=$100000000;
-  if fAddress<defaultrange then
-    addresswidth:=addresswidthdefault
-  else
-    addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
-  {$else}
-  addresswidth:=addresswidthdefault;
-  {$endif}
+    oldAddressWidth:=addresswidth;
+    {$ifdef cpu64}
+    defaultrange:=$100000000;
+    if fAddress<defaultrange then
+      addresswidth:=addresswidthdefault
+    else
+      addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
+    {$else}
+    addresswidth:=addresswidthdefault;
+    {$endif}
 
-  if oldAddressWidth<>addresswidth then
-    hexviewResize(self);
+    if oldAddressWidth<>addresswidth then
+      hexviewResize(self);
 
-  LoadMemoryRegion;
-  updateMemoryInfo;
-  render;
+    LoadMemoryRegion;
+    updateMemoryInfo;
+    render;
 
-  mbcanvas.Repaint;
+    mbcanvas.Repaint;
+    lastupdate:=gettickcount;
+  end;
 end;
 
 procedure THexView.OnLostFocus(sender: TObject);

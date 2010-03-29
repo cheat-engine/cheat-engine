@@ -605,8 +605,8 @@ var
   onlyfront: boolean;
   allwindowsareback:boolean;
 
-  HyperscanFileMapping: THandle;
-  HyperscanView: ^TScanSettings;
+  //HyperscanFileMapping: THandle;
+  //HyperscanView: ^TScanSettings;
   
   hookedin:boolean;
   keys: PKeys;

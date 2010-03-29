@@ -364,7 +364,6 @@ type
     scanvalue2: tedit;
     cbpercentage: tcheckbox;
 
-    ceclipboardformat: THandle;
     reinterpretcheck: integer;
 
     ffoundcount: int64;
@@ -2094,32 +2093,6 @@ begin
 
 
   hotkeypressed := -1;
-
-  ceclipboardformat := RegisterClipboardFormat('CE_ENTRY');
-
-  HyperscanFileMapping := CreateFileMapping($FFFFFFFF, nil, PAGE_READWRITE, 0,
-    sizeof(tscansettings), 'CEHYPERSCANSETTINGS');
-  if HyperscanFileMapping <> 0 then
-  begin
-    HyperscanView := MapViewOfFile(HyperscanFileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-    if hyperscanview = nil then
-      closehandle(HyperscanFileMapping);
-
-    zeromemory(hyperscanview, sizeof(tscansettings));
-  end;
-
-
-
-  if hyperscanview<>nil then
-  begin
-    hyperscanview.mainformHandle:=handle;
-    hyperscanview.applicantionhandle:=0;
-    hyperscanview.CheatEngineDir:=CheatEngineDir;
-    hyperscanview.CEProcessID:=GetCurrentProcessId;
-    hyperscanview.CEMainThreadID:=getcurrentthreadid;
-  end;
-
-
 
   pid := GetCurrentProcessID;
 

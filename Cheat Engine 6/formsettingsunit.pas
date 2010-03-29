@@ -558,8 +558,8 @@ begin
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
 
-(*      if (cbGlobalDebug.checked) then
-        kdebugger.GlobalDebug:=cbGlobalDebug.checked;        *)
+      if (cbGlobalDebug.checked) then
+        kdebugger.GlobalDebug:=cbGlobalDebug.checked;
 
 
 

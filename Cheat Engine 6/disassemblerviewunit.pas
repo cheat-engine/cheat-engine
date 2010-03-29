@@ -55,6 +55,8 @@ type TDisassemblerview=class(TPanel)
     fShowjumplineState: TShowjumplineState;
 
     fdissectCode: TDissectCodeThread;
+
+    lastupdate: dword;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -491,69 +493,73 @@ var
   description: string;
   x: ptrUint;
 begin
-  if (not symhandler.isloaded) and (not symhandler.haserror) then
+  //if gettickcount-lastupdate>50 then
   begin
-    if processid>0 then
-      statusinfolabel.Caption:='Symbols are being loaded'
+    if (not symhandler.isloaded) and (not symhandler.haserror) then
+    begin
+      if processid>0 then
+        statusinfolabel.Caption:='Symbols are being loaded'
+      else
+        statusinfolabel.Caption:='Please open a process first';
+
+    end
     else
-      statusinfolabel.Caption:='Please open a process first';
+    begin
+      if symhandler.haserror then
+        statusinfolabel.Font.Color:=clRed
+      else
+        statusinfolabel.Font.Color:=clWindowText;
 
-  end
-  else
-  begin
-    if symhandler.haserror then
-      statusinfolabel.Font.Color:=clRed
+      statusinfolabel.Caption:=symhandler.getnamefromaddress(TopAddress);
+    end;
+
+    //initialize bitmap dimensions
+    if discanvas.width>scrollbox.HorzScrollBar.Range then
+      offscreenbitmap.Width:=discanvas.width
     else
-      statusinfolabel.Font.Color:=clWindowText;
+      offscreenbitmap.Width:=scrollbox.HorzScrollBar.Range;
+    offscreenbitmap.Height:=discanvas.Height;
 
-    statusinfolabel.Caption:=symhandler.getnamefromaddress(TopAddress);
+    //clear bitmap
+    offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
+    offscreenbitmap.Canvas.FillRect(rect(0,0,offscreenbitmap.Width, offscreenbitmap.Height));
+
+    currenttop:=0;
+    i:=0;
+
+    currentAddress:=fTopAddress;
+    selstart:=minX(fSelectedAddress,fSelectedAddress2);
+    selstop:=maxX(fSelectedAddress,fSelectedAddress2);
+
+    while currenttop<offscreenbitmap.Height do
+    begin
+      if i>=disassemblerlines.Count then //add a new line
+        disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
+
+      currentline:=disassemblerlines[i];
+
+      currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress);
+
+      inc(currenttop, currentline.getHeight);
+      inc(i);
+    end;
+
+    fTotalvisibledisassemblerlines:=i;
+
+    x:=fSelectedAddress;
+
+    disassemble(x,description);
+    if disassembleDescription.caption<>description then disassembleDescription.caption:=description;
+
+
+    if ShowJumplines then
+      renderjumplines;
+
+
+    if not isupdating then
+      disCanvas.Repaint;
+    lastupdate:=gettickcount;
   end;
-
-  //initialize bitmap dimensions
-  if discanvas.width>scrollbox.HorzScrollBar.Range then
-    offscreenbitmap.Width:=discanvas.width
-  else
-    offscreenbitmap.Width:=scrollbox.HorzScrollBar.Range;
-  offscreenbitmap.Height:=discanvas.Height;
-
-  //clear bitmap
-  offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
-  offscreenbitmap.Canvas.FillRect(rect(0,0,offscreenbitmap.Width, offscreenbitmap.Height));
-
-  currenttop:=0;
-  i:=0;
-
-  currentAddress:=fTopAddress;
-  selstart:=minX(fSelectedAddress,fSelectedAddress2);
-  selstop:=maxX(fSelectedAddress,fSelectedAddress2);
-
-  while currenttop<offscreenbitmap.Height do
-  begin
-    if i>=disassemblerlines.Count then //add a new line
-      disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
-
-    currentline:=disassemblerlines[i];
-
-    currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress);
-
-    inc(currenttop, currentline.getHeight); 
-    inc(i);
-  end;
-
-  fTotalvisibledisassemblerlines:=i;
-
-  x:=fSelectedAddress;
-
-  disassemble(x,description);
-  if disassembleDescription.caption<>description then disassembleDescription.caption:=description;
-
-
-  if ShowJumplines then
-    renderjumplines;
-
-
-  if not isupdating then
-    disCanvas.Repaint;
 end;
 
 procedure TDisassemblerview.BeginUpdate;

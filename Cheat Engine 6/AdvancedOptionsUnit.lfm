@@ -2,10 +2,10 @@ object AdvancedOptions: TAdvancedOptions
   Left = 772
   Height = 297
   Top = 158
-  Width = 415
+  Width = 628
   Caption = 'Advanced Options'
   ClientHeight = 297
-  ClientWidth = 415
+  ClientWidth = 628
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -16,15 +16,15 @@ object AdvancedOptions: TAdvancedOptions
     Left = 0
     Height = 42
     Top = 255
-    Width = 415
+    Width = 628
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 42
-    ClientWidth = 415
+    ClientWidth = 628
     TabOrder = 0
     OnResize = Panel1Resize
     object Button1: TButton
-      Left = 216
+      Left = 350
       Height = 31
       Top = 6
       Width = 92
@@ -43,27 +43,16 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = Button4Click
       TabOrder = 1
     end
-    object Button2: TButton
-      Left = 410
-      Height = 21
-      Top = 21
-      Width = 100
-      Anchors = [akRight, akBottom]
-      Caption = 'OpenGL Mess'
-      OnClick = Button2Click
-      TabOrder = 2
-      Visible = False
-    end
   end
   object Panel2: TPanel
     Left = 0
     Height = 38
     Top = 0
-    Width = 415
+    Width = 628
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 38
-    ClientWidth = 415
+    ClientWidth = 628
     TabOrder = 1
     OnResize = Panel2Resize
     object Pausebutton: TSpeedButton
@@ -146,7 +135,7 @@ object AdvancedOptions: TAdvancedOptions
     Left = 0
     Height = 217
     Top = 38
-    Width = 415
+    Width = 628
     Align = alClient
     Columns = <    
       item
@@ -190,10 +179,6 @@ object AdvancedOptions: TAdvancedOptions
     object CC2: TMenuItem
       Caption = 'Restore with original code'
       OnClick = CC2Click
-    end
-    object Findthiscodeinsideabinaryfile1: TMenuItem
-      Caption = 'Find this code inside a file'
-      OnClick = Findthiscodeinsideabinaryfile1Click
     end
     object Findoutwhatthiscodechanges1: TMenuItem
       Caption = 'Find out what addresses this code writes to'
