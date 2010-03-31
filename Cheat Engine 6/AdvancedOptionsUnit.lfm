@@ -9,7 +9,6 @@ object AdvancedOptions: TAdvancedOptions
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
-  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Panel1: TPanel

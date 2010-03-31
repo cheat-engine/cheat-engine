@@ -39,7 +39,6 @@ type
     N3: TMenuItem;
     Codelist2: TListView;
     procedure Codelist2Resize(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure CC2Click(Sender: TObject);
     procedure CC1Click(Sender: TObject);
@@ -87,7 +86,6 @@ type
           end;
 
     function AddToCodeList(address: ptrUint; sizeofopcode: integer;changed: boolean; multiadd: boolean=false):boolean;
-    procedure UpdateAdvancedOptions;
   end;
 
 procedure unpause;
@@ -134,11 +132,6 @@ begin
     pausebutton.down:=not pausebutton.down;
     pausebutton.Click;
   end;
-end;
-
-procedure TadvancedOptions.UpdateAdvancedOptions;
-begin
-
 end;
 
 
@@ -287,12 +280,6 @@ begin
   li.SubItems.Add(newstring);
 end;
 
-
-procedure TAdvancedOptions.FormShow(Sender: TObject);
-begin
-
-  UpdateAdvancedOptions;
-end;
 
 procedure TAdvancedOptions.Codelist2Resize(Sender: TObject);
 begin

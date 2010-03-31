@@ -109,7 +109,7 @@ implementation
 //dont use it by otherunits
 {$ifndef net}
 {$ifndef standalonetrainer}
-uses Assemblerunit,CEDebugger, StrUtils;
+uses Assemblerunit,CEDebugger, debughelper, StrUtils;
 {$endif}
 {$endif}
 
@@ -1032,38 +1032,12 @@ begin
   if actualread>0 then
   begin
     //I HATE THESE...   (I propably will not add them all, but I'll see how far I get)
-    {$ifndef net}
 
-    (*
-    //replace software breakpoints
-    for i:=0 to actualread-1 do
-    if (memory[i]=$CC) then
-    begin
-      //try to find it in the breakpointlist (not for net)
-      try
-        WaitForSingleObject(semaphore,infinite); //make sure it doesnt get deleted while I'm reading it
-        if debuggerthread<>nil then
-        begin
-          for j:=0 to length(debuggerthread.int3userbreakpoints)-1 do
-            if debuggerthread.int3userbreakpoints[j].address=offset+i then
-            begin
-              //it's in the list
-              memory[i]:=debuggerthread.int3userbreakpoints[j].originalbyte;
-              break;
+    if debuggerthread<>nil then
+      for i:=0 to actualread-1 do
+        if memory[i]=$cc then
+          memory[i]:=debuggerthread.getrealbyte(offset+i);
 
-            end;
-
-          if debuggerthread.int3CEBreakpoint.address=offset+i then
-            memory[i]:=debuggerthread.int3CEBreakpoint.originalbyte;
-
-  //    memory[0]:=original byte
-        end;
-
-      finally
-        releasesemaphore(semaphore,1,nil);
-      end;
-    end; *)
-    {$endif}
 
     while isprefix do
     begin
@@ -8078,7 +8052,7 @@ begin
         end; //not an address specifier
 
         if valuetype=2 then
-        begin   (*
+        begin
           if ReadProcessMemory(processhandle, pointer(tempaddress), @tempbuf[0], 16, actualread) then
           begin
             variableType:=FindTypeOfData(tempaddress, @tempbuf[0],16);
@@ -8090,7 +8064,7 @@ begin
               vtUnicodeString: ValueType:=6;
             end;
 
-          end;*)
+          end;
 
         end;
 
@@ -8184,9 +8158,9 @@ begin
       else
       begin
         //tempaddress doesn't seem to be an address
-       (* variableType:=FindTypeOfData(0, @tempaddress,4);
+        variableType:=FindTypeOfData(0, @tempaddress,processhandler.pointersize);
         if variableType=vtsingle then
-          ts:=format('(float)%.4f',[psingle(@tempaddress)^]);  *)
+          ts:=format('(float)%.4f',[psingle(@tempaddress)^]);
       end;
 
     end;

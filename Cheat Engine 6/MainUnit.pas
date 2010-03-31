@@ -387,7 +387,6 @@ type
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY;
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
-    procedure freedebugger(var Message: TMessage); message WM_FREEDEBUGGER;
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
     procedure ScanDone(var message: TMessage); message WM_SCANDONE;
     procedure Edit;
@@ -1295,20 +1294,7 @@ begin
   if (E.Message = 'Error creating window device context') then
     exit;
   screen.Cursor := crdefault;
-  (*
-  closefile(addressfile);
-  closefile(memoryfile);
-  closefile(newAddressfile);
-  closefile(newmemoryfile);        *)
   MessageDlg(E.message, mtError, [mbOK], 0);
-end;
-
-procedure TMainForm.freedebugger(var Message: TMessage);
-begin
-  (*
-  //the debugger says the process has ended, or the thread has stopped
-  FreeAndNil(debuggerthread);
-  advancedoptions.Pausebutton.Down := False;   *)
 end;
 
 resourcestring
@@ -1703,19 +1689,12 @@ begin
     flashprocessbutton := nil;
   end;
 
-
- (* if (debuggerthread<>nil) and (debuggerthread.attached) then
+  if (debuggerthread<>nil) then
   begin
-    if @DebugActiveProcessStop=@DebugActiveProcessStopProstitute then
-    begin
-      if messagedlg(strConfirmProcessTermination,mtWarning,[mbYes ,MbNo],0)=mrNo then exit else
-      begin
-        //whipe out the watchlist
-        debuggerthread.debugging:=false;
-        terminateprocess(processhandle,0);
-      end;
-    end;
-  end; *)
+    debuggerthread.Terminate;
+    debuggerthread.WaitFor;
+    freeandnil(debuggerthread);
+  end;
 
   canceled := False;
   Result := True;
@@ -1731,15 +1710,6 @@ begin
 
   newprocessname := copy(mainform.ProcessLabel.Caption, pos(
     '-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
-
-   (*
-  if (debuggerthread<>nil) and (debuggerthread.attached) then
-  begin
-    memorybrowser.updateregisterview;
-    AdvancedOptions.UpdateAdvancedOptions;
-  end; *)
-
-
 
   symhandler.reinitialize;
   reinterpretaddresses;
@@ -2122,9 +2092,6 @@ begin
   Windows.OnClick(Windows);
   isbit := False;
 
-  (*
-  CEDebugger.Semaphore := createsemaphore(nil, 1, 1, nil);  *)
-
   old8087CW := Get8087CW;
   Set8087CW($133f);
   SetSSECSR($1f80);
@@ -2190,6 +2157,7 @@ begin
   setlength(x, 7);
   if loadformposition(self, x) then
   begin
+
    (* headercontrol1.Sections[0].Width := x[0];
     headercontrol1.Sections[1].Width := x[1];
     headercontrol1.Sections[2].Width := x[2];
@@ -2200,8 +2168,6 @@ begin
   end;
 
   oldhandle := mainform.handle;
-  (* OnChangedHandle:=ChangedHandle;*)
-
 
   panel5.Constraints.MinHeight:=groupbox1.top+groupbox1.height+speedbutton2.height+3;
   mainform.Constraints.MinWidth:=400;
@@ -3748,17 +3714,7 @@ end;
 
 procedure TMainForm.SettingsClick(Sender: TObject);
 var
-  (*tlhlp: thandle;
-    m:tagMODULEENTRY32;
-    mbi: _MEMORY_BASIC_INFORMATION;
-    x:dword;
-    i:integer;
-    Savedata: tfilestream;
-
-
-    ntdll,kernel32,user32:thandle;
-              *)
-    oldmodulelist:pointer;
+  oldmodulelist:pointer;
 begin
 
   suspendhotkeyhandler;
@@ -4379,8 +4335,6 @@ begin
 
 end;
 
-(*
-var    abc: TReversePointerListHandler;    *)
 
 procedure TMainForm.Browsethismemoryregioninthedisassembler1Click(Sender: TObject);
 var
@@ -4515,8 +4469,8 @@ begin
   button4.tag:=0;
   progressbar1.Position:=0;
 
-  (*
-  SetProgressState(tbpsNone);  *)
+
+  SetProgressState(tbpsNone);
 
 
   foundcount:=memscan.GetFoundCount;
@@ -4688,7 +4642,7 @@ var autoinjectform: TFrmAutoInject;
     scandata: tstringlist;
     scriptname: string;
 begin
-    (*
+
   scandata:=SelectedCustomScanData;
   if scandata=nil then exit;
 
@@ -4717,7 +4671,7 @@ begin
     end;
   finally
     autoinjectform.free;
-  end; *)
+  end;
 end;
 
 procedure TMainform.CreateCustomScanButtonClick(Sender: TObject);
@@ -4730,7 +4684,7 @@ var
   scriptname: string;
   i: integer;
 begin
- (*
+
   with tfrmautoinject.Create(self) do
   begin
     try
@@ -4860,7 +4814,7 @@ begin
       free; //clean up
     end;
   end;
-   *)
+
 
 end;
 
@@ -5102,7 +5056,7 @@ begin
     oldprocesshandle := processhandle;
     with TProcessWindow.Create(self) do
     begin
-      button3.Click;
+      btnCreateThread.Click;
       Free;
     end;
 

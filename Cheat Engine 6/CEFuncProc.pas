@@ -515,33 +515,6 @@ var
 
   bitoffsetchange: integer;
 
-  FoundValue1:Array of Byte;
-  FoundValue1switch:Array of Byte;
-
-  FoundValue2:Array of word;
-  FoundValue2switch:Array of word;
-
-  FoundValue3:Array of Dword;
-  FoundValue3switch:Array of Dword;
-
-  FoundValue4:Array of Single;
-  FoundValue4switch:Array of Single;
-
-  FoundValue5:Array of Double;
-  FoundValue5switch:Array of Double;
-
-  foundValue6:Array of int64;
-  foundValue6switch:Array of int64;
-
-  FoundValue7:Array of Int64;
-  FoundValue7switch:Array of Int64;
-
-  FoundValue8:array of byte;
-  FoundValue8switch:array of byte;
-
-  (*
-  FoundAddress: array of ptrUint;
-  FoundAddressSwitch: array of dword; *)
 
   foundaddressB: array of TBitAddress;
   foundaddressBswitch: array of TBitAddress;  
@@ -657,145 +630,6 @@ begin
 end;
 
 
-type TSaveDataThread=class(tthread)
-  public
-    buffer1: pointer;
-    buffer2: pointer;
-    buffersize1: dword;
-    buffersize2: dword;
-    file1: ^file;
-    file2: ^file;
-    datawritten: tevent;
-    dataavailable:tevent;
-
-    procedure execute; override;
-    constructor create(suspended:boolean);
-    destructor destroy; override;
-end;
-
-procedure TSaveDataThread.execute;
-var ignore: dword;
-begin
-  dataavailable.WaitFor(infinite);
-  while not terminated do
-  begin
-    blockwrite(file1^,buffer1^,buffersize1,ignore);
-    blockwrite(file2^,buffer2^,buffersize2,ignore);
-
-    datawritten.SetEvent; //tell the others that you're ready to write again
-    dataavailable.WaitFor(infinite); //wait for the 'ready to write' event
-  end;
-end;
-
-destructor TSaveDataThread.destroy;
-begin
-  datawritten.Free;
-  dataavailable.free;
-  inherited destroy;
-end;
-
-constructor TSaveDataThread.create(suspended:boolean);
-begin
-  datawritten:=tevent.Create(nil,false,true,'');
-  dataavailable:=tevent.create(nil,false,false,'');
-
-  inherited create(suspended);
-end;
-
-var FlushThread:TSaveDataThread;
-
-procedure flushbuffer(var file1, file2:file; buffer1:pointer; buffer1size:integer; buffer2:pointer; buffer2size:integer);
-begin
-  flushthread.datawritten.ResetEvent;
-  
-  flushthread.file1:=@file1;
-  flushthread.file2:=@file2;
-  flushthread.buffer1:=buffer1;
-  flushthread.buffer2:=buffer2;
-  flushthread.buffersize1:=buffer1size;
-  flushthread.buffersize2:=buffer2size;
-  flushthread.dataavailable.SetEvent;
-end;
-
-procedure finishflushing;
-begin
-  flushthread.datawritten.WaitFor(infinite);
-  flushthread.datawritten.SetEvent;
-end;
-
-//------------------------------------
-
-type TPrefetchDataThread=class(tthread)
-  public
-    buffer1: pointer;
-    buffer2: pointer;
-    buffersize1: dword;
-    buffersize2: dword;
-    file1: ^file;
-    file2: ^file;
-    dataread: tevent;
-    startreading:tevent;
-
-    actualread: dword;
-
-    procedure execute; override;
-    constructor create(suspended:boolean);
-    destructor destroy; override;
-end;
-
-procedure TPrefetchDataThread.execute;
-var ignore,tmp: dword;
-begin
-  startreading.WaitFor(infinite);
-
-  while not terminated do
-  begin
-    self.actualread:=0;
-    blockread(file1^,buffer1^,buffersize1,tmp);
-    blockread(file2^,buffer2^,buffersize2,ignore);
-
-    self.actualread:=tmp;
-
-    dataread.SetEvent; //tell the others that you're ready to read again
-    startreading.WaitFor(infinite);
-  end;
-end;
-
-destructor TPrefetchDataThread.destroy;
-begin
-  dataread.Free;
-  startreading.free;
-  inherited destroy;
-end;
-
-constructor TPrefetchDataThread.create(suspended:boolean);
-begin
-  dataread:=tevent.Create(nil,false,true,'');
-  startreading:=tevent.create(nil,false,false,'');
-
-  inherited create(suspended);
-end;
-
-var PrefetchThread:TPrefetchDataThread;
-
-procedure prefetchbuffer(var file1, file2:file; buffer1:pointer; buffer1size:integer; buffer2:pointer; buffer2size:integer);
-begin
-  PrefetchThread.dataread.ResetEvent;
-
-  PrefetchThread.file1:=@file1;
-  PrefetchThread.file2:=@file2;
-  PrefetchThread.buffer1:=buffer1;
-  PrefetchThread.buffer2:=buffer2;
-  PrefetchThread.buffersize1:=buffer1size;
-  PrefetchThread.buffersize2:=buffer2size;
-  PrefetchThread.startreading.SetEvent;
-end;
-
-function finishprefetching:dword;
-begin
-  PrefetchThread.dataread.WaitFor(infinite);//wait for the datread event to be set
-  result:=prefetchthread.actualread;
-end;
 
 procedure errorbeep;
 begin
@@ -1115,75 +949,13 @@ begin
 end;
 
 procedure DetachIfPossible;
-var crashcounter: integer;
-    waitform: TForm;
-    msg: tlabel;
 begin
-     (*
-  //detach the debugger
-
-  waitform:=nil;
-  crashcounter:=0;
-
-
-  if debuggerthread=nil then
+  if debuggerthread<>nil then
   begin
-    if kdebugger.isactive then
-      KDebugger.StopDebugger;
-
-    exit;
-  end
-  else debuggerthread.Terminate;
-
-  if @DebugActiveProcessStop=@DebugActiveProcessStopProstitute then //lets help it a hand if it cant detach gracefully
-    terminateprocess(processhandle,0)
-  else
-  begin
-    if debuggerthread<>nil then
-    begin
-      //show a window asking the user to wait and not to freak out and think CE crashed!
-      waitform:=TForm.Create(nil);
-      with waitform do
-      begin
-        waitform.Caption:='Detaching...';
-        msg:=TLabel.Create(waitform);
-        msg.Caption:='Please wait while Cheat Engine tries to detach from the current process(This wont take longer than 30 seconds)';
-
-        waitform.Width:=msg.Width+20;
-        waitform.clientHeight:=50;
-
-        msg.Left:=7;
-        msg.Top:=(waitform.ClientHeight div 2) - (msg.Height div 2);
-        msg.Parent:=waitform;
-
-        //waitform.Parent:=self;
-
-        waitform.BorderStyle:=bsDialog;
-        waitform.BorderIcons:=[];
-
-        waitform.Position:=poScreenCenter;
-        waitform.Show;
-        waitform.Repaint;
-      end;
-    end;
+    debuggerthread.Terminate;
+    debuggerthread.WaitFor;
+    freeandnil(debuggerthread);
   end;
-
-  while (debuggerthread<>nil) and (debuggerthread.attached) and (crashcounter<30) do
-  begin
-    inc(crashcounter);
-    sleep(1000);
-  end;
-
-  if crashcounter=30 then messagedlg('Detaching failed!!! Your process is lost!',mtError,[mbok],0);
-
-  if waitform<>nil then
-  begin
-    waitform.Hide;
-    waitform.Free;
-    waitform:=nil;
-  end;
-
- *)
 end;
 {$endif}
 
@@ -3272,19 +3044,9 @@ initialization
   stealthhook:=0;
   iswin2kplus:=GetSystemType>=5;
 
-  flushthread:=TSaveDataThread.Create(false); //used for scanning, starts idled because the event isn't triggered
-  prefetchthread:=TPrefetchDataThread.create(false);
-
   processhandler:=TProcessHandler.create;
 
 finalization
-  if flushthread<>nil then
-  begin
-    flushthread.Terminate;
-    flushthread.dataavailable.SetEvent;
-    flushthread.WaitFor;
-    flushthread.free;
-  end;
 
   if tempdir<>nil then
     freemem(tempdir);

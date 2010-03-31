@@ -40,7 +40,7 @@ function getaddress(S: string):ptrUint; //for old code
 
 implementation
 
-{uses memorybrowserformunit;}
+uses memorybrowserformunit;
 
 
 procedure TAddressParser.seperator;
@@ -87,15 +87,27 @@ begin
   tmp:=0;
   tmps:=copy(str,ch,3);
 
- (* if tmps='EAX' then tmp:=memorybrowser.lastdebugcontext.eax else
-  if tmps='EBX' then tmp:=memorybrowser.lastdebugcontext.ebx else
-  if tmps='ECX' then tmp:=memorybrowser.lastdebugcontext.ecx else
-  if tmps='EDX' then tmp:=memorybrowser.lastdebugcontext.edx else
-  if tmps='ESI' then tmp:=memorybrowser.lastdebugcontext.esi else
-  if tmps='EDI' then tmp:=memorybrowser.lastdebugcontext.edi else
-  if tmps='EBP' then tmp:=memorybrowser.lastdebugcontext.ebp else
-  if tmps='ESP' then tmp:=memorybrowser.lastdebugcontext.esp else
-  if tmps='EIP' then tmp:=memorybrowser.lastdebugcontext.eip;   *)
+  if tmps='EAX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rax{$else}eax{$endif} else
+  if tmps='EBX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rbx{$else}ebx{$endif} else
+  if tmps='ECX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rcx{$else}ecx{$endif} else
+  if tmps='EDX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rdx{$else}edx{$endif} else
+  if tmps='ESI' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rsi{$else}esi{$endif} else
+  if tmps='EDI' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rdi{$else}edi{$endif} else
+  if tmps='EBP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif} else
+  if tmps='ESP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif} else
+  if tmps='EIP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}
+  {$ifdef cpu64}
+  else
+  if tmps='R8' then tmp:=memorybrowser.lastdebugcontext.r8 else
+  if tmps='R9' then tmp:=memorybrowser.lastdebugcontext.r9 else
+  if tmps='R10' then tmp:=memorybrowser.lastdebugcontext.r10 else
+  if tmps='R11' then tmp:=memorybrowser.lastdebugcontext.r11 else
+  if tmps='R12' then tmp:=memorybrowser.lastdebugcontext.r12 else
+  if tmps='R13' then tmp:=memorybrowser.lastdebugcontext.r13 else
+  if tmps='R14' then tmp:=memorybrowser.lastdebugcontext.r14 else
+  if tmps='R15' then tmp:=memorybrowser.lastdebugcontext.r15;
+  {$endif}
+  ;
 
   setlength(total,length(total)+1);
   total[length(total)-1]:=1;  //value

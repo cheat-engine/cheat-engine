@@ -399,9 +399,9 @@ begin
 
           //plugins
           {$ifndef standalonetrainer}
-(*          currentlinep:=@currentline[1];
+          currentlinep:=@currentline[1];
           pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
-          currentline:=currentlinep;*)
+          currentline:=currentlinep;
           {$endif}
 
           //if the newline is empty then it has been handled and the plugin doesn't want it to be added for phase2
@@ -713,7 +713,7 @@ begin
           end;
 
           //AOBSCAN(variable,aobstring)  (works like define)
-          (*
+
           if uppercase(copy(currentline,1,8))='AOBSCAN(' then
           begin
             //convert this line from AOBSCAN(varname,bytestring) to DEFINE(varname,address)
@@ -735,7 +735,7 @@ begin
               currentline:='DEFINE('+s1+','+inttohex(testdword,8)+')';
               //NO CONTINUE LINE HERE
             end else raise exception.Create('Wrong syntax. AOBSCAN(name,11 22 33 ** 55)');
-          end;   *)
+          end;
 
           //define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
@@ -1213,7 +1213,7 @@ begin
       currentline:=assemblerlines[i];
 
 {$ifndef standalonetrainer}
-(*      //plugin
+      //plugin
       if length(currentline)>0 then
       begin
         currentlinep:=@currentline[1];
@@ -1222,7 +1222,7 @@ begin
         //if handled currentline will have it's identifiers regarding the plugin's previously registered stuff replaced
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
       end;
-      //plugin    *)
+      //plugin
 {$endif}
 
 
@@ -1578,7 +1578,7 @@ begin
     tokens.free;
 
 {$ifndef standalonetrainer}
-(*    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data*)
+    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
 {$endif}    
   end;
 end;

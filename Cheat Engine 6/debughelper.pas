@@ -71,6 +71,8 @@ type
 
     function isWaitingToContinue: boolean;
 
+    function getrealbyte(address: ptrUint): byte;
+
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
 
 
@@ -978,6 +980,22 @@ begin
 
   finally
     breakpointCS.leave;
+  end;
+end;
+
+function TDebuggerthread.getrealbyte(address: ptrUint): byte;
+{
+Called when the byte is a $cc
+}
+var bp: PBreakpoint;
+begin
+  result:=$cc;
+
+  bp:=isBreakpoint(address);
+  if bp<>nil then
+  begin
+    if bp.breakpointMethod=bpmInt3 then
+      result:=bp.originalbyte;
   end;
 end;
 
