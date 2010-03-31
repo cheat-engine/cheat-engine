@@ -1281,11 +1281,6 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	__nop();
 	disableInterrupts();
 	disableInterrupts();
-	
-	__asm
-	{
-		cli
-	}
 
 	if (handled == 2)
 	{
