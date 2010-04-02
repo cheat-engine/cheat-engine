@@ -1,0 +1,122 @@
+object frmSymbolhandler: TfrmSymbolhandler
+  Left = 869
+  Height = 338
+  Top = 258
+  Width = 489
+  Caption = 'Symbol config'
+  ClientHeight = 338
+  ClientWidth = 489
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Panel1: TPanel
+    Left = 320
+    Height = 338
+    Top = 0
+    Width = 169
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 338
+    ClientWidth = 169
+    TabOrder = 0
+    object Label3: TLabel
+      Left = 32
+      Height = 17
+      Top = 10
+      Width = 125
+      Caption = 'Unique symbolname'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 63
+      Height = 17
+      Top = 59
+      Width = 52
+      Caption = 'Address'
+      ParentColor = False
+    end
+    object edtSymbolname: TEdit
+      Left = 10
+      Height = 24
+      Top = 30
+      Width = 149
+      TabOrder = 0
+    end
+    object edtAddress: TEdit
+      Left = 10
+      Height = 24
+      Top = 79
+      Width = 149
+      TabOrder = 1
+    end
+    object Button1: TButton
+      Left = 37
+      Height = 31
+      Top = 108
+      Width = 92
+      Caption = 'Add symbol'
+      OnClick = Button1Click
+      TabOrder = 2
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 338
+    Top = 0
+    Width = 320
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 338
+    ClientWidth = 320
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 0
+      Height = 17
+      Top = 0
+      Width = 320
+      Align = alTop
+      Caption = 'Userdefined symbols:'
+      ParentColor = False
+    end
+    object ListView1: TListView
+      Left = 0
+      Height = 321
+      Top = 17
+      Width = 320
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'Symbolname'
+          Width = 123
+        end      
+        item
+          Caption = 'Address'
+          Width = 98
+        end      
+        item
+          Caption = 'AllocSize'
+          Width = 74
+        end>
+      ItemIndex = -1
+      PopupMenu = PopupMenu1
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnClick = ListView1Click
+      OnDblClick = Delete1Click
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 72
+    top = 80
+    object Delete1: TMenuItem
+      Caption = 'Delete'
+      Default = True
+      OnClick = Delete1Click
+    end
+  end
+end

@@ -1,0 +1,32 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmSymbolhandler','FORMDATA',[
+  'TPF0'#17'TfrmSymbolhandler'#16'frmSymbolhandler'#4'Left'#3'e'#3#6'Height'#3
+  +'R'#1#3'Top'#3#2#1#5'Width'#3#233#1#7'Caption'#6#13'Symbol config'#12'Client'
+  +'Height'#3'R'#1#11'ClientWidth'#3#233#1#11'Font.Height'#2#242#9'Font.Name'#6
+  +#13'MS Sans Serif'#8'OnCreate'#7#10'FormCreate'#6'OnShow'#7#8'FormShow'#8'Po'
+  +'sition'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TPanel'#6'Panel'
+  +'1'#4'Left'#3'@'#1#6'Height'#3'R'#1#3'Top'#2#0#5'Width'#3#169#0#5'Align'#7#7
+  +'alRight'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3'R'#1#11'ClientWidth'
+  +#3#169#0#8'TabOrder'#2#0#0#6'TLabel'#6'Label3'#4'Left'#2' '#6'Height'#2#17#3
+  +'Top'#2#10#5'Width'#2'}'#7'Caption'#6#17'Unique symbolname'#11'ParentColor'#8
+  +#0#0#6'TLabel'#6'Label2'#4'Left'#2'?'#6'Height'#2#17#3'Top'#2';'#5'Width'#2
+  +'4'#7'Caption'#6#7'Address'#11'ParentColor'#8#0#0#5'TEdit'#13'edtSymbolname'
+  +#4'Left'#2#10#6'Height'#2#24#3'Top'#2#30#5'Width'#3#149#0#8'TabOrder'#2#0#0#0
+  +#5'TEdit'#10'edtAddress'#4'Left'#2#10#6'Height'#2#24#3'Top'#2'O'#5'Width'#3
+  +#149#0#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#4'Left'#2'%'#6'Height'#2#31
+  +#3'Top'#2'l'#5'Width'#2'\'#7'Caption'#6#10'Add symbol'#7'OnClick'#7#12'Butto'
+  +'n1Click'#8'TabOrder'#2#2#0#0#0#6'TPanel'#6'Panel2'#4'Left'#2#0#6'Height'#3
+  +'R'#1#3'Top'#2#0#5'Width'#3'@'#1#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'b'
+  +'vNone'#12'ClientHeight'#3'R'#1#11'ClientWidth'#3'@'#1#8'TabOrder'#2#1#0#6'T'
+  +'Label'#6'Label1'#4'Left'#2#0#6'Height'#2#17#3'Top'#2#0#5'Width'#3'@'#1#5'Al'
+  +'ign'#7#5'alTop'#7'Caption'#6#20'Userdefined symbols:'#11'ParentColor'#8#0#0
+  +#9'TListView'#9'ListView1'#4'Left'#2#0#6'Height'#3'A'#1#3'Top'#2#17#5'Width'
+  +#3'@'#1#5'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6#10'Symbolname'#5
+  +'Width'#2'{'#0#1#7'Caption'#6#7'Address'#5'Width'#2'b'#0#1#7'Caption'#6#9'Al'
+  +'locSize'#5'Width'#2'J'#0#0#9'ItemIndex'#2#255#9'PopupMenu'#7#10'PopupMenu1'
+  +#8'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#0#9'ViewStyle'#7#8'vsReport'#7'O'
+  +'nClick'#7#14'ListView1Click'#10'OnDblClick'#7#12'Delete1Click'#0#0#0#10'TPo'
+  +'pupMenu'#10'PopupMenu1'#4'left'#2'H'#3'top'#2'P'#0#9'TMenuItem'#7'Delete1'#7
+  +'Caption'#6#6'Delete'#7'Default'#9#7'OnClick'#7#12'Delete1Click'#0#0#0#0
+]);

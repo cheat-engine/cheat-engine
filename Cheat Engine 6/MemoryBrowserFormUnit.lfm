@@ -1,0 +1,1057 @@
+object MemoryBrowser: TMemoryBrowser
+  Left = 711
+  Height = 600
+  Top = 300
+  Width = 723
+  HelpContext = 12
+  Caption = 'Memory Viewer'
+  ClientHeight = 575
+  ClientWidth = 723
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Splitter1: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 300
+    Width = 723
+    Align = alTop
+    AutoSnap = False
+    Beveled = True
+    Color = clBtnFace
+    OnCanResize = Splitter1CanResize
+    OnMoved = Splitter1Moved
+    ParentColor = False
+    ResizeAnchor = akTop
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 300
+    Top = 0
+    Width = 723
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 300
+    ClientWidth = 723
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Splitter2: TSplitter
+      Left = 528
+      Height = 300
+      Top = 0
+      Width = 5
+      Align = alRight
+      ResizeAnchor = akRight
+      Visible = False
+    end
+    object Panel5: TPanel
+      Left = 0
+      Height = 300
+      Top = 0
+      Width = 528
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 0
+    end
+    object RegisterView: TPanel
+      Left = 533
+      Height = 300
+      Top = 0
+      Width = 190
+      Align = alRight
+      ClientHeight = 300
+      ClientWidth = 190
+      TabOrder = 1
+      Visible = False
+      object ScrollBox1: TScrollBox
+        Left = 1
+        Height = 298
+        Top = 1
+        Width = 188
+        Align = alClient
+        ClientHeight = 294
+        ClientWidth = 184
+        TabOrder = 0
+        OnClick = ScrollBox1Click
+        OnResize = ScrollBox1Resize
+        object EAXLabel: TLabel
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 19
+          Width = 97
+          Caption = 'EAX 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object EBXlabel: TLabel
+          Tag = 1
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 35
+          Width = 97
+          Caption = 'EBX 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object ECXlabel: TLabel
+          Tag = 2
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 51
+          Width = 97
+          Caption = 'ECX 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object EDXlabel: TLabel
+          Tag = 3
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 67
+          Width = 97
+          Caption = 'EDX 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object ESIlabel: TLabel
+          Tag = 4
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 83
+          Width = 97
+          Caption = 'ESI 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object EDIlabel: TLabel
+          Tag = 5
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 99
+          Width = 97
+          Caption = 'EDI 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object EBPlabel: TLabel
+          Tag = 6
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 115
+          Width = 97
+          Caption = 'EBP 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object ESPlabel: TLabel
+          Tag = 7
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 131
+          Width = 97
+          Caption = 'ESP 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object EIPlabel: TLabel
+          Tag = 8
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 147
+          Width = 97
+          Caption = 'EIP 00000000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object CSLabel: TLabel
+          Tag = 9
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 184
+          Width = 57
+          Caption = 'CS 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object DSLabel: TLabel
+          Tag = 11
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 216
+          Width = 57
+          Caption = 'DS 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object SSlabel: TLabel
+          Tag = 10
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 200
+          Width = 57
+          Caption = 'SS 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object ESlabel: TLabel
+          Tag = 12
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 232
+          Width = 57
+          Caption = 'ES 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object FSlabel: TLabel
+          Tag = 13
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 248
+          Width = 57
+          Caption = 'FS 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object GSlabel: TLabel
+          Tag = 14
+          Cursor = crHandPoint
+          Left = 8
+          Height = 14
+          Top = 261
+          Width = 57
+          Caption = 'GS 0000'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnClick = EAXLabelDblClick
+        end
+        object cflabel: TLabel
+          Tag = 20
+          Left = 136
+          Height = 14
+          Top = 24
+          Width = 33
+          Caption = 'CF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object pflabel: TLabel
+          Tag = 21
+          Left = 136
+          Height = 14
+          Top = 40
+          Width = 33
+          Caption = 'PF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object aflabel: TLabel
+          Tag = 22
+          Left = 136
+          Height = 14
+          Top = 56
+          Width = 33
+          Caption = 'AF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object zflabel: TLabel
+          Tag = 23
+          Left = 136
+          Height = 14
+          Top = 72
+          Width = 33
+          Caption = 'ZF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object sflabel: TLabel
+          Tag = 24
+          Left = 136
+          Height = 14
+          Top = 88
+          Width = 33
+          Caption = 'SF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object oflabel: TLabel
+          Tag = 26
+          Left = 136
+          Height = 14
+          Top = 120
+          Width = 33
+          Caption = 'OF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+        object Label14: TLabel
+          Left = 10
+          Height = 17
+          Top = 0
+          Width = 62
+          Caption = 'Registers:'
+          ParentColor = False
+        end
+        object Shape1: TShape
+          Left = 10
+          Height = 2
+          Top = 16
+          Width = 56
+          Brush.Color = clBlack
+        end
+        object Label15: TLabel
+          Left = 139
+          Height = 17
+          Top = 0
+          Width = 35
+          Caption = 'Flags'
+          ParentColor = False
+        end
+        object Shape2: TShape
+          Left = 138
+          Height = 2
+          Top = 16
+          Width = 35
+          Brush.Color = clBlack
+        end
+        object Label16: TLabel
+          Left = 7
+          Height = 17
+          Top = 162
+          Width = 116
+          Caption = 'Segment Registers'
+          ParentColor = False
+        end
+        object Shape3: TShape
+          Left = 7
+          Height = 3
+          Top = 178
+          Width = 111
+          Brush.Color = clBlack
+        end
+        object dflabel: TLabel
+          Tag = 25
+          Left = 136
+          Height = 14
+          Top = 104
+          Width = 33
+          Caption = 'DF 0'
+          Font.Height = -15
+          Font.Name = 'Courier'
+          ParentColor = False
+          ParentFont = False
+          OnDblClick = EAXLabelDblClick
+        end
+      end
+    end
+    object sbShowFloats: TButton
+      Left = 696
+      Height = 32
+      Top = 152
+      Width = 22
+      Caption = '>'
+      OnClick = sbShowFloatsClick
+      TabOrder = 3
+      Visible = False
+    end
+  end
+  object Panel4: TPanel
+    Left = 0
+    Height = 270
+    Top = 305
+    Width = 723
+    Align = alClient
+    BevelOuter = bvNone
+    BorderWidth = 1
+    ClientHeight = 270
+    ClientWidth = 723
+    TabOrder = 1
+    object Splitter3: TSplitter
+      Left = 507
+      Height = 268
+      Top = 1
+      Width = 5
+      Align = alRight
+      Color = clBtnFace
+      ParentColor = False
+      ResizeAnchor = akRight
+      Visible = False
+    end
+    object Panel3: TPanel
+      Left = 1
+      Height = 268
+      Top = 1
+      Width = 506
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 268
+      ClientWidth = 506
+      TabOrder = 0
+      object Panel2: TPanel
+        Left = 0
+        Height = 268
+        Top = 0
+        Width = 506
+        Align = alClient
+        BevelOuter = bvNone
+        TabOrder = 0
+      end
+    end
+    object pnlStacktrace: TPanel
+      Left = 512
+      Height = 268
+      Top = 1
+      Width = 210
+      Align = alRight
+      BevelInner = bvLowered
+      ClientHeight = 268
+      ClientWidth = 210
+      PopupMenu = pmStacktrace
+      TabOrder = 1
+      Visible = False
+      object lvStacktraceData: TListView
+        Left = 2
+        Height = 264
+        Top = 2
+        Width = 206
+        Align = alClient
+        Columns = <        
+          item
+            Caption = 'Address'
+            Width = 80
+          end        
+          item
+            Caption = 'DWORD'
+            Width = 80
+          end        
+          item
+            AutoSize = True
+            Caption = 'Value'
+          end>
+        ItemIndex = -1
+        OwnerData = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+        OnData = lvStacktraceDataData
+        OnDblClick = lvStacktraceDataDblClick
+      end
+    end
+  end
+  object memorypopup: TPopupMenu
+    left = 8
+    top = 480
+    object Change1: TMenuItem
+      Caption = 'Edit'
+      OnClick = Change1Click
+    end
+    object Goto1: TMenuItem
+      Caption = 'Goto address'
+      OnClick = Goto1Click
+    end
+    object Search1: TMenuItem
+      Caption = 'Search memory...'
+      ShortCut = 16454
+      OnClick = Search1Click
+    end
+    object N13: TMenuItem
+      Caption = '-'
+    end
+    object Cut1: TMenuItem
+      Caption = 'Copy to clipboard'
+      ShortCut = 16451
+      OnClick = Cut1Click
+    end
+    object Pastefromclipboard1: TMenuItem
+      Caption = 'Paste from clipboard'
+      ShortCut = 16464
+      OnClick = Pastefromclipboard1Click
+    end
+    object N15: TMenuItem
+      Caption = '-'
+    end
+    object DisplayType1: TMenuItem
+      Caption = 'Display Type'
+      object dispBytes: TMenuItem
+        Caption = 'Byte hex'
+        ShortCut = 16433
+        OnClick = DisplayTypeClick
+      end
+      object dispWords: TMenuItem
+        Tag = 1
+        Caption = '2 Byte hex'
+        ShortCut = 16434
+        OnClick = DisplayTypeClick
+      end
+      object dispDwords: TMenuItem
+        Tag = 2
+        Caption = '4 Byte hex'
+        ShortCut = 16435
+        OnClick = DisplayTypeClick
+      end
+      object dispInts: TMenuItem
+        Tag = 3
+        Caption = '4 Byte decimal'
+        ShortCut = 16436
+        OnClick = DisplayTypeClick
+      end
+      object dispFloat: TMenuItem
+        Tag = 4
+        Caption = 'Float'
+        ShortCut = 16437
+        OnClick = DisplayTypeClick
+      end
+      object dispDouble: TMenuItem
+        Tag = 5
+        Caption = 'Double'
+        ShortCut = 16438
+        OnClick = DisplayTypeClick
+      end
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Addthisaddresstothelist1: TMenuItem
+      Caption = 'Add this address to the list'
+      OnClick = Addthisaddresstothelist1Click
+    end
+    object Makepagewritable1: TMenuItem
+      Caption = 'Make page writable'
+      OnClick = Makepagewritable1Click
+    end
+  end
+  object debuggerpopup: TPopupMenu
+    OnPopup = debuggerpopupPopup
+    left = 64
+    top = 152
+    object Gotoaddress1: TMenuItem
+      Caption = 'Go to address'
+      OnClick = Gotoaddress1Click
+    end
+    object Back1: TMenuItem
+      Caption = 'Back'
+      OnClick = Back1Click
+    end
+    object Follow1: TMenuItem
+      Caption = 'Follow'
+      Visible = False
+      OnClick = Follow1Click
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Replacewithnops1: TMenuItem
+      Caption = 'Replace with code that does nothing'
+      OnClick = Replacewithnops1Click
+    end
+    object Addthisopcodetothecodelist1: TMenuItem
+      Caption = 'Add to the code list'
+      OnClick = Addthisopcodetothecodelist1Click
+    end
+    object Assemble1: TMenuItem
+      Caption = 'Assemble'
+      OnClick = Assemble1Click
+    end
+    object Copytoclipboard1: TMenuItem
+      Caption = 'Copy to clipboard'
+      object CopyBytesAndOpcodes: TMenuItem
+        Caption = 'Bytes+Opcodes'
+        Default = True
+        OnClick = CopyBytesAndOpcodesClick
+      end
+      object copyBytes: TMenuItem
+        Tag = 1
+        Caption = 'Bytes'
+        OnClick = CopyBytesAndOpcodesClick
+      end
+      object copyOpcodes: TMenuItem
+        Tag = 2
+        Caption = 'Opcodes'
+        OnClick = CopyBytesAndOpcodesClick
+      end
+    end
+    object N7: TMenuItem
+      Caption = '-'
+    end
+    object Changestateofregisteratthislocation1: TMenuItem
+      Caption = 'Change register at this location'
+      OnClick = Changestateofregisteratthislocation1Click
+    end
+    object ogglebreakpoint1: TMenuItem
+      Caption = 'Toggle breakpoint'
+      OnClick = ogglebreakpoint1Click
+    end
+    object Breakandtraceinstructions1: TMenuItem
+      Caption = 'Break and trace instructions'
+      OnClick = Breakandtraceinstructions1Click
+    end
+    object Findoutwhataddressesthisinstructionaccesses1: TMenuItem
+      Caption = 'Find out what addresses this instruction accesses'
+      OnClick = Findoutwhataddressesthisinstructionaccesses1Click
+    end
+    object N9: TMenuItem
+      Caption = '-'
+    end
+    object Createjumptocodecave1: TMenuItem
+      Caption = 'Create jump and initialize Code-Cave'
+      OnClick = Createjumptocodecave1Click
+    end
+  end
+  object Timer2: TTimer
+    Interval = 500
+    OnTimer = Timer2Timer
+    left = 928
+    top = 352
+  end
+  object MainMenu1: TMainMenu
+    object File1: TMenuItem
+      Caption = 'File'
+      object Newwindow1: TMenuItem
+        Caption = 'New window'
+        OnClick = Newwindow1Click
+      end
+      object Loadsymbolfile1: TMenuItem
+        Caption = 'Load symbol file'
+        Visible = False
+      end
+      object Savedisassemledoutput1: TMenuItem
+        Caption = 'Save disassembled output'
+        OnClick = Savedisassemledoutput1Click
+      end
+      object N14: TMenuItem
+        Caption = '-'
+      end
+      object Setsymbolsearchpath1: TMenuItem
+        Caption = 'Set symbol searchpath'
+        OnClick = Setsymbolsearchpath1Click
+      end
+      object N4: TMenuItem
+        Caption = '-'
+      end
+      object Savememoryregion1: TMenuItem
+        Caption = 'Save memory region'
+        ShortCut = 16467
+        OnClick = Savememoryregion1Click
+      end
+      object Loadmemolryregion1: TMenuItem
+        Caption = 'Load memory region'
+        ShortCut = 16463
+        OnClick = Loadmemolryregion1Click
+      end
+    end
+    object Search2: TMenuItem
+      Caption = 'Search'
+      object Findmemory1: TMenuItem
+        Caption = 'Find memory'
+        OnClick = Findmemory1Click
+      end
+      object Assemblycode1: TMenuItem
+        Caption = 'Find assembly code'
+        OnClick = Assemblycode1Click
+      end
+    end
+    object View1: TMenuItem
+      Caption = 'View'
+      object Stacktrace1: TMenuItem
+        Caption = 'Stacktrace'
+        Enabled = False
+        OnClick = Stacktrace1Click
+      end
+      object Breakpointlist1: TMenuItem
+        Caption = 'Breakpointlist'
+        ShortCut = 16450
+        OnClick = Breakpointlist1Click
+      end
+      object Threadlist1: TMenuItem
+        Caption = 'Threadlist'
+        OnClick = Threadlist1Click
+      end
+      object Debugstrings1: TMenuItem
+        Caption = 'Debug strings'
+        ShortCut = 49220
+        OnClick = Debugstrings1Click
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object Referencedstrings1: TMenuItem
+        Caption = 'Referenced strings'
+        ShortCut = 49234
+        OnClick = Referencedstrings1Click
+      end
+      object MemoryRegions1: TMenuItem
+        Caption = 'Memory Regions'
+        ShortCut = 16466
+        OnClick = MemoryRegions1Click
+      end
+      object Heaps1: TMenuItem
+        Caption = 'Heaplist'
+        ShortCut = 16456
+        OnClick = Heaps1Click
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object EnumeratedllsandSymbols1: TMenuItem
+        Caption = 'Enumerate DLL''s and Symbols'
+        ShortCut = 49235
+        OnClick = EnumeratedllsandSymbols1Click
+      end
+      object N10: TMenuItem
+        Caption = '-'
+      end
+      object Showsymbols1: TMenuItem
+        Caption = 'Show symbols'
+        Checked = True
+        OnClick = Showsymbols1Click
+      end
+      object Kernelmodesymbols1: TMenuItem
+        Caption = 'Kernelmode symbols'
+        OnClick = Kernelmodesymbols1Click
+      end
+      object Showmoduleaddresses1: TMenuItem
+        Caption = 'Show module addresses'
+        ShortCut = 16461
+        OnClick = Showmoduleaddresses1Click
+      end
+      object Symbolhandler1: TMenuItem
+        Caption = 'Userdefined symbols'
+        ShortCut = 16469
+        OnClick = Symbolhandler1Click
+      end
+      object Showvaluesofstaticaddresses1: TMenuItem
+        Caption = 'Show ''Comment'' row'
+        ShortCut = 16470
+        OnClick = Showvaluesofstaticaddresses1Click
+      end
+      object Jumplines1: TMenuItem
+        Caption = 'Jumplines'
+        object Showjumplines1: TMenuItem
+          Caption = 'Show jumplines'
+          Checked = True
+          Default = True
+          ShortCut = 49228
+          OnClick = Showjumplines1Click
+        end
+        object Onlyshowjumplineswithinrange1: TMenuItem
+          Caption = 'Only show jumplines within range'
+          Checked = True
+          OnClick = Onlyshowjumplineswithinrange1Click
+        end
+      end
+    end
+    object Debug1: TMenuItem
+      Caption = 'Debug'
+      object Run1: TMenuItem
+        Caption = 'Run'
+        Enabled = False
+        ShortCut = 120
+        OnClick = Run1Click
+      end
+      object Step1: TMenuItem
+        Caption = 'Step'
+        Enabled = False
+        ShortCut = 118
+        OnClick = Step1Click
+      end
+      object StepOver1: TMenuItem
+        Caption = 'Step Over'
+        Enabled = False
+        ShortCut = 119
+        OnClick = StepOver1Click
+      end
+      object Executetillreturn1: TMenuItem
+        Caption = 'Execute till return'
+        Enabled = False
+        ShortCut = 8311
+        OnClick = Executetillreturn1Click
+      end
+      object Runtill1: TMenuItem
+        Caption = 'Run till...'
+        Enabled = False
+        ShortCut = 115
+        OnClick = Runtill1Click
+      end
+      object Setbreakpoint1: TMenuItem
+        Caption = 'Toggle breakpoint'
+        ShortCut = 116
+        OnClick = ogglebreakpoint1Click
+      end
+      object N3: TMenuItem
+        Caption = '-'
+        Visible = False
+      end
+      object Continueanddetachdebugger1: TMenuItem
+        Caption = 'Continue and  detach debugger'
+        Visible = False
+        OnClick = Continueanddetachdebugger1Click
+      end
+      object N16: TMenuItem
+        Caption = '-'
+      end
+      object Break1: TMenuItem
+        Caption = 'Break'
+        OnClick = Break1Click
+      end
+    end
+    object Extra1: TMenuItem
+      Caption = 'Tools'
+      object Reservememory1: TMenuItem
+        Caption = 'Allocate Memory'
+        ShortCut = 49229
+        OnClick = Reservememory1Click
+      end
+      object Scanforcodecaves1: TMenuItem
+        Caption = 'Scan for code caves'
+        ShortCut = 49219
+        OnClick = Scanforcodecaves1Click
+      end
+      object FillMemory1: TMenuItem
+        Caption = 'Fill Memory'
+        ShortCut = 49222
+        OnClick = FillMemory1Click
+      end
+      object CreateThread1: TMenuItem
+        Caption = 'Create Thread'
+        ShortCut = 49236
+        OnClick = CreateThread1Click
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
+      object Dissectcode1: TMenuItem
+        Caption = 'Dissect code'
+        ShortCut = 16458
+        OnClick = Dissectcode1Click
+      end
+      object Dissectdata2: TMenuItem
+        Caption = 'Dissect data/structures'
+        ShortCut = 16452
+        OnClick = Dissectdata2Click
+      end
+      object Disectwindow1: TMenuItem
+        Caption = 'Dissect window(s)'
+        ShortCut = 16471
+        OnClick = Disectwindow1Click
+      end
+      object DissectPEheaders1: TMenuItem
+        Caption = 'Dissect PE headers'
+        ShortCut = 49232
+        OnClick = DissectPEheaders1Click
+      end
+      object N12: TMenuItem
+        Caption = '-'
+      end
+      object Dissectdata1: TMenuItem
+        Caption = 'Pointer scan'
+        ShortCut = 16464
+        OnClick = Dissectdata1Click
+      end
+      object Watchmemoryallocations1: TMenuItem
+        Caption = 'Watch memory allocations'
+        ShortCut = 24653
+        OnClick = Watchmemoryallocations1Click
+      end
+      object Findstaticpointers1: TMenuItem
+        Caption = 'Find static addresses'
+        ShortCut = 49235
+        OnClick = Findstaticpointers1Click
+      end
+      object N11: TMenuItem
+        Caption = '-'
+      end
+      object InjectDLL1: TMenuItem
+        Caption = 'Inject DLL'
+        ShortCut = 16457
+        OnClick = InjectDLL1Click
+      end
+      object AutoInject1: TMenuItem
+        Caption = 'Auto Assemble'
+        ShortCut = 16449
+        OnClick = AutoInject1Click
+      end
+      object ScriptEngine1: TMenuItem
+        Caption = 'Script Engine'
+        ShortCut = 49217
+        OnClick = ScriptEngine1Click
+      end
+      object ScriptConsole1: TMenuItem
+        Caption = 'Script Console'
+        OnClick = ScriptConsole1Click
+      end
+    end
+    object Kerneltools1: TMenuItem
+      Caption = 'Kernel tools'
+      object Allocatenonpagedmemory1: TMenuItem
+        Caption = 'Allocate nonpaged memory'
+        OnClick = Allocatenonpagedmemory1Click
+      end
+      object Getaddress1: TMenuItem
+        Caption = 'Get address'
+        OnClick = Getaddress1Click
+      end
+      object Driverlist1: TMenuItem
+        Caption = 'Driver list'
+        OnClick = Driverlist1Click
+      end
+      object Sericedescriptortable1: TMenuItem
+        Caption = 'Service Descriptor Table'
+        OnClick = Sericedescriptortable1Click
+      end
+      object GDTlist1: TMenuItem
+        Caption = 'GDT list'
+        OnClick = GDTlist1Click
+      end
+      object IDTlist1: TMenuItem
+        Caption = 'IDT list'
+        OnClick = IDTlist1Click
+      end
+    end
+    object Plugins1: TMenuItem
+      Caption = 'Plugins'
+      Visible = False
+    end
+  end
+  object OpenMemory: TOpenDialog
+    DefaultExt = '.CEM'
+    Filter = 'Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'
+    FilterIndex = 0
+    top = 40
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'textfiles (*.txt)|*.txt'
+    left = 32
+    top = 40
+  end
+  object OpenDllDialog: TOpenDialog
+    Title = 'Select the module you want to inject'
+    DefaultExt = '.dll'
+    Filter = 'Dll-file (*.dll)|*.dll|All files (*.*)|*.*'
+    top = 64
+  end
+  object pmStacktrace: TPopupMenu
+    left = 498
+    top = 324
+    object All1: TMenuItem
+      Caption = 'Full stack'
+      GroupIndex = 1
+      OnClick = All1Click
+    end
+    object Modulesonly1: TMenuItem
+      Caption = 'Modules only'
+      GroupIndex = 1
+      OnClick = Modulesonly1Click
+    end
+    object Nonsystemmodulesonly1: TMenuItem
+      Caption = 'Non system modules only'
+      GroupIndex = 1
+      OnClick = Nonsystemmodulesonly1Click
+    end
+    object N17: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object stacktrace2: TMenuItem
+      Caption = 'Stacktrace'
+      Checked = True
+      GroupIndex = 1
+      OnClick = stacktrace2Click
+    end
+    object N18: TMenuItem
+      Caption = '-'
+      GroupIndex = 1
+    end
+    object Maxstacktracesize1: TMenuItem
+      Caption = 'Max stack: 4096'
+      GroupIndex = 1
+      OnClick = Maxstacktracesize1Click
+    end
+  end
+end

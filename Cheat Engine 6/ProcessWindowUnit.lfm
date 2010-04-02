@@ -1,0 +1,164 @@
+object ProcessWindow: TProcessWindow
+  Left = 696
+  Height = 355
+  Top = 325
+  Width = 254
+  HelpContext = 4
+  BorderIcons = [biSystemMenu]
+  Caption = 'Process List'
+  ClientHeight = 355
+  ClientWidth = 254
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnResize = FormResize
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '0.9.29'
+  object ProcessList: TListBox
+    Left = 0
+    Height = 186
+    Top = 0
+    Width = 254
+    Align = alClient
+    ItemHeight = 16
+    OnDblClick = OKButtonClick
+    OnDrawItem = ProcessListDrawItem
+    PopupMenu = PopupMenu1
+    Style = lbOwnerDrawFixed
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 169
+    Top = 186
+    Width = 254
+    Align = alBottom
+    BevelInner = bvLowered
+    BevelOuter = bvNone
+    ClientHeight = 169
+    ClientWidth = 254
+    TabOrder = 1
+    object Panel2: TPanel
+      Left = 1
+      Height = 167
+      Top = 1
+      Width = 252
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 167
+      ClientWidth = 252
+      TabOrder = 0
+      object Button6: TButton
+        Left = 164
+        Height = 17
+        Top = 120
+        Width = 76
+        Caption = 'Process watch'
+        OnClick = Button6Click
+        TabOrder = 0
+      end
+      object Button2: TButton
+        Left = 83
+        Height = 17
+        Top = 120
+        Width = 76
+        Caption = 'Window List'
+        OnClick = Button2Click
+        TabOrder = 1
+      end
+      object Button1: TButton
+        Left = 7
+        Height = 17
+        Top = 120
+        Width = 76
+        Caption = 'Process List'
+        OnClick = Button1Click
+        TabOrder = 2
+      end
+      object Button5: TButton
+        Left = 32
+        Height = 19
+        Top = 88
+        Width = 177
+        Caption = 'Open file'
+        OnClick = Button5Click
+        TabOrder = 3
+      end
+      object btnCreateThread: TButton
+        Left = 32
+        Height = 19
+        Top = 64
+        Width = 177
+        Caption = 'Create process'
+        OnClick = btnCreateThreadClick
+        TabOrder = 4
+      end
+      object Button4: TButton
+        Left = 32
+        Height = 19
+        Top = 40
+        Width = 177
+        Caption = 'Attach debugger to process'
+        OnClick = Button4Click
+        TabOrder = 5
+      end
+      object CancelButton: TButton
+        Left = 134
+        Height = 25
+        Top = 8
+        Width = 75
+        Cancel = True
+        Caption = 'Cancel'
+        OnClick = CancelButtonClick
+        TabOrder = 6
+      end
+      object OKButton: TButton
+        Left = 32
+        Height = 25
+        Top = 8
+        Width = 75
+        Caption = 'Open'
+        Default = True
+        OnClick = OKButtonClick
+        TabOrder = 7
+      end
+      object btnProcessListLong: TButton
+        Left = 56
+        Height = 18
+        Top = 145
+        Width = 129
+        Caption = 'Process List(long)'
+        OnClick = btnProcessListLongClick
+        TabOrder = 8
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.EXE'
+    Filter = 'EXE files|*.exe'
+  end
+  object OpenDialog2: TOpenDialog
+    Filter = 'All files (*.*)|*.*'
+    left = 224
+  end
+  object PopupMenu1: TPopupMenu
+    left = 112
+    top = 48
+    object InputPIDmanually1: TMenuItem
+      Caption = 'Input PID manually'
+      ShortCut = 16464
+      OnClick = InputPIDmanually1Click
+    end
+    object Filter1: TMenuItem
+      Caption = 'Filter'
+      ShortCut = 16454
+      OnClick = Filter1Click
+    end
+    object Showinvisiblewindows1: TMenuItem
+      Caption = 'Show invisible windows'
+      ShortCut = 16457
+      OnClick = Showinvisiblewindows1Click
+    end
+  end
+end

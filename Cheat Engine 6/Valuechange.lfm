@@ -1,0 +1,77 @@
+object ValueChangeForm: TValueChangeForm
+  Left = 1264
+  Height = 106
+  Top = 590
+  Width = 273
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Change Offset: ########'
+  ClientHeight = 106
+  ClientWidth = 273
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object VarType: TComboBox
+    Left = 20
+    Height = 24
+    Top = 31
+    Width = 149
+    ItemHeight = 16
+    ItemIndex = 0
+    Items.Strings = (
+      '1 Byte'
+      '2 Bytes'
+      '4 Bytes'
+      '8 Bytes'
+      'Float'
+      'Double'
+      'Text'
+      'Array of Bytes'
+    )
+    OnChange = VarTypeChange
+    Style = csDropDownList
+    TabOrder = 0
+    Text = '1 Byte'
+  end
+  object Button1: TButton
+    Left = 42
+    Height = 31
+    Top = 69
+    Width = 92
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 144
+    Height = 31
+    Top = 69
+    Width = 92
+    Cancel = True
+    Caption = 'Cancel'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+  object ValueText: TEdit
+    Left = 21
+    Height = 24
+    Top = 1
+    Width = 236
+    TabOrder = 3
+    Text = 'ValueText'
+  end
+  object cbunicode: TCheckBox
+    Left = 177
+    Height = 20
+    Top = 33
+    Width = 69
+    Caption = 'Unicode'
+    TabOrder = 4
+    Visible = False
+  end
+end

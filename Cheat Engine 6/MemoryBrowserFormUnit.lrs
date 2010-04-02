@@ -1,0 +1,296 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TMemoryBrowser','FORMDATA',[
+  'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3#199#2#6'Height'#3'X'#2#3
+  +'Top'#3','#1#5'Width'#3#211#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory Vi'
+  +'ewer'#12'ClientHeight'#3'?'#2#11'ClientWidth'#3#211#2#11'Font.Height'#2#242
+  +#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'Form'
+  +'Close'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'OnResi'
+  +'ze'#7#10'FormResize'#6'OnShow'#7#8'FormShow'#8'Position'#7#14'poScreenCente'
+  +'r'#10'LCLVersion'#6#6'0.9.29'#0#9'TSplitter'#9'Splitter1'#6'Cursor'#7#8'crV'
+  +'Split'#4'Left'#2#0#6'Height'#2#5#3'Top'#3','#1#5'Width'#3#211#2#5'Align'#7#5
+  +'alTop'#8'AutoSnap'#8#7'Beveled'#9#5'Color'#7#9'clBtnFace'#11'OnCanResize'#7
+  +#18'Splitter1CanResize'#7'OnMoved'#7#14'Splitter1Moved'#11'ParentColor'#8#12
+  +'ResizeAnchor'#7#5'akTop'#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#3','
+  +#1#3'Top'#2#0#5'Width'#3#211#2#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bvNone'
+  +#12'ClientHeight'#3','#1#11'ClientWidth'#3#211#2#8'TabOrder'#2#0#8'OnResize'
+  +#7#12'Panel1Resize'#0#9'TSplitter'#9'Splitter2'#4'Left'#3#16#2#6'Height'#3','
+  +#1#3'Top'#2#0#5'Width'#2#5#5'Align'#7#7'alRight'#12'ResizeAnchor'#7#7'akRigh'
+  +'t'#7'Visible'#8#0#0#6'TPanel'#6'Panel5'#4'Left'#2#0#6'Height'#3','#1#3'Top'
+  +#2#0#5'Width'#3#16#2#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#8'Tab'
+  +'Order'#2#0#0#0#6'TPanel'#12'RegisterView'#4'Left'#3#21#2#6'Height'#3','#1#3
+  +'Top'#2#0#5'Width'#3#190#0#5'Align'#7#7'alRight'#12'ClientHeight'#3','#1#11
+  +'ClientWidth'#3#190#0#8'TabOrder'#2#1#7'Visible'#8#0#10'TScrollBox'#10'Scrol'
+  +'lBox1'#4'Left'#2#1#6'Height'#3'*'#1#3'Top'#2#1#5'Width'#3#188#0#5'Align'#7#8
+  +'alClient'#12'ClientHeight'#3'&'#1#11'ClientWidth'#3#184#0#8'TabOrder'#2#0#7
+  +'OnClick'#7#15'ScrollBox1Click'#8'OnResize'#7#16'ScrollBox1Resize'#0#6'TLabe'
+  +'l'#8'EAXLabel'#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'
+  +#2#19#5'Width'#2'a'#7'Caption'#6#12'EAX 00000000'#11'Font.Height'#2#241#9'Fo'
+  +'nt.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16'EA'
+  +'XLabelDblClick'#0#0#6'TLabel'#8'EBXlabel'#3'Tag'#2#1#6'Cursor'#7#11'crHandP'
+  +'oint'#4'Left'#2#8#6'Height'#2#14#3'Top'#2'#'#5'Width'#2'a'#7'Caption'#6#12
+  +'EBX 00000000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColo'
+  +'r'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#8'ECX'
+  +'label'#3'Tag'#2#2#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3
+  +'Top'#2'3'#5'Width'#2'a'#7'Caption'#6#12'ECX 00000000'#11'Font.Height'#2#241
+  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16
+  +'EAXLabelDblClick'#0#0#6'TLabel'#8'EDXlabel'#3'Tag'#2#3#6'Cursor'#7#11'crHan'
+  +'dPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#2'C'#5'Width'#2'a'#7'Caption'#6#12
+  +'EDX 00000000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColo'
+  +'r'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#8'ESI'
+  +'label'#3'Tag'#2#4#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3
+  +'Top'#2'S'#5'Width'#2'a'#7'Caption'#6#12'ESI 00000000'#11'Font.Height'#2#241
+  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16
+  +'EAXLabelDblClick'#0#0#6'TLabel'#8'EDIlabel'#3'Tag'#2#5#6'Cursor'#7#11'crHan'
+  +'dPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#2'c'#5'Width'#2'a'#7'Caption'#6#12
+  +'EDI 00000000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColo'
+  +'r'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#8'EBP'
+  +'label'#3'Tag'#2#6#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3
+  +'Top'#2's'#5'Width'#2'a'#7'Caption'#6#12'EBP 00000000'#11'Font.Height'#2#241
+  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16
+  +'EAXLabelDblClick'#0#0#6'TLabel'#8'ESPlabel'#3'Tag'#2#7#6'Cursor'#7#11'crHan'
+  +'dPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#3#131#0#5'Width'#2'a'#7'Caption'#6
+  +#12'ESP 00000000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentC'
+  +'olor'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#8
+  +'EIPlabel'#3'Tag'#2#8#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14
+  +#3'Top'#3#147#0#5'Width'#2'a'#7'Caption'#6#12'EIP 00000000'#11'Font.Height'#2
+  +#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'
+  +#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'CSLabel'#3'Tag'#2#9#6'Cursor'#7#11'c'
+  +'rHandPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#3#184#0#5'Width'#2'9'#7'Capti'
+  +'on'#6#7'CS 0000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentC'
+  +'olor'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7
+  +'DSLabel'#3'Tag'#2#11#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14
+  +#3'Top'#3#216#0#5'Width'#2'9'#7'Caption'#6#7'DS 0000'#11'Font.Height'#2#241#9
+  +'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16
+  +'EAXLabelDblClick'#0#0#6'TLabel'#7'SSlabel'#3'Tag'#2#10#6'Cursor'#7#11'crHan'
+  +'dPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#3#200#0#5'Width'#2'9'#7'Caption'#6
+  +#7'SS 0000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8
+  ,#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'ESlabel'
+  +#3'Tag'#2#12#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#3
+  +#232#0#5'Width'#2'9'#7'Caption'#6#7'ES 0000'#11'Font.Height'#2#241#9'Font.Na'
+  +'me'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabe'
+  +'lDblClick'#0#0#6'TLabel'#7'FSlabel'#3'Tag'#2#13#6'Cursor'#7#11'crHandPoint'
+  +#4'Left'#2#8#6'Height'#2#14#3'Top'#3#248#0#5'Width'#2'9'#7'Caption'#6#7'FS 0'
+  +'000'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'P'
+  +'arentFont'#8#7'OnClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'GSlabel'#3'T'
+  +'ag'#2#14#6'Cursor'#7#11'crHandPoint'#4'Left'#2#8#6'Height'#2#14#3'Top'#3#5#1
+  +#5'Width'#2'9'#7'Caption'#6#7'GS 0000'#11'Font.Height'#2#241#9'Font.Name'#6#7
+  +'Courier'#11'ParentColor'#8#10'ParentFont'#8#7'OnClick'#7#16'EAXLabelDblClic'
+  +'k'#0#0#6'TLabel'#7'cflabel'#3'Tag'#2#20#4'Left'#3#136#0#6'Height'#2#14#3'To'
+  +'p'#2#24#5'Width'#2'!'#7'Caption'#6#4'CF 0'#11'Font.Height'#2#241#9'Font.Nam'
+  +'e'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#10'OnDblClick'#7#16'EAXL'
+  +'abelDblClick'#0#0#6'TLabel'#7'pflabel'#3'Tag'#2#21#4'Left'#3#136#0#6'Height'
+  +#2#14#3'Top'#2'('#5'Width'#2'!'#7'Caption'#6#4'PF 0'#11'Font.Height'#2#241#9
+  +'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#10'OnDblClick'#7
+  +#16'EAXLabelDblClick'#0#0#6'TLabel'#7'aflabel'#3'Tag'#2#22#4'Left'#3#136#0#6
+  +'Height'#2#14#3'Top'#2'8'#5'Width'#2'!'#7'Caption'#6#4'AF 0'#11'Font.Height'
+  +#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#10'OnDbl'
+  +'Click'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'zflabel'#3'Tag'#2#23#4'Left'#3
+  +#136#0#6'Height'#2#14#3'Top'#2'H'#5'Width'#2'!'#7'Caption'#6#4'ZF 0'#11'Font'
+  +'.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8
+  +#10'OnDblClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'sflabel'#3'Tag'#2#24#4
+  +'Left'#3#136#0#6'Height'#2#14#3'Top'#2'X'#5'Width'#2'!'#7'Caption'#6#4'SF 0'
+  +#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'Parent'
+  +'Font'#8#10'OnDblClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'oflabel'#3'Ta'
+  +'g'#2#26#4'Left'#3#136#0#6'Height'#2#14#3'Top'#2'x'#5'Width'#2'!'#7'Caption'
+  +#6#4'OF 0'#11'Font.Height'#2#241#9'Font.Name'#6#7'Courier'#11'ParentColor'#8
+  +#10'ParentFont'#8#10'OnDblClick'#7#16'EAXLabelDblClick'#0#0#6'TLabel'#7'Labe'
+  +'l14'#4'Left'#2#10#6'Height'#2#17#3'Top'#2#0#5'Width'#2'>'#7'Caption'#6#10'R'
+  +'egisters:'#11'ParentColor'#8#0#0#6'TShape'#6'Shape1'#4'Left'#2#10#6'Height'
+  +#2#2#3'Top'#2#16#5'Width'#2'8'#11'Brush.Color'#7#7'clBlack'#0#0#6'TLabel'#7
+  +'Label15'#4'Left'#3#139#0#6'Height'#2#17#3'Top'#2#0#5'Width'#2'#'#7'Caption'
+  +#6#5'Flags'#11'ParentColor'#8#0#0#6'TShape'#6'Shape2'#4'Left'#3#138#0#6'Heig'
+  +'ht'#2#2#3'Top'#2#16#5'Width'#2'#'#11'Brush.Color'#7#7'clBlack'#0#0#6'TLabel'
+  +#7'Label16'#4'Left'#2#7#6'Height'#2#17#3'Top'#3#162#0#5'Width'#2't'#7'Captio'
+  +'n'#6#17'Segment Registers'#11'ParentColor'#8#0#0#6'TShape'#6'Shape3'#4'Left'
+  +#2#7#6'Height'#2#3#3'Top'#3#178#0#5'Width'#2'o'#11'Brush.Color'#7#7'clBlack'
+  +#0#0#6'TLabel'#7'dflabel'#3'Tag'#2#25#4'Left'#3#136#0#6'Height'#2#14#3'Top'#2
+  +'h'#5'Width'#2'!'#7'Caption'#6#4'DF 0'#11'Font.Height'#2#241#9'Font.Name'#6#7
+  +'Courier'#11'ParentColor'#8#10'ParentFont'#8#10'OnDblClick'#7#16'EAXLabelDbl'
+  +'Click'#0#0#0#0#7'TButton'#12'sbShowFloats'#4'Left'#3#184#2#6'Height'#2' '#3
+  +'Top'#3#152#0#5'Width'#2#22#7'Caption'#6#1'>'#7'OnClick'#7#17'sbShowFloatsCl'
+  +'ick'#8'TabOrder'#2#3#7'Visible'#8#0#0#0#6'TPanel'#6'Panel4'#4'Left'#2#0#6'H'
+  +'eight'#3#14#1#3'Top'#3'1'#1#5'Width'#3#211#2#5'Align'#7#8'alClient'#10'Beve'
+  +'lOuter'#7#6'bvNone'#11'BorderWidth'#2#1#12'ClientHeight'#3#14#1#11'ClientWi'
+  +'dth'#3#211#2#8'TabOrder'#2#1#0#9'TSplitter'#9'Splitter3'#4'Left'#3#251#1#6
+  +'Height'#3#12#1#3'Top'#2#1#5'Width'#2#5#5'Align'#7#7'alRight'#5'Color'#7#9'c'
+  +'lBtnFace'#11'ParentColor'#8#12'ResizeAnchor'#7#7'akRight'#7'Visible'#8#0#0#6
+  +'TPanel'#6'Panel3'#4'Left'#2#1#6'Height'#3#12#1#3'Top'#2#1#5'Width'#3#250#1#5
+  +'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3#12#1#11
+  +'ClientWidth'#3#250#1#8'TabOrder'#2#0#0#6'TPanel'#6'Panel2'#4'Left'#2#0#6'He'
+  +'ight'#3#12#1#3'Top'#2#0#5'Width'#3#250#1#5'Align'#7#8'alClient'#10'BevelOut'
+  +'er'#7#6'bvNone'#8'TabOrder'#2#0#0#0#0#6'TPanel'#13'pnlStacktrace'#4'Left'#3
+  +#0#2#6'Height'#3#12#1#3'Top'#2#1#5'Width'#3#210#0#5'Align'#7#7'alRight'#10'B'
+  +'evelInner'#7#9'bvLowered'#12'ClientHeight'#3#12#1#11'ClientWidth'#3#210#0#9
+  +'PopupMenu'#7#12'pmStacktrace'#8'TabOrder'#2#1#7'Visible'#8#0#9'TListView'#16
+  +'lvStacktraceData'#4'Left'#2#2#6'Height'#3#8#1#3'Top'#2#2#5'Width'#3#206#0#5
+  +'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6#7'Address'#5'Width'#2'P'#0
+  +#1#7'Caption'#6#5'DWORD'#5'Width'#2'P'#0#1#8'AutoSize'#9#7'Caption'#6#5'Valu'
+  +'e'#0#0#9'ItemIndex'#2#255#9'OwnerData'#9#8'ReadOnly'#9#9'RowSelect'#9#8'Tab'
+  +'Order'#2#0#9'ViewStyle'#7#8'vsReport'#6'OnData'#7#20'lvStacktraceDataData'
+  +#10'OnDblClick'#7#24'lvStacktraceDataDblClick'#0#0#0#0#10'TPopupMenu'#11'mem'
+  ,'orypopup'#4'left'#2#8#3'top'#3#224#1#0#9'TMenuItem'#7'Change1'#7'Caption'#6
+  +#4'Edit'#7'OnClick'#7#12'Change1Click'#0#0#9'TMenuItem'#5'Goto1'#7'Caption'#6
+  +#12'Goto address'#7'OnClick'#7#10'Goto1Click'#0#0#9'TMenuItem'#7'Search1'#7
+  +'Caption'#6#16'Search memory...'#8'ShortCut'#3'F@'#7'OnClick'#7#12'Search1Cl'
+  +'ick'#0#0#9'TMenuItem'#3'N13'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#4'Cut1'#7'C'
+  +'aption'#6#17'Copy to clipboard'#8'ShortCut'#3'C@'#7'OnClick'#7#9'Cut1Click'
+  +#0#0#9'TMenuItem'#19'Pastefromclipboard1'#7'Caption'#6#20'Paste from clipboa'
+  +'rd'#8'ShortCut'#3'P@'#7'OnClick'#7#24'Pastefromclipboard1Click'#0#0#9'TMenu'
+  +'Item'#3'N15'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12'DisplayType1'#7'Caption'
+  +#6#12'Display Type'#0#9'TMenuItem'#9'dispBytes'#7'Caption'#6#8'Byte hex'#8'S'
+  +'hortCut'#3'1@'#7'OnClick'#7#16'DisplayTypeClick'#0#0#9'TMenuItem'#9'dispWor'
+  +'ds'#3'Tag'#2#1#7'Caption'#6#10'2 Byte hex'#8'ShortCut'#3'2@'#7'OnClick'#7#16
+  +'DisplayTypeClick'#0#0#9'TMenuItem'#10'dispDwords'#3'Tag'#2#2#7'Caption'#6#10
+  +'4 Byte hex'#8'ShortCut'#3'3@'#7'OnClick'#7#16'DisplayTypeClick'#0#0#9'TMenu'
+  +'Item'#8'dispInts'#3'Tag'#2#3#7'Caption'#6#14'4 Byte decimal'#8'ShortCut'#3
+  +'4@'#7'OnClick'#7#16'DisplayTypeClick'#0#0#9'TMenuItem'#9'dispFloat'#3'Tag'#2
+  +#4#7'Caption'#6#5'Float'#8'ShortCut'#3'5@'#7'OnClick'#7#16'DisplayTypeClick'
+  +#0#0#9'TMenuItem'#10'dispDouble'#3'Tag'#2#5#7'Caption'#6#6'Double'#8'ShortCu'
+  +'t'#3'6@'#7'OnClick'#7#16'DisplayTypeClick'#0#0#0#9'TMenuItem'#2'N1'#7'Capti'
+  +'on'#6#1'-'#0#0#9'TMenuItem'#24'Addthisaddresstothelist1'#7'Caption'#6#28'Ad'
+  +'d this address to the list'#7'OnClick'#7#29'Addthisaddresstothelist1Click'#0
+  +#0#9'TMenuItem'#17'Makepagewritable1'#7'Caption'#6#18'Make page writable'#7
+  +'OnClick'#7#22'Makepagewritable1Click'#0#0#0#10'TPopupMenu'#13'debuggerpopup'
+  +#7'OnPopup'#7#18'debuggerpopupPopup'#4'left'#2'@'#3'top'#3#152#0#0#9'TMenuIt'
+  +'em'#12'Gotoaddress1'#7'Caption'#6#13'Go to address'#7'OnClick'#7#17'Gotoadd'
+  +'ress1Click'#0#0#9'TMenuItem'#5'Back1'#7'Caption'#6#4'Back'#7'OnClick'#7#10
+  +'Back1Click'#0#0#9'TMenuItem'#7'Follow1'#7'Caption'#6#6'Follow'#7'Visible'#8
+  +#7'OnClick'#7#12'Follow1Click'#0#0#9'TMenuItem'#2'N2'#7'Caption'#6#1'-'#0#0#9
+  +'TMenuItem'#16'Replacewithnops1'#7'Caption'#6'#Replace with code that does n'
+  +'othing'#7'OnClick'#7#21'Replacewithnops1Click'#0#0#9'TMenuItem'#27'Addthiso'
+  +'pcodetothecodelist1'#7'Caption'#6#20'Add to the code list'#7'OnClick'#7' Ad'
+  +'dthisopcodetothecodelist1Click'#0#0#9'TMenuItem'#9'Assemble1'#7'Caption'#6#8
+  +'Assemble'#7'OnClick'#7#14'Assemble1Click'#0#0#9'TMenuItem'#16'Copytoclipboa'
+  +'rd1'#7'Caption'#6#17'Copy to clipboard'#0#9'TMenuItem'#19'CopyBytesAndOpcod'
+  +'es'#7'Caption'#6#13'Bytes+Opcodes'#7'Default'#9#7'OnClick'#7#24'CopyBytesAn'
+  +'dOpcodesClick'#0#0#9'TMenuItem'#9'copyBytes'#3'Tag'#2#1#7'Caption'#6#5'Byte'
+  +'s'#7'OnClick'#7#24'CopyBytesAndOpcodesClick'#0#0#9'TMenuItem'#11'copyOpcode'
+  +'s'#3'Tag'#2#2#7'Caption'#6#7'Opcodes'#7'OnClick'#7#24'CopyBytesAndOpcodesCl'
+  +'ick'#0#0#0#9'TMenuItem'#2'N7'#7'Caption'#6#1'-'#0#0#9'TMenuItem$Changestate'
+  +'ofregisteratthislocation1'#7'Caption'#6' Change register at this location'#7
+  +'OnClick'#7')Changestateofregisteratthislocation1Click'#0#0#9'TMenuItem'#16
+  +'ogglebreakpoint1'#7'Caption'#6#17'Toggle breakpoint'#7'OnClick'#7#21'oggleb'
+  +'reakpoint1Click'#0#0#9'TMenuItem'#26'Breakandtraceinstructions1'#7'Caption'
+  +#6#28'Break and trace instructions'#7'OnClick'#7#31'Breakandtraceinstruction'
+  +'s1Click'#0#0#9'TMenuItem,Findoutwhataddressesthisinstructionaccesses1'#7'Ca'
+  +'ption'#6'1Find out what addresses this instruction accesses'#7'OnClick'#7'1'
+  +'Findoutwhataddressesthisinstructionaccesses1Click'#0#0#9'TMenuItem'#2'N9'#7
+  +'Caption'#6#1'-'#0#0#9'TMenuItem'#21'Createjumptocodecave1'#7'Caption'#6'$Cr'
+  +'eate jump and initialize Code-Cave'#7'OnClick'#7#26'Createjumptocodecave1Cl'
+  +'ick'#0#0#0#6'TTimer'#6'Timer2'#8'Interval'#3#244#1#7'OnTimer'#7#11'Timer2Ti'
+  +'mer'#4'left'#3#160#3#3'top'#3'`'#1#0#0#9'TMainMenu'#9'MainMenu1'#0#9'TMenuI'
+  +'tem'#5'File1'#7'Caption'#6#4'File'#0#9'TMenuItem'#10'Newwindow1'#7'Caption'
+  +#6#10'New window'#7'OnClick'#7#15'Newwindow1Click'#0#0#9'TMenuItem'#15'Loads'
+  +'ymbolfile1'#7'Caption'#6#16'Load symbol file'#7'Visible'#8#0#0#9'TMenuItem'
+  +#22'Savedisassemledoutput1'#7'Caption'#6#24'Save disassembled output'#7'OnCl'
+  +'ick'#7#27'Savedisassemledoutput1Click'#0#0#9'TMenuItem'#3'N14'#7'Caption'#6
+  +#1'-'#0#0#9'TMenuItem'#20'Setsymbolsearchpath1'#7'Caption'#6#21'Set symbol s'
+  +'earchpath'#7'OnClick'#7#25'Setsymbolsearchpath1Click'#0#0#9'TMenuItem'#2'N4'
+  +#7'Caption'#6#1'-'#0#0#9'TMenuItem'#17'Savememoryregion1'#7'Caption'#6#18'Sa'
+  +'ve memory region'#8'ShortCut'#3'S@'#7'OnClick'#7#22'Savememoryregion1Click'
+  +#0#0#9'TMenuItem'#18'Loadmemolryregion1'#7'Caption'#6#18'Load memory region'
+  +#8'ShortCut'#3'O@'#7'OnClick'#7#23'Loadmemolryregion1Click'#0#0#0#9'TMenuIte'
+  +'m'#7'Search2'#7'Caption'#6#6'Search'#0#9'TMenuItem'#11'Findmemory1'#7'Capti'
+  +'on'#6#11'Find memory'#7'OnClick'#7#16'Findmemory1Click'#0#0#9'TMenuItem'#13
+  ,'Assemblycode1'#7'Caption'#6#18'Find assembly code'#7'OnClick'#7#18'Assembly'
+  +'code1Click'#0#0#0#9'TMenuItem'#5'View1'#7'Caption'#6#4'View'#0#9'TMenuItem'
+  +#11'Stacktrace1'#7'Caption'#6#10'Stacktrace'#7'Enabled'#8#7'OnClick'#7#16'St'
+  +'acktrace1Click'#0#0#9'TMenuItem'#15'Breakpointlist1'#7'Caption'#6#14'Breakp'
+  +'ointlist'#8'ShortCut'#3'B@'#7'OnClick'#7#20'Breakpointlist1Click'#0#0#9'TMe'
+  +'nuItem'#11'Threadlist1'#7'Caption'#6#10'Threadlist'#7'OnClick'#7#16'Threadl'
+  +'ist1Click'#0#0#9'TMenuItem'#13'Debugstrings1'#7'Caption'#6#13'Debug strings'
+  +#8'ShortCut'#4'D'#192#0#0#7'OnClick'#7#18'Debugstrings1Click'#0#0#9'TMenuIte'
+  +'m'#2'N5'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#18'Referencedstrings1'#7'Captio'
+  +'n'#6#18'Referenced strings'#8'ShortCut'#4'R'#192#0#0#7'OnClick'#7#23'Refere'
+  +'ncedstrings1Click'#0#0#9'TMenuItem'#14'MemoryRegions1'#7'Caption'#6#14'Memo'
+  +'ry Regions'#8'ShortCut'#3'R@'#7'OnClick'#7#19'MemoryRegions1Click'#0#0#9'TM'
+  +'enuItem'#6'Heaps1'#7'Caption'#6#8'Heaplist'#8'ShortCut'#3'H@'#7'OnClick'#7
+  +#11'Heaps1Click'#0#0#9'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#24
+  +'EnumeratedllsandSymbols1'#7'Caption'#6#27'Enumerate DLL''s and Symbols'#8'S'
+  +'hortCut'#4'S'#192#0#0#7'OnClick'#7#29'EnumeratedllsandSymbols1Click'#0#0#9
+  +'TMenuItem'#3'N10'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12'Showsymbols1'#7'Cap'
+  +'tion'#6#12'Show symbols'#7'Checked'#9#7'OnClick'#7#17'Showsymbols1Click'#0#0
+  +#9'TMenuItem'#18'Kernelmodesymbols1'#7'Caption'#6#18'Kernelmode symbols'#7'O'
+  +'nClick'#7#23'Kernelmodesymbols1Click'#0#0#9'TMenuItem'#20'Showmoduleaddress'
+  +'es1'#7'Caption'#6#21'Show module addresses'#8'ShortCut'#3'M@'#7'OnClick'#7
+  +#25'Showmoduleaddresses1Click'#0#0#9'TMenuItem'#14'Symbolhandler1'#7'Caption'
+  +#6#19'Userdefined symbols'#8'ShortCut'#3'U@'#7'OnClick'#7#19'Symbolhandler1C'
+  +'lick'#0#0#9'TMenuItem'#28'Showvaluesofstaticaddresses1'#7'Caption'#6#18'Sho'
+  +'w ''Comment'' row'#8'ShortCut'#3'V@'#7'OnClick'#7'!Showvaluesofstaticaddres'
+  +'ses1Click'#0#0#9'TMenuItem'#10'Jumplines1'#7'Caption'#6#9'Jumplines'#0#9'TM'
+  +'enuItem'#14'Showjumplines1'#7'Caption'#6#14'Show jumplines'#7'Checked'#9#7
+  +'Default'#9#8'ShortCut'#4'L'#192#0#0#7'OnClick'#7#19'Showjumplines1Click'#0#0
+  +#9'TMenuItem'#29'Onlyshowjumplineswithinrange1'#7'Caption'#6' Only show jump'
+  +'lines within range'#7'Checked'#9#7'OnClick'#7'"Onlyshowjumplineswithinrange'
+  +'1Click'#0#0#0#0#9'TMenuItem'#6'Debug1'#7'Caption'#6#5'Debug'#0#9'TMenuItem'
+  +#4'Run1'#7'Caption'#6#3'Run'#7'Enabled'#8#8'ShortCut'#2'x'#7'OnClick'#7#9'Ru'
+  +'n1Click'#0#0#9'TMenuItem'#5'Step1'#7'Caption'#6#4'Step'#7'Enabled'#8#8'Shor'
+  +'tCut'#2'v'#7'OnClick'#7#10'Step1Click'#0#0#9'TMenuItem'#9'StepOver1'#7'Capt'
+  +'ion'#6#9'Step Over'#7'Enabled'#8#8'ShortCut'#2'w'#7'OnClick'#7#14'StepOver1'
+  +'Click'#0#0#9'TMenuItem'#18'Executetillreturn1'#7'Caption'#6#19'Execute till'
+  +' return'#7'Enabled'#8#8'ShortCut'#3'w '#7'OnClick'#7#23'Executetillreturn1C'
+  +'lick'#0#0#9'TMenuItem'#8'Runtill1'#7'Caption'#6#11'Run till...'#7'Enabled'#8
+  +#8'ShortCut'#2's'#7'OnClick'#7#13'Runtill1Click'#0#0#9'TMenuItem'#14'Setbrea'
+  +'kpoint1'#7'Caption'#6#17'Toggle breakpoint'#8'ShortCut'#2't'#7'OnClick'#7#21
+  +'ogglebreakpoint1Click'#0#0#9'TMenuItem'#2'N3'#7'Caption'#6#1'-'#7'Visible'#8
+  +#0#0#9'TMenuItem'#26'Continueanddetachdebugger1'#7'Caption'#6#29'Continue an'
+  +'d  detach debugger'#7'Visible'#8#7'OnClick'#7#31'Continueanddetachdebugger1'
+  +'Click'#0#0#9'TMenuItem'#3'N16'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#6'Break1'
+  +#7'Caption'#6#5'Break'#7'OnClick'#7#11'Break1Click'#0#0#0#9'TMenuItem'#6'Ext'
+  +'ra1'#7'Caption'#6#5'Tools'#0#9'TMenuItem'#14'Reservememory1'#7'Caption'#6#15
+  +'Allocate Memory'#8'ShortCut'#4'M'#192#0#0#7'OnClick'#7#19'Reservememory1Cli'
+  +'ck'#0#0#9'TMenuItem'#17'Scanforcodecaves1'#7'Caption'#6#19'Scan for code ca'
+  +'ves'#8'ShortCut'#4'C'#192#0#0#7'OnClick'#7#22'Scanforcodecaves1Click'#0#0#9
+  +'TMenuItem'#11'FillMemory1'#7'Caption'#6#11'Fill Memory'#8'ShortCut'#4'F'#192
+  +#0#0#7'OnClick'#7#16'FillMemory1Click'#0#0#9'TMenuItem'#13'CreateThread1'#7
+  +'Caption'#6#13'Create Thread'#8'ShortCut'#4'T'#192#0#0#7'OnClick'#7#18'Creat'
+  +'eThread1Click'#0#0#9'TMenuItem'#2'N8'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12
+  +'Dissectcode1'#7'Caption'#6#12'Dissect code'#8'ShortCut'#3'J@'#7'OnClick'#7
+  +#17'Dissectcode1Click'#0#0#9'TMenuItem'#12'Dissectdata2'#7'Caption'#6#23'Dis'
+  +'sect data/structures'#8'ShortCut'#3'D@'#7'OnClick'#7#17'Dissectdata2Click'#0
+  +#0#9'TMenuItem'#13'Disectwindow1'#7'Caption'#6#17'Dissect window(s)'#8'Short'
+  +'Cut'#3'W@'#7'OnClick'#7#18'Disectwindow1Click'#0#0#9'TMenuItem'#17'DissectP'
+  +'Eheaders1'#7'Caption'#6#18'Dissect PE headers'#8'ShortCut'#4'P'#192#0#0#7'O'
+  +'nClick'#7#22'DissectPEheaders1Click'#0#0#9'TMenuItem'#3'N12'#7'Caption'#6#1
+  +'-'#0#0#9'TMenuItem'#12'Dissectdata1'#7'Caption'#6#12'Pointer scan'#8'ShortC'
+  +'ut'#3'P@'#7'OnClick'#7#17'Dissectdata1Click'#0#0#9'TMenuItem'#23'Watchmemor'
+  +'yallocations1'#7'Caption'#6#24'Watch memory allocations'#8'ShortCut'#3'M`'#7
+  +'OnClick'#7#28'Watchmemoryallocations1Click'#0#0#9'TMenuItem'#19'Findstaticp'
+  ,'ointers1'#7'Caption'#6#21'Find static addresses'#8'ShortCut'#4'S'#192#0#0#7
+  +'OnClick'#7#24'Findstaticpointers1Click'#0#0#9'TMenuItem'#3'N11'#7'Caption'#6
+  +#1'-'#0#0#9'TMenuItem'#10'InjectDLL1'#7'Caption'#6#10'Inject DLL'#8'ShortCut'
+  +#3'I@'#7'OnClick'#7#15'InjectDLL1Click'#0#0#9'TMenuItem'#11'AutoInject1'#7'C'
+  +'aption'#6#13'Auto Assemble'#8'ShortCut'#3'A@'#7'OnClick'#7#16'AutoInject1Cl'
+  +'ick'#0#0#9'TMenuItem'#13'ScriptEngine1'#7'Caption'#6#13'Script Engine'#8'Sh'
+  +'ortCut'#4'A'#192#0#0#7'OnClick'#7#18'ScriptEngine1Click'#0#0#9'TMenuItem'#14
+  +'ScriptConsole1'#7'Caption'#6#14'Script Console'#7'OnClick'#7#19'ScriptConso'
+  +'le1Click'#0#0#0#9'TMenuItem'#12'Kerneltools1'#7'Caption'#6#12'Kernel tools'
+  +#0#9'TMenuItem'#23'Allocatenonpagedmemory1'#7'Caption'#6#24'Allocate nonpage'
+  +'d memory'#7'OnClick'#7#28'Allocatenonpagedmemory1Click'#0#0#9'TMenuItem'#11
+  +'Getaddress1'#7'Caption'#6#11'Get address'#7'OnClick'#7#16'Getaddress1Click'
+  +#0#0#9'TMenuItem'#11'Driverlist1'#7'Caption'#6#11'Driver list'#7'OnClick'#7
+  +#16'Driverlist1Click'#0#0#9'TMenuItem'#22'Sericedescriptortable1'#7'Caption'
+  +#6#24'Service Descriptor Table'#7'OnClick'#7#27'Sericedescriptortable1Click'
+  +#0#0#9'TMenuItem'#8'GDTlist1'#7'Caption'#6#8'GDT list'#7'OnClick'#7#13'GDTli'
+  +'st1Click'#0#0#9'TMenuItem'#8'IDTlist1'#7'Caption'#6#8'IDT list'#7'OnClick'#7
+  +#13'IDTlist1Click'#0#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7
+  +'Visible'#8#0#0#0#11'TOpenDialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6
+  +'Filter'#6'2Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'#11'FilterInd'
+  +'ex'#2#0#3'top'#2'('#0#0#11'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4
+  +'.txt'#6'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#2' '#3'top'#2'('#0#0
+  +#11'TOpenDialog'#13'OpenDllDialog'#5'Title'#6'$Select the module you want to'
+  +' inject'#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file (*.dll)|*.dll|All f'
+  +'iles (*.*)|*.*'#3'top'#2'@'#0#0#10'TPopupMenu'#12'pmStacktrace'#4'left'#3
+  +#242#1#3'top'#3'D'#1#0#9'TMenuItem'#4'All1'#7'Caption'#6#10'Full stack'#10'G'
+  +'roupIndex'#2#1#7'OnClick'#7#9'All1Click'#0#0#9'TMenuItem'#12'Modulesonly1'#7
+  +'Caption'#6#12'Modules only'#10'GroupIndex'#2#1#7'OnClick'#7#17'Modulesonly1'
+  +'Click'#0#0#9'TMenuItem'#21'Nonsystemmodulesonly1'#7'Caption'#6#23'Non syste'
+  +'m modules only'#10'GroupIndex'#2#1#7'OnClick'#7#26'Nonsystemmodulesonly1Cli'
+  +'ck'#0#0#9'TMenuItem'#3'N17'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMen'
+  +'uItem'#11'stacktrace2'#7'Caption'#6#10'Stacktrace'#7'Checked'#9#10'GroupInd'
+  +'ex'#2#1#7'OnClick'#7#16'stacktrace2Click'#0#0#9'TMenuItem'#3'N18'#7'Caption'
+  +#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#18'Maxstacktracesize1'#7'Caption'
+  +#6#15'Max stack: 4096'#10'GroupIndex'#2#1#7'OnClick'#7#23'Maxstacktracesize1'
+  +'Click'#0#0#0#0
+]);

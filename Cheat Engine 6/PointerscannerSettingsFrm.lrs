@@ -1,0 +1,87 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmPointerScannerSettings','FORMDATA',[
+  'TPF0'#26'TfrmPointerScannerSettings'#25'frmPointerScannerSettings'#4'Left'#3
+  +#189#2#6'Height'#3#231#1#3'Top'#3#12#1#5'Width'#3#187#1#11'BorderStyle'#7#8
+  +'bsSingle'#7'Caption'#6#26'Pointerscanner scanoptions'#12'ClientHeight'#3#231
+  +#1#11'ClientWidth'#3#187#1#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans S'
+  +'erif'#8'OnCreate'#7#10'FormCreate'#6'OnShow'#7#8'FormShow'#8'Position'#7#14
+  +'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#5'TEdit'#10'edtAddress'#4'Left'
+  +#2#10#6'Height'#2#24#3'Top'#2#28#5'Width'#2'o'#8'CharCase'#7#11'ecUppercase'
+  +#9'MaxLength'#2#8#8'OnChange'#7#16'edtAddressChange'#8'TabOrder'#2#0#0#0#12
+  +'TPageControl'#10'PSSettings'#4'Left'#2#10#6'Height'#3#11#1#3'Top'#2';'#5'Wi'
+  +'dth'#3#178#1#10'ActivePage'#7#9'PSReverse'#8'TabIndex'#2#0#8'TabOrder'#2#1#0
+  +#9'TTabSheet'#9'PSReverse'#7'Caption'#6#7'Reverse'#12'ClientHeight'#3#238#0
+  +#11'ClientWidth'#3#170#1#10'ImageIndex'#2#1#10'TabVisible'#8#0#6'TLabel'#7'L'
+  +'abel10'#4'Left'#2#4#6'Height'#2#17#3'Top'#2'T'#5'Width'#2' '#7'Caption'#6#4
+  +'From'#11'ParentColor'#8#0#0#6'TLabel'#7'Label11'#4'Left'#2'Z'#6'Height'#2#17
+  +#3'Top'#2'T'#5'Width'#2#21#7'Caption'#6#3'To:'#11'ParentColor'#8#0#0#6'TLabe'
+  +'l'#7'Label13'#4'Left'#2#4#6'Height'#2#17#3'Top'#2'A'#5'Width'#3#254#0#7'Cap'
+  +'tion'#6',Pointer path may only be inside this region:'#11'ParentColor'#8#0#0
+  +#6'TLabel'#7'Label14'#4'Left'#2#0#6'Height'#2#17#3'Top'#3#196#0#5'Width'#3
+  +#151#0#7'Caption'#6#24'Maximum offset to accept'#7'Enabled'#8#11'ParentColor'
+  +#8#7'Visible'#8#0#0#9'TCheckBox'#10'CbAlligned'#4'Left'#2#0#6'Height'#2#23#3
+  +'Top'#2#0#5'Width'#3#226#0#7'Caption'#6'!Addresses must be 32-bit alligned'#7
+  +'Checked'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#0#0#0#5'TEdit'#14'edtRever'
+  +'seStop'#4'Left'#2'Z'#6'Height'#2#24#3'Top'#2'd'#5'Width'#2'P'#8'CharCase'#7
+  +#11'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2#1#4'Text'#6#8'7FFFFFFF'#0#0#5
+  +'TEdit'#15'edtReverseStart'#4'Left'#2#4#6'Height'#2#24#3'Top'#2'd'#5'Width'#2
+  +'P'#8'CharCase'#7#11'ecUppercase'#9'MaxLength'#2#8#8'TabOrder'#2#2#4'Text'#6
+  +#8'00000000'#0#0#9'TCheckBox'#12'cbStaticOnly'#4'Left'#2#0#6'Height'#2#23#3
+  +'Top'#2#20#5'Width'#3#234#0#7'Caption'#6'%Only find paths with a static addr'
+  +'ess'#7'Checked'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#3#0#0#9'TCheckBox'
+  +#13'cbStackAsBase'#4'Left'#2#0#6'Height'#2#23#3'Top'#3#176#0#5'Width'#3#161#1
+  +#7'Caption'#6'AAccept stack addresses of the main thread as base pointer as '
+  +'well'#8'TabOrder'#2#4#7'Visible'#8#0#0#5'TEdit'#5'Edit3'#4'Left'#2#0#6'Heig'
+  +'ht'#2#24#3'Top'#3#215#0#5'Width'#3#149#0#7'Enabled'#8#8'TabOrder'#2#5#4'Tex'
+  +'t'#6#4'4096'#7'Visible'#8#0#0#9'TCheckBox'#17'cbOnlyStackAsBase'#4'Left'#2#0
+  +#6'Height'#2#23#3'Top'#3#237#0#5'Width'#3#2#1#7'Caption'#6'&Only use the mai'
+  +'ntread stack as a base'#8'TabOrder'#2#6#7'Visible'#8#0#0#9'TCheckBox'#13'cb'
+  +'UseHeapData'#4'Left'#2#0#6'Height'#2#23#3'Top'#3#137#0#5'Width'#3'$'#1#7'Ca'
+  +'ption'#6'+Improve pointerscan with gathered heap data'#7'OnClick'#7#18'cbUs'
+  +'eHeapDataClick'#8'TabOrder'#2#7#0#0#9'TCheckBox'#10'cbHeapOnly'#4'Left'#2#16
+  +#6'Height'#2#23#4'Hint'#6'RIf the address you search for isn''t a heap addre'
+  +'ss, the scan will return 0 results'#3'Top'#3#154#0#5'Width'#3'6'#1#7'Captio'
+  +'n'#6'0Only allow static and heap addresses in the path'#7'Enabled'#8#7'OnCl'
+  +'ick'#7#15'cbHeapOnlyClick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2
+  +#8#0#0#9'TCheckBox'#15'cbOnlyOneStatic'#4'Left'#2#0#6'Height'#2#23#3'Top'#2
+  +'('#5'Width'#3'H'#1#7'Caption'#6'3Stop traversing a path when a static has b'
+  +'een found'#8'TabOrder'#2#9#0#0#0#0#9'TCheckBox'#27'cbMustEndWithSpecificOff'
+  +'set'#4'Left'#2#8#6'Height'#2#23#3'Top'#3'\'#1#5'Width'#3#246#0#7'Caption'#6
+  +'''Pointers must end with specific offsets'#7'OnClick'#7' cbMustEndWithSpeci'
+  +'ficOffsetClick'#8'TabOrder'#2#2#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Heigh'
+  +'t'#2'k'#3'Top'#3'|'#1#5'Width'#3#187#1#5'Align'#7#8'alBottom'#10'BevelOuter'
+  +#7#6'bvNone'#12'ClientHeight'#2'k'#11'ClientWidth'#3#187#1#8'TabOrder'#2#3#0
+  +#6'TLabel'#6'Label3'#4'Left'#2#24#6'Height'#2#17#3'Top'#2'*'#5'Width'#3#132#0
+  +#7'Caption'#6#21'Maximum offset value:'#11'ParentColor'#8#0#0#6'TLabel'#7'La'
+  +'bel12'#4'Left'#3#226#0#6'Height'#2#17#3'Top'#2'*'#5'Width'#2':'#7'Caption'#6
+  +#9'Max level'#11'ParentColor'#8#0#0#6'TLabel'#6'Label9'#4'Left'#2#16#6'Heigh'
+  +'t'#2#17#3'Top'#2#10#5'Width'#3#140#0#7'Caption'#6#24'Nr of threads scanning'
+  +': '#11'ParentColor'#8#0#0#7'TButton'#7'Button1'#4'Left'#3#138#0#6'Height'#2
+  +#31#3'Top'#2'E'#5'Width'#2'P'#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#12
+  +'Button1Click'#8'TabOrder'#2#0#0#0#5'TEdit'#14'editStructsize'#4'Left'#3#158
+  +#0#6'Height'#2#24#3'Top'#2'&'#5'Width'#2'<'#8'TabOrder'#2#1#4'Text'#6#4'2048'
+  +#0#0#5'TEdit'#12'editMaxLevel'#4'Left'#3#30#1#6'Height'#2#24#3'Top'#2'%'#5'W'
+  +'idth'#2'P'#8'TabOrder'#2#2#4'Text'#6#1'5'#0#0#7'TButton'#9'btnCancel'#4'Lef'
+  +'t'#3#226#0#6'Height'#2#31#3'Top'#2'E'#5'Width'#2']'#6'Cancel'#9#7'Caption'#6
+  +#6'Cancel'#11'ModalResult'#2#2#8'TabOrder'#2#3#0#0#5'TEdit'#14'edtThreadcoun'
+  ,'t'#4'Left'#3#158#0#6'Height'#2#24#3'Top'#2#6#5'Width'#2'<'#8'TabOrder'#2#4#4
+  +'Text'#6#1'2'#0#0#9'TComboBox'#9'ComboBox1'#4'Left'#3#226#0#6'Height'#2#24#3
+  +'Top'#2#5#5'Width'#3#140#0#10'ItemHeight'#2#16#9'ItemIndex'#2#3#13'Items.Str'
+  +'ings'#1#6#4'Idle'#6#6'Lowest'#6#5'Lower'#6#6'Normal'#6#6'Higher'#6#7'Highes'
+  +'t'#6#12'TimeCritical'#0#8'TabOrder'#2#5#4'Text'#6#6'Normal'#0#0#0#9'TComboB'
+  +'ox'#11'cbValueType'#4'Left'#2'~'#6'Height'#2#24#3'Top'#2#28#5'Width'#3#132#0
+  +#10'ItemHeight'#2#16#9'ItemIndex'#2#0#13'Items.Strings'#1#6#6'4 Byte'#6#5'Fl'
+  +'oat'#6#6'Double'#0#5'Style'#7#14'csDropDownList'#8'TabOrder'#2#4#4'Text'#6#6
+  +'4 Byte'#0#0#6'TPanel'#6'Panel2'#4'Left'#2#8#6'Height'#2#25#3'Top'#2#0#5'Wid'
+  +'th'#3#249#0#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2#25#11'ClientWidth'
+  +#3#249#0#8'TabOrder'#2#5#0#12'TRadioButton'#13'rbFindAddress'#4'Left'#2#0#6
+  +'Height'#2#23#3'Top'#2#4#5'Width'#2't'#7'Caption'#6#16'Address to find:'#7'C'
+  +'hecked'#9#7'OnClick'#7#16'rbFindValueClick'#5'State'#7#9'cbChecked'#8'TabOr'
+  +'der'#2#0#0#0#12'TRadioButton'#11'rbFindValue'#4'Left'#2'x'#6'Height'#2#23#3
+  +'Top'#2#4#5'Width'#2'd'#7'Caption'#6#14'Value to find:'#7'OnClick'#7#16'rbFi'
+  +'ndValueClick'#8'TabOrder'#2#1#7'TabStop'#8#0#0#0#9'TCheckBox'#9'CheckBox1'#4
+  +'Left'#2#8#6'Height'#2#23#3'Top'#3'H'#1#5'Width'#3#21#1#7'Caption'#6'(Use po'
+  +'intermap from previous pointerscan'#7'Checked'#9#7'Enabled'#8#5'State'#7#9
+  +'cbChecked'#8'TabOrder'#2#6#0#0#0
+]);
