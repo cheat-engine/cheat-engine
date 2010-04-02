@@ -12,7 +12,6 @@
       <Title Value="Cheat Engine 6.0"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
-      <ActiveEditorIndexAtStart Value="2"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
@@ -49,9 +48,7 @@
         <UnitName Value="cheatengine"/>
         <CursorPos X="11" Y="32"/>
         <TopLine Value="28"/>
-        <EditorIndex Value="3"/>
         <UsageCount Value="211"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -74,9 +71,7 @@
         <UnitName Value="MainUnit"/>
         <CursorPos X="16" Y="4312"/>
         <TopLine Value="4292"/>
-        <EditorIndex Value="0"/>
         <UsageCount Value="211"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
@@ -94,9 +89,7 @@
         <UnitName Value="CEFuncProc"/>
         <CursorPos X="19" Y="1178"/>
         <TopLine Value="1162"/>
-        <EditorIndex Value="10"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -123,9 +116,7 @@
         <UnitName Value="Assemblerunit"/>
         <CursorPos X="9" Y="2748"/>
         <TopLine Value="2731"/>
-        <EditorIndex Value="2"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -143,12 +134,10 @@
         <UnitName Value="disassembler"/>
         <CursorPos X="50" Y="468"/>
         <TopLine Value="430"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="202"/>
         <Bookmarks Count="1">
           <Item0 X="118" Y="4810" ID="8"/>
         </Bookmarks>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit9>
       <Unit10>
@@ -184,9 +173,7 @@
         <UnitName Value="autoassembler"/>
         <CursorPos X="32" Y="1399"/>
         <TopLine Value="528"/>
-        <EditorIndex Value="12"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -525,9 +512,7 @@
         <UnitName Value="KernelDebugger"/>
         <CursorPos X="3" Y="148"/>
         <TopLine Value="136"/>
-        <EditorIndex Value="9"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit44>
       <Unit45>
@@ -681,12 +666,10 @@
         <UnitName Value="MemoryBrowserFormUnit"/>
         <CursorPos X="3" Y="2789"/>
         <TopLine Value="2773"/>
-        <EditorIndex Value="7"/>
         <UsageCount Value="220"/>
         <Bookmarks Count="1">
           <Item0 X="24" Y="2648" ID="9"/>
         </Bookmarks>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit58>
       <Unit59>
@@ -695,9 +678,7 @@
         <UnitName Value="disassemblerviewlinesunit"/>
         <CursorPos X="28" Y="230"/>
         <TopLine Value="223"/>
-        <EditorIndex Value="4"/>
         <UsageCount Value="218"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit59>
       <Unit60>
@@ -796,9 +777,7 @@
         <UnitName Value="frmstacktraceunit"/>
         <CursorPos X="16" Y="52"/>
         <TopLine Value="42"/>
-        <EditorIndex Value="6"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit68>
       <Unit69>
@@ -1373,9 +1352,7 @@
         <UnitName Value="debugeventhandler"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="634"/>
-        <EditorIndex Value="8"/>
         <UsageCount Value="209"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit121>
       <Unit122>
@@ -1393,9 +1370,7 @@
         <UnitName Value="DebugHelper"/>
         <CursorPos X="118" Y="868"/>
         <TopLine Value="852"/>
-        <EditorIndex Value="5"/>
         <UsageCount Value="209"/>
-        <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit123>
       <Unit124>
@@ -1538,7 +1513,7 @@
         <UnitName Value="ThreadlistExFRM"/>
         <CursorPos X="78" Y="62"/>
         <TopLine Value="47"/>
-        <UsageCount Value="192"/>
+        <UsageCount Value="194"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit141>
       <Unit142>
@@ -1547,140 +1522,17 @@
         <UnitName Value="windows7taskbar"/>
         <CursorPos X="78" Y="12"/>
         <TopLine Value="4"/>
-        <UsageCount Value="187"/>
+        <UsageCount Value="189"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit142>
       <Unit143>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\base.inc"/>
         <CursorPos X="29" Y="99"/>
         <TopLine Value="83"/>
-        <EditorIndex Value="11"/>
         <UsageCount Value="33"/>
-        <Loaded Value="True"/>
       </Unit143>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
-      <Position1>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2429" Column="1" TopLine="2413"/>
-      </Position1>
-      <Position2>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2434" Column="1" TopLine="2418"/>
-      </Position2>
-      <Position3>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2437" Column="1" TopLine="2421"/>
-      </Position3>
-      <Position4>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2438" Column="1" TopLine="2422"/>
-      </Position4>
-      <Position5>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2441" Column="1" TopLine="2425"/>
-      </Position5>
-      <Position6>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2442" Column="1" TopLine="2426"/>
-      </Position6>
-      <Position7>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2444" Column="1" TopLine="2428"/>
-      </Position7>
-      <Position8>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2450" Column="1" TopLine="2434"/>
-      </Position8>
-      <Position9>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2455" Column="1" TopLine="2439"/>
-      </Position9>
-      <Position10>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2459" Column="1" TopLine="2443"/>
-      </Position10>
-      <Position11>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2461" Column="1" TopLine="2445"/>
-      </Position11>
-      <Position12>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2463" Column="1" TopLine="2447"/>
-      </Position12>
-      <Position13>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2464" Column="1" TopLine="2448"/>
-      </Position13>
-      <Position14>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2463" Column="1" TopLine="2447"/>
-      </Position14>
-      <Position15>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2464" Column="1" TopLine="2448"/>
-      </Position15>
-      <Position16>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2463" Column="1" TopLine="2447"/>
-      </Position16>
-      <Position17>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2464" Column="1" TopLine="2448"/>
-      </Position17>
-      <Position18>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2467" Column="1" TopLine="2451"/>
-      </Position18>
-      <Position19>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2469" Column="1" TopLine="2453"/>
-      </Position19>
-      <Position20>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2470" Column="1" TopLine="2460"/>
-      </Position20>
-      <Position21>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2485" Column="1" TopLine="2469"/>
-      </Position21>
-      <Position22>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2486" Column="1" TopLine="2470"/>
-      </Position22>
-      <Position23>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2487" Column="1" TopLine="2471"/>
-      </Position23>
-      <Position24>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2495" Column="1" TopLine="2479"/>
-      </Position24>
-      <Position25>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2496" Column="1" TopLine="2480"/>
-      </Position25>
-      <Position26>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2499" Column="1" TopLine="2483"/>
-      </Position26>
-      <Position27>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2500" Column="1" TopLine="2484"/>
-      </Position27>
-      <Position28>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2507" Column="1" TopLine="2491"/>
-      </Position28>
-      <Position29>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2511" Column="1" TopLine="2495"/>
-      </Position29>
-      <Position30>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2797" Column="49" TopLine="2783"/>
-      </Position30>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
