@@ -91,6 +91,7 @@ type topcode=record
   paramtype1,paramtype2,paramtype3: tparam;
   bytes:byte;
   bt1,bt2,bt3: byte;
+  norexw: boolean;
 end;
 
 
@@ -1001,7 +1002,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$f4),
   (mnemonic:'PMULUDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$f4),
 
-  (mnemonic:'POP';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$58),
+  (mnemonic:'POP';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$58; norexw: true),
   (mnemonic:'POP';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$58),
 
   (mnemonic:'POP';opcode1:eo_reg0;paramtype1:par_rm32;bytes:1;bt1:$8f),
@@ -1152,7 +1153,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 //  (mnemonic:'PUSH';opcode1:eo_iw;paramtype1:par_imm16;bytes:2;bt1:$66;bt2:$68),
 
 
-  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50),
+  (mnemonic:'PUSH';opcode1:eo_prd;paramtype1:par_r32;bytes:1;bt1:$50;norexw: true),
   (mnemonic:'PUSH';opcode1:eo_prw;paramtype1:par_r16;bytes:2;bt1:$66;bt2:$50),
 
   (mnemonic:'PUSH';opcode1:eo_reg6;paramtype1:par_rm32;bytes:1;bt1:$ff),
@@ -1720,14 +1721,13 @@ function StringValueToType(value: string): integer;
 var x: dword;
     err: integer;
 begin
-  //this function converts a sttring to a valuetype depsnding on how it is written
+  //this function converts a sttring to a valuetype depending on how it is written
   result:=0;
 
   val(value,x,err);
   if err>0 then exit;
 
-  
-
+  if length(value)=17 then result:=64 else
   if length(value)=9 then result:=32 else
   if length(value)=5 then
   begin
@@ -2966,7 +2966,7 @@ end;
 function TSingleLineAssembler.Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
 var tokens: ttokens;
     i,j,k,l: integer;
-    v,v2: dword;
+    v,v2: qword;
     mnemonic,nroftokens: integer;
     paramtype1,paramtype2,paramtype3: TTokenType;
     parameter1,parameter2,parameter3: string;
@@ -3065,7 +3065,6 @@ begin
     begin
       REX_W:=true;   //64-bit opperand
       paramtype1:=ttRegister32Bit; //we can use the normal 32-bit interpretation assembler code
-
     end;
 
     if (paramtype2=ttRegister64bit) then
@@ -3203,29 +3202,29 @@ begin
 
   if paramtype1=ttValue then
   begin
-    v:=StrToInt(parameter1);
+    v:=StrToInt64(parameter1);
     vtype:=StringValueToType(parameter1);
   end;
 
   if paramtype2=ttValue then if v=0 then
   begin
-    v:=StrToInt(parameter2);
+    v:=StrToInt64(parameter2);
     vtype:=StringValueToType(parameter2);
   end
   else
   begin
-    v2:=StrToInt(parameter2);
+    v2:=StrToInt64(parameter2);
     v2type:=StringValueToType(parameter2);
   end;
 
   if paramtype3=ttValue then if v=0 then
   begin
-    v:=StrToInt(parameter3);
+    v:=StrToInt64(parameter3);
     vtype:=StringValueToType(parameter3);
   end
   else
   begin
-    v2:=StrToInt(parameter3);
+    v2:=StrToInt64(parameter3);
     v2type:=StringValueToType(parameter3);
   end;
 
@@ -3658,7 +3657,14 @@ begin
           begin
             //opcode+rd
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter2));
+            k:=getreg(parameter2);
+            if k>7 then
+            begin
+              rex_b:=true; //extention to the opcode field
+              k:=k and 7;
+            end;
+
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
@@ -3833,7 +3839,13 @@ begin
         begin
           //opcode+rd
           addopcode(bytes,j);
-          inc(bytes[length(bytes)-1],getreg(parameter1));
+          k:=getreg(parameter1);
+          if k>7 then
+          begin
+            REX_B:=true;
+            k:=k and 7;
+          end;
+          inc(bytes[length(bytes)-1],k);
           result:=true;
           exit;
         end;
@@ -3846,7 +3858,13 @@ begin
           if opcodes[j].opcode1=eo_prb then
           begin
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true; //extension to the opcode
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             add(bytes,[v]);
             result:=true;
             exit;
@@ -3875,7 +3893,13 @@ begin
         begin
           //opcode+rw
           addopcode(bytes,j);
-          inc(bytes[length(bytes)-1],getreg(parameter1));
+          k:=getreg(parameter1);
+          if k>7 then
+          begin
+            rex_b:=true;
+            k:=k and 7;
+          end;
+          inc(bytes[length(bytes)-1],k);
           result:=true;
           exit;
         end;
@@ -3891,7 +3915,13 @@ begin
           begin
             //opcode+rd
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
@@ -3939,7 +3969,14 @@ begin
           if opcodes[j].opcode1=eo_prw then
           begin
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+
+            inc(bytes[length(bytes)-1],k);
             addword(bytes,v);
             result:=true;
             exit;
@@ -4011,7 +4048,13 @@ begin
         begin
           //opcode+rd
           addopcode(bytes,j);
-          inc(bytes[length(bytes)-1],getreg(parameter1));
+          k:=getreg(parameter1);
+          if k>7 then
+          begin
+            rex_b:=true;
+            k:=k and 7;
+          end;
+          inc(bytes[length(bytes)-1],k);
           result:=true;
           exit;
         end
@@ -4038,7 +4081,13 @@ begin
           begin
             //opcode+rd
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
@@ -4215,6 +4264,7 @@ begin
 
       end;
 
+
       if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -4223,7 +4273,10 @@ begin
           begin
             addopcode(bytes,j);
             inc(bytes[length(bytes)-1],getreg(parameter1));
-            adddword(bytes,v);
+            if self.REX_W then
+              addqword(bytes,v)
+            else
+              adddword(bytes,v);
             result:=true;
             exit;
           end;
@@ -4990,7 +5043,13 @@ begin
           begin
             //opcode+i
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter2));
+            k:=getreg(parameter2);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
@@ -5005,7 +5064,13 @@ begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
         addopcode(bytes,j);
-        inc(bytes[length(bytes)-1],getreg(parameter1));
+        k:=getreg(parameter1);
+        if k>7 then
+        begin
+          rex_b:=true;
+          k:=k and 7;
+        end;
+        inc(bytes[length(bytes)-1],k);
         result:=true;
         exit;
       end;
@@ -5019,7 +5084,13 @@ begin
           begin
             //opcode+i
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],l);
             result:=true;
             exit;
           end;
@@ -5036,16 +5107,26 @@ begin
   end;
 
   finally
-    //insert rex prefix
-    if RexPrefix<>0 then
+    if result then
     begin
-      if RexPrefixLocation=-1 then raise exception.create('Assembler error');
-      RexPrefix:=RexPrefix or $40;
-      setlength(bytes,length(bytes)+1);
-      for i:=length(bytes)-1 downto RexPrefixLocation+1 do
-        bytes[i]:=bytes[i-1];
+      //insert rex prefix if needed
+      if opcodes[j].norexw then
+        REX_W:=false;
 
-      bytes[RexPrefixLocation]:=RexPrefix;
+      if RexPrefix<>0 then
+      begin
+
+
+
+        if RexPrefixLocation=-1 then raise exception.create('Assembler error');
+        RexPrefix:=RexPrefix or $40;
+        setlength(bytes,length(bytes)+1);
+        for i:=length(bytes)-1 downto RexPrefixLocation+1 do
+          bytes[i]:=bytes[i-1];
+
+        bytes[RexPrefixLocation]:=RexPrefix;
+      end;
+
     end;
   end;
 end;

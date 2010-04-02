@@ -819,11 +819,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#9'TMenuItem'#20'Forcerechecksymbols1'#7'Caption'#6#21'Force recheck symbols'
   +#10'GroupIndex'#2#2#7'OnClick'#7#25'Forcerechecksymbols1Click'#0#0#9'TMenuIt'
   +'em'#2'N4'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#4'Cut1'#7'C'
-  +'aption'#6#3'Cut'#10'GroupIndex'#2#2#8'ShortCut'#2'X'#7'OnClick'#7#9'Cut1Cli'
-  +'ck'#0#0#9'TMenuItem'#5'Copy1'#7'Caption'#6#4'Copy'#10'GroupIndex'#2#2#8'Sho'
-  +'rtCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuItem'#6'Paste1'#7'Capti'
-  +'on'#6#5'Paste'#10'GroupIndex'#2#2#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste1C'
-  +'lick'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#10'Select All'#8'ShortCut'
+  +'aption'#6#3'Cut'#10'GroupIndex'#2#2#8'ShortCut'#3'X@'#7'OnClick'#7#9'Cut1Cl'
+  +'ick'#0#0#9'TMenuItem'#5'Copy1'#7'Caption'#6#4'Copy'#10'GroupIndex'#2#2#8'Sh'
+  +'ortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuItem'#6'Paste1'#7'Capt'
+  +'ion'#6#5'Paste'#10'GroupIndex'#2#2#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste1'
+  +'Click'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#10'Select All'#8'ShortCut'
   +#3'A@'#7'Visible'#8#7'OnClick'#7#14'MenuItem1Click'#0#0#9'TMenuItem'#2'N1'#7
   +'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#11'CreateGroup'#7'Capti'
   +'on'#6#12'Create Group'#7'OnClick'#7#16'CreateGroupClick'#0#0#9'TMenuItem'#8

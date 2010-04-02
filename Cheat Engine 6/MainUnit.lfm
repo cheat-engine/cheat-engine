@@ -1490,7 +1490,7 @@ object MainForm: TMainForm
     object Cut1: TMenuItem
       Caption = 'Cut'
       GroupIndex = 2
-      ShortCut = 88
+      ShortCut = 16472
       OnClick = Cut1Click
     end
     object Copy1: TMenuItem

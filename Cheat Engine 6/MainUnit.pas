@@ -4305,8 +4305,10 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var l: tstringlist;
 begin
-  SetProgressValue(50,100);
-  SetProgressState(tbpsError);
+  asm
+   // push r8=41 50
+   db $41,$50
+  end;
 
 //  l:=tstringlist.create;
 //  symhandler.getModuleList(l);

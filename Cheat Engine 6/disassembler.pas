@@ -10,6 +10,11 @@ type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
+const BIT_REX_W=8; //1000
+const BIT_REX_R=4;
+const BIT_REX_X=2;
+const BIT_REX_B=1;
+
 type TDisassembler=class
   private
     inttohexs: TIntToHexS;
@@ -138,8 +143,19 @@ begin
    15: result:='r15';
   end;
 
-  if rex_w then
-    result[1]:='r'; //replace eax,ebx with rax,rbx...
+
+  if not rex_w then
+  begin
+    //not a rex_w field
+    if bt>=8 then //but the bt field is higher than 8 (so 32-bit addressing, increased register)
+    begin
+      result:=result+'d'; //32-bit variant
+    end;
+  end
+  else
+  begin
+    result[1]:='r' //replace eax,ebx with rax,rbx...
+  end;
 end;
 
 
@@ -386,22 +402,22 @@ end;
 
 function TDisassembler.Rex_B: boolean; inline;
 begin
-  result:=(RexPrefix and 1)=1;
+  result:=(RexPrefix and BIT_REX_B)=BIT_REX_B;
 end;
 
 function TDisassembler.Rex_X: boolean; inline;
 begin
-  result:=(RexPrefix and 2)=2;
+  result:=(RexPrefix and BIT_REX_X)=BIT_REX_X;
 end;
 
 function TDisassembler.Rex_R: boolean; inline;
 begin
-  result:=(RexPrefix and 4)=4;
+  result:=(RexPrefix and BIT_REX_R)=BIT_REX_R;
 end;
 
 function TDisassembler.Rex_W: boolean; inline;
 begin
-  result:=(RexPrefix and 8)=8;
+  result:=(RexPrefix and BIT_REX_W)=BIT_REX_W;
 end;
 
 
@@ -3617,6 +3633,7 @@ begin
                         //BSWAP
                         description:='Byte Swap';
                         tempresult:=tempresult+'BSWAP '+rd(memory[1]-$c8);
+
                         inc(offset);
                       end;
 
@@ -4769,6 +4786,8 @@ begin
       $50..$57 :
             begin
               description:='Push Word or Doubleword Onto the Stack';
+              if processhandler.is64Bit then RexPrefix:=RexPrefix or BIT_REX_W; //so rd will pick the 64-bit version
+
               if $66 in prefix2 then tempresult:=tempresult+'PUSH '+rd16(memory[0]-$50) else
                                      tempresult:=tempresult+'PUSH '+rd(memory[0]-$50);
             end;
@@ -4776,6 +4795,8 @@ begin
       $58..$5f :
             begin
               description:='Pop a Value from the Stack';
+              if processhandler.is64Bit then RexPrefix:=RexPrefix or BIT_REX_W; //so rd will pick the 64-bit version
+
               if $66 in prefix2 then tempresult:=tempresult+'POP '+rd16(memory[0]-$58) else
                                      tempresult:=tempresult+'POP '+rd(memory[0]-$58);
             end;
