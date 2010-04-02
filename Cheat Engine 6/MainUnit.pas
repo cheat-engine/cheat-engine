@@ -4305,9 +4305,11 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var l: tstringlist;
 begin
+  beep;
   asm
    // push r8=41 50
-   db $41,$50
+   db $90
+   db $c6,$05,$d2,$cd,$48,$00,$00
   end;
 
 //  l:=tstringlist.create;

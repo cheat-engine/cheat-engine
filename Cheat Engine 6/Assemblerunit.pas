@@ -2298,7 +2298,7 @@ end;
 
 procedure TSingleLineAssembler.setsibbase(var sib:byte; i:byte);
 begin
-  sib:=(sib and $f8) or (i and 3);
+  sib:=(sib and $f8) or (i and 7);
   if i>7 then
     REX_B:=true;
 end;
@@ -2744,6 +2744,8 @@ begin
       if (reg[k]='R13') or (reg[-k]='R13') then
       begin
         if reg[-k]='R13' then k:=-k;
+        if disp=0 then setmod(modrm[0],1);
+
 
         if (reg[-k]<>'') then //sib needed
         begin
@@ -2791,11 +2793,13 @@ begin
 
   finally
     if not found then raise exception.create('Invalid address');
+
+    i:=getmod(modrm[0]);
+    if i=1 then add(modrm,[byte(disp)]);
+    if i=2 then adddword(modrm,disp);
   end;
 
-  i:=getmod(modrm[0]);
-  if i=1 then add(modrm,[byte(disp)]);
-  if i=2 then adddword(modrm,disp);
+
 
  // hgihkjjkjj
 end;

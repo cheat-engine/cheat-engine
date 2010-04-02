@@ -19,6 +19,7 @@ type TDisassembler=class
   private
     inttohexs: TIntToHexS;
     RexPrefix: byte;
+    riprelative: boolean;
     function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string; overload;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; overload;
@@ -467,7 +468,15 @@ begin
 
             5:
             begin
-              result:=getsegmentoverride(prefix)+'['+inttohexs(dwordptr^,8)+'],';
+              if processhandler.is64Bit then
+              begin
+                riprelative:=true;
+                result:=getsegmentoverride(prefix)+'['+inttohexs_withoutsymbols(dwordptr^,8)+'],';
+              end
+              else
+              begin
+                result:=getsegmentoverride(prefix)+'['+inttohexs(dwordptr^,8)+'],';
+              end;
               last:=last+4;
             end;
 
@@ -1017,6 +1026,8 @@ var memory: TMemory;
 
     last: dword;
     foundit: boolean;
+
+    tempaddress: ptrUint;
 begin
   if isdefault then
     showsymbols:=symhandler.showsymbols;
@@ -1026,6 +1037,7 @@ begin
   else
     intToHexs:=inttohexs_withoutsymbols;
 
+  riprelative:=false;
 
 
   result:=inttohex(offset,8)+' - ';
@@ -7752,6 +7764,21 @@ begin
     for i:=0 to (offset-startoffset)-1 do
       result:=result+inttohex(memory[i],2)+' ';
     result:=result+'- '+tempresult;
+
+    if riprelative then
+    begin
+      //add the current offset to the code between []
+      i:=pos('[',result);
+      j:=PosEx(']',result,i);
+      tempresult:=copy(result,i+1,j-i-1);
+
+      tempaddress:=offset+integer(strtoint('$'+tempresult));
+
+      tempresult:=copy(result,1,i);
+      tempresult:=tempresult+inttohexs(tempaddress,8);
+      result:=tempresult+copy(result,j,length(result));
+
+    end;
   end
   else
   begin

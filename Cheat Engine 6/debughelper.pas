@@ -1009,7 +1009,7 @@ begin
   try
     for i := 0 to BreakpointList.Count - 1 do
     begin
-      if (InRangeX(address, PBreakpoint(BreakpointList[i])^.address, PBreakpoint(BreakpointList[i])^.address + PBreakpoint(BreakpointList[i])^.size)) and
+      if (InRangeX(address, PBreakpoint(BreakpointList[i])^.address, PBreakpoint(BreakpointList[i])^.address + PBreakpoint(BreakpointList[i])^.size-1)) and
          (PBreakpoint(BreakpointList[i])^.active) then
       begin
         Result := PBreakpoint(BreakpointList[i]);
