@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmStacktrace','FORMDATA',[
   'TPF0'#14'TfrmStacktrace'#13'frmStacktrace'#4'Left'#3#196#1#6'Height'#3#18#1#3
   +'Top'#3#180#0#5'Width'#3#171#2#11'BorderStyle'#7#13'bsSizeToolWin'#7'Caption'

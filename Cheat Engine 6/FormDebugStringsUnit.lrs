@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TFormDebugStrings','FORMDATA',[
   'TPF0'#17'TFormDebugStrings'#16'FormDebugStrings'#4'Left'#3'|'#2#6'Height'#3
   +#221#0#3'Top'#3'='#1#5'Width'#3'A'#1#7'Caption'#6#13'Debug strings'#12'Clien'

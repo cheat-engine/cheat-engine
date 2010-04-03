@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('THotKeyForm','FORMDATA',[
   'TPF0'#11'THotKeyForm'#10'HotKeyForm'#4'Left'#3#239#3#6'Height'#3'K'#1#3'Top'
   +#3'T'#1#5'Width'#3#198#1#11'BorderIcons'#11#0#11'BorderStyle'#7#8'bsSingle'#7

@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmRescanPointer','FORMDATA',[
   'TPF0'#17'TfrmRescanPointer'#16'frmRescanPointer'#4'Left'#3#228#2#6'Height'#2
   +'y'#3'Top'#3'>'#1#5'Width'#3#11#1#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6

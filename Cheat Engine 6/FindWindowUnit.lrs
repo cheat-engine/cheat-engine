@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TFindWindow','FORMDATA',[
   'TPF0'#11'TFindWindow'#10'FindWindow'#4'Left'#3#203#2#6'Height'#3#186#0#3'Top'
   +#3#133#1#5'Width'#3#30#1#11'BorderIcons'#11#12'biSystemMenu'#0#11'BorderStyl'

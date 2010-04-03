@@ -16,7 +16,7 @@ type
 
 implementation
 uses
-  ComObj, Types;
+  ComObj, Types, cefuncproc;
 
 const
   TASKBAR_CID: TGUID = '{56FDF344-FD6D-11d0-958A-006097C9A090}';
@@ -85,6 +85,8 @@ var
 begin
   { Make sure that COM is initialized }
   //CoInitializeEx(nil, 0);
+
+  if GetSystemType<7 then exit;
 
   try
     { Obtain an IUnknown }

@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmLoadMemory','FORMDATA',[
   'TPF0'#14'TfrmLoadMemory'#13'frmLoadMemory'#4'Left'#3#137#2#6'Height'#3#153#0
   +#3'Top'#3'g'#1#5'Width'#3#211#0#11'BorderIcons'#11#12'biSystemMenu'#0#11'Bor'

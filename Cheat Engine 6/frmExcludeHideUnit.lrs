@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmExcludeHide','FORMDATA',[
   'TPF0'#15'TfrmExcludeHide'#14'frmExcludeHide'#4'Left'#3'}'#3#6'Height'#3'g'#1
   +#3'Top'#3#158#0#5'Width'#3#197#1#7'Caption'#6#18'Show/Hide settings'#12'Clie'

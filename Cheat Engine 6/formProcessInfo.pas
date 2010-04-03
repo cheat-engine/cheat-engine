@@ -65,14 +65,14 @@ begin
   else
     lblcr3.Caption:='---';
 
-  lblcr0.caption:=inttohex(getcr0,8);
-  lblcr4.caption:=inttohex(getcr4,8);
+  lblcr0.caption:=inttohex(getcr0(),8);
+  lblcr4.caption:=inttohex(getcr4(),8);
   i:=getidts(@idt[0],32);
   for j:=0 to i-1 do
     lbidt.Items.Add(inttohex(idt[j],8));
 
-  lblsdt.caption:=inttohex(getsdt,8);
-  lblssdt.caption:=inttohex(GetSDTShadow,8);
+  lblsdt.caption:=inttohex(getsdt(),8);
+  lblssdt.caption:=inttohex(GetSDTShadow(),8);
 
   lblgdt.Caption:=inttohex(GetGDT(limit),8);
 

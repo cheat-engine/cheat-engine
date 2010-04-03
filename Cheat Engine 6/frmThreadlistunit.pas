@@ -82,7 +82,7 @@ begin
       begin
         if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+threadlistview.selected.Caption) then
         begin
-          TDebugThreadHandler(threadlist[i]).break;
+          TDebugThreadHandler(threadlist[i]).breakThread;
           break;
         end;
       end;

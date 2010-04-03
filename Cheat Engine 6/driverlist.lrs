@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmDriverlist','FORMDATA',[
   'TPF0'#14'TfrmDriverlist'#13'frmDriverlist'#4'Left'#3#199#2#6'Height'#3#229#0
   +#3'Top'#3'd'#1#5'Width'#3'F'#1#11'BorderStyle'#7#8'bsSingle'#7'Caption'#6#11

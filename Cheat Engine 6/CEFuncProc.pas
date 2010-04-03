@@ -2531,6 +2531,10 @@ begin
         form.width:=buf[2];
         form.height:=buf[3];
 
+        if form.top<0 then form.top:=0;
+        if form.left<0 then form.left:=0;
+
+
         for i:=0 to length(x)-1 do
           x[i]:=buf[4+i];
 
@@ -2555,6 +2559,7 @@ var reg: tregistry;
     s: string;
 begin
   //save window pos
+
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;

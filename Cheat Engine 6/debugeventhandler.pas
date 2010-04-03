@@ -68,7 +68,7 @@ type
     procedure resume;
     procedure fillContext;
     procedure setContext;
-    procedure break;
+    procedure breakThread;
     procedure continueDebugging(continueOption: TContinueOption);
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
     destructor destroy; override;
@@ -148,7 +148,7 @@ begin
     resumethread(handle);
 end;
 
-procedure TDebugThreadHandler.break;
+procedure TDebugThreadHandler.breakThread;
 begin
   suspend;
   fillContext;
@@ -442,6 +442,7 @@ begin
     begin
       OutputDebugString('EXCEPTION_SINGLE_STEP');
 
+    //  debugEvent.Exception.ExceptionRecord.
 
       //find out what caused the breakpoint.
       //inspect DR6
