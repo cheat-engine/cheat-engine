@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 830
-  Top = 257
-  Width = 532
+  Left = 1008
+  Top = 273
+  Width = 530
   Height = 612
   Hint = ' '
   HelpContext = 3
@@ -32,7 +32,7 @@ object MainForm: TMainForm
   object Splitter1: TSplitter
     Left = 0
     Top = 345
-    Width = 514
+    Width = 512
     Height = 3
     Cursor = crVSplit
     Align = alTop
@@ -46,7 +46,7 @@ object MainForm: TMainForm
     Tag = 777
     Left = 0
     Top = 348
-    Width = 514
+    Width = 512
     Height = 177
     Align = alClient
     BevelOuter = bvNone
@@ -125,7 +125,7 @@ object MainForm: TMainForm
     object ScrollBox1: TScrollBox
       Left = 1
       Top = 1
-      Width = 495
+      Width = 493
       Height = 175
       HorzScrollBar.Tracking = True
       VertScrollBar.Range = 17
@@ -137,7 +137,7 @@ object MainForm: TMainForm
       object HeaderControl1: THeaderControl
         Left = 0
         Top = 0
-        Width = 495
+        Width = 493
         Height = 17
         Sections = <
           item
@@ -176,7 +176,7 @@ object MainForm: TMainForm
       object Panel3: TPanel
         Left = 0
         Top = 17
-        Width = 495
+        Width = 493
         Height = 158
         Align = alClient
         BevelOuter = bvNone
@@ -189,13 +189,13 @@ object MainForm: TMainForm
         OnMouseDown = Panel1MouseDown
         OnResize = Panel1Resize
         DesignSize = (
-          495
+          493
           158)
         object Label30: TLabel
           Tag = 6
           Left = -1
           Top = 96
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -217,7 +217,7 @@ object MainForm: TMainForm
           Tag = 5
           Left = -1
           Top = 80
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -238,7 +238,7 @@ object MainForm: TMainForm
         object Label12: TLabel
           Left = -1
           Top = 0
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -260,7 +260,7 @@ object MainForm: TMainForm
           Tag = 4
           Left = -1
           Top = 64
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -282,7 +282,7 @@ object MainForm: TMainForm
           Tag = 3
           Left = -1
           Top = 48
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -304,7 +304,7 @@ object MainForm: TMainForm
           Tag = 2
           Left = -1
           Top = 32
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -402,7 +402,7 @@ object MainForm: TMainForm
           Tag = 1
           Left = -1
           Top = 16
-          Width = 528
+          Width = 526
           Height = 16
           Anchors = [akLeft, akTop, akRight]
           AutoSize = False
@@ -1074,7 +1074,7 @@ object MainForm: TMainForm
       end
     end
     object vscrollpanel: TPanel
-      Left = 496
+      Left = 494
       Top = 1
       Width = 17
       Height = 175
@@ -1100,15 +1100,15 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Top = 525
-    Width = 514
+    Width = 512
     Height = 17
     Align = alBottom
     TabOrder = 1
     DesignSize = (
-      514
+      512
       17)
     object Label7: TLabel
-      Left = 147
+      Left = 146
       Top = 3
       Width = 229
       Height = 13
@@ -1140,7 +1140,7 @@ object MainForm: TMainForm
       OnClick = advancedbuttonClick
     end
     object CommentButton: TSpeedButton
-      Left = 417
+      Left = 415
       Top = 1
       Width = 96
       Height = 15
@@ -1163,7 +1163,7 @@ object MainForm: TMainForm
   object Panel5: TPanel
     Left = 0
     Top = 0
-    Width = 514
+    Width = 512
     Height = 345
     Align = alTop
     BevelOuter = bvNone
@@ -1171,12 +1171,12 @@ object MainForm: TMainForm
     Locked = True
     TabOrder = 2
     DesignSize = (
-      514
+      512
       345)
     object ProcessLabel: TLabel
       Left = -24
       Top = 0
-      Width = 571
+      Width = 569
       Height = 17
       Alignment = taCenter
       Anchors = [akLeft, akTop, akRight]
@@ -1205,7 +1205,7 @@ object MainForm: TMainForm
       Transparent = True
     end
     object ScanText: TLabel
-      Left = 231
+      Left = 229
       Top = 80
       Width = 57
       Height = 13
@@ -1215,7 +1215,7 @@ object MainForm: TMainForm
       Transparent = True
     end
     object Label4: TLabel
-      Left = 180
+      Left = 178
       Top = 124
       Width = 48
       Height = 13
@@ -1225,7 +1225,7 @@ object MainForm: TMainForm
       Transparent = True
     end
     object Label8: TLabel
-      Left = 178
+      Left = 176
       Top = 148
       Width = 50
       Height = 13
@@ -1309,7 +1309,7 @@ object MainForm: TMainForm
       Transparent = True
     end
     object SpeedButton2: TSpeedButton
-      Left = 253
+      Left = 252
       Top = 320
       Width = 23
       Height = 22
@@ -1334,7 +1334,7 @@ object MainForm: TMainForm
       OnClick = SpeedButton2Click
     end
     object SpeedButton3: TSpeedButton
-      Left = 174
+      Left = 172
       Top = 284
       Width = 23
       Height = 22
@@ -1359,7 +1359,7 @@ object MainForm: TMainForm
       OnClick = SpeedButton3Click
     end
     object SpeedButton4: TSpeedButton
-      Left = 476
+      Left = 474
       Top = 67
       Width = 49
       Height = 17
@@ -1369,7 +1369,7 @@ object MainForm: TMainForm
       OnClick = SettingsClick
     end
     object Label51: TLabel
-      Left = 471
+      Left = 469
       Top = 213
       Width = 46
       Height = 13
@@ -1379,7 +1379,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object Label52: TLabel
-      Left = 410
+      Left = 408
       Top = 212
       Width = 31
       Height = 13
@@ -1391,7 +1391,7 @@ object MainForm: TMainForm
     object LabelModifiedmem: TLabel
       Left = 88
       Top = 34
-      Width = 381
+      Width = 379
       Height = 13
       Alignment = taCenter
       Anchors = [akLeft, akTop, akRight]
@@ -1472,7 +1472,7 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 404
+      Left = 402
       Top = 194
       Width = 118
       Height = 18
@@ -1487,7 +1487,7 @@ object MainForm: TMainForm
       OnClick = cbSpeedhackClick
     end
     object NewScan: TButton
-      Left = 191
+      Left = 189
       Top = 48
       Width = 65
       Height = 25
@@ -1500,7 +1500,7 @@ object MainForm: TMainForm
       OnClick = NewScanClick
     end
     object cbUnicode: TCheckBox
-      Left = 408
+      Left = 406
       Top = 128
       Width = 65
       Height = 17
@@ -1510,7 +1510,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object GroupBox1: TGroupBox
-      Left = 199
+      Left = 197
       Top = 176
       Width = 202
       Height = 124
@@ -1653,7 +1653,7 @@ object MainForm: TMainForm
       end
     end
     object NextScanButton: TButton
-      Left = 263
+      Left = 261
       Top = 48
       Width = 65
       Height = 25
@@ -1670,7 +1670,7 @@ object MainForm: TMainForm
       OnClick = NextScanButtonClick
     end
     object ScanType: TComboBox
-      Left = 231
+      Left = 229
       Top = 120
       Width = 170
       Height = 21
@@ -1696,7 +1696,7 @@ object MainForm: TMainForm
         'Unknown initial value')
     end
     object VarType: TComboBox
-      Left = 231
+      Left = 229
       Top = 144
       Width = 170
       Height = 21
@@ -1733,7 +1733,7 @@ object MainForm: TMainForm
       OnClick = btnMemoryViewClick
     end
     object Button1: TButton
-      Left = 406
+      Left = 404
       Top = 322
       Width = 113
       Height = 17
@@ -1745,7 +1745,7 @@ object MainForm: TMainForm
     object ProgressBar1: TProgressBar
       Left = 92
       Top = 18
-      Width = 375
+      Width = 373
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Anchors = [akLeft, akTop, akRight]
@@ -1755,7 +1755,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object HexadecimalCheckbox: TCheckBox
-      Left = 199
+      Left = 197
       Top = 96
       Width = 17
       Height = 17
@@ -1770,7 +1770,7 @@ object MainForm: TMainForm
       OnClick = HexadecimalCheckboxClick
     end
     object UndoScan: TButton
-      Left = 407
+      Left = 405
       Top = 48
       Width = 65
       Height = 25
@@ -1781,7 +1781,7 @@ object MainForm: TMainForm
       OnClick = UndoScanClick
     end
     object rbBit: TRadioButton
-      Left = 173
+      Left = 171
       Top = 90
       Width = 57
       Height = 17
@@ -1793,7 +1793,7 @@ object MainForm: TMainForm
       OnClick = rbBitClick
     end
     object rbDec: TRadioButton
-      Left = 173
+      Left = 171
       Top = 106
       Width = 58
       Height = 17
@@ -1805,7 +1805,7 @@ object MainForm: TMainForm
       OnClick = rbDecClick
     end
     object scanvalue: TEdit
-      Left = 231
+      Left = 229
       Top = 96
       Width = 283
       Height = 21
@@ -1816,7 +1816,7 @@ object MainForm: TMainForm
       OnKeyPress = ScanvalueoldKeyPress
     end
     object cbCaseSensitive: TCheckBox
-      Left = 408
+      Left = 406
       Top = 146
       Width = 89
       Height = 17
@@ -1834,7 +1834,7 @@ object MainForm: TMainForm
     object Foundlist3: TListView
       Left = 0
       Top = 48
-      Width = 171
+      Width = 169
       Height = 268
       Hint = 
         'This list shows all the found addresses that matched your last s' +
@@ -1937,7 +1937,7 @@ object MainForm: TMainForm
       end
     end
     object btnSetSpeedhack: TButton
-      Left = 405
+      Left = 403
       Top = 252
       Width = 113
       Height = 20
@@ -1949,7 +1949,7 @@ object MainForm: TMainForm
       OnClick = btnSetSpeedhackClick
     end
     object Edit2: TEdit
-      Left = 407
+      Left = 405
       Top = 227
       Width = 46
       Height = 21
@@ -1961,7 +1961,7 @@ object MainForm: TMainForm
       OnChange = Edit2Change
     end
     object Edit1: TEdit
-      Left = 471
+      Left = 469
       Top = 228
       Width = 46
       Height = 21
@@ -1972,7 +1972,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object pnlFloat: TPanel
-      Left = 402
+      Left = 400
       Top = 120
       Width = 121
       Height = 49
@@ -2007,7 +2007,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 404
+      Left = 402
       Top = 177
       Width = 97
       Height = 17
@@ -2049,7 +2049,7 @@ object MainForm: TMainForm
       OnClick = Button4Click
     end
     object LogoPanel: TPanel
-      Left = 474
+      Left = 472
       Top = 0
       Width = 50
       Height = 65
@@ -2382,7 +2382,7 @@ object MainForm: TMainForm
       end
     end
     object Panel14: TPanel
-      Left = 403
+      Left = 401
       Top = 211
       Width = 119
       Height = 94
