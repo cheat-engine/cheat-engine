@@ -721,20 +721,24 @@ begin
         while not createdworker do
         begin
           reversescancs.Enter;
-          for i:=0 to length(reversescanners)-1 do
-            if reversescanners[i].isdone then
-            begin
-              reversescanners[i].isdone:=false;
-              reversescanners[i].maxlevel:=maxlevel;
+          try
+            for i:=0 to length(reversescanners)-1 do
+              if reversescanners[i].isdone then
+              begin
+                reversescanners[i].isdone:=false;
+                reversescanners[i].maxlevel:=maxlevel;
 
-              reversescanners[i].valuetofind:=currentaddress;
-              reversescanners[i].structsize:=sz;
-              reversescanners[i].startlevel:=0;
-              reversescanners[i].startworking.SetEvent;
-              reversescancs.Leave;
-              createdworker:=true;
-              break;
-            end;
+                reversescanners[i].valuetofind:=currentaddress;
+                reversescanners[i].structsize:=sz;
+                reversescanners[i].startlevel:=0;
+                reversescanners[i].startworking.SetEvent;
+                reversescancs.Leave;
+                createdworker:=true;
+                break;
+              end;
+          finally
+            reversescancs.Leave;
+          end;
           
           if not createdworker then
             sleep(500) //note: change this to an event based wait
