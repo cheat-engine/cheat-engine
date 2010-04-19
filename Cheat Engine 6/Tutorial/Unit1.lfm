@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 428
+  Left = 390
   Height = 286
-  Top = 423
+  Top = 342
   Width = 703
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -38,8 +38,7 @@ object Form1: TForm1
       'Then click on the ''open process'' icon. (top left icon, with the computer on it)'
       ''
       'When the process window is open find this tutorial. The process name is probably ''tutorial.exe'' unless you '
-      'renamed '
-      'it.'
+      'renamed it.'
       'Select it, and click ok. Just ignore all the other buttons right now, but experiment with them later if you feel like it.'
       ''
       'When everything went right, the process window should be gone now and at the top of CE the processname is '

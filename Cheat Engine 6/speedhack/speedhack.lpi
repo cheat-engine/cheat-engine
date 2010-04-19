@@ -40,8 +40,8 @@
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="1" Y="21"/>
-        <TopLine Value="2"/>
+        <CursorPos X="18" Y="1"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="2"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -125,8 +125,11 @@
   <CompilerOptions>
     <Version Value="8"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
+    </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="..\bin"/>
+      <UnitOutputDirectory Value="unitbin\"/>
     </SearchPaths>
     <Parsing>
       <Style Value="1"/>
@@ -144,6 +147,7 @@
     <Linking>
       <Debugging>
         <UseLineInfoUnit Value="False"/>
+        <StripSymbols Value="True"/>
       </Debugging>
       <Options>
         <ExecutableType Value="Library"/>

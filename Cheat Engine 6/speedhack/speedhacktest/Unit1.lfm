@@ -34,17 +34,7 @@ object Form1: TForm1
     Caption = 'Label3'
     ParentColor = False
   end
-  object Button1: TButton
-    Left = 163
-    Height = 25
-    Top = 19
-    Width = 75
-    Caption = 'Button1'
-    OnClick = Button1Click
-    TabOrder = 0
-  end
   object Timer1: TTimer
-    Enabled = False
     Interval = 10
     OnTimer = Timer1Timer
   end

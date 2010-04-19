@@ -33,7 +33,7 @@ begin
 
   try
     if processhandler.is64bit then
-      injectdll(CheatEngineDir+'speedhack64.dll','')
+      injectdll(CheatEngineDir+'speedhack-x86_64.dll','')
     else
       injectdll(CheatEngineDir+'speedhack.dll','');
     symhandler.reinitialize;

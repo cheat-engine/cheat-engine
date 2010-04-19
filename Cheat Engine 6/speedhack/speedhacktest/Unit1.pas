@@ -13,12 +13,10 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
-    Button1: TButton;
     Timer1: TTimer;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -49,10 +47,7 @@ begin
   label3.Caption:=inttostr(x)+' = '+inttostr(x div freq);
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
-begin
-    timer1timer(timer1);
-end;
+
 
 procedure TForm1.FormCreate(Sender: TObject);
 var xx: HModule;

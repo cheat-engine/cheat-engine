@@ -6,6 +6,7 @@
     <General>
       <MainUnit Value="0"/>
       <TargetFileExt Value=".exe"/>
+      <UseAppBundle Value="False"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
       <ActiveEditorIndexAtStart Value="0"/>
@@ -41,6 +42,7 @@
         <EditorIndex Value="2"/>
         <UsageCount Value="54"/>
         <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -49,11 +51,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <CursorPos X="19" Y="47"/>
-        <TopLine Value="25"/>
+        <CursorPos X="1" Y="20"/>
+        <TopLine Value="36"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="54"/>
         <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\objpas\classes\classesh.inc"/>
@@ -109,7 +112,7 @@
         <Loaded Value="True"/>
       </Unit8>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="13" HistoryIndex="12">
       <Position1>
         <Filename Value="Unit1.pas"/>
         <Caret Line="45" Column="3" TopLine="26"/>
@@ -158,16 +161,25 @@
         <Filename Value="Unit1.pas"/>
         <Caret Line="47" Column="19" TopLine="25"/>
       </Position12>
+      <Position13>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="52" Column="1" TopLine="38"/>
+      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\..\bin\speedhacktest-$(TargetCPU)"/>
+    </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="..\..\bin"/>
+      <UnitOutputDirectory Value="unitbin\"/>
     </SearchPaths>
     <Parsing>
+      <Style Value="1"/>
       <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
@@ -180,6 +192,7 @@
     <Linking>
       <Debugging>
         <UseLineInfoUnit Value="False"/>
+        <StripSymbols Value="True"/>
       </Debugging>
       <Options>
         <Win32>
