@@ -146,17 +146,17 @@ type PImageImportDirectory=^TImageImportDirectory;
 
 PImageExportDirectory = ^TImageExportDirectory;
 _IMAGE_EXPORT_DIRECTORY = packed record
-    Characteristics: DWord;
-    TimeDateStamp: DWord;
-    MajorVersion: Word;
-    MinorVersion: Word;
-    Name: DWord;
-    Base: DWord;
-    NumberOfFunctions: DWord;
-    NumberOfNames: DWord;
-    AddressOfFunctions: ^PDWORD;
-    AddressOfNames: ^PDWORD;
-    AddressOfNameOrdinals: ^PWord;
+    Characteristics: DWord;      //0-3
+    TimeDateStamp: DWord;        //4-7
+    MajorVersion: Word;          //8-9
+    MinorVersion: Word;          //a-b
+    Name: DWord;                 //c-f
+    Base: DWord;                 //10-13
+    NumberOfFunctions: DWord;    //14-17
+    NumberOfNames: DWord;        //18-1b
+    AddressOfFunctions: DWORD;   //1c-1f
+    AddressOfNames: DWORD;       //20-23
+    AddressOfNameOrdinals: DWORD;//24-27
 end;
 TImageExportDirectory = _IMAGE_EXPORT_DIRECTORY;
 IMAGE_EXPORT_DIRECTORY = _IMAGE_EXPORT_DIRECTORY;

@@ -708,8 +708,6 @@ begin
     raise exception.Create('Not enough memory free to scan');
   end;
 
-  buffersize:=totaltoread;
-
   //initial scan to fetch the counts of memory
 
 

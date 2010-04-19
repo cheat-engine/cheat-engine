@@ -1,7 +1,7 @@
 object frmPEInfo: TfrmPEInfo
-  Left = 925
+  Left = 266
   Height = 318
-  Top = 413
+  Top = 639
   Width = 485
   Caption = 'Portable Executable (PE) Info'
   ClientHeight = 318
@@ -50,14 +50,14 @@ object frmPEInfo: TfrmPEInfo
       end
       object TabSheet2: TTabSheet
         Caption = 'Imports'
-        ClientHeight = 224
-        ClientWidth = 278
+        ClientHeight = 267
+        ClientWidth = 296
         ImageIndex = 1
         object lbImports: TListBox
           Left = 0
-          Height = 224
+          Height = 267
           Top = 0
-          Width = 278
+          Width = 296
           Align = alClient
           ItemHeight = 0
           TabOrder = 0
@@ -65,14 +65,14 @@ object frmPEInfo: TfrmPEInfo
       end
       object TabSheet3: TTabSheet
         Caption = 'Exports'
-        ClientHeight = 224
-        ClientWidth = 278
+        ClientHeight = 267
+        ClientWidth = 296
         ImageIndex = 2
         object lbExports: TListBox
           Left = 0
-          Height = 224
+          Height = 267
           Top = 0
-          Width = 278
+          Width = 296
           Align = alClient
           ItemHeight = 0
           TabOrder = 0
@@ -80,14 +80,14 @@ object frmPEInfo: TfrmPEInfo
       end
       object TabSheet4: TTabSheet
         Caption = 'Base Relocations'
-        ClientHeight = 224
-        ClientWidth = 278
+        ClientHeight = 267
+        ClientWidth = 296
         ImageIndex = 3
         object lbBaseReloc: TListBox
           Left = 0
-          Height = 224
+          Height = 267
           Top = 0
-          Width = 278
+          Width = 296
           Align = alClient
           ItemHeight = 0
           TabOrder = 0
@@ -169,14 +169,14 @@ object frmPEInfo: TfrmPEInfo
       object edtAddress: TEdit
         Left = 10
         Height = 24
-        Top = 20
+        Top = 5
         Width = 107
         TabOrder = 0
       end
       object modulelist: TListBox
         Left = 10
         Height = 120
-        Top = 49
+        Top = 32
         Width = 141
         ItemHeight = 0
         OnClick = modulelistClick
@@ -185,7 +185,7 @@ object frmPEInfo: TfrmPEInfo
       object Button1: TButton
         Left = 121
         Height = 21
-        Top = 20
+        Top = 5
         Width = 30
         Caption = 'Info'
         OnClick = Button1Click

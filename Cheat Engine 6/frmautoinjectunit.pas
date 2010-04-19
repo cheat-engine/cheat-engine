@@ -617,12 +617,17 @@ procedure Getjumpandoverwrittenbytes(address,addressto: ptrUint; jumppart,origin
 var x,y: ptrUint;
     z: string;
     i: integer;
+    ab: TAssemblerBytes;
+    jumpsize: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
+  Assemble('jmp '+inttohex(addressto,8),address,ab);
+  jumpsize:=length(ab);
+
   x:=address;
   y:=address;
 
-  while x-y<5 do
+  while x-y<jumpsize do
   begin
     z:=disassemble(x);
     z:=copy(z,pos('-',z)+1,length(z));
@@ -633,7 +638,7 @@ begin
 
   jumppart.Add('jmp '+inttohex(addressto,8));
 
-  for i:=5 to x-y-1 do
+  for i:=jumpsize to x-y-1 do
     jumppart.Add('nop');
 {$endif}
 end;
@@ -641,11 +646,11 @@ end;
 
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
 var originalcode: array of string;
-    i: integer;
+    originaladdress: array of ptrUint;
+    i,j: integer;
     codesize: integer;
     a,b: ptrUint;
     br: dword;
-    c: ptrUint;
     x: string;
 
     enablepos,disablepos: integer;
@@ -653,11 +658,29 @@ var originalcode: array of string;
     enablescript: tstringlist;
 
     originalcodebuffer: Pbytearray;
+    ab: TAssemblerBytes;
+
+    jumpsize: integer;
+    tempaddress: ptrUint;
+
+    specifier: array of ptrUint;
+    specifiernr: integer;
+    s,s2: string;
+
+    d: TDisassembler;
+
+    originalcodestart: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
   //disassemble the old code
-  setlength(originalcode,0);
+  d:=TDisassembler.Create;
+  d.showmodules:=false;
+  d.showsymbols:=false;
 
+
+  setlength(originalcode,0);
+  setlength(ab,0);
+  specifiernr:=0;
 
 
   try
@@ -674,20 +697,30 @@ begin
       raise exception.create(addresstogoto+':'+e.message);
   end;
 
+
+  Assemble('jmp '+inttohex(b,8),a,ab);
+  jumpsize:=length(ab);
+
+
+
+
   disablescript:=tstringlist.Create;
   enablescript:=tstringlist.Create;
 
-
   codesize:=0;
-  c:=a;
-  while codesize<5 do
+  b:=a;
+  while codesize<jumpsize do
   begin
     setlength(originalcode,length(originalcode)+1);
-    originalcode[length(originalcode)-1]:=disassemble(c,x);
+    setlength(originaladdress,length(originalcode));
+
+    originaladdress[length(originaladdress)-1]:=a;
+    originalcode[length(originalcode)-1]:=d.disassemble(a,x);
     i:=posex('-',originalcode[length(originalcode)-1]);
     i:=posex('-',originalcode[length(originalcode)-1],i+1);
     originalcode[length(originalcode)-1]:=copy(originalcode[length(originalcode)-1],i+2,length(originalcode[length(originalcode)-1]));
-    codesize:=a-c;
+
+    codesize:=a-b;
   end;
 
   getmem(originalcodebuffer,codesize);
@@ -714,20 +747,80 @@ begin
     if addresstostoreneworiginalfunction<>'' then
     begin
       add(addresstostoreneworiginalfunction+':');
-      add('dd originalcall'+nameextension);
+      if processhandler.is64Bit then
+        add('dq originalcall'+nameextension)
+      else
+        add('dd originalcall'+nameextension);
     end;
     add('');
     add('originalcall'+nameextension+':');
 
+    originalcodestart:=enablescript.Count;
+
     for i:=0 to length(originalcode)-1 do
+    begin
+      if hasAddress(originalcode[i], tempaddress, nil ) then
+      begin
+        if InRangeX(tempaddress, b,b+codesize) then
+        begin
+          s2:='specifier'+nameextension+inttostr(specifiernr);
+          setlength(specifier,length(specifier)+1);
+          specifier[specifiernr]:=tempaddress;
+
+          Insert(0,'label('+s2+')');
+          if has4ByteHexString(originalcode[i], s) then //should be yes
+          begin
+            s:=copy(s,2,length(s)-1);
+
+            originalcode[i]:=StringReplace(originalcode[i],s,s2,[rfIgnoreCase]);
+          end;
+
+          inc(specifiernr);
+        end;
+      end;
       add(originalcode[i]);
+    end;
+
+    //now find the originalcode line that belongs to the specifier
+    inc(originalcodestart,specifiernr);
+    for i:=0 to length(specifier)-1 do
+    begin
+      for j:=0 to length(originaladdress)-1 do
+      begin
+        if specifier[i]=originaladdress[j] then
+        begin
+          enablescript[originalcodestart+j]:='specifier'+nameextension+inttostr(i)+':'+enablescript[originalcodestart+j]
+        end;
+      end;
+    end;
+
+    i:=0;
+
+    while i<enablescript.count do
+    begin
+      j:=pos(':',enablescript[i]);
+
+      if j>0 then
+      begin
+        s:=enablescript[i];
+        s2:=copy(s,j+1,length(s));
+        delete(i);
+        Insert(i,copy(s,1,j));
+        inc(i);
+        Insert(i,s2);
+      end;
+
+      inc(i);
+    end;
+
+
     add('jmp returnhere'+nameextension+'');
 
     add('');
-    
+
     add(address+':');
     add('jmp '+addresstogoto);
-    while codesize>5 do
+    while codesize>jumpsize do
     begin
       add('nop');
       dec(codesize);
@@ -758,7 +851,8 @@ begin
 
   disablescript.free;
   enablescript.free;
-  
+
+  d.free;
 {$endif}
 end;
 

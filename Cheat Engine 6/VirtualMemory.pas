@@ -43,7 +43,7 @@ end;
 
 function TVirtualMemory.GetBufferSize: dword;
 begin
-  result:=buffersize;
+  result:=self.buffersize;
 end;
 
 function TVirtualMemory.isvalid(address: dword): boolean;
@@ -268,7 +268,7 @@ begin
     raise exception.Create('Not enough memory free to scan');
   end;
 
-  buffersize:=totaltoread;
+  self.buffersize:=totaltoread;
 
   RMPointer:=pointer(buffer);
 

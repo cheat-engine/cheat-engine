@@ -251,21 +251,21 @@ function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boo
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
 type tassembled=record
-  address: dword;
+  address: ptrUint;
   bytes: TAssemblerbytes;
 end;
 
 
 type tlabel=record
   defined: boolean;
-  address:dword;
+  address:ptrUint;
   labelname: string;
   assemblerline: integer;
   references: array of integer; //index of assembled array
   references2: array of integer; //index of assemblerlines array
 end;
 type tfullaccess=record
-  address: dword;
+  address: ptrUint;
   size: dword;
 end;
 type tdefine=record
@@ -276,7 +276,7 @@ var i,j,k,l,e: integer;
     currentline: string;
     currentlinep: pchar;
 
-    currentaddress: dword;
+    currentaddress: ptrUint;
     assembled: array of tassembled;
     x,y,op,op2:dword;
     ok1,ok2:boolean;

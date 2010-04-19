@@ -2231,10 +2231,15 @@ begin
 end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
+var x: double;
 begin
   freezetimer.enabled:=false;
   addresslist.ApplyFreeze;
   freezetimer.enabled:=true;
+
+  AvailMem;
+  x:=SysGetHeapStatus.TotalFree;
+
 end;
 
 resourcestring
@@ -4304,13 +4309,21 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 var l: tstringlist;
+x: pbytearray;
 begin
-  beep;
-  asm
-   // push r8=41 50
-   db $90
-   db $c6,$05,$d2,$cd,$48,$00,$00
+  MessageDlg('BLA',mtError,[mbyes,mbno,mbok],0);
+
+  //ReturnNilIfGrowHeapFails:=true;
+  (*
+
+  x:=getmem(512*1024*1024);
+
+  if x<>nil then
+  begin
+    FillMemory(x, 512*1024*1024,$90);
+    showmessage('allocated');
   end;
+  exit;  *)
 
 //  l:=tstringlist.create;
 //  symhandler.getModuleList(l);

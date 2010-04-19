@@ -132,8 +132,8 @@ type
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     function inModule(address: ptrUint): BOOLEAN; //returns true if the given address is part of a module
     function inSystemModule(address: ptrUint): BOOLEAN;
-    function getNameFromAddress(address:dword):string; overload;
-    function getNameFromAddress(address:dword;symbols:boolean; modules: boolean; baseaddress: PDWORD=nil):string; overload;
+    function getNameFromAddress(address:ptrUint):string; overload;
+    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil):string; overload;
 
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
@@ -162,6 +162,34 @@ end;
 
 var symhandler: TSymhandler=nil;
     selfsymhandler: TSymhandler=nil;  //symhandler object for CE itself
+
+type
+    PSYMBOL_INFO = ^TSYMBOL_INFO;
+    TSYMBOL_INFO = {packed} record
+            SizeOfStruct : ULONG;
+            TypeIndex : ULONG;
+            Reserved : array[0..1] of ULONG64;
+            info : ULONG;
+            Size : ULONG;
+            ModBase : ULONG64;
+            Flags : ULONG;
+            Value : ULONG64;
+            Address : ULONG64;
+            Register : ULONG;
+            Scope : ULONG;
+            Tag : ULONG;
+            NameLen : ULONG;
+            MaxNameLen : ULONG;
+            Name : array[0..0] of TCHAR;
+         end;
+    SYMBOL_INFO = TSYMBOL_INFO;
+    LPSYMBOL_INFO = PSYMBOL_INFO;
+
+type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
+type TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWORD64; Symbol:PSYMBOL_INFO):BOOL;stdcall;
+
+var SymFromName: TSymFromName;
+    SymFromAddr: TSymFromAddr;
 
 implementation
 
@@ -818,9 +846,9 @@ begin
 end;
 
 
-function TSymhandler.getNameFromAddress(address:dword;symbols:boolean; modules: boolean; baseaddress: PDWORD=nil):string;
-var symbol :imagehlp.pimagehlp_symbol;
-    offset: dword;
+function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil):string;
+var symbol :PSYMBOL_INFO;
+    offset: qword;
     s: string;
     mi: tmoduleinfo;
     processhandle: thandle;
@@ -851,12 +879,14 @@ begin
       begin
         if isloaded then
         begin
-          getmem(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
+          getmem(symbol,sizeof(TSYMBOL_INFO)+255);
           try
-            zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
-            symbol.SizeOfStruct:=sizeof(IMAGEHLP_SYMBOL)+255;
-            symbol.MaxNameLength:=254;
-            if SymGetSymFromAddr(processhandle,address,@offset,symbol) then
+            zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
+            symbol.SizeOfStruct:=sizeof(TSYMBOL_INFO);
+            symbol.MaxNameLen:=254;
+
+
+            if SymFromAddr(processhandle,address,@offset,symbol) then
             begin
               //found it
               s:=pchar(@symbol.Name[0]);
@@ -904,7 +934,7 @@ begin
 
 end;
 
-function TSymhandler.getNameFromAddress(address:dword):string;
+function TSymhandler.getNameFromAddress(address:ptrUint):string;
 begin
   result:=getNameFromAddress(address,self.showsymbols,self.showmodules);
 end;
@@ -941,7 +971,6 @@ end;
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean; context: PContext):ptrUint;
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
-    symbol :PImagehlpSymbol;
     offset: dword;
 
     sn: string;
@@ -960,6 +989,11 @@ var mi: tmoduleinfo;
 
     nextoperation: TCalculation;
     regnr: integer;
+
+    symbol: PSYMBOL_INFO;
+
+    ps: pbytearray;
+    d: string;
 begin
   hasPointer:=false;
   haserror:=false;
@@ -1097,13 +1131,14 @@ begin
 
                 tokens[i]:=StringReplace(tokens[i],'.','!',[]);
 
-                getmem(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
+                getmem(symbol,sizeof(TSYMBOL_INFO)+255);
                 try
-                  zeromemory(symbol,sizeof(IMAGEHLP_SYMBOL)+255);
-                  symbol.SizeOfStruct:=sizeof(IMAGEHLP_SYMBOL)+255;
-                  symbol.MaxNameLength:=254;
+                  zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
+                  symbol.SizeOfStruct:=sizeof(TSYMBOL_INFO);
+                  symbol.MaxNameLen:=254;
 
-                  if jwawindows.SymGetSymFromName(processhandle,pchar(tokens[i]),symbol) then
+
+                  if SymFromName(processhandle, pchar(tokens[i]), symbol ) then
                   begin
                     tokens[i]:=inttohex(symbol.Address,8);
                     continue;
@@ -1477,7 +1512,7 @@ end;
 
 
 
-var psa: THandle;
+var psa,dbghlp: THandle;
 initialization
   symhandler:=tsymhandler.create;
   if selfsymhandler=nil then
@@ -1491,6 +1526,11 @@ initialization
   GetModuleFileNameEx:=GetProcAddress(psa,'GetModuleFileNameExA');
   if not assigned(EnumProcessModulesEx) then
     EnumProcessModulesEx:=EnumProcessModulesExNotImplemented;
+
+
+  dbghlp:=loadlibrary('Dbghelp.dll');
+  SymFromName:=GetProcAddress(dbghlp,'SymFromName');
+  SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
 
 
 finalization

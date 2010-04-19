@@ -972,7 +972,7 @@ var LoadLibraryPtr: pointer;
 
     outp:TAssemblerBytes;
     counter: integer;
-    position,position2: dword;
+    position,position2: ptrUint;
 
     dllLocation: string;
     startaddresS: ptrUint;
@@ -986,7 +986,7 @@ begin
   injectionlocation:=nil;
   try
     try
-      getprocaddressptr:=pointer(symhandler.getAddressFromName('GetProcAddress',true));
+      getprocaddressptr:=pointer(symhandler.getAddressFromName('Kernel32!GetProcAddress',true));
     except
       GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
     end;
@@ -1021,17 +1021,41 @@ begin
     inc(position2,length(functiontocall)+1);
     startaddress:=position;
 
-    //loadlibrary(cehook);
-    assemble('PUSH '+IntToHex(ptrUint(injectionlocation),8),position,outp);
-    copymemory(@inject[position2],outp,length(outp));
-    inc(position,length(outp));
-    inc(position2,length(outp));
+    if processhandler.is64bit then
+    begin
+      //loadlibrary(cehook);
+      assemble('SUB RSP,#32',position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
+      assemble('MOV RCX,'+IntToHex(ptrUint(injectionlocation),8),position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+
+    end
+    else
+    begin
+      //loadlibrary(cehook);
+      assemble('PUSH '+IntToHex(ptrUint(injectionlocation),8),position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+    end;
 
     assemble('CALL '+IntToHex(ptrUint(LoadLibraryPtr),8),position,outp);
     copymemory(@inject[position2],outp,length(outp));
     inc(position,length(outp));
     inc(position2,length(outp));
 
+    if processhandler.is64bit then
+    begin
+      assemble('ADD RSP,#32',position,outp);
+      copymemory(@inject[position2],outp,length(outp));
+      inc(position,length(outp));
+      inc(position2,length(outp));
+    end;
 
     //safetycode, test if the dll was actually loaded and skip if not
     assemble('TEST EAX,EAX',position,outp);
@@ -1058,22 +1082,50 @@ begin
     if functiontocall<>'' then
     begin
       //getprocaddress
-      assemble('PUSH '+IntToHex(functionloc,8),position,outp);
+      if processhandler.is64bit then
+      begin
+        //loadlibrary(cehook);
+        assemble('SUB RSP,#32',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+
+        assemble('MOV RCX,'+IntToHex(ptrUint(functionloc),8),position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+      end
+      else
+      begin
+
+        assemble('PUSH '+IntToHex(functionloc,8),position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+
+        assemble('PUSH EAX',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+      end;
+      assemble('CALL '+IntToHex(ptrUint(GetProcAddressPtr),8),position,outp);
       copymemory(@inject[position2],outp,length(outp));
       inc(position,length(outp));
       inc(position2,length(outp));
 
-      assemble('PUSH EAX',position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
+      if processhandler.is64bit then
+      begin
+        assemble('ADD RSP,#32',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+      end;
 
-      assemble('CALL '+IntToHex(dword(GetProcAddressPtr),8),position,outp);
-      copymemory(@inject[position2],outp,length(outp));
-      inc(position,length(outp));
-      inc(position2,length(outp));
+      if processhandler.is64bit then
+        assemble('TEST RAX,RAX',position,outp)
+      else
+        assemble('TEST EAX,EAX',position,outp);
 
-      assemble('TEST EAX,EAX',position,outp);
       copymemory(@inject[position2],outp,length(outp));
       inc(position,length(outp));
       inc(position2,length(outp));
@@ -1093,8 +1145,31 @@ begin
       inc(position,length(outp));
       inc(position2,length(outp));
 
+
+      if processhandler.is64bit then
+      begin
+        //setup stack
+        assemble('SUB RSP,#32',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+      end;
+
       //call function
-      assemble('CALL EAX',position,outp);
+      if processhandler.is64bit then
+        assemble('CALL RAX',position,outp)
+      else
+        assemble('CALL EAX',position,outp);
+
+      if processhandler.is64bit then
+      begin
+        //setup stack
+        assemble('ADD RSP,#32',position,outp);
+        copymemory(@inject[position2],outp,length(outp));
+        inc(position,length(outp));
+        inc(position2,length(outp));
+      end;
+
       copymemory(@inject[position2],outp,length(outp));
       inc(position,length(outp));
       inc(position2,length(outp));
@@ -1122,7 +1197,7 @@ begin
     useapctoinjectdll:=false;
     if useapctoinjectdll then
     begin
-      showmessage('injected code at:'+inttohex(startaddress,8));
+
       
       //suspend , message, resume is needed to prevent a crash when it is in a message loop 
       ntsuspendprocess(processid);
@@ -1133,8 +1208,14 @@ begin
     end
     else
 
+
     {$endif}
     {$endif}
+
+    //showmessage('injected code at:'+inttohex(startaddress,8));
+    //exit;
+
+
     begin      
       threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,x);
       if threadhandle=0 then raise exception.Create('Failed to execute the dll loader');
@@ -2480,6 +2561,10 @@ this function will return how many active cpu cores there are at your disposal
 var cpucount: integer;
     PA,SA: dword;
 begin
+ result:=1;
+ exit;
+
+
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 

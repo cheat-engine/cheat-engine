@@ -413,11 +413,22 @@ begin
           if reg.ValueExists('Decrease Speedhack speed') then
             reg.ReadBinaryData('Decrease Speedhack speed',temphotkeylist[9][0],10);
 
-          try reg.ReadBinaryData('Binary Hotkey',temphotkeylist[10][0],10); except end;
-          try reg.ReadBinaryData('Byte Hotkey',temphotkeylist[11][0],10); except end;
-          try reg.ReadBinaryData('2 Bytes Hotkey',temphotkeylist[12][0],10); except end;
-          try reg.ReadBinaryData('4 Bytes Hotkey',temphotkeylist[13][0],10); except end;
-          try reg.ReadBinaryData('8 Bytes Hotkey',temphotkeylist[14][0],10); except end;
+          if reg.ValueExists('Binary Hotkey') then
+            reg.ReadBinaryData('Binary Hotkey',temphotkeylist[10][0],10);
+
+          if reg.ValueExists('Byte Hotkey') then
+            reg.ReadBinaryData('Byte Hotkey',temphotkeylist[11][0],10);
+
+          if reg.ValueExists('2 Bytes Hotkey') then
+            reg.ReadBinaryData('2 Bytes Hotkey',temphotkeylist[12][0],10);
+
+          if reg.ValueExists('4 Bytes Hotkey') then
+            reg.ReadBinaryData('4 Bytes Hotkey',temphotkeylist[13][0],10);
+
+          if reg.ValueExists('8 Bytes Hotkey') then
+            reg.ReadBinaryData('8 Bytes Hotkey',temphotkeylist[14][0],10);
+
+
           try reg.ReadBinaryData('Float Hotkey',temphotkeylist[15][0],10); except end;
           try reg.ReadBinaryData('Double Hotkey',temphotkeylist[16][0],10); except end;
           try reg.ReadBinaryData('Text Hotkey',temphotkeylist[17][0],10); except end;

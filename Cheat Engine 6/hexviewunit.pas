@@ -606,10 +606,10 @@ var memorysize: integer;
     actualread: dword;
 begin
   memorysize:=bytesPerLine*totallines;
-  if buffersize<memorysize then //make sure the bufferi s big enough
+  if self.buffersize<memorysize then //make sure the bufferi s big enough
   begin
     ReAllocMem(buffer,memorysize*2);
-    buffersize:=memorysize*2;
+    self.buffersize:=memorysize*2;
   end;
 
   startpage:=fAddress;
@@ -646,7 +646,7 @@ var i: integer;
 begin
   result:=false;
   i:=a-fAddress;
-  if i>buffersize then
+  if i>self.buffersize then
     exit;
 
   page:=((fAddress and $fff)+i) shr 12;
@@ -662,7 +662,7 @@ begin
   result:=0;
 
   i:=a-fAddress;
-  if i>buffersize then
+  if i>self.buffersize then
     exit;
 
   page:=((fAddress and $fff)+i) shr 12;
@@ -1050,7 +1050,7 @@ begin
   inherited create(AOwner);
 
   getmem(buffer,8192);
-  buffersize:=8192;
+  self.buffersize:=8192;
 
   width:=200;
   height:=200;

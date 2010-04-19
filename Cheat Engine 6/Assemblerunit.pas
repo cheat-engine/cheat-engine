@@ -189,7 +189,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   //no $66 $E8 because it makes the address it jumps to 16 bit
   (mnemonic:'CALL';opcode1:eo_cd;paramtype1:par_rel32;bytes:1;bt1:$e8),
   //also no $66 $ff /2
-  (mnemonic:'CALL';opcode1:eo_reg2;paramtype1:par_rm32;bytes:1;bt1:$ff),
+  (mnemonic:'CALL';opcode1:eo_reg2;paramtype1:par_rm32;bytes:1;bt1:$ff;norexw:true),
   (mnemonic:'CBW';opcode1:eo_none;paramtype1:par_noparam;bytes:2;bt1:$66;bt2:$98),
   (mnemonic:'CDQ';bytes:1;bt1:$99),
   (mnemonic:'CLC';bytes:1;bt1:$f8),
@@ -630,7 +630,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'JMP';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$eb),
   (mnemonic:'JMP';opcode1:eo_cd;paramtype1:par_rel32;bytes:1;bt1:$e9),
-  (mnemonic:'JMP';opcode1:eo_reg4;paramtype1:par_rm32;bytes:1;bt1:$ff),
+  (mnemonic:'JMP';opcode1:eo_reg4;paramtype1:par_rm32;bytes:1;bt1:$ff;norexw:true),
 
 
 
@@ -1518,7 +1518,7 @@ type
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
 
-function Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
 function GetOpcodesIndex(opcode: string): integer;
 
 //function tokenize(opcode:string; var tokens: ttokens): boolean;
@@ -1532,6 +1532,10 @@ type TSingleLineAssembler=class
   private
     RexPrefix: Byte;
     RexPrefixLocation: integer; //index into the bytes array
+    relativeAddressLocation: integer; //index into the bytes array containing the start of th relative 4 byte address
+    actualdisplacement: qword;
+
+
     function getRex_W: boolean;
     procedure setRex_W(state: boolean);
     function getRex_R: boolean;
@@ -1544,14 +1548,16 @@ type TSingleLineAssembler=class
     procedure setrm(var modrm: byte;i: byte);
     procedure setsibindex(var sib: byte; i:byte);
     procedure setsibbase(var sib:byte; i:byte);
-    procedure setmodrm(var modrm:tassemblerbytes;address:string);
+    procedure setmodrm(var modrm:tassemblerbytes;address:string; offset: integer);
     procedure createsibscaleindex(var sib:byte;reg:string);
     procedure addopcode(var bytes:tassemblerbytes;i:integer);
     function createModRM(var bytes: tassemblerbytes;reg:integer;param: string):boolean;
     function getreg(reg: string;exceptonerror:boolean): integer; overload;
     function getreg(reg: string): integer; overload;
+
+    function HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
   public
-    function Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
+    function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
     property REX_W: boolean read getRex_W write setRex_W;
     property REX_R: boolean read getRex_R write setRex_R;
     property REX_X: boolean read getRex_X write setRex_X;
@@ -2047,7 +2053,6 @@ var i,j,k,err,err2: integer;
     tokens: array of string;
     last: integer;
 
-    symbol: imagehlp.pimagehlp_symbol;
     disp: dword;
 
     temp: string;
@@ -2101,32 +2106,23 @@ begin
     temp:='';
   end;
 
-  getmem(symbol,sizeof(imagehlp_symbol)+200);
-  try
-    for i:=0 to length(tokens)-1 do
+
+  for i:=0 to length(tokens)-1 do
+  begin
+    if (length(tokens[i])>1) or (not (tokens[i][1] in ['[',']','+','-','*'])) then
     begin
-      if (length(tokens[i])>1) or (not (tokens[i][1] in ['[',']','+','-','*'])) then
+      val('$'+tokens[i],j,err);
+      if (err<>0) and (getreg(tokens[i],false)=-1) then
       begin
-        val('$'+tokens[i],j,err);
-        if (err<>0) and (getreg(tokens[i],false)=1000) then
-        begin
-          symbol.SizeOfStruct:=sizeof(imagehlp_symbol)+200;
-          symbol.MaxNameLength:=200;
-
-          disp:=0;
+        temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
+        if not haserror then
+          tokens[i]:=temp;
 
 
-          temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
-          if not haserror then
-            tokens[i]:=temp;
-
-
-        end;
       end;
     end;
-  finally
-    freemem(symbol);
   end;
+
 
   //do some calculations
 
@@ -2324,7 +2320,6 @@ end;
 procedure TSingleLineAssembler.createsibscaleindex(var sib:byte;reg:string);
 var i2,i4,i8: integer;
 begin
-  showmessage('1.sib='+inttohex(sib,2));
   if pos('*2',reg)>0 then
     setsibscale(sib,1)
   else
@@ -2334,8 +2329,6 @@ begin
   if pos('*8',reg)>0 then
     setsibscale(sib,3)
   else setsibscale(sib,0);
-
-  showmessage('2.sib='+inttohex(sib,2));
 
   if not processhandler.is64Bit then
   begin
@@ -2370,15 +2363,13 @@ begin
       raise exception.Create('WTF is a '+reg)
 
   end;
-
-  showmessage('3.sib='+inttohex(sib,2));
 end;
 
 
 
-procedure TSingleLineAssembler.setmodrm(var modrm:tassemblerbytes;address:string);
+procedure TSingleLineAssembler.setmodrm(var modrm:tassemblerbytes;address:string; offset: integer);
 var regs: string;
-    disp,test: dword;
+    disp,test: qword;
     i,j,k,l: integer;
     start: integer;
     increase: boolean;
@@ -2468,19 +2459,7 @@ begin
 
   if disp=0 then setmod(modrm[0],0) else
   if (integer(disp)>=-128) and (integeR(disp)<=127) then setmod(modrm[0],1) else setmod(modrm[0],2);
-{
-  begin
 
-  if disp=0 then
-  begin
-    setmod(modrm[0],0);
-  end else
-  if disp<=255 then
-  begin
-    setmod(modrm[0],1);
-  end else setmod(modrm[0],2);
-  end;
- }
 
   reg1:='';
   reg2:='';
@@ -2498,11 +2477,6 @@ begin
 
   reg[-1]:=reg1;
   reg[1]:=reg2;
-
-//  if reg1<>'' then getreg(reg1);
-//  if reg2<>'' then getreg(reg2);
-
-
 
   k:=1;
 
@@ -2525,7 +2499,27 @@ begin
     //no registers, just a address
     setrm(modrm[0],5);
     setmod(modrm[0],0);
+
+    if processhandler.is64Bit then
+    begin
+      if disp<=$FFFFFFFF then
+      begin
+        //this can be solved with an 0x25 SIB byte
+        setlength(modrm,2);
+        setrm(modrm[0],4);
+        setsibbase(modrm[1],5); //no base
+        setsibindex(modrm[1],4);
+        setsibscale(modrm[1],0);
+      end
+      else
+      begin
+        actualdisplacement:=disp;
+        relativeAddressLocation:=offset+1;
+      end;
+    end;
+
     adddword(modrm,disp);
+
     found:=true;
   end;
 
@@ -2835,7 +2829,7 @@ begin
     if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') then setrm(modrm[0],14) else
     if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') then setrm(modrm[0],15) else
     raise exception.Create('I don''t understand what you mean with '+param);
-  end else setmodrm(modrm,address);
+  end else setmodrm(modrm,address, length(bytes));
 
   //setreg
   if reg>7 then
@@ -2962,12 +2956,12 @@ end;
 
 
 
-function Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
 begin
   result:=SingleLineAssembler.assemble(opcode, address, bytes);
 end;
 
-function TSingleLineAssembler.Assemble(opcode:string; address: dword;var bytes: TAssemblerBytes): boolean;
+function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
 var tokens: ttokens;
     i,j,k,l: integer;
     v,v2: qword;
@@ -2983,12 +2977,13 @@ var tokens: ttokens;
     tempstring: string;
     overrideShort, overrideLong: boolean;
 begin
+
+
   {$ifdef checkassembleralphabet}
   for i:=2 to opcodecount do
     if opcodes[i].mnemonic<opcodes[i-1].mnemonic then raise exception.Create('FUCK YOU! THE PROGRAMMER WAS STUPID ENOUGH TO MESS THIS PART UP IN PART '+IntToStr(i)+' '+opcodes[i-1].mnemonic+'<'+opcodes[i].mnemonic);
   {$endif}
-
-
+  relativeAddressLocation:=-1;
   rexprefix:=0;
   result:=false;
 
@@ -3237,49 +3232,49 @@ begin
 
 
   result:=false;
-  //this is just a test to see if I can do the assembler stuff a little easier
 
-  {
-  //sorted scan (nice and fast)
-  first:=1;
-  last:=opcodecount;
-
-  j:=first+((last-first) div 2);
-  k:=j-1;
-  dec(k);
-
-  while (first<last) do
+  //to make it easier for people that don't like the relative addressing limit
+  if processhandler.is64Bit then   //if 64-bit
   begin
-    j:=first+((last-first) div 2);
-
-    if k=j then
+    //check if this is a jmp or call with relative value
+    if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') then
     begin
-      if k=first then
+      if paramtype1=ttValue then
       begin
-        first:=last;
-        j:=last;
+        //if the relative distance is too big, then replace with with jmp/call [2], jmp+8, DQ address
+        if address>v then
+          v2:=address-v
+        else
+          v2:=v-address;
+
+
+        if v2>$7fffffff then
+        begin
+          //restart
+          setlength(bytes,0);
+          rexprefix:=0;
+
+          add(bytes,[$ff]);
+          if (tokens[mnemonic]='JMP') then
+          begin
+            add(bytes,[$25]);
+            AddDword(bytes, 0);
+          end
+          else
+          begin
+            add(bytes,[$15]); //call
+            AddDword(bytes, 2);
+            Add(bytes, [$eb, $08]);
+          end;
+
+          AddQword(bytes,v);
+          result:=true;
+          exit;
+        end;
       end;
 
-      if k=last then
-      begin
-        last:=first;
-        j:=last;
-      end;
     end;
-
-    k:=j;
-
-    if opcodes[j].mnemonic=tokens[mnemonic] then break;
-
-    if opcodes[j].mnemonic>tokens[mnemonic] then last:=j
-                                            else first:=j;
   end;
-
-  if opcodes[j].mnemonic<>tokens[mnemonic] then exit;
-
-  while (j>=1) and (opcodes[j].mnemonic=tokens[mnemonic]) do dec(j);
-  inc(j);
-     }
 
 
   j:=GetOpcodesIndex(tokens[mnemonic]); //index scan, better than sorted
@@ -5114,27 +5109,152 @@ begin
     if result then
     begin
       //insert rex prefix if needed
-      if opcodes[j].norexw then
-        REX_W:=false;
-
-      if RexPrefix<>0 then
+      if processhandler.is64bit then
       begin
 
 
 
-        if RexPrefixLocation=-1 then raise exception.create('Assembler error');
-        RexPrefix:=RexPrefix or $40;
-        setlength(bytes,length(bytes)+1);
-        for i:=length(bytes)-1 downto RexPrefixLocation+1 do
-          bytes[i]:=bytes[i-1];
+        if opcodes[j].norexw then
+          REX_W:=false;
 
-        bytes[RexPrefixLocation]:=RexPrefix;
+        if RexPrefix<>0 then
+        begin
+          if RexPrefixLocation=-1 then raise exception.create('Assembler error');
+          RexPrefix:=RexPrefix or $40;
+          setlength(bytes,length(bytes)+1);
+          for i:=length(bytes)-1 downto RexPrefixLocation+1 do
+            bytes[i]:=bytes[i-1];
+
+          bytes[RexPrefixLocation]:=RexPrefix;
+
+          if relativeAddressLocation<>-1 then inc(relativeAddressLocation);
+        end;
+
+
+        if relativeAddressLocation<>-1 then
+        begin
+          //adjust the specified address so it's relative (The outside of range check is already done in the modrm generation)
+          if actualdisplacement>(address+length(bytes)) then
+            v:=actualdisplacement-(address+length(bytes))
+          else
+            v:=(address+length(bytes))-actualdisplacement;
+
+          if v>$7fffffff then
+          begin
+            setlength(bytes,0);
+            //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
+            raise exception.create('offset too big');
+          end
+          else
+            pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));
+
+        end;
+
+      end;
+    end;
+  end;
+end;
+
+
+
+//following routine is not finished and even when it is it's just useless
+function TSingleLineAssembler.HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
+{
+offset too big
+rewrite this instruction
+jmp +32
+storage:
+.....
+
+push rax
+mov rax,actualdisplacement
+mov rax,[rax]
+mov [rsp-8],rax
+pop rax  //note that it will now be stored at rsp-10
+mov [rsp-10],ecx  original instruction   :mov [181000010],rsp
+push rax
+push rbx
+mov rax,[storage]
+mov [actual],rax
+pop rbx
+pop rax
+
+
+addressconfig:
+dq displacement
+}
+var
+  push1: TAssemblerBytes;
+  movrax1: TAssemblerBytes;
+  movrax2: TAssemblerBytes;
+  movaddressconfig:TAssemblerBytes;
+  pop1: TAssemblerBytes;
+  modifiedoriginal: TAssemblerBytes;
+
+  toreplace: string;
+  i,j: integer;
+begin
+  i:=pos('[',opcode);
+  j:=pos(']',opcode);
+  toreplace:=copy(opcode,i+1,j-i-1);
+
+
+  result:=assemble('push rax',address,push1);
+  if result then result:=assemble('mov rax,'+toreplace,address,movrax1);
+  if result then result:=assemble('mov rax,[rax]',address,movrax2);
+  if result then result:=assemble('mov [rsp-8],rax',address,movaddressconfig);
+  if result then result:=assemble('pop rax',address,pop1);
+
+  if result then
+  begin
+    opcode:=stringreplace(opcode,toreplace,'rsp-10',[]);
+    result:=assemble(opcode,address,modifiedoriginal);
+
+    if result then
+    begin
+      //and
+      setlength(bytes,length(push1)+length(movrax1)+length(movrax2)+length(movaddressconfig)+length(pop1)+length(modifiedoriginal));
+      j:=0;
+
+      for i:=0 to length(push1) do
+      begin
+        bytes[j]:=push1[i];
+        inc(j);
+      end;
+
+      for i:=0 to length(movrax1) do
+      begin
+        bytes[j]:=movrax1[i];
+        inc(j);
+      end;
+
+      for i:=0 to length(movrax2) do
+      begin
+        bytes[j]:=movrax2[i];
+        inc(j);
+      end;
+
+      for i:=0 to length(movaddressconfig) do
+      begin
+        bytes[j]:=movaddressconfig[i];
+        inc(j);
+      end;
+
+      for i:=0 to length(pop1) do
+      begin
+        bytes[j]:=pop1[i];
+        inc(j);
+      end;
+
+      for i:=0 to length(modifiedoriginal) do
+      begin
+        bytes[j]:=modifiedoriginal[i];
+        inc(j);
       end;
 
     end;
   end;
 end;
-
 
 var i,j,k,l,m: integer;
     lastentry: integer;

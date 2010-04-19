@@ -1,0 +1,51 @@
+object Form1: TForm1
+  Left = 289
+  Height = 202
+  Top = 177
+  Width = 475
+  Caption = 'speedhack test'
+  ClientHeight = 202
+  ClientWidth = 475
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 32
+    Width = 33
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 0
+    Height = 14
+    Top = 48
+    Width = 33
+    Caption = 'Label2'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 0
+    Height = 14
+    Top = 64
+    Width = 33
+    Caption = 'Label3'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 163
+    Height = 25
+    Top = 19
+    Width = 75
+    Caption = 'Button1'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 10
+    OnTimer = Timer1Timer
+  end
+end

@@ -94,6 +94,7 @@ function disassemble(var offset: ptrUint; var description: string): string; over
 
 function GetBitOf(Bt: qword; bit: integer): byte;
 function previousopcode(address: ptrUint):ptrUint;
+function has4ByteHexString(d: string; var hexstring: string): boolean;
 function hasAddress(d: string; var address: ptrUint; context: PContext=nil):boolean;
 
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean):string;
@@ -937,10 +938,7 @@ begin
     4: result:='ESP';
     5:
     begin
-      if _mod<>0 then
-        result:='EBP'
-      else result:='----'
-
+      if _mod<>0 then result:='EBP';
     end;
     6: result:='ESI';
     7: result:='EDI';
@@ -962,7 +960,7 @@ begin
     1: indexstring:='ECX';
     2: indexstring:='EDX';
     3: indexstring:='EBX';
-    4: indexstring:='----';
+    4: indexstring:='';
     5: indexstring:='EBP';
     6: indexstring:='ESI';
     7: indexstring:='EDI';
@@ -990,8 +988,15 @@ begin
       result:=indexstring
     else
       result:=result+'+'+indexstring;
+  end else
+  begin
+    if _mod=0 then //special case
+    begin
+      //sib has a 32-bit displacement value (starting at 0000000000000000)
+      result:=inttohex(dwordptr^,8);
+      last:=last+4;
+    end;
   end;
-
 {$ifdef disassemblerdebug}
   result:=result+' ss='+inttostr(ss)+' index='+inttostr(index)+' base='+inttostr(base);
 {$endif}
@@ -1379,9 +1384,21 @@ begin
                         inc(offset,last-1);
                       end;
 
+                $05 : begin
+                        description:='Fast System Call';
+                        tempresult:=tempresult+'SYSCALL';
+                        inc(offset);
+                      end;
+
                 $06 : begin
                         description:='Clear Task-Switched Flag in CR0';
                         tempresult:=tempresult+'CLTS';
+                        inc(offset);
+                      end;
+
+                $07 : begin
+                        description:='Return From Fast System Call';
+                        tempresult:=tempresult+'SYSRET';
                         inc(offset);
                       end;
 
@@ -1601,6 +1618,18 @@ begin
 
                         end;
                       end;
+
+                $1f:  begin
+                        case OpcodeReg(memory[2]) of
+                          0:  begin
+                                description:='Multibyte NOP';
+                                tempresult:=tempresult+'NOP '+MODRM(memory,prefix2,2,0,last);
+                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                inc(offset,last-1);
+                              end;
+                        end;
+                      end;
+
 
 
                 $20 : begin
@@ -5646,21 +5675,15 @@ begin
               dwordptr:=@memory[1];
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'MOV AX,'+getsegmentoverride(prefix2)+'['+inttohexs(wordptr^,4)+']';
+                tempresult:=tempresult+'MOV AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
                 inc(offset,2);
               end
               else
               begin
-                if processhandler.is64Bit then //no rex prefix needed
-                begin
-                  tempresult:=tempresult+'MOV RAX,'+getsegmentoverride(prefix2)+'['+inttohexs(pqword(dwordptr)^,16)+']';
-                  inc(offset,4);
-                end
-                else
-                begin
-                  tempresult:=tempresult+'MOV EAX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
-                  inc(offset,4);
-                end;
+                if Rex_W then tempresult:=tempresult+'MOV RAX,' else tempresult:=tempresult+'MOV EAX,';
+
+                tempresult:=tempresult+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+                inc(offset,4);
               end;
 
             end;
@@ -7431,7 +7454,10 @@ begin
               begin
                 tempresult:=tempresult+'JMP ';
                 inc(offset,4);
-                tempresult:=tempresult+inttohexs(dword(offset+pInteger(@memory[1])^),8);
+                if processhandler.is64bit then
+                  tempresult:=tempresult+inttohexs(qword(offset+pInteger(@memory[1])^),8)
+                else
+                  tempresult:=tempresult+inttohexs(dword(offset+pInteger(@memory[1])^),8);
               end;
 
             end;
@@ -7449,7 +7475,10 @@ begin
               description:='Jump short';
               tempresult:=tempresult+'JMP ';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
+              if processhandler.is64Bit then
+                tempresult:=tempresult+inttohexs(qword(offset+pshortint(@memory[1])^),8)
+              else
+                tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
             end;
 
       $ec : begin
@@ -7710,7 +7739,12 @@ begin
                       //call
                       description:='Call Procedure';
                       if memory[1]>=$c0 then tempresult:='CALL '+modrm(memory,prefix2,1,0,last) else
-                                             tempresult:='CALL '+modrm(memory,prefix2,1,0,last,32);
+                      begin
+                        if processhandler.is64Bit then
+                          tempresult:='CALL '+modrm(memory,prefix2,1,0,last,64)
+                        else
+                          tempresult:='CALL '+modrm(memory,prefix2,1,0,last,32);
+                      end;
                       tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
@@ -7724,16 +7758,21 @@ begin
                     end;
 
                 4:  begin
-                      //call
+                      //jmp
                       description:='Jump near';
                       if memory[1]>=$c0 then tempresult:='JMP '+modrm(memory,prefix2,1,0,last) else
-                                             tempresult:='JMP '+modrm(memory,prefix2,1,0,last,32);
+                      begin
+                        if processhandler.is64bit then
+                          tempresult:='JMP '+modrm(memory,prefix2,1,0,last,64)
+                        else
+                          tempresult:='JMP '+modrm(memory,prefix2,1,0,last,32);
+                      end;
                       tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
 
                 5:  begin
-                      //call
+                      //jmp
                       description:='Jump far';
                       tempresult:='JMP far '+modrm(memory,prefix2,1,0,last);
                       tempresult:=copy(tempresult,1,length(tempresult)-1);
@@ -7833,23 +7872,35 @@ function has4ByteHexString(d: string; var hexstring: string): boolean;
 var
   hexcount: integer;
   i: integer;
+
+  lastmatch: integer;
+  lasthexcount: integer;
 begin
   result:=false;
   hexcount:=0;
+  lasthexcount:=0;
+
   for i:=length(d) downto 1 do
   begin
     if d[i] in ['a'..'f','A'..'F','0'..'9'] then
     begin
       inc(hexcount);
-      if hexcount=8 then
-      begin
-        //it has a 4 byte hexadecimal value
-        hexstring:='$'+copy(d,i,8);
-        result:=true;
-        exit;
-      end;
-    end else hexcount:=0;
 
+      if hexcount>lasthexcount then
+      begin
+        lastmatch:=i;
+        lasthexcount:=hexcount;
+      end;
+    end
+    else
+      hexcount:=0;
+  end;
+
+  if lasthexcount>=8 then
+  begin
+    //it has at least a 4 byte hexadecimal value, so an address specifier
+    hexstring:='$'+copy(d,lastmatch,lasthexcount);
+    result:=true;
   end;
 end;
 
@@ -7977,7 +8028,7 @@ begin
 end;
 
 procedure tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
-var offset,value:dword;
+var offset,value:ptrUint;
     e: integer;
     i,j,j2,k,l: integer;
     ts,ts2,ts3: string;
@@ -8131,9 +8182,13 @@ begin
 
             if isjumper and ((value and $ffff)=$25ff) then //it's a jmp [xxxxxxxx]    / call [xxxxxx] ...
             begin
+              value:=0;
               if readprocessmemory(processhandle,pointer(tempaddress+2),@value,4,actualread) then
               begin
-                if readprocessmemory(processhandle,pointer(value),@value,4,actualread) then
+                if processhandler.is64Bit then
+                  value:=tempaddress+6+value;
+
+                if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,actualread) then
                 begin
                   ts:='->'+symhandler.getNameFromAddress(value);
                 end;

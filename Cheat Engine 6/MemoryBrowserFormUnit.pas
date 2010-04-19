@@ -1341,7 +1341,7 @@ begin
       for i:=0 to threadlist.count-1 do
         if TDebugThreadHandler(threadlist[i]).handle=threadhandle then
         begin
-          TDebugThreadHandler(threadlist[i]).breakThread;
+          TDebugThreadHandler(threadlist[i]).BreakThread;
           exit;
         end;
     finally

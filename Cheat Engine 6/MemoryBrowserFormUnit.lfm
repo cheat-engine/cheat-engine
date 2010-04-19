@@ -1,11 +1,11 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 284
+  Left = 303
   Height = 577
-  Top = 138
+  Top = 160
   Width = 721
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 557
+  ClientHeight = 552
   ClientWidth = 721
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -442,18 +442,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 252
+    Height = 247
     Top = 305
     Width = 721
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 252
+    ClientHeight = 247
     ClientWidth = 721
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 505
-      Height = 250
+      Height = 245
       Top = 1
       Width = 5
       Align = alRight
@@ -464,17 +464,17 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 250
+      Height = 245
       Top = 1
       Width = 504
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 250
+      ClientHeight = 245
       ClientWidth = 504
       TabOrder = 0
       object Panel2: TPanel
         Left = 0
-        Height = 250
+        Height = 245
         Top = 0
         Width = 504
         Align = alClient
@@ -484,19 +484,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 510
-      Height = 250
+      Height = 245
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 250
+      ClientHeight = 245
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 246
+        Height = 241
         Top = 2
         Width = 206
         Align = alClient

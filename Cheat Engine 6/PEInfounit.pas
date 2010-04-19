@@ -171,7 +171,7 @@ var MZheader: ttreenode;
 
     sFileType,sCharacteristics, sType: string;
     i, j, k: integer;
-    maxaddress: dword;
+    maxaddress: ptrUint;
 
     importaddress: PtrUInt;
     importfunctionname: string;
@@ -179,20 +179,21 @@ var MZheader: ttreenode;
     //ignore: dword;
     //correctprotection: dword;
 
-    basedifference: dword;
+    basedifference: ptrUint;
     basedifference64: INT64;
 
     modhandle: thandle;
-    funcaddress: dword;
+    funcaddress: ptrUint;
 
     numberofrva: integer;
     is64bit: boolean;
 
-    tempaddress,tempaddress2: dword;
+    tempaddress,tempaddress2: ptrUint;
     temps: string;
 
 
 begin
+
   PEItv.Items.BeginUpdate;
   lbImports.Items.BeginUpdate;
   lbExports.Items.BeginUpdate;
@@ -311,7 +312,7 @@ begin
 
     datadir:=PEItv.Items.addchild(PEHeader,format('Number Of Rva And Sizes = %d ' ,[numberofrva]));
 
-    ImageSectionHeader:=PImageSectionHeader(dword(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
+    ImageSectionHeader:=PImageSectionHeader(ptrUint(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
     PEItv.Items.addchild(PEHeader,'-----sections-----');
 
     maxaddress:=0;
@@ -354,7 +355,7 @@ begin
       inc(ImageSectionHeader);
     end;
 
-    ImageSectionHeader:=PImageSectionHeader(dword(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
+    ImageSectionHeader:=PImageSectionHeader(ptrUint(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
 
     if loaded then
     begin
@@ -364,12 +365,12 @@ begin
       if is64bit then
       begin
         //no use in 5.4- , but let's do it anyhow
-        basedifference:=dword(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
+        basedifference:=ptrUint(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
         basedifference64:=UINT64(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
       end
       else
       begin
-        basedifference:=dword(loadedmodule)-ImageNTHeader^.OptionalHeader.ImageBase;
+        basedifference:=ptrUint(loadedmodule)-ImageNTHeader^.OptionalHeader.ImageBase;
       end;
 
     end
@@ -380,7 +381,7 @@ begin
       if loadedmodule=nil then raise exception.create('Failure at allocating memory');
       ZeroMemory(loadedmodule,maxaddress);
 
-      label2.caption:=inttohex(dword(loadedmodule),8);
+      label2.caption:=inttohex(ptrUint(loadedmodule),8);
       for i:=0 to ImageNTHeader^.FileHeader.NumberOfSections-1 do
       begin
         CopyMemory(@loadedmodule[ImageSectionHeader.VirtualAddress], @memorycopy[ImageSectionHeader.PointerToRawData], ImageSectionHeader.SizeOfRawData);
@@ -400,13 +401,13 @@ begin
       begin
         CopyMemory(@loadedmodule[0], @memorycopy[0], PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.SizeOfHeaders);
 
-        basedifference:=dword(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
+        basedifference:=ptrUint(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
         basedifference64:=UINT64(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
       end
       else
       begin
         CopyMemory(@loadedmodule[0], @memorycopy[0], ImageNTHeader^.OptionalHeader.SizeOfHeaders);
-        basedifference:=dword(loadedmodule)-ImageNTHeader^.OptionalHeader.ImageBase;
+        basedifference:=ptrUint(loadedmodule)-ImageNTHeader^.OptionalHeader.ImageBase;
 
       end;
 
@@ -450,22 +451,22 @@ begin
       begin
         //exports
         if is64bit then
-          ImageExportDirectory:=PImageExportDirectory(dword(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
+          ImageExportDirectory:=PImageExportDirectory(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
         else
-          ImageExportDirectory:=PImageExportDirectory(dword(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+          ImageExportDirectory:=PImageExportDirectory(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
-        lbExports.Items.Add(pchar(dword(loadedmodule)+ImageExportDirectory.Name)+':');
+        lbExports.Items.Add(pchar(ptrUint(loadedmodule)+ImageExportDirectory.Name)+':');
 
 
         PEItv.Items.addchild(tempnode, format('Characteristics=%x (should be 0)', [ImageExportDirectory.Characteristics]));
         PEItv.Items.addchild(tempnode, format('Time datastamp=%x', [ImageExportDirectory.TimeDateStamp]));
         PEItv.Items.addchild(tempnode, format('Major version=%d', [ImageExportDirectory.MajorVersion]));
         PEItv.Items.addchild(tempnode, format('Minor version=%d', [ImageExportDirectory.MinorVersion]));
-        PEItv.Items.addchild(tempnode, format('Name = %x (%s)', [ImageExportDirectory.Name, pchar(dword(loadedmodule)+ImageExportDirectory.Name)]));
+        PEItv.Items.addchild(tempnode, format('Name = %x (%s)', [ImageExportDirectory.Name, pchar(ptrUint(loadedmodule)+ImageExportDirectory.Name)]));
         PEItv.Items.addchild(tempnode, format('Base = %x', [ImageExportDirectory.Base]));
         PEItv.Items.addchild(tempnode, format('NumberOfFunctions = %d', [ImageExportDirectory.NumberOfFunctions]));
         PEItv.Items.addchild(tempnode, format('NumberOfNames = %d', [ImageExportDirectory.NumberOfNames]));
-        tempnode2:=PEItv.Items.addchild(tempnode, format('AddressOfFunctions = %x', [dword(ImageExportDirectory.AddressOfFunctions)]));
+        tempnode2:=PEItv.Items.addchild(tempnode, format('AddressOfFunctions = %x', [ptrUint(ImageExportDirectory.AddressOfFunctions)]));
 
         if ImageExportDirectory.NumberOfFunctions<>ImageExportDirectory.NumberOfNames then
           tempnode2.Text:=tempnode2.Text+' (inconsistent)'
@@ -474,9 +475,9 @@ begin
           for j:=0 to ImageExportDirectory.NumberOfFunctions-1 do
           begin
             //get name ordinal
-            k:=pwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNameOrdinals))[j];
+            k:=pwordarray(ptrUint(loadedmodule)+ptrUint(ImageExportDirectory.AddressOfNameOrdinals))[j];
 
-            lbExports.Items.Add(format('%x - %s',[pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfFunctions))[k], pchar(dword(loadedmodule)+pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNames))[j])]));
+            lbExports.Items.Add(format('%x - %s',[pdwordarray(ptrUint(loadedmodule)+ptrUint(ImageExportDirectory.AddressOfFunctions))[k], pchar(ptrUint(loadedmodule)+pdwordarray(ptrUint(loadedmodule)+ptrUint(ImageExportDirectory.AddressOfNames))[j])]));
           end;
 
 
@@ -485,14 +486,14 @@ begin
 
 
         for j:=0 to ImageExportDirectory.NumberOfFunctions-1 do
-          PEItv.Items.addchild(tempnode2, format('%x',[pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfFunctions))[j]]));
+          PEItv.Items.addchild(tempnode2, format('%x',[pdwordarray(ptrUint(loadedmodule)+ptrUint(ImageExportDirectory.AddressOfFunctions))[j]]));
 
-        tempnode2:=PEItv.Items.addchild(tempnode, format('AddressOfNames = %x', [dword(ImageExportDirectory.AddressOfNames)]));
+        tempnode2:=PEItv.Items.addchild(tempnode, format('AddressOfNames = %x', [ptrUint(ImageExportDirectory.AddressOfNames)]));
         for j:=0 to ImageExportDirectory.NumberOfNames-1 do
-          PEItv.Items.addchild(tempnode2, format('%s',[pchar(dword(loadedmodule)+pdwordarray(dword(loadedmodule)+dword(ImageExportDirectory.AddressOfNames))[j])]));
+          PEItv.Items.addchild(tempnode2, format('%s',[pchar(ptrUint(loadedmodule)+pdwordarray(ptrUint(loadedmodule)+ptrUint(ImageExportDirectory.AddressOfNames))[j])]));
 
 
-        PEItv.Items.addchild(tempnode, format('AddressOfNameOrdinals = %x', [dword(ImageExportDirectory.AddressOfNameOrdinals)]));
+        PEItv.Items.addchild(tempnode, format('AddressOfNameOrdinals = %x', [ptrUint(ImageExportDirectory.AddressOfNameOrdinals)]));
       end
       else
       if i=1 then
@@ -500,9 +501,9 @@ begin
 
         j:=0;
         if is64bit then
-          ImageImportDirectory:=PImageImportDirectory(dword(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
+          ImageImportDirectory:=PImageImportDirectory(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
         else
-          ImageImportDirectory:=PImageImportDirectory(dword(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+          ImageImportDirectory:=PImageImportDirectory(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
 
 
@@ -513,14 +514,14 @@ begin
           if j>0 then
             lbImports.Items.Add('');
 
-          lbImports.Items.Add(format('%s', [pchar(dword(loadedmodule)+ImageImportDirectory.name)]));
+          lbImports.Items.Add(format('%s', [pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
 
 
-          tempnode2:=PEItv.Items.addchild(tempnode,format('Import %d : %s',[j, pchar(dword(loadedmodule)+ImageImportDirectory.name)]));
+          tempnode2:=PEItv.Items.addchild(tempnode,format('Import %d : %s',[j, pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
           PEItv.Items.addchild(tempnode2, format('Characteristics/OriginalFirstThunk=%x', [ImageImportDirectory.characteristicsOrFirstThunk]));
           PEItv.Items.addchild(tempnode2, format('TimeDateStamp=%x (0=not bound -1=bound, and timestamp)', [ImageImportDirectory.TimeDateStamp]));
           PEItv.Items.addchild(tempnode2, format('Forwarder Chain=%x (-1 if no forwarders)', [ImageImportDirectory.ForwarderChain]));
-          PEItv.Items.addchild(tempnode2, format('Name=%x : %s', [ImageImportDirectory.name, pchar(dword(loadedmodule)+ImageImportDirectory.name)]));
+          PEItv.Items.addchild(tempnode2, format('Name=%x : %s', [ImageImportDirectory.name, pchar(ptrUint(loadedmodule)+ImageImportDirectory.name)]));
           PEItv.Items.addchild(tempnode2, format('FirstThunk=%x', [ImageImportDirectory.FirstThunk]));
 
           tempnode3:=PEItv.Items.addchild(tempnode2, format('imports:',[]));
@@ -528,7 +529,7 @@ begin
 
           if ImageImportDirectory.ForwarderChain<>$ffffffff then
           begin
-            importmodulename:=pchar(dword(loadedmodule)+ImageImportDirectory.name);
+            importmodulename:=pchar(ptrUint(loadedmodule)+ImageImportDirectory.name);
 
             if not loaded then
               modhandle:=loadlibrary(pchar(importmodulename));
@@ -536,18 +537,18 @@ begin
             k:=0;
             if is64bit then
             begin
-              while PUINT64(dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
+              while PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
               begin
-                importaddress:=dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k;
-                importfunctionname:=pchar(dword(loadedmodule)+pdword(importaddress)^+2);
+                importaddress:=ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k;
+                importfunctionname:=pchar(ptrUint(loadedmodule)+pdword(importaddress)^+2);
 
-                PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
-                lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(dword(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
+                PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
+                lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
 
                 if not loaded then
                 begin
-                  funcaddress:=dword(getprocaddress(modhandle, pchar(importfunctionname)));
-                  PDWORD(importaddress)^:=funcaddress;
+                  funcaddress:=ptrUint(getprocaddress(modhandle, pchar(importfunctionname)));
+                  PUINT64(importaddress)^:=funcaddress;
                 end;
 
                 inc(k);
@@ -557,12 +558,12 @@ begin
             begin
               while PDWORD(dword(loadedmodule)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
               begin
-                importaddress:=dword(@pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k]);
+                importaddress:=ptrUint(@pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k]);
 
-                tempaddress:=dword(loadedmodule)+pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
+                tempaddress:=ptrUint(loadedmodule)+pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
                 if loaded then
                 begin
-                  tempaddress2:=pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k];
+                  tempaddress2:=pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k];
                   importfunctionname:=symhandler.getNameFromAddress(tempaddress2);
 
                   if uppercase(inttohex(tempaddress2,8))=uppercase(importfunctionname) then
@@ -574,12 +575,12 @@ begin
                 end
                 else importfunctionname:=pchar(tempaddress);
 
-                PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress, importfunctionname]));
-                lbImports.Items.Add( format('%x (%x) - %s',[pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress-dword(loadedmodule), importfunctionname]));
+                PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress, importfunctionname]));
+                lbImports.Items.Add( format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress-ptrUint(loadedmodule), importfunctionname]));
 
                 if not loaded then
                 begin
-                  funcaddress:=dword(getprocaddress(modhandle, pchar(importfunctionname)));
+                  funcaddress:=ptrUint(getprocaddress(modhandle, pchar(importfunctionname)));
                   pdword(importaddress)^:=funcaddress;
                 end;
 
@@ -593,7 +594,7 @@ begin
           end;
 
           inc(j);
-          ImageImportDirectory:=PImageImportDirectory(dword(ImageImportDirectory)+sizeof(TImageImportDirectory));
+          ImageImportDirectory:=PImageImportDirectory(ptrUint(ImageImportDirectory)+sizeof(TImageImportDirectory));
         end;
 
       end
@@ -603,16 +604,16 @@ begin
         // IMAGE_BASE_RELOCATION stuff
           if is64bit then
           begin
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
-            maxaddress:=dword(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
+            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
+            maxaddress:=ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
           end
           else
           begin
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
-            maxaddress:=dword(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
+            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+            maxaddress:=ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
           end;
 
-          while dword(ImageBaseRelocation)<maxaddress do
+          while ptrUint(ImageBaseRelocation)<maxaddress do
           begin
             if ImageBaseRelocation.SizeOfBlock=0 then break;
 
@@ -626,15 +627,15 @@ begin
               if not loaded then
               begin
                 if (ImageBaseRelocation.rel[j] shr 12)=3 then            //replace the address at this address with a relocated one (dword)
-                  pdword(dword(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(dword(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
+                  pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
 
                 if (ImageBaseRelocation.rel[j] shr 12)=10 then            //replace the address at this address with a relocated one (dword)
-                  PUINT64(dword(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(dword(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
+                  PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
               end;
             end;
 
 
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
+            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
           end;
       end;
 
@@ -712,7 +713,7 @@ end;
 procedure TfrmPEInfo.modulelistClick(Sender: TObject);
 begin
   if modulelist.ItemIndex<>-1 then
-    edtAddress.Text:=inttohex(dword(modulelist.Items.Objects[modulelist.itemindex]),8);
+    edtAddress.Text:=inttohex(ptrUint(modulelist.Items.Objects[modulelist.itemindex]),8);
 end;
 
 procedure TfrmPEInfo.FormShow(Sender: TObject);

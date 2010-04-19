@@ -28,10 +28,14 @@ var i: integer;
     script: tstringlist;
     AllocArray: TCEAllocArray;
     x,y: dword;
+    a,b: ptrUint;
 begin
 
   try
-    injectdll(CheatEngineDir+'speedhack.dll','');
+    if processhandler.is64bit then
+      injectdll(CheatEngineDir+'speedhack64.dll','')
+    else
+      injectdll(CheatEngineDir+'speedhack.dll','');
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded;
   except
@@ -44,9 +48,9 @@ begin
     script.Add('alloc(init,512)');
     //check if it already has a a speedhack script running
 
-    x:=symhandler.getAddressFromName('realgettickcount') ;
-    y:=0;
-    readprocessmemory(processhandle,pointer(x),@y,4,x);
+    a:=symhandler.getAddressFromName('realgettickcount') ;
+    b:=0;
+    readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
     if y<>0 then //already configured
       generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount')
     else
@@ -56,6 +60,10 @@ begin
 
     try
       setlength(AllocArray,0);
+
+
+
+
       autoassemble(script,false,true,false,false,AllocArray);
 
       //fill in the address for the init region
@@ -71,6 +79,7 @@ begin
       raise exception.Create('Failure configuring speedhack part 1');
     end;
 
+
     //timegettime
     script.Clear;
     script.Add('timeGetTime:');
@@ -82,13 +91,16 @@ begin
 
 
     script.clear;
-    x:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
-    y:=0;
-    readprocessmemory(processhandle,pointer(x),@y,4,x);
+    a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
+    b:=0;
+    readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
     if y<>0 then //already configured
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter')
     else
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
+
+
+    showmessage(script.Text);
 
     try
       autoassemble(script,false);
@@ -131,10 +143,27 @@ begin
   script:=tstringlist.Create;
   try
     script.add('CreateThread('+inttohex(initaddress,8)+')');
+    script.add('label(newspeed)');
     script.add(inttohex(initaddress,8)+':');
-    script.add('push '+inttohex(pdword(@x)^,8) );
+    if processhandler.is64Bit then
+    begin
+      script.add('sub rsp,#32');
+      script.add('movss xmm0,[newspeed]');
+      script.add('push rcx');
+    end
+    else
+      script.add('push [newspeed]');
+
     script.add('call InitializeSpeedhack');
+
+    if processhandler.is64Bit then
+      script.add('add rsp,#40');
+
     script.add('ret');
+
+    script.add('newspeed:');
+    script.add('dd '+inttohex(pdword(@x)^,8));
+
     try
 
 //      showmessage(script.Text);
