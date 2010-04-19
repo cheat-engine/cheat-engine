@@ -18,8 +18,6 @@ uses
   Classes,
   speedhackmain in 'speedhackmain.pas';
 
-{$R *.res}
-
 exports InitializeSpeedhack;
 exports realGetTickCount;
 exports realQueryPerformanceCounter;
