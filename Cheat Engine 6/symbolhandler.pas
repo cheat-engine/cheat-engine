@@ -352,23 +352,43 @@ var
   i: integer;
   last: integer;
   t: string;
+  inQuote: boolean;
 begin
   last:=1;
+  inQuote:=false;
+
   for i:=1 to length(s) do
   begin
-    if s[i] in ['[',']','+','-','*'] then
+    if (s[i] in ['"', '[', ']', '+', '-', '*']) then
     begin
-      t:=trim(copy(s, last, i-last));
-      if t<>'' then
+      if s[i]='"' then
       begin
-        setlength(tokens,length(tokens)+1);
-        tokens[length(tokens)-1]:=t;
+        if not inQuote then
+          last:=i+1;
+
+        inQuote:=not inquote;
       end;
 
-      setlength(tokens,length(tokens)+1);
-      tokens[length(tokens)-1]:=s[i];
-      last:=i+1;
+      if not inQuote then
+      begin
+        t:=trim(copy(s, last, i-last));
+        if t<>'' then
+        begin
+          setlength(tokens,length(tokens)+1);
+          tokens[length(tokens)-1]:=t;
+        end;
+
+        //store seperator char as well, unless it's "
+        if s[i]<>'"' then
+        begin
+          setlength(tokens,length(tokens)+1);
+          tokens[length(tokens)-1]:=s[i];
+        end;
+        last:=i+1;
+      end;
     end;
+
+
   end;
 
   //last part
@@ -802,6 +822,7 @@ begin
     if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].basesize) then
     begin
       mi:=modulelist[i];
+
       result:=true;
       break;
     end;

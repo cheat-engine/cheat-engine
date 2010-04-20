@@ -251,7 +251,8 @@ begin
       j:=0;
       for i:=0 to tempnode.ChildNodes.Count-1 do
       begin
-        if tempnode.ChildNodes[i].baseURI='Offset' then
+
+        if tempnode.ChildNodes[i].NodeName='Offset' then
         begin
           pointeroffsets[j]:=strtoint('$'+tempnode.ChildNodes[i].TextContent);
           inc(j);
@@ -862,6 +863,8 @@ begin
 
   if length(pointeroffsets)>0 then //it's a pointer
   begin
+
+
     //find what writes to the address pointer at by this pointer
     realaddress2:=BaseAddress;
     for i:=0 to length(pointeroffsets)-1 do
@@ -877,6 +880,7 @@ begin
         exit;
       end;
     end;
+    UnreadablePointer:=false;
     Result:=realaddress2;
   end
   else

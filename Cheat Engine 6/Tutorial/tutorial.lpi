@@ -185,8 +185,11 @@
   <CompilerOptions>
     <Version Value="8"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\bin\tutorial-$(TargetCPU)"/>
+    </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="..\bin"/>
+      <UnitOutputDirectory Value="unitbin"/>
     </SearchPaths>
     <Parsing>
       <Style Value="1"/>
