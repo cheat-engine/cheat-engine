@@ -105,7 +105,13 @@ var mi: tmoduleinfo;
 begin
   x:=getaddress(i);
   if symhandler.getmodulebyaddress(x,mi) then
+  begin
+    //if the modulename has a special character, place the modulename between quotes
+    if (pos(' ',mi.modulename)>0) or (pos('+',mi.modulename)>0) or (pos('-',mi.modulename)>0) or (pos('[',mi.modulename)>0) or (pos(']',mi.modulename)>0) then
+      mi.modulename:='"'+mi.modulename+'"';
+
     result:=mi.modulename+'+'+inttohex(x-mi.baseaddress,1)
+  end
   else
     result:=inttohex(x,8);
 end;
