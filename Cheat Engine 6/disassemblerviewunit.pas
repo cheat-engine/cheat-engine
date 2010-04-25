@@ -82,6 +82,7 @@ type TDisassemblerview=class(TPanel)
     procedure renderJumpLines;
     procedure setJumpLines(state: boolean);
     procedure setJumplineState(state: tshowjumplinestate);
+    procedure synchronizeDisassembler;
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
@@ -110,6 +111,7 @@ type TDisassemblerview=class(TPanel)
     property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
     constructor create(AOwner: TComponent); override;
 end;
+
 
 implementation
 
@@ -477,6 +479,12 @@ begin
   end;
 end;
 
+procedure TDisassemblerview.synchronizeDisassembler;
+begin
+  visibleDisassembler.showmodules:=symhandler.showModules;
+  visibleDisassembler.showsymbols:=symhandler.showsymbols;
+end;
+
 procedure TDisassemblerview.update;
 {
 fills in all the lines according to the current state
@@ -493,6 +501,8 @@ var
   description: string;
   x: ptrUint;
 begin
+  synchronizeDisassembler;
+
   //if gettickcount-lastupdate>50 then
   begin
     if (not symhandler.isloaded) and (not symhandler.haserror) then
@@ -841,6 +851,8 @@ begin
 
   self.OnMouseWheel:=mousescroll;
 end;
+
+
 
 end.
 

@@ -75,6 +75,8 @@ type
 
   TTokens=array of string;
 
+  PBoolean=^boolean;
+
   TSymHandler=class
   private
     symbolloaderthread: TSymbolloaderthread;
@@ -104,7 +106,7 @@ type
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: dword):integer;
 
-    procedure setshowmodules(x: boolean);
+    procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
     procedure setshowsymbols(x: boolean);
     procedure tokenize(s: string; var tokens: TTokens);
   public
@@ -133,7 +135,8 @@ type
     function inModule(address: ptrUint): BOOLEAN; //returns true if the given address is part of a module
     function inSystemModule(address: ptrUint): BOOLEAN;
     function getNameFromAddress(address:ptrUint):string; overload;
-    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil):string; overload;
+    function getNameFromAddress(address:ptrUint; var found: boolean):string; overload;
+    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil):string; overload;
 
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
@@ -867,7 +870,7 @@ begin
 end;
 
 
-function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil):string;
+function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil):string;
 var symbol :PSYMBOL_INFO;
     offset: qword;
     s: string;
@@ -888,6 +891,9 @@ begin
 {$endif}
 
   //check the userdefined symbols
+  if found<>nil then
+    found^:=false;
+
   result:=self.GetUserdefinedSymbolByAddress(address);
   if result<>'' then exit;
 
@@ -918,6 +924,10 @@ begin
 
               if baseaddress<>nil then
                 baseaddress^:=symbol.Address;
+
+              if found<>nil then
+                found^:=true;
+
               exit;
             end;
 
@@ -947,6 +957,9 @@ begin
 
       if baseaddress<>nil then
         baseaddress^:=mi.baseaddress;
+
+      if found<>nil then
+        found^:=true;
       exit;
     end;
   end;
@@ -955,10 +968,17 @@ begin
 
 end;
 
+function TSymhandler.getNameFromAddress(address:ptrUint; var found: boolean):string;
+begin
+  result:=getNameFromAddress(address,self.showsymbols,self.showmodules,nil,@found);
+end;
+
 function TSymhandler.getNameFromAddress(address:ptrUint):string;
 begin
   result:=getNameFromAddress(address,self.showsymbols,self.showmodules);
 end;
+
+
 
 
 

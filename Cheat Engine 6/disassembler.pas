@@ -8,12 +8,14 @@ uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncPro
 
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
-type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
 
 const BIT_REX_W=8; //1000
 const BIT_REX_R=4;
 const BIT_REX_X=2;
 const BIT_REX_B=1;
+
+type TDisAssemblerValueType=(dvtNone, dvtAddress, dvtValue);
 
 type TDisassembler=class
   private
@@ -21,15 +23,14 @@ type TDisassembler=class
     RexPrefix: byte;
     riprelative: boolean;
     function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string; overload;
-    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
+    function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string; overload;
 
-    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
+    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 
-    function opcodeReg(bt: byte): byte;
+    function getReg(bt: byte): byte;
     function getmod(bt: byte): byte;
     function getrm(bt: byte): byte;
-    function getreg(bt: byte): byte;
 
     function opcodeToValueType(opcode: string): integer;
     function opcode2F(opcode: string): integer;
@@ -56,10 +57,35 @@ type TDisassembler=class
     function GetBitOf(Bt: qword; bit: integer): byte;
     function getsegmentoverride(prefix: TPrefix): string;
 
+
+    function inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+    function inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+
+
   public
     isdefault: boolean;
     showsymbols: boolean;
     showmodules: boolean;
+    syntaxhighlighting: boolean;
+
+    LastDisassembleData: record
+      address: PtrUint;
+      prefix: string;
+      opcode: pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
+      parameters: string;
+      description: string;
+      Bytes: array of byte;
+      SeperatorCount: integer;
+      Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)
+      modrmValueType: TDisAssemblerValueType;
+      modrmValue: ptrUint;
+      parameterValueType: TDisAssemblerValueType;
+      parameterValue: ptrUint;
+
+    end;
+
+
+
 //    showvalues: boolean;
     function disassemble(var offset: ptrUint; var description: string): string;
     procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
@@ -102,14 +128,10 @@ function hasAddress(d: string; var address: ptrUint; context: PContext=nil):bool
 procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
 
 
-
-
-function inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
-function inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+var visibleDisassembler: TDisassembler; //this disassembler is used to render the disassembly output. Each update it gets synced with the default
 
 
 
-var mode16: boolean;
 
 implementation
 
@@ -394,12 +416,6 @@ begin
     result:=result or 8; //extend the reg field
 end;
 
-function TDisassembler.opcodeREG(bt: byte): byte;
-begin
-  result:=(bt shr 3) and 7;
-  if rex_b then
-    result:=result or 8; //extend the reg field for opcode
-end;
 
 
 function TDisassembler.Rex_B: boolean; inline;
@@ -423,12 +439,17 @@ begin
 end;
 
 
-function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
+function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 var dwordptr: ^dword;
 begin
+  LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=modrmbyte;
+  inc(LastDisassembleData.SeperatorCount);
 
   dwordptr:=@memory[modrmbyte+1];
   last:=modrmbyte+1;
+
+  LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=last;
+  inc(LastDisassembleData.SeperatorCount);
 
 
   if $67 in prefix then
@@ -473,6 +494,11 @@ begin
               begin
                 riprelative:=true;
                 result:=getsegmentoverride(prefix)+'['+inttohexs_withoutsymbols(dwordptr^,8)+'],';
+
+
+                LastDisassembleData.modrmValueType:=dvtAddress;
+                LastDisassembleData.modrmValue:=dwordptr^;
+
               end
               else
               begin
@@ -654,6 +680,9 @@ begin
           end;
 
       2:  begin
+            LastDisassembleData.modrmValueType:=dvtAddress;
+            LastDisassembleData.modrmValue:=dwordptr^;
+
             case getrm(memory[modrmbyte]) of
               0:
               if dwordptr^ <=$7FFFFFFF then
@@ -727,6 +756,9 @@ begin
                       result:=result+'+'+inttohexs(dwordptr^,8)+'],' else
                       result:=result+'-'+inttohexs($100000000-dwordptr^,8)+'],';
 
+
+                    LastDisassembleData.modrmValueType:=dvtAddress;
+                    LastDisassembleData.modrmValue:=dwordptr^;
                   end;
               5:
               if dwordptr^ <=$7FFFFFFF then
@@ -850,7 +882,7 @@ begin
               4:  case inst of
                     0: if rex_w then result:='RSP,' else result:='ESP,';
                     1: result:='SP,';
-                    2: result:='AH,';
+                    2: if rexprefix<>0 then result:='SPL,' else result:='AH,';
                     3: result:='MM4,';
                     4: result:='XMM4,';
                   end;
@@ -858,7 +890,7 @@ begin
               5:  case inst of
                     0: if rex_w then result:='RBP,' else result:='EBP,';
                     1: result:='BP,';
-                    2: result:='CH,';
+                    2: if rexprefix<>0 then result:='BPL,' else result:='CH,';
                     3: result:='MM5,';
                     4: result:='XMM5,';
                   end;
@@ -866,7 +898,7 @@ begin
               6:  case inst of
                     0: if rex_w then result:='RSI,' else result:='ESI,';
                     1: result:='SI,';
-                    2: result:='DH,';
+                    2: if rexprefix<>0 then result:='SIL,' else result:='DH,';
                     3: result:='MM6,';
                     4: result:='XMM6,';
                   end;
@@ -874,25 +906,96 @@ begin
               7:  case inst of
                     0: if rex_w then result:='RDI,' else result:='EDI,';
                     1: result:='DI,';
-                    2: result:='BH,';
+                    2: if rexprefix<>0 then result:='DIL,' else result:='BH,';
                     3: result:='MM7,';
                     4: result:='XMM7,';
                   end;
+
+              8: case inst of
+                    0: if rex_w then result:='R8,' else result:='R8D,';
+                    1: result:='R8W,';
+                    2: result:='R8L,';
+                    3: result:='MM8,';
+                    4: result:='XMM8,';
+                 end;
+
+              9: case inst of
+                   0: if rex_w then result:='R9,' else result:='R9D,';
+                   1: result:='R9W,';
+                   2: result:='R9L,';
+                   3: result:='MM9,';
+                   4: result:='XMM9,';
+                 end;
+
+             10: case inst of
+                   0: if rex_w then result:='R10,' else result:='R10D,';
+                   1: result:='R10W,';
+                   2: result:='R10L,';
+                   3: result:='MM10,';
+                   4: result:='XMM10,';
+                 end;
+
+             11: case inst of
+                   0: if rex_w then result:='R11,' else result:='R11D,';
+                   1: result:='R11W,';
+                   2: result:='R11L,';
+                   3: result:='MM11,';
+                   4: result:='XMM11,';
+                 end;
+
+             12: case inst of
+                   0: if rex_w then result:='R12,' else result:='R12D,';
+                   1: result:='R12W,';
+                   2: result:='R12L,';
+                   3: result:='MM12,';
+                   4: result:='XMM12,';
+                 end;
+
+             13: case inst of
+                   0: if rex_w then result:='R13,' else result:='R13D,';
+                   1: result:='R13W,';
+                   2: result:='R13L,';
+                   3: result:='MM13,';
+                   4: result:='XMM13,';
+                 end;
+
+             14: case inst of
+                   0: if rex_w then result:='R14,' else result:='R14D,';
+                   1: result:='R14W,';
+                   2: result:='R14L,';
+                   3: result:='MM14,';
+                   4: result:='XMM14,';
+                 end;
+
+             15: case inst of
+                   0: if rex_w then result:='R15,' else result:='R15D,';
+                   1: result:='R15W,';
+                   2: result:='R15L,';
+                   3: result:='MM15,';
+                   4: result:='XMM15,';
+                 end;
             end;
           end;
     end;
 
   end;
 
+  if last<>(modrmbyte+1) then //add an extra seperator since some bytes have been added, usually the last one, except when the opcode has a immeadiate value followed, which this seperator will then seperate
+  begin
+    LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=last;
+    inc(LastDisassembleData.SeperatorCount);
+  end;
+
+  if last>15 then messagebox(0,pchar(result),nil,0);
 end;
 
 
-function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword): string;
+function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
 end;
 
-function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; var last: dword;opperandsize:integer): string; 
+function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string;
 begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
   if (length(result)>0) and (result[1]='[') then
@@ -918,8 +1021,12 @@ var
   indexstring: string;
 begin
   dwordptr:=@memory[sibbyte+1];
-
   inc(last);  //sib byte
+
+  LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=last;
+  inc(LastDisassembleData.SeperatorCount);
+
+
   ss:=(memory[sibbyte] shr 6) and 3;
   index:=(memory[sibbyte] shr 3) and 7;
   if Rex_X then index:=index or 8;
@@ -993,7 +1100,10 @@ begin
     if _mod=0 then //special case
     begin
       //sib has a 32-bit displacement value (starting at 0000000000000000)
-      result:=inttohex(dwordptr^,8);
+      LastDisassembleData.modrmValueType:=dvtAddress;
+      LastDisassembleData.modrmValue:=dwordptr^;
+
+      result:=inttohexs(dwordptr^,8);
       last:=last+4;
     end;
   end;
@@ -1033,7 +1143,17 @@ var memory: TMemory;
     foundit: boolean;
 
     tempaddress: ptrUint;
+    prefixsize: integer;
 begin
+  last:=0;
+  tempresult:='';
+  setlength(LastDisassembleData.bytes,0);
+  LastDisassembleData.address:=Offset;
+  LastDisassembleData.SeperatorCount:=0;
+  LastDisassembleData.prefix:='';
+  LastDisassembleData.opcode:='';
+  LastDisassembleData.parameters:='';
+
   if isdefault then
     showsymbols:=symhandler.showsymbols;
 
@@ -1051,12 +1171,6 @@ begin
 
   prefix:=[$f0,$f2,$f3,$2e,$36,$3e,$26,$64,$65,$66,$67];
   prefix2:=[];
-
-  //forced 16-bit
-  if mode16 then
-    prefix2:=prefix2+[$66];
-
-
 
   startoffset:=offset;
   readprocessmemory(processhandle,pointer(offset),@memory,24,actualread);
@@ -1077,6 +1191,17 @@ begin
       inc(offset);
       if memory[0] in prefix then
       begin
+        if length(LastDisassembleData.bytes)>10 then
+        begin
+          //prevent a too long prefix from crashing the disassembler (e.g 12GB filled with one prefix....)
+          isprefix:=false;
+          break;
+        end;
+        setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+1);
+        LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[0];
+
+
+
         result:=result+inttohexs(memory[0],2)+' ';
         isprefix:=true;
         inc(startoffset);
@@ -1089,11 +1214,18 @@ begin
     if $F2 in prefix2 then tempresult:=tempresult+'repne ';
     if $f3 in prefix2 then tempresult:=tempresult+'repe ';
 
+    LastDisassembleData.prefix:=tempresult;
+
+
     RexPrefix:=0;
     if processhandler.is64Bit then
     begin
       if memory[0] in [$40..$4f] then //does it start with a rex prefix ?
       begin
+        setlength(LastDisassembleData.bytes,length(LastDisassembleData.bytes)+1);
+        LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[0];
+
+
         RexPrefix:=memory[0];
         result:=result+inttohexs(RexPrefix,2)+' ';
         inc(offset);
@@ -1103,170 +1235,231 @@ begin
       end;
     end;
 
+    prefixsize:=length(LastDisassembleData.bytes);
 
     case memory[0] of  //opcode
       $00 : begin
               description:='Add';
-              tempresult:=tempresult+'add '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+
+              LastDisassembleData.opcode:='ADD';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+
               inc(offset,last-1);
             end;
 
       $01 : begin
               description:='Add';
-              if $66 in prefix2 then  tempresult:=tempresult+'ADD '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'ADD '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
-              inc(offset,last-1);
 
+              LastDisassembleData.opcode:='ADD';
+              if $66 in prefix2 then LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                                     LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+
+              inc(offset,last-1);
             end;
 
       $02 : begin
               description:='Add';
-              tempresult:=tempresult+'ADD '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+
+              LastDisassembleData.opcode:='ADD';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
+
               inc(offset,last-1);
             end;
 
       $03 : begin
               description:='Add';
-              if $66 in prefix2 then tempresult:=tempresult+'ADD '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'ADD '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.opcode:='ADD';
+              if $66 in prefix2 then LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                                     LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
+
               inc(offset,last-1);
             end;
 
 
 
       $04 : begin
-              description:='Add x to y';
-              tempresult:=tempresult+'ADD AL,'+inttohexs(memory[1],2);
+              description:='Add '+inttohex(memory[1],2)+' to AL';
+              LastDisassembleData.opcode:='ADD';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $05 : begin
-              description:='Add x to y';
+              LastDisassembleData.opcode:='ADD';
+              LastDisassembleData.parameterValueType:=dvtValue;
+
+
               wordptr:=@memory[1];
               dwordptr:=@memory[1];
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'ADD AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
+
+                description:='Add '+inttohex(wordptr^,4)+' to AX';
+
                 inc(offset,2);
               end else
               begin
-                tempresult:=tempresult+'ADD EAX,'+inttohexs(dwordptr^,8);
+                if Rex_W then
+                begin
+                  LastDisassembleData.parameterValueType:=dvtValue;
+                  LastDisassembleData.parameterValue:=dwordptr^;
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8);
+
+                  description:='Add '+inttohex(dwordptr^,8)+' to RAX (sign extended)';
+                end
+                else
+                begin
+                  LastDisassembleData.parameterValueType:=dvtValue;
+                  LastDisassembleData.parameterValue:=dwordptr^;
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
+
+                  description:='Add '+inttohex(dwordptr^,8)+' to EAX';
+                end;
                 inc(offset,4);
               end;
+
+
             end;
 
       $06 : begin
+              LastDisassembleData.opcode:='PUSH';
+              LastDisassembleData.parameters:='ES';
               description:='Place ES on the stack';
-              tempresult:=tempresult+'PUSH ES';
             end;
 
       $07 : begin
+              LastDisassembleData.opcode:='POP';
+              LastDisassembleData.parameters:='ES';
               description:='Remove ES from the stack';
-              tempresult:=tempresult+'POP ES';
             end;
 
       $08 : begin
               description:='Logical Inclusive OR';
-              tempresult:=tempresult+'OR '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.opcode:='OR';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $09 : begin
               description:='Logical Inclusive OR';
-              if $66 in prefix2 then  tempresult:=tempresult+'OR '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'OR '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.opcode:='OR';
+              if $66 in prefix2 then LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                                     LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
-
             end;
 
       $0a : begin
               description:='Logical Inclusive OR';
-              tempresult:=tempresult+'OR '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.opcode:='OR';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
               inc(offset,last-1);
             end;
 
       $0b : begin
               description:='Logical Inclusive OR';
-              if $66 in prefix2 then tempresult:=tempresult+'OR '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'OR '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.opcode:='OR';
+              if $66 in prefix2 then LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                                     LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
       $0c : begin
               description:='Logical Inclusive OR';
-              tempresult:=tempresult+'OR AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.opcode:='OR';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+
               inc(offset);
             end;
 
       $0d : begin
               description:='Logical Inclusive OR';
+              LastDisassembleData.opcode:='OR';
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'OR AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'OR EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                begin
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,4);
+                  description:=description+' (sign-extended)';
+                end
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,4);
+
                 inc(offset,4);
               end;
             end;
 
       $0e : begin
               description:='Place CS on the stack';
-              tempresult:=tempresult+'PUSH CS';
+              LastDisassembleData.opcode:='PUSH';
+              LastDisassembleData.parameters:='CS';
             end;
 
       $0f : begin  //SIMD extensions
+              LastDisassembleData.prefix:=''; //these usually treat the F2/F3 prefix differently
+
               case memory[1] of
                 $00 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                          0:  begin
+                               LastDisassembleData.opcode:='SLDT';
                                description:='Store Local Descriptor Table Register';
-                               if $66 in prefix2 then tempresult:=tempresult+'SLDT '+modrm(memory,prefix2,2,1,last,16) else
-                                                      tempresult:=tempresult+'SLDT '+modrm(memory,prefix2,2,0,last);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
+                               if $66 in prefix2 then LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16) else
+                                                      LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
+
                                inc(offset,last-1);
                              end;
 
                          1:  begin
                                description:='Store Task Register';
-                               tempresult:=tempresult+'STR '+modrm(memory,prefix2,2,1,last,16);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
+                               LastDisassembleData.opcode:='STR';
+                               LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16);
                                inc(offset,last-1);
                              end;
 
                          2:  begin
                                description:='Load Local Descriptor Table Register';
-                               tempresult:=tempresult+'LLDT '+modrm(memory,prefix2,2,1,last,16);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
+                               LastDisassembleData.opcode:='LLDT';
+                               LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16);
                                inc(offset,last-1);
                              end;
 
                          3:  begin
                                description:='Load Task Register';
-                               tempresult:=tempresult+'LTR '+modrm(memory,prefix2,2,1,last,16);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
-                               inc(offset,last-1);
+                               LastDisassembleData.opcode:='LTR';
+                               LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16);
+                               inc(offset,last-1);   ;
                              end;
 
                          4:  begin
                                description:='Verify a Segment for Reading';
-                               tempresult:=tempresult+'VERR '+modrm(memory,prefix2,2,1,last,16);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
+                               LastDisassembleData.opcode:='VERR';
+                               LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16);
                                inc(offset,last-1);
                              end;
 
                          5:  begin
                                description:='Verify a Segment for Writing';
-                               tempresult:=tempresult+'VERW '+modrm(memory,prefix2,2,1,last,16);
-                               tempresult:=copy(tempresult,1,length(tempresult)-1);
+                               LastDisassembleData.opcode:='VERW';
+                               LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last,16);
                                inc(offset,last-1);
                              end;
 
@@ -1282,37 +1475,37 @@ begin
                       end;
 
                 $01 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                          0:  begin
                                 case memory[2] of
                                   $c1:  begin
                                           description:='Call to VM monitor by causing VM exit';
-                                          tempresult:=tempresult+'VMCALL';
+                                          LastDisassembleData.opcode:='VMCALL';
                                           inc(offset,2);
                                         end;
 
                                   $c2:  begin
                                           description:='Launch virtual machine managed by current VMCS';
-                                          tempresult:=tempresult+'VMLAUNCH';
+                                          LastDisassembleData.opcode:='VMLAUNCH';
                                           inc(offset,2);
                                         end;
 
                                   $c3:  begin
                                           description:='Resume virtual machine managed by current VMCS';
-                                          tempresult:=tempresult+'VMRESUME';
+                                          LastDisassembleData.opcode:='VMRESUME';
                                           inc(offset,2);
                                         end;
 
                                   $c4:  begin
                                           description:='Leaves VMX operation';
-                                          tempresult:=tempresult+'VMXOFF';
+                                          LastDisassembleData.opcode:='VMXOFF';
                                           inc(offset,2);
                                         end;
 
                                   else  begin
                                           description:='Store Global Descriptor Table Register';
-                                          tempresult:=tempresult+'SGDT '+modrm(memory,prefix2,2,0,last);
-                                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                          LastDisassembleData.opcode:='SGDT';
+                                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                           inc(offset,last-1);
                                         end;
 
@@ -1323,44 +1516,45 @@ begin
 
                          1:  begin
                                 description:='Store Interrupt Descriptor Table Register';
-                                tempresult:=tempresult+'SIDT '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='SIDT';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                          2:  begin
                                 description:='Load Global Descriptor Table Register';
-                                tempresult:=tempresult+'LGDT '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='LGDT';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                          3:  begin
                                 description:='Load Interupt Descriptor Table Register';
-                                tempresult:=tempresult+'LIDT '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='LIDT';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                          4:  begin
                                 description:='Store Machine Status Word';
-                                if $66 in prefix2 then tempresult:=tempresult+'SMSW '+modrm(memory,prefix2,2,0,last)
-                                                  else tempresult:=tempresult+'SMSW '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='SMSW';
+
+                                if $66 in prefix2 then LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last)
+                                                  else LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                          6:  begin
                                 description:='Load Machine Status Word';
-                                tempresult:=tempresult+'LMSW '+modrm(memory,prefix2,2,1,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='LMSW';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,1,last);
                                 inc(offset,last-1);
                               end;
 
                           7:  begin
                                 description:='Invalidate TLB Entry';
-                                tempresult:=tempresult+'INVPLG '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='INVPLG';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
                         end;
@@ -1368,55 +1562,55 @@ begin
 
                 $02 : begin
                         description:='Load Access Rights Byte';
-                        if $66 in prefix2 then tempresult:=tempresult+'LAR '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'LAR '+r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
+                        LastDisassembleData.opcode:='LAR';
+                        if $66 in prefix2 then LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                                               LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
 
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
                         inc(offset,last-1);
                       end;
 
                 $03 : begin
                         description:='Load Segment Limit';
-                        if $66 in prefix2 then tempresult:=tempresult+'LSL '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'LSL '+r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
+                        LastDisassembleData.opcode:='LSL';
+                        if $66 in prefix2 then LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                                               LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
 
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
                         inc(offset,last-1);
                       end;
 
                 $05 : begin
                         description:='Fast System Call';
-                        tempresult:=tempresult+'SYSCALL';
+                        LastDisassembleData.opcode:='SYSCALL';
                         inc(offset);
                       end;
 
                 $06 : begin
                         description:='Clear Task-Switched Flag in CR0';
-                        tempresult:=tempresult+'CLTS';
+                        LastDisassembleData.opcode:='CLTS';
                         inc(offset);
                       end;
 
                 $07 : begin
                         description:='Return From Fast System Call';
-                        tempresult:=tempresult+'SYSRET';
+                        LastDisassembleData.opcode:='SYSRET';
                         inc(offset);
                       end;
 
                 $08 : begin
                         description:='Invalidate Internal Caches';
-                        tempresult:=tempresult+'INCD';
+                        LastDisassembleData.opcode:='INCD';
                         inc(offset);
                       end;
 
                 $09 : begin
                         description:='Write Back and Invalidate Cache';
-                        tempresult:=tempresult+'WBINVD';
+                        LastDisassembleData.opcode:='WBINVD';
                         inc(offset);
                       end;
 
                 $0b : begin
                         description:='Undefined Instruction(Yes, this one really excists..)';
-                        tempresult:=tempresult+'UD2';
+                        LastDisassembleData.opcode:='UD2';
                         inc(offset);
                       end;
 
@@ -1424,34 +1618,32 @@ begin
                 $10 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='Move Scalar Double-FP';
-                          tempresult:='MOVSD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
                           description:='Move Scalar Single-FP';
-                          tempresult:='MOVSS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move Unaligned Packed Double-FP';
-                          tempresult:='MOVUPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVUPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Unaligned Four Packed Single-FP';
-                          tempresult:='MOVUPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVUPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1459,30 +1651,32 @@ begin
                 $11 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='Move Scalar Double-FP';
-                          tempresult:='MOVSD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVSD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='Move Scalar Single-FP';
-                          tempresult:='MOVSS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVSS';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move Unaligned Packed Double-FP';
-                          tempresult:='MOVUPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVUPD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Unaligned Four Packed Single-FP';
-                          tempresult:='MOVUPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVUPS';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end;
 
@@ -1492,13 +1686,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move low packed Double-Precision Floating-Point Value';
-                          tempresult:=tempresult+'MOVLPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVLPD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='High to Low Packed Single-FP';
-                          tempresult:=tempresult+'MOVLPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVLPS';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1507,15 +1703,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Low Packed Double-FP';
-                          tempresult:=tempresult+'MOVLPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVLPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Low Packed Single-FP';
-                          tempresult:=tempresult+'MOVLPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVLPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1524,15 +1720,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack Low Packed Single-FP';
-                          tempresult:=tempresult+'UNPCKLPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='UNPCKLPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Single-FP';
-                          tempresult:=tempresult+'UNPCKLPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='UNPCKLPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1541,15 +1737,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack and Interleave High Packed Double-FP';
-                          tempresult:=tempresult+'UNPCKHPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='UNPCKHPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack High packed Single-FP';
-                          tempresult:=tempresult+'UNPCKHPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='UNPCKHPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1558,15 +1754,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move High Packed Double-Precision Floating-Point Value';
-                          tempresult:=tempresult+'MOVHPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVHPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='High to Low Packed Single-FP';
-                          tempresult:=tempresult+'MOVHPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.opcode:='MOVHPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1575,44 +1771,47 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move High Packed Double-Precision Floating-Point Value';
-                          tempresult:=tempresult+'MOVHPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVHPD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='High to Low Packed Single-FP';
-                          tempresult:=tempresult+'MOVHPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.opcode:='MOVHPS';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
 
                 $18 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           0:  begin
                                 description:='Prefetch';
-                                tempresult:=tempresult+'PREFETCHNTA '+modrm(memory,prefix2,2,2,last);
+                                LastDisassembleData.opcode:='PREFETCHNTA';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
                                 inc(offset,last-1);
                               end;
 
                           1:  begin
                                 description:='Prefetch';
-                                tempresult:=tempresult+'PREFETCHT0 '+modrm(memory,prefix2,2,2,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='PREFETCHTO';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                                 inc(offset,last-1);
                               end;
 
                           2:  begin
                                 description:='Prefetch';
-                                tempresult:=tempresult+'PREFETCHT1 '+modrm(memory,prefix2,2,2,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='PREFETCHT1';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                                 inc(offset,last-1);
                               end;
 
                           3:  begin
                                 description:='Prefetch';
-                                tempresult:=tempresult+'PREFETCHT2 '+modrm(memory,prefix2,2,2,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.opcode:='PREFETCHT2';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                                 inc(offset,last-1);
                               end;
 
@@ -1620,10 +1819,11 @@ begin
                       end;
 
                 $1f:  begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           0:  begin
                                 description:='Multibyte NOP';
-                                tempresult:=tempresult+'NOP '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.opcode:='NOP';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
                                 inc(offset,last-1);
                               end;
@@ -1634,27 +1834,29 @@ begin
 
                 $20 : begin
                         description:='Move from Control Register';
-                        tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,2,0,last)+cr(memory[2]);
+                        LastDisassembleData.opcode:='MOV';
+                        LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+cr(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $21 : begin
                         description:='Move from Debug Register';
-                        tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,2,0,last)+dr(memory[2]);
+                        LastDisassembleData.opcode:='MOV';
+                        LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+dr(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $22 : begin
                         description:='Move to Control Register';
-                        tempresult:=tempresult+'MOV '+cr(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.opcode:='MOV';
+                        LastDisassembleData.parameters:=cr(memory[2])+','+MODRM(memory,prefix2,2,0,last);
                         inc(offset,last-1);
                       end;
 
                 $23 : begin
                         description:='Move to Debug Register';
-                        tempresult:=tempresult+'MOV '+dr(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.opcode:='MOV';
+                        LastDisassembleData.parameters:=dr(memory[2])+','+MODRM(memory,prefix2,2,0,last);
                         inc(offset,last-1);
                       end;
 
@@ -1662,15 +1864,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Aligned Packed Fouble-FP Values';
-                          tempresult:=tempresult+'MOVAPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVAPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Aligned Four Packed Single-FP';
-                          tempresult:=tempresult+'MOVAPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVAPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1679,15 +1881,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Aligned Packed Fouble-FP Values';
-                          tempresult:=tempresult+'MOVAPD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVAPD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Aligned Four Packed Single-FP';
-                          tempresult:=tempresult+'MOVAPS '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVAPS';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1696,19 +1898,21 @@ begin
                 $2a : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Convert Doubleword integer to Scalar DoublePrecision Floating-point value';
-                          tempresult:=tempresult+'CVTSI2SD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTSI2SD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Scalar Signed INT32 to Single-FP Conversion';
-                          tempresult:=tempresult+'CVTSI2SS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTSI2SS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
@@ -1716,15 +1920,17 @@ begin
                           if $66 in prefix2 then
                           begin
                             description:='Convert Packed DWORD''s to Packed DP-FP''s';
-                            tempresult:=tempresult+'CVTPI2PD '+xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPI2PD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                             inc(offset,last-1);
                           end
                           else
                           begin
                             description:='Packed Signed INT32 to Packed Single-FP Conversion';
-                            tempresult:=tempresult+'CVTPI2PS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPI2PS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                             inc(offset,last-1);
                           end;
                         end;
@@ -1733,13 +1939,15 @@ begin
                 $2B : begin
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'MOVNTPD '+MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVNTPD';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
                           description:='Move Packed double-precision floating-point using Non-Temporal hint';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'MOVNTPS '+MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVNTPS';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
                           description:='Move Aligned Four Packed Single-FP Non Temporal';
                           inc(offset,last-1);
                         end;
@@ -1750,8 +1958,8 @@ begin
                         begin
                           tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='Convert with truncation scalar Double-precision floating point value to Signed doubleword integer';
-                          tempresult:=tempresult+'CVTTSD2SI '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTTSD2SI';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
@@ -1759,8 +1967,8 @@ begin
                         begin
                           tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='Scalar Single-FP to Signed INT32 Conversion (Truncate)';
-                          tempresult:=tempresult+'CVTTSS2SI '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTTSS2SI';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
@@ -1768,15 +1976,15 @@ begin
                           if $66 in prefix2 then
                           begin
                             description:='Packed DoublePrecision-FP to Packed DWORD Conversion (Truncate)';
-                            tempresult:=tempresult+'CVTTPD2PI '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTTPD2PI';
+                            LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                             inc(offset,last-1);
                           end
                           else
                           begin
                             description:='Packed Single-FP to Packed INT32 Conversion (Truncate)';
-                            tempresult:=tempresult+'CVTTPS2PI '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTTPS2PI';
+                            LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                             inc(offset,last-1);
                           end;
                         end;
@@ -1787,8 +1995,8 @@ begin
                         begin
                           tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='Convert Scalar Double-Precision Floating-Point Value to Doubleword Integer';
-                          tempresult:=tempresult+'CVTSD2SI '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTSD2SI';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
@@ -1796,8 +2004,8 @@ begin
                         begin
                           tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='Scalar Single-FP to Signed INT32 Conversion';
-                          tempresult:=tempresult+'CVTSS2SI '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTSS2SI';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
@@ -1805,15 +2013,15 @@ begin
                           if $66 in prefix2 then
                           begin
                             description:='Convert 2 packed DP-FP''s from param 2 to packed signed dword in param1';
-                            tempresult:=tempresult+'CVTPI2PS '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPI2PS';
+                            LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                             inc(offset,last-1);
                           end
                           else
                           begin
                             description:='Packed Single-FP to Packed INT32 Conversion';
-                            tempresult:=tempresult+'CVTPS2PI '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPS2PI';
+                            LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                             inc(offset,last-1);
                           end;
                         end;
@@ -1823,15 +2031,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unordered Scalar Double-FP Compare and Set EFLAGS';
-                          tempresult:=tempresult+'UCOMISD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='UCOMISD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unordered Scalar Single-FP Compare and Set EFLAGS';
-                          tempresult:=tempresult+'UCOMISS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='UCOMISS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -1841,195 +2049,227 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Compare scalar ordered double-precision Floating Point Values and set EFLAGS';
-                          tempresult:=tempresult+'COMISD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='COMISD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Scalar Ordered Single-FP Compare and Set EFLAGS';
-                          tempresult:=tempresult+'COMISS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='COMISS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
                       end;
 
                 $30 : begin
                         description:='Write to Model Specific Register';
-                        tempresult:=tempresult+'WRMSR';
+                        LastDisassembleData.Opcode:='WRMSR';
                         inc(offset);
                       end;
 
                 $31 : begin
                         description:='Read Time-Stamp Counter';
-                        tempresult:=tempresult+'RDTSC';
+                        LastDisassembleData.Opcode:='RDTSC';
                         inc(offset);
                       end;
 
                 $32 : begin
                         description:='Read from Model Specific Register';
-                        tempresult:=tempresult+'RDMSR';
+                        LastDisassembleData.Opcode:='RDMSR';
                         inc(offset);
                       end;
 
                 $33: begin
                         description:='Read Performance-Monitoring counters';
-                        tempresult:=tempresult+'RDPMC';
+                        LastDisassembleData.Opcode:='RDPMC';
                         inc(offset);
                       end;
 
                 $34: begin
                         description:='Fast Transistion to System Call Entry Point';
-                        tempresult:=tempresult+'SYSENTER';
+                        LastDisassembleData.Opcode:='SYSENTER';
                         inc(offset);
                       end;
 
                 $35: begin
                         description:='Fast Transistion from System Call Entry Point';
-                        tempresult:=tempresult+'SYSEXIT';
+                        LastDisassembleData.Opcode:='SYSEXIT';
                         inc(offset);
                       end;
 
                 $40 : begin
                         description:='Move if overflow';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVO '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVO '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                        LastDisassembleData.Opcode:='CMOVO';
+                        if $66 in prefix2 then LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                                               LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
                         inc(offset,last-1);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
                       end;
 
                 $41 : begin
                         description:='Move if not overflow';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVNO '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVNO '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                        LastDisassembleData.Opcode:='CMOVNO';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
 
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
                         inc(offset,last-1);
                       end;
 
                 $42 : begin
                         description:='Move if below/ Move if Carry';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVB '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVB '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVB';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $43 : begin
                         description:='Move if above or equal/ Move if not carry';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVAE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVAE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVAE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $44 : begin
                         description:='Move if equal/Move if Zero';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $45 : begin
                         description:='Move if not equal/Move if not zero';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVNE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVNE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVNE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $46 : begin
                         description:='Move if below or equal';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVBE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVBE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVBE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
 
                 $47 : begin
                         description:='Move if Above';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVA '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVA '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVA';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $48 : begin
                         description:='Move if Sign';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVS '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVS '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $49 : begin
                         description:='Move if not sign';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVNS '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVNS '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVNS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $4A : begin
                         description:='Move if parity Even';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVPE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVPE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVPE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $4B : begin
                         description:='Move if not parity/Move if parity odd';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVNP '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVNP '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVNP';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $4C : begin
                         description:='Move if less';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVL '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVL '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVL';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $4D : begin
                         description:='Move if greater or equal';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVGE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVGE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVGE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $4E : begin
                         description:='Move if less or equal';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVLE '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVLE '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVLE';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
+
                         inc(offset,last-1);
                       end;
 
                 $4F : begin
                         description:='Move if greater';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMOVG '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'CMOVG '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='CMOVG';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $50 : begin
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'MOVMSKPD '+MODRM(memory,prefix2,2,0,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVMSKPD';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+xmm(memory[2]);
                           description:='Extract Packed Double-Precision Floating-Point sign Mask';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'MOVMSKPS '+MODRM(memory,prefix2,2,0,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVMSKPS';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+xmm(memory[2]);
                           description:='Move Mask To Integer';
                           inc(offset,last-1);
                         end;
@@ -2038,35 +2278,35 @@ begin
                 $51 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
-                          tempresult:=tempresult+'SQRTSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='SQRTSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
                           description:='Scalar Double-FP Square Root';
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
-                          tempresult:=tempresult+'SQRTSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          description:='Scalar Single-FP Square Root';
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
 
+                          LastDisassembleData.Opcode:='SQRTSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+                          description:='Scalar Single-FP Square Root';
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'SQRTPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='SQRTPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
                           description:='Packed Double-FP Square Root';
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'SQRTPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='SQRTPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
                           description:='Packed Single-FP Square Root';
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2074,15 +2314,17 @@ begin
                 $52 : begin
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=tempresult+'RSQRSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='RSQRSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Single-FP Square Root Reciprocal';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'RSQRTPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='RSQRTPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Square Root Reciprocal';
                           inc(offset,last-1);
                         end;
@@ -2091,15 +2333,17 @@ begin
                 $53 : begin
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=tempresult+'RCPSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='RCPSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Reciprocal';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'RCPPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='RCPPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Single-FP Reciprocal';
                           inc(offset,last-1);
                         end;
@@ -2108,15 +2352,17 @@ begin
                 $54 : begin
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'ANDPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ANDPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Bit-wise Logical AND of xmm2/m128 and xmm1';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'ANDPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ANDPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Bit-wise Logical And For Single FP';
                           inc(offset,last-1);
                         end;
@@ -2126,16 +2372,18 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Bit-wise Logical AND NOT of Packed Double-precision FP Values';
-                          tempresult:=tempresult+'ANDNPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ANDNPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Bit-wise Logical And Not For Single-FP';
-                          tempresult:=tempresult+'ANDNPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ANDNPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end;
@@ -2145,16 +2393,18 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Bit-wise Logical OR of Double-FP';
-                          tempresult:=tempresult+'ORPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ORPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Bit-wise Logical OR For Single-FP';
-                          tempresult:=tempresult+'ORPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='ORPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end;
@@ -2164,16 +2414,18 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Bit-wise Logical XOR For Double-FP Data';
-                          tempresult:=tempresult+'XORPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='XORPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Bit-wise Logical XOR For Single-FP Data';
-                          tempresult:=tempresult+'XORPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='XORPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
 
                           inc(offset,last-1);
                         end;
@@ -2183,10 +2435,11 @@ begin
                         if $f2 in prefix2 then
                         begin
                           //delete the repne from the tempresult
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
 
-                          tempresult:='ADDSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='ADDSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Add the lower SP FP number from XMM2/Mem to XMM1.';
                           inc(offset,last-1);
                         end
@@ -2194,25 +2447,28 @@ begin
                         if $f3 in prefix2 then
                         begin
                           //delete the repe from the tempresult
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
 
-                          tempresult:='ADDSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='ADDSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Add the lower SP FP number from XMM2/Mem to XMM1.';
                           inc(offset,last-1);
                         end else
                         begin
                           if $66 in prefix2 then
                           begin
-                            tempresult:=tempresult+'ADDPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='ADDPD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                             description:='Add packed double-precision floating-point values from XMM2/Mem to xmm1';
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            tempresult:=tempresult+'ADDPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='ADDPS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Add packed SP FP numbers from XMM2/Mem to XMM1';
                             inc(offset,last-1);
                           end;
@@ -2222,31 +2478,35 @@ begin
                 $59 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
-                          tempresult:='MULSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='MULSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Double-FP Multiply';
                           inc(offset,last-1);
                         end else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
-                          tempresult:='MULSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='MULSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Multiply';
                           inc(offset,last-1);
                         end else
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'MULPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MULPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Double-FP Multiply';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'MULPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MULPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Single-FP Multiply';
                           inc(offset,last-1);
                         end;
@@ -2255,18 +2515,20 @@ begin
                 $5A : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
-                          tempresult:=tempresult+'CVTSD2SS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='CVTSD2SS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Convert Scalar Double-Precision Floating-Point Value to Scalar Single-Precision Floating-Point Value';
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
-                          tempresult:=tempresult+'CVTSS2SD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='CVTSS2SD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Convert Scalar Single-Precision Floating-Point Value to Scalar Double-Precision Floating-Point Value';
                           inc(offset,last-1);
                         end
@@ -2274,15 +2536,17 @@ begin
                         begin
                           if $66 in prefix2 then
                           begin
-                            tempresult:=tempresult+'CVTPD2PS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPD2PS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Convert Packed Double Precision FP Values to Packed Single Precision FP Values';
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            tempresult:=tempresult+'CVTPS2PD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTPS2PD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Convert Packed Single Precision FP Values to Packed Double Precision FP Values';
                             inc(offset,last-1);
                           end;
@@ -2292,15 +2556,17 @@ begin
                 $5B : begin
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'CVTPS2DQ '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTPS2DQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Convert PS-Precision FPoint Values to Packed DWORD''s ';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'CVTDQ2PS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTDQ2PS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Convert Packed DWORD''s to PS-Precision FPoint Values';
                           inc(offset,last-1);
                         end;
@@ -2309,33 +2575,37 @@ begin
                 $5c : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6); //strip prefix 'REPNE '
-                          tempresult:=tempresult+'SUBSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                           //strip prefix 'REPNE '
+                          LastDisassembleData.Opcode:='SUBSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Double-FP Subtract';
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
-                          tempresult:=tempresult+'SUBSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            //strip prefix 'REPE '
+                          LastDisassembleData.Opcode:='SUBSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Subtract';
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'SUBPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='SUBPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Double-FP Subtract';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'SUBPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='SUBPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Packed Single-FP Subtract';
                           inc(offset,last-1);
                         end;
@@ -2345,18 +2615,20 @@ begin
                 $5d : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
-                          tempresult:=tempresult+'MINSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='MINSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Minimum';
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
-                          tempresult:=tempresult+'MINSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='MINSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Minimum';
                           inc(offset,last-1);
                         end
@@ -2364,15 +2636,17 @@ begin
                         begin
                           if $66 in prefix2 then
                           begin
-                            tempresult:=tempresult+'MINPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='MINPD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Packed Double-FP Minimum';
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            tempresult:=tempresult+'MINPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='MINPS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Packed Single-FP Minimum';
                             inc(offset,last-1);
                           end;
@@ -2382,17 +2656,19 @@ begin
                 $5e : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
-                          tempresult:=tempresult+'DIVSD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='DIVSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Double-Precision-FP Divide';
                           inc(offset,last-1);
                         end else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
-                          tempresult:=tempresult+'DIVSS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+
+                          LastDisassembleData.Opcode:='DIVSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                           description:='Scalar Single-FP Divide';
                           inc(offset,last-1);
                         end
@@ -2400,15 +2676,17 @@ begin
                         begin
                           if $66 in prefix2 then
                           begin
-                            tempresult:=tempresult+'DIVPD '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='DIVPD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Packed Double-Precision FP Divide';
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            tempresult:=tempresult+'DIVPS '+xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='DIVPS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
+
                             description:='Packed Single-FP Divide';
                             inc(offset,last-1);
                           end;
@@ -2418,33 +2696,37 @@ begin
                 $5f : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Scalar Double-FP Maximum';
-                          tempresult:=tempresult+'MAXSD '+xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MAXSD';
+                          LastDisassembleData.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Scalar Single-FP Maximum';
-                          tempresult:=tempresult+'MAXSS '+xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MAXSS';
+                          LastDisassembleData.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end else
                         begin
                           if $66 in prefix2 then
                           begin
                             description:='Packed Double-FP Maximum';
-                            tempresult:=tempresult+'MAXPD '+xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='MAXPD';
+                            LastDisassembleData.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+
                             inc(offset,last-1);
                           end
                           else
                           begin
                             description:='Packed Single-FP Maximum';
-                            tempresult:=tempresult+'MAXPS '+xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='MAXPS';
+                            LastDisassembleData.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+
                             inc(offset,last-1);
                           end;
                         end;
@@ -2454,15 +2736,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLBW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLBW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLBW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLBW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2471,15 +2755,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLWD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLWD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLWD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLWD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2488,15 +2774,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLDQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PUNPCKLDQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2505,15 +2793,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Pack with signed Saturation';
-                          tempresult:=tempresult+'PACKSSWB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKSSWB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Pack with signed Saturation';
-                          tempresult:=tempresult+'PACKSSWB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKSSWB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2522,15 +2812,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2539,15 +2831,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2556,15 +2850,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Greater Than';
-                          tempresult:=tempresult+'PCMPGTD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPGTD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2574,15 +2870,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Pack with Unsigned Saturation';
-                          tempresult:=tempresult+'PACKUSWB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKUSWB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Pack with Unsigned Saturation';
-                          tempresult:=tempresult+'PACKUSWB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKUSWB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2591,13 +2889,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHBW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PUNPCKHBW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHBW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PUNPCKHBW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -2606,13 +2906,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHWD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PUNPCKHWD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHWD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PUNPCKHWD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -2621,13 +2923,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PUNPCKHDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHDQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PUNPCKHDQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -2636,15 +2940,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Pack with signed Saturation';
-                          tempresult:=tempresult+'PACKSSDW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKSSDW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Pack with signed Saturation';
-                          tempresult:=tempresult+'PACKSSDW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PACKSSDW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2653,7 +2959,8 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack Low Packed Data';
-                          tempresult:=tempresult+'PUNPCKLQDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PUNPCKLQDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                       end;
@@ -2662,7 +2969,8 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Unpack High Packed Data';
-                          tempresult:=tempresult+'PUNPCKHQDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PUNPCKHQDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                       end;
@@ -2672,15 +2980,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Doubleword';
-                          tempresult:=tempresult+'MOVD '+xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move 32 Bits';
-                          tempresult:=tempresult+'MOVD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2688,25 +2998,28 @@ begin
                 $6f : begin
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Move UnAligned Double Quadword';
-                          tempresult:=tempresult+'MOVDQU '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVDQU';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move Aligned Double Quadword';
-                          tempresult:=tempresult+'MOVDQA '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVDQA';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move 64 Bits';
-                          tempresult:=tempresult+'MOVDQA '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVDQA';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2714,47 +3027,53 @@ begin
                 $70 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Shuffle Packed Low Words';
-                          tempresult:=tempresult+'PSHUFLW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PSHUFLW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Shuffle Packed High Words';
-                          tempresult:=tempresult+'PSHUFHW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PSHUFHW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shuffle DoubleWord';
-                          tempresult:=tempresult+'PSHUFD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PSHUFD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         begin
                           description:='Packed Shuffle Word';
-                          tempresult:=tempresult+'PSHUFW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PSHUFW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last)+''+inttohexs(memory[last],2);
                           inc(offset,last);
                         end;
                       end;
 
                 $71 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLW '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLW';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLW '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLW';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2763,13 +3082,15 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Right Arithmetic';
-                                  tempresult:=tempresult+'PSRAW '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRAW';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Right Arithmetic';
-                                  tempresult:=tempresult+'PSRAW '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRAW';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2778,13 +3099,15 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLW '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLW';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLW '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLW';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2792,18 +3115,20 @@ begin
                       end;
 
                 $72 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLD '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLD';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLD '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLD';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2812,13 +3137,15 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Right Arithmetic';
-                                  tempresult:=tempresult+'PSRAD '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRAD';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Right Arithmetic';
-                                  tempresult:=tempresult+'PSRAD '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRAD';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2827,13 +3154,15 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLD '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLD';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLD '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLD';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2841,18 +3170,20 @@ begin
                       end;
 
                 $73 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLQ '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLQ';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Right Logical';
-                                  tempresult:=tempresult+'PSRLQ '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLQ';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2861,7 +3192,8 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Shift double Quadword right Lopgical';
-                                  tempresult:=tempresult+'PSRLDQ '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSRLDQ';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2870,13 +3202,15 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLQ '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLQ';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='Packed Shift Left Logical';
-                                  tempresult:=tempresult+'PSLLQ '+mm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLQ';
+                                  LastDisassembleData.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2885,7 +3219,8 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Shift Double Quadword Left Logical';
-                                  tempresult:=tempresult+'PSLLDQ '+xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  LastDisassembleData.Opcode:='PSLLDQ';
+                                  LastDisassembleData.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -2898,15 +3233,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2915,15 +3252,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2932,15 +3271,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Compare for Equal';
-                          tempresult:=tempresult+'PCMPEQD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PCMPEQD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -2948,43 +3289,48 @@ begin
 
                 $77 : begin
                         description:='Empty MMX™ State';
-                        tempresult:=tempresult+'EMMS';
+                        LastDisassembleData.Opcode:='EMMS';
                         inc(offset);
                       end;
 
                 $78 : begin
                         description:='Reads a specified VMCS field (32 Bits)';
-                        tempresult:=tempresult+'VMREAD '+modrm(memory,prefix2,2,2,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='VMREAD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last)+r32(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $79 : begin
                         description:='Writes a specified VMCS field (32 Bits)';
-                        tempresult:=tempresult+'VMWRITE '+r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='VMWRITE';
+                        LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $7e : begin
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Move quadword';
-                          tempresult:=tempresult+'MOVQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move 32 Bits';
-                          tempresult:=tempresult+'MOVD '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move 32 Bits';
-                          tempresult:=tempresult+'MOVD '+modrm(memory,prefix2,2,3,last)+mm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVD';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,3,last)+mm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
@@ -2992,381 +3338,468 @@ begin
                 $7f : begin
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Move Unaligned double Quadword';
-                          tempresult:=tempresult+'MOVDQU '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVDQU';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move aligned double Quadword';
-                          tempresult:=tempresult+'MOVDQA '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVDQA';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move 64 Bits';
-                          tempresult:=tempresult+'MOVQ '+modrm(memory,prefix2,2,3,last)+mm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVQ';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,3,last)+mm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
 
                 $80 : begin
                         description:='Jump near if overflow';
-                        tempresult:=tempresult+'JO ';
+                        LastDisassembleData.Opcode:='JO';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $81 : begin
                         description:='Jump near if not overflow';
-                        tempresult:=tempresult+'JNO ';
+                        LastDisassembleData.Opcode:='JNO';
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(offset+pint(@memory[2])^,8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
 
                       end;
 
                 $82 : begin
                         description:='Jump near if below/carry';
                         dwordptr:=@memory[2];
-                        tempresult:=tempresult+'JB ';
+                        LastDisassembleData.Opcode:='JB';
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
 
                       end;
 
                 $83 : begin
                         description:='Jump near if above or equal';
-                        tempresult:=tempresult+'JAE ';
+                        LastDisassembleData.Opcode:='JAE';
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $84 : begin
                         description:='Jump near if equal';
-                        tempresult:=tempresult+'JE ';
+                        LastDisassembleData.Opcode:='JE';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $85 : begin
                         description:='Jump near if not equal';
-                        tempresult:=tempresult+'JNE ';
+                        LastDisassembleData.Opcode:='JNE';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
 
                       end;
 
                 $86 : begin
                         description:='Jump near if below or equal';
-                        tempresult:=tempresult+'JBE ';
+                        LastDisassembleData.Opcode:='JBE';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $87 : begin
                         description:='Jump near if above';
-                        tempresult:=tempresult+'JA ';
+                        LastDisassembleData.Opcode:='JA';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $88 : begin
                         description:='Jump near if sign';
-                        tempresult:=tempresult+'JS ';
+                        LastDisassembleData.Opcode:='JS';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $89 : begin
                         description:='Jump near if less';
-                        tempresult:=tempresult+'JL ';
+                        LastDisassembleData.Opcode:='JL';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8a : begin
                         description:='Jump near if parity';
-                        tempresult:=tempresult+'JP ';
+                        LastDisassembleData.Opcode:='JP';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8b : begin
                         description:='Jump near if not parity';
-                        tempresult:=tempresult+'JNP ';
+                        LastDisassembleData.Opcode:='JNP';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8c : begin
                         description:='Jump near if less';
-                        tempresult:=tempresult+'JL ';
+                        LastDisassembleData.Opcode:='JL';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8d : begin
                         description:='Jump near if not less';
-                        tempresult:=tempresult+'JNL ';
+                        LastDisassembleData.Opcode:='JNL';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8e : begin
                         description:='Jump near if not greater';
-                        tempresult:=tempresult+'JNG ';
+                        LastDisassembleData.Opcode:='JNG';
 
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $8f : begin
                         description:='Jump near if greater';
-                        tempresult:=tempresult+'JG ';
+                        LastDisassembleData.Opcode:='JG';
                         inc(offset,1+4);
-                        tempresult:=tempresult+inttohexs(dword(offset+pint(@memory[2])^),8);
+                        if processhandler.is64Bit then
+                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                        else
+                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
                       end;
 
                 $90 : begin
                         description:='Set byte if overflow';
-                        tempresult:=tempresult+'SETO '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETO';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $91 : begin
                         description:='Set byte if not overfloww';
-                        tempresult:=tempresult+'SETNO '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETNO';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $92 : begin
                         description:='Set byte if below/carry';
-                        tempresult:=tempresult+'SETB '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $93 : begin
                         description:='Set byte if above or equal';
-                        tempresult:=tempresult+'SETAE '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETAE';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $94 : begin
                         description:='Set byte if equal';
-                        tempresult:=tempresult+'SETE '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETE';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $95 : begin
                         description:='Set byte if not carry(not equal)';
-                        tempresult:=tempresult+'SETNC '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETNC';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $96 : begin
                         description:='Set byte if below or equal';
-                        tempresult:=tempresult+'SETBE '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETBE';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $97 : begin
                         description:='Set byte if above';
-                        tempresult:=tempresult+'SETA '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETA';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $98 : begin
                         description:='Set byte if sign';
-                        tempresult:=tempresult+'SETS '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETS';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $99 : begin
                         description:='Set byte if not sign';
-                        tempresult:=tempresult+'SETNS '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETNS';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $9a : begin
                         description:='Set byte if parity';
-                        tempresult:=tempresult+'SETP '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $9b : begin
                         description:='Set byte if not parity';
-                        tempresult:=tempresult+'SETNP '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETNP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $9c : begin
                         description:='Set byte if less';
-                        tempresult:=tempresult+'SETL '+modrm(memory,prefix2,2,2,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='SETL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
+
                         inc(offset,last-1);
                       end;
 
                 $9d : begin
                         description:='Set byte if greater or equal';
-                        tempresult:=tempresult+'SETGE '+modrm(memory,prefix2,2,2,last);
+                        LastDisassembleData.Opcode:='SETGE';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                         inc(offset,last-1);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       end;
 
                 $9e : begin
                         description:='Set byte if less or equal';
-                        tempresult:=tempresult+'SETLE '+modrm(memory,prefix2,2,2,last);
+                        LastDisassembleData.Opcode:='SETLE';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                         inc(offset,last-1);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       end;
 
                 $9f : begin
                         description:='Set byte if greater';
-                        tempresult:=tempresult+'SETG '+modrm(memory,prefix2,2,2,last);
+                        LastDisassembleData.Opcode:='SETG';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last);
                         inc(offset,last-1);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+
 
                       end;
 
                 $a0 : begin
                         description:='Push Word or Doubleword Onto the Stack';
-                        tempresult:=tempresult+'PUSH FS';
+                        LastDisassembleData.Opcode:='PUSH';
+                        LastDisassembleData.parameters:='FS';
                         inc(offset);
                       end;
 
                 $a1 : begin
                         description:='Pop a Value from the Stack';
-                        tempresult:=tempresult+'POP FS';
+                        LastDisassembleData.Opcode:='POP';
+                        LastDisassembleData.parameters:='FS';
                         inc(offset);
                       end;
 
 
                 $a2 : begin
                         description:='CPU Identification';
-                        tempresult:=tempresult+'CPUID';
+                        LastDisassembleData.Opcode:='CPUID';
                         inc(offset);
                       end;
 
                 $a3 : begin
                         description:='Bit Test';
-                        if $66 in prefix2 then tempresult:=tempresult+'BT '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'BT '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
-                        inc(offset,last-1);
+                        LastDisassembleData.Opcode:='BT';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
 
+                        inc(offset,last-1);
                       end;
 
                 $a4 : begin
                         description:='Double Precision Shift Left';
-                        if $66 in prefix2 then tempresult:=tempresult+'SHLD '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'SHLD '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='SHLD';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
 
                       end;
 
                 $a5 : begin
                         description:='Double Precision Shift Left';
-                        if $66 in prefix2 then tempresult:=tempresult+'SHLD '+MODRM(memory,prefix2,2,1,last)+'CL' else
-                                               tempresult:=tempresult+'SHLD '+MODRM(memory,prefix2,2,0,last)+'CL';
+                        LastDisassembleData.Opcode:='SHLD';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+'CL' else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+'CL';
                         inc(offset,last-1);
 
                       end;
 
                 $a8 : begin
                         description:='Push Word or Doubleword Onto the Stack';
-                        tempresult:=tempresult+'PUSH GS';
+                        LastDisassembleData.Opcode:='PUSH';
+                        LastDisassembleData.parameters:='GS';
                         inc(offset);
                       end;
 
                 $a9 : begin
                         description:='Pop a Value from the Stack';
-                        tempresult:=tempresult+'POP GS';
+                        LastDisassembleData.Opcode:='POP';
+                        LastDisassembleData.parameters:='GS';
                         inc(offset);
                       end;
 
                 $aa : begin
                         description:='Resume from System Management Mode';
-                        tempresult:=tempresult+'RSM';
+                        LastDisassembleData.Opcode:='RSM';
                         inc(offset);
                       end;
 
                 $ab : begin
                         description:='Bit Test and Set';
-                        if $66 in prefix2 then tempresult:=tempresult+'BTS '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'BTS '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='BTS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
 
                       end;
 
                 $ac : begin
                         description:='Double Precision Shift Right';
-                        if $66 in prefix2 then tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='SHRD';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
-
                       end;
 
                 $ad : begin
                         description:='Double Precision Shift Right';
-                        if $66 in prefix2 then tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,1,last)+'CL' else
-                                               tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,0,last)+'CL';
+                        LastDisassembleData.Opcode:='SHRD';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+'CL' else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+'CL';
                         inc(offset,last-1);
 
                       end;
 
                 $ae : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           0:  begin
                                 description:='Store FP and MMX State and Streaming SIMD Extension State';
-                                tempresult:=tempresult+'FXSAVE '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='FXSAVE';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                           1:  begin
                                 description:='Restore FP and MMX State and Streaming SIMD Extension State';
-                                tempresult:=tempresult+'FXRSTOR '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='FXRSTOR';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                           2:  begin
                                 description:='Load Streaming SIMD Extension Control/Status';
-                                tempresult:='LDMXCSR '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='LDMXCSR';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                           3:  begin
                                 description:='Store Streaming SIMD Extension Control/Status';
-                                tempresult:='STMXCSR '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='STMXCSR';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
                           7:  begin
                                 description:='Store Fence';
-                                tempresult:='SFENCE '+MODRM(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='SFENCE';
+                                LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
@@ -3376,82 +3809,100 @@ begin
 
                 $af : begin
                         description:='Signed Multiply';
-                        if $66 in prefix2 then tempresult:=tempresult+'IMUL '+r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'IMUL '+r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='IMUL';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $b0 : begin
                         description:='Compare and Exchange';
-                        tempresult:=tempresult+'CMPXCHG '+modrm(memory,prefix2,2,2,last)+r8(memory[2]);
+                        LastDisassembleData.Opcode:='CMPXCHG';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,2,last)+r8(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $b1 : begin
                         description:='Compare and Exchange';
-                        if $66 in prefix2 then tempresult:=tempresult+'CMPXCHG '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'CMPXCHG '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='CMPXCHG';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $b2 : begin
                         description:='Load Far Pointer';
-                        if $66 in prefix2 then tempresult:=tempresult+'LSS '+r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'LSS '+r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='LSS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $b3 : begin
                         description:='Bit Test and Reset';
-                        if $66 in prefix2 then tempresult:=tempresult+'BTR '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'BTR '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='BTR';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
 
                       end;
 
                 $b4 : begin
                         description:='Load Far Pointer';
-                        if $66 in prefix2 then tempresult:=tempresult+'LFS '+r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'LFS '+r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='LFS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $b5 : begin
                         description:='Load Far Pointer';
-                        if $66 in prefix2 then tempresult:=tempresult+'LGS '+r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'LGS '+r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='LGS';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
+
                         inc(offset,last-1);
                       end;
 
                 $b6 : begin
                         description:='Load Far Pointer';
-                        if $66 in prefix2 then tempresult:=tempresult+'MOVZX '+r16(memory[2])+','+MODRM(memory,prefix2,2,2,last,8) else
-                                               tempresult:=tempresult+'MOVZX '+r32(memory[2])+','+MODRM(memory,prefix2,2,2,last,8);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='MOVZX';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,2,last,8) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,2,last,8);
+
 
                         inc(offset,last-1);
                       end;
 
                 $b7 : begin
                         description:='Load Far Pointer';
-                        tempresult:=tempresult+'MOVZX '+r32(memory[2])+','+MODRM(memory,prefix2,2,1,last,16);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='MOVZX';
+                        LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,1,last,16);
+
 
                         inc(offset,last-1);
                       end;
 
 
                 $ba : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           4:  begin
                                 //BT
                                 description:='Bit Test';
-                                if $66 in prefix2 then tempresult:=tempresult+'BT '+MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2)
-                                                  else tempresult:=tempresult+'BT '+MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                LastDisassembleData.Opcode:='BT';
+                                if $66 in prefix2 then
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
 
                                 inc(offset,last-1+1);
                               end;
@@ -3459,24 +3910,30 @@ begin
                           5:  begin
                                 //BTS
                                 description:='Bit Test and Set';
-                                if $66 in prefix2 then tempresult:=tempresult+'BTS '+MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2)
-                                                  else tempresult:=tempresult+'BTS '+MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                LastDisassembleData.Opcode:='BTS';
+                                if $66 in prefix2 then
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
                           6:  begin
                                 //BTR
                                 description:='Bit Test and Reset';
-                                if $66 in prefix2 then tempresult:=tempresult+'BTR '+MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2)
-                                                  else tempresult:=tempresult+'BTR '+MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                LastDisassembleData.Opcode:='BTR';
+                                if $66 in prefix2 then
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
                           7:  begin
                                 //BTC
                                 description:='Bit Test and Complement';
-                                if $66 in prefix2 then tempresult:=tempresult+'BTC '+MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2)
-                                                  else tempresult:=tempresult+'BTC '+MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                LastDisassembleData.Opcode:='BTC';
+                                if $66 in prefix2 then
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
@@ -3486,8 +3943,10 @@ begin
 
                 $bb : begin
                         description:='Bit Test and Complement';
-                        if $66 in prefix2 then tempresult:=tempresult+'BTC '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
-                                               tempresult:=tempresult+'BTC '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='BTC';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
 
                       end;
@@ -3496,9 +3955,11 @@ begin
                 $bc : begin
                         //bsf
                         description:='Bit Scan Forward';
-                        if $66 in prefix2 then tempresult:=tempresult+'BSF '+r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'BSF '+r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='BSF';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,0,last);
+
 
                         inc(offset,last-1);
                       end;
@@ -3506,57 +3967,70 @@ begin
                 $bd : begin
                         //bsf
                         description:='Bit Scan Reverse';
-                        if $66 in prefix2 then tempresult:=tempresult+'BSR '+r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
-                                               tempresult:=tempresult+'BSR '+r32(memory[2])+','+MODRM(memory,prefix2,2,1,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='BSR';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,1,last) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,1,last);
+
 
                         inc(offset,last-1);
                       end;
 
                 $be : begin
                         description:='Move with Sign-Extension';
-                        if $66 in prefix2 then tempresult:=tempresult+'MOVSX '+r16(memory[2])+','+MODRM(memory,prefix2,2,2,last,8) else
-                                               tempresult:=tempresult+'MOVSX '+r32(memory[2])+','+MODRM(memory,prefix2,2,2,last,8);
+                        LastDisassembleData.Opcode:='MOVSX';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=r16(memory[2])+','+MODRM(memory,prefix2,2,2,last,8) else
+                          LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,2,last,8);
 
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+
 
                         inc(offset,last-1);
                       end;
 
                 $bf : begin
                         description:='Move with Sign-Extension';
-                        tempresult:=tempresult+'MOVSX '+r32(memory[2])+','+MODRM(memory,prefix2,2,1,last,16);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='MOVSX';
+                        LastDisassembleData.parameters:=r32(memory[2])+','+MODRM(memory,prefix2,2,1,last,16);
+
                         inc(offset,last-1);
                       end;
 
                 $c0 : begin
                         description:='Exchange and Add';
-                        tempresult:=tempresult+'XADD '+MODRM(memory,prefix2,2,2,last)+r8(memory[2]);
+                        LastDisassembleData.Opcode:='XADD';
+                        LastDisassembleData.parameters:=MODRM(memory,prefix2,2,2,last)+r8(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $c1 : begin
                         description:='Exchange and Add';
-                        if $66 in prefix2 then tempresult:=tempresult+'XADD '+MODRM(memory,prefix2,2,1,last)+r16(memory[2])
-                                          else tempresult:=tempresult+'XADD '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='XADD';
+                        if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
+
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last-1);
                       end;
 
                 $c2 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6); //strip prefix 'REPME '
+                           //strip prefix 'REPME '
                           description:='Compare Scalar Dpuble-Precision Floating-Point Values';
-                          tempresult:=tempresult+'CMPSD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='CMPSD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         if $F3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5); //strip prefix 'REPE '
+                            //strip prefix 'REPE '
                           description:='Packed Single-FP Compare';
-                          tempresult:=tempresult+'CMPSS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='CMPSS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
@@ -3564,13 +4038,17 @@ begin
                           if $66 in prefix2 then
                           begin
                             description:='Compare packed double-Precision Floating-Point Values';
-                            tempresult:=tempresult+'CMPPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
+                            LastDisassembleData.Opcode:='CMPPD';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
+                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                             inc(offset,last);
                           end
                           else
                           begin
                             description:='Packed Single-FP Compare';
-                            tempresult:=tempresult+'CMPPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128)+''+inttohexs(memory[last],2);
+                            LastDisassembleData.Opcode:='CMPPS';
+                            LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
+                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                             inc(offset,last);
                           end;
                         end;
@@ -3578,7 +4056,8 @@ begin
 
                 $c3 : begin
                         description:='Store doubleword using Non-temporal Hint';
-                        tempresult:=tempresult+'MOVNTI '+modrm(memory,prefix2,2,0,last)+r32(memory[2]);
+                        LastDisassembleData.Opcode:='MOVNTI';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last)+r32(memory[2]);
                         inc(offset,last);
                       end;
 
@@ -3586,13 +4065,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Insert Word';
-                          tempresult:=tempresult+'PINSRW '+xmm(memory[2])+','+modrm(memory,prefix2,2,0,last)+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PINSRW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         begin
                           description:='Insert Word';
-                          tempresult:=tempresult+'PINSRW '+mm(memory[2])+','+modrm(memory,prefix2,2,0,last)+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PINSRW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,0,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end;
                       end;
@@ -3601,13 +4084,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Extract Word';
-                          tempresult:=tempresult+'PEXTRW '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last)+','+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PEXTRW';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,3);
                         end
                         else
                         begin
                           description:='Extract Word';
-                          tempresult:=tempresult+'PEXTRW '+r32(memory[2])+','+modrm(memory,prefix2,2,3,last)+','+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='PEXTRW';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,3);
                         end;
                       end;
@@ -3616,22 +4103,27 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Shuffle Double-FP';
-                          tempresult:=tempresult+'SHUFPD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='SHUFPD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end
                         else
                         begin
                           description:='Shuffle Single-FP';
-                          tempresult:=tempresult+'SHUFPS '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+inttohexs(memory[last],2);
+                          LastDisassembleData.Opcode:='SHUFPS';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                           inc(offset,last);
                         end;
                       end;
 
                 $c7 : begin
-                        case OpcodeReg(memory[2]) of
+                        case getReg(memory[2]) of
                           1:  begin
                                 description:='Compare and Exchange 8 Bytes';
-                                tempresult:=tempresult+'CMPXCHG8B '+modrm(memory,prefix2,2,0,last);
+                                LastDisassembleData.Opcode:='CMPXCHG8B';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                 inc(offset,last-1);
                               end;
 
@@ -3639,31 +4131,35 @@ begin
                                 if $66 in prefix2 then
                                 begin
                                   description:='Copy VMCS data to VMCS region in memory';
-                                  tempresult:='VMCLEAR '+modrm(memory,prefix2,2,0,last);
-                                  tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                  LastDisassembleData.Opcode:='VMCLEAR';
+                                  LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
+
                                   inc(offset,last-1);
                                 end
                                 else
                                 if $f3 in prefix2 then
                                 begin
                                   description:='Enter VMX root operation';
-                                  tempresult:='VMXON '+modrm(memory,prefix2,2,0,last);
-                                  tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                  LastDisassembleData.Opcode:='VMXON';
+                                  LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
+
                                   inc(offset,last-1);
                                 end
                                 else
                                 begin
                                   description:='Loads ther current VMCS pointer from memory';
-                                  tempresult:='VMPTRLD '+modrm(memory,prefix2,2,0,last);
-                                  tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                  LastDisassembleData.Opcode:='VMPTRLD';
+                                  LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
+
                                   inc(offset,last-1);
                                 end;
                               end;
 
                           7:  begin
                                 description:='Stores the current VMCS pointer into memory';
-                                tempresult:=tempresult+'VMPTRST '+modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                LastDisassembleData.Opcode:='VMPTRST';
+                                LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
+
                                 inc(offset,last-1);
                               end;
                         end;
@@ -3673,7 +4169,8 @@ begin
                 $c8..$cf : begin
                         //BSWAP
                         description:='Byte Swap';
-                        tempresult:=tempresult+'BSWAP '+rd(memory[1]-$c8);
+                        LastDisassembleData.Opcode:='BSWAP';
+                        LastDisassembleData.parameters:=rd(memory[1]-$c8);
 
                         inc(offset);
                       end;
@@ -3682,13 +4179,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSRLW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSRLW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3697,13 +4196,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSRLD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSRLD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3712,13 +4213,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSRLQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Right Logical';
-                          tempresult:=tempresult+'PSRLQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSRLQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3727,12 +4230,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Add Packed Quadwprd Integers';
-                          tempresult:=tempresult+'PADDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);                          inc(offset,last-1);
+                          LastDisassembleData.Opcode:='PADDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Add Packed Quadwprd Integers';
-                          tempresult:=tempresult+'PADDQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PADDQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3742,15 +4248,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Multiply Low';
-                          tempresult:=tempresult+'PMULLW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULLW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Multiply Low';
-                          tempresult:=tempresult+'PMULLW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULLW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3758,32 +4266,36 @@ begin
                 $d6 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Move low quadword from xmm to MMX technology register';
-                          tempresult:=tempresult+'MOVDQ2Q '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVDQ2Q';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Move low quadword from xmm to MMX technology register';
-                          tempresult:=tempresult+'MOVQ2DQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MOVQ2DQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $66 in prefix2 then
                         begin
                           description:='Move low quadword from xmm to MMX technology register';
-                          tempresult:=tempresult+'MOVQ '+modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVQ';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move quadword from MMX technology to xmm register';
-                          tempresult:=tempresult+'MOVQ2Dq '+modrm(memory,prefix2,2,4,last)+mm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVQ2Dq';
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,2,4,last)+mm(memory[2]);
                           inc(offset,last-1);
                         end;
 
@@ -3794,15 +4306,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Move Byte Mask To Integer';
-                          tempresult:=tempresult+'PMOVMSKB '+r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMOVMSKB';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Move Byte Mask To Integer';
-                          tempresult:=tempresult+'PMOVMSKB '+r32(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMOVMSKB';
+                          LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3811,13 +4325,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract Unsigned with Saturation';
-                          tempresult:=tempresult+'PSUBUSB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSUBUSB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract Unsigned with Saturation';
-                          tempresult:=tempresult+'PSUBUSB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSUBUSB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3826,13 +4342,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract Unsigned with Saturation';
-                          tempresult:=tempresult+'PSUBUSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSUBUSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract Unsigned with Saturation';
-                          tempresult:=tempresult+'PSUBUSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSUBUSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3841,15 +4359,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Unsigned Integer Byte Minimum';
-                          tempresult:=tempresult+'PMINUB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMINUB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Unsigned Integer Byte Minimum';
-                          tempresult:=tempresult+'PMINUB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMINUB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3858,15 +4378,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Logical AND';
-                          tempresult:=tempresult+'PAND '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAND';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Logical AND';
-                          tempresult:=tempresult+'PAND '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAND';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3875,15 +4397,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add Unsigned with Saturation';
-                          tempresult:=tempresult+'PADDUSB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDUSB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add Unsigned with Saturation';
-                          tempresult:=tempresult+'PADDUSB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDUSB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3892,15 +4416,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add Unsigned with Saturation';
-                          tempresult:=tempresult+'PADDUSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDUSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add Unsigned with Saturation';
-                          tempresult:=tempresult+'PADDUSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDUSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3909,15 +4435,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Unsigned Integer Byte Maximum';
-                          tempresult:=tempresult+'PMAXUB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMAXUB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Unsigned Integer Byte Maximum';
-                          tempresult:=tempresult+'PMAXUB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMAXUB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3926,15 +4454,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Logical AND NOT';
-                          tempresult:=tempresult+'PANDN '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PANDN';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Logical AND NOT';
-                          tempresult:=tempresult+'PANDN '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PANDN';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3943,15 +4473,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Average';
-                          tempresult:=tempresult+'PAVGB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAVGB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Average';
-                          tempresult:=tempresult+'PAVGB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAVGB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -3960,13 +4492,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Right Arithmetic';
-                          tempresult:=tempresult+'PSRAW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSRAW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Right Arithmetic';
-                          tempresult:=tempresult+'PSRAW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSRAW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3975,13 +4509,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSRAD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSRAD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSRAD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSRAD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -3990,15 +4526,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Average';
-                          tempresult:=tempresult+'PAVGW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAVGW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Average';
-                          tempresult:=tempresult+'PAVGW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PAVGW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4007,15 +4545,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Multiply High Unsigned';
-                          tempresult:=tempresult+'PMULHUW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULHUW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Multiply High Unsigned';
-                          tempresult:=tempresult+'PMULHUW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULHUW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4024,15 +4564,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Multiply High';
-                          tempresult:=tempresult+'PMULHW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULHW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Multiply High';
-                          tempresult:=tempresult+'PMULHW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULHW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4040,19 +4582,21 @@ begin
                 $e6 : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
+
                           description:='Convert two packed signed dwords from param2 to two packed DP-Floating point values in param1';
-                          tempresult:=tempresult+'CVTPD2DQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTPD2DQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
+
                           description:='Convert two packed signed dwords from param2 to two packed DP-Floating point values in param1';
-                          tempresult:=tempresult+'CVTDQ2PD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='CVTDQ2PD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
@@ -4060,8 +4604,9 @@ begin
                           if $66 in prefix2 then
                           begin
                             description:='Convert with truncation Packed Double-precision Floating-Point Values to Packed Doubleword Integers';
-                            tempresult:=tempresult+'CVTTPD2DQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                            tempresult:=copy(tempresult,1,length(tempresult)-1);
+                            LastDisassembleData.Opcode:='CVTTPD2DQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                             inc(offset,last-1);
                           end;
                         end;
@@ -4070,13 +4615,15 @@ begin
                 $e7 : begin
                         if $66 in prefix2 then
                         begin
-                          tempresult:=tempresult+'MOVNTDQ '+MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVNTDQ';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,4,last)+xmm(memory[2]);
                           description:='Move Double quadword Using Non-Temporal Hint';
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          tempresult:=tempresult+'MOVNTQ '+MODRM(memory,prefix2,2,3,last)+mm(memory[2]);
+                          LastDisassembleData.Opcode:='MOVNTQ';
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,2,3,last)+mm(memory[2]);
                           description:='Move 64 Bits Non Temporal';
                           inc(offset,last-1);
                         end;
@@ -4086,13 +4633,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract with Saturation';
-                          tempresult:=tempresult+'PSUBSB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSUBSB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract with Saturation';
-                          tempresult:=tempresult+'PSUBSB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSUBSB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -4101,13 +4650,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract with Saturation';
-                          tempresult:=tempresult+'PSUBSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSUBSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract with Saturation';
-                          tempresult:=tempresult+'PSUBSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSUBSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -4116,15 +4667,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Signed Integer Word Minimum';
-                          tempresult:=tempresult+'PMINSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMINSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Signed Integer Word Minimum';
-                          tempresult:=tempresult+'PMINSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMINSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4133,15 +4686,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Bitwise Logical OR';
-                          tempresult:=tempresult+'POR '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='POR';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Bitwise Logical OR';
-                          tempresult:=tempresult+'POR '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='POR';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4150,15 +4705,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add with Saturation';
-                          tempresult:=tempresult+'PADDSB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDSB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add with Saturation';
-                          tempresult:=tempresult+'PADDSB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDSB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4167,15 +4724,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add with Saturation';
-                          tempresult:=tempresult+'PADDSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add with Saturation';
-                          tempresult:=tempresult+'PADDSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4184,15 +4743,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Signed Integer Word Maximum';
-                          tempresult:=tempresult+'PMAXSW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMAXSW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Signed Integer Word Maximum';
-                          tempresult:=tempresult+'PMAXSW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMAXSW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4201,15 +4762,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Logical Exclusive OR';
-                          tempresult:=tempresult+'PXOR '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PXOR';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Logical Exclusive OR';
-                          tempresult:=tempresult+'PXOR '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PXOR';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4218,13 +4781,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSLLW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSLLW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -4233,13 +4798,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSLLD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSLLD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -4248,13 +4815,15 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.Opcode:='PSLLQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Shift Left Logical';
-                          tempresult:=tempresult+'PSLLQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.Opcode:='PSLLQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
                           inc(offset,last-1);
                         end;
                       end;
@@ -4263,15 +4832,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Multiply Packed Unsigned Doubleword Integers';
-                          tempresult:=tempresult+'PMULUDQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULUDQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Multiply Packed Unsigned Doubleword Integers';
-                          tempresult:=tempresult+'PMULUDQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMULUDQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4281,15 +4852,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Multiply and Add';
-                          tempresult:=tempresult+'PMADDWD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMADDWD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Multiply and Add';
-                          tempresult:=tempresult+'PMADDWD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PMADDWD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4298,15 +4871,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Sum of Absolute Differences';
-                          tempresult:=tempresult+'PSADBW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSADBW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Sum of Absolute Differences';
-                          tempresult:=tempresult+'PSADBW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSADBW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4315,15 +4890,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Store Selected Bytes of Double Quadword';
-                          tempresult:=tempresult+'MASKMOVDQU '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MASKMOVDQU';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Byte Mask Write';
-                          tempresult:=tempresult+'MASKMOVQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='MASKMOVQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4332,15 +4909,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4349,15 +4928,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4366,15 +4947,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4383,15 +4966,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBQ '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBQ';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Subtract';
-                          tempresult:=tempresult+'PSUBQ '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PSUBQ';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4400,15 +4985,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDB '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDB';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDB '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDB';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4417,15 +5004,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDW '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDW';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDW '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDW';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4434,15 +5023,17 @@ begin
                         if $66 in prefix2 then
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDD '+xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDD';
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='Packed Add';
-                          tempresult:=tempresult+'PADDD '+mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          tempresult:=copy(tempresult,1,length(tempresult)-1);
+                          LastDisassembleData.Opcode:='PADDD';
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+
                           inc(offset,last-1);
                         end;
                       end;
@@ -4460,230 +5051,280 @@ begin
 
       $10 : begin
               description:='Add with carry';
-              tempresult:=tempresult+'ADC '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='ADC';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $11 : begin
               description:='Add with carry';
-              if $66 in prefix2 then  tempresult:=tempresult+'ADC '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'ADC '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='ADC';
+              if $66 in prefix2 then
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                          LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
 
             end;
 
       $12 : begin
               description:='Add with carry';
-              tempresult:=tempresult+'ADC '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last,8);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='ADC';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last,8);
+
               inc(offset,last-1);
             end;
 
       $13 : begin
               description:='Add with carry';
-              if $66 in prefix2 then tempresult:=tempresult+'ADC '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'ADC '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='ADC';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
       $14 : begin
               description:='Add with carry';
-              tempresult:=tempresult+'ADC AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='ADC';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $15 : begin
               description:='Add with carry';
+              LastDisassembleData.Opcode:='ADC';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'ADC AX,'+inttohexs(wordptr^,4);
+
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'ADC EAX,'+inttohexs(dwordptr^,8);
+                if Rex_W then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
 
       $16 : begin
               description:='Place SS on the stack';
-              tempresult:=tempresult+'PUSH SS';
+              LastDisassembleData.Opcode:='PUSH';
+              LastDisassembleData.parameters:='SS';
             end;
 
       $17 : begin
               description:='Remove SS from the stack';
-              tempresult:=tempresult+'POP SS';
+              LastDisassembleData.Opcode:='POP';
+              LastDisassembleData.parameters:='SS';
             end;
 
       $18 : begin
               description:='Integer Subtraction with Borrow';
-              tempresult:=tempresult+'SBB '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='SBB';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $19 : begin
               description:='Integer Subtraction with Borrow';
-              if $66 in prefix2 then  tempresult:=tempresult+'SBB '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'SBB '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='SBB';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
 
       $1a : begin
               description:='Integer Subtraction with Borrow';
-              tempresult:=tempresult+'SBB '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last,8);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='SBB';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last,8);
+
               inc(offset,last-1);
             end;
 
       $1b : begin
               description:='Integer subtraction with Borrow';
-              if $66 in prefix2 then tempresult:=tempresult+'SBB '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'SBB '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='SBB';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
 
               inc(offset,last-1);
             end;
 
       $1c : begin
               description:='Integer Subtraction with Borrow';
-              tempresult:=tempresult+'SBB AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='SBB';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $1d : begin
+              LastDisassembleData.Opcode:='SBB';
               description:='Integer Subtraction with Borrow';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'SBB AX,'+inttohexs(wordptr^,4);
+
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'SBB EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
+
                 inc(offset,4);
               end;
             end;
 
       $1e : begin
               description:='Place DS on the stack';
-              tempresult:=tempresult+'PUSH DS';
+              LastDisassembleData.Opcode:='PUSH';
+              LastDisassembleData.parameters:='DS';
             end;
 
       $1f : begin
               description:='Remove DS from the stack';
-              tempresult:=tempresult+'POP DS';
+              LastDisassembleData.Opcode:='POP';
+              LastDisassembleData.parameters:='DS';
             end;
 
       $20 : begin
               description:='Logical AND';
-              tempresult:=tempresult+'AND '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='AND';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $21 : begin
               description:='Logical AND';
-              if $66 in prefix2 then tempresult:=tempresult+'AND '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                     tempresult:=tempresult+'AND '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='AND';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
 
             end;
 
       $22 : begin
               description:='Logical AND';
-              tempresult:=tempresult+'AND '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='AND';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
               inc(offset,last-1);
             end;
 
       $23 : begin
               description:='Logical AND';
-              if $66 in prefix2 then tempresult:=tempresult+'AND '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'AND '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='AND';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
 
       $24 : begin
               description:='Logical AND';
-              tempresult:=tempresult+'AND AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='AND';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $25 : begin
               description:='Logical AND';
+              LastDisassembleData.Opcode:='AND';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'AND AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'AND EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
 
       $27 : begin
               description:='Decimal Adjust AL after Addition';
-              tempresult:=tempresult+'DAA';
+              LastDisassembleData.Opcode:='DAA';
             end;
 
       $28 : begin
               description:='Subtract';
-              tempresult:=tempresult+'SUB '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='SUB';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $29 : begin
               description:='Subtract';
-              if $66 in prefix2 then  tempresult:=tempresult+'SUB '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'SUB '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='SUB';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
 
             end;
 
       $2a : begin
               description:='Subtract';
-              tempresult:=tempresult+'SUB '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='SUB';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
+
               inc(offset,last-1);
             end;
 
       $2b : begin
               description:='Subtract';
-              if $66 in prefix2 then tempresult:=tempresult+'SUB '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'SUB '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='SUB';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
       $2c : begin
               description:='Subtract';
-              tempresult:=tempresult+'SUB AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='SUB';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $2d : begin
               description:='Subtract';
+              LastDisassembleData.Opcode:='SUB';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'SUB AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'SUB EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
@@ -4691,93 +5332,110 @@ begin
 
       $2f : begin
               description:='Decimal Adjust AL after Subtraction';
-              tempresult:=tempresult+'DAS';
+              LastDisassembleData.Opcode:='DAS';
             end;
 
       $30 : begin
               description:='Logical Exclusive OR';
-              tempresult:=tempresult+'XOR '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='XOR';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $31 : begin
               description:='Logical Exclusive OR';
-              if $66 in prefix2 then  tempresult:=tempresult+'XOR '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'XOR '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='XOR';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
 
             end;
 
       $32 : begin
               description:='Logical Exclusive OR';
-              tempresult:=tempresult+'XOR '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='XOR';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
+
               inc(offset,last-1);
             end;
 
       $33 : begin
               description:='Logical Exclusive OR';
-              if $66 in prefix2 then tempresult:=tempresult+'XOR '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'XOR '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='XOR';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
       $34 : begin
               description:='Logical Exclusive OR';
-              tempresult:=tempresult+'XOR AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='XOR';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $35 : begin
               description:='Logical Exclusive OR';
+              LastDisassembleData.Opcode:='XOR';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'XOR AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'XOR EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
 
 
       $37 : begin  //AAA
-              tempresult:=tempresult+'AAA';
+              LastDisassembleData.Opcode:='AAA';
               description:='ASCII adjust AL after addition'
             end;
 
 //---------
       $38 : begin//CMP
               description:='Compare Two Operands';
-              tempresult:=tempresult+'CMP '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='CMP';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $39 : begin
               description:='Compare Two Operands';
-              if $66 in prefix2 then  tempresult:=tempresult+'CMP '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                      tempresult:=tempresult+'CMP '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='CMP';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
 
             end;
 
       $3a : begin
               description:='Compare Two Operands';
-              tempresult:=tempresult+'CMP '+r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='CMP';
+              LastDisassembleData.parameters:=r8(memory[1])+','+MODRM(memory,prefix2,1,2,last);
+
               inc(offset,last-1);
             end;
 
       $3b : begin
               description:='Compare Two Operands';
-              if $66 in prefix2 then tempresult:=tempresult+'CMP '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'CMP '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='CMP';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
@@ -4785,43 +5443,53 @@ begin
 
       $3c : begin
               description:='Compare Two Operands';
-              tempresult:=tempresult+'CMP AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='CMP';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $3d : begin
               description:='Compare Two Operands';
+              LastDisassembleData.Opcode:='CMP';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'CMP AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'CMP EAX,'+inttohexs(dwordptr^,8);
+                if rex_x then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
 
+            //prefix bytes need fixing
       $3F : begin  //AAS
-              tempresult:=tempresult+'AAS';
+              LastDisassembleData.Opcode:='AAS';
               description:='ASCII Adjust AL After Subtraction';
             end;
 
       $40..$47 :
             begin
               description:='Increment by 1';
-              if $66 in prefix2 then tempresult:=tempresult+'INC '+rd16(memory[0]-$40) else
-                                     tempresult:=tempresult+'INC '+rd(memory[0]-$40);
+              LastDisassembleData.Opcode:='INC';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=rd16(memory[0]-$40) else
+                LastDisassembleData.parameters:=rd(memory[0]-$40);
             end;
 
       $48..$4f :
             begin
               description:='Decrement by 1';
-              if $66 in prefix2 then tempresult:=tempresult+'DEC '+rd16(memory[0]-$48) else
-                                     tempresult:=tempresult+'DEC '+rd(memory[0]-$48);
+              LastDisassembleData.Opcode:='DEC';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=rd16(memory[0]-$48) else
+                LastDisassembleData.parameters:=rd(memory[0]-$48);
             end;
 
       $50..$57 :
@@ -4829,38 +5497,55 @@ begin
               description:='Push Word or Doubleword Onto the Stack';
               if processhandler.is64Bit then RexPrefix:=RexPrefix or BIT_REX_W; //so rd will pick the 64-bit version
 
-              if $66 in prefix2 then tempresult:=tempresult+'PUSH '+rd16(memory[0]-$50) else
-                                     tempresult:=tempresult+'PUSH '+rd(memory[0]-$50);
+              LastDisassembleData.Opcode:='PUSH';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=rd16(memory[0]-$50) else
+                LastDisassembleData.parameters:=rd(memory[0]-$50);
             end;
 
       $58..$5f :
             begin
               description:='Pop a Value from the Stack';
               if processhandler.is64Bit then RexPrefix:=RexPrefix or BIT_REX_W; //so rd will pick the 64-bit version
-
-              if $66 in prefix2 then tempresult:=tempresult+'POP '+rd16(memory[0]-$58) else
-                                     tempresult:=tempresult+'POP '+rd(memory[0]-$58);
+              LastDisassembleData.Opcode:='POP';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=rd16(memory[0]-$58) else
+                LastDisassembleData.parameters:=rd(memory[0]-$58);
             end;
 
       $60 : begin
               description:='Push All General-Purpose Registers';
-              if $66 in prefix2 then tempresult:=tempresult+'PUSHA' else
-                                    tempresult:=tempresult+'PUSHAD';
+              if processhandler.is64Bit then description:=description+' (invalid)';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='PUSHA' else
+                                     LastDisassembleData.Opcode:='PUSHAD';
+
+              if processhandler.is64Bit then
+              begin
+                description:=description+' (invalid)';
+                LastDisassembleData.Opcode:='PUSHAD (INVALID)';
+              end;
             end;
 
       $61 : begin
               description:='Pop All General-Purpose Registers';
-              if $66 in prefix2 then tempresult:=tempresult+'POPA' else
-                                    tempresult:=tempresult+'POPAD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='POPA' else
+                                     LastDisassembleData.Opcode:='POPAD';
+
+              if processhandler.is64Bit then
+              begin
+                description:=description+' (invalid)';
+                LastDisassembleData.Opcode:='POPAD (INVALID)';
+              end;
+
             end;
 
       $62 : begin
               //BOUND
               description:='Check Array Index Against Bounds';
-              if $66 in prefix2 then tempresult:=tempresult+'BOUND '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'BOUND '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-
-              tempresult:=copy(tempresult,0,length(tempresult)-1);
+              LastDisassembleData.Opcode:='BOUND';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
 
               inc(offset,last-1);
 
@@ -4868,7 +5553,8 @@ begin
 
       $63 : begin
               //ARPL
-              tempresult:=tempresult+'ARPL '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]);
+              LastDisassembleData.Opcode:='ARPL';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]);
               inc(offset,last-1);
               description:='Adjust RPL Field of Segment Selector';
             end;
@@ -4877,30 +5563,34 @@ begin
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'PUSH '+inttohexs(wordptr^,4);
+                LastDisassembleData.Opcode:='PUSH';
+                LastDisassembleData.parameters:=inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'PUSH '+inttohexs(dwordptr^,8);
+                LastDisassembleData.Opcode:='PUSH';
+                LastDisassembleData.parameters:=inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
-              description:='Push Word or Doubleword Onto the Stack';
+              description:='Push Word or Doubleword Onto the Stack (sign extended)';
             end;
 
       $69 : begin
               description:='Signed Multiply';
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'IMUL '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last);
+                LastDisassembleData.Opcode:='IMUL';
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last);
                 wordptr:=@memory[last];
                 tempresult:=tempresult+inttohexs(wordptr^,4);
                 inc(offset,last-1+2);
               end
               else
               begin
-                tempresult:=tempresult+'IMUL '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+                LastDisassembleData.Opcode:='IMUL';
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
                 dwordptr:=@memory[last];
                 tempresult:=tempresult+inttohexs(dwordptr^,8);
                 inc(offset,last-1+4);
@@ -4908,7 +5598,8 @@ begin
             end;
 
       $6a : begin
-              tempresult:=tempresult+'PUSH '+inttohexs(memory[1],2,true,1);
+              LastDisassembleData.Opcode:='PUSH';
+              LastDisassembleData.parameters:=inttohexs(memory[1],2,true,1);
               inc(offset);
               description:='Push Byte Onto the Stack';
             end;
@@ -4916,162 +5607,218 @@ begin
       $6b : begin
 
               description:='Signed Multiply';
-              if $66 in prefix2 then tempresult:=tempresult+'IMUL '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last)+inttohexs(memory[last],2) else
-                                     tempresult:=tempresult+'IMUL '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
+              LastDisassembleData.Opcode:='IMUL';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last)+inttohexs(memory[last],2) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
               inc(offset,last-1+1);
             end;
 
       $6c : begin
               //m8, DX
               description:='Input from Port to String';
-              tempresult:=tempresult+'INSB';
+              LastDisassembleData.Opcode:='INSB';
             end;
 
       $6D : begin
               //m8, DX
               description:='Input from Port to String';
-              if $66 in prefix2 then tempresult:=tempresult+'INSW' else
-                                     tempresult:=tempresult+'INSD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='INSW' else
+                                     LastDisassembleData.Opcode:='INSD';
             end;
 
       $6e : begin
               //m8, DX
               description:='Output String to Port';
-              tempresult:=tempresult+'OUTSB';
+              LastDisassembleData.Opcode:='OUTSB';
             end;
 
       $6f : begin
               //m8, DX
               description:='Output String to Port';
-              if $66 in prefix2 then tempresult:=tempresult+'OUTSW' else
-                                     tempresult:=tempresult+'OUTSD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='OUTSW' else
+                                     LastDisassembleData.Opcode:='OUTSD';
             end;
 
 
       $70 : begin
               description:='Jump short if overflow';
-              tempresult:=tempresult+'JO ';
+              LastDisassembleData.Opcode:='JO';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+
+
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $71 : begin
               description:='Jump short if not overflow';
-              tempresult:=tempresult+'JNO ';
+              LastDisassembleData.Opcode:='JNO';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $72 : begin
               description:='Jump short if below/carry';
-              tempresult:=tempresult+'JB ';
+              LastDisassembleData.Opcode:='JB';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $73 : begin
               description:='Jump short if above or equal';
-              tempresult:=tempresult+'JAE ';
+              LastDisassembleData.Opcode:='JAE';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $74 : begin
               description:='Jump short if equal';
-              tempresult:=tempresult+'JE ';
+              LastDisassembleData.Opcode:='JE';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $75 : begin
               description:='Jump short if not equal';
-              tempresult:=tempresult+'JNE ';
+              LastDisassembleData.Opcode:='JNE';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $76 : begin
               description:='Jump short if not Above';
-              tempresult:=tempresult+'JNA ';
+              LastDisassembleData.Opcode:='JNA';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $77 : begin
               description:='Jump short if above';
-              tempresult:=tempresult+'JA ';
+              LastDisassembleData.Opcode:='JA';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $78 : begin
               description:='Jump short if sign';
-              tempresult:=tempresult+'JS ';
+              LastDisassembleData.Opcode:='JS';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $79 : begin
               description:='Jump short if not sign';
-              tempresult:=tempresult+'JNS ';
+              LastDisassembleData.Opcode:='JNS';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7a : begin
               description:='Jump short if parity';
-              tempresult:=tempresult+'JP ';
+              LastDisassembleData.Opcode:='JP';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7b : begin
               description:='Jump short if not parity';
-              tempresult:=tempresult+'JNP ';
+              LastDisassembleData.Opcode:='JNP';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7c : begin
               description:='Jump short if not greater or equal';
-              tempresult:=tempresult+'JNGE ';
+              LastDisassembleData.Opcode:='JNGE';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7d : begin
               description:='Jump short if not less (greater or equal)';
-              tempresult:=tempresult+'JNL ';
+              LastDisassembleData.Opcode:='JNL';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7e : begin
               description:='Jump short if less or equal';
-              tempresult:=tempresult+'JLE ';
+              LastDisassembleData.Opcode:='JLE';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $7f : begin
               description:='Jump short if greater';
-              tempresult:=tempresult+'JG ';
+              LastDisassembleData.Opcode:='JG';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+shortint(memory[1])),8);
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
             end;
 
       $80 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       //ADD
-                      tempresult:=tempresult+'ADD '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='ADD';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Add x to y';
                     end;
 
                 1:  begin
                       //ADC
-                      tempresult:=tempresult+'OR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='OR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical Inclusive Or';
                     end;
@@ -5079,40 +5826,52 @@ begin
 
                 2:  begin
                       //ADC
-                      tempresult:=tempresult+'ADC '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='ADC';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Add with Carry';
                     end;
 
                 3:  begin
                       //sbb
-                      tempresult:=tempresult+'SBB '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='SBB';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Integer Subtraction with Borrow';
                     end;
 
                 4:  begin
                       //AND
-                      tempresult:=tempresult+'AND '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='AND';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical AND';
                     end;
 
                 5:  begin
-                      tempresult:=tempresult+'SUB '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='SUB';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Subtract';
                     end;
 
                 6:  begin
-                      tempresult:=tempresult+'XOR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='XOR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical Exclusive OR';
                     end;
 
                 7:  begin
                       //AND
-                      tempresult:=tempresult+'CMP '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='CMP';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Compare Two Operands';
                     end;
@@ -5121,20 +5880,25 @@ begin
             end;
 
       $81 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       //ADD
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ADD '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='ADD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'ADD '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='ADD';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5145,15 +5909,21 @@ begin
                 1:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'OR '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='OR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'OR '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='OR';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5165,15 +5935,20 @@ begin
                       //ADC
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ADC '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='ADC';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'ADC '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='ADC';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5184,15 +5959,20 @@ begin
                 3:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SBB '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='SBB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'SBB '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='SBB';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5205,15 +5985,20 @@ begin
                       //AND
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'AND '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='AND';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'AND '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='AND';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5224,15 +6009,20 @@ begin
                 5:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SUB '+modrm(memory,prefix2,1,1,last);
+                        LastDisassembleData.Opcode:='SUB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'SUB '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='SUB';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5243,15 +6033,20 @@ begin
                 6:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'XOR '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='XOR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1);
                       end else
                       begin
-                        tempresult:=tempresult+'XOR '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='XOR';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+2);
                       end;
 
@@ -5263,15 +6058,20 @@ begin
                       //CMP
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'CMP '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='CMP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(wordptr^,4);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
                       begin
-                        tempresult:=tempresult+'CMP '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='CMP';
+                        if rex_w then
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        else
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+inttohexs(dwordptr^,8);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
 
@@ -5283,14 +6083,28 @@ begin
             end;
 
       $83 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ADD '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='ADD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'ADD '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='ADD';
+
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
+
                       end;
 
                       inc(offset,last);
@@ -5300,10 +6114,22 @@ begin
                 1:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'OR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='OR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'OR '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='OR';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
                       end;
 
                       inc(offset,last);
@@ -5314,10 +6140,22 @@ begin
                 2:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ADC '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='ADC';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'ADC '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='ADC';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
 
                       end;
 
@@ -5328,11 +6166,22 @@ begin
                 3:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SBB '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='SBB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'SBB '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
-
+                        LastDisassembleData.Opcode:='SBB';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
                       end;
 
                       inc(offset,last);
@@ -5343,10 +6192,22 @@ begin
                       //AND
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'AND '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='AND';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'AND '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='AND';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
 
                       end;
 
@@ -5357,11 +6218,22 @@ begin
                 5:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SUB '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='SUB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'SUB '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
-
+                        LastDisassembleData.Opcode:='SUB';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
                       end;
 
                       offset:=offset+last;
@@ -5371,11 +6243,22 @@ begin
                 6:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'XOR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='XOR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'XOR '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
-
+                        LastDisassembleData.Opcode:='XOR';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
                       end;
 
                       offset:=offset+last;
@@ -5386,11 +6269,22 @@ begin
                       //CMP
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'CMP '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
+                        LastDisassembleData.Opcode:='CMP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
-                        tempresult:=tempresult+'CMP '+modrm(memory,prefix2,1,0,last,32)+inttohexs(memory[last],2);
-
+                        LastDisassembleData.Opcode:='CMP';
+                        if rex_w then
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
+                        end
+                        else
+                        begin
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
+                        end;
                       end;
 
                       offset:=offset+last;
@@ -5403,111 +6297,136 @@ begin
 
       $84 : begin
               description:='Logical Compare';
-              tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='TEST';
+              LastDisassembleData.parameters:=MODRM(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $85 : begin
               description:='Logical Compare';
-              if $66 in prefix2 then tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
-                                     tempresult:=tempresult+'TEST '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='TEST';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
 
       $86 : begin
               description:='Exchage Memory with Register';
-              tempresult:=tempresult+'XCHG '+modrm(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='XCHG';
+              LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $87 : begin
               description:='Exchage Memory with Register';
-              if $66 in prefix2 then tempresult:=tempresult+'XCHG '+MODRM(memory,prefix2,1,1,last)+r16(memory[1])
-                                else tempresult:=tempresult+'XCHG '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='XCHG';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
 
       $88 : begin
               description:='Copy memory';
-              tempresult:=tempresult+'MOV '+modrm(memory,prefix2,1,2,last)+r8(memory[1]);
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $89 : begin
               description:='Copy memory';
-              if $66 in prefix2 then tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,1,1,last)+r16(memory[1])
-                                else tempresult:=tempresult+'MOV '+MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
+              LastDisassembleData.Opcode:='MOV';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,1,last)+r16(memory[1]) else
+                LastDisassembleData.parameters:=MODRM(memory,prefix2,1,0,last)+r32(memory[1]);
               inc(offset,last-1);
             end;
 
       $8A : begin
               description:='Copy memory';
-              tempresult:=tempresult+'MOV '+r8(memory[1])+','+modrm(memory,prefix2,1,2,last);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:=r8(memory[1])+','+modrm(memory,prefix2,1,2,last);
+
               inc(offset,last-1);
             end;
 
       $8B : begin
               description:='Copy memory';
-              if $66 in prefix2 then tempresult:=tempresult+'MOV '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last)
-                                else tempresult:=tempresult+'MOV '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='MOV';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+
               inc(offset,last-1);
             end;
 
       $8c : begin
               description:='Copy memory';
-              tempresult:=tempresult+'MOV '+modrm(memory,prefix2,1,1,last)+sreg(memory[1]);
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last)+sreg(memory[1]);
               inc(offset,last-1);
             end;
 
       $8D : begin
               description:='Load Effective Address';
-              if $66 in prefix2 then tempresult:=tempresult+'LEA '+r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'LEA '+r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
+              LastDisassembleData.Opcode:='LEA';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
 
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
               inc(offset,last-1);
             end;
 
       $8e : begin
               description:='Copy memory';
-              tempresult:=tempresult+'MOV '+sreg(memory[1])+','+modrm(memory,prefix2,1,1,last);
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:=sreg(memory[1])+','+modrm(memory,prefix2,1,1,last);
+
               inc(offset,last-1);
             end;
 
       $8f : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                0:  begin
                      description:='Pop a Value from the Stack';
-                     if $66 in prefix2 then tempresult:='POP '+modrm(memory,prefix2,1,1,last,16) else
-                                            tempresult:='POP '+modrm(memory,prefix2,1,0,last);
-                     tempresult:=copy(tempresult,1,length(tempresult)-1);
+                     LastDisassembleData.Opcode:='POP';
+                     if $66 in prefix2 then
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16) else
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                      inc(offset,last-1);
                    end;
 
                else
-                   begin
-                     description:='Undefined by the intel specification';
-                     tempresult:='DB 8F';
-                   end;
+               begin
+                 LastDisassembleData.Opcode:='DB';
+                 LastDisassembleData.parameters:='8F';
+                 description:='Undefined by the intel specification';
+               end;
               end;
             end;
 
 
       $90 : begin
               description:='No Operation';
-              tempresult:='NOP';
+              LastDisassembleData.Opcode:='NOP';
             end;
 
       $91..$97:
             begin
-              description:='Exchagne Register with Register';
+              description:='Exchange Register with Register';
+              LastDisassembleData.Opcode:='XCHG';
+
               if $66 in prefix2 then
-                tempresult:=tempresult+'XCHG AX,'+rd16(memory[0]-$90)
+                LastDisassembleData.parameters:='AX,'+rd16(memory[0]-$90)
+              else
+              begin
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+rd(memory[0]-$90)
                 else
-                tempresult:=tempresult+'XCHG EAX,'+rd(memory[0]-$90);
+                  LastDisassembleData.parameters:='EAX,'+rd(memory[0]-$90);
+              end;
             end;
 
 
@@ -5515,12 +6434,20 @@ begin
               //CBW/CWDE
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'CBW';
+                LastDisassembleData.Opcode:='CBW';
                 description:='Convert Byte to Word';
               end else
               begin
-                tempresult:=tempresult+'CWDE';
-                description:='Convert Word to Doubleword';
+                if rex_w then
+                begin
+                  LastDisassembleData.Opcode:='CDQE';
+                  description:='Convert Doubleword to Quadword';
+                end
+                else
+                begin
+                  LastDisassembleData.Opcode:='CWDE';
+                  description:='Convert Word to Doubleword';
+                end;
               end;
             end;
 
@@ -5528,19 +6455,32 @@ begin
               if $66 in prefix2 then
               begin
                 description:='Convert Word to Doubleword';
-                tempresult:=tempresult+'CWD';
+                LastDisassembleData.Opcode:='CWD';
               end
               else
               begin
-                description:='Convert Doubleword to Quadword';
-                tempresult:=tempresult+'CDQ';
+
+                if rex_w then
+                begin
+                  LastDisassembleData.Opcode:='CQO';
+                  description:='Convert Quadword to Octword';
+                end
+                else
+                begin
+                  LastDisassembleData.Opcode:='CDQ';
+                  description:='Convert Doubleword to Quadword';
+                end;
               end;
             end;
 
       $9A : begin
               description:='Call Procedure';
               wordptr:=@memory[5];
-              tempresult:=tempresult+'CALL '+inttohexs(wordptr^,4)+':';
+              if processhandler.is64bit then
+                LastDisassembleData.Opcode:='CALL (invalid)'
+              else
+                LastDisassembleData.Opcode:='CALL';
+              LastDisassembleData.parameters:=inttohexs(wordptr^,4)+':';
               dwordptr:=@memory[1];
               tempresult:=tempresult+inttohexs(dwordptr^,8);
               inc(offset,6);
@@ -5550,17 +6490,19 @@ begin
               case memory[1] of
 
                $d9 : begin
-                       case OpcodeReg(memory[2]) of
+                       case getReg(memory[2]) of
                          6:  begin
                                  description:='Store FPU Environment';
-                                 tempresult:=tempresult+'WAIT:FSTENV '+modrm(memory,prefix2,2,0,last);
+                                 LastDisassembleData.Opcode:='WAIT:FSTENV';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
 
 
                          7:  begin
                                  description:='Store Control Word';
-                                 tempresult:=tempresult+'WAIT:FSTCW '+modrm(memory,prefix2,2,0,last);
+                                 LastDisassembleData.Opcode:='WAIT:FSTCW';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
 
@@ -5577,13 +6519,13 @@ begin
                        case memory[2] of
                          $e2 : begin
                                  description:='Clear Exceptions';
-                                 tempresult:=tempresult+'WAIT:FCLEX';
+                                 LastDisassembleData.Opcode:='WAIT:FCLEX';
                                  inc(offset,2);
                                end;
 
                          $e3 : begin
                                  description:='Initialize Floaring-Point Unit';
-                                 tempresult:=tempresult+'WAIT:FINIT';
+                                 LastDisassembleData.Opcode:='WAIT:FINIT';
                                  inc(offset,2);
                                end;
                          else
@@ -5595,16 +6537,18 @@ begin
                      end;
 
                $dd : begin
-                       case OpcodeReg(memory[2]) of
+                       case getReg(memory[2]) of
                          6:  begin
                                  description:='Store FPU State';
-                                 tempresult:=tempresult+'WAIT:FSAVE '+modrm(memory,prefix2,2,0,last);
+                                 LastDisassembleData.Opcode:='WAIT:FSAVE';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
 
                          7:  begin
                                  description:='Store Status Word';
-                                 tempresult:=tempresult+'WAIT:FSTSW '+modrm(memory,prefix2,2,0,last);
+                                 LastDisassembleData.Opcode:='WAIT:FSTSW';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,2,0,last);
                                  inc(offset,last-1);
                              end;
 
@@ -5620,7 +6564,7 @@ begin
                        case memory[2] of
                          $e0 : begin
                                  description:='Store Status Word';
-                                 tempresult:=Tempresult+'WAIT:FSTSW AX';
+                                 LastDisassembleData.Opcode:='WAIT:FSTSW AX';
                                  inc(offset,2);
                                end;
 
@@ -5634,7 +6578,7 @@ begin
 
                else  begin
                        description:='Wait';
-                       tempresult:=Tempresult+'WAIT';
+                       LastDisassembleData.Opcode:='WAIT';
                      end;
 
               end;
@@ -5643,148 +6587,207 @@ begin
 
       $9c : begin
               description:='Push EFLAGS Register onto the Stack';
-              if $66 in prefix2 then tempresult:=tempresult+'PUSHF' else
-                                     tempresult:=tempresult+'PUSHFD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='PUSHF' else
+              begin
+                if processhandler.is64bit then
+                  LastDisassembleData.Opcode:='PUSHFQ'
+                else
+                  LastDisassembleData.Opcode:='PUSHFD';
+              end;
             end;
 
       $9d : begin
               description:='Pop Stack into EFLAGS Register';
-              if $66 in prefix2 then tempresult:=tempresult+'POPF' else
-                                     tempresult:=tempresult+'POPFD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='POPF' else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='POPFQ'
+                else
+                  LastDisassembleData.Opcode:='POPFD';
+              end;
             end;
 
       $9e : begin
               description:='Store AH into Flags';
-              tempresult:=tempresult+'SAHF';
+              LastDisassembleData.Opcode:='SAHF';
             end;
 
       $9f : begin
               description:='Load Status Flag into AH Register';
-              tempresult:=tempresult+'LAHF';
+              LastDisassembleData.Opcode:='LAHF';
             end;
 
       $a0 : begin
               description:='Copy memory';
               dwordptr:=@memory[1];
-              tempresult:=tempresult+'MOV AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:='AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
               inc(offset,4);
             end;
 
       $a1 : begin
               description:='Copy memory';
+              LastDisassembleData.Opcode:='MOV';
               dwordptr:=@memory[1];
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'MOV AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
-                inc(offset,2);
+                LastDisassembleData.parameters:='AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
               end
               else
               begin
-                if Rex_W then tempresult:=tempresult+'MOV RAX,' else tempresult:=tempresult+'MOV EAX,';
+                if Rex_W then
+                  LastDisassembleData.parameters:='RAX,'
+                else
+                  LastDisassembleData.parameters:='EAX,';
 
-                tempresult:=tempresult+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
-                inc(offset,4);
+                LastDisassembleData.parameters:=LastDisassembleData.parameters+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+
               end;
-
+              inc(offset,4);
             end;
 
       $a2 : begin
               description:='Copy memory';
               dwordptr:=@memory[1];
-              tempresult:=tempresult+'MOV byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],AL';
+              LastDisassembleData.Opcode:='MOV';
+
+              LastDisassembleData.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],AL';
               inc(offset,4);
             end;
 
       $a3 : begin
               description:='Copy memory';
+              LastDisassembleData.Opcode:='MOV';
               dwordptr:=@memory[1];
-              tempresult:=tempresult+'MOV '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
-              if $66 in prefix2 then tempresult:=tempresult+'AX' else
-                                     tempresult:=tempresult+'EAX';
+              LastDisassembleData.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=LastDisassembleData.parameters+'AX'
+              else
+              begin
+                if rex_w then
+                  LastDisassembleData.parameters:=LastDisassembleData.parameters+'RAX'
+                else
+                  LastDisassembleData.parameters:=LastDisassembleData.parameters+'EAX';
+              end;
               inc(offset,4);
             end;
 
       $a4 : begin
               description:='Move Data from String to String';
-              tempresult:=tempresult+'MOVSB';
+              LastDisassembleData.Opcode:='MOVSB';
             end;
 
       $a5 : begin
               description:='Move Data from String to String';
-              if $66 in prefix2 then tempresult:=tempresult+'MOVSW' else
-                                     tempresult:=tempresult+'MOVSD';
+              if $66 in prefix2 then
+                LastDisassembleData.Opcode:='MOVSW'
+              else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='MOVSQ'
+                else
+                  LastDisassembleData.Opcode:='MOVSD';
+              end;
             end;
 
       $a6 : begin
               description:='Compare String Operands';
-              tempresult:=tempresult+'CMPSB';
+              LastDisassembleData.Opcode:='CMPSB';
             end;
 
       $a7 : begin
               description:='Compare String Operands';
-              if $66 in prefix2 then tempresult:=tempresult+'CMPSW' else
-                                     tempresult:=tempresult+'CMPSD';
+              if $66 in prefix2 then
+                LastDisassembleData.Opcode:='CMPSW'
+              else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='CMPSQ'
+                else
+                  LastDisassembleData.Opcode:='CMPSD';
+              end;
             end;
 
       $a8 : begin
               description:='Logical Compare';
-              tempresult:=tempresult+'TEST AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='TEST';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $a9 : begin
               description:='Logical Compare';
+              LastDisassembleData.Opcode:='TEST';
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'TEST AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
-                tempresult:=tempresult+'TEST EAX,'+inttohexs(dwordptr^,8);
+                if rex_w then
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                else
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
 
       $aa : begin
               description:='Store String';
-              tempresult:=tempresult+'STOSB';
+              LastDisassembleData.Opcode:='STOSB';
             end;
 
       $ab : begin
               description:='Store String';
-              if $66 in prefix2 then tempresult:=tempresult+'STOSW' else
-                                     tempresult:=tempresult+'STOSD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='STOSW' else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='STOSQ'
+                else
+                  LastDisassembleData.Opcode:='STOSD';
+              end;
             end;
 
       $ac : begin
-              description:='Compare String Operands';
-              tempresult:=tempresult+'LODSB';
+              description:='Load string';
+              LastDisassembleData.Opcode:='LODSB';
             end;
 
       $ad : begin
-              description:='Compare String Operands';
-              if $66 in prefix2 then tempresult:=tempresult+'LODSW' else
-                                     tempresult:=tempresult+'LODSD';
+              description:='Load string';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='LODSW' else
+              begin
+                if rex_w then
+                  lastDisassembleData.Opcode:='LODSQ'
+                else
+                  lastDisassembleData.Opcode:='LODSD';
+              end;
             end;
 
       $ae : begin
               description:='Compare AL with byte at ES:EDI and set status flag';
-              tempresult:=tempresult+'SCASB';
+              LastDisassembleData.Opcode:='SCASB';
             end;
 
       $af : begin
               description:='Scan String';
-              if $66 in prefix2 then tempresult:=tempresult+'SCASW' else
-                                     tempresult:=tempresult+'SCASD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='SCASW' else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='SCASQ'
+                else
+                  LastDisassembleData.Opcode:='SCASD';
+              end;
             end;
 
       $b0..$b7:
             begin
               description:='Copy Memory';
-              tempresult:=tempresult+'MOV '+rd8(memory[0]-$b0)+','+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameters:=rd8(memory[0]-$b0)+','+inttohexs(memory[1],2);
               inc(offset);
             end;
 
@@ -5794,7 +6797,8 @@ begin
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                tempresult:=tempresult+'MOV '+rd16(memory[0]-$b8)+','+inttohexs(wordptr^,4);
+                LastDisassembleData.Opcode:='MOV';
+                LastDisassembleData.parameters:=rd16(memory[0]-$b8)+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -5802,66 +6806,92 @@ begin
                 dwordptr:=@memory[1];
                 if rex_w then
                 begin
-                  tempresult:=tempresult+'MOV '+rd(memory[0]-$b8)+','+inttohexs(pqword(dwordptr)^,16);
+                  LastDisassembleData.Opcode:='MOV';
+                  LastDisassembleData.parameters:=rd(memory[0]-$b8)+','+inttohexs(pqword(dwordptr)^,16);
                   inc(offset,8);
                 end
                 else
                 begin
-                  tempresult:=tempresult+'MOV '+rd(memory[0]-$b8)+','+inttohexs(dwordptr^,8);
+                  LastDisassembleData.Opcode:='MOV';
+                  LastDisassembleData.parameters:=rd(memory[0]-$b8)+','+inttohexs(dwordptr^,8);
                   inc(offset,4);
                 end;
               end;
             end;
 
       $c0 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
-                      tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Rotate eight bits left '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='ROL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Rotate eight bits left';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 1:  begin
-                      tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Rotate eight bits right '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='ROR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Rotate eight bits right';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 2:  begin
-                      tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Rotate nine bits left '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='RCL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Rotate nine bits left';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 3:  begin
-                      tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Rotate nine bits right '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='RCR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Rotate nine bits right';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 4:  begin
-                      tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Multiply by 2, '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='SHL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Multiply by 2,';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 5:  begin
-                      tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Unsigned divide by 2, '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='SHR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Unsigned divide by 2,';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
 {Not in intel spec}
                 6:  begin
-                      tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Rotate eight bits left '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='ROL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Rotate eight bits left';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 {^^^^^^^^^^^^^^^^^^}
 
                 7:  begin
-                      tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
-                      description:='Signed divide by 2, '+inttostr(memory[last])+' times';
+                      LastDisassembleData.Opcode:='SAR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                      description:='Signed divide by 2,';
+                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
@@ -5869,18 +6899,24 @@ begin
             end;
 
       $c1 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Rotate 16 bits left '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 16 bits left';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Rotate 32 bits left '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 32 bits left';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5888,14 +6924,20 @@ begin
                 1:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Rotate 16 bits right '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 16 bits right';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Rotate 32 bits right '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 32 bits right';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5903,14 +6945,20 @@ begin
                 2:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Rotate 17 bits left '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 17 bits left';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Rotate 33 bits left '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 33 bits left';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5918,14 +6966,20 @@ begin
                 3:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Rotate 17 bits right '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 17 bits right';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Rotate 33 bits right '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Rotate 33 bits right';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5933,14 +6987,20 @@ begin
                 4:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Multiply by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Multiply by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Multiply by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Multiply by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5948,14 +7008,20 @@ begin
                 5:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
-                        description:='Unsigned divide by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Unsigned divide by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
-                        description:='Unsigned divide by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Unsigned divide by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5963,14 +7029,20 @@ begin
                 7:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,16)+inttohexs(memory[last],2);
-                        description:='Signed divide by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,16);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Signed divide by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last)+inttohexs(memory[last],2);
-                        description:='Signed divide by 2 '+inttostr(memory[last])+' times';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                        description:='Signed divide by 2';
+                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -5981,75 +7053,84 @@ begin
       $c2 : begin
               description:='Near return to calling procedure and pop 2 bytes from stack';
               wordptr:=@memory[1];
-              tempresult:=tempresult+'RET '+inttohexs(wordptr^,4);
+              LastDisassembleData.Opcode:='RET';
+              LastDisassembleData.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
             end;
 
       $c3 : begin
               description:='Near return to calling procedure';
-              tempresult:=tempresult+'RET';
+              LastDisassembleData.Opcode:='RET';
             end;
 
       $c4 : begin
               description:='Load Far Pointer';
-              if $66 in prefix2 then tempresult:=tempresult+'LES '+r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'LES '+r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+              LastDisassembleData.Opcode:='LES';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
 
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
               inc(offset,last-1);
             end;
 
       $c5 : begin
               description:='Load Far Pointer';
-              if $66 in prefix2 then tempresult:=tempresult+'LDS '+r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
-                                     tempresult:=tempresult+'LDS '+r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+              LastDisassembleData.Opcode:='LDS';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
+                LastDisassembleData.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
 
-              tempresult:=copy(tempresult,1,length(tempresult)-1);
               inc(offset,last-1);
             end;
 
       $c6 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
               0 : begin
                     description:='Copy Memory';
-                    tempresult:=tempresult+'MOV '+modrm(memory,prefix2,1,2,last,8)+''+inttohexs(memory[last],2);
+                    LastDisassembleData.Opcode:='MOV';
+                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                    LastDisassembleData.parameters:=LastDisassembleData.parameters+''+inttohexs(memory[last],2);
                     inc(offset,last);
                   end;
 
               else begin
                      description:='Not defined by the intel documentation';
-                     tempresult:=tempresult+'DB C6';
+                     LastDisassembleData.Opcode:='DB';
+                     LastDisassembleData.parameters:='C6';
                    end;
               end;
             end;
 
       $c7 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
               0 : begin
                     description:='Copy Memory';
                     if $66 in prefix2 then
                     begin
                       wordptr:=@memory[1];
-                      tempresult:=tempresult+'MOV '+modrm(memory,prefix2,1,1,last,16);
+                      LastDisassembleData.Opcode:='MOV';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
 
                       wordptr:=@memory[last];
-                      tempresult:=tempresult+inttohexs(wordptr^,4);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                       inc(offset,last+1);
                     end
                     else
                     begin
                       dwordptr:=@memory[1];
-                      tempresult:=tempresult+'MOV '+modrm(memory,prefix2,1,0,last);
+                      LastDisassembleData.Opcode:='MOV';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
                       dwordptr:=@memory[last];
-                      tempresult:=tempresult+inttohexs(dwordptr^,8);
+                      LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,8);
                       inc(offset,last+3);
                     end;
                   end;
 
              else begin
                     description:='Not defined by the intel documentation';
-                    tempresult:=tempresult+'DB C7';
+                    LastDisassembleData.Opcode:='DB';
+                    LastDisassembleData.parameters:='C7';
                   end;
 
               end;
@@ -6058,97 +7139,113 @@ begin
       $c8 : begin
               description:='Make Stack Frame for Procedure Parameters';
               wordptr:=@memory[1];
-              tempresult:=tempresult+'ENTER '+inttohexs(wordptr^,4)+','+inttohexs(memory[3],2);
+              LastDisassembleData.Opcode:='ENTER';
+              LastDisassembleData.parameters:=inttohexs(wordptr^,4)+','+inttohexs(memory[3],2);
               inc(offset,3);
             end;
 
       $c9 : begin
               description:='High Level Procedure Exit';
-              tempresult:=tempresult+'LEAVE';
+              LastDisassembleData.Opcode:='LEAVE';
             end;
 
       $ca : begin
               description:='Far return to calling procedure and pop 2 bytes from stack';
               wordptr:=@memory[1];
-              tempresult:=tempresult+'RET '+inttohexs(wordptr^,4);
+              LastDisassembleData.Opcode:='RET';
+              LastDisassembleData.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
             end;
 
       $cb : begin
               description:='Far return to calling procedure';
-              tempresult:=tempresult+'RET';
+              LastDisassembleData.Opcode:='RET';
             end;
 
       $cc : begin
               //should not be shown if its being debugged using int 3'
               description:='Call to Interrupt Procedure-3:Trap to debugger';
-              tempresult:=tempresult+'INT 3';
+              LastDisassembleData.Opcode:='INT 3';
             end;
 
       $cd : begin
               description:='Call to Interrupt Procedure';
-              tempresult:=tempresult+'INT '+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='INT';
+              LastDisassembleData.parameters:=inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $ce : begin
               description:='Call to Interrupt Procedure-4:If overflow flag=1';
-              tempresult:=tempresult+'INTO';
+              LastDisassembleData.Opcode:='INTO';
             end;
 
       $cf : begin
               description:='Interrupt Return';
-              if $66 in prefix2 then tempresult:=tempresult+'IRET' else
-                                     tempresult:=tempresult+'IRETD';
+              if $66 in prefix2 then LastDisassembleData.Opcode:='IRET' else
+              begin
+                if rex_w then
+                  LastDisassembleData.Opcode:='IRETQ'
+                else
+                  LastDisassembleData.Opcode:='IRETD';
+              end;
             end;
 
       $d0 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Rotate eight bits left once';
-                      tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='ROL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='Rotate eight bits right once';
-                      tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='ROR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
 
                 2:  begin
                       description:='Rotate nine bits left once';
-                      tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='RCL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Rotate nine bits right once';
-                      tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='RCR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Multiply by 2, once';
-                      tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='SHL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       description:='Unsigned devide by 2, once';
-                      tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='SHR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='Not defined by the intel documentation';
-                      tempresult:='DB D0'+inttohexs(memory[1],2);
+                      LastDisassembleData.Opcode:='DB';
+                      LastDisassembleData.parameters:='D0 '+inttohexs(memory[1],2);
                     end;
 
                 7:  begin
                       description:='Signed devide by 2, once';
-                      tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,8)+'1';
+                      LastDisassembleData.Opcode:='SAR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
                       inc(offset,last-1);
                     end;
 
@@ -6156,18 +7253,20 @@ begin
             end;
 
       $d1 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 16 bits left once';
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 32 bits left once';
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6176,13 +7275,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 16 bits right once';
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 32 bits right once';
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6191,13 +7292,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 17 bits left once';
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 33 bits left once';
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6206,13 +7309,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 17 bits right once';
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 33 bits right once';
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6221,13 +7326,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Multiply by 2, Once';
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Multiply by 2, once';
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6236,33 +7343,38 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Unsigned divide by 2, Once';
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Unsigned divide by 2, once';
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
 
                 6:  begin
                       description:='Undefined by the intel documentation';
-                      tempresult:='DB D1';
+                      LastDisassembleData.Opcode:='DB';
+                      LastDisassembleData.parameters:='D1';
                     end;
 
                 7:  begin
                       if $66 in prefix2 then
                       begin
                         description:='Signed divide by 2, Once';
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,1,last,16)+'1';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Signed divide by 2, once';
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,0,last)+'1';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'1';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6272,52 +7384,60 @@ begin
 
 
       $d2 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Rotate eight bits left CL times';
-                      tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='ROL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='Rotate eight bits right CL times';
-                      tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='ROR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 2:  begin
                       description:='Rotate nine bits left CL times';
-                      tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='RCL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Rotate nine bits right CL times';
-                      tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='RCR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Multiply by 2, CL times';
-                      tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='SHL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       description:='Unsigned devide by 2, CL times';
-                      tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='SHR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='Multiply by 2, CL times';
-                      tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='SHL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
                 7:  begin
                       description:='Signed devide by 2, CL times';
-                      tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,8)+'CL';
+                      LastDisassembleData.Opcode:='SAR';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+'CL';
                       inc(offset,last-1);
                     end;
 
@@ -6326,18 +7446,20 @@ begin
             end;
 
       $d3 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 16 bits left CL times';
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 32 bits left CL times';
-                        tempresult:=tempresult+'ROL '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='ROL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6346,13 +7468,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 16 bits right CL times';
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 32 bits right CL times';
-                        tempresult:=tempresult+'ROR '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='ROR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6361,13 +7485,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 17 bits left CL times';
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 33 bits left CL times';
-                        tempresult:=tempresult+'RCL '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='RCL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6376,13 +7502,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Rotate 17 bits right CL times';
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Rotate 33 bits right CL times';
-                        tempresult:=tempresult+'RCR '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='RCR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6391,13 +7519,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Multiply by 2, CL times';
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Multiply by 2, CL times';
-                        tempresult:=tempresult+'SHL '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='SHL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6406,13 +7536,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Unsigned divide by 2, CL times';
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Unsigned divide by 2, CL times';
-                        tempresult:=tempresult+'SHR '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='SHR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6421,13 +7553,15 @@ begin
                       if $66 in prefix2 then
                       begin
                         description:='Signed divide by 2, CL times';
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,1,last,16)+'CL';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)+'CL';
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='Signed divide by 2, CL times';
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,0,last)+'CL';
+                        LastDisassembleData.Opcode:='SAR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last)+'CL';
                         inc(offset,last-1);
                       end;
                     end;
@@ -6438,44 +7572,50 @@ begin
 
       $D4 : begin  // AAM
               inc(offset);
-              tempresult:=tempresult+'AAM';
+              LastDisassembleData.Opcode:='AAM';
               description:='ASCII Adjust AX After Multiply';
-              if memory[1]<>$0A then tempresult:=tempresult+' '+inttohexs(memory[1],2);
+              if memory[1]<>$0A then LastDisassembleData.parameters:=inttohexs(memory[1],2);
             end;
 
       $D5 : begin  // AAD
               inc(offset);
-              tempresult:=tempresult+'AAD';
+              LastDisassembleData.Opcode:='AAD';
               description:='ASCII adjust AX before division';
-              if memory[1]<>$0A then tempresult:=tempresult+' '+inttohexs(memory[1],2);
+              if memory[1]<>$0A then LastDisassembleData.parameters:=inttohexs(memory[1],2);
             end;
 
       $D7 : begin
               description:='Table Look-up Translation';
-              tempresult:=tempresult+'XLATB';
+              LastDisassembleData.Opcode:='XLATB';
             end;
 
       $d8 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       //fadd
                       description:='Add';
+                      LastDisassembleData.Opcode:='FADD';
                       last:=2;
-                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST(0),ST('+IntToStr(memory[1]-$c0)+')' else
-                      begin
-                        tempresult:=tempresult+'FADD '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
-                      end;
+                      if memory[1]>=$c0 then
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$c0)+')' else
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='Multiply';
                       last:=2;
-                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST(0),ST('+IntToStr(memory[1]-$c8)+')' else
+                      if memory[1]>=$c8 then
                       begin
-                        tempresult:=tempresult+'FMUL '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FMUL';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$c8)+')';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FMUL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6484,10 +7624,16 @@ begin
                 2:  begin
                       description:='Compare Real';
                       last:=2;
-                      if memory[1]>=$d0 then tempresult:=tempresult+'FCOM ST(0),ST('+IntToStr(memory[1]-$d0)+')' else
+                      if memory[1]>=$d0 then
                       begin
-                        tempresult:=tempresult+'FCOM '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FCOM';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$d0)+')'
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FCOM';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6495,10 +7641,16 @@ begin
                 3:  begin
                       description:='Compare Real and pop register stack';
                       last:=2;
-                      if memory[1]>=$d8 then tempresult:=tempresult+'FCOMP ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$d8 then
                       begin
-                        tempresult:=tempresult+'FCOMP '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FCOMP';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$d8)+')'
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FCOMP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6506,10 +7658,16 @@ begin
                 4:  begin
                       description:='Substract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUB ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
+                      if memory[1]>=$e0 then
                       begin
-                        tempresult:=tempresult+'FSUB '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FSUB';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$e0)+')';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FSUB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6517,10 +7675,16 @@ begin
                 5:  begin
                       description:='Reverse Substract';
                       last:=2;
-                      if (memory[1]>=$e8) then tempresult:=tempresult+'FSUBR ST(0),ST('+IntToStr(memory[1]-$e0)+')' else
+                      if (memory[1]>=$e8) then
                       begin
-                        tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FSUBR';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$e0)+')';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FSUBR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6528,10 +7692,16 @@ begin
                 6:  begin
                       description:='Divide';
                       last:=2;
-                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIV ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$f0 then
                       begin
-                        tempresult:=tempresult+'FDIV '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FDIV';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$d8)+')';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FDIV';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6539,10 +7709,16 @@ begin
                 7:  begin
                       description:='Reverse Divide';
                       last:=2;
-                      if memory[1]>=$f8 then tempresult:=tempresult+'FDIVR ST(0),ST('+IntToStr(memory[1]-$d8)+')' else
+                      if memory[1]>=$f8 then
                       begin
-                        tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last,32);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FDIVR';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$d8)+')';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FDIVR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -6553,53 +7729,60 @@ begin
       $d9 : begin
               case memory[1] of
               $00..$bf : begin
-                           case OpcodeReg(memory[1]) of
+                           case getReg(memory[1]) of
                            0:  begin
                                  description:='Load Floating Point Value';
-                                 tempresult:=tempresult+'FLD '+modrm(memory,prefix2,1,0,last,32);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FLD';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                  inc(offset,last-1);
                                end;
 
                            2:  begin
                                  description:='Store Real';
-                                 tempresult:=tempresult+'FST '+modrm(memory,prefix2,1,0,last,32);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FST';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                  inc(offset,last-1);
                                end;
 
                            3:  begin
                                  description:='Store Real';
-                                 tempresult:=tempresult+'FSTP '+modrm(memory,prefix2,1,0,last,32);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FSTP';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                  inc(offset,last-1);
                                end;
 
                            4:  begin
                                  description:='Load FPU Environment';
-                                 tempresult:=tempresult+'FLDENV '+modrm(memory,prefix2,1,0,last);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FLDENV';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                  inc(offset,last-1);
                                end;
 
                            5:  begin
                                  description:='Load Control Word';
-                                 tempresult:=tempresult+'FLDCW '+modrm(memory,prefix2,1,0,last);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FLDCW';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                  inc(offset,last-1);
                                end;
 
                            6:  begin
                                  description:='Store FPU Environment';
-                                 tempresult:=tempresult+'FNSTENV '+modrm(memory,prefix2,1,0,last);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FNSTENV';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                  inc(offset,last-1);
                                end;
 
                            7:  begin
                                  description:='Store Control Word';
-                                 tempresult:=tempresult+'FNSTCW '+modrm(memory,prefix2,1,0,last);
-                                 tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                 LastDisassembleData.Opcode:='FNSTCW';
+                                 LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                  inc(offset,last-1);
                                end;
 
@@ -6609,51 +7792,54 @@ begin
 
               $c0..$c7 : begin
                            description:='Push ST(i) onto the FPU register stack';
-                           tempresult:=tempresult+'FLD ST('+IntToStr(memory[1]-$c0)+')';
+                           LastDisassembleData.Opcode:='FLD';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+')';
                            inc(offset);
                          end;
 
               $c8..$cf : begin
                            description:='Exchange Register Contents';
-                           tempresult:=tempresult+'FXCH ST('+IntToStr(memory[1]-$c8)+')';
+                           LastDisassembleData.Opcode:='FXCH';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c8)+')';
                            inc(offset);
                          end;
 
 
               $d9..$df : begin
                            description:='Exchange Register contents';
-                           tempresult:=tempresult+'FXCH ST('+IntToStr(memory[1]-$d9)+')';
+                           LastDisassembleData.Opcode:='FXCH';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$d9)+')';
                            inc(offset);
                          end;
 
 
               $d0 : begin
                       description:='No Operation';
-                      tempresult:=tempresult+'FNOP';
+                      LastDisassembleData.Opcode:='FNOP';
                       inc(offset);
                     end;
 
               $e0 : begin
                       description:='Change Sign';
-                      tempresult:=tempresult+'FCHS';
+                      LastDisassembleData.Opcode:='FCHS';
                       inc(offset);
                     end;
 
               $e1 : begin
                       description:='Absolute Value';
-                      tempresult:=tempresult+'FABS';
+                      LastDisassembleData.Opcode:='FABS';
                       inc(offset);
                     end;
 
               $e4 : begin
                       description:='TEST';
-                      tempresult:=tempresult+'FTST';
+                      LastDisassembleData.Opcode:='FTST';
                       inc(offset);
                     end;
 
               $e5 : begin
                       description:='Examine';
-                      tempresult:=tempresult+'FXAM';
+                      LastDisassembleData.Opcode:='FXAM';
                       inc(offset);
                     end;
 
@@ -6661,80 +7847,80 @@ begin
 
               $e8 : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLD1';
+                      LastDisassembleData.Opcode:='FLD1';
                       inc(offset);
                     end;
 
               $e9 : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLDL2T';
+                      LastDisassembleData.Opcode:='FLDL2T';
                       inc(offset);
                     end;
 
               $ea : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLD2E';
+                      LastDisassembleData.Opcode:='FLD2E';
                       inc(offset);
                     end;
 
               $eb : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLDPI';
+                      LastDisassembleData.Opcode:='FLDPI';
                       inc(offset);
                     end;
 
               $ec : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLDLG2';
+                      LastDisassembleData.Opcode:='FLDLG2';
                       inc(offset);
                     end;
 
               $ed : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLDLN2';
+                      LastDisassembleData.Opcode:='FLDLN2';
                       inc(offset);
                     end;
 
               $ee : begin
                       description:='Load constant';
-                      tempresult:=tempresult+'FLDZ';
+                      LastDisassembleData.Opcode:='FLDZ';
                       inc(offset);
                     end;
 
 
               $f0 : begin
                       description:='Compute 2^x–1';
-                      tempresult:=tempresult+'F2XM1';
+                      LastDisassembleData.Opcode:='F2XM1';
                       inc(offset);
                     end;
 
               $f1 : begin
                       description:='Compute y*log(2)x';
-                      tempresult:=tempresult+'FYL2X';
+                      LastDisassembleData.Opcode:='FYL2X';
                       inc(offset);
                     end;
 
               $f2 : begin
                       description:='Partial Tangent';
-                      tempresult:=tempresult+'FPTAN';
+                      LastDisassembleData.Opcode:='FPTAN';
                       inc(offset);
                     end;
 
               $f3 : begin
                       description:='Partial Arctangent';
-                      tempresult:=tempresult+'FPATAN';
+                      LastDisassembleData.Opcode:='FPATAN';
                       inc(offset);
                     end;
 
               $f4 : begin
                       description:='Extract Exponent and Significand';
-                      tempresult:=tempresult+'FXTRACT';
+                      LastDisassembleData.Opcode:='FXTRACT';
                       inc(offset);
                     end;
 
               $f5 : begin
                       description:='Partial Remainder';
-                      tempresult:=tempresult+'FPREM1';
+                      LastDisassembleData.Opcode:='FPREM1';
                       inc(offset);
                     end;
 
@@ -6752,50 +7938,50 @@ begin
 
               $f8 : begin
                       description:='Partial Remainder';
-                      tempresult:=tempresult+'FPREM';
+                      LastDisassembleData.Opcode:='FPREM';
                       inc(offset);
                     end;
 
               $f9 : begin
                       description:='Compute y*log(2)(x+1)';
-                      tempresult:=tempresult+'FYL2XP1';
+                      LastDisassembleData.Opcode:='FYL2XP1';
                       inc(offset);
                     end;
 
               $fa : begin
                       description:='Square Root';
-                      tempresult:=tempresult+'FSQRT';
+                      LastDisassembleData.Opcode:='FSQRT';
                       inc(offset);
                     end;
 
               $fb : begin
                       description:='Sine and Cosine';
-                      tempresult:=tempresult+'FSINCOS';
+                      LastDisassembleData.Opcode:='FSINCOS';
                       inc(offset);
                     end;
 
 
               $fc : begin
                       description:='Round to Integer';
-                      tempresult:=tempresult+'FRNDINT';
+                      LastDisassembleData.Opcode:='FRNDINT';
                       inc(offset);
                     end;
 
               $fd : begin
                       description:='Scale';
-                      tempresult:=tempresult+'FSCALE';
+                      LastDisassembleData.Opcode:='FSCALE';
                       inc(offset);
                     end;
 
               $fe : begin
                       description:='Sine';
-                      tempresult:=tempresult+'FSIN';
+                      LastDisassembleData.Opcode:='FSIN';
                       inc(offset);
                     end;
 
               $ff : begin
                       description:='Cosine';
-                      tempresult:=tempresult+'FCOS';
+                      LastDisassembleData.Opcode:='FCOS';
                       inc(offset);
                     end;
               end;
@@ -6804,68 +7990,76 @@ begin
       $da : begin
               if memory[1]<$BF then
               begin
-                case OpcodeReg(memory[1]) of
+                case getReg(memory[1]) of
                   0:  begin
                         description:='Add';
-                        tempresult:=tempresult+'FIADD '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FIADD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   1:  begin
                         description:='Multiply';
-                        tempresult:=tempresult+'FIMUL '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FIMUL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   2:  begin
                         description:='Compare Integer';
-                        tempresult:=tempresult+'FICOM '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FICOM';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   3:  begin
                         description:='Compare Integer';
-                        tempresult:=tempresult+'FICOMP '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FICOMP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   4:  begin
                         description:='Subtract';
-                        tempresult:=tempresult+'FISUB '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FISUB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   5:  begin
                         description:='Reverse Subtract';
-                        tempresult:=tempresult+'FISUBR '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FISUBR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
 
                   6:  begin
                         description:='Devide';
-                        tempresult:=tempresult+'FIDIV '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FIDIV';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
 
                   7:  begin
                         description:='Reverse Devide';
-                        tempresult:=tempresult+'FIDIVR '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FIDIVR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                         inc(offset,last-1);
                       end;
                 end;
               end
               else
               begin
-                case OpcodeReg(memory[1]) of
+                case getReg(memory[1]) of
                   0:  begin
                         description:='Floating-Point: Move if below';
                         tempresult:='FCMOVB ST(0),ST('+IntToStr(memory[1]-$c0)+')';
@@ -6894,7 +8088,7 @@ begin
                         case memory[1] of
                         $e9 : begin
                                 description:='Unordered Compare Real';
-                                tempresult:=tempresult+'FUCOMPP';
+                                LastDisassembleData.Opcode:='FUCOMPP';
                                 inc(offset);
                               end;
                         end;
@@ -6906,39 +8100,44 @@ begin
       $db : begin
               case memory[1] of
                 $0..$bf : begin
-                            case OpcodeReg(memory[1]) of
+                            case getReg(memory[1]) of
                               0:  begin
                                     description:='Load Integer';
-                                    tempresult:=tempresult+'FILD '+modrm(memory,prefix2,1,0,last,32);
-                                    tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                    LastDisassembleData.Opcode:='FILD';
+                                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                     inc(offset,last-1);
                                   end;
 
                               2:  begin
                                     description:='Store Integer';
-                                    tempresult:=tempresult+'FIST '+modrm(memory,prefix2,1,0,last,32);
-                                    tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                    LastDisassembleData.Opcode:='FIST';
+                                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                     inc(offset,last-1);
                                   end;
 
                               3:  begin
                                     description:='Store Integer';
-                                    tempresult:=tempresult+'FISTP '+modrm(memory,prefix2,1,0,last,32);
-                                    tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                    LastDisassembleData.Opcode:='FISTP';
+                                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+
                                     inc(offset,last-1);
                                   end;
 
                               5:  begin
                                     description:='Load Floating Point Value';
-                                    tempresult:=tempresult+'FLD '+modrm(memory,prefix2,1,0,last,64);
-                                    tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                    LastDisassembleData.Opcode:='FLD';
+                                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                                     inc(offset,last-1);
                                   end;
 
                               7:  begin
                                     description:='Store Real';
-                                    tempresult:=tempresult+'FSTP '+modrm(memory,prefix2,1,0,last,80);
-                                    tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                    LastDisassembleData.Opcode:='FSTP';
+                                    LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,80);
+
                                     inc(offset,last-1);
                                   end;
 
@@ -6971,13 +8170,13 @@ begin
 
                 $e2 : begin
                         description:='Clear Exceptions';
-                        tempresult:=tempresult+'FNCLEX';
+                        LastDisassembleData.Opcode:='FNCLEX';
                         inc(offset);
                       end;
 
                 $e3 : begin
                         description:='Initialize floating-Point Unit';
-                        tempresult:=tempresult+'FNINIT';
+                        LastDisassembleData.Opcode:='FNINIT';
                         inc(offset);
                       end;
 
@@ -6998,15 +8197,21 @@ begin
             end;
 
       $dc : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       //fadd
                       description:='Add';
                       last:=2;
-                      if memory[1]>=$c0 then tempresult:=tempresult+'FADD ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
+                      if memory[1]>=$c0 then
                       begin
-                        tempresult:=tempresult+'FADD '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FADD';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+'),ST(0)'
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FADD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7014,10 +8219,16 @@ begin
                 1:  begin
                       description:='Multiply';
                       last:=2;
-                      if memory[1]>=$c8 then tempresult:=tempresult+'FMUL ST('+IntToStr(memory[1]-$c8)+'),ST(0)' else
+                      if memory[1]>=$c8 then
                       begin
-                        tempresult:=tempresult+'FMUL '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FMUL';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c8)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FMUL';
+                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7025,26 +8236,34 @@ begin
                 2:  begin
                       description:='Compare Real';
                       last:=2;
-                      tempresult:=tempresult+'FCOM '+modrm(memory,prefix2,1,0,last,64);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='FCOM';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Compare Real';
                       last:=2;
-                      tempresult:=tempresult+'FCOMP '+modrm(memory,prefix2,1,0,last,64);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='FCOMP';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Subtract';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FSUBR ST('+IntToStr(memory[1]-$e0)+'),ST(0)' else
+                      if memory[1]>=$e0 then
                       begin
-                        tempresult:=tempresult+'FSUB '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FSUBR';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$e0)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FSUB';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7052,10 +8271,16 @@ begin
                 5:  begin
                       description:='Reverse Subtract';
                       last:=2;
-                      if memory[1]>=$e8 then tempresult:=tempresult+'FSUB ST('+IntToStr(memory[1]-$e8)+'),ST(0)' else
+                      if memory[1]>=$e8 then
                       begin
-                        tempresult:=tempresult+'FSUBR '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FSUB';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$e8)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FSUBR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
 
 
@@ -7066,10 +8291,16 @@ begin
                 6:  begin
                       description:='Divide';
                       last:=2;
-                      if memory[1]>=$f0 then tempresult:=tempresult+'FDIVR ST('+IntToStr(memory[1]-$f0)+'),ST(0)' else
+                      if memory[1]>=$f0 then
                       begin
-                        tempresult:=tempresult+'FDIV '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FDIVR';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$f0)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FDIV';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7077,10 +8308,16 @@ begin
                 7:  begin
                       description:='Reverse Divide';
                       last:=2;
-                      if memory[1]>=$f8 then tempresult:=tempresult+'FDIV ST('+IntToStr(memory[1]-$f8)+'),ST(0)' else
+                      if memory[1]>=$f8 then
                       begin
-                        tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last,64);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FDIV';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$f8)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FDIVR';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7090,46 +8327,52 @@ begin
       $dd : begin
               case memory[1] of
               $0..$bf :  begin
-                           case OpcodeReg(memory[1]) of
+                           case getReg(memory[1]) of
                              0:  begin
                                    description:='Load floating point value';
-                                   tempresult:=tempresult+'FLD '+modrm(memory,prefix2,1,0,last,64);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FLD';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                                    inc(offset,last-1);
                                  end;
 
                              2:  begin
                                    description:='Store Real';
-                                   tempresult:=tempresult+'FST '+modrm(memory,prefix2,1,0,last,64);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FST';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                                    inc(offset,last-1);
                                  end;
 
                              3:  begin
                                    description:='Store Real';
-                                   tempresult:=tempresult+'FSTP '+modrm(memory,prefix2,1,0,last,64);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FSTP';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                                    inc(offset,last-1);
                                  end;
 
                              4:  begin
                                    description:='Restore FPU State';
-                                   tempresult:=tempresult+'FRSTOR '+modrm(memory,prefix2,1,0,last);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FRSTOR';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                    inc(offset,last-1);
                                  end;
 
                              6:  begin
                                    description:='Store FPU State';
-                                   tempresult:=tempresult+'FSAVE '+modrm(memory,prefix2,1,0,last);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FSAVE';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                    inc(offset,last-1);
                                  end;
 
                              7:  begin
                                    description:='Store Status Word';
-                                   tempresult:=tempresult+'FNSTSW '+modrm(memory,prefix2,1,0,last);
-                                   tempresult:=copy(tempresult,1,length(tempresult)-1);
+                                   LastDisassembleData.Opcode:='FNSTSW';
+                                   LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                                    inc(offset,last-1);
                                  end;
 
@@ -7139,51 +8382,66 @@ begin
 
               $c0..$c7 : begin
                            description:='Free Floating-Point Register';
-                           tempresult:=tempresult+'FFREE ST('+IntToStr(memory[1]-$c0)+')';
+                           LastDisassembleData.Opcode:='FFREE';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+')';
                            inc(offset);
                          end;
 
               $d0..$d7 : begin
                            description:='Store Real';
-                           tempresult:=tempresult+'FST ST('+IntToStr(memory[1]-$d0)+')';
+                           LastDisassembleData.Opcode:='FST';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$d0)+')';
                            inc(offset);
                          end;
 
               $d8..$df : begin
                            description:='Store Real';
-                           tempresult:=tempresult+'FSTP ST('+IntToStr(memory[1]-$d8)+')';
+                           LastDisassembleData.Opcode:='FSTP';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$d8)+')';
                            inc(offset);
                          end;
 
               $e0..$e7 : begin
                            description:='Unordered Compare Real';
-                           tempresult:=tempresult+'FUCOM ST('+IntToStr(memory[1]-$e0)+')';
+                           LastDisassembleData.Opcode:='FUCOM';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$e0)+')';
                            inc(offset);
                          end;
 
               $e8..$ef : begin
                            description:='Unordered Compare Real';
-                           tempresult:=tempresult+'FUCOMP ST('+IntToStr(memory[1]-$e0)+')';
+                           LastDisassembleData.Opcode:='FUCOMP';
+                           LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$e0)+')';
                            inc(offset);
                          end;
-              else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+                else
+                begin
+                  LastDisassembleData.Opcode:='DB';
+                  LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                end;
 
               end;
             end;
 
       $de : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       //faddp
                       description:='Add and pop';
                       last:=2;
-                      if (memory[1]=$c1) then tempresult:=tempresult+'FADDP'
+                      if (memory[1]=$c1) then LastDisassembleData.Opcode:='FADDP'
                       else
-                      if memory[1]>$c0 then tempresult:=tempresult+'FADDP ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
+                      if memory[1]>$c0 then
+                      begin
+                        LastDisassembleData.Opcode:='FADDP';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+'),ST(0)';
+                      end
+                      else
                       begin
                         description:='Add';
-                        tempresult:=tempresult+'FIADD '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FIADD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7191,10 +8449,16 @@ begin
                 1: begin
                       description:='Multiply';
                       last:=2;
-                      if memory[1]>=$c8 then tempresult:=tempresult+'FMULP ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
+                      if memory[1]>=$c8 then
                       begin
-                        tempresult:=tempresult+'FIMUL '+modrm(memory,prefix2,1,0,last);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FMULP';
+                        LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+'),ST(0)';
+                      end
+                      else
+                      begin
+                        LastDisassembleData.Opcode:='FIMUL';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                       end;
 
                       inc(offset,last-1);
@@ -7203,7 +8467,8 @@ begin
                 2: begin
                      description:='Compare Integer';
                      last:=2;
-                     tempresult:=tempresult+'FICOM'+modrm(memory,prefix2,1,0,last);
+                     LastDisassembleData.Opcode:='FICOM';
+                     LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                      inc(offset,last-1);
                    end;
 
@@ -7212,15 +8477,16 @@ begin
                      if memory[1]<$c0 then
                      begin
                        description:='Compare Integer';
-                       tempresult:=tempresult+'FICOMP '+modrm(memory,prefix2,1,0,last);
-                       tempresult:=copy(tempresult,1,length(tempresult)-1);
+                       LastDisassembleData.Opcode:='FICOMP';
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                        inc(offset,last-1);
                      end;
 
                      if memory[1]=$D9 then
                      begin
                        description:='Compare Real and pop register stack twice';
-                       tempresult:=tempresult+'FCOMPP';
+                       LastDisassembleData.Opcode:='FCOMPP';
                        inc(offset);
                      end;
                    end;
@@ -7228,10 +8494,16 @@ begin
                 4: begin
                      description:='Subtract';
                      last:=2;
-                     if memory[1]>=$e0 then tempresult:=tempresult+'FSUBRP ST('+IntToStr(memory[1]-$c0)+'),ST(0)' else
+                     if memory[1]>=$e0 then
                      begin
-                       tempresult:=tempresult+'FISUB '+modrm(memory,prefix2,1,0,last);
-                       tempresult:=copy(tempresult,1,length(tempresult)-1);
+                       LastDisassembleData.Opcode:='FSUBRP';
+                       LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$c0)+'),ST(0)';
+                     end
+                     else
+                     begin
+                       LastDisassembleData.Opcode:='FISUB';
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                      end;
                      inc(offset,last-1);
                    end;
@@ -7243,12 +8515,14 @@ begin
                      if memory[1]>=$e8 then
                      begin
                        description:='Subtract and pop from stack';
-                       tempresult:=tempresult+'FSUBP ST('+IntToStr(memory[1]-$e8)+'),ST(0)'
+                       LastDisassembleData.Opcode:='FSUBP';
+                       LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$e8)+'),ST(0)'
                      end
                      else
                      begin
-                       tempresult:=tempresult+'FISUBR '+modrm(memory,prefix2,1,0,last);
-                       tempresult:=copy(tempresult,1,length(tempresult)-1);
+                       LastDisassembleData.Opcode:='FISUBR';
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                      end;
 
                      inc(offset,last-1);
@@ -7260,19 +8534,30 @@ begin
                      last:=2;
                      if memory[1]>=$f0 then
                      begin
-                       tempresult:=tempresult+'FDIVRP ST('+IntToStr(memory[1]-$f0)+'),ST(0)';
+                       LastDisassembleData.Opcode:='FDIVRP';
+                       LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$f0)+'),ST(0)';
                        inc(offset,last-1);
                      end
-                     else tempresult:='DB DE'
+                     else
+                     begin
+                       lastDisassembleData.Opcode:='DB';
+                       lastDisassembleData.parameters:='DE'
+                     end;
                    end;
 
                 7: begin
                      description:='Devide';
                      last:=2;
-                     if memory[1]>=$f8 then tempresult:=tempresult+'FDIVP ST('+IntToStr(memory[1]-$f8)+'),ST(0)' else
+                     if memory[1]>=$f8 then
                      begin
-                       tempresult:=tempresult+'FDIVR '+modrm(memory,prefix2,1,0,last);
-                       tempresult:=copy(tempresult,1,length(tempresult)-1);
+                       LastDisassembleData.Opcode:='FDIVP';
+                       LastDisassembleData.parameters:='ST('+IntToStr(memory[1]-$f8)+'),ST(0)';
+                     end
+                     else
+                     begin
+                       LastDisassembleData.Opcode:='FDIVR';
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                      end;
                      inc(offset,last-1);
                    end;
@@ -7281,35 +8566,44 @@ begin
             end;
 
       $df : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Load Integer';
-                      tempresult:='FILD '+modrm(memory,prefix2,1,0,last,16);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      tempresult:='FILD';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,16);
+
                       inc(offset,last-1);
                     end;
 
                 2:  begin
                       description:='Store Integer';
-                      tempresult:='FIST '+modrm(memory,prefix2,1,0,last,16);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      tempresult:='FIST';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,16);
+
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Store Integer';
-                      tempresult:='FISTP '+modrm(memory,prefix2,1,0,last,16);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      tempresult:='FISTP';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,16);
+
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Load Binary Coded Decimal';
                       last:=2;
-                      if memory[1]>=$e0 then tempresult:=tempresult+'FNSTSW AX' else
+                      if memory[1]>=$e0 then
                       begin
-                        tempresult:='FBLD '+modrm(memory,prefix2,1,0,last,80);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        LastDisassembleData.Opcode:='FNSTSW';
+                        LastDisassembleData.parameters:='AX';
+                      end
+                      else
+                      begin
+                        tempresult:='FBLD';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,80);
+
                       end;
                       inc(offset,last-1);
                     end;
@@ -7318,15 +8612,17 @@ begin
                      if memory[1]<$c0 then
                      begin
                        description:='Load Integer';
-                       tempresult:='FILD '+modrm(memory,prefix2,1,0,last,64);
-                       tempresult:=copy(tempresult,1,length(tempresult)-1);
+                       tempresult:='FILD';
+                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                        inc(offset,last-1);
                      end;
 
                      if memory[1]>=$e8 then
                      begin
                        description:='Compare Real and Set EFLAGS';
-                       tempresult:='FUCOMIP ST(0),ST('+IntToStr(memory[1]-$e8)+')';
+                       tempresult:='FUCOMIP';
+                       LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$e8)+')';
                        inc(offset);
                      end;
                    end;
@@ -7335,24 +8631,32 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         description:='Compare Real and Set EFLAGS';
-                        tempresult:='FCOMI ST(0),ST('+IntToStr(memory[1]-$f0)+')';
+                        tempresult:='FCOMI';
+                        LastDisassembleData.parameters:='ST(0),ST('+IntToStr(memory[1]-$f0)+')';
                       end
                       else
                       begin
                         description:='Store BCD Integer and Pop';
-                        tempresult:='FBSTP '+modrm(memory,prefix2,1,0,last,80);
-                        tempresult:=copy(tempresult,1,length(tempresult)-1);
+                        tempresult:='FBSTP';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,80);
+
                         inc(offset,last-1);
                       end;
                     end;
 
                 7:  begin
                       description:='Store Integer';
-                      tempresult:='FISTP '+modrm(memory,prefix2,1,0,last,64);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      tempresult:='FISTP';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+
                       inc(offset,last-1);
                     end;
-                else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+
+                else
+                begin
+                  LastDisassembleData.Opcode:='DB';
+                  LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                end;
               end;
 
             end;
@@ -7361,15 +8665,21 @@ begin
               description:='Loop According to ECX counter';
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'LOOPNE ';
+                LastDisassembleData.Opcode:='LOOPNE ';
                 inc(offset);
-                tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
+                if processhandler.is64Bit then
+                  LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
+                else
+                  LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
               end
               else
               begin
-                tempresult:=tempresult+'LOOPNZ ';
+                LastDisassembleData.Opcode:='LOOPNZ ';
                 inc(offset);
-                tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
+                if processhandler.is64Bit then
+                  LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
+                else
+                  LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
               end;
             end;
 
@@ -7377,57 +8687,75 @@ begin
               description:='Loop According to ECX counter';
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'LOOPE ';
+                LastDisassembleData.Opcode:='LOOPE ';
               end
               else
               begin
-                tempresult:=tempresult+'LOOPZ ';
+                LastDisassembleData.Opcode:='LOOPZ ';
               end;
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),0);
+
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),0)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),0);
             end;
 
       $e2 : begin
               description:='Loop According to ECX counting';
-              tempresult:=tempresult+'LOOP ';
+              LastDisassembleData.Opcode:='LOOP ';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),0);
+
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),0)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),0);
             end;
 
       $e3 : begin
               description:='Jump short if CX=0';
               if $66 in prefix2 then
-                tempresult:=tempresult+'JCXZ '
+                LastDisassembleData.Opcode:='JCXZ '
               else
-                tempresult:=tempresult+'JECXZ ';
+                LastDisassembleData.Opcode:='JECXZ ';
               inc(offset);
-              tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
+
+              if processhandler.is64Bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
             end;
 
       $e4 : begin
               description:='Input from Port';
-              tempresult:='IN AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='IN';
+              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
 
       $e5 : begin
               description:='Input from Port';
-              if $66 in prefix2 then tempresult:=tempresult+'IN AX,'+inttohexs(memory[1],2)
-                                else tempresult:=tempresult+'IN EAX,'+inttohexs(memory[1],2);
+              LastDisassembleData.Opcode:='IN';
+
+              if $66 in prefix2 then LastDisassembleData.parameters:='AX,'+inttohexs(memory[1],2)
+                                else LastDisassembleData.parameters:='EAX,'+inttohexs(memory[1],2);
               inc(offset);
 
             end;
 
       $e6 : begin
               description:='Output to Port';
-              tempresult:='OUT '+inttohexs(memory[1],2)+',AL';
+              tempresult:='OUT';
+              LastDisassembleData.parameters:=inttohexs(memory[1],2)+',AL';
               inc(offset);
             end;
 
       $e7 : begin
               description:='Output toPort';
-              if $66 in prefix2 then tempresult:=tempresult+'OUT '+inttohexs(memory[1],2)+',AX'
-                                else tempresult:=tempresult+'OUT '+inttohexs(memory[1],2)+',EAX';
+              LastDisassembleData.Opcode:='OUT';
+              if $66 in prefix2 then
+                LastDisassembleData.parameters:=inttohexs(memory[1],2)+',AX' else
+                LastDisassembleData.parameters:=inttohexs(memory[1],2)+',EAX';
               inc(offset);
 
             end;
@@ -7436,28 +8764,31 @@ begin
               //call
               //this time no $66 prefix because it will only run in win32
               description:='Call Procedure';
-              tempresult:=tempresult+'CALL ';
+              LastDisassembleData.Opcode:='CALL ';
               inc(offset,4);
 
-              tempresult:=tempresult+inttohexs(offset+pint(@memory[1])^,8);
+              if processhandler.is64bit then
+                LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[1])^),8)
+              else
+                LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[1])^),8);
             end;
 
       $e9 : begin
               description:='Jump near';
               if $66 in prefix2 then
               begin
-                tempresult:=tempresult+'JMP ';
+                LastDisassembleData.Opcode:='JMP ';
                 inc(offset,2);
-                tempresult:=tempresult+inttohexs(dword(offset+psmallint(@memory[1])^),8);
+                LastDisassembleData.parameters:=inttohexs(dword(offset+psmallint(@memory[1])^),8);
               end
               else
               begin
-                tempresult:=tempresult+'JMP ';
+                LastDisassembleData.Opcode:='JMP ';
                 inc(offset,4);
                 if processhandler.is64bit then
-                  tempresult:=tempresult+inttohexs(qword(offset+pInteger(@memory[1])^),8)
+                  LastDisassembleData.parameters:=inttohexs(qword(offset+pInteger(@memory[1])^),8)
                 else
-                  tempresult:=tempresult+inttohexs(dword(offset+pInteger(@memory[1])^),8);
+                  LastDisassembleData.parameters:=inttohexs(dword(offset+pInteger(@memory[1])^),8);
               end;
 
             end;
@@ -7465,42 +8796,46 @@ begin
       $ea : begin
               description:='Jump far';
               wordptr:=@memory[5];
-              tempresult:=tempresult+'JMP '+inttohexs(wordptr^,4)+':';
+              LastDisassembleData.Opcode:='JMP';
+              LastDisassembleData.parameters:=inttohexs(wordptr^,4)+':';
               dwordptr:=@memory[1];
-              tempresult:=tempresult+inttohexs(dwordptr^,8);
+              LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,8);
               inc(offset,6);
             end;
 
       $eb : begin
               description:='Jump short';
-              tempresult:=tempresult+'JMP ';
+              LastDisassembleData.Opcode:='JMP ';
               inc(offset);
               if processhandler.is64Bit then
-                tempresult:=tempresult+inttohexs(qword(offset+pshortint(@memory[1])^),8)
+                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
               else
-                tempresult:=tempresult+inttohexs(dword(offset+pshortint(@memory[1])^),8);
+                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
             end;
 
       $ec : begin
               description:='Input from Port';
-              tempresult:=tempresult+'IN AL,DX';
+              LastDisassembleData.Opcode:='IN AL,DX';
             end;
 
       $ed : begin
               description:='Input from Port';
-              if $66 in prefix2 then tempresult:=tempresult+'IN AX,DX' else
-                                     tempresult:=tempresult+'IN EAX,DX';
+              LastDisassembleData.Opcode:='IN';
+              if $66 in prefix2 then LastDisassembleData.parameters:='AX,DX' else
+                                     LastDisassembleData.parameters:='EAX,DX';
             end;
 
       $ee : begin
               description:='Input from Port';
-              tempresult:=tempresult+'OUT DX,AL';
+              LastDisassembleData.Opcode:='OUT';
+              LastDisassembleData.parameters:='DX,AL';
             end;
 
       $ef : begin
               description:='Input from Port';
-              if $66 in prefix2 then tempresult:=tempresult+'OUT DX,AX' else
-                                     tempresult:=tempresult+'OUT DX,EAX';
+              LastDisassembleData.Opcode:='OUT';
+              if $66 in prefix2 then LastDisassembleData.parameters:='DX,AX' else
+                                     LastDisassembleData.parameters:='DX,EAX';
             end;
 
       $f3 : begin
@@ -7509,300 +8844,364 @@ begin
 
       $f4 : begin
               description:='Halt';
-              tempresult:=tempresult+'HLT';
+              LastDisassembleData.Opcode:='HLT';
             end;
 
       $f5 : begin
               description:='Complement Carry Flag';
-              tempresult:=tempresult+'CMC';
+              LastDisassembleData.Opcode:='CMC';
             end;
 
       $f6 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Logical Compare';
-                      tempresult:=tempresult+'TEST '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+                      LastDisassembleData.Opcode:='TEST';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
                       inc(offset,last);
                     end;
 
                 2:  begin
                       description:='One''s Complement Negation';
-                      tempresult:=tempresult+'NOT '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='NOT';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Two''s Complement Negation';
-                      tempresult:=tempresult+'NEG '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='NEG';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Unsigned Multiply';
-                      tempresult:=tempresult+'MUL '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='MUL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       description:='Signed Multiply';
-                      tempresult:=tempresult+'IMUL '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='IMUL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='Unsigned Divide';
-                      tempresult:=tempresult+'DIV '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='DIV';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 7:  begin
                       description:='Signed Divide';
-                      tempresult:=tempresult+'IDIV '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='IDIV';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
-                else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+                else
+                begin
+                  LastDisassembleData.Opcode:='DB';
+                  LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                end;
 
               end;
             end;
 
       $f7 : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Logical Compare';
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'TEST '+modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.Opcode:='TEST';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
-                        tempresult:=tempresult+''+inttohexs(wordptr^,4);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                         inc(offset,last+1);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'TEST '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.Opcode:='TEST';
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
-                        tempresult:=tempresult+''+inttohexs(dwordptr^,4);
+                        LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,4);
                         inc(offset,last+3);
                       end;
                     end;
 
                 2:  begin
                       description:='One''s Complement Negation';
+                      LastDisassembleData.Opcode:='NOT';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'NOT '+modrm(memory,prefix2,1,1,last,16)
-                      else
-                        tempresult:=tempresult+'NOT '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16) else
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='Two''s Complement Negation';
+                      LastDisassembleData.Opcode:='NEG';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'NEG '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'NEG '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='Unsigned Multiply';
+                      LastDisassembleData.Opcode:='MUL';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'MUL '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'MUL '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       description:='Signed Multiply';
+                      LastDisassembleData.Opcode:='IMUL';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'IMUL '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'IMUL '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='Unsigned Divide';
+                      LastDisassembleData.Opcode:='DIV';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'DIV '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'DIV '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 7:  begin
                       description:='Signed Divide';
+                      LastDisassembleData.Opcode:='IDIV';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'IDIV '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'IDIV '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
-                  else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+                  else
+                  begin
+                    LastDisassembleData.Opcode:='DB';
+                    LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                  end;
                 end;
             end;
 
       $f8 : begin
               description:='Clear Carry Flag';
-              tempresult:=tempresult+'CLC';
+              LastDisassembleData.Opcode:='CLC';
             end;
 
       $f9 : begin
               description:='Set Carry Flag';
-              tempresult:=tempresult+'STC';
+              LastDisassembleData.Opcode:='STC';
             end;
 
       $fa : begin
               description:='Clear Interrupt Flag';
-              tempresult:=tempresult+'CLI';
+              LastDisassembleData.Opcode:='CLI';
             end;
 
       $fb : begin
               description:='Set Interrupt Flag';
-              tempresult:=tempresult+'STI';
+              LastDisassembleData.Opcode:='STI';
             end;
 
       $fc : begin
               description:='Clear Direction Flag';
-              tempresult:=tempresult+'CLD';
+              LastDisassembleData.Opcode:='CLD';
             end;
 
       $fd : begin
               description:='Set Direction Flag';
-              tempresult:=tempresult+'STD';
+              LastDisassembleData.Opcode:='STD';
             end;
 
       $fe : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Increment by 1';
-                      tempresult:=tempresult+'INC '+modrm(memory,prefix2,1,2,last,8);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='INC';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='Decrement by 1';
-                      tempresult:=tempresult+'DEC '+modrm(memory,prefix2,1,2,last,7);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='DEC';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,7);
+
                       inc(offset,last-1);
                     end;
 
-                else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+                else
+                begin
+                  LastDisassembleData.Opcode:='DB';
+                  LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                end;
               end;
             end;
 
       $ff : begin
-              case OpcodeReg(memory[1]) of
+              case getReg(memory[1]) of
                 0:  begin
                       description:='Increment by 1';
+                      LastDisassembleData.Opcode:='INC';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'INC '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'INC '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='Decrement by 1';
+                      LastDisassembleData.Opcode:='DEC';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'DEC '+modrm(memory,prefix2,1,1,last,16)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16)
                       else
-                        tempresult:=tempresult+'DEC '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
                       inc(offset,last-1);
                     end;
 
                 2:  begin
                       //call
                       description:='Call Procedure';
-                      if memory[1]>=$c0 then tempresult:='CALL '+modrm(memory,prefix2,1,0,last) else
+                      LastDisassembleData.Opcode:='CALL';
+                      if memory[1]>=$c0 then
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
                         if processhandler.is64Bit then
-                          tempresult:='CALL '+modrm(memory,prefix2,1,0,last,64)
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
                         else
-                          tempresult:='CALL '+modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
                       end;
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       //call
                       description:='Call Procedure';
-                      tempresult:='CALL '+modrm(memory,prefix2,1,0,last);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='CALL';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       //jmp
                       description:='Jump near';
-                      if memory[1]>=$c0 then tempresult:='JMP '+modrm(memory,prefix2,1,0,last) else
+                      LastDisassembleData.Opcode:='JMP';
+                      if memory[1]>=$c0 then
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
                         if processhandler.is64bit then
-                          tempresult:='JMP '+modrm(memory,prefix2,1,0,last,64)
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64)
                         else
-                          tempresult:='JMP '+modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
                       end;
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       //jmp
                       description:='Jump far';
-                      tempresult:='JMP far '+modrm(memory,prefix2,1,0,last);
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+                      LastDisassembleData.Opcode:='JMP far';
+                      LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='Push Word or Doubleword Onto the Stack';
+                      LastDisassembleData.Opcode:='PUSH';
                       if $66 in prefix2 then
-                        tempresult:=tempresult+'PUSH '+modrm(memory,prefix2,1,1,last)
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last)
                       else
-                        tempresult:=tempresult+'PUSH '+modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
-                      tempresult:=copy(tempresult,1,length(tempresult)-1);
+
                       inc(offset,last-1);
                     end;
-                else tempresult:=tempresult+'DB '+inttohexs(memory[0],2);
+                else
+                begin
+                  LastDisassembleData.Opcode:='DB';
+                  LastDisassembleData.parameters:=inttohexs(memory[0],2);
+                end;
 
               end;
 
             end;
 
       else  begin
-              tempresult:='DB '+inttohex(memory[0],2);
+              LastDisassembleData.Opcode:='DB';
+              LastDisassembleData.parameters:=inttohex(memory[0],2);
             end;
     end;
 
+    //strip off the , if it has one
+    if (LastDisassembleData.parameters<>'') and (LastDisassembleData.parameters[length(LastDisassembleData.parameters)]=',') then
+      LastDisassembleData.parameters:=copy(LastDisassembleData.parameters,0,length(LastDisassembleData.parameters)-1);
+
+    tempresult:=tempresult+LastDisassembleData.opcode+' '+LastDisassembleData.parameters;
+
+
+
+    LastDisassembleData.description:=description;
+    j:=length(LastDisassembleData.Bytes);
+    setlength(LastDisassembleData.Bytes,j+offset-startoffset);
+
     for i:=0 to (offset-startoffset)-1 do
+    begin
+      LastDisassembleData.Bytes[j+i]:=memory[i];
       result:=result+inttohex(memory[i],2)+' ';
+    end;
+
+    //adjust for the prefix.
+    if j<>0 then
+      for i:=1 to LastDisassembleData.SeperatorCount-1 do
+        inc(LastDisassembleData.Seperators[i],prefixsize);
+
+    //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecesary readprocessmemorys associated with it
+
+
     result:=result+'- '+tempresult;
+
 
     if riprelative then
     begin
@@ -7817,7 +9216,30 @@ begin
       tempresult:=tempresult+inttohexs(tempaddress,8);
       result:=tempresult+copy(result,j,length(result));
 
+      inc(LastDisassembleData.modrmValue,offset);
+
     end;
+
+    result:=inttohex(LastDisassembleData.address,8)+' - ';
+    for i:=0 to length(LastDisassembleData.Bytes)-1 do
+    begin
+      result:=result+inttohex(LastDisassembleData.Bytes[i],2);
+
+      if i<prefixsize then
+        result:=result+' '
+      else
+      for j:=0 to LastDisassembleData.SeperatorCount-1 do
+        if (LastDisassembleData.Seperators[j]=i+1) then  //followed by a seperator
+          result:=result+' ';
+    end;
+
+    result:=result+' - ';
+    result:=result+LastDisassembleData.prefix+' - '+LastDisassembleData.opcode;
+    result:=result+' ';
+    result:=result+LastDisassembleData.parameters;
+
+
+
   end
   else
   begin
@@ -8273,36 +9695,52 @@ begin
   end else special:='';
 end;
 
-function inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+function TDisAssembler.inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 begin
   result:=sysutils.IntToHex(address,chars);
+ // if syntaxhighlighting then result:='[COL1]'+result+'[/COL1]';
 end;
 
-function inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
-var symbol: imagehlp.PIMAGEHLP_SYMBOL;
-    disp: dword;
+function TDisAssembler.inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+var found: boolean;
 begin
-  if symhandler.showsymbols and (chars=8) then
-    result:=symhandler.getNameFromAddress(address)
+  if showsymbols and (chars=8) then
+  begin
+    result:=symhandler.getNameFromAddress(address,found);
+  {  if syntaxhighlighting then
+    begin
+      if not found then
+        result:='[COL1]'+result+'[/COL1]'
+      else
+        result:='[COL2]'+result+'[/COL2]';
+
+
+    end;  }
+
+  end
   else
   begin
-    {if signed then
-    begin
-      case signedsize of
-        1: if address>=$80 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
-        2: if address>=$8000 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
-        4: if address>=$80000000 then result:='-'+sysutils.IntToHex(address,chars) else result:=sysutils.IntToHex(address,chars);
-        else result:=sysutils.IntToHex(address,chars);
-      end;
-    end
-    else  }
-      result:=sysutils.IntToHex(address,chars);
+    result:=sysutils.IntToHex(address,chars);
+    //if syntaxhighlighting then result:='[COL1]'+result+'[/COL1]';
   end;
+
+
 end;
 
 initialization
   defaultDisassembler:=TDisassembler.create;
   defaultDisassembler.isdefault:=true;
+  defaultDisassembler.syntaxhighlighting:=false;
+
+  visibleDisassembler:=TDisassembler.Create;
+  visibleDisassembler.syntaxhighlighting:=true;
+
+finalization
+  if visibleDisassembler<>nil then
+    freeandnil(visibleDisassembler);
+
+  if defaultDisassembler<>nil then
+    freeandnil(defaultDisassembler);
 
 end.
 

@@ -6,11 +6,11 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1071; //I wish there was a easier way than to handcount
+const opcodecount=1075; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
-  ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, //ttRegister64Bit is just internal to set the rexflags
+  ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
   ttRegisterMM, ttRegisterXMM, ttRegisterST, ttRegisterSreg,
   ttRegisterCR, ttRegisterDR, ttMemoryLocation, ttMemoryLocation8,
   ttMemoryLocation16, ttMemoryLocation32, ttMemoryLocation64,
@@ -48,6 +48,7 @@ type tparam=(par_noparam,
              par_r8,
              par_r16,
              par_r32,
+             par_r64, //just for a few occasions
              par_mm,
              par_xmm,
              par_st,
@@ -192,6 +193,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'CALL';opcode1:eo_reg2;paramtype1:par_rm32;bytes:1;bt1:$ff;norexw:true),
   (mnemonic:'CBW';opcode1:eo_none;paramtype1:par_noparam;bytes:2;bt1:$66;bt2:$98),
   (mnemonic:'CDQ';bytes:1;bt1:$99),
+  (mnemonic:'CDQE';bytes:2;bt1:$48;bt2:$98),
+
   (mnemonic:'CLC';bytes:1;bt1:$f8),
   (mnemonic:'CLD';bytes:1;bt1:$f8),
   (mnemonic:'CLFLUSH';opcode1:eo_reg7;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$ae),
@@ -295,6 +298,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'COMISS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:2;bt1:$0f;bt2:$2f),
 
   (mnemonic:'CPUID';bytes:2;bt1:$0f;bt2:$a2),
+  (mnemonic:'CQO';bytes:2;bt1:$48;bt2:$99),
   (mnemonic:'CVTDQ2PD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$f3;bt2:$0f;bt3:$e6),  //just a gues, the documentation didn't say anything about a /r, and the disassembler of delphi also doesn't recognize it
   (mnemonic:'CVTDQ2PS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$5b),
   (mnemonic:'CVTPD2DQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$f2;bt2:$0f;bt3:$e6),
@@ -601,8 +605,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'INVD';bytes:2;bt1:$0f;bt2:$08),
   (mnemonic:'INVLPG';opcode1:eo_reg7;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$01),
 
-  (mnemonic:'IRET';bytes:2;bt1:$66;bt2:$ce),
+  (mnemonic:'IRET';bytes:2;bt1:$66;bt2:$cf),
   (mnemonic:'IRETD';bytes:1;bt1:$cf),
+  (mnemonic:'IRETQ';bytes:2;bt1:$48;bt2:$cf),
 
   (mnemonic:'JA';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$77),
   (mnemonic:'JA';opcode1:eo_cd;paramtype1:par_rel32;bytes:2;bt1:$0f;bt2:$87),
@@ -1172,6 +1177,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PUSHALL';bytes:1;bt1:$60),
   (mnemonic:'PUSHF';bytes:2;bt1:$66;bt2:$9c),
   (mnemonic:'PUSHFD';bytes:1;bt1:$9c),
+  (mnemonic:'PUSHFQ';bytes:1;bt1:$9c),
 
   (mnemonic:'PXOR';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$ef),
   (mnemonic:'PXOR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$ef),
@@ -1465,8 +1471,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XADD';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$c1),
   (mnemonic:'XADD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$c1),
 
-  (mnemonic:'XCHG';opcode1:eo_prw;paramtype1:par_ax;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$90),
   (mnemonic:'XCHG';opcode1:eo_prd;paramtype1:par_eax;paramtype2:par_r32;bytes:1;bt1:$90),
+  (mnemonic:'XCHG';opcode1:eo_prw;paramtype1:par_ax;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$90),
 
   (mnemonic:'XCHG';opcode1:eo_prw;paramtype1:par_r16;paramtype2:par_ax;bytes:2;bt1:$66;bt2:$90),
 
@@ -1760,10 +1766,10 @@ begin
   if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then result:=1;
   if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then result:=2;
   if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then result:=3;
-  if (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then result:=4;
-  if (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then result:=5;
-  if (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then result:=6;
-  if (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
+  if (reg='SPL') or (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then result:=4;
+  if (reg='BPL') or (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then result:=5;
+  if (reg='SIL') or (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then result:=6;
+  if (reg='DIL') or (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
   if (reg='R8') then result:=8;
   if (reg='R9') then result:=9;
   if (reg='R10') then result:=10;
@@ -1795,6 +1801,10 @@ begin
   if (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
   if processhandler.is64Bit then
   begin
+    if (reg='SPL') then result:=4 else
+    if (reg='BPL') then result:=5 else
+    if (reg='SIL') then result:=6 else
+    if (reg='DIL') then result:=7 else
     if (reg='R8') or (reg='R8D') or (reg='R8W') or (reg='R8L') or (reg='MM8') or (reg='XMM8') or (reg='ST(8)') or (reg='JS') or (reg='CR8') or (reg='DR8') then result:=8;
     if (reg='R9') or (reg='R9D') or (reg='R9W') or (reg='R9L') or (reg='MM9') or (reg='XMM9') or (reg='ST(9)') or (reg='KS') or (reg='CR9') or (reg='DR9') then result:=9;
     if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='MM10') or (reg='XMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then result:=10;
@@ -1922,6 +1932,12 @@ begin
     if token='R14' then result:=ttRegister64bit else
     if token='R15' then result:=ttRegister64bit else
 
+    if token='SPL' then result:=ttRegister8BitWithPrefix else
+    if token='BPL' then result:=ttRegister8BitWithPrefix else
+    if token='SIL' then result:=ttRegister8BitWithPrefix else
+    if token='DIL' then result:=ttRegister8BitWithPrefix else
+
+
     if token='XMM8' then result:=ttRegisterXMM else
     if token='XMM9' then result:=ttRegisterXMM else
     if token='XMM10' then result:=ttRegisterXMM else
@@ -1994,7 +2010,7 @@ begin
 
     //I need the helper param to figure it out
     case TokenToRegisterbit(token2) of
-      ttRegister8bit:
+      ttRegister8bit,ttRegister8BitWithPrefix:
         result:=ttMemorylocation8;
       ttRegistersreg, TTRegister16bit:
         result:=ttMemorylocation16;
@@ -2816,10 +2832,10 @@ begin
     if (param='RCX') or (param='ECX') or (param='CX') or (param='CL') or (param='MM1') or (param='XMM1') then setrm(modrm[0],1) else
     if (param='RDX') or (param='EDX') or (param='DX') or (param='DL') or (param='MM2') or (param='XMM2') then setrm(modrm[0],2) else
     if (param='RBX') or (param='EBX') or (param='BX') or (param='BL') or (param='MM3') or (param='XMM3') then setrm(modrm[0],3) else
-    if (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') then setrm(modrm[0],4) else
-    if (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') then setrm(modrm[0],5) else
-    if (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') then setrm(modrm[0],6) else
-    if (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') then setrm(modrm[0],7) else
+    if (param='SPL') or (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') then setrm(modrm[0],4) else
+    if (param='BPL') or (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') then setrm(modrm[0],5) else
+    if (param='SIL') or (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') then setrm(modrm[0],6) else
+    if (param='DIL') or (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') then setrm(modrm[0],7) else
     if (param='R8') or (param='R8D') or (param='R8W') or (param='R8L') or (param='MM8') or (param='XMM8') then setrm(modrm[0],8) else
     if (param='R9') or (param='R9D') or (param='R9W') or (param='R9L') or (param='MM9') or (param='XMM9') then setrm(modrm[0],9) else
     if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='MM10') or (param='XMM10') then setrm(modrm[0],10) else
@@ -3060,6 +3076,18 @@ begin
 
   if processhandler.is64Bit then
   begin
+    if (paramtype1=ttRegister8BitWithPrefix) then
+    begin
+      RexPrefix:=RexPrefix or $40; //it at least has a prefix now
+      paramtype1:=ttRegister8Bit;
+    end;
+
+    if (paramtype2=ttRegister8BitWithPrefix) then
+    begin
+      RexPrefix:=RexPrefix or $40; //it at least has a prefix now
+      paramtype2:=ttRegister8Bit;
+    end;
+
     if (paramtype1=ttRegister64Bit) then
     begin
       REX_W:=true;   //64-bit opperand
@@ -3338,7 +3366,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_eax) and (parameter2='EAX') then
+      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
       begin
         //imm8,eax
         addopcode(bytes,j);
@@ -3481,7 +3509,7 @@ begin
 
     if (opcodes[j].paramtype1=par_moffs32) and (paramtype1=ttMemorylocation32)  then
     begin
-      if (opcodes[j].paramtype2=par_eax) and (parameter2='EAX') then
+      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
       begin
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
@@ -3634,7 +3662,7 @@ begin
 
     end;
 
-    if (opcodes[j].paramtype1=PAR_EAX) and (parameter1='EAX') then
+    if (opcodes[j].paramtype1=PAR_EAX) and ((parameter1='EAX') or (parameter1='RAX')) then
     begin
       //eAX,
       if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
@@ -3756,7 +3784,7 @@ begin
         exit;
       end;
 
-      if (opcodes[j].paramtype2=par_eax) and (parameter2='EAX') then
+      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
       begin
         addopcode(bytes,j);
         result:=true;
@@ -4070,7 +4098,7 @@ begin
 
 
       //eax
-      if (opcodes[j].paramtype2=par_eax) and (parameter2='EAX') then
+      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
       begin
         //r32,eax,
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -5120,7 +5148,7 @@ begin
         if RexPrefix<>0 then
         begin
           if RexPrefixLocation=-1 then raise exception.create('Assembler error');
-          RexPrefix:=RexPrefix or $40;
+          RexPrefix:=RexPrefix or $40; //just make sure this is set
           setlength(bytes,length(bytes)+1);
           for i:=length(bytes)-1 downto RexPrefixLocation+1 do
             bytes[i]:=bytes[i-1];

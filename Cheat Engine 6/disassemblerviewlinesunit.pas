@@ -52,6 +52,7 @@ implementation
 
 uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit;
 
+
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
   oldpenstyle: Tpenstyle;
@@ -214,7 +215,7 @@ begin
     end;
   end;
 
-  fdisassembled:=disassemble(address,fdescription);
+  fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
 
 
   if boldheight=-1 then

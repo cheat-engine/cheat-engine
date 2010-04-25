@@ -394,7 +394,7 @@ end;
 
 procedure THexView.AddSelectedAddressToCheatTable;
 begin
-  if hasSelection then
+  if hasSelection or isediting then
   begin
     //selected
     if addform=nil then
@@ -434,7 +434,7 @@ byteclickpos: integer;
 begin
 
 
-  if button=mbleft then
+  if (button=mbleft) then
   begin
     if isSelecting then
     begin
@@ -482,12 +482,18 @@ var
   hr: THexRegion;
   oldselected: ptrUint;
   byteclickpos: integer;
+  wasrightclick: boolean;
 begin
   setfocus;
 
+  if (button=mbRight) and (hasSelection=false) then
+  begin
+    button:=mbLeft; //handle the rightclick as a selection if nothing is selected
+    wasrightclick:=true;
+  end else wasrightclick:=false;
 
 
-  if button=mbLeft then
+  if (button=mbLeft) then
   begin
     hasSelection:=false;
     oldselected:=selected;
@@ -521,6 +527,8 @@ begin
       end;
 
 
+      if wasrightclick then  //imeadiatly follow by an emulated mouseup
+        mbCanvasMouseUp(sender, button,shift,x,y);
 
     end else isEditing:=false;
   end;

@@ -525,8 +525,8 @@ object MemoryBrowser: TMemoryBrowser
     end
   end
   object memorypopup: TPopupMenu
-    left = 8
-    top = 480
+    left = 120
+    top = 368
     object Change1: TMenuItem
       Caption = 'Edit'
       OnClick = Change1Click
@@ -608,7 +608,7 @@ object MemoryBrowser: TMemoryBrowser
   end
   object debuggerpopup: TPopupMenu
     OnPopup = debuggerpopupPopup
-    left = 64
+    left = 104
     top = 152
     object Gotoaddress1: TMenuItem
       Caption = 'Go to address'
@@ -690,6 +690,8 @@ object MemoryBrowser: TMemoryBrowser
     top = 352
   end
   object MainMenu1: TMainMenu
+    left = 88
+    top = 16
     object File1: TMenuItem
       Caption = 'File'
       object Newwindow1: TMenuItem

@@ -2157,12 +2157,11 @@ begin
   setlength(x, 7);
   if loadformposition(self, x) then
   begin
-
-   (* headercontrol1.Sections[0].Width := x[0];
-    headercontrol1.Sections[1].Width := x[1];
-    headercontrol1.Sections[2].Width := x[2];
-    headercontrol1.Sections[3].Width := x[3];
-    headercontrol1.Sections[4].Width := x[4];   *)
+    addresslist.headers.Sections[0].Width := x[0];
+    addresslist.headers.Sections[1].Width := x[1];
+    addresslist.headers.Sections[2].Width := x[2];
+    addresslist.headers.Sections[3].Width := x[3];
+    addresslist.headers.Sections[4].Width := x[4];
     panel5.Height := x[5];
     foundlist3.columns[0].Width := x[6];
   end;
@@ -4311,8 +4310,10 @@ procedure TMainForm.Label59Click(Sender: TObject);
 var l: tstringlist;
 x: pbytearray;
 begin
-  MessageDlg('BLA',mtError,[mbyes,mbno,mbok],0);
+  asm
+    or sil,12
 
+  end;
   //ReturnNilIfGrowHeapFails:=true;
   (*
 
@@ -4862,12 +4863,13 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
+
   saveformposition(self,[
-                        0, //headercontrol1.Sections[0].Width,
-                        0, //headercontrol1.Sections[1].Width,
-                        0, //headercontrol1.Sections[2].Width,
-                        0, //headercontrol1.Sections[3].Width,
-                        0, //headercontrol1.Sections[4].Width,
+                        addresslist.headers.Sections[0].Width,
+                        addresslist.headers.Sections[1].Width,
+                        addresslist.headers.Sections[2].Width,
+                        addresslist.headers.Sections[3].Width,
+                        addresslist.headers.Sections[4].Width,
                         panel5.height,
                         foundlist3.columns[0].width
                         ]);
