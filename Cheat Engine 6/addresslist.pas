@@ -73,6 +73,7 @@ type
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
     property selectedRecord: TMemoryRecord read getSelectedRecord;
+    property headers: THeaderControl read header;
   published
 
   end;
