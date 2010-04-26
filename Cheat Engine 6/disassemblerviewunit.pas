@@ -66,6 +66,7 @@ type TDisassemblerview=class(TPanel)
     procedure scrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
 
     procedure headerSectionResize(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
+    procedure headerSectionTrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
 
 
     procedure OnLostFocus(sender: TObject);
@@ -678,6 +679,10 @@ begin
 end;
 
 //header
+procedure TDisassemblerview.headerSectionTrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+begin
+  updatescrollbox;
+end;
 
 procedure TDisassemblerview.headerSectionResize(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
 begin
@@ -777,10 +782,13 @@ begin
 
   header:=THeaderControl.Create(self);
 
+
+
   with header do
   begin
     height:=20;
     OnSectionResize:=headerSectionResize;
+    OnSectionTrack:=headerSectionTrack;
     parent:=scrollbox;
     onenter:=OnLostFocus;
     header.Align:=alTop;

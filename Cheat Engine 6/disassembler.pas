@@ -1284,6 +1284,10 @@ begin
               LastDisassembleData.parameterValueType:=dvtValue;
               LastDisassembleData.parameterValue:=memory[1];
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               inc(offset);
             end;
 
@@ -1301,6 +1305,8 @@ begin
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
 
                 description:='Add '+inttohex(wordptr^,4)+' to AX';
+
+
 
                 inc(offset,2);
               end else
@@ -1324,7 +1330,8 @@ begin
                 inc(offset,4);
               end;
 
-
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $06 : begin
@@ -1377,32 +1384,42 @@ begin
               LastDisassembleData.parameterValueType:=dvtValue;
               LastDisassembleData.parameterValue:=memory[1];
 
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               inc(offset);
             end;
 
       $0d : begin
               description:='Logical Inclusive OR';
               LastDisassembleData.opcode:='OR';
+              LastDisassembleData.parameterValueType:=dvtValue;
 
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
-                LastDisassembleData.parameterValueType:=dvtValue;
+
                 LastDisassembleData.parameterValue:=wordptr^;
+                LastDisassembleData.parameters:='AX,'+inttohexs(LastDisassembleData.parameterValue,4);
+
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
                 begin
-                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,4);
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(LastDisassembleData.parameterValue,4);
                   description:=description+' (sign-extended)';
                 end
                 else
-                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,4);
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(LastDisassembleData.parameterValue,4);
 
+
+                LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+                inc(LastDisassembleData.SeperatorCount);
                 inc(offset,4);
               end;
             end;
@@ -2575,7 +2592,6 @@ begin
                 $5c : begin
                         if $f2 in prefix2 then
                         begin
-                           //strip prefix 'REPNE '
                           LastDisassembleData.Opcode:='SUBSD';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
 
@@ -2585,7 +2601,6 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
-                            //strip prefix 'REPE '
                           LastDisassembleData.Opcode:='SUBSS';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+MODRM(memory,prefix2,2,4,last);
 
@@ -3030,7 +3045,11 @@ begin
 
                           description:='Shuffle Packed Low Words';
                           LastDisassembleData.Opcode:='PSHUFLW';
-                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
@@ -3039,7 +3058,10 @@ begin
 
                           description:='Shuffle Packed High Words';
                           LastDisassembleData.Opcode:='PSHUFHW';
-                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
@@ -3047,19 +3069,31 @@ begin
                         begin
                           description:='Packed Shuffle DoubleWord';
                           LastDisassembleData.Opcode:='PSHUFD';
-                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
                         begin
                           description:='Packed Shuffle Word';
                           LastDisassembleData.Opcode:='PSHUFW';
-                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last)+''+inttohexs(memory[last],2);
+                          LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end;
                       end;
 
                 $71 : begin
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[3];
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=3;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
                         case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
@@ -3115,6 +3149,11 @@ begin
                       end;
 
                 $72 : begin
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[3];
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=3;
+                        inc(LastDisassembleData.SeperatorCount);
+
                         case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
@@ -3170,6 +3209,11 @@ begin
                       end;
 
                 $73 : begin
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[3];
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=3;
+                        inc(LastDisassembleData.SeperatorCount);
+
                         case getReg(memory[2]) of
                           2 : begin
                                 if $66 in prefix2 then
@@ -3365,66 +3409,112 @@ begin
                         description:='Jump near if overflow';
                         LastDisassembleData.Opcode:='JO';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $81 : begin
                         description:='Jump near if not overflow';
                         LastDisassembleData.Opcode:='JNO';
-                        inc(offset,1+4);
+
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
 
                       end;
 
                 $82 : begin
                         description:='Jump near if below/carry';
-                        dwordptr:=@memory[2];
+
                         LastDisassembleData.Opcode:='JB';
-                        inc(offset,1+4);
+
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
 
                       end;
 
                 $83 : begin
                         description:='Jump near if above or equal';
                         LastDisassembleData.Opcode:='JAE';
-                        inc(offset,1+4);
+
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $84 : begin
                         description:='Jump near if equal';
                         LastDisassembleData.Opcode:='JE';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
+
 
                 $85 : begin
                         description:='Jump near if not equal';
                         LastDisassembleData.Opcode:='JNE';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
 
                       end;
 
@@ -3432,109 +3522,180 @@ begin
                         description:='Jump near if below or equal';
                         LastDisassembleData.Opcode:='JBE';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $87 : begin
                         description:='Jump near if above';
                         LastDisassembleData.Opcode:='JA';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $88 : begin
                         description:='Jump near if sign';
                         LastDisassembleData.Opcode:='JS';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $89 : begin
                         description:='Jump near if less';
                         LastDisassembleData.Opcode:='JL';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8a : begin
                         description:='Jump near if parity';
                         LastDisassembleData.Opcode:='JP';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8b : begin
                         description:='Jump near if not parity';
                         LastDisassembleData.Opcode:='JNP';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8c : begin
                         description:='Jump near if less';
                         LastDisassembleData.Opcode:='JL';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8d : begin
                         description:='Jump near if not less';
                         LastDisassembleData.Opcode:='JNL';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8e : begin
                         description:='Jump near if not greater';
                         LastDisassembleData.Opcode:='JNG';
 
-                        inc(offset,1+4);
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $8f : begin
                         description:='Jump near if greater';
                         LastDisassembleData.Opcode:='JG';
-                        inc(offset,1+4);
+
+                        LastDisassembleData.parameterValueType:=dvtAddress;
                         if processhandler.is64Bit then
-                          LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[2])^),8)
+                          LastDisassembleData.parameterValue:=qword(offset+pint(@memory[2])^)
                         else
-                          LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[2])^),8);
+                          LastDisassembleData.parameterValue:=dword(offset+pint(@memory[2])^);
+
+                        LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=2;
+                        inc(LastDisassembleData.SeperatorCount);
+
+
+                        inc(offset,1+4);
+                        LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
                       end;
 
                 $90 : begin
@@ -3895,14 +4056,17 @@ begin
 
 
                 $ba : begin
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[3];
+
                         case getReg(memory[2]) of
                           4:  begin
                                 //BT
                                 description:='Bit Test';
                                 LastDisassembleData.Opcode:='BT';
                                 if $66 in prefix2 then
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
 
                                 inc(offset,last-1+1);
                               end;
@@ -3912,8 +4076,8 @@ begin
                                 description:='Bit Test and Set';
                                 LastDisassembleData.Opcode:='BTS';
                                 if $66 in prefix2 then
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
@@ -3922,8 +4086,8 @@ begin
                                 description:='Bit Test and Reset';
                                 LastDisassembleData.Opcode:='BTR';
                                 if $66 in prefix2 then
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
@@ -3932,8 +4096,8 @@ begin
                                 description:='Bit Test and Complement';
                                 LastDisassembleData.Opcode:='BTC';
                                 if $66 in prefix2 then
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+''+inttohexs(memory[3],2) else
-                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+''+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
+                                  LastDisassembleData.parameters:=MODRM(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
                                 inc(offset,last-1+1);
                               end;
 
@@ -4016,21 +4180,24 @@ begin
                 $c2 : begin
                         if $f2 in prefix2 then
                         begin
-                           //strip prefix 'REPME '
                           description:='Compare Scalar Dpuble-Precision Floating-Point Values';
                           LastDisassembleData.Opcode:='CMPSD';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
                         if $F3 in prefix2 then
                         begin
-                            //strip prefix 'REPE '
                           description:='Packed Single-FP Compare';
                           LastDisassembleData.Opcode:='CMPSS';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
@@ -4040,7 +4207,9 @@ begin
                             description:='Compare packed double-Precision Floating-Point Values';
                             LastDisassembleData.Opcode:='CMPPD';
                             LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
-                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                            LastDisassembleData.parameterValueType:=dvtValue;
+                            LastDisassembleData.parameterValue:=memory[last];
+                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                             inc(offset,last);
                           end
                           else
@@ -4048,7 +4217,9 @@ begin
                             description:='Packed Single-FP Compare';
                             LastDisassembleData.Opcode:='CMPPS';
                             LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last,128);
-                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                            LastDisassembleData.parameterValueType:=dvtValue;
+                            LastDisassembleData.parameterValue:=memory[last];
+                            LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                             inc(offset,last);
                           end;
                         end;
@@ -4067,7 +4238,9 @@ begin
                           description:='Insert Word';
                           LastDisassembleData.Opcode:='PINSRW';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
@@ -4075,7 +4248,9 @@ begin
                           description:='Insert Word';
                           LastDisassembleData.Opcode:='PINSRW';
                           LastDisassembleData.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,0,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end;
                       end;
@@ -4086,7 +4261,9 @@ begin
                           description:='Extract Word';
                           LastDisassembleData.Opcode:='PEXTRW';
                           LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,3);
                         end
                         else
@@ -4094,7 +4271,9 @@ begin
                           description:='Extract Word';
                           LastDisassembleData.Opcode:='PEXTRW';
                           LastDisassembleData.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,3,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,3);
                         end;
                       end;
@@ -4105,7 +4284,9 @@ begin
                           description:='Shuffle Double-FP';
                           LastDisassembleData.Opcode:='SHUFPD';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end
                         else
@@ -4113,7 +4294,9 @@ begin
                           description:='Shuffle Single-FP';
                           LastDisassembleData.Opcode:='SHUFPS';
                           LastDisassembleData.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+                          LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(LastDisassembleData.parameterValue,2);
                           inc(offset,last);
                         end;
                       end;
@@ -5087,7 +5270,13 @@ begin
       $14 : begin
               description:='Add with carry';
               LastDisassembleData.Opcode:='ADC';
-              LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.parameters:='AL,'+inttohexs(LastDisassembleData.parameterValue,2);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               inc(offset);
             end;
 
@@ -5097,19 +5286,28 @@ begin
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
 
-                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameters:='AX,'+inttohexs(LastDisassembleData.parameterValue,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if Rex_W then
-                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(LastDisassembleData.parameterValue,8)
                 else
-                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(LastDisassembleData.parameterValue,8);
                 inc(offset,4);
               end;
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
             end;
 
       $16 : begin
@@ -5162,7 +5360,14 @@ begin
       $1c : begin
               description:='Integer Subtraction with Borrow';
               LastDisassembleData.Opcode:='SBB';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+
+
               inc(offset);
             end;
 
@@ -5173,19 +5378,29 @@ begin
               begin
                 wordptr:=@memory[1];
 
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
-                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(LastDisassembleData.parameterValue,8)
                 else
-                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(LastDisassembleData.parameterValue,8);
 
                 inc(offset,4);
               end;
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
             end;
 
       $1e : begin
@@ -5238,26 +5453,42 @@ begin
       $24 : begin
               description:='Logical AND';
               LastDisassembleData.Opcode:='AND';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               inc(offset);
             end;
 
       $25 : begin
               description:='Logical AND';
               LastDisassembleData.Opcode:='AND';
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
-                LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+                LastDisassembleData.parameters:='AX,'+inttohexs(LastDisassembleData.parameterValue,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
-                  LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
+                  LastDisassembleData.parameters:='RAX,'+inttohexs(LastDisassembleData.parameterValue,8)
                 else
-                  LastDisassembleData.parameters:='EAX,'+inttohexs(dwordptr^,8);
+                  LastDisassembleData.parameters:='EAX,'+inttohexs(LastDisassembleData.parameterValue,8);
                 inc(offset,4);
               end;
             end;
@@ -5305,22 +5536,42 @@ begin
       $2c : begin
               description:='Subtract';
               LastDisassembleData.Opcode:='SUB';
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
+
+
+
               inc(offset);
             end;
 
       $2d : begin
               description:='Subtract';
               LastDisassembleData.Opcode:='SUB';
+
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
                   LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
                 else
@@ -5373,6 +5624,11 @@ begin
       $34 : begin
               description:='Logical Exclusive OR';
               LastDisassembleData.Opcode:='XOR';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -5380,15 +5636,26 @@ begin
       $35 : begin
               description:='Logical Exclusive OR';
               LastDisassembleData.Opcode:='XOR';
+
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
                   LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
                 else
@@ -5444,6 +5711,12 @@ begin
       $3c : begin
               description:='Compare Two Operands';
               LastDisassembleData.Opcode:='CMP';
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -5451,15 +5724,25 @@ begin
       $3d : begin
               description:='Compare Two Operands';
               LastDisassembleData.Opcode:='CMP';
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_x then
                   LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
                 else
@@ -5560,9 +5843,15 @@ begin
             end;
 
       $68 : begin
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.Opcode:='PUSH';
                 LastDisassembleData.parameters:=inttohexs(wordptr^,4);
                 inc(offset,2);
@@ -5570,6 +5859,9 @@ begin
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 LastDisassembleData.Opcode:='PUSH';
                 LastDisassembleData.parameters:=inttohexs(dwordptr^,8);
                 inc(offset,4);
@@ -5584,6 +5876,11 @@ begin
                 LastDisassembleData.Opcode:='IMUL';
                 LastDisassembleData.parameters:=r16(memory[1])+','+MODRM(memory,prefix2,1,1,last);
                 wordptr:=@memory[last];
+
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
+
                 tempresult:=tempresult+inttohexs(wordptr^,4);
                 inc(offset,last-1+2);
               end
@@ -5592,6 +5889,10 @@ begin
                 LastDisassembleData.Opcode:='IMUL';
                 LastDisassembleData.parameters:=r32(memory[1])+','+MODRM(memory,prefix2,1,0,last);
                 dwordptr:=@memory[last];
+
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 tempresult:=tempresult+inttohexs(dwordptr^,8);
                 inc(offset,last-1+4);
               end;
@@ -5599,6 +5900,13 @@ begin
 
       $6a : begin
               LastDisassembleData.Opcode:='PUSH';
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+
               LastDisassembleData.parameters:=inttohexs(memory[1],2,true,1);
               inc(offset);
               description:='Push Byte Onto the Stack';
@@ -5646,161 +5954,290 @@ begin
               LastDisassembleData.Opcode:='JO';
               inc(offset);
 
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
 
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+
+
             end;
 
       $71 : begin
               description:='Jump short if not overflow';
               LastDisassembleData.Opcode:='JNO';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $72 : begin
               description:='Jump short if below/carry';
               LastDisassembleData.Opcode:='JB';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $73 : begin
               description:='Jump short if above or equal';
               LastDisassembleData.Opcode:='JAE';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $74 : begin
               description:='Jump short if equal';
               LastDisassembleData.Opcode:='JE';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $75 : begin
               description:='Jump short if not equal';
               LastDisassembleData.Opcode:='JNE';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $76 : begin
               description:='Jump short if not Above';
               LastDisassembleData.Opcode:='JNA';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $77 : begin
               description:='Jump short if above';
               LastDisassembleData.Opcode:='JA';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $78 : begin
               description:='Jump short if sign';
               LastDisassembleData.Opcode:='JS';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $79 : begin
               description:='Jump short if not sign';
               LastDisassembleData.Opcode:='JNS';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7a : begin
               description:='Jump short if parity';
               LastDisassembleData.Opcode:='JP';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7b : begin
               description:='Jump short if not parity';
               LastDisassembleData.Opcode:='JNP';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7c : begin
               description:='Jump short if not greater or equal';
               LastDisassembleData.Opcode:='JNGE';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7d : begin
               description:='Jump short if not less (greater or equal)';
               LastDisassembleData.Opcode:='JNL';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7e : begin
               description:='Jump short if less or equal';
               LastDisassembleData.Opcode:='JLE';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $7f : begin
               description:='Jump short if greater';
               LastDisassembleData.Opcode:='JG';
               inc(offset);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+shortint(memory[1])),8)
+                LastDisassembleData.parameterValue:=qword(offset+shortint(memory[1]))
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+shortint(memory[1])),8);
+                LastDisassembleData.parameterValue:=dword(offset+shortint(memory[1]));
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
             end;
 
       $80 : begin
@@ -5809,6 +6246,8 @@ begin
                       //ADD
                       LastDisassembleData.Opcode:='ADD';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Add x to y';
@@ -5818,6 +6257,8 @@ begin
                       //ADC
                       LastDisassembleData.Opcode:='OR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical Inclusive Or';
@@ -5828,6 +6269,8 @@ begin
                       //ADC
                       LastDisassembleData.Opcode:='ADC';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Add with Carry';
@@ -5837,6 +6280,8 @@ begin
                       //sbb
                       LastDisassembleData.Opcode:='SBB';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Integer Subtraction with Borrow';
@@ -5846,6 +6291,8 @@ begin
                       //AND
                       LastDisassembleData.Opcode:='AND';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical AND';
@@ -5854,6 +6301,8 @@ begin
                 5:  begin
                       LastDisassembleData.Opcode:='SUB';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Subtract';
@@ -5862,6 +6311,8 @@ begin
                 6:  begin
                       LastDisassembleData.Opcode:='XOR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Logical Exclusive OR';
@@ -5871,6 +6322,8 @@ begin
                       //AND
                       LastDisassembleData.Opcode:='CMP';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                       offset:=offset+last;
                       description:='Compare Two Operands';
@@ -5888,6 +6341,9 @@ begin
                         LastDisassembleData.Opcode:='ADD';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -5898,6 +6354,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -5912,6 +6371,9 @@ begin
                         LastDisassembleData.Opcode:='OR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -5923,6 +6385,9 @@ begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -5938,6 +6403,9 @@ begin
                         LastDisassembleData.Opcode:='ADC';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -5948,6 +6416,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -5962,6 +6433,9 @@ begin
                         LastDisassembleData.Opcode:='SBB';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -5972,6 +6446,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -5988,6 +6465,9 @@ begin
                         LastDisassembleData.Opcode:='AND';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -5998,6 +6478,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -6012,6 +6495,9 @@ begin
                         LastDisassembleData.Opcode:='SUB';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -6022,6 +6508,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -6036,6 +6525,9 @@ begin
                         LastDisassembleData.Opcode:='XOR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1);
                       end else
@@ -6046,6 +6538,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+2);
                       end;
@@ -6061,6 +6556,9 @@ begin
                         LastDisassembleData.Opcode:='CMP';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(wordptr^,4);
                         inc(offset,last-1+2);
                       end else
@@ -6071,6 +6569,9 @@ begin
                         else
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=dwordptr^;
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
@@ -6089,6 +6590,9 @@ begin
                       begin
                         LastDisassembleData.Opcode:='ADD';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6097,11 +6601,16 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
+
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
 
@@ -6116,6 +6625,9 @@ begin
                       begin
                         LastDisassembleData.Opcode:='OR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6123,11 +6635,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
                       end;
@@ -6142,6 +6658,8 @@ begin
                       begin
                         LastDisassembleData.Opcode:='ADC';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6149,11 +6667,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
 
@@ -6168,6 +6690,9 @@ begin
                       begin
                         LastDisassembleData.Opcode:='SBB';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
+
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6175,11 +6700,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
                       end;
@@ -6194,6 +6723,8 @@ begin
                       begin
                         LastDisassembleData.Opcode:='AND';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6201,11 +6732,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
 
@@ -6220,6 +6755,8 @@ begin
                       begin
                         LastDisassembleData.Opcode:='SUB';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6227,11 +6764,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
                       end;
@@ -6245,6 +6786,8 @@ begin
                       begin
                         LastDisassembleData.Opcode:='XOR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6252,11 +6795,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
                       end;
@@ -6271,6 +6818,8 @@ begin
                       begin
                         LastDisassembleData.Opcode:='CMP';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                       end else
                       begin
@@ -6278,11 +6827,15 @@ begin
                         if rex_w then
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2)
                         end
                         else
                         begin
                           LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last,32);
+                          LastDisassembleData.parameterValueType:=dvtValue;
+                          LastDisassembleData.parameterValue:=memory[last];
                           LastDisassembleData.Parameters:=LastDisassembleData.Parameters+inttohexs(memory[last],2);
                         end;
                       end;
@@ -6476,12 +7029,26 @@ begin
       $9A : begin
               description:='Call Procedure';
               wordptr:=@memory[5];
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=5;
+              inc(LastDisassembleData.SeperatorCount);
+
+
+
               if processhandler.is64bit then
                 LastDisassembleData.Opcode:='CALL (invalid)'
               else
                 LastDisassembleData.Opcode:='CALL';
+
               LastDisassembleData.parameters:=inttohexs(wordptr^,4)+':';
               dwordptr:=@memory[1];
+
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+
               tempresult:=tempresult+inttohexs(dwordptr^,8);
               inc(offset,6);
             end;
@@ -6621,6 +7188,12 @@ begin
               description:='Copy memory';
               dwordptr:=@memory[1];
               LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               LastDisassembleData.parameters:='AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
               inc(offset,4);
             end;
@@ -6629,6 +7202,13 @@ begin
               description:='Copy memory';
               LastDisassembleData.Opcode:='MOV';
               dwordptr:=@memory[1];
+
+
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if $66 in prefix2 then
               begin
                 LastDisassembleData.parameters:='AX,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
@@ -6651,6 +7231,12 @@ begin
               dwordptr:=@memory[1];
               LastDisassembleData.Opcode:='MOV';
 
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               LastDisassembleData.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],AL';
               inc(offset,4);
             end;
@@ -6659,6 +7245,12 @@ begin
               description:='Copy memory';
               LastDisassembleData.Opcode:='MOV';
               dwordptr:=@memory[1];
+
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
               if $66 in prefix2 then
                 LastDisassembleData.parameters:=LastDisassembleData.parameters+'AX'
@@ -6711,6 +7303,12 @@ begin
       $a8 : begin
               description:='Logical Compare';
               LastDisassembleData.Opcode:='TEST';
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -6718,15 +7316,25 @@ begin
       $a9 : begin
               description:='Logical Compare';
               LastDisassembleData.Opcode:='TEST';
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.parameters:='AX,'+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=dwordptr^;
+
                 if rex_w then
                   LastDisassembleData.parameters:='RAX,'+inttohexs(dwordptr^,8)
                 else
@@ -6787,6 +7395,11 @@ begin
             begin
               description:='Copy Memory';
               LastDisassembleData.Opcode:='MOV';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:=rd8(memory[0]-$b0)+','+inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -6794,9 +7407,17 @@ begin
       $b8..$bf:
             begin
               description:='Copy Memory';
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               if $66 in prefix2 then
               begin
                 wordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+                LastDisassembleData.parameterValue:=wordptr^;
+
                 LastDisassembleData.Opcode:='MOV';
                 LastDisassembleData.parameters:=rd16(memory[0]-$b8)+','+inttohexs(wordptr^,4);
                 inc(offset,2);
@@ -6804,15 +7425,21 @@ begin
               else
               begin
                 dwordptr:=@memory[1];
+                LastDisassembleData.parameterValueType:=dvtValue;
+
+
                 if rex_w then
                 begin
                   LastDisassembleData.Opcode:='MOV';
+                  LastDisassembleData.parameterValue:=pqword(dwordptr)^;
                   LastDisassembleData.parameters:=rd(memory[0]-$b8)+','+inttohexs(pqword(dwordptr)^,16);
                   inc(offset,8);
                 end
                 else
                 begin
                   LastDisassembleData.Opcode:='MOV';
+                  LastDisassembleData.parameterValue:=dwordptr^;
+
                   LastDisassembleData.parameters:=rd(memory[0]-$b8)+','+inttohexs(dwordptr^,8);
                   inc(offset,4);
                 end;
@@ -6824,54 +7451,62 @@ begin
                 0:  begin
                       LastDisassembleData.Opcode:='ROL';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
+
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Rotate eight bits left';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Rotate eight bits left '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 1:  begin
                       LastDisassembleData.Opcode:='ROR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Rotate eight bits right';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Rotate eight bits right '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 2:  begin
                       LastDisassembleData.Opcode:='RCL';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Rotate nine bits left';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Rotate nine bits left '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 3:  begin
                       LastDisassembleData.Opcode:='RCR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Rotate nine bits right';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Rotate nine bits right '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 4:  begin
                       LastDisassembleData.Opcode:='SHL';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Multiply by 2,';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Multiply by 2, '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
                 5:  begin
                       LastDisassembleData.Opcode:='SHR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Unsigned divide by 2,';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Unsigned divide by 2, '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
@@ -6879,9 +7514,10 @@ begin
                 6:  begin
                       LastDisassembleData.Opcode:='ROL';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Rotate eight bits left';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Rotate eight bits left '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 {^^^^^^^^^^^^^^^^^^}
@@ -6889,9 +7525,10 @@ begin
                 7:  begin
                       LastDisassembleData.Opcode:='SAR';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=memory[last];
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                      description:='Signed divide by 2,';
-                      LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                      description:='Signed divide by 2, '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
 
@@ -6905,18 +7542,21 @@ begin
                       begin
                         LastDisassembleData.Opcode:='ROL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 16 bits left';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 16 bits left '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='ROL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
+
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 32 bits left';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 32 bits left '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -6926,18 +7566,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='ROR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 16 bits right';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 16 bits right '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='ROR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 32 bits right';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 32 bits right '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -6947,18 +7589,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='RCL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 17 bits left';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 17 bits left '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='RCL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 33 bits left';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 33 bits left '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -6968,18 +7612,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='RCR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 17 bits right';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 17 bits right '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='RCR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Rotate 33 bits right';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Rotate 33 bits right '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -6989,18 +7635,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='SHL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Multiply by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Multiply by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='SHL';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Multiply by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Multiply by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -7010,18 +7658,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='SHR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Unsigned divide by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Unsigned divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='SHR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Unsigned divide by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Unsigned divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -7031,18 +7681,20 @@ begin
                       begin
                         LastDisassembleData.Opcode:='SAR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,16);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Signed divide by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Signed divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
                         LastDisassembleData.Opcode:='SAR';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last);
+                        LastDisassembleData.parameterValueType:=dvtValue;
+                        LastDisassembleData.parameterValue:=memory[last];
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
-                        description:='Signed divide by 2';
-                        LastDisassembleData.parameters:=inttostr(memory[last])+' times';
+                        description:='Signed divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;
                     end;
@@ -7053,6 +7705,11 @@ begin
       $c2 : begin
               description:='Near return to calling procedure and pop 2 bytes from stack';
               wordptr:=@memory[1];
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=wordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.Opcode:='RET';
               LastDisassembleData.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
@@ -7089,7 +7746,10 @@ begin
                     description:='Copy Memory';
                     LastDisassembleData.Opcode:='MOV';
                     LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8);
-                    LastDisassembleData.parameters:=LastDisassembleData.parameters+''+inttohexs(memory[last],2);
+                    LastDisassembleData.parameterValueType:=dvtValue;
+                    LastDisassembleData.parameterValue:=memory[last];
+
+                    LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(memory[last],2);
                     inc(offset,last);
                   end;
 
@@ -7107,21 +7767,25 @@ begin
                     description:='Copy Memory';
                     if $66 in prefix2 then
                     begin
-                      wordptr:=@memory[1];
                       LastDisassembleData.Opcode:='MOV';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
 
                       wordptr:=@memory[last];
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=wordptr^;
+
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                       inc(offset,last+1);
                     end
                     else
                     begin
-                      dwordptr:=@memory[1];
                       LastDisassembleData.Opcode:='MOV';
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
 
                       dwordptr:=@memory[last];
+                      LastDisassembleData.parameterValueType:=dvtValue;
+                      LastDisassembleData.parameterValue:=dwordptr^;
+
                       LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,8);
                       inc(offset,last+3);
                     end;
@@ -7139,6 +7803,14 @@ begin
       $c8 : begin
               description:='Make Stack Frame for Procedure Parameters';
               wordptr:=@memory[1];
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=wordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=3;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               LastDisassembleData.Opcode:='ENTER';
               LastDisassembleData.parameters:=inttohexs(wordptr^,4)+','+inttohexs(memory[3],2);
               inc(offset,3);
@@ -7153,6 +7825,12 @@ begin
               description:='Far return to calling procedure and pop 2 bytes from stack';
               wordptr:=@memory[1];
               LastDisassembleData.Opcode:='RET';
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=wordptr^;
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
             end;
@@ -7171,6 +7849,11 @@ begin
       $cd : begin
               description:='Call to Interrupt Procedure';
               LastDisassembleData.Opcode:='INT';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:=inttohexs(memory[1],2);
               inc(offset);
             end;
@@ -7574,13 +8257,25 @@ begin
               inc(offset);
               LastDisassembleData.Opcode:='AAM';
               description:='ASCII Adjust AX After Multiply';
-              if memory[1]<>$0A then LastDisassembleData.parameters:=inttohexs(memory[1],2);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
+              if memory[1]<>$0A then
+                LastDisassembleData.parameters:=inttohexs(memory[1],2);
             end;
 
       $D5 : begin  // AAD
               inc(offset);
               LastDisassembleData.Opcode:='AAD';
               description:='ASCII adjust AX before division';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               if memory[1]<>$0A then LastDisassembleData.parameters:=inttohexs(memory[1],2);
             end;
 
@@ -8663,79 +9358,112 @@ begin
 
       $e0 : begin
               description:='Loop According to ECX counter';
-              if $66 in prefix2 then
-              begin
-                LastDisassembleData.Opcode:='LOOPNE ';
-                inc(offset);
-                if processhandler.is64Bit then
-                  LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
-                else
-                  LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
-              end
+
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              if processhandler.is64Bit then
+                LastDisassembleData.parameterValue:=qword(offset+pshortint(@memory[1])^)
               else
-              begin
-                LastDisassembleData.Opcode:='LOOPNZ ';
-                inc(offset);
-                if processhandler.is64Bit then
-                  LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
-                else
-                  LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
-              end;
+                LastDisassembleData.parameterValue:=dword(offset+pshortint(@memory[1])^);
+
+
+              if $66 in prefix2 then
+                LastDisassembleData.Opcode:='LOOPNE'
+              else
+                LastDisassembleData.Opcode:='LOOPNZ';
+
+              inc(offset);
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $e1 : begin
               description:='Loop According to ECX counter';
               if $66 in prefix2 then
               begin
-                LastDisassembleData.Opcode:='LOOPE ';
+                LastDisassembleData.Opcode:='LOOPE';
               end
               else
               begin
-                LastDisassembleData.Opcode:='LOOPZ ';
+                LastDisassembleData.Opcode:='LOOPZ';
               end;
               inc(offset);
 
+              LastDisassembleData.parameterValueType:=dvtAddress;
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),0)
+                LastDisassembleData.parameterValue:=qword(offset+pshortint(@memory[1])^)
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),0);
+                LastDisassembleData.parameterValue:=dword(offset+pshortint(@memory[1])^);
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $e2 : begin
               description:='Loop According to ECX counting';
-              LastDisassembleData.Opcode:='LOOP ';
+              LastDisassembleData.Opcode:='LOOP';
               inc(offset);
 
+              LastDisassembleData.parameterValueType:=dvtAddress;
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),0)
+                LastDisassembleData.parameterValue:=qword(offset+pshortint(@memory[1])^)
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),0);
+                LastDisassembleData.parameterValue:=dword(offset+pshortint(@memory[1])^);
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $e3 : begin
               description:='Jump short if CX=0';
               if $66 in prefix2 then
-                LastDisassembleData.Opcode:='JCXZ '
+                LastDisassembleData.Opcode:='JCXZ'
               else
-                LastDisassembleData.Opcode:='JECXZ ';
+                LastDisassembleData.Opcode:='JECXZ';
               inc(offset);
 
+              LastDisassembleData.parameterValueType:=dvtAddress;
+
+
+
               if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
+                LastDisassembleData.parameterValue:=qword(offset+pshortint(@memory[1])^)
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
+                LastDisassembleData.parameterValue:=dword(offset+pshortint(@memory[1])^);
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $e4 : begin
               description:='Input from Port';
               LastDisassembleData.Opcode:='IN';
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
               LastDisassembleData.parameters:='AL,'+inttohexs(memory[1],2);
               inc(offset);
+
             end;
 
       $e5 : begin
               description:='Input from Port';
               LastDisassembleData.Opcode:='IN';
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
 
               if $66 in prefix2 then LastDisassembleData.parameters:='AX,'+inttohexs(memory[1],2)
                                 else LastDisassembleData.parameters:='EAX,'+inttohexs(memory[1],2);
@@ -8748,6 +9476,11 @@ begin
               tempresult:='OUT';
               LastDisassembleData.parameters:=inttohexs(memory[1],2)+',AL';
               inc(offset);
+
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount)
             end;
 
       $e7 : begin
@@ -8756,61 +9489,102 @@ begin
               if $66 in prefix2 then
                 LastDisassembleData.parameters:=inttohexs(memory[1],2)+',AX' else
                 LastDisassembleData.parameters:=inttohexs(memory[1],2)+',EAX';
+
               inc(offset);
 
+              LastDisassembleData.parameterValueType:=dvtValue;
+              LastDisassembleData.parameterValue:=memory[1];
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
             end;
 
       $e8 : begin
               //call
               //this time no $66 prefix because it will only run in win32
               description:='Call Procedure';
-              LastDisassembleData.Opcode:='CALL ';
+              LastDisassembleData.Opcode:='CALL';
               inc(offset,4);
+              LastDisassembleData.parameterValueType:=dvtAddress;
 
               if processhandler.is64bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+pint(@memory[1])^),8)
-              else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+pint(@memory[1])^),8);
+                  LastDisassembleData.parameterValue:=qword(offset+pInteger(@memory[1])^)
+                else
+                  LastDisassembleData.parameterValue:=dword(offset+pInteger(@memory[1])^);
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
             end;
 
       $e9 : begin
               description:='Jump near';
               if $66 in prefix2 then
               begin
-                LastDisassembleData.Opcode:='JMP ';
+                LastDisassembleData.Opcode:='JMP';
                 inc(offset,2);
-                LastDisassembleData.parameters:=inttohexs(dword(offset+psmallint(@memory[1])^),8);
+                LastDisassembleData.parameterValueType:=dvtAddress;
+                LastDisassembleData.parameterValue:=dword(offset+psmallint(@memory[1])^);
+                LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
               end
               else
               begin
-                LastDisassembleData.Opcode:='JMP ';
+                LastDisassembleData.Opcode:='JMP';
                 inc(offset,4);
+                LastDisassembleData.parameterValueType:=dvtAddress;
+
                 if processhandler.is64bit then
-                  LastDisassembleData.parameters:=inttohexs(qword(offset+pInteger(@memory[1])^),8)
+                  LastDisassembleData.parameterValue:=qword(offset+pInteger(@memory[1])^)
                 else
-                  LastDisassembleData.parameters:=inttohexs(dword(offset+pInteger(@memory[1])^),8);
+                  LastDisassembleData.parameterValue:=dword(offset+pInteger(@memory[1])^);
+
+                LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8)
               end;
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
 
             end;
 
       $ea : begin
               description:='Jump far';
+
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=5;
+              inc(LastDisassembleData.SeperatorCount);
+
+
               wordptr:=@memory[5];
               LastDisassembleData.Opcode:='JMP';
               LastDisassembleData.parameters:=inttohexs(wordptr^,4)+':';
               dwordptr:=@memory[1];
+
+              LastDisassembleData.parameterValueType:=dvtAddress;
+              LastDisassembleData.parameterValue:=dwordptr^;
+
+
               LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,8);
               inc(offset,6);
             end;
 
       $eb : begin
               description:='Jump short';
-              LastDisassembleData.Opcode:='JMP ';
+              LastDisassembleData.Opcode:='JMP';
               inc(offset);
-              if processhandler.is64Bit then
-                LastDisassembleData.parameters:=inttohexs(qword(offset+pshortint(@memory[1])^),8)
+
+              if processhandler.is64bit then
+                LastDisassembleData.parameterValue:=qword(offset+pshortint(@memory[1])^)
               else
-                LastDisassembleData.parameters:=inttohexs(dword(offset+pshortint(@memory[1])^),8);
+                LastDisassembleData.parameterValue:=dword(offset+pshortint(@memory[1])^);
+
+              LastDisassembleData.parameters:=inttohexs(LastDisassembleData.parameterValue,8);
+
+              LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
+              inc(LastDisassembleData.SeperatorCount);
+
             end;
 
       $ec : begin
@@ -8857,6 +9631,9 @@ begin
                 0:  begin
                       description:='Logical Compare';
                       LastDisassembleData.Opcode:='TEST';
+                      LastDisassembleData.parameterValueType:=dvtAddress;
+                      LastDisassembleData.parameterValue:=memory[last];
+
                       LastDisassembleData.parameters:=modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
                       inc(offset,last);
                     end;
@@ -8926,6 +9703,9 @@ begin
                         LastDisassembleData.Opcode:='TEST';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,1,last,16);
                         wordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtAddress;
+                        LastDisassembleData.parameterValue:=wordptr^;
+
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(wordptr^,4);
                         inc(offset,last+1);
                       end
@@ -8934,6 +9714,8 @@ begin
                         LastDisassembleData.Opcode:='TEST';
                         LastDisassembleData.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
+                        LastDisassembleData.parameterValueType:=dvtAddress;
+                        LastDisassembleData.parameterValue:=dwordptr^;
                         LastDisassembleData.parameters:=LastDisassembleData.parameters+inttohexs(dwordptr^,4);
                         inc(offset,last+3);
                       end;
@@ -9206,17 +9988,19 @@ begin
     if riprelative then
     begin
       //add the current offset to the code between []
-      i:=pos('[',result);
-      j:=PosEx(']',result,i);
-      tempresult:=copy(result,i+1,j-i-1);
+      inc(LastDisassembleData.modrmValue,offset);
+
+      i:=pos('[',LastDisassembleData.parameters);
+      j:=PosEx(']',LastDisassembleData.parameters,i);
+      tempresult:=copy(LastDisassembleData.parameters,i+1,j-i-1);
 
       tempaddress:=offset+integer(strtoint('$'+tempresult));
 
-      tempresult:=copy(result,1,i);
+      tempresult:=copy(LastDisassembleData.parameters,1,i);
       tempresult:=tempresult+inttohexs(tempaddress,8);
-      result:=tempresult+copy(result,j,length(result));
+      LastDisassembleData.parameters:=tempresult+copy(LastDisassembleData.parameters,j,length(LastDisassembleData.parameters));
 
-      inc(LastDisassembleData.modrmValue,offset);
+
 
     end;
 
