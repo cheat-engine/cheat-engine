@@ -1086,7 +1086,7 @@ begin
   end;
   if processhandler.is64Bit then
   begin
-    if result<>'' then result[1]:='R'; //quick replace
+    if result<>'' then result[1]:='r'; //quick replace
 
     result:=colorreg+result+endcolor;
   end;
@@ -1112,7 +1112,7 @@ begin
 
   if processhandler.is64Bit then
   begin
-    if indexstring<>'' then indexstring[1]:='R'; //quick replace
+    if indexstring<>'' then indexstring[1]:='r'; //quick replace
     indexstring:=colorreg+indexstring+endcolor;
   end;
 
