@@ -29,11 +29,13 @@ type TDisassemblerLine=class
     bytestring: string;
     opcodestring: string;
     specialstring: string;
+    parameterstring: string;
     referencedbylineheight: integer;
     boldheight: integer;
     textheight: integer;
     function truncatestring(s: string; maxwidth: integer): string;
     function buildReferencedByString: string;
+    procedure DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
   public
     property address: ptrUint read faddress;
     property instructionCenter: integer read fInstructionCenter;
@@ -142,7 +144,7 @@ end;
 
 procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
 var isbp: boolean;
-    baseofsymbol: dword;
+    baseofsymbol: ptrUint;
     symbolname: string;
     refferencedby: string;
     refferencedbylinecount: integer;
@@ -300,8 +302,17 @@ begin
 
   end;
 
+  addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
+  bytestring:=visibleDisassembler.getLastBytestring;
+  opcodestring:=visibleDisassembler.LastDisassembleData.opcode;
 
-  splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring, @MemoryBrowser.lastdebugcontext);
+  parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
+  specialstring:='';
+
+
+
+
+ // splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring, @MemoryBrowser.lastdebugcontext);
   if symhandler.showmodules then
     addressString:=symbolname
   else
@@ -330,7 +341,22 @@ begin
 
   fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
   fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+
+  fcanvas.font.Style:=fcanvas.font.Style+[fsBold];
   fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
+  fcanvas.font.Style:=fcanvas.font.Style-[fsBold];
+
+  i:=fcanvas.TextWidth(popcodestring);
+  j:=fcanvas.textwidth('XXXXXX');
+
+  if i>j then
+    i:=fHeaders.Items[2].Left+1+i+fcanvas.textwidth(' ')
+  else
+    i:=fHeaders.Items[2].Left+1+j;
+
+
+  DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
+
   fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, pspecialstring);
 
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
@@ -344,6 +370,60 @@ begin
     fcanvas.Font.Color:=clWindowText;
     fcanvas.Refresh;
   end;
+end;
+
+procedure TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
+var defaultfontcolor: TColor;
+    i: integer;
+    start: integer;
+
+    s: string;
+begin
+  defaultfontcolor:=fcanvas.Font.color;
+  start:=1;
+  s:='';
+  i:=1;
+  while i<length(text) do
+  begin
+    case text[i] of
+      '{':
+      begin
+        s:=copy(text, start,i-start);
+        fcanvas.TextRect(ARect,x,y,s);
+        x:=x+fcanvas.TextWidth(s);
+
+        inc(i);
+        while i<length(text) do
+        begin
+          case text[i] of
+            'N': fcanvas.Font.color:=defaultfontcolor;
+            'H': fcanvas.Font.color:=clBlue;
+            'R': fcanvas.font.color:=clRed;
+            'S': fcanvas.font.color:=clYellow;
+            '}':
+            begin
+              inc(i);
+              break;
+            end;
+
+            else raise exception.create('Invalid disassembly');
+          end;
+          inc(i);
+        end;
+
+        start:=i;
+      end;
+
+      else inc(i);
+    end;
+
+
+  end;
+
+  s:=copy(text, start,i-start);
+  fcanvas.TextRect(ARect,x,y,s);
+
+  fcanvas.Font.color:=defaultfontcolor;
 end;
 
 procedure TDisassemblerLine.handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
