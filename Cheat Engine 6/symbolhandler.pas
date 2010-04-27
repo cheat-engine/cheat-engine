@@ -1038,7 +1038,8 @@ var mi: tmoduleinfo;
 begin
   hasPointer:=false;
   haserror:=false;
-  
+
+
 {$ifdef autoassemblerdll}
   processhandle:=symbolhandler.processhandle;
 {$else}

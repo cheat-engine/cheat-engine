@@ -35,7 +35,7 @@ begin
     if processhandler.is64bit then
       injectdll(CheatEngineDir+'speedhack-x86_64.dll','')
     else
-      injectdll(CheatEngineDir+'speedhack.dll','');
+      injectdll(CheatEngineDir+'speedhack-x86.dll','');
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded;
   except
@@ -60,9 +60,6 @@ begin
 
     try
       setlength(AllocArray,0);
-
-
-
 
       autoassemble(script,false,true,false,false,AllocArray);
 
@@ -98,9 +95,6 @@ begin
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter')
     else
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
-
-
-    showmessage(script.Text);
 
     try
       autoassemble(script,false);

@@ -1156,7 +1156,7 @@ end;
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
 var memory: TMemory;
     actualread: dword;
-    startoffset: dword;
+    startoffset: ptrUint;
     tempresult: string;
     tempst: string;
     wordptr: ^word;
@@ -9624,7 +9624,8 @@ begin
 
       $ec : begin
               description:='input from port';
-              lastdisassembledata.opcode:='in al,dx';
+              lastdisassembledata.opcode:='in';
+              lastdisassembledata.parameters:='al,dx';
             end;
 
       $ed : begin
@@ -10056,7 +10057,7 @@ begin
     end;  }
 
     result:=result+' - ';
-    result:=result+LastDisassembleData.prefix+' - '+LastDisassembleData.opcode;
+    result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
     result:=result+' ';
     result:=result+LastDisassembleData.parameters;
 

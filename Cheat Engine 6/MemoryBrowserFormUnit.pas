@@ -1061,6 +1061,8 @@ var assemblercode,desc: string;
     res: word;
     i: integer;
     canceled: boolean;
+
+    localdisassembler: TDisassembler;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -1075,16 +1077,19 @@ begin
 
 
   originalsize:=disassemblerview.SelectedAddress;
-  assemblercode:=disassemble(originalsize,desc);
-  dec(originalsize,disassemblerview.SelectedAddress);
 
-  if x<>'' then assemblercode:=x
-  else
-  begin
-    assemblercode:=copy(assemblercode,pos('-',assemblercode)+2,length(assemblercode));
-    assemblercode:=copy(assemblercode,pos('-',assemblercode)+2,length(assemblercode));
+  localdisassembler:=TDisassembler.Create;
+  try
+    localdisassembler.disassemble(originalsize,desc);
+    assemblercode:=localdisassembler.LastDisassembleData.prefix+localdisassembler.LastDisassembleData.opcode+' '+localdisassembler.LastDisassembleData.parameters;
+  finally
+    localdisassembler.free;
   end;
 
+  dec(originalsize,disassemblerview.SelectedAddress);
+
+
+  if x<>'' then assemblercode:=x;
 
 
 //  copy

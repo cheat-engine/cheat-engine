@@ -304,7 +304,7 @@ begin
 
   addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
   bytestring:=visibleDisassembler.getLastBytestring;
-  opcodestring:=visibleDisassembler.LastDisassembleData.opcode;
+  opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
 
   parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
   specialstring:='';
@@ -346,7 +346,7 @@ begin
   fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
   fcanvas.font.Style:=fcanvas.font.Style-[fsBold];
 
-  i:=fcanvas.TextWidth(popcodestring);
+  i:=fcanvas.TextWidth(popcodestring+'  ');
   j:=fcanvas.textwidth('XXXXXX');
 
   if i>j then
