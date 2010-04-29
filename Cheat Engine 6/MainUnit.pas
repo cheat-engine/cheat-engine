@@ -2154,17 +2154,6 @@ begin
 {$endif}
 
 
-  setlength(x, 7);
-  if loadformposition(self, x) then
-  begin
-    addresslist.headers.Sections[0].Width := x[0];
-    addresslist.headers.Sections[1].Width := x[1];
-    addresslist.headers.Sections[2].Width := x[2];
-    addresslist.headers.Sections[3].Width := x[3];
-    addresslist.headers.Sections[4].Width := x[4];
-    panel5.Height := x[5];
-    foundlist3.columns[0].Width := x[6];
-  end;
 
   oldhandle := mainform.handle;
 
@@ -2183,6 +2172,20 @@ begin
 
 
   symhandler.loadCommonModuleList;
+
+  setlength(x, 7);
+  if loadformposition(self, x) then
+  begin
+    addresslist.headers.Sections[0].Width := x[0];
+    addresslist.headers.Sections[1].Width := x[1];
+    addresslist.headers.Sections[2].Width := x[2];
+    addresslist.headers.Sections[3].Width := x[3];
+    addresslist.headers.Sections[4].Width := x[4];
+    panel5.Height := x[5];
+    foundlist3.columns[0].Width := x[6];
+  end;
+
+
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
