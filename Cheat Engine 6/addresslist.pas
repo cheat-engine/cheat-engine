@@ -143,13 +143,17 @@ end;
 procedure TAddresslist.ActivateSelected;
 var i: integer;
 begin
-  for i:=0 to count-1 do memrecitems[i].active:=true;
+  for i:=0 to count-1 do
+    if memrecitems[i].isSelected then
+      memrecitems[i].active:=true;
 end;
 
 procedure TAddresslist.DeactivateSelected;
 var i: integer;
 begin
-  for i:=0 to count-1 do memrecitems[i].active:=false;
+  for i:=0 to count-1 do
+    if memrecitems[i].isSelected then
+      memrecitems[i].active:=false;
 end;
 
 
@@ -886,16 +890,20 @@ begin
     end;
 
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
-    sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description);
 
-    if memrec.isGroupHeader=false then
+
+    if (memrec.isGroupHeader=false) and (memrec.VarType<>vtCustom) then //if it's not a groupheader of auto assemble script then show the extra data
     begin
-      sender.Canvas.TextOut(header.Sections[2].Left, textrect.Top, memrec.addressString);
-      sender.Canvas.TextOut(header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
-      sender.Canvas.TextOut(header.sections[4].left, textrect.top, memrec.GetValue);
+
+      //limit how far the texts go depending on the sections
+      sender.Canvas.TextRect(rect(descriptionstart, textrect.Top, header.Sections[1].right, textrect.bottom), descriptionstart, textrect.Top, memrec.description);
+      sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
+      sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
+      sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
     end
     else
     begin
+      sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description); //no limit on how far
       //nothing else
     end;
 

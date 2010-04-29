@@ -6,7 +6,8 @@ interface
 
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
-  lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math;
+  lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
+  Clipbrd,dialogs;
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
@@ -51,6 +52,7 @@ type
     isEditing: boolean;
     editingCursorPos: integer;
     editingType: THexRegion;
+    selectionType: THexRegion;
     fDisplayType: TDisplayType; //determines what to display. If anything other than byte the editing/selecting mode will be disabled
 
 
@@ -63,6 +65,7 @@ type
     procedure hexviewResize(sender: TObject);
     procedure setAddress(a: ptrUint);
     procedure render;
+    procedure setByte(a: ptrUint;value: byte);
     function getByte(a: ptrUint; var unreadable: boolean): byte; overload;
     function getByte(a: ptrUint): string; overload;
     function getWord(a: ptrUint): string;
@@ -86,10 +89,14 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
   public
+    procedure CopySelectionToClipboard;
+    procedure PasteFromClipboard;
+
     procedure update;
     procedure changeSelected;
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
+
     property address: ptrUint read fAddress write setAddress;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     constructor create(AOwner: TComponent); override;
@@ -405,6 +412,146 @@ begin
   end;
 end;
 
+procedure THexView.CopySelectionToClipboard;
+var fromAddress, toAddress: ptrUint;
+s: string;
+b: Byte;
+unreadable: boolean;
+begin
+  s:='';
+
+  if isEditing or hasSelection then
+  begin
+    fromAddress:=MinX(selected,selected2);
+    toAddress:=MaxX(selected,selected2);
+
+    if selectiontype=hrChar then
+    begin
+      while fromaddress<=toAddress do
+      begin
+        b:=getByte(fromAddress,unreadable);
+        if (unreadable) or (b<32) then
+        begin
+          //invalid characters used, use hex instead
+          selectiontype:=hrByte;
+          CopySelectionToClipboard;
+          exit;
+        end
+        else
+          s:=s+chr(b);
+
+
+        inc(fromAddress);
+      end;
+
+    end
+    else
+    begin
+      //byte array
+      while fromaddress<=toAddress do
+      begin
+        b:=getByte(fromAddress,unreadable);
+        if not unreadable then
+        begin
+          s:=s+inttohex(b,2)+' ';
+        end
+        else
+          s:=s+'?? ';
+
+
+        inc(fromAddress);
+      end;
+
+      if s<>'' then
+        s:=copy(s,1,length(s)-1);
+    end;
+
+    Clipboard.AsText:=s;
+  end;
+end;
+
+procedure THexView.PasteFromClipboard;
+var s: string;
+b: TBytes;
+i: integer;
+
+validbytes: integer;
+fromAddress, toAddress: ptrUint;
+
+
+begin
+  if isEditing or hasSelection then
+  begin
+    s:=clipboard.AsText;
+    fromAddress:=MinX(selected,selected2);
+    toAddress:=MaxX(selected,selected2);
+
+
+    try
+      ConvertStringToBytes(s,true, b);
+      validbytes:=0;
+      for i:=0 to length(b)-1 do
+        if b[i]<>-1 then inc(validbytes);
+
+      if validbytes>trunc(length(b) / 2) then
+      begin
+        //valid enough AOB string
+        if selectionType=hrChar then
+          if MessageDlg('This looks like an array of byte. Do you want to input it as a hexadecimal string?',mtConfirmation,[mbyes,mbno],0)=mryes then
+            selectionType:=hrByte;
+      end
+      else
+      begin
+        //invalid AOB string
+        if selectionType=hrByte then
+          if MessageDlg('This looks like a normal string. Do you want to input it as a string ?',mtConfirmation,[mbyes,mbno],0)=mryes then
+            selectiontype:=hrChar;
+
+      end;
+    except
+      selectionType:=hrChar;
+    end;
+
+
+
+
+    if selectionType=hrChar then
+    begin
+      if (isEditing) or ((toAddress-FromAddress)>length(s)) then
+        ToAddress:=FromAddress+length(s);
+
+      i:=1;
+      while fromaddress<=ToAddress do
+      begin
+        setbyte(fromaddress,ord(s[i]));
+        inc(i);
+        inc(fromaddress);
+
+      end;
+    end
+    else
+    begin
+      if (isEditing) or ((toAddress-FromAddress)>length(b)) then
+        ToAddress:=FromAddress+length(b);
+
+      i:=0;
+      while fromaddress<=ToAddress do
+      begin
+        if b[i]<>-1 then
+          setbyte(fromaddress,b[i]);
+
+        inc(i);
+        inc(fromaddress);
+      end;
+
+    end;
+    update;
+
+  end;
+
+
+end;
+
 procedure THexView.ChangeSelected;
 var unreadable: boolean;
 begin
@@ -444,9 +591,13 @@ begin
       //selected2 is now properly updated
       isSelecting:=false;
 
+      a:=getAddressFromPosition(x,y,hr);
+      if hr<>hrInvalid then
+        selectionType:=hr;
+
+
       if selected=selected2 then
       begin
-        a:=getAddressFromPosition(x,y,hr);
         if (a<>selected) or (hr=hrInvalid) then exit; //out of bounds exit
 
         isEditing:=true;
@@ -455,6 +606,7 @@ begin
 
 
         editingType:=hr;
+        selectionType:=hr;
       end;
     end;
   end;
@@ -471,7 +623,10 @@ begin
     address:=getAddressFromPosition(x,y,hr);
 
     if hr<>hrInvalid then
+    begin
       selected2:=address;
+      selectionType:=hr;
+    end;
 
     update;
   end;
@@ -502,8 +657,10 @@ begin
 
     if hr<>hrInvalid then
     begin
+
       hasSelection:=fDisplayType=dtByte;
       isSelecting:=fDisplayType=dtByte; //only start selecting if the type is byte
+      selectionType:=hr;
 
       if isEditing then
       begin
@@ -660,6 +817,12 @@ begin
   page:=((fAddress and $fff)+i) shr 12;
   result:=(page<length(pageinfo)) and (pageinfo[page].readable) and (pageinfo[page].inModule);
 
+end;
+
+procedure THexView.setByte(a: ptrUint;value: byte);
+var br: dword;
+begin
+  WriteProcessMemory(processhandle, pointer(a),@value,1,br);
 end;
 
 function THexView.getByte(a: ptrUint; var unreadable: boolean): byte; overload;

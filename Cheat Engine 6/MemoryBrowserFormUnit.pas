@@ -372,10 +372,7 @@ type
 
     lastdebugcontext: _Context;
 
-    rows8: integer;
     disassembler: boolean;
-    selecting,selectionmade: boolean;
-    selected,selected2: ptrUint;
     cancelsearch: boolean;
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
@@ -1905,74 +1902,13 @@ begin
 end;
 
 procedure TMemoryBrowser.Cut1Click(Sender: TObject);
-var i: ptrUint;
-    start,stop: ptrUint;
-    x: byte;
-    br: dword;
-    s: string;
-
-    cl: tclipboard;
 begin
-  if selected>selected2 then
-  begin
-    start:=selected2;
-    stop:=selected;
-  end
-  else
-  begin
-    start:=selected;
-    stop:=selected2;
-  end;
-
-  s:='';
-  for i:=start to stop do
-  begin
-    if readprocessmemory(processhandle,pointer(i),@x,1,br) then
-    begin
-      s:=s+inttohex(x,2)+' ';
-    end
-    else s:=s+'?? ';
-  end;
-
-  if s<>'' then
-    s:=copy(s,1,length(s)-1);
-
-  cl:=tclipboard.Create;
-  cl.AsText:=s;
-  cl.Free;
+  hexview.CopySelectionToClipboard;
 end;
 
 procedure TMemoryBrowser.Pastefromclipboard1Click(Sender: TObject);
-var cl: tclipboard;
-    s: string;
-    i: integer;
-    bw: dword;
-    x: ptrUint;
-    b: tbytes;
 begin
-  cl:=tclipboard.Create;
-  s:=cl.AsText;
-  cl.free;
-
-
-  setlength(b,0);
-  try
-    ConvertStringToBytes(s,true,b);
-    x:=selected;
-    for i:=0 to length(b)-1 do
-    begin
-      if b[i]<>-1 then
-        writeprocessmemory(processhandle,pointer(x),@b[i],1,bw);
-
-      inc(x);
-    end;
-  except
-
-  end;
-
-  setlength(b,0);
-
-  hexview.update;
+  hexview.PasteFromClipboard;
 end;
 
 procedure TMemoryBrowser.Setsymbolsearchpath1Click(Sender: TObject);
