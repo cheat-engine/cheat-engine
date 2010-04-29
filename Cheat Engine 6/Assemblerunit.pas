@@ -6,7 +6,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1075; //I wish there was a easier way than to handcount
+const opcodecount=1077; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -818,6 +818,11 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVNTPS';opcode1:eo_reg;paramtype1:par_m128;paramtype2:par_xmm;bytes:2;bt1:$0f;bt2:$2b),
 
   (mnemonic:'MOVNTQ';opcode1:eo_reg;paramtype1:par_m64;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$e7),
+
+
+  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$6e),
+  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_rm32;bytes:3;bt1:$66;bt2:$0f;bt3:$6e),
+
 
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$6f),
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm_m64;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$7f),
@@ -1937,6 +1942,33 @@ begin
     if token='SIL' then result:=ttRegister8BitWithPrefix else
     if token='DIL' then result:=ttRegister8BitWithPrefix else
 
+
+    if token='R8L' then result:=ttRegister8Bit else
+    if token='R9L' then result:=ttRegister8Bit else
+    if token='R10L' then result:=ttRegister8Bit else
+    if token='R11L' then result:=ttRegister8Bit else
+    if token='R12L' then result:=ttRegister8Bit else
+    if token='R13L' then result:=ttRegister8Bit else
+    if token='R14L' then result:=ttRegister8Bit else
+    if token='R15L' then result:=ttRegister8Bit else
+
+    if token='R8W' then result:=ttRegister16Bit else
+    if token='R9W' then result:=ttRegister16Bit else
+    if token='R10W' then result:=ttRegister16Bit else
+    if token='R11W' then result:=ttRegister16Bit else
+    if token='R12W' then result:=ttRegister16Bit else
+    if token='R13W' then result:=ttRegister16Bit else
+    if token='R14W' then result:=ttRegister16Bit else
+    if token='R15W' then result:=ttRegister16Bit else
+
+    if token='R8D' then result:=ttRegister32Bit else
+    if token='R9D' then result:=ttRegister32Bit else
+    if token='R10D' then result:=ttRegister32Bit else
+    if token='R11D' then result:=ttRegister32Bit else
+    if token='R12D' then result:=ttRegister32Bit else
+    if token='R13D' then result:=ttRegister32Bit else
+    if token='R14D' then result:=ttRegister32Bit else
+    if token='R15D' then result:=ttRegister32Bit else
 
     if token='XMM8' then result:=ttRegisterXMM else
     if token='XMM9' then result:=ttRegisterXMM else

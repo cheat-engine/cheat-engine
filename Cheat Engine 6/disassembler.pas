@@ -204,10 +204,19 @@ begin
   1: result:='cl';
   2: result:='dl';
   3: result:='bl';
-  4: result:='ah';
-  5: result:='ch';
-  6: result:='dh';
-  7: result:='bh';
+
+  4: if rexprefix=0 then result:='ah' else result:='spl';
+  5: if rexprefix=0 then result:='ch' else result:='bpl';
+  6: if rexprefix=0 then result:='dh' else result:='sil';
+  7: if rexprefix=0 then result:='bh' else result:='dil';
+  8: result:='r8l';
+  9: result:='r9l';
+  10: result:='r10l';
+  11: result:='r11l';
+  12: result:='r12l';
+  13: result:='r13l';
+  14: result:='r14l';
+  15: result:='r15l';
   end;
 
   result:=colorreg+result+endcolor;
@@ -225,6 +234,14 @@ begin
   5: result:='bp';
   6: result:='si';
   7: result:='di';
+  8: result:='r8w';
+  9: result:='r9w';
+  10: result:='r10w';
+  11: result:='r11w';
+  12: result:='r12w';
+  13: result:='r13w';
+  14: result:='r14w';
+  15: result:='r15w';
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -232,15 +249,25 @@ end;
 
 function TDisassembler.r8(bt:byte): string;
 begin
+
   case getreg(bt) of
   0: result:='al';
   1: result:='cl';
   2: result:='dl';
   3: result:='bl';
-  4: result:='ah';
-  5: result:='ch';
-  6: result:='dh';
-  7: result:='bh';
+
+  4: if rexprefix=0 then result:='ah' else result:='spl';
+  5: if rexprefix=0 then result:='ch' else result:='bpl';
+  6: if rexprefix=0 then result:='dh' else result:='sil';
+  7: if rexprefix=0 then result:='bh' else result:='dil';
+  8: result:='r8l';
+  9: result:='r9l';
+  10: result:='r10l';
+  11: result:='r11l';
+  12: result:='r12l';
+  13: result:='r13l';
+  14: result:='r14l';
+  15: result:='r15l';
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -256,6 +283,14 @@ begin
   5: result:='bp';
   6: result:='si';
   7: result:='di';
+  8: result:='r8w';
+  9: result:='r9w';
+  10: result:='r10w';
+  11: result:='r11w';
+  12: result:='r12w';
+  13: result:='r13w';
+  14: result:='r14w';
+  15: result:='r15w';
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -272,14 +307,14 @@ begin
     5: if rex_w then result:='rbp' else result:='ebp';
     6: if rex_w then result:='rsi' else result:='esi';
     7: if rex_w then result:='rdi' else result:='edi';
-    8: if rex_w then result:='r8' else result:='r8l';
-    9: if rex_w then result:='r9' else result:='r9l';
-   10: if rex_w then result:='r10' else result:='r10l';
-   11: if rex_w then result:='r11' else result:='r11l';
-   12: if rex_w then result:='r12' else result:='r12l';
-   13: if rex_w then result:='r13' else result:='r13l';
-   14: if rex_w then result:='r14' else result:='r14l';
-   15: if rex_w then result:='r15' else result:='r15l';
+    8: if rex_w then result:='r8' else result:='r8d';
+    9: if rex_w then result:='r9' else result:='r9d';
+   10: if rex_w then result:='r10' else result:='r10d';
+   11: if rex_w then result:='r11' else result:='r11d';
+   12: if rex_w then result:='r12' else result:='r12d';
+   13: if rex_w then result:='r13' else result:='r13d';
+   14: if rex_w then result:='r14' else result:='r14d';
+   15: if rex_w then result:='r15' else result:='r15d';
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -1088,8 +1123,10 @@ begin
   begin
     if result<>'' then result[1]:='r'; //quick replace
 
-    result:=colorreg+result+endcolor;
+
   end;
+  result:=colorreg+result+endcolor;
+
 
   case index of
     0: indexstring:='eax';
@@ -1113,9 +1150,9 @@ begin
   if processhandler.is64Bit then
   begin
     if indexstring<>'' then indexstring[1]:='r'; //quick replace
-    indexstring:=colorreg+indexstring+endcolor;
-  end;
 
+  end;
+  indexstring:=colorreg+indexstring+endcolor;
 
   if index<>4 then
   begin
@@ -3027,22 +3064,23 @@ begin
 
 
                 $6e : begin
-                        if $66 in prefix2 then
+                        if rex_w then
                         begin
-                          description:='move doubleword';
-                          lastdisassembledata.opcode:='movd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-
-                          inc(offset,last-1);
+                          description:='move quadword';
+                          lastdisassembledata.opcode:='movq';
                         end
                         else
                         begin
-                          description:='move 32 bits';
+                          description:='move doubleword';
                           lastdisassembledata.opcode:='movd';
-                          lastdisassembledata.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,3,last);
-
-                          inc(offset,last-1);
                         end;
+
+                        if $66 in prefix2 then
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last)
+                        else
+                          lastdisassembledata.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,0,last);
+
+                        inc(offset,last-1);
                       end;
 
                 $6f : begin
@@ -10012,7 +10050,7 @@ begin
 
     //adjust for the prefix.
     if j<>0 then
-      for i:=1 to LastDisassembleData.SeperatorCount-1 do
+      for i:=0 to LastDisassembleData.SeperatorCount-1 do
         inc(LastDisassembleData.Seperators[i],prefixsize);
 
     //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecesary readprocessmemorys associated with it
@@ -10041,36 +10079,24 @@ begin
 
     end;
 
-    result:=inttohex(LastDisassembleData.address,8)+' - '+getLastBytestring;
 
-
-{    for i:=0 to length(LastDisassembleData.Bytes)-1 do
-    begin
-      result:=result+inttohex(LastDisassembleData.Bytes[i],2);
-
-      if i<prefixsize then
-        result:=result+' '
-      else
-      for j:=0 to LastDisassembleData.SeperatorCount-1 do
-        if (LastDisassembleData.Seperators[j]=i+1) then  //followed by a seperator
-          result:=result+' ';
-    end;  }
-
-    result:=result+' - ';
-    result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
-    result:=result+' ';
-    result:=result+LastDisassembleData.parameters;
 
 
 
   end
   else
   begin
-    result:=result+'??';
+    LastDisassembleData.opcode:='??';
     inc(offset);
+
+
   end;
 
-  result:=lowercase(result);
+  result:=inttohex(LastDisassembleData.address,8)+' - '+getLastBytestring;
+  result:=result+' - ';
+  result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
+  result:=result+' ';
+  result:=result+LastDisassembleData.parameters;
 end;
 
 function TDisassembler.getLastBytestring: string;
@@ -10547,7 +10573,7 @@ var found: boolean;
 begin
   if showsymbols and (chars>=8) then
   begin
-    result:=symhandler.getNameFromAddress(address,found);
+    result:=symhandler.getNameFromAddress(address,found,chars);
     if syntaxhighlighting then
     begin
       if not found then

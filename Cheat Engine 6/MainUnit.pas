@@ -4311,7 +4311,7 @@ var l: tstringlist;
 x: pbytearray;
 begin
   asm
-    or sil,12
+    db $66,$44,$89,$b3,$92,0,0,0
 
   end;
   //ReturnNilIfGrowHeapFails:=true;

@@ -135,8 +135,8 @@ type
     function inModule(address: ptrUint): BOOLEAN; //returns true if the given address is part of a module
     function inSystemModule(address: ptrUint): BOOLEAN;
     function getNameFromAddress(address:ptrUint):string; overload;
-    function getNameFromAddress(address:ptrUint; var found: boolean):string; overload;
-    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil):string; overload;
+    function getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string; overload;
+    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string; overload;
 
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
@@ -870,7 +870,7 @@ begin
 end;
 
 
-function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil):string;
+function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;
 var symbol :PSYMBOL_INFO;
     offset: qword;
     s: string;
@@ -964,13 +964,13 @@ begin
     end;
   end;
 
-  result:=inttohex(address,8);  //default
+  result:=inttohex(address,hexcharsize);  //default
 
 end;
 
-function TSymhandler.getNameFromAddress(address:ptrUint; var found: boolean):string;
+function TSymhandler.getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string;
 begin
-  result:=getNameFromAddress(address,self.showsymbols,self.showmodules,nil,@found);
+  result:=getNameFromAddress(address,self.showsymbols,self.showmodules,nil,@found,hexcharsize);
 end;
 
 function TSymhandler.getNameFromAddress(address:ptrUint):string;

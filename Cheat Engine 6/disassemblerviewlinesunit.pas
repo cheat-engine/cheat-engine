@@ -163,6 +163,7 @@ var isbp: boolean;
 begin
   top:=linestart;
   faddress:=address;
+  isselected:=selected;
 
   fisJump:=cefuncproc.isjumporcall(faddress, fJumpsTo);
 
@@ -312,6 +313,7 @@ begin
 
 
 
+
  // splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring, @MemoryBrowser.lastdebugcontext);
   if symhandler.showmodules then
     addressString:=symbolname
@@ -397,9 +399,9 @@ begin
         begin
           case text[i] of
             'N': fcanvas.Font.color:=defaultfontcolor;
-            'H': fcanvas.Font.color:=clBlue;
+            'H': if isselected then fcanvas.Font.color:=clYellow else fcanvas.Font.color:=clBlue;
             'R': fcanvas.font.color:=clRed;
-            'S': fcanvas.font.color:=clYellow;
+            'S': if isselected then fcanvas.Font.color:=clLime else fcanvas.font.color:=clLime;
             '}':
             begin
               inc(i);
