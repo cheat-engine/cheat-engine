@@ -52,11 +52,6 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 var xx: HModule;
 begin
-  if sizeof(xx)=4 then
-    caption:='fuck'
-  else
-  caption:='ok';
-
   xx:=loadlibrary('winmm.dll');
   timeGetTime:=GetProcAddress(xx,'timeGetTime');
 end;

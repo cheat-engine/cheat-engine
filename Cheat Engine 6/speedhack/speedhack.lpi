@@ -12,12 +12,12 @@
       <MainUnit Value="0"/>
       <TargetFileExt Value=".exe"/>
       <UseAppBundle Value="False"/>
-      <ActiveEditorIndexAtStart Value="2"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
-      <ProjectVersion Value=""/>
       <Language Value=""/>
       <CharSet Value=""/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.0" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -40,29 +40,33 @@
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="18" Y="1"/>
-        <TopLine Value="1"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="18" Y="1"/>
+        <SyntaxHighlighter Value="Delphi"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
-        <SyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="speedhackmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhackmain"/>
-        <CursorPos X="23" Y="78"/>
-        <TopLine Value="62"/>
         <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="62"/>
+        <CursorPos X="23" Y="78"/>
+        <SyntaxHighlighter Value="Delphi"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
-        <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\redef.inc"/>
-        <CursorPos X="10" Y="752"/>
-        <TopLine Value="736"/>
         <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="736"/>
+        <CursorPos X="10" Y="752"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit2>
@@ -129,7 +133,7 @@
       <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="unitbin\"/>
+      <UnitOutputDirectory Value="unitbin"/>
     </SearchPaths>
     <Parsing>
       <Style Value="1"/>

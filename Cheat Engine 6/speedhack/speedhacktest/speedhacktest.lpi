@@ -8,13 +8,12 @@
       <TargetFileExt Value=".exe"/>
       <UseAppBundle Value="False"/>
       <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
-      <ProjectVersion Value=""/>
       <Language Value=""/>
       <CharSet Value=""/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.0" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -37,12 +36,13 @@
       <Unit0>
         <Filename Value="speedhacktest.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="8" Y="11"/>
-        <TopLine Value="1"/>
         <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="8" Y="11"/>
+        <SyntaxHighlighter Value="Delphi"/>
         <UsageCount Value="54"/>
         <Loaded Value="True"/>
-        <SyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -51,63 +51,70 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <CursorPos X="1" Y="20"/>
-        <TopLine Value="36"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="38"/>
+        <CursorPos X="1" Y="55"/>
+        <SyntaxHighlighter Value="Delphi"/>
         <UsageCount Value="54"/>
         <Loaded Value="True"/>
-        <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\objpas\classes\classesh.inc"/>
-        <CursorPos X="17" Y="27"/>
-        <TopLine Value="23"/>
         <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="23"/>
+        <CursorPos X="17" Y="27"/>
         <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\resh.inc"/>
-        <CursorPos X="19" Y="56"/>
         <TopLine Value="40"/>
+        <CursorPos X="19" Y="56"/>
         <UsageCount Value="12"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\func.inc"/>
-        <CursorPos X="49" Y="59"/>
         <TopLine Value="45"/>
+        <CursorPos X="49" Y="59"/>
         <UsageCount Value="12"/>
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\base.inc"/>
-        <CursorPos X="25" Y="99"/>
-        <TopLine Value="83"/>
         <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="83"/>
+        <CursorPos X="25" Y="99"/>
         <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win64\classes.pp"/>
         <UnitName Value="Classes"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
         <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\sysosh.inc"/>
-        <CursorPos X="3" Y="19"/>
-        <TopLine Value="47"/>
         <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="47"/>
+        <CursorPos X="3" Y="19"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\redef.inc"/>
-        <CursorPos X="10" Y="752"/>
-        <TopLine Value="1"/>
         <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="10" Y="752"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit8>
@@ -174,7 +181,7 @@
       <Filename Value="..\..\bin\speedhacktest-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
-      <UnitOutputDirectory Value="unitbin\"/>
+      <UnitOutputDirectory Value="unitbin"/>
     </SearchPaths>
     <Parsing>
       <Style Value="1"/>
