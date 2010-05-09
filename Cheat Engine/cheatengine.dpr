@@ -6,8 +6,9 @@ program CheatEngine;
 library CheatEngine;
 {$endif}
 
+{$R 'manifest.res'}
 {$R 'trainer.res' 'trainer.rc'}
-{$R manifest.res} 
+
 
 uses
   Forms,
@@ -159,7 +160,8 @@ uses
   frmReferencedStringsUnit in 'frmReferencedStringsUnit.pas' {frmReferencedStrings},
   ManualModuleLoader in 'ManualModuleLoader.pas',
   windows7taskbar in 'windows7taskbar.pas',
-  bigmemallochandler in 'bigmemallochandler.pas';
+  bigmemallochandler in 'bigmemallochandler.pas',
+  VistaAltFixUnit in 'VistaAltFixUnit.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

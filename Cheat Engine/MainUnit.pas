@@ -11,7 +11,8 @@ uses
   ActnList,hypermode,autoassembler,injectedpointerscanunit,plugin,savefirstscan,
   foundlisthelper,disassembler, underc, psapi, peinfounit, PEInfoFunctions,
   memscan, formsextra, speedhack2, menuitemExtra, AccessCheck, KIcon, frmCScriptUnit,
-  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist, ManualModuleLoader, windows7taskbar;
+  XMLDoc, XMLIntf,  simpleaobscanner, pointervaluelist, ManualModuleLoader,
+  windows7taskbar, VistaAltFixUnit;
 
   //the following are just for compatibility
 
@@ -4342,6 +4343,8 @@ var pid: dword;
 
     errormode: dword;
 begin
+  TVistaAltFix.Create(Self);
+
   errormode:=SetErrorMode(0);
   setErrorMode(errormode or SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
 
