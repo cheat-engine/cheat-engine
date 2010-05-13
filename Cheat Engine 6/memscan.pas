@@ -78,6 +78,7 @@ type
     {$ifndef standalonetrainerwithassemblerandaobscanner} 
     firstscanhandler: TFirstscanhandler;
     {$endif}
+    scandir: string;
 
     customprologue: procedure; stdcall; //customscan call before scan starts
     customepilogue: procedure; stdcall; //customscan call after scan ends
@@ -230,8 +231,8 @@ type
 
   public
     OwningScanController: TScanController;
-    Addressfile: TFilestream; //CheatEngineDir+'Addresses'+ThreadID.TMP'
-    MemoryFile: TFileStream;  //CheatEngineDir+'Memory'+ThreadID.TMP'
+    Addressfile: TFilestream; //tempscandir+'Addresses'+ThreadID.TMP'
+    MemoryFile: TFileStream;  //tempscandir+'Memory'+ThreadID.TMP'
     Addressfilename: string;
     MemoryFilename: string;
 
@@ -289,7 +290,7 @@ type
     scannernr: integer;
 
     procedure execute; override;
-    constructor create(suspended: boolean);
+    constructor create(suspended: boolean; scandir: string);
     destructor destroy; override;
   end;
 
@@ -397,8 +398,8 @@ type
     //array stuff:
     arrayLength:   integer;
 
-
     FLastScanType: TScanType;
+    fscanresultfolder: string; //the location where all the scanfiles will be stored
   public
     onlyOne: boolean;
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
@@ -418,6 +419,7 @@ type
     destructor destroy; override;
 
     property LastScanType: TScanType read FLastScanType;
+    property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
   end;
 
 
@@ -2381,8 +2383,9 @@ begin
   oldMemoryFile:=nil;
   oldmemory:=nil;
   try
-    oldAddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
-    oldMemoryFile:=TFileStream.Create(CheatEngineDir+'Memory.TMP',fmOpenRead or fmShareDenyNone);
+
+    oldAddressFile:=TFileStream.Create(scandir+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
+    oldMemoryFile:=TFileStream.Create(scandir+'Memory.TMP',fmOpenRead or fmShareDenyNone);
 
     //set the current index to startentry
     stopindex:=stopentry-startentry;  //going from 0 to stopindex
@@ -2738,13 +2741,13 @@ begin
   if AddressFile<>nil then //can be made nil by the scancontroller
   begin
     Addressfile.free;
-    DeleteFile(CheatEngineDir+'Addresses-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'Addresses-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if MemoryFile<>nil then
   begin
     MemoryFile.free;
-    DeleteFile(CheatEngineDir+'Memory-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'Memory-'+inttostr(ThreadID)+'.TMP');
   end;
 
   if scanwriter<>nil then
@@ -2765,11 +2768,14 @@ begin
   inherited destroy;
 end;
 
-constructor TScanner.create(suspended: boolean);
+constructor TScanner.create(suspended: boolean; scandir: string);
 begin
   inherited create(true); //do create the thread, I need the threadid
-  AddressFilename:=CheatEngineDir+'Addresses-'+inttostr(ThreadID)+'.TMP';
-  MemoryFilename:=CheatEngineDir+'Memory-'+inttostr(ThreadID)+'.TMP';
+
+  self.scandir:=scandir;
+
+  AddressFilename:=scandir+'Addresses-'+inttostr(ThreadID)+'.TMP';
+  MemoryFilename:=scandir+'Memory-'+inttostr(ThreadID)+'.TMP';
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
@@ -2922,7 +2928,7 @@ begin
 
   
   //read the results and split up
-  AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
+  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
   try
     if variableType in [vtbinary,vtall] then //it uses a specific TBitAddress instead of a dword
       totalAddresses:=(addressfile.size-7) div sizeof(TBitAddress)
@@ -2945,7 +2951,7 @@ begin
         currententry:=0;
         for i:=0 to threadcount-1 do
         begin
-          scanners[i]:=tscanner.Create(true);
+          scanners[i]:=tscanner.Create(true,OwningMemScan.ScanresultFolder);
           scanners[i].scannernr:=i;
           scanners[i].OwningScanController:=self;
 
@@ -3096,7 +3102,7 @@ begin
 
     for i:=0 to threadcount-1 do
     begin
-      scanners[i]:=tscanner.Create(true);
+      scanners[i]:=tscanner.Create(true, OwningMemScan.ScanresultFolder);
       scanners[i].scannernr:=i;
       scanners[i].OwningScanController:=self;
 
@@ -3261,7 +3267,7 @@ var AddressFile: TFilestream;
     datatype: string[6];
 begin
   //open the address file and determine if it's a region scan or result scan
-  AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead or fmSharedenynone);
+  AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmSharedenynone);
   try
     Addressfile.ReadBuffer(datatype,sizeof(datatype));
   finally
@@ -3448,7 +3454,7 @@ begin
     for i:=0 to threadcount-1 do
     begin
       OutputDebugString(format('Creating scanner %d',[i]));
-      scanners[i]:=tscanner.Create(true);
+      scanners[i]:=tscanner.Create(true, OwningMemScan.ScanresultFolder);
       scanners[i].scannernr:=i;
       scanners[i].OwningScanController:=self;
 
@@ -3725,17 +3731,17 @@ begin
         freeandnil(scanners[0].Memoryfile);
 
         //addresses
-        deletefile(CheatEngineDir+'Addresses.UNDO');
-        renamefile(CheatEngineDir+'Addresses.TMP',CheatEngineDir+'Addresses.UNDO');
-        renamefile(scanners[0].Addressfilename, CheatEngineDir+'Addresses.TMP');
+        deletefile(OwningMemScan.ScanresultFolder+'Addresses.UNDO');
+        renamefile(OwningMemScan.ScanresultFolder+'Addresses.TMP',OwningMemScan.ScanresultFolder+'Addresses.UNDO');
+        renamefile(scanners[0].Addressfilename, OwningMemScan.ScanresultFolder+'Addresses.TMP');
 
         //memory
-        deletefile(CheatEngineDir+'Memory.UNDO');
-        renamefile(CheatEngineDir+'Memory.TMP',CheatEngineDir+'Memory.UNDO');
-        renamefile(scanners[0].Memoryfilename, CheatEngineDir+'Memory.TMP');
+        deletefile(OwningMemScan.ScanresultFolder+'Memory.UNDO');
+        renamefile(OwningMemScan.ScanresultFolder+'Memory.TMP',OwningMemScan.ScanresultFolder+'Memory.UNDO');
+        renamefile(scanners[0].Memoryfilename, OwningMemScan.ScanresultFolder+'Memory.TMP');
         try
-          AddressFile:=TFileStream.Create(CheatEngineDir+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
-          MemoryFile:=TFileStream.Create(CheatEngineDir+'Memory.TMP',fmOpenWrite or fmsharedenynone);
+          AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
+          MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Memory.TMP',fmOpenWrite or fmsharedenynone);
         except
           outputdebugstring('Scancontroller: Error when while loading result');
           haserror:=true;
@@ -3903,6 +3909,8 @@ begin
       setlength(scanController.scanners,0);
       try
         TerminateThread(scancontroller.Handle,$dead);
+        scanController.isDoneEvent.SetEvent;
+
         freeandnil(scancontroller);
       except
 
@@ -3911,7 +3919,7 @@ begin
       if notifywindow<>0 then
         PostMessage(notifywindow, notifymessage,0,0);
 
-      scanController.isDoneEvent.SetEvent;
+
     end;
   end
   else
@@ -4131,9 +4139,20 @@ begin
 end;
 
 constructor TMemScan.create(progressbar: TProgressbar);
+var guid: TGUID;
 begin
   self.progressbar:=progressbar;
   customvariablesize:=1;
+
+  //setyp the location of the scan results
+  CreateGUID(guid);
+
+  fScanResultFolder:=GetTempDir+'Cheat Engine\';
+  CreateDir(fScanResultFolder);
+
+  fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+'\';
+  CreateDir(fScanResultFolder);
+
 end;
      
 destructor TMemScan.destroy;

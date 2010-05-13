@@ -28,6 +28,9 @@ firstscanhandler,
 {$endif}
 math,syncobjs, shellapi, ProcessHandlerUnit, controls;
 
+
+
+
 //memscan
 type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
@@ -319,7 +322,7 @@ end;
 
 type tspeedhackspeed=record
   speed: single;
-  sleeptime: dword;
+  sleeptime: dword; //obsolete
 end;
 
 type TKeyCombo=array [0..4] of word;

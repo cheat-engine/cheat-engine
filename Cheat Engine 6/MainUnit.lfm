@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Tag = 2
   Left = 523
-  Height = 560
+  Height = 564
   Hint = ' '
   Top = 257
   Width = 536
@@ -9,9 +9,8 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  AlphaBlendValue = 127
   Caption = 'Cheat Engine 6.0'
-  ClientHeight = 540
+  ClientHeight = 539
   ClientWidth = 536
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -41,7 +40,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 171
+    Height = 170
     Top = 352
     Width = 536
     Align = alClient
@@ -54,7 +53,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 17
-    Top = 523
+    Top = 522
     Width = 536
     Align = alBottom
     ClientHeight = 17
@@ -313,30 +312,6 @@ object MainForm: TMainForm
       ShowHint = True
       ParentShowHint = False
     end
-    object SpeedButton4: TSpeedButton
-      Left = 498
-      Height = 17
-      Top = 67
-      Width = 49
-      Anchors = [akTop, akRight]
-      Caption = 'Settings'
-      Color = clBtnFace
-      Flat = True
-      NumGlyphs = 0
-      OnClick = SettingsClick
-    end
-    object LabelModifiedmem: TLabel
-      Left = 88
-      Height = 13
-      Top = 34
-      Width = 403
-      Alignment = taCenter
-      Anchors = [akTop, akLeft, akRight]
-      AutoSize = False
-      Caption = 'A modification has been found in the memory but Cheat Engine fixed it'
-      ParentColor = False
-      Visible = False
-    end
     object Label5: TLabel
       Left = 296
       Height = 14
@@ -344,6 +319,7 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label5'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label38: TLabel
@@ -400,6 +376,7 @@ object MainForm: TMainForm
       Width = 25
       Caption = 'Testr'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -413,11 +390,11 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 430
-      Height = 17
+      Left = 424
+      Height = 23
       Hint = 'Enable speedhack'
       Top = 194
-      Width = 109
+      Width = 115
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
       Enabled = False
@@ -440,81 +417,51 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 437
-      Height = 17
+      Left = 431
+      Height = 23
       Top = 128
-      Width = 58
+      Width = 64
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
       TabOrder = 17
       Visible = False
     end
     object GroupBox1: TGroupBox
-      Left = 220
-      Height = 152
-      Top = 168
+      Left = 221
+      Height = 140
+      Top = 164
       Width = 202
       Anchors = [akTop, akRight]
       Caption = 'Memory Scan Options'
-      ClientHeight = 134
+      ClientHeight = 118
       ClientWidth = 198
       Color = clBtnFace
       Enabled = False
       ParentColor = False
       TabOrder = 0
-      object Label1: TLabel
-        Left = 85
-        Height = 14
-        Top = -4
-        Width = 24
-        Caption = 'From'
-        Enabled = False
-        ParentColor = False
-      end
-      object Label2: TLabel
-        Left = 85
-        Height = 14
-        Top = 36
-        Width = 14
-        Caption = 'To'
-        Enabled = False
-        ParentColor = False
-      end
-      object Windows: TRadioButton
-        Left = 5
-        Height = 17
-        Top = -4
-        Width = 66
-        Caption = 'Usermode'
-        Checked = True
-        Enabled = False
-        OnClick = WindowsClick
-        State = cbChecked
-        TabOrder = 0
-      end
       object Readonly: TCheckBox
         Left = 3
-        Height = 17
-        Top = 68
-        Width = 149
+        Height = 23
+        Top = 45
+        Width = 155
         Caption = 'Also scan read-only memory'
         Enabled = False
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 2
       end
       object FromAddress: TMemo
-        Left = 85
+        Left = 41
         Height = 21
-        Top = 12
-        Width = 113
+        Top = 0
+        Width = 153
         Alignment = taRightJustify
         Enabled = False
         Font.CharSet = ANSI_CHARSET
-        Font.Height = -12
-        Font.Name = 'MS Sans Serif'
-        Font.Pitch = fpVariable
+        Font.Height = -13
+        Font.Name = 'Courier'
+        Font.Pitch = fpFixed
         Font.Quality = fqDraft
         Lines.Strings = (
           '00000000'
@@ -523,71 +470,73 @@ object MainForm: TMainForm
         OnKeyPress = AddressKeyPress
         ParentFont = False
         PopupMenu = emptypopup
-        TabOrder = 2
+        TabOrder = 0
         WantReturns = False
         WordWrap = False
       end
       object ToAddress: TMemo
-        Left = 85
+        Left = 41
         Height = 21
-        Top = 51
-        Width = 113
+        Top = 24
+        Width = 153
         Alignment = taRightJustify
         Enabled = False
+        Font.CharSet = ANSI_CHARSET
+        Font.Height = -13
+        Font.Name = 'Courier'
+        Font.Pitch = fpFixed
+        Font.Quality = fqDraft
         Lines.Strings = (
           '7FFFFFFF'
         )
         MaxLength = 8
         OnKeyPress = AddressKeyPress
+        ParentFont = False
         PopupMenu = emptypopup
-        TabOrder = 3
+        TabOrder = 1
         WantReturns = False
         WordWrap = False
       end
       object cbFastScan: TCheckBox
         Left = 3
-        Height = 17
-        Top = 88
-        Width = 64
+        Height = 23
+        Top = 68
+        Width = 70
         Caption = 'Fast scan'
+        Checked = True
         Enabled = False
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         OnClick = cbFastScanClick
         ParentFont = False
-        TabOrder = 6
-      end
-      object btnShowRegions: TButton
-        Left = 5
-        Height = 21
-        Top = 44
-        Width = 33
-        Caption = 'Show'
-        Enabled = False
-        OnClick = btnShowRegionsClick
-        TabOrder = 4
-      end
-      object rbAllMemory: TRadioButton
-        Left = 5
-        Height = 17
-        Top = 20
-        Width = 29
-        Caption = 'All'
-        Enabled = False
-        OnChange = rbAllMemoryChange
-        OnClick = rbAllMemoryClick
-        TabOrder = 1
-        TabStop = False
+        State = cbChecked
+        TabOrder = 3
       end
       object cbPauseWhileScanning: TCheckBox
         Left = 3
-        Height = 17
-        Top = 108
-        Width = 168
+        Height = 23
+        Top = 91
+        Width = 174
         Caption = 'Pause the game while scanning'
         Enabled = False
         OnClick = cbPauseWhileScanningClick
-        TabOrder = 7
+        TabOrder = 4
+      end
+      object Label1: TLabel
+        Left = 6
+        Height = 14
+        Top = 3
+        Width = 23
+        Caption = 'Start'
+        ParentColor = False
+      end
+      object Label2: TLabel
+        Left = 6
+        Height = 14
+        Top = 27
+        Width = 23
+        Caption = 'Stop'
+        ParentColor = False
       end
     end
     object NextScanButton: TButton
@@ -683,7 +632,7 @@ object MainForm: TMainForm
       Left = 92
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
-      Top = 18
+      Top = 14
       Width = 397
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
@@ -693,10 +642,10 @@ object MainForm: TMainForm
     end
     object HexadecimalCheckbox: TCheckBox
       Left = 201
-      Height = 17
+      Height = 23
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
-      Width = 37
+      Width = 43
       HelpContext = 7
       Anchors = [akTop, akRight]
       Caption = 'Hex'
@@ -707,7 +656,7 @@ object MainForm: TMainForm
       TabOrder = 10
     end
     object UndoScan: TButton
-      Left = 429
+      Left = 424
       Height = 25
       Top = 48
       Width = 65
@@ -718,31 +667,33 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object rbBit: TRadioButton
-      Left = 217
-      Height = 17
-      Top = 90
-      Width = 35
+      Left = 189
+      Height = 19
+      Top = 88
+      Width = 41
       HelpContext = 7
       Anchors = [akTop, akRight]
+      AutoSize = False
       Caption = 'Bits'
       OnClick = rbBitClick
       TabOrder = 11
       Visible = False
     end
     object rbDec: TRadioButton
-      Left = 197
-      Height = 17
-      Top = 106
-      Width = 56
+      Left = 189
+      Height = 19
+      Top = 105
+      Width = 62
       HelpContext = 7
       Anchors = [akTop, akRight]
+      AutoSize = False
       Caption = 'Decimal'
       OnClick = rbDecClick
       TabOrder = 12
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 253
+      Left = 252
       Height = 21
       Top = 96
       Width = 283
@@ -753,10 +704,10 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 433
-      Height = 17
+      Left = 427
+      Height = 23
       Top = 146
-      Width = 86
+      Width = 92
       Anchors = [akTop, akRight]
       Caption = 'Case sensitive'
       Checked = True
@@ -769,11 +720,11 @@ object MainForm: TMainForm
       Visible = False
     end
     object Foundlist3: TListView
-      Left = 0
+      Left = 1
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 193
+      Width = 188
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
       Columns = <      
@@ -806,6 +757,7 @@ object MainForm: TMainForm
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown
       OnResize = Foundlist3Resize
+      OnSelectItem = Foundlist3SelectItem
     end
     object Panel7: TPanel
       Left = 0
@@ -919,10 +871,10 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 430
-      Height = 17
+      Left = 424
+      Height = 23
       Top = 174
-      Width = 83
+      Width = 89
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
       Enabled = False
@@ -932,9 +884,9 @@ object MainForm: TMainForm
     end
     object mode16: TCheckBox
       Left = 96
-      Height = 17
+      Height = 23
       Top = 320
-      Width = 56
+      Width = 62
       Caption = 'mode16'
       TabOrder = 19
       Visible = False
@@ -960,24 +912,23 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 496
-      Height = 65
+      Left = 490
+      Height = 84
       Top = 0
       Width = 50
       Align = alCustom
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
-      ClientHeight = 65
+      ClientHeight = 84
       ClientWidth = 50
       FullRepaint = False
       TabOrder = 22
       object Logo: TImage
         Cursor = crHandPoint
         Left = 0
-        Height = 65
+        Height = 66
         Top = 0
         Width = 50
-        Align = alClient
         OnClick = LogoClick
         OnMouseDown = LogoMouseDown
         Picture.Data = {
@@ -1294,6 +1245,18 @@ object MainForm: TMainForm
         Stretch = True
         Transparent = True
       end
+      object SettingsButton: TSpeedButton
+        Left = 1
+        Height = 17
+        Top = 67
+        Width = 49
+        Anchors = [akTop, akRight]
+        Caption = 'Settings'
+        Color = clBtnFace
+        Flat = True
+        NumGlyphs = 0
+        OnClick = SettingsClick
+      end
     end
     object Panel14: TPanel
       Left = 421
@@ -1579,7 +1542,7 @@ object MainForm: TMainForm
   end
   object ccpmenu: TPopupMenu
     OnPopup = ccpmenuPopup
-    left = 232
+    left = 504
     top = 88
     object Cut2: TMenuItem
       Caption = 'Cut'
@@ -1632,7 +1595,8 @@ object MainForm: TMainForm
   end
   object ImageList1: TImageList
     BkColor = clForeground
-    left = 128
+    left = 8
+    top = 168
     Bitmap = {
       4C69020000001000000010000000000000FF000000FF000000FF000000FF0000
       00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
@@ -1720,8 +1684,12 @@ object MainForm: TMainForm
     object File1: TMenuItem
       Caption = '&File'
       OnClick = File1Click
+      object miAddTab: TMenuItem
+        Caption = 'Add scan tab'
+        OnClick = miAddTabClick
+      end
       object New1: TMenuItem
-        Caption = 'New'
+        Caption = 'Clear list'
         OnClick = New1Click
       end
       object N7: TMenuItem

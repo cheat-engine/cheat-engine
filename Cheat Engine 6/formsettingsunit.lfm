@@ -152,9 +152,9 @@ object formSettings: TformSettings
         end
         object cbShowUndo: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 2
-          Width = 123
+          Width = 129
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -162,9 +162,9 @@ object formSettings: TformSettings
         end
         object cbShowAdvanced: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 22
-          Width = 165
+          Width = 171
           Caption = 'Show advanced options.'
           Checked = True
           State = cbChecked
@@ -172,9 +172,9 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 60
-          Width = 267
+          Width = 273
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
@@ -208,30 +208,30 @@ object formSettings: TformSettings
           Top = 228
           Width = 602
           Caption = 'Address list specific'
-          ClientHeight = 72
+          ClientHeight = 68
           ClientWidth = 598
           TabOrder = 5
           object cbShowAsSigned: TCheckBox
             Left = 20
-            Height = 20
+            Height = 23
             Top = -2
-            Width = 216
+            Width = 222
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
           object cbBinariesAsDecimal: TCheckBox
             Left = 20
-            Height = 20
+            Height = 23
             Top = 22
-            Width = 320
+            Width = 326
             Caption = 'Show and work with binaries as if they are decimals'
             TabOrder = 1
           end
           object cbsimplecopypaste: TCheckBox
             Left = 20
-            Height = 20
+            Height = 23
             Top = 46
-            Width = 97
+            Width = 103
             Caption = 'Simple paste'
             TabOrder = 2
           end
@@ -250,9 +250,9 @@ object formSettings: TformSettings
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 41
-          Width = 340
+          Width = 346
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
@@ -272,9 +272,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 79
-          Width = 421
+          Width = 427
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
@@ -300,25 +300,25 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
-          Height = 20
+          Height = 23
           Top = 367
-          Width = 411
+          Width = 417
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 12
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 138
-          Width = 154
+          Width = 160
           Caption = 'Save window positions'
           TabOrder = 13
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 177
-          Width = 212
+          Width = 218
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
@@ -327,17 +327,17 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
-          Height = 20
+          Height = 23
           Top = 197
-          Width = 217
+          Width = 223
           Caption = 'Only show processes with an icon'
           TabOrder = 15
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 158
-          Width = 119
+          Width = 125
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -345,9 +345,9 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 98
-          Width = 320
+          Width = 326
           Caption = 'Pointer adding: Append pointerline instead of insert'
           Checked = True
           State = cbChecked
@@ -496,9 +496,9 @@ object formSettings: TformSettings
         end
         object cbIncremental: TCheckBox
           Left = 11
-          Height = 20
+          Height = 23
           Top = 39
-          Width = 123
+          Width = 129
           Caption = 'Incremental value'
           TabOrder = 1
         end
@@ -571,18 +571,18 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 39
-          Width = 155
+          Width = 161
           Caption = 'Fast scan on by default'
           TabOrder = 1
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
           Top = 62
-          Width = 379
+          Width = 385
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
           ShowHint = True
@@ -590,17 +590,17 @@ object formSettings: TformSettings
         end
         object cbLowMemoryUsage: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 81
-          Width = 518
+          Width = 524
           Caption = 'Keep low memory usage when doing an "Unkown Initial Value scan" with Hyper Scan'
           TabOrder = 3
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 157
-          Width = 435
+          Width = 441
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
@@ -608,17 +608,17 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 177
-          Width = 550
+          Width = 556
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, slow)'
           TabOrder = 5
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 137
-          Width = 250
+          Width = 256
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -885,7 +885,7 @@ object formSettings: TformSettings
           Width = 715
           Align = alTop
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
-          ClientHeight = 68
+          ClientHeight = 64
           ClientWidth = 711
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
@@ -1159,7 +1159,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 12
+                Width = 31
               end>
             HideSelection = False
             ItemIndex = -1

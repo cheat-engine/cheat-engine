@@ -428,31 +428,76 @@ begin
           if reg.ValueExists('8 Bytes Hotkey') then
             reg.ReadBinaryData('8 Bytes Hotkey',temphotkeylist[14][0],10);
 
+          if reg.ValueExists('Float Hotkey') then
+            reg.ReadBinaryData('Float Hotkey',temphotkeylist[15][0],10);
 
-          try reg.ReadBinaryData('Float Hotkey',temphotkeylist[15][0],10); except end;
-          try reg.ReadBinaryData('Double Hotkey',temphotkeylist[16][0],10); except end;
-          try reg.ReadBinaryData('Text Hotkey',temphotkeylist[17][0],10); except end;
-          try reg.ReadBinaryData('Array of Byte Hotkey',temphotkeylist[18][0],10); except end;
-          try reg.ReadBinaryData('New Scan Hotkey',temphotkeylist[19][0],10); except end;
-          try reg.ReadBinaryData('New Scan-Exact Value',temphotkeylist[20][0],10); except end;
-          try reg.ReadBinaryData('Unknown Initial Value Hotkey',temphotkeylist[21][0],10); except end;
-          try reg.ReadBinaryData('Next Scan-Exact Value',temphotkeylist[22][0],10); except end;
+          if reg.ValueExists('Double Hotkey') then
+            reg.ReadBinaryData('Double Hotkey',temphotkeylist[16][0],10);
 
-          try reg.ReadBinaryData('Increased Value Hotkey',temphotkeylist[23][0],10); except end;
-          try reg.ReadBinaryData('Decreased Value Hotkey',temphotkeylist[24][0],10); except end;
-          try reg.ReadBinaryData('Changed Value Hotkey',temphotkeylist[25][0],10); except end;
-          try reg.ReadBinaryData('Unchanged Value Hotkey',temphotkeylist[26][0],10); except end;
-          try reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[27][0],10); except end;
-          try reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[28][0],10); except end;
-          try reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[29][0],10); except end;
+          if reg.ValueExists('Text Hotkey') then
+            reg.ReadBinaryData('Text Hotkey',temphotkeylist[17][0],10);
 
-          try reg.ReadBinaryData('Speedhack speed 1',Speedhackspeed1,sizeof(tspeedhackspeed)); except speedhackspeed1.speed:=2; speedhackspeed1.sleeptime:=3; end;
-          try reg.ReadBinaryData('Speedhack speed 2',Speedhackspeed2,sizeof(tspeedhackspeed)); except speedhackspeed2.speed:=2; speedhackspeed2.sleeptime:=3; end;
-          try reg.ReadBinaryData('Speedhack speed 3',Speedhackspeed3,sizeof(tspeedhackspeed)); except speedhackspeed3.speed:=2; speedhackspeed3.sleeptime:=3; end;
-          try reg.ReadBinaryData('Speedhack speed 4',Speedhackspeed4,sizeof(tspeedhackspeed)); except speedhackspeed4.speed:=2; speedhackspeed4.sleeptime:=3; end;
-          try reg.ReadBinaryData('Speedhack speed 5',Speedhackspeed5,sizeof(tspeedhackspeed)); except speedhackspeed5.speed:=2; speedhackspeed5.sleeptime:=3; end;
+          if reg.ValueExists('Array of Byte Hotkey') then
+            reg.ReadBinaryData('Array of Byte Hotkey',temphotkeylist[18][0],10);
+
+          if reg.ValueExists('New Scan Hotkey') then
+            reg.ReadBinaryData('New Scan Hotkey',temphotkeylist[19][0],10);
+
+          if reg.ValueExists('New Scan-Exact Value') then
+            reg.ReadBinaryData('New Scan-Exact Value',temphotkeylist[20][0],10);
+
+          if reg.ValueExists('Unknown Initial Value Hotkey') then
+            reg.ReadBinaryData('Unknown Initial Value Hotkey',temphotkeylist[21][0],10);
+
+          if reg.ValueExists('Next Scan-Exact Value') then
+            reg.ReadBinaryData('Next Scan-Exact Value',temphotkeylist[22][0],10);
+
+          if reg.ValueExists('Increased Value Hotkey') then
+            reg.ReadBinaryData('Increased Value Hotkey',temphotkeylist[23][0],10);
+
+          if reg.ValueExists('Decreased Value Hotkey') then
+            reg.ReadBinaryData('Decreased Value Hotkey',temphotkeylist[24][0],10);
+
+          if reg.ValueExists('Changed Value Hotkey') then
+            reg.ReadBinaryData('Changed Value Hotkey',temphotkeylist[25][0],10);
+
+          if reg.ValueExists('Unchanged Value Hotkey') then
+            reg.ReadBinaryData('Unchanged Value Hotkey',temphotkeylist[26][0],10);
+
+          if reg.ValueExists('Undo Last scan Hotkey') then
+            reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[27][0],10);
+
+          if reg.ValueExists('Cancel scan Hotkey') then
+            reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[28][0],10);
+
+          if reg.ValueExists('Debug->Run Hotkey') then
+            reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[29][0],10);
+
+          if reg.ValueExists('Speedhack speed 1') then
+            reg.ReadBinaryData('Speedhack speed 1',Speedhackspeed1,sizeof(tspeedhackspeed))
+          else
+            speedhackspeed1.speed:=2;
+
+          if reg.ValueExists('Speedhack speed 2') then
+              reg.ReadBinaryData('Speedhack speed 2',Speedhackspeed2,sizeof(tspeedhackspeed))
+            else
+              speedhackspeed2.speed:=2;
+
+          if reg.ValueExists('Speedhack speed 3') then
+              reg.ReadBinaryData('Speedhack speed 3',Speedhackspeed3,sizeof(tspeedhackspeed))
+            else
+              speedhackspeed3.speed:=2;
+
+          if reg.ValueExists('Speedhack speed 4') then
+              reg.ReadBinaryData('Speedhack speed 4',Speedhackspeed4,sizeof(tspeedhackspeed))
+            else
+              speedhackspeed4.speed:=2;
 
 
+          if reg.ValueExists('Speedhack speed 5') then
+              reg.ReadBinaryData('Speedhack speed 5',Speedhackspeed5,sizeof(tspeedhackspeed))
+            else
+              speedhackspeed5.speed:=2;
 
           //fill the hotkeylist
           for i:=0 to 29 do

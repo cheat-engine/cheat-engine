@@ -1,12 +1,12 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 283
-  Height = 168
-  Top = 322
+  Left = 522
+  Height = 207
+  Top = 346
   Width = 499
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'
-  ClientHeight = 168
+  ClientHeight = 207
   ClientWidth = 499
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -17,7 +17,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   object StatusBar1: TStatusBar
     Left = 0
     Height = 28
-    Top = 140
+    Top = 179
     Width = 499
     Panels = <    
       item
@@ -29,12 +29,12 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   end
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 99
+    Height = 138
     Top = 41
     Width = 499
     Align = alClient
     Caption = 'Data'
-    ClientHeight = 77
+    ClientHeight = 116
     ClientWidth = 495
     TabOrder = 1
     object Label1: TLabel

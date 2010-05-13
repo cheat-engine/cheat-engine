@@ -37,11 +37,12 @@ uses
   pointerscannerfrm, VirtualMemory, ValueFinder, frmRescanPointerUnit,
   SyncObjs2, ManualModuleLoader, SynHighlighterAA, APIhooktemplatesettingsfrm,
   frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
-  DebugHelper, debugeventhandler, formFoundcodeListExtraUnit, 
-debuggertypedefinitions, sfloat, addresslist, 
-addresslisthandlerunit, MemoryRecordUnit, ThreadlistExFRM, windows7taskbar;
+  DebugHelper, debugeventhandler, formFoundcodeListExtraUnit,
+  debuggertypedefinitions, sfloat, addresslist, addresslisthandlerunit,
+  MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist;
 
 {$R cheatengine.res}
+
 
 begin
   Application.Title:='Cheat Engine 6.0';

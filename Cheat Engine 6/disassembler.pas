@@ -15,9 +15,10 @@ const BIT_REX_R=4;
 const BIT_REX_X=2;
 const BIT_REX_B=1;
 
-type TDisAssemblerValueType=(dvtNone, dvtAddress, dvtValue);
+type
+  TDisAssemblerValueType=(dvtNone, dvtAddress, dvtValue);
 
-type TDisassembler=class
+  TDisassembler=class
   private
     inttohexs: TIntToHexS;
     RexPrefix: byte;
@@ -91,6 +92,7 @@ type TDisassembler=class
       modrmValue: ptrUint;
       parameterValueType: TDisAssemblerValueType;
       parameterValue: ptrUint;
+    //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
     end;
 
 

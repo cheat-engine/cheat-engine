@@ -22,29 +22,30 @@ type
 
   TFoundList=class
   private
+    memscan: TMemscan;
     foundlist: TListView;
     foundcountlabel: tlabel;
 
     addressfile: tfilestream;
     scantype: TScanType;
     fvartype: integer;
-		varlength: integer; //bitlength, stringlength, customscan
-		hexadecimal: boolean; //show result in hexadecimal notation (when possible)
+    varlength: integer; //bitlength, stringlength, customscan
+    hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
-		unicode: boolean;
-		binaryasdecimal: boolean;
+    unicode: boolean;
+    binaryasdecimal: boolean;
 
     lastrebase: integer;
     addresslist: array [0..1023] of ptruint; //this is a small list of addresses in the list
     addresslistb: array [0..1023] of TBitAddress; //idem, but in case of bit
     addresslistfirst: qword; //index number the addresslist[0] has
 
-		valuelist: array [0..1023] of string;
+    valuelist: array [0..1023] of string;
     RebaseAgainThread: TRebaseAgain;
   public
     function GetVarLength: integer;
     procedure DeleteResults;
-		procedure deleteaddress(i:integer);
+    procedure deleteaddress(i:integer);
     procedure clear;
     procedure RefetchValueList;
     function Initialize(vartype: integer):int64; overload;
@@ -59,7 +60,7 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: integer read fvartype;
-    constructor create(foundlist: tlistview; foundcountlabel: tlabel);
+    constructor create(foundlist: tlistview; foundcountlabel: tlabel; memscan: TMemScan);
 end;
 
 type Tscandisplayroutine=procedure(value: pointer; output: pchar);
@@ -137,16 +138,16 @@ begin
   if addressfile=nil then exit;
 
   try
-    memoryfile:=tfilestream.Create(CheatEngineDir+'Memory.TMP',fmOpenRead	or fmShareDenyNone);
-		outaddress:=tfilestream.Create(CheatEngineDir+'Addresses.NEW',fmCreate or fmShareDenyNone);
-		outmemory:=tfilestream.Create(CheatEngineDir+'Memory.NEW',fmCreate or fmShareDenyNone);
+    memoryfile:=tfilestream.Create(memscan.ScanresultFolder+'Memory.TMP',fmOpenRead or fmShareDenyNone);
+    outaddress:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.NEW',fmCreate or fmShareDenyNone);
+    outmemory:=tfilestream.Create(memscan.ScanresultFolder+'Memory.NEW',fmCreate or fmShareDenyNone);
   except
     exit;
   end;
 
   getmem(buf,512*1024);
-	try
-		//memoryfile is initialized
+  try
+    //memoryfile is initialized
 
     if vartype in [5,9] then
 			addresspos:=7+sizeof(sizeof(TBitAddress))*i
@@ -195,10 +196,10 @@ begin
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
 
-  deletefile(CheatEngineDir+'Memory.TMP');
-  deletefile(CheatEnginedir+'Addresses.TMP');
-  renamefile(CheatEngineDir+'Memory.NEW',CheatEngineDir+'Memory.TMP');
-  renamefile(CheatEngineDir+'Addresses.NEW',CheatEngineDir+'Addresses.TMP');
+  deletefile(memscan.ScanresultFolder+'Memory.TMP');
+  deletefile(memscan.ScanresultFolder+'Addresses.TMP');
+  renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.TMP');
+  renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.TMP');
 
   Initialize(vartype);
 end;
@@ -634,12 +635,17 @@ begin
   result:=0;
   Deinitialize;
 
+  foundlist.itemindex:=-1;
+  foundlist.items.count:=0;
+
+
+
   fvartype:=vartype;
 
-  if fileexists(CheatEngineDir+'Addresses.TMP') then
+  if fileexists(memscan.ScanresultFolder+'Addresses.TMP') then
   begin
     try
-      self.addressfile:=tfilestream.Create(CheatEngineDir+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
+      self.addressfile:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
     except
       foundlist.Items.Count:=0;
       scantype:=fs_advanced;
@@ -684,6 +690,11 @@ begin
     foundlist.Items.Count:=0;
     scantype:=fs_advanced;
   end;
+
+  if result>0 then
+    foundlist.Items[0].MakeVisible(false);
+
+
 end;
 
 
@@ -712,14 +723,15 @@ end;
 procedure TFoundlist.deleteresults;
 begin
   Deinitialize;
-  deletefile(pchar(CheatEngineDir+'Addresses.TMP'));
-  deletefile(pchar(CheatEngineDir+'Memory.TMP'));
+  deletefile(pchar(memscan.ScanresultFolder+'Addresses.TMP'));
+  deletefile(pchar(memscan.ScanresultFolder+'Memory.TMP'));
 end;
 
-constructor TFoundlist.create(foundlist: tlistview; foundcountlabel: tlabel);
+constructor TFoundlist.create(foundlist: tlistview; foundcountlabel: tlabel; memscan: TMemScan);
 begin
   self.foundlist:=foundlist;
   self.foundcountlabel:=foundcountlabel;
+  self.memscan:=memscan;
   deleteresults;
 end;
 

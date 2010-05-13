@@ -875,6 +875,7 @@ procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
 
 begin
+
   aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
   aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;
 
@@ -907,6 +908,7 @@ begin
 
 
   //make the tabs invisible
+
   for i:=0 to pcSetting.PageCount-1 do
     pcSetting.Pages[i].TabVisible:=false;
 

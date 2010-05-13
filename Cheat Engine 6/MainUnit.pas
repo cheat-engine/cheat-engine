@@ -14,7 +14,7 @@ uses
   frmCScriptUnit, foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
-  windows7taskbar
+  windows7taskbar,tablist
 
 
   {, , formsextra ,KIcon, windows7taskbar};
@@ -31,6 +31,106 @@ const
 
 const
   wm_scandone = WM_USER + 2;
+
+//scantabs
+type
+  TScanState=record
+    FromAddress: record
+      text: string;
+    end;
+
+    ToAddress: record
+      text: string;
+    end;
+
+    ReadOnly: record
+      checked: boolean;
+    end;
+
+    cbfastscan: record
+      checked: boolean;
+    end;
+
+
+
+
+    cbpercentage: record
+      exists: boolean;
+      checked: boolean;
+    end;
+
+
+    floatpanel: record
+      visible: boolean;
+      rounded: boolean;
+      roundedextreme: boolean;
+      truncated: boolean;
+    end;
+
+    rbbit: record
+      visible: boolean;
+      enabled: boolean;
+      checked: boolean;
+    end;
+
+    rbdec: record
+      visible: boolean;
+      enabled: boolean;
+      checked: boolean;
+    end;
+
+    hexadecimalcheckbox: record
+      visible: boolean;
+      checked: boolean;
+    end;
+
+    groupbox1enabled: boolean;
+
+    scantype: record
+      options: string;
+      itemindex: integer;
+      enabled: boolean;
+    end;
+
+    vartype: record
+      options: string;
+      itemindex: integer;
+      enabled: boolean;
+    end;
+
+
+    memscan: TMemscan;
+    foundlist: TFoundList;
+
+    scanvalue: record
+      visible: boolean;
+      text: string;
+    end;
+
+    scanvalue2: record
+      exists: boolean;
+      text: string;
+    end;
+
+    firstscanstate: record
+      caption: string;
+      enabled: boolean;
+    end;
+
+    nextscanstate: record
+      enabled: boolean;
+    end;
+
+    button2: record
+      tag: integer;
+    end;
+
+    foundlist3: record
+      itemindex: integer;
+    end;
+
+  end;
+  PScanState=^TScanState;
 
 
 type
@@ -59,11 +159,18 @@ type
 
   TMainForm = class(TForm)
     CreateGroup: TMenuItem;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label53: TLabel;
+    Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miAddTab: TMenuItem;
     miFreezePositive: TMenuItem;
     miFreezeNegative: TMenuItem;
+    mode16: TCheckBox;
     Panel1: TPanel;
+    SettingsButton: TSpeedButton;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
     PopupMenu2: TPopupMenu;
@@ -96,9 +203,6 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     GroupBox1: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    Windows: TRadioButton;
     ReadOnly: TCheckBox;
     FromAddress: TMemo;
     ToAddress: TMemo;
@@ -127,14 +231,11 @@ type
     Copy2: TMenuItem;
     Paste2: TMenuItem;
     Splitter1: TSplitter;
-    SpeedButton4: TSpeedButton;
     cbCaseSensitive: TCheckBox;
     cbFastScan: TCheckBox;
-    btnShowRegions: TButton;
     Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
-    rbAllMemory: TRadioButton;
     Panel7: TPanel;
     SpeedButton1: TSpeedButton;
     cbPauseWhileScanning: TCheckBox;
@@ -143,7 +244,6 @@ type
     Address1: TMenuItem;
     ype1: TMenuItem;
     Value1: TMenuItem;
-    LabelModifiedmem: TLabel;
     pnlFloat: TPanel;
     rt3: TRadioButton;
     rt1: TRadioButton;
@@ -160,15 +260,12 @@ type
     Label5: TLabel;
     Label38: TLabel;
     Smarteditaddresses1: TMenuItem;
-    Label53: TLabel;
     Pointerscanforthisaddress1: TMenuItem;
     Label55: TLabel;
     Label57: TLabel;
-    Label58: TLabel;
     Plugins1: TMenuItem;
     Label59: TLabel;
     UpdateFoundlisttimer: TTimer;
-    mode16: TCheckBox;
     Browsethismemoryregioninthedisassembler1: TMenuItem;
     AutoAttachTimer: TTimer;
     Button2: TButton;
@@ -215,7 +312,10 @@ type
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Foundlist3Resize(Sender: TObject);
     procedure CreateGroupClick(Sender: TObject);
+    procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miAddTabClick(Sender: TObject);
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
@@ -326,6 +426,9 @@ type
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure ype1Click(Sender: TObject);
   private
+
+    scantablist: TTablist;
+
     oldscanvalue2text: string;
     aaa: single;
     hotkeypressed: integer;
@@ -428,6 +531,10 @@ type
 
 
     procedure AddresslistDropByListview(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode);
+
+    procedure SaveCurrentState(scanstate: PScanState);
+    procedure SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
+    procedure ScanTabListTabChange(sender: TObject; oldselection: integer);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -468,6 +575,12 @@ type
 
 
     procedure ClearList;
+
+    procedure CreateScanValue2;
+    procedure DestroyScanValue2;
+
+    procedure CreateCbPercentage;
+    procedure DestroyCbPercentage;
 
     procedure UpdateScanType;
     procedure enableGui(isnextscan: boolean);
@@ -1133,7 +1246,6 @@ var
 begin
   ffoundcount := x;
   xdouble := x;
-  //  foundcountlabel.Caption:=inttostr(x);
   foundcountlabel.Caption := Format('%.0n', [xdouble]);
 end;
 
@@ -1341,6 +1453,78 @@ resourcestring
   strsearchForText = 'Search for text';
   strSearchForArray = 'Search for this array';
 
+
+procedure TMainForm.CreateCbPercentage;
+begin
+  if cbpercentage=nil then
+  begin
+    cbpercentage:=tcheckbox.create(self);
+    cbpercentage.Left:=scantype.Left+scantype.Width+5;
+    cbpercentage.Top:=scantype.Top+2;
+    cbpercentage.Caption:='at least xx%';
+    cbpercentage.Anchors:=[akTop,akRight];
+    cbpercentage.Width:=80;
+    cbpercentage.Parent:=scantype.Parent;
+  end;
+end;
+
+procedure TMainForm.DestroyCbPercentage;
+begin
+  if cbpercentage<>nil then
+    freeandnil(cbpercentage);
+end;
+
+procedure TMainForm.CreateScanValue2;
+var oldwidth: integer;
+begin
+  if scanvalue2=nil then
+  begin
+    //decrease the width of the scanvalue editbox
+    oldwidth:=scanvalue.width;
+    scanvalue.Width:=(scanvalue.Width div 2)-20;
+
+    //create a 2nd editbox
+    scanvalue2:=tedit.create(self);
+    //scanvalue2.onkeydown:=scanvalueKeyDown;
+    scanvalue2.OnKeyPress:=ScanvalueoldKeyPress;
+    scanvalue2.PopupMenu:=ccpmenu;
+    scanvalue2.Left:=scanvalue.left+scanvalue.Width+20;
+    scanvalue2.Width:=oldwidth-scanvalue.width-20;
+    scanvalue2.Top:=scanvalue.top;
+    scanvalue2.Parent:=scanvalue.Parent;
+    scanvalue2.Anchors:=scanvalue.Anchors;
+    scanvalue2.TabOrder:=scanvalue.TabOrder+1;
+    scanvalue2.Text:=oldscanvalue2text;
+
+    scantext2:=tlabel.create(self);
+    scantext2.caption:=scantext.caption;
+    scantext2.Left:=scanvalue2.Left;
+    scantext2.Top:=scantext.top;
+    scantext2.Parent:=scantext.parent;
+    scantext2.Anchors:=scantext.Anchors;
+
+    andlabel:=tlabel.Create(self);
+    andlabel.Caption:='and';
+    andlabel.Left:=scanvalue2.Left-20;
+    andlabel.Top:=scanvalue2.Top+2;
+    andlabel.Parent:=scanvalue2.Parent;
+    andlabel.Anchors:=scantext.Anchors;
+
+  end;
+end;
+
+procedure TMainForm.DestroyScanValue2;
+begin
+  if scanvalue2<>nil then
+  begin
+    scanvalue.Width:=scanvalue.width+20+scanvalue2.width;
+    oldscanvalue2text:=scanvalue2.Text;
+    freeandnil(scanvalue2);
+    freeandnil(scantext2);
+    freeandnil(andlabel);
+  end;
+end;
+
 procedure TMainForm.UpdateScanType;
 var
   OldText: string;
@@ -1480,69 +1664,20 @@ begin
 
   if (scantype.text=strIncreasedValueBy) or (scantype.text=strDecreasedValueBy) then
   begin
-    if cbpercentage=nil then
-    begin
-      cbpercentage:=tcheckbox.create(self);
-      cbpercentage.Left:=scantype.Left+scantype.Width+5;
-      cbpercentage.Top:=scantype.Top+2;
-      cbpercentage.Caption:='at least xx%';
-      cbpercentage.Anchors:=[akTop,akRight];
-      cbpercentage.Width:=80;
-      cbpercentage.Parent:=scantype.Parent;
-    end;
+    createCbPercentage;
+
   end
   else
   begin
-    if cbpercentage<>nil then
-      freeandnil(cbpercentage);
+    destroyCbPercentage;
+
+
   end;
 
   if scantype.Text=strValueBetween then
-  begin
-    if scanvalue2=nil then
-    begin
-      //decrease the width of the scanvalue editbox
-      oldwidth:=scanvalue.width;
-      scanvalue.Width:=(scanvalue.Width div 2)-20;
-
-      //create a 2nd editbox
-      scanvalue2:=tedit.create(self);
-      //scanvalue2.onkeydown:=scanvalueKeyDown;
-      scanvalue2.OnKeyPress:=ScanvalueoldKeyPress;
-      scanvalue2.PopupMenu:=ccpmenu;
-      scanvalue2.Left:=scanvalue.left+scanvalue.Width+20;
-      scanvalue2.Width:=oldwidth-scanvalue.width-20;
-      scanvalue2.Top:=scanvalue.top;
-      scanvalue2.Parent:=scanvalue.Parent;
-      scanvalue2.Anchors:=scanvalue.Anchors;
-      scanvalue2.TabOrder:=scanvalue.TabOrder+1;
-      scanvalue2.Text:=oldscanvalue2text;
-
-      scantext2:=tlabel.create(self);
-      scantext2.caption:=scantext.caption;
-      scantext2.Left:=scanvalue2.Left;
-      scantext2.Top:=scantext.top;
-      scantext2.Parent:=scantext.parent;
-      scantext2.Anchors:=scantext.Anchors;
-
-      andlabel:=tlabel.Create(self);
-      andlabel.Caption:='and';
-      andlabel.Left:=scanvalue2.Left-20;
-      andlabel.Top:=scanvalue2.Top+2;
-      andlabel.Parent:=scanvalue2.Parent;
-      andlabel.Anchors:=scantext.Anchors;
-    end
-  end else
-  begin
-    if scanvalue2<>nil then
-    begin
-      scanvalue.Width:=scanvalue.width+20+scanvalue2.width;
-      oldscanvalue2text:=scanvalue2.Text;
-      freeandnil(scanvalue2);
-      freeandnil(scantext2);
-      freeandnil(andlabel);
-    end;
-  end;
+    CreateScanValue2
+  else
+    DestroyScanValue2;
 
 
   if (scantype.Text=strIncreasedValue) or
@@ -1564,6 +1699,9 @@ begin
      end;
 
   pnlfloat.Visible:=floatvis;
+
+  if rbBit.visible then
+    HexadecimalCheckbox.visible:=false;
 
 end;
 
@@ -1769,6 +1907,13 @@ begin
     end;
 
     UpdateScanType;
+
+
+    //apply this for all tabs
+    if scantablist<>nil then
+      for i:=0 to scantablist.Count-1 do
+        SaveCurrentState(PScanState(scantablist.TabData[i]));
+
   end;
 
   if (processID = oldProcess) then
@@ -1837,6 +1982,11 @@ begin
   end;
 
   UpdateScanType;
+
+  if scantablist<>nil then
+    for i:=0 to scantablist.Count-1 do
+      SaveCurrentState(PScanState(scantablist.TabData[i]));
+
 end;
 
 procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);
@@ -1898,6 +2048,8 @@ begin
   addresslist.doAddressChange;
 end;
 
+
+
 procedure TMainForm.CreateGroupClick(Sender: TObject);
 var
   groupname: string;
@@ -1915,10 +2067,310 @@ begin
     addresslist.CreateGroup(groupname);
 end;
 
+procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
+  Selected: Boolean);
+begin
+
+end;
+
 procedure TMainForm.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
   addresslist.SelectAll;
+end;
+
+
+
+procedure TMainForm.SaveCurrentState(scanstate: PScanState);
+begin
+  //save the current state
+  scanstate.FromAddress.text:=fromaddress.text;
+  scanstate.ToAddress.text:=toaddress.text;
+  scanstate.ReadOnly.checked:=readonly.checked;
+
+  scanstate.cbfastscan.checked:=cbFastScan.checked;
+
+  scanstate.scanvalue.text:=scanvalue.text;
+  scanstate.scanvalue.visible:=scanvalue.visible;
+
+  if scanvalue2<>nil then
+  begin
+    scanstate.scanvalue2.exists:=true;
+    scanstate.scanvalue2.text:=scanvalue2.text;
+  end else scanstate.scanvalue2.exists:=false;
+
+  scanstate.scantype.options:=scantype.Items.Text;
+  scanstate.scantype.enabled:=scantype.enabled;
+  scanstate.scantype.itemindex:=scantype.ItemIndex;
+
+  scanstate.vartype.options:=vartype.Items.Text;
+  scanstate.vartype.enabled:=vartype.enabled;
+  scanstate.vartype.itemindex:=vartype.ItemIndex;
+
+
+  scanstate.firstscanstate.caption:=newscan.caption;
+  scanstate.firstscanstate.enabled:=newscan.enabled;
+  scanstate.nextscanstate.enabled:=nextscanbutton.Enabled;
+
+
+  scanstate.groupbox1enabled:=GroupBox1.Enabled;
+
+  scanstate.floatpanel.visible:=pnlfloat.visible;
+  scanstate.floatpanel.rounded:=rt1.checked;
+  scanstate.floatpanel.roundedextreme:=rt2.checked;
+  scanstate.floatpanel.truncated:=rt3.checked;
+
+
+  scanstate.rbbit.visible:=rbbit.visible;
+  scanstate.rbbit.enabled:=rbbit.enabled;
+  scanstate.rbbit.checked:=rbbit.checked;
+
+  scanstate.rbdec.visible:=rbdec.visible;
+  scanstate.rbdec.enabled:=rbdec.enabled;
+  scanstate.rbdec.checked:=rbdec.checked;
+
+  scanstate.HexadecimalCheckbox.visible:=HexadecimalCheckbox.visible;
+  scanstate.HexadecimalCheckbox.checked:=HexadecimalCheckbox.checked;
+
+  if cbpercentage<>nil then
+  begin
+    scanstate.cbpercentage.exists:=false;
+    scanstate.cbpercentage.checked:=cbpercentage.Checked;
+  end
+  else
+    scanstate.cbpercentage.exists:=false;
+
+  scanstate.button2.tag:=button2.tag;
+  scanstate.foundlist3.itemindex:=foundlist3.itemindex;
+
+        (*
+  if foundlist3.TopItem<>nil then
+    scanstate.foundlist3.topitemindex:=foundlist3.topitem.Index
+  else
+    scanstate.foundlist3.topitemindex:=-1; *)
+end;
+
+procedure TMainForm.SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
+begin
+  ZeroMemory(scanstate,sizeof(TScanState));
+
+  if IsFirstEntry then
+  begin
+    scanstate.memscan:=memscan;
+    scanstate.foundlist:=foundlist;
+  end
+  else
+  begin
+    scanstate.memscan:=tmemscan.create(progressbar1);
+    scanstate.foundlist:=TFoundList.create(foundlist3, foundcountlabel, scanstate.memscan);
+    scanstate.memscan.setScanDoneCallback(mainform.handle,wm_scandone);
+  end;
+
+  savecurrentstate(scanstate);
+
+
+end;
+
+procedure TMainForm.ScanTabListTabChange(sender: TObject; oldselection: integer);
+var oldstate,newstate: PScanState;
+i: integer;
+begin
+  oldstate:=scantablist.TabData[oldselection];
+  newstate:=scantablist.TabData[scantablist.SelectedTab];
+
+  savecurrentstate(oldstate);
+
+  //load the new state
+  if newstate<>nil then
+  begin
+    //load
+    mainform.BeginFormUpdate;
+
+    scantype.OnChange:=nil;
+    vartype.onchange:=nil;
+    rbbit.OnClick:=nil;
+    rbdec.Onclick:=nil;
+    HexadecimalCheckbox.OnClick:=nil;
+
+    scanvalue.text:=newstate.scanvalue.text;
+    scanvalue.visible:=newstate.scanvalue.visible;
+
+    if newstate.scanvalue2.exists then
+    begin
+      CreateScanValue2;
+      scanvalue2.text:=newstate.scanvalue2.text;
+    end
+    else
+    begin
+      //destroy if it exists
+      DestroyScanValue2;
+    end;
+
+
+
+    scantype.items.text:=newstate.scantype.options;
+    scantype.enabled:=newstate.scantype.enabled;
+    scantype.ItemIndex:=newstate.scantype.itemindex;
+
+    vartype.items.text:=newstate.vartype.options;
+    vartype.enabled:=newstate.vartype.enabled;
+    vartype.ItemIndex:=newstate.vartype.itemindex;
+
+
+    newscan.caption:=newstate.firstscanstate.caption;
+    newscan.enabled:=newstate.firstscanstate.enabled;
+
+    nextscanbutton.Enabled:=newstate.nextscanstate.enabled;
+
+
+    GroupBox1.Enabled:=newstate.groupbox1enabled;
+    for i:=0 to GroupBox1.ControlCount-1 do
+      GroupBox1.Controls[i].Enabled:=newstate.groupbox1enabled;
+
+    pnlfloat.visible:=newstate.floatpanel.visible;
+    rt1.checked:=newstate.floatpanel.rounded;
+    rt2.checked:=newstate.floatpanel.roundedextreme;
+    rt3.checked:=newstate.floatpanel.truncated;
+
+    rbbit.visible:=newstate.rbbit.visible;
+    rbbit.enabled:=newstate.rbbit.enabled;
+    rbbit.checked:=newstate.rbbit.checked;
+
+    rbdec.visible:=newstate.rbdec.visible;
+    rbdec.enabled:=newstate.rbdec.enabled;
+    rbdec.checked:=newstate.rbdec.checked;
+
+    HexadecimalCheckbox.visible:=newstate.HexadecimalCheckbox.visible;
+    HexadecimalCheckbox.checked:=newstate.HexadecimalCheckbox.checked;
+
+    if newstate.cbpercentage.exists then
+    begin
+      CreateCbPercentage;
+      cbpercentage.Checked:=newstate.cbpercentage.checked;
+    end
+    else
+      DestroyCbPercentage;
+
+    button2.tag:=newstate.button2.tag;
+
+    scantype.OnChange:=ScanTypeChange;
+    VarType.OnChange:=VarTypeChange;
+    rbbit.OnClick:=rbBitClick;
+    rbdec.Onclick:=rbDecClick;
+    HexadecimalCheckbox.OnClick:=HexadecimalCheckboxClick;
+
+    mainform.EndFormUpdate;
+
+
+    foundlist3.beginupdate;
+
+    foundlist.Deinitialize;
+
+    memscan:=newstate.memscan;
+    foundlist:=newstate.foundlist;
+
+
+
+
+    foundcount:=foundlist.Initialize(getvartype);
+
+    foundlist3.endupdate;
+
+
+    if newstate.foundlist3.itemindex<foundcount then
+    begin
+      foundlist3.ItemIndex:=newstate.foundlist3.itemindex;
+      foundlist3.Items[newstate.foundlist3.itemindex].Selected:=true;
+      foundlist3.Items[newstate.foundlist3.itemindex].MakeVisible(false);
+      foundlist3.Items[newstate.foundlist3.itemindex].Top:=0;
+    end;
+//    foundlist3.TopItem:=foundlist3.items[newstate.foundlist.itemindex];
+  end;
+  //else leave empty
+end;
+
+procedure TMainForm.miAddTabClick(Sender: TObject);
+var
+  i: integer;
+  c: array of tcontrol;
+  foundlistheightdiff: integer;
+  r: trect;
+  newstate: PScanState;
+begin
+  if scantablist=nil then
+  begin
+    setlength(c, panel5.ControlCount);
+    for i:=0 to panel5.controlcount-1 do
+      c[i]:=panel5.controls[i];
+
+
+    foundlistheightdiff:=btnMemoryView.top-(foundlist3.top+foundlist3.Height);
+
+    scantablist:=TTablist.Create(self);
+
+    scantablist.parent:=panel5;
+    scantablist.top:=panel7.top+panel7.height;
+    scantablist.Left:=0;
+    scantablist.Width:=clientwidth-logopanel.width;
+    scantablist.color:=panel5.Color;
+    scantablist.height:=20;
+
+    scantablist.Anchors:=scantablist.Anchors+[akRight];
+
+    i:=scantablist.AddTab('Scan 1'); //original scan
+
+    getmem(newstate, sizeof(TScanState));
+    SetupInitialScanTabState(newstate,true);
+    scantablist.TabData[i]:=newstate;
+
+    i:=scantablist.AddTab('Scan 2'); //first new scan
+    getmem(newstate, sizeof(TScanState));
+    SetupInitialScanTabState(newstate,false);
+    scantablist.TabData[i]:=newstate;
+
+    scantablist.OnTabChange:=ScanTabListTabChange;
+
+
+    //p.height:=p.TabHeight;
+
+    //make space for the tabs
+    //luckely this routine is not called often
+
+    for i:=0 to length(c)-1 do
+    begin
+      if (c[i]<>panel7) and
+         (c[i]<>LoadButton) and
+         (c[i]<>SaveButton) and
+         (c[i]<>ProcessLabel) and
+         (c[i]<>Progressbar1) and
+         (c[i]<>logopanel) and
+         (c[i]<>btnMemoryView) and
+         (c[i]<>speedbutton2) and
+         (c[i]<>button1)
+      then
+      begin
+        panel5.Controls[i].Top:=panel5.Controls[i].Top+20; //p.height;
+        //c[i].Parent:=p;
+      end;
+
+    end;
+
+    scantablist.Color:=clBtnFace;
+    scantablist.Brush.Color:=clBtnFace;
+
+
+    foundlist3.Height:=btnMemoryView.top-foundlist3.top-foundlistheightdiff;
+
+    panel5.Constraints.MinHeight:=groupbox1.top+groupbox1.height+speedbutton2.height+3;
+
+    if panel5.Height<panel5.Constraints.MinHeight then
+      panel5.Height:=panel5.Constraints.MinHeight;
+
+  end
+  else
+  begin
+    scantablist.addtab('bla');
+  end;
 end;
 
 procedure TMainForm.miFreezeNegativeClick(Sender: TObject);
@@ -1943,6 +2395,7 @@ procedure TMainForm.Panel5Resize(Sender: TObject);
 begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
+
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -2057,7 +2510,7 @@ begin
   setErrorMode(errormode or SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
 
 
-  foundlist:=tfoundlist.create(foundlist3,foundcountlabel);
+
 
   actScriptEngine.ShortCut := TextToShortCut('Ctrl+Shift+C');
 
@@ -2089,7 +2542,15 @@ begin
   tempbitmap := TBitmap.Create;
 
   scanvalue.Text := '';
-  Windows.OnClick(Windows);
+{$ifdef cpu64}
+  FromAddress.text:='0000000000000000';
+  ToAddress.text:='7fffffffffffffff';
+{$else}
+  FromAddress.text:='00000000';
+  ToAddress.text:='7fffffff';
+{$endif}
+
+
   isbit := False;
 
   old8087CW := Get8087CW;
@@ -2131,7 +2592,6 @@ begin
   button1.Left := clientwidth - button1.Width;
   commentbutton.left := clientwidth - commentbutton.Width;
   logopanel.left := clientwidth - logopanel.Width;
-  speedbutton4.Left := clientwidth - speedbutton4.Width;
   progressbar1.Width := progressbar1.Width - differentwidth;
   undoscan.left := undoscan.left - differentwidth;
 
@@ -2813,6 +3273,9 @@ begin
   HexadecimalCheckbox.visible:=hexvis;
   rbdec.visible:=decbitvis;
   rbbit.Visible:=decbitvis;
+
+
+
   cbunicode.Visible:=unicodevis;
 
   cbCaseSensitive.visible:=casevis;
@@ -2832,6 +3295,10 @@ begin
     panel5.Controls[i].Invalidate;
   end;
 
+
+  if decbitvis then
+    HexadecimalCheckbox.visible:=false;
+
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
@@ -2845,30 +3312,12 @@ end;
 
 procedure TMainForm.WindowsClick(Sender: TObject);
 begin
-  if Is64BitProcess(getcurrentprocess) then
-  begin
-    FromAddress.Text := '0000000000000000';
-    ToAddress.Text := '7FFFFFFFFFFFFFFF';
-  end
-  else
-  begin
-    FromAddress.Text := '00000000';
-    ToAddress.Text := '7FFFFFFF';
-  end;
+
 end;
 
 procedure TMainForm.rbAllMemoryClick(Sender: TObject);
 begin
-  if Is64BitProcess(getcurrentprocess) then
-  begin
-    FromAddress.Text := '0000000000000000';
-    ToAddress.Text := 'FFFFFFFFFFFFFFFF';
-  end
-  else
-  begin
-    FromAddress.Text := '00000000';
-    ToAddress.Text := 'FFFFFFFF';
-  end;
+
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -3614,11 +4063,14 @@ begin
 
   //SMenu:=GetSystemMenu(handle,false);
 
-  //don't put this in oncreate, just don't
+
 
   if memscan=nil then
     memscan:=tmemscan.create(progressbar1);
 
+  foundlist:=tfoundlist.create(foundlist3,foundcountlabel,memscan);
+
+  //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
   FileAccessTest;
@@ -3774,8 +4226,7 @@ end;
 
 procedure TMainForm.btnShowRegionsClick(Sender: TObject);
 begin
-  formmemoryregions:=tformmemoryregions.Create(self);
-  formmemoryregions.showmodal;
+
 end;
 
 
@@ -4310,49 +4761,19 @@ end;
 
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var l: tstringlist;
-x: pbytearray;
+var r: trect;
 begin
-  asm
-    db $66,$44,$89,$b3,$92,0,0,0
+  caption:=inttostr(foundlist3.ItemIndex);
 
-  end;
-  //ReturnNilIfGrowHeapFails:=true;
-  (*
-
-  x:=getmem(512*1024*1024);
-
-  if x<>nil then
-  begin
-    FillMemory(x, 512*1024*1024,$90);
-    showmessage('allocated');
-  end;
-  exit;  *)
-
-//  l:=tstringlist.create;
-//  symhandler.getModuleList(l);
-//  showmessage(l.text);
+  foundlist3.items[foundlist3.ItemIndex].MakeVisible(false);
+//  foundlist3.TopItem:=nil;
 end;
 
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
   lparam: thandle); stdcall;
-var
-  iconRSRC: HRSRC;
-  iconG: HGLOBAL;
-  resSize: integer;
-  p: pointer;
 begin
-  iconRSRC := FindResource(hModule, resName, resType);
-  resSize := SizeofResource(hModule, iconRSRC);
-  iconG := LoadResource(hModule, iconRSRC);
-  p := LockResource(iconG);
 
-  //  nvoke UpdateResource,hUpdate,lpszType,lpszName,ecx,pData,nSizeOfRes
-  //;invoke FreeResource,hResLoaded
-  //mov eax,TRUE
-
-  UpdateResource(lParam, restype, resName, 1030, p, resSize);
 
 end;
 
@@ -4440,8 +4861,12 @@ var
 begin
   foundlist.Deinitialize; //unlock file handles
 
+
   if button2.tag=0 then
   begin
+    if ScanTabList<>nil then
+      ScanTabList.Enabled:=false;
+
     progressbar1.min:=0;
     progressbar1.max:=1000;
     progressbar1.position:=0;
@@ -4482,6 +4907,9 @@ var
   i: integer;
   canceled: boolean;
 begin
+  if ScanTabList<>nil then
+    ScanTabList.enabled:=true;
+
   i:=0;
   canceled:=false;
 

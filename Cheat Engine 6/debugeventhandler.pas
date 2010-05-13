@@ -587,7 +587,7 @@ var
   i: integer;
 
 begin
-
+  OutputDebugString('HandleDebugEvent:'+inttostr(debugEvent.dwDebugEventCode));
   //find the TDebugThreadHandler class that belongs to this thread
   currentThread := nil;
 

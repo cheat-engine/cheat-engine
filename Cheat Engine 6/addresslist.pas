@@ -828,6 +828,7 @@ var
   oldbrushcolor: TColor;
   pointertag: string;
   oldpenmode: TFPPenMode;
+  oldpencolor: tcolor;
 
   descriptionstart: integer;
 begin
@@ -866,8 +867,16 @@ begin
 
     if memrec.Active then
     begin
-      sender.canvas.Line(checkbox.left,checkbox.Top, checkbox.Right-1,checkbox.bottom-1);
-      sender.canvas.line(checkbox.right-1,checkbox.top, checkbox.left,checkbox.bottom-1);
+      oldpencolor:=sender.canvas.pen.color;
+
+      if memrec.isSelected then
+        sender.canvas.pen.color:=clBlack
+      else
+        sender.canvas.pen.color:=clRed;
+      sender.canvas.Line(checkbox.left+1,checkbox.Top+1, checkbox.Right-1,checkbox.bottom-1);
+      sender.canvas.line(checkbox.right-1-1,checkbox.top+1, checkbox.left,checkbox.bottom-1);
+
+      sender.canvas.pen.color:=oldpencolor;
 
       if memrec.allowIncrease then
       begin
