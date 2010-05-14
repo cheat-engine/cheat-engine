@@ -8396,6 +8396,8 @@ begin
       doc.LoadFromStream(ms);
 
       doc.Active;
+
+
       CheatTable:=doc.ChildNodes.FindNode('CheatTable');
       if cheattable<>nil then
       begin
@@ -8404,11 +8406,56 @@ begin
         begin
           k:=entries.ChildNodes.Count;
           setlength(temprec, k);
-          for i:=0 to k-1 do
-          begin
-            CheatEntry:=entries.ChildNodes[i];
 
-            temprec[i]:=GetmemrecFromXMLNode(CheatEntry);
+          if k>0 then
+          begin
+            //valid table
+            frmPasteTableentry:=TfrmPasteTableentry.create(self);
+            try
+              if not simplecopypaste then
+                if frmpastetableentry.showmodal=mrcancel then exit;
+
+              replace_find:=frmpastetableentry.edtFind.text;
+              replace_with:=frmpastetableentry.edtReplace.text;
+              changeoffsetstring:='$'+stringreplace(frmpastetableentry.edtOffset.Text,'-','-$',[rfReplaceAll]);
+              changeoffsetstring:=stringreplace(changeoffsetstring,'$-','-',[rfReplaceAll]);
+              try
+                changeoffset:=strtoint(changeoffsetstring);
+              except
+                changeoffset:=0;
+              end;
+
+            finally
+              freeandnil(frmPasteTableentry);
+            end;
+
+
+
+            for i:=0 to k-1 do
+            begin
+              CheatEntry:=entries.ChildNodes[i];
+
+              temprec[i]:=GetmemrecFromXMLNode(CheatEntry);
+
+              if not simplecopypaste then
+              begin
+                if replace_find<>'' then
+                  temprec[i].Description:=stringreplace(temprec[i].Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
+
+                temprec[i].Address:=temprec[i].address+changeoffset;
+                if temprec[i].interpretableaddress<>'' then
+                begin
+                  try
+                    x:=symhandler.getAddressFromName(temprec[i].interpretableaddress);
+                    x:=x+changeoffset;
+                    temprec[i].interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+                  except
+                    temprec[i].interpretableaddress:=inttohex(temprec[i].Address,8);
+                  end;
+                end;
+              end;
+
+            end;
           end;
         end;
       end;
