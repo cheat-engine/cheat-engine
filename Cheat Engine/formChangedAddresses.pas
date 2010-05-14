@@ -40,7 +40,8 @@ implementation
 
 {$R *.dfm}
 
-uses debugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit;
+uses debugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, kerneldebugger,
+  formsettingsunit;
 
 procedure TfrmChangedAddresses.OKButtonClick(Sender: TObject);
 var temp: dword;
@@ -48,32 +49,41 @@ var temp: dword;
 begin
   if OKButton.caption='Stop' then
   begin
-    if WaitForSingleObject(semaphore,10000)=WAIT_FAILED then
-      raise exception.Create('OMG! I can''t stop it!');
+    if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
+    begin
+      //kernelmode stop
+      KDebugger.DisableAllBreakpoints;  //todo: Make this only disable the related breakpoints
+    end
+    else
+    begin
+      if WaitForSingleObject(semaphore,10000)=WAIT_FAILED then
+        raise exception.Create('OMG! I can''t stop it!');
 
-    try
-      if debuggerthread=nil then exit;
+      try
 
-      debuggerthread.Suspend;
-      debuggerthread.breakpointset:=false;
 
-      zeromemory(@debuggerthread.DRRegs,sizeof(debuggerthread.DRRegs));
-      debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-      debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
+        debuggerthread.Suspend;
+        debuggerthread.breakpointset:=false;
 
-      with debuggerthread do
-      for i:=0 to length(threadlist)-1 do
-      begin
-        suspendthread(threadlist[i,1]);
-        setthreadcontext(threadlist[i,1],DRRegs);
-        resumethread(threadlist[i,1]);
+        zeromemory(@debuggerthread.DRRegs,sizeof(debuggerthread.DRRegs));
+        debuggerthread.DRRegs.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+        debuggerthread.DRRegs.Dr7:=reg0set or reg1set or reg2set or reg3set;
+
+        with debuggerthread do
+        for i:=0 to length(threadlist)-1 do
+        begin
+          suspendthread(threadlist[i,1]);
+          setthreadcontext(threadlist[i,1],DRRegs);
+          resumethread(threadlist[i,1]);
+        end;
+
+        debuggerthread.Resume;
+
+      finally
+        releasesemaphore(semaphore,1,nil);
       end;
-
-      debuggerthread.Resume;
-
-    finally
-      releasesemaphore(semaphore,1,nil);
     end;
+
 
     okButton.Caption:='Close';
   end else close;
