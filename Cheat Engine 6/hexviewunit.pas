@@ -985,7 +985,8 @@ var
 
   i,j: integer;
   x: word;
-  cheader, bheader: string;
+  cheader: string; //header for the char part
+  bheader: string; //header for the byte part
   bytepos: integer;
   initialoffset: byte;
   seperators: array of integer;
@@ -1008,10 +1009,10 @@ begin
   for i:=0 to bytesperline-1 do
   begin
     case displayType of
-      dtByte: bheader:=bHeader+inttohex(initialoffset+i,2)+' ';
-      dtWord: if (i mod 2)=0 then bheader:=bHeader+inttohex(initialoffset+i,2)+' ' else bheader:=bHeader+'   ';
-      dtDWord,dtDwordDec,dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(initialoffset+i,2)+' ' else bheader:=bHeader+'   ';
-      dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(initialoffset+i,2)+' ' else bheader:=bHeader+'   ';
+      dtByte: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ';
+      dtWord: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtDWord,dtDwordDec,dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
     end;
 
     cheader:=cheader+inttohex((initialoffset+i) and $f,1);

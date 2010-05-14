@@ -74,9 +74,8 @@ object frmChangedAddresses: TfrmChangedAddresses
         Width = 123
       end    
       item
-        AutoSize = True
         Caption = 'Value'
-        Width = 100
+        Width = 200
       end>
     ItemIndex = -1
     PopupMenu = PopupMenu1

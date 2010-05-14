@@ -4,7 +4,7 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   'TPF0'#9'TMainForm'#8'MainForm'#3'Tag'#2#2#4'Left'#3#11#2#6'Height'#3'4'#2#4
   +'Hint'#6#1' '#3'Top'#3#1#1#5'Width'#3#24#2#11'HelpContext'#2#3#21'HorzScroll'
   +'Bar.Visible'#8#21'VertScrollBar.Visible'#8#14'AllowDropFiles'#9#7'Caption'#6
-  +#16'Cheat Engine 6.0'#12'ClientHeight'#3' '#2#11'ClientWidth'#3#24#2#11'Font'
+  +#16'Cheat Engine 6.0'#12'ClientHeight'#3#27#2#11'ClientWidth'#3#24#2#11'Font'
   +'.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7'On'
   +'Close'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10
   +'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#11'OnDropFiles'#7#13'FormDropFil'
@@ -13,10 +13,10 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#6'Height'#2#7#3'Top'#3'Y'#1#5'Width'#3#24#2#5'Align'#7#5'alTop'#8'AutoSnap'
   +#8#7'Beveled'#9#7'MinSize'#2'2'#11'OnCanResize'#7#18'Splitter1CanResize'#7'O'
   +'nMoved'#7#14'Splitter1Moved'#12'ResizeAnchor'#7#5'akTop'#0#0#6'TPanel'#6'Pa'
-  +'nel1'#3'Tag'#3#9#3#4'Left'#2#0#6'Height'#3#175#0#3'Top'#3'`'#1#5'Width'#3#24
+  +'nel1'#3'Tag'#3#9#3#4'Left'#2#0#6'Height'#3#170#0#3'Top'#3'`'#1#5'Width'#3#24
   +#2#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#11'BorderWidth'#2#1#11
   +'FullRepaint'#8#9'PopupMenu'#7#10'PopupMenu2'#8'TabOrder'#2#0#0#0#6'TPanel'#6
-  +'Panel4'#4'Left'#2#0#6'Height'#2#17#3'Top'#3#15#2#5'Width'#3#24#2#5'Align'#7
+  +'Panel4'#4'Left'#2#0#6'Height'#2#17#3'Top'#3#10#2#5'Width'#3#24#2#5'Align'#7
   +#8'alBottom'#12'ClientHeight'#2#17#11'ClientWidth'#3#24#2#8'TabOrder'#2#1#0#6
   +'TLabel'#6'Label7'#4'Left'#3#158#0#6'Height'#2#14#4'Hint'#6#31'Click here to'
   +' change the hotkey'#3'Top'#2#2#5'Width'#3#230#0#9'Alignment'#7#8'taCenter'#7
@@ -164,21 +164,21 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'rentColor'#8#7'Visible'#8#7'OnClick'#7#12'Label59Click'#0#0#6'TLabel'#7'Lab'
   +'el61'#4'Left'#3'p'#1#6'Height'#2#14#3'Top'#3'@'#1#5'Width'#2''''#7'Caption'
   +#6#7'Label61'#11'ParentColor'#8#7'Visible'#8#7'OnClick'#7#12'Label61Click'#0
-  +#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#174#1#6'Height'#2#17#4'Hint'#6#16
-  +'Enable speedhack'#3'Top'#3#194#0#5'Width'#2'm'#7'Anchors'#11#5'akTop'#7'akR'
+  +#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#168#1#6'Height'#2#23#4'Hint'#6#16
+  +'Enable speedhack'#3'Top'#3#194#0#5'Width'#2's'#7'Anchors'#11#5'akTop'#7'akR'
   +'ight'#0#7'Caption'#6#16'Enable Speedhack'#7'Enabled'#8#7'OnClick'#7#16'cbSp'
   +'eedhackClick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#24#7'Visible'
   +#8#0#0#7'TButton'#7'NewScan'#4'Left'#3#213#0#6'Height'#2#25#3'Top'#2'0'#5'Wi'
   +'dth'#2'A'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#10'First Scan'#7
   +'Enabled'#8#7'OnClick'#7#12'NewScanClick'#14'ParentShowHint'#8#8'TabOrder'#2
-  +#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#181#1#6'Height'#2#17#3'Top'#3#128
-  +#0#5'Width'#2':'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#7'Unicode'
+  +#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#175#1#6'Height'#2#23#3'Top'#3#128
+  +#0#5'Width'#2'@'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#7'Unicode'
   +#8'TabOrder'#2#17#7'Visible'#8#0#0#9'TGroupBox'#9'GroupBox1'#4'Left'#3#221#0
   +#6'Height'#3#140#0#3'Top'#3#168#0#5'Width'#3#202#0#7'Anchors'#11#5'akTop'#7
-  +'akRight'#0#7'Caption'#6#19'Memory Scan Options'#12'ClientHeight'#2'z'#11'Cl'
+  +'akRight'#0#7'Caption'#6#19'Memory Scan Options'#12'ClientHeight'#2'v'#11'Cl'
   +'ientWidth'#3#198#0#5'Color'#7#9'clBtnFace'#7'Enabled'#8#11'ParentColor'#8#8
-  +'TabOrder'#2#0#0#9'TCheckBox'#8'Readonly'#4'Left'#2#3#6'Height'#2#17#3'Top'#2
-  +'-'#5'Width'#3#149#0#7'Caption'#6#26'Also scan read-only memory'#7'Enabled'#8
+  +'TabOrder'#2#0#0#9'TCheckBox'#8'Readonly'#4'Left'#2#3#6'Height'#2#23#3'Top'#2
+  +'-'#5'Width'#3#155#0#7'Caption'#6#26'Also scan read-only memory'#7'Enabled'#8
   +#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#10'ParentFont'#8#8'T'
   +'abOrder'#2#2#0#0#5'TMemo'#11'FromAddress'#4'Left'#2')'#6'Height'#2#21#3'Top'
   +#2#0#5'Width'#3#153#0#9'Alignment'#7#14'taRightJustify'#7'Enabled'#8#12'Font'
@@ -193,11 +193,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'gs'#1#6#8'7FFFFFFF'#0#9'MaxLength'#2#8#10'OnKeyPress'#7#15'AddressKeyPress'
   +#10'ParentFont'#8#9'PopupMenu'#7#10'emptypopup'#8'TabOrder'#2#1#11'WantRetur'
   +'ns'#8#8'WordWrap'#8#0#0#9'TCheckBox'#10'cbFastScan'#4'Left'#2#3#6'Height'#2
-  ,#17#3'Top'#2'D'#5'Width'#2'@'#7'Caption'#6#9'Fast scan'#7'Checked'#9#7'Enabl'
+  ,#23#3'Top'#2'D'#5'Width'#2'F'#7'Caption'#6#9'Fast scan'#7'Checked'#9#7'Enabl'
   +'ed'#8#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClick'#7#15
   +'cbFastScanClick'#10'ParentFont'#8#5'State'#7#9'cbChecked'#8'TabOrder'#2#3#0
-  +#0#9'TCheckBox'#20'cbPauseWhileScanning'#4'Left'#2#3#6'Height'#2#17#3'Top'#2
-  +'['#5'Width'#3#168#0#7'Caption'#6#29'Pause the game while scanning'#7'Enable'
+  +#0#9'TCheckBox'#20'cbPauseWhileScanning'#4'Left'#2#3#6'Height'#2#23#3'Top'#2
+  +'['#5'Width'#3#174#0#7'Caption'#6#29'Pause the game while scanning'#7'Enable'
   +'d'#8#7'OnClick'#7#25'cbPauseWhileScanningClick'#8'TabOrder'#2#4#0#0#6'TLabe'
   +'l'#6'Label1'#4'Left'#2#6#6'Height'#2#14#3'Top'#2#3#5'Width'#2#23#7'Caption'
   +#6#5'Start'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#6#6'Height'#2
@@ -229,9 +229,9 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#2'\'#6'Height'#2#16#4'Hint'#6'1This shows how far Cheat Engine is with sear'
   +'ching'#3'Top'#2#14#5'Width'#3#141#1#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRi'
   +'ght'#0#14'ParentShowHint'#8#8'ShowHint'#9#4'Step'#2#1#8'TabOrder'#2#9#0#0#9
-  +'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#207#0#6'Height'#2#17#4'Hint'#6
+  +'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#201#0#6'Height'#2#23#4'Hint'#6
   +'1When checked the value you type in is hexadecimal'#3'Top'#2'`'#5'Width'#2
-  +'%'#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#3'H'
+  +'+'#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#3'H'
   +'ex'#7'Enabled'#8#7'OnClick'#7#24'HexadecimalCheckboxClick'#14'ParentShowHin'
   +'t'#8#8'ShowHint'#9#8'TabOrder'#2#10#0#0#7'TButton'#8'UndoScan'#4'Left'#3#168
   +#1#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'A'#7'Anchors'#11#5'akTop'#7'akRight'
@@ -246,7 +246,7 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#0#6'Height'#2#21#3'Top'#2'`'#5'Width'#3#27#1#7'Anchors'#11#5'akTop'#7'akRig'
   +'ht'#0#7'Enabled'#8#10'OnKeyPress'#7#20'ScanvalueoldKeyPress'#9'PopupMenu'#7
   +#7'ccpmenu'#8'TabOrder'#2#4#0#0#9'TCheckBox'#15'cbCaseSensitive'#4'Left'#3
-  +#177#1#6'Height'#2#17#3'Top'#3#146#0#5'Width'#2'V'#7'Anchors'#11#5'akTop'#7
+  +#171#1#6'Height'#2#23#3'Top'#3#146#0#5'Width'#2'\'#7'Anchors'#11#5'akTop'#7
   +'akRight'#0#7'Caption'#6#14'Case sensitive'#7'Checked'#9#7'Enabled'#8#7'OnCl'
   +'ick'#7#20'cbCaseSensitiveClick'#14'ParentShowHint'#8#8'ShowHint'#9#5'State'
   +#7#9'cbChecked'#8'TabOrder'#2#13#7'Visible'#8#0#0#9'TListView'#10'Foundlist3'
@@ -322,11 +322,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'TabOrder'#2#0#7'TabStop'#8#0#0#12'TRadioButton'#3'rt2'#4'Left'#2#4#6'Height'
   +#2#19#3'Top'#2#17#5'Width'#2'r'#8'AutoSize'#8#7'Caption'#6#17'Rounded (extre'
   ,'me)'#8'TabOrder'#2#1#7'TabStop'#8#0#0#0#9'TCheckBox'#14'cbUnrandomizer'#4'L'
-  +'eft'#3#174#1#6'Height'#2#17#3'Top'#3#174#0#5'Width'#2'S'#7'Anchors'#11#5'ak'
+  +'eft'#3#168#1#6'Height'#2#23#3'Top'#3#174#0#5'Width'#2'Y'#7'Anchors'#11#5'ak'
   +'Top'#7'akRight'#0#7'Caption'#6#12'Unrandomizer'#7'Enabled'#8#7'OnClick'#7#19
   +'cbUnrandomizerClick'#11'OnMouseDown'#7#23'cbUnrandomizerMouseDown'#8'TabOrd'
-  +'er'#2#18#0#0#9'TCheckBox'#6'mode16'#4'Left'#2'`'#6'Height'#2#17#3'Top'#3'@'
-  +#1#5'Width'#2'8'#7'Caption'#6#6'mode16'#8'TabOrder'#2#19#7'Visible'#8#0#0#7
+  +'er'#2#18#0#0#9'TCheckBox'#6'mode16'#4'Left'#2'`'#6'Height'#2#23#3'Top'#3'@'
+  +#1#5'Width'#2'>'#7'Caption'#6#6'mode16'#8'TabOrder'#2#19#7'Visible'#8#0#0#7
   +'TButton'#7'Button2'#4'Left'#3#199#0#6'Height'#2#25#3'Top'#2' '#5'Width'#2'K'
   +#7'Caption'#6#11'First Scan2'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#20
   +#7'Visible'#8#0#0#7'TButton'#7'Button4'#4'Left'#3' '#1#6'Height'#2#25#3'Top'

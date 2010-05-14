@@ -3687,7 +3687,7 @@ returns the entry number of the new addresses (first one)
 var s: string;
 begin
   s:=clipboard.AsText;
-  addresslist.AddTableXMLAsText(s);
+  addresslist.AddTableXMLAsText(s,simplecopypaste);
 end;
 
 procedure TMainForm.Copy1Click(Sender: TObject);

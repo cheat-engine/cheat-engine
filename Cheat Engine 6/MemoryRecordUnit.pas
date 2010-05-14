@@ -787,7 +787,7 @@ begin
       vtDword: pdw^:=strtoint(FrozenValue);
       vtQword: pqw^:=strtoint64(FrozenValue);
       vtSingle: ps^:=StrToFloat(FrozenValue);
-      vtDouble: ps^:=StrToFloat(FrozenValue);
+      vtDouble: pd^:=StrToFloat(FrozenValue);
       vtBinary:
       begin
         if not Extra.bitData.showasbinary then

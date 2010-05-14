@@ -65,11 +65,14 @@ begin
   if frmEnumerateDLLs<>nil then
     frmEnumerateDLLs.button2.visible:=false
   else canceled:=true;
+
+  if x<>nil then frmEnumerateDLLs.treeview1.EndUpdate;
 end;
 
 procedure tenumthread.addsymbol;
 var i: integer;
 begin
+
   if frmEnumerateDLLs<>nil then
   begin
     for i:=1 to symbolcount do
@@ -83,7 +86,10 @@ procedure tenumthread.AddModule;
 begin
   if frmEnumerateDLLs<>nil then
   begin
+    if x<>nil then frmEnumerateDLLs.treeview1.EndUpdate;
+
     x:=frmEnumerateDLLs.treeview1.items.add(nil,moduletext);
+    frmEnumerateDLLs.treeview1.BeginUpdate;
   end else canceled:=true;
 end;
 

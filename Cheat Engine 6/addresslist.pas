@@ -7,7 +7,7 @@ interface
 uses
   Windows, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
-  XMLRead,XMLWrite;
+  XMLRead,XMLWrite, symbolhandler;
 
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
@@ -50,7 +50,7 @@ type
     procedure saveTableXMLToNode(CheatEntries: TDOMNode; selectedOnly: boolean=false);
     procedure loadTableXMLFromNode(CheatEntries: TDOMNode);
     function GetTableXMLAsText(selectedonly: boolean): string;
-    procedure AddTableXMLAsText(xml: string);
+    procedure AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
     procedure DeleteSelected(ask: boolean=true);
     procedure ActivateSelected;
     procedure DeactivateSelected;
@@ -80,7 +80,7 @@ type
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup;
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM;
 
 procedure TAddresslist.refresh;
 begin
@@ -277,7 +277,7 @@ begin
   end;
 end;
 
-procedure TAddresslist.AddTableXMLAsText(xml: string);
+procedure TAddresslist.AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
 var doc: TXMLDocument;
     insertafter: TTreenode;
     memrec: TMemoryRecord;
@@ -288,6 +288,13 @@ var doc: TXMLDocument;
     currentEntry: TDOMNode;
 
     s: TStringStream;
+
+    replace_find: string;
+    replace_with: string;
+    changeoffsetstring: string;
+    changeoffset: ptrUint;
+    x: ptrUint;
+
 begin
   doc:=nil;
   s:=nil;
@@ -307,6 +314,30 @@ begin
         if CheatEntries<>nil then
         begin
           currentEntry:=CheatEntries.FirstChild;
+          if currententry<>nil then //valid
+          begin
+            frmPasteTableentry:=TfrmPasteTableentry.create(self);
+            try
+              if not simplecopypaste then
+                if frmpastetableentry.showmodal=mrcancel then exit;
+
+              replace_find:=frmpastetableentry.edtFind.text;
+              replace_with:=frmpastetableentry.edtReplace.text;
+              changeoffsetstring:='$'+stringreplace(frmpastetableentry.edtOffset.Text,'-','-$',[rfReplaceAll]);
+              changeoffsetstring:=stringreplace(changeoffsetstring,'$-','-',[rfReplaceAll]);
+              try
+                changeoffset:=strtoint(changeoffsetstring);
+              except
+                changeoffset:=0;
+              end;
+
+            finally
+              freeandnil(frmPasteTableentry);
+            end;
+
+          end;
+
+
           while currententry<>nil do
           begin
             if tdomelement(currententry).TagName='CheatEntry' then
@@ -320,6 +351,20 @@ begin
 
               //fill the entry with the node info
               memrec.setXMLnode(currentEntry);
+
+              if replace_find<>'' then
+                memrec.Description:=stringreplace(memrec.Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
+
+              if memrec.interpretableaddress<>'' then //always true
+              begin
+                try
+                  x:=symhandler.getAddressFromName(memrec.interpretableaddress);
+                  x:=x+changeoffset;
+                  memrec.interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+                except
+                  memrec.interpretableaddress:=inttohex(memrec.getBaseAddress+changeoffset,8);
+                end;
+              end;
             end;
             currentEntry:=currentEntry.NextSibling;
           end;
