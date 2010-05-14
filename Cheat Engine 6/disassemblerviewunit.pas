@@ -307,6 +307,7 @@ end;
 
 
 procedure TDisassemblerview.WndProc(var msg: TMessage);
+{$ifdef cpu64}
 type
   TWMKey2 = record
     Msg: dword;
@@ -319,6 +320,12 @@ type
 var Shift: TShiftState;
     y: ^TWMKey2;
     x: TWMKey2;
+{$else}
+var Shift: TShiftState;
+    y: ^TWMKey;
+    x: TWMKey;
+{$endif}
+
 begin
   y:=@msg;
   x:=y^;

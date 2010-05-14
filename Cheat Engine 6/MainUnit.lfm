@@ -10,7 +10,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.0'
-  ClientHeight = 539
+  ClientHeight = 544
   ClientWidth = 536
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -40,7 +40,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 170
+    Height = 175
     Top = 352
     Width = 536
     Align = alClient
@@ -53,7 +53,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 17
-    Top = 522
+    Top = 527
     Width = 536
     Align = alBottom
     ClientHeight = 17
@@ -390,11 +390,11 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 424
-      Height = 23
+      Left = 430
+      Height = 17
       Hint = 'Enable speedhack'
       Top = 194
-      Width = 115
+      Width = 109
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
       Enabled = False
@@ -417,10 +417,10 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 431
-      Height = 23
+      Left = 437
+      Height = 17
       Top = 128
-      Width = 64
+      Width = 58
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
       TabOrder = 17
@@ -429,11 +429,11 @@ object MainForm: TMainForm
     object GroupBox1: TGroupBox
       Left = 221
       Height = 140
-      Top = 164
+      Top = 168
       Width = 202
       Anchors = [akTop, akRight]
       Caption = 'Memory Scan Options'
-      ClientHeight = 118
+      ClientHeight = 122
       ClientWidth = 198
       Color = clBtnFace
       Enabled = False
@@ -441,9 +441,9 @@ object MainForm: TMainForm
       TabOrder = 0
       object Readonly: TCheckBox
         Left = 3
-        Height = 23
+        Height = 17
         Top = 45
-        Width = 155
+        Width = 149
         Caption = 'Also scan read-only memory'
         Enabled = False
         Font.Height = -11
@@ -499,9 +499,9 @@ object MainForm: TMainForm
       end
       object cbFastScan: TCheckBox
         Left = 3
-        Height = 23
+        Height = 17
         Top = 68
-        Width = 70
+        Width = 64
         Caption = 'Fast scan'
         Checked = True
         Enabled = False
@@ -514,9 +514,9 @@ object MainForm: TMainForm
       end
       object cbPauseWhileScanning: TCheckBox
         Left = 3
-        Height = 23
+        Height = 17
         Top = 91
-        Width = 174
+        Width = 168
         Caption = 'Pause the game while scanning'
         Enabled = False
         OnClick = cbPauseWhileScanningClick
@@ -641,11 +641,11 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object HexadecimalCheckbox: TCheckBox
-      Left = 201
-      Height = 23
+      Left = 207
+      Height = 17
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
-      Width = 43
+      Width = 37
       HelpContext = 7
       Anchors = [akTop, akRight]
       Caption = 'Hex'
@@ -704,10 +704,10 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 427
-      Height = 23
+      Left = 433
+      Height = 17
       Top = 146
-      Width = 92
+      Width = 86
       Anchors = [akTop, akRight]
       Caption = 'Case sensitive'
       Checked = True
@@ -871,10 +871,10 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 424
-      Height = 23
+      Left = 430
+      Height = 17
       Top = 174
-      Width = 89
+      Width = 83
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
       Enabled = False
@@ -884,17 +884,17 @@ object MainForm: TMainForm
     end
     object mode16: TCheckBox
       Left = 96
-      Height = 23
+      Height = 17
       Top = 320
-      Width = 62
+      Width = 56
       Caption = 'mode16'
       TabOrder = 19
       Visible = False
     end
     object Button2: TButton
-      Left = 176
+      Left = 199
       Height = 25
-      Top = 64
+      Top = 32
       Width = 75
       Caption = 'First Scan2'
       OnClick = Button2Click
@@ -902,9 +902,9 @@ object MainForm: TMainForm
       Visible = False
     end
     object Button4: TButton
-      Left = 264
+      Left = 288
       Height = 25
-      Top = 64
+      Top = 32
       Width = 75
       Caption = 'Next scan 2'
       OnClick = Button4Click

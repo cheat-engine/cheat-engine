@@ -2395,7 +2395,7 @@ procedure TMainForm.Panel5Resize(Sender: TObject);
 begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
-
+  ScanText.left:=scanvalue.left; //lazarus rev  25348 32-bit fix
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -2504,6 +2504,8 @@ var
 
   errormode: dword;
 begin
+
+
   forms.Application.ShowButtonGlyphs:=sbgNever;
   application.OnException := exceptionhandler;
   errormode := SetErrorMode(0);
