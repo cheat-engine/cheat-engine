@@ -42,6 +42,7 @@ uses
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist;
 
 {$R cheatengine.res}
+{$R manifest.res}
 
 
 begin
