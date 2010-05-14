@@ -79,6 +79,7 @@ object frmChangedAddresses: TfrmChangedAddresses
         AutoSize = True
         Caption = 'Value'
       end>
+    ReadOnly = True
     RowSelect = True
     PopupMenu = PopupMenu1
     TabOrder = 1
