@@ -937,7 +937,7 @@ end;
 
 function THexView.getDouble(a: ptrUint): string;
 var
-  d: single;
+  d: double;
   pd: pbytearray;
   err,err2,err3,err4,err5,err6,err7,err8: boolean;
 begin
