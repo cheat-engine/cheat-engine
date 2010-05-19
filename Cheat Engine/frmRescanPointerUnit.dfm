@@ -29,7 +29,6 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 111
     Height = 24
     CharCase = ecUpperCase
-    MaxLength = 8
     TabOrder = 0
   end
   object cbValueType: TComboBox

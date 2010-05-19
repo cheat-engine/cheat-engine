@@ -230,6 +230,7 @@ public:
 class TEventWindow: public TWin
 {
 private:
+	
     friend WNDFN WndProc (Handle, unsigned int, unsigned int, long);
     bool m_do_resize, m_bail_out;
     POINT m_fixed_size;

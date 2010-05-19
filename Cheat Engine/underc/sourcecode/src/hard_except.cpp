@@ -33,12 +33,12 @@ void trans_func( unsigned int u, _EXCEPTION_POINTERS* pExp )
 void UnmaskFPExceptionBits( void )
 {
     unsigned short cw;
-
+	/* dark byte
     __asm   fninit      // Initialize the coprocessor
     __asm   fstcw [cw]
     cw &= 0xFFE0;       // Turn off the most of the exception bits (except the
                         // the precision exception)
-    __asm   fldcw [cw]
+    __asm   fldcw [cw]*/
 
 }
 

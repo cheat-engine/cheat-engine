@@ -57,6 +57,7 @@ typedef int (*CALLFN) (void);
 
 void callfn(CALLFN fn, int args[], int argc, void *optr, int flags, void *buff)
 {
+	/* dark byte
    int sz = sizeof(int)*argc;
   __asm {
     mov ecx, argc
@@ -100,6 +101,7 @@ a_dbl:
     fstp qword ptr[ebx]
 a_finish:
   } 
+  */
 }
 
 
@@ -110,6 +112,7 @@ a_finish:
 static ArgBlock *pArgs;  // only used for type info below!
 
 // *fix 1.2.6 don't use edi! ecx is always safe.
+/*
 PROC(copy_array)
 // edi contains ptr to ArgBlock, eax contains no of args  
   pop [ecx]pArgs.ret_addr   // return addr!
@@ -125,7 +128,7 @@ PROC(copy_array)
   mov esi,[ecx]pArgs.esi_ptr
   push [ecx]pArgs.ret_addr
   ret
-ENDP
+ENDP*/
 
 #else 
 
@@ -871,6 +874,8 @@ void ret(pchar& pc)                 { emit1(pc,(char)0xC3);   }
 
 void *generate_native_stub(Function *pfn)
 {
+	/* dark byte : no native stub in x64
+
 // The stub must copy the arguments by calling copy_array(), and then calls Engine::execute().
   char cde_buff[200];
   Signature *sig = pfn->signature();
@@ -938,6 +943,8 @@ void *generate_native_stub(Function *pfn)
   char *cp = new char[sz+1];
   memcpy(cp,cde_buff,sz+1);
   return cp;
+  */
+	return NULL;
 }
 
 

@@ -639,6 +639,11 @@ begin
             val(newinput,v2,err);
             if err=0 then trainerdata[i].addressentrys[j].valuef:=v2;
 
+            if trainerdata[i].addressentrys[j].memtyp=7 then //string
+            begin
+              setlength(trainerdata[i].addressentrys[j].valuea, length(newinput)+1); //newinput+1 so the 0-terminator is copied
+              copymemory(@trainerdata[i].addressentrys[j].valuea[0], @newinput[1], length(newinput)+1);
+            end;
           end;
 
           VirtualProtectEx(processhandle,  pointer(realaddress),1,PAGE_EXECUTE_READWRITE,original);
@@ -701,7 +706,13 @@ begin
                   WriteProcessMemory(processhandle,pointer(realaddress),@newvalue6,8,bytes);
                 end;
 
-          7,8:  begin  //array of bytes , or array of char
+          7   : begin //string
+
+
+                  writeprocessmemory(processhandle,pointer(realaddress),@trainerdata[i].addressentrys[j].valuea[0],min(length(trainerdata[i].addressentrys[j].valuea),trainerdata[i].addressentrys[j].valuelength),bytes);
+                end;
+
+          8   : begin  //array of bytes
                   writeprocessmemory(processhandle,pointer(realaddress),@trainerdata[i].addressentrys[j].valuea[0],trainerdata[i].addressentrys[j].valuelength,bytes);
                 end;
           end;

@@ -887,7 +887,7 @@ TControl::TControl(TWin *parent, pchar classname, pchar text,int id, long style)
 {
    m_colour = RGB(0,0,0); //RGB(255,255,255);  // shd depend on background!
    m_font = NULL;
-   SetWindowLong(m_hwnd,GWL_USERDATA,(long)this);
+   SetWindowLong(m_hwnd,-21 /*GWL_USERDATA*/,(long)this);
    m_parent = (TEventWindow *)parent;
    //calc_size();
 }
@@ -899,7 +899,7 @@ TControl::~TControl()
 TControl *
 TControl::user_data(Handle handle)
 {
- return (TControl *)GetWindowLong(handle,GWL_USERDATA);
+ return (TControl *)GetWindowLong(handle,-21 /*GWL_USERDATA*/);
 }
 
 void TControl::calc_size()
@@ -981,13 +981,13 @@ TWin * TDialog::field(int id)
 DLGFN DialogProc (HWND hdlg, UINT msg, UINT wParam,LONG lParam)
 {
   int ret;
-  TDialog *This = (TDialog *) GetWindowLong(hdlg,DWL_USER);
+  TDialog *This = (TDialog *) GetWindowLong(hdlg,8/*DWL_USER*/);
 
   switch (msg)
   {
      case WM_INITDIALOG:
         //..... 'This' pointer passed as param from CreateDialogParam()
-         SetWindowLong(hdlg,DWL_USER,lParam);
+         SetWindowLong(hdlg,8/*DWL_USER*/,lParam);
          This = (TDialog *)lParam;
          if (This->modeless()) hModeless = hdlg;
          This->set(hdlg);
@@ -1017,7 +1017,7 @@ DLGFN DialogProc (HWND hdlg, UINT msg, UINT wParam,LONG lParam)
 }
 
 
-WNDFN WndProc (HWND hwnd, UINT msg, UINT wParam,LONG lParam);
+WNDFN WndProc (HWND hwnd, UINT msg, WPARAM wParam,LPARAM lParam);
 
 
 //----------------Window Registration----------------------
@@ -1078,7 +1078,8 @@ int PASCAL WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 typedef void *PVOID;
 
-WNDFN WndProc (HWND hwnd, UINT msg, UINT wParam,LONG lParam)
+WNDFN WndProc (HWND hwnd, UINT msg, WPARAM wParam,LPARAM lParam)
+
 //----------------------------------------------------------------------------
 {
 //  static SWin w;
@@ -1207,7 +1208,7 @@ WNDFN WndProc (HWND hwnd, UINT msg, UINT wParam,LONG lParam)
   #ifdef _WIN32
   case WM_CTLCOLORSTATIC:
     {
-     TControl *ctl = (TControl *)GetWindowLong((HWND)lParam,GWL_USERDATA);
+     TControl *ctl = (TControl *)GetWindowLong((HWND)lParam,-21 /*GWL_USERDATA*/);
      SetBkColor((HDC)wParam, (COLORREF)This->m_bk_color);
      SetTextColor((HDC)wParam, ctl->get_colour());
     }
