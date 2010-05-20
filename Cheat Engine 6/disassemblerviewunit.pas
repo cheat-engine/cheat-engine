@@ -551,7 +551,7 @@ begin
 
     while currenttop<offscreenbitmap.Height do
     begin
-      if i>=disassemblerlines.Count then //add a new line
+      while i>=disassemblerlines.Count do //add a new line
         disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
 
       currentline:=disassemblerlines[i];

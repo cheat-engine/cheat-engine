@@ -4741,7 +4741,8 @@ end;
 
 procedure TMainForm.UpdateFoundlisttimerTimer(Sender: TObject);
 begin
-  foundlist.RefetchValueList;
+  if foundlist<>nil then
+    foundlist.RefetchValueList;
 end;
 
 procedure TMainForm.Foundlist3KeyDown(Sender: TObject; var Key: word;
