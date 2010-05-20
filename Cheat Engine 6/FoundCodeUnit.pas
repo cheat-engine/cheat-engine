@@ -14,7 +14,7 @@ type Tcoderecord = class
   size: integer;
   opcode: string;
   description: string;
-  eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
+ // eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
   context: TContext;
 end;
 
@@ -123,11 +123,22 @@ var disassembled: array[1..5] of string;
     address: ptrUint;
     itemindex: integer;
     temp,temp2: string;
-    max: dword;
-    p: dword;
+    maxregistervalue: ptrUint;
+    p: ptrUint;
     i: integer;
     coderecord: TCodeRecord;
     firstchar: string;
+
+    r8label: tlabel;
+    r9label: tlabel;
+    r10label: tlabel;
+    r11label: tlabel;
+    r12label: tlabel;
+    r13label: tlabel;
+    r14label: tlabel;
+    r15label: tlabel;
+
+    w: integer;
 begin
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
@@ -209,9 +220,67 @@ begin
       label15.caption:=firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},8);
 
       {$ifdef cpu64}
-      //r8
-      //r9
-      //...
+      if processhandler.is64bit then
+      begin
+        r8label:=tlabel.Create(FormFoundCodeListExtra);
+        r8label.font:=label9.font;
+        r8label.Top:=label8.top+(label8.top-label7.top);
+        r8label.left:=label9.left;
+        r8label.caption:=' R8='+IntToHex(coderecord.context.r8,8);
+        r8label.parent:=FormFoundCodeListExtra;
+
+        r9label:=tlabel.Create(FormFoundCodeListExtra);
+        r9label.font:=label9.font;
+        r9label.Top:=label8.top+(label8.top-label7.top);
+        r9label.left:=label14.left;
+        r9label.caption:=' R9='+IntToHex(coderecord.context.r9,8);
+        r9label.parent:=FormFoundCodeListExtra;
+
+        r10label:=tlabel.Create(FormFoundCodeListExtra);
+        r10label.font:=label9.font;
+        r10label.Top:=label8.top+(label8.top-label7.top);
+        r10label.left:=label15.left;
+        r10label.caption:='R10='+IntToHex(coderecord.context.r10,8);
+        r10label.parent:=FormFoundCodeListExtra;
+
+        r11label:=tlabel.Create(FormFoundCodeListExtra);
+        r11label.font:=label9.font;
+        r11label.Top:=r8label.top+(label8.top-label7.top);
+        r11label.left:=label9.left;
+        r11label.caption:='R11='+IntToHex(coderecord.context.r11,8);
+        r11label.parent:=FormFoundCodeListExtra;
+
+        r12label:=tlabel.Create(FormFoundCodeListExtra);
+        r12label.font:=label9.font;
+        r12label.Top:=r8label.top+(label8.top-label7.top);
+        r12label.left:=label14.left;
+        r12label.caption:='R12='+IntToHex(coderecord.context.r12,8);
+        r12label.parent:=FormFoundCodeListExtra;
+
+        r13label:=tlabel.Create(FormFoundCodeListExtra);
+        r13label.font:=label9.font;
+        r13label.Top:=r8label.top+(label8.top-label7.top);
+        r13label.left:=label15.left;
+        r13label.caption:='R13='+IntToHex(coderecord.context.r13,8);
+        r13label.parent:=FormFoundCodeListExtra;
+
+        r14label:=tlabel.Create(FormFoundCodeListExtra);
+        r14label.font:=label9.font;
+        r14label.Top:=r11label.top+(label8.top-label7.top);
+        r14label.left:=label9.left;
+        r14label.caption:='R14='+IntToHex(coderecord.context.r14,8);
+        r14label.parent:=FormFoundCodeListExtra;
+
+        r15label:=tlabel.Create(FormFoundCodeListExtra);
+        r15label.font:=label9.font;
+        r15label.Top:=r11label.top+(label8.top-label7.top);
+        r15label.left:=label14.left;
+        r15label.caption:='R15='+IntToHex(coderecord.context.r15,8);
+        r15label.parent:=FormFoundCodeListExtra;
+
+
+        height:=height+(r15label.top+r15label.height)-(label14.top+label14.height);
+      end;
       {$endif}
       label6.Caption:=coderecord.description;
     end;
@@ -219,20 +288,38 @@ begin
     //parse the disassembled[3] string to help the user find the pointer
     //first find the [xxx]
 
-    temp:=copy(disassembled[3],pos('[',disassembled[3])+1,(pos(']',disassembled[3])-1)-(pos('[',disassembled[3])));
+    temp:=lowercase(copy(disassembled[3],pos('[',disassembled[3])+1,(pos(']',disassembled[3])-1)-(pos('[',disassembled[3]))));
+    firstchar:=lowercase(firstchar);
+
+    maxregistervalue:=0;
+
     if temp<>'' then
     begin
       //parse
       //find the biggest value, registers or exact value
-      max:=0;
-      if pos(firstchar+'ax',temp)>0 then if coderecord.eax>max then max:=coderecord.eax;
-      if pos(firstchar+'bx',temp)>0 then if coderecord.ebx>max then max:=coderecord.ebx;
-      if pos(firstchar+'cx',temp)>0 then if coderecord.ecx>max then max:=coderecord.ecx;
-      if pos(firstchar+'dx',temp)>0 then if coderecord.edx>max then max:=coderecord.edx;
-      if pos(firstchar+'di',temp)>0 then if coderecord.edi>max then max:=coderecord.edi;
-      if pos(firstchar+'si',temp)>0 then if coderecord.esi>max then max:=coderecord.esi;
-      if pos(firstchar+'bp',temp)>0 then if coderecord.ebp>max then max:=coderecord.ebp;
-      if pos(firstchar+'sp',temp)>0 then if coderecord.esp>max then max:=coderecord.esp;
+
+
+      if pos(firstchar+'ax',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif});
+      if pos(firstchar+'bx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif});
+      if pos(firstchar+'cx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif});
+      if pos(firstchar+'dx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif});
+      if pos(firstchar+'di',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif});
+      if pos(firstchar+'si',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif});
+      if pos(firstchar+'bp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif});
+      if pos(firstchar+'sp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif});
+      {$ifdef cpu64}
+      if processhandler.is64Bit then
+      begin
+        if pos('r8',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r8);
+        if pos('r9',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r9);
+        if pos('r0',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r10);
+        if pos('r1',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r11);
+        if pos('r2',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r12);
+        if pos('r3',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r13);
+        if pos('r4',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r14);
+        if pos('r5',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r15);
+      end;
+      {$endif}
 
       //the offset is always at the end, so read from back to front
       temp2:='';
@@ -241,24 +328,23 @@ begin
 
       if temp2<>'' then //I know this isn't completly correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
       begin
-        p:=StrToInt('$'+temp2);
-        if p>max then max:=p;
+        p:=StrToInt64('$'+temp2);
+        if p>maxregistervalue then maxregistervalue:=p;
       end;
 
-      formfoundcodelistextra.probably:=max;
+      formfoundcodelistextra.probably:=maxregistervalue;
     end else formfoundcodelistextra.label17.caption:='';
 
 
-    maX:=formfoundcodelistextra.width;
-    if formfoundcodelistextra.label1.width>max then max:=formfoundcodelistextra.label1.width;
-    if formfoundcodelistextra.label2.width>max then max:=formfoundcodelistextra.label2.width;
-    if formfoundcodelistextra.label3.width>max then max:=formfoundcodelistextra.label3.width;
-    if formfoundcodelistextra.label4.width>max then max:=formfoundcodelistextra.label4.width;
-    if formfoundcodelistextra.label5.width>max then max:=formfoundcodelistextra.label5.width;
- //   if formfoundcodelistextra.Label17.width>max then max:=formfoundcodelistextra.Label17.width;
+    w:=formfoundcodelistextra.width;
+    w:=max(w,formfoundcodelistextra.label1.width);
+    w:=max(w,formfoundcodelistextra.label2.width);
+    w:=max(w,formfoundcodelistextra.label3.width);
+    w:=max(w,formfoundcodelistextra.label4.width);
+    w:=max(w,formfoundcodelistextra.label5.width);
 
-    if max<>formfoundcodelistextra.Width then
-      formfoundcodelistextra.Width:=max+5;
+    if w<>formfoundcodelistextra.Width then
+      formfoundcodelistextra.Width:=w+5;
 
 
     formfoundcodelistextra.context:=coderecord.context;

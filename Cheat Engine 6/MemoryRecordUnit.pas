@@ -867,10 +867,11 @@ begin
 
     //find what writes to the address pointer at by this pointer
     realaddress2:=BaseAddress;
-    for i:=0 to length(pointeroffsets)-1 do
+    for i:=length(pointeroffsets)-1 downto 0 do
     begin
+      realaddress:=0;
       check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
-      if check and (count=sizeof(PtrUInt)) then
+      if check and (count=processhandler.pointersize) then
         realaddress2:=realaddress+pointeroffsets[i]
       else
       begin

@@ -602,15 +602,6 @@ begin
     coderecord.opcode:=opcode;
     coderecord.description:=desc;
 
-    coderecord.eax:=currentdebuggerstate.EAX;
-    coderecord.ebx:=currentdebuggerstate.EBX;
-    coderecord.ecx:=currentdebuggerstate.ECX;
-    coderecord.edx:=currentdebuggerstate.EDX;
-    coderecord.esi:=currentdebuggerstate.Esi;
-    coderecord.edi:=currentdebuggerstate.Edi;
-    coderecord.ebp:=currentdebuggerstate.Ebp;
-    coderecord.esp:=currentdebuggerstate.Esp;
-    coderecord.eip:=currentdebuggerstate.Eip;
     coderecord.context.ContextFlags:=0;
     Foundcodelist.Items.AddObject(opcode,coderecord);
   end;

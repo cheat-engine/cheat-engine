@@ -1,11 +1,11 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 814
-  Height = 335
-  Top = 312
-  Width = 486
+  Left = 850
+  Height = 314
+  Top = 343
+  Width = 472
   Caption = 'Extra info'
-  ClientHeight = 335
-  ClientWidth = 486
+  ClientHeight = 314
+  ClientWidth = 472
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -16,11 +16,11 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 101
     Top = 0
-    Width = 486
+    Width = 472
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 101
-    ClientWidth = 486
+    ClientWidth = 472
     TabOrder = 0
     object Label10: TLabel
       Left = 0
@@ -101,7 +101,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 11
     Top = 101
-    Width = 486
+    Width = 472
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
@@ -110,28 +110,28 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 60
     Top = 112
-    Width = 486
+    Width = 472
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 60
-    ClientWidth = 486
+    ClientWidth = 472
     TabOrder = 2
     object Panel4: TPanel
-      Left = 30
+      Left = 12
       Height = 70
       Top = 0
-      Width = 534
+      Width = 450
       Align = alCustom
       Anchors = [akTop, akLeft, akRight]
       BevelOuter = bvNone
       ClientHeight = 70
-      ClientWidth = 534
+      ClientWidth = 450
       TabOrder = 0
       object Label6: TLabel
         Left = 0
         Height = 16
         Top = 0
-        Width = 534
+        Width = 450
         Align = alTop
         AutoSize = False
         Caption = 'xxx'
@@ -142,7 +142,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 0
         Height = 54
         Top = 16
-        Width = 534
+        Width = 450
         Align = alClient
         AutoSize = False
         Caption = 'yyy'
@@ -155,15 +155,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel5: TPanel
     Left = 0
     Height = 42
-    Top = 293
-    Width = 486
+    Top = 272
+    Width = 472
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 42
-    ClientWidth = 486
+    ClientWidth = 472
     TabOrder = 3
     object Button1: TButton
-      Left = 199
+      Left = 192
       Height = 32
       Top = 5
       Width = 92
@@ -178,13 +178,13 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel6: TPanel
     Left = 0
-    Height = 121
+    Height = 100
     Top = 172
-    Width = 486
+    Width = 472
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 121
-    ClientWidth = 486
+    ClientHeight = 100
+    ClientWidth = 472
     TabOrder = 4
     OnResize = Panel6Resize
     object Label7: TLabel
@@ -297,9 +297,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
     object Label18: TLabel
       Left = 0
-      Height = 21
+      Height = 20
       Top = 76
-      Width = 447
+      Width = 433
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
       Caption = 'The registers shown here are AFTER the instruction has been executed'

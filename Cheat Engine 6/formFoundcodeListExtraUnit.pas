@@ -48,13 +48,13 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
-    fprobably: dword;
+    fprobably: ptrUint;
     fpp: TfrmFloatingPointPanel;
-    procedure setprobably(address:dword);
+    procedure setprobably(address:ptrUint);
   public
     { Public declarations }
     context: Context;
-    property probably: dword read fprobably write setprobably;
+    property probably: ptrUint read fprobably write setprobably;
   end;
 
 var
@@ -63,7 +63,7 @@ var
 implementation
 
 
-procedure TFormFoundCodeListExtra.setprobably(address: dword);
+procedure TFormFoundCodeListExtra.setprobably(address: ptrUint);
 begin
   fprobably:=address;
   Label17.Caption:='The value of the pointer needed to find this address is probably '+IntToHex(address,8);
@@ -130,6 +130,8 @@ begin
 
   sbShowFloats.top:=label13.Top+(label13.height div 2)-(sbShowFloats.height div 2);
   sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
+
+  label18.top:=panel6.clientheight-label18.height;
 end;
 
 procedure TFormFoundCodeListExtra.sbShowFloatsClick(Sender: TObject);
