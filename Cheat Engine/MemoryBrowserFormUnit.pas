@@ -416,7 +416,7 @@ type
 
     procedure plugintype1click(sender:tobject);
     procedure plugintype6click(sender:tobject);
-    procedure setcodeanddatabase;
+    function SetCodeAndDataBase: dword;
     property showvalues: boolean read getShowValues write setShowValues;
     property showDebugPanels: boolean read fShowDebugPanels write setShowDebugPanels;
     property stacktraceSize: integer read FStacktraceSize write SetStacktraceSize;
@@ -1284,7 +1284,11 @@ begin
           end;
         end;
 
-        top:=(srow+1)*(textheight)+5;
+
+        //i*TextHeight+2
+        HexEdit.Top:=mbcanvas.top+srow*textheight+2;
+
+
         left:=1+a+20*(scolumn);
 
         acr:=0;
@@ -2200,10 +2204,10 @@ begin
     if (((srow+1)*(textheight)+3)+hexedit.Height)>panel4.Height then
     begin
       dec(srow);
-      hexedit.top:=(srow+1)*(textheight)+3;
+      hexedit.Top:=mbcanvas.top+srow*textheight+2;
       inc(memoryaddress,8*rows8);
       refreshmb;
-    end else hexedit.Top:=(srow+1)*(textheight)+3;
+    end else hexedit.Top:=mbcanvas.top+srow*textheight+2;
   end;
 
   hexedit.left:=1+a+20*(scolumn);
@@ -2324,11 +2328,11 @@ begin
                  if srow<0 then
                  begin
                    srow:=0;
-                   hexedit.Top:=(srow+1)*(textheight)+3;
+                   hexedit.Top:=mbcanvas.top+srow*textheight+2;
 
                    dec(memoryaddress,8*rows8);
                    refreshmb;
-                 end else hexedit.Top:=(srow+1)*(textheight)+3;
+                 end else hexedit.Top:=mbcanvas.top+srow*textheight+2;
 
                  bt:=strtoint('$'+hexedit.text);
                  writeprocessmemory(processhandle,pointer(selected),@bt,1,acr);
@@ -2362,10 +2366,10 @@ begin
                  if (((srow+1)*(textheight)+3)+hexedit.Height)>panel4.Height then
                  begin
                    dec(srow);
-                   hexedit.top:=(srow+1)*(textheight)+3;
+                   hexedit.Top:=mbcanvas.top+srow*textheight+2;
                    inc(memoryaddress,8*rows8);
                    refreshmb;
-                 end else hexedit.Top:=(srow+1)*(textheight)+3;
+                 end else hexedit.Top:=mbcanvas.top+srow*textheight+2;
 
                  bt:=strtoint('$'+hexedit.text);
                  writeprocessmemory(processhandle,pointer(selected),@bt,1,acr);
@@ -2411,11 +2415,11 @@ begin
                    if srow<0 then
                    begin
                      srow:=0;
-                     hexedit.Top:=(srow+1)*(textheight)+3;
+                     hexedit.Top:=mbcanvas.top+srow*textheight+2;
 
                      dec(memoryaddress,8*rows8);
                      refreshmb;
-                   end else hexedit.Top:=(srow+1)*(textheight)+3;
+                   end else hexedit.Top:=mbcanvas.top+srow*textheight+2;
 
                  end;
 
@@ -3743,7 +3747,7 @@ begin
     show;
 end;
 
-procedure TMemoryBrowser.SetCodeAndDataBase;
+function TMemoryBrowser.SetCodeAndDataBase: dword;
 var modulelist: tstringlist;
     base: dword;
     header: pointer;
@@ -3772,7 +3776,9 @@ begin
           if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
         end;
 
-        disassemblerview.SelectedAddress:=base+peinfo_getEntryPoint(header);
+        result:=base+peinfo_getEntryPoint(header);
+
+        disassemblerview.SelectedAddress:=result;
 
         memoryaddress:=base+peinfo_getdatabase(header);
       end;
