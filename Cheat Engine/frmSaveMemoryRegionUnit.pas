@@ -138,7 +138,7 @@ begin
         begin
           fromaddress:=tregion(lbregions.Items.Objects[i]).fromaddress;
           toaddress:=tregion(lbregions.Items.Objects[i]).toaddress;
-          size:=toaddress-fromaddress;
+          size:=toaddress-fromaddress+1;
 
           f.WriteBuffer(fromaddress,4);
           f.WriteBuffer(size,4);
