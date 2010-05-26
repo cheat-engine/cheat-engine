@@ -5,8 +5,8 @@ unit frmCScriptUnit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, LResources, underc;
+  LCLIntf, LResources, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Menus, underc;
 
 type
   TfrmCScript = class(TForm)
@@ -40,7 +40,7 @@ implementation
 
 procedure TfrmCScript.FormCreate(Sender: TObject);
 begin
-  scriptengine.beginscript;
+ { scriptengine.beginscript; }
   panel1.ClientHeight:=edtCommand.Height;
 end;
 

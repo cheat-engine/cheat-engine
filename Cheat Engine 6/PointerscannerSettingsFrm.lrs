@@ -58,7 +58,7 @@ LazarusResources.Add('TfrmPointerScannerSettings','FORMDATA',[
   +#9'Max level'#11'ParentColor'#8#0#0#6'TLabel'#6'Label9'#4'Left'#2#16#6'Heigh'
   +'t'#2#17#3'Top'#2#10#5'Width'#3#140#0#7'Caption'#6#24'Nr of threads scanning'
   +': '#11'ParentColor'#8#0#0#7'TButton'#7'Button1'#4'Left'#3#138#0#6'Height'#2
-  +#31#3'Top'#2'E'#5'Width'#2'P'#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#12
+  +#31#3'Top'#2'D'#5'Width'#2'P'#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#12
   +'Button1Click'#8'TabOrder'#2#0#0#0#5'TEdit'#14'editStructsize'#4'Left'#3#158
   +#0#6'Height'#2#24#3'Top'#2'&'#5'Width'#2'<'#8'TabOrder'#2#1#4'Text'#6#4'2048'
   +#0#0#5'TEdit'#12'editMaxLevel'#4'Left'#3#30#1#6'Height'#2#24#3'Top'#2'%'#5'W'

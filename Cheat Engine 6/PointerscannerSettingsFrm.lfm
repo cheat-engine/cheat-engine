@@ -217,7 +217,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     object Button1: TButton
       Left = 138
       Height = 31
-      Top = 69
+      Top = 68
       Width = 80
       Caption = 'OK'
       Default = True

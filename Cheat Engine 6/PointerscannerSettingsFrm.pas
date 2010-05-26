@@ -80,10 +80,10 @@ type
   public
     { Public declarations }
     reverse: boolean; //indicates to use the reverse method
-    start:dword;
-    stop: dword;
+    start:ptrUint;
+    stop: ptrUint;
     unalligned: boolean;
-    automaticaddress: dword;
+    automaticaddress: ptrUint;
     structsize: integer;
     level0structsize: integer;
     maxlevel: integer;
@@ -135,11 +135,14 @@ end;
 
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
 begin
+  start:=strtoint64('$'+edtReverseStart.text);
+  stop:=strtoint64('$'+edtReverseStop.text);
 
-  start:=strtoint('$'+edtReverseStart.text);
-  stop:=strtoint('$'+edtReverseStop.text);
-
+{$ifdef cpu64}
+  if stop>ptruint($7fffffffffffffff) then stop:=$7fffffffffffffff;
+{$else}
   if stop>$7fffffff then stop:=$7fffffff;
+{$endif}
 
   automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 

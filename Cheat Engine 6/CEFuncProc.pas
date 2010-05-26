@@ -159,7 +159,11 @@ function isAddress(address: ptrUint):boolean;
 function isExecutableAddress(address: ptrUint):boolean;
 function MinX(a, b: ptrUint): ptrUint;inline; overload; //fpc2.4.1 has no support for unsigned
 function MaxX(a, b: ptrUint): ptrUint;inline; overload;
+
+
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
+
+function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
 {$ifndef standalonetrainer}
 Procedure CreateCodeCave(address:ptrUint; sourceaddress:dword; sizeofcave: integer);
@@ -219,9 +223,10 @@ type TCEPointer=record
 end;
 
 type TCEAlloc=record
-  address: uint_ptr;
+  address: ptrUint;
   varname: string;
   size: dword;
+  prefered: ptrUint;
 end;
 type PCEAlloc=^TCEAlloc;
 type TCEAllocArray=array of TCEAlloc;
@@ -485,6 +490,7 @@ type PKeys2= ^TKeys2;
 
 
 
+
 function ConvertKeyComboToString(x: tkeycombo):string;
 
 {
@@ -605,6 +611,30 @@ var
 
 
   processhandler: TProcessHandler;
+
+
+
+type
+  SYSTEM_INFO = record
+                case longint of
+                   0 : ( dwOemId : DWORD;
+  		       dwPageSize : DWORD;
+            	       lpMinimumApplicationAddress : LPVOID;
+            	       lpMaximumApplicationAddress : LPVOID;
+            	       dwActiveProcessorMask : DWORD_PTR;
+            	       dwNumberOfProcessors : DWORD;
+                         dwProcessorType : DWORD;
+                         dwAllocationGranularity : DWORD;
+                         wProcessorLevel : WORD;
+                         wProcessorRevision : WORD;
+  			 );
+                   1 : (
+                        wProcessorArchitecture : WORD;
+                      );
+         end;
+
+var
+  systeminfo: SYSTEM_INFO;
 
 implementation
 
@@ -2850,67 +2880,99 @@ begin
 end;
 
 function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
+{
+Gets the address jumped to if it is a jump or call.
+Currently only called by the memory browser on a low frequency, so speed is of secondary concern
+}
 var buf: array [0..31] of byte;
     actualread: dword;
     i,j: integer;
     st: string;
     offset: dword;
     haserror: boolean;
+
+    dis: TDisassembler;
 begin
 {$ifndef standalonetrainer}
   result:=false;
 
-  if readprocessmemory(processhandle,pointer(address),@buf[0],32,actualread) then
-  begin
-    if buf[0] in [$0f,$70..$7f,$e3,$e8,$e9,$eb,$ff] then //possible
+  dis:=TDisassembler.Create;
+  dis.showmodules:=false;
+  dis.showsymbols:=false;
+  dis.dataOnly:=true;
+  try
+    dis.disassemble(address,st);
+    if dis.LastDisassembleData.isjump then
     begin
-      case buf[0] of
-        $0f:
-        begin
-          if (not (buf[1] in [$80..$8f])) then exit; //not one of them
-          result:=true;
-          addresstojumpto:=address+plongint(@buf[2])^+6;
-        end;
+      if dis.LastDisassembleData.modrmValueType=dvtAddress then
+      begin
+        addresstojumpto:=0;
 
-        $70..$7f,$e3,$eb:  //(un)conditional jump (1 byte)
-        begin
-          result:=true;
-          addresstojumpto:=address+pshortint(@buf[1])^+2;
-        end;
-
-        $e8,$e9: //jump or call unconditional (4 byte)
-        begin
-          result:=true;
-          addresstojumpto:=address+plongint(@buf[1])^+5;
-        end;
-
-        $ff: //disassemble to see what it is
-        begin
-          st:=disassemble(address);
-          st:=copy(st,pos('-',st)+2,length(st));
-          st:=copy(st,pos('-',st)+2,length(st));
-
-          i:=pos('jmp',st);
-          j:=pos('call',st);
-          if (i=1) or (j=1) then
-          begin
-            //now determine where it jumps to
-            i:=pos('[',st);
-            if i>0 then
-            begin
-              st:=copy(st,i,pos(']',st)-i+1);
-
-              addresstojumpto:=symhandler.getAddressFromName(st, false, haserror); //the pointer interpreter code can do this
-              result:=not haserror;
-            end;
-
-          end;
-        end;
-
-
+        result:=ReadProcessMemory(processhandle, pointer(dis.LastDisassembleData.modrmValue),@addresstojumpto,processhandler.pointersize,actualread);
+      end
+      else
+      if dis.LastDisassembleData.parameterValueType=dvtAddress then
+      begin
+        addresstojumpto:=dis.LastDisassembleData.parameterValue;
+        result:=true;
       end;
     end;
+      {
 
+    if readprocessmemory(processhandle,pointer(address),@buf[0],32,actualread) then
+    begin
+      if buf[0] in [$0f,$70..$7f,$e3,$e8,$e9,$eb,$ff] then //possible
+      begin
+        case buf[0] of
+          $0f:
+          begin
+            if (not (buf[1] in [$80..$8f])) then exit; //not one of them
+            result:=true;
+            addresstojumpto:=address+plongint(@buf[2])^+6;
+          end;
+
+          $70..$7f,$e3,$eb:  //(un)conditional jump (1 byte)
+          begin
+            result:=true;
+            addresstojumpto:=address+pshortint(@buf[1])^+2;
+          end;
+
+          $e8,$e9: //jump or call unconditional (4 byte)
+          begin
+            result:=true;
+            addresstojumpto:=address+plongint(@buf[1])^+5;
+          end;
+
+          $ff: //disassemble to see what it is
+          begin
+            st:=disassemble(address);
+            st:=copy(st,pos('-',st)+2,length(st));
+            st:=copy(st,pos('-',st)+2,length(st));
+
+            i:=pos('jmp',st);
+            j:=pos('call',st);
+            if (i=1) or (j=1) then
+            begin
+              //now determine where it jumps to
+              i:=pos('[',st);
+              if i>0 then
+              begin
+                st:=copy(st,i,pos(']',st)-i+1);
+
+                addresstojumpto:=symhandler.getAddressFromName(st, false, haserror); //the pointer interpreter code can do this
+                result:=not haserror;
+              end;
+
+            end;
+          end;
+
+
+        end;
+      end;
+
+    end;   }
+  finally
+    dis.free;
   end;
 {$endif}
 
@@ -3123,6 +3185,97 @@ begin
 end;
 
 
+function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
+{
+Query the memory arround base to find an empty block that is at least 'size' big
+}
+var
+  mbi: MEMORY_BASIC_INFORMATION;
+  x: ptrUint;
+  offset: ptrUint;
+
+  b: ptrUint;
+
+  minAddress,maxAddress: ptrUint;
+begin
+  result:=nil;
+  if not processhandler.is64Bit then exit; //don't bother
+
+  //64-bit
+
+  if base=0 then exit;
+
+  minAddress:=base-$70000000; //let's add in some extra overhead to skip the last fffffff
+  maxAddress:=base+$70000000;
+
+
+  if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
+    minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
+
+  if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
+    maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
+
+
+  b:=minAddress;
+
+
+  ZeroMemory(@mbi,sizeof(mbi));
+  while VirtualQueryEx(processhandle,pointer(b),mbi,sizeof(mbi))=sizeof(mbi) do
+  begin
+    if mbi.BaseAddress>pointer(maxAddress) then exit; //no memory found, just return 0 and let windows decide
+
+    if (mbi.State=MEM_FREE) and ((mbi.RegionSize)>size) then
+    begin
+      if (ptrUint(mbi.baseaddress) mod systeminfo.dwAllocationGranularity)>0 then
+      begin
+        //the whole size can not be used
+        x:=ptrUint(mbi.baseaddress);
+        offset:=systeminfo.dwAllocationGranularity - (x mod systeminfo.dwAllocationGranularity);
+
+        //check if there's enough left
+        if (mbi.regionsize-offset)>size then
+        begin
+          //yes
+          x:=x+offset;
+
+          if x<base then
+          begin
+            x:=x+(mbi.regionsize-offset)-size;
+            if x>base then x:=base;
+
+            //now decrease x till it's alligned properly
+            x:=x-(x mod systeminfo.dwAllocationGranularity);
+          end;
+
+          //if the difference is closer then use that
+          if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
+            result:=pointer(x);
+        end;
+        //nope
+
+      end
+      else
+      begin
+        x:=ptrUint(mbi.BaseAddress);
+        if x<base then //try to get it the closest possible (so to the end of the region-size and aligned by dwAllocationGranularity)
+        begin
+          x:=(x+mbi.RegionSize)-size;
+          if x>base then x:=base;
+
+          //now decrease x till it's alligned properly
+          x:=x-(x mod systeminfo.dwAllocationGranularity);
+        end;
+
+
+        if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
+          result:=pointer(x);
+      end;
+
+    end;
+    b:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+  end;
+
+end;
 
 initialization
   getmem(tempdir,256);
@@ -3138,6 +3291,7 @@ initialization
   iswin2kplus:=GetSystemType>=5;
 
   processhandler:=TProcessHandler.create;
+  GetSystemInfo(@systeminfo);
 
 finalization
 

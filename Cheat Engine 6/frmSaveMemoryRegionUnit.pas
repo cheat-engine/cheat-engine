@@ -6,13 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,
-  {$ifdef netclient}
-  netapis,
-  {$else}
-  NewKernelHandler,
-  {$endif}
-  CEFuncProc, ExtCtrls, LResources;
+  Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources;
 
 type
   TfrmSaveMemoryRegion = class(TForm)
@@ -51,11 +45,11 @@ implementation
 
 type Tregion=class
   public
-    fromaddress,toaddress:dword;
-    constructor create(fa,ta:dword);
+    fromaddress,toaddress:ptrint;
+    constructor create(fa,ta:ptrint);
 end;
 
-constructor TRegion.create(fa,ta:dword);
+constructor TRegion.create(fa,ta:ptrint);
 begin
   fromaddress:=fa;
   toaddress:=ta;
@@ -74,7 +68,7 @@ end;
 
 procedure TfrmSaveMemoryRegion.Button1Click(Sender: TObject);
 var f: TFilestream;
-    fromaddress,toaddress: dword;
+    fromaddress,toaddress: qword;
     temp: dword;
     size: dword;
     buf: array of pointer;
@@ -129,7 +123,7 @@ begin
       if not dontinclude.checked then
       begin
         f.WriteBuffer(pchar('CHEATENGINE')^,11);
-        temp:=2; //version
+        temp:=3; //version
         f.WriteBuffer(temp,4);
       end;
 
@@ -139,9 +133,9 @@ begin
         begin
           fromaddress:=tregion(lbregions.Items.Objects[i]).fromaddress;
           toaddress:=tregion(lbregions.Items.Objects[i]).toaddress;
-          size:=toaddress-fromaddress;
+          size:=toaddress-fromaddress+1;
 
-          f.WriteBuffer(fromaddress,4);
+          f.WriteBuffer(fromaddress,8);
           f.WriteBuffer(size,4);
         end;
         f.WriteBuffer(buf[i]^,size);
@@ -168,17 +162,17 @@ begin
 end;
 
 procedure TfrmSaveMemoryRegion.Button3Click(Sender: TObject);
-var fromaddress,toaddress:dword;
-    temp:dword;
+var fromaddress,toaddress:qword;
+    temp:qword;
 begin
   try
-    fromaddress:=StrToInt('$'+editFrom.Text);
+    fromaddress:=StrToInt64('$'+editFrom.Text);
   except
     raise exception.Create(editfrom.Text+' is not a valid address');
   end;
 
   try
-    toaddress:=StrToInt('$'+editto.Text);
+    toaddress:=StrToInt64('$'+editto.Text);
   except
     raise exception.Create(editto.Text+' is not a valid address');
   end;

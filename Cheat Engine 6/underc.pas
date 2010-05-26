@@ -57,7 +57,7 @@ type TScriptengine=class
     function getResult: string;
 end;
 
-var scriptengine: TScriptengine;
+//var scriptengine: TScriptengine;  removed, it's crap
 
 implementation
 //all dll implementations are done outside of the interface
@@ -144,14 +144,25 @@ begin
     dllpath:=extractfilepath(dllpath);
     freemem(mfilename);
 
-    underclibrary:=loadlibrary(pchar(dllpath+'\ucc12.dll'));
+{$ifdef cpu64}
+    underclibrary:=loadlibrary(pchar(dllpath+'\ucc12-x64.dll'));
+{$else}
+    underclibrary:=loadlibrary(pchar(dllpath+'\ucc12-Win32.dll'));
+{$endif}
 
     if underclibrary=0 then
+    begin
+
       messagebox(0,pchar(dllpath+'\ucc12.dll'),'error dllpath=',mb_ok);
+    end;
 {$else}
 //    underclibrary:=loadlibrary('C:\Cheat Engine\underc\sourcecode\src\ddebug\ucc12.dll');
 //    underclibrary:=loadlibrary('C:\Cheat Engine\underc\sourcecode\ucc12.dll');
-    underclibrary:=loadlibrary('ucc12.dll');
+{$ifdef cpu64}
+    underclibrary:=loadlibrary('ucc12-x64.dll');
+{$else}
+    underclibrary:=loadlibrary('ucc12-Win32.dll');
+{$endif}
 {$endif}
 
 
@@ -161,6 +172,19 @@ begin
       exit;
     end;
 
+{$ifdef cpu64}
+    uc_init:=getprocaddress(underclibrary,'uc_init');
+    uc_finis:=getprocaddress(underclibrary,'uc_finis');
+    uc_exec:=getprocaddress(underclibrary,'uc_exec');
+    uc_result:=getprocaddress(underclibrary,'uc_result');
+    uc_error:=getprocaddress(underclibrary,'uc_error');
+    uc_import:=getprocaddress(underclibrary,'uc_import');
+    uc_main:=getprocaddress(underclibrary,'uc_main');
+    uc_compile:=getprocaddress(underclibrary,'uc_compile');
+    uc_eval:=getprocaddress(underclibrary,'uc_eval');
+    uc_eval_args:=getprocaddress(underclibrary,'uc_eval_args');
+    uc_get_function:=getprocaddress(underclibrary,'uc_get_function');
+{$else}
     uc_init:=getprocaddress(underclibrary,'_uc_init@8');
     uc_finis:=getprocaddress(underclibrary,'_uc_finis@0');
     uc_exec:=getprocaddress(underclibrary,'_uc_exec@4');
@@ -172,6 +196,7 @@ begin
     uc_eval:=getprocaddress(underclibrary,'_uc_eval@12');
     uc_eval_args:=getprocaddress(underclibrary,'uc_eval_args');
     uc_get_function:=getprocaddress(underclibrary,'_uc_get_function@4');
+{$endif}
 
     uc_init(nil,false);
 
@@ -279,7 +304,7 @@ end;
 
 
 initialization
-  scriptengine:=TScriptengine.create;
+{ removed  scriptengine:=TScriptengine.create; }
 
 finalization
   //scriptengine.free;

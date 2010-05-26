@@ -318,6 +318,7 @@ var i,j,k,l,e: integer;
     bytes: tbytes;
 
     symhandler: TSymhandler;
+    prefered: ptrUint;
 begin
   if syntaxcheckonly and (registeredsymbols<>nil) then
   begin
@@ -874,15 +875,30 @@ begin
           if uppercase(copy(currentline,1,6))='ALLOC(' then
           begin
             //syntax: alloc(x,size)    x=variable name size=bytes
+            //or
+            //syntax: alloc(x,size,prefered region)    x=variable name size=bytes
             //allocate memory
             a:=pos('(',currentline);
             b:=pos(',',currentline);
-            c:=pos(')',currentline);
+            c:=PosEx(',',currentline,b+1);
+            d:=pos(')',currentline);
 
-            if (a>0) and (b>0) and (c>0) then
+
+
+            if (a>0) and (b>0) and (d>0) then
             begin
               s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+
+              if c>0 then
+              begin
+                s2:=copy(currentline,b+1,c-b-1);
+                s3:=copy(currentline,c+1,d-c-1);
+              end
+              else
+              begin
+                s2:=copy(currentline,b+1,d-b-1);
+                s3:='';
+              end;
 
               val('$'+s1,j,a);
               if a=0 then raise exception.Create(s1+' is not a valid identifier');
@@ -910,6 +926,14 @@ begin
 
               allocs[j].varname:=s1;
               allocs[j].size:=StrToInt(s2);
+              if s3<>'' then
+              begin
+
+                allocs[j].prefered:=symhandler.getAddressFromName(s3);
+              end
+              else
+                allocs[j].prefered:=0;
+
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
@@ -918,8 +942,16 @@ begin
 
 
           //replace ALLOC identifiers with values so the assemble error check doesnt crash on that
-          for j:=0 to length(allocs)-1 do
-            currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
+          if processhandler.is64bit then
+          begin
+            for j:=0 to length(allocs)-1 do
+              currentline:=replacetoken(currentline,allocs[j].varname,'ffffffffffffffff');
+          end
+          else
+          begin
+            for j:=0 to length(allocs)-1 do
+              currentline:=replacetoken(currentline,allocs[j].varname,'00000000');
+          end;
 
           {$ifndef net}
           //memory kalloc
@@ -976,8 +1008,16 @@ begin
           {$endif}
 
           //replace KALLOC identifiers with values so the assemble error check doesnt crash on that
-          for j:=0 to length(kallocs)-1 do
-            currentline:=replacetoken(currentline,kallocs[j].varname,'00000000');
+          if processhandler.is64bit then
+          begin
+            for j:=0 to length(kallocs)-1 do
+              currentline:=replacetoken(currentline,kallocs[j].varname,'ffffffffffffffff');
+          end
+          else
+          begin
+            for j:=0 to length(kallocs)-1 do
+              currentline:=replacetoken(currentline,kallocs[j].varname,'00000000');
+          end;
 
 
 
@@ -1012,8 +1052,18 @@ begin
           end;
 
           //replace label references with 00000000 so the assembler check doesn't complain about it
-          for j:=0 to length(labels)-1 do
-            currentline:=replacetoken(currentline,labels[j].labelname,'00000000');
+
+          if processhandler.is64bit then
+          begin
+            for j:=0 to length(labels)-1 do
+              currentline:=replacetoken(currentline,labels[j].labelname,'ffffffffffffffff');
+          end
+          else
+          begin
+            for j:=0 to length(labels)-1 do
+              currentline:=replacetoken(currentline,labels[j].labelname,'00000000');
+          end;
+
 
           try
             //replace identifiers in the line with their address
@@ -1176,17 +1226,77 @@ begin
     if popupmessages and (messagedlg('This code can be injected. Are you sure?',mtConfirmation	,[mbyes,mbno],0)<>mryes) then exit;
 
     //allocate the memory
-    //first find out how much I should allocate
+
     if length(allocs)>0 then
     begin
       x:=0;
+      j:=0; //entry to go from
+      prefered:=0;
+
       for i:=0 to length(allocs)-1 do
-       inc(x,allocs[i].size);
+      begin
+        //does this entry have a prefered location?
+        if allocs[i].prefered<>0 then
+        begin
+          //if yes, is it the same as the previous entry?
+          if prefered<>allocs[i].prefered then
+          begin
+            if x>0 then //it has some previous entries with compatible locations
+            begin
 
-      allocs[0].address:=dword(virtualallocex(processhandle,nil,x+4096,MEM_COMMIT,page_execute_readwrite));
 
-      for i:=1 to length(allocs)-1 do
-        allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
+              k:=10;
+              allocs[j].address:=0;
+              while (k>0) and (allocs[j].address=0) do
+              begin
+                //try allocating untill a memory region has been found (e.g due to quick allocating by the game)
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+                dec(k);
+              end;
+
+              if allocs[j].address=0 then
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+
+              //adjust the address of entries that are part of this block
+              for k:=j+1 to i do
+                allocs[j].address:=allocs[j-1].address+allocs[i-1].size;
+              x:=0;
+            end;
+
+
+            //new prefered address
+            j:=i;
+            prefered:=allocs[i].prefered;
+          end;
+        end;
+
+        //no prefered location specified, OR same prefered location
+
+        inc(x,allocs[i].size);
+      end; //after the loop
+
+
+      if x>0 then
+      begin
+        //adjust the address of entries that are part of this final block
+        k:=10;
+        allocs[j].address:=0;
+        while (k>0) and (allocs[j].address=0) do
+        begin
+          i:=0;
+          prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
+
+
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          dec(k);
+        end;
+
+        if allocs[j].address=0 then
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+
+        for i:=j+1 to length(allocs)-1 do
+          allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
+      end;
     end;
 
     {$ifndef net}

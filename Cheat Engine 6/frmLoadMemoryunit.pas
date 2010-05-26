@@ -40,11 +40,11 @@ implementation
 
 type Tregion=class
   public
-    fromaddress,toaddress:dword;
-    constructor create(fa,ta:dword);
+    fromaddress,toaddress:ptrUint;
+    constructor create(fa,ta:ptrUint);
 end;
 
-constructor TRegion.create(fa,ta:dword);
+constructor TRegion.create(fa,ta:ptrUint);
 begin
   fromaddress:=fa;
   toaddress:=ta;
@@ -54,7 +54,7 @@ end;
 resourcestring strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';
 procedure tfrmLoadMemory.Showmodal(filename:string);
 var check: pchar;
-    temp: dword;
+    temp: qword;
     i:integer;
 
 begin
@@ -89,6 +89,7 @@ begin
           i:=0;
           while datafile.Position<datafile.Size do
           begin
+            temp:=0;
             datafile.ReadBuffer(temp,4);
             datafile.readbuffer(size,4);
             setlength(buf,length(buf)+1);
@@ -98,6 +99,19 @@ begin
           end;
         end;
 
+        3:
+        begin
+          i:=0;
+          while datafile.Position<datafile.Size do
+          begin
+            datafile.ReadBuffer(temp,8);
+            datafile.readbuffer(size,4);
+            setlength(buf,length(buf)+1);
+            setlength(buf[length(buf)-1],size);
+            datafile.ReadBuffer(buf[length(buf)-1][0],size);
+            listbox1.items.addobject(inttohex(temp,8)+'-'+inttohex(temp+size,8),tregion.create(temp,temp+size));
+          end;
+        end
         else
         begin
           datafile.Position:=0; //NO HEADER, this is a professional user, or someone who doesn't know what he's doing
@@ -180,7 +194,7 @@ var delta: dword;
 begin
   if listbox1.ItemIndex<>-1 then
   begin
-    delta:=strtoint('$'+editaddress.text)-tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress;
+    delta:=strtoint64('$'+editaddress.text)-tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress;
     inc(tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress,delta);
     inc(tregion(listbox1.items.objects[listbox1.ItemIndex]).toaddress,delta);
     listbox1.Items[listbox1.ItemIndex]:=inttohex(tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress,8)+'-'+inttohex(tregion(listbox1.items.objects[listbox1.ItemIndex]).toaddress,8);

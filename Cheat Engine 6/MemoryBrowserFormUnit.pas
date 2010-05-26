@@ -8,7 +8,7 @@ uses
   jwawindows, windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, frmMemoryAllocHandlerUnit,
   math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,plugin,CEDebugger,KernelDebugger, Assemblerunit,disassembler,addressparser,
   Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions ,dissectcodethread
-  ,stacktrace2, NewKernelHandler, ComCtrls, LResources, frmCScriptUnit,
+  ,stacktrace2, NewKernelHandler, ComCtrls, LResources,
   byteinterpreter, StrUtils, hexviewunit, debughelper, debuggertypedefinitions;
 
 
@@ -17,6 +17,7 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
+    miLockRowsize: TMenuItem;
     sbShowFloats: TButton;
     memorypopup: TPopupMenu;
     Goto1: TMenuItem;
@@ -135,7 +136,6 @@ type
     Breakandtraceinstructions1: TMenuItem;
     GDTlist1: TMenuItem;
     IDTlist1: TMenuItem;
-    ScriptEngine1: TMenuItem;
     Newwindow1: TMenuItem;
     Follow1: TMenuItem;
     dflabel: TLabel;
@@ -147,7 +147,6 @@ type
     Back1: TMenuItem;
     Showvaluesofstaticaddresses1: TMenuItem;
     Findoutwhataddressesthisinstructionaccesses1: TMenuItem;
-    ScriptConsole1: TMenuItem;
     DisplayType1: TMenuItem;
     N15: TMenuItem;
     dispBytes: TMenuItem;
@@ -178,6 +177,7 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
+    procedure miLockRowsizeClick(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure ScrollBox1Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
@@ -543,6 +543,16 @@ begin
   sbShowFloats.top:=(panel1.clientheight div 2)-(sbShowFloats.height div 2);
 end;
 
+procedure TMemoryBrowser.miLockRowsizeClick(Sender: TObject);
+begin
+  miLockRowsize.Checked:=not miLockRowsize.Checked;
+
+  if miLockRowsize.Checked then
+    hexview.LockRowsize
+  else
+    hexview.UnlockRowsize;
+end;
+
 procedure TMemoryBrowser.FormShow(Sender: TObject);
 var x: array of integer;
 
@@ -565,7 +575,6 @@ procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
   displaytype:=dtByte;
-  scriptconsole1.ShortCut:=TextToShortCut('Ctrl+Shift+C');
 
   strace:=tstringlist.create;
 
@@ -644,6 +653,8 @@ begin
 
   memoryaddress:=getaddress(newaddress);
   hexview.address:=getaddress(newaddress);
+
+  hexview.SetFocus;
 end;
 
 procedure TMemoryBrowser.FormResize(Sender: TObject);
@@ -2161,8 +2172,7 @@ end;
 
 procedure TMemoryBrowser.ScriptConsole1Click(Sender: TObject);
 begin
-  with TfrmCScript.create(self) do
-    show;
+
 end;
 
 procedure TMemoryBrowser.DisplayTypeClick(Sender: TObject);

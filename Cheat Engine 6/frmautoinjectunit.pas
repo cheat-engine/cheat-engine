@@ -193,23 +193,7 @@ begin
 
   if cplusplus then
   begin
-    //scriptengine stuff
-    if not editscript and scriptengine.beginScript then
-    begin
-      try
-       // for i:=0 to assemblescreen.Lines.Count-1 do
-          if not scriptengine.execute_command(assemblescreen.text) then
-            raise exception.Create('Error interpreting script:'+scriptengine.getError);
-
-
-
-      finally
-        scriptengine.endScript;
-      end;
-
-      showmessage('script executed');
-    end;
-
+    //no implementation
 
   end
   else
@@ -741,7 +725,10 @@ begin
 
   with enablescript do
   begin
-    add('alloc(originalcall'+nameextension+',2048) //2kb should be enough');
+    if not processhandler.is64bit then
+      add('alloc(originalcall'+nameextension+',2048) //2kb should be enough')
+    else
+      add('alloc(originalcall'+nameextension+',2048,'+address+') //2kb should be enough');
     add('label(returnhere'+nameextension+')');
     add('');
     if addresstostoreneworiginalfunction<>'' then

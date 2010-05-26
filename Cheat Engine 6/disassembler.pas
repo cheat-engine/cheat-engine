@@ -76,6 +76,7 @@ type
     isdefault: boolean;
     showsymbols: boolean;
     showmodules: boolean;
+    dataOnly: boolean;
 
 
     LastDisassembleData: record
@@ -93,6 +94,8 @@ type
       parameterValueType: TDisAssemblerValueType;
       parameterValue: ptrUint;
     //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
+
+      isjump: boolean;
     end;
 
 
@@ -1226,6 +1229,7 @@ begin
   LastDisassembleData.PrefixSize:=0;
   LastDisassembleData.opcode:='';
   LastDisassembleData.parameters:='';
+  lastdisassembledata.isjump:=false;
 
   if isdefault then
     showsymbols:=symhandler.showsymbols;
@@ -1237,8 +1241,10 @@ begin
 
   riprelative:=false;
 
-
-  result:=inttohex(offset,8)+' - ';
+  if dataonly then
+    result:=''
+  else
+    result:=inttohex(offset,8)+' - ';
 
   isprefix:=true;
 
@@ -1274,8 +1280,9 @@ begin
         LastDisassembleData.bytes[length(LastDisassembleData.bytes)-1]:=memory[0];
 
 
+        if not dataonly then
+          result:=result+inttohexs(memory[0],2)+' ';
 
-        result:=result+inttohexs(memory[0],2)+' ';
         isprefix:=true;
         inc(startoffset);
         prefix2:=prefix2+[memory[0]];
@@ -1300,7 +1307,9 @@ begin
 
 
         RexPrefix:=memory[0];
-        result:=result+inttohexs(RexPrefix,2)+' ';
+        if not dataonly then
+          result:=result+inttohexs(RexPrefix,2)+' ';
+
         inc(offset);
         inc(startoffset);
         prefix2:=prefix2+[RexPrefix];
@@ -1357,7 +1366,7 @@ begin
               LastDisassembleData.opcode:='add';
               LastDisassembleData.parameterValueType:=dvtValue;
               LastDisassembleData.parameterValue:=memory[1];
-              LastDisassembleData.parameters:='al,'+inttohexs(memory[1],2);
+              LastDisassembleData.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
 
               LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=1;
               inc(LastDisassembleData.SeperatorCount);
@@ -1376,7 +1385,7 @@ begin
               begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
 
                 description:='add '+inttohex(wordptr^,4)+' to ax';
 
@@ -1389,7 +1398,7 @@ begin
                 begin
                   lastdisassembledata.parametervaluetype:=dvtvalue;
                   lastdisassembledata.parametervalue:=dwordptr^;
-                  lastdisassembledata.parameters:='rax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(dwordptr^,8);
 
                   description:='add '+inttohex(dwordptr^,8)+' to rax (sign extended)';
                 end
@@ -1397,7 +1406,7 @@ begin
                 begin
                   lastdisassembledata.parametervaluetype:=dvtvalue;
                   lastdisassembledata.parametervalue:=dwordptr^;
-                  lastdisassembledata.parameters:='eax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(dwordptr^,8);
 
                   description:='add '+inttohex(dwordptr^,8)+' to eax';
                 end;
@@ -1410,13 +1419,13 @@ begin
 
       $06 : begin
               lastdisassembledata.opcode:='push';
-              lastdisassembledata.parameters:='es';
+              lastdisassembledata.parameters:=colorreg+'es'+endcolor;
               description:='place es on the stack';
             end;
 
       $07 : begin
               lastdisassembledata.opcode:='pop';
-              lastdisassembledata.parameters:='es';
+              lastdisassembledata.parameters:=colorreg+'es'+endcolor;
               description:='remove es from the stack';
             end;
 
@@ -1454,7 +1463,7 @@ begin
       $0c : begin
               description:='logical inclusive or';
               lastdisassembledata.opcode:='or';
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
               lastdisassembledata.parametervaluetype:=dvtvalue;
               lastdisassembledata.parametervalue:=memory[1];
 
@@ -1474,7 +1483,7 @@ begin
                 wordptr:=@memory[1];
 
                 lastdisassembledata.parametervalue:=wordptr^;
-                lastdisassembledata.parameters:='ax,'+inttohexs(lastdisassembledata.parametervalue,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,4);
 
                 inc(offset,2);
               end
@@ -1485,11 +1494,11 @@ begin
 
                 if rex_w then
                 begin
-                  lastdisassembledata.parameters:='rax,'+inttohexs(lastdisassembledata.parametervalue,4);
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,4);
                   description:=description+' (sign-extended)';
                 end
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(lastdisassembledata.parametervalue,4);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,4);
 
 
                 lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -1501,7 +1510,7 @@ begin
       $0e : begin
               description:='place cs on the stack';
               lastdisassembledata.opcode:='push';
-              lastdisassembledata.parameters:='cs';
+              lastdisassembledata.parameters:=colorreg+'cs'+endcolor;
             end;
 
       $0f : begin  //simd extensions
@@ -1557,8 +1566,9 @@ begin
 //the following 2 were made up by me.
                          else
                          begin
+                           lastdisassembledata.opcode:='db';
+                           LastDisassembleData.parameters:=inttohex(memory[0],2);
                            description:='not specified by the intel documentation';
-                           tempresult:=tempresult+'db 0f';
                          end;
 
                         end;
@@ -1881,7 +1891,6 @@ begin
                                 description:='prefetch';
                                 lastdisassembledata.opcode:='prefetchnta';
                                 lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
                                 inc(offset,last-1);
                               end;
 
@@ -1915,7 +1924,6 @@ begin
                                 description:='multibyte nop';
                                 lastdisassembledata.opcode:='nop';
                                 lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
-                                tempresult:=copy(tempresult,1,length(tempresult)-1);
                                 inc(offset,last-1);
                               end;
                         end;
@@ -2047,7 +2055,6 @@ begin
                 $2c : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='convert with truncation scalar double-precision floating point value to signed doubleword integer';
                           lastdisassembledata.opcode:='cvttsd2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
@@ -2056,7 +2063,6 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='scalar single-fp to signed int32 conversion (truncate)';
                           lastdisassembledata.opcode:='cvttss2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
@@ -2084,7 +2090,6 @@ begin
                 $2d : begin
                         if $f2 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-6);
                           description:='convert scalar double-precision floating-point value to doubleword integer';
                           lastdisassembledata.opcode:='cvtsd2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
@@ -2093,7 +2098,6 @@ begin
                         else
                         if $f3 in prefix2 then
                         begin
-                          tempresult:=copy(tempresult,1,length(tempresult)-5);
                           description:='scalar single-fp to signed int32 conversion';
                           lastdisassembledata.opcode:='cvtss2si';
                           lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,4,last);
@@ -3483,6 +3487,7 @@ begin
                 $80 : begin
                         description:='jump near if overflow';
                         lastdisassembledata.opcode:='jo';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3501,6 +3506,7 @@ begin
                 $81 : begin
                         description:='jump near if not overflow';
                         lastdisassembledata.opcode:='jno';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3521,6 +3527,7 @@ begin
                         description:='jump near if below/carry';
 
                         lastdisassembledata.opcode:='jb';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3540,6 +3547,7 @@ begin
                 $83 : begin
                         description:='jump near if above or equal';
                         lastdisassembledata.opcode:='jae';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3558,6 +3566,7 @@ begin
                 $84 : begin
                         description:='jump near if equal';
                         lastdisassembledata.opcode:='je';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3577,6 +3586,7 @@ begin
                 $85 : begin
                         description:='jump near if not equal';
                         lastdisassembledata.opcode:='jne';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3596,6 +3606,7 @@ begin
                 $86 : begin
                         description:='jump near if below or equal';
                         lastdisassembledata.opcode:='jbe';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3614,6 +3625,7 @@ begin
                 $87 : begin
                         description:='jump near if above';
                         lastdisassembledata.opcode:='ja';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3632,6 +3644,7 @@ begin
                 $88 : begin
                         description:='jump near if sign';
                         lastdisassembledata.opcode:='js';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3650,6 +3663,7 @@ begin
                 $89 : begin
                         description:='jump near if less';
                         lastdisassembledata.opcode:='jl';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3668,6 +3682,7 @@ begin
                 $8a : begin
                         description:='jump near if parity';
                         lastdisassembledata.opcode:='jp';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3686,6 +3701,7 @@ begin
                 $8b : begin
                         description:='jump near if not parity';
                         lastdisassembledata.opcode:='jnp';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3704,6 +3720,7 @@ begin
                 $8c : begin
                         description:='jump near if less';
                         lastdisassembledata.opcode:='jl';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3722,6 +3739,7 @@ begin
                 $8d : begin
                         description:='jump near if not less';
                         lastdisassembledata.opcode:='jnl';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3740,6 +3758,7 @@ begin
                 $8e : begin
                         description:='jump near if not greater';
                         lastdisassembledata.opcode:='jng';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3758,6 +3777,7 @@ begin
                 $8f : begin
                         description:='jump near if greater';
                         lastdisassembledata.opcode:='jg';
+                        lastdisassembledata.isjump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3947,8 +3967,8 @@ begin
                         description:='double precision shift left';
                         lastdisassembledata.opcode:='shld';
                         if $66 in prefix2 then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+'cl' else
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+'cl';
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+colorreg+'cl'+endcolor else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
 
                       end;
@@ -3996,8 +4016,8 @@ begin
                         description:='double precision shift right';
                         lastdisassembledata.opcode:='shrd';
                         if $66 in prefix2 then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+'cl' else
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+'cl';
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+colorreg+'cl'+endcolor else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
 
                       end;
@@ -5347,7 +5367,7 @@ begin
               lastdisassembledata.opcode:='adc';
               lastdisassembledata.parametervaluetype:=dvtvalue;
               lastdisassembledata.parametervalue:=memory[1];
-              lastdisassembledata.parameters:='al,'+inttohexs(lastdisassembledata.parametervalue,2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,2);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
@@ -5364,7 +5384,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(lastdisassembledata.parametervalue,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,4);
                 inc(offset,2);
               end
               else
@@ -5374,9 +5394,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(lastdisassembledata.parametervalue,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(lastdisassembledata.parametervalue,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8);
                 inc(offset,4);
               end;
 
@@ -5388,13 +5408,13 @@ begin
       $16 : begin
               description:='place ss on the stack';
               lastdisassembledata.opcode:='push';
-              lastdisassembledata.parameters:='ss';
+              lastdisassembledata.parameters:=colorreg+'ss'+endcolor;
             end;
 
       $17 : begin
               description:='remove ss from the stack';
               lastdisassembledata.opcode:='pop';
-              lastdisassembledata.parameters:='ss';
+              lastdisassembledata.parameters:=colorreg+'ss'+endcolor;
             end;
 
       $18 : begin
@@ -5440,7 +5460,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
 
 
               inc(offset);
@@ -5456,7 +5476,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -5466,9 +5486,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(lastdisassembledata.parametervalue,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(lastdisassembledata.parametervalue,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8);
 
                 inc(offset,4);
               end;
@@ -5481,13 +5501,13 @@ begin
       $1e : begin
               description:='place ds on the stack';
               lastdisassembledata.opcode:='push';
-              lastdisassembledata.parameters:='ds';
+              lastdisassembledata.parameters:=colorreg+'ds'+endcolor;
             end;
 
       $1f : begin
               description:='remove ds from the stack';
               lastdisassembledata.opcode:='pop';
-              lastdisassembledata.parameters:='ds';
+              lastdisassembledata.parameters:=colorreg+'ds'+endcolor;
             end;
 
       $20 : begin
@@ -5530,7 +5550,7 @@ begin
               lastdisassembledata.opcode:='and';
               lastdisassembledata.parametervaluetype:=dvtvalue;
               lastdisassembledata.parametervalue:=memory[1];
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
@@ -5551,7 +5571,7 @@ begin
                 wordptr:=@memory[1];
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
-                lastdisassembledata.parameters:='ax,'+inttohexs(lastdisassembledata.parametervalue,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,4);
                 inc(offset,2);
               end
               else
@@ -5561,9 +5581,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(lastdisassembledata.parametervalue,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(lastdisassembledata.parametervalue,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(lastdisassembledata.parametervalue,8);
                 inc(offset,4);
               end;
             end;
@@ -5617,7 +5637,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
 
 
 
@@ -5638,7 +5658,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -5648,9 +5668,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(dwordptr^,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(dwordptr^,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
@@ -5704,7 +5724,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
               inc(offset);
             end;
 
@@ -5722,7 +5742,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -5732,9 +5752,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(dwordptr^,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(dwordptr^,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
@@ -5792,7 +5812,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
               inc(offset);
             end;
 
@@ -5809,7 +5829,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -5819,9 +5839,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_x then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(dwordptr^,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(dwordptr^,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
@@ -5955,8 +5975,6 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-
-                tempresult:=tempresult+inttohexs(wordptr^,4);
                 inc(offset,last-1+2);
               end
               else
@@ -5968,7 +5986,6 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=dwordptr^;
 
-                tempresult:=tempresult+inttohexs(dwordptr^,8);
                 inc(offset,last-1+4);
               end;
             end;
@@ -6027,6 +6044,7 @@ begin
       $70 : begin
               description:='jump short if overflow';
               lastdisassembledata.opcode:='jo';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6048,6 +6066,7 @@ begin
       $71 : begin
               description:='jump short if not overflow';
               lastdisassembledata.opcode:='jno';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6066,6 +6085,7 @@ begin
       $72 : begin
               description:='jump short if below/carry';
               lastdisassembledata.opcode:='jb';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6084,6 +6104,7 @@ begin
       $73 : begin
               description:='jump short if above or equal';
               lastdisassembledata.opcode:='jae';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6102,6 +6123,7 @@ begin
       $74 : begin
               description:='jump short if equal';
               lastdisassembledata.opcode:='je';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6120,6 +6142,7 @@ begin
       $75 : begin
               description:='jump short if not equal';
               lastdisassembledata.opcode:='jne';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6138,6 +6161,7 @@ begin
       $76 : begin
               description:='jump short if not above';
               lastdisassembledata.opcode:='jna';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6156,6 +6180,7 @@ begin
       $77 : begin
               description:='jump short if above';
               lastdisassembledata.opcode:='ja';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6174,6 +6199,7 @@ begin
       $78 : begin
               description:='jump short if sign';
               lastdisassembledata.opcode:='js';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6192,6 +6218,7 @@ begin
       $79 : begin
               description:='jump short if not sign';
               lastdisassembledata.opcode:='jns';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6210,6 +6237,7 @@ begin
       $7a : begin
               description:='jump short if parity';
               lastdisassembledata.opcode:='jp';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6228,6 +6256,7 @@ begin
       $7b : begin
               description:='jump short if not parity';
               lastdisassembledata.opcode:='jnp';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6246,6 +6275,7 @@ begin
       $7c : begin
               description:='jump short if not greater or equal';
               lastdisassembledata.opcode:='jnge';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6264,6 +6294,7 @@ begin
       $7d : begin
               description:='jump short if not less (greater or equal)';
               lastdisassembledata.opcode:='jnl';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6282,6 +6313,7 @@ begin
       $7e : begin
               description:='jump short if less or equal';
               lastdisassembledata.opcode:='jle';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6300,6 +6332,7 @@ begin
       $7f : begin
               description:='jump short if greater';
               lastdisassembledata.opcode:='jg';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -7029,7 +7062,7 @@ begin
                else
                begin
                  lastdisassembledata.opcode:='db';
-                 lastdisassembledata.parameters:='8f';
+                 lastdisassembledata.parameters:=colorhex+'8f'+endcolor;
                  description:='undefined by the intel specification';
                end;
               end;
@@ -7047,13 +7080,13 @@ begin
               lastdisassembledata.opcode:='xchg';
 
               if $66 in prefix2 then
-                lastdisassembledata.parameters:='ax,'+rd16(memory[0]-$90)
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+rd16(memory[0]-$90)
               else
               begin
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+rd(memory[0]-$90)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+rd(memory[0]-$90)
                 else
-                  lastdisassembledata.parameters:='eax,'+rd(memory[0]-$90);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+rd(memory[0]-$90);
               end;
             end;
 
@@ -7118,13 +7151,13 @@ begin
               else
                 lastdisassembledata.opcode:='call';
 
+
               lastdisassembledata.parameters:=inttohexs(wordptr^,4)+':';
               dwordptr:=@memory[1];
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               lastdisassembledata.parametervalue:=dwordptr^;
 
-              tempresult:=tempresult+inttohexs(dwordptr^,8);
               inc(offset,6);
             end;
 
@@ -7151,7 +7184,7 @@ begin
                          else
                          begin
                             description:='wait';
-                            tempresult:='wait';
+                            lastdisassembledata.opcode:='wait';
                          end;
 
                        end;
@@ -7173,7 +7206,7 @@ begin
                          else
                          begin
                             description:='wait';
-                            tempresult:='wait';
+                            lastdisassembledata.opcode:='wait';
                          end;
                        end;
                      end;
@@ -7197,7 +7230,7 @@ begin
                          else
                          begin
                             description:='wait';
-                            tempresult:='wait';
+                            lastdisassembledata.opcode:='wait';
                          end;
                        end;
                      end;
@@ -7213,7 +7246,7 @@ begin
                          else
                          begin
                             description:='wait';
-                            tempresult:='wait';
+                            lastdisassembledata.opcode:='wait';
                          end;
                        end;
                      end;
@@ -7269,7 +7302,7 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
 
-              lastdisassembledata.parameters:='ax,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+              lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
               inc(offset,4);
             end;
 
@@ -7286,14 +7319,14 @@ begin
 
               if $66 in prefix2 then
               begin
-                lastdisassembledata.parameters:='ax,'+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
               end
               else
               begin
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','
                 else
-                  lastdisassembledata.parameters:='eax,';
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+',';
 
                 lastdisassembledata.parameters:=lastdisassembledata.parameters+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
 
@@ -7384,7 +7417,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
               inc(offset);
             end;
 
@@ -7401,7 +7434,7 @@ begin
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=wordptr^;
 
-                lastdisassembledata.parameters:='ax,'+inttohexs(wordptr^,4);
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(wordptr^,4);
                 inc(offset,2);
               end
               else
@@ -7411,9 +7444,9 @@ begin
                 lastdisassembledata.parametervalue:=dwordptr^;
 
                 if rex_w then
-                  lastdisassembledata.parameters:='rax,'+inttohexs(dwordptr^,8)
+                  lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+inttohexs(dwordptr^,8)
                 else
-                  lastdisassembledata.parameters:='eax,'+inttohexs(dwordptr^,8);
+                  lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(dwordptr^,8);
                 inc(offset,4);
               end;
             end;
@@ -7831,7 +7864,7 @@ begin
               else begin
                      description:='not defined by the intel documentation';
                      lastdisassembledata.opcode:='db';
-                     lastdisassembledata.parameters:='c6';
+                     lastdisassembledata.parameters:=inttohexs(memory[0],2);
                    end;
               end;
             end;
@@ -7869,7 +7902,7 @@ begin
              else begin
                     description:='not defined by the intel documentation';
                     lastdisassembledata.opcode:='db';
-                    lastdisassembledata.parameters:='c7';
+                    lastdisassembledata.parameters:=inttohexs(memory[0],2);
                   end;
 
               end;
@@ -7997,7 +8030,7 @@ begin
                 6:  begin
                       description:='not defined by the intel documentation';
                       lastdisassembledata.opcode:='db';
-                      lastdisassembledata.parameters:='d0 '+inttohexs(memory[1],2);
+                      lastdisassembledata.parameters:=inttohexs(memory[0],2)+' '+inttohexs(memory[1],2);
                     end;
 
                 7:  begin
@@ -8117,7 +8150,7 @@ begin
                 6:  begin
                       description:='undefined by the intel documentation';
                       lastdisassembledata.opcode:='db';
-                      lastdisassembledata.parameters:='d1';
+                      lastdisassembledata.parameters:=inttohexs(memory[0],2);
                     end;
 
                 7:  begin
@@ -8146,56 +8179,56 @@ begin
                 0:  begin
                       description:='rotate eight bits left cl times';
                       lastdisassembledata.opcode:='rol';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 1:  begin
                       description:='rotate eight bits right cl times';
                       lastdisassembledata.opcode:='ror';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 2:  begin
                       description:='rotate nine bits left cl times';
                       lastdisassembledata.opcode:='rcl';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 3:  begin
                       description:='rotate nine bits right cl times';
                       lastdisassembledata.opcode:='rcr';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 4:  begin
                       description:='multiply by 2, cl times';
                       lastdisassembledata.opcode:='shl';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 5:  begin
                       description:='unsigned devide by 2, cl times';
                       lastdisassembledata.opcode:='shr';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 6:  begin
                       description:='multiply by 2, cl times';
                       lastdisassembledata.opcode:='shl';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
                 7:  begin
                       description:='signed devide by 2, cl times';
                       lastdisassembledata.opcode:='sar';
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'cl';
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                       inc(offset,last-1);
                     end;
 
@@ -8210,14 +8243,14 @@ begin
                       begin
                         description:='rotate 16 bits left cl times';
                         lastdisassembledata.opcode:='rol';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='rotate 32 bits left cl times';
                         lastdisassembledata.opcode:='rol';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8227,14 +8260,14 @@ begin
                       begin
                         description:='rotate 16 bits right cl times';
                         lastdisassembledata.opcode:='ror';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='rotate 32 bits right cl times';
                         lastdisassembledata.opcode:='ror';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8244,14 +8277,14 @@ begin
                       begin
                         description:='rotate 17 bits left cl times';
                         lastdisassembledata.opcode:='rcl';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='rotate 33 bits left cl times';
                         lastdisassembledata.opcode:='rcl';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8261,14 +8294,14 @@ begin
                       begin
                         description:='rotate 17 bits right cl times';
                         lastdisassembledata.opcode:='rcr';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='rotate 33 bits right cl times';
                         lastdisassembledata.opcode:='rcr';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8278,14 +8311,14 @@ begin
                       begin
                         description:='multiply by 2, cl times';
                         lastdisassembledata.opcode:='shl';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='multiply by 2, cl times';
                         lastdisassembledata.opcode:='shl';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8295,14 +8328,14 @@ begin
                       begin
                         description:='unsigned divide by 2, cl times';
                         lastdisassembledata.opcode:='shr';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='unsigned divide by 2, cl times';
                         lastdisassembledata.opcode:='shr';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8312,14 +8345,14 @@ begin
                       begin
                         description:='signed divide by 2, cl times';
                         lastdisassembledata.opcode:='sar';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end
                       else
                       begin
                         description:='signed divide by 2, cl times';
                         lastdisassembledata.opcode:='sar';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'cl';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
                       end;
                     end;
@@ -8696,13 +8729,13 @@ begin
 
               $f6 : begin
                       description:='decrement stack-top pointer';
-                      tempresult:='fdecstp';
+                      lastdisassembledata.opcode:='fdecstp';
                       inc(offset);
                     end;
 
               $f7 : begin
                       description:='increment stack-top pointer';
-                      tempresult:='fincstp';
+                      lastdisassembledata.opcode:='fincstp';
                       inc(offset);
                     end;
 
@@ -8832,25 +8865,29 @@ begin
                 case getreg(memory[1]) of
                   0:  begin
                         description:='floating-point: move if below';
-                        tempresult:='fcmovb st(0),st('+inttostr(memory[1]-$c0)+')';
+                        lastdisassembledata.opcode:='fcmovb';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$c0)+')';
                         inc(offset);
                       end;
 
                   1:  begin
                         description:='floating-point: move if equal';
-                        tempresult:='fcmove st(0),st('+inttostr(memory[1]-$c8)+')';
+                        lastdisassembledata.opcode:='fcmove';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$c8)+')';
                         inc(offset);
                       end;
 
                   2:  begin
                         description:='floating-point: move if below or equal';
-                        tempresult:='fcmovbe st(0),st('+inttostr(memory[1]-$d0)+')';
+                        lastdisassembledata.opcode:='fcmovbe';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d0)+')';
                         inc(offset);
                       end;
 
                   3:  begin
                         description:='floating-point: move if unordered';
-                        tempresult:='fcmovu st(0),st('+inttostr(memory[1]-$d8)+')';
+                        lastdisassembledata.opcode:='fcmovu';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d8)+')';
                         inc(offset);
                       end;
 
@@ -8916,25 +8953,29 @@ begin
 
                 $c0..$c7 : begin
                              description:='floating-point: move if not below';
-                             tempresult:='fcmovnb st(0),st('+inttostr(memory[1]-$c0)+')';
+                             lastdisassembledata.opcode:='fcmovnb';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$c0)+')';
                              inc(offset);
                            end;
 
                 $c8..$cf : begin
                              description:='floating-point: move if not equal';
-                             tempresult:='fcmovne st(0),st('+inttostr(memory[1]-$c8)+')';
+                             lastdisassembledata.opcode:='fcmovne';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$c8)+')';
                              inc(offset);
                            end;
 
                 $d0..$d7 : begin
                              description:='floating-point: move if not below or equal';
-                             tempresult:='fcmovnbe st(0),st('+inttostr(memory[1]-$d0)+')';
+                             lastdisassembledata.opcode:='fcmovnbe';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d0)+')';
                              inc(offset);
                            end;
 
                 $d8..$df : begin
                              description:='floating-point: move if not unordered';
-                             tempresult:='fcmovnu st(0),st('+inttostr(memory[1]-$d8)+')';
+                             lastdisassembledata.opcode:='fcmovnu';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d8)+')';
                              inc(offset);
                            end;
 
@@ -8952,13 +8993,15 @@ begin
 
                 $e8..$ef : begin
                              description:='floating-point: compare real and set eflags';
-                             tempresult:='fucomi st(0),st('+inttostr(memory[1]-$e8)+')';
+                             lastdisassembledata.opcode:='fucomi';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$e8)+')';
                              inc(offset);
                            end;
 
                 $f0..$f7 : begin
                              description:='floating-point: compare real and set eflags';
-                             tempresult:='fcomi st(0),st('+inttostr(memory[1]-$f0)+')';
+                             lastdisassembledata.opcode:='fcomi';
+                             lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$f0)+')';
                              inc(offset);
                            end;
               end;
@@ -9311,7 +9354,7 @@ begin
                      else
                      begin
                        lastdisassembledata.opcode:='db';
-                       lastdisassembledata.parameters:='de'
+                       lastdisassembledata.parameters:=inttohexs(memory[0],2);
                      end;
                    end;
 
@@ -9339,7 +9382,7 @@ begin
               case getreg(memory[1]) of
                 0:  begin
                       description:='load integer';
-                      tempresult:='fild';
+                      lastdisassembledata.opcode:='fild';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,16);
 
                       inc(offset,last-1);
@@ -9347,7 +9390,7 @@ begin
 
                 2:  begin
                       description:='store integer';
-                      tempresult:='fist';
+                      lastdisassembledata.opcode:='fist';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,16);
 
                       inc(offset,last-1);
@@ -9355,7 +9398,7 @@ begin
 
                 3:  begin
                       description:='store integer';
-                      tempresult:='fistp';
+                      lastdisassembledata.opcode:='fistp';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,16);
 
                       inc(offset,last-1);
@@ -9371,7 +9414,7 @@ begin
                       end
                       else
                       begin
-                        tempresult:='fbld';
+                        lastdisassembledata.opcode:='fbld';
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
 
                       end;
@@ -9382,7 +9425,7 @@ begin
                      if memory[1]<$c0 then
                      begin
                        description:='load integer';
-                       tempresult:='fild';
+                       lastdisassembledata.opcode:='fild';
                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
 
                        inc(offset,last-1);
@@ -9391,7 +9434,7 @@ begin
                      if memory[1]>=$e8 then
                      begin
                        description:='compare real and set eflags';
-                       tempresult:='fucomip';
+                       lastdisassembledata.opcode:='fucomip';
                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$e8)+')';
                        inc(offset);
                      end;
@@ -9401,13 +9444,13 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         description:='compare real and set eflags';
-                        tempresult:='fcomi';
+                        lastdisassembledata.opcode:='fcomi';
                         lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$f0)+')';
                       end
                       else
                       begin
                         description:='store bcd integer and pop';
-                        tempresult:='fbstp';
+                        lastdisassembledata.opcode:='fbstp';
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
 
                         inc(offset,last-1);
@@ -9416,7 +9459,7 @@ begin
 
                 7:  begin
                       description:='store integer';
-                      tempresult:='fistp';
+                      lastdisassembledata.opcode:='fistp';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
 
                       inc(offset,last-1);
@@ -9433,6 +9476,7 @@ begin
 
       $e0 : begin
               description:='loop according to ecx counter';
+              lastdisassembledata.isjump:=true;
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if processhandler.is64bit then
@@ -9455,6 +9499,8 @@ begin
 
       $e1 : begin
               description:='loop according to ecx counter';
+              lastdisassembledata.isjump:=true;
+
               if $66 in prefix2 then
               begin
                 lastdisassembledata.opcode:='loope';
@@ -9480,6 +9526,7 @@ begin
       $e2 : begin
               description:='loop according to ecx counting';
               lastdisassembledata.opcode:='loop';
+              lastdisassembledata.isjump:=true;
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
@@ -9496,6 +9543,8 @@ begin
 
       $e3 : begin
               description:='jump short if cx=0';
+              lastdisassembledata.isjump:=true;
+
               if $66 in prefix2 then
                 lastdisassembledata.opcode:='jcxz'
               else
@@ -9525,7 +9574,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:='al,'+inttohexs(memory[1],2);
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+inttohexs(memory[1],2);
               inc(offset);
 
             end;
@@ -9540,16 +9589,16 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
 
-              if $66 in prefix2 then lastdisassembledata.parameters:='ax,'+inttohexs(memory[1],2)
-                                else lastdisassembledata.parameters:='eax,'+inttohexs(memory[1],2);
+              if $66 in prefix2 then lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+inttohexs(memory[1],2)
+                                else lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+inttohexs(memory[1],2);
               inc(offset);
 
             end;
 
       $e6 : begin
               description:='output to port';
-              tempresult:='out';
-              lastdisassembledata.parameters:=inttohexs(memory[1],2)+',al';
+              lastdisassembledata.opcode:='out';
+              lastdisassembledata.parameters:=inttohexs(memory[1],2)+','+colorreg+'al'+endcolor;
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtvalue;
@@ -9562,8 +9611,8 @@ begin
               description:='output toport';
               lastdisassembledata.opcode:='out';
               if $66 in prefix2 then
-                lastdisassembledata.parameters:=inttohexs(memory[1],2)+',ax' else
-                lastdisassembledata.parameters:=inttohexs(memory[1],2)+',eax';
+                lastdisassembledata.parameters:=inttohexs(memory[1],2)+','+colorreg+'ax'+endcolor else
+                lastdisassembledata.parameters:=inttohexs(memory[1],2)+','+colorreg+'eax'+endcolor;
 
               inc(offset);
 
@@ -9578,6 +9627,8 @@ begin
               //this time no $66 prefix because it will only run in win32
               description:='call procedure';
               lastdisassembledata.opcode:='call';
+              lastdisassembledata.isjump:=true;
+
               inc(offset,4);
               lastdisassembledata.parametervaluetype:=dvtaddress;
 
@@ -9595,9 +9646,12 @@ begin
 
       $e9 : begin
               description:='jump near';
+              lastdisassembledata.isjump:=true;
+
               if $66 in prefix2 then
               begin
                 lastdisassembledata.opcode:='jmp';
+
                 inc(offset,2);
                 lastdisassembledata.parametervaluetype:=dvtaddress;
                 lastdisassembledata.parametervalue:=dword(offset+psmallint(@memory[1])^);
@@ -9624,7 +9678,7 @@ begin
 
       $ea : begin
               description:='jump far';
-
+              lastdisassembledata.isjump:=true;
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
@@ -9648,6 +9702,8 @@ begin
       $eb : begin
               description:='jump short';
               lastdisassembledata.opcode:='jmp';
+              lastdisassembledata.isjump:=true;
+
               inc(offset);
 
               if processhandler.is64bit then
@@ -9665,27 +9721,27 @@ begin
       $ec : begin
               description:='input from port';
               lastdisassembledata.opcode:='in';
-              lastdisassembledata.parameters:='al,dx';
+              lastdisassembledata.parameters:=colorreg+'al'+endcolor+','+colorreg+'dx'+endcolor;
             end;
 
       $ed : begin
               description:='input from port';
               lastdisassembledata.opcode:='in';
-              if $66 in prefix2 then lastdisassembledata.parameters:='ax,dx' else
-                                     lastdisassembledata.parameters:='eax,dx';
+              if $66 in prefix2 then lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+colorreg+'dx'+endcolor else
+                                     lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+colorreg+'dx'+endcolor;
             end;
 
       $ee : begin
               description:='input from port';
               lastdisassembledata.opcode:='out';
-              lastdisassembledata.parameters:='dx,al';
+              lastdisassembledata.parameters:=colorreg+'dx'+endcolor+','+colorreg+'al'+endcolor
             end;
 
       $ef : begin
               description:='input from port';
               lastdisassembledata.opcode:='out';
-              if $66 in prefix2 then lastdisassembledata.parameters:='dx,ax' else
-                                     lastdisassembledata.parameters:='dx,eax';
+              if $66 in prefix2 then lastdisassembledata.parameters:=colorreg+'dx'+endcolor+','+colorreg+'ax'+endcolor  else
+                                     lastdisassembledata.parameters:=colorreg+'dx'+endcolor+','+colorreg+'eax'+endcolor ;
             end;
 
       $f3 : begin
@@ -9959,6 +10015,8 @@ begin
                       //call
                       description:='call procedure';
                       lastdisassembledata.opcode:='call';
+                      lastdisassembledata.isjump:=true;
+
                       if memory[1]>=$c0 then
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
@@ -9975,6 +10033,8 @@ begin
                       //call
                       description:='call procedure';
                       lastdisassembledata.opcode:='call';
+                      lastdisassembledata.isjump:=true;
+
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
 
                       inc(offset,last-1);
@@ -9984,6 +10044,8 @@ begin
                       //jmp
                       description:='jump near';
                       lastdisassembledata.opcode:='jmp';
+                      lastdisassembledata.isjump:=true;
+
                       if memory[1]>=$c0 then
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
@@ -10001,6 +10063,7 @@ begin
                       description:='jump far';
                       lastdisassembledata.opcode:='jmp far';
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                      lastdisassembledata.isjump:=true;
 
                       inc(offset,last-1);
                     end;
@@ -10032,11 +10095,16 @@ begin
             end;
     end;
 
+   // if dataonly then exit;     //no need to handle the other stuff, dataonly means I'm only interested in the addresses, not bytes or extra parameters
+
     //strip off the , if it has one
     if (LastDisassembleData.parameters<>'') and (LastDisassembleData.parameters[length(LastDisassembleData.parameters)]=',') then
       LastDisassembleData.parameters:=copy(LastDisassembleData.parameters,0,length(LastDisassembleData.parameters)-1);
 
-    tempresult:=tempresult+LastDisassembleData.opcode+' '+LastDisassembleData.parameters;
+
+
+
+   // tempresult:=tempresult+LastDisassembleData.opcode+' '+LastDisassembleData.parameters;
 
 
 
@@ -10058,7 +10126,7 @@ begin
     //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecesary readprocessmemorys associated with it
 
 
-    result:=result+'- '+tempresult;
+  //  result:=result+'- '+tempresult;
 
 
     if riprelative then
@@ -10068,7 +10136,7 @@ begin
 
       i:=pos('[',LastDisassembleData.parameters);
       j:=PosEx(']',LastDisassembleData.parameters,i);
-      tempresult:=copy(LastDisassembleData.parameters,i+1,j-i-1);
+     // tempresult:=copy(LastDisassembleData.parameters,i+1,j-i-1);
 
 
       tempaddress:=LastDisassembleData.modrmValue;
@@ -10076,9 +10144,6 @@ begin
       tempresult:=copy(LastDisassembleData.parameters,1,i);
       tempresult:=tempresult+inttohexs(tempaddress,8);
       LastDisassembleData.parameters:=tempresult+copy(LastDisassembleData.parameters,j,length(LastDisassembleData.parameters));
-
-
-
     end;
 
 
@@ -10094,11 +10159,14 @@ begin
 
   end;
 
-  result:=inttohex(LastDisassembleData.address,8)+' - '+getLastBytestring;
-  result:=result+' - ';
-  result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
-  result:=result+' ';
-  result:=result+LastDisassembleData.parameters;
+  if not dataonly then
+  begin
+    result:=inttohex(LastDisassembleData.address,8)+' - '+getLastBytestring;
+    result:=result+' - ';
+    result:=result+LastDisassembleData.prefix+LastDisassembleData.opcode;
+    result:=result+' ';
+    result:=result+LastDisassembleData.parameters;
+  end;
 end;
 
 function TDisassembler.getLastBytestring: string;
@@ -10623,6 +10691,7 @@ initialization
   visibleDisassembler.syntaxhighlighting:=true;
 
 finalization
+
   if visibleDisassembler<>nil then
     freeandnil(visibleDisassembler);
 
