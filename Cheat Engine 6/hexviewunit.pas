@@ -32,6 +32,8 @@ type
     textheight: integer;
     addresswidthdefault: integer;
     charsize, bytesize, byteSizeWithoutChar: integer;
+
+
    // _8bytelinesize: integer;
 
     memoryInfo: string;
@@ -39,6 +41,8 @@ type
     addresswidth: integer;
     usablewidth: integer;
     bytesPerLine: integer;
+    lockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
+
     totallines: integer;
     charstart: integer;
     bytestart: integer;
@@ -89,6 +93,8 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
   public
+    procedure LockRowsize;
+    procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
     procedure PasteFromClipboard;
 
@@ -105,6 +111,18 @@ type
 implementation
 
 uses formsettingsunit, Valuechange, AddAddress;
+
+procedure THexView.LockRowsize;
+begin
+  lockedRowSize:=bytesPerLine;
+end;
+
+procedure THexView.UnlockRowsize;
+begin
+  lockedRowSize:=0;
+  hexviewResize(self);
+  update;
+end;
 
 procedure THexView.setDisplayType(newdt: TDisplaytype);
 begin
@@ -1151,7 +1169,11 @@ begin
 
   usablewidth:=mbCanvas.ClientWidth-addresswidth-8;
 
-  bytesPerLine:=(usablewidth div bytesize) and $fffffff8;
+  if lockedRowSize>0 then
+    bytesPerLine:=lockedRowSize
+  else
+    bytesPerLine:=(usablewidth div bytesize) and $fffffff8;
+
   if bytesperline=0 then
     bytesperline:=8;
 
