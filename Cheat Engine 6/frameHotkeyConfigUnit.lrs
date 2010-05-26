@@ -20,39 +20,39 @@ LazarusResources.Add('TframeHotkeyConfig','FORMDATA',[
   +#6#8'New Scan'#6#20'New Scan-Exact Value'#6#30'New Scan-Unknown Initial Valu'
   +'e'#6#21'Next Scan-Exact Value'#6#25'Next Scan-Increased Value'#6#25'Next Sc'
   +'an-Decreased Value'#6#23'Next Scan-Changed Value'#6#25'Next Scan-Unchanged '
-  +'Value'#6#14'Undo last scan'#6#23'Cancel the current scan'#6#10'Debug->Run'#0
-  +#10'ItemHeight'#2#20#7'OnClick'#7#13'ListBox1Click'#8'TabOrder'#2#0#0#0#0#6
-  +'TPanel'#6'Panel2'#4'Left'#3'1'#1#6'Height'#3'l'#1#3'Top'#2'2'#5'Width'#3#183
-  +#0#5'Align'#7#7'alRight'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3'l'#1
-  +#11'ClientWidth'#3#183#0#8'TabOrder'#2#1#0#6'TLabel'#6'Label2'#4'Left'#2#6#6
-  +'Height'#2#21#3'Top'#2#0#5'Width'#2'0'#7'Caption'#6#6'Hotkey'#11'ParentColor'
-  +#8#0#0#5'TEdit'#5'Edit1'#4'Left'#2#5#6'Height'#2#28#3'Top'#2#21#5'Width'#3
-  +#172#0#9'OnKeyDown'#7#12'Edit1KeyDown'#8'ReadOnly'#9#8'TabOrder'#2#0#0#0#7'T'
-  +'Button'#7'Button3'#4'Left'#3#128#0#6'Height'#2#19#3'Top'#2'/'#5'Width'#2'1'
-  +#7'Caption'#6#5'Clear'#7'OnClick'#7#12'Button3Click'#8'TabOrder'#2#1#0#0#6'T'
-  +'Panel'#6'Panel3'#4'Left'#2#8#6'Height'#2#0#3'Top'#2'@'#5'Width'#3#170#0#7'A'
-  +'nchors'#11#5'akTop'#6'akLeft'#7'akRight'#8'akBottom'#0#10'BevelOuter'#7#6'b'
-  +'vNone'#12'ClientHeight'#2#0#11'ClientWidth'#3#170#0#8'TabOrder'#2#2#7'Visib'
-  +'le'#8#0#6'TLabel'#7'Label52'#4'Left'#2#255#6'Height'#2#21#3'Top'#2#2#5'Widt'
-  +'h'#2'+'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#5'Speed'#11'Parent'
-  +'Color'#8#0#0#5'TEdit'#10'edtSHSpeed'#4'Left'#2#4#6'Height'#2#28#3'Top'#2#18
-  +#5'Width'#2'.'#7'Anchors'#11#5'akTop'#7'akRight'#0#8'TabOrder'#2#0#4'Text'#6
-  +#1'2'#0#0#0#6'TPanel'#6'Panel4'#4'Left'#2#5#6'Height'#2'a'#3'Top'#2'F'#5'Wid'
-  +'th'#3#173#0#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2'a'#11'ClientWidth'
-  +#3#173#0#8'TabOrder'#2#3#7'Visible'#8#0#6'TLabel'#6'Label3'#4'Left'#2#3#6'He'
-  +'ight'#2#21#3'Top'#2#1#5'Width'#2'Q'#7'Caption'#6#11'Speed delta'#11'ParentC'
-  +'olor'#8#0#0#5'TEdit'#5'Edit4'#4'Left'#2#4#6'Height'#2#28#3'Top'#2#19#5'Widt'
-  +'h'#3#166#0#8'TabOrder'#2#0#4'Text'#6#1'1'#0#0#0#0#6'TPanel'#6'Panel5'#4'Lef'
-  +'t'#2#0#6'Height'#2'2'#3'Top'#2#0#5'Width'#3#232#1#5'Align'#7#5'alTop'#10'Be'
-  +'velOuter'#7#6'bvNone'#12'ClientHeight'#2'2'#11'ClientWidth'#3#232#1#8'TabOr'
-  +'der'#2#2#0#6'TLabel'#6'Label4'#4'Left'#2'h'#6'Height'#2#21#3'Top'#2#6#5'Wid'
-  +'th'#3#200#0#7'Caption'#6#31'Keypoll interval (milliseconds)'#11'ParentColor'
-  +#8#0#0#6'TLabel'#6'Label5'#4'Left'#2'h'#6'Height'#2#21#3'Top'#2' '#5'Width'#3
-  +#236#0#7'Caption'#6'"Delay between reactivating hotkeys'#11'ParentColor'#8#0
-  +#0#5'TEdit'#18'edtKeypollInterval'#4'Left'#2#2#6'Height'#2#28#4'Hint'#6'4Det'
-  +'ermines how quickly a hotkey keypress is detected'#3'Top'#2#2#5'Width'#2'_'
-  +#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#0#4'Text'#6#3'100'#0#0#5'T'
-  +'Edit'#14'edtHotkeyDelay'#4'Left'#2#2#6'Height'#2#28#4'Hint'#6'1Lets you spe'
-  +'cify how quickly a hotkey is repeated'#3'Top'#2#26#5'Width'#2'_'#8'TabOrder'
-  +#2#1#4'Text'#6#3'100'#0#0#0#0
+  +'Value'#6#28'Next Scan-Same as first scan'#6#14'Undo last scan'#6#23'Cancel '
+  +'the current scan'#6#10'Debug->Run'#0#10'ItemHeight'#2#20#7'OnClick'#7#13'Li'
+  +'stBox1Click'#8'TabOrder'#2#0#0#0#0#6'TPanel'#6'Panel2'#4'Left'#3'1'#1#6'Hei'
+  +'ght'#3'l'#1#3'Top'#2'2'#5'Width'#3#183#0#5'Align'#7#7'alRight'#10'BevelOute'
+  +'r'#7#6'bvNone'#12'ClientHeight'#3'l'#1#11'ClientWidth'#3#183#0#8'TabOrder'#2
+  +#1#0#6'TLabel'#6'Label2'#4'Left'#2#6#6'Height'#2#21#3'Top'#2#0#5'Width'#2'0'
+  +#7'Caption'#6#6'Hotkey'#11'ParentColor'#8#0#0#5'TEdit'#5'Edit1'#4'Left'#2#5#6
+  +'Height'#2#28#3'Top'#2#21#5'Width'#3#172#0#9'OnKeyDown'#7#12'Edit1KeyDown'#8
+  +'ReadOnly'#9#8'TabOrder'#2#0#0#0#7'TButton'#7'Button3'#4'Left'#3#128#0#6'Hei'
+  +'ght'#2#19#3'Top'#2'/'#5'Width'#2'1'#7'Caption'#6#5'Clear'#7'OnClick'#7#12'B'
+  +'utton3Click'#8'TabOrder'#2#1#0#0#6'TPanel'#6'Panel3'#4'Left'#2#8#6'Height'#2
+  +#0#3'Top'#2'@'#5'Width'#3#170#0#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#8
+  +'akBottom'#0#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2#0#11'ClientWidth'
+  +#3#170#0#8'TabOrder'#2#2#7'Visible'#8#0#6'TLabel'#7'Label52'#4'Left'#2#255#6
+  +'Height'#2#21#3'Top'#2#2#5'Width'#2'+'#7'Anchors'#11#5'akTop'#7'akRight'#0#7
+  +'Caption'#6#5'Speed'#11'ParentColor'#8#0#0#5'TEdit'#10'edtSHSpeed'#4'Left'#2
+  +#4#6'Height'#2#28#3'Top'#2#18#5'Width'#2'.'#7'Anchors'#11#5'akTop'#7'akRight'
+  +#0#8'TabOrder'#2#0#4'Text'#6#1'2'#0#0#0#6'TPanel'#6'Panel4'#4'Left'#2#5#6'He'
+  +'ight'#2'a'#3'Top'#2'F'#5'Width'#3#173#0#10'BevelOuter'#7#6'bvNone'#12'Clien'
+  +'tHeight'#2'a'#11'ClientWidth'#3#173#0#8'TabOrder'#2#3#7'Visible'#8#0#6'TLab'
+  +'el'#6'Label3'#4'Left'#2#3#6'Height'#2#21#3'Top'#2#1#5'Width'#2'Q'#7'Caption'
+  +#6#11'Speed delta'#11'ParentColor'#8#0#0#5'TEdit'#5'Edit4'#4'Left'#2#4#6'Hei'
+  +'ght'#2#28#3'Top'#2#19#5'Width'#3#166#0#8'TabOrder'#2#0#4'Text'#6#1'1'#0#0#0
+  +#0#6'TPanel'#6'Panel5'#4'Left'#2#0#6'Height'#2'2'#3'Top'#2#0#5'Width'#3#232#1
+  +#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2'2'#11'Cli'
+  +'entWidth'#3#232#1#8'TabOrder'#2#2#0#6'TLabel'#6'Label4'#4'Left'#2'h'#6'Heig'
+  +'ht'#2#21#3'Top'#2#6#5'Width'#3#200#0#7'Caption'#6#31'Keypoll interval (mill'
+  +'iseconds)'#11'ParentColor'#8#0#0#6'TLabel'#6'Label5'#4'Left'#2'h'#6'Height'
+  +#2#21#3'Top'#2' '#5'Width'#3#236#0#7'Caption'#6'"Delay between reactivating '
+  +'hotkeys'#11'ParentColor'#8#0#0#5'TEdit'#18'edtKeypollInterval'#4'Left'#2#2#6
+  +'Height'#2#28#4'Hint'#6'4Determines how quickly a hotkey keypress is detecte'
+  +'d'#3'Top'#2#2#5'Width'#2'_'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2
+  +#0#4'Text'#6#3'100'#0#0#5'TEdit'#14'edtHotkeyDelay'#4'Left'#2#2#6'Height'#2
+  +#28#4'Hint'#6'1Lets you specify how quickly a hotkey is repeated'#3'Top'#2#26
+  +#5'Width'#2'_'#8'TabOrder'#2#1#4'Text'#6#3'100'#0#0#0#0
 ]);
