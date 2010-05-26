@@ -11,7 +11,7 @@ uses
   hotkeyhandler, registry, Math, ImgList, commctrl, NewKernelHandler,
   unrandomizer, symbolhandler, ActnList, LResources, hypermode, memscan,
   autoassembler, plugin, savefirstscan, menuitemExtra, speedhack2,AccessCheck,
-  frmCScriptUnit, foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
+  foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist
@@ -1844,6 +1844,7 @@ var
   newprocessname: string;
   i, j: integer;
   fname, expectedfilename: string;
+  wasActive: boolean; //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
 
   newprocessname := copy(mainform.ProcessLabel.Caption, pos(
@@ -1940,16 +1941,35 @@ begin
       for i := 0 to addresslist.count - 1 do
         if (addresslist[i].VarType = vtCustom) and (addresslist[i].active) then
         begin
-          if (messagedlg(
-            'There are one or more auto assembler entries enabled in this table. Do you want them disabled? (without executing the disable part)',
-            mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
-          begin
-            for j := 0 to addresslist.count - 1 do
-              if (addresslist[j].VarType = vtCustom) and (addresslist[j].active) then
-                addresslist[j].disablewithoutexecute;
-          end;
+          wasActive:=true;
           break;
         end;
+
+      if not wasActive then
+      begin
+        for i:=0 to length(AdvancedOptions.code)-1 do
+          if AdvancedOptions.code[i].changed then
+          begin
+            wasActive:=true;
+            break;
+          end;
+      end;
+
+      if wasactive then
+      begin
+        if (messagedlg(
+          'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without executing the disable part)',
+          mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+        begin
+          for j := 0 to addresslist.count - 1 do
+            if (addresslist[j].VarType = vtCustom) and (addresslist[j].active) then
+              addresslist[j].disablewithoutexecute;
+
+          for i:=0 to length(AdvancedOptions.code)-1 do
+            AdvancedOptions.code[i].changed:=false;
+        end;
+
+      end;
     end;
 
   end;
@@ -4766,10 +4786,16 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var r: trect;
 begin
-  caption:=inttostr(foundlist3.ItemIndex);
+//  caption:=inttostr(foundlist3.ItemIndex);
 
-  foundlist3.items[foundlist3.ItemIndex].MakeVisible(false);
+//  foundlist3.items[foundlist3.ItemIndex].MakeVisible(false);
 //  foundlist3.TopItem:=nil;
+ // showmessage(inttohex(systeminfo.dwAllocationGranularity,8));
+  asm
+    db $90,$90,$90
+    db $8c,$3c,$ff,$ff,$ff,$44,$88,$e0
+
+  end;
 end;
 
 
@@ -5546,8 +5572,7 @@ end;
 
 procedure TMainForm.actScriptEngineExecute(Sender: TObject);
 begin
-  with TfrmCScript.create(self) do
-    show;
+
 end;
 
 procedure TMainForm.File1Click(Sender: TObject);

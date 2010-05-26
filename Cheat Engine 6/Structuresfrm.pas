@@ -32,7 +32,7 @@ type TbaseStructure=record
   private
     //frmStructures: TfrmStructures; //obsolete
     treeviewused: ttreeview;
-    addresses: array of dword;
+    addresses: array of ptrUint;
     basestructure: integer;
     parentnode: ttreenode; //owner of this object
     objects: array of record //same size as the structelement of the base object
@@ -43,8 +43,8 @@ type TbaseStructure=record
   public
     procedure refresh;
     procedure removeAddress(i: integer);
-    procedure setaddress(i: integer; x:dword);
-    constructor create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
+    procedure setaddress(i: integer; x:ptrUint);
+    constructor create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of ptrUint; basestructure: integer);
     destructor destroy; override;
   end;
 
@@ -140,7 +140,7 @@ type TbaseStructure=record
     currentstructure: tstructure;
 
 
-    addresses: array of dword;  //first address (old compat)
+    addresses: array of ptrUint;  //first address (old compat)
 
     groupindex: array of integer; //e.g 1,3,9,10000000
     groups: array of dword;               //the grouplist holds the groupnumbers provided by the user
@@ -155,11 +155,11 @@ type TbaseStructure=record
     function convertVariableTypeTostructnr(d: TVariableType): integer;
 //    function RawToType(address: dword; const buf: array of byte; size: integer):integer;
     procedure ExtraEnter(Sender: TObject);
-    procedure automaticallyGuessOffsets(baseOffset: dword; structsize: integer);
+    procedure automaticallyGuessOffsets(baseOffset: ptrUint; structsize: integer);
     procedure UpdateGroupIndex;
   public
     { Public declarations }
-    procedure setaddress(i: integer; x:dword);
+    procedure setaddress(i: integer; x:ptrUint);
     procedure update(doOthers: boolean);
   end;
 
@@ -183,7 +183,7 @@ begin
   inherited destroy;
 end;
 
-constructor TStructure.create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of dword; basestructure: integer);
+constructor TStructure.create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of ptrUint; basestructure: integer);
 var elementnr: integer;
     s: tstructure;
     i: integer;
@@ -215,7 +215,7 @@ begin
 end;
 
 
-procedure TStructure.setaddress(i: integer; x:dword);
+procedure TStructure.setaddress(i: integer; x:ptrUint);
 var j: integer;
 begin
   if i>=length(addresses) then
@@ -622,7 +622,7 @@ begin
     tvStructureView.Items.Clear;
 end;
 
-procedure TfrmStructures.setaddress(i: integer; x: dword);
+procedure TfrmStructures.setaddress(i: integer; x: ptrUint);
 begin
   addresses[i]:=x;
      
@@ -1018,7 +1018,7 @@ procedure TfrmStructures.tvStructureViewExpanding(Sender: TObject;
 var s: tstructure;
     elementnr: integer;
     basestruct: integer;
-    elementaddress: array of dword;
+    elementaddress: array of ptrUint;
     i,j: integer;
 begin
   AllowExpansion:=true;
@@ -1514,8 +1514,7 @@ begin
     begin
       selectedelement:=selectednode.Index;
       a:=selectedstructure.addresses[selectedsection-1];
-      for i:=0 to selectedelement-1 do
-        inc(a,definedstructures[selectedstructure.basestructure].structelement[i].bytesize);
+      inc(a, definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset);
 
       with Tvaluechangeform.Create(application) do
       begin
@@ -1691,7 +1690,7 @@ end;
 
 procedure TfrmStructures.Recalculateaddress1Click(Sender: TObject);
 var a: string;
-    oldaddress,newaddress: dword;
+    oldaddress,newaddress: ptrUint;
 
     selectedstructure: tstructure;
     selectednode: ttreenode;
@@ -1741,7 +1740,7 @@ begin
     if inputquery('Recalculate base of structure','Give the address of this element',a) then
     begin
       try
-        newaddress:=strtoint('$'+a);
+        newaddress:=strtoint64('$'+a);
       except
         raise exception.Create('I have no idea what '+a+' means');
       end;
@@ -2241,7 +2240,7 @@ begin
 
 end;
 
-procedure TfrmStructures.automaticallyGuessOffsets(baseOffset: dword; structsize: integer);
+procedure TfrmStructures.automaticallyGuessOffsets(baseOffset: ptrUint; structsize: integer);
 var
   buf: array of byte;
   buf2: array of byte;
