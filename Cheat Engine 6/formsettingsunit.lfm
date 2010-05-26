@@ -349,8 +349,6 @@ object formSettings: TformSettings
           Top = 98
           Width = 326
           Caption = 'Pointer adding: Append pointerline instead of insert'
-          Checked = True
-          State = cbChecked
           TabOrder = 17
         end
       end

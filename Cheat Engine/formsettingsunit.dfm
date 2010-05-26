@@ -353,8 +353,6 @@ object formSettings: TformSettings
           Width = 614
           Height = 21
           Caption = 'Pointer adding: Append pointerline instead of insert'
-          Checked = True
-          State = cbChecked
           TabOrder = 18
         end
       end
@@ -706,7 +704,7 @@ object formSettings: TformSettings
         object Label4: TLabel
           Left = 0
           Top = 0
-          Width = 609
+          Width = 592
           Height = 48
           Align = alTop
           Caption = 
