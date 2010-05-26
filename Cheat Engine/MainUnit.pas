@@ -3568,6 +3568,7 @@ procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dwor
 var newprocessname: string;
     i,j: integer;
     fname,expectedfilename: string;
+    wasActive: boolean; //set to true if the table had AA scripts enabled or the code list had nopped instructions 
 begin
   newprocessname:=copy(mainform.ProcessLabel.Caption,pos('-',mainform.ProcessLabel.Caption)+1,length(mainform.ProcessLabel.Caption));
 
@@ -3709,19 +3710,43 @@ begin
     begin
       //yes, so keep the list
       //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
+
+      wasactive:=false;
       for i:=0 to numberofrecords-1 do
         if (memrec[i].VarType=255) and (memrec[i].Frozen) then
         begin
-          if (messagedlg('There are one or more auto assembler entries enabled in this table. Do you want them disabled? (without executing the disable part)', mtConfirmation, [mbYes, mbNo], 0)=mryes) then
-          begin
-            for j:=0 to numberofrecords-1 do
-              if (memrec[j].VarType=255) and (memrec[j].Frozen) then
-                memrec[j].Frozen:=false;
-
-            Updatescreen;
-          end;
+          wasActive:=true;
           break;
         end;
+
+      if not wasactive then
+      begin
+        for i:=0 to length(AdvancedOptions.code)-1 do
+          if AdvancedOptions.code[i].changed then
+          begin
+            wasActive:=true;
+            break;
+          end;
+      end;
+
+      if wasactive then
+      begin
+        if (messagedlg('There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without executing the disable part)', mtConfirmation, [mbYes, mbNo], 0)=mryes) then
+        begin
+          for j:=0 to numberofrecords-1 do
+            if (memrec[j].VarType=255) and (memrec[j].Frozen) then
+              memrec[j].Frozen:=false;
+
+          for j:=0 to length(AdvancedOptions.code)-1 do
+            AdvancedOptions.code[i].changed:=false;
+
+          Updatescreen;
+
+          if AdvancedOptions.Visible then
+            AdvancedOptions.Codelist2.Repaint;
+        end;
+        
+      end;
     end;
 
   end;
