@@ -1514,9 +1514,6 @@ begin
     begin
       selectedelement:=selectednode.Index;
       a:=selectedstructure.addresses[selectedsection-1];
-{      for i:=0 to selectedelement-1 do
-        inc(a,definedstructures[selectedstructure.basestructure].structelement[i].bytesize);
- }
       inc(a, definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset);
 
       with Tvaluechangeform.Create(application) do
