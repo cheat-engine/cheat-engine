@@ -7722,12 +7722,15 @@ begin
                         end;
 
     VK_RETURN:begin
-                if ssCtrl in shift then
-                  description[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position])
-                else if ssAlt in shift then
-                  address[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position])
-                else
-                  value[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position]);
+                if (lastselected>=0) and (lastselected<NumberOfRecords) then
+                begin
+                  if ssCtrl in shift then
+                    description[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position])
+                  else if ssAlt in shift then
+                    address[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position])
+                  else
+                    value[lastselected-scrollbar1.position].OnDblClick(value[lastselected-scrollbar1.position]);
+                end;
               end;
 
     VK_HOME:  begin
