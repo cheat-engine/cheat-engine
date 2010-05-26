@@ -261,7 +261,7 @@ var reg : TRegistry;
     hotkey: string;
     i,j: integer;
     go: boolean;
-    temphotkeylist: array [0..29] of cefuncproc.tkeycombo;
+    temphotkeylist: array [0..30] of cefuncproc.tkeycombo;
     found:boolean;
     names: TStringList;
     li: tlistitem;
@@ -415,9 +415,11 @@ begin
           try reg.ReadBinaryData('Decreased Value Hotkey',temphotkeylist[24][0],10); except end;
           try reg.ReadBinaryData('Changed Value Hotkey',temphotkeylist[25][0],10); except end;
           try reg.ReadBinaryData('Unchanged Value Hotkey',temphotkeylist[26][0],10); except end;
-          try reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[27][0],10); except end;
-          try reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[28][0],10); except end;
-          try reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[29][0],10); except end;
+          try reg.ReadBinaryData('Same as first scan Hotkey',temphotkeylist[27][0],10); except end;
+
+          try reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[28][0],10); except end;
+          try reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[29][0],10); except end;
+          try reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[30][0],10); except end;
 
           try reg.ReadBinaryData('Speedhack speed 1',Speedhackspeed1,sizeof(tspeedhackspeed)); except speedhackspeed1.speed:=2; speedhackspeed1.sleeptime:=3; end;
           try reg.ReadBinaryData('Speedhack speed 2',Speedhackspeed2,sizeof(tspeedhackspeed)); except speedhackspeed2.speed:=2; speedhackspeed2.sleeptime:=3; end;
@@ -427,7 +429,7 @@ begin
 
 
           //fill the hotkeylist
-          for i:=0 to 29 do
+          for i:=0 to 30 do
           begin
             found:=false;
 

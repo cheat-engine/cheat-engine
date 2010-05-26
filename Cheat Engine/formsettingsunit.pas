@@ -509,13 +509,15 @@ begin
         reg.WriteBinaryData('Decreased Value Hotkey',frameHotkeyConfig.newhotkeys[24][0],10);
         reg.WriteBinaryData('Changed Value Hotkey',frameHotkeyConfig.newhotkeys[25][0],10);
         reg.WriteBinaryData('Unchanged Value Hotkey',frameHotkeyConfig.newhotkeys[26][0],10);
-        reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
-        reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
-        reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
+        reg.WriteBinaryData('Same as first scan Hotkey',frameHotkeyConfig.newhotkeys[27][0],10);
+
+        reg.WriteBinaryData('Undo Last scan Hotkey',frameHotkeyConfig.newhotkeys[28][0],10);
+        reg.WriteBinaryData('Cancel scan Hotkey',frameHotkeyConfig.newhotkeys[29][0],10);
+        reg.WriteBinaryData('Debug->Run Hotkey',frameHotkeyConfig.newhotkeys[30][0],10);
 
 
         //apply these hotkey changes
-        for i:=0 to 28 do
+        for i:=0 to 30 do
         begin
           found:=false;
 

@@ -1022,7 +1022,23 @@ begin
       else Errorbeep;
     end;
 
-    27: //undo lastscan
+    27: //next scan same as first
+    begin
+
+      if not newscan.Enabled then exit;
+      if (formscanning<>nil) and (formscanning.Visible) then exit; //it's scanning
+
+      if nextscanbutton.Enabled then
+      begin
+        scantype.ItemIndex:=scantype.Items.IndexOf(strSameAsFirstScan);
+        scantype.OnChange(scantype);
+
+        nextscanbutton.click;
+      end
+      else Errorbeep;
+    end;
+
+    28: //undo lastscan
     begin
 
       if not newscan.Enabled then exit;
@@ -1034,16 +1050,18 @@ begin
         Errorbeep;
     end;
 
-    28: //cancel current scan
+    29: //cancel current scan
     begin
       if cancelbutton<>nil then
         cancelbutton.Click;
     end;
 
-    29: //debug->run
+    30: //debug->run
     begin
       MemoryBrowser.Run1.Click;
     end;
+
+
 
   end;
 

@@ -261,13 +261,13 @@ var reg : TRegistry;
     hotkey: string;
     i,j: integer;
     go: boolean;
-    temphotkeylist: array [0..29] of cefuncproc.tkeycombo;
+    temphotkeylist: array [0..30] of cefuncproc.tkeycombo;
     found:boolean;
     names: TStringList;
     li: tlistitem;
     s,s2: string;
 begin
-  ZeroMemory(@temphotkeylist, 30*sizeof(cefuncproc.tkeycombo));
+  ZeroMemory(@temphotkeylist, 31*sizeof(cefuncproc.tkeycombo));
 
   try
     reg:=Tregistry.Create;
@@ -464,14 +464,17 @@ begin
           if reg.ValueExists('Unchanged Value Hotkey') then
             reg.ReadBinaryData('Unchanged Value Hotkey',temphotkeylist[26][0],10);
 
+          if reg.ValueExists('Same as first scan Hotkey') then
+            reg.ReadBinaryData('Same as first scan Hotkey',temphotkeylist[27][0],10);
+
           if reg.ValueExists('Undo Last scan Hotkey') then
-            reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[27][0],10);
+            reg.ReadBinaryData('Undo Last scan Hotkey',temphotkeylist[28][0],10);
 
           if reg.ValueExists('Cancel scan Hotkey') then
-            reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[28][0],10);
+            reg.ReadBinaryData('Cancel scan Hotkey',temphotkeylist[29][0],10);
 
           if reg.ValueExists('Debug->Run Hotkey') then
-            reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[29][0],10);
+            reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[30][0],10);
 
           if reg.ValueExists('Speedhack speed 1') then
             reg.ReadBinaryData('Speedhack speed 1',Speedhackspeed1,sizeof(tspeedhackspeed))
