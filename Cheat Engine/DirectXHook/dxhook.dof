@@ -1,7 +1,7 @@
 [FileVersion]
 Version=7.0
 [Compiler]
-A=8
+A=4
 B=0
 C=1
 D=1
@@ -96,12 +96,12 @@ PackageDLLOutputDir=
 PackageDCPOutputDir=
 SearchPath=
 Packages=vcl;rtl;vclx;indy;inet;xmlrtl;vclie;inetdbbde;inetdbxpress;dbrtl;dsnap;dsnapcon;vcldb;soaprtl;VclSmp;dbexpress;dbxcds;inetdb;bdertl;vcldbx;webdsnap;websnap;adortl;ibxpress;teeui;teedb;tee;dss;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;Rave50CLX;Rave50VCL;dclOfficeXP
-Conditionals=
+Conditionals=dxhook
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
-HostApplication=C:\Cheat Engine Delphi\cheatengine.exe
+HostApplication=F:\svn\Cheat Engine\bin\cheatengine.exe
 Launcher=
 UseLauncher=0
 DebugCWD=
@@ -139,19 +139,20 @@ Count=2
 Item0=.\SynEdit\Source\
 Item1=C:\svnx\Cheat Engine\SynEdit\Source\
 [HistoryLists\hlConditionals]
-Count=12
-Item0=cemain;NOcrashtest;DEBUG
-Item1=cemain;NOcrashtest;NODEBUG
-Item2=cemain;crashtest;DEBUG
-Item3=cemain;crashtest
-Item4=cemain;DEBUG
-Item5=cemain;debugmemscan
-Item6=cemain
-Item7=beta52
-Item8=DEU
-Item9=RUS
-Item10=debug2
-Item11=debug
+Count=13
+Item0=dxhook
+Item1=cemain;NOcrashtest;DEBUG
+Item2=cemain;NOcrashtest;NODEBUG
+Item3=cemain;crashtest;DEBUG
+Item4=cemain;crashtest
+Item5=cemain;DEBUG
+Item6=cemain;debugmemscan
+Item7=cemain
+Item8=beta52
+Item9=DEU
+Item10=RUS
+Item11=debug2
+Item12=debug
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
@@ -160,8 +161,10 @@ Count=2
 Item0=.\SynEdit\Source;.\KIcon;.\jedi\source;.\jedi\source\vcl;.\jedi\source\common;.\jedi\source\windows
 Item1=.\SynEdit\Source
 [HistoryLists\hlUnitOutputDirectory]
-Count=1
-Item0=.\unitbin
+Count=2
+Item0=unitbin
+Item1=.\unitbin
 [HistoryLists\hlOutputDirectorry]
-Count=1
-Item0=.\bin
+Count=2
+Item0=..\bin
+Item1=.\bin

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,cefuncproc, Menus, Buttons, ComCtrls;
+  Dialogs, StdCtrls, ExtCtrls,cefuncproc, Menus, Buttons, ComCtrls, directxmessconfig,directxmess;
 
 const dxmessversion=1;
 type
@@ -217,6 +217,7 @@ type
     LeftMouse1: TMenuItem;
     CenterMouse1: TMenuItem;
     RightMouse1: TMenuItem;
+    Button35: TButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Zoom1KeyDown(Sender: TObject; var Key: Word;
@@ -324,17 +325,21 @@ type
     procedure SaveAllTexturesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure LeftMouse1Click(Sender: TObject);
+    procedure Button35Click(Sender: TObject);
   private
     { Private declarations }
 
 
-    tempkeys: TKeys;
+    tempkeys: TDirectXMessConfig;
+
 
     procedure ApplyTempkeys;
     procedure updatecallibration(var Message: TMessage); message WM_USER+1;
     procedure setkey(key:word; var tempkeysitem: tkeycombo;ed:tedit);
   public
     { Public declarations }
+    DXConfig: PDirectXMessConfig;
+    dxmess: TDirectXMessController;
   end;
 
 var
@@ -348,39 +353,33 @@ uses MainUnit;
 
 procedure TfrmDirectX.updatecallibration(var Message: TMessage);
 begin
-  mousecallibrationhorizontal1point.text:=format('%.2f',[keys.mousecallibrationhorizontal1point]);
-  mousecallibrationhorizontal2point.text:=format('%.2f',[keys.mousecallibrationhorizontal2point]);
-  mousecallibrationhorizontal5point.text:=format('%.2f',[keys.mousecallibrationhorizontal5point]);
-  mousecallibrationhorizontal10point.text:=format('%.2f',[keys.mousecallibrationhorizontal10point]);
-  mousecallibrationhorizontal20point.text:=format('%.2f',[keys.mousecallibrationhorizontal20point]);
-  mousecallibrationhorizontal40point.text:=format('%.2f',[keys.mousecallibrationhorizontal40point]);
+  //after the calibration by the dxhook this will update the screen with the new values
+  mousecallibrationhorizontal1point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal1point]);
+  mousecallibrationhorizontal2point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal2point]);
+  mousecallibrationhorizontal5point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal5point]);
+  mousecallibrationhorizontal10point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal10point]);
+  mousecallibrationhorizontal20point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal20point]);
+  mousecallibrationhorizontal40point.text:=format('%.2f',[DXConfig.mousecallibrationhorizontal40point]);
 
-  mousecallibrationvertical1point.text:=format('%.2f',[keys.mousecallibrationvertical1point]);
-  mousecallibrationvertical2point.text:=format('%.2f',[keys.mousecallibrationvertical2point]);
-  mousecallibrationvertical5point.text:=format('%.2f',[keys.mousecallibrationvertical5point]);
-  mousecallibrationvertical10point.text:=format('%.2f',[keys.mousecallibrationvertical10point]);
-  mousecallibrationvertical20point.text:=format('%.2f',[keys.mousecallibrationvertical20point]);
-  mousecallibrationvertical40point.text:=format('%.2f',[keys.mousecallibrationvertical40point]);
-
-
+  mousecallibrationvertical1point.text:=format('%.2f',[DXConfig.mousecallibrationvertical1point]);
+  mousecallibrationvertical2point.text:=format('%.2f',[DXConfig.mousecallibrationvertical2point]);
+  mousecallibrationvertical5point.text:=format('%.2f',[DXConfig.mousecallibrationvertical5point]);
+  mousecallibrationvertical10point.text:=format('%.2f',[DXConfig.mousecallibrationvertical10point]);
+  mousecallibrationvertical20point.text:=format('%.2f',[DXConfig.mousecallibrationvertical20point]);
+  mousecallibrationvertical40point.text:=format('%.2f',[DXConfig.mousecallibrationvertical40point]);
 end;
 
 
 procedure TfrmDirectX.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   action:=cafree;
-  unmapviewoffile(keys);
-  closehandle(keysfilemapping);
 end;
 
 procedure TfrmDirectX.FormCreate(Sender: TObject);
 begin
   scrollbox1.VertScrollBar.Position:=0;
 
-  zeromemory(keys,sizeof(keys));
 
-  keys.configured:=false;
-  keys.CEDir:=CheatEngineDir;
 
 
   Zoomlevel1.Text:=format('%.1f',[1.00]);
@@ -405,14 +404,10 @@ begin
   mousecallibrationvertical40point.Text:=format('%.1f',[40.00]);
 
 
-  keys.movespeed:=0.2;
-  keys.pollinginterval:=250;
-  keys.lagtoset:=200;
-  keys.setlag:=true;
 
   Zoomlevel5.Text:=format('%.1f',[16.00]);
 
-  tempkeys:=keys^;
+  
 end;
 
 procedure TfrmDirectX.Zoom1KeyDown(Sender: TObject; var Key: Word;
@@ -437,7 +432,15 @@ procedure TfrmDirectX.Button6Click(Sender: TObject);
 begin
   applytempkeys;
 
-  keys^:=tempkeys;
+  //write the config to dxconfig
+  tempkeys.dxversion:=dxconfig.dxversion;
+  tempkeys.event:=dxconfig.event;
+  tempkeys.IDirect3D9:=dxconfig.IDirect3D9;
+  tempkeys.IDirect3DDevice9:=dxconfig.IDirect3DDevice9;
+  tempkeys.IDirect3DTexture9:=dxconfig.IDirect3DTexture9;
+  tempkeys.ce_has_handled_data_event:=dxconfig.ce_has_handled_data_event;
+  tempkeys.process_has_data_event:=dxconfig.process_has_data_event;
+  dxconfig^:=tempkeys;
 end;
 
 procedure TfrmDirectX.Button1Click(Sender: TObject);
@@ -1195,6 +1198,7 @@ var id: pchar;
 var x: tfilestream;
 var oldkeys: tkeysversion1;
 begin
+
   if opendialog1.execute then
   begin
     x:=tfilestream.Create(opendialog1.filename,fmopenread);
@@ -1313,7 +1317,7 @@ begin
           begin
             x.ReadBuffer(v,4);
             if v>dxmessversion then raise exception.Create('This key configuration is not compattible with this version of cheat engine');
-            x.ReadBuffer(tempkeys,sizeof(tkeys));
+            x.ReadBuffer(tempkeys,sizeof(tempkeys));
           end;
         finally
           freemem(id);
@@ -1411,7 +1415,7 @@ begin
     except
       raise exception.Create('Error while loading! (and I''m not going to tell you why!)');
     end;
-  end;
+  end;   
 end;
 
 procedure TfrmDirectX.SaveButtonClick(Sender: TObject);
@@ -1430,7 +1434,7 @@ begin
         z:='DXMESS';
         x.writebuffer(z[1],6);
         x.writebuffer(y,4);
-        x.WriteBuffer(tempkeys,sizeof(TKeys));
+        x.WriteBuffer(tempkeys,sizeof(tempkeys));
       finally
         x.free;
       end;
@@ -1572,7 +1576,14 @@ end;
 
 procedure TfrmDirectX.FormShow(Sender: TObject);
 begin
-  keys.cewindow:=handle;
+  dxconfig.configured:=false;
+  dxconfig.CEDir:=CheatEngineDir;
+  dxconfig.movespeed:=0.2;
+  dxconfig.pollinginterval:=250;
+  dxconfig.lagtoset:=200;
+  dxconfig.setlag:=true;
+
+  tempkeys:=dxconfig^; 
 end;
 
 procedure TfrmDirectX.rbtoggleoneffClick(Sender: TObject);
@@ -1906,6 +1917,13 @@ begin
   if decreasez.Focused then setkey(key,tempkeys.decreasez,increasez);
 
   if callibrationkey.Focused then setkey(key,tempkeys.callibrationkey,callibrationkey);
+
+end;
+
+procedure TfrmDirectX.Button35Click(Sender: TObject);
+begin
+  dxmess.Resume;
+  button35.visible:=false;
 
 end;
 

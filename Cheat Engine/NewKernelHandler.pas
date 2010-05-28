@@ -75,7 +75,7 @@ type
         (LongXMM: array [0..15] of TJclXMMRegister;);
   end;
 
-  TextendedRegisters = packed record
+  TextendedRegisters = packed record    //==fxsave
     //extended registers
     FCW: Word;                           // bytes from 0   to 1
     FSW: Word;                           // bytes from 2   to 3
@@ -167,6 +167,7 @@ type TDebuggerstate=record
   dr3 : uint64;
   dr6 : uint64;
   dr7 : uint64;
+  fxstate: TextendedRegisters;
 end;
 type PDebuggerstate=^TDebuggerstate;
 

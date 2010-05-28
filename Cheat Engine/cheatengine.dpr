@@ -161,7 +161,9 @@ uses
   ManualModuleLoader in 'ManualModuleLoader.pas',
   windows7taskbar in 'windows7taskbar.pas',
   bigmemallochandler in 'bigmemallochandler.pas',
-  VistaAltFixUnit in 'VistaAltFixUnit.pas';
+  VistaAltFixUnit in 'VistaAltFixUnit.pas',
+  directxmess in 'directxmess.pas',
+  directxmessconfig in 'directxmessconfig.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 

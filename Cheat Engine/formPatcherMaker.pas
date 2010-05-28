@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, ExtCtrls;
 
 type TPatch=record
   address: Dword;
@@ -14,14 +14,17 @@ end;
 
 type
   TfrmPatcherMaker = class(TForm)
-    PatchCodeList: TListBox;
+    Panel1: TPanel;
     Label1: TLabel;
-    Button1: TButton;
-    Button3: TButton;
+    PatchCodeList: TListBox;
     OpenDialog1: TOpenDialog;
+    Panel2: TPanel;
+    btnOk: TButton;
+    btnCancel: TButton;
     procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure Button1Click(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
+    procedure Panel2Resize(Sender: TObject);
   private
     { Private declarations }
   public
@@ -56,7 +59,7 @@ begin
   action:=cafree;
 end;
 
-procedure TfrmPatcherMaker.Button1Click(Sender: TObject);
+procedure TfrmPatcherMaker.btnOkClick(Sender: TObject);
 var i,j,k,l: integer;
     temp,temp2,temp3: string;
     path: array of string;
@@ -144,6 +147,12 @@ begin
   frmPatcherMaker3.showmodal;
 
   //now show the 3th and final patchmaker window
+end;
+
+procedure TfrmPatcherMaker.Panel2Resize(Sender: TObject);
+begin
+  btnOk.left:=(panel2.ClientWidth div 2) - (btnOk.width-4);
+  btnCancel.left:=(panel2.ClientWidth div 2) +4;
 end;
 
 end.

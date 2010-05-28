@@ -12,7 +12,7 @@ typedef enum {si_gs=-12, si_fs=-11, si_es=-10, si_ds=-9, si_edi=-8, si_esi=-7, s
 
 
 
-#pragma pack(1) //allignemnt of 1 byte
+#pragma pack(1) //allignment of 1 byte
 typedef struct tagINT_VECTOR
 {
 	WORD	wLowOffset;

@@ -15,7 +15,7 @@ type
     RadioButton4: TRadioButton;
     GroupBox1: TGroupBox;
     RadioButton2: TRadioButton;
-    RadioButton1: TRadioButton;
+    rbPatcher: TRadioButton;
     OpenDialog1: TOpenDialog;
     procedure Button1Click(Sender: TObject);
     procedure RadioButton4Click(Sender: TObject);
@@ -50,7 +50,7 @@ begin
     exit;
   end;
 
-  if radiobutton1.checked then
+  if rbPatcher.checked then
   begin
     hide;
     frmPatcherMaker:=TfrmPatcherMaker.create(self);
@@ -72,7 +72,7 @@ procedure TStandAlone.RadioButton4Click(Sender: TObject);
 begin
   groupbox1.Enabled:=radiobutton4.Checked;
   radiobutton2.Enabled:=radiobutton4.checked;
-  radiobutton1.Enabled:=radiobutton4.checked;
+  rbPatcher.Enabled:=radiobutton4.checked;
 end;
 
 end.

@@ -2,7 +2,7 @@ unit KeyListener;
 
 interface
 
-uses classes,windows,D3DX81mo,graphics,sysutils,syncobjs;
+uses classes,windows,D3DX81mo,graphics,sysutils,syncobjs,directxmessconfig;
 
 type TAPIInfo = record
   location: Pointer;
@@ -13,7 +13,7 @@ end;
 procedure InitializeKeyListener;
 
 
-type TKeyCombo=array [0..4] of word;
+
 type TKeys=record
   configured: boolean;
   CEDir: string[255];
@@ -149,9 +149,10 @@ end;
 type TKeyListener=class(TThread)
   public
     procedure execute; override;
+    constructor create(suspended: boolean);
 end;
 var KeyListenerThread: TKeyListener;
-    keys: PKeys;
+    keys: PDirectXMessConfig;
     KeysFileMapping:THandle;
 
 //some public vars
@@ -243,9 +244,14 @@ var tickspersecond: int64;
     texturelistCS: TCriticalsection;
     LockedtexturelistCS: TCriticalsection;
 
+
+    configurationname: array [0..255] of char;
+
 function ConvertKeyComboToString(x: tkeycombo):string;
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
 procedure getlag;
+
+
 
 implementation
 
@@ -361,14 +367,28 @@ begin
     end;
 end;
 
+constructor TKeyListener.create(suspended: boolean);
+begin
+  outputdebugstring('TKeyListener.create(suspended: boolean)');
+  outputdebugstring(pchar('configurationname='+configurationname));
+
+
+  KeysFileMapping:=CreateFileMapping($FFFFFFFF,nil,PAGE_READWRITE,0,sizeof(tkeys),@configurationname);
+  keys:=MapViewOfFile(OpenFileMapping(FILE_MAP_ALL_ACCESS,false,@configurationname),FILE_MAP_ALL_ACCESS,0,0,0);
+
+  if keys=nil then
+    outputdebugstring('keys=nil');
+    
+  inherited create(suspended);
+end;
+
 procedure TKeyListener.execute;
 var i,j: integer;
     ok,found: boolean;
     tempsingle: single;
 begin
 
-  KeysFileMapping:=CreateFileMapping($FFFFFFFF,nil,PAGE_READWRITE,0,sizeof(tkeys),'CEKEYS');
-  keys:=MapViewOfFile(OpenFileMapping(FILE_MAP_ALL_ACCESS,false,'CEKEYS'),FILE_MAP_ALL_ACCESS,0,0,0);
+
 
   priority:=tpHigher; //higher, but the sleep will make it so the game doesn''t suffer too much
   outputdebugstring('keylistener started');
@@ -427,10 +447,10 @@ begin
         if keys.zoom3[0]<>0 then keylist.Add('Zoom 3:'+Convertkeycombotostring(keys.zoom3));
         if keys.zoom4[0]<>0 then keylist.Add('Zoom 4:'+Convertkeycombotostring(keys.zoom4));
         if keys.zoom5[0]<>0 then keylist.Add('Zoom 5:'+Convertkeycombotostring(keys.zoom5));
-        if keys.zbuffer[0]<>0 then keylist.Add('Z-buffer:'+Convertkeycombotostring(keys.zbuffer));
-        if keys.fog[0]<>0 then keylist.Add('Fog:'+Convertkeycombotostring(keys.fog));
-        if keys.lighting[0]<>0 then keylist.Add('Lighting:'+Convertkeycombotostring(keys.lighting));
-        if keys.wireframe[0]<>0 then keylist.Add('Wireframe:'+Convertkeycombotostring(keys.wireframe));
+        if keys.zbuffer[0]<>0 then keylist.Add('Z-buffer:'+Convertkeycombotostring(keys.zbuffer)+' ('+inttostr(zbuffer)+')');
+        if keys.fog[0]<>0 then keylist.Add('Fog:'+Convertkeycombotostring(keys.fog)+' ('+inttostr(fog)+')');
+        if keys.lighting[0]<>0 then keylist.Add('Lighting:'+Convertkeycombotostring(keys.lighting)+' ('+inttostr(lighting)+')');
+        if keys.wireframe[0]<>0 then keylist.Add('Wireframe:'+Convertkeycombotostring(keys.wireframe)+' ('+inttostr(Wireframe)+')');
         if keys.ShowKeylist[0]<>0 then keylist.Add('Show hotkey list:'+Convertkeycombotostring(keys.ShowKeylist));
 
         requiredkeylistheight:=keylist.count*16;
@@ -515,10 +535,10 @@ begin
     end;
 
     try
-      if directxversion=directx8 then
-        directxhook.HandleKeypresses
-      else
-        directx9hook.handlekeypresses;
+      case keys.dxversion of
+        8: directxhook.HandleKeypresses;
+        9: directx9hook.handlekeypresses;
+      end;
     except
       locking:=false;
     end;
@@ -721,6 +741,7 @@ end;
 procedure InitializeKeyListener;
 begin
 //open the filemapping object that holds the keys to watch
+  outputdebugstring('InitializeKeyListener');
   aimsettings:='';
   aimsettingsset:=false;
   Keylistenerthread:=TKeylistener.Create(false);

@@ -36,6 +36,7 @@ type TDebuggerstate=record
   dr3 : uint64;
   dr6 : uint64;
   dr7 : uint64;
+  fxstate: array[0..511] of byte;
 end;
 type PDebuggerstate=^TDebuggerstate;
 

@@ -147,6 +147,7 @@ UCHAR BufferSize;
 void GetIDT(PIDT pIdt);
 
 #ifdef AMD64
+extern void _fxsave(volatile void *);
 extern void GetGDT(PGDT pGdt);
 extern WORD GetLDT();
 extern WORD GetTR(void);
@@ -170,6 +171,7 @@ void setCR4(UINT64 newcr4);
 UINT64 getTSC(void);
 
 #ifdef AMD64
+
 extern WORD getCS(void);
 extern WORD getSS(void);
 extern WORD getDS(void);

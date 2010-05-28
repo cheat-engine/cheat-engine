@@ -4,93 +4,93 @@ object frmPatcherMaker3: TfrmPatcherMaker3
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Patcher maker'
-  ClientHeight = 289
-  ClientWidth = 335
+  ClientHeight = 356
+  ClientWidth = 412
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
-  TextHeight = 13
+  PixelsPerInch = 120
+  TextHeight = 16
   object Icon: TImage
-    Left = 215
-    Top = 72
-    Width = 32
-    Height = 32
+    Left = 265
+    Top = 89
+    Width = 39
+    Height = 39
   end
   object Label1: TLabel
     Left = 0
-    Top = 176
-    Width = 43
-    Height = 13
+    Top = 217
+    Width = 57
+    Height = 16
     Caption = 'Message'
   end
   object Label2: TLabel
-    Left = 216
-    Top = 32
-    Width = 20
-    Height = 13
+    Left = 266
+    Top = 39
+    Width = 26
+    Height = 16
     Caption = 'Title'
   end
   object PatchList: TListBox
     Left = 0
     Top = 0
-    Width = 211
-    Height = 175
-    ItemHeight = 13
+    Width = 260
+    Height = 215
+    ItemHeight = 16
     PopupMenu = PopupMenu1
     TabOrder = 0
     OnDblClick = PatchListDblClick
   end
   object Button1: TButton
-    Left = 216
-    Top = 3
-    Width = 113
-    Height = 25
+    Left = 266
+    Top = 4
+    Width = 139
+    Height = 30
     Caption = 'Add address manually'
     TabOrder = 1
     OnClick = Button1Click
   end
   object Button3: TButton
-    Left = 218
-    Top = 256
-    Width = 113
-    Height = 25
+    Left = 268
+    Top = 315
+    Width = 139
+    Height = 31
     Caption = 'Generate Trainer'
     Default = True
     TabOrder = 2
     OnClick = Button3Click
   end
   object Button2: TButton
-    Left = 216
-    Top = 216
-    Width = 113
-    Height = 25
+    Left = 266
+    Top = 266
+    Width = 139
+    Height = 31
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 3
     OnClick = Button2Click
   end
   object Button4: TButton
-    Left = 255
-    Top = 76
-    Width = 75
-    Height = 25
+    Left = 314
+    Top = 94
+    Width = 92
+    Height = 30
     Caption = 'Change Icon'
     TabOrder = 4
     OnClick = Button4Click
   end
   object memoMessage: TMemo
     Left = 0
-    Top = 191
-    Width = 210
-    Height = 98
+    Top = 235
+    Width = 258
+    Height = 121
     Lines.Strings = (
       'Default file patcher. '
       ''
@@ -100,9 +100,9 @@ object frmPatcherMaker3: TfrmPatcherMaker3
     TabOrder = 5
   end
   object editTitle: TEdit
-    Left = 216
-    Top = 48
-    Width = 113
+    Left = 266
+    Top = 59
+    Width = 139
     Height = 21
     TabOrder = 6
     Text = 'CE Patch Trainer'

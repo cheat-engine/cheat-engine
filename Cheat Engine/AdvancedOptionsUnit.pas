@@ -5,7 +5,7 @@ interface
 uses
   symbolhandler,tlhelp32,Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons,debugger, Menus,cefuncproc, ExtCtrls,disassembler,
-  SyncObjs,registry, ComCtrls{$ifdef net},netapis{$else},newkernelhandler{$endif};
+  SyncObjs,registry, ComCtrls,newkernelhandler, directxmess;
 
 
 
@@ -97,16 +97,16 @@ resourcestring
 
 implementation
 
-uses {$ifdef net}ceclient,unit2{$else}MainUnit, MemoryBrowserFormUnit{$endif},
+uses MainUnit, MemoryBrowserFormUnit,
   inputboxtopunit,
-  {$ifndef net}
+
   formChangedAddresses,
   formhotkeyunit,
   frmDissectwindowUnit,
   frmCapturedTimersUnit,
   frmDirectXUnit,
 //  frmOpenglUnit,
-  {$endif}
+
   frmFindCodeInFileUnit,
   standaloneunit,
   formsettingsunit,
@@ -775,17 +775,26 @@ begin
 end;
 
 procedure TAdvancedOptions.Button4Click(Sender: TObject);
+resourcestring StrSelectExeFor3D='Select the executable of the Direct-3D game';
 var i:integer;
     fname,expectedFilename: string;
     oldtitle: string;
-resourcestring StrSelectExeFor3D='Select the executable of the Direct-3D game';
+
 begin
-  {$ifndef net}
+
+
   oldtitle:=opendialog1.Title;
   opendialog1.Title:=StrSelectExeFor3D;
 
   if Opendialog1.Execute then
   begin
+    TDirectXMessController.create(Opendialog1.filename,'');
+
+
+
+
+ {
+
     hyperscanview.HookDirect3d:=true;
     hyperscanview.asktocontinue:=true;
 
@@ -825,11 +834,11 @@ begin
 
     mainform.enablegui(false);
 
-    with TFrmDirectx.Create(self) do show;
+    with TFrmDirectx.Create(self) do show; }
   end;
 
   opendialog1.title:=oldtitle;
-  {$endif}
+
 end;
 
 procedure TAdvancedOptions.FormCreate(Sender: TObject);
@@ -847,7 +856,7 @@ var i:integer;
     oldtitle: string;
 resourcestring StrSelectExeForOpenGL3D='Select the executable of the OpenGL game';
 begin
-  {$ifndef net}
+ (* {$ifndef net}
   oldtitle:=opendialog1.Title;
   opendialog1.Title:=StrSelectExeForOpenGL3D;
 
@@ -894,7 +903,7 @@ begin
   end;
 
   opendialog1.title:=oldtitle;
-  {$endif}
+  {$endif} *)
 end;
 
 procedure TAdvancedOptions.Panel1Resize(Sender: TObject);

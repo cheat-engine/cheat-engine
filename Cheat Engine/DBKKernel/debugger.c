@@ -51,6 +51,8 @@ volatile struct
 		volatile int inEpilogue; //if set the global debug bit does no faking
 	} FakedDebugRegisterState[256];
 
+	volatile BYTE DECLSPEC_ALIGN(16) fxstate[512];
+
 } DebuggerState;
 
 
@@ -172,6 +174,9 @@ void debugger_initialize(void)
 	KeInitializeEvent(&debugger_event_WaitForContinue, SynchronizationEvent, FALSE);	
 	KeInitializeEvent(&debugger_event_CanBreak, SynchronizationEvent, TRUE); //true so the first can enter
 	KeInitializeEvent(&debugger_event_WaitForDebugEvent, SynchronizationEvent, FALSE);
+
+	DbgPrint("DebuggerState.fxstate=%p\n",DebuggerState.fxstate);
+
 }
 
 void debugger_setInitialFakeState(void)
@@ -346,6 +351,7 @@ Only call this by one thread only, and only when there's actually a debug eevnt 
 
 UINT_PTR *debugger_getLastStackPointer(void)
 {
+	
 	return DebuggerState.LastStackPointer;
 }
 
@@ -376,6 +382,10 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 	state->r14=DebuggerState.LastStackPointer[si_r14];
 	state->r15=DebuggerState.LastStackPointer[si_r15];	
 #endif
+
+	
+	memcpy(state->fxstate, (void *)DebuggerState.fxstate,512);
+
 
 	//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
 	if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
@@ -535,6 +545,18 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
 		DebuggerState.LastThreadID=PsGetCurrentThreadId();
 
+		DbgPrint("calling fxsave\n");
+#ifdef AMD64
+		_fxsave(DebuggerState.fxstate);
+#else
+		__asm
+		{
+			fxsave [DebuggerState.fxstate]
+		}
+#endif
+		DbgPrint("called fxsave\n");
+		
+
 
 		//notify usermore app that this thread has halted due to a debug event
 		
@@ -608,7 +630,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	HANDLE CurrentProcessID=PsGetCurrentProcessId();	
 	UINT_PTR originaldr6=currentdebugregs[4];
 	DebugReg6 _dr6=*(DebugReg6 *)&currentdebugregs[4];
-	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
+//	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
 	DbgPrint("interrupt1_handler\n");
 	
@@ -1021,7 +1043,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stackpointer
 {
-	UINT_PTR before,after;
+	UINT_PTR before;//,after;
 	UINT_PTR currentdebugregs[6]; //used for determining if the current bp is caused by the debugger ot not
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
 	int i;
@@ -1356,6 +1378,9 @@ _declspec( naked ) void interrupt1_asmentry( void )
 
 		mov ax,gs
 		push eax
+
+		//save fpu state
+		//save sse state
 		
 		mov ax,0x23 //0x10 should work too, but even windows itself is using 0x23
 		mov ds,ax
@@ -1364,12 +1389,13 @@ _declspec( naked ) void interrupt1_asmentry( void )
 		mov ax,0x30
 		mov fs,ax
 
+		
+		
+
 		push ebp
 		call interrupt1_centry
 
 		cmp eax,1	//set flag
-
-
 
 		//restore state
 		pop gs

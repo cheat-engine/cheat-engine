@@ -551,6 +551,8 @@ begin
   context.Dr3:=debuggerstate.dr3;
   context.Dr6:=debuggerstate.dr6;
   context.Dr7:=debuggerstate.dr7;
+
+  context.ext:=debuggerstate.fxstate;
 end;
 
 procedure TKDebuggerThread.Continue(continueOption: TContinueOption; runtilladdress: dword=0);

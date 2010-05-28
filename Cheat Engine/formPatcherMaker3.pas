@@ -148,7 +148,7 @@ begin
 
     //search for the icon
     searcher:=trainer.Memory;
-    scanstring:='And so, Dark Byte, wrote the text into the icon, So he could find it back...';
+  {  scanstring:='And so, Dark Byte, wrote the text into the icon, So he could find it back...';
 
     i:=0;
     j:=1;
@@ -186,7 +186,7 @@ begin
     trainer.WriteBuffer(iconbuf^,744);
 
     freemem(iconbuf);
-    //append the settingsdata behind that file
+    //append the settingsdata behind that file    }
 
     temp:=trainer.Size;
     trainer.position:=80;

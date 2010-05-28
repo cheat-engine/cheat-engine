@@ -1,6 +1,6 @@
 object StandAlone: TStandAlone
-  Left = 788
-  Top = 791
+  Left = 640
+  Top = 495
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Stand Alone game trainer builder:Filename.exe'
@@ -72,7 +72,7 @@ object StandAlone: TStandAlone
       TabOrder = 0
       TabStop = True
     end
-    object RadioButton1: TRadioButton
+    object rbPatcher: TRadioButton
       Left = 10
       Top = 30
       Width = 139

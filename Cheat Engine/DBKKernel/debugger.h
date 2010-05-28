@@ -36,6 +36,7 @@ typedef struct {
 	UINT64 dr3;
 	UINT64 dr6;
 	UINT64 dr7;
+	BYTE fxstate[512];
 } DebugStackState, *PDebugStackState;
 
 //stack index

@@ -51,6 +51,11 @@ GetGDT:
 	SGDT [rcx]
 	ret
 	
+PUBLIC _fxsave
+_fxsave:
+    fxsave [rcx]
+    ret
+	
 PUBLIC getRSP
 getRSP:
 	mov rax,rsp

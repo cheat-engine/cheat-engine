@@ -21,7 +21,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
     Top = 0
     Width = 335
     Height = 277
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet

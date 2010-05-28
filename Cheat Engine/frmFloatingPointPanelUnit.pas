@@ -144,6 +144,7 @@ begin
           case combobox2.ItemIndex of
             0: //byte
             begin
+
               str:='';
               for j:=0 to 15 do
               begin
