@@ -1494,6 +1494,7 @@ begin
       vtByte:   valuetype:=vt_byte;
       vtWord:   valuetype:=vt_word;
       vtDWord:  valuetype:=vt_dword;
+      vtSingle: valuetype:=vt_single;
       vtdouble: valuetype:=vt_double;
       vtQword:  valuetype:=vt_int64;
       vtAll:    valuetype:=vt_all;
@@ -1812,6 +1813,7 @@ begin
     vtByte:   valuetype:=vt_byte;
     vtWord:   valuetype:=vt_word;
     vtDWord:  valuetype:=vt_dword;
+    vtsingle: valuetype:=vt_single;
     vtdouble: valuetype:=vt_double;
     vtQword:  valuetype:=vt_int64;
     vtAll:    valuetype:=vt_all;
