@@ -159,7 +159,7 @@
         <Loaded Value="True"/>
       </Unit10>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
         <Filename Value="Unit1.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
@@ -190,12 +190,8 @@
       </Position7>
       <Position8>
         <Filename Value="Unit9.pas"/>
-        <Caret Line="28" Column="49" TopLine="34"/>
-      </Position8>
-      <Position9>
-        <Filename Value="Unit9.pas"/>
         <Caret Line="286" Column="16" TopLine="264"/>
-      </Position9>
+      </Position8>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

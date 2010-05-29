@@ -16,10 +16,10 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="289"/>
+      <BuildNr Value="293"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.289" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.293" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -72,7 +72,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2383"/>
+        <TopLine Value="2347"/>
         <CursorPos X="33" Y="2347"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="3">
@@ -86,10 +86,12 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="197"/>
-        <CursorPos X="39" Y="204"/>
+        <TopLine Value="43"/>
+        <CursorPos X="1" Y="54"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="CEFuncProc.pas"/>
@@ -579,7 +581,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6479"/>
         <CursorPos X="1" Y="6491"/>
@@ -1566,7 +1568,7 @@
         <UsageCount Value="12"/>
       </Unit156>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="14" HistoryIndex="13">
       <Position1>
         <Filename Value="Structuresfrm.pas"/>
         <Caret Line="1054" Column="45" TopLine="1051"/>
@@ -1615,6 +1617,14 @@
         <Filename Value="Structuresfrm.pas"/>
         <Caret Line="915" Column="48" TopLine="896"/>
       </Position12>
+      <Position13>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="204" Column="32" TopLine="197"/>
+      </Position13>
+      <Position14>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="144" Column="5" TopLine="129"/>
+      </Position14>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
