@@ -36,7 +36,7 @@
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -45,12 +45,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="86"/>
-        <CursorPos X="3" Y="88"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="142"/>
+        <CursorPos X="14" Y="165"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -62,7 +61,7 @@
         <UnitName Value="Unit2"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit2>
       <Unit3>
         <Filename Value="Unit3.pas"/>
@@ -73,7 +72,7 @@
         <UnitName Value="Unit3"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit3>
       <Unit4>
         <Filename Value="Unit4.pas"/>
@@ -84,7 +83,7 @@
         <UnitName Value="Unit4"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit4>
       <Unit5>
         <Filename Value="Unit5.pas"/>
@@ -95,7 +94,7 @@
         <UnitName Value="Unit5"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit5>
       <Unit6>
         <Filename Value="Unit6.pas"/>
@@ -106,7 +105,7 @@
         <UnitName Value="Unit6"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit6>
       <Unit7>
         <Filename Value="Unit7.pas"/>
@@ -117,7 +116,7 @@
         <UnitName Value="Unit7"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit7>
       <Unit8>
         <Filename Value="Unit8.pas"/>
@@ -128,7 +127,7 @@
         <UnitName Value="Unit8"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
       </Unit8>
       <Unit9>
         <Filename Value="Unit9.pas"/>
@@ -137,9 +136,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
-        <TopLine Value="1"/>
-        <CursorPos X="12" Y="8"/>
-        <UsageCount Value="20"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="269"/>
+        <CursorPos X="1" Y="287"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="Unit10.pas"/>
@@ -148,12 +151,15 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit10"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="16"/>
+        <CursorPos X="1" Y="37"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
       </Unit10>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
+    <JumpHistory Count="9" HistoryIndex="8">
       <Position1>
         <Filename Value="Unit1.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
@@ -182,6 +188,14 @@
         <Filename Value="Unit1.pas"/>
         <Caret Line="62" Column="37" TopLine="34"/>
       </Position7>
+      <Position8>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="28" Column="49" TopLine="34"/>
+      </Position8>
+      <Position9>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="286" Column="16" TopLine="264"/>
+      </Position9>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,35 +1,12 @@
+{ This is an automatically generated lazarus resource file }
+
 LazarusResources.Add('TForm10','FORMDATA',[
-  'TPF0'#241#7'TForm10'#6'Form10'#4'Left'#3'v'#2#3'Top'#3'3'#2#7'Caption'#6#6'S'
-  +'tep 9'#7'Visible'#9#13'PixelsPerInch'#2'x'#0#241#5'TMemo'#5'Memo1'#13'Lines'
-  +'.Strings'#1#6'jIn this step we''ll do basically the same as in step 7(Code '
-  +'Injection) but now a little bit more difficult.'#6'uNow you have to edit th'
-  +'e code that decreases health with a piece of code that sets the health to 1'
-  +'000 if the current '#6'>second is equal to or bigger than 30, and 2000 if i'
-  +'t''s smaller'#6#0#6'sThis can be done using a auto assembler scripts that d'
-  +'oes some api calls to some routines to get the current time, '#6'5but it ma'
-  +'y be easier to use a C-SCRIPT injection here'#6#0#6'tFind the address of he'
-  +'alth and go to the script engine in Cheat Engine (ctrl+alt+a in memory view'
-  +', or tools->script '#6#7'engine)'#6#0#6'fthen opposed to the other tutorial'
-  +'s I''ll provide you with a big hint (in case you''ve never coded in C)'#6#16
-  +'----------------'#6#17'#include <time.h>'#6#0#6#17'struct tm *timep;'#6#9't'
-  +'ime_t c;'#6#10'c=time(0);'#6#0#6#20'timep=localtime(&c);'#6#0#6#22'if (time'
-  +'p->tm_sec>=30)'#6#31'  *(int *)addresstochange=1000;'#6#4'else'#6#31'  *(in'
-  +'t *)addresstochange=2000;'#6#13'-------------'#6'uHere change addresstochan'
-  +'ge with the address of health. Don''t forget to add 0x in front of it. So i'
-  +'f the address was '#6#30'0012345 then fill in 0x0012345'#6#0#6'iSelect inje'
-  +'ct->Inject into current process and it''ll open an auto assembler script wi'
-  +'th a call inside it.'#6'qNow, just like in step 7 go to the address that de'
-  +'creases health and do autoassembler->template->code injection. '#6'uAnd fil'
-  +'l in as code the call instruction you got. Note that the call will change t'
-  +'he value of EAX and some flags may '#6'qchange as well, so if you want to s'
-  +'ave them, push them before and pop them after.  And remove the original cod'
-  +'e, '#6'$it''s not used and only makes things '#6#7'harder.'#6'5Click Execut'
-  +'e and then click "Hit me" in the trainer.'#6'qIf all went right the clickin'
-  +'g of the button caused your c-script to be executed and changed the value o'
-  +'f health '#6#30'according to the current time.'#6#0#6#6'Bonus:'#6'sAs said '
-  +'before it can also be done with a normal assembler script. CE allows you to'
-  +' fill in functionnames for call '#6'.instructions so that should make thing'
-  +'s easier'#6'CAnd you could also just use a dll injection with an aa script.'
-  +' E.G:'#6':injectdll(mydll.dll) //dll written in any languge you like'#6#0#6
-  +#9'codecave:'#6#20'call functionofmydll'#6#8'jmp exit'#0#0#0#0
+  'TPF0'#241#7'TForm10'#6'Form10'#4'Left'#3'*'#2#3'Top'#3#144#1#7'Caption'#6#6
+  +'Step 9'#7'Visible'#9#0#241#6'TLabel'#6'Label1'#6'Height'#2#14#5'Width'#2#19
+  +#0#0#241#6'TLabel'#6'Label2'#6'Height'#2#14#5'Width'#2'#'#0#0#241#5'TMemo'#5
+  +'Memo1'#13'Lines.Strings'#1#6'<In this step I''ll try to show a use for the '
+  +'custom scan type'#6#0#6'=The value below is stored using a 32-bit xor value'
+  +' (ce103478)'#6#0#6'$Find the value and change it to 5000'#0#0#0#241#7'TButt'
+  +'on'#7'Button2'#7'OnClick'#7#12'Button2Click'#0#0#241#7'TButton'#7'Button1'#7
+  +'OnClick'#7#12'Button1Click'#0#0#0
 ]);

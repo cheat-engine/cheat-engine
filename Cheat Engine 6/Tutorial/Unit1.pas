@@ -154,7 +154,7 @@ begin
     end;
 
   end;
-
+  {
   if length(edit1.text)=8 then
     if (edit1.text[1]='3') and (edit1.text[2]='1') and (edit1.Text[3]='3') and (edit1.Text[4]='3') and (edit1.text[5]='7') and (edit1.Text[6]='1') and (edit1.text[7]='5') and (edit1.Text[8]='7') then
     begin
@@ -162,7 +162,7 @@ begin
       hide;
       form10:=tform10.create(self);
       form10.show;
-    end;
+    end;    }
 
 end;
 

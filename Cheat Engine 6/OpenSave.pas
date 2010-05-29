@@ -6489,6 +6489,7 @@ begin
   elements:=structure.AppendChild(doc.CreateElement('Elements'));
 
 
+
   for i:=0 to length(struct.structelement)-1 do
   begin
     element:=elements.AppendChild(doc.CreateElement('Element'));
