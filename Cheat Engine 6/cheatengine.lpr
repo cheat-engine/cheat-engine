@@ -39,7 +39,8 @@ uses
   frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
   DebugHelper, debugeventhandler, formFoundcodeListExtraUnit,
   debuggertypedefinitions, sfloat, addresslist, addresslisthandlerunit,
-  MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist;
+  MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist, 
+frmStructuresConfigUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -56,6 +57,7 @@ begin
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
+  Application.CreateForm(TfrmStructuresConfig, frmStructuresConfig);
   Application.Run;
 end.
 

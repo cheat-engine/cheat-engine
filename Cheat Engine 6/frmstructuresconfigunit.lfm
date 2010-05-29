@@ -1,0 +1,172 @@
+object frmStructuresConfig: TfrmStructuresConfig
+  Left = 543
+  Height = 155
+  Top = 227
+  Width = 391
+  Caption = 'Dissect Data Config'
+  ClientHeight = 155
+  ClientWidth = 391
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Button1: TButton
+    Left = 118
+    Height = 25
+    Top = 120
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 200
+    Height = 25
+    Top = 120
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 104
+    Top = 8
+    Width = 185
+    Caption = 'Normal'
+    ClientHeight = 82
+    ClientWidth = 181
+    ParentColor = False
+    TabOrder = 2
+    OnClick = ColorClick
+    object Label1: TLabel
+      Tag = 1
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 4
+      Width = 50
+      Caption = 'Default'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label2: TLabel
+      Tag = 2
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 36
+      Width = 60
+      Caption = 'Different'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label3: TLabel
+      Tag = 3
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 52
+      Width = 83
+      Caption = 'Group equal'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label7: TLabel
+      Tag = 8
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 20
+      Width = 38
+      Caption = 'Equal'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+  end
+  object GroupBox2: TGroupBox
+    Tag = 4
+    Left = 200
+    Height = 104
+    Top = 8
+    Width = 185
+    Caption = 'Highlighted'
+    ClientHeight = 82
+    ClientWidth = 181
+    Color = clHighlight
+    ParentColor = False
+    TabOrder = 3
+    OnClick = ColorClick
+    object Label4: TLabel
+      Tag = 5
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 4
+      Width = 50
+      Caption = 'Default'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label5: TLabel
+      Tag = 6
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 36
+      Width = 60
+      Caption = 'Different'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label6: TLabel
+      Tag = 7
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 52
+      Width = 83
+      Caption = 'Group equal'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+    object Label8: TLabel
+      Tag = 9
+      Cursor = crHandPoint
+      Left = 14
+      Height = 21
+      Top = 20
+      Width = 38
+      Caption = 'Equal'
+      ParentColor = False
+      OnClick = ColorClick
+    end
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 24
+    top = 120
+  end
+end

@@ -5,9 +5,10 @@ unit Structuresfrm;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
-  symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, underc, dom, xmlread, xmlwrite, LResources;
+  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls,
+  Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
+  symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, underc, dom, xmlread, xmlwrite,
+  LResources, registry;
 
 const structureversion=1;
 
@@ -51,6 +52,8 @@ type TbaseStructure=record
   TfrmStructures = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
+    MenuItem1: TMenuItem;
+    miChangeColors: TMenuItem;
     Open1: TMenuItem;
     Save1: TMenuItem;
     Structures1: TMenuItem;
@@ -95,6 +98,7 @@ type TbaseStructure=record
     Setgroup1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
+    procedure miChangeColorsClick(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -137,6 +141,18 @@ type TbaseStructure=record
     procedure Setgroup1Click(Sender: TObject);
   private
     { Private declarations }
+    backgroundcolor: TColor;
+    defaultText: TColor;
+    equaltext: TColor;
+    differentText: TColor;
+    groupequalText: TColor;
+
+    selectedbackgroundcolor: TColor;
+    selectedDefaultText: TColor;
+    selectedEqualText: TColor;
+    selectedDifferentText: TColor;
+    selectedGroupEqualText: TColor;
+
     currentstructure: tstructure;
 
 
@@ -157,6 +173,9 @@ type TbaseStructure=record
     procedure ExtraEnter(Sender: TObject);
     procedure automaticallyGuessOffsets(baseOffset: ptrUint; structsize: integer);
     procedure UpdateGroupIndex;
+
+    procedure SaveColors;
+    procedure LoadColors;
   public
     { Public declarations }
     procedure setaddress(i: integer; x:ptrUint);
@@ -172,7 +191,7 @@ procedure sortStructure(struct: TbaseStructure);
 implementation
 
 
-uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave;
+uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave, frmStructuresConfigUnit;
 
 destructor TStructure.destroy;
 var i: integer;
@@ -988,6 +1007,115 @@ begin
   end;
 end;
 
+procedure TfrmStructures.miChangeColorsClick(Sender: TObject);
+var c: TfrmStructuresConfig;
+begin
+  c:=TfrmStructuresConfig.create(self);
+
+
+  begin
+    c.backgroundcolor:=self.backgroundcolor;
+    c.defaultText:=self.defaultText;
+    c.equalText:=self.equalText;
+    c.differentText:=self.differentText;
+    c.groupequalText:=self.groupequalText;
+
+    c.selectedbackgroundcolor:=self.selectedbackgroundcolor;
+    c.selectedDefaultText:=self.selectedDefaultText;
+    c.selectedEqualText:=self.selectedEqualText;
+    c.selectedDifferentText:=self.selectedDifferentText;
+    c.selectedGroupEqualText:=self.selectedGroupEqualText;
+
+    if c.showmodal=mrok then
+    begin
+      self.backgroundcolor:=c.backgroundcolor;
+      self.defaultText:=c.defaultText;
+      self.equalText:=c.equalText;
+      self.differentText:=c.differentText;
+      self.groupequalText:=c.groupequalText;
+
+      self.selectedbackgroundcolor:=c.selectedbackgroundcolor;
+      self.selectedDefaultText:=c.selectedDefaultText;
+      self.selectedEqualText:=c.selectedEqualText;
+      self.selectedDifferentText:=c.selectedDifferentText;
+      self.selectedGroupEqualText:=c.selectedGroupEqualText;
+
+      //save these colors to the registry
+      SaveColors;
+      LoadColors; //and do an update on the components
+    end;
+    c.free;
+  end;
+end;
+
+procedure TfrmStructures.SaveColors;
+var reg: TRegistry;
+begin
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
+    begin
+      reg.WriteInteger('backgroundcolor',backgroundcolor);
+      reg.WriteInteger('defaultText',defaultText);
+      reg.WriteInteger('equalText',equalText);
+      reg.WriteInteger('differentText',differentText);
+      reg.WriteInteger('groupequalText',groupequalText);
+      reg.WriteInteger('selectedbackgroundcolor',selectedbackgroundcolor);
+      reg.WriteInteger('selectedDefaultText',selectedDefaultText);
+      reg.WriteInteger('selectedEqualText',selectedEqualText);
+      reg.WriteInteger('selectedDifferentText',selectedDifferentText);
+      reg.WriteInteger('selectedGroupEqualText',selectedGroupEqualText);
+    end;
+  finally
+    reg.free;
+  end;
+end;
+
+procedure TfrmStructures.LoadColors;
+var reg: TRegistry;
+begin
+  //default colors
+  backgroundcolor:=clWindow;
+  defaultText:=clWindowText;
+  equaltext:=clGreen;
+  differentText:=clRed;
+  groupequalText:=clBlue;
+  selectedbackgroundcolor:=clHighlight;
+  selectedEqualText:=clGreen;
+  selectedDefaultText:=clwhite;
+  selectedDifferentText:=clRed;
+  selectedGroupEqualText:=clYellow;
+
+  //if the registry has others, use those
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
+    begin
+      if reg.ValueExists('backgroundcolor') then backgroundcolor:=reg.ReadInteger('backgroundcolor');
+      if reg.ValueExists('defaultText') then defaultText:=reg.ReadInteger('defaultText');
+      if reg.ValueExists('groupequalText') then groupequalText:=reg.ReadInteger('groupequalText');
+      if reg.ValueExists('differentText') then differentText:=reg.ReadInteger('differentText');
+      if reg.ValueExists('equalText') then equalText:=reg.ReadInteger('equalText');
+      if reg.ValueExists('selectedbackgroundcolor') then selectedbackgroundcolor:=reg.ReadInteger('selectedbackgroundcolor');
+      if reg.ValueExists('selectedDefaultText') then selectedDefaultText:=reg.ReadInteger('selectedDefaultText');
+      if reg.ValueExists('selectedEqualText') then selectedEqualText:=reg.ReadInteger('selectedEqualText');
+      if reg.ValueExists('selectedDifferentText') then selectedDifferentText:=reg.ReadInteger('selectedDifferentText');
+      if reg.ValueExists('selectedGroupEqualText') then selectedGroupEqualText:=reg.ReadInteger('selectedGroupEqualText');
+    end;
+  finally
+    freemem(reg);
+  end;
+
+  tvStructureView.Font.Color:=defaulttext;
+  tvStructureView.Color:=backgroundcolor;
+  tvStructureView.SelectionColor:=selectedbackgroundcolor;
+  if Visible then
+    tvStructureView.Repaint;
+end;
+
+
 
 
 procedure TfrmStructures.updatetimerTimer(Sender: TObject);
@@ -1789,6 +1917,8 @@ begin
   frmStructures[length(frmStructures)-1]:=self;
 
   UpdateGroupIndex;
+
+  LoadColors;
 end;
 
 procedure TfrmStructures.ExtraEnter(Sender: TObject);
@@ -1945,7 +2075,11 @@ begin
     setlength(groupmatches,length(groupindex));
     for i:=0 to length(groupcolors)-1 do
     begin
-      groupcolors[i]:=clGreen;
+      if (cdsSelected in State) then
+        groupcolors[i]:=selectedequalText
+      else
+        groupcolors[i]:=equalText;
+
       groupmatches[i]:=true;
     end;
 
@@ -1974,7 +2108,11 @@ begin
       begin
         if groupvalues[currentGroup]<>sections2[i] then
         begin
-          groupcolors[currentGroup]:=clred;
+          if (cdsSelected in State) then
+            groupcolors[currentGroup]:=selecteddifferentText
+          else
+            groupcolors[currentGroup]:=differentText;
+
           groupmatches[currentGroup]:=false;
         end;
       end;
@@ -1985,7 +2123,12 @@ begin
       if (groupmatches[i]) and (groupmatches[i-1]) then //both groups match
       begin
         if groupvalues[i-1]<>groupvalues[i] then  //but the values don't match with the previous group
-          groupcolors[i]:=clBlue;
+        begin
+          if (cdsSelected in State) then
+            groupcolors[i]:=selectedgroupequalText
+          else
+            groupcolors[i]:=groupequalText;
+        end;
       end;
     end;
 
@@ -2006,11 +2149,6 @@ begin
       sender.Canvas.Brush.Style:=bsSolid;
       sender.Canvas.Brush.Color:=tvStructureView.Color;
       sender.Canvas.FillRect(textlinerect);
-//      if different then
-//        tvStructureView.canvas.Font.Color:=clRed
-//      else
-//        tvStructureView.canvas.Font.Color:=clWindowText;
-
     end
     else
     begin
@@ -2018,20 +2156,17 @@ begin
       sender.Canvas.Brush.Color:=clHighlight;
       sender.Canvas.FillRect(textlinerect);
       sender.Canvas.DrawFocusRect(textlinerect);
-//      if different then
-//      begin
-//        tvStructureView.canvas.Font.Color:=clRed;
-//        tvStructureView.canvas.Font.Style:=[fsBold];
-//      end
-//      else
-//        tvStructureView.canvas.Font.Color:=clHighlightText;
-
     end;
 
     sender.Canvas.Refresh;
 
     clip:=textrect;
     clip.Right:=headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
+    if (cdsSelected in State) then
+      sender.Canvas.Font.Color:=selecteddefaulttext
+    else
+      sender.Canvas.Font.Color:=defaulttext;
+
     sender.Canvas.TextRect(clip,textrect.Left,textrect.Top,sections[0]);
 
 
@@ -2040,16 +2175,6 @@ begin
     begin
       currentGroup:=internalgrouplist[i-1];
       tvStructureView.canvas.Font.Color:=groupcolors[currentgroup];
-
-      if (cdsSelected in State) then
-      begin
-        case groupcolors[currentgroup] of
-          clGreen: sender.Canvas.font.Color:=clBlack;
-          clRed: sender.Canvas.font.Color:=clMaroon;
-          clBlue: sender.Canvas.font.Color:=clNavy;
-        end;
-
-      end;
 
       clip.Left:=headercontrol1.Sections[i].Left;
       clip.Right:=headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;

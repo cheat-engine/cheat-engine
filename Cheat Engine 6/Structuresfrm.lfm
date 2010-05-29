@@ -125,6 +125,13 @@ object frmStructures: TfrmStructures
         OnClick = Addextraaddress1Click
       end
     end
+    object MenuItem1: TMenuItem
+      Caption = 'View'
+      object miChangeColors: TMenuItem
+        Caption = 'Change colors'
+        OnClick = miChangeColorsClick
+      end
+    end
     object Structures1: TMenuItem
       Caption = 'Structures'
       object Definenewstructure1: TMenuItem
