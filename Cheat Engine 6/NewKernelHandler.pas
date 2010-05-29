@@ -51,7 +51,7 @@ TModuleEntry32 = MODULEENTRY32;
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
 {$endif}
-
+{
 //credits to jedi code library for filling in the "extended registers"
 type
   TJclMMContentType = (mt8Bytes, mt4Words, mt2DWords, mt1QWord, mt2Singles, mt1Double);
@@ -139,7 +139,7 @@ type
     Reserved4: array [416..511] of Byte; // bytes from 416 to 511
   end;
 
-
+}
   {$ifndef cpu64}
   _CONTEXT = record
     ContextFlags: DWORD;
@@ -211,7 +211,7 @@ type TDebuggerstate=record
   dr3 : uint64;
   dr6 : uint64;
   dr7 : uint64;
-  fxstate: TextendedRegisters;
+ { fxstate: TextendedRegisters; }
 end;
 type PDebuggerstate=^TDebuggerstate;
 

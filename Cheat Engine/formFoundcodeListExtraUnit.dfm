@@ -14,6 +14,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   PopupMenu = pmCopy
   Position = poScreenCenter
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 120
   TextHeight = 16
   object Panel1: TPanel

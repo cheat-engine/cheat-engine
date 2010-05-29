@@ -6,9 +6,12 @@ interface
 
 uses
   windows, LResources, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit, NewKernelHandler;
+  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit, NewKernelHandler,cefuncproc;
 
 type
+
+  { TFormFoundCodeListExtra }
+
   TFormFoundCodeListExtra = class(TForm)
     pmCopy: TPopupMenu;
     Copyaddresstoclipboard1: TMenuItem;
@@ -44,6 +47,8 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
     procedure Copyguesstoclipboard1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure Panel6Resize(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
   private
@@ -116,6 +121,18 @@ s: string;
 begin
   s:=inttohex(probably,8);
   clipboard.SetTextBuf(pchar(s));
+end;
+
+procedure TFormFoundCodeListExtra.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,0);
+  loadformposition(self,x);
+end;
+
+procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);
 end;
 
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);

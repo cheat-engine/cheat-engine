@@ -47,6 +47,8 @@ type
       var Handled: Boolean);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     procedure moreinfo;
@@ -445,6 +447,18 @@ begin
       s:=s+FoundcodeList.Items[i]+#13#10;
 
   clipboard.AsText:=s;
+end;
+
+procedure TFoundCodeDialog.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,0);
+  loadformposition(self,x);
+end;
+
+procedure TFoundCodeDialog.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);  
 end;
 
 end.

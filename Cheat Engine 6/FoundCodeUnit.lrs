@@ -6,24 +6,25 @@ LazarusResources.Add('TFoundCodeDialog','FORMDATA',[
   +'aption'#6'2The following opcodes changed the selected address'#12'ClientHei'
   +'ght'#3#189#1#11'ClientWidth'#3#127#1#11'Font.Height'#2#242#9'Font.Name'#6#13
   +'MS Sans Serif'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQue'
-  +'ry'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10'LCL'
-  +'Version'#6#6'0.9.29'#0#8'TListBox'#13'FoundcodeList'#4'Left'#2#0#6'Height'#3
-  +#189#1#3'Top'#2#0#5'Width'#3#253#0#5'Align'#7#8'alClient'#10'ItemHeight'#2#0
-  +#11'MultiSelect'#9#7'OnClick'#7#18'FoundcodeListClick'#14'OnContextPopup'#7
-  +#25'FoundcodeListContextPopup'#10'OnDblClick'#7#21'FoundcodeListDblClick'#9
-  +'PopupMenu'#7#9'pmOptions'#8'TabOrder'#2#0#0#0#6'TPanel'#6'Panel1'#4'Left'#3
-  +#253#0#6'Height'#3#189#1#3'Top'#2#0#5'Width'#3#130#0#5'Align'#7#7'alRight'#10
-  +'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3#189#1#11'ClientWidth'#3#130#0#8
-  +'TabOrder'#2#1#0#6'TLabel'#11'Description'#4'Left'#2#0#6'Height'#3#235#0#3'T'
-  +'op'#3#169#0#5'Width'#3#130#0#5'Align'#7#8'alClient'#9'Alignment'#7#8'taCent'
-  +'er'#8'AutoSize'#8#11'ParentColor'#8#8'WordWrap'#9#0#0#6'TPanel'#6'Panel2'#4
-  +'Left'#2#0#6'Height'#2')'#3'Top'#3#148#1#5'Width'#3#130#0#5'Align'#7#8'alBot'
-  +'tom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2')'#11'ClientWidth'#3#130
-  +#0#8'TabOrder'#2#0#0#7'TButton'#5'btnOK'#4'Left'#2#21#6'Height'#2#30#3'Top'#2
-  +#3#5'Width'#2'Z'#6'Cancel'#9#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#10
-  +'btnOKClick'#8'TabOrder'#2#0#0#0#0#6'TPanel'#6'Panel3'#4'Left'#2#0#6'Height'
-  +#3#169#0#3'Top'#2#0#5'Width'#3#130#0#5'Align'#7#5'alTop'#10'BevelOuter'#7#6
-  +'bvNone'#12'ClientHeight'#3#169#0#11'ClientWidth'#3#130#0#8'TabOrder'#2#1#0#7
+  +'ry'#8'OnCreate'#7#10'FormCreate'#12'OnDeactivate'#7#14'FormDeactivate'#9'On'
+  +'Destroy'#7#11'FormDestroy'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersio'
+  +'n'#6#6'0.9.29'#0#8'TListBox'#13'FoundcodeList'#4'Left'#2#0#6'Height'#3#189#1
+  +#3'Top'#2#0#5'Width'#3#253#0#5'Align'#7#8'alClient'#10'ItemHeight'#2#0#11'Mu'
+  +'ltiSelect'#9#7'OnClick'#7#18'FoundcodeListClick'#14'OnContextPopup'#7#25'Fo'
+  +'undcodeListContextPopup'#10'OnDblClick'#7#21'FoundcodeListDblClick'#9'Popup'
+  +'Menu'#7#9'pmOptions'#8'TabOrder'#2#0#0#0#6'TPanel'#6'Panel1'#4'Left'#3#253#0
+  +#6'Height'#3#189#1#3'Top'#2#0#5'Width'#3#130#0#5'Align'#7#7'alRight'#10'Beve'
+  +'lOuter'#7#6'bvNone'#12'ClientHeight'#3#189#1#11'ClientWidth'#3#130#0#8'TabO'
+  +'rder'#2#1#0#6'TLabel'#11'Description'#4'Left'#2#0#6'Height'#3#235#0#3'Top'#3
+  +#169#0#5'Width'#3#130#0#5'Align'#7#8'alClient'#9'Alignment'#7#8'taCenter'#8
+  +'AutoSize'#8#11'ParentColor'#8#8'WordWrap'#9#0#0#6'TPanel'#6'Panel2'#4'Left'
+  +#2#0#6'Height'#2')'#3'Top'#3#148#1#5'Width'#3#130#0#5'Align'#7#8'alBottom'#10
+  +'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2')'#11'ClientWidth'#3#130#0#8'Tab'
+  +'Order'#2#0#0#7'TButton'#5'btnOK'#4'Left'#2#21#6'Height'#2#30#3'Top'#2#3#5'W'
+  +'idth'#2'Z'#6'Cancel'#9#7'Caption'#6#2'OK'#7'Default'#9#7'OnClick'#7#10'btnO'
+  +'KClick'#8'TabOrder'#2#0#0#0#0#6'TPanel'#6'Panel3'#4'Left'#2#0#6'Height'#3
+  +#169#0#3'Top'#2#0#5'Width'#3#130#0#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bv'
+  +'None'#12'ClientHeight'#3#169#0#11'ClientWidth'#3#130#0#8'TabOrder'#2#1#0#7
   +'TButton'#12'btnExtraInfo'#4'Left'#2#4#6'Height'#2#31#4'Hint'#6'UThe selecte'
   +'d addresses will be added to the code list in the advanced options window.'
   +#3'Top'#3#128#0#5'Width'#2'|'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'

@@ -1,8 +1,8 @@
 object frmTracer: TfrmTracer
-  Left = 695
-  Top = 405
-  Width = 396
-  Height = 341
+  Left = 666
+  Top = 279
+  Width = 398
+  Height = 419
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
   Color = clBtnFace
@@ -15,21 +15,22 @@ object frmTracer: TfrmTracer
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 120
   TextHeight = 16
   object Splitter1: TSplitter
-    Left = 156
+    Left = 158
     Top = 0
     Width = 4
-    Height = 296
+    Height = 374
     Align = alRight
   end
   object ListBox1: TListBox
     Left = 0
     Top = 0
-    Width = 156
-    Height = 296
+    Width = 158
+    Height = 374
     Align = alClient
     ItemHeight = 16
     TabOrder = 0
@@ -37,10 +38,10 @@ object frmTracer: TfrmTracer
     OnDblClick = ListBox1DblClick
   end
   object Panel1: TPanel
-    Left = 160
+    Left = 162
     Top = 0
     Width = 218
-    Height = 296
+    Height = 374
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 1

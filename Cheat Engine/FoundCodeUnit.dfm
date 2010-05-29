@@ -15,6 +15,8 @@ object FoundCodeDialog: TFoundCodeDialog
   Position = poOwnerFormCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 120
   TextHeight = 16
   object FoundcodeList: TListBox

@@ -9,6 +9,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PopupMenu = pmCopy
   Position = poScreenCenter
   LCLVersion = '0.9.29'

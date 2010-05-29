@@ -41,6 +41,8 @@ type
     N1: TMenuItem;
     Copyselectiontoclipboard1: TMenuItem;
     procedure FormCreate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FoundcodeListClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -380,8 +382,22 @@ begin
 end;
 
 procedure TFoundCodeDialog.FormCreate(Sender: TObject);
+var x: array of integer;
 begin
   btnOk.caption:=strStop;
+
+  setlength(x,0);
+  loadformposition(self,x);
+end;
+
+procedure TFoundCodeDialog.FormDeactivate(Sender: TObject);
+begin
+
+end;
+
+procedure TFoundCodeDialog.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);
 end;
 
 procedure TFoundCodeDialog.btnOKClick(Sender: TObject);

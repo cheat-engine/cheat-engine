@@ -5,6 +5,7 @@ uses windows,sysutils,tlhelp32, dialogs, controls;
 
 const dbkdll='DBK32.dll';
 
+
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
 

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,disassembler,debugger,newkernelhandler, ExtCtrls,
-  Buttons, frmFloatingPointPanelUnit;
+  Buttons, frmFloatingPointPanelUnit,cefuncproc;
 
 type TTraceDebugInfo=class
   private
@@ -50,6 +50,7 @@ type
     procedure ListBox1DblClick(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     traceaddress: dword;
@@ -72,6 +73,7 @@ uses MemoryBrowserFormUnit;
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var tcount: integer;
     tcounts: string;
+    x: array of integer;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   tcounts:='1000';
@@ -96,6 +98,10 @@ begin
       memorybrowser.disassemblerview.Update;
     end;
   end;
+
+  setlength(x,0);
+  loadformposition(self,x);
+
 end;
 
 procedure TfrmTracer.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -324,6 +330,11 @@ end;
 procedure TfrmTracer.FormShow(Sender: TObject);
 begin
   sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.Height div 2);
+end;
+
+procedure TfrmTracer.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]); 
 end;
 
 end.

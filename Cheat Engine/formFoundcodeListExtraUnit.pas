@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit, newkernelhandler;
+  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit,
+  newkernelhandler,cefuncproc;
 
 type
   TFormFoundCodeListExtra = class(TForm)
@@ -44,6 +45,8 @@ type
     procedure Copyguesstoclipboard1Click(Sender: TObject);
     procedure Panel6Resize(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     fprobably: dword;
@@ -140,6 +143,18 @@ begin
   fpp.Top:=self.top;
   fpp.SetContextPointer(@context);
   fpp.show;//pop to foreground
+end;
+
+procedure TFormFoundCodeListExtra.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,0);
+  loadformposition(self,x);
+end;
+
+procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]); 
 end;
 
 end.

@@ -12,6 +12,8 @@ object FoundCodeDialog: TFoundCodeDialog
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
+  OnDestroy = FormDestroy
   Position = poOwnerFormCenter
   LCLVersion = '0.9.29'
   object FoundcodeList: TListBox

@@ -50,6 +50,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure ListBox1Click(Sender: TObject);
     procedure EAXLabelDblClick(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
@@ -100,6 +101,7 @@ end;
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var tcount: integer;
     tcounts: string;
+    x: array of integer;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   tcounts:='1000';
@@ -115,6 +117,9 @@ begin
     if startdebuggerifneeded then
       debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount);
   end;
+
+  setlength(x,0);
+  loadformposition(self,x);
 end;
 
 procedure TfrmTracer.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -133,6 +138,11 @@ end;
 procedure TfrmTracer.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmTracer.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);
 end;
 
 procedure TfrmTracer.configuredisplay;
