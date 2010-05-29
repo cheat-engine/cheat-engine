@@ -11126,7 +11126,16 @@ end;
 
 procedure TMainForm.Button4Click(Sender: TObject);
 var svalue2: string;
+    estimateddiskspaceneeded: Uint64;
+    diskspacefree, totaldiskspace: int64;
+    totaldiskspacefree: LARGE_INTEGER;
 begin
+  estimateddiskspaceneeded:=foundcount*8*3;
+  GetDiskFreeSpaceEx(pchar(cheatenginedir), diskspacefree, totaldiskspace,@totaldiskspacefree);
+
+  if estimateddiskspaceneeded>diskspacefree then
+    if MessageDlg('You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to continue?',mtwarning,[mbyes,mbno],0)<>mryes then exit;
+
   foundlist.Deinitialize; //unlock file handles
 
   if cbPauseWhileScanning.checked then
