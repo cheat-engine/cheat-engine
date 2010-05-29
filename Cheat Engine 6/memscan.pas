@@ -13,7 +13,8 @@ interface
 uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
 {$ifndef standalonetrainerwithassemblerandaobscanner}
-     , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,CEFuncProc
+     , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,
+     CEFuncProc,shellapi
 {$endif}
 ;
 
@@ -4160,11 +4161,43 @@ begin
 end;
      
 destructor TMemScan.destroy;
+var fos: TSHFileOpStruct;
+    dir: pchar;
+    i: integer;
 begin
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   {$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
   {$endif}
+
+  dir:=nil;
+
+  try
+    ZeroMemory(@fos,sizeof(fos));
+
+
+    //fos.hwnd:=0;
+    fos.wFunc:=FO_DELETE;
+    getmem(dir,length(fScanResultFolder)+3);
+    try
+      CopyMemory(dir,pchar(fScanResultFolder),length(fScanResultFolder));
+
+      dir[length(fScanResultFolder)]:=#0; //'*';
+      dir[length(fScanResultFolder)+1]:=#0;
+      dir[length(fScanResultFolder)+2]:=#0;
+
+      fos.pFrom:=dir;
+      fos.fFlags:=FOF_SILENT or FOF_NOCONFIRMATION or FOF_ALLOWUNDO;
+
+      OutputDebugString(pchar('Deleting '+dir));
+      i:=SHFileOperation(fos);
+      OutputDebugString('i='+inttostr(i));
+    finally
+      if dir<>nil then
+        freemem(dir);
+    end;
+  except
+  end;
 
   inherited Destroy;
 end;

@@ -5341,7 +5341,6 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-
   saveformposition(self,[
                         addresslist.headers.Sections[0].Width,
                         addresslist.headers.Sections[1].Width,
@@ -5352,8 +5351,16 @@ begin
                         foundlist3.columns[0].width
                         ]);
 
+
+  if foundlist<>nil then
+    foundlist.Deinitialize;
+
   if addresslist<>nil then
     freeandnil(addresslist);
+
+  if scantablist=nil then
+    if memscan<>nil then
+      freeandnil(memscan);
 end;
 
 procedure TMainForm.tbSpeedChange(Sender: TObject);
