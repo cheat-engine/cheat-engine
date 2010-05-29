@@ -50,6 +50,7 @@ TModuleEntry32 = MODULEENTRY32;
 
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
+{$endif}
 
 //credits to jedi code library for filling in the "extended registers"
 type
@@ -118,7 +119,7 @@ type
         (LongXMM: array [0..15] of TJclXMMRegister;);
   end;
 
-  TextendedRegisters = packed record
+  TextendedRegisters = packed record    //fxsave
     //extended registers
     FCW: Word;                           // bytes from 0   to 1
     FSW: Word;                           // bytes from 2   to 3
@@ -139,7 +140,7 @@ type
   end;
 
 
-
+  {$ifndef cpu64}
   _CONTEXT = record
     ContextFlags: DWORD;
     Dr0: DWORD;
@@ -210,6 +211,7 @@ type TDebuggerstate=record
   dr3 : uint64;
   dr6 : uint64;
   dr7 : uint64;
+  fxstate: TextendedRegisters;
 end;
 type PDebuggerstate=^TDebuggerstate;
 
