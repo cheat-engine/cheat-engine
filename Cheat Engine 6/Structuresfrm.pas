@@ -53,6 +53,7 @@ type TbaseStructure=record
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     MenuItem1: TMenuItem;
+    miUpdateOffsets: TMenuItem;
     miChangeColors: TMenuItem;
     Open1: TMenuItem;
     Save1: TMenuItem;
@@ -99,6 +100,7 @@ type TbaseStructure=record
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
+    procedure miUpdateOffsetsClick(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -1045,6 +1047,38 @@ begin
       LoadColors; //and do an update on the components
     end;
     c.free;
+  end;
+end;
+
+procedure TfrmStructures.miUpdateOffsetsClick(Sender: TObject);
+var
+  offsetstring: string;
+  offset: integer;
+  s: tstructure;
+  elementnr: integer;
+  i: integer;
+begin
+  if currentstructure<>nil then
+  begin
+    offsetstring:='0';
+    if InputQuery('Dissect Data','How many bytes do you want to shift this and following offsets?',offsetstring) then
+    begin
+      offset:=strtoint(offsetstring);
+
+      s:=tstructure(tvStructureView.Selected.Data);
+      if s=nil then exit;
+      elementnr:=tvStructureView.Selected.Index;
+
+      if (elementnr>=0) then
+      begin
+
+        //find the position that is clicked
+        for i:=elementnr to length(definedstructures[s.basestructure].structelement)-1 do
+          definedstructures[s.basestructure].structelement[i].offset:=integer(definedstructures[s.basestructure].structelement[i].offset)+offset;
+
+        tvStructureView.Refresh;
+      end;
+    end;
   end;
 end;
 

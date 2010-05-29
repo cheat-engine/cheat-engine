@@ -91,6 +91,7 @@ type TbaseStructure=record
     Memorybrowsethisaddress1: TMenuItem;
     Autoguessoffsets1: TMenuItem;
     Setgroup1: TMenuItem;
+    Updatethisandfollowingoffsets1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -133,6 +134,7 @@ type TbaseStructure=record
     procedure Memorybrowsethisaddress1Click(Sender: TObject);
     procedure Autoguessoffsets1Click(Sender: TObject);
     procedure Setgroup1Click(Sender: TObject);
+    procedure Updatethisandfollowingoffsets1Click(Sender: TObject);
   private
     { Private declarations }
     currentstructure: tstructure;
@@ -2433,6 +2435,39 @@ begin
   updategroupindex;
 
   tvStructureView.Refresh;
+end;
+
+procedure TfrmStructures.Updatethisandfollowingoffsets1Click(
+  Sender: TObject);
+var
+  offsetstring: string;
+  offset: integer;
+  s: tstructure;
+  elementnr: integer;
+  i: integer;
+begin
+  if currentstructure<>nil then
+  begin
+    offsetstring:='0';
+    if InputQuery('Dissect Data','How many bytes do you want to shift this and following offsets?',offsetstring) then
+    begin
+      offset:=strtoint(offsetstring);
+
+      s:=tstructure(tvStructureView.Selected.Data);
+      if s=nil then exit;
+      elementnr:=tvStructureView.Selected.Index;
+
+      if (elementnr>=0) then
+      begin
+
+        //find the position that is clicked
+        for i:=elementnr to length(definedstructures[s.basestructure].structelement)-1 do
+          definedstructures[s.basestructure].structelement[i].offset:=integer(definedstructures[s.basestructure].structelement[i].offset)+offset;
+
+        tvStructureView.Refresh;
+      end;
+    end;
+  end;
 end;
 
 end.

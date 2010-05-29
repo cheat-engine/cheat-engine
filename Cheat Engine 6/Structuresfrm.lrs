@@ -64,23 +64,25 @@ LazarusResources.Add('TfrmStructures','FORMDATA',[
   +'ShortCut'#2' '#7'OnClick'#7#29'Memorybrowsethisaddress1Click'#0#0#9'TMenuIt'
   +'em'#2'N3'#7'Caption'#6#1'-'#7'Visible'#8#0#0#9'TMenuItem'#19'Recalculateadd'
   +'ress1'#7'Caption'#6#19'Recalculate address'#7'Visible'#8#7'OnClick'#7#24'Re'
-  +'calculateaddress1Click'#0#0#0#6'TTimer'#11'updatetimer'#8'Interval'#3#244#1
-  ,#7'OnTimer'#7#16'updatetimerTimer'#4'left'#2#8#3'top'#2'p'#0#0#11'TOpenDialo'
-  +'g'#11'OpenDialog1'#10'DefaultExt'#6#4'.CSX'#6'Filter'#6'PCheat Engine struc'
-  +'ture files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'#4'left'#2#8
-  +#3'top'#3#144#0#0#0#11'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4'.CSX'
-  +#6'Filter'#6'>Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
-  +#7'Options'#11#17'ofOverwritePrompt'#14'ofHideReadOnly'#14'ofEnableSizing'#0
-  +#4'left'#2'('#3'top'#3#144#0#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7
-  +#15'PopupMenu2Popup'#4'left'#3#128#0#3'top'#2#8#0#9'TMenuItem'#5'Undo1'#7'Ca'
-  +'ption'#6#5'&Undo'#8'ShortCut'#3'Z@'#7'OnClick'#7#10'Undo1Click'#0#0#9'TMenu'
-  +'Item'#2'N5'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#4'Cut1'#7'Caption'#6#4'Cu&t'
-  +#8'ShortCut'#3'X@'#7'OnClick'#7#9'Cut1Click'#0#0#9'TMenuItem'#5'Copy1'#7'Cap'
-  +'tion'#6#5'&Copy'#8'ShortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuI'
-  +'tem'#6'Paste1'#7'Caption'#6#6'&Paste'#8'ShortCut'#3'V@'#7'OnClick'#7#11'Pas'
-  +'te1Click'#0#0#9'TMenuItem'#2'N4'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#10'Sele'
-  +'ctAll1'#7'Caption'#6#11'Select &All'#7'OnClick'#7#15'SelectAll1Click'#0#0#9
-  +'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#7'Remove1'#7'Caption'#6
-  +#6'Remove'#7'OnClick'#7#12'Remove1Click'#0#0#9'TMenuItem'#9'Setgroup1'#7'Cap'
-  +'tion'#6#9'Set group'#7'OnClick'#7#14'Setgroup1Click'#0#0#0#0
+  +'calculateaddress1Click'#0#0#9'TMenuItem'#15'miUpdateOffsets'#7'Caption'#6'!'
+  ,'Update this and following offsets'#8'ShortCut'#3'U@'#7'OnClick'#7#20'miUpda'
+  +'teOffsetsClick'#0#0#0#6'TTimer'#11'updatetimer'#8'Interval'#3#244#1#7'OnTim'
+  +'er'#7#16'updatetimerTimer'#4'left'#2#8#3'top'#2'p'#0#0#11'TOpenDialog'#11'O'
+  +'penDialog1'#10'DefaultExt'#6#4'.CSX'#6'Filter'#6'PCheat Engine structure fi'
+  +'les (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'#4'left'#2#8#3'top'
+  +#3#144#0#0#0#11'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4'.CSX'#6'Filt'
+  +'er'#6'>Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'#7'Op'
+  +'tions'#11#17'ofOverwritePrompt'#14'ofHideReadOnly'#14'ofEnableSizing'#0#4'l'
+  +'eft'#2'('#3'top'#3#144#0#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7#15
+  +'PopupMenu2Popup'#4'left'#3#128#0#3'top'#2#8#0#9'TMenuItem'#5'Undo1'#7'Capti'
+  +'on'#6#5'&Undo'#8'ShortCut'#3'Z@'#7'OnClick'#7#10'Undo1Click'#0#0#9'TMenuIte'
+  +'m'#2'N5'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#4'Cut1'#7'Caption'#6#4'Cu&t'#8
+  +'ShortCut'#3'X@'#7'OnClick'#7#9'Cut1Click'#0#0#9'TMenuItem'#5'Copy1'#7'Capti'
+  +'on'#6#5'&Copy'#8'ShortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuIte'
+  +'m'#6'Paste1'#7'Caption'#6#6'&Paste'#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste'
+  +'1Click'#0#0#9'TMenuItem'#2'N4'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#10'Select'
+  +'All1'#7'Caption'#6#11'Select &All'#7'OnClick'#7#15'SelectAll1Click'#0#0#9'T'
+  +'MenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#7'Remove1'#7'Caption'#6#6
+  +'Remove'#7'OnClick'#7#12'Remove1Click'#0#0#9'TMenuItem'#9'Setgroup1'#7'Capti'
+  +'on'#6#9'Set group'#7'OnClick'#7#14'Setgroup1Click'#0#0#0#0
 ]);

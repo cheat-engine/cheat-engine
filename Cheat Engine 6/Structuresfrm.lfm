@@ -208,6 +208,11 @@ object frmStructures: TfrmStructures
       Visible = False
       OnClick = Recalculateaddress1Click
     end
+    object miUpdateOffsets: TMenuItem
+      Caption = 'Update this and following offsets'
+      ShortCut = 16469
+      OnClick = miUpdateOffsetsClick
+    end
   end
   object updatetimer: TTimer
     Interval = 500
