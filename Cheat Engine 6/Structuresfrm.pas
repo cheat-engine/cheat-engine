@@ -53,10 +53,13 @@ type TbaseStructure=record
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miUpdateOffsets: TMenuItem;
     miChangeColors: TMenuItem;
     Open1: TMenuItem;
     Save1: TMenuItem;
+    saveValues: TSaveDialog;
     Structures1: TMenuItem;
     Definenewstructure1: TMenuItem;
     N1: TMenuItem;
@@ -99,6 +102,7 @@ type TbaseStructure=record
     Setgroup1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
@@ -680,102 +684,6 @@ begin
   end;
 end;
 
-{
-function TfrmStructures.RawToType(address: dword; const buf: array of byte; size: integer):integer;
-//returns: -1,-4,-7,-12,-13,-14
-var x: string;
-    i: integer;
-    isstring: boolean;
-begin
-  result:=0;
-
-  i:=address mod 4;
-  case i of
-    1: //1 byte
-    begin
-      result:=-1;
-      exit;
-    end;
-
-    2,3: //2 byte
-    begin
-      result:=-4;
-      exit;
-    end;
-  end;
-
-
-
-  if size>=8 then  //check if a double can be used
-  begin
-    if pdouble(@buf[0])^<>0 then
-    begin
-      x:=floattostr(pdouble(@buf[0])^);
-      if (pos('E',x)=0) then  //no exponent
-      begin
-        //check if the value isn't bigger or smaller than 1000000 or smaller than -1000000
-        if (pdouble(@buf[0])^<1000000) and (pdouble(@buf[0])^>-1000000) then
-        begin
-          result:=-13;
-          exit;
-        end;
-      end;
-    end;
-  end;
-
-  if (size>=2) and (size<4) then
-  begin
-    result:=-4;
-    exit;
-  end;
-
-  if (size=1) then
-  begin
-    result:=-1;
-    exit;
-  end;
-
-  //still here so either 4, or not a double
-  //check if it confirms to a single float
-  if psingle(@buf[0])^<>0 then
-  begin
-    x:=floattostr(psingle(@buf[0])^);
-    if (pos('E',x)=0) then  //no exponent
-    begin
-      //check if the value isn't bigger or smaller than 1000000 or smaller than -1000000
-      if (psingle(@buf[0])^<1000000) and (psingle(@buf[0])^>-1000000) then
-      begin
-        result:=-12;
-        exit;
-      end;
-    end;
-  end;
-
-  //still here, so check if it matches a string
-  isstring:=true;
-  i:=0;
-  while i<4 do
-  begin
-    //check if the first 4 characters match with a standard ascii values (32 to 127)
-    if (buf[i]<32) or (buf[i]>127) then
-    begin
-      isstring:=false;
-      break;
-    end;
-    inc(i);
-  end;
-
-  if isstring then
-  begin
-    result:=-14;
-    exit;
-  end;
-
-  //none of the above, so....
-  result:=-7;
-end;
-}
-
 procedure TfrmStructures.Definenewstructure1Click(Sender: TObject);
 var sstructsize:string;
     autofillin,structsize: integer;
@@ -1006,6 +914,65 @@ begin
       if not tvStructureView.Items.GetFirstNode.Expanded then
         tvStructureView.Items.GetFirstNode.Expand(false);
     end;
+  end;
+end;
+
+procedure TfrmStructures.MenuItem3Click(Sender: TObject);
+var
+  i,j: integer;
+  s: string;
+  laststart: integer;
+  sections,sections2: array of string;
+  currentsection: integer;
+
+  f: tstringlist;
+begin
+  if savevalues.Execute then
+  begin
+    setlength(sections,headercontrol1.Sections.Count);
+    setlength(sections2,headercontrol1.Sections.Count);
+    f:=tstringlist.create;
+
+    //save the values from the currently shown structure to a file
+    for i:=0 to tvStructureView.Items.Count-1 do
+    begin
+      if tvStructureView.Items[i].Level=1 then //the selected structure
+      begin
+        s:=tvStructureView.items[i].Text;
+        laststart:=1;
+        currentsection:=0;
+
+        //search for seperators (#13)
+        for j:=1 to length(s) do
+          if s[j]=#13 then
+          begin
+            //found one
+            sections[currentsection]:=copy(s,laststart,j-laststart);
+            sections2[currentsection]:= copy(sections[currentsection],pos(':',sections[currentsection]),length(sections[currentsection]));
+            laststart:=j+1;
+            inc(currentsection);
+            if (currentsection>=length(sections2)) then
+              break; //enough, if there is a rest, it has to be a bug/string
+          end;
+
+        s:='';
+        for j:=0 to length(sections2)-1 do
+        begin
+          while length(sections2[j])<20 do
+            sections2[j]:=sections2[j]+' ';
+
+
+          s:=s+sections2[j];
+        end;
+
+        f.Add(s);
+      end;
+    end;
+
+
+    f.SaveToFile(savevalues.FileName);
+
+    f.free;
   end;
 end;
 

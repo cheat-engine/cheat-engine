@@ -36,36 +36,38 @@ LazarusResources.Add('TfrmStructures','FORMDATA',[
   +#2'N8'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#5'Open1'#7'Caption'#6#6'Import'#8
   +'ShortCut'#3'I@'#7'OnClick'#7#10'Open1Click'#0#0#9'TMenuItem'#5'Save1'#7'Cap'
   +'tion'#6#6'Export'#8'ShortCut'#3'E@'#7'OnClick'#7#10'Save1Click'#0#0#9'TMenu'
-  +'Item'#2'N7'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#16'Addextraaddress1'#7'Capti'
-  +'on'#6#17'Add extra address'#8'ShortCut'#3'A@'#7'OnClick'#7#21'Addextraaddre'
-  +'ss1Click'#0#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#4'View'#0#9'TMenuIte'
-  +'m'#14'miChangeColors'#7'Caption'#6#13'Change colors'#7'OnClick'#7#19'miChan'
-  +'geColorsClick'#0#0#0#9'TMenuItem'#11'Structures1'#7'Caption'#6#10'Structure'
-  +'s'#0#9'TMenuItem'#19'Definenewstructure1'#7'Caption'#6#20'Define new struct'
-  +'ure'#8'ShortCut'#3'N@'#7'OnClick'#7#24'Definenewstructure1Click'#0#0#9'TMen'
-  +'uItem'#2'N1'#7'Caption'#6#1'-'#0#0#0#9'TMenuItem'#9'Commands1'#7'Caption'#6
-  +#8'Commands'#7'Enabled'#8#0#9'TMenuItem'#16'Renamestructure1'#7'Caption'#6#16
-  +'Rename structure'#7'OnClick'#7#21'Renamestructure1Click'#0#0#9'TMenuItem'#23
-  +'Deletecurrentstructure1'#7'Caption'#6#16'Delete structure'#7'OnClick'#7#28
-  +'Deletecurrentstructure1Click'#0#0#9'TMenuItem'#17'Autoguessoffsets1'#7'Capt'
-  +'ion'#6' Automatically guess offset types'#7'OnClick'#7#22'Autoguessoffsets1'
-  +'Click'#0#0#0#0#10'TPopupMenu'#10'PopupMenu1'#7'OnPopup'#7#15'PopupMenu1Popu'
-  +'p'#4'left'#3#240#0#3'top'#3#208#0#0#9'TMenuItem'#14'ChangeElement1'#7'Capti'
-  +'on'#6#14'Change element'#7'Default'#9#8'ShortCut'#3#13'@'#7'OnClick'#7#19'C'
-  +'hangeElement1Click'#0#0#9'TMenuItem'#11'Addelement1'#7'Caption'#6#14'Insert'
-  +' element'#8'ShortCut'#2'-'#7'OnClick'#7#16'Addelement1Click'#0#0#9'TMenuIte'
-  +'m'#14'Deleteelement1'#7'Caption'#6#14'Delete element'#8'ShortCut'#2'.'#7'On'
-  +'Click'#7#19'Deleteelement1Click'#0#0#9'TMenuItem'#2'N2'#7'Caption'#6#1'-'#0
-  +#0#9'TMenuItem'#17'Addtoaddresslist1'#7'Caption'#6#19'Add to address list'#8
-  +'ShortCut'#2'A'#7'OnClick'#7#22'Addtoaddresslist1Click'#0#0#9'TMenuItem'#20
+  +'Item'#9'MenuItem2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#9'MenuItem3'#7'Captio'
+  +'n'#6#11'Save values'#8'ShortCut'#3'S@'#7'OnClick'#7#14'MenuItem3Click'#0#0#9
+  +'TMenuItem'#2'N7'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#16'Addextraaddress1'#7
+  +'Caption'#6#17'Add extra address'#8'ShortCut'#3'A@'#7'OnClick'#7#21'Addextra'
+  +'address1Click'#0#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#4'View'#0#9'TMe'
+  +'nuItem'#14'miChangeColors'#7'Caption'#6#13'Change colors'#7'OnClick'#7#19'm'
+  +'iChangeColorsClick'#0#0#0#9'TMenuItem'#11'Structures1'#7'Caption'#6#10'Stru'
+  +'ctures'#0#9'TMenuItem'#19'Definenewstructure1'#7'Caption'#6#20'Define new s'
+  +'tructure'#8'ShortCut'#3'N@'#7'OnClick'#7#24'Definenewstructure1Click'#0#0#9
+  +'TMenuItem'#2'N1'#7'Caption'#6#1'-'#0#0#0#9'TMenuItem'#9'Commands1'#7'Captio'
+  +'n'#6#8'Commands'#7'Enabled'#8#0#9'TMenuItem'#16'Renamestructure1'#7'Caption'
+  +#6#16'Rename structure'#7'OnClick'#7#21'Renamestructure1Click'#0#0#9'TMenuIt'
+  +'em'#23'Deletecurrentstructure1'#7'Caption'#6#16'Delete structure'#7'OnClick'
+  +#7#28'Deletecurrentstructure1Click'#0#0#9'TMenuItem'#17'Autoguessoffsets1'#7
+  +'Caption'#6' Automatically guess offset types'#7'OnClick'#7#22'Autoguessoffs'
+  +'ets1Click'#0#0#0#0#10'TPopupMenu'#10'PopupMenu1'#7'OnPopup'#7#15'PopupMenu1'
+  +'Popup'#4'left'#3#240#0#3'top'#3#208#0#0#9'TMenuItem'#14'ChangeElement1'#7'C'
+  +'aption'#6#14'Change element'#7'Default'#9#8'ShortCut'#3#13'@'#7'OnClick'#7
+  +#19'ChangeElement1Click'#0#0#9'TMenuItem'#11'Addelement1'#7'Caption'#6#14'In'
+  +'sert element'#8'ShortCut'#2'-'#7'OnClick'#7#16'Addelement1Click'#0#0#9'TMen'
+  +'uItem'#14'Deleteelement1'#7'Caption'#6#14'Delete element'#8'ShortCut'#2'.'#7
+  +'OnClick'#7#19'Deleteelement1Click'#0#0#9'TMenuItem'#2'N2'#7'Caption'#6#1'-'
+  +#0#0#9'TMenuItem'#17'Addtoaddresslist1'#7'Caption'#6#19'Add to address list'
+  +#8'ShortCut'#2'A'#7'OnClick'#7#22'Addtoaddresslist1Click'#0#0#9'TMenuItem'#20
   +'Memorybrowsepointer1'#7'Caption'#6#21'Memory browse pointer'#8'ShortCut'#2
   +'F'#7'Visible'#8#7'OnClick'#7#25'Memorybrowsepointer1Click'#0#0#9'TMenuItem'
   +#24'Memorybrowsethisaddress1'#7'Caption'#6#26'Memory browse this address'#8
   +'ShortCut'#2' '#7'OnClick'#7#29'Memorybrowsethisaddress1Click'#0#0#9'TMenuIt'
   +'em'#2'N3'#7'Caption'#6#1'-'#7'Visible'#8#0#0#9'TMenuItem'#19'Recalculateadd'
-  +'ress1'#7'Caption'#6#19'Recalculate address'#7'Visible'#8#7'OnClick'#7#24'Re'
+  ,'ress1'#7'Caption'#6#19'Recalculate address'#7'Visible'#8#7'OnClick'#7#24'Re'
   +'calculateaddress1Click'#0#0#9'TMenuItem'#15'miUpdateOffsets'#7'Caption'#6'!'
-  ,'Update this and following offsets'#8'ShortCut'#3'U@'#7'OnClick'#7#20'miUpda'
+  +'Update this and following offsets'#8'ShortCut'#3'U@'#7'OnClick'#7#20'miUpda'
   +'teOffsetsClick'#0#0#0#6'TTimer'#11'updatetimer'#8'Interval'#3#244#1#7'OnTim'
   +'er'#7#16'updatetimerTimer'#4'left'#2#8#3'top'#2'p'#0#0#11'TOpenDialog'#11'O'
   +'penDialog1'#10'DefaultExt'#6#4'.CSX'#6'Filter'#6'PCheat Engine structure fi'
@@ -84,5 +86,7 @@ LazarusResources.Add('TfrmStructures','FORMDATA',[
   +'All1'#7'Caption'#6#11'Select &All'#7'OnClick'#7#15'SelectAll1Click'#0#0#9'T'
   +'MenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#7'Remove1'#7'Caption'#6#6
   +'Remove'#7'OnClick'#7#12'Remove1Click'#0#0#9'TMenuItem'#9'Setgroup1'#7'Capti'
-  +'on'#6#9'Set group'#7'OnClick'#7#14'Setgroup1Click'#0#0#0#0
+  +'on'#6#9'Set group'#7'OnClick'#7#14'Setgroup1Click'#0#0#0#11'TSaveDialog'#10
+  +'saveValues'#10'DefaultExt'#6#4'.txt'#6'Filter'#6#24'Text Files (*.txt)|*.tx'
+  +'t'#4'left'#3#136#0#3'top'#3#144#0#0#0#0
 ]);

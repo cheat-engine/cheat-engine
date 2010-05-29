@@ -25,7 +25,7 @@ object frmAutoInject: TfrmAutoInject
     BevelOuter = bvNone
     ClientHeight = 46
     ClientWidth = 431
-    TabOrder = 1
+    TabOrder = 0
     OnResize = Panel1Resize
     object Button1: TButton
       Left = 214
@@ -37,17 +37,14 @@ object frmAutoInject: TfrmAutoInject
       TabOrder = 0
     end
   end
-  object TabControl1: TTabControl
+  object Panel2: TPanel
     Left = 0
     Height = 260
     Top = 0
     Width = 431
     Align = alClient
-    OnChange = TabControl1Change
-    OnContextPopup = TabControl1ContextPopup
-    Style = tsFlatButtons
-    TabOrder = 0
-    TabStop = False
+    BevelOuter = bvNone
+    TabOrder = 1
   end
   object MainMenu1: TMainMenu
     left = 8
@@ -165,6 +162,7 @@ object frmAutoInject: TfrmAutoInject
     object Undo1: TMenuItem
       Caption = '&Undo'
       ShortCut = 16474
+      OnClick = Undo1Click
     end
     object N6: TMenuItem
       Caption = '-'

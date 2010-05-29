@@ -23,10 +23,13 @@ type
     function getTabData(i: integer):pointer;
     procedure setTabData(i: integer; p: pointer);
     function getCount: integer;
+    function getTabText(i: integer): string;
+    procedure setTabText(i: integer; s: string);
   protected
     procedure MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer); override;
   public
     function AddTab(t: string):integer;
+    procedure RemoveTab(i: integer);
     procedure Paint; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -35,10 +38,23 @@ type
     property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
     property SelectedTab: integer read fSelectedTab write setSelectedTab;
     property TabData[Index: Integer]: pointer read getTabData write setTabData;
+    property TabText[Index: Integer]: string read getTabText write setTabText;
     property Count: integer read getCount;
 end;
 
 implementation
+
+function TTablist.getTabText(i: integer): string;
+begin
+  result:=fTabs[i];
+end;
+
+procedure TTablist.setTabText(i: integer; s: string);
+begin
+  fTabs[i]:=s;
+  invalidate;
+  repaint;
+end;
 
 function TTablist.getCount: integer;
 begin
@@ -83,6 +99,14 @@ begin
     selectedTab:=i;
 
   inherited MouseDown(button,shift,x,y);
+end;
+
+procedure TTablist.RemoveTab(i: integer);
+{
+Assuming that the tabdata is already freed
+}
+begin
+  ftabs.Delete(i);
 end;
 
 function TTablist.AddTab(t: string): integer;

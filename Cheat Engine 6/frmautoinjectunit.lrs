@@ -9,54 +9,53 @@ LazarusResources.Add('TfrmAutoInject','FORMDATA',[
   +'Show'#7#8'FormShow'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9'
   +'.29'#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2'.'#3'Top'#3#4#1#5'Width'
   +#3#175#1#5'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2
-  +'.'#11'ClientWidth'#3#175#1#8'TabOrder'#2#1#8'OnResize'#7#12'Panel1Resize'#0
+  +'.'#11'ClientWidth'#3#175#1#8'TabOrder'#2#0#8'OnResize'#7#12'Panel1Resize'#0
   +#7'TButton'#7'Button1'#4'Left'#3#214#0#6'Height'#2#31#3'Top'#2#10#5'Width'#2
   +'\'#7'Caption'#6#7'Execute'#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#0#0#0
-  +#0#11'TTabControl'#11'TabControl1'#4'Left'#2#0#6'Height'#3#4#1#3'Top'#2#0#5
-  +'Width'#3#175#1#5'Align'#7#8'alClient'#8'OnChange'#7#17'TabControl1Change'#14
-  +'OnContextPopup'#7#23'TabControl1ContextPopup'#5'Style'#7#13'tsFlatButtons'#8
-  +'TabOrder'#2#0#7'TabStop'#8#0#0#9'TMainMenu'#9'MainMenu1'#4'left'#2#8#3'top'
-  +#2'H'#0#9'TMenuItem'#5'File1'#7'Caption'#6#4'File'#0#9'TMenuItem'#4'New1'#7
-  +'Caption'#6#7'New tab'#8'ShortCut'#3'N@'#7'OnClick'#7#9'New1Click'#0#0#9'TMe'
-  +'nuItem'#5'Load1'#7'Caption'#6#4'Open'#8'ShortCut'#3'O@'#7'OnClick'#7#10'Loa'
-  +'d1Click'#0#0#9'TMenuItem'#5'Save1'#7'Caption'#6#4'Save'#8'ShortCut'#3'S@'#7
-  +'OnClick'#7#10'Save1Click'#0#0#9'TMenuItem'#7'SaveAs1'#7'Caption'#6#10'Save '
-  +'As...'#7'OnClick'#7#12'SaveAs1Click'#0#0#9'TMenuItem'#26'Assigntocurrentche'
-  +'attable1'#7'Caption'#6#29'Assign to current cheat table'#7'OnClick'#7#31'As'
-  +'signtocurrentcheattable1Click'#0#0#9'TMenuItem'#2'N2'#7'Caption'#6#1'-'#0#0
-  +#9'TMenuItem'#5'Exit1'#7'Caption'#6#4'Exit'#7'OnClick'#7#10'Exit1Click'#0#0#0
-  +#9'TMenuItem'#5'View1'#7'Caption'#6#4'View'#0#9'TMenuItem'#19'Syntaxhighligh'
-  +'ting1'#7'Caption'#6#19'Syntax highlighting'#7'Checked'#9#7'OnClick'#7#24'Sy'
-  +'ntaxhighlighting1Click'#0#0#9'TMenuItem'#7'AAPref1'#7'Caption'#6#11'Prefere'
-  +'nces'#7'OnClick'#7#12'AAPref1Click'#0#0#0#9'TMenuItem'#8'emplate1'#7'Captio'
-  +'n'#6#8'Template'#0#9'TMenuItem'#14'Codeinjection1'#7'Caption'#6#14'Code inj'
-  +'ection'#7'OnClick'#7#19'Codeinjection1Click'#0#0#9'TMenuItem'#8'APIHook1'#7
-  +'Caption'#6#8'API Hook'#7'OnClick'#7#13'APIHook1Click'#0#0#9'TMenuItem'#15'C'
-  +'oderelocation1'#7'Caption'#6#15'Code relocation'#7'OnClick'#7#20'Codereloca'
-  +'tion1Click'#0#0#9'TMenuItem'#25'CheatTablecompliantcodee1'#7'Caption'#6#26
-  +'Cheat Table framework code'#7'OnClick'#7#30'CheatTablecompliantcodee1Click'
-  +#0#0#0#9'TMenuItem'#7'Inject1'#7'Caption'#6#6'Inject'#7'Visible'#8#0#9'TMenu'
-  +'Item'#23'Injectincurrentprocess1'#7'Caption'#6#27'Inject into current proce'
-  +'ss'#7'OnClick'#7#28'Injectincurrentprocess1Click'#0#0#9'TMenuItem#Injectint'
-  +'ocurrentprocessandexecute1'#7'Caption'#6'''Inject into current process and '
-  +'execute'#7'OnClick'#7'(Injectintocurrentprocessandexecute1Click'#0#0#0#0#11
-  +'TOpenDialog'#11'OpenDialog1'#5'Title'#6#21'Open CE assembly file'#10'Defaul'
-  +'tExt'#6#4'.CEA'#6'Filter'#6'7Cheat Engine Assembly (*.CEA)|*.CEA|All Files '
-  +'(*.*)|*.*'#4'left'#2#8#3'top'#2'('#0#0#11'TSaveDialog'#11'SaveDialog1'#5'Ti'
-  +'tle'#6#21'Open CE assembly file'#10'DefaultExt'#6#4'.CEA'#6'Filter'#6'7Chea'
-  +'t Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'#7'Options'#11#17'ofOve'
-  +'rwritePrompt'#14'ofHideReadOnly'#14'ofEnableSizing'#0#4'left'#2'('#3'top'#2
-  +'('#0#0#10'TPopupMenu'#10'PopupMenu1'#4'left'#2#8#3'top'#2#8#0#9'TMenuItem'#4
-  +'Cut1'#7'Caption'#6#4'Cu&t'#8'ShortCut'#3'X@'#7'OnClick'#7#9'Cut1Click'#0#0#9
-  +'TMenuItem'#5'Copy1'#7'Caption'#6#5'&Copy'#8'ShortCut'#3'C@'#7'OnClick'#7#10
-  +'Copy1Click'#0#0#9'TMenuItem'#6'Paste1'#7'Caption'#6#6'&Paste'#8'ShortCut'#3
-  +'V@'#7'OnClick'#7#11'Paste1Click'#0#0#9'TMenuItem'#5'Undo1'#7'Caption'#6#5'&'
-  +'Undo'#8'ShortCut'#3'Z@'#0#0#9'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMen'
-  +'uItem'#5'Find1'#7'Caption'#6#8'&Find...'#8'ShortCut'#3'F@'#7'OnClick'#7#10
-  +'Find1Click'#0#0#0#10'TPopupMenu'#9'closemenu'#4'left'#2'('#3'top'#2#8#0#9'T'
-  +'MenuItem'#6'Close1'#7'Caption'#6#5'Close'#7'OnClick'#7#11'Close1Click'#0#0#0
-  +#11'TFindDialog'#11'FindDialog1'#7'Options'#11#6'frDown'#15'frHideMatchCase'
-  +#15'frHideWholeWord'#12'frHideUpDown'#0#6'OnFind'#7#15'FindDialog1Find'#4'le'
-  +'ft'#2#8#3'top'#2'h'#0#0#6'TTimer'#9'undotimer'#8'Interval'#3#250#0#4'left'#2
-  +'('#3'top'#2'H'#0#0#0
+  +#0#6'TPanel'#6'Panel2'#4'Left'#2#0#6'Height'#3#4#1#3'Top'#2#0#5'Width'#3#175
+  +#1#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#8'TabOrder'#2#1#0#0#9'T'
+  +'MainMenu'#9'MainMenu1'#4'left'#2#8#3'top'#2'H'#0#9'TMenuItem'#5'File1'#7'Ca'
+  +'ption'#6#4'File'#0#9'TMenuItem'#4'New1'#7'Caption'#6#7'New tab'#8'ShortCut'
+  +#3'N@'#7'OnClick'#7#9'New1Click'#0#0#9'TMenuItem'#5'Load1'#7'Caption'#6#4'Op'
+  +'en'#8'ShortCut'#3'O@'#7'OnClick'#7#10'Load1Click'#0#0#9'TMenuItem'#5'Save1'
+  +#7'Caption'#6#4'Save'#8'ShortCut'#3'S@'#7'OnClick'#7#10'Save1Click'#0#0#9'TM'
+  +'enuItem'#7'SaveAs1'#7'Caption'#6#10'Save As...'#7'OnClick'#7#12'SaveAs1Clic'
+  +'k'#0#0#9'TMenuItem'#26'Assigntocurrentcheattable1'#7'Caption'#6#29'Assign t'
+  +'o current cheat table'#7'OnClick'#7#31'Assigntocurrentcheattable1Click'#0#0
+  +#9'TMenuItem'#2'N2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#5'Exit1'#7'Caption'#6
+  +#4'Exit'#7'OnClick'#7#10'Exit1Click'#0#0#0#9'TMenuItem'#5'View1'#7'Caption'#6
+  +#4'View'#0#9'TMenuItem'#19'Syntaxhighlighting1'#7'Caption'#6#19'Syntax highl'
+  +'ighting'#7'Checked'#9#7'OnClick'#7#24'Syntaxhighlighting1Click'#0#0#9'TMenu'
+  +'Item'#7'AAPref1'#7'Caption'#6#11'Preferences'#7'OnClick'#7#12'AAPref1Click'
+  +#0#0#0#9'TMenuItem'#8'emplate1'#7'Caption'#6#8'Template'#0#9'TMenuItem'#14'C'
+  +'odeinjection1'#7'Caption'#6#14'Code injection'#7'OnClick'#7#19'Codeinjectio'
+  +'n1Click'#0#0#9'TMenuItem'#8'APIHook1'#7'Caption'#6#8'API Hook'#7'OnClick'#7
+  +#13'APIHook1Click'#0#0#9'TMenuItem'#15'Coderelocation1'#7'Caption'#6#15'Code'
+  +' relocation'#7'OnClick'#7#20'Coderelocation1Click'#0#0#9'TMenuItem'#25'Chea'
+  +'tTablecompliantcodee1'#7'Caption'#6#26'Cheat Table framework code'#7'OnClic'
+  +'k'#7#30'CheatTablecompliantcodee1Click'#0#0#0#9'TMenuItem'#7'Inject1'#7'Cap'
+  +'tion'#6#6'Inject'#7'Visible'#8#0#9'TMenuItem'#23'Injectincurrentprocess1'#7
+  +'Caption'#6#27'Inject into current process'#7'OnClick'#7#28'Injectincurrentp'
+  +'rocess1Click'#0#0#9'TMenuItem#Injectintocurrentprocessandexecute1'#7'Captio'
+  +'n'#6'''Inject into current process and execute'#7'OnClick'#7'(Injectintocur'
+  +'rentprocessandexecute1Click'#0#0#0#0#11'TOpenDialog'#11'OpenDialog1'#5'Titl'
+  +'e'#6#21'Open CE assembly file'#10'DefaultExt'#6#4'.CEA'#6'Filter'#6'7Cheat '
+  +'Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'#4'left'#2#8#3'top'#2'('#0
+  +#0#11'TSaveDialog'#11'SaveDialog1'#5'Title'#6#21'Open CE assembly file'#10'D'
+  +'efaultExt'#6#4'.CEA'#6'Filter'#6'7Cheat Engine Assembly (*.CEA)|*.CEA|All F'
+  +'iles (*.*)|*.*'#7'Options'#11#17'ofOverwritePrompt'#14'ofHideReadOnly'#14'o'
+  +'fEnableSizing'#0#4'left'#2'('#3'top'#2'('#0#0#10'TPopupMenu'#10'PopupMenu1'
+  +#4'left'#2#8#3'top'#2#8#0#9'TMenuItem'#4'Cut1'#7'Caption'#6#4'Cu&t'#8'ShortC'
+  +'ut'#3'X@'#7'OnClick'#7#9'Cut1Click'#0#0#9'TMenuItem'#5'Copy1'#7'Caption'#6#5
+  +'&Copy'#8'ShortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuItem'#6'Pas'
+  +'te1'#7'Caption'#6#6'&Paste'#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste1Click'#0
+  +#0#9'TMenuItem'#5'Undo1'#7'Caption'#6#5'&Undo'#8'ShortCut'#3'Z@'#7'OnClick'#7
+  +#10'Undo1Click'#0#0#9'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#5
+  +'Find1'#7'Caption'#6#8'&Find...'#8'ShortCut'#3'F@'#7'OnClick'#7#10'Find1Clic'
+  +'k'#0#0#0#10'TPopupMenu'#9'closemenu'#4'left'#2'('#3'top'#2#8#0#9'TMenuItem'
+  +#6'Close1'#7'Caption'#6#5'Close'#7'OnClick'#7#11'Close1Click'#0#0#0#11'TFind'
+  +'Dialog'#11'FindDialog1'#7'Options'#11#6'frDown'#15'frHideMatchCase'#15'frHi'
+  +'deWholeWord'#12'frHideUpDown'#0#6'OnFind'#7#15'FindDialog1Find'#4'left'#2#8
+  +#3'top'#2'h'#0#0#6'TTimer'#9'undotimer'#8'Interval'#3#250#0#4'left'#2'('#3't'
+  +'op'#2'H'#0#0#0
 ]);

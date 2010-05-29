@@ -680,6 +680,7 @@ end;
 
 constructor TSynAASyn.Create(AOwner: TComponent);
 begin
+ // OutputDebugString('constructor TSynAASyn.Create(AOwner: TComponent);');
   inherited Create(AOwner);
   fAutoAssemblerVersion := LastAutoAssemblerVersion;
   fPackageSource := True;

@@ -7,9 +7,9 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
-  NewKernelHandler, SynEdit, SynHighlighterAA, SynHighlighterCpp, disassembler,
+  NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
-  MemoryRecordUnit;
+  MemoryRecordUnit, tablist;
 
 type
 
@@ -21,6 +21,7 @@ type
     Panel1: TPanel;
     Button1: TButton;
     Load1: TMenuItem;
+    Panel2: TPanel;
     Save1: TMenuItem;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
@@ -33,7 +34,6 @@ type
     SaveAs1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Coderelocation1: TMenuItem;
-    TabControl1: TTabControl;
     New1: TMenuItem;
     N2: TMenuItem;
     Syntaxhighlighting1: TMenuItem;
@@ -84,6 +84,7 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure AAPref1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Undo1Click(Sender: TObject);
   private
     { Private declarations }
     {$ifndef standalonetrainerwithassembler}
@@ -112,10 +113,13 @@ type
     undolist: array [0..5] of string;
     procedure setcplusplus(state: boolean);
     procedure injectscript(createthread: boolean);
+    procedure tlistOnTabChange(sender: TObject; oldselection: integer);
+
   public
     { Public declarations }
     {$ifndef standalonetrainerwithassembler}
     assemblescreen: TSynEdit;
+    tlist: TTablist;
     {$endif}
     editscript: boolean;
     editscript2: boolean;
@@ -1052,6 +1056,7 @@ begin
 end;
 
 procedure TfrmAutoInject.New1Click(Sender: TObject);
+var i: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
 
@@ -1064,12 +1069,33 @@ begin
 
   assemblescreen.Text:='';
 
-  if length(scripts)=2 then //first time new
-    tabcontrol1.Tabs.Add('Script 1');
 
-  tabcontrol1.Tabs.Add('Script '+inttostr(length(scripts)));
-  tabcontrol1.TabIndex:=length(scripts)-1;
-  oldtabindex:=tabcontrol1.TabIndex;
+  if length(scripts)=2 then //first time new
+  begin
+    tlist.AddTab('Script 1');
+    tlist.Visible:=true;
+  end;
+
+  i:=tlist.AddTab('Script '+inttostr(length(scripts)));
+  tlist.SelectedTab:=i;
+  oldtabindex:=i;
+{$endif}
+end;
+
+procedure tfrmautoinject.tlistOnTabChange(sender: TObject; oldselection: integer);
+begin
+{$ifndef standalonetrainerwithassembler}
+
+  scripts[oldselection].script:=assemblescreen.text;
+  scripts[oldselection].filename:=opendialog1.FileName;
+
+  assemblescreen.text:=scripts[tlist.SelectedTab].script;
+  opendialog1.FileName:=scripts[tlist.SelectedTab].filename;
+
+  oldtabindex:=tlist.SelectedTab;
+
+  assemblescreen.ClearUndo;
+
 {$endif}
 end;
 
@@ -1088,6 +1114,14 @@ begin
   CPPHighlighter:=TSynCppSyn.create(self);
   assembleSearch:=TSyneditSearch.Create;
 
+  tlist:=TTablist.Create(self);
+  tlist.height:=20;
+  tlist.Align:=alTop;
+  tlist.Visible:=false;
+  tlist.OnTabChange:=tlistOnTabChange;
+
+  tlist.Parent:=panel2;
+
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
@@ -1104,22 +1138,13 @@ begin
 
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;
-  assemblescreen.Parent:=tabcontrol1;
+  assemblescreen.Parent:=panel2;
 {$endif}
 end;
 
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
 
-  scripts[oldtabindex].script:=assemblescreen.text;
-  scripts[oldtabindex].filename:=opendialog1.FileName;
-
-  assemblescreen.text:=scripts[TabControl1.TabIndex].script;
-  opendialog1.FileName:=scripts[TabControl1.TabIndex].filename;
-
-  oldtabindex:=tabcontrol1.TabIndex;
-{$endif}
 end;
 
 procedure TfrmAutoInject.Syntaxhighlighting1Click(Sender: TObject);
@@ -1148,10 +1173,11 @@ var i: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
 
-  if messagedlg('Are you sure you want to close '+TabControl1.Tabs[selectedtab]+' ?',mtConfirmation,[mbyes,mbno],0)=mryes then
+
+  if messagedlg('Are you sure you want to close '+tlist.TabText[selectedtab]+' ?',mtConfirmation,[mbyes,mbno],0)=mryes then
   begin
     scripts[oldtabindex].script:=assemblescreen.text; //save current script
-    tabcontrol1.Tabs.Delete(selectedtab);
+    tlist.RemoveTab(selectedtab);
 
     for i:=selectedtab to length(scripts)-2 do
       scripts[i]:=scripts[i+1];
@@ -1161,14 +1187,16 @@ begin
     if oldtabindex=selectedtab then //it was the current one
     begin
       oldtabindex:=length(scripts)-1;
-      tabcontrol1.TabIndex:=oldtabindex;
+      tlist.SelectedTab:=oldtabindex;
       assemblescreen.text:=scripts[oldtabindex].script;
       assemblescreen.OnChange(assemblescreen);
     end;
 
     if (length(scripts)=1) then
-      tabcontrol1.Tabs.Delete(0);
-
+    begin
+      tlist.RemoveTab(0);
+      tlist.Visible:=false;
+    end;
 //    tabcontrol1.tabs[selectedtab]
 
   end;
@@ -1411,6 +1439,11 @@ begin
     saveformposition(self,[]); 
 
   end;
+end;
+
+procedure TfrmAutoInject.Undo1Click(Sender: TObject);
+begin
+  assemblescreen.Undo;
 end;
 
 initialization
