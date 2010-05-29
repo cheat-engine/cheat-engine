@@ -3,7 +3,6 @@ object Registers: TRegisters
   Height = 198
   Top = 197
   Width = 154
-  BorderStyle = bsSizeToolWin
   Caption = 'Registers'
   ClientHeight = 198
   ClientWidth = 154

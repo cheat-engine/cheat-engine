@@ -1,9 +1,8 @@
 object Registers: TRegisters
-  Left = 1320
-  Top = 208
-  Width = 159
-  Height = 243
-  BorderStyle = bsSizeToolWin
+  Left = 843
+  Top = 224
+  Width = 163
+  Height = 247
   Caption = 'Registers'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,8 +19,8 @@ object Registers: TRegisters
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 120
-    Height = 198
+    Width = 124
+    Height = 202
     Align = alClient
     TabOrder = 0
     object EAXLabel: TLabel
@@ -175,10 +174,10 @@ object Registers: TRegisters
     end
   end
   object Panel2: TPanel
-    Left = 120
+    Left = 124
     Top = 0
     Width = 21
-    Height = 198
+    Height = 202
     Align = alRight
     TabOrder = 1
     object sbShowFloats: TSpeedButton

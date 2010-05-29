@@ -98,7 +98,7 @@ end;
 
 procedure TRegisters.FormResize(Sender: TObject);
 begin
-  sbShowFloats.Top:=(clientheight div 2)-(height div 2);
+  sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.height div 2);
 end;
 
 end.
