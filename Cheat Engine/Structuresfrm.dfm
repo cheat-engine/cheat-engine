@@ -118,6 +118,14 @@ object frmStructures: TfrmStructures
       object N7: TMenuItem
         Caption = '-'
       end
+      object SaveValues1: TMenuItem
+        Caption = 'Save Values'
+        ShortCut = 16467
+        OnClick = SaveValues1Click
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
       object Addextraaddress1: TMenuItem
         Caption = 'Add extra address'
         ShortCut = 16449
@@ -272,5 +280,11 @@ object frmStructures: TfrmStructures
       Caption = 'Set group'
       OnClick = Setgroup1Click
     end
+  end
+  object saveValues: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Text Files (*.txt)|*.txt'
+    Left = 136
+    Top = 144
   end
 end
