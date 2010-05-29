@@ -719,6 +719,18 @@ begin
           getmem(modulelist,modulelistsize);
           try reg.ReadBinaryData('Module List',ModuleList^,ModuleListSize); except end;
 
+
+
+          if reg.ValueExists('Don''t use tempdir') then
+            cbDontUseTempDir.checked:=reg.ReadBool('Don''t use tempdir');
+
+          if reg.ValueExists('Scanfolder') then
+            edtTempScanFolder.text:=reg.ReadString('Scanfolder');
+
+          dontusetempdir:=cbDontusetempdir.checked;
+          tempdiralternative:=edtTempScanFolder.text;
+
+
           try cbProcessWatcher.checked:=reg.readBool('Use Processwatcher'); except end;
           try cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger'); except end;
           try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;
@@ -729,7 +741,6 @@ begin
           mainform.ools1.Visible:=cbShowTools.Checked;
 
 
-          
 
           if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
           if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;

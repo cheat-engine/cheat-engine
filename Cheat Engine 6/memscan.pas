@@ -4147,7 +4147,11 @@ begin
   //setyp the location of the scan results
   CreateGUID(guid);
 
-  fScanResultFolder:=GetTempDir+'Cheat Engine\';
+
+  if dontusetempdir then
+    fScanResultFolder:=tempdiralternative+'Cheat Engine\'
+  else
+    fScanResultFolder:=GetTempDir+'Cheat Engine\';
   CreateDir(fScanResultFolder);
 
   fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+'\';

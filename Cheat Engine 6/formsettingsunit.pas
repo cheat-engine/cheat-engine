@@ -23,9 +23,14 @@ type
   { TformSettings }
 
   TformSettings = class(TForm)
+    cbDontusetempdir: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtTempScanFolder: TEdit;
+    Label2: TLabel;
+    LoadButton: TSpeedButton;
     pnlConfig: TPanel;
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
     tvMenuSelection: TTreeView;
     pcSetting: TPageControl;
     GeneralSettings: TTabSheet;
@@ -57,7 +62,6 @@ type
     EditAutoAttach: TEdit;
     cbAlwaysAutoAttach: TCheckBox;
     cbSaveWindowPos: TCheckBox;
-    Label2: TLabel;
     Label3: TLabel;
     Label1: TLabel;
     Label15: TLabel;
@@ -141,11 +145,13 @@ type
     clbPlugins: TCheckListBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure cbDontusetempdirChange(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
+    procedure LoadButtonClick(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
@@ -552,6 +558,12 @@ begin
 
       {$endif}
 
+      reg.WriteBool('Don''t use tempdir',cbDontusetempdir.checked);
+      reg.WriteString('Scanfolder',edtTempScanFolder.Text);
+      dontusetempdir:=cbDontusetempdir.checked;
+      tempdiralternative:=edtTempScanFolder.text;
+
+
       reg.WriteBool('Use dbk32 QueryMemoryRegionEx',cbKernelQueryMemoryRegion.checked);
       reg.WriteBool('Use dbk32 ReadWriteProcessMemory',cbKernelReadWriteProcessMemory.checked);
       reg.WriteBool('Use dbk32 OpenProcess',cbKernelOpenProcess.checked);
@@ -675,6 +687,13 @@ end;
 procedure TformSettings.Button2Click(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.cbDontusetempdirChange(Sender: TObject);
+begin
+  label2.enabled:=cbDontusetempdir.checked;
+  edtTempScanFolder.enabled:=cbDontusetempdir.checked;
+  loadButton.enabled:=cbDontusetempdir.checked;
 end;
 
 procedure TformSettings.checkThreadClick(Sender: TObject);
@@ -807,6 +826,12 @@ begin
     ReplaceWithNops.enabled:=false;
     askforreplacewithnops.Enabled:=false;
   end;
+end;
+
+procedure TformSettings.LoadButtonClick(Sender: TObject);
+begin
+  if SelectDirectoryDialog1.Execute then
+    edtTempScanFolder.text:=SelectDirectoryDialog1.FileName;
 end;
 
 procedure TformSettings.pcSettingChange(Sender: TObject);

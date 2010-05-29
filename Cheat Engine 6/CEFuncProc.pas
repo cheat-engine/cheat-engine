@@ -608,6 +608,9 @@ var
 
 
   tempdir: pchar;
+  dontusetempdir: boolean;
+  tempdiralternative: string;
+
 
 
   processhandler: TProcessHandler;

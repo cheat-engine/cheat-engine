@@ -1,12 +1,12 @@
 object formSettings: TformSettings
-  Left = 531
+  Left = 533
   Height = 574
   Top = 269
-  Width = 873
+  Width = 869
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
   ClientHeight = 574
-  ClientWidth = 873
+  ClientWidth = 869
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,10 +18,10 @@ object formSettings: TformSettings
     Left = 0
     Height = 527
     Top = 0
-    Width = 873
+    Width = 869
     Align = alClient
     ClientHeight = 527
-    ClientWidth = 873
+    ClientWidth = 869
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
@@ -58,10 +58,10 @@ object formSettings: TformSettings
       Left = 149
       Height = 525
       Top = 1
-      Width = 723
-      ActivePage = GeneralSettings
+      Width = 719
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 0
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -355,33 +355,33 @@ object formSettings: TformSettings
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
           Height = 496
-          Width = 715
+          Width = 711
           Align = alClient
           ClientHeight = 496
-          ClientWidth = 715
+          ClientWidth = 711
           inherited Panel1: TPanel
             Height = 434
             Top = 62
-            Width = 489
+            Width = 485
             ClientHeight = 434
-            ClientWidth = 489
+            ClientWidth = 485
             inherited Label1: TLabel
               Height = 17
-              Width = 489
+              Width = 485
             end
             inherited ListBox1: TListBox
               Height = 417
               Top = 17
-              Width = 489
+              Width = 485
               ItemHeight = 16
             end
           end
           inherited Panel2: TPanel
-            Left = 489
+            Left = 485
             Height = 434
             Top = 62
             Width = 226
@@ -444,9 +444,9 @@ object formSettings: TformSettings
           end
           inherited Panel5: TPanel
             Height = 62
-            Width = 715
+            Width = 711
             ClientHeight = 62
-            ClientWidth = 715
+            ClientWidth = 711
             inherited Label4: TLabel
               Left = 128
               Height = 17
@@ -474,7 +474,7 @@ object formSettings: TformSettings
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 8
         object Label5: TLabel
           Left = 10
@@ -504,21 +504,12 @@ object formSettings: TformSettings
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 1
-        object Label2: TLabel
+        object Label3: TLabel
           Left = 0
           Height = 17
-          Top = 206
-          Width = 1065
-          Caption = 'Running the scan in a seperate thread will give you a cancel button, and prevents CE from starvation. (meaning parts of the window turn white) but it also makes scanning a little slower'
-          ParentColor = False
-          WordWrap = True
-        end
-        object Label3: TLabel
-          Left = 7
-          Height = 17
-          Top = 262
+          Top = 278
           Width = 88
           Caption = 'Thread priority'
           ParentColor = False
@@ -542,15 +533,15 @@ object formSettings: TformSettings
         object Label21: TLabel
           Left = 0
           Height = 17
-          Top = 118
+          Top = 190
           Width = 199
           Caption = 'Scan the following memory types:'
           ParentColor = False
         end
         object combothreadpriority: TComboBox
-          Left = 7
+          Left = 0
           Height = 24
-          Top = 278
+          Top = 294
           Width = 122
           ItemHeight = 16
           ItemIndex = 4
@@ -597,7 +588,7 @@ object formSettings: TformSettings
         object cbMemImage: TCheckBox
           Left = 0
           Height = 23
-          Top = 157
+          Top = 229
           Width = 441
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
@@ -607,7 +598,7 @@ object formSettings: TformSettings
         object cbMemMapped: TCheckBox
           Left = 0
           Height = 23
-          Top = 177
+          Top = 249
           Width = 556
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, slow)'
           TabOrder = 5
@@ -615,7 +606,7 @@ object formSettings: TformSettings
         object cbMemPrivate: TCheckBox
           Left = 0
           Height = 23
-          Top = 137
+          Top = 209
           Width = 256
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
@@ -629,6 +620,69 @@ object formSettings: TformSettings
           Width = 51
           TabOrder = 7
           Text = '1024'
+        end
+        object cbDontusetempdir: TCheckBox
+          Left = 0
+          Height = 23
+          Top = 110
+          Width = 365
+          Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
+          OnChange = cbDontusetempdirChange
+          TabOrder = 8
+        end
+        object edtTempScanFolder: TEdit
+          Left = 6
+          Height = 24
+          Top = 158
+          Width = 521
+          Enabled = False
+          TabOrder = 9
+        end
+        object Label2: TLabel
+          Left = 6
+          Height = 17
+          Top = 136
+          Width = 254
+          Caption = 'Store the temporary scanfiles here instead:'
+          Enabled = False
+          ParentColor = False
+        end
+        object LoadButton: TSpeedButton
+          Left = 531
+          Height = 25
+          Top = 157
+          Width = 25
+          Color = clBtnFace
+          Enabled = False
+          Glyph.Data = {
+            D6020000424DD6020000000000003600000028000000100000000E0000000100
+            180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C000000000000000000000000000000000000000000000
+            0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000
+            008484008484008484008484008484008484008484008484008484000000C0C0
+            C0C0C0C0C0C0C0C0C0C000000000FFFF00000000848400848400848400848400
+            8484008484008484008484008484000000C0C0C0C0C0C0C0C0C0000000FFFFFF
+            00FFFF0000000084840084840084840084840084840084840084840084840084
+            84000000C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000848400848400
+            8484008484008484008484008484008484008484000000C0C0C0000000FFFFFF
+            00FFFFFFFFFF00FFFF0000000000000000000000000000000000000000000000
+            0000000000000000000000000000FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00
+            FFFFFFFFFF00FFFF000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000FFFFFF
+            00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF000000C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000000000000000
+            0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000
+            000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C00000
+            00000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000C0C0C0C0C0C0C0C0C00000
+            00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
+          }
+          NumGlyphs = 0
+          OnClick = LoadButtonClick
+          ShowHint = True
+          ParentShowHint = False
         end
       end
       object Plugins: TTabSheet
@@ -745,9 +799,9 @@ object formSettings: TformSettings
         end
         object rbDebugRegisters: TRadioButton
           Left = 0
-          Height = 20
+          Height = 23
           Top = 59
-          Width = 319
+          Width = 325
           Caption = 'Use Debug Registers (aka Hardware Breakpoints)'
           Checked = True
           State = cbChecked
@@ -755,27 +809,27 @@ object formSettings: TformSettings
         end
         object rdWriteExceptions: TRadioButton
           Left = 0
-          Height = 20
+          Height = 23
           Top = 118
-          Width = 184
+          Width = 190
           Caption = 'Memory Access Exceptions'
           TabOrder = 1
           TabStop = False
         end
         object CheckBox1: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 188
-          Width = 255
+          Width = 261
           Caption = 'Try to prevent detection of the debugger'
           OnClick = CheckBox1Click
           TabOrder = 2
         end
         object cbHandleBreakpoints: TCheckBox
           Left = 0
-          Height = 20
+          Height = 23
           Top = 208
-          Width = 240
+          Width = 246
           Caption = 'Handle beakpoints not caused by CE'
           OnClick = CheckBox1Click
           TabOrder = 3
@@ -788,9 +842,9 @@ object formSettings: TformSettings
         ImageIndex = 5
         object cbShowDisassembler: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 2
-          Width = 136
+          Width = 142
           Caption = 'Show disassembler'
           Checked = True
           OnClick = cbShowDisassemblerClick
@@ -799,9 +853,9 @@ object formSettings: TformSettings
         end
         object cbShowDebugoptions: TCheckBox
           Left = 20
-          Height = 20
+          Height = 23
           Top = 30
-          Width = 160
+          Width = 166
           Caption = 'Show debugger options'
           Checked = True
           State = cbChecked
@@ -809,10 +863,10 @@ object formSettings: TformSettings
         end
         object replacewithnops: TCheckBox
           Left = 20
-          Height = 20
+          Height = 23
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 89
-          Width = 254
+          Width = 260
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -823,9 +877,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 39
-          Height = 20
+          Height = 23
           Top = 108
-          Width = 159
+          Width = 165
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -833,9 +887,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 39
-          Height = 20
+          Height = 23
           Top = 49
-          Width = 222
+          Width = 228
           Caption = 'Use hardware breakpoints (Max 3)'
           Checked = True
           State = cbChecked
@@ -843,18 +897,18 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 39
-          Height = 20
+          Height = 23
           Top = 69
-          Width = 294
+          Width = 300
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           TabOrder = 5
           TabStop = False
         end
         object cbBreakOnAttach: TCheckBox
           Left = 20
-          Height = 20
+          Height = 23
           Top = 148
-          Width = 376
+          Width = 382
           Caption = 'Break when attaching/creating process using the process list'
           TabOrder = 6
           Visible = False
@@ -888,72 +942,72 @@ object formSettings: TformSettings
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
-            Height = 20
+            Height = 23
             Top = 2
-            Width = 197
+            Width = 203
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
           end
           object cbKernelReadWriteProcessMemory: TCheckBox
             Left = 10
-            Height = 20
+            Height = 23
             Top = 21
-            Width = 349
+            Width = 355
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
           end
           object cbKernelOpenProcess: TCheckBox
             Left = 10
-            Height = 20
+            Height = 23
             Top = 40
-            Width = 104
+            Width = 110
             Caption = 'Open Process'
             TabOrder = 2
           end
         end
         object cbProcessWatcher: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 94
-          Width = 227
+          Width = 233
           Caption = 'Enable use of the Process Watcher'
           OnClick = cbProcessWatcherClick
           TabOrder = 1
         end
         object cbKdebug: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 114
-          Width = 316
+          Width = 322
           Caption = 'Use kernelmode debugger options when possible'
           OnClick = cbKdebugClick
           TabOrder = 2
         end
         object CheckBox3: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 296
-          Width = 148
+          Width = 154
           Caption = 'Use APC to inject dll''s'
           TabOrder = 3
           Visible = False
         end
         object CheckBox4: TCheckBox
           Left = 1
-          Height = 20
+          Height = 23
           Top = 316
-          Width = 203
+          Width = 209
           Caption = 'Use APC to create new threads'
           TabOrder = 4
           Visible = False
         end
         object cbGlobalDebug: TCheckBox
           Left = 22
-          Height = 20
+          Height = 23
           Top = 132
-          Width = 180
+          Width = 186
           Caption = 'Use Global Debug routines'
           Enabled = False
           TabOrder = 5
@@ -1175,16 +1229,16 @@ object formSettings: TformSettings
     Left = 0
     Height = 47
     Top = 527
-    Width = 873
+    Width = 869
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 47
-    ClientWidth = 873
+    ClientWidth = 869
     TabOrder = 1
     OnResize = Panel6Resize
     object AboutLabel: TLabel
       Cursor = crHandPoint
-      Left = 971
+      Left = 967
       Height = 17
       Top = 30
       Width = 57
@@ -1199,7 +1253,7 @@ object formSettings: TformSettings
       OnClick = AboutLabelClick
     end
     object Button2: TButton
-      Left = 507
+      Left = 503
       Height = 31
       Top = 6
       Width = 92
@@ -1211,7 +1265,7 @@ object formSettings: TformSettings
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 401
+      Left = 397
       Height = 31
       Top = 6
       Width = 92
@@ -1241,5 +1295,9 @@ object formSettings: TformSettings
     Filter = 'Application (*.exe)|*.exe'
     left = 3
     top = 441
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    left = 312
+    top = 176
   end
 end
