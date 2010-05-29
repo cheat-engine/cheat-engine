@@ -6373,6 +6373,8 @@ begin
   if memrec[lastselected].vartype=255 then
   begin
     enableautoassemblecheat(lastselected);
+    updatelist;
+    updatescreen;
     exit;
   end;
 
