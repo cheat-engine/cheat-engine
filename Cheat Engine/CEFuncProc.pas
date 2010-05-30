@@ -360,7 +360,130 @@ type tspeedhackspeed=record
 end;
 
 type TKeyCombo=array [0..4] of word;
+type TKeys=record
+  configured: boolean;
+  CEDir: string[255];
+  cewindow: thandle;
 
+  callibrationmode: boolean;  //false=no textureselect hud
+  callibrationkey: TKeycombo;
+
+  setcallibration: boolean;
+  mousecallibrationhorizontal1point: single;
+  mousecallibrationvertical1point: single;
+
+  mousecallibrationhorizontal2point: single;
+  mousecallibrationvertical2point: single;
+
+  mousecallibrationhorizontal5point: single;
+  mousecallibrationvertical5point: single;
+
+  mousecallibrationhorizontal10point: single;
+  mousecallibrationvertical10point: single;
+
+  mousecallibrationhorizontal20point: single;
+  mousecallibrationvertical20point: single;
+
+  mousecallibrationhorizontal40point: single;
+  mousecallibrationvertical40point: single;
+
+  loadaimsettingsfile: tkeycombo;
+  saveaimsettingsfile: tkeycombo;
+  aimsettings1: string[255];
+  Aimsettings2: string[255];
+  Aimsettings3: string[255];
+
+  setaimsetting1: tkeycombo;
+  setaimsetting2: tkeycombo;
+  setaimsetting3: tkeycombo;
+
+  nexttexture: tkeycombo;
+  previoustexture: tkeycombo;
+  locktexture: tkeycombo;
+
+  IncreaseX: tkeycombo;
+  DecreaseX: TKeyCombo;
+  Increasey: tkeycombo;
+  Decreasey: TKeyCombo;
+  Increasez: tkeycombo;
+  Decreasez: TKeyCombo;
+
+  HoldAutoaimtoggle: boolean;
+  autoshoot: boolean;
+  autoaimtoggle: tKeycombo;
+  increaselag: tkeycombo;
+  decreaselag: tkeycombo;
+
+  zoomin,zoomout: TKeyCombo;
+  nozoom: tKeyCombo;
+  zoom1: tKeyCombo;
+  zoomlevel1: single;
+  zoom2: tkeycombo;
+  zoomlevel2: single;
+  zoom3: tkeycombo;
+  zoomlevel3: single;
+  zoom4: tkeycombo;
+  zoomlevel4: single;
+  zoom5: tkeycombo;
+  zoomlevel5: single;
+
+  zoomdelta: single;
+  lagdelta: integer;
+
+  setlag: boolean;
+  lagtoset: dword;
+  usefpslag: boolean;
+
+  rotateleft: tKeycombo;
+  rotateright: tkeycombo;
+  rotateup: tkeycombo;
+  rotatedown: tkeycombo;
+  moveleft: tkeycombo;
+  moveright: tkeycombo;
+  moveup: tkeycombo;
+  movedown: tkeycombo;
+  moveforward: tkeycombo;
+  movebackwards: tkeycombo;
+
+  movespeed: single;
+  rotatespeed: single;
+
+  setcameraback: tkeycombo;
+
+  zbuffer: tkeycombo;
+  fog: tkeycombo;
+  lighting: tkeycombo;
+  wireframe: tkeycombo;
+
+  ShowKeylist: tkeycombo;
+
+  SaveAlltextures: TKeycombo;
+
+  selectedlagrecord: string[50];
+  lagmemorytype: byte;
+  getlagfrommemory: boolean;
+  nrofoffsets: dword;
+  lagaddress: dword;
+  offset1: dword;
+  offset2: dword;
+  offset3: dword;
+  offset4: dword;
+  offset5: dword;
+  offset6: dword;
+  offset7: dword;
+  offset8: dword;
+  offset9: dword;
+  offset10: dword;
+  offset11: dword;
+  offset12: dword;
+  offset13: dword;
+  offset14: dword;
+  offset15: dword;
+
+
+  pollinginterval: integer;
+end;
+type PKeys= ^TKeys;
 
 type TKeys2=record
   configured: boolean;
@@ -522,9 +645,9 @@ var
   HyperscanView: ^TScanSettings;
   
   hookedin:boolean;
- // keys: PKeys;
- // keys2: PKeys2;
- // keysfilemapping: THandle;
+  keys: PKeys;
+  keys2: PKeys2;
+  keysfilemapping: THandle;
 
   //stealth globals
   le: dword;
@@ -1374,9 +1497,9 @@ begin
 
     end;
   finally
-   // FreeLibrary(h);
-   // if injectionlocation<>nil then
-   //   virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
+    FreeLibrary(h);
+    if injectionlocation<>nil then
+      virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
   end;
 
 end;
@@ -3117,6 +3240,8 @@ initialization
   getmem(tempdir,256);
   GetTempPath(256,tempdir);
   GetWindir;
+  keysfilemapping:=0;
+  keys:=nil;
 
   setlength(windowlist,0);
   setlength(donthidelist,0);
