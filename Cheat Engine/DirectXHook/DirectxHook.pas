@@ -88,8 +88,6 @@ var IDirect3DTexture8_AddRef: TAPIInfo;
     IDirect3DTexture8_GetSurfaceLevel: TAPIInfo;
     IDirect3DTexture8_UnlockRect: TAPIInfo;
 
-    Direct3DCreate8_original: TDirect3DCreate8;
-    
 
 procedure SaveAllTextures8;
 procedure SaveLockedTextureInfo8(aimconfigfile: string);
@@ -685,7 +683,6 @@ c=RegisterSoftwareDevice(pInitializeFunction : Pointer) : HResult; stdcall;
 
 //function D3DXMatrixPerspectiveFovLH , hrm, perhaps later,
 
-
 function Direct3DCreate8Hook(SDKVersion: DWORD): PIDirect3D8; stdcall;
 var x,y: dword;
     xp: ^dword;
@@ -693,9 +690,7 @@ var x,y: dword;
     AIDirect3DVertexBuffer8: IDirect3DVertexBuffer8;
 begin
   //restore with original code
-  outputdebugstring('Direct3DCreate8Hook');
-  result:=Direct3DCreate8_original(SDKVersion);
- (*
+
   asm
     push esi
     push edi
@@ -725,7 +720,7 @@ begin
   pdword(pdword(x)^+$3c)^:=dword(@IDirect3D_CreateDevice_Hook);
   virtualprotect(pointer(pdword(x)^+$3c),4,y,y);
 
-  outputdebugstring('Hooking createdevice-success');  *)
+  outputdebugstring('Hooking createdevice-success');
 end;
 
 function Fixhook(const self:IDirect3DDevice8):boolean; stdcall;

@@ -19,8 +19,6 @@ type PIDirect3D9=^IDirect3D9;
 type TDirect3DCreate9=function(SDKVersion: DWORD): PIDirect3D9; stdcall;
 
 type TIDirect3D9_CreateDevice_Original=function(const self: IDirect3D9; const Adapter : Cardinal; const DeviceType : TD3DDevType; FocusWindow : HWND; BehaviorFlags : LongWord; var PresentationParameters : TD3DPresentParameters; out ReturnedDeviceInterface : IDirect3DDevice9) : HResult; stdcall;
-
-type TIDirect3DDevice9_Release_Original=function(const self: IDirect3DDevice9): integer; stdcall;
 type TIDirect3DDevice9_Reset_Original=function(const self: IDirect3DDevice9 ;var PresentationParameters : TD3DPresentParameters) : HResult; stdcall;
 type TIDirect3DDevice9_CreateTexture_Original=function(const self: IDirect3DDevice9 ;const Width, Height, Levels : Cardinal; const Usage : LongWord; Format : TD3DFormat; Pool : TD3DPool; out Texture : IDirect3DTexture9; SharedHandle : PHandle) : HResult; stdcall;
 type TIDirect3DDevice9_BeginScene_Original=function(const self: IDirect3DDevice9): HResult; stdcall;
@@ -39,25 +37,26 @@ type TIDirect3DTexture9_Release_Original=function(const self: IDirect3DTexture9)
 
 
 var Direct3DCreate9:TDirect3DCreate9;
+    Direct3DCreate9Info: TAPIInfo;
 
-    //following variables will be filled in by the apihook script of CE:
-    Direct3DCreate9_original: TDirect3DCreate9;
-    IDirect3D9_CreateDevice_original: TIDirect3D9_CreateDevice_Original;
-    IDirect3DDevice9_Release_original: TIDirect3DDevice9_Release_Original;
-    IDirect3DDevice9_Reset_original: TIDirect3DDevice9_Reset_Original;
-    IDirect3DDevice9_CreateTexture_original: TIDirect3DDevice9_CreateTexture_Original;
-    IDirect3DDevice9_BeginScene_original: TIDirect3DDevice9_BeginScene_original;
-    IDirect3DDevice9_EndScene_original: TIDirect3DDevice9_EndScene_original;
-    IDirect3DDevice9_SetTransform_original: TIDirect3DDevice9_SetTransform_original;
-    IDirect3DDevice9_GetTransform_original: TIDirect3DDevice9_GetTransform_original;
-    IDirect3DDevice9_SetRenderState_original: TIDirect3DDevice9_SetRenderState_original;
-    IDirect3DDevice9_SetTexture_original: TIDirect3DDevice9_SetTexture_original;
-    IDirect3DDevice9_DrawPrimitive_original: TIDirect3DDevice9_DrawPrimitive_original;
-    IDirect3DDevice9_DrawIndexedPrimitive_original: TIDirect3DDevice9_DrawIndexedPrimitive_original;
-    IDirect3DDevice9_DrawPrimitiveUP_original: TIDirect3DDevice9_DrawPrimitiveUP_original;
-    IDirect3DDevice9_DrawIndexedPrimitiveUP_original: TIDirect3DDevice9_DrawIndexedPrimitiveUP_original;
+    IDirect3D9_CreateDevice:TAPIInfo;
 
-    IDirect3DTexture9_Release_original: TIDirect3DTexture9_release_original;
+    //IDirect3DDevice8 method hooks
+    IDirect3DDevice9_Reset: TApiInfo;
+    IDirect3DDevice9_CreateTexture: TApiInfo;
+    IDirect3DDevice9_BeginScene: TApiInfo;
+    IDirect3DDevice9_EndScene: TApiInfo;
+    IDirect3DDevice9_SetTransform: TApiInfo;
+    IDirect3DDevice9_GetTransform: TApiInfo;
+    IDirect3DDevice9_SetRenderState: TApiInfo;
+    IDirect3DDevice9_SetTexture: TAPIInfo;
+    IDirect3DDevice9_DrawPrimitive: TAPIInfo;
+    IDirect3DDevice9_DrawIndexedPrimitive: TAPIInfo;
+    IDirect3DDevice9_DrawPrimitiveUP:TAPIInfo;
+    IDirect3DDevice9_DrawIndexedPrimitiveUP: TApiinfo;
+
+    IDirect3DTexture9_Release: TAPIInfo;
+
 
     d3d9dll: THandle;
 
@@ -70,7 +69,6 @@ procedure SaveAllTextures9;
 function Direct3DCreate9Hook(SDKVersion: DWORD): PIDirect3D9; stdcall;
 function IDirect3D9_CreateDevice_Hook(const self: IDirect3D9; const Adapter : Cardinal; const DeviceType : TD3DDevType; FocusWindow : HWND; BehaviorFlags : LongWord; var PresentationParameters : TD3DPresentParameters; out ReturnedDeviceInterface : IDirect3DDevice9) : HResult; stdcall;
 
-function IDirect3DDevice9_Release_Hook(const self: IDirect3DDevice9): integer; stdcall;
 function IDirect3DDevice9_Reset_Hook(const self: IDirect3DDevice9 ;var PresentationParameters : TD3DPresentParameters) : HResult; stdcall;
 function IDirect3DDevice9_CreateTexture_Hook(const self: IDirect3DDevice9 ;const Width, Height, Levels : Cardinal; const Usage : LongWord; Format : TD3DFormat; Pool : TD3DPool; out Texture : IDirect3DTexture9; SharedHandle : PHandle) : HResult; stdcall;
 function IDirect3DDevice9_BeginScene_Hook(const self: IDirect3DDevice9): HResult; stdcall;
@@ -85,12 +83,6 @@ function IDirect3DDevice9_DrawPrimitiveUP_Hook(const self: IDirect3DDevice9;Prim
 function IDirect3DDevice9_DrawIndexedPrimitiveUP_Hook(const self: IDirect3DDevice9;PrimitiveType : TD3DPrimitiveType; const MinVertexIndex, NumVertices, PrimitiveCount : Cardinal; IndexData : Pointer; IndexDataFormat : TD3DFormat; VertexStreamZeroData : Pointer; const VertexStreamZeroStride : Cardinal) : HResult; stdcall;
 
 function IDirect3DTexture9_Release_Hook(const self: IDirect3DTexture9): integer; stdcall;
-
-
-procedure Fixhook(const self:IDirect3DDevice9); stdcall;
-
-procedure CleanupStuff(const self:IDirect3DDevice9);
-
 
 var //variables for the directx9 hook
     cefont: ID3dXFont;
@@ -131,7 +123,6 @@ var //variables for the directx9 hook
     nextdrawstage: dword;
 
     resetdevice: boolean;
-    hasHookedIDirect3DTexture9: boolean;
 
 implementation
 
@@ -147,10 +138,6 @@ procedure handlekeypresses;
 var found: boolean;
     i,j: integer;
 begin
-  found:=false;
-  j:=0;
-
-
   if keys.callibrationmode then
   begin
     try
@@ -158,7 +145,7 @@ begin
       if checkkeycombo(keys.nexttexture) then if (texturepointer+1)>=length(texturelist) then texturepointer:=0 else inc(texturepointer);
       if checkkeycombo(keys.locktexture) then  //(un)lock
       begin
-
+        found:=false;
         for i:=0 to length(lockedtexturelist)-1 do
         begin
           if dword(lockedtexturelist[i].texturehandle)=dword(texturelist[texturepointer].texturehandle) then
@@ -285,12 +272,12 @@ end;
 
 
 procedure SaveLockedTextureInfo9(aimconfigfile: string);
-var i: integer;
+var i,j,k: integer;
     tr: TD3DLocked_Rect;
     aimsettings: tfilestream;
-  //lr:TD3DLocked_Rect;
-//    bts: array of byte;
-  //  s: string;
+    lr:TD3DLocked_Rect;
+    bts: array of byte;
+    s: string;
 
     total: dword;
     pdesc: td3dsurface_desc;
@@ -350,19 +337,17 @@ begin
     finally
       aimsettings.free;
     end;
-  except
-
-  end;
+  except end;
 end;
 
 procedure LoadLockedTextureInfo9(aimconfigfile:string);
-var aimsettings{,aimsettings2}: tfilestream;
+var aimsettings,aimsettings2: tfilestream;
     images: array of array of byte;
     i,j: integer;
     tempimage: array of byte;
 
     imageloaded:boolean;
-    total: integer;
+    total: dword;
     tr: TD3DLocked_Rect;
     pdesc: td3dsurface_desc;
     bug:boolean;
@@ -553,39 +538,37 @@ begin
 end;
 
 function Direct3DCreate9Hook(SDKVersion: DWORD): PIDirect3D9; stdcall;
-var
-  i:integer;
+var x,y:dword;
 begin
-  outputdebugstring('Direct3DCreate9Hook');
-  result:=Direct3DCreate9_original(SDKVersion);
+  asm
+    push esi
+    push edi
+    lea esi,Direct3DCreate9Info.original[0]
+    mov edi,Direct3DCreate9Info.location
+    movsd
+    movsb
 
-  i:=50;
-  while (i>0) and (keys=nil) do
-  begin
-    sleep(100);
-    dec(i);
+    pop edi
+    pop esi
   end;
+  outputdebugstring('CEHOOK:Creating a direct3d9 object');
+  result:=Direct3DCreate9(SDKVersion);
 
-  if keys<>nil then
-  begin
-    OutputDebugString('keys<>nil');
-    //fill in the data
-    //and signal to ce that the data has been set, it will then hook createDevice based on 'result'
-    keys.IDirect3D9:=pointer(dword(result));
-    keys.dxversion:=9;
-    keys.event:=0;
+  x:=dword(result);
 
-    OutputDebugString(pchar('Setting process_has_data_event ('+inttostr(keys.process_has_data_event)+')'));
-    SetEvent(keys.process_has_data_event);
+ //hook createdevice
 
-    OutputDebugString(pchar('Waiting for ce_has_handled_data_event ('+inttostr(keys.ce_has_handled_data_event)+')'));
-    WaitForSingleObject(keys.ce_has_handled_data_event, INFINITE);
-  end
-  else
-    OutputDebugString('Initialization failure. No hook will happen');
+  outputdebugstring('Hooking createdevice');
 
 
-  OutputDebugString('Exit Direct3DCreate9Hook');
+  if IDirect3D9_CreateDevice.location=nil then
+    IDirect3D9_CreateDevice.location:=pointer(pdword(pdword(x)^+4*16)^);
+
+  virtualprotect(pointer(pdword(x)^+4*16),4,PAGE_EXECUTE_READWRITE,y);
+  pdword(pdword(x)^+4*16)^:=dword(@IDirect3D9_CreateDevice_Hook);
+  virtualprotect(pointer(pdword(x)^+4*16),4,y,y);
+
+  outputdebugstring('Hooking createdevice-success');
 end;
 
 
@@ -593,26 +576,71 @@ end;
 
 //Hooked IDirect3D9 methods:
 
-procedure Fixhook(const self:IDirect3DDevice9); stdcall;
+function Fixhook(const self:IDirect3DDevice9):boolean; stdcall;
 var x:dword;
 begin
-  OutputDebugString('Fixhook');
+  virtualprotect(pdword(pdword(dword(Self))^),4*77,PAGE_EXECUTE_READWRITE,x);
 
-  //hook the functions
-  keys.event:=1; //hook functions of the directect3ddevice
-  keys.IDirect3DDevice9:=pointer(dword(self));
- 
-  setevent(keys.process_has_data_event);
-  WaitForSingleObject(keys.ce_has_handled_data_event,infinite);
-end;
+  //hook Reset
+  if IDirect3DDevice9_Reset.location=nil then
+    IDirect3DDevice9_Reset.location:=pointer(pdword(pdword(dword(Self))^+4*16)^);
+  pdword(pdword(dword(Self))^+4*16)^:=dword(@IDirect3DDevice9_Reset_Hook);
+
+  //hook createtexture
+  if IDirect3DDevice9_CreateTexture.location=nil then
+    IDirect3DDevice9_CreateTexture.location:=pointer(pdword(pdword(dword(Self))^+4*23)^);
+  pdword(pdword(dword(Self))^+4*23)^:=dword(@IDirect3DDevice9_CreateTexture_Hook);
+
+  //hook BeginScene
+  if IDirect3DDevice9_BeginScene.location=nil then
+    IDirect3DDevice9_BeginScene.location:=pointer(pdword(pdword(dword(Self))^+4*41)^);
+  pdword(pdword(dword(Self))^+4*41)^:=dword(@IDirect3DDevice9_BeginScene_Hook);
 
 
-procedure CleanupStuff(const self:IDirect3DDevice9);
-var i: integer;
-begin
-  OutputDebugString('CleanupStuff');
-  if lockedStringTexture<>nil then
-    lockedStringTexture:=nil;
+  //hook EndScene
+  if IDirect3DDevice9_EndScene.location=nil then
+    IDirect3DDevice9_EndScene.location:=pointer(pdword(pdword(dword(Self))^+4*42)^);
+  pdword(pdword(dword(Self))^+4*42)^:=dword(@IDirect3DDevice9_EndScene_Hook);
+
+  //hook SetTransform
+  if IDirect3DDevice9_SetTransform.location=nil then
+    IDirect3DDevice9_SetTransform.location:=pointer(pdword(pdword(dword(Self))^+4*44)^);
+  pdword(pdword(dword(Self))^+4*44)^:=dword(@IDirect3DDevice9_SetTransform_Hook);
+
+  //hook GetTransform
+  if IDirect3DDevice9_GetTransform.location=nil then
+    IDirect3DDevice9_GetTransform.location:=pointer(pdword(pdword(dword(Self))^+4*45)^);
+  pdword(pdword(dword(Self))^+4*45)^:=dword(@IDirect3DDevice9_GetTransform_Hook);
+
+  //hook SetRenderState
+  if IDirect3DDevice9_SetRenderState.location=nil then
+    IDirect3DDevice9_SetRenderState.location:=pointer(pdword(pdword(dword(Self))^+4*57)^);
+  pdword(pdword(dword(Self))^+4*57)^:=dword(@IDirect3DDevice9_SetRenderState_Hook);
+
+  //hook SetTexture
+  if IDirect3DDevice9_SetTexture.location=nil then
+    IDirect3DDevice9_SetTexture.location:=pointer(pdword(pdword(dword(Self))^+4*65)^);
+  pdword(pdword(dword(Self))^+4*65)^:=dword(@IDirect3DDevice9_SetTexture_Hook);
+
+  //hook DrawPrimitive
+  if IDirect3DDevice9_DrawPrimitive.location=nil then
+    IDirect3DDevice9_DrawPrimitive.location:=pointer(pdword(pdword(dword(Self))^+4*81)^);
+  pdword(pdword(dword(Self))^+4*81)^:=dword(@IDirect3DDevice9_DrawPrimitive_Hook);
+
+  //hook DrawIndexedPrimitive
+  if IDirect3DDevice9_DrawIndexedPrimitive.location=nil then
+    IDirect3DDevice9_DrawIndexedPrimitive.location:=pointer(pdword(pdword(dword(Self))^+4*82)^);
+  pdword(pdword(dword(Self))^+4*82)^:=dword(@IDirect3DDevice9_DrawIndexedPrimitive_Hook);
+
+  //hook DrawPrimitiveUP
+  if IDirect3DDevice9_DrawPrimitiveUP.location=nil then
+    IDirect3DDevice9_DrawPrimitiveUP.location:=pointer(pdword(pdword(dword(Self))^+4*83)^);
+  pdword(pdword(dword(Self))^+4*83)^:=dword(@IDirect3DDevice9_DrawPrimitiveUP_Hook);
+
+  //hook DrawIndexedPrimitiveUP
+  if IDirect3DDevice9_DrawIndexedPrimitiveUP.location=nil then
+    IDirect3DDevice9_DrawIndexedPrimitiveUP.location:=pointer(pdword(pdword(dword(Self))^+4*84)^);
+  pdword(pdword(dword(Self))^+4*84)^:=dword(@IDirect3DDevice9_DrawIndexedPrimitiveUP_Hook);
 end;
 
 
@@ -621,32 +649,16 @@ var x: dword;
     logfont: tlogfont;
     desc:TD3DXFontDescA;
 begin
-  OutputDebugString('IDirect3D9_CreateDevice_Hook');
-
   directxversion:=directx9;
   setlength(xylist,0);
 
 
   Behaviorflags:=behaviorflags and not (D3DCREATE_PUREDEVICE);
-  result:=IDirect3D9_CreateDevice_original(self,Adapter,DeviceType,FocusWindow,BehaviorFlags, PresentationParameters, ReturnedDeviceInterface);
-
+  result:=TIDirect3D9_CreateDevice_Original(IDirect3D9_CreateDevice.location)(self,Adapter,DeviceType,FocusWindow,BehaviorFlags,PresentationParameters, ReturnedDeviceInterface);
 
   if result=0 then
   begin
-    try
-
-
-    outputdebugstring(pchar(@keys.CEDir[0]));
-
-    lockedStringTexture:=nil;
-
-
-    if d3dx9.D3DXCreateTextureFromFile(ReturnedDeviceInterface,pchar(keys.CEDir+'lockedstring.bmp'),lockedStringTexture)=0 then
-      OutputDebugString('created lockedstring.bmp texture')
-    else
-      OutputDebugString('error creating lockedstring.bmp texture');
-
-
+    D3DXCreateTextureFromFile(ReturnedDeviceInterface,pchar(keys.CEDir+'lockedstring.bmp'),lockedStringTexture);
     D3DXCreateTextureFromFile(ReturnedDeviceInterface,pchar(keys.CEDir+'unlockedstring.bmp'),unlockedStringTexture);
     D3DXCreateTextureFromFile(ReturnedDeviceInterface,pchar(keys.CEDir+'texturestring.bmp'),textureStringTexture);
     D3DXCreateTextureFromFile(ReturnedDeviceInterface,pchar(keys.CEDir+'Black.bmp'),blackTexture);
@@ -691,22 +703,18 @@ begin
       //Why doesn't the font creation in dx9 work on a intel 82815 graphics controller, but the dx8 version does work ? 
       d3dx9.d3dxcreatefontindirectA(ReturnedDeviceInterface,@desc,CEFont);
     end;
-    except
-      on e: Exception do
-        outputdebugstring(pchar('exception at IDirect3D9_CreateDevice_Hook: '+e.message));
-    end;
+
   end;
 
-  fixhook(ReturnedDeviceInterface);
+
+  if result=0 then
+    fixhook(ReturnedDeviceInterface);
 end;
 
 function IDirect3DDevice9_Reset_Hook(const self: IDirect3DDevice9 ;var PresentationParameters : TD3DPresentParameters) : HResult; stdcall;
 var i: integer;
     err: dword;
 begin
-  outputdebugstring('IDirect3DDevice9_Reset_Hook');
-
-
   try
     mysprite.OnLostDevice;
     cefont.OnLostDevice;
@@ -720,7 +728,7 @@ begin
 
   end;
   texturepointer:=-1;
-  err:=IDirect3DDevice9_Reset_Original(self,PresentationParameters);
+  err:=TIDirect3DDevice9_Reset_Original(IDirect3DDevice9_Reset.location)(self,PresentationParameters);
 
   try
     if err=0 then
@@ -743,10 +751,7 @@ function IDirect3DDevice9_CreateTexture_Hook(const self: IDirect3DDevice9 ;const
 var i: integer;
     x: dword;
 begin
-  OutputDebugString('IDirect3DDevice9_CreateTexture_Hook');
-  result:=IDirect3DDevice9_CreateTexture_Original(self,width,height,levels,usage,format,pool,texture,sharedhandle);
-
-  OutputDebugString(pchar('Result='+inttohex(result,8)));
+  result:=TIDirect3DDevice9_CreateTexture_Original(IDirect3DDevice9_CreateTexture.location)(self,width,height,levels,usage,format,pool,texture,sharedhandle);
 
   if imdrawing then exit;
 
@@ -770,29 +775,21 @@ begin
   if result=0 then
   begin
     //hook release
+    virtualprotect(pdword(pdword(dword(Texture))^+4*2),4,PAGE_EXECUTE_READWRITE,x);
 
-    if not hasHookedIDirect3DTexture9 then
-    begin
-      OutputDebugString('Hooking IDirect3DTexture9.Release');
-      keys.event:=2;
-      keys.IDirect3DTexture9:=pointer(dword(texture));
-      SetEvent(keys.process_has_data_event);
-      WaitForSingleObject(keys.ce_has_handled_data_event,infinite);
+    if IDirect3DTexture9_release.location=nil then
+      IDirect3DTexture9_release.location:=pointer(pdword(pdword(dword(Texture))^+4*2)^);
+    pdword(pdword(dword(Texture))^+4*2)^:=dword(@IDirect3DTexture9_release_Hook);
 
-      OutputDebugString('Returned from hook');
-      hasHookedIDirect3DTexture9:=true;
-    end;
-
+    virtualprotect(pdword(pdword(dword(Texture))^+4*2),4,x,x);
   end;
 end;
 
 
 function IDirect3DDevice9_BeginScene_Hook(const self: IDirect3DDevice9): HResult; stdcall;
 begin
-//  OutputDebugString('IDirect3DDevice9_BeginScene_Hook');
-
   setlength(xylist,0);
-  result:=IDirect3DDevice9_BeginScene_Original(self);
+  result:=TIDirect3DDevice9_BeginScene_Original(IDirect3DDevice9_BeginScene.location)(self);
 end;
 
 procedure DrawHotkeylist9(const self: IDirect3DDevice9;vp:td3dviewport9);
@@ -867,8 +864,6 @@ var i: integer;
     curtime:dword;
 
 begin
- // OutputDebugString('IDirect3DDevice9_EndScene_Hook');
-
   position.z:=0;
 
   try
@@ -1577,7 +1572,7 @@ begin
       dontsetlastprojectionmatrix:=false;
       dontsetlastviewmatrix:=false;
     end;
-   // fixhook(self);
+    fixhook(self);
 
     if worldmatrixset then self.SetTransform(D3DTS_WORLD,lastworldmatrix);
     if projectionmatrixset then self.SetTransform(D3DTS_Projection,lastprojectionmatrix);
@@ -1587,7 +1582,7 @@ begin
   end;
 
   imdrawing:=false;
-  result:=IDirect3DDevice9_EndScene_Original(self);
+  result:=TIDirect3DDevice9_EndScene_Original(IDirect3DDevice9_EndScene.location)(self);
 end;
 
 function IDirect3DDevice9_SetTransform_Hook(const self: IDirect3DDevice9; State : TD3DTransformStateType; const Matrix : TD3DMatrix) : HResult; stdcall;
@@ -1596,9 +1591,6 @@ var Matrix2,Matrix3,Matrix4: TD3DMatrix;
     tempf1,tempf2,tempf3,tempf4: single;
 begin
   //same math as in directx8 (look it up there...)
-  //outputdebugstring('IDirect3DDevice9_SetTransform_Hook');
-
-
   matrix2:=Matrix;
 
   if (zoom<>1) and (state=D3DTS_PROJECTION) then  //zoom stuff
@@ -1630,7 +1622,7 @@ begin
     end;
   end;
 
-  result:=IDirect3DDevice9_SetTransform_original(self,State,Matrix2);
+  result:=TIDirect3DDevice9_SetTransform_original(IDirect3DDevice9_SetTransform.location)(self,State,Matrix2);
 
   if state=D3DTS_VIEW then
   begin
@@ -1664,7 +1656,6 @@ end;
 function IDirect3DDevice9_GetTransform_Hook(const self: IDirect3DDevice9; State : TD3DTransformStateType; out Matrix : TD3DMatrix) : HResult; stdcall;
 begin
   result:=D3D_OK;
- // outputdebugstring('IDirect3DDevice9_GetTransform_Hook');
 
   if state=D3DTS_VIEW then
   begin
@@ -1693,50 +1684,45 @@ begin
     end;
   end;
 
-  result:=IDirect3DDevice9_GetTransform_original(self,State,Matrix);
+  result:=TIDirect3DDevice9_GetTransform_original(IDirect3DDevice9_GetTransform.location)(self,State,Matrix);
 end;
 
 function IDirect3DDevice9_SetRenderState_Hook(const self: IDirect3DDevice9; State : TD3DRenderStateType; const Value : LongWord) : HResult; stdcall;
 begin
-  //outputdebugstring('IDirect3DDevice9_SetRenderState_Hook');
 
-  result:=IDirect3DDevice9_SetRenderState_original(self,State,Value);
-
-  if fog<>2 then IDirect3DDevice9_SetRenderState_original(self,D3DRS_FOGENABLE,fog);
-  if lighting<>2 then IDirect3DDevice9_SetRenderState_original(self, D3DRS_lighting,lighting);
-  if zbuffer<>2 then IDirect3DDevice9_SetRenderState_original(self, D3DRS_ZENABLE,zbuffer);
-  if wireframe=1 then IDirect3DDevice9_SetRenderState_original(self, D3DRS_fillmode,D3DFILL_WIREFRAME);
-  if wireframe=0 then IDirect3DDevice9_SetRenderState_original(self, D3DRS_Fillmode,D3DFILL_SOLID);
+  result:=tIDirect3DDevice9_SetRenderState_original(IDirect3DDevice9_SetRenderState.location)(self,State,Value);
+  if fog<>2 then self.SetRenderState(D3DRS_FOGENABLE,fog);
+  if lighting<>2 then self.SetRenderState(D3DRS_lighting,lighting);
+  if zbuffer<>2 then self.SetRenderState(D3DRS_ZENABLE,zbuffer);
+  if wireframe=1 then self.SetRenderState(D3DRS_fillmode,D3DFILL_WIREFRAME);
+  if wireframe=0 then self.SetRenderState(D3DRS_Fillmode,D3DFILL_SOLID);
 end;
-
-
 
 function IDirect3DDevice9_SetTexture_Hook(const self: IDirect3DDevice9; const Stage : LongWord; Texture : IDirect3DBaseTexture9) : HResult; stdcall;
 var i: integer;
     stop: boolean;
 begin
-  //OutputDebugString('IDirect3DDevice9_SetTexture_Hook');
 
   try
-    if (not imdrawing) and (not watchfornextdraw) then
-    for i:=0 to length(lockedtexturelist)-1 do
+  if (not imdrawing) and (not watchfornextdraw) then
+  for i:=0 to length(lockedtexturelist)-1 do
+  begin
+    if (dword(Texture)=dword(lockedtexturelist[i].texturehandle)) then
     begin
-      if (dword(Texture)=dword(lockedtexturelist[i].texturehandle)) then
+      if (lockedtexturelist[i].locked) then  //always.....
       begin
-        if (lockedtexturelist[i].locked) then  //always.....
-        begin
-          currenttexture:=i;
-          watchfornextdraw:=true;
-          nextdrawstage:=stage;
-        end;
-        break;
+        currenttexture:=i;
+        watchfornextdraw:=true;
+        nextdrawstage:=stage;
       end;
+      break;
     end;
+  end;
   except
     //not the end of the world if this fails, so I wont bother with critical sections and stuff.
   end;
 
-  result:=IDirect3DDevice9_SetTexture_original(self,stage,texture);
+  result:=tIDirect3DDevice9_SetTexture_original(IDirect3DDevice9_SetTexture.location)(self,stage,texture);
 end;
 
 function IDirect3DDevice9_DrawPrimitive_Hook(const self: IDirect3DDevice9;PrimitiveType : TD3DPrimitiveType; const StartVertex, PrimitiveCount : Cardinal) : HResult; stdcall;
@@ -1744,28 +1730,27 @@ var i: integer;
     pv: td3dviewport9;
     v: tD3DXVector3;
 begin
-  //OutputDebugString('IDirect3DDevice9_DrawPrimitive_Hook');
-
   if watchfornextdraw then
   begin
     try
-      i:=length(xylist);
-      setlength(xylist,i+1);
 
-      self.GetViewport(pv);
+    i:=length(xylist);
+    setlength(xylist,i+1);
 
-      v.x:=lockedtexturelist[currenttexture].xdelta;
-      v.y:=lockedtexturelist[currenttexture].ydelta;
-      v.z:=lockedtexturelist[currenttexture].zdelta;
-      D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
-      self.SetTexture(nextdrawstage,nil);
+    self.GetViewport(pv);
+
+    v.x:=lockedtexturelist[currenttexture].xdelta;
+    v.y:=lockedtexturelist[currenttexture].ydelta;
+    v.z:=lockedtexturelist[currenttexture].zdelta;
+    D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
+    self.SetTexture(nextdrawstage,nil);
+
     except
       //outputdebugstring('crash in drawprimitive');
     end;
 
   end;
-  result:=IDirect3DDevice9_DrawPrimitive_original(self,Primitivetype,StartVertex,Primitivecount);
-
+  result:=TIDirect3DDevice9_DrawPrimitive_original(IDirect3DDevice9_DrawPrimitive.location)(self,Primitivetype,StartVertex,Primitivecount);
   watchfornextdraw:=false;
 end;
 
@@ -1773,67 +1758,28 @@ function IDirect3DDevice9_DrawIndexedPrimitive_Hook(const self: IDirect3DDevice9
 var i: integer;
     pv: td3dviewport9;
     v: tD3DXVector3;
-
-    pm, vm, wm: TD3DMatrix;
-
-    vb: IDirect3DVertexBuffer9;
-    offsetinbytes, stride: cardinal;
-    desc: TD3DVertexBufferDesc;
-    c: pointer;
-    d: psingle absolute c;
-    
 begin
-  //OutputDebugString('IDirect3DDevice9_DrawIndexedPrimitive_Hook');
-
   if watchfornextdraw then
   begin
     try
-      i:=length(xylist);
-      setlength(xylist,i+1);
+    i:=length(xylist);
+    setlength(xylist,i+1);
 
-      self.GetViewport(pv);
+    self.GetViewport(pv);
 
-      v.x:=lockedtexturelist[currenttexture].xdelta;
-      v.y:=lockedtexturelist[currenttexture].ydelta;
-      v.z:=lockedtexturelist[currenttexture].zdelta;
+    v.x:=lockedtexturelist[currenttexture].xdelta;
+    v.y:=lockedtexturelist[currenttexture].ydelta;
+    v.z:=lockedtexturelist[currenttexture].zdelta;
+    D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
 
-      IDirect3DDevice9_GetTransform_original(self, D3DTS_PROJECTION, pm);
-      IDirect3DDevice9_GetTransform_original(self, D3DTS_VIEW, vm);
-      IDirect3DDevice9_GetTransform_original(self, D3DTS_WORLD, wm);
-
-      {
-      if self.GetStreamSource(0, vb, offsetinbytes,stride)=0 then
-      begin
-        if vb.GetDesc(desc)=0 then
-        begin
-
-          if vb.Lock(0,12,c,0)=0 then
-          begin
-            v.x:=d^;
-            inc(d);
-            v.y:=d^;
-            inc(d);
-            v.z:=d^;
-            vb.Unlock;
-          end else outputdebugstring('lock failed');
-        end else outputdebugstring('getdesc failed');
-        vb:=nil;
-      end else outputdebugstring('GetStreamSource failed');
-               }
-
-     // D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
-      D3DXVec3Project(xylist[i], V  ,pv, pm, vm, wm);
-
-      self.SetTexture(nextdrawstage,nil);
+    self.SetTexture(nextdrawstage,nil);
     except
       //outputdebugstring('crash in drawindexedprimitive');
     end;
 
 
   end;
- // if not watchfornextdraw then
-
-  result:=IDirect3DDevice9_DrawIndexedPrimitive_original(self,_Type,BaseVertexIndex,MinVertexIndex,NumVertices,StartIndex,PrimCount);
+  result:=tIDirect3DDevice9_DrawIndexedPrimitive_original(IDirect3DDevice9_DrawIndexedPrimitive.location)(self,_Type,BaseVertexIndex,MinVertexIndex,NumVertices,StartIndex,PrimCount);
   watchfornextdraw:=false;
 end;
 
@@ -1842,8 +1788,6 @@ var i: integer;
     pv: td3dviewport9;
     v: tD3DXVector3;
 begin
-  OutputDebugString('IDirect3DDevice9_DrawPrimitiveUP_Hook');
-
   if watchfornextdraw then
   begin
     try
@@ -1863,7 +1807,7 @@ begin
     end;
 
   end;
-  result:=IDirect3DDevice9_DrawPrimitiveUP_original(self,PrimitiveType,PrimitiveCount,VertexStreamZeroData,VertexStreamZeroStride);
+  result:=tIDirect3DDevice9_DrawPrimitiveUP_original(IDirect3DDevice9_DrawPrimitiveUP.location)(self,PrimitiveType,PrimitiveCount,VertexStreamZeroData,VertexStreamZeroStride);
   watchfornextdraw:=false;
 end;
 
@@ -1872,21 +1816,19 @@ var i: integer;
     pv: td3dviewport9;
     v: tD3DXVector3;
 begin
-  OutputDebugString('IDirect3DDevice9_DrawIndexedPrimitiveUP_Hook');
-
   if watchfornextdraw then
   begin
     try
 
-      i:=length(xylist);
-      setlength(xylist,i+1);
+    i:=length(xylist);
+    setlength(xylist,i+1);
 
-      self.GetViewport(pv);
+    self.GetViewport(pv);
 
-      v.x:=lockedtexturelist[currenttexture].xdelta;
-      v.y:=lockedtexturelist[currenttexture].ydelta;
-      v.z:=lockedtexturelist[currenttexture].zdelta;
-      D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
+    v.x:=lockedtexturelist[currenttexture].xdelta;
+    v.y:=lockedtexturelist[currenttexture].ydelta;
+    v.z:=lockedtexturelist[currenttexture].zdelta;
+    D3DXVec3Project(xylist[i], V  ,pv, lastProjectionmatrix, lastViewmatrix, lastWorldmatrix);
 
     except
       //outputdebugstring('crash in drawindexedprimitiveup');
@@ -1894,21 +1836,9 @@ begin
 
     self.SetTexture(nextdrawstage,nil);
   end;
-  result:=IDirect3DDevice9_DrawIndexedPrimitiveUP_original(self,Primitivetype,minvertexindex,numvertices,primitivecount,indexdata,indexdataformat,vertexstreamzerodata,vertexstreamzerostride);
+  result:=tIDirect3DDevice9_DrawIndexedPrimitiveUP_original(IDirect3DDevice9_DrawIndexedPrimitiveUP.location)(self,Primitivetype,minvertexindex,numvertices,primitivecount,indexdata,indexdataformat,vertexstreamzerodata,vertexstreamzerostride);
   watchfornextdraw:=false;
 end;
-
-function IDirect3DDevice9_Release_Hook(const self: IDirect3DDevice9): integer; stdcall;
-var i: integer;
-begin
-  self._AddRef;
-  i:=IDirect3DDevice9_Release_original(self);
-  if i=1 then
-    CleanupStuff(self);
-
-  result:=IDirect3DDevice9_Release_original(self);
-end;
-
 
 //Texture hooks
 
@@ -1917,36 +1847,35 @@ var old: dword;
     i,j: integer;
     found: boolean;
 begin
-  //OutputDebugString('IDirect3DTexture9_Release_Hook');
   old:=dword(self);
   if not imreleasing then while locking do ;
 
-  result:=IDirect3DTexture9_Release_original(self);
+  result:=TIDirect3DTexture9_Release_original(IDirect3DTexture9_Release.location)(self);
 
   try
-    if result=0 then
-    begin
-      found:=false;
-      for i:=0 to length(texturelist)-1 do
-        if old=dword(texturelist[i].texturehandle) then
-        begin
-          found:=true;
-          j:=i;
-          break;
-        end;
-
-      if found then
+  if result=0 then
+  begin
+    found:=false;
+    for i:=0 to length(texturelist)-1 do
+      if old=dword(texturelist[i].texturehandle) then
       begin
-        try
-          removetexture(j);
-        except
-          //outputdebugstring('crash in removetexture(j)');
-        end;
+        found:=true;
+        j:=i;
+        break;
+      end;
+
+    if found then
+    begin
+      try
+        removetexture(j);
+      except
+        //outputdebugstring('crash in removetexture(j)');
       end;
     end;
+  end;
   except
 
-  end;  
+  end;
 end;
 
 end.

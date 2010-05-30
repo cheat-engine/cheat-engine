@@ -17,59 +17,15 @@ uses
   KeyListener in 'KeyListener.pas',
   DirectxHook in 'DirectxHook.pas',
   directx9hook in 'directx9hook.pas',
-  directx7hook in 'directx7hook.pas',
-  directxmessconfig in '..\directxmessconfig.pas';
+  directx7hook in 'directx7hook.pas';
 
 {$R *.res}
 
-exports Direct3DCreate8Hook;
-exports Direct3DCreate8_original;
-
-exports Direct3DCreate9Hook;
-exports Direct3DCreate9_original;
-exports IDirect3D9_CreateDevice_Hook;
-exports IDirect3D9_CreateDevice_original;
-exports IDirect3DDevice9_Release_Hook;
-exports IDirect3DDevice9_Release_original;
-exports IDirect3DDevice9_Reset_Hook;
-exports IDirect3DDevice9_Reset_original;
-exports IDirect3DDevice9_CreateTexture_Hook;
-exports IDirect3DDevice9_CreateTexture_original;
-exports IDirect3DDevice9_BeginScene_Hook;
-exports IDirect3DDevice9_BeginScene_original;
-exports IDirect3DDevice9_EndScene_Hook;
-exports IDirect3DDevice9_EndScene_original;
-exports IDirect3DDevice9_SetTransform_Hook;
-exports IDirect3DDevice9_SetTransform_original;
-exports IDirect3DDevice9_GetTransform_Hook;
-exports IDirect3DDevice9_GetTransform_original;
-exports IDirect3DDevice9_SetRenderState_Hook;
-exports IDirect3DDevice9_SetRenderState_original;
-exports IDirect3DDevice9_SetTexture_Hook;
-exports IDirect3DDevice9_SetTexture_original;
-exports IDirect3DDevice9_DrawPrimitive_Hook;
-exports IDirect3DDevice9_DrawPrimitive_original;
-exports IDirect3DDevice9_DrawIndexedPrimitive_Hook;
-exports IDirect3DDevice9_DrawIndexedPrimitive_original;
-exports IDirect3DDevice9_DrawPrimitiveUP_Hook;
-exports IDirect3DDevice9_DrawPrimitiveUP_original;
-exports IDirect3DDevice9_DrawIndexedPrimitiveUP_Hook;
-exports IDirect3DDevice9_DrawIndexedPrimitiveUP_original;
-
-exports IDirect3DTexture9_Release_Hook;
-exports IDirect3DTexture9_Release_original;
-
-exports configurationname;
-exports InitializeKeyListener;
-
+procedure InitializeDirectX_Hook;
 var i: integer;
+    op:dword;
 begin
-  outputdebugstring('dxhook basic initialization');
-
-  d3d8dll:=Loadlibrary('d3d8.dll');
-  d3d9dll:=Loadlibrary('d3d9.dll');
-
-
+  outputdebugstring('InitializeDirectX_Hook is called');
 
 
   keylist:=tstringlist.Create;
@@ -121,4 +77,89 @@ begin
   QueryPerformanceFrequency(tickspersecond);
   TicksPerMS:=tickspersecond / 1000;
   onetick:=1/ticksperms;
+
+
+  HookedDirect3D:=false;
+  d3d8dll:=Loadlibrary('d3d8.dll');
+
+  if d3d8dll<>0 then
+  begin
+    Direct3DCreate8Info.location:=GetProcAddress(d3d8dll,'Direct3DCreate8');
+    @Direct3DCreate8:=Direct3DCreate8Info.location;
+
+    if VirtualProtect(Direct3DCreate8Info.location,5,PAGE_EXECUTE_READWRITE,op) then
+    begin
+      Direct3DCreate8Info.jump[0]:=$e9;
+      pdword(@Direct3DCreate8Info.jump[1])^:=dword(@Direct3DCreate8Hook)-dword(Direct3DCreate8Info.location)-5;
+
+      try
+        asm
+          push edi
+          push esi
+          lea edi,Direct3DCreate8Info.original[0]
+          mov esi,Direct3DCreate8Info.location
+          movsd
+          movsb
+
+          lea esi,Direct3DCreate8Info.jump[0]
+          mov edi,Direct3DCreate8Info.location
+          movsd
+          movsb
+
+          pop esi
+          pop edi
+        end;
+        HookedDirect3D:=true;
+      except
+
+      end;
+
+    end;
+  end;
+
+  //hook Direct3dCreate9
+  d3d9dll:=Loadlibrary('d3d9.dll');
+  if d3d9dll<>0 then
+  begin
+    Direct3DCreate9Info.location:=GetProcAddress(d3d9dll,'Direct3DCreate9');
+    @Direct3DCreate9:=Direct3DCreate9Info.location;
+
+
+    if VirtualProtect(Direct3DCreate9Info.location,5,PAGE_EXECUTE_READWRITE,op) then
+    begin
+      Direct3DCreate9Info.jump[0]:=$e9;
+      pdword(@Direct3DCreate9Info.jump[1])^:=dword(@Direct3DCreate9Hook)-dword(Direct3DCreate9Info.location)-5;
+
+
+      try
+        asm
+          push edi
+          push esi
+          lea edi,Direct3DCreate9Info.original[0]
+          mov esi,Direct3DCreate9Info.location
+          movsd
+          movsb
+
+          lea esi,Direct3DCreate9Info.jump[0]
+          mov edi,Direct3DCreate9Info.location
+          movsd
+          movsb
+
+          pop esi
+          pop edi
+        end;
+        HookedDirect3D:=true;
+      except
+
+      end;
+    end;
+  end;
+
+
+  InitializeKeyListener;
+end;
+
+exports InitializeDirectX_Hook;
+
+begin
 end.
