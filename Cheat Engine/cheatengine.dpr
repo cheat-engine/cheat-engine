@@ -161,9 +161,7 @@ uses
   ManualModuleLoader in 'ManualModuleLoader.pas',
   windows7taskbar in 'windows7taskbar.pas',
   bigmemallochandler in 'bigmemallochandler.pas',
-  VistaAltFixUnit in 'VistaAltFixUnit.pas',
-  directxmess in 'directxmess.pas',
-  directxmessconfig in 'directxmessconfig.pas';
+  VistaAltFixUnit in 'VistaAltFixUnit.pas';
 
 //  frmOpenGLUnit in 'frmOpenGLUnit.pas' {frmOpenGL};
 
@@ -173,7 +171,9 @@ begin
   Application.Initialize;
   getcedir;
   setlanguage;
-  Application.Title := 'Cheat Engine 5.6';
+  loadlibrary(pchar(cheatenginedir+'dbghelp.dll'));
+
+  Application.Title := 'Cheat Engine 5.6.1';
   Application.HelpFile := 'CheatEngine.chm';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmPasteTableentry, frmPasteTableentry);

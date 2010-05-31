@@ -23,7 +23,7 @@ function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
 const beta=''; //empty this for a release
-const cename='Cheat Engine 5.6';
+const cename='Cheat Engine 5.6.1';
 
 var
   CEnorm:string = cename+beta;

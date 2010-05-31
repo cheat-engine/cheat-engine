@@ -1170,6 +1170,7 @@ object MainForm: TMainForm
     Constraints.MinHeight = 305
     Locked = True
     TabOrder = 2
+    OnResize = Panel5Resize
     DesignSize = (
       512
       345)

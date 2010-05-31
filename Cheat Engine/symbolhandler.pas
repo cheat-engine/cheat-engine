@@ -228,23 +228,26 @@ end;
 procedure TSymbolloaderthread.execute;
 begin
   try
-    SymbolsLoaded:=false;
-    if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
+    try
+      SymbolsLoaded:=false;
+      if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
 
-    SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
-    if symbolsloaded then
-    begin
-      symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-      symsetsearchpath(processhandle,pchar(searchpath));
+      SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
+      if symbolsloaded then
+      begin
+        symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+        symsetsearchpath(processhandle,pchar(searchpath));
 
-      if kernelsymbols then LoadDriverSymbols;
-      LoadDLLSymbols;
-    end else error:=true;
+        if kernelsymbols then LoadDriverSymbols;
+        LoadDLLSymbols;
+      end else error:=true;
 
 
-    symbolprocesshandle:=processhandle;  
-  finally
-    isloading:=false;
+      symbolprocesshandle:=processhandle;
+    finally
+      isloading:=false;
+    end;
+  except
   end;
 end;
 

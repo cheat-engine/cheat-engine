@@ -3,18 +3,18 @@
 #include <OCSetupHlp.iss>
 
 [Setup]
-AppName=Cheat Engine 5.6
-AppVerName=Cheat Engine 5.6
+AppName=Cheat Engine 5.6.1
+AppVerName=Cheat Engine 5.6.1
 AppPublisher=Dark Byte
 AppPublisherURL=http://www.cheatengine.org/
 AppSupportURL=http://www.cheatengine.org/
 AppUpdatesURL=http://www.cheatengine.org/
 DefaultDirName={pf}\Cheat Engine
-DefaultGroupName=Cheat Engine 5.6
+DefaultGroupName=Cheat Engine 5.6.1
 AllowNoIcons=yes
 LicenseFile=..\Release\License.txt
 InfoAfterFile=..\Release\readme.txt
-OutputBaseFilename=CheatEngine56Candy4
+OutputBaseFilename=CheatEngine561
 PrivilegesRequired=admin
 ChangesAssociations=yes
 
@@ -179,6 +179,7 @@ Source: {#OCDLL}; DestDir: {app}\OpenCandy; Flags: overwritereadonly ignoreversi
 ; OPEN CANDY END
 
 Source: "..\bin\cheatengine.exe"; DestDir: "{app}"; DestName: "Cheat Engine.exe"; Flags: ignoreversion
+Source: "..\bin\dbghelp.dll"; DestDir: "{app}"; DestName: "dbghelp.dll"; Flags: ignoreversion
 Source: "..\bin\vmdisk.img"; DestDir: "{app}"; DestName: "vmdisk.img"; Flags: ignoreversion
 Source: "..\bin\CEHook.dll"; DestDir: "{app}"; DestName: "CEHook.dll"; Flags: ignoreversion
 Source: "..\bin\speedhack.dll"; DestDir: "{app}"; DestName: "speedhack.dll"; Flags: ignoreversion

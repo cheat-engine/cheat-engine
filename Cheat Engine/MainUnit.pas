@@ -434,6 +434,7 @@ type
     procedure File1Click(Sender: TObject);
     procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
+    procedure Panel5Resize(Sender: TObject);
   private
     oldscanvalue2text: string;
     fcontrol: tfcontrol;
@@ -11721,6 +11722,12 @@ end;
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);
 begin
   speedbutton1.Click;
+end;
+
+procedure TMainForm.Panel5Resize(Sender: TObject);
+begin
+  speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
+  speedbutton3.left:=foundlist3.left+foundlist3.width+2;   
 end;
 
 initialization
