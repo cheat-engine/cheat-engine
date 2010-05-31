@@ -136,7 +136,7 @@ type
 
 
 
-type TDebuggerstate=record
+type TDebuggerstate=packed record
   threadid: uint64;
 	eflags : uint64;
 	eax : uint64;

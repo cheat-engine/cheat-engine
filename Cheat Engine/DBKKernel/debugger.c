@@ -51,6 +51,8 @@ volatile struct
 		volatile int inEpilogue; //if set the global debug bit does no faking
 	} FakedDebugRegisterState[256];
 
+	char b[1];
+
 	volatile BYTE DECLSPEC_ALIGN(16) fxstate[512];
 
 } DebuggerState;
@@ -545,7 +547,6 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
 		DebuggerState.LastThreadID=PsGetCurrentThreadId();
 
-		DbgPrint("calling fxsave\n");
 #ifdef AMD64
 		_fxsave(DebuggerState.fxstate);
 #else
@@ -554,8 +555,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			fxsave [DebuggerState.fxstate]
 		}
 #endif
-		DbgPrint("called fxsave\n");
-		
+
 
 
 		//notify usermore app that this thread has halted due to a debug event

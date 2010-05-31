@@ -553,6 +553,8 @@ begin
   context.Dr7:=debuggerstate.dr7;
 
   context.ext:=debuggerstate.fxstate;
+
+  OutputDebugString('ConvertDebuggerStateToContext:');
 end;
 
 procedure TKDebuggerThread.Continue(continueOption: TContinueOption; runtilladdress: dword=0);
@@ -825,6 +827,8 @@ begin
     coderecords[length(coderecords)-1].ebp:=currentdebuggerstate.Ebp;
     coderecords[length(coderecords)-1].esp:=currentdebuggerstate.Esp;
     coderecords[length(coderecords)-1].eip:=currentdebuggerstate.Eip;
+
+    ConvertDebuggerStateToContext(currentdebuggerstate,coderecords[length(coderecords)-1].context );
     coderecords[length(coderecords)-1].context.ContextFlags:=0;
     Foundcodelist.Items.Add(opcode);
   end;

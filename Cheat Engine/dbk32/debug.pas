@@ -4,7 +4,7 @@ interface
 
 uses windows, sysutils, dbk32functions, classes, multicpuexecution;
 
-type TDebuggerstate=record
+type TDebuggerstate=packed record
   threadid: uint64;
 	eflags : uint64;
 	eax : uint64;
@@ -195,6 +195,8 @@ var
   Output: TDebuggerstate;
   cc: dword;
 begin
+  FillMemory(state,sizeof(TDebuggerState),1);
+  
   OutputDebugString('DBKDebug_GetDebuggerState');
   result:=false;
   if (hdevice<>INVALID_HANDLE_VALUE) then
@@ -206,6 +208,8 @@ begin
       OutputDebugString('result = true');
       state^:=output;
     end;
+
+//    state.fxstate
   end;
 end;
 
