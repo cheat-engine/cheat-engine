@@ -9016,7 +9016,9 @@ begin
   end else realaddress:=memrec[lastselected].Address;
 
 
-  hotKeyForm.hotkeyvalue:=value[lastselected].Caption;
+
+
+  hotKeyForm.hotkeyvalue:=value[lastselected-scrollbar1.position].Caption;
 
   if memrec[lastselected].VarType=255 then
     hotkeyform.autoassemble:=true
