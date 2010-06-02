@@ -19,20 +19,26 @@ var x: string;
     e: integer;
 
     floathasseperator: boolean;
+    couldbestringcounter: boolean;
 begin
   //check if it matches a string
   result:=vtDword;
   floathasseperator:=false;
 
   isstring:=true;
+  couldbestringcounter:=true;
   i:=0;
+
   while i<4 do
   begin
     //check if the first 4 characters match with a standard ascii values (32 to 127)
     if (buf[i]<32) or (buf[i]>127) then
     begin
       isstring:=false;
-      break;
+      if i>0 then
+        couldbestringcounter:=false;
+
+      if not couldbestringcounter then break;
     end;
     inc(i);
   end;
@@ -42,6 +48,16 @@ begin
     result:=vtString;
     exit;
   end;
+
+  if couldbestringcounter then //check if the 4th byte of the 'string' is a char or not
+    if (buf[5]>=32) or (buf[i]<=127) then
+    begin
+      //this is a string counter
+      result:=vtByte;
+      exit;
+    end;
+
+
 
   //check if unicode
   isstring:=true;
@@ -153,12 +169,13 @@ begin
   end;
 
   //check if it's a pointer
-  if isreadable(pdword(@buf[0])^) then
+  if ((pdword(@buf[0])^ mod 4)=0) and isreadable(pdword(@buf[0])^) then
   begin
     result:=vtPointer;
     exit;
   end;
 
+  //still here
   result:=vtDword; //if nothing else
 end;
 
