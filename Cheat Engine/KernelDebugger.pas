@@ -553,6 +553,18 @@ begin
   context.Dr7:=debuggerstate.dr7;
 
   context.ext:=debuggerstate.fxstate;
+  context.FloatSave.ControlWord:=context.ext.FCW;
+  context.FloatSave.StatusWord:=context.ext.FSW;
+  context.FloatSave.TagWord:=context.ext.FTW;
+
+  CopyMemory(@context.FloatSave.RegisterArea[0],@context.ext.FPURegisters[0].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[1],@context.ext.FPURegisters[1].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[2],@context.ext.FPURegisters[2].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[3],@context.ext.FPURegisters[3].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[4],@context.ext.FPURegisters[4].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[5],@context.ext.FPURegisters[5].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[6],@context.ext.FPURegisters[6].data,10);
+  CopyMemory(@context.FloatSave.RegisterArea[7],@context.ext.FPURegisters[7].data,10);
 
   OutputDebugString('ConvertDebuggerStateToContext:');
 end;
