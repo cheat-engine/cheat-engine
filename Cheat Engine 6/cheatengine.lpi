@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="311"/>
+      <BuildNr Value="313"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.311" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.313" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="146">
+    <Units Count="140">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -72,7 +72,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2432"/>
         <CursorPos X="23" Y="2439"/>
@@ -88,7 +88,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="43"/>
         <CursorPos X="1" Y="54"/>
@@ -99,7 +99,6 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2593"/>
@@ -158,9 +157,13 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <TopLine Value="1"/>
-        <CursorPos X="54" Y="16"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="157"/>
+        <CursorPos X="25" Y="175"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="CEDebugger.pas"/>
@@ -580,7 +583,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formmemoryregionsunit"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="137"/>
         <CursorPos X="18" Y="140"/>
@@ -594,7 +597,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6479"/>
         <CursorPos X="1" Y="6491"/>
@@ -635,7 +638,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="1"/>
-        <UsageCount Value="200"/>
+        <UsageCount Value="191"/>
       </Unit55>
       <Unit56>
         <Filename Value="underc.pas"/>
@@ -1031,7 +1034,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="DriverList"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="91"/>
         <CursorPos X="10" Y="105"/>
@@ -1358,7 +1361,7 @@
         <UnitName Value="exceptionhandler"/>
         <TopLine Value="31"/>
         <CursorPos X="1" Y="40"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="29"/>
       </Unit126>
       <Unit127>
         <Filename Value="ThreadlistExFRM.pas"/>
@@ -1380,43 +1383,36 @@
         <UsageCount Value="204"/>
       </Unit128>
       <Unit129>
-        <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\fcl-xml\src\dom.pp"/>
-        <UnitName Value="DOM"/>
-        <TopLine Value="188"/>
-        <CursorPos X="15" Y="204"/>
-        <UsageCount Value="1"/>
-      </Unit129>
-      <Unit130>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
         <TopLine Value="132"/>
         <CursorPos X="25" Y="148"/>
-        <UsageCount Value="33"/>
-      </Unit130>
-      <Unit131>
+        <UsageCount Value="24"/>
+      </Unit129>
+      <Unit130>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="670"/>
         <CursorPos X="3" Y="687"/>
         <UsageCount Value="113"/>
         <Loaded Value="True"/>
-      </Unit131>
-      <Unit132>
+      </Unit130>
+      <Unit131>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\struct.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5923"/>
         <CursorPos X="15" Y="5929"/>
-        <UsageCount Value="62"/>
-      </Unit132>
-      <Unit133>
+        <UsageCount Value="53"/>
+      </Unit131>
+      <Unit132>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\objpas\classes\classesh.inc"/>
         <TopLine Value="1663"/>
         <CursorPos X="3" Y="1571"/>
-        <UsageCount Value="48"/>
-      </Unit133>
-      <Unit134>
+        <UsageCount Value="39"/>
+      </Unit132>
+      <Unit133>
         <Filename Value="tablist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tablist"/>
@@ -1424,43 +1420,43 @@
         <TopLine Value="1"/>
         <CursorPos X="28" Y="11"/>
         <UsageCount Value="213"/>
-      </Unit134>
-      <Unit135>
+      </Unit133>
+      <Unit134>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1605"/>
         <CursorPos X="3" Y="1622"/>
-        <UsageCount Value="35"/>
-      </Unit135>
-      <Unit136>
+        <UsageCount Value="26"/>
+      </Unit134>
+      <Unit135>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
         <TopLine Value="3592"/>
         <CursorPos X="3" Y="3601"/>
-        <UsageCount Value="30"/>
-      </Unit136>
-      <Unit137>
+        <UsageCount Value="21"/>
+      </Unit135>
+      <Unit136>
         <Filename Value="C:\lazarus\lcl\lclclasses.pp"/>
         <UnitName Value="LCLClasses"/>
         <TopLine Value="31"/>
         <CursorPos X="28" Y="38"/>
-        <UsageCount Value="30"/>
-      </Unit137>
-      <Unit138>
+        <UsageCount Value="21"/>
+      </Unit136>
+      <Unit137>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\fcl-image\src\fpcanvas.pp"/>
         <UnitName Value="FPCanvas"/>
         <TopLine Value="118"/>
         <CursorPos X="16" Y="134"/>
-        <UsageCount Value="30"/>
-      </Unit138>
-      <Unit139>
+        <UsageCount Value="21"/>
+      </Unit137>
+      <Unit138>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\mathh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="14" Y="70"/>
-        <UsageCount Value="38"/>
-      </Unit139>
-      <Unit140>
+        <UsageCount Value="29"/>
+      </Unit138>
+      <Unit139>
         <Filename Value="frmstructuresconfigunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmStructuresConfig"/>
@@ -1469,48 +1465,8 @@
         <WindowIndex Value="0"/>
         <TopLine Value="150"/>
         <CursorPos X="53" Y="167"/>
-        <UsageCount Value="157"/>
-      </Unit140>
-      <Unit141>
-        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
-        <UnitName Value="StdCtrls"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="145"/>
-        <CursorPos X="33" Y="162"/>
-        <UsageCount Value="1"/>
-      </Unit141>
-      <Unit142>
-        <Filename Value="C:\lazarus\lcl\lclproc.pas"/>
-        <UnitName Value="LCLProc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1427"/>
-        <CursorPos X="1" Y="1442"/>
-        <UsageCount Value="3"/>
-      </Unit142>
-      <Unit143>
-        <Filename Value="C:\lazarus\components\synedit\synhighlightercpp.pp"/>
-        <UnitName Value="SynHighlighterCpp"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="765"/>
-        <CursorPos X="1" Y="786"/>
-        <UsageCount Value="3"/>
-      </Unit143>
-      <Unit144>
-        <Filename Value="C:\lazarus\components\synedit\synedit.pp"/>
-        <UnitName Value="SynEdit"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="5487"/>
-        <CursorPos X="1" Y="5497"/>
-        <UsageCount Value="3"/>
-      </Unit144>
-      <Unit145>
-        <Filename Value="C:\lazarus\components\synedit\synedithighlighter.pp"/>
-        <UnitName Value="SynEditHighlighter"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="907"/>
-        <CursorPos X="1" Y="928"/>
-        <UsageCount Value="3"/>
-      </Unit145>
+        <UsageCount Value="247"/>
+      </Unit139>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
