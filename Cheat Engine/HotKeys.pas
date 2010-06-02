@@ -86,14 +86,16 @@ begin
   if newrecnr=-1 then
   begin
     //default
-    height:=105;
+
+    clientheight:=edthotkey.Top+edthotkey.height+bitbtn1.Height+15;
     panel1.Visible:=false;
   end
   else
   begin
     //changed the value
     panel1.Visible:=true;
-    height:=157;
+    clientheight:=panel1.Top+panel1.height+bitbtn1.Height+9;
+//    height:=157;
   end;
 end;
 
