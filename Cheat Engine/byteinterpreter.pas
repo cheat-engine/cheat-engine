@@ -22,7 +22,7 @@ var x: string;
     couldbestringcounter: boolean;
 begin
   //check if it matches a string
-  result:=vtDword;
+  result:=vtDword; //if nothing found, dword
   floathasseperator:=false;
 
   isstring:=true;
@@ -176,7 +176,7 @@ begin
   end;
 
   //still here
-  result:=vtDword; //if nothing else
+ // result:=vtDword; //if nothing else
 end;
 
 end.
