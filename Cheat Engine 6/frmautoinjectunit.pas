@@ -685,10 +685,19 @@ begin
       raise exception.create(addresstogoto+':'+e.message);
   end;
 
-
-  Assemble('jmp '+inttohex(b,8),a,ab);
-  jumpsize:=length(ab);
-
+  if processhandler.is64bit then
+  begin
+    //check if there is a region I can make use of for a jump trampoline
+    if FindFreeBlockForRegion(a,2048)=nil then
+    begin
+      Assemble('jmp '+inttohex(b,8),a,ab);
+      jumpsize:=length(ab);
+    end
+    else
+      jumpsize:=5;
+  end
+  else
+    jumpsize:=5;
 
 
 
@@ -732,7 +741,12 @@ begin
     if not processhandler.is64bit then
       add('alloc(originalcall'+nameextension+',2048) //2kb should be enough')
     else
+    begin
       add('alloc(originalcall'+nameextension+',2048,'+address+') //2kb should be enough');
+      add('alloc(jumptrampoline'+nameextension+',64,'+address+') //special jump trampoline in the current region (64-bit)');
+      add('label(jumptrampoline'+nameextension+'address)');
+    end;
+
     add('label(returnhere'+nameextension+')');
     add('');
     if addresstostoreneworiginalfunction<>'' then
@@ -809,13 +823,28 @@ begin
 
     add('');
 
+    if processhandler.is64bit then
+    begin
+      add('jumptrampoline'+nameextension+':');
+      add('jmp [jumptrampoline'+nameextension+'address]');
+      add('jumptrampoline'+nameextension+'address:');
+      add('dq '+addresstogoto);
+      add('');
+    end;
+
+
     add(address+':');
-    add('jmp '+addresstogoto);
+    if processhandler.is64bit then
+      add('jmp jumptrampoline'+nameextension)
+    else
+      add('jmp '+addresstogoto);
+
     while codesize>jumpsize do
     begin
       add('nop');
       dec(codesize);
     end;
+
     add('returnhere'+nameextension+':');
 
     add('');

@@ -9,12 +9,15 @@ uses
   Dialogs, StdCtrls,CEFuncProc, ComCtrls, Menus,opensave,NewKernelHandler, LResources;
 
 type tmoreinfo = record
-  address: dword;
+  address: ptrUint;
   size: dword;
   isreadable: boolean;
 end;
 
 type
+
+  { TFormMemoryRegions }
+
   TFormMemoryRegions = class(TForm)
     Button1: TButton;
     ListView1: TListView;
@@ -27,6 +30,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ListView1Resize(Sender: TObject);
     procedure Saveselectedregions1Click(Sender: TObject);
     procedure SelectAllReadableMemory1Click(Sender: TObject);
     procedure Setselectedregionstobewritable1Click(Sender: TObject);
@@ -42,6 +46,11 @@ type
 var
   FormMemoryRegions: TFormMemoryRegions;
 
+type TGetMappedFileName=function (hProcess: HANDLE; lpv: LPVOID; lpFilename: LPTSTR; nSize: DWORD): DWORD; stdcall;
+var GetMappedFileName: TGetMappedFileName;
+
+
+
 implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit;
@@ -51,69 +60,83 @@ procedure TFormMemoryRegions.FormShow(Sender: TObject);
 var address: PtrUInt;
     mbi : _MEMORY_BASIC_INFORMATION;
     temp:string;
-
+    mappedfilename: pchar;
+    i: integer;
 begin
+  getmem(mappedfilename,256);
+  try
+
+    listview1.Clear;
+
+    //query the process for the memory regions
+    address:=0;
+    mbi.RegionSize:=$1000;
+
+    while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
+    begin
+      setlength(moreinfo,length(moreinfo)+1);
+      moreinfo[length(moreinfo)-1].address:=ptrUint(mbi.BaseAddress);
+      moreinfo[length(moreinfo)-1].size:=mbi.RegionSize;
+      moreinfo[length(moreinfo)-1].isreadable:=(mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0);
 
 
-  listview1.Clear;
+      ListView1.Items.Add.Caption:=IntToHex(PtrUInt(mbi.BaseAddress),8);
 
-  //query the process for the memory regions
-  address:=0;
-  mbi.RegionSize:=$1000;
+      temp:='';
+      if (PAGE_READONLY and mbi.AllocationProtect)=PAGE_READONLY then temp:='Read';
+      if (PAGE_READWRITE and mbi.AllocationProtect)=PAGE_READWRITE then temp:='Read+Write';
+      if (PAGE_WRITECOPY and mbi.AllocationProtect)=PAGE_WRITECOPY then temp:='Write Copy';
+      if (PAGE_EXECUTE and mbi.AllocationProtect)=PAGE_EXECUTE then temp:='Execute';
+      if (PAGE_EXECUTE_READ and mbi.AllocationProtect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
+      if (PAGE_EXECUTE_READWRITE and mbi.AllocationProtect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
+      if (PAGE_EXECUTE_WRITECOPY and mbi.AllocationProtect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
+      if (PAGE_NOACCESS and mbi.AllocationProtect)=PAGE_NOACCESS then temp:='No Access';
+      if (PAGE_GUARD and mbi.AllocationProtect)=PAGE_GUARD then temp:=temp+'+Guard';
+      if (PAGE_NOCACHE	and mbi.AllocationProtect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
+      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
-  while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
-  begin
-    setlength(moreinfo,length(moreinfo)+1);
-    moreinfo[length(moreinfo)-1].address:=dword(mbi.BaseAddress);
-    moreinfo[length(moreinfo)-1].size:=mbi.RegionSize;
-    moreinfo[length(moreinfo)-1].isreadable:=(mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0);
+      case mbi.State of
+        MEM_COMMIT :temp:='Commit';
+        MEM_FREE : temp:='Free';
+        MEM_RESERVE	:temp:='Reserve';
+      end;
+      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+
+      temp:='';
+      if (PAGE_READONLY and mbi.Protect)=PAGE_READONLY then temp:='Read';
+      if (PAGE_READWRITE and mbi.Protect)=PAGE_READWRITE then temp:='Read+Write';
+      if (PAGE_WRITECOPY and mbi.Protect)=PAGE_WRITECOPY then temp:='Write Copy';
+      if (PAGE_EXECUTE and mbi.Protect)=PAGE_EXECUTE then temp:='Execute';
+      if (PAGE_EXECUTE_READ and mbi.Protect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
+      if (PAGE_EXECUTE_READWRITE and mbi.Protect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
+      if (PAGE_EXECUTE_WRITECOPY and mbi.Protect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
+      if (PAGE_NOACCESS and mbi.Protect)=PAGE_NOACCESS then temp:='No Access';
+      if (PAGE_GUARD and mbi.Protect)=PAGE_GUARD then temp:=temp+'+Guard';
+      if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
+      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+
+      if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Image') else
+      if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add('Mapped') else
+      if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Private') else
+      listview1.Items[listview1.Items.Count-1].SubItems.add('-');
+
+      // regionlist.Items.Add(str);
+
+      listview1.Items[listview1.Items.Count-1].SubItems.add(inttohex(mbi.regionsize,1));
+
+     // if mbi._Type=MEM_MAPPED then
+      begin
+        i:=GetMappedFileName(processhandle,mbi.BaseAddress, mappedfilename, 255);
+        mappedfilename[i]:=#0;
+        listview1.Items[listview1.Items.Count-1].SubItems.Add(mappedfilename);
+      end;
 
 
-    ListView1.Items.Add.Caption:=IntToHex(PtrUInt(mbi.BaseAddress),8);
 
-    temp:='';
-    if (PAGE_READONLY and mbi.AllocationProtect)=PAGE_READONLY then temp:='Read';
-    if (PAGE_READWRITE and mbi.AllocationProtect)=PAGE_READWRITE then temp:='Read+Write';
-    if (PAGE_WRITECOPY and mbi.AllocationProtect)=PAGE_WRITECOPY then temp:='Write Copy';
-    if (PAGE_EXECUTE and mbi.AllocationProtect)=PAGE_EXECUTE then temp:='Execute';
-    if (PAGE_EXECUTE_READ and mbi.AllocationProtect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
-    if (PAGE_EXECUTE_READWRITE and mbi.AllocationProtect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
-    if (PAGE_EXECUTE_WRITECOPY and mbi.AllocationProtect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
-    if (PAGE_NOACCESS and mbi.AllocationProtect)=PAGE_NOACCESS then temp:='No Access';
-    if (PAGE_GUARD and mbi.AllocationProtect)=PAGE_GUARD then temp:=temp+'+Guard';
-    if (PAGE_NOCACHE	and mbi.AllocationProtect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
-    listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
-
-    case mbi.State of
-      MEM_COMMIT :temp:='Commit';
-      MEM_FREE : temp:='Free';
-      MEM_RESERVE	:temp:='Reserve';
+      inc(address,mbi.RegionSize);
     end;
-    listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
-
-    temp:='';
-    if (PAGE_READONLY and mbi.Protect)=PAGE_READONLY then temp:='Read';
-    if (PAGE_READWRITE and mbi.Protect)=PAGE_READWRITE then temp:='Read+Write';
-    if (PAGE_WRITECOPY and mbi.Protect)=PAGE_WRITECOPY then temp:='Write Copy';
-    if (PAGE_EXECUTE and mbi.Protect)=PAGE_EXECUTE then temp:='Execute';
-    if (PAGE_EXECUTE_READ and mbi.Protect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
-    if (PAGE_EXECUTE_READWRITE and mbi.Protect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
-    if (PAGE_EXECUTE_WRITECOPY and mbi.Protect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
-    if (PAGE_NOACCESS and mbi.Protect)=PAGE_NOACCESS then temp:='No Access';
-    if (PAGE_GUARD and mbi.Protect)=PAGE_GUARD then temp:=temp+'+Guard';
-    if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
-    listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
-
-    if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Image') else
-    if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add('Mapped') else
-    if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Private') else
-    listview1.Items[listview1.Items.Count-1].SubItems.add('-');
-
-    // regionlist.Items.Add(str);
-
-    listview1.Items[listview1.Items.Count-1].SubItems.add(inttohex(mbi.regionsize,1));
-
-    inc(address,mbi.RegionSize);
+  finally
+    freemem(mappedfilename);
   end;
 
 end;
@@ -127,6 +150,16 @@ procedure TFormMemoryRegions.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   action:=cafree;
+end;
+
+procedure TFormMemoryRegions.ListView1Resize(Sender: TObject);
+var i,j: integer;
+begin
+  j:=0;
+  for i:=0 to listview1.Columns.Count-2 do
+    j:=j+listview1.Column[i].Width;
+
+  listview1.Column[listview1.Columns.Count-1].Width:=listview1.ClientWidth-j;
 end;
 
 procedure TFormMemoryRegions.Saveselectedregions1Click(Sender: TObject);
@@ -192,7 +225,7 @@ procedure TFormMemoryRegions.Setselectedregionstobewritable1Click(
 var res: word;
     copyonwrite: boolean;
     i,j: integer;
-    currentaddress,x:dword;
+    currentaddress,x:ptrUint;
     buf: dword;
 begin
   res:=MessageDlg('Do you want to use the COPY-ON-WRITE bit?',mtConfirmation,[mbyes,mbno,mbcancel],0);
@@ -209,8 +242,6 @@ begin
 end;
 
 procedure TFormMemoryRegions.ListView1DblClick(Sender: TObject);
-var a: dword;
-    b: integer;
 begin
 
   if (listview1.SelCount<>0) then
@@ -221,9 +252,19 @@ end;
 procedure TFormMemoryRegions.PopupMenu1Popup(Sender: TObject);
 begin
   setselectedregionstobewritable1.enabled:=DarkByteKernel<>0;
+
+end;
+
+procedure LoadPsApi;
+var psapi: THandle;
+begin
+  psapi:=LoadLibrary('psapi.dll');
+
+  GetMappedFileName:=GetProcAddress(psapi,'GetMappedFileNameA');
 end;
 
 initialization
   {$i formmemoryregionsunit.lrs}
+  LoadPsApi;
 
 end.

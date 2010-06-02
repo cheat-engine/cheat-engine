@@ -1238,9 +1238,11 @@ begin
         //does this entry have a prefered location?
         if allocs[i].prefered<>0 then
         begin
-          //if yes, is it the same as the previous entry?
-          if prefered<>allocs[i].prefered then
+          //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
+          if (prefered<>allocs[i].prefered) and (prefered<>0) then
           begin
+            //different prefered address
+
             if x>0 then //it has some previous entries with compatible locations
             begin
 
@@ -1257,9 +1259,9 @@ begin
               if allocs[j].address=0 then
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
 
-              //adjust the address of entries that are part of this block
-              for k:=j+1 to i do
-                allocs[j].address:=allocs[j-1].address+allocs[i-1].size;
+              //adjust the addresses of entries that are part of this block
+              for k:=j+1 to i-1 do
+                allocs[k].address:=allocs[k-1].address+allocs[k-1].size;
               x:=0;
             end;
 

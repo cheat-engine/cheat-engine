@@ -5,12 +5,12 @@ unit speedhack2;
 interface
 
 uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler,
-     autoassembler, dialogs;
+     autoassembler, dialogs,Clipbrd;
 
 type TSpeedhack=class
   private
     processid: dword;
-    initaddress: dword;
+    initaddress: ptrUint;
   public
     procedure setSpeed(speed: single);
     constructor create;
@@ -30,6 +30,8 @@ var i: integer;
     x,y: dword;
     a,b: ptrUint;
 begin
+  initaddress:=0;
+
 
   try
     if processhandler.is64bit then
@@ -161,6 +163,7 @@ begin
     try
 
 //      showmessage(script.Text);
+      Clipboard.AsText:=script.text;
       autoassemble(script,false);
     except
       raise exception.Create('Failure setting speed');
