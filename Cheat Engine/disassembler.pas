@@ -8529,7 +8529,8 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         description:='Compare Real and Set EFLAGS';
-                        tempresult:='FCOMI ST(0),ST('+IntToStr(memory[1]-$f0)+')';
+                        tempresult:='FCOMIP ST(0),ST('+IntToStr(memory[1]-$f0)+')';
+                        inc(offset);
                       end
                       else
                       begin

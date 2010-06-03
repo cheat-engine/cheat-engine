@@ -9444,8 +9444,9 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         description:='compare real and set eflags';
-                        lastdisassembledata.opcode:='fcomi';
+                        lastdisassembledata.opcode:='fcomip';
                         lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$f0)+')';
+                        inc(offset)
                       end
                       else
                       begin
