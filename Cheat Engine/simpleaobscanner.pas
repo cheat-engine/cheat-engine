@@ -20,7 +20,7 @@ begin
   ms:=tmemscan.create(nil);
   ms.onlyone:=true;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, $7fffffff, false, true, true, false, false, false, nil, cstNone);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, $7fffffff, false, true, true, false, false, false, false, nil, cstNone);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then

@@ -11005,8 +11005,15 @@ end;
 
 procedure TMainForm.Button2Click(Sender: TObject);
 var svalue2: string;
+  percentage: boolean;
 begin
   foundlist.Deinitialize; //unlock file handles
+
+
+  if cbpercentage<>nil then
+    percentage:=cbpercentage.checked
+  else
+    percentage:=false;
 
   if button2.tag=0 then
   begin
@@ -11028,7 +11035,7 @@ begin
     end;
 
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
     DisableGui;
     SpawnCancelButton;
   end
@@ -11136,7 +11143,13 @@ var svalue2: string;
     estimateddiskspaceneeded: Uint64;
     diskspacefree, totaldiskspace: int64;
     totaldiskspacefree: LARGE_INTEGER;
+    percentage: boolean;
 begin
+  if cbpercentage<>nil then
+    percentage:=cbpercentage.checked
+  else
+    percentage:=false;
+
   estimateddiskspaceneeded:=foundcount*8*3;
   GetDiskFreeSpaceEx(pchar(cheatenginedir), diskspacefree, totaldiskspace,@totaldiskspacefree);
 
@@ -11163,7 +11176,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
   DisableGui;
   SpawnCancelButton;
 end;

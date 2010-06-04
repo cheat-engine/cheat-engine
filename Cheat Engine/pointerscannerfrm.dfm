@@ -15,6 +15,7 @@ object frmPointerScanner: TfrmPointerScanner
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 120
   TextHeight = 16
   object ProgressBar1: TProgressBar

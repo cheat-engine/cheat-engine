@@ -103,8 +103,7 @@ begin
   for i:=0 to ControlCount-1 do
     Controls[i].Enabled:=false;
 
-
-  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, false, true, true, false, cbunicode.checked, false, nil, cstNone);
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, false, true, true, false, cbunicode.checked, false, false, nil, cstNone);
 
 
     {
