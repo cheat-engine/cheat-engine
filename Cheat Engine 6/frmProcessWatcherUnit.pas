@@ -31,6 +31,7 @@ type tprocesswatchthread=class(tthread)
     procedure Updatelist2;
     procedure UpdateThreadcount(processid:dword;count:dword);
   public
+    openedByAutoAttach: boolean;
     procedure execute; override;
   end;
 
@@ -238,9 +239,11 @@ begin
   if autoattachthisProcess then
   begin
     //open it
+    openedByAutoAttach:=true;
     frmProcessWatcher.tvProcesslist.Selected:=tn;
+
     frmProcessWatcher.btnOpen.Click; //won't take too long so an be done in this thread
-  end;
+  end else openedByAutoAttach:=false;
 end;
 
 procedure tprocesswatchthread.execute;

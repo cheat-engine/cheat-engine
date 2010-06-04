@@ -43,7 +43,8 @@ type TMemRecExtraData=record
 
 
 
-type TMemoryRecord=class
+type
+  TMemoryRecord=class
   private
     FrozenValue : string;
     CurrentValue: string;
@@ -54,6 +55,7 @@ type TMemoryRecord=class
     fActive: boolean;
     fAllowDecrease: boolean;
     fAllowIncrease: boolean;
+    fOwner: TObject;
 
     fShowAsHex: boolean;
     editcount: integer; //=0 when not being edited
@@ -120,6 +122,10 @@ type TMemoryRecord=class
     function getXMLNode(node: TDOMNode; selectedOnly: boolean): TDOMNode;
     procedure setXMLnode(CheatEntry: TDOMNode);
 
+    constructor Create(AOwner: TObject);
+    destructor destroy; override;
+
+
 
     property addressString: string read getAddressString;
     property active: boolean read fActive write setActive;
@@ -128,12 +134,17 @@ type TMemoryRecord=class
     property allowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property showAsHex: boolean read fShowAsHex write setShowAsHex;
 
-    destructor destroy; override;
   end;
 
 implementation
 
-uses formsettingsunit;
+uses addresslist, formsettingsunit;
+
+constructor TMemoryRecord.create(AOwner: TObject);
+begin
+  fOwner:=AOwner;
+  inherited create;
+end;
 
 destructor TMemoryRecord.destroy;
 var i: integer;
@@ -183,7 +194,7 @@ begin
     while currentEntry<>nil do
     begin
       //create a blank entry
-      memrec:=TMemoryRecord.create;
+      memrec:=TMemoryRecord.create(fOwner);
 
       memrec.treenode:=treenode.owner.AddObject(nil,'',memrec);
       memrec.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
@@ -758,8 +769,29 @@ var
   mask: qword;
   temp: qword;
   temps: string;
+
+  mr: TMemoryRecord;
 begin
   if isGroupHeader then exit;
+
+
+  //check if it is a '(description)' notation
+  if vartype<>vtString then
+  begin
+    v:=trim(v);
+
+    if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
+    begin
+      //yes, it's a (description)
+      temps:=copy(v, 2,length(v)-2);
+      //search the addresslist for a entry with name (temps)
+
+      mr:=TAddresslist(fOwner).findRecordWithDescription(temps);
+      if mr<>nil then
+        v:=mr.GetValue;
+
+    end;
+  end;
 
   realAddress:=GetRealAddress; //quick update
 

@@ -491,7 +491,7 @@ type
     hexstateForIntTypes: boolean;
 
     function openprocessPrologue: boolean;
-    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
+    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
     procedure doNewScan;
     procedure SetExpectedTableName;
     procedure autoattachcheck;
@@ -3584,7 +3584,7 @@ begin
   result:=true;
 end;
 
-procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
+procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
 var newprocessname: string;
     i,j: integer;
     fname,expectedfilename: string;
@@ -3781,18 +3781,20 @@ begin
     expectedFilename:=FName+'.ct';
 
 
-
-  if fileexists(expectedfilename) or fileexists(cheatenginedir+expectedfilename) then
+  if not autoattachopen then
   begin
-    if messagedlg('Load the associated table? ('+expectedFilename+')',mtConfirmation, [mbyes,mbno],0)=mryes then
+    if fileexists(expectedfilename) or fileexists(cheatenginedir+expectedfilename) then
     begin
-      autoopen:=true;
-      if fileexists(expectedfilename) then
-        opendialog1.FileName:=expectedfilename
-      else
-        opendialog1.FileName:=cheatenginedir+expectedfilename;
-        
-      LoadButton.Click;
+      if messagedlg('Load the associated table? ('+expectedFilename+')',mtConfirmation, [mbyes,mbno],0)=mryes then
+      begin
+        autoopen:=true;
+        if fileexists(expectedfilename) then
+          opendialog1.FileName:=expectedfilename
+        else
+          opendialog1.FileName:=cheatenginedir+expectedfilename;
+
+        LoadButton.Click;
+      end;
     end;
   end;
 
@@ -5835,7 +5837,7 @@ begin
             if res=mrcancel then exit;
           end;
 
-          ok:=res=mryes;
+          ok:=(res=mryes) or (res=mrYesToAll);
 
           if (res=mryes) or (res=mrno) then
             res:=-1; //reset
@@ -10970,7 +10972,7 @@ begin
           Open_Process;
           enablegui(false);
 
-          openProcessEpilogue('',0,0);
+          openProcessEpilogue('',0,0,true);
 
           symhandler.reinitialize;
           reinterpretaddresses;

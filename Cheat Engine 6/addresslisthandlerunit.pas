@@ -75,7 +75,7 @@ begin
       raise exception.create('A group with the name '+groupname+' already exists');
   end;
 
-  memrec:=TMemoryRecord.create;
+  memrec:=TMemoryRecord.create(self);
   memrec.Description:=groupname;
   memrec.isGroupHeader:=true;
 

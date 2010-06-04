@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="313"/>
+      <BuildNr Value="332"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.313" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.332" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="140">
+    <Units Count="141">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -72,10 +72,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <EditorIndex Value="7"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2432"/>
-        <CursorPos X="23" Y="2439"/>
+        <TopLine Value="2923"/>
+        <CursorPos X="49" Y="2925"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="3">
           <Item0 X="11" Y="4806" ID="1"/>
@@ -88,7 +89,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="43"/>
         <CursorPos X="1" Y="54"/>
@@ -144,24 +145,24 @@
         <Filename Value="disassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassembler"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10082"/>
-        <CursorPos X="6" Y="10145"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="202"/>
-        <Bookmarks Count="2">
+        <Bookmarks Count="1">
           <Item0 X="81" Y="509" ID="6"/>
-          <Item1 X="56" Y="10066" ID="8"/>
         </Bookmarks>
+        <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="157"/>
-        <CursorPos X="25" Y="175"/>
+        <TopLine Value="136"/>
+        <CursorPos X="61" Y="171"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
       </Unit10>
@@ -352,9 +353,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmProcessWatcherUnit"/>
-        <TopLine Value="423"/>
-        <CursorPos X="3" Y="438"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="375"/>
+        <CursorPos X="51" Y="394"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
       </Unit29>
       <Unit30>
         <Filename Value="ModuleSafetyUnit.pas"/>
@@ -583,21 +587,18 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formmemoryregionsunit"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="137"/>
         <CursorPos X="18" Y="140"/>
         <UsageCount Value="221"/>
-        <Bookmarks Count="1">
-          <Item0 X="1" Y="241" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
       </Unit51>
       <Unit52>
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6479"/>
         <CursorPos X="1" Y="6491"/>
@@ -638,7 +639,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="1"/>
-        <UsageCount Value="191"/>
+        <UsageCount Value="181"/>
       </Unit55>
       <Unit56>
         <Filename Value="underc.pas"/>
@@ -1034,7 +1035,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="DriverList"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="91"/>
         <CursorPos X="10" Y="105"/>
@@ -1334,34 +1335,44 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="8" Y="11"/>
+        <TopLine Value="400"/>
+        <CursorPos X="48" Y="414"/>
         <UsageCount Value="203"/>
+        <Bookmarks Count="1">
+          <Item0 X="3" Y="424" ID="8"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
       </Unit123>
       <Unit124>
         <Filename Value="addresslisthandlerunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslisthandlerunit"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="24"/>
+        <EditorIndex Value="12"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="63"/>
+        <CursorPos X="37" Y="78"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
       </Unit124>
       <Unit125>
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="243"/>
-        <CursorPos X="50" Y="259"/>
+        <TopLine Value="765"/>
+        <CursorPos X="28" Y="770"/>
         <UsageCount Value="215"/>
+        <Loaded Value="True"/>
       </Unit125>
       <Unit126>
         <Filename Value="exceptionhandler.pas"/>
         <UnitName Value="exceptionhandler"/>
         <TopLine Value="31"/>
         <CursorPos X="1" Y="40"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="19"/>
       </Unit126>
       <Unit127>
         <Filename Value="ThreadlistExFRM.pas"/>
@@ -1387,12 +1398,12 @@
         <UnitName Value="Graphics"/>
         <TopLine Value="132"/>
         <CursorPos X="25" Y="148"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="14"/>
       </Unit129>
       <Unit130>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="670"/>
         <CursorPos X="3" Y="687"/>
@@ -1404,13 +1415,13 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5923"/>
         <CursorPos X="15" Y="5929"/>
-        <UsageCount Value="53"/>
+        <UsageCount Value="43"/>
       </Unit131>
       <Unit132>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\objpas\classes\classesh.inc"/>
         <TopLine Value="1663"/>
         <CursorPos X="3" Y="1571"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="29"/>
       </Unit132>
       <Unit133>
         <Filename Value="tablist.pas"/>
@@ -1427,34 +1438,34 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1605"/>
         <CursorPos X="3" Y="1622"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="16"/>
       </Unit134>
       <Unit135>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
         <TopLine Value="3592"/>
         <CursorPos X="3" Y="3601"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="11"/>
       </Unit135>
       <Unit136>
         <Filename Value="C:\lazarus\lcl\lclclasses.pp"/>
         <UnitName Value="LCLClasses"/>
         <TopLine Value="31"/>
         <CursorPos X="28" Y="38"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="11"/>
       </Unit136>
       <Unit137>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\fcl-image\src\fpcanvas.pp"/>
         <UnitName Value="FPCanvas"/>
         <TopLine Value="118"/>
         <CursorPos X="16" Y="134"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="11"/>
       </Unit137>
       <Unit138>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\mathh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="14" Y="70"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="19"/>
       </Unit138>
       <Unit139>
         <Filename Value="frmstructuresconfigunit.pas"/>
@@ -1467,127 +1478,137 @@
         <CursorPos X="53" Y="167"/>
         <UsageCount Value="247"/>
       </Unit139>
+      <Unit140>
+        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
+        <UnitName Value="ComCtrls"/>
+        <EditorIndex Value="13"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1956"/>
+        <CursorPos X="24" Y="1969"/>
+        <UsageCount Value="36"/>
+        <Loaded Value="True"/>
+      </Unit140>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1277" Column="1" TopLine="1262"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="215" Column="25" TopLine="210"/>
       </Position1>
       <Position2>
-        <Filename Value="speedhack2.pas"/>
-        <Caret Line="50" Column="1" TopLine="60"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="632" Column="7" TopLine="629"/>
       </Position2>
       <Position3>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1284" Column="1" TopLine="1262"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="416" Column="7" TopLine="402"/>
       </Position3>
       <Position4>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1550" Column="1" TopLine="1535"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position4>
       <Position5>
-        <Filename Value="speedhack2.pas"/>
-        <Caret Line="69" Column="1" TopLine="60"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="240" Column="35" TopLine="225"/>
       </Position5>
       <Position6>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1550" Column="1" TopLine="1535"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="349" Column="43" TopLine="334"/>
       </Position6>
       <Position7>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1232" Column="1" TopLine="1217"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="391" Column="31" TopLine="376"/>
       </Position7>
       <Position8>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="2347" Column="33" TopLine="2335"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="402" Column="31" TopLine="376"/>
       </Position8>
       <Position9>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="218" Column="1" TopLine="196"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="47" Column="21" TopLine="41"/>
       </Position9>
       <Position10>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="217" Column="65" TopLine="199"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="139" Column="19" TopLine="122"/>
       </Position10>
       <Position11>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="97" Column="53" TopLine="82"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="58" Column="20" TopLine="101"/>
       </Position11>
       <Position12>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="addresslisthandlerunit.pas"/>
+        <Caret Line="24" Column="1" TopLine="1"/>
       </Position12>
       <Position13>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="13" Column="14" TopLine="1"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="425" Column="31" TopLine="34"/>
       </Position13>
       <Position14>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="67" Column="50" TopLine="52"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="240" Column="41" TopLine="225"/>
       </Position14>
       <Position15>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="195" Column="29" TopLine="180"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="349" Column="49" TopLine="334"/>
       </Position15>
       <Position16>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="196" Column="15" TopLine="186"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="391" Column="37" TopLine="376"/>
       </Position16>
       <Position17>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="208" Column="1" TopLine="186"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="402" Column="38" TopLine="387"/>
       </Position17>
       <Position18>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="209" Column="5" TopLine="194"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="145" Column="18" TopLine="134"/>
       </Position18>
       <Position19>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="46" Column="22" TopLine="107"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="143" Column="21" TopLine="128"/>
       </Position19>
       <Position20>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="235" Column="64" TopLine="209"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="161" Column="50" TopLine="149"/>
       </Position20>
       <Position21>
-        <Filename Value="cheatengine.lpr"/>
-        <Caret Line="49" Column="9" TopLine="33"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="147" Column="77" TopLine="139"/>
       </Position21>
       <Position22>
-        <Filename Value="cheatengine.lpr"/>
-        <Caret Line="62" Column="1" TopLine="33"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="446" Column="12" TopLine="431"/>
       </Position22>
       <Position23>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="249" Column="62" TopLine="226"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="792" Column="1" TopLine="765"/>
       </Position23>
       <Position24>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="247" Column="1" TopLine="226"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="779" Column="1" TopLine="765"/>
       </Position24>
       <Position25>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="249" Column="1" TopLine="226"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="781" Column="1" TopLine="765"/>
       </Position25>
       <Position26>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="250" Column="1" TopLine="226"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="783" Column="1" TopLine="765"/>
       </Position26>
       <Position27>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="125" Column="1" TopLine="110"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="786" Column="1" TopLine="765"/>
       </Position27>
       <Position28>
-        <Filename Value="formmemoryregionsunit.pas"/>
-        <Caret Line="122" Column="31" TopLine="114"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4874" Column="42" TopLine="4861"/>
       </Position28>
       <Position29>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="225" Column="6" TopLine="210"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4263" Column="3" TopLine="4260"/>
       </Position29>
       <Position30>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3365" Column="48" TopLine="3344"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -1609,9 +1630,7 @@
     </Parsing>
     <CodeGeneration>
       <Optimizations>
-        <VariablesInRegisters Value="True"/>
-        <UncertainOptimizations Value="True"/>
-        <OptimizationLevel Value="3"/>
+        <OptimizationLevel Value="0"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>
@@ -1627,7 +1646,6 @@
         <ShowNotes Value="False"/>
         <ShowHints Value="False"/>
         <ShowGenInfo Value="False"/>
-        <ShowNothing Value="True"/>
       </Verbosity>
       <WriteFPCLogo Value="False"/>
       <CompilerMessages>

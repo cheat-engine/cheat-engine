@@ -481,7 +481,7 @@ type
     hexstateForIntTypes: boolean;
 
     function openprocessPrologue: boolean;
-    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword);
+    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
     procedure doNewScan;
     procedure SetExpectedTableName;
     procedure autoattachcheck;
@@ -1856,8 +1856,7 @@ begin
   Result := True;
 end;
 
-procedure TMainform.openProcessEpilogue(oldprocessname: string;
-  oldprocess: dword; oldprocesshandle: dword);
+procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
 var
   newprocessname: string;
   i, j: integer;
@@ -2003,22 +2002,23 @@ begin
     expectedFilename := FName + '.ct';
 
 
-
-  if fileexists(expectedfilename) or fileexists(cheatenginedir + expectedfilename) then
+  if not autoattachopen then
   begin
-    if messagedlg('Load the associated table? (' + expectedFilename + ')', mtConfirmation,
-      [mbYes, mbNo], 0) = mrYes then
+    if fileexists(expectedfilename) or fileexists(cheatenginedir + expectedfilename) then
     begin
-      autoopen := True;
-      if fileexists(expectedfilename) then
-        opendialog1.FileName := expectedfilename
-      else
-        opendialog1.FileName := cheatenginedir + expectedfilename;
+      if messagedlg('Load the associated table? (' + expectedFilename + ')', mtConfirmation,
+        [mbYes, mbNo], 0) = mrYes then
+      begin
+        autoopen := True;
+        if fileexists(expectedfilename) then
+          opendialog1.FileName := expectedfilename
+        else
+          opendialog1.FileName := cheatenginedir + expectedfilename;
 
-      LoadButton.Click;
+        LoadButton.Click;
+      end;
     end;
   end;
-
   UpdateScanType;
 
   if scantablist<>nil then
@@ -2919,10 +2919,10 @@ begin
             if res=mrcancel then exit;
           end;
 
-          ok:=res=mryes;
+          ok:=(res=mryes) or (res=mrYesToAll);
 
           if (res=mryes) or (res=mrno) then
-            res:=-1; //reset
+            res:=-1; //reset (not an xxx to all)
         end
         else
           ok:=true;
@@ -3345,7 +3345,7 @@ procedure TMainForm.LogoClick(Sender: TObject);
 begin
   if messagedlg('Do you want to go to the Cheat Engine website?',
     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referedby=CE60'),
+    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE60'),
       PChar(''), PChar(''), SW_MAXIMIZE);
 
 end;
@@ -4871,7 +4871,7 @@ begin
           Open_Process;
           enablegui(false);
 
-          openProcessEpilogue('',0,0);
+          openProcessEpilogue('',0,0,true);
 
           symhandler.reinitialize;
           reinterpretaddresses;

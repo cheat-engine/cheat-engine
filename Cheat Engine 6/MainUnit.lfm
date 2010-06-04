@@ -10,7 +10,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.0'
-  ClientHeight = 544
+  ClientHeight = 539
   ClientWidth = 536
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -40,7 +40,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 175
+    Height = 170
     Top = 352
     Width = 536
     Align = alClient
@@ -53,7 +53,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 17
-    Top = 527
+    Top = 522
     Width = 536
     Align = alBottom
     ClientHeight = 17
@@ -390,11 +390,11 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 430
-      Height = 17
+      Left = 424
+      Height = 23
       Hint = 'Enable speedhack'
       Top = 194
-      Width = 109
+      Width = 115
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
       Enabled = False
@@ -417,10 +417,10 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 437
-      Height = 17
+      Left = 431
+      Height = 23
       Top = 128
-      Width = 58
+      Width = 64
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
       TabOrder = 17
@@ -433,7 +433,7 @@ object MainForm: TMainForm
       Width = 202
       Anchors = [akTop, akRight]
       Caption = 'Memory Scan Options'
-      ClientHeight = 122
+      ClientHeight = 118
       ClientWidth = 198
       Color = clBtnFace
       Enabled = False
@@ -441,9 +441,9 @@ object MainForm: TMainForm
       TabOrder = 0
       object Readonly: TCheckBox
         Left = 3
-        Height = 17
+        Height = 23
         Top = 45
-        Width = 149
+        Width = 155
         Caption = 'Also scan read-only memory'
         Enabled = False
         Font.Height = -11
@@ -499,9 +499,9 @@ object MainForm: TMainForm
       end
       object cbFastScan: TCheckBox
         Left = 3
-        Height = 17
+        Height = 23
         Top = 68
-        Width = 64
+        Width = 70
         Caption = 'Fast scan'
         Checked = True
         Enabled = False
@@ -514,9 +514,9 @@ object MainForm: TMainForm
       end
       object cbPauseWhileScanning: TCheckBox
         Left = 3
-        Height = 17
+        Height = 23
         Top = 91
-        Width = 168
+        Width = 174
         Caption = 'Pause the game while scanning'
         Enabled = False
         OnClick = cbPauseWhileScanningClick
@@ -641,11 +641,11 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object HexadecimalCheckbox: TCheckBox
-      Left = 207
-      Height = 17
+      Left = 201
+      Height = 23
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
-      Width = 37
+      Width = 43
       HelpContext = 7
       Anchors = [akTop, akRight]
       Caption = 'Hex'
@@ -704,10 +704,10 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 433
-      Height = 17
+      Left = 427
+      Height = 23
       Top = 146
-      Width = 86
+      Width = 92
       Anchors = [akTop, akRight]
       Caption = 'Case sensitive'
       Checked = True
@@ -871,10 +871,10 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 430
-      Height = 17
+      Left = 424
+      Height = 23
       Top = 174
-      Width = 83
+      Width = 89
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
       Enabled = False
@@ -884,9 +884,9 @@ object MainForm: TMainForm
     end
     object mode16: TCheckBox
       Left = 96
-      Height = 17
+      Height = 23
       Top = 320
-      Width = 56
+      Width = 62
       Caption = 'mode16'
       TabOrder = 19
       Visible = False

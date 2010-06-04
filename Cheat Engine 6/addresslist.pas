@@ -29,6 +29,7 @@ type
     procedure DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
     procedure DragDrop(Sender, Source: TObject; X,Y: Integer);
     procedure DragEnd(Sender, Target: TObject; X,Y: Integer);
+    procedure TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
     procedure TreeviewDblClick(Sender: TObject);
     procedure TreeviewMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
    // procedure TreeviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -57,6 +58,7 @@ type
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
     function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
+    function findRecordWithDescription(description: string): TMemoryRecord;
 
     procedure doDescriptionChange;
     procedure doAddressChange;
@@ -235,7 +237,7 @@ begin
     if tdomelement(currententry).TagName='CheatEntry' then
     begin
       //create a blank entry
-      memrec:=TMemoryRecord.create;
+      memrec:=TMemoryRecord.create(self);
       memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
 
       //fill the entry with the node info
@@ -344,7 +346,7 @@ begin
             begin
 
               //create a blank entry
-              memrec:=TMemoryRecord.create;
+              memrec:=TMemoryRecord.create(self);
               memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
               if insertAfter<>nil then
                 memrec.treenode.MoveTo(insertafter, naInsertBehind);
@@ -386,7 +388,7 @@ procedure TAddresslist.CreateGroup(groupname: string);
 var
   memrec: TMemoryRecord;
 begin
-  memrec:=TMemoryrecord.Create;
+  memrec:=TMemoryrecord.Create(self);
   memrec.isGroupHeader:=true;
   memrec.Description:=groupname;
   memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
@@ -397,7 +399,7 @@ procedure TAddresslist.addAutoAssembleScript(script: string);
 var
   memrec: TMemoryRecord;
 begin
-  memrec:=TMemoryrecord.Create;
+  memrec:=TMemoryrecord.Create(self);
   memrec.isGroupHeader:=false;
   memrec.Description:='Auto Assemble script';
   memrec.AutoAssemblerData.script:=tstringlist.create;
@@ -409,13 +411,26 @@ begin
   memrec.treenode.DropTarget:=true;
 end;
 
+function TAddresslist.findRecordWithDescription(description: string): TMemoryRecord;
+var i: integer;
+begin
+  result:=nil;
+  for i:=0 to count-1 do
+    if uppercase(MemRecItems[i].Description)=uppercase(description) then
+    begin
+      result:=MemRecItems[i];
+      exit;
+    end;
+
+end;
+
 function TAddresslist.addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; length: integer=0; startbit: integer=0; unicode: boolean=false;node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
 var
   memrec: TMemoryRecord;
   i: integer;
   t: TTreenode;
 begin
-  memrec:=TMemoryRecord.create;
+  memrec:=TMemoryRecord.create(self);
 
   memrec.Description:=description;
   memrec.interpretableaddress:=address;
@@ -613,6 +628,11 @@ begin
     if AllError then raise exception.create('The value '+value+' could not be parsed');
     if SomeError then raise exception.create('Not all value types could handle the value '+value);
   end;
+end;
+
+procedure TAddresslist.TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
+begin
+  AllowCollapse:=false;
 end;
 
 procedure TAddresslist.TreeviewDblClick(Sender: TObject);
@@ -923,22 +943,27 @@ begin
 
       sender.canvas.pen.color:=oldpencolor;
 
-      if memrec.allowIncrease then
-      begin
-        sender.Canvas.Pen.Color:=clGreen;
-        sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
-        sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
-        sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
-        sender.canvas.pen.color:=clWindowtext;
-      end;
 
-      if memrec.allowDecrease then
+      if not memrec.isGroupHeader then
       begin
-        sender.Canvas.Pen.Color:=clRed;
-        sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
-        sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
-        sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
-        sender.canvas.pen.color:=clWindowtext;
+        //draw the arrow up/down
+        if memrec.allowIncrease then
+        begin
+          sender.Canvas.Pen.Color:=clGreen;
+          sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
+          sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5-4,checkbox.top+1+4);
+          sender.canvas.line(checkbox.right+5,checkbox.top+1,checkbox.Right+5+4,checkbox.top+1+4);
+          sender.canvas.pen.color:=clWindowtext;
+        end;
+
+        if memrec.allowDecrease then
+        begin
+          sender.Canvas.Pen.Color:=clRed;
+          sender.canvas.line(checkbox.right+5, checkbox.bottom-1, checkbox.right+5,checkbox.top+1);
+          sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5-4,checkbox.bottom-1-4);
+          sender.canvas.line(checkbox.right+5,checkbox.bottom-1,checkbox.Right+5+4,checkbox.bottom-1-4);
+          sender.canvas.pen.color:=clWindowtext;
+        end;
       end;
 
     end;
@@ -1005,6 +1030,11 @@ begin
 
   treeview.ShowButtons:=true;
 
+
+  treeview.AutoExpand:=true;
+  treeview.Options:=treeview.options+[tvoAutoExpand];
+
+
   treeview.OnAdvancedCustomDrawItem:=AdvancedCustomDrawItem;
   treeview.OnSelectionChanged:=SelectionUpdate;
   treeview.OnExit:=Focuschange;
@@ -1015,6 +1045,7 @@ begin
   treeview.OnEndDrag:=DragEnd;
  // treeview.OnKeyDown:=treeviewkeydown;
   //treeview.Indent:=2;
+  treeview.OnCollapsing:=TreeviewOnCollapse;
 
   treeview.OnMouseDown:=TreeviewMouseDown;
   treeview.OnDblClick:=TreeviewDblClick;
