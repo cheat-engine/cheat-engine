@@ -729,9 +729,13 @@ begin
 
               //s1=varname
               //s2=AOBstring
-              testdword:=findaob(s2);
-              if (testdword=0) and (not syntaxcheckonly) then
-                raise exception.Create('The array of byte '''+s2+''' could not be found');
+              testdword:=0;
+              if (not syntaxcheckonly) then
+              begin
+                testdword:=findaob(s2);
+                if (testdword=0) then
+                  raise exception.Create('The array of byte '''+s2+''' could not be found');
+              end;
 
               currentline:='DEFINE('+s1+','+inttohex(testdword,8)+')';
               //NO CONTINUE LINE HERE
