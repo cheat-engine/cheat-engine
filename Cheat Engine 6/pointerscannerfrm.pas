@@ -239,6 +239,7 @@ type
     PopupMenu1: TPopupMenu;
     Resyncmodulelist1: TMenuItem;
     cbType: TComboBox;
+    procedure FormDestroy(Sender: TObject);
     procedure ListView1Resize(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -1046,6 +1047,14 @@ begin
   end;
 end;
 
+procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,1);
+  x[0]:=cbtype.itemindex;
+  SaveFormPosition(self, x);
+end;
+
 procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);
 var i,j,l: integer;
     s: string;
@@ -1733,6 +1742,7 @@ end;
 
 
 procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
+var x: array of integer;
 begin
   tsPSReverse.TabVisible:=false;
 
@@ -1743,6 +1753,11 @@ begin
 
   listview1.Align:=alClient;
   listview1.Visible:=true;
+
+  setlength(x,1);
+  if loadformposition(self,x) then
+    cbtype.itemindex:=x[0];
+
 end;
 
 procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;

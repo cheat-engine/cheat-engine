@@ -245,6 +245,7 @@ type
     procedure Resyncmodulelist1Click(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     start:tdatetime;
@@ -1832,6 +1833,7 @@ end;
 
 
 procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
+var x:array of integer;
 begin
   tsPSReverse.TabVisible:=false;
 
@@ -1839,6 +1841,10 @@ begin
   caption:='CE Injected Pointerscan';
   {$endif}
   listview1.DoubleBuffered:=true;
+
+  setlength(x,1);
+  if loadformposition(self,x) then
+    cbtype.itemindex:=x[0];
 end;
 
 procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;
@@ -1969,6 +1975,14 @@ end;
 procedure Tfrmpointerscanner.cbTypeChange(Sender: TObject);
 begin
   listview1.Refresh;
+end;
+
+procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,1);
+  x[0]:=cbtype.itemindex;
+  SaveFormPosition(self, x);
 end;
 
 end.
