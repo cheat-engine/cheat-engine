@@ -1945,7 +1945,8 @@ begin
     li:=listview1.Items.Item[listview1.ItemIndex];
     t:=li.caption;
     baseaddress:=symhandler.getAddressFromName(t,false,err);
-    if err then exit;
+    if err then
+      baseAddress:=0;
 
 
     try
