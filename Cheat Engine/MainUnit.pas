@@ -2181,14 +2181,15 @@ begin
         begin
           address[i].visible:=true;
           valtype[i].visible:=true;
-          value[i].visible:=true;
+
         end
         else
         begin
           address[i].visible:=false;
           valtype[i].visible:=false;
-          value[i].visible:=false;
+//          value[i].visible:=false;
         end;
+        value[i].visible:=true;
       end;
 
       case memrec[rec].vartype of
@@ -2420,7 +2421,7 @@ begin
                   if oldindex=0 then
                     floatvis:=true;
 
-                  if vartype.itemindex<>9 then
+                  if vartype.itemindex=9 then
                     hexvis:=false;
                 end;
 
@@ -2976,7 +2977,7 @@ begin
 
     //get the value!!!
       if memrec[rec].VarType=255 then
-        value[i].Caption:=''
+        value[i].Caption:='<script>'
       else
         value[i].Caption:=getStringFromRecord(rec)
 
@@ -6191,7 +6192,11 @@ begin
    1,2,3,4,9,10:
      begin
        casevis:=false;
-       hexvis:=true;
+       if newvartype in [9,10] then
+         hexvis:=false
+       else
+         hexvis:=true;
+         
        scanvalue.MaxLength:=0;
        hexadecimalcheckbox.enabled:=newscan.enabled;
        hexadecimalcheckbox.Checked:=hexstateForIntTypes;
@@ -6238,6 +6243,7 @@ begin
        hexadecimalcheckbox.enableD:=newscan.enabled;
        hexadecimalcheckbox.Checked:=true;
      end;
+
 
   end;
 
