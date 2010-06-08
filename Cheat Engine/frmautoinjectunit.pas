@@ -1010,7 +1010,7 @@ begin
   assemblescreen:=TSynEditFix.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.SearchEngine:=assembleSearch;
-  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol];
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=2;
 
@@ -1024,6 +1024,9 @@ begin
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;
   assemblescreen.Parent:=tabcontrol1;
+
+//  assemblescreen.Options
+
 {$endif}
 end;
 
