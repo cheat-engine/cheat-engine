@@ -7055,6 +7055,7 @@ begin
 
                 7:  begin
                       tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+
                       description:='Signed divide by 2, '+inttostr(memory[last])+' times';
                       inc(offset,last);
                     end;
@@ -7157,13 +7158,13 @@ begin
                 7:  begin
                       if $66 in prefix2 then
                       begin
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last,16)+inttohexs(memory[last],2);
+                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,1,last,16)+inttohexs(memory[last],2);
                         description:='Signed divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end
                       else
                       begin
-                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,2,last)+inttohexs(memory[last],2);
+                        tempresult:=tempresult+'SAR '+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
                         description:='Signed divide by 2 '+inttostr(memory[last])+' times';
                         inc(offset,last);
                       end;

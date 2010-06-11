@@ -7788,7 +7788,7 @@ begin
                       if $66 in prefix2 then
                       begin
                         lastdisassembledata.opcode:='sar';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,16);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16);
                         lastdisassembledata.parametervaluetype:=dvtvalue;
                         lastdisassembledata.parametervalue:=memory[last];
                         lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
@@ -7798,7 +7798,7 @@ begin
                       else
                       begin
                         lastdisassembledata.opcode:='sar';
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last);
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
                         lastdisassembledata.parametervaluetype:=dvtvalue;
                         lastdisassembledata.parametervalue:=memory[last];
                         lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
