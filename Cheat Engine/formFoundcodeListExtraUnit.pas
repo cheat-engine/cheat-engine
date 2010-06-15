@@ -39,6 +39,7 @@ type
     pmCopy2: TPopupMenu;
     Copyguesstoclipboard1: TMenuItem;
     sbShowFloats: TSpeedButton;
+    pmempty: TPopupMenu;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
@@ -47,6 +48,8 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     fprobably: dword;
@@ -155,6 +158,27 @@ end;
 procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
 begin
   saveformposition(self,[]); 
+end;
+
+procedure TFormFoundCodeListExtra.RegisterMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s: string;
+i: integer;
+begin
+  if button = mbright then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      i:=pos('=',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+
+        clipboard.AsText:=s;
+      end;
+    end;
+  end;   
 end;
 
 end.
