@@ -535,7 +535,9 @@ end;
 
 procedure TKDebuggerThread.ConvertDebuggerStateToContext(debuggerstate: TDebuggerstate; var context: _CONTEXT);
 begin
+  OutputDebugString('ConvertDebuggerStateToContext');
   ZeroMemory(@context,sizeof(_CONTEXT));
+
   context.Eax:=debuggerstate.Eax;
   context.Ebx:=debuggerstate.Ebx;
   context.Ecx:=debuggerstate.Ecx;
@@ -566,7 +568,15 @@ begin
   CopyMemory(@context.FloatSave.RegisterArea[6],@context.ext.FPURegisters[6].data,10);
   CopyMemory(@context.FloatSave.RegisterArea[7],@context.ext.FPURegisters[7].data,10);
 
-  OutputDebugString('ConvertDebuggerStateToContext:');
+  outputdebugstring('eax='+inttohex(context.eax,8));
+  outputdebugstring('ebx='+inttohex(context.ebx,8));
+  outputdebugstring('ecx='+inttohex(context.ecx,8));
+  outputdebugstring('edx='+inttohex(context.edx,8));
+  outputdebugstring('esi='+inttohex(context.esi,8));
+  outputdebugstring('edi='+inttohex(context.edi,8));
+  outputdebugstring('ebp='+inttohex(context.ebp,8));
+  outputdebugstring('esp='+inttohex(context.esp,8));
+  outputdebugstring('eip='+inttohex(context.eip,8));
 end;
 
 procedure TKDebuggerThread.Continue(continueOption: TContinueOption; runtilladdress: dword=0);
@@ -781,26 +791,15 @@ var i: integer;
     x: PContext;
     bpa: dword;
 begin
-{
-  with memorybrowser do
-  begin
-    EAXv:=currentdebuggerstate.Eax;
-    EBXv:=currentdebuggerstate.Ebx;
-    ECXv:=currentdebuggerstate.Ecx;
-    EDXv:=currentdebuggerstate.Edx;
-    ESIv:=currentdebuggerstate.Esi;
-    EDIv:=currentdebuggerstate.Edi;
-    EBPv:=currentdebuggerstate.Ebp;
-    ESPv:=currentdebuggerstate.Esp;
-    EIPv:=currentdebuggerstate.Eip;
-  end;   }
+  ConvertDebuggerStateToContext(currentdebuggerstate, memorybrowser.lastdebugcontext);
 
   try
     bpa:=getaddress(tempaddressspecifier);
     lbs:=inttohex(bpa,8);
     for i:=0 to frmchangedaddresses.Changedlist.Items.Count-1 do
-      if frmchangedaddresses.Changedlist.Items[i].Caption=lbs then exit;
+      if frmchangedaddresses.Changedlist.Items[i].Caption=lbs then exit; //already in the list
 
+    //still here, so it's a new address
     newitem:=frmchangedaddresses.Changedlist.Items.Add;
     getmem(x,sizeof(_CONTEXT));
     ConvertDebuggerStateToContext(currentdebuggerstate, x^);
