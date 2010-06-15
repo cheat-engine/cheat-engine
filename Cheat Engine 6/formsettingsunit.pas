@@ -30,6 +30,9 @@ type
     Label2: TLabel;
     LoadButton: TSpeedButton;
     pnlConfig: TPanel;
+    cbKDebug: TRadioButton;
+    cbUseWindowsDebugger: TRadioButton;
+    cbUseVEHDebugger: TRadioButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     tvMenuSelection: TTreeView;
     pcSetting: TPageControl;
@@ -100,7 +103,6 @@ type
     cbKernelReadWriteProcessMemory: TCheckBox;
     cbKernelOpenProcess: TCheckBox;
     cbProcessWatcher: TCheckBox;
-    cbKdebug: TCheckBox;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
     cbGlobalDebug: TCheckBox;
@@ -569,6 +571,8 @@ begin
       reg.WriteBool('Use dbk32 OpenProcess',cbKernelOpenProcess.checked);
 
       reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
+      reg.WriteBool('Use VEH Debugger',cbUseVEHDebugger.checked);
+      reg.WriteBool('Use Windows Debugger',cbUseWindowsDebugger.checked);
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
 

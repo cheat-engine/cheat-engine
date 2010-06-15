@@ -139,9 +139,13 @@ type
     Reserved4: array [416..511] of Byte; // bytes from 416 to 511
   end;
 
-  {$ifndef cpu64}
+
 type
+  {$ifdef cpu64}
+  _CONTEXT32 = record
+  {$else}
   _CONTEXT = record
+  {$endif}
     ContextFlags: DWORD;
     Dr0: DWORD;
     Dr1: DWORD;
@@ -173,11 +177,15 @@ type
 
     ext: TExtendedRegisters;
   end;
+  {$ifdef cpu64}
+  CONTEXT32=_CONTEXT32;
+  TContext32=CONTEXT32;
+  PContext32 = ^TContext32;
+  {$else}
   CONTEXT=_CONTEXT;
   TContext=CONTEXT;
   PContext = ^TContext;
-{$endif}
-
+  {$endif}
 
 type TDebuggerstate=record
   threadid: uint64;

@@ -306,6 +306,7 @@ var i,j,k,l,e: integer;
 
     include: tstringlist;
     testdword,bw: dword;
+    testPtr: ptrUint;
     binaryfile: tmemorystream;
 
     incomment: boolean;
@@ -1120,7 +1121,7 @@ begin
         ok1:=true;
 
         try
-          testdword:=symhandler.getAddressFromName(createthread[i]);
+          testptr:=symhandler.getAddressFromName(createthread[i]);
         except
           ok1:=false;
         end;
@@ -1156,7 +1157,7 @@ begin
             if uppercase(defines[j].name)=uppercase(createthread[i]) then
             begin
               try
-                testdword:=symhandler.getAddressFromName(defines[j].whatever);
+                testptr:=symhandler.getAddressFromName(defines[j].whatever);
                 ok1:=true;
               except
               end;
@@ -1173,7 +1174,7 @@ begin
         ok1:=true;
 
         try
-          testdword:=symhandler.getAddressFromName(loadbinary[i].address);
+          testptr:=symhandler.getAddressFromName(loadbinary[i].address);
         except
           ok1:=false;
         end;
@@ -1209,7 +1210,7 @@ begin
             if uppercase(defines[j].name)=uppercase(loadbinary[i].address) then
             begin
               try
-                testdword:=symhandler.getAddressFromName(defines[j].whatever);
+                testptr:=symhandler.getAddressFromName(defines[j].whatever);
                 ok1:=true;
               except
               end;
@@ -1607,7 +1608,7 @@ begin
         begin
           ok1:=true;
           try
-            testdword:=symhandler.getAddressFromName(createthread[i]);
+            testptr:=symhandler.getAddressFromName(createthread[i]);
           except
             ok1:=false;
           end;
@@ -1617,7 +1618,7 @@ begin
               if uppercase(labels[j].labelname)=uppercase(createthread[i]) then
               begin
                 ok1:=true;
-                testdword:=labels[j].address;
+                testptr:=labels[j].address;
                 break;
               end;
 
@@ -1626,7 +1627,7 @@ begin
               if uppercase(allocs[j].varname)=uppercase(createthread[i]) then
               begin
                 ok1:=true;
-                testdword:=allocs[j].address;
+                testptr:=allocs[j].address;
                 break;
               end;
 
@@ -1635,7 +1636,7 @@ begin
               if uppercase(kallocs[j].varname)=uppercase(createthread[i]) then
               begin
                 ok1:=true;
-                testdword:=kallocs[j].address;
+                testptr:=kallocs[j].address;
                 break;
               end;
 
@@ -1644,7 +1645,7 @@ begin
               if uppercase(defines[j].name)=uppercase(createthread[i]) then
               begin
                 try
-                  testdword:=symhandler.getAddressFromName(defines[j].whatever);
+                  testptr:=symhandler.getAddressFromName(defines[j].whatever);
                   ok1:=true;
                 except
                 end;
@@ -1656,7 +1657,7 @@ begin
           begin
             binaryfile:=tmemorystream.Create;
             try
-              ok2:=createremotethread(processhandle,nil,0,pointer(testdword),nil,0,bw)>0;
+              ok2:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw)>0;
             finally
               binaryfile.free;
             end;

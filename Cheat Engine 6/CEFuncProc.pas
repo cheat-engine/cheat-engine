@@ -1094,7 +1094,10 @@ begin
     end;
 
     //safetycode, test if the dll was actually loaded and skip if not
-    assemble('TEST EAX,EAX',position,outp);
+    if processhandler.is64bit then
+      assemble('TEST RAX,RAX',position,outp)
+    else
+      assemble('TEST EAX,EAX',position,outp);
     copymemory(@inject[position2],outp,length(outp));
     inc(position,length(outp));
     inc(position2,length(outp));

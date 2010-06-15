@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 533
+  Left = 467
   Height = 574
-  Top = 269
+  Top = 222
   Width = 869
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -59,15 +59,15 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = ScanSettings
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 3
+      TabIndex = 7
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         object Label11: TLabel
           Left = 209
           Height = 17
@@ -688,10 +688,10 @@ object formSettings: TformSettings
       object Plugins: TTabSheet
         Caption = 'Plugins'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 3
         object Panel7: TPanel
-          Left = 618
+          Left = 614
           Height = 496
           Top = 0
           Width = 97
@@ -723,17 +723,17 @@ object formSettings: TformSettings
           Left = 0
           Height = 496
           Top = 0
-          Width = 618
+          Width = 614
           Align = alClient
           BevelOuter = bvNone
           ClientHeight = 496
-          ClientWidth = 618
+          ClientWidth = 614
           TabOrder = 1
           object Label22: TLabel
             Left = 0
             Height = 17
             Top = 0
-            Width = 618
+            Width = 614
             Align = alTop
             Caption = 'The following plugins are available:'
             ParentColor = False
@@ -742,7 +742,7 @@ object formSettings: TformSettings
             Left = 0
             Height = 479
             Top = 17
-            Width = 618
+            Width = 614
             Align = alClient
             ItemHeight = 0
             TabOrder = 0
@@ -752,13 +752,13 @@ object formSettings: TformSettings
       object CodeFinder: TTabSheet
         Caption = 'CodeFinder'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 4
         object Label4: TLabel
           Left = 0
           Height = 49
           Top = 0
-          Width = 715
+          Width = 711
           Align = alTop
           Caption = 'There are 2 ways Cheat Engine can find the addresss of code that writes to a specific address. Each type has it advantages and it''s disadvantages. So choose which one suits you better. (or choose the one that doesnt give you problems.)'
           ParentColor = False
@@ -838,7 +838,7 @@ object formSettings: TformSettings
       object Assembler: TTabSheet
         Caption = 'Assembler'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 5
         object cbShowDisassembler: TCheckBox
           Left = 1
@@ -917,13 +917,13 @@ object formSettings: TformSettings
       object Extra: TTabSheet
         Caption = 'Extra'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 17
           Top = 479
-          Width = 715
+          Width = 711
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -934,11 +934,11 @@ object formSettings: TformSettings
           Left = 0
           Height = 86
           Top = 0
-          Width = 715
+          Width = 711
           Align = alTop
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
           ClientHeight = 64
-          ClientWidth = 711
+          ClientWidth = 707
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
@@ -976,63 +976,82 @@ object formSettings: TformSettings
           OnClick = cbProcessWatcherClick
           TabOrder = 1
         end
-        object cbKdebug: TCheckBox
-          Left = 1
-          Height = 23
-          Top = 114
-          Width = 322
-          Caption = 'Use kernelmode debugger options when possible'
-          OnClick = cbKdebugClick
-          TabOrder = 2
-        end
         object CheckBox3: TCheckBox
-          Left = 1
+          Left = 7
           Height = 23
-          Top = 296
+          Top = 422
           Width = 154
           Caption = 'Use APC to inject dll''s'
-          TabOrder = 3
+          TabOrder = 2
           Visible = False
         end
         object CheckBox4: TCheckBox
-          Left = 1
+          Left = 7
           Height = 23
-          Top = 316
+          Top = 442
           Width = 209
           Caption = 'Use APC to create new threads'
-          TabOrder = 4
+          TabOrder = 3
           Visible = False
         end
         object cbGlobalDebug: TCheckBox
-          Left = 22
+          Left = 199
           Height = 23
-          Top = 132
+          Top = 182
           Width = 186
           Caption = 'Use Global Debug routines'
           Enabled = False
+          TabOrder = 4
+        end
+        object cbKDebug: TRadioButton
+          Left = 7
+          Height = 23
+          Top = 182
+          Width = 186
+          Caption = 'Use kernelmode debugger'
+          TabOrder = 6
+          TabStop = False
+        end
+        object cbUseWindowsDebugger: TRadioButton
+          Left = 7
+          Height = 23
+          Top = 158
+          Width = 165
+          Caption = 'Use windows debugger'
+          Checked = True
+          State = cbChecked
           TabOrder = 5
+        end
+        object cbUseVEHDebugger: TRadioButton
+          Left = 7
+          Height = 23
+          Top = 134
+          Width = 144
+          Caption = 'Use VEH Debugger'
+          TabOrder = 7
+          TabStop = False
         end
       end
       object tsTools: TTabSheet
         Caption = 'tsTools'
         ClientHeight = 496
-        ClientWidth = 715
+        ClientWidth = 711
         ImageIndex = 9
         object Panel2: TPanel
           Left = 0
           Height = 26
           Top = 0
-          Width = 715
+          Width = 711
           Align = alTop
           BevelOuter = bvNone
           ClientHeight = 26
-          ClientWidth = 715
+          ClientWidth = 711
           TabOrder = 0
           object cbShowTools: TCheckBox
             Left = 0
-            Height = 20
+            Height = 23
             Top = 0
-            Width = 153
+            Width = 159
             Caption = 'Show ''tools'' menu item'
             Checked = True
             OnClick = cbShowToolsClick
@@ -1041,7 +1060,7 @@ object formSettings: TformSettings
           end
         end
         object Panel3: TPanel
-          Left = 487
+          Left = 483
           Height = 470
           Top = 26
           Width = 228
@@ -1158,21 +1177,21 @@ object formSettings: TformSettings
           Left = 0
           Height = 470
           Top = 26
-          Width = 487
+          Width = 483
           Align = alClient
           BevelOuter = bvNone
           ClientHeight = 470
-          ClientWidth = 487
+          ClientWidth = 483
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
             Height = 28
             Top = 442
-            Width = 487
+            Width = 483
             Align = alBottom
             BevelOuter = bvNone
             ClientHeight = 28
-            ClientWidth = 487
+            ClientWidth = 483
             TabOrder = 0
             object btnToolNew: TButton
               Left = 10
@@ -1197,7 +1216,7 @@ object formSettings: TformSettings
             Left = 0
             Height = 442
             Top = 0
-            Width = 487
+            Width = 483
             Align = alClient
             Columns = <            
               item
@@ -1297,7 +1316,7 @@ object formSettings: TformSettings
     top = 441
   end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
-    left = 312
+    left = 8
     top = 176
   end
 end

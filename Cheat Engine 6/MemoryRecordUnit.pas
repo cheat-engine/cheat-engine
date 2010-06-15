@@ -748,6 +748,9 @@ begin
 end;
 
 procedure TMemoryRecord.SetValue(v: string);
+{
+Changes this address to the value V
+}
 var
   buf: pointer;
   bufsize: integer;
@@ -772,9 +775,6 @@ var
 
   mr: TMemoryRecord;
 begin
-  if isGroupHeader then exit;
-
-
   //check if it is a '(description)' notation
   if vartype<>vtString then
   begin
@@ -793,89 +793,107 @@ begin
     end;
   end;
 
-  realAddress:=GetRealAddress; //quick update
 
-  currentValue:=v;
-  frozenValue:=currentValue;
-
-  bufsize:=getbytesize;
-
-  if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
-  if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
-
-  getmem(buf,bufsize);
-
-
-
-  VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
-  try
-
-    if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
-      if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
-
-    case VarType of
-      vtByte: pb^:=strtoint(FrozenValue);
-      vtWord: pw^:=strtoint(FrozenValue);
-      vtDword: pdw^:=strtoint(FrozenValue);
-      vtQword: pqw^:=strtoint64(FrozenValue);
-      vtSingle: ps^:=StrToFloat(FrozenValue);
-      vtDouble: pd^:=StrToFloat(FrozenValue);
-      vtBinary:
-      begin
-        if not Extra.bitData.showasbinary then
-          temps:=FrozenValue
-        else
-          temps:=IntToStr(BinToInt(FrozenValue));
-
-        temp:=StrToInt64(temps);
-        temp:=temp shl extra.bitData.Bit;
-        mask:=qword($ffffffffffffffff) shl extra.bitData.BitLength;
-        mask:=not mask; //mask now contains the length of the bits (4 bits would be 0001111)
-
-
-        mask:=mask shl extra.bitData.Bit; //shift the mask to the proper start position
-        temp:=temp and mask; //cut off extra bits
-
-        case bufsize of
-          1: pb^:=(pb^ and (not mask)) or temp;
-          2: pw^:=(pw^ and (not mask)) or temp;
-          4: pdw^:=(pdw^ and (not mask)) or temp;
-          8: pqw^:=(pqw^ and (not mask)) or temp;
-        end;
-      end;
-
-      vtString:
-      begin
-        for i:=0 to min(length(FrozenValue), bufsize)-1 do
-        begin
-          if extra.stringData.unicode then
-          begin
-            wc[i]:=FrozenValue[i];
-          end
-          else
-          begin
-            c[i]:=FrozenValue[i];
-          end;
-        end;
-      end;
-
-      vtByteArray:
-      begin
-        ConvertStringToBytes(FrozenValue, showAsHex, bts);
-        for i:=0 to min(length(bts),bufsize)-1 do
-          if bts[i]<>-1 then
-            pba[i]:=bts[i];
+  if isGroupHeader then //do this for all it's children
+  begin
+    for i:=0 to treenode.Count-1 do
+    begin
+      try
+        TMemoryRecord(treenode[i].data).SetValue(v);
+      except
+        //some won't take the value, like 12.1112 on a 4 byte value, so just skip that error
       end;
     end;
+  end
+  else
+  begin
+    //not a groupheader
 
-    WriteProcessMemory(processhandle, pointer(realAddress), buf, bufsize, x);
+    realAddress:=GetRealAddress; //quick update
+
+    currentValue:=v;
+    frozenValue:=currentValue;
+
+    bufsize:=getbytesize;
+
+    if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
+    if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
+
+    getmem(buf,bufsize);
 
 
-  finally
-    VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
+
+    VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
+    try
+
+      if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
+        if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
+
+      case VarType of
+        vtByte: pb^:=strtoint(FrozenValue);
+        vtWord: pw^:=strtoint(FrozenValue);
+        vtDword: pdw^:=strtoint(FrozenValue);
+        vtQword: pqw^:=strtoint64(FrozenValue);
+        vtSingle: ps^:=StrToFloat(FrozenValue);
+        vtDouble: pd^:=StrToFloat(FrozenValue);
+        vtBinary:
+        begin
+          if not Extra.bitData.showasbinary then
+            temps:=FrozenValue
+          else
+            temps:=IntToStr(BinToInt(FrozenValue));
+
+          temp:=StrToInt64(temps);
+          temp:=temp shl extra.bitData.Bit;
+          mask:=qword($ffffffffffffffff) shl extra.bitData.BitLength;
+          mask:=not mask; //mask now contains the length of the bits (4 bits would be 0001111)
+
+
+          mask:=mask shl extra.bitData.Bit; //shift the mask to the proper start position
+          temp:=temp and mask; //cut off extra bits
+
+          case bufsize of
+            1: pb^:=(pb^ and (not mask)) or temp;
+            2: pw^:=(pw^ and (not mask)) or temp;
+            4: pdw^:=(pdw^ and (not mask)) or temp;
+            8: pqw^:=(pqw^ and (not mask)) or temp;
+          end;
+        end;
+
+        vtString:
+        begin
+          for i:=0 to min(length(FrozenValue), bufsize)-1 do
+          begin
+            if extra.stringData.unicode then
+            begin
+              wc[i]:=FrozenValue[i];
+            end
+            else
+            begin
+              c[i]:=FrozenValue[i];
+            end;
+          end;
+        end;
+
+        vtByteArray:
+        begin
+          ConvertStringToBytes(FrozenValue, showAsHex, bts);
+          for i:=0 to min(length(bts),bufsize)-1 do
+            if bts[i]<>-1 then
+              pba[i]:=bts[i];
+        end;
+      end;
+
+      WriteProcessMemory(processhandle, pointer(realAddress), buf, bufsize, x);
+
+
+    finally
+      VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
+    end;
+
+    freemem(buf);
+
   end;
-
-  freemem(buf);
 end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;

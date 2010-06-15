@@ -330,10 +330,22 @@ begin
 
 
   //set pointers to strings
-  paddressstring:=@addressstring[1];
-  pbytestring:=@bytestring[1];
-  popcodestring:=@opcodestring[1];
-  pspecialstring:=@specialstring[1];
+  paddressstring:=nil;
+  pbytestring:=nil;
+  popcodestring:=nil;
+  pspecialstring:=nil;
+
+  if length(addressstring)>0 then
+    paddressstring:=@addressstring[1];
+
+  if length(bytestring)>0 then
+    pbytestring:=@bytestring[1];
+
+  if length(opcodestring)>0 then
+    popcodestring:=@opcodestring[1];
+
+  if length(specialstring)>0 then
+    pspecialstring:=@specialstring[1];
 
 
   textcolor:=fcanvas.Font.Color;

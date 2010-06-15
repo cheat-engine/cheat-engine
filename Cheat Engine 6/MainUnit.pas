@@ -14,10 +14,7 @@ uses
   foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
-  windows7taskbar,tablist
-
-
-  {, , formsextra ,KIcon, windows7taskbar};
+  windows7taskbar,tablist,DebuggerInterface,vehdebugger;
 
 //the following are just for compatibility
 
@@ -579,6 +576,7 @@ type
     procedure CreateScanValue2;
     procedure DestroyScanValue2;
 
+    procedure cbPercentageOnChange(sender: TObject);
     procedure CreateCbPercentage;
     procedure DestroyCbPercentage;
 
@@ -1472,6 +1470,25 @@ resourcestring
   strSearchForArray = 'Search for this array';
 
 
+  //--------------------------cbpercentage--------------
+procedure TMainForm.cbPercentageOnChange(sender: TObject);
+begin
+  if cbpercentage.Checked then
+  begin
+    //turn this into a double value scan like "value between"
+    CreateScanValue2;
+    ScanText.caption:='Between';
+    ScanText2.caption:=scantext2.caption+' %';
+
+  end
+  else
+  begin
+    //single value scan
+    ScanText.caption:='Exact Value';
+    DestroyScanValue2;
+  end;
+end;
+
 procedure TMainForm.CreateCbPercentage;
 begin
   if cbpercentage=nil then
@@ -1483,6 +1500,7 @@ begin
     cbpercentage.Anchors:=[akTop,akRight];
     cbpercentage.Width:=80;
     cbpercentage.Parent:=scantype.Parent;
+    cbpercentage.OnChange:=cbPercentageOnChange;
   end;
 end;
 
@@ -1491,6 +1509,7 @@ begin
   if cbpercentage<>nil then
     freeandnil(cbpercentage);
 end;
+//------------------
 
 procedure TMainForm.CreateScanValue2;
 var oldwidth: integer;
@@ -2434,6 +2453,9 @@ begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
   ScanText.left:=scanvalue.left; //lazarus rev  25348 32-bit fix
+
+ // if cbpercentage<>nil then
+ //   cbpercentage.left:=scantype.left+scantype.width+3;
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -2574,6 +2596,18 @@ begin
         if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
           prev, returnlength) then
           ShowMessage('Failure setting the debug privilege. Debugging may be limited.');
+      end;
+
+      if GetSystemType>=7 then
+      begin
+        if lookupPrivilegeValue(nil, 'SeCreateGlobalPrivilege', tp.Privileges[0].Luid) then
+        begin
+          tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+          tp.PrivilegeCount := 1; // One privilege to set
+          if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+            prev, returnlength) then
+            ShowMessage('Failure setting the CreateGlobal privilege.');
+        end;
       end;
     end;
   end;
@@ -4803,16 +4837,23 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 var r: trect;
+vd: TVEHDebugInterface;
+de: TDEBUGEVENT;
+
+c: TContext;
+z: TDebuggerInterface;
 begin
-//  caption:=inttostr(foundlist3.ItemIndex);
+  vd:=TVEHDebugInterface.create;
+  z:=vd;
 
-//  foundlist3.items[foundlist3.ItemIndex].MakeVisible(false);
-//  foundlist3.TopItem:=nil;
- // showmessage(inttohex(systeminfo.dwAllocationGranularity,8));
-  asm
-    db $90,$90,$90
-    db $8c,$3c,$ff,$ff,$ff,$44,$88,$e0
+  while z.WaitForDebugEvent(de, infinite) do
+  begin
 
+    //
+    //100028CA6
+
+    showmessage('debugevent happened');
+    vd.ContinueDebugEvent(de.dwProcessId,de.dwThreadId, DBG_EXCEPTION_NOT_HANDLED);
   end;
 end;
 
@@ -4905,8 +4946,14 @@ end;
 procedure TMainForm.Button2Click(Sender: TObject);
 var
   svalue2: string;
+  percentage: boolean;
 begin
   foundlist.Deinitialize; //unlock file handles
+
+  if cbpercentage<>nil then
+    percentage:=cbpercentage.checked
+  else
+    percentage:=false;
 
 
   if button2.tag=0 then
@@ -4933,7 +4980,7 @@ begin
 
 
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
 
     DisableGui;
 
@@ -5051,6 +5098,7 @@ var
   estimateddiskspaceneeded: qword;
   diskspacefree, totaldiskspace: int64;
   totaldiskspacefree: LARGE_INTEGER;
+  percentage: boolean;
 begin
   estimateddiskspaceneeded:=foundcount*8*3;
   GetDiskFreeSpaceEx(pchar(memscan.ScanresultFolder), diskspacefree, totaldiskspace,@totaldiskspacefree);
@@ -5058,6 +5106,10 @@ begin
   if estimateddiskspaceneeded>diskspacefree then
     if MessageDlg('You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to continue?',mtwarning,[mbyes,mbno],0)<>mryes then exit;
 
+  if cbpercentage<>nil then
+    percentage:=cbPercentage.checked
+  else
+    percentage:=false;
 
 
   foundlist.Deinitialize; //unlock file handles
@@ -5080,7 +5132,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, SelectedCustomScanData, SelectedCustomScanType);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
   DisableGui;
   SpawnCancelButton;
 end;

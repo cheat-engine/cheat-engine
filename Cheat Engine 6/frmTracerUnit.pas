@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,disassembler, NewKernelHandler, ExtCtrls,
-  Buttons, LResources, frmFloatingPointPanelUnit, strutils, cefuncproc;
+  Buttons, LResources, frmFloatingPointPanelUnit, strutils, cefuncproc,clipbrd;
 
 type TTraceDebugInfo=class
   private
@@ -47,6 +47,8 @@ type
     Splitter1: TSplitter;
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
@@ -122,6 +124,26 @@ begin
   loadformposition(self,x);
 end;
 
+procedure TfrmTracer.RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var s: string;
+i: integer;
+begin
+  if button = mbright then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      i:=pos(' ',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+        clipboard.AsText:=s;
+      end;
+    end;
+  end;
+end;
+
 procedure TfrmTracer.FormClose(Sender: TObject; var Action: TCloseAction);
 var i: integer;
 begin
@@ -185,6 +207,7 @@ begin
 
           tag:=i;
           onclick:=p.onclick;
+          OnMouseDown:=RegisterMouseDown;
 
         end;
         p:=l;
@@ -458,9 +481,11 @@ end;
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
 begin
   if listbox1.ItemIndex=-1 then exit;
-  
+
   if fpp=nil then
-    fpp:=TfrmFloatingPointPanel.create(self);
+  begin
+    fpp:=frmFloatingPointPanelUnit.TfrmFloatingPointPanel.create(self); //fpc complains it can't find it, so added the unit in front
+  end;
 
   fpp.Left:=self.left+self.Width;
   fpp.Top:=self.top;

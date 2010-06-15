@@ -1,3 +1,5 @@
+{ This is an automatically generated lazarus resource file }
+
 LazarusResources.Add('TFormFoundCodeListExtra','FORMDATA',[
   'TPF0'#23'TFormFoundCodeListExtra'#22'FormFoundCodeListExtra'#4'Left'#3'R'#3#6
   +'Height'#3':'#1#3'Top'#3'W'#1#5'Width'#3#216#1#7'Caption'#6#10'Extra info'#12
@@ -48,42 +50,50 @@ LazarusResources.Add('TFormFoundCodeListExtra','FORMDATA',[
   +'th'#3#216#1#8'TabOrder'#2#4#8'OnResize'#7#12'Panel6Resize'#0#6'TLabel'#6'La'
   +'bel7'#4'Left'#2#26#6'Height'#2#17#3'Top'#2#12#5'Width'#2'm'#7'Caption'#6#12
   +'EAX=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'F'
-  +'ont.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#6'L'
-  +'abel8'#4'Left'#2#26#6'Height'#2#17#3'Top'#2' '#5'Width'#2'm'#7'Caption'#6#12
-  +'EBX=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'F'
-  +'ont.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#6'L'
-  +'abel9'#4'Left'#2#26#6'Height'#2#17#3'Top'#2'4'#5'Width'#2'm'#7'Caption'#6#12
-  +'ECX=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'F'
-  +'ont.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7'L'
-  +'abel11'#4'Left'#3#146#0#6'Height'#2#17#3'Top'#2#12#5'Width'#2'm'#7'Caption'
-  +#6#12'EDX=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label12'#4'Left'#3#12#1#6'Height'#2#17#3'Top'#2#12#5'Width'#2'm'#7'Caption'
-  +#6#12'EBP=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label13'#4'Left'#3#12#1#6'Height'#2#17#3'Top'#2' '#5'Width'#2'm'#7'Caption'
-  +#6#12'ESP=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  ,#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label14'#4'Left'#3#146#0#6'Height'#2#17#3'Top'#2'4'#5'Width'#2'm'#7'Caption'
-  +#6#12'EDI=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label15'#4'Left'#3#12#1#6'Height'#2#17#3'Top'#2'4'#5'Width'#2'm'#7'Caption'
-  +#6#12'EIP=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label16'#4'Left'#3#146#0#6'Height'#2#17#3'Top'#2' '#5'Width'#2'm'#7'Caption'
-  +#6#12'ESI=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239
-  +#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#0#0#6'TLabel'#7
-  +'Label18'#4'Left'#2#0#6'Height'#2#20#3'Top'#2'L'#5'Width'#3#177#1#7'Anchors'
-  +#11#5'akTop'#6'akLeft'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6'DThe register'
-  +'s shown here are AFTER the instruction has been executed'#11'ParentColor'#8
-  +#7'Visible'#8#8'WordWrap'#9#0#0#12'TSpeedButton'#12'sbShowFloats'#4'Left'#3
-  +#192#1#6'Height'#2#30#4'Hint'#6#24'Floating point registers'#3'Top'#2#28#5'W'
-  +'idth'#2#21#7'Caption'#6#1'>'#5'Color'#7#9'clBtnFace'#9'NumGlyphs'#2#0#7'OnC'
-  +'lick'#7#17'sbShowFloatsClick'#8'ShowHint'#9#14'ParentShowHint'#8#0#0#0#10'T'
-  +'PopupMenu'#6'pmCopy'#4'left'#2'p'#3'top'#2'p'#0#9'TMenuItem'#23'Copyaddress'
-  +'toclipboard1'#7'Caption'#6#22'Copy info to clipboard'#8'ShortCut'#3'C@'#7'O'
-  +'nClick'#7#28'Copyaddresstoclipboard1Click'#0#0#0#10'TPopupMenu'#7'pmCopy2'#4
-  +'left'#3#190#0#3'top'#2'p'#0#9'TMenuItem'#21'Copyguesstoclipboard1'#7'Captio'
-  +'n'#6#28'Copy easy guess to clipboard'#7'OnClick'#7#26'Copyguesstoclipboard1'
-  +'Click'#0#0#0#0
+  +'ont.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#9'PopupMenu'#7#7
+  +'pmEmpty'#11'OnMouseDown'#7#17'RegisterMouseDown'#0#0#6'TLabel'#6'Label8'#4
+  +'Left'#2#26#6'Height'#2#17#3'Top'#2' '#5'Width'#2'm'#7'Caption'#6#12'EBX=DDD'
+  +'DDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'Font.Nam'
+  +'e'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'
+  +#11'OnMouseDown'#7#17'RegisterMouseDown'#0#0#6'TLabel'#6'Label9'#4'Left'#2#26
+  +#6'Height'#2#17#3'Top'#2'4'#5'Width'#2'm'#7'Caption'#6#12'ECX=DDDDDDDD'#12'F'
+  +'ont.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'Font.Name'#6#7'Cour'
+  +'ier'#11'ParentColor'#8#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMous'
+  +'eDown'#7#17'RegisterMouseDown'#0#0#6'TLabel'#7'Label11'#4'Left'#3#146#0#6'H'
+  +'eight'#2#17#3'Top'#2#12#5'Width'#2'm'#7'Caption'#6#12'EDX=DDDDDDDD'#12'Font'
+  +'.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'Font.Name'#6#7'Courier'
+  +#11'ParentColor'#8#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'
+  +#7#17'RegisterMouseDown'#0#0#6'TLabel'#7'Label12'#4'Left'#3#12#1#6'Height'#2
+  +#17#3'Top'#2#12#5'Width'#2'm'#7'Caption'#6#12'EBP=DDDDDDDD'#12'Font.CharSet'
+  ,#7#12'ANSI_CHARSET'#11'Font.Height'#2#239#9'Font.Name'#6#7'Courier'#11'Paren'
+  +'tColor'#8#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'#7#17'R'
+  +'egisterMouseDown'#0#0#6'TLabel'#7'Label13'#4'Left'#3#12#1#6'Height'#2#17#3
+  +'Top'#2' '#5'Width'#2'm'#7'Caption'#6#12'ESP=DDDDDDDD'#12'Font.CharSet'#7#12
+  +'ANSI_CHARSET'#11'Font.Height'#2#239#9'Font.Name'#6#7'Courier'#11'ParentColo'
+  +'r'#8#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'#7#17'Regist'
+  +'erMouseDown'#0#0#6'TLabel'#7'Label14'#4'Left'#3#146#0#6'Height'#2#17#3'Top'
+  +#2'4'#5'Width'#2'm'#7'Caption'#6#12'EDI=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI'
+  +'_CHARSET'#11'Font.Height'#2#239#9'Font.Name'#6#7'Courier'#11'ParentColor'#8
+  +#10'ParentFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'#7#17'RegisterMou'
+  +'seDown'#0#0#6'TLabel'#7'Label15'#4'Left'#3#12#1#6'Height'#2#17#3'Top'#2'4'#5
+  +'Width'#2'm'#7'Caption'#6#12'EIP=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSE'
+  +'T'#11'Font.Height'#2#239#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'Par'
+  +'entFont'#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'#7#17'RegisterMouseDown'
+  +#0#0#6'TLabel'#7'Label16'#4'Left'#3#146#0#6'Height'#2#17#3'Top'#2' '#5'Width'
+  +#2'm'#7'Caption'#6#12'ESI=DDDDDDDD'#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'F'
+  +'ont.Height'#2#239#9'Font.Name'#6#7'Courier'#11'ParentColor'#8#10'ParentFont'
+  +#8#9'PopupMenu'#7#7'pmEmpty'#11'OnMouseDown'#7#17'RegisterMouseDown'#0#0#6'T'
+  +'Label'#7'Label18'#4'Left'#2#0#6'Height'#2#20#3'Top'#2'L'#5'Width'#3#177#1#7
+  +'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6'DThe'
+  +' registers shown here are AFTER the instruction has been executed'#11'Paren'
+  +'tColor'#8#7'Visible'#8#8'WordWrap'#9#0#0#12'TSpeedButton'#12'sbShowFloats'#4
+  +'Left'#3#192#1#6'Height'#2#30#4'Hint'#6#24'Floating point registers'#3'Top'#2
+  +#28#5'Width'#2#21#7'Caption'#6#1'>'#5'Color'#7#9'clBtnFace'#9'NumGlyphs'#2#0
+  +#7'OnClick'#7#17'sbShowFloatsClick'#8'ShowHint'#9#14'ParentShowHint'#8#0#0#0
+  +#10'TPopupMenu'#6'pmCopy'#4'left'#2'p'#3'top'#2'p'#0#9'TMenuItem'#23'Copyadd'
+  +'resstoclipboard1'#7'Caption'#6#22'Copy info to clipboard'#8'ShortCut'#3'C@'
+  +#7'OnClick'#7#28'Copyaddresstoclipboard1Click'#0#0#0#10'TPopupMenu'#7'pmCopy'
+  +'2'#4'left'#3#190#0#3'top'#2'p'#0#9'TMenuItem'#21'Copyguesstoclipboard1'#7'C'
+  +'aption'#6#28'Copy easy guess to clipboard'#7'OnClick'#7#26'Copyguesstoclipb'
+  +'oard1Click'#0#0#0#10'TPopupMenu'#7'pmEmpty'#4'left'#3#24#1#3'top'#2'p'#0#0#0
 ]);

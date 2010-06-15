@@ -140,8 +140,8 @@ type
 
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
-    function getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):ptrUint; overload;
-    function getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean; context: PContext):ptrUint; overload;
+    function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
+    function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint; overload;
 
     function getsearchpath:string;
     procedure setsearchpath(path:string);
@@ -286,24 +286,28 @@ end;
 procedure TSymbolloaderthread.execute;
 begin
   try
-    SymbolsLoaded:=false;
-    if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
+    try
+      SymbolsLoaded:=false;
+      if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
 
 
-    SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
-    if symbolsloaded then
-    begin
-      symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-      symsetsearchpath(processhandle,pchar(searchpath));
+      SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
+      if symbolsloaded then
+      begin
+        symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+        symsetsearchpath(processhandle,pchar(searchpath));
 
-      if kernelsymbols then LoadDriverSymbols;
-      LoadDLLSymbols;
-    end else error:=true;
+        if kernelsymbols then LoadDriverSymbols;
+        LoadDLLSymbols;
+      end else error:=true;
 
 
-    symbolprocesshandle:=processhandle;  
-  finally
-    isloading:=false;
+      symbolprocesshandle:=processhandle;
+    finally
+      isloading:=false;
+    end;
+  except
+    outputdebugstring('Symbolloaderthread has crashed');
   end;
 end;
 
@@ -316,29 +320,29 @@ end;
 
 constructor TSymbolloaderthread.create(targetself, CreateSuspended: boolean);
 var
-  processid: dword;
-  processhandle: thandle;
+  _processid: dword;
+  _processhandle: thandle;
 begin
   self.targetself:=targetself;
   
 {$ifdef autoassemblerdll}
-  processid:=symbolhandler.ProcessID;
-  processhandle:=symbolhandler.processhandle;
+  _processid:=symbolhandler.ProcessID;
+  _processhandle:=symbolhandler.processhandle;
 {$else}
   if targetself then
   begin
-    processid:=getcurrentprocessid;
-    processhandle:=getcurrentprocess;
+    _processid:=getcurrentprocessid;
+    _processhandle:=getcurrentprocess;
   end
   else
   begin
-    processid:=cefuncproc.ProcessID;
-    processhandle:=cefuncproc.ProcessHandle;
+    _processid:=cefuncproc.ProcessID;
+    _processhandle:=cefuncproc.ProcessHandle;
   end;
 {$endif}
 
-  thisprocesshandle:=processhandle;
-  thisprocessid:=processid;
+  thisprocesshandle:=_processhandle;
+  thisprocessid:=_processid;
   isloading:=true;
   SymbolsLoaded:=false;
 
@@ -1004,12 +1008,12 @@ begin
     raise symexception.Create('Failure determining what '+name+' means');
 end;
 
-function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean):ptrUint;
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
 begin
   result:=getAddressFromName(name, waitforsymbols, haserror,nil);
 end;
 
-function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; var haserror: boolean; context: PContext):ptrUint;
+function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint;
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     offset: dword;

@@ -177,6 +177,8 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure ScrollBox1Click(Sender: TObject);
@@ -551,6 +553,27 @@ begin
     hexview.LockRowsize
   else
     hexview.UnlockRowsize;
+end;
+
+procedure TMemoryBrowser.RegisterMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s: string;
+i: integer;
+begin
+  if button = mbright then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      i:=pos(' ',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+
+        clipboard.AsText:=s;
+      end;
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
@@ -2604,6 +2627,7 @@ begin
       r8label.Cursor:=eaxlabel.Cursor;
       r8label.Tag:=6408;
       r8label.onclick:=EAXLabelDblClick;
+      r8label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r9label=nil then
@@ -2616,6 +2640,7 @@ begin
       r9label.Cursor:=eaxlabel.Cursor;
       r9label.Tag:=6409;
       r9label.onclick:=EAXLabelDblClick;
+      r9label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r10label=nil then
@@ -2628,6 +2653,7 @@ begin
       r10label.Cursor:=eaxlabel.Cursor;
       r10label.Tag:=6410;
       r10label.onclick:=EAXLabelDblClick;
+      r10label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r11label=nil then
@@ -2640,6 +2666,7 @@ begin
       r11label.Cursor:=eaxlabel.Cursor;
       r11label.Tag:=6411;
       r11label.onclick:=EAXLabelDblClick;
+      r11label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r12label=nil then
@@ -2652,6 +2679,7 @@ begin
       r12label.Cursor:=eaxlabel.Cursor;
       r12label.Tag:=6412;
       r12label.onclick:=EAXLabelDblClick;
+      r12label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r13label=nil then
@@ -2664,6 +2692,7 @@ begin
       r13label.Cursor:=eaxlabel.Cursor;
       r13label.Tag:=6413;
       r13label.onclick:=EAXLabelDblClick;
+      r13label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r14label=nil then
@@ -2676,6 +2705,7 @@ begin
       r14label.Cursor:=eaxlabel.Cursor;
       r14label.Tag:=6414;
       r14label.onclick:=EAXLabelDblClick;
+      r14label.OnMouseDown:=RegisterMouseDown;
     end;
 
     if r15label=nil then
@@ -2688,6 +2718,7 @@ begin
       r15label.Cursor:=eaxlabel.Cursor;
       r15label.Tag:=6415;
       r15label.onclick:=EAXLabelDblClick;
+      r15label.OnMouseDown:=RegisterMouseDown;
     end;
 
     eiplabel.top:=r15label.top+(ebxlabel.top-eaxlabel.top);

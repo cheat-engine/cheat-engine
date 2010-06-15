@@ -1154,7 +1154,7 @@ begin
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
-  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS;
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol];
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=2;
 

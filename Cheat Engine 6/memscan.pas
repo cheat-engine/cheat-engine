@@ -117,8 +117,10 @@ type
     function ByteSmallerThan(newvalue,oldvalue: pointer): boolean;
     function ByteIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function ByteIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function ByteIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function ByteDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function ByteDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function ByteDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function ByteChanged(newvalue,oldvalue: pointer): boolean;
     function ByteUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -128,8 +130,10 @@ type
     function WordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function WordIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function WordIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function WordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function WordDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function WordDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function WordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function WordChanged(newvalue,oldvalue: pointer): boolean;
     function WordUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -139,8 +143,10 @@ type
     function DWordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function DWordIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function DWordIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function DWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DWordDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function DWordDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function DWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DwordChanged(newvalue,oldvalue: pointer): boolean;
     function DwordUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -151,8 +157,10 @@ type
     function QWordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function QWordIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function QWordIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function QWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function QWordDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function QWordDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function QWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function QWordChanged(newvalue,oldvalue: pointer): boolean;
     function QwordUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -162,8 +170,10 @@ type
     function SingleSmallerThan(newvalue,oldvalue: pointer): boolean;
     function SingleIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function SingleIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function SingleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function SingleDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function SingleDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function SingleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function SingleChanged(newvalue,oldvalue: pointer): boolean;
     function singleUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -173,8 +183,10 @@ type
     function DoubleSmallerThan(newvalue,oldvalue: pointer): boolean;
     function DoubleIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function DoubleIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function DoubleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DoubleDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function DoubleDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function DoubleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DoubleChanged(newvalue,oldvalue: pointer): boolean;
     function DoubleUnChanged(newvalue,oldvalue: pointer): boolean;
 
@@ -184,8 +196,10 @@ type
     function AllSmallerThan(newvalue,oldvalue: pointer): boolean;
     function AllIncreasedValue(newvalue,oldvalue: pointer): boolean;
     function AllIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function AllIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function AllDecreasedValue(newvalue,oldvalue: pointer): boolean;
     function AllDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function AllDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function AllChanged(newvalue,oldvalue: pointer): boolean;
     function AllUnchanged(newvalue,oldvalue: pointer): boolean;
 
@@ -244,6 +258,7 @@ type
     fastscan: boolean;
     unicode: boolean;
     caseSensitive: boolean;
+    percentage: boolean;
     fastscanalignsize: integer;
     variablesize: integer;
     scanvalue1,scanvalue2: string;
@@ -329,6 +344,7 @@ type
     fastscan: boolean;
     unicode: boolean;
     casesensitive: boolean;
+    percentage: boolean;
     fastscanalignsize: integer;
     variablesize: integer;
     scanvalue1,scanvalue2: string;
@@ -411,8 +427,8 @@ type
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -588,6 +604,26 @@ begin
     end;
 end;
 
+function TScanner.AllIncreasedValueByPercentage(newvalue,oldvalue: pointer):boolean;
+var i: TVariableType;
+begin
+  typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtDword]:=typesmatch[vtDword] and DwordIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtQword]:=typesmatch[vtQword] and qwordIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
+
+  result:=false;
+  for i:=vtbyte to vtdouble do
+    if typesmatch[i] then
+    begin
+      result:=true;
+      exit;
+    end;
+end;
+
+
 function TScanner.AllDecreasedValue(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
 begin
@@ -616,6 +652,25 @@ begin
   typesmatch[vtQword]:=typesmatch[vtQword] and qwordDecreasedValueBy(newvalue,oldvalue);
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueBy(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
+
+  result:=false;
+  for i:=vtbyte to vtdouble do
+    if typesmatch[i] then
+    begin
+      result:=true;
+      exit;
+    end;
+end;
+
+function TScanner.AllDecreasedValueByPercentage(newvalue,oldvalue: pointer):boolean;
+var i: TVariableType;
+begin
+  typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtDword]:=typesmatch[vtDword] and DwordDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtQword]:=typesmatch[vtQword] and qwordDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueByPercentage(newvalue,oldvalue);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -777,6 +832,17 @@ begin
   result:=pbyte(newvalue)^=pbyte(oldvalue)^+byte(value);
 end;
 
+function TScanner.ByteIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pbyte(newvalue)^>=trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue)) and (pbyte(newvalue)^<=trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue2));
+end;
+
+function TScanner.ByteDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pbyte(newvalue)^>=trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue2)) and (pbyte(newvalue)^<=trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue));
+end;
+
+
 function TScanner.ByteDecreasedValue(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pbyte(newvalue)^<pbyte(oldvalue)^;
@@ -786,6 +852,7 @@ function TScanner.ByteDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pbyte(newvalue)^=pbyte(oldvalue)^-byte(value);
 end;
+
 
 function TScanner.ByteChanged(newvalue,oldvalue: pointer):boolean;
 begin
@@ -839,6 +906,16 @@ begin
   result:=pword(newvalue)^=pword(oldvalue)^-word(value);
 end;
 
+function TScanner.WordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pword(newvalue)^>=trunc(pword(oldvalue)^+pword(oldvalue)^*svalue)) and (pword(newvalue)^<=trunc(pword(oldvalue)^+pword(oldvalue)^*svalue2));
+end;
+
+function TScanner.WordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pword(newvalue)^>=trunc(pword(oldvalue)^-pword(oldvalue)^*svalue2)) and (pword(newvalue)^<=trunc(pword(oldvalue)^-pword(oldvalue)^*svalue));
+end;
+
 function TScanner.WordChanged(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pword(newvalue)^<>pword(oldvalue)^;
@@ -851,7 +928,7 @@ end;
 
 
 //dword:
-function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean;
+function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean; nostackframe;
 begin
   result:=pdword(newvalue)^=dword(value);
 end;
@@ -889,6 +966,16 @@ end;
 function TScanner.DWordDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pdword(newvalue)^=pdword(oldvalue)^-dword(value);
+end;
+
+function TScanner.DWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pdword(newvalue)^>=trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue)) and (pdword(newvalue)^<=trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue2));
+end;
+
+function TScanner.DWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pdword(newvalue)^>=trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue2)) and (pdword(newvalue)^<=trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue));
 end;
 
 function TScanner.DWordChanged(newvalue,oldvalue: pointer):boolean;
@@ -941,6 +1028,16 @@ end;
 function TScanner.QWordDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   result:=PQWORD(newvalue)^=PQWORD(oldvalue)^-value;
+end;
+
+function TScanner.QWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(PQWORD(newvalue)^>=trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue)) and (PQWORD(newvalue)^<=trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue2));
+end;
+
+function TScanner.QWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(PQWORD(newvalue)^>=trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue2)) and (PQWORD(newvalue)^<=trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue));
 end;
 
 function TScanner.QWordChanged(newvalue,oldvalue: pointer):boolean;
@@ -1008,6 +1105,16 @@ begin
   result:=RoundTo(psingle(newvalue)^,-floataccuracy)=RoundTo(psingle(oldvalue)^-svalue,-floataccuracy);
 end;
 
+function TScanner.SingleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(psingle(newvalue)^>=psingle(oldvalue)^+psingle(oldvalue)^*svalue) and (psingle(newvalue)^<=psingle(oldvalue)^+psingle(oldvalue)^*svalue2);
+end;
+
+function TScanner.SingleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(psingle(newvalue)^>=psingle(oldvalue)^-psingle(oldvalue)^*svalue2) and (psingle(newvalue)^<=psingle(oldvalue)^-psingle(oldvalue)^*svalue);
+end;
+
 function TScanner.SingleChanged(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pSingle(newvalue)^<>pSingle(oldvalue)^;
@@ -1067,6 +1174,16 @@ end;
 function TScanner.DoubleDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 begin
   result:=RoundTo(pdouble(newvalue)^,-floataccuracy)=RoundTo(pdouble(oldvalue)^-svalue,-floataccuracy);
+end;
+
+function TScanner.DoubleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pdouble(newvalue)^>=pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue) and (pdouble(newvalue)^<=pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue2);
+end;
+
+function TScanner.DoubleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pdouble(newvalue)^>=pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue2) and (pdouble(newvalue)^<=pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue);
 end;
 
 function TScanner.DoubleChanged(newvalue,oldvalue: pointer):boolean;
@@ -1606,13 +1723,13 @@ begin
   while i<maxindex do
   begin
     j:=i+1;
-    currentbase:=alist[i].address and $FFFFFFFFFFFFF000;
+    currentbase:=alist[i].address and qword($FFFFFFFFFFFFF000);
     while j<=maxindex do
     begin
 
 
         
-      if (currentbase)=((alist[j].address+vsize-1) and $fffffffffffff000) then //same page
+      if (currentbase)=((alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -1725,10 +1842,10 @@ begin
   begin
     j:=i+1;
               
-    currentbase:=alist[i].address and $FFFFFFFFFFFFF000;
+    currentbase:=alist[i].address and qword($FFFFFFFFFFFFF000);
     while j<=maxindex do
     begin
-      if (currentbase)=((alist[j].address+vsize-1) and $fffffffffffff000) then //same page
+      if (currentbase)=((alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -1834,10 +1951,10 @@ begin
   while i<maxindex do
   begin
     j:=i+1;
-    currentbase:=alist[i] and $FFFFFFFFFFFFF000;
+    currentbase:=alist[i] and qword($FFFFFFFFFFFFF000);
     while j<=maxindex do
     begin
-      if (currentbase)=((alist[j]+vsize-1) and $fffffffffffff000) then //same page
+      if (currentbase)=((alist[j]+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -1881,6 +1998,7 @@ var FloatSettings: TFormatSettings;
     b: Tbytes;
     foundbuffersize: integer;
     p: pointer;
+    td: double;
 begin
   //fill FloatSettings with formatting data (e.g difference between , and . for decimal)
   //GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
@@ -1963,7 +2081,7 @@ begin
       end;
     end;
 
-    if variableType in [vtsingle,vtDouble,vtAll,vtCustom] then
+    if percentage or (variableType in [vtsingle,vtDouble,vtAll,vtCustom]) then
     begin
       try
         dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -2003,6 +2121,21 @@ begin
 
       end;
 
+      if percentage then
+      begin
+        if dvalue>dvalue2 then
+        begin
+          td:=dvalue;
+          dvalue:=dvalue2;
+          dvalue2:=td;
+
+        end;
+        dvalue:=dvalue / 100;
+        dvalue2:=dvalue2 / 100;
+
+
+      end;
+
       svalue:=dvalue;
       svalue2:=dvalue2;
 
@@ -2010,16 +2143,19 @@ begin
       if floataccuracy>0 then
         floataccuracy:=length(scanvalue1)-floataccuracy;
 
-      svalue:=RoundTo(svalue,-floataccuracy);
-      svalue2:=RoundTo(svalue2,-floataccuracy);
-      dvalue:=RoundTo(dvalue,-floataccuracy);
-      dvalue2:=RoundTo(dvalue2,-floataccuracy);
-
+      if not percentage then
+      begin
+        svalue:=RoundTo(svalue,-floataccuracy);
+        svalue2:=RoundTo(svalue2,-floataccuracy);
+        dvalue:=RoundTo(dvalue,-floataccuracy);
+        dvalue2:=RoundTo(dvalue2,-floataccuracy);
+      end;
 
       mindvalue:=dvalue-(1/(power(10,floataccuracy)));
       maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
       minsvalue:=svalue-(1/(power(10,floataccuracy)));
       maxsvalue:=svalue+(1/(power(10,floataccuracy)));
+
     end;
                   
     if variableType = vtString then
@@ -2109,9 +2245,15 @@ begin
         soBiggerThan:       checkroutine:=byteBiggerThan;
         soSmallerThan:      checkroutine:=byteSmallerThan;
         soIncreasedValue:   checkroutine:=byteIncreasedValue;
-        soIncreasedValueBy: checkroutine:=byteIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=byteIncreasedValueByPercentage
+                            else
+                              checkroutine:=byteIncreasedValueBy;
         soDecreasedValue:   checkroutine:=byteDecreasedValue;
-        soDecreasedValueBy: checkroutine:=byteDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=byteDecreasedValueByPercentage
+                            else
+                              checkroutine:=byteDecreasedValueBy;
         soChanged:          checkroutine:=byteChanged;
         soUnChanged:        checkroutine:=byteUnchanged;
         soSameAsFirst:      checkroutine:=byteUnchanged;
@@ -2130,9 +2272,15 @@ begin
         soBiggerThan:       checkroutine:=wordBiggerThan;
         soSmallerThan:      checkroutine:=wordSmallerThan;
         soIncreasedValue:   checkroutine:=wordIncreasedValue;
-        soIncreasedValueBy: checkroutine:=wordIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=wordIncreasedValueByPercentage
+                            else
+                              checkroutine:=wordIncreasedValueBy;
         soDecreasedValue:   checkroutine:=wordDecreasedValue;
-        soDecreasedValueBy: checkroutine:=wordDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=wordDecreasedValueByPercentage
+                            else
+                              checkroutine:=wordDecreasedValueBy;
         soChanged:          checkroutine:=wordChanged;
         soUnChanged:        checkroutine:=wordUnchanged;
         soSameAsFirst:      checkroutine:=wordUnchanged;
@@ -2151,9 +2299,15 @@ begin
         soBiggerThan:       checkroutine:=dwordBiggerThan;
         soSmallerThan:      checkroutine:=dwordSmallerThan;
         soIncreasedValue:   checkroutine:=dwordIncreasedValue;
-        soIncreasedValueBy: checkroutine:=dwordIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=dwordIncreasedValueByPercentage
+                            else
+                              checkroutine:=dwordIncreasedValueBy;
         soDecreasedValue:   checkroutine:=dwordDecreasedValue;
-        soDecreasedValueBy: checkroutine:=dwordDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=dwordDecreasedValueByPercentage
+                            else
+                              checkroutine:=dwordDecreasedValueBy;
         soChanged:          checkroutine:=dwordChanged;
         soUnChanged:        checkroutine:=dwordUnchanged;
         soSameAsFirst:      checkroutine:=dwordUnchanged;
@@ -2172,9 +2326,15 @@ begin
         soBiggerThan:       checkroutine:=qwordBiggerThan;
         soSmallerThan:      checkroutine:=qwordSmallerThan;
         soIncreasedValue:   checkroutine:=qwordIncreasedValue;
-        soIncreasedValueBy: checkroutine:=qwordIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=qwordIncreasedValueByPercentage
+                            else
+                              checkroutine:=qwordIncreasedValueBy;
         soDecreasedValue:   checkroutine:=qwordDecreasedValue;
-        soDecreasedValueBy: checkroutine:=qwordDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=qwordDecreasedValueByPercentage
+                            else
+                              checkroutine:=qwordDecreasedValueBy;
         soChanged:          checkroutine:=qwordChanged;
         soUnChanged:        checkroutine:=qwordUnchanged;
         soSameAsFirst:      checkroutine:=qwordUnchanged;
@@ -2193,7 +2353,11 @@ begin
         soBiggerThan:       checkroutine:=singleBiggerThan;
         soSmallerThan:      checkroutine:=singleSmallerThan;
         soIncreasedValue:   checkroutine:=singleIncreasedValue;
-        soIncreasedValueBy: checkroutine:=singleIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=singleIncreasedValueByPercentage
+                            else
+                              checkroutine:=singleIncreasedValueBy;
+
         soDecreasedValue:   checkroutine:=singleDecreasedValue;
         soDecreasedValueBy: checkroutine:=singleDecreasedValueBy;
         soChanged:          checkroutine:=singleChanged;
@@ -2214,9 +2378,15 @@ begin
         soBiggerThan:       checkroutine:=doubleBiggerThan;
         soSmallerThan:      checkroutine:=doubleSmallerThan;
         soIncreasedValue:   checkroutine:=doubleIncreasedValue;
-        soIncreasedValueBy: checkroutine:=doubleIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                               checkroutine:=doubleIncreasedValueByPercentage
+                            else
+                               checkroutine:=doubleIncreasedValueBy;
         soDecreasedValue:   checkroutine:=doubleDecreasedValue;
-        soDecreasedValueBy: checkroutine:=doubleDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                               checkroutine:=doubleDecreasedValueByPercentage
+                            else
+                               checkroutine:=doubleDecreasedValueBy;
         soChanged:          checkroutine:=doubleChanged;
         soUnChanged:        checkroutine:=doubleUnchanged;
         soSameAsFirst:      checkroutine:=doubleUnchanged;
@@ -2280,7 +2450,10 @@ begin
         soBiggerThan:       checkroutine:=allBiggerThan;
         soSmallerThan:      checkroutine:=allSmallerThan;
         soIncreasedValue:   checkroutine:=allIncreasedValue;
-        soIncreasedValueBy: checkroutine:=allIncreasedValueBy;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=allIncreasedValueByPercentage
+                            else
+                              checkroutine:=allIncreasedValueBy;
         soDecreasedValue:   checkroutine:=allDecreasedValue;
         soDecreasedValueBy: checkroutine:=allDecreasedValueBy;
         soChanged:          checkroutine:=allChanged;
@@ -2980,6 +3153,7 @@ begin
           scanners[i].readonly:=readonly;
           scanners[i].unicode:=unicode;
           scanners[i].caseSensitive:=caseSensitive;
+          scanners[i].percentage:=percentage;
           scanners[i].hexadecimal:=hexadecimal;
           scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
@@ -3185,6 +3359,7 @@ begin
       scanners[i].readonly:=readonly;
       scanners[i].unicode:=unicode;
       scanners[i].caseSensitive:=caseSensitive;
+      scanners[i].percentage:=percentage;
       scanners[i].hexadecimal:=hexadecimal;
       scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
@@ -3554,6 +3729,7 @@ begin
       scanners[i].unicode:=unicode;
       scanners[i].OnlyOne:=OnlyOne;
       scanners[i].caseSensitive:=caseSensitive;
+      scanners[i].percentage:=percentage;
       scanners[i].hexadecimal:=hexadecimal;
       scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
@@ -4040,7 +4216,7 @@ begin
   fLastscantype:=stNewScan;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
 begin
 
   if scanController<>nil then
@@ -4074,6 +4250,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
   
@@ -4085,7 +4262,7 @@ begin
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
@@ -4120,6 +4297,7 @@ begin
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
   scancontroller.unicode:=unicode;
   scancontroller.casesensitive:=casesensitive;
+  scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 

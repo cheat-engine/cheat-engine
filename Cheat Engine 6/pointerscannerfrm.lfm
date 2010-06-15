@@ -11,6 +11,7 @@ object frmPointerScanner: TfrmPointerScanner
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object ProgressBar1: TProgressBar

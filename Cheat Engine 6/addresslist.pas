@@ -592,6 +592,10 @@ begin
 end;
 
 procedure TAddresslist.valuedblclick(node: TTreenode);
+{
+Doubeclcik on the value
+This results in showing the value editor mode
+}
 var
   value: string;
   memrec: TMemoryRecord;

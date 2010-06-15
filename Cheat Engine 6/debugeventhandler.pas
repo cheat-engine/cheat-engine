@@ -6,7 +6,7 @@ interface
 
 uses
   jwawindows, Windows, Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
-  disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit;
+  disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit, DebuggerInterfaceAPIWrapper;
 
 type
   TDebugEventHandler = class;
@@ -479,6 +479,7 @@ begin
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
   handle    := debugevent.CreateThread.hThread;
+
   Result    := true;
 
   //set all the debugregister breakpoints for this thread

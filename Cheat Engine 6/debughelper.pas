@@ -7,7 +7,8 @@ interface
 uses
   Windows, Classes, SysUtils, Controls, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
-  debuggertypedefinitions, formChangedAddresses, frmTracerUnit;
+  debuggertypedefinitions, formChangedAddresses, frmTracerUnit, VEHDebugger,
+  WindowsDebugger, debuggerinterfaceAPIWrapper;
 
 
 
@@ -1102,6 +1103,19 @@ begin
   handlebreakpoints := formsettings.cbHandleBreakpoints.Checked;
   hidedebugger := formsettings.checkbox1.Checked;
   canusedebugregs := formsettings.rbDebugAsBreakpoint.Checked;
+
+  //setup the used debugger
+  if formsettings.cbUseWindowsDebugger.checked then
+    CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
+  else if formsettings.cbUseVEHDebugger.checked then
+    CurrentDebuggerInterface:=TVEHDebugInterface.create;
+
+  //prevent the user from changing this setting till next restart
+  formsettings.cbUseWindowsDebugger.enabled:=false;
+  formsettings.cbUseVEHDebugger.enabled:=false;
+  formsettings.cbKDebug.enabled:=false;
+
+
 
   //clean up some debug views
 

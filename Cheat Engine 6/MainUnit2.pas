@@ -731,8 +731,20 @@ begin
           tempdiralternative:=edtTempScanFolder.text;
 
 
-          try cbProcessWatcher.checked:=reg.readBool('Use Processwatcher'); except end;
-          try cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger'); except end;
+          if reg.ValueExists('Use Processwatcher') then
+            cbProcessWatcher.checked:=reg.readBool('Use Processwatcher');
+
+          if reg.ValueExists('Use VEH Debugger') then
+            cbUseVEHDebugger.Checked:=reg.ReadBool('Use VEH Debugger');
+
+          if reg.ValueExists('Use Windows Debugger') then
+            cbUseWindowsDebugger.checked:=reg.ReadBool('Use Windows Debugger');
+
+          if reg.ValueExists('Use Kernel Debugger') then
+            cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+
+
+
           try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;
 
           if reg.ValueExists('Show tools menu') then

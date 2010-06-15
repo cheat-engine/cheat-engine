@@ -200,6 +200,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label8: TLabel
       Left = 26
@@ -212,6 +214,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label9: TLabel
       Left = 26
@@ -224,6 +228,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label11: TLabel
       Left = 146
@@ -236,6 +242,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label12: TLabel
       Left = 268
@@ -248,6 +256,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label13: TLabel
       Left = 268
@@ -260,6 +270,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label14: TLabel
       Left = 146
@@ -272,6 +284,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label15: TLabel
       Left = 268
@@ -284,6 +298,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label16: TLabel
       Left = 146
@@ -296,6 +312,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Font.Name = 'Courier'
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEmpty
+      OnMouseDown = RegisterMouseDown
     end
     object Label18: TLabel
       Left = 0
@@ -339,5 +357,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Caption = 'Copy easy guess to clipboard'
       OnClick = Copyguesstoclipboard1Click
     end
+  end
+  object pmEmpty: TPopupMenu
+    left = 280
+    top = 112
   end
 end
