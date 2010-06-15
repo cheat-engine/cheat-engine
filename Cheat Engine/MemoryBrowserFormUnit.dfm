@@ -89,6 +89,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object EBXlabel: TLabel
           Tag = 1
@@ -105,6 +106,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object ECXlabel: TLabel
           Tag = 2
@@ -121,6 +123,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object EDXlabel: TLabel
           Tag = 3
@@ -137,6 +140,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object ESIlabel: TLabel
           Tag = 4
@@ -153,6 +157,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object EDIlabel: TLabel
           Tag = 5
@@ -169,6 +174,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object EBPlabel: TLabel
           Tag = 6
@@ -185,6 +191,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object ESPlabel: TLabel
           Tag = 7
@@ -201,6 +208,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object EIPlabel: TLabel
           Tag = 8
@@ -217,6 +225,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Style = []
           ParentFont = False
           OnClick = EAXLabelDblClick
+          OnMouseDown = RegisterMouseDown
         end
         object CSLabel: TLabel
           Tag = 9

@@ -313,6 +313,8 @@ type
     procedure Executetillreturn1Click(Sender: TObject);
     procedure lvStacktraceDataData(Sender: TObject; Item: TListItem);
     procedure lvStacktraceDataDblClick(Sender: TObject);
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     posloadedfromreg: boolean;
@@ -4327,6 +4329,27 @@ begin
     end;
 
   end;
+end;
+
+procedure TMemoryBrowser.RegisterMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s: string;
+i: integer;
+begin
+  if button = mbright then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      i:=pos(' ',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+
+        clipboard.AsText:=s;
+      end;
+    end;
+  end;   
 end;
 
 end.

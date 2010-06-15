@@ -90,6 +90,7 @@ begin
     6: result:=context.Ebp;
     7: result:=context.Esp;
     8: result:=context.Eip;
+    else result:=0;
   end;
 end;
 
@@ -107,13 +108,19 @@ end;
 procedure TRegisters.RegisterMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var s: string;
+i: integer;
 begin
-  if button = mbleft then
+  if button = mbright then
   begin
     if (sender is TLabel) then
     begin
       s:=tlabel(sender).Caption;
-      clipboard.AsText:=s;
+      i:=pos(' ',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+        clipboard.AsText:=s;
+      end;
     end;
   end;
 end;  

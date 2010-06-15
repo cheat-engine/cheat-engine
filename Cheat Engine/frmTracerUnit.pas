@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,disassembler,debugger,newkernelhandler, ExtCtrls,
-  Buttons, frmFloatingPointPanelUnit,cefuncproc;
+  Buttons, frmFloatingPointPanelUnit,cefuncproc,clipbrd;
 
 type TTraceDebugInfo=class
   private
@@ -51,6 +51,8 @@ type
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     traceaddress: dword;
@@ -335,6 +337,27 @@ end;
 procedure TfrmTracer.FormDestroy(Sender: TObject);
 begin
   saveformposition(self,[]); 
+end;
+
+procedure TfrmTracer.RegisterMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s: string;
+i: integer;
+begin
+  if button = mbright then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      i:=pos(' ',s);
+      if i>0 then //should always be true
+      begin
+        s:=copy(s,i+1,length(s));
+
+        clipboard.AsText:=s;
+      end;
+    end;
+  end;   
 end;
 
 end.

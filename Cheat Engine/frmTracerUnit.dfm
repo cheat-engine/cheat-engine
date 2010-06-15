@@ -59,6 +59,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EBXlabel: TLabel
       Tag = 1
@@ -75,6 +76,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object ECXlabel: TLabel
       Tag = 2
@@ -91,6 +93,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EDXlabel: TLabel
       Tag = 3
@@ -107,6 +110,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object ESIlabel: TLabel
       Tag = 4
@@ -123,6 +127,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EDIlabel: TLabel
       Tag = 5
@@ -139,6 +144,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EBPlabel: TLabel
       Tag = 6
@@ -155,6 +161,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object ESPlabel: TLabel
       Tag = 7
@@ -171,6 +178,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EIPlabel: TLabel
       Tag = 8
@@ -187,6 +195,7 @@ object frmTracer: TfrmTracer
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object cflabel: TLabel
       Left = 162
