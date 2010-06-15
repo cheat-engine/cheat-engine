@@ -37,6 +37,7 @@ object Registers: TRegisters
       Font.Style = []
       ParentFont = False
       OnDblClick = EAXLabelDblClick
+      OnMouseDown = RegisterMouseDown
     end
     object EBXlabel: TLabel
       Tag = 1
@@ -52,6 +53,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object ECXlabel: TLabel
       Tag = 2
@@ -67,6 +69,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object EDXlabel: TLabel
       Tag = 3
@@ -82,6 +85,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object ESIlabel: TLabel
       Tag = 4
@@ -97,6 +101,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object EDIlabel: TLabel
       Tag = 5
@@ -112,6 +117,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object EBPlabel: TLabel
       Tag = 6
@@ -127,6 +133,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object ESPlabel: TLabel
       Tag = 7
@@ -142,6 +149,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object EIPlabel: TLabel
       Tag = 8
@@ -157,6 +165,7 @@ object Registers: TRegisters
       Font.Name = 'Courier'
       Font.Style = []
       ParentFont = False
+      OnMouseDown = RegisterMouseDown
     end
     object Label14: TLabel
       Left = 10

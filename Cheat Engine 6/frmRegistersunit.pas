@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, NewKernelHandler,
-  cefuncproc, LResources;
+  cefuncproc, LResources,Clipbrd;
 
 type
 
@@ -28,6 +28,8 @@ type
     Shape1: TShape;
     Panel2: TPanel;
     sbShowFloats: TSpeedButton;
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure EAXLabelDblClick(Sender: TObject);
@@ -84,6 +86,7 @@ begin
       r8label.top:=esplabel.Top+esplabel.Height;
       r8label.height:=eaxlabel.height;
       r8label.OnDblClick:=EAXLabelDblClick;
+      r8label.OnMouseDown:=RegisterMouseDown;
       r8label.tag:=9;
       r8label.parent:=panel1;
     end;
@@ -96,6 +99,7 @@ begin
       r9label.top:=r8label.Top+r8label.Height;
       r9label.height:=eaxlabel.height;
       r9label.OnDblClick:=EAXLabelDblClick;
+      r9label.OnMouseDown:=RegisterMouseDown;
       r9label.tag:=10;
       r9label.parent:=panel1;
     end;
@@ -108,6 +112,7 @@ begin
       r10label.top:=r9label.Top+r9label.Height;
       r10label.height:=eaxlabel.height;
       r10label.OnDblClick:=EAXLabelDblClick;
+      r10label.OnMouseDown:=RegisterMouseDown;
       r10label.tag:=11;
       r10label.parent:=panel1;
     end;
@@ -120,6 +125,7 @@ begin
       r11label.top:=r10label.Top+r10label.Height;
       r11label.height:=eaxlabel.height;
       r11label.OnDblClick:=EAXLabelDblClick;
+      r11label.OnMouseDown:=RegisterMouseDown;
       r11label.tag:=12;
       r11label.parent:=panel1;
     end;
@@ -132,6 +138,7 @@ begin
       r12label.top:=r11label.Top+r11label.Height;
       r12label.height:=eaxlabel.height;
       r12label.OnDblClick:=EAXLabelDblClick;
+      r12label.OnMouseDown:=RegisterMouseDown;
       r12label.tag:=13;
       r12label.parent:=panel1;
     end;
@@ -144,6 +151,7 @@ begin
       r13label.top:=r12label.Top+r12label.Height;
       r13label.height:=eaxlabel.height;
       r13label.OnDblClick:=EAXLabelDblClick;
+      r13label.OnMouseDown:=RegisterMouseDown;
       r13label.tag:=14;
       r13label.parent:=panel1;
     end;
@@ -156,6 +164,7 @@ begin
       r14label.top:=r13label.Top+r13label.Height;
       r14label.height:=eaxlabel.height;
       r14label.OnDblClick:=EAXLabelDblClick;
+      r14label.OnMouseDown:=RegisterMouseDown;
       r14label.tag:=15;
       r14label.parent:=panel1;
     end;
@@ -168,6 +177,7 @@ begin
       r15label.top:=r14label.Top+r14label.Height;
       r15label.height:=eaxlabel.height;
       r15label.OnDblClick:=EAXLabelDblClick;
+      r15label.OnMouseDown:=RegisterMouseDown;
       r15label.tag:=16;
       r15label.parent:=panel1;
     end;
@@ -229,6 +239,20 @@ begin
   fpp.Top:=self.top;
   fpp.SetContextPointer(context);
   fpp.show;//pop to foreground
+end;
+
+procedure TRegisters.RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var s: string;
+begin
+  if button = mbleft then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      clipboard.AsText:=s;
+    end;
+  end;
 end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);

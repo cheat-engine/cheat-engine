@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, newkernelhandler;
+  Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, newkernelhandler,
+  clipbrd;
 
 type
   TRegisters = class(TForm)
@@ -26,6 +27,8 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure EAXLabelDblClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     context: PContext;
@@ -100,5 +103,19 @@ procedure TRegisters.FormResize(Sender: TObject);
 begin
   sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.height div 2);
 end;
+
+procedure TRegisters.RegisterMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var s: string;
+begin
+  if button = mbleft then
+  begin
+    if (sender is TLabel) then
+    begin
+      s:=tlabel(sender).Caption;
+      clipboard.AsText:=s;
+    end;
+  end;
+end;  
 
 end.
