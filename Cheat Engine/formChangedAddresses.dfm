@@ -93,6 +93,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Top = 64
   end
   object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
     Left = 40
     Top = 104
     object Showregisterstates1: TMenuItem

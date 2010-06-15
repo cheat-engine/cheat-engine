@@ -26,6 +26,7 @@ type
     procedure Browsethismemoryregion1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
   private
     { Private declarations }
     procedure refetchValues;
@@ -208,6 +209,8 @@ begin
   begin
     memorybrowser.memoryaddress:=strtoint('$'+changedlist.Selected.Caption);
     memorybrowser.refreshmb;
+    if not memorybrowser.Visible then
+      memorybrowser.visible:=true;
   end;
 end;
 
@@ -221,6 +224,12 @@ var x: array of integer;
 begin
   setlength(x, 0);
   loadformposition(self,x);
+end;
+
+procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
+begin
+  Showregisterstates1.enabled:=changedlist.selected<>nil;
+  Browsethismemoryregion1.enabled:=changedlist.selected<>nil;     
 end;
 
 end.

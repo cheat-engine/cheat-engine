@@ -1610,6 +1610,7 @@ begin
 
     if selectedstructure<>nil then
     begin
+      //find out the type
       if selectedstructure.basestructure>=0 then
       case definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].structurenr of
         -1,-2,-3: vtype:=0;
@@ -1660,33 +1661,9 @@ begin
 
     end else exit;
 
-    objectname:='';
-    setlength(offsets,0);
-    while (selectedstructure<>nil) do
-    begin
-      //get the offsets for each structure till you get to the base address
-      selectedelement:=selectednode.Index;
-      snr:=selectedstructure.basestructure;
-
-      setlength(offsets,length(offsets)+1);
-      offsets[length(offsets)-1]:=0;
-
-      if snr>=0 then
-      begin
-        for i:=0 to selectedelement-1 do
-          inc(offsets[length(offsets)-1],definedstructures[snr].structelement[i].bytesize);
-      end;
-
-      selectednode:=selectednode.Parent;
-      if selectednode<>nil then
-        selectedstructure:=tstructure(selectednode.data)
-      else
-        break;
-    end;
-
 
     //now add it to the list
-    mainform.addaddress('bla',addresses[section]+offsets[length(offsets)-1],offsets[0],length(offsets)-1,length(offsets)>1,vtype,vlength,0,unicode,showashex);
+    mainform.addaddress(definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description,selectedstructure.addresses[section]+definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].offset,[],0,false,vtype,vlength,vlength,unicode,showashex);
     mainform.itemshavechanged:=true;
   end;
 end;
