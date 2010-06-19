@@ -329,7 +329,7 @@ procedure TfrmProcessWatcher.FormCreate(Sender: TObject);
 begin
   if @startprocesswatch=nil then loaddbk32;
 
-  if StartProcessWatch then
+  if @StartProcessWatch<>nil then
   begin
     //start the thread that gets the data
     processesMREW:=TMultiReadExclusiveWriteSynchronizer.create;

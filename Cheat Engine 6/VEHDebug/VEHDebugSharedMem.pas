@@ -10,7 +10,7 @@ interface
 uses
   windows, Classes, SysUtils;
 
-type TVEHDebugSharedMem=record
+type TVEHDebugSharedMem=packed record
   CurrentContext: array [0..8191] of byte; //should be enough for a context...
 
 
