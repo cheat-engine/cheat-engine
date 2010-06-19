@@ -1019,7 +1019,10 @@ begin
   h:=LoadLibrary('Kernel32.dll');
   if h=0 then raise exception.Create('No kernel32.dll loaded');
 
+  LoadLibraryPtr:=nil;
+  GetProcAddressPtr:=nil;
   injectionlocation:=nil;
+
   try
     try
       getprocaddressptr:=pointer(symhandler.getAddressFromName('Kernel32!GetProcAddress',true));
@@ -1030,7 +1033,7 @@ begin
     if getprocaddressptr=nil then raise exception.Create('GetProcAddress not found');
 
     try
-      LoadLibraryPtr:=pointer(symhandler.getAddressFromName('LoadLibraryA',true));
+      LoadLibraryPtr:=pointer(symhandler.getAddressFromName('Kernel32!LoadLibraryA',true));
     except
       //failed getting the address of LoadLibraryA, use old method
       LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');

@@ -58,6 +58,7 @@ type
     //sync functions
     procedure visualizeBreak;
   public
+    isHandled: boolean; //set to true if this thread is the current debug target
     ProcessId: dword;
     ThreadId:  dword;
     handle: THandle;
@@ -114,7 +115,8 @@ begin
     context.ContextFlags := CONTEXT_ALL;// or CONTEXT_MMX_REGISTERS;
     outputdebugstring(pchar(format('GetThreadContext(%d,%p)',[handle,@context])));
 
-    if not getthreadcontext(handle, context^) then
+
+    if not getthreadcontext(handle, context^,  isHandled) then
     begin
       i := getlasterror;
       outputdebugstring(PChar('getthreadcontext error:' + IntToStr(getlasterror)));
@@ -131,7 +133,7 @@ begin
   begin
     context:=self.context;
     context.ContextFlags := CONTEXT_ALL;
-    if not setthreadcontext(self.handle, context^) then
+    if not setthreadcontext(self.handle, context^, isHandled) then
     begin
       i := getlasterror;
       outputdebugstring(PChar('setthreadcontext error:' + IntToStr(getlasterror)));
@@ -631,6 +633,7 @@ begin
     end;
   end;
 
+  currentthread.isHandled:=true;
   currentthread.FillContext;
   TDebuggerthread(debuggerthread).currentThread:=currentThread;
 
@@ -652,6 +655,7 @@ begin
         Result := currentThread.ExitThreadDebugEvent(debugEvent, dwContinueStatus);
         ThreadList.Remove(currentThread);
         currentThread.Free;
+        currentthread:=nil;
       finally
         threadlistCS.Leave;
       end;
@@ -668,6 +672,8 @@ begin
                                 Result := currentThread.HandleUnknownEvent(debugEvent, dwContinueStatus);
   end;
 
+  if currentthread<>nil then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
+    currentthread.isHandled:=false;
 
   OutputDebugString('Returned from handleExceptionDebugEvent');
 end;

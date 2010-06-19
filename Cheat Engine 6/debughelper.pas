@@ -128,6 +128,9 @@ begin
 
             ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
           end;
+
+
+
         end
         else
         begin
@@ -1064,6 +1067,7 @@ begin
     end;
 
     fcurrentThread.continueDebugging(continueOption);
+    fcurrentThread:=nil;
   end;
 end;
 
@@ -1078,7 +1082,7 @@ var
 begin
   starttime:=GetTickCount;
 
-  while gettickcount-starttime<5000 do
+  while (gettickcount-starttime)<5000000 do
   begin
     currentloopstarttime:=GetTickCount;
     while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long

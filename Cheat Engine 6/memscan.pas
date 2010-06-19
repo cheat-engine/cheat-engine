@@ -928,7 +928,7 @@ end;
 
 
 //dword:
-function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean; nostackframe;
+function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean;
 begin
   result:=pdword(newvalue)^=dword(value);
 end;

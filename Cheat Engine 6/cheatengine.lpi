@@ -11,15 +11,16 @@
       <TargetFileExt Value=".exe"/>
       <Title Value="Cheat Engine 6.0"/>
       <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="360"/>
+      <BuildNr Value="361"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.360" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.361" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -42,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="153">
+    <Units Count="154">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -86,20 +87,24 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="949"/>
+        <TopLine Value="144"/>
         <CursorPos X="1" Y="966"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1248"/>
-        <CursorPos X="27" Y="1266"/>
+        <TopLine Value="1073"/>
+        <CursorPos X="1" Y="1086"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -126,10 +131,12 @@
         <Filename Value="Assemblerunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Assemblerunit"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="810"/>
-        <CursorPos X="19" Y="815"/>
+        <TopLine Value="3245"/>
+        <CursorPos X="1" Y="3262"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -506,10 +513,12 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="926"/>
-        <CursorPos X="81" Y="931"/>
+        <TopLine Value="1559"/>
+        <CursorPos X="1" Y="1578"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
       <Unit42>
@@ -670,7 +679,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="1"/>
-        <UsageCount Value="142"/>
+        <UsageCount Value="141"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit55>
       <Unit56>
@@ -1376,13 +1385,16 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="684"/>
-        <CursorPos X="20" Y="700"/>
+        <TopLine Value="435"/>
+        <CursorPos X="46" Y="450"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="1">
-          <Item0 X="18" Y="640" ID="8"/>
+          <Item0 X="18" Y="643" ID="8"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit117>
       <Unit118>
@@ -1399,10 +1411,12 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="997"/>
-        <CursorPos X="115" Y="1084"/>
+        <TopLine Value="108"/>
+        <CursorPos X="139" Y="108"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit119>
       <Unit120>
@@ -1494,14 +1508,16 @@
         <WindowIndex Value="0"/>
         <TopLine Value="346"/>
         <CursorPos X="3" Y="363"/>
-        <UsageCount Value="99"/>
+        <UsageCount Value="98"/>
       </Unit128>
       <Unit129>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\struct.inc"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1505"/>
-        <CursorPos X="6" Y="1527"/>
-        <UsageCount Value="94"/>
+        <TopLine Value="1791"/>
+        <CursorPos X="55" Y="1802"/>
+        <UsageCount Value="97"/>
+        <Loaded Value="True"/>
       </Unit129>
       <Unit130>
         <Filename Value="tablist.pas"/>
@@ -1531,7 +1547,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1956"/>
         <CursorPos X="24" Y="1969"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="21"/>
       </Unit132>
       <Unit133>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawinbase.pas"/>
@@ -1539,7 +1555,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5699"/>
         <CursorPos X="54" Y="5714"/>
-        <UsageCount Value="92"/>
+        <UsageCount Value="91"/>
       </Unit133>
       <Unit134>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawinnt.pas"/>
@@ -1547,7 +1563,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="631"/>
         <CursorPos X="3" Y="644"/>
-        <UsageCount Value="92"/>
+        <UsageCount Value="91"/>
       </Unit134>
       <Unit135>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawintype.pas"/>
@@ -1555,20 +1571,22 @@
         <WindowIndex Value="0"/>
         <TopLine Value="100"/>
         <CursorPos X="3" Y="115"/>
-        <UsageCount Value="92"/>
+        <UsageCount Value="91"/>
       </Unit135>
       <Unit136>
         <Filename Value="VEHDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugger"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="165"/>
-        <CursorPos X="32" Y="180"/>
+        <TopLine Value="71"/>
+        <CursorPos X="54" Y="84"/>
         <UsageCount Value="205"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit136>
       <Unit137>
-        <Filename Value="SEHDebug\VEHDebugSharedMem.pas"/>
+        <Filename Value="VEHDebugSharedMem.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugSharedMem"/>
         <WindowIndex Value="0"/>
@@ -1582,32 +1600,36 @@
         <WindowIndex Value="0"/>
         <TopLine Value="907"/>
         <CursorPos X="88" Y="920"/>
-        <UsageCount Value="89"/>
+        <UsageCount Value="88"/>
       </Unit138>
       <Unit139>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1556"/>
-        <CursorPos X="32" Y="1557"/>
-        <UsageCount Value="88"/>
+        <TopLine Value="3041"/>
+        <CursorPos X="27" Y="3050"/>
+        <UsageCount Value="91"/>
+        <Loaded Value="True"/>
       </Unit139>
       <Unit140>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\func.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="252"/>
         <CursorPos X="10" Y="265"/>
-        <UsageCount Value="77"/>
+        <UsageCount Value="76"/>
       </Unit140>
       <Unit141>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwantstatus.pas"/>
         <UnitName Value="jwantstatus"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1119"/>
-        <CursorPos X="23" Y="1138"/>
-        <UsageCount Value="75"/>
+        <TopLine Value="1201"/>
+        <CursorPos X="21" Y="1223"/>
+        <UsageCount Value="78"/>
+        <Loaded Value="True"/>
       </Unit141>
       <Unit142>
-        <Filename Value="SEHDebug\DebuggerInterface.pas"/>
+        <Filename Value="DebuggerInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterface"/>
         <WindowIndex Value="0"/>
@@ -1621,10 +1643,10 @@
         <WindowIndex Value="0"/>
         <TopLine Value="217"/>
         <CursorPos X="1" Y="231"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="72"/>
       </Unit143>
       <Unit144>
-        <Filename Value="SEHDebug\WindowsDebugger.pas"/>
+        <Filename Value="WindowsDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowsDebugger"/>
         <WindowIndex Value="0"/>
@@ -1634,13 +1656,15 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit144>
       <Unit145>
-        <Filename Value="SEHDebug\DebuggerInterfaceAPIWrapper.pas"/>
+        <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
+        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="16"/>
-        <CursorPos X="1" Y="37"/>
+        <TopLine Value="36"/>
+        <CursorPos X="1" Y="42"/>
         <UsageCount Value="265"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit145>
       <Unit146>
@@ -1652,15 +1676,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="17"/>
         <CursorPos X="17" Y="26"/>
-        <UsageCount Value="149"/>
+        <UsageCount Value="162"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit146>
       <Unit147>
         <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2064"/>
-        <CursorPos X="1" Y="2077"/>
-        <UsageCount Value="24"/>
+        <TopLine Value="486"/>
+        <CursorPos X="1" Y="499"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
       </Unit147>
       <Unit148>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\fcl-base\src\syncobjs.pp"/>
@@ -1668,21 +1694,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="154"/>
         <CursorPos X="28" Y="169"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="23"/>
       </Unit148>
       <Unit149>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\threadh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="71"/>
         <CursorPos X="5" Y="84"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="23"/>
       </Unit149>
       <Unit150>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\thread.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="269"/>
         <CursorPos X="30" Y="272"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="23"/>
       </Unit150>
       <Unit151>
         <Filename Value="VEHDebug\DebuggerInterfaceAPIWrapper.pas"/>
@@ -1690,21 +1716,151 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit151>
       <Unit152>
         <Filename Value="VEHDebug\WindowsDebugger.pas"/>
         <UnitName Value="WindowsDebugger"/>
-        <IsVisibleTab Value="True"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit152>
+      <Unit153>
+        <Filename Value="VEHDebug\VEHDebugSharedMem.pas"/>
+        <UnitName Value="VEHDebugSharedMem"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="6"/>
+        <CursorPos X="27" Y="26"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit153>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="469" Column="11" TopLine="451"/>
+      </Position1>
+      <Position2>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="134" Column="4" TopLine="115"/>
+      </Position2>
+      <Position3>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="136" Column="50" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="455" Column="27" TopLine="448"/>
+      </Position4>
+      <Position5>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="340" Column="3" TopLine="366"/>
+      </Position5>
+      <Position6>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="45" Column="1" TopLine="32"/>
+      </Position6>
+      <Position7>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="134" Column="1" TopLine="121"/>
+      </Position7>
+      <Position8>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="446" Column="26" TopLine="433"/>
+      </Position8>
+      <Position9>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="450" Column="17" TopLine="433"/>
+      </Position9>
+      <Position10>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="454" Column="1" TopLine="433"/>
+      </Position10>
+      <Position11>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="455" Column="1" TopLine="433"/>
+      </Position11>
+      <Position12>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="468" Column="1" TopLine="455"/>
+      </Position12>
+      <Position13>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="469" Column="1" TopLine="455"/>
+      </Position13>
+      <Position14>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="130" Column="1" TopLine="117"/>
+      </Position14>
+      <Position15>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="132" Column="1" TopLine="117"/>
+      </Position15>
+      <Position16>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="134" Column="15" TopLine="117"/>
+      </Position16>
+      <Position17>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="136" Column="8" TopLine="117"/>
+      </Position17>
+      <Position18>
+        <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
+        <Caret Line="41" Column="1" TopLine="36"/>
+      </Position18>
+      <Position19>
+        <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
+        <Caret Line="42" Column="1" TopLine="36"/>
+      </Position19>
+      <Position20>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="43" Column="1" TopLine="32"/>
+      </Position20>
+      <Position21>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="45" Column="1" TopLine="32"/>
+      </Position21>
+      <Position22>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="47" Column="1" TopLine="32"/>
+      </Position22>
+      <Position23>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="50" Column="1" TopLine="35"/>
+      </Position23>
+      <Position24>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="51" Column="1" TopLine="35"/>
+      </Position24>
+      <Position25>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="84" Column="54" TopLine="71"/>
+      </Position25>
+      <Position26>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="448" Column="1" TopLine="435"/>
+      </Position26>
+      <Position27>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="454" Column="1" TopLine="435"/>
+      </Position27>
+      <Position28>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="455" Column="1" TopLine="435"/>
+      </Position28>
+      <Position29>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="468" Column="1" TopLine="455"/>
+      </Position29>
+      <Position30>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="469" Column="1" TopLine="455"/>
+      </Position30>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
@@ -1767,6 +1923,14 @@
         <Line Value="4849"/>
       </Item3>
     </BreakPoints>
+    <Watches Count="2">
+      <Item1>
+        <Expression Value="pointer(context.dr6)"/>
+      </Item1>
+      <Item2>
+        <Expression Value="pointer(context.dr7)"/>
+      </Item2>
+    </Watches>
     <Exceptions Count="4" IgnoreAll="True">
       <Item1>
         <Name Value="EAbort"/>
