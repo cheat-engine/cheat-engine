@@ -1068,14 +1068,27 @@ begin
 end;
 
 procedure TDebuggerthread.WaitTillAttachedOrError;
+//wait till the OnAttachEvent has been set
+//Because this routine runs in the main app thread do a CheckSynchronize (The debugger calls synchronize)
 var
   i: integer;
   Result: TWaitResult;
+  starttime: dword;
+  currentloopstarttime: dword;
 begin
-  Result := OnAttachEvent.WaitFor(5000);
-  if (Result <> wrSignaled) then
-    if not terminated then
-      raise Exception.Create('Debugger failed to attach');
+  starttime:=GetTickCount;
+
+  while gettickcount-starttime<5000 do
+  begin
+    currentloopstarttime:=GetTickCount;
+    while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long
+
+    Result := OnAttachEvent.WaitFor(50); //wait for 50 milliseconds for the OnAttachEvent
+    if result=wrSignaled then exit;
+  end;
+
+  if not terminated then
+    raise Exception.Create('Debugger failed to attach');
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;

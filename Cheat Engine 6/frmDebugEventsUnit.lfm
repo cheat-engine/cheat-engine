@@ -1,0 +1,29 @@
+object frmDebugEvents: TfrmDebugEvents
+  Left = 368
+  Height = 301
+  Top = 175
+  Width = 641
+  Caption = 'Debug Events'
+  ClientHeight = 301
+  ClientWidth = 641
+  OnClose = FormClose
+  LCLVersion = '0.9.29'
+  object lbDebugEvents: TListBox
+    Left = 0
+    Height = 251
+    Top = 0
+    Width = 641
+    Align = alClient
+    ItemHeight = 0
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 50
+    Top = 251
+    Width = 641
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 1
+  end
+end

@@ -10,6 +10,9 @@ uses
   disassembler, symbolhandler;
 
 type
+
+  { TfrmChangedAddresses }
+
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
     Panel1: TPanel;
@@ -24,6 +27,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure ChangedlistDblClick(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Showregisterstates1Click(Sender: TObject);
     procedure Browsethismemoryregion1Click(Sender: TObject);
@@ -119,6 +123,12 @@ begin
     mainform.addresslist.addaddress('No Description', changedlist.selected.caption, [],0, OldVarTypeToNewVarType(cbDisplayType.itemindex));
 end;
 
+procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
+begin
+  Showregisterstates1.enabled:=changedlist.selected<>nil;
+  Browsethismemoryregion1.enabled:=changedlist.selected<>nil;
+end;
+
 procedure TfrmChangedAddresses.refetchValues;
 var i: integer;
     s: string;
@@ -170,8 +180,11 @@ procedure TfrmChangedAddresses.Browsethismemoryregion1Click(
   Sender: TObject);
 begin
   if changedlist.Selected<>nil then
-    memorybrowser.memoryaddress:=strtoint('$'+changedlist.Selected.Caption);
-
+  begin
+    memorybrowser.memoryaddress:=strtoint64('$'+changedlist.Selected.Caption);
+    if not memorybrowser.visible then
+      memorybrowser.show;
+  end;
 end;
 
 procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);

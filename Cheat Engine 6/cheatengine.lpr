@@ -41,7 +41,7 @@ uses
   debuggertypedefinitions, sfloat, addresslist, addresslisthandlerunit,
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
-  WindowsDebugger, DebuggerInterfaceAPIWrapper;
+  WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -52,13 +52,12 @@ begin
   Application.Initialize;
   getcedir;
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TMemorybrowser, MemoryBrowser);
+  Application.CreateForm(TMemoryBrowser, MemoryBrowser);
   Application.CreateForm(TformSettings, formSettings);
   Application.CreateForm(TAdvancedOptions, AdvancedOptions);
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
-  Application.CreateForm(TfrmStructuresConfig, frmStructuresConfig);
   Application.Run;
 end.
 

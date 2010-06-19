@@ -24,8 +24,9 @@ LazarusResources.Add('TfrmChangedAddresses','FORMDATA',[
   +#9#9'RowSelect'#9#8'TabOrder'#2#1#9'ViewStyle'#7#8'vsReport'#10'OnDblClick'#7
   +#19'ChangedlistDblClick'#0#0#6'TTimer'#6'Timer1'#8'Interval'#3#244#1#7'OnTim'
   +'er'#7#11'Timer1Timer'#4'left'#2'8'#3'top'#2'@'#0#0#10'TPopupMenu'#10'PopupM'
-  +'enu1'#4'left'#2'('#3'top'#2'h'#0#9'TMenuItem'#19'Showregisterstates1'#7'Cap'
-  +'tion'#6#20'Show register states'#7'OnClick'#7#24'Showregisterstates1Click'#0
-  +#0#9'TMenuItem'#23'Browsethismemoryregion1'#7'Caption'#6#25'Browse this memo'
-  +'ry region'#7'OnClick'#7#28'Browsethismemoryregion1Click'#0#0#0#0
+  +'enu1'#7'OnPopup'#7#15'PopupMenu1Popup'#4'left'#2'('#3'top'#2'h'#0#9'TMenuIt'
+  +'em'#19'Showregisterstates1'#7'Caption'#6#20'Show register states'#7'OnClick'
+  +#7#24'Showregisterstates1Click'#0#0#9'TMenuItem'#23'Browsethismemoryregion1'
+  +#7'Caption'#6#25'Browse this memory region'#7'OnClick'#7#28'Browsethismemory'
+  +'region1Click'#0#0#0#0
 ]);

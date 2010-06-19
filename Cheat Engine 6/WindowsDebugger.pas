@@ -1,0 +1,52 @@
+unit WindowsDebugger;
+{
+Debugger interface for the default windows api.
+It's basically just a forward for everything
+}
+
+{$mode delphi}
+
+interface
+
+uses
+  Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler;
+
+type TWindowsDebuggerInterface=class(TDebuggerInterface)
+  public
+    function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
+    function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
+    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
+    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
+    function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+end;
+
+
+implementation
+
+function TWindowsDebuggerInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+begin
+  result:=newkernelhandler.WaitForDebugEvent(lpDebugEvent, dwMilliseconds);
+end;
+
+function TWindowsDebuggerInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
+begin
+  result:=newkernelhandler.ContinueDebugEvent(dwProcessId, dwThreadId, dwContinueStatus);
+end;
+
+function TWindowsDebuggerInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=newkernelhandler.SetThreadContext(hThread, lpContext);
+end;
+
+function TWindowsDebuggerInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):BOOL;
+begin
+  result:=newkernelhandler.GetThreadContext(hThread, lpContext);
+end;
+
+function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
+begin
+  result:=newkernelhandler.DebugActiveProcess(dwProcessId);
+end;
+
+end.
+

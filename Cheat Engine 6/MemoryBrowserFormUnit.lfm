@@ -773,6 +773,10 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49220
         OnClick = Debugstrings1Click
       end
+      object miDebugEvents: TMenuItem
+        Caption = 'Debug events'
+        OnClick = miDebugEventsClick
+      end
       object N5: TMenuItem
         Caption = '-'
       end

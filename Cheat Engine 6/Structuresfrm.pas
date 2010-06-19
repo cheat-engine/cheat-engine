@@ -1724,18 +1724,16 @@ begin
   if section>0 then
     section:=section-1; //count starts from 1, so decrease
 
-  
+
   showashex:=false;
   selectednode:=tvStructureView.Selected;
   if selectednode<>nil then
   begin
-    //get the address
-
-
     selectedstructure:=tstructure(selectednode.Data);
 
     if selectedstructure<>nil then
     begin
+      //find out the type
       if selectedstructure.basestructure>=0 then
       case definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].structurenr of
         -1,-2,-3: vtype:=0;
@@ -1785,7 +1783,7 @@ begin
       end
 
     end else exit;
-
+    {
     objectname:='';
     setlength(offsets,0);
     while (selectedstructure<>nil) do
@@ -1809,13 +1807,18 @@ begin
       else
         break;
     end;
+    }
+
+  //   s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset
 
 
     //now add it to the list
-    mainform.addresslist.addaddress('bla', inttohex(addresses[section]+offsets[length(offsets)-1],8), offsets, length(offsets), OldVarTypeToNewVarType(vtype));
+    mainform.addresslist.addaddress(definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description, inttohex(selectedstructure.addresses[section]+definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].offset,8), [], 0, OldVarTypeToNewVarType(vtype), vlength);
+
     mainform.itemshavechanged:=true;
   end;
 end;
+
 
 procedure TfrmStructures.Recalculateaddress1Click(Sender: TObject);
 var a: string;

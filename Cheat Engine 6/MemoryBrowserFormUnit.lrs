@@ -207,93 +207,95 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +#3'B@'#7'OnClick'#7#20'Breakpointlist1Click'#0#0#9'TMenuItem'#11'Threadlist1'
   +#7'Caption'#6#10'Threadlist'#7'OnClick'#7#16'Threadlist1Click'#0#0#9'TMenuIt'
   +'em'#13'Debugstrings1'#7'Caption'#6#13'Debug strings'#8'ShortCut'#4'D'#192#0
-  +#0#7'OnClick'#7#18'Debugstrings1Click'#0#0#9'TMenuItem'#2'N5'#7'Caption'#6#1
-  +'-'#0#0#9'TMenuItem'#18'Referencedstrings1'#7'Caption'#6#18'Referenced strin'
-  +'gs'#8'ShortCut'#4'R'#192#0#0#7'OnClick'#7#23'Referencedstrings1Click'#0#0#9
-  +'TMenuItem'#14'MemoryRegions1'#7'Caption'#6#14'Memory Regions'#8'ShortCut'#3
-  +'R@'#7'OnClick'#7#19'MemoryRegions1Click'#0#0#9'TMenuItem'#6'Heaps1'#7'Capti'
-  +'on'#6#8'Heaplist'#8'ShortCut'#3'H@'#7'OnClick'#7#11'Heaps1Click'#0#0#9'TMen'
-  +'uItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#24'EnumeratedllsandSymbols1'
-  +#7'Caption'#6#27'Enumerate DLL''s and Symbols'#8'ShortCut'#4'S'#192#0#0#7'On'
-  +'Click'#7#29'EnumeratedllsandSymbols1Click'#0#0#9'TMenuItem'#3'N10'#7'Captio'
-  +'n'#6#1'-'#0#0#9'TMenuItem'#12'Showsymbols1'#7'Caption'#6#12'Show symbols'#7
-  +'Checked'#9#7'OnClick'#7#17'Showsymbols1Click'#0#0#9'TMenuItem'#18'Kernelmod'
-  +'esymbols1'#7'Caption'#6#18'Kernelmode symbols'#7'OnClick'#7#23'Kernelmodesy'
-  +'mbols1Click'#0#0#9'TMenuItem'#20'Showmoduleaddresses1'#7'Caption'#6#21'Show'
-  +' module addresses'#8'ShortCut'#3'M@'#7'OnClick'#7#25'Showmoduleaddresses1Cl'
-  +'ick'#0#0#9'TMenuItem'#14'Symbolhandler1'#7'Caption'#6#19'Userdefined symbol'
-  +'s'#8'ShortCut'#3'U@'#7'OnClick'#7#19'Symbolhandler1Click'#0#0#9'TMenuItem'
-  +#28'Showvaluesofstaticaddresses1'#7'Caption'#6#18'Show ''Comment'' row'#8'Sh'
-  +'ortCut'#3'V@'#7'OnClick'#7'!Showvaluesofstaticaddresses1Click'#0#0#9'TMenuI'
-  +'tem'#10'Jumplines1'#7'Caption'#6#9'Jumplines'#0#9'TMenuItem'#14'Showjumplin'
-  +'es1'#7'Caption'#6#14'Show jumplines'#7'Checked'#9#7'Default'#9#8'ShortCut'#4
-  +'L'#192#0#0#7'OnClick'#7#19'Showjumplines1Click'#0#0#9'TMenuItem'#29'Onlysho'
-  +'wjumplineswithinrange1'#7'Caption'#6' Only show jumplines within range'#7'C'
-  +'hecked'#9#7'OnClick'#7'"Onlyshowjumplineswithinrange1Click'#0#0#0#0#9'TMenu'
-  +'Item'#6'Debug1'#7'Caption'#6#5'Debug'#0#9'TMenuItem'#4'Run1'#7'Caption'#6#3
-  +'Run'#7'Enabled'#8#8'ShortCut'#2'x'#7'OnClick'#7#9'Run1Click'#0#0#9'TMenuIte'
-  +'m'#5'Step1'#7'Caption'#6#4'Step'#7'Enabled'#8#8'ShortCut'#2'v'#7'OnClick'#7
-  +#10'Step1Click'#0#0#9'TMenuItem'#9'StepOver1'#7'Caption'#6#9'Step Over'#7'En'
-  +'abled'#8#8'ShortCut'#2'w'#7'OnClick'#7#14'StepOver1Click'#0#0#9'TMenuItem'
-  +#18'Executetillreturn1'#7'Caption'#6#19'Execute till return'#7'Enabled'#8#8
-  +'ShortCut'#3'w '#7'OnClick'#7#23'Executetillreturn1Click'#0#0#9'TMenuItem'#8
-  +'Runtill1'#7'Caption'#6#11'Run till...'#7'Enabled'#8#8'ShortCut'#2's'#7'OnCl'
-  +'ick'#7#13'Runtill1Click'#0#0#9'TMenuItem'#14'Setbreakpoint1'#7'Caption'#6#17
-  +'Toggle breakpoint'#8'ShortCut'#2't'#7'OnClick'#7#21'ogglebreakpoint1Click'#0
-  +#0#9'TMenuItem'#2'N3'#7'Caption'#6#1'-'#7'Visible'#8#0#0#9'TMenuItem'#26'Con'
-  +'tinueanddetachdebugger1'#7'Caption'#6#29'Continue and  detach debugger'#7'V'
-  +'isible'#8#7'OnClick'#7#31'Continueanddetachdebugger1Click'#0#0#9'TMenuItem'
-  +#3'N16'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#6'Break1'#7'Caption'#6#5'Break'#7
-  +'OnClick'#7#11'Break1Click'#0#0#0#9'TMenuItem'#6'Extra1'#7'Caption'#6#5'Tool'
-  +'s'#0#9'TMenuItem'#14'Reservememory1'#7'Caption'#6#15'Allocate Memory'#8'Sho'
-  +'rtCut'#4'M'#192#0#0#7'OnClick'#7#19'Reservememory1Click'#0#0#9'TMenuItem'#17
-  +'Scanforcodecaves1'#7'Caption'#6#19'Scan for code caves'#8'ShortCut'#4'C'#192
-  +#0#0#7'OnClick'#7#22'Scanforcodecaves1Click'#0#0#9'TMenuItem'#11'FillMemory1'
-  +#7'Caption'#6#11'Fill Memory'#8'ShortCut'#4'F'#192#0#0#7'OnClick'#7#16'FillM'
-  +'emory1Click'#0#0#9'TMenuItem'#13'CreateThread1'#7'Caption'#6#13'Create Thre'
-  +'ad'#8'ShortCut'#4'T'#192#0#0#7'OnClick'#7#18'CreateThread1Click'#0#0#9'TMen'
-  +'uItem'#2'N8'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12'Dissectcode1'#7'Caption'
-  +#6#12'Dissect code'#8'ShortCut'#3'J@'#7'OnClick'#7#17'Dissectcode1Click'#0#0
-  +#9'TMenuItem'#12'Dissectdata2'#7'Caption'#6#23'Dissect data/structures'#8'Sh'
-  +'ortCut'#3'D@'#7'OnClick'#7#17'Dissectdata2Click'#0#0#9'TMenuItem'#13'Disect'
-  +'window1'#7'Caption'#6#17'Dissect window(s)'#8'ShortCut'#3'W@'#7'OnClick'#7
-  ,#18'Disectwindow1Click'#0#0#9'TMenuItem'#17'DissectPEheaders1'#7'Caption'#6
-  +#18'Dissect PE headers'#8'ShortCut'#4'P'#192#0#0#7'OnClick'#7#22'DissectPEhe'
-  +'aders1Click'#0#0#9'TMenuItem'#3'N12'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12
-  +'Dissectdata1'#7'Caption'#6#12'Pointer scan'#8'ShortCut'#3'P@'#7'OnClick'#7
-  +#17'Dissectdata1Click'#0#0#9'TMenuItem'#23'Watchmemoryallocations1'#7'Captio'
-  +'n'#6#24'Watch memory allocations'#8'ShortCut'#3'M`'#7'OnClick'#7#28'Watchme'
-  +'moryallocations1Click'#0#0#9'TMenuItem'#19'Findstaticpointers1'#7'Caption'#6
-  +#21'Find static addresses'#8'ShortCut'#4'S'#192#0#0#7'OnClick'#7#24'Findstat'
-  +'icpointers1Click'#0#0#9'TMenuItem'#3'N11'#7'Caption'#6#1'-'#0#0#9'TMenuItem'
-  +#10'InjectDLL1'#7'Caption'#6#10'Inject DLL'#8'ShortCut'#3'I@'#7'OnClick'#7#15
-  +'InjectDLL1Click'#0#0#9'TMenuItem'#11'AutoInject1'#7'Caption'#6#13'Auto Asse'
-  +'mble'#8'ShortCut'#3'A@'#7'OnClick'#7#16'AutoInject1Click'#0#0#0#9'TMenuItem'
-  +#12'Kerneltools1'#7'Caption'#6#12'Kernel tools'#0#9'TMenuItem'#23'Allocateno'
-  +'npagedmemory1'#7'Caption'#6#24'Allocate nonpaged memory'#7'OnClick'#7#28'Al'
-  +'locatenonpagedmemory1Click'#0#0#9'TMenuItem'#11'Getaddress1'#7'Caption'#6#11
-  +'Get address'#7'OnClick'#7#16'Getaddress1Click'#0#0#9'TMenuItem'#11'Driverli'
-  +'st1'#7'Caption'#6#11'Driver list'#7'OnClick'#7#16'Driverlist1Click'#0#0#9'T'
-  +'MenuItem'#22'Sericedescriptortable1'#7'Caption'#6#24'Service Descriptor Tab'
-  +'le'#7'OnClick'#7#27'Sericedescriptortable1Click'#0#0#9'TMenuItem'#8'GDTlist'
-  +'1'#7'Caption'#6#8'GDT list'#7'OnClick'#7#13'GDTlist1Click'#0#0#9'TMenuItem'
-  +#8'IDTlist1'#7'Caption'#6#8'IDT list'#7'OnClick'#7#13'IDTlist1Click'#0#0#0#9
-  +'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7'Visible'#8#0#0#0#11'TOpenD'
-  +'ialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6'Filter'#6'2Cheat Engine Me'
-  +'mory file|*.CEM|All Files (*.*)|*.*'#11'FilterIndex'#2#0#3'top'#2'('#0#0#11
-  +'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4'.txt'#6'Filter'#6#23'textfi'
-  +'les (*.txt)|*.txt'#4'left'#2' '#3'top'#2'('#0#0#11'TOpenDialog'#13'OpenDllD'
-  +'ialog'#5'Title'#6'$Select the module you want to inject'#10'DefaultExt'#6#4
-  +'.dll'#6'Filter'#6'*Dll-file (*.dll)|*.dll|All files (*.*)|*.*'#3'top'#2'@'#0
-  +#0#10'TPopupMenu'#12'pmStacktrace'#4'left'#3#242#1#3'top'#3'D'#1#0#9'TMenuIt'
-  +'em'#4'All1'#7'Caption'#6#10'Full stack'#10'GroupIndex'#2#1#7'OnClick'#7#9'A'
-  +'ll1Click'#0#0#9'TMenuItem'#12'Modulesonly1'#7'Caption'#6#12'Modules only'#10
-  +'GroupIndex'#2#1#7'OnClick'#7#17'Modulesonly1Click'#0#0#9'TMenuItem'#21'Nons'
-  +'ystemmodulesonly1'#7'Caption'#6#23'Non system modules only'#10'GroupIndex'#2
-  +#1#7'OnClick'#7#26'Nonsystemmodulesonly1Click'#0#0#9'TMenuItem'#3'N17'#7'Cap'
-  +'tion'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#11'stacktrace2'#7'Caption'
-  +#6#10'Stacktrace'#7'Checked'#9#10'GroupIndex'#2#1#7'OnClick'#7#16'stacktrace'
-  +'2Click'#0#0#9'TMenuItem'#3'N18'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9
-  +'TMenuItem'#18'Maxstacktracesize1'#7'Caption'#6#15'Max stack: 4096'#10'Group'
-  +'Index'#2#1#7'OnClick'#7#23'Maxstacktracesize1Click'#0#0#0#0
+  +#0#7'OnClick'#7#18'Debugstrings1Click'#0#0#9'TMenuItem'#13'miDebugEvents'#7
+  +'Caption'#6#12'Debug events'#7'OnClick'#7#18'miDebugEventsClick'#0#0#9'TMenu'
+  +'Item'#2'N5'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#18'Referencedstrings1'#7'Cap'
+  +'tion'#6#18'Referenced strings'#8'ShortCut'#4'R'#192#0#0#7'OnClick'#7#23'Ref'
+  +'erencedstrings1Click'#0#0#9'TMenuItem'#14'MemoryRegions1'#7'Caption'#6#14'M'
+  +'emory Regions'#8'ShortCut'#3'R@'#7'OnClick'#7#19'MemoryRegions1Click'#0#0#9
+  +'TMenuItem'#6'Heaps1'#7'Caption'#6#8'Heaplist'#8'ShortCut'#3'H@'#7'OnClick'#7
+  +#11'Heaps1Click'#0#0#9'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#24
+  +'EnumeratedllsandSymbols1'#7'Caption'#6#27'Enumerate DLL''s and Symbols'#8'S'
+  +'hortCut'#4'S'#192#0#0#7'OnClick'#7#29'EnumeratedllsandSymbols1Click'#0#0#9
+  +'TMenuItem'#3'N10'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12'Showsymbols1'#7'Cap'
+  +'tion'#6#12'Show symbols'#7'Checked'#9#7'OnClick'#7#17'Showsymbols1Click'#0#0
+  +#9'TMenuItem'#18'Kernelmodesymbols1'#7'Caption'#6#18'Kernelmode symbols'#7'O'
+  +'nClick'#7#23'Kernelmodesymbols1Click'#0#0#9'TMenuItem'#20'Showmoduleaddress'
+  +'es1'#7'Caption'#6#21'Show module addresses'#8'ShortCut'#3'M@'#7'OnClick'#7
+  +#25'Showmoduleaddresses1Click'#0#0#9'TMenuItem'#14'Symbolhandler1'#7'Caption'
+  +#6#19'Userdefined symbols'#8'ShortCut'#3'U@'#7'OnClick'#7#19'Symbolhandler1C'
+  +'lick'#0#0#9'TMenuItem'#28'Showvaluesofstaticaddresses1'#7'Caption'#6#18'Sho'
+  +'w ''Comment'' row'#8'ShortCut'#3'V@'#7'OnClick'#7'!Showvaluesofstaticaddres'
+  +'ses1Click'#0#0#9'TMenuItem'#10'Jumplines1'#7'Caption'#6#9'Jumplines'#0#9'TM'
+  +'enuItem'#14'Showjumplines1'#7'Caption'#6#14'Show jumplines'#7'Checked'#9#7
+  +'Default'#9#8'ShortCut'#4'L'#192#0#0#7'OnClick'#7#19'Showjumplines1Click'#0#0
+  +#9'TMenuItem'#29'Onlyshowjumplineswithinrange1'#7'Caption'#6' Only show jump'
+  +'lines within range'#7'Checked'#9#7'OnClick'#7'"Onlyshowjumplineswithinrange'
+  +'1Click'#0#0#0#0#9'TMenuItem'#6'Debug1'#7'Caption'#6#5'Debug'#0#9'TMenuItem'
+  +#4'Run1'#7'Caption'#6#3'Run'#7'Enabled'#8#8'ShortCut'#2'x'#7'OnClick'#7#9'Ru'
+  +'n1Click'#0#0#9'TMenuItem'#5'Step1'#7'Caption'#6#4'Step'#7'Enabled'#8#8'Shor'
+  +'tCut'#2'v'#7'OnClick'#7#10'Step1Click'#0#0#9'TMenuItem'#9'StepOver1'#7'Capt'
+  +'ion'#6#9'Step Over'#7'Enabled'#8#8'ShortCut'#2'w'#7'OnClick'#7#14'StepOver1'
+  +'Click'#0#0#9'TMenuItem'#18'Executetillreturn1'#7'Caption'#6#19'Execute till'
+  +' return'#7'Enabled'#8#8'ShortCut'#3'w '#7'OnClick'#7#23'Executetillreturn1C'
+  +'lick'#0#0#9'TMenuItem'#8'Runtill1'#7'Caption'#6#11'Run till...'#7'Enabled'#8
+  +#8'ShortCut'#2's'#7'OnClick'#7#13'Runtill1Click'#0#0#9'TMenuItem'#14'Setbrea'
+  +'kpoint1'#7'Caption'#6#17'Toggle breakpoint'#8'ShortCut'#2't'#7'OnClick'#7#21
+  +'ogglebreakpoint1Click'#0#0#9'TMenuItem'#2'N3'#7'Caption'#6#1'-'#7'Visible'#8
+  +#0#0#9'TMenuItem'#26'Continueanddetachdebugger1'#7'Caption'#6#29'Continue an'
+  +'d  detach debugger'#7'Visible'#8#7'OnClick'#7#31'Continueanddetachdebugger1'
+  +'Click'#0#0#9'TMenuItem'#3'N16'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#6'Break1'
+  +#7'Caption'#6#5'Break'#7'OnClick'#7#11'Break1Click'#0#0#0#9'TMenuItem'#6'Ext'
+  +'ra1'#7'Caption'#6#5'Tools'#0#9'TMenuItem'#14'Reservememory1'#7'Caption'#6#15
+  +'Allocate Memory'#8'ShortCut'#4'M'#192#0#0#7'OnClick'#7#19'Reservememory1Cli'
+  +'ck'#0#0#9'TMenuItem'#17'Scanforcodecaves1'#7'Caption'#6#19'Scan for code ca'
+  +'ves'#8'ShortCut'#4'C'#192#0#0#7'OnClick'#7#22'Scanforcodecaves1Click'#0#0#9
+  +'TMenuItem'#11'FillMemory1'#7'Caption'#6#11'Fill Memory'#8'ShortCut'#4'F'#192
+  +#0#0#7'OnClick'#7#16'FillMemory1Click'#0#0#9'TMenuItem'#13'CreateThread1'#7
+  +'Caption'#6#13'Create Thread'#8'ShortCut'#4'T'#192#0#0#7'OnClick'#7#18'Creat'
+  +'eThread1Click'#0#0#9'TMenuItem'#2'N8'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#12
+  +'Dissectcode1'#7'Caption'#6#12'Dissect code'#8'ShortCut'#3'J@'#7'OnClick'#7
+  +#17'Dissectcode1Click'#0#0#9'TMenuItem'#12'Dissectdata2'#7'Caption'#6#23'Dis'
+  +'sect data/structures'#8'ShortCut'#3'D@'#7'OnClick'#7#17'Dissectdata2Click'#0
+  ,#0#9'TMenuItem'#13'Disectwindow1'#7'Caption'#6#17'Dissect window(s)'#8'Short'
+  +'Cut'#3'W@'#7'OnClick'#7#18'Disectwindow1Click'#0#0#9'TMenuItem'#17'DissectP'
+  +'Eheaders1'#7'Caption'#6#18'Dissect PE headers'#8'ShortCut'#4'P'#192#0#0#7'O'
+  +'nClick'#7#22'DissectPEheaders1Click'#0#0#9'TMenuItem'#3'N12'#7'Caption'#6#1
+  +'-'#0#0#9'TMenuItem'#12'Dissectdata1'#7'Caption'#6#12'Pointer scan'#8'ShortC'
+  +'ut'#3'P@'#7'OnClick'#7#17'Dissectdata1Click'#0#0#9'TMenuItem'#23'Watchmemor'
+  +'yallocations1'#7'Caption'#6#24'Watch memory allocations'#8'ShortCut'#3'M`'#7
+  +'OnClick'#7#28'Watchmemoryallocations1Click'#0#0#9'TMenuItem'#19'Findstaticp'
+  +'ointers1'#7'Caption'#6#21'Find static addresses'#8'ShortCut'#4'S'#192#0#0#7
+  +'OnClick'#7#24'Findstaticpointers1Click'#0#0#9'TMenuItem'#3'N11'#7'Caption'#6
+  +#1'-'#0#0#9'TMenuItem'#10'InjectDLL1'#7'Caption'#6#10'Inject DLL'#8'ShortCut'
+  +#3'I@'#7'OnClick'#7#15'InjectDLL1Click'#0#0#9'TMenuItem'#11'AutoInject1'#7'C'
+  +'aption'#6#13'Auto Assemble'#8'ShortCut'#3'A@'#7'OnClick'#7#16'AutoInject1Cl'
+  +'ick'#0#0#0#9'TMenuItem'#12'Kerneltools1'#7'Caption'#6#12'Kernel tools'#0#9
+  +'TMenuItem'#23'Allocatenonpagedmemory1'#7'Caption'#6#24'Allocate nonpaged me'
+  +'mory'#7'OnClick'#7#28'Allocatenonpagedmemory1Click'#0#0#9'TMenuItem'#11'Get'
+  +'address1'#7'Caption'#6#11'Get address'#7'OnClick'#7#16'Getaddress1Click'#0#0
+  +#9'TMenuItem'#11'Driverlist1'#7'Caption'#6#11'Driver list'#7'OnClick'#7#16'D'
+  +'riverlist1Click'#0#0#9'TMenuItem'#22'Sericedescriptortable1'#7'Caption'#6#24
+  +'Service Descriptor Table'#7'OnClick'#7#27'Sericedescriptortable1Click'#0#0#9
+  +'TMenuItem'#8'GDTlist1'#7'Caption'#6#8'GDT list'#7'OnClick'#7#13'GDTlist1Cli'
+  +'ck'#0#0#9'TMenuItem'#8'IDTlist1'#7'Caption'#6#8'IDT list'#7'OnClick'#7#13'I'
+  +'DTlist1Click'#0#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7'Visi'
+  +'ble'#8#0#0#0#11'TOpenDialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6'Filt'
+  +'er'#6'2Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'#11'FilterIndex'#2
+  +#0#3'top'#2'('#0#0#11'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4'.txt'#6
+  +'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#2' '#3'top'#2'('#0#0#11'TOpen'
+  +'Dialog'#13'OpenDllDialog'#5'Title'#6'$Select the module you want to inject'
+  +#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file (*.dll)|*.dll|All files (*.*'
+  +')|*.*'#3'top'#2'@'#0#0#10'TPopupMenu'#12'pmStacktrace'#4'left'#3#242#1#3'to'
+  +'p'#3'D'#1#0#9'TMenuItem'#4'All1'#7'Caption'#6#10'Full stack'#10'GroupIndex'
+  +#2#1#7'OnClick'#7#9'All1Click'#0#0#9'TMenuItem'#12'Modulesonly1'#7'Caption'#6
+  +#12'Modules only'#10'GroupIndex'#2#1#7'OnClick'#7#17'Modulesonly1Click'#0#0#9
+  +'TMenuItem'#21'Nonsystemmodulesonly1'#7'Caption'#6#23'Non system modules onl'
+  +'y'#10'GroupIndex'#2#1#7'OnClick'#7#26'Nonsystemmodulesonly1Click'#0#0#9'TMe'
+  +'nuItem'#3'N17'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#11'sta'
+  +'cktrace2'#7'Caption'#6#10'Stacktrace'#7'Checked'#9#10'GroupIndex'#2#1#7'OnC'
+  +'lick'#7#16'stacktrace2Click'#0#0#9'TMenuItem'#3'N18'#7'Caption'#6#1'-'#10'G'
+  +'roupIndex'#2#1#0#0#9'TMenuItem'#18'Maxstacktracesize1'#7'Caption'#6#15'Max '
+  +'stack: 4096'#10'GroupIndex'#2#1#7'OnClick'#7#23'Maxstacktracesize1Click'#0#0
+  +#0#0
 ]);

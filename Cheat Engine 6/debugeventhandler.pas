@@ -86,7 +86,10 @@ type
     fOnContinueEvent: TEvent;
     breakpointlist: TList;
     threadlist: TList;
+
+    currentdebugEvent: TDEBUGEVENT;
     procedure updatethreadlist;
+    procedure UpdateDebugEventWindow;
   public
     function HandleDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     constructor Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: Tevent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);
@@ -94,7 +97,7 @@ type
 
 implementation
 
-uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit;
+uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit, frmDebugEventsUnit;
 
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
@@ -622,11 +625,21 @@ begin
     end;
 
     if frmthreadlist<>nil then
+    begin
+      currentdebugEvent:=debugEvent;
       TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), updatethreadlist);
+    end;
   end;
 
   currentthread.FillContext;
   TDebuggerthread(debuggerthread).currentThread:=currentThread;
+
+  if frmDebugEvents<>nil then
+  begin
+    currentdebugEvent:=debugEvent;
+    TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), UpdateDebugEventWindow);
+  end;
+
 
   case debugEvent.dwDebugEventCode of
     EXCEPTION_DEBUG_EVENT:      Result := currentThread.HandleExceptionDebugEvent(debugevent, dwContinueStatus);
@@ -664,6 +677,31 @@ procedure TDebugEventHandler.updatethreadlist;
 begin
   if frmthreadlist<>nil then
     frmThreadlist.FillThreadlist;
+end;
+
+procedure TDebugEventHandler.UpdateDebugEventWindow;
+{synchronize routine that updates the debug event window}
+var eventtext: string;
+begin
+  if frmDebugEvents<>nil then //check if it's still here
+  begin
+    eventtext:=inttohex(currentdebugevent.dwDebugEventCode,1);
+    case currentdebugevent.dwDebugEventCode of
+      CREATE_PROCESS_DEBUG_EVENT: eventtext:='CREATE_PROCESS_DEBUG_EVENT';
+      CREATE_THREAD_DEBUG_EVENT: eventtext:='CREATE_THREAD_DEBUG_EVENT';
+      EXCEPTION_DEBUG_EVENT: eventtext:='EXCEPTION_DEBUG_EVENT';
+      EXIT_PROCESS_DEBUG_EVENT: eventtext:='EXIT_PROCESS_DEBUG_EVENT';
+      EXIT_THREAD_DEBUG_EVENT: eventtext:='EXIT_THREAD_DEBUG_EVENT';
+      LOAD_DLL_DEBUG_EVENT: eventtext:='LOAD_DLL_DEBUG_EVENT';
+      OUTPUT_DEBUG_STRING_EVENT: eventtext:='OUTPUT_DEBUG_STRING_EVENT';
+      RIP_EVENT: eventtext:='RIP_EVENT';
+      UNLOAD_DLL_DEBUG_EVENT: eventtext:='UNLOAD_DLL_DEBUG_EVENT';
+    end;
+    eventtext:=format('pid:%x tid:%x - %s',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext]);
+    frmDebugEvents.lbDebugEvents.Items.Add(eventtext);
+  end;
+
+
 end;
 
 constructor TDebugEventHandler.Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: TEvent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);

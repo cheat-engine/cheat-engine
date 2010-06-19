@@ -1,0 +1,66 @@
+unit DebuggerInterfaceAPIWrapper;
+{
+This unit hold the DebuggerInterface currently used, and overrides the default windows debug api's so they make use of the DebuggerInterface's version
+}
+
+{$mode delphi}
+
+interface
+
+uses
+  Classes, SysUtils, windows, debuggerinterface, newkernelhandler;
+
+function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
+function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+function DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
+
+var CurrentDebuggerInterface: TDebuggerInterface;
+
+implementation
+
+function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.WaitForDebugEvent(lpDebugEvent, dwMilliseconds)
+  else
+    result:=newkernelhandler.WaitForDebugEvent(lpDebugEvent, dwMilliseconds);
+end;
+
+function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.ContinueDebugEvent(dwProcessID, dwThreadID, dwContinueStatus)
+  else
+    result:=newKernelHandler.ContinueDebugEvent(dwProcessID, dwThreadID, dwContinueStatus);
+end;
+
+function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.SetThreadContext(hThread, lpContext, isFrozenThread)
+  else
+    result:=newkernelhandler.SetThreadContext(hThread, lpContext);
+end;
+
+function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.GetThreadContext(hThread, lpContext, isFrozenThread)
+  else
+    result:=newkernelhandler.GetThreadContext(hThread, lpContext);
+end;
+
+function DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.DebugActiveProcess(dwProcessID)
+  else
+    result:=newkernelhandler.DebugActiveProcess(dwProcessId);;
+end;
+
+
+
+end.
+
