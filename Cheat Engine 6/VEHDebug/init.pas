@@ -24,7 +24,7 @@ var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandl
 
 implementation
 
-uses DebugHandler;
+uses DebugHandler,threadpoll;
 
 var oldExceptionHandler: pointer=nil;
 
@@ -64,13 +64,14 @@ begin
     begin
       if lpte.th32OwnerProcessID=cpid then
       begin
+        ep.ContextRecord:=@c;
+        ep.ExceptionRecord:=@er;
+        er.NumberParameters:=0;
+
         if isfirst then
         begin
           //create process
-          ep.ContextRecord:=@c;
-          ep.ExceptionRecord:=@er;
           er.ExceptionCode:=$ce000000; //$ce000000=create process (just made up)
-          er.NumberParameters:=0;
           InternalHandler(@ep,lpte.th32ThreadID); //I don't care what the return value is
           isfirst:=false;
         end else
@@ -86,11 +87,19 @@ begin
 
     CloseHandle(ths);
   end;
+
+  if VEHSharedMem.ThreadWatchMethod=0 then
+    ThreadPoller:=TThreadPoller.create(false);
 end;
 
 procedure InitializeVEH;
 var k: THandle;
 begin
+  if ThreadPoller<>nil then
+  begin
+    ThreadPoller.free;
+    ThreadPoller:=nil;
+  end;
   OutputDebugString('InitializeVEH');
 
 

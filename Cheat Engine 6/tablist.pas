@@ -29,6 +29,7 @@ type
     procedure MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer); override;
   public
     function AddTab(t: string):integer;
+    function GetTabIndexAt(x,y: integer): integer;
     procedure RemoveTab(i: integer);
     procedure Paint; override;
     constructor Create(AOwner: TComponent); override;
@@ -89,13 +90,27 @@ begin
     fOnTabChange(self,old);
 end;
 
-procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
+function TTablist.GetTabIndexAt(x,y: integer): integer;
+{
+Returns the index of the tab at position x,y
+If no tab, return -1
+}
 var i: integer;
 begin
+  result:=-1;
+
   //find what is selected
   i:=x div fTabWidth;
 
   if i<fTabs.count then
+    result:=i;
+end;
+
+procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
+var i: integer;
+begin
+  i:=GetTabIndexAt(x,y);
+  if i<>-1 then
     selectedTab:=i;
 
   inherited MouseDown(button,shift,x,y);
@@ -105,8 +120,23 @@ procedure TTablist.RemoveTab(i: integer);
 {
 Assuming that the tabdata is already freed
 }
+var j: integer;
 begin
   ftabs.Delete(i);
+  for j:=i to length(ftabdata)-2 do
+    ftabdata[j]:=ftabdata[j+1];
+
+  //do a tabswitch without calling the onchange
+  if fselectedTab=i then //if for some reason the current tab was deleted
+    fselectedtab:=-1
+  else
+  begin
+    if fselectedtab>i then
+      fselectedtab:=fselectedtab-1;
+  end;
+
+  invalidate;
+  repaint;
 end;
 
 function TTablist.AddTab(t: string): integer;

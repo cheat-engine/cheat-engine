@@ -891,6 +891,7 @@ procedure TAddresslist.AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTr
 var
   textrect: trect;
   linerect: trect;
+  fulltextline: trect;
   memrec: TMemoryRecord;
 
   checkbox: trect;
@@ -902,13 +903,26 @@ var
   descriptionstart: integer;
 begin
   //multiselect implementation
+  DefaultDraw:=true;
+  PaintImages:=true;
 
   if stage=cdPostPaint then
   begin
     oldbrushcolor:=sender.Canvas.Brush.Color;
     textrect:=node.DisplayRect(true);
     linerect:=node.DisplayRect(false);
+    fulltextline:=linerect;
+    fulltextline.Left:=textrect.Left;
+
     memrec:=TMemoryRecord(Node.data);
+
+
+    sender.Canvas.Brush.color:=sender.Color;
+    fulltextline.left:=0;
+    sender.Canvas.FillRect(fulltextline); //whipe the original text
+
+    //exit;
+
 
     if memrec.isSelected then
     begin
@@ -1013,8 +1027,7 @@ begin
     sender.Canvas.Brush.Color:=oldbrushcolor;
   end;
 
-  DefaultDraw:=true;
-  PaintImages:=true;
+
 end;
 
 constructor TAddresslist.Create(AOwner: TComponent);

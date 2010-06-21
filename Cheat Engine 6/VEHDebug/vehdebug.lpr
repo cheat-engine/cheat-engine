@@ -3,7 +3,7 @@ library vehdebug;
 {$mode objfpc}{$H+}
 
 uses
-  windows, Classes, init, DebugHandler, VEHDebugSharedMem
+  windows, Classes, init, DebugHandler, VEHDebugSharedMem, threadpoll
   { you can add units after this };
 
 exports ConfigName;

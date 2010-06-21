@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 448
+  Left = 569
   Height = 564
   Hint = ' '
-  Top = 143
+  Top = 155
   Width = 536
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1763,6 +1763,22 @@ object MainForm: TMainForm
         Caption = 'About'
         OnClick = About1Click
       end
+    end
+  end
+  object pmTablist: TPopupMenu
+    OnPopup = pmTablistPopup
+    left = 32
+    top = 256
+    object miRenameTab: TMenuItem
+      Caption = 'Rename'
+      OnClick = miRenameTabClick
+    end
+    object miTablistSeperator: TMenuItem
+      Caption = '-'
+    end
+    object miCloseTab: TMenuItem
+      Caption = 'Close tab'
+      OnClick = miCloseTabClick
     end
   end
 end

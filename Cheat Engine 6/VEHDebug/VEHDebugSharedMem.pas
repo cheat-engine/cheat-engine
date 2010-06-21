@@ -20,6 +20,7 @@ type TVEHDebugSharedMem=packed record
   ContinueMethod: QWORD;
   ProcessID: DWORD;
   ThreadID: DWORD;
+  ThreadWatchMethod: QWORD;
 
 
   case integer of

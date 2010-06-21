@@ -248,6 +248,25 @@ begin
           extra.byteData.ShowAsHexadecimal:=tempnode.TextContent='1';
       end;
 
+      vtCustom:
+      begin
+        tempnode:=Cheatentry.FindNode('AssemblerScript');
+
+        if tempnode<>nil then
+        begin
+          if AutoAssemblerData.script<>nil then
+            freeAndNil(AutoAssemblerData.script);
+
+          setlength(AutoAssemblerData.allocs,0);
+          if AutoAssemblerData.registeredsymbols<>nil then
+            freeandnil(AutoAssemblerData.registeredsymbols);
+
+          AutoAssemblerData.script:=tstringlist.Create;
+          AutoAssemblerData.script.text:=tempnode.TextContent;
+
+        end;
+      end;
+
     end;
 
     tempnode:=CheatEntry.FindNode('Address');

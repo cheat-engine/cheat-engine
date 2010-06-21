@@ -24,16 +24,28 @@ type
 
   TformSettings = class(TForm)
     cbDontusetempdir: TCheckBox;
+    cbGlobalDebug: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
+    GroupBox2: TGroupBox;
+    Label10: TLabel;
     Label2: TLabel;
+    Label25: TLabel;
     LoadButton: TSpeedButton;
+    Panel1: TPanel;
+    pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
     cbKDebug: TRadioButton;
     cbUseWindowsDebugger: TRadioButton;
     cbUseVEHDebugger: TRadioButton;
+    RadioButton1: TRadioButton;
+    RadioButton2: TRadioButton;
+    RadioButton3: TRadioButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
+    tsKernelDebugConfig: TTabSheet;
+    tsVEHDebugConfig: TTabSheet;
+    tsWindowsDebuggerConfig: TTabSheet;
     tvMenuSelection: TTreeView;
     pcSetting: TPageControl;
     GeneralSettings: TTabSheet;
@@ -105,7 +117,6 @@ type
     cbProcessWatcher: TCheckBox;
     CheckBox3: TCheckBox;
     CheckBox4: TCheckBox;
-    cbGlobalDebug: TCheckBox;
     tsHotkeys: TTabSheet;
     OpenDialog1: TOpenDialog;
     Unrandomizer: TTabSheet;
@@ -148,6 +159,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
+    procedure cbDebuggerInterfaceChange(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -700,6 +712,18 @@ begin
   loadButton.enabled:=cbDontusetempdir.checked;
 end;
 
+procedure TformSettings.cbDebuggerInterfaceChange(Sender: TObject);
+begin
+  if cbUseVEHDebugger.Checked then
+    pcDebugConfig.ActivePageIndex:=0
+  else
+  if cbUseWindowsDebugger.checked then
+    pcDebugConfig.ActivePageIndex:=1
+  else
+  if cbKDebug.checked then
+    pcDebugConfig.ActivePageIndex:=2;
+end;
+
 procedure TformSettings.checkThreadClick(Sender: TObject);
 begin
 
@@ -944,6 +968,12 @@ begin
     pcSetting.Pages[i].TabVisible:=false;
 
   pcSetting.ActivePageIndex:=0;
+
+  for i:=0 to pcDebugConfig.PageCount-1 do
+    pcDebugConfig.Pages[i].TabVisible:=false;
+
+
+
 
   tvMenuSelection.FullExpand;
 end;

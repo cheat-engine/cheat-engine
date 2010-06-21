@@ -162,11 +162,15 @@ type
     Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miRenameTab: TMenuItem;
+    miTablistSeperator: TMenuItem;
+    miCloseTab: TMenuItem;
     miAddTab: TMenuItem;
     miFreezePositive: TMenuItem;
     miFreezeNegative: TMenuItem;
     mode16: TCheckBox;
     Panel1: TPanel;
+    pmTablist: TPopupMenu;
     SettingsButton: TSpeedButton;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
@@ -312,10 +316,13 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miRenameTabClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
+    procedure miCloseTabClick(Sender: TObject);
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
+    procedure pmTablistPopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
@@ -423,7 +430,7 @@ type
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure ype1Click(Sender: TObject);
   private
-
+    tabcounter: integer; //variable that only goes up, doesn't go down when a tab is deleted
     scantablist: TTablist;
 
     oldscanvalue2text: string;
@@ -1974,6 +1981,7 @@ begin
     begin
       //yes, so keep the list
       //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
+      wasActive:=false;
       for i := 0 to addresslist.count - 1 do
         if (addresslist[i].VarType = vtCustom) and (addresslist[i].active) then
         begin
@@ -2134,6 +2142,14 @@ procedure TMainForm.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
   addresslist.SelectAll;
+end;
+
+procedure TMainForm.miRenameTabClick(Sender: TObject);
+var s: string;
+begin
+  s:=scantablist.TabText[scantablist.SelectedTab];
+  if InputQuery('Cheat Engine','What will be the new name for this tab?',s) then
+    scantablist.TabText[scantablist.SelectedTab]:=s;
 end;
 
 
@@ -2364,7 +2380,7 @@ begin
     foundlistheightdiff:=btnMemoryView.top-(foundlist3.top+foundlist3.Height);
 
     scantablist:=TTablist.Create(self);
-
+    scantablist.PopupMenu:=pmTablist;
     scantablist.parent:=panel5;
     scantablist.top:=panel7.top+panel7.height;
     scantablist.Left:=0;
@@ -2386,6 +2402,9 @@ begin
     scantablist.TabData[i]:=newstate;
 
     scantablist.OnTabChange:=ScanTabListTabChange;
+    scantablist.SelectedTab:=i;
+
+    tabcounter:=3;
 
 
     //p.height:=p.TabHeight;
@@ -2426,7 +2445,39 @@ begin
   end
   else
   begin
-    scantablist.addtab('bla');
+    i:=scantablist.addtab('Scan '+inttostr(tabcounter));
+    getmem(newstate, sizeof(TScanState));
+    SetupInitialScanTabState(newstate,false);
+    scantablist.TabData[i]:=newstate;
+
+    scantablist.SelectedTab:=i;
+    inc(tabcounter);
+  end;
+end;
+
+procedure TMainForm.miCloseTabClick(Sender: TObject);
+var oldscanstate: PScanState;
+    oldindex: integer;
+begin
+  if (scantablist<>nil) and (scantablist.count>1) then
+  begin
+    //since rightclicking a tab selects it, delete the currently selected tab
+    oldindex:=scantablist.SelectedTab;
+    oldscanstate:=scantablist.TabData[scantablist.SelectedTab];
+
+    //switch the currently selected tab to the right one if possible, else the lef tone
+    if oldindex<scantablist.count-1 then
+      scantablist.SelectedTab:=oldindex+1
+    else
+      scantablist.SelectedTab:=oldindex-1;
+
+    scantablist.RemoveTab(oldindex);
+
+    //now we can delete the tabdata
+    oldscanstate.foundlist.Free;
+    oldscanstate.memscan.Free;
+    freemem(oldscanstate);
+
   end;
 end;
 
@@ -2456,6 +2507,19 @@ begin
 
  // if cbpercentage<>nil then
  //   cbpercentage.left:=scantype.left+scantype.width+3;
+end;
+
+procedure TMainForm.pmTablistPopup(Sender: TObject);
+var x,y: integer;
+begin
+  if scantablist<>nil then //should always be true
+  begin
+    x:=scantablist.ScreenToClient(mouse.cursorpos).x;
+    y:=scantablist.ScreenToClient(mouse.cursorpos).y;
+    miCloseTab.visible:=scantablist.GetTabIndexAt(x,y)<>-1;
+    miTablistSeperator.Visible:=miCloseTab.visible;
+    miRenameTab.Visible:=miCloseTab.visible;
+  end;
 end;
 
 procedure TMainform.aprilfoolsscan;

@@ -994,33 +994,28 @@ object formSettings: TformSettings
           TabOrder = 3
           Visible = False
         end
-        object cbGlobalDebug: TCheckBox
-          Left = 199
-          Height = 23
-          Top = 182
-          Width = 186
-          Caption = 'Use Global Debug routines'
-          Enabled = False
-          TabOrder = 4
-        end
         object cbKDebug: TRadioButton
+          Tag = 2
           Left = 7
           Height = 23
           Top = 182
           Width = 186
           Caption = 'Use kernelmode debugger'
-          TabOrder = 6
+          OnChange = cbDebuggerInterfaceChange
+          TabOrder = 5
           TabStop = False
         end
         object cbUseWindowsDebugger: TRadioButton
+          Tag = 1
           Left = 7
           Height = 23
           Top = 158
           Width = 165
           Caption = 'Use windows debugger'
           Checked = True
+          OnChange = cbDebuggerInterfaceChange
           State = cbChecked
-          TabOrder = 5
+          TabOrder = 4
         end
         object cbUseVEHDebugger: TRadioButton
           Left = 7
@@ -1028,8 +1023,109 @@ object formSettings: TformSettings
           Top = 134
           Width = 144
           Caption = 'Use VEH Debugger'
-          TabOrder = 7
+          OnChange = cbDebuggerInterfaceChange
+          TabOrder = 6
           TabStop = False
+        end
+        object Panel1: TPanel
+          Left = 183
+          Height = 19
+          Top = 134
+          Width = 368
+          BevelOuter = bvNone
+          TabOrder = 7
+        end
+        object GroupBox2: TGroupBox
+          Left = 7
+          Height = 153
+          Top = 206
+          Width = 416
+          Caption = 'Debugger interface config'
+          ClientHeight = 131
+          ClientWidth = 412
+          TabOrder = 8
+          object pcDebugConfig: TPageControl
+            Left = 0
+            Height = 131
+            Top = 0
+            Width = 412
+            ActivePage = tsVEHDebugConfig
+            Align = alClient
+            TabIndex = 0
+            TabOrder = 0
+            object tsVEHDebugConfig: TTabSheet
+              Caption = 'VEH Debugger'
+              ClientHeight = 102
+              ClientWidth = 404
+              object RadioButton1: TRadioButton
+                Left = 2
+                Height = 23
+                Top = 43
+                Width = 246
+                Caption = 'Hook thread-create and destroy api''s'
+                Enabled = False
+                TabOrder = 1
+                TabStop = False
+              end
+              object Label25: TLabel
+                Left = 2
+                Height = 17
+                Top = 3
+                Width = 103
+                Caption = 'Thread following:'
+                ParentColor = False
+              end
+              object RadioButton2: TRadioButton
+                Left = 2
+                Height = 23
+                Top = 67
+                Width = 147
+                Caption = 'Use processwatcher'
+                Enabled = False
+                TabOrder = 2
+                TabStop = False
+              end
+              object RadioButton3: TRadioButton
+                Left = 2
+                Height = 23
+                Top = 19
+                Width = 113
+                Caption = 'Poll for threads'
+                Checked = True
+                State = cbChecked
+                TabOrder = 0
+              end
+            end
+            object tsWindowsDebuggerConfig: TTabSheet
+              Caption = 'Windows Debugger'
+            end
+            object tsKernelDebugConfig: TTabSheet
+              Caption = 'Kernel Debug'
+              ClientHeight = 102
+              ClientWidth = 404
+              object Label10: TLabel
+                Left = 34
+                Height = 17
+                Top = -1
+                Width = 304
+                Caption = 'Kernelmode debugger is currently not implemented'
+                Font.Color = clRed
+                Font.Height = -14
+                Font.Name = 'MS Sans Serif'
+                ParentColor = False
+                ParentFont = False
+              end
+              object cbGlobalDebug: TCheckBox
+                Left = 4
+                Height = 23
+                Top = 19
+                Width = 186
+                Caption = 'Use Global Debug routines'
+                Enabled = False
+                TabOrder = 0
+              end
+            end
+          end
         end
       end
       object tsTools: TTabSheet

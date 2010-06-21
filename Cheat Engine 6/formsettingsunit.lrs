@@ -305,47 +305,72 @@ LazarusResources.Add('TformSettings','FORMDATA',[
   +'t'#2#23#3'Top'#3#166#1#5'Width'#3#154#0#7'Caption'#6#23'Use APC to inject d'
   +'ll''s'#8'TabOrder'#2#2#7'Visible'#8#0#0#9'TCheckBox'#9'CheckBox4'#4'Left'#2
   +#7#6'Height'#2#23#3'Top'#3#186#1#5'Width'#3#209#0#7'Caption'#6#29'Use APC to'
-  +' create new threads'#8'TabOrder'#2#3#7'Visible'#8#0#0#9'TCheckBox'#13'cbGlo'
-  +'balDebug'#4'Left'#3#199#0#6'Height'#2#23#3'Top'#3#182#0#5'Width'#3#186#0#7
-  +'Caption'#6#25'Use Global Debug routines'#7'Enabled'#8#8'TabOrder'#2#4#0#0#12
-  +'TRadioButton'#8'cbKDebug'#4'Left'#2#7#6'Height'#2#23#3'Top'#3#182#0#5'Width'
-  +#3#186#0#7'Caption'#6#23'Use kernelmode debugger'#8'TabOrder'#2#6#7'TabStop'
-  +#8#0#0#12'TRadioButton'#20'cbUseWindowsDebugger'#4'Left'#2#7#6'Height'#2#23#3
-  +'Top'#3#158#0#5'Width'#3#165#0#7'Caption'#6#20'Use windows debugger'#7'Check'
-  +'ed'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#5#0#0#12'TRadioButton'#16'cbUse'
-  +'VEHDebugger'#4'Left'#2#7#6'Height'#2#23#3'Top'#3#134#0#5'Width'#3#144#0#7'C'
-  +'aption'#6#16'Use VEH Debugger'#8'TabOrder'#2#7#7'TabStop'#8#0#0#0#9'TTabShe'
-  +'et'#7'tsTools'#7'Caption'#6#7'tsTools'#12'ClientHeight'#3#240#1#11'ClientWi'
-  +'dth'#3#199#2#10'ImageIndex'#2#9#0#6'TPanel'#6'Panel2'#4'Left'#2#0#6'Height'
-  +#2#26#3'Top'#2#0#5'Width'#3#199#2#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bvN'
-  +'one'#12'ClientHeight'#2#26#11'ClientWidth'#3#199#2#8'TabOrder'#2#0#0#9'TChe'
-  +'ckBox'#11'cbShowTools'#4'Left'#2#0#6'Height'#2#23#3'Top'#2#0#5'Width'#3#159
-  +#0#7'Caption'#6#22'Show ''tools'' menu item'#7'Checked'#9#7'OnClick'#7#16'cb'
-  ,'ShowToolsClick'#5'State'#7#9'cbChecked'#8'TabOrder'#2#0#0#0#0#6'TPanel'#6'P'
-  +'anel3'#4'Left'#3#227#1#6'Height'#3#214#1#3'Top'#2#26#5'Width'#3#228#0#5'Ali'
-  +'gn'#7#7'alRight'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3#214#1#11'Cli'
-  +'entWidth'#3#228#0#8'TabOrder'#2#1#0#6'TLabel'#18'lblApplicationTool'#4'Left'
-  +#2#10#6'Height'#2#17#3'Top'#2'1'#5'Width'#3#134#0#7'Caption'#6#19'Applicatio'
-  +'n/Command'#7'Enabled'#8#11'ParentColor'#8#0#0#6'TLabel'#11'lblShortcut'#4'L'
-  +'eft'#2#10#6'Height'#2#17#3'Top'#2'b'#5'Width'#2'4'#7'Caption'#6#9'Shortcut:'
-  +#7'Enabled'#8#11'ParentColor'#8#0#0#6'TLabel'#15'lblShortcutText'#4'Left'#2
-  +#10#6'Height'#2#17#3'Top'#2'v'#5'Width'#2'1'#7'Caption'#6#8'xxxxxxxx'#7'Enab'
-  +'led'#8#11'ParentColor'#8#0#0#6'TLabel'#12'lblToolsName'#4'Left'#2#10#6'Heig'
-  +'ht'#2#17#3'Top'#2#0#5'Width'#2'&'#7'Caption'#6#4'Name'#7'Enabled'#8#11'Pare'
-  +'ntColor'#8#0#0#12'TSpeedButton'#10'OpenButton'#4'Left'#3#197#0#6'Height'#2
-  +#26#3'Top'#2'E'#5'Width'#2#31#5'Color'#7#9'clBtnFace'#7'Enabled'#8#10'Glyph.'
-  +'Data'#10#218#2#0#0#214#2#0#0'BM'#214#2#0#0#0#0#0#0'6'#0#0#0'('#0#0#0#16#0#0
-  +#0#14#0#0#0#1#0#24#0#0#0#0#0#160#2#0#0#196#14#0#0#196#14#0#0#0#0#0#0#0#0#0#0
+  +' create new threads'#8'TabOrder'#2#3#7'Visible'#8#0#0#12'TRadioButton'#8'cb'
+  +'KDebug'#3'Tag'#2#2#4'Left'#2#7#6'Height'#2#23#3'Top'#3#182#0#5'Width'#3#186
+  +#0#7'Caption'#6#23'Use kernelmode debugger'#8'OnChange'#7#25'cbDebuggerInter'
+  +'faceChange'#8'TabOrder'#2#5#7'TabStop'#8#0#0#12'TRadioButton'#20'cbUseWindo'
+  +'wsDebugger'#3'Tag'#2#1#4'Left'#2#7#6'Height'#2#23#3'Top'#3#158#0#5'Width'#3
+  +#165#0#7'Caption'#6#20'Use windows debugger'#7'Checked'#9#8'OnChange'#7#25'c'
+  +'bDebuggerInterfaceChange'#5'State'#7#9'cbChecked'#8'TabOrder'#2#4#0#0#12'TR'
+  +'adioButton'#16'cbUseVEHDebugger'#4'Left'#2#7#6'Height'#2#23#3'Top'#3#134#0#5
+  +'Width'#3#144#0#7'Caption'#6#16'Use VEH Debugger'#8'OnChange'#7#25'cbDebugge'
+  +'rInterfaceChange'#8'TabOrder'#2#6#7'TabStop'#8#0#0#6'TPanel'#6'Panel1'#4'Le'
+  +'ft'#3#183#0#6'Height'#2#19#3'Top'#3#134#0#5'Width'#3'p'#1#10'BevelOuter'#7#6
+  +'bvNone'#8'TabOrder'#2#7#0#0#9'TGroupBox'#9'GroupBox2'#4'Left'#2#7#6'Height'
+  +#3#153#0#3'Top'#3#206#0#5'Width'#3#160#1#7'Caption'#6#25'Debugger interface '
+  +'config'#12'ClientHeight'#3#131#0#11'ClientWidth'#3#156#1#8'TabOrder'#2#8#0
+  +#12'TPageControl'#13'pcDebugConfig'#4'Left'#2#0#6'Height'#3#131#0#3'Top'#2#0
+  +#5'Width'#3#156#1#10'ActivePage'#7#16'tsVEHDebugConfig'#5'Align'#7#8'alClien'
+  ,'t'#8'TabIndex'#2#0#8'TabOrder'#2#0#0#9'TTabSheet'#16'tsVEHDebugConfig'#7'Ca'
+  +'ption'#6#12'VEH Debugger'#12'ClientHeight'#2'f'#11'ClientWidth'#3#148#1#0#12
+  +'TRadioButton'#12'RadioButton1'#4'Left'#2#2#6'Height'#2#23#3'Top'#2'+'#5'Wid'
+  +'th'#3#246#0#7'Caption'#6'$Hook thread-create and destroy api''s'#7'Enabled'
+  +#8#8'TabOrder'#2#1#7'TabStop'#8#0#0#6'TLabel'#7'Label25'#4'Left'#2#2#6'Heigh'
+  +'t'#2#17#3'Top'#2#3#5'Width'#2'g'#7'Caption'#6#17'Thread following:'#11'Pare'
+  +'ntColor'#8#0#0#12'TRadioButton'#12'RadioButton2'#4'Left'#2#2#6'Height'#2#23
+  +#3'Top'#2'C'#5'Width'#3#147#0#7'Caption'#6#18'Use processwatcher'#7'Enabled'
+  +#8#8'TabOrder'#2#2#7'TabStop'#8#0#0#12'TRadioButton'#12'RadioButton3'#4'Left'
+  +#2#2#6'Height'#2#23#3'Top'#2#19#5'Width'#2'q'#7'Caption'#6#16'Poll for threa'
+  +'ds'#7'Checked'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#0#0#0#0#9'TTabSheet'
+  +#23'tsWindowsDebuggerConfig'#7'Caption'#6#16'Windows Debugger'#0#0#9'TTabShe'
+  +'et'#19'tsKernelDebugConfig'#7'Caption'#6#12'Kernel Debug'#12'ClientHeight'#2
+  +'f'#11'ClientWidth'#3#148#1#0#6'TLabel'#7'Label10'#4'Left'#2'"'#6'Height'#2
+  +#17#3'Top'#2#255#5'Width'#3'0'#1#7'Caption'#6'0Kernelmode debugger is curren'
+  +'tly not implemented'#10'Font.Color'#7#5'clRed'#11'Font.Height'#2#242#9'Font'
+  +'.Name'#6#13'MS Sans Serif'#11'ParentColor'#8#10'ParentFont'#8#0#0#9'TCheckB'
+  +'ox'#13'cbGlobalDebug'#4'Left'#2#4#6'Height'#2#23#3'Top'#2#19#5'Width'#3#186
+  +#0#7'Caption'#6#25'Use Global Debug routines'#7'Enabled'#8#8'TabOrder'#2#0#0
+  +#0#0#0#0#0#9'TTabSheet'#7'tsTools'#7'Caption'#6#7'tsTools'#12'ClientHeight'#3
+  +#240#1#11'ClientWidth'#3#199#2#10'ImageIndex'#2#9#0#6'TPanel'#6'Panel2'#4'Le'
+  +'ft'#2#0#6'Height'#2#26#3'Top'#2#0#5'Width'#3#199#2#5'Align'#7#5'alTop'#10'B'
+  +'evelOuter'#7#6'bvNone'#12'ClientHeight'#2#26#11'ClientWidth'#3#199#2#8'TabO'
+  +'rder'#2#0#0#9'TCheckBox'#11'cbShowTools'#4'Left'#2#0#6'Height'#2#23#3'Top'#2
+  +#0#5'Width'#3#159#0#7'Caption'#6#22'Show ''tools'' menu item'#7'Checked'#9#7
+  +'OnClick'#7#16'cbShowToolsClick'#5'State'#7#9'cbChecked'#8'TabOrder'#2#0#0#0
+  +#0#6'TPanel'#6'Panel3'#4'Left'#3#227#1#6'Height'#3#214#1#3'Top'#2#26#5'Width'
+  +#3#228#0#5'Align'#7#7'alRight'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#3
+  +#214#1#11'ClientWidth'#3#228#0#8'TabOrder'#2#1#0#6'TLabel'#18'lblApplication'
+  +'Tool'#4'Left'#2#10#6'Height'#2#17#3'Top'#2'1'#5'Width'#3#134#0#7'Caption'#6
+  +#19'Application/Command'#7'Enabled'#8#11'ParentColor'#8#0#0#6'TLabel'#11'lbl'
+  +'Shortcut'#4'Left'#2#10#6'Height'#2#17#3'Top'#2'b'#5'Width'#2'4'#7'Caption'#6
+  +#9'Shortcut:'#7'Enabled'#8#11'ParentColor'#8#0#0#6'TLabel'#15'lblShortcutTex'
+  +'t'#4'Left'#2#10#6'Height'#2#17#3'Top'#2'v'#5'Width'#2'1'#7'Caption'#6#8'xxx'
+  +'xxxxx'#7'Enabled'#8#11'ParentColor'#8#0#0#6'TLabel'#12'lblToolsName'#4'Left'
+  +#2#10#6'Height'#2#17#3'Top'#2#0#5'Width'#2'&'#7'Caption'#6#4'Name'#7'Enabled'
+  +#8#11'ParentColor'#8#0#0#12'TSpeedButton'#10'OpenButton'#4'Left'#3#197#0#6'H'
+  +'eight'#2#26#3'Top'#2'E'#5'Width'#2#31#5'Color'#7#9'clBtnFace'#7'Enabled'#8
+  +#10'Glyph.Data'#10#218#2#0#0#214#2#0#0'BM'#214#2#0#0#0#0#0#0'6'#0#0#0'('#0#0
+  +#0#16#0#0#0#14#0#0#0#1#0#24#0#0#0#0#0#160#2#0#0#196#14#0#0#196#14#0#0#0#0#0#0
+  +#0#0#0#0#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
   +#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
-  +#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
-  +#192#192#192#192#192#192#192#192#192#192#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-  +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#192#192#192#192#192#192#192#192#192#192#192
-  +#192#192#192#192#0#0#0#0#0#0#0#132#132#0#132#132#0#132#132#0#132#132#0#132
-  +#132#0#132#132#0#132#132#0#132#132#0#132#132#0#0#0#192#192#192#192#192#192
-  +#192#192#192#192#192#192#0#0#0#0#255#255#0#0#0#0#132#132#0#132#132#0#132#132
-  +#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#0#0#192#192
-  +#192#192#192#192#192#192#192#0#0#0#255#255#255#0#255#255#0#0#0#0#132#132#0
-  +#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132
+  +#192#192#192#192#192#192#192#192#192#192#192#192#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+  +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#192#192#192#192#192#192#192#192#192
+  +#192#192#192#192#192#192#0#0#0#0#0#0#0#132#132#0#132#132#0#132#132#0#132#132
+  +#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#0#0#192#192#192#192#192
+  +#192#192#192#192#192#192#192#0#0#0#0#255#255#0#0#0#0#132#132#0#132#132#0#132
+  +#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#0#0#192
+  +#192#192#192#192#192#192#192#192#0#0#0#255#255#255#0#255#255#0#0#0#0#132#132
+  +#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132
   +#132#0#0#0#192#192#192#192#192#192#0#0#0#0#255#255#255#255#255#0#255#255#0#0
   +#0#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0#132#132#0
   +#132#132#0#132#132#0#0#0#192#192#192#0#0#0#255#255#255#0#255#255#255#255#255
@@ -360,7 +385,7 @@ LazarusResources.Add('TformSettings','FORMDATA',[
   +#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
   +#192#192#192#0#0#0#0#0#0#0#0#0#192#192#192#192#192#192#192#192#192#192#192
   +#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
-  +#192#192#192#192#192#192#192#192#192#192#192#192#0#0#0#0#0#0#192#192#192#192
+  ,#192#192#192#192#192#192#192#192#192#192#192#192#0#0#0#0#0#0#192#192#192#192
   +#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
   +#192#192#192#192#0#0#0#192#192#192#192#192#192#192#192#192#0#0#0#192#192#192
   +#0#0#0#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192#192
@@ -385,7 +410,7 @@ LazarusResources.Add('TformSettings','FORMDATA',[
   +#3'Top'#2#4#5'Width'#2']'#7'Caption'#6#6'Delete'#7'OnClick'#7#18'btnToolDele'
   +'teClick'#8'TabOrder'#2#1#0#0#0#9'TListView'#7'lvTools'#4'Left'#2#0#6'Height'
   +#3#186#1#3'Top'#2#0#5'Width'#3#227#1#5'Align'#7#8'alClient'#7'Columns'#14#1#7
-  ,'Caption'#6#4'Name'#5'Width'#2'J'#0#1#7'Caption'#6#11'Application'#5'Width'#3
+  +'Caption'#6#4'Name'#5'Width'#2'J'#0#1#7'Caption'#6#11'Application'#5'Width'#3
   +#234#0#0#1#8'AutoSize'#9#7'Caption'#6#8'Shortcut'#5'Width'#2#31#0#0#13'HideS'
   +'election'#8#9'ItemIndex'#2#255#8'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#1
   +#9'ViewStyle'#7#8'vsReport'#7'OnClick'#7#12'lvToolsClick'#0#0#0#0#0#0#6'TPan'

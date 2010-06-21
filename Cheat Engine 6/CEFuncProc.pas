@@ -3017,6 +3017,7 @@ begin
     vtSingle: Result:='Float';
     vtDouble: Result:='Double';
     vtString: Result:='String';
+    vtCustom: Result:='Auto Assembler Script';
   end;
 end;
 
@@ -3032,7 +3033,8 @@ begin
   if s='8 bytes' then Result :=vtQword else
   if s='float' then   Result :=vtSingle else
   if s='double' then Result :=vtDouble else
-  if s='string' then  Result :=vtString;
+  if s='string' then  Result :=vtString else
+  if s='auto assembler script' then result:=vtCustom;
 end;
 
 function readAndParseAddress(address: ptrUint; variableType: TVariableType): string;
