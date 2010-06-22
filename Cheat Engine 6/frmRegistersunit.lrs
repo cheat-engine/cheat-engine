@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TRegisters','FORMDATA',[
   'TPF0'#10'TRegisters'#9'Registers'#4'Left'#3'?'#4#6'Height'#3#198#0#3'Top'#3
   +#197#0#5'Width'#3#154#0#7'Caption'#6#9'Registers'#12'ClientHeight'#3#198#0#11

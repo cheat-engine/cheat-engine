@@ -48,12 +48,16 @@ end;
 
 function TVEHDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 var c: PContext;
+{$ifdef cpu64}
     c32: PContext32 absolute c;
+{$endif}
 begin
 
 
   if isFrozenThread then //use the VEHDebugView context
   begin
+    result:=true;
+
     c:=@VEHDebugView.CurrentContext[0];
     {$ifdef cpu64}
     if not is64bit then
@@ -87,11 +91,11 @@ begin
       c32.SegSs:=lpcontext.SegSs;
 
       CopyMemory(@c32.ext, @lpContext.fltsave,sizeof(c32.ext));
-    end else result:=NewKernelHandler.SetThreadContext(hThread,lpContext);
+    end else c^:=lpContext;
 
    // end;// else lpContext:=c^;
     {$else}
-    //lpContext:=c^;
+    c^:=lpContext;
     {$endif}
 
   end
@@ -109,6 +113,7 @@ var c: PContext;
 begin
   if isFrozenThread then //use the VEHDebugView context
   begin
+    result:=true;
     c:=@VEHDebugView.CurrentContext[0];
     {$ifdef cpu64}
     if not is64bit then
@@ -143,7 +148,10 @@ begin
 
       CopyMemory(@lpcontext.FltSave, @c32.ext,sizeof(c32.ext));
     end else lpContext:=c^;
+    {$else}
+    lpContext:=c^;
     {$endif}
+
 
   end
   else
