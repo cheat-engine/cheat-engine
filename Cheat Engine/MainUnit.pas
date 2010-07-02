@@ -9310,7 +9310,7 @@ end;
 procedure TMainForm.FormShow(Sender: TObject);
 resourcestring
   strhappybirthday='Let''s sing Happy Birthday for Dark Byte today!';
-  strXMess='Merry christmas and happy new year';
+  strXMess='Have fun';
   strNewyear='And what are your good intentions for this year? ;-)';
   strfuture='Wow,I never imagined people would use Cheat Engine up to today';
 

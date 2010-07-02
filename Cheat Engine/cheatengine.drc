@@ -621,7 +621,7 @@ BEGIN
 	MainUnit_strUnHideForeground,	"will bring the foreground window back"
 	MainUnit_strUnhideAll,	"will bring all windows back"
 	MainUnit_strhappybirthday,	"Let's sing Happy Birthday for Dark Byte today!"
-	MainUnit_strXMess,	"Merry christmas and happy new year"
+	MainUnit_strXMess,	"Have fun"
 	MainUnit_strSelectedAddressIsAPointer,	"The selected address is a pointer. Are you sure? (the base pointer will get the address)"
 	MainUnit_strMorePointers,	"There are more pointers selected. Do you want to change them as well?"
 	MainUnit_strMorePointers2,	"You have selected one or more pointers. Do you want to change them as well?"

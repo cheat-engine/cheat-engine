@@ -941,6 +941,9 @@ begin
       terminate;
     end;
   end;
+
+  terminate;
+
   {
   if (vm<>nil) and (not reuse) then
     freeandnil(vm);   }
@@ -1769,7 +1772,12 @@ procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
 begin
   if staticscanner<>nil then
   begin
-    staticscanner.Terminate;
+    if not staticscanner.terminated then
+    begin
+      if messagedlg('Are you sure you want to stop the pointerscan? There is only a one in a billion chance the pointer you need has already been found',mtwarning, [mbyes,mbno],0)<>mryes then exit;
+      staticscanner.Terminate;
+    end;
+
     staticscanner.WaitFor;
   end;
 end;

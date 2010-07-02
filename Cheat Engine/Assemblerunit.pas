@@ -2916,7 +2916,7 @@ begin
         begin
           //see if there is also a 'opcode imm16' variant
           k:=startoflist;
-          while (k<=opcodecount) and (opcodes[j].mnemonic=tokens[mnemonic]) do
+          while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
           begin
             if (opcodes[k].paramtype1=par_imm16) then
             begin
@@ -2928,6 +2928,8 @@ begin
 
             inc(k);
           end;
+
+          //nope
         end;
 
 
@@ -2936,7 +2938,7 @@ begin
         begin
           //see if there is also a 'opcode imm32' variant
           k:=startoflist;
-          while (k<=opcodecount) and (opcodes[j].mnemonic=tokens[mnemonic]) do
+          while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
           begin
             if (opcodes[k].paramtype1=par_imm32) then
             begin

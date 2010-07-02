@@ -38,15 +38,19 @@ implementation
 procedure TfrmStructuresAddElement.cbTypeChange(Sender: TObject);
 var s: string;
 begin
-  s:=edtDescription.Text;
-  if s='Dword' then s:='4 Bytes';
-  if cbType.Items.IndexOf(s)<>-1 then
-    edtDescription.Text:=cbType.Items[cbType.itemindex];
+  if visible then
+  begin
+    s:=edtDescription.Text;
+    if s='Dword' then s:='4 Bytes';
+    if s='Word' then s:='2 Bytes';
+    if cbType.Items.IndexOf(s)<>-1 then
+      edtDescription.Text:=cbType.Items[cbType.itemindex];
 
 
-  bytesize:=integer(cbtype.Items.Objects[cbtype.itemindex]);
-  edtbytesize.Text:=inttostr(bytesize);
-  edtByteSize.enabled:=(cbtype.ItemIndex=13) or (cbtype.itemindex=14);
+    bytesize:=integer(cbtype.Items.Objects[cbtype.itemindex]);
+    edtbytesize.Text:=inttostr(bytesize);
+    edtByteSize.enabled:=(cbtype.ItemIndex=13) or (cbtype.itemindex=14);
+  end;
 end;
 
 procedure TfrmStructuresAddElement.edtByteSizeChange(Sender: TObject);

@@ -168,8 +168,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Width = 345
         Height = 17
         Caption = 'Stop traversing a path when a static has been found'
-        Checked = True
-        State = cbChecked
         TabOrder = 9
       end
     end
