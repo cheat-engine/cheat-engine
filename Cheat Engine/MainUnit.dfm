@@ -1872,6 +1872,7 @@ object MainForm: TMainForm
       OnData = Foundlist3Data
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown
+      OnResize = Foundlist3Resize
     end
     object Panel7: TPanel
       Left = 0

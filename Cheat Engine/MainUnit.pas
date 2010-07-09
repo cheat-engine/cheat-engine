@@ -435,6 +435,7 @@ type
     procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
+    procedure Foundlist3Resize(Sender: TObject);
   private
     oldscanvalue2text: string;
     fcontrol: tfcontrol;
@@ -5869,7 +5870,7 @@ begin
                   if res=mrcancel then exit;
                 end;
 
-                ok:=res=mryes;
+                ok:=(res=mryes) or (res=mrYesToAll);
 
                 if (res=mryes) or (res=mrno) then
                   res:=-1; //reset
@@ -11751,6 +11752,11 @@ procedure TMainForm.Panel5Resize(Sender: TObject);
 begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;   
+end;
+
+procedure TMainForm.Foundlist3Resize(Sender: TObject);
+begin
+  beep;
 end;
 
 initialization

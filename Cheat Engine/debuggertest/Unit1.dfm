@@ -3,8 +3,8 @@ object Form1: TForm1
   Top = 330
   BorderStyle = bsSingle
   Caption = 'Form1'
-  ClientHeight = 265
-  ClientWidth = 535
+  ClientHeight = 287
+  ClientWidth = 851
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -151,5 +151,14 @@ object Form1: TForm1
     Caption = 'Integrity check'
     TabOrder = 7
     OnClick = Button8Click
+  end
+  object Button9: TButton
+    Left = 376
+    Top = 8
+    Width = 169
+    Height = 25
+    Caption = 'Create thread longterm'
+    TabOrder = 8
+    OnClick = Button9Click
   end
 end

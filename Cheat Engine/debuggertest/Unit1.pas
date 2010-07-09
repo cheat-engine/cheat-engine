@@ -35,6 +35,7 @@ type
     Label9: TLabel;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -45,6 +46,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
   private
     { Private declarations }
     originalIntegrityValue: dword;
@@ -308,6 +310,25 @@ begin
   else
     showmessage('Everything is fine');
 
+end;
+
+type TLongThread=class(tthread)
+  private
+    procedure execute; override;
+end;
+
+procedure TLongThread.execute;
+begin
+  FreeOnTerminate:=true;
+  while not terminated do
+    sleep(1000);
+
+
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+begin
+  TLongThread.create(false);
 end;
 
 end.
