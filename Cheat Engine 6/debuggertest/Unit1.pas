@@ -140,7 +140,7 @@ procedure x; stdcall;
 var a: qword;
 label weee;
 begin
-  a:=0;
+  a:=0;{
   asm
     push r14
     mov r14,$1234
@@ -166,7 +166,7 @@ weee:
     nop
     nop
     pop r14
-  end;
+  end;    }
 
   showmessage('executed and still alive. r14='+inttohex(a,8));
 end;
@@ -180,10 +180,17 @@ var _dr7: dword;
     x,y,z: dword;
 label xxx;
 begin
+{$ifdef cpu64}
   asm
     mov rax,xxx
     mov _dr0,rax
   end;
+{$else}
+  asm
+    mov eax,xxx
+    mov _dr0,eax
+  end;
+{$endif}
 
   _dr7:=$3;
 

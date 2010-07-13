@@ -1299,7 +1299,7 @@ begin
     freeandnil(verticalscrollbar);
 
   if buffer<>nil then
-    freeandnil(buffer);
+    freemem(buffer);
 
   if mbCanvas<>nil then
     freeandnil(mbCanvas);
