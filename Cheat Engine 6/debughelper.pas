@@ -849,7 +849,8 @@ begin
 
   end;
 
-  AddBreakpoint(nil, regmod.address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
+  //todo: Make this breakpoint show up in the memory view
+  AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
 end;
 
 procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer);
@@ -1082,7 +1083,7 @@ var
 begin
   starttime:=GetTickCount;
 
-  while (gettickcount-starttime)<5000000 do
+  while (gettickcount-starttime)<5000 do
   begin
     currentloopstarttime:=GetTickCount;
     while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long

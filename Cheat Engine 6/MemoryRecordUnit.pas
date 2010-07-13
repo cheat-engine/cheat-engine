@@ -66,6 +66,8 @@ type
     procedure setAllowDecrease(state: boolean);
     procedure setAllowIncrease(state: boolean);
     procedure setShowAsHex(state: boolean);
+
+
   public
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
@@ -136,6 +138,9 @@ type
 
   end;
 
+function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
+function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
+
 implementation
 
 uses addresslist, formsettingsunit;
@@ -171,8 +176,8 @@ begin
 end;
 
 procedure TMemoryRecord.setXMLnode(CheatEntry: TDOMNode);
-var tempnode: TDOMNode;
-i,j: integer;
+var tempnode,tempnode2: TDOMNode;
+i,j,k,l: integer;
 
 currentEntry: TDOMNode;
 
@@ -291,6 +296,51 @@ begin
 
       setlength(pointeroffsets,j); //set to the proper size
     end;
+
+    tempnode:=CheatEntry.FindNode('Hotkeys');
+
+    if tempnode<>nil then
+    begin
+      j:=0;
+      setlength(hotkeys, tempnode.ChildNodes.Count);
+      for i:=0 to tempnode.ChildNodes.count-1 do
+      begin
+        if tempnode.ChildNodes[i].NodeName='Hotkey' then
+        begin
+          Hotkeys[j].value:='';
+          ZeroMemory(@Hotkeys[j].keys,sizeof(TKeyCombo));
+
+          tempnode2:=tempnode.childnodes[i].FindNode('Action');
+          if tempnode2<>nil then
+            hotkeys[j].action:=TextToMemRecHotkeyAction(tempnode.TextContent);
+
+          tempnode2:=tempnode.childnodes[i].findnode('Value');
+          if tempnode2<>nil then
+            hotkeys[j].value:=tempnode2.TextContent;
+
+          tempnode2:=tempnode.ChildNodes[i].FindNode('Keys');
+          if tempnode2<>nil then
+          begin
+            l:=0;
+            for k:=0 to tempnode2.ChildNodes.Count-1 do
+            begin
+              if tempnode2.ChildNodes[k].NodeName='Key' then
+              begin
+                try
+                  hotkeys[j].keys[l]:=StrToInt(tempnode2.ChildNodes[k].TextContent);
+                  inc(l);
+                except
+                end;
+              end;
+            end;
+
+          end;
+          inc(j);
+        end;
+      end;
+
+      setlength(hotkeys,j);
+    end;
     ReinterpretAddress;
     refresh;
   end;
@@ -304,9 +354,10 @@ var
   cheatEntry: TDOMNode;
   cheatEntries: TDOMNode;
   offsets: TDOMNode;
+  hks, hk,hkkc: TDOMNode;
 
   tn: TTreenode;
-  i: integer;
+  i,j: integer;
 begin
   if selectedonly and (not isselected) then exit; //don't add if not selected and only the selected items should be added
 
@@ -375,6 +426,27 @@ begin
       end;
     end;
 
+    //hotkeys
+    if length(hotkeys)>0 then
+    begin
+      hks:=cheatentry.AppendChild(doc.CreateElement('Hotkeys'));
+      for i:=0 to length(Hotkeys)-1 do
+      begin
+        hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
+        hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkeys[i].action);
+        hkkc:=hk.AppendChild(doc.createElement('Keys'));
+        j:=0;
+        while (j<5) and (hotkeys[i].keys[j]<>0) do
+        begin
+          hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkeys[i].keys[j]);
+          inc(j);
+        end;
+
+        if hotkeys[i].value<>'' then
+          hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkeys[i].value;
+      end;
+
+    end;
   end;
 
   node.AppendChild(cheatEntry);
@@ -959,6 +1031,32 @@ begin
   self.RealAddress:=result;
 end;
 
+
+function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
+begin
+  //type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue,
+  //mrhIncreaseValue, mrhDecreaseValue);
+  case action of
+    mrhToggleActivation: result:='Toggle Activation';
+    mrhToggleActivationAllowIncrease: result:='Toggle Activation Allow Increase';
+    mrhToggleActivationAllowDecrease: result:='Toggle Activation Allow Decrease';
+    mrhSetValue: result:='Set Value';
+    mrhIncreaseValue: result:='Increase Value';
+    mrhDecreaseValue: result:='Decrease Value';
+  end;
+end;
+
+function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
+begin
+  if text = 'Toggle Activation' then result:=mrhToggleActivation else
+  if text = 'Toggle Activation Allow Increase' then result:=mrhToggleActivationAllowIncrease else
+  if text = 'Toggle Activation Allow Decrease' then result:=mrhToggleActivationAllowDecrease else
+  if text = 'Set Value' then result:=mrhSetValue else
+  if text = 'Increase Value' then result:=mrhIncreaseValue else
+  if text = 'Decrease Value' then result:=mrhDecreaseValue
+  else
+    result:=mrhToggleActivation;
+end;
 
 end.
 

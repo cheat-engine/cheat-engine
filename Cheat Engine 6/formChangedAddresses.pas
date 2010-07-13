@@ -54,6 +54,8 @@ address: ptrUint;
  i: integer;
  li: tlistitem;
  currentthread: TDebugThreadHandler;
+
+ x: pcontext;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
@@ -65,7 +67,7 @@ begin
     i:=pos('[',s)+1;
     s:=copy(s,i,pos(']',s)-i);
 
-    address:=symhandler.getAddressFromName(s, false, haserror, @currentthread.context);
+    address:=symhandler.getAddressFromName(s, false, haserror, currentthread.context);
 
     if not hasError then
     begin
@@ -78,6 +80,13 @@ begin
       li:=changedlist.Items.add;
       li.caption:=s;
       li.SubItems.Add('');
+
+
+      getmem(x,sizeof(tcontext));
+      x^:=currentthread.context^;
+
+      li.Data:=x;
+
     end;
   end;
 end;
@@ -135,9 +144,6 @@ var i: integer;
 begin
   if changedlist.Items.Count>0 then
   begin
-    if not timer1.Enabled then
-      timer1.Enabled:=true;
-
     for i:=0 to changedlist.Items.Count-1 do
     begin
       case cbDisplayType.ItemIndex of
@@ -153,7 +159,7 @@ begin
 
       Changedlist.Items[i].SubItems[0]:=s;
     end;
-  end else timer1.Enabled:=false;
+  end;
 end;
 
 procedure TfrmChangedAddresses.Timer1Timer(Sender: TObject);

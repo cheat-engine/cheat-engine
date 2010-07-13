@@ -432,6 +432,9 @@ type
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
+
+    procedure undoLastScan;
+
     constructor create(progressbar: TProgressbar);
     destructor destroy; override;
 
@@ -2838,12 +2841,6 @@ begin
   Set8087CW($133f); //disable floating point exceptions in this thread
   SetSSECSR($1f80);
 
-{$ifdef crashtest}
-  //while (true) do
-  begin
-    sleep(16000);
-  end;
-{$endif}
 
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
@@ -4118,6 +4115,15 @@ begin
       result:=scancontroller.errorstring;
   end;
 
+end;
+
+procedure TMemscan.undoLastScan;
+begin
+  deletefile(fScanResultFolder+'Memory.tmp');
+  deletefile(fScanResultFolder+'Addresses.tmp');
+
+  renamefile(fScanResultFolder+'Memory.UNDO',fScanResultFolder+'Memory.tmp');
+  renamefile(fScanResultFolder+'Addresses.UNDO',fScanResultFolder+'Addresses.tmp');
 end;
 
 procedure TMemscan.waittilldone;

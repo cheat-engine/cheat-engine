@@ -71,7 +71,7 @@ begin
         if isfirst then
         begin
           //create process
-          er.ExceptionCode:=$ce000000; //$ce000000=create process (just made up)
+          er.ExceptionCode:=$ce000000; // $ce000000=create process (just made up)
           InternalHandler(@ep,lpte.th32ThreadID); //I don't care what the return value is
           isfirst:=false;
         end else

@@ -36,6 +36,8 @@ type
 
     WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
 
+    DebugEventString: string; //for outputdebugstring event
+
     function HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     //even though it's private, it's accessible from this unit
     function CreateThreadDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
@@ -57,6 +59,7 @@ type
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
     //sync functions
     procedure visualizeBreak;
+    procedure AddDebugEventString;
   public
     isHandled: boolean; //set to true if this thread is the current debug target
     ProcessId: dword;
@@ -98,7 +101,13 @@ type
 
 implementation
 
-uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit, frmDebugEventsUnit;
+uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit, frmDebugEventsUnit, formdebugstringsunit;
+
+procedure TDebugThreadHandler.AddDebugEventString;
+begin
+  if formdebugstrings<>nil then
+    formdebugstrings.ListBox1.Items.add(DebugEventString);
+end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
@@ -392,6 +401,7 @@ begin
       bo_ChangeRegister:
       begin
         //modify accordingly
+        outputdebugstring('Handling bo_ChangeRegister breakpoint');
         ModifyRegisters(@bp);
 
         //and
@@ -545,10 +555,50 @@ begin
 end;
 
 function TDebugThreadHandler.OutputDebugStringEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
+var s: pchar;
+    ws: pwidechar;
+    x: dword;
 begin
   outputdebugstring('OutputDebugStringEvent');
+
+  if FormDebugStrings<>nil then
+  begin
+    if debugEvent.DebugString.fUnicode>0 then
+    begin
+      ws:=getmem(debugEvent.DebugString.nDebugStringLength+2);
+      try
+        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, s, debugEvent.DebugString.nDebugStringLength,x);
+        ws[debugEvent.DebugString.nDebugStringLength div 2]:=#0;
+        ws[x div 2]:=#0;
+
+        DebugEventString:=ws;
+
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), AddDebugEventString);
+      finally
+        freemem(ws);
+      end;
+    end
+    else
+    begin
+      s:=getmem(debugEvent.DebugString.nDebugStringLength+1);
+      try
+        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, s, debugEvent.DebugString.nDebugStringLength,x);
+        s[debugEvent.DebugString.nDebugStringLength]:=#0;
+        s[x]:=#0;
+
+        DebugEventString:=s;
+
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), AddDebugEventString);
+      finally
+        freemem(s);
+      end;
+    end;
+
+
+  end;
+
   Result := true;
-  dwContinueStatus:=DBG_CONTINUE;
+  dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
 end;
 
 function TDebugThreadHandler.RipEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;

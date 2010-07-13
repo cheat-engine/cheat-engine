@@ -41,7 +41,7 @@ uses
   debuggertypedefinitions, sfloat, addresslist, addresslisthandlerunit,
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
-  WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit;
+  WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist;
 
 {$R cheatengine.res}
 {$R manifest.res}

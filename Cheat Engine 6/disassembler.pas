@@ -1157,7 +1157,8 @@ begin
     if indexstring<>'' then indexstring[1]:='r'; //quick replace
 
   end;
-  indexstring:=colorreg+indexstring+endcolor;
+  if indexstring<>'' then
+    indexstring:=colorreg+indexstring+endcolor;
 
   if index<>4 then
   begin
@@ -1172,14 +1173,18 @@ begin
       result:=result+'+'+indexstring;
   end else
   begin
-    if _mod=0 then //special case
+    if processhandler.is64bit then
     begin
-      //sib has a 32-bit displacement value (starting at 0000000000000000)
-      LastDisassembleData.modrmValueType:=dvtAddress;
-      LastDisassembleData.modrmValue:=dwordptr^;
+      if _mod=0 then //special case
+      begin
+        //sib has a 32-bit displacement value (starting at 0000000000000000)
+        LastDisassembleData.modrmValueType:=dvtAddress;
+        LastDisassembleData.modrmValue:=dwordptr^;
 
-      result:=inttohexs(dwordptr^,8);
-      last:=last+4;
+        result:=inttohexs(dwordptr^,8);
+        last:=last+4;
+      end;
+
     end;
   end;
 {$ifdef disassemblerdebug}
@@ -4130,7 +4135,7 @@ begin
                       end;
 
                 $b6 : begin
-                        description:='load far pointer';
+                        description:='Move with zero-extend';
                         lastdisassembledata.opcode:='movzx';
                         if $66 in prefix2 then
                           lastdisassembledata.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,2,last,8) else

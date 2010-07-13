@@ -158,6 +158,7 @@ type
     CreateGroup: TMenuItem;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     Label53: TLabel;
     Label58: TLabel;
     MenuItem1: TMenuItem;
@@ -315,6 +316,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure Label3Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure miRenameTabClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
@@ -2090,7 +2092,7 @@ end;
 
 procedure TMainForm.Foundlist3Resize(Sender: TObject);
 begin
-  foundlist3.Columns[1].width:=foundlist3.ClientWidth-foundlist3.Columns[0].Width;
+
 end;
 
 procedure TMainForm.Description1Click(Sender: TObject);
@@ -2137,6 +2139,8 @@ procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
 begin
 
 end;
+
+
 
 procedure TMainForm.MenuItem1Click(Sender: TObject);
 var i: integer;
@@ -2216,11 +2220,11 @@ begin
   scanstate.button2.tag:=button2.tag;
   scanstate.foundlist3.itemindex:=foundlist3.itemindex;
 
-        (*
+{
   if foundlist3.TopItem<>nil then
     scanstate.foundlist3.topitemindex:=foundlist3.topitem.Index
   else
-    scanstate.foundlist3.topitemindex:=-1; *)
+    scanstate.foundlist3.topitemindex:=-1;    }
 end;
 
 procedure TMainForm.SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
@@ -2504,6 +2508,9 @@ begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
   ScanText.left:=scanvalue.left; //lazarus rev  25348 32-bit fix
+
+
+  foundlist3.Columns[1].width:=foundlist3.ClientWidth-foundlist3.Columns[0].Width;
 
  // if cbpercentage<>nil then
  //   cbpercentage.left:=scantype.left+scantype.width+3;
@@ -3995,7 +4002,7 @@ begin
   if messagedlg(strConfirmUndo,mtConfirmation  ,[mbyes,mbno],0)=mryes then
   begin
     foundlist.Deinitialize;
-    undolastscan(GetVarType,hexadecimalcheckbox.checked);
+    memscan.undolastscan;
     foundcount:=foundlist.Initialize(getvartype);
     undoscan.Enabled:=false;
   end;
@@ -4842,7 +4849,9 @@ var extra: dword;
     address: string;
     valuetype: TVariableType;
 begin
+
   //put in data
+
   try
     address:=inttohex(foundlist.GetAddress(item.Index,extra,value),8);
 
@@ -4899,26 +4908,19 @@ begin
 end;
 
 
-procedure TMainForm.Label59Click(Sender: TObject);
-var r: trect;
-vd: TVEHDebugInterface;
-de: TDEBUGEVENT;
-
-c: TContext;
-z: TDebuggerInterface;
+procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  vd:=TVEHDebugInterface.create;
-  z:=vd;
+  foundlist3.items.count:=1000000;
+end;
 
-  while z.WaitForDebugEvent(de, infinite) do
-  begin
+procedure TMainForm.Label59Click(Sender: TObject);
+begin
+  foundlist3.items.count:=0;
+  foundlist3.clear;
 
-    //
-    //100028CA6
+//mainform.Foundlist3.items.count:=0;
+//mainform.Foundlist3.clear;
 
-    showmessage('debugevent happened');
-    vd.ContinueDebugEvent(de.dwProcessId,de.dwThreadId, DBG_EXCEPTION_NOT_HANDLED);
-  end;
 end;
 
 
@@ -5084,7 +5086,6 @@ begin
 
 
 
-
   if message.wparam>0 then
   begin
     messagedlg('Scan error:'+memscan.GetErrorString, mtError,[mbok],0);
@@ -5096,6 +5097,8 @@ begin
 
   enablegui(memscan.LastScanType=stNextScan);
   destroyCancelButton;
+
+
 
   foundlist.Initialize(getvartype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
 
@@ -5207,6 +5210,8 @@ var
   i: integer;
   bytes: tbytes;
 begin
+
+
   vtype:=getvartype;
   if not canceled then
   begin
@@ -5230,6 +5235,9 @@ begin
     foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
   end
   else foundlist.Initialize(vtype); //failed scan, just reopen the addressfile
+
+
+
 
   try
     if scanvalue.Visible and scanvalue.Enabled then

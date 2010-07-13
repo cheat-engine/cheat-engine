@@ -82,16 +82,18 @@ end;
 
 procedure TRebaseAgain.execute;
 begin
+
   freeonterminate:=true;
   sleep(1000);
   synchronize(rerebase);
+
+
 end;
 
 procedure TFoundList.clear;
 begin
-  foundlist.Items.Count:=0;
-  addresslistfirst:=0;
-  foundlist.Clear;
+  self.foundlist.items.count:=0;
+  self.foundlist.clear;
 end;
 
 function TFoundList.InModule(i: integer):boolean;
@@ -187,11 +189,11 @@ begin
     
 
 	finally
-		memoryfile.free;
-    outaddress.free;
-		outmemory.free;
-    freemem(buf);
-	end;
+	  memoryfile.free;
+          outaddress.free;
+          outmemory.free;
+          freemem(buf);
+        end;
 
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
@@ -213,6 +215,7 @@ end;
 procedure TFoundList.RebaseAddresslist(i: integer);
 var j,k: dword;
 begin
+
 
   if addressfile=nil then exit; //during a scan
 
@@ -269,7 +272,6 @@ var i,j: integer;
     x: dword;
     temp: string;
 begin
-
 
   if addressfile=nil then exit;
 
@@ -642,6 +644,9 @@ begin
 
   fvartype:=vartype;
 
+
+
+
   if fileexists(memscan.ScanresultFolder+'Addresses.TMP') then
   begin
     try
@@ -668,11 +673,15 @@ begin
         if vartype in [5,9] then //bit, or all (address+bit)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(TBitAddress);
+
+
           foundlist.Items.Count:=result;
         end
         else //normal (address)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(ptruint);
+
+
           foundlist.Items.Count:=result;
         end;
 

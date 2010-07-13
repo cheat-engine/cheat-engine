@@ -1129,6 +1129,7 @@ begin
 end;
 
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
+var x: array of integer;
 begin
 {$ifndef standalonetrainerwithassembler}
 
@@ -1168,6 +1169,9 @@ begin
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;
   assemblescreen.Parent:=panel2;
+
+  setlength(x,0);
+  loadformposition(self,x);
 {$endif}
 end;
 
@@ -1463,7 +1467,7 @@ end;
 
 procedure TfrmAutoInject.FormDestroy(Sender: TObject);
 begin
-  if editscript or editscript2 then
+  //if editscript or editscript2 then
   begin
     saveformposition(self,[]); 
 

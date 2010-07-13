@@ -704,7 +704,7 @@ begin
     disassemblerview.Update;
 
     //refresh the modulelist
-    lastmodulelistupdate:=(lastmodulelistupdate+1) mod 10;
+    lastmodulelistupdate:=(lastmodulelistupdate+1) mod 50;
     if lastmodulelistupdate=0 then
       symhandler.loadmodulelist;
   end;
@@ -1079,17 +1079,10 @@ end;
 procedure TMemoryBrowser.Threadlist1Click(Sender: TObject);
 begin
 
-  if frmThreadlist<>nil then
-  begin
-    frmThreadlist.show;
-    exit;
-  end;
+  if frmThreadlist=nil then
+    frmThreadlist:=tfrmthreadlist.create(self);
 
-  if not startdebuggerifneeded then exit;
-  frmThreadlist:=tfrmthreadlist.create(self);
   frmThreadlist.show;
-
-
 end;
 
 procedure TMemoryBrowser.AssemblePopup(x:string);
@@ -1696,7 +1689,7 @@ procedure TMemoryBrowser.Changestateofregisteratthislocation1Click(
   Sender: TObject);
 begin
 {$ifndef net}
-  if foundcodedialog<>nil then
+  if foundcodedialog<>nil then //todo: this is kinda obsolete
     raise exception.Create('I can''t do that! You are currently using one of the code finder options, please, stop it first');
 
   if (formsettings.cbKdebug.checked) and (kdebugger.isactive) and (kdebugger.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up

@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 303
+  Left = 543
   Height = 577
-  Top = 160
+  Top = 149
   Width = 721
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -622,8 +622,8 @@ object MemoryBrowser: TMemoryBrowser
   end
   object debuggerpopup: TPopupMenu
     OnPopup = debuggerpopupPopup
-    left = 104
-    top = 152
+    left = 112
+    top = 176
     object Gotoaddress1: TMenuItem
       Caption = 'Go to address'
       OnClick = Gotoaddress1Click
@@ -698,14 +698,14 @@ object MemoryBrowser: TMemoryBrowser
     end
   end
   object Timer2: TTimer
-    Interval = 500
+    Interval = 100
     OnTimer = Timer2Timer
-    left = 928
-    top = 352
+    left = 272
+    top = 32
   end
   object MainMenu1: TMainMenu
-    left = 88
-    top = 16
+    left = 112
+    top = 8
     object File1: TMenuItem
       Caption = 'File'
       object Newwindow1: TMenuItem
@@ -1013,19 +1013,21 @@ object MemoryBrowser: TMemoryBrowser
     DefaultExt = '.CEM'
     Filter = 'Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'
     FilterIndex = 0
-    top = 40
+    left = 152
+    top = 80
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.txt'
     Filter = 'textfiles (*.txt)|*.txt'
-    left = 32
-    top = 40
+    left = 184
+    top = 80
   end
   object OpenDllDialog: TOpenDialog
     Title = 'Select the module you want to inject'
     DefaultExt = '.dll'
     Filter = 'Dll-file (*.dll)|*.dll|All files (*.*)|*.*'
-    top = 64
+    left = 152
+    top = 104
   end
   object pmStacktrace: TPopupMenu
     left = 498

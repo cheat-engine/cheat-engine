@@ -97,7 +97,6 @@ procedure Open_Process;
 Procedure Shutdown;
 function KeyToStr(key:word):string;
 
-function undolastscan(valtype: integer;hexadecimal:boolean): integer;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
 function getbit(bitnr: integer; bt: qword):integer;
@@ -1859,14 +1858,7 @@ begin
   result:=flagvalue and (not (1 shl 21)) or (value shl 21);
 end;
 
-function undolastscan(valtype: integer;hexadecimal:boolean): integer;
-begin
-  deletefile(CheatEngineDir+'Memory.tmp');
-  deletefile(CheatEngineDir+'Addresses.tmp');
 
-  renamefile(CheatEngineDir+'Memory.UNDO',CheatEngineDir+'Memory.tmp');
-  renamefile(CheatEngineDir+'Addresses.UNDO',CheatEngineDir+'Addresses.tmp');
-end;
 
 function AvailMem:SIZE_T;
 var x: _MEMORYSTATUS;
@@ -2603,10 +2595,6 @@ this function will return how many active cpu cores there are at your disposal
 var cpucount: integer;
     PA,SA: dword;
 begin
- result:=1;
- exit;
-
-
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 

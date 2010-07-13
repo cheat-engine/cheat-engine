@@ -370,9 +370,9 @@ object MainForm: TMainForm
       Visible = False
     end
     object Label59: TLabel
-      Left = 360
+      Left = 376
       Height = 14
-      Top = 51
+      Top = 59
       Width = 25
       Caption = 'Testr'
       ParentColor = False
@@ -756,7 +756,6 @@ object MainForm: TMainForm
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown
       OnResize = Foundlist3Resize
-      OnSelectItem = Foundlist3SelectItem
     end
     object Panel7: TPanel
       Left = 0
@@ -1319,6 +1318,15 @@ object MainForm: TMainForm
         Position = 2
         TabOrder = 2
       end
+    end
+    object Label3: TLabel
+      Left = 376
+      Height = 14
+      Top = 40
+      Width = 33
+      Caption = 'Label3'
+      ParentColor = False
+      OnClick = Label3Click
     end
   end
   object UpdateTimer: TTimer

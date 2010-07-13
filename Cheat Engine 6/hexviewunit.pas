@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs;
+  Clipbrd,dialogs, changelist;
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
@@ -61,6 +61,7 @@ type
 
 
     lastupdate: dword;
+    changelist: TChangelist;
 
     procedure LoadMemoryRegion;
     procedure UpdateMemoryInfo;
@@ -89,6 +90,9 @@ type
     procedure RefocusIfNeeded;
     procedure HandleEditKeyPress(key: char);
     procedure setDisplayType(newdt: TDisplaytype);
+
+    function CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
+
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
@@ -106,6 +110,7 @@ type
     property address: ptrUint read fAddress write setAddress;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     constructor create(AOwner: TComponent); override;
+    destructor destroy; override;
   end;
 
 implementation
@@ -124,6 +129,23 @@ begin
   update;
 end;
 
+function THexView.CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
+{
+Calculates the color between MaxColor and MinColor
+}
+var newred, newgreen, newblue: dword;
+c1,c2: TColor;
+begin
+  c2:=ColorToRGB(MaxColor);
+  c1:=ColorToRGB(MinColor);
+
+  newred:=trunc((graphics.Red(c1)*(1-(percentage/100))+graphics.Red(c2)*(percentage/100)));
+  newgreen:=trunc((graphics.Green(c1)*(1-(percentage/100))+graphics.Green(c2)*(percentage/100)));
+  newblue:=trunc((graphics.blue(c1)*(1-(percentage/100))+graphics.Blue(c2)*(percentage/100)));
+
+  RGBToColor(newred, newGreen, newBlue);
+end;
+
 procedure THexView.setDisplayType(newdt: TDisplaytype);
 begin
   fDisplayType:=newdt;
@@ -134,6 +156,8 @@ begin
     hasSelection:=false;
     isEditing:=false;
   end;
+
+  changelist.Clear;
   update;
 end;
 
@@ -789,7 +813,7 @@ var memorysize: integer;
     actualread: dword;
 begin
   memorysize:=bytesPerLine*totallines;
-  if self.buffersize<memorysize then //make sure the bufferi s big enough
+  if self.buffersize<memorysize then //make sure the buffer is big enough
   begin
     ReAllocMem(buffer,memorysize*2);
     self.buffersize:=memorysize*2;
@@ -1009,6 +1033,9 @@ var
   initialoffset: byte;
   seperators: array of integer;
   seperatorindex: integer;
+
+  itemnr: integer;
+  displaythis: boolean;
 begin
   if Parent=nil then exit;
 
@@ -1023,6 +1050,11 @@ begin
   bheader:='';
   cheader:='';
 
+  //(re)initialize the changelist (only has affect if the size is different)
+  changelist.Initialize(currentAddress, totallines*bytesperline);
+
+
+  //create header
   initialoffset:=currentaddress and $f;
   for i:=0 to bytesperline-1 do
   begin
@@ -1047,6 +1079,7 @@ begin
   offscreenbitmap.Canvas.TextOut(charstart,textheight, cheader);
 
 
+  itemnr:=0;
 
   for i:=0 to totallines-1 do
   begin
@@ -1078,14 +1111,27 @@ begin
         end;
       end;
 
+      //todo: refactor this
+
+      displaythis:=false;
       case displayType of
-        dtByte: offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getByte(currentAddress)); //byte
-        dtWord: if (j mod 2)=0 then offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getWord(currentAddress));
-        dtDWord: if (j mod 4)=0 then offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getDWord(currentAddress));
-        dtDWordDec: if (j mod 4)=0 then offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getDWordDec(currentAddress));
-        dtSingle: if (j mod 4)=0 then offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getSingle(currentAddress));
-        dtDouble: if (j mod 8)=0 then offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, getDouble(currentAddress));
+        dtByte: begin changelist.values[itemnr]:=getByte(currentAddress); displaythis:=true; end;
+        dtWord: if (j mod 2)=0 then begin changelist.values[itemnr]:=getWord(currentAddress); displaythis:=true; end;
+        dtDWord: if (j mod 4)=0 then begin changelist.values[itemnr]:=getDWord(currentAddress); displaythis:=true; end;
+        dtDWordDec: if (j mod 4)=0 then begin changelist.values[itemnr]:=getDWordDec(currentAddress); displaythis:=true; end;
+        dtSingle: if (j mod 4)=0 then begin changelist.values[itemnr]:=getsingle(currentAddress); displaythis:=true; end;
+        dtDouble: if (j mod 8)=0 then begin changelist.values[itemnr]:=getDouble(currentAddress); displaythis:=true; end;
       end;
+
+      if gettickcount-changelist.LastChange[itemnr]<1000 then
+      begin
+        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((1000-(gettickcount-changelist.LastChange[itemnr]))/10, clRed, offscreenbitmap.canvas.Brush.Color);
+        if offscreenbitmap.canvas.Font.Color=clred then
+          offscreenbitmap.canvas.Font.Color:=clBlue;
+      end;
+
+      if displaythis then
+        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, (2+i)*textheight, changelist.values[itemnr]);
 
 
       if isEditing and (currentAddress=selected) then
@@ -1123,6 +1169,7 @@ begin
 
       bytepos:=bytepos+3;
       inc(currentaddress);
+      inc(itemnr);
     end;
   end;
 
@@ -1146,6 +1193,9 @@ end;
 procedure THexView.setAddress(a: ptrUint);
 begin
   fAddress:=a;
+
+  changelist.Clear;
+
   update;
 end;
 
@@ -1183,6 +1233,7 @@ begin
   totallines:=1+(mbCanvas.clientHeight-(textheight*2)) div textheight;  //-(textheight*2) for the header
 
 
+
   if (oldsizex<>bytesperline) or (oldsizey<>totallines) then
     update;
 end;
@@ -1206,7 +1257,7 @@ begin
 
     oldAddressWidth:=addresswidth;
     {$ifdef cpu64}
-    defaultrange:=$100000000;
+    defaultrange:=UINT_PTR($100000000);
     if fAddress<defaultrange then
       addresswidth:=addresswidthdefault
     else
@@ -1239,9 +1290,29 @@ begin
   mbcanvas.Canvas.CopyRect(cr,offscreenbitmap.Canvas,cr);
 end;
 
+destructor THexview.destroy;
+begin
+  if changelist<>nil then
+    freeandnil(changelist);
+
+  if verticalscrollbar<>nil then
+    freeandnil(verticalscrollbar);
+
+  if buffer<>nil then
+    freeandnil(buffer);
+
+  if mbCanvas<>nil then
+    freeandnil(mbCanvas);
+
+  if offscreenbitmap<>nil then
+    freeandnil(offscreenbitmap);
+end;
+
 constructor THexView.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
+
+  changelist:=TChangelist.create;
 
   getmem(buffer,8192);
   self.buffersize:=8192;

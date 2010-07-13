@@ -113,7 +113,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    address:dword;
+    address:ptrUint;
   public
     { Public declarations }
     constructor create(AOwner:tcomponent;address:ptrUint);
@@ -501,6 +501,17 @@ begin
   tempregedit.change_ebp:=checkbox7.checked;
   tempregedit.change_esp:=checkbox8.checked;
   tempregedit.change_eip:=checkbox9.checked;
+  {$ifdef cpu64}
+  tempregedit.change_r8:=checkbox22.checked;
+  tempregedit.change_r9:=checkbox23.checked;
+  tempregedit.change_r10:=checkbox24.checked;
+  tempregedit.change_r11:=checkbox25.checked;
+  tempregedit.change_r12:=checkbox26.checked;
+  tempregedit.change_r13:=checkbox27.checked;
+  tempregedit.change_r14:=checkbox28.checked;
+  tempregedit.change_r15:=checkbox29.checked;
+  {$endif}
+
   tempregedit.change_cf:=checkbox10.checked;
   tempregedit.change_pf:=checkbox11.checked;
   tempregedit.change_af:=checkbox12.checked;

@@ -13,24 +13,19 @@ object frmThreadlist: TfrmThreadlist
   OnCreate = FormCreate
   Position = poOwnerFormCenter
   LCLVersion = '0.9.29'
-  object threadlistview: TListView
+  object threadTreeview: TTreeView
     Left = 0
     Height = 187
     Top = 0
     Width = 313
     Align = alClient
-    Columns = <    
-      item
-        Caption = 'ThreadID'
-        Width = 200
-      end>
-    ColumnClick = False
-    HideSelection = False
-    ItemIndex = -1
+    DefaultItemHeight = 15
     PopupMenu = PopupMenu1
+    ReadOnly = True
     RowSelect = True
     TabOrder = 0
-    ViewStyle = vsReport
+    OnExpanding = threadTreeviewExpanding
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object PopupMenu1: TPopupMenu
     left = 80

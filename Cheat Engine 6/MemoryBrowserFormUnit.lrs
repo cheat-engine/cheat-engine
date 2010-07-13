@@ -1,8 +1,8 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TMemoryBrowser','FORMDATA',[
-  'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3'/'#1#6'Height'#3'A'#2#3
-  +'Top'#3#160#0#5'Width'#3#209#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory V'
+  'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3#31#2#6'Height'#3'A'#2#3
+  +'Top'#3#149#0#5'Width'#3#209#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory V'
   +'iewer'#12'ClientHeight'#3'('#2#11'ClientWidth'#3#209#2#11'Font.Height'#2#242
   +#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'Form'
   +'Close'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'OnResi'
@@ -159,7 +159,7 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +'Click'#7#29'Addthisaddresstothelist1Click'#0#0#9'TMenuItem'#17'Makepagewrit'
   +'able1'#7'Caption'#6#18'Make page writable'#7'OnClick'#7#22'Makepagewritable'
   +'1Click'#0#0#0#10'TPopupMenu'#13'debuggerpopup'#7'OnPopup'#7#18'debuggerpopu'
-  +'pPopup'#4'left'#2'h'#3'top'#3#152#0#0#9'TMenuItem'#12'Gotoaddress1'#7'Capti'
+  +'pPopup'#4'left'#2'p'#3'top'#3#176#0#0#9'TMenuItem'#12'Gotoaddress1'#7'Capti'
   +'on'#6#13'Go to address'#7'OnClick'#7#17'Gotoaddress1Click'#0#0#9'TMenuItem'
   +#5'Back1'#7'Caption'#6#4'Back'#7'OnClick'#7#10'Back1Click'#0#0#9'TMenuItem'#7
   +'Follow1'#7'Caption'#6#6'Follow'#7'Visible'#8#7'OnClick'#7#12'Follow1Click'#0
@@ -185,15 +185,15 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +'accesses1Click'#0#0#9'TMenuItem'#2'N9'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#21
   +'Createjumptocodecave1'#7'Caption'#6'$Create jump and initialize Code-Cave'#7
   +'OnClick'#7#26'Createjumptocodecave1Click'#0#0#0#6'TTimer'#6'Timer2'#8'Inter'
-  +'val'#3#244#1#7'OnTimer'#7#11'Timer2Timer'#4'left'#3#160#3#3'top'#3'`'#1#0#0
-  +#9'TMainMenu'#9'MainMenu1'#4'left'#2'X'#3'top'#2#16#0#9'TMenuItem'#5'File1'#7
-  +'Caption'#6#4'File'#0#9'TMenuItem'#10'Newwindow1'#7'Caption'#6#10'New window'
-  +#7'OnClick'#7#15'Newwindow1Click'#0#0#9'TMenuItem'#15'Loadsymbolfile1'#7'Cap'
-  +'tion'#6#16'Load symbol file'#7'Visible'#8#0#0#9'TMenuItem'#22'Savedisasseml'
-  +'edoutput1'#7'Caption'#6#24'Save disassembled output'#7'OnClick'#7#27'Savedi'
-  +'sassemledoutput1Click'#0#0#9'TMenuItem'#3'N14'#7'Caption'#6#1'-'#0#0#9'TMen'
-  +'uItem'#20'Setsymbolsearchpath1'#7'Caption'#6#21'Set symbol searchpath'#7'On'
-  ,'Click'#7#25'Setsymbolsearchpath1Click'#0#0#9'TMenuItem'#2'N4'#7'Caption'#6#1
+  +'val'#2'd'#7'OnTimer'#7#11'Timer2Timer'#4'left'#3#16#1#3'top'#2' '#0#0#9'TMa'
+  +'inMenu'#9'MainMenu1'#4'left'#2'p'#3'top'#2#8#0#9'TMenuItem'#5'File1'#7'Capt'
+  +'ion'#6#4'File'#0#9'TMenuItem'#10'Newwindow1'#7'Caption'#6#10'New window'#7
+  +'OnClick'#7#15'Newwindow1Click'#0#0#9'TMenuItem'#15'Loadsymbolfile1'#7'Capti'
+  +'on'#6#16'Load symbol file'#7'Visible'#8#0#0#9'TMenuItem'#22'Savedisassemled'
+  +'output1'#7'Caption'#6#24'Save disassembled output'#7'OnClick'#7#27'Savedisa'
+  +'ssemledoutput1Click'#0#0#9'TMenuItem'#3'N14'#7'Caption'#6#1'-'#0#0#9'TMenuI'
+  +'tem'#20'Setsymbolsearchpath1'#7'Caption'#6#21'Set symbol searchpath'#7'OnCl'
+  ,'ick'#7#25'Setsymbolsearchpath1Click'#0#0#9'TMenuItem'#2'N4'#7'Caption'#6#1
   +'-'#0#0#9'TMenuItem'#17'Savememoryregion1'#7'Caption'#6#18'Save memory regio'
   +'n'#8'ShortCut'#3'S@'#7'OnClick'#7#22'Savememoryregion1Click'#0#0#9'TMenuIte'
   +'m'#18'Loadmemolryregion1'#7'Caption'#6#18'Load memory region'#8'ShortCut'#3
@@ -282,20 +282,20 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +'DTlist1Click'#0#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7'Visi'
   +'ble'#8#0#0#0#11'TOpenDialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6'Filt'
   +'er'#6'2Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'#11'FilterIndex'#2
-  +#0#3'top'#2'('#0#0#11'TSaveDialog'#11'SaveDialog1'#10'DefaultExt'#6#4'.txt'#6
-  +'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#2' '#3'top'#2'('#0#0#11'TOpen'
-  +'Dialog'#13'OpenDllDialog'#5'Title'#6'$Select the module you want to inject'
-  +#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file (*.dll)|*.dll|All files (*.*'
-  +')|*.*'#3'top'#2'@'#0#0#10'TPopupMenu'#12'pmStacktrace'#4'left'#3#242#1#3'to'
-  +'p'#3'D'#1#0#9'TMenuItem'#4'All1'#7'Caption'#6#10'Full stack'#10'GroupIndex'
-  +#2#1#7'OnClick'#7#9'All1Click'#0#0#9'TMenuItem'#12'Modulesonly1'#7'Caption'#6
-  +#12'Modules only'#10'GroupIndex'#2#1#7'OnClick'#7#17'Modulesonly1Click'#0#0#9
-  +'TMenuItem'#21'Nonsystemmodulesonly1'#7'Caption'#6#23'Non system modules onl'
-  +'y'#10'GroupIndex'#2#1#7'OnClick'#7#26'Nonsystemmodulesonly1Click'#0#0#9'TMe'
-  +'nuItem'#3'N17'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#11'sta'
-  +'cktrace2'#7'Caption'#6#10'Stacktrace'#7'Checked'#9#10'GroupIndex'#2#1#7'OnC'
-  +'lick'#7#16'stacktrace2Click'#0#0#9'TMenuItem'#3'N18'#7'Caption'#6#1'-'#10'G'
-  +'roupIndex'#2#1#0#0#9'TMenuItem'#18'Maxstacktracesize1'#7'Caption'#6#15'Max '
-  +'stack: 4096'#10'GroupIndex'#2#1#7'OnClick'#7#23'Maxstacktracesize1Click'#0#0
-  +#0#0
+  +#0#4'left'#3#152#0#3'top'#2'P'#0#0#11'TSaveDialog'#11'SaveDialog1'#10'Defaul'
+  +'tExt'#6#4'.txt'#6'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#3#184#0#3't'
+  +'op'#2'P'#0#0#11'TOpenDialog'#13'OpenDllDialog'#5'Title'#6'$Select the modul'
+  +'e you want to inject'#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file (*.dll'
+  +')|*.dll|All files (*.*)|*.*'#4'left'#3#152#0#3'top'#2'h'#0#0#10'TPopupMenu'
+  +#12'pmStacktrace'#4'left'#3#242#1#3'top'#3'D'#1#0#9'TMenuItem'#4'All1'#7'Cap'
+  +'tion'#6#10'Full stack'#10'GroupIndex'#2#1#7'OnClick'#7#9'All1Click'#0#0#9'T'
+  +'MenuItem'#12'Modulesonly1'#7'Caption'#6#12'Modules only'#10'GroupIndex'#2#1
+  +#7'OnClick'#7#17'Modulesonly1Click'#0#0#9'TMenuItem'#21'Nonsystemmodulesonly'
+  +'1'#7'Caption'#6#23'Non system modules only'#10'GroupIndex'#2#1#7'OnClick'#7
+  +#26'Nonsystemmodulesonly1Click'#0#0#9'TMenuItem'#3'N17'#7'Caption'#6#1'-'#10
+  +'GroupIndex'#2#1#0#0#9'TMenuItem'#11'stacktrace2'#7'Caption'#6#10'Stacktrace'
+  +#7'Checked'#9#10'GroupIndex'#2#1#7'OnClick'#7#16'stacktrace2Click'#0#0#9'TMe'
+  +'nuItem'#3'N18'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#18'Max'
+  +'stacktracesize1'#7'Caption'#6#15'Max stack: 4096'#10'GroupIndex'#2#1#7'OnCl'
+  +'ick'#7#23'Maxstacktracesize1Click'#0#0#0#0
 ]);

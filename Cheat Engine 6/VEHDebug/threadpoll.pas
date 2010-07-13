@@ -34,6 +34,7 @@ var
   er: TEXCEPTIONRECORD;
   c: Tcontext;
 begin
+  //outputdebugstring(pchar('TThreadPoller.CreateThreadEvent('+inttohex(threadid,1)+')'));
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
@@ -48,6 +49,7 @@ var
   er: TEXCEPTIONRECORD;
   c: Tcontext;
 begin
+  //outputdebugstring(pchar('TThreadPoller.DestroyThreadEvent('+inttohex(threadid,1)+')'));
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
@@ -62,29 +64,54 @@ var
   ths: thandle;
   lpte: TThreadEntry32;
   check: boolean;
+ // i,j: integer;
+  cpi: dword;
 begin
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
+  cpi:=GetCurrentProcessId();
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPALL,cpi);
+ // i:=0;
+  //j:=0;
+
   if ths<>INVALID_HANDLE_VALUE then
   begin
+    zeromemory(@lpte,sizeof(lpte));
+    lpte.dwSize:=sizeof(lpte);
     check:=Thread32First(ths, lpte);
     while check do
     begin
-      if lpte.th32OwnerProcessID=GetCurrentProcessId then
+      if lpte.th32OwnerProcessID=cpi then
+      begin
         list.add(pointer(lpte.th32ThreadID));
-
+        //inc(i);
+      end;
       check:=Thread32next(ths,lpte);
+      //inc(j);
     end;
 
+   { if list.count=0 then
+      outputdebugstring('GetCurrentList returned 0 threads');
+
+    if i=0 then
+      outputdebugstring('It''s actually 0');
+
+    outputdebugstring(pchar('j='+inttostr(j)));  }
+
+
+
     closehandle(ths);
-  end;
+  end;// else outputdebugstring('GetCurrentList failed on CreateToolhelp32Snapshot');
 end;
 
 procedure TThreadPoller.UpdateList;
 var newlist: Tlist;
 i: integer;
 begin
+ // OutputDebugString('TThreadPoller.UpdateList');
+
   newlist:=tlist.create;
   GetCurrentList(newlist);
+
+ // outputdebugstring(pchar(format('newlist.count=%d oldlist.count=%d',[newlist.count, threadlist.count])));
 
   //now try to find the differences
 
@@ -97,8 +124,9 @@ begin
     if newlist.IndexOf(threadlist[i])=-1 then //the new list doesn't contain this threadid
       DestroyThreadEvent(Dword(threadlist[i]));
 
-  newlist.free;
-
+  //free the old list and make the new list the current list
+  threadlist.free;
+  threadlist:=newlist;
 end;
 
 procedure TThreadPoller.execute;
@@ -106,8 +134,10 @@ begin
   threadlist:=TList.Create;
   try
     GetCurrentList(threadlist);
+
     while not terminated do
     begin
+
       sleep(1000);
       UpdateList;
     end;
