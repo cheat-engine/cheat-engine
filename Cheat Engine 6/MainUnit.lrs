@@ -117,7 +117,7 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
   +#0#0#0#0#9'NumGlyphs'#2#0#8'ShowHint'#9#14'ParentShowHint'#8#0#0#6'TLabel'#6
   +'Label6'#4'Left'#2#0#6'Height'#2#14#3'Top'#2' '#5'Width'#2'"'#7'Caption'#6#6
-  +'Found:'#11'ParentColor'#8#0#0#12'TSpeedButton'#12'SpeedButton2'#4'Left'#3#9
+  +'Found:'#11'ParentColor'#8#0#0#12'TSpeedButton'#12'SpeedButton2'#4'Left'#3#1
   +#1#6'Height'#2#22#4'Hint'#6'"Delete all addresses from the list'#3'Top'#3'@'
   +#1#5'Width'#2#23#7'Anchors'#11#8'akBottom'#0#5'Color'#7#9'clBtnFace'#10'Glyp'
   +'h.Data'#10'z'#1#0#0'v'#1#0#0'BMv'#1#0#0#0#0#0#0'v'#0#0#0'('#0#0#0' '#0#0#0

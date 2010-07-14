@@ -19,10 +19,10 @@ type
   TMemoryBrowser = class(TForm)
     miDebugEvents: TMenuItem;
     miLockRowsize: TMenuItem;
-    sbShowFloats: TButton;
     memorypopup: TPopupMenu;
     Goto1: TMenuItem;
     debuggerpopup: TPopupMenu;
+    sbShowFloats: TButton;
     Timer2: TTimer;
     Panel1: TPanel;
     Panel4: TPanel;
@@ -163,7 +163,6 @@ type
     Continueanddetachdebugger1: TMenuItem;
     N16: TMenuItem;
     Panel3: TPanel;
-    Panel2: TPanel;
     Splitter3: TSplitter;
     pnlStacktrace: TPanel;
     pmStacktrace: TPopupMenu;
@@ -178,6 +177,8 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
+    procedure Button1Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -587,11 +588,22 @@ begin
   frmDebugEvents.show;
 end;
 
+procedure TMemoryBrowser.Button1Click(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.MenuItem1Click(Sender: TObject);
+begin
+
+end;
+
 procedure TMemoryBrowser.FormShow(Sender: TObject);
 var x: array of integer;
 
 begin
-  disassemblerview.Update;
+  if disassemblerview<>nil then
+    disassemblerview.Update;
 
 
   Sericedescriptortable1.visible:=not Is64bitOS;
@@ -608,21 +620,10 @@ end;
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
+
   displaytype:=dtByte;
 
   strace:=tstringlist.create;
-
-
-{
-not enough time to add header supports
-
-
-}
- { disassemblerheader.Visible:=false;
-  discanvas.Top:=discanvas.top-disassemblerheader.Height;
-  discanvas.Height:=discanvas.Height+disassemblerheader.Height;
-  //ronresize isn't repainting correctly   }
-{^^^^}
 
   disassembler:=true;
 
@@ -635,12 +636,14 @@ not enough time to add header supports
 
   disassemblerview.TopAddress:=$00400000;
 
-  hexview:=THexview.create(self);
+  hexview:=THexview.create(nil);
+  hexview.Align:=alClient;
   hexview.parent:=panel3;
   hexview.popupmenu:=memorypopup;
-  hexview.Align:=alClient;
+
   hexview.OnKeyDown:=hexviewKeyDown;
-    
+
+
   memoryaddress:=$00400000;
   memorylabelcount:=0;
 
@@ -693,20 +696,21 @@ end;
 
 procedure TMemoryBrowser.FormResize(Sender: TObject);
 begin
-  disassemblerview.Update;
+  if disassemblerview<>nil then
+    disassemblerview.Update;
 end;
 
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
 begin
   if Visible then
   begin
-    hexview.update;
-    disassemblerview.Update;
+    if hexview<>nil then hexview.update;
+    if disassemblerview<>nil then disassemblerview.Update;
 
     //refresh the modulelist
     lastmodulelistupdate:=(lastmodulelistupdate+1) mod 50;
     if lastmodulelistupdate=0 then
-      symhandler.loadmodulelist;
+      if symhandler<>nil then symhandler.loadmodulelist;
   end;
 end;
 
@@ -2022,26 +2026,45 @@ end;
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
 var h0,h1,h2,h3: integer;
 begin
+
   if strace<>nil then
     strace.free;
 
-  disassemblerHistory.free;
-  memorybrowserHistory.free;
-  assemblerHistory.free;
+  if disassemblerHistory<>nil then
+    freeandnil(disassemblerHistory);
+
+  if memorybrowserhistory<>nil then
+    freeandnil(memorybrowserHistory);
+
+  if assemblerHistory<>nil then
+    freeandnil(assemblerHistory);
 
   //save position of window and other stuff
   //membrowser comes after formsettings so is destroyed before formsettings, so valid
   if (not ischild) then
   begin
-    saveformposition(self,[
-                            disassemblerview.getheaderwidth(0),
-                            disassemblerview.getheaderwidth(1),
-                            disassemblerview.getheaderwidth(2),
-                            disassemblerview.getheaderwidth(3),
-                            panel1.height,
-                            registerview.width
-                    ]);   
+    if disassemblerview<>nil then
+    begin
+      saveformposition(self,[
+                              disassemblerview.getheaderwidth(0),
+                              disassemblerview.getheaderwidth(1),
+                              disassemblerview.getheaderwidth(2),
+                              disassemblerview.getheaderwidth(3),
+                              panel1.height,
+                              registerview.width
+                      ]);
+
+    end;
   end;
+
+  if self.hexview<>nil then
+    freeandnil(self.hexview);
+
+  if disassemblerview<>nil then
+    freeandnil(disassemblerview);
+
+
+
 
 end;
 
@@ -2260,8 +2283,8 @@ end;
 
 procedure TMemoryBrowser.ScrollBox1Resize(Sender: TObject);
 begin
-  //sbShowFloats.Top:=scrollbox1.ClientHeight div 2-sbShowFloats.Height div 2;
- // sbShowFloats.Left:=scrollbox1.clientwidth - sbShowFloats.Width-2;
+  sbShowFloats.Top:=registerview.ClientHeight div 2-sbShowFloats.Height div 2;
+  sbShowFloats.Left:=registerview.clientwidth - sbShowFloats.Width-2;
 end;
 
 procedure TMemoryBrowser.reloadStacktrace;
@@ -2603,12 +2626,16 @@ end;
 
 procedure TMemoryBrowser.setHexviewAddress(a: ptrUint);
 begin
-  hexview.address:=a;
+  if hexview<>nil then
+    hexview.address:=a;
 end;
 
 function TMemoryBrowser.getHexviewAddress:ptrUint;
 begin
-  result:=hexview.address;
+  if hexview<>nil then
+    result:=hexview.address
+  else
+    result:=0;
 end;
 
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword);

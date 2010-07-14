@@ -260,7 +260,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 265
+      Left = 257
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320

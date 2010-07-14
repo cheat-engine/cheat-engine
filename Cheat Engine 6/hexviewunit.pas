@@ -18,7 +18,7 @@ type
     inModule: boolean;
   end;
 
-  THexView=class(TPanel)
+  THexView=class(TCustomPanel)
   private
     buffer: pbytearray;
     buffersize: integer;
@@ -32,9 +32,6 @@ type
     textheight: integer;
     addresswidthdefault: integer;
     charsize, bytesize, byteSizeWithoutChar: integer;
-
-
-   // _8bytelinesize: integer;
 
     memoryInfo: string;
 
@@ -107,10 +104,12 @@ type
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
 
-    property address: ptrUint read fAddress write setAddress;
-    property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
+
+
+    property address: ptrUint read fAddress write setAddress;
+    property DisplayType: TDisplayType read fDisplayType write setDisplayType;
   end;
 
 implementation
@@ -433,10 +432,6 @@ begin
   end;
   RefocusIfNeeded;
 
-  {
-          if key in [96..105] then ///numpad fix
-          key:=key-96+ord('0');
-          }
   inherited KeyDown(key,shift);
 end;
 
@@ -1193,8 +1188,8 @@ end;
 procedure THexView.setAddress(a: ptrUint);
 begin
   fAddress:=a;
-
-  changelist.Clear;
+  if changelist<>nil then
+    changelist.Clear;
 
   update;
 end;
@@ -1244,7 +1239,7 @@ var oldAddressWidth: integer;
 defaultrange: ptrUint;
 {$endif}
 begin
-  //if (gettickcount-lastupdate)>50 then
+  if offscreenbitmap<>nil then
   begin
     if offscreenbitmap.Width<mbcanvas.width then
       offscreenbitmap.Width:=mbcanvas.width;
@@ -1292,6 +1287,7 @@ end;
 
 destructor THexview.destroy;
 begin
+
   if changelist<>nil then
     freeandnil(changelist);
 
@@ -1306,7 +1302,11 @@ begin
 
   if offscreenbitmap<>nil then
     freeandnil(offscreenbitmap);
+
+
+  inherited destroy;
 end;
+
 
 constructor THexView.create(AOwner: TComponent);
 begin

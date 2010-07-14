@@ -2,11 +2,11 @@ object MemoryBrowser: TMemoryBrowser
   Left = 543
   Height = 577
   Top = 149
-  Width = 721
+  Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
   ClientHeight = 552
-  ClientWidth = 721
+  ClientWidth = 722
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -22,7 +22,7 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 5
     Top = 300
-    Width = 721
+    Width = 722
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -36,15 +36,15 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 300
     Top = 0
-    Width = 721
+    Width = 722
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 300
-    ClientWidth = 721
+    ClientWidth = 722
     TabOrder = 0
     OnResize = Panel1Resize
     object Splitter2: TSplitter
-      Left = 526
+      Left = 528
       Height = 300
       Top = 0
       Width = 5
@@ -56,29 +56,29 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 300
       Top = 0
-      Width = 526
+      Width = 528
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object RegisterView: TPanel
-      Left = 531
+      Left = 533
       Height = 300
       Top = 0
-      Width = 190
+      Width = 189
       Align = alRight
       ClientHeight = 300
-      ClientWidth = 190
+      ClientWidth = 189
       TabOrder = 1
       Visible = False
       object ScrollBox1: TScrollBox
         Left = 1
         Height = 298
         Top = 1
-        Width = 188
+        Width = 187
         Align = alClient
         ClientHeight = 294
-        ClientWidth = 184
+        ClientWidth = 183
         TabOrder = 0
         OnClick = ScrollBox1Click
         OnResize = ScrollBox1Resize
@@ -436,32 +436,32 @@ object MemoryBrowser: TMemoryBrowser
           ParentFont = False
           OnDblClick = EAXLabelDblClick
         end
+        object sbShowFloats: TButton
+          Left = 152
+          Height = 32
+          Top = 141
+          Width = 22
+          Caption = '>'
+          OnClick = sbShowFloatsClick
+          TabOrder = 0
+          Visible = False
+        end
       end
-    end
-    object sbShowFloats: TButton
-      Left = 696
-      Height = 32
-      Top = 152
-      Width = 22
-      Caption = '>'
-      OnClick = sbShowFloatsClick
-      TabOrder = 3
-      Visible = False
     end
   end
   object Panel4: TPanel
     Left = 0
     Height = 247
     Top = 305
-    Width = 721
+    Width = 722
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
     ClientHeight = 247
-    ClientWidth = 721
+    ClientWidth = 722
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 505
+      Left = 506
       Height = 245
       Top = 1
       Width = 5
@@ -475,24 +475,13 @@ object MemoryBrowser: TMemoryBrowser
       Left = 1
       Height = 245
       Top = 1
-      Width = 504
+      Width = 505
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 245
-      ClientWidth = 504
       TabOrder = 0
-      object Panel2: TPanel
-        Left = 0
-        Height = 245
-        Top = 0
-        Width = 504
-        Align = alClient
-        BevelOuter = bvNone
-        TabOrder = 0
-      end
     end
     object pnlStacktrace: TPanel
-      Left = 510
+      Left = 511
       Height = 245
       Top = 1
       Width = 210

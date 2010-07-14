@@ -584,14 +584,14 @@ begin
             begin
               formsettings.cbShowDisassembler.checked:=true;
               memorybrowser.Panel1.Visible:=true;
-              memorybrowser.disassemblerview.Update;
-              memorybrowser.hexview.update;
+              if memorybrowser.disassemblerview<>nil then memorybrowser.disassemblerview.Update;
+              if memorybrowser.hexview<>nil then memorybrowser.hexview.update;
             end
             else
             begin
               formsettings.cbShowDisassembler.checked:=false;
               memorybrowser.Panel1.Visible:=false;
-              memorybrowser.hexview.update;
+              if memorybrowser.hexview<>nil then memorybrowser.hexview.update;
             end;
           end;
 

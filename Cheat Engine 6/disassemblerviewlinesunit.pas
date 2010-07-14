@@ -308,7 +308,7 @@ begin
   opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
 
   parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
-  specialstring:='';
+  specialstring:=visibleDisassembler.DecodeLastParametersToString;
 
 
 

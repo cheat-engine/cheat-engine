@@ -65,7 +65,6 @@ type
     procedure doTypeChange;
     procedure doValueChange;
 
-    destructor destroy; override;
     constructor Create(AOwner: TComponent);
     property Items: TTreeNodes read getTreeNodes write SetTreeNodes;
 
@@ -1031,10 +1030,6 @@ begin
 
 end;
 
-destructor TAddresslist.destroy;
-begin
-  inherited destroy;
-end;
 
 constructor TAddresslist.Create(AOwner: TComponent);
 begin

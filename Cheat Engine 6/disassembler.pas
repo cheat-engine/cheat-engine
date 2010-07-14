@@ -104,6 +104,8 @@ type
     function disassemble(var offset: ptrUint; var description: string): string;
     procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
 
+    function DecodeLastParametersToString: string; //returns the special line splitDisassemblerstring used to return
+
     function getLastBytestring: string;
 
     property syntaxhighlighting: boolean read fsyntaxhighlighting write setSyntaxHighlighting;
@@ -1235,6 +1237,9 @@ begin
   LastDisassembleData.opcode:='';
   LastDisassembleData.parameters:='';
   lastdisassembledata.isjump:=false;
+  lastdisassembledata.modrmValueType:=dvtNone;
+  lastdisassembledata.parameterValueType:=dvtNone;
+
 
   if isdefault then
     showsymbols:=symhandler.showsymbols;
@@ -6055,7 +6060,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6077,7 +6082,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6085,6 +6090,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $72 : begin
@@ -6096,7 +6102,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6104,6 +6110,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $73 : begin
@@ -6115,7 +6122,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6123,6 +6130,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $74 : begin
@@ -6134,14 +6142,17 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
+
+
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $75 : begin
@@ -6153,7 +6164,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6161,6 +6172,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $76 : begin
@@ -6172,7 +6184,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6180,6 +6192,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $77 : begin
@@ -6191,7 +6204,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6199,6 +6212,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $78 : begin
@@ -6210,7 +6224,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6218,6 +6232,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $79 : begin
@@ -6229,7 +6244,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6237,6 +6252,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $7a : begin
@@ -6248,7 +6264,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6256,6 +6272,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $7b : begin
@@ -6267,7 +6284,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6275,6 +6292,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $7c : begin
@@ -6286,7 +6304,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6294,6 +6312,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $7d : begin
@@ -6305,7 +6324,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
+              lastdisassembledata.parametervaluetype:=dvtAddress;
 
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
@@ -6313,6 +6332,7 @@ begin
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+
             end;
 
       $7e : begin
@@ -6324,14 +6344,13 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
-
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+              lastdisassembledata.parameterValueType:=dvtAddress;
             end;
 
       $7f : begin
@@ -6343,14 +6362,13 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parametervaluetype:=dvtvalue;
-
               if processhandler.is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
+              lastdisassembledata.parameterValueType:=dvtAddress;
             end;
 
       $80 : begin
@@ -9719,6 +9737,8 @@ begin
 
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
+              lastdisassembledata.parametervaluetype:=dvtAddress;
+
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
@@ -10138,7 +10158,7 @@ begin
     if riprelative then
     begin
       //add the current offset to the code between []
-      inc(LastDisassembleData.modrmValue,offset);
+      LastDisassembleData.modrmValue:=offset+integer(LastDisassembleData.modrmValue); //sign extended increase
 
       i:=pos('[',LastDisassembleData.parameters);
       j:=PosEx(']',LastDisassembleData.parameters,i);
@@ -10391,6 +10411,81 @@ end;
 procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
 begin
   defaultDisassembler.splitDisassembledString(disassembled, showvalues, address,bytes, opcode, special, context);
+end;
+
+function tdisassembler.DecodeLastParametersToString: string;
+{
+use the last disassembled data to show some detailed data
+}
+var
+  jumpAddress: ptrUint;
+  buffer: array [0..63] of byte;
+  x: dword;
+
+  value: ptrUint;
+  vtype: TVariableType;
+begin
+  result:='';
+
+  if LastDisassembleData.isjump then
+  begin
+    result:='->';
+    if LastDisassembleData.modrmValueType=dvtAddress then
+    begin
+      jumpAddress:=LastDisassembleData.modrmValue;
+      if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, sizeof(jumpAddress),x) then exit;
+    end
+    else
+    begin
+
+      jumpAddress:=LastDisassembleData.parameterValue;
+    end;
+
+    //check if the bytes at jumpAddress is ff 25 (jmp [xxxxxxxx])
+    if ReadProcessMemory(processhandle, pointer(jumpAddress), @buffer[0], 6,x) then
+    begin
+
+      if (buffer[0]=$ff) and (buffer[1]=$25) then
+      begin
+        result:=result+'->';  //double, so ->->
+
+
+        if processhandler.is64Bit then
+          jumpAddress:=jumpaddress+6+pinteger(@buffer[2])^ //jumpaddress+6 because of relative addressing
+        else
+          jumpAddress:=pdword(@buffer[2])^;
+
+        //jumpaddress now contains the address of the address to jump to
+        //so, get the address it actually jumps to
+        if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, sizeof(jumpAddress),x) then exit;
+      end;
+    end;
+
+    result:=result+symhandler.getNameFromAddress(jumpAddress);
+  end
+  else
+  begin
+    if (LastDisassembleData.modrmValueType<>dvtNone) or (LastDisassembleData.parameterValueType<>dvtNone) then
+    begin
+      if LastDisassembleData.modrmValueType=dvtAddress then
+        value:=LastDisassembleData.modrmValue
+      else
+      begin
+        value:=LastDisassembleData.parameterValue;
+      end;
+
+      if isAddress(value) then
+        vtype:=FindTypeOfData(value, @buffer[0], 64)
+      else
+        vtype:=FindTypeOfData(0, @value, sizeof(value));
+
+      result:=VariableTypeToString(vtype);
+
+    end;
+
+
+
+  end;
 end;
 
 procedure tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);

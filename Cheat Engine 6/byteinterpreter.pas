@@ -6,11 +6,11 @@ interface
 
 uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler;
 
-function FindTypeOfData(address: dword; buf: pbytearray; size: integer):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 
 implementation
 
-function FindTypeOfData(address: dword; buf: pbytearray; size: integer):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 {
 takes the given
 }

@@ -5476,6 +5476,7 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
+
   saveformposition(self,[
                         addresslist.headers.Sections[0].Width,
                         addresslist.headers.Sections[1].Width,
