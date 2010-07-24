@@ -1,5 +1,7 @@
 unit addresslisthandlerunit;
 {
+obsolete
+
 the addresslisthandler is a class which will deal with the general address list
 functions, like allocating memory, adding/removing from the list, finding the
 correct address if it's a pointer, etc...

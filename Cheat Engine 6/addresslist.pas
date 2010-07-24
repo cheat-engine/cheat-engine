@@ -11,6 +11,8 @@ uses
 
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
+  TAutoAssemblerEditEvent=procedure(sender: TObject; memrec: TMemoryRecord) of object;
+
   TAddresslist=class(TPanel)
   private
     lastSelected: integer;
@@ -20,6 +22,8 @@ type
     CurrentlyDraggedOverNode: TTreenode;
     CurrentlyDraggedOverBefore: boolean; //set to true if inserting before
     fOnDropByListview: TDropByListviewEvent;
+    fOnAutoAssemblerEdit: TAutoAssemblerEditEvent;
+
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -39,10 +43,13 @@ type
     procedure typedblclick(node: TTreenode);
     procedure valuedblclick(node: TTreenode);
     function GetCount: integer;
+    function GetSelcount: integer;
     function GetMemRecItemByIndex(i: integer): TMemoryRecord;
     procedure setPopupMenu(menu: TPopupMenu);
     function getPopupMenu: TPopupMenu;
     function getSelectedRecord: TMemoryRecord;
+
+    function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
   public
     procedure ReinterpretAddresses;
     procedure ApplyFreeze;
@@ -70,9 +77,11 @@ type
 
     procedure clear;
     property Count: Integer read GetCount;
+    property SelCount: Integer read GetSelCount;
     property MemRecItems[Index: Integer]: TMemoryRecord read GetMemRecItemByIndex; default;
 
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
+    property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
     property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
     property selectedRecord: TMemoryRecord read getSelectedRecord;
     property headers: THeaderControl read header;
@@ -132,6 +141,15 @@ begin
   end;
 end;
 
+function TAddresslist.GetSelcount: integer;
+var i: integer;
+begin
+  result:=0;
+  for i:=0 to count-1 do
+    if MemRecItems[i].isSelected then
+      inc(result);
+end;
+
 function TAddresslist.GetCount: integer;
 begin
   result:=treeview.items.count;
@@ -172,18 +190,13 @@ begin
 end;
 
 procedure TAddresslist.DeleteSelected(ask: boolean=true);
-var i,selcount: integer;
+var i: integer;
 multi: string;
 oldindex: integer;
 begin
   oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
   if count=0 then exit;
-
-  selcount:=0;
-  for i:=0 to count-1 do
-    if MemRecItems[i].isSelected then
-      inc(selcount);
 
   if selcount=0 then exit;
   if selcount=1 then multi:='' else multi:='es';
@@ -279,6 +292,31 @@ begin
   end;
 end;
 
+function TAddresslist.CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean;
+{
+private
+checks if the given xml document contains cheatentries that aren't aa scripts
+}
+var CheatEntries, currentEntry: TDOMNode;
+begin
+  result:=true;
+  //go through the list untill one is found that has the custom type
+  CheatEntries:=CheatTable.FindNode('CheatEntries');
+  if cheatentries<>nil then
+  begin
+    currentEntry:=CheatEntries.FirstChild;
+    while currententry<>nil do
+    begin
+      if StringToVariableType(currententry.findnode('VariableType').TextContent)<>vtCustom then
+      begin
+        result:=false;
+        exit;
+      end;
+      currentEntry:=currentEntry.NextSibling;
+    end;
+  end;
+end;
+
 procedure TAddresslist.AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
 var doc: TXMLDocument;
     insertafter: TTreenode;
@@ -321,7 +359,11 @@ begin
             frmPasteTableentry:=TfrmPasteTableentry.create(self);
             try
               if not simplecopypaste then
-                if frmpastetableentry.showmodal=mrcancel then exit;
+              begin
+                //check if it's needed (is at least one address not an auto assembler script ?
+                if not CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable) then
+                  if frmpastetableentry.showmodal=mrcancel then exit;
+              end;
 
               replace_find:=frmpastetableentry.edtFind.text;
               replace_with:=frmpastetableentry.edtReplace.text;
@@ -613,6 +655,19 @@ begin
   end;
 
 
+  if (selcount=1) and (selectedRecord.VarType=vtcustom) then
+  begin
+    //if it's an autoassemblerscript then spawn the autoassembler script editor that the owner might want to use
+    if assigned(fOnAutoAssemblerEdit) then
+    begin
+      fOnAutoAssemblerEdit(self, self.selectedRecord);
+      exit;
+    end;
+  end;
+
+
+
+
   if InputQuery('Change Value', 'what value to change this to?', value) then
   begin
     allError:=true;
@@ -655,7 +710,7 @@ begin
   begin
     //at least something was clicked
 
-    if TMemoryRecord(node.data).isGroupHeader or (TMemoryRecord(node.data).VarType=vtCustom) then
+    if TMemoryRecord(node.data).isGroupHeader then
     begin
       //it's a group doubleclick
       descriptiondblclick(node);
@@ -665,12 +720,26 @@ begin
     for i:=0 to header.Sections.count-1 do
       if inrange(x,header.Sections[i].Left,header.Sections[i].right) then
       begin
-        case i of
-          0: ; //frozen doubleclick
-          1: descriptiondblclick(node);
-          2: addressdblclick(node);
-          3: typedblclick(node);
-          4: valuedblclick(node);
+        //if it's a auto assemble script only do the description and value
+        if (TMemoryRecord(node.data).VarType=vtCustom) then
+        begin
+          case i of
+            0: ; //frozen doubleclick
+            1: descriptiondblclick(node);
+            2: ; //valuedblclick(node);
+            3: ; //valuedblclick(node);
+            4: valuedblclick(node);
+          end;
+        end
+        else
+        begin
+          case i of
+            0: ; //frozen doubleclick
+            1: descriptiondblclick(node);
+            2: addressdblclick(node);
+            3: typedblclick(node);
+            4: valuedblclick(node);
+          end;
         end;
       end;
   end;
@@ -962,9 +1031,9 @@ begin
       sender.canvas.pen.color:=oldpencolor;
 
 
-      if not memrec.isGroupHeader then
+      if (not memrec.isGroupHeader) and (memrec.VarType<>vtCustom) then
       begin
-        //draw the arrow up/down
+        //draw the arrow up/down, unless it's a group or custom type
         if memrec.allowIncrease then
         begin
           sender.Canvas.Pen.Color:=clGreen;

@@ -161,8 +161,6 @@ type
         FrozenValue : Dword;
   end;
 
-function GetmemrecFromXMLNode(CheatEntry: TDOMNode): MemoryRecord;
-
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 
 procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMNode);
@@ -3936,209 +3934,6 @@ begin
    *)
 end;
 {$endif}
-     {
-procedure LoadPTR(filename: string; merge: boolean);
-var newrec: MemoryRecordV6;
-    x: tfilestream;
-    offsetlist: array of dword;
-    invoffsetlist: array of dword;
-    offsetsize: dword;
-    stringlength: dword;
-    i,j: integer;
-
-    ssize: integer;
-    s: pchar;
-    offset: dword;
-begin
-
-  setlength(offsetlist,0);
-
-  x:=tfilestream.Create(filename,fmopenread or fmShareDenyNone);
-  getmem(s,100);
-  ssize:=100;
-  try
-    while x.Position<x.Size do
-    begin
-      //get the size of the string
-      x.ReadBuffer(stringlength,sizeof(stringlength));
-      if ssize<=stringlength then
-      begin
-        freemem(s);
-        s:=nil;
-        getmem(s,stringlength+1);
-        ssize:=stringlength+1;
-      end;
-
-      //read the string
-      x.ReadBuffer(s^,stringlength);
-      s[stringlength]:=#0; //and place a 0 terminator
-
-      x.ReadBuffer(offset,sizeof(offset)); //read the offset part of modulename+offset
-
-      x.ReadBuffer(offsetsize,sizeof(offsetsize));
-
-      if offsetsize>0 then
-      begin
-        if length(offsetlist)<(offsetsize+1) then
-        begin
-          setlength(offsetlist,offsetsize*2);
-          setlength(invoffsetlist,length(offsetlist));
-        end;
-
-        x.ReadBuffer(offsetlist[0],offsetsize*sizeof(offsetlist[0]));
-        j:=0;
-        for i:=offsetsize-1 downto 0 do
-        begin
-          invoffsetlist[j]:=offsetlist[i];
-          inc(j);
-        end;
-      end;
-
-      with mainform do
-      begin
-        inc(numberofrecords);
-        reservemem;
-
-        memrec[numberofrecords-1].Description:='pointerscan result';
-        memrec[numberofrecords-1].VarType:=2;
-        memrec[numberofrecords-1].Address:=0;
-        memrec[numberofrecords-1].interpretableaddress:=s+'+'+inttohex(offset,8);
-        memrec[numberofrecords-1].IsPointer:=offsetsize>0;
-        setlength(memrec[numberofrecords-1].pointers, offsetsize);
-        for i:=0 to offsetsize-1 do
-        begin
-          memrec[numberofrecords-1].pointers[i].Interpretableaddress:=s+'+'+inttohex(offset,8);
-          memrec[numberofrecords-1].pointers[i].offset:=invoffsetlist[i];
-        end;
-      end;
-
-
-      //mainform.addaddress('pointerscan result',offsetlist[0],invoffsetlist[0],offsetsize-1,true,2,0,0,false,false);
-    end;
-  finally
-    x.free;
-    if s<>nil then freemem(s);
-  end;
-
-  mainform.UpdateScreen;
-  mainform.updatelist;
-
-end;  }
-
-function GetmemrecFromXMLNode(CheatEntry: TDOMNode): MemoryRecord;
-var newrec: MemoryRecord;
-    tempnode, tempnode2: TDOMNode;
-    Offsets: TDOMNode;
-    addrecord: boolean;
-    j: integer;    
-begin
-  (*
-  if CheatEntry.NodeName='CheatEntry' then
-  begin
-    tempnode:=CheatEntry.ChildNodes.FindNode('Description');
-    if tempnode<>nil then
-      newrec.Description:=tempnode.Text
-    else
-      newrec.Description:='...';
-
-
-    newrec.Address:=0;
-    tempnode:=CheatEntry.ChildNodes.FindNode('Address');
-    if tempnode<>nil then
-    begin
-      try
-        newrec.Address:=StrToInt('$'+tempnode.text);
-      except
-
-      end;
-    end;
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('InterpretableAddress');
-    if tempnode<>nil then
-      newrec.interpretableaddress:=tempnode.Text
-    else
-      newrec.interpretableaddress:='';
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('SpecialCode');
-    if tempnode<>nil then
-      newrec.autoassemblescript:=tempnode.Text
-    else
-      newrec.autoassemblescript:='';
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('Type');
-    if tempnode<>nil then
-      newrec.VarType:=tempnode.NodeValue
-    else
-      newrec.VarType:=0;
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('Unicode');
-    if tempnode<>nil then
-      newrec.unicode:=tempnode.Text='1'
-    else
-      newrec.unicode:=false;
-
-    newrec.Bit:=0;
-    newrec.bitlength:=0;
-    tempnode:=CheatEntry.ChildNodes.FindNode('Length');
-    if tempnode<>nil then
-    begin
-      if newrec.VarType in [7,8] then //string,array of byte
-        newrec.Bit:=tempnode.NodeValue;
-
-      if newrec.VarType = 5 then //binary
-        newrec.bitlength:=tempnode.NodeValue;
-    end;
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('Bit');
-    if (tempnode<>nil) and (newrec.VarType = 5) then
-      newrec.Bit:=tempnode.NodeValue;
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('Group');
-    if tempnode<>nil then
-      newrec.Group:=tempnode.NodeValue
-    else
-      newrec.Group:=0;
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('HexadecimalDisplay');
-    if tempnode<>nil then
-      newrec.ShowAsHex:=tempnode.Text='1';
-
-
-    tempnode:=CheatEntry.ChildNodes.FindNode('Pointer');
-    if tempnode<>nil then
-    begin
-      //it's a pointer
-      Offsets:=tempnode.ChildNodes.FindNode('Offsets');
-      setlength(newrec.pointers, Offsets.ChildNodes.Count);
-
-
-      for j:=0 to Offsets.ChildNodes.Count-1 do
-      begin
-        if Offsets.ChildNodes[j].NodeName='Offset' then
-        begin
-          try
-            newrec.pointers[j].offset:=strtoint('$'+Offsets.ChildNodes[j].text);
-          except
-
-          end;
-        end;
-      end;
-
-      tempnode2:=tempnode.ChildNodes.FindNode('Address');
-      if tempnode2<>nil then
-        newrec.pointers[Offsets.ChildNodes.Count-1].Address:=strtoint('$'+tempnode2.text);
-
-
-      tempnode2:=tempnode.ChildNodes.FindNode('InterpretableAddress');
-      if tempnode2<>nil then
-        newrec.pointers[Offsets.ChildNodes.Count-1].Interpretableaddress:=tempnode2.Text;
-
-      newrec.IsPointer:=true;
-    end;
-
-    result:=newrec;
-  end;*)
-end;
 
 
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
@@ -4148,65 +3943,65 @@ var tempnode: TDOMNode;
     i: integer;
     currentOffset: dword;
     findoffset: boolean;
+    doc: TDOMDocument;
 begin
-    (*
-  currentoffset:=0;
-  if Structure.NodeName='Structure' then
-  begin
-    tempnode:=Structure.ChildNodes.FindNode('Name');
-    if tempnode<>nil then
-      struct.name:=tempnode.Text;
+  doc:=Structure.OwnerDocument;
 
-    elements:=Structure.ChildNodes.FindNode('Elements');
+  currentoffset:=0;
+
+  if structure.NodeName='Structure' then
+  begin
+    tempnode:=structure.FindNode('Name');
+    if tempnode<>nil then
+      struct.name:=tempnode.TextContent;
+
+    elements:=structure.FindNode('Elements');
     setlength(struct.structelement, elements.ChildNodes.Count);
+
+
 
     for i:=0 to length(struct.structelement)-1 do
     begin
       element:=elements.ChildNodes[i];
-
       findoffset:=true;
-      tempnode:=element.ChildNodes.FindNode('Offset');
+      tempnode:=element.FindNode('Offset');
       if tempnode<>nil then
       begin
         try
-          struct.structelement[i].offset:=strtoint(tempnode.text);
-          findoffset:=false;
+          struct.structelement[i].offset:=strtoint(tempnode.textcontent);
+          findoffset:=false; //the offset was fetched properly, no need to calculate it
         except
 
         end;
       end;
 
-      if findoffset then
-      begin
-        //no offset given, or faulty offset
-        struct.structelement[i].offset:=currentoffset;
-      end;
+      if findoffset then //it couldn't be read out
+        struct.structelement[i].offset:=currentoffset;  //calculated offset
 
-
-      tempnode:=element.ChildNodes.FindNode('Description');
+      tempnode:=element.FindNode('Description');
       if tempnode<>nil then
-        struct.structelement[i].description:=tempnode.Text;
+        struct.structelement[i].description:=tempnode.TextContent;
 
-      tempnode:=element.ChildNodes.FindNode('PointerTo');
-      struct.structelement[i].pointerto:=(tempnode<>nil) and (tempnode.Text='1');
-        
-      tempnode:=element.ChildNodes.FindNode('PointerToSize');
-      if tempnode<>nil then
-        struct.structelement[i].pointertosize:=strtoint(tempnode.Text);
+      tempnode:=element.FindNode('PointerTo');
+      struct.structelement[i].pointerto:=(tempnode<>nil) and (tempnode.TextContent='1');
 
-      tempnode:=element.ChildNodes.FindNode('Structurenr');
+      tempnode:=element.FindNode('PointerToSize');
       if tempnode<>nil then
-        struct.structelement[i].structurenr:=strtoint(tempnode.Text);
+        struct.structelement[i].pointertosize:=strtoint(tempnode.TextContent);
 
-      tempnode:=element.ChildNodes.FindNode('Bytesize');
+      tempnode:=element.FindNode('Structurenr');
       if tempnode<>nil then
-        struct.structelement[i].Bytesize:=strtoint(tempnode.Text);
+        struct.structelement[i].structurenr:=strtoint(tempnode.TextContent);
+
+      tempnode:=element.FindNode('Bytesize');
+      if tempnode<>nil then
+        struct.structelement[i].Bytesize:=strtoint(tempnode.TextContent);
+
 
       currentoffset:=struct.structelement[i].offset+struct.structelement[i].Bytesize;
     end;
   end;
 
-  *)
   sortStructure(struct);
 end;
 
@@ -4746,7 +4541,8 @@ begin
     comments.Memo1.Text:=comments.Memo1.Text+x;
 
     freemem(x);
-         *)
+
+  end;  *)
 end;
 
 

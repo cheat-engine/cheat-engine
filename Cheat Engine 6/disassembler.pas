@@ -10424,6 +10424,7 @@ var
 
   value: ptrUint;
   vtype: TVariableType;
+  a: boolean;
 begin
   result:='';
 
@@ -10467,6 +10468,7 @@ begin
   begin
     if (LastDisassembleData.modrmValueType<>dvtNone) or (LastDisassembleData.parameterValueType<>dvtNone) then
     begin
+      a:=false;
       if LastDisassembleData.modrmValueType=dvtAddress then
         value:=LastDisassembleData.modrmValue
       else
@@ -10475,12 +10477,48 @@ begin
       end;
 
       if isAddress(value) then
-        vtype:=FindTypeOfData(value, @buffer[0], 64)
+      begin
+        a:=true;
+        x:=0;
+        readprocessmemory(processhandle, pointer(value), @buffer[0], 63,x);
+        if x>0 then
+          vtype:=FindTypeOfData(value, @buffer[0], x);
+      end
       else
-        vtype:=FindTypeOfData(0, @value, sizeof(value));
+      begin
+        x:=sizeof(value);
+        pptruint(@buffer[0])^:=value; //assign it so I don't have to make two compare routines
+        vtype:=FindTypeOfData(value, @buffer[0], x);
+      end;
 
-      result:=VariableTypeToString(vtype);
 
+
+      case vtype of
+        vtByte: result:=inttostr(buffer[0]);
+        vtWord: result:=inttostr(pshortint(@buffer[0])^);
+        vtDword: result:=inttostr(pinteger(@buffer[0])^);
+        vtQword: result:=inttostr(pInt64(@buffer[0])^);
+        vtSingle: result:=format('%.2f',[psingle(@buffer[0])^]);
+        vtDouble: result:=format('%.2f',[pdouble(@buffer[0])^]);
+        vtString:
+        begin
+          buffer[x]:=0;
+          result:=pchar(@buffer[0]);
+        end;
+
+
+        vtUnicodeString:
+        begin
+          buffer[x]:=0;
+          if x>0 then
+            buffer[x-1]:=0;
+
+          result:=pwidechar(@buffer[0]);
+        end;
+      end;
+     // result:=VariableTypeToString(vtype);
+      if a then
+        result:='['+result+']';
     end;
 
 

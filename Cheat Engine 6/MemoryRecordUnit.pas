@@ -5,7 +5,7 @@ unit MemoryRecordUnit;
 interface
 
 uses
-  Windows, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler, cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite;
+  Windows, forms, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler, cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite;
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
@@ -95,6 +95,9 @@ type
     isSelected: boolean; //lazarus bypass. Because lazarus does not implement multiselect I have to keep track of which entries are selected
     showAsSigned: boolean;
     showAsHex: boolean;
+
+    //free for editing by user:
+    autoAssembleWindow: TForm; //window storage for an auto assembler editor window
 
 
     function isBeingEdited: boolean;
@@ -650,8 +653,8 @@ begin
         if autoassemblerdata.registeredsymbols=nil then
           autoassemblerdata.registeredsymbols:=tstringlist.create;
 
-        autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols);
-        fActive:=state;
+        if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols) then
+          fActive:=state;
       except
         //running the script failed, state unchanged
       end;

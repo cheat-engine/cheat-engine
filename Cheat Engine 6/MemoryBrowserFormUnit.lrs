@@ -1,8 +1,8 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TMemoryBrowser','FORMDATA',[
-  'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3#31#2#6'Height'#3'A'#2#3
-  +'Top'#3#149#0#5'Width'#3#210#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory V'
+  'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3#201#2#6'Height'#3'A'#2#3
+  +'Top'#3#153#0#5'Width'#3#210#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory V'
   +'iewer'#12'ClientHeight'#3'('#2#11'ClientWidth'#3#210#2#11'Font.Height'#2#242
   +#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'Form'
   +'Close'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'OnResi'

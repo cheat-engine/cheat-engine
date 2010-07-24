@@ -78,6 +78,7 @@ begin
   foundlist.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
   foundlist.RebaseAddresslistAgain;
   foundlist.foundlist.Refresh;
+  foundlist.foundlist.Refresh; (* lazarus bug bypass *)
 end;
 
 procedure TRebaseAgain.execute;
@@ -311,6 +312,7 @@ begin
       if temp<>oldvalues[j] then
       begin
         foundlist.Refresh;
+        foundlist.Refresh; (* lazarus bug bypass *)
         exit;
       end;
       inc(j);

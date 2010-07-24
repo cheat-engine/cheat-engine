@@ -595,6 +595,8 @@ type
     procedure SpawnCancelButton;
     procedure DestroyCancelButton;
 
+    procedure AddressListAutoAssemblerEdit(sender: TObject; memrec: TMemoryRecord);
+
     property foundcount: int64 read ffoundcount write setfoundcount;
     property RoundingType: TRoundingType read GetRoundingType write SetRoundingType;
     property ScanStart: ptruint read getScanStart write setScanStart;
@@ -2773,6 +2775,7 @@ begin
   addresslist.parent:=panel1;
   addresslist.PopupMenu:=popupmenu2;
   addresslist.OnDropByListview:=AddresslistDropByListview;
+  addresslist.OnAutoAssemblerEdit:=AddressListAutoAssemblerEdit;
   addresslist.Align:=alClient;
 
 
@@ -4590,17 +4593,21 @@ begin
   memrec.endEdit; //release it so the user can delete it if he/she wants to
 end;
 
-procedure TMainForm.Changescript1Click(Sender: TObject);
+procedure TMainform.AddressListAutoAssemblerEdit(sender: TObject; memrec: TMemoryRecord);
 var x: TFrmAutoInject;
     y: array of integer;
 begin
-  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtCustom) then
+  if memrec.isBeingEdited then
   begin
-
+    memrec.autoAssembleWindow.visible:=true;
+    memrec.autoAssembleWindow.BringToFront;
+  end
+  else
+  begin
     x:=tfrmautoinject.Create(self);
     with x do
     begin
-      name:='AAEditScript';
+      //name:='AAEditScript';
       new1.Enabled:=false;
 
       editscript:=true;
@@ -4608,6 +4615,7 @@ begin
 
       memrec:=addresslist.selectedRecord;
       memrec.beginEdit;
+      memrec.autoAssembleWindow:=x;
       callbackroutine:=changeScriptCallback;
 
       assemblescreen.text:=memrec.AutoAssemblerData.script.text;
@@ -4615,10 +4623,16 @@ begin
 
       loadformposition(x,y);
       show;
-
-
     end;
+
   end;
+
+end;
+
+procedure TMainForm.Changescript1Click(Sender: TObject);
+begin
+  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtCustom) then
+    AddressListAutoAssemblerEdit(addresslist, addresslist.selectedRecord);
 end;
 
 procedure TMainForm.Forcerechecksymbols1Click(Sender: TObject);

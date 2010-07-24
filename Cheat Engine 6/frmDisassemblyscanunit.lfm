@@ -1,12 +1,11 @@
 object frmDisassemblyscan: TfrmDisassemblyscan
-  Left = 715
-  Height = 150
-  Top = 459
-  Width = 450
-  BorderStyle = bsDialog
+  Left = 472
+  Height = 170
+  Top = 371
+  Width = 447
   Caption = 'Assemblyscan'
-  ClientHeight = 150
-  ClientWidth = 450
+  ClientHeight = 170
+  ClientWidth = 447
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -17,8 +16,8 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   object Label1: TLabel
     Left = 0
     Height = 14
-    Top = 136
-    Width = 450
+    Top = 156
+    Width = 447
     Align = alBottom
     Alignment = taCenter
     Caption = '                      '
@@ -26,26 +25,38 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 136
+    Height = 156
     Top = 0
-    Width = 377
-    Align = alLeft
+    Width = 381
+    Align = alClient
     ItemHeight = 0
     OnDblClick = ListBox1DblClick
     TabOrder = 0
   end
-  object Button1: TButton
-    Left = 384
-    Height = 25
-    Top = 112
-    Width = 59
-    Caption = 'Cancel'
-    OnClick = Button1Click
+  object Panel1: TPanel
+    Left = 381
+    Height = 156
+    Top = 0
+    Width = 66
+    Align = alRight
+    ClientHeight = 156
+    ClientWidth = 66
     TabOrder = 1
+    OnClick = Panel1Click
+    OnResize = Panel1Resize
+    object btnCancel: TButton
+      Left = 3
+      Height = 25
+      Top = 128
+      Width = 59
+      Caption = 'Cancel'
+      OnClick = btnCancelClick
+      TabOrder = 0
+    end
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 344
+    left = 312
     top = 24
   end
 end

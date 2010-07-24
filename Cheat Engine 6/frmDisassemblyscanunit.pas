@@ -15,6 +15,7 @@ type
   TDisassemblerthread=class(tthread)
   private
     foundline: string;
+    disassembler: TDisassembler; //this thread specific disassembler
   public
     currentaddress:ptrUint;
     startaddress: ptrUint;
@@ -22,18 +23,25 @@ type
     ownerform: TfrmDisassemblyscan;
     procedure execute; override;
     procedure foundone;
+    constructor create(suspended: boolean);
+    destructor destroy; override;
   end;
 
+  { TfrmDisassemblyscan }
+
   TfrmDisassemblyscan = class(TForm)
+    btnCancel: TButton;
     ListBox1: TListBox;
-    Button1: TButton;
     Label1: TLabel;
+    Panel1: TPanel;
     Timer1: TTimer;
+    procedure Panel1Click(Sender: TObject);
+    procedure Panel1Resize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure Button1Click(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
   private
     { Private declarations }
@@ -55,12 +63,29 @@ begin
   ownerform.ListBox1.Items.Add(foundline)
 end;
 
+constructor TDisassemblerthread.create(suspended: boolean);
+begin
+  inherited create(suspended);
+
+  disassembler:=TDisassembler.Create;
+end;
+
+destructor TDisassemblerthread.destroy;
+begin
+  if disassembler<>nil then
+    freeandnil(disassembler);
+
+  inherited destroy;
+end;
+
 procedure TDisassemblerthread.execute;
 var x: ptrUint;
     i,j: ptrUint;
     br: dword;
     d,y: string;
     found: boolean;
+
+
 begin
   x:=startaddress;
   while not terminated and (x<$fffffff0) do
@@ -76,7 +101,7 @@ begin
       end;
     end;
 
-    d:=uppercase(disassemble(x,y));
+    d:=uppercase(disassembler.disassemble(x,y));
     y:=d;
 
     found:=true;
@@ -106,6 +131,16 @@ begin
   if disassemblerthread<>nil then
     label1.caption:=inttohex(disassemblerthread.currentaddress,8);
 
+end;
+
+procedure TfrmDisassemblyscan.Panel1Click(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmDisassemblyscan.Panel1Resize(Sender: TObject);
+begin
+  btnCancel.top:=panel1.height-btnCancel.clientheight-2;
 end;
 
 procedure TfrmDisassemblyscan.FormShow(Sender: TObject);
@@ -169,7 +204,7 @@ begin
   action:=cafree;
 end;
 
-procedure TfrmDisassemblyscan.Button1Click(Sender: TObject);
+procedure TfrmDisassemblyscan.btnCancelClick(Sender: TObject);
 begin
   if disassemblerthread<>nil then
   begin
@@ -178,7 +213,7 @@ begin
     disassemblerthread.Free;
     disassemblerthread:=nil;
 
-    button1.Caption:='Close';
+    btnCancel.Caption:='Close';
   end else close;
 
 end;
