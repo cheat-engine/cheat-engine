@@ -99,7 +99,10 @@ begin
 
     2,3: //2 byte
     begin
-      result:=vtWord;
+      if (pword(@buf[0])^>500) and ((pword(@buf[0])^ mod 10)>0) then
+        result:=vtByte
+      else
+        result:=vtWord;
       exit;
     end;
   end;
@@ -185,6 +188,17 @@ begin
       result:=vtPointer;
       exit;
     end;
+  end;
+
+  if result=vtDword then
+  begin
+    //check if the value is a human usable value (between 0 and 10000 or dividable by at least 100)
+    if pdword(@buf[0])^ > 10000 then
+    begin
+      if (pdword(@buf[0])^ mod 100) > 0 then
+        result:=vtByte;
+    end;
+
   end;
   //result:=vtDword; //if nothing else
 end;

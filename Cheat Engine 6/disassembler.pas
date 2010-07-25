@@ -569,6 +569,8 @@ begin
               else
               begin
                 result:=getsegmentoverride(prefix)+'['+inttohexs(dwordptr^,8)+'],';
+                LastDisassembleData.modrmValueType:=dvtAddress;
+                LastDisassembleData.modrmValue:=dwordptr^;
               end;
               last:=last+4;
             end;
@@ -10430,11 +10432,12 @@ begin
 
   if LastDisassembleData.isjump then
   begin
-    result:='->';
+
     if LastDisassembleData.modrmValueType=dvtAddress then
     begin
       jumpAddress:=LastDisassembleData.modrmValue;
-      if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, sizeof(jumpAddress),x) then exit;
+
+      if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, processhandler.pointersize,x) then exit;
     end
     else
     begin
@@ -10458,11 +10461,14 @@ begin
 
         //jumpaddress now contains the address of the address to jump to
         //so, get the address it actually jumps to
-        if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, sizeof(jumpAddress),x) then exit;
+        if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, processhandler.pointersize,x) then exit;
+
+        result:='->'+symhandler.getNameFromAddress(jumpAddress);
       end;
+
     end;
 
-    result:=result+symhandler.getNameFromAddress(jumpAddress);
+
   end
   else
   begin
@@ -10496,7 +10502,7 @@ begin
       case vtype of
         vtByte: result:=inttostr(buffer[0]);
         vtWord: result:=inttostr(pshortint(@buffer[0])^);
-        vtDword: result:=inttostr(pinteger(@buffer[0])^);
+        vtDword: if a then result:=inttohex(pdword(@buffer[0])^,8) else result:=inttostr(pinteger(@buffer[0])^);
         vtQword: result:=inttostr(pInt64(@buffer[0])^);
         vtSingle: result:=format('%.2f',[psingle(@buffer[0])^]);
         vtDouble: result:=format('%.2f',[pdouble(@buffer[0])^]);
@@ -10517,7 +10523,7 @@ begin
         end;
       end;
      // result:=VariableTypeToString(vtype);
-      if a then
+      if a and (result<>'') then
         result:='['+result+']';
     end;
 
@@ -10526,7 +10532,9 @@ begin
   end;
 end;
 
+
 procedure tdisassembler.splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
+//obsolete
 var offset,value:ptrUint;
     e: integer;
     i,j,j2,k,l: integer;

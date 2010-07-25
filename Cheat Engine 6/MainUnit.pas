@@ -14,7 +14,7 @@ uses
   foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
-  windows7taskbar,tablist,DebuggerInterface,vehdebugger;
+  windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter;
 
 //the following are just for compatibility
 
@@ -4924,7 +4924,8 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  foundlist3.items.count:=1000000;
+  if OpenDialog1.Execute then
+    ConvertCheatTableToXML(opendialog1.filename);
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);

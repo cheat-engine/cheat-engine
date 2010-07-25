@@ -198,19 +198,25 @@ begin
   if isGroupHeader then
   begin
     tempnode:=CheatEntry.FindNode('CheatEntries');
-    currentEntry:=tempnode.FirstChild;
-    while currentEntry<>nil do
+    if tempnode<>nil then
     begin
-      //create a blank entry
-      memrec:=TMemoryRecord.create(fOwner);
+      currentEntry:=tempnode.FirstChild;
+      while currentEntry<>nil do
+      begin
+        //create a blank entry
+        memrec:=TMemoryRecord.create(fOwner);
 
-      memrec.treenode:=treenode.owner.AddObject(nil,'',memrec);
-      memrec.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
+        memrec.treenode:=treenode.owner.AddObject(nil,'',memrec);
+        memrec.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
 
-      //fill the entry with the node info
-      memrec.setXMLnode(currentEntry);
-      currentEntry:=currentEntry.NextSibling;
+        //fill the entry with the node info
+        memrec.setXMLnode(currentEntry);
+        currentEntry:=currentEntry.NextSibling;
+      end;
+
     end;
+
+    treenode.Expand(true);
   end
   else
   begin
