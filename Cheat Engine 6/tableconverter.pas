@@ -11,14 +11,14 @@ uses
   Classes, SysUtils, dom, xmlread, xmlwrite, cefuncproc;
 
 
-function ConvertCheatTableToXML(filename: string): TDOMDocument;
+function ConvertCheatTableToXML(filename: string): TXMLDocument;
 
 
 implementation
 
 uses opensave;
 
-function ConvertCheatTableToXML(filename: string): TDOMDocument;
+function ConvertCheatTableToXML(filename: string): TXMLDocument;
 var
   ctfile: TFileStream;
   i,j: integer;
@@ -64,8 +64,8 @@ begin
       ctfile.ReadBuffer(x^,11);
       x[11]:=#0;
 
-      if x<>'CHEATENGINE' then
-        raise exception.Create('Not a valid cheat engine 5.6 table');
+     // if x<>'CHEATENGINE' then
+     //   raise exception.Create('Not a valid cheat engine 5.6 table. If this table was made by a uce, get ce 5.6 and open/resave it');
 
     finally
       freemem(x);
@@ -208,16 +208,8 @@ begin
         entries.AppendChild(groups[i].node);
     end;
 
-
-    s:=TFileStream.Create('c:\bla.xml',fmcreate);
-    WriteXMLFile(doc, s);
-    s.free;
-
   finally
     ctfile.free;
-    if doc<>nil then
-      doc.free;
-
   end;
 
   result:=doc;

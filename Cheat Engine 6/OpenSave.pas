@@ -9,8 +9,8 @@ interface
 
 uses windows, forms, MainUnit,LCLIntf,{standaloneunit,}SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
-     {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
-     ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,{, XMLDoc, XMLIntf, KIcon,} comctrls,dom, xmlread,xmlwrite;
+     {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls, tableconverter,
+     ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, comctrls,dom, xmlread,xmlwrite;
 
 
 var CurrentTableVersion: dword=10;
@@ -4006,9 +4006,8 @@ begin
 end;
 
 
-procedure LoadXML(filename: string; merge: boolean);
+procedure LoadXML(doc: TXMLDocument; merge: boolean);
 var newrec: MemoryRecordV6;
-    doc: TXMLDocument;
     CheatTable: TDOMNode;
     Entries, Codes, Symbols, Comments: TDOMNode;
     CheatEntry, CodeEntry, SymbolEntry: TDOMNode;
@@ -4030,10 +4029,10 @@ var newrec: MemoryRecordV6;
     address: ptrUint;
     li: tlistitem;
 begin
-  doc:=nil;
+
   try
 
-    ReadXMLFile(doc, filename);
+
 
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
@@ -4210,9 +4209,6 @@ begin
 
     if comments<>nil then
     begin
-      Commentsunit.Comments.Memo1.Lines.Add(filename);
-      Commentsunit.Comments.Memo1.Lines.Add('---');
-
       for i:=0 to comments.ChildNodes.Count-1 do
       begin
         if comments.ChildNodes[i].NodeName='Comment' then
@@ -4220,8 +4216,7 @@ begin
       end;
     end;
   finally
-    if doc<>nil then
-      doc.free;
+
   end;
 
 end;
@@ -5381,64 +5376,42 @@ var ctfile: TFilestream;
     version: dword;
     x: pchar;
     f: TSearchRec;
+
+    doc: TXMLDocument;
 begin
   ctfile:=nil;
-  ctfile:=Tfilestream.Create(filename,fmopenread);
+  doc:=nil;
+  ctfile:=Tfilestream.Create(filename,fmopenread or fmsharedenynone);
   try
     x:=nil;
     getmem(x,12);
     ctfile.ReadBuffer(x^,11);
     x[11]:=#0;  //write a 0 terminator
+    freeandnil(ctfile);
 
-    if x<>'CHEATENGINE' then
-    begin
-      if x[0]='<' then //xml ? (in case of ce6.0+)
-      begin
-        freeandnil(ctfile);
 
-        try
-          LoadXML(filename, merge);
-        except
-          raise exception.Create('This is not a valid cheat table');
-        end;
-        exit;
-      end;
 
-      if messagedlg('This is NOT a valid Cheat Engine table. Are you sure you want to load it?',mtWarning, [mbyes,mbno],0) = mrno then exit;
+    if x[0]<>'<' then //not xml
+      doc:=ConvertCheatTableToXML(filename);
+
+    try
+      if doc=nil then
+        ReadXMLFile(doc, filename);
+
+      LoadXML(doc, merge);
+    except
+      raise exception.Create('This is not a valid cheat table');
     end;
 
-    //still here, so an older version of cheat engine (predating 6.0)
-    ctfile.ReadBuffer(version,4);
-    if version>CurrentTableVersion then
-      raise exception.Create('This table was made with a newer version of Cheat Engine and isn''t supported. Download the latest version from the Cheat Engine website');
-
-    //now load the table loader for each supported version
-    case version of
-      1: LoadV1(filename,ctfile,merge);
-      2: LoadV2(filename,ctfile,merge);
-      3: LoadV3(filename,ctfile,merge);
-      4: LoadV4(filename,ctfile,merge);
-      5: LoadV5(filename,ctfile,merge);
-      6,7,8,9: LoadV6(filename,ctfile,merge);
-      else raise exception.Create('This table was made with a version of Cheat Engine that isn''t supported anymore! (The table is propably messed up)');
-    end;
-
-    //see if there are filename.m* files
-    zeromemory(@f,sizeof(f));
-    if findfirst(filename+'.m*',faAnyFile,f)=0 then
-    begin
-      if messagedlg('Some memory files where detected for this table. Do you want to load them now?',mtConfirmation,[mbyes,mbno],0)=mryes then
-      begin
-        loadcem(extractfilepath(filename)+f.Name);
-        while findnext(f)=0 do loadcem(extractfilepath(filename)+f.Name);
-      end;
-    end;
   finally
     if x<>nil then
       freemem(x);
 
     if ctfile<>nil then
       ctfile.free;
+
+    if doc<>nil then
+      doc.free;
   end;
 
 
@@ -6217,6 +6190,7 @@ var
     charstoread: byte;
 
     nrofbytes:  byte;
+    doc: TXMLDocument;
 begin
 
   Extension:=uppercase(extractfileext(filename));
@@ -6259,7 +6233,16 @@ begin
   if Extension='.CT2' then LoadCT2(filename,merge) else
   if Extension='.CT3' then LoadCT3(filename,merge) else
   if Extension='.CT' then LoadCT(filename,merge) else
-  if Extension='.XML' then LoadXML(filename,merge) else
+  if Extension='.XML' then
+  begin
+    try
+      ReadXMLFile(doc, filename);
+    except
+      raise exception.create('This is not a valid xml file');
+    end;
+    LoadXML(doc,merge);
+    doc.free;
+  end else
   raise exception.create('Unknown extention');
 
   mainform.editedsincelastsave:=false;

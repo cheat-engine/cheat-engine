@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="413"/>
+      <BuildNr Value="416"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.413" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.416" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="162">
+    <Units Count="163">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -98,7 +98,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2969"/>
         <CursorPos X="32" Y="2978"/>
@@ -164,11 +164,10 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="87"/>
-        <CursorPos X="24" Y="102"/>
+        <TopLine Value="80"/>
+        <CursorPos X="3" Y="105"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -641,22 +640,22 @@
         <UnitName Value="OpenSave"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4030"/>
-        <CursorPos X="38" Y="4049"/>
+        <TopLine Value="4016"/>
+        <CursorPos X="1" Y="4037"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <IsVisibleTab Value="True"/>
           <EditorIndex Value="0"/>
           <WindowIndex Value="1"/>
-          <TopLine Value="6308"/>
-          <CursorPos X="36" Y="6331"/>
+          <TopLine Value="6291"/>
+          <CursorPos X="36" Y="6314"/>
         </ExtraEditor1>
         <UsageCount Value="221"/>
         <Bookmarks Count="4">
-          <Item0 X="3" Y="6282" ID="0"/>
-          <Item1 X="22" Y="4240" ID="8"/>
-          <Item2 X="18" Y="5423" ID="7"/>
-          <Item3 X="8" Y="4264" ID="1"/>
+          <Item0 X="3" Y="6265" ID="0"/>
+          <Item1 X="9" Y="5405" ID="7"/>
+          <Item2 X="8" Y="4259" ID="1"/>
+          <Item3 X="7" Y="5395" ID="8"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -726,7 +725,7 @@
         <UnitName Value="MemoryBrowserFormUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1872"/>
+        <TopLine Value="1857"/>
         <CursorPos X="25" Y="1873"/>
         <UsageCount Value="220"/>
         <Loaded Value="True"/>
@@ -736,7 +735,7 @@
         <Filename Value="disassemblerviewlinesunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassemblerviewlinesunit"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="303"/>
         <CursorPos X="1" Y="318"/>
@@ -1499,10 +1498,10 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="193"/>
-        <CursorPos X="37" Y="206"/>
+        <TopLine Value="174"/>
+        <CursorPos X="1" Y="189"/>
         <UsageCount Value="215"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1591,7 +1590,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5472"/>
         <CursorPos X="17" Y="5486"/>
-        <UsageCount Value="0"/>
+        <UsageCount Value="10"/>
       </Unit134>
       <Unit135>
         <Filename Value="DebuggerInterface.pas"/>
@@ -1797,144 +1796,155 @@
         <Filename Value="tableconverter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tableconverter"/>
-        <EditorIndex Value="6"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="139"/>
-        <CursorPos X="31" Y="146"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="190"/>
+        <CursorPos X="1" Y="213"/>
+        <UsageCount Value="34"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit160>
       <Unit161>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="840"/>
         <CursorPos X="3" Y="855"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="17"/>
         <Loaded Value="True"/>
       </Unit161>
+      <Unit162>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-xml\src\xmlread.pp"/>
+        <UnitName Value="XMLRead"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="29"/>
+        <CursorPos X="11" Y="44"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit162>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="207" Column="30" TopLine="192"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5399" Column="7" TopLine="5382"/>
       </Position1>
       <Position2>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="189" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5402" Column="1" TopLine="5393"/>
       </Position2>
       <Position3>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="191" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5400" Column="27" TopLine="5382"/>
       </Position3>
       <Position4>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="192" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5404" Column="15" TopLine="5391"/>
       </Position4>
       <Position5>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="194" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5406" Column="9" TopLine="5391"/>
       </Position5>
       <Position6>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="195" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4009" Column="29" TopLine="3994"/>
       </Position6>
       <Position7>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="198" Column="1" TopLine="180"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="11" Column="29" TopLine="1"/>
       </Position7>
       <Position8>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="221" Column="1" TopLine="209"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4009" Column="18" TopLine="3994"/>
       </Position8>
       <Position9>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="222" Column="1" TopLine="209"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5405" Column="14" TopLine="5390"/>
       </Position9>
       <Position10>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="223" Column="1" TopLine="209"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="6239" Column="32" TopLine="6224"/>
       </Position10>
       <Position11>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="225" Column="1" TopLine="209"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4222" Column="1" TopLine="4207"/>
       </Position11>
       <Position12>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="284" Column="1" TopLine="269"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5405" Column="33" TopLine="5383"/>
       </Position12>
       <Position13>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="285" Column="1" TopLine="269"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="6196" Column="23" TopLine="6172"/>
       </Position13>
       <Position14>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="286" Column="1" TopLine="269"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4212" Column="1" TopLine="4198"/>
       </Position14>
       <Position15>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="289" Column="1" TopLine="269"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5395" Column="7" TopLine="5371"/>
       </Position15>
       <Position16>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="290" Column="1" TopLine="269"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5382" Column="1" TopLine="5371"/>
       </Position16>
       <Position17>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="307" Column="1" TopLine="292"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5383" Column="1" TopLine="5371"/>
       </Position17>
       <Position18>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="309" Column="1" TopLine="292"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5384" Column="1" TopLine="5371"/>
       </Position18>
       <Position19>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="346" Column="21" TopLine="336"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5385" Column="1" TopLine="5371"/>
       </Position19>
       <Position20>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="352" Column="1" TopLine="336"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5386" Column="1" TopLine="5371"/>
       </Position20>
       <Position21>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="189" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5387" Column="1" TopLine="5371"/>
       </Position21>
       <Position22>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="191" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5388" Column="1" TopLine="5371"/>
       </Position22>
       <Position23>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="192" Column="1" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5389" Column="1" TopLine="5371"/>
       </Position23>
       <Position24>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="182" Column="38" TopLine="174"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5390" Column="1" TopLine="5371"/>
       </Position24>
       <Position25>
-        <Filename Value="tableconverter.pas"/>
-        <Caret Line="146" Column="31" TopLine="139"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="5394" Column="1" TopLine="5371"/>
       </Position25>
       <Position26>
         <Filename Value="OpenSave.pas"/>
-        <Caret Line="4264" Column="75" TopLine="4222"/>
+        <Caret Line="5395" Column="1" TopLine="5374"/>
       </Position26>
       <Position27>
         <Filename Value="OpenSave.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="5397" Column="11" TopLine="5380"/>
       </Position27>
       <Position28>
         <Filename Value="OpenSave.pas"/>
-        <Caret Line="4049" Column="38" TopLine="4030"/>
+        <Caret Line="5401" Column="1" TopLine="5380"/>
       </Position28>
       <Position29>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="257" Column="21" TopLine="243"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4031" Column="1" TopLine="4016"/>
       </Position29>
       <Position30>
-        <Filename Value="byteinterpreter.pas"/>
-        <Caret Line="105" Column="3" TopLine="86"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="4033" Column="1" TopLine="4016"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -1984,7 +1994,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="2">
+    <BreakPoints Count="3">
       <Item1>
         <Source Value="speedhack2.pas"/>
         <Line Value="50"/>
@@ -1993,6 +2003,10 @@
         <Source Value="speedhack2.pas"/>
         <Line Value="69"/>
       </Item2>
+      <Item3>
+        <Source Value="OpenSave.pas"/>
+        <Line Value="4037"/>
+      </Item3>
     </BreakPoints>
     <Watches Count="2">
       <Item1>
