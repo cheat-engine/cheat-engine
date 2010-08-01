@@ -53,7 +53,7 @@ begin
     a:=symhandler.getAddressFromName('realgettickcount') ;
     b:=0;
     readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
-    if y<>0 then //already configured
+    if a<>0 then //already configured
       generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount')
     else
       generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount', 'realgettickcount');
@@ -93,7 +93,7 @@ begin
     a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
     b:=0;
     readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
-    if y<>0 then //already configured
+    if a<>0 then //already configured
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter')
     else
       generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');

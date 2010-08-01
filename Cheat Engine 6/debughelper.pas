@@ -524,6 +524,9 @@ var
   originalbyte: byte;
   x: dword;
 begin
+  if bpm=bpmInt3 then
+    if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
+
   getmem(newbp, sizeof(TBreakPoint));
   ZeroMemory(newbp, sizeof(TBreakPoint));
   newbp^.owner := owner;
@@ -542,8 +545,7 @@ begin
   if changereg<>nil then
     newbp^.changereg:=changereg^;
 
-  if bpm=bpmInt3 then
-    if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
+
 
   //add to the bp list
   BreakpointList.Add(newbp);
@@ -837,6 +839,8 @@ var
   method: TBreakpointMethod;
   useddebugregister: integer;
 begin
+  result:=nil;
+
   method:=bpmDebugRegister;
   usedDebugRegister := GetUsableDebugRegister;
   if usedDebugRegister = -1 then
@@ -850,7 +854,7 @@ begin
   end;
 
   //todo: Make this breakpoint show up in the memory view
-  AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
+  result:=AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
 end;
 
 procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer);

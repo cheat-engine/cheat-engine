@@ -15,7 +15,7 @@ interface
 
 uses
   Classes, SysUtils, controls, stdctrls, comctrls, MemoryRecordUnit, symbolhandler, cefuncproc,newkernelhandler, addresslist;
-
+    {
 
 type TAddresslistHandler=class
   private
@@ -40,10 +40,10 @@ type TAddresslistHandler=class
     property Records[Index: Integer]: TMemoryRecord read GetRecord write PutRecord; default;
     property Count: Integer read GetCount;
   end;
-
+    }
 
 implementation
-
+   {
 function TAddresslistHandler.GetRecord(Index: Integer): TMemoryRecord;
 begin
 
@@ -61,7 +61,7 @@ end;
 
 procedure TAddresslistHandler.delete(t: TTreeview);
 begin
-  {delete}
+
 
 end;
 
@@ -117,7 +117,7 @@ destructor TAddresslistHandler.destroy;
 begin
   while FAddressList.Items.Count>0 do
     TMemoryRecord(FAddressList.Items[0].data).Free;
-end;
+end; }
 
 end.
 

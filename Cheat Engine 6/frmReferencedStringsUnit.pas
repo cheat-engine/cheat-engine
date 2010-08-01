@@ -58,7 +58,7 @@ implementation
 uses DissectCodeunit, DissectCodeThread, MemoryBrowserFormUnit;
 
 
-function getStringFromAddress(address: dword): string;
+function getStringFromAddress(address: ptrUint): string;
 {Reads the string at the given address}
 var
   c: pchar;

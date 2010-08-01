@@ -35,11 +35,11 @@ end;
 function VirtualQueryExPhys(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var filesize: uint64;
 begin
-  filesize:=$100000000;
-  lpBuffer.BaseAddress:=pointer((dword(lpAddress) div $1000)*$1000);
+  filesize:=qword($100000000);
+  lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
   lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
   lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
-  lpbuffer.RegionSize:=filesize-dword(lpBuffer.BaseAddress);
+  lpbuffer.RegionSize:=filesize-ptrUint(lpBuffer.BaseAddress);
   lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
 
 
@@ -47,7 +47,7 @@ begin
   lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
   lpbuffer._Type:=MEM_PRIVATE;
 
-  if (dword(lpAddress)>filesize) //bigger than the file
+  if (ptrUint(lpAddress)>filesize) //bigger than the file
   then
   begin
     zeromemory(@lpbuffer,dwlength);

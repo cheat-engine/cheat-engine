@@ -70,7 +70,7 @@ type TmemoryAllocevent=class
   public
     HookEvent: THookEvent;
 
-    BaseAddress: DWORD;
+    BaseAddress: ptrUint;
     //stack: array [0..4095] of byte;
     //stacksize: dword;
 
@@ -115,7 +115,7 @@ type TAllocWatcher=class(TThread)
   private
     HasSetupDataEvent: THandle;
     CEHasHandledItEvent: THandle;
-    HookEventDataAddress: dword;
+    HookEventDataAddress: ptrUint;
 
     errorcount: dword; //debug variable
 
@@ -489,7 +489,7 @@ var s: integer;
 begin
   o:=TmemoryAllocevent.create;
   o.HookEvent:=hookevent;
-  o.BaseAddress:=dword(hookevent.HeapAllocEvent.address);
+  o.BaseAddress:=ptrUint(hookevent.HeapAllocEvent.address);
 {
   if not ReadProcessMemory(processhandle,pointer(o.HookEvent.HeapAllocEvent.esp),@o.stack[0],4096,o.stacksize) then
   begin
@@ -508,7 +508,7 @@ var o: TMemoryAllocEvent;
 begin
   o:=TmemoryAllocevent.create;
   o.HookEvent:=hookevent;
-  o.BaseAddress:=dword(hookevent.HeapFreeEvent.HeapBase);
+  o.BaseAddress:=ptrUint(hookevent.HeapFreeEvent.HeapBase);
   setevent(CEHasHandledItEvent);
   addObjectToList(o);
 end;
@@ -656,9 +656,9 @@ begin
 
   if result<>nil then
   begin
-    lblHeapHandle.caption:=inttohex(dword(result.HookEvent.HeapAllocEvent.HeapHandle),8);
+    lblHeapHandle.caption:=inttohex(ptrUint(result.HookEvent.HeapAllocEvent.HeapHandle),8);
     lblflags.Caption:=heapflagstostring(result.HookEvent.HeapAllocEvent.Flags);
-    lblbaseaddress.caption:=inttohex(dword(result.HookEvent.HeapAllocEvent.address),8);
+    lblbaseaddress.caption:=inttohex(ptrUint(result.HookEvent.HeapAllocEvent.address),8);
     lblsize.Caption:=inttostr(result.HookEvent.HeapAllocEvent.Size);
     if lblErr.Visible then
       lblErr.Visible:=false;
@@ -670,7 +670,7 @@ begin
 
     if FindAddress(@AllocBaseLevel,strtoint('$'+edit1.Text))<>nil then
     begin
-      lblbaseaddress.caption:=inttohex(dword(result.HookEvent.HeapAllocEvent.address),8);
+      lblbaseaddress.caption:=inttohex(ptrUint(result.HookEvent.HeapAllocEvent.address),8);
       lblsize.Caption:=inttostr(result.HookEvent.HeapAllocEvent.Size);
       lblErr.Visible:=true;
     end

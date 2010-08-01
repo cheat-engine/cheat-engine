@@ -678,13 +678,6 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Find out what addresses this instruction accesses'
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
-    object N9: TMenuItem
-      Caption = '-'
-    end
-    object Createjumptocodecave1: TMenuItem
-      Caption = 'Create jump and initialize Code-Cave'
-      OnClick = Createjumptocodecave1Click
-    end
   end
   object Timer2: TTimer
     Interval = 100

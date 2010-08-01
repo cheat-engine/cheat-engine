@@ -41,7 +41,7 @@ end;
 
 procedure TfrmIDT.FormCreate(Sender: TObject);
 var limit: word;
-    address: dword;
+    address: ptrUint;
     x: Puint64Array;
     i: integer;
     br: dword;

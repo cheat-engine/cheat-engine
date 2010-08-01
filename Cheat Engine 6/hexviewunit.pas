@@ -99,7 +99,7 @@ type
     procedure CopySelectionToClipboard;
     procedure PasteFromClipboard;
 
-    procedure update;
+    procedure update; //hidden on purpose
     procedure changeSelected;
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
@@ -142,7 +142,7 @@ begin
   newgreen:=trunc((graphics.Green(c1)*(1-(percentage/100))+graphics.Green(c2)*(percentage/100)));
   newblue:=trunc((graphics.blue(c1)*(1-(percentage/100))+graphics.Blue(c2)*(percentage/100)));
 
-  RGBToColor(newred, newGreen, newBlue);
+  result:=RGBToColor(newred, newGreen, newBlue);
 end;
 
 procedure THexView.setDisplayType(newdt: TDisplaytype);
@@ -1239,6 +1239,8 @@ var oldAddressWidth: integer;
 defaultrange: ptrUint;
 {$endif}
 begin
+  //inherited update;
+
   if offscreenbitmap<>nil then
   begin
     if offscreenbitmap.Width<mbcanvas.width then

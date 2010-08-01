@@ -10,7 +10,7 @@ uses
   {tlhelp32,}symbolhandler, LResources;
 
 type TStaticlist=record
-  static: dword;
+  static: ptrUint;
   isstruct: boolean;
   referencecount: dword;
   //referals: array of dword;

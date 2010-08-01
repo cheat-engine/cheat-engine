@@ -58,9 +58,9 @@ type
   end;
 
 function peinfo_getcodesize(header: pointer): dword;
-function peinfo_getentryPoint(header: pointer): dword;
-function peinfo_getcodebase(header: pointer): dword;
-function peinfo_getdatabase(header: pointer): dword;
+function peinfo_getentryPoint(header: pointer): ptrUint;
+function peinfo_getcodebase(header: pointer): ptrUint;
+function peinfo_getdatabase(header: pointer): ptrUint;
 function peinfo_getheadersize(header: pointer): dword;
 
 
@@ -76,11 +76,11 @@ var
     ImageExportDirectory: PImageExportDirectory;
     ImageImportDirectory: PImageImportDirectory;
 begin
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.SizeOfCode;
 end;
 
-function peinfo_getdatabase(header: pointer): dword;
+function peinfo_getdatabase(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
     ImageSectionHeader: PImageSectionHeader;
@@ -88,11 +88,11 @@ var
     ImageExportDirectory: PImageExportDirectory;
     ImageImportDirectory: PImageImportDirectory;
 begin
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.BaseOfData;
 end;
 
-function peinfo_getcodebase(header: pointer): dword;
+function peinfo_getcodebase(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
     ImageSectionHeader: PImageSectionHeader;
@@ -100,11 +100,11 @@ var
     ImageExportDirectory: PImageExportDirectory;
     ImageImportDirectory: PImageImportDirectory;
 begin
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.BaseOfCode;
 end;
 
-function peinfo_getEntryPoint(header: pointer): dword;
+function peinfo_getEntryPoint(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
     ImageSectionHeader: PImageSectionHeader;
@@ -112,7 +112,7 @@ var
     ImageExportDirectory: PImageExportDirectory;
     ImageImportDirectory: PImageImportDirectory;
 begin
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.AddressOfEntryPoint;
 end;
 
@@ -126,8 +126,8 @@ begin
     exit;
   end;
 
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
-  if dword(ImageNTHeader)-dword(header)>$1000 then exit;
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+  if ptrUint(ImageNTHeader)-ptrUint(header)>$1000 then exit;
   
   if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then
   begin
@@ -141,7 +141,7 @@ function peinfo_getimagesize(header: pointer): dword;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  ImageNTHeader:=PImageNtHeaders(dword(header)+PImageDosHeader(header)^._lfanew);
+  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.SizeOfImage;
 end;
 
@@ -556,9 +556,9 @@ begin
             end
             else
             begin
-              while PDWORD(dword(loadedmodule)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
+              while PDWORD(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
               begin
-                importaddress:=ptrUint(@pdwordarray(dword(loadedmodule)+ImageImportDirectory.FirstThunk)[k]);
+                importaddress:=ptrUint(@pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]);
 
                 tempaddress:=ptrUint(loadedmodule)+pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
                 if loaded then
@@ -729,7 +729,7 @@ begin
 end;
 
 procedure TfrmPEInfo.Button1Click(Sender: TObject);
-var address: dword;
+var address: ptrUint;
     actualread: dword;
     headersize: dword;
     imagesize: dword;
@@ -737,7 +737,7 @@ var address: dword;
     check: boolean;
 begin
   try
-    address:=strtoint('$'+edtAddress.text);
+    address:=strtoint64('$'+edtAddress.text);
   except
     beep; //beeeeeeeeeeeeping idiot
     exit;

@@ -75,7 +75,7 @@ type TDisassemblerview=class(TPanel)
     procedure DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure SetPopupMenu(p: Tpopupmenu);
-    function getPopupMenu: Tpopupmenu;
+    function getPopupMenu: Tpopupmenu; //hidden on purpose
     procedure setSelectedAddress(address: ptrUint);
     procedure setTopAddress(address: ptrUint);
     function getOnDblClick: TNotifyEvent;
@@ -97,7 +97,7 @@ type TDisassemblerview=class(TPanel)
   public
     procedure BeginUpdate; //stops painting until endupdate
     procedure EndUpdate;
-    procedure Update;
+    procedure Update; override;
     procedure setCommentsTab(state: boolean);
 
     function getheaderWidth(headerid: integer): integer;
@@ -221,7 +221,8 @@ end;
 
 function TDisassemblerview.getPopupMenu: Tpopupmenu;
 begin
-  result:=discanvas.PopupMenu;
+  if discanvas<>nil then
+    result:=discanvas.PopupMenu;
 end;
 
 procedure TDisassemblerview.SetPopupMenu(p: tpopupmenu);
@@ -509,6 +510,8 @@ var
   description: string;
   x: ptrUint;
 begin
+  inherited update;
+
   synchronizeDisassembler;
 
   //if gettickcount-lastupdate>50 then
@@ -578,6 +581,8 @@ begin
       disCanvas.Repaint;
     lastupdate:=gettickcount;
   end;
+
+
 end;
 
 procedure TDisassemblerview.BeginUpdate;

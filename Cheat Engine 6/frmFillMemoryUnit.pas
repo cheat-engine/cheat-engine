@@ -33,7 +33,9 @@ implementation
 
 
 procedure TfrmFillMemory.Button1Click(Sender: TObject);
-var start,stop,count,temp:dword;
+var start,stop: ptrUint;
+    count: qword;
+    temp:dword;
     fillvalue:byte;
     buf: array of byte;
     actualwritten: dword;
@@ -58,7 +60,7 @@ begin
     raise exception.Create('Please fill in a valid ''Fill'' value');
   end;
 
-
+  count:=stop-start+1;
   if integer(count)<0 then
   begin
     temp:=stop;

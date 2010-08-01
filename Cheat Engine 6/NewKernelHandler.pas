@@ -227,6 +227,11 @@ type TBreakType=(bt_OnInstruction=0,bt_OnWrites=1, bt_OnIOAccess=2, bt_OnReadsAn
 type TBreakLength=(bl_1byte=0, bl_2byte=1, bl_8byte=2{Only when in 64-bit}, bl_4byte=3);
 
 
+type TEnumDeviceDrivers=function(lpImageBase: LPLPVOID; cb: DWORD; var lpcbNeeded: DWORD): BOOL; stdcall;
+type TGetDeviceDriverBaseNameA=function(ImageBase: LPVOID; lpBaseName: LPSTR; nSize: DWORD): DWORD; stdcall;
+type TGetDeviceDriverFileName=function(ImageBase: LPVOID; lpFilename: LPTSTR; nSize: DWORD): DWORD; stdcall;
+
+
 type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
@@ -253,6 +258,7 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
 type TContinueDebugEvent=function(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL; stdcall;
 type TDebugActiveProcess=function(dwProcessId: DWORD): BOOL; stdcall;
+type TVirtualFreeEx=function(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
 type TVirtualProtect=function(lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualQueryEx=function(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
@@ -369,6 +375,11 @@ function Is64BitProcess(processhandle: THandle): boolean;
 //I could of course have made it a parameter thing, but I'm lazy
 
 var
+  EnumDeviceDrivers       :TEnumDeviceDrivers;
+  GetDeviceDriverBaseNameA:TGetDeviceDriverBaseNameA;
+  GetDeviceDriverFileName :TGetDeviceDriverFileName;
+
+
   ReadProcessMemory     :TReadProcessMemory;
   ReadProcessMemory64   :TReadProcessMemory64;  
   WriteProcessMemory    :TWriteProcessMemory;
@@ -400,6 +411,7 @@ var
   VirtualProtectEx      :TVirtualProtectEx;
   VirtualQueryEx        :TVirtualQueryEx;
   VirtualAllocEx        :TVirtualAllocEx;
+  VirtualFreeEx         :TVirtualFreeEx;
   CreateRemoteThread    :TCreateRemoteThread;
   OpenThread            :TOpenThread;
   GetPEProcess          :TGetPEProcess;
@@ -774,17 +786,17 @@ var buf:_MEMORYSTATUS;
 begin
   GlobalMemoryStatus(buf);
 
-  lpBuffer.BaseAddress:=pointer((dword(lpAddress) div $1000)*$1000);
+  lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
   lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
   lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
-  lpbuffer.RegionSize:=buf.dwTotalPhys-dword(lpBuffer.BaseAddress);
+  lpbuffer.RegionSize:=buf.dwTotalPhys-ptrUint(lpBuffer.BaseAddress);
   lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
 
   lpbuffer.State:=mem_commit;
   lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
   lpbuffer._Type:=MEM_PRIVATE;
 
-  if (dword(lpAddress)>buf.dwTotalPhys) //bigger than the total ammount of memory
+  if (ptrUint(lpAddress)>buf.dwTotalPhys) //bigger than the total ammount of memory
   then
   begin
     zeromemory(@lpbuffer,dwlength);
@@ -966,6 +978,7 @@ begin
 end;
 
 var x: string;
+  psa: thandle;
 initialization
   DarkByteKernel:=0;
 
@@ -992,6 +1005,7 @@ initialization
 
   VirtualQueryEx:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   VirtualAllocEx:=GetProcAddress(WindowsKernel,'VirtualAllocEx');
+  VirtualFreeEx:=GetProcAddress(WindowsKernel,'VirtualFreeEx');
 
 
   GetThreadContext:=GetProcAddress(WindowsKernel,'GetThreadContext');
@@ -1018,6 +1032,11 @@ initialization
   Heap32ListNext:=   GetProcAddress(WindowsKernel, 'Heap32ListNext');
 
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
+
+  psa:=loadlibrary('Psapi.dll');
+  EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
+  GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
+
 
 finalization
 

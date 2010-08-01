@@ -85,7 +85,8 @@ uses MainUnit, formsettingsunit;
 
 procedure Tformaddresschange.processaddress;
 var i,j,err,err2: integer;
-    currentaddress,currentaddress2,currentoffset: dword;
+    currentaddress,currentaddress2: ptrUint;
+    currentoffset: dword;
     read:dword;
     check: boolean;
 begin
@@ -119,7 +120,10 @@ begin
 
     //still here so that address was right
 
-    check:=readprocessmemory(processhandle,pointer(currentaddress),@currentaddress2,4,read);
+    currentaddress:=0;
+    currentaddress2:=0;
+
+    check:=readprocessmemory(processhandle,pointer(currentaddress),@currentaddress2,processhandler.pointersize,read);
 
     if length(pointerinfo[i].offset.text)>0 then
     begin
@@ -129,10 +133,10 @@ begin
         val('$'+pointerinfo[i].offset.text,currentoffset,err2);
     end else err2:=1;
 
-    if (not check) or (read<4) or (err2>0) then
+    if (not check) or (read<processhandler.pointersize) or (err2>0) then
     begin
       //everything after this address is wrong
-      if (check) or (read=4) then
+      if (check) or (read=processhandler.pointersize) then
         pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address '+IntToHex(currentaddress2,8)
       else
         pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address ????????';

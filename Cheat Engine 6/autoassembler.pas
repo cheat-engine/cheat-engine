@@ -91,7 +91,7 @@ begin
 end;
 
 
-function removecomments(code: tstrings):string;
+procedure removecomments(code: tstrings);
 var i,j: integer;
     currentline: string;
     instring: boolean;
@@ -162,6 +162,8 @@ begin
   //For those reading the source, PLEASE , try not to code scripts like that
   //the scripts you make look like crap, and are hard to read. (like using goto in a c app)
   //this is just to make one guy happy
+
+  setlength(labels,0);
   i:=0;
   while i<code.count do
   begin
@@ -302,7 +304,7 @@ var i,j,k,l,e: integer;
 
     varsize: integer;
     tokens: tstringlist;
-    baseaddress: dword;
+    baseaddress: ptrUint;
 
     include: tstringlist;
     testdword,bw: dword;
@@ -321,6 +323,14 @@ var i,j,k,l,e: integer;
     symhandler: TSymhandler;
     prefered: ptrUint;
 begin
+  setlength(allocs,0);
+  setlength(kallocs,0);
+  setlength(globalallocs,0);
+  setlength(createthread,0);
+
+  currentaddress:=0;
+
+
   if syntaxcheckonly and (registeredsymbols<>nil) then
   begin
     //add the symbols as defined labels
@@ -427,7 +437,7 @@ begin
                 s1:=copy(currentline,a+1,b-a-1);
                 s2:=trim(copy(currentline,b+1,c-b-1));
 
-                testdword:= symhandler.getAddressFromName(s1,false);
+                testPtr:= symhandler.getAddressFromName(s1,false);
 
                 setlength(bytes,0);
                 try
@@ -440,7 +450,7 @@ begin
                 begin
                   getmem(bytebuf,length(bytes));
                   try
-                    if ReadProcessMemory(processhandle, pointer(testdword), bytebuf, length(bytes),x) then
+                    if ReadProcessMemory(processhandle, pointer(testPtr), bytebuf, length(bytes),x) then
                     begin
 
                         for j:=0 to length(bytes)-1 do
@@ -597,7 +607,7 @@ begin
 
               //read memory and replace with lines of DB xx xx xx xx xx xx xx xx
               try
-                x:=symhandler.getAddressFromName(s1);
+                testptr:=symhandler.getAddressFromName(s1);
               except
                 raise exception.Create('Invalid address for ReadMem');
               end;
@@ -614,7 +624,7 @@ begin
 
               getmem(bytebuf,a);
               try
-                if (not ReadProcessMemory(processhandle, pointer(x),bytebuf,a,x)) or (x<a) then
+                if (not ReadProcessMemory(processhandle, pointer(testptr),bytebuf,a,x)) or (x<a) then
                   raise exception.Create('The memory at '+s1+' could not be fully read');
 
                 //still here so everything ok
@@ -1314,7 +1324,7 @@ begin
       for i:=0 to length(kallocs)-1 do
        inc(x,kallocs[i].size);
 
-      kallocs[0].address:=dword(KernelAlloc(x));
+      kallocs[0].address:=ptrUint(KernelAlloc(x));
 
       for i:=1 to length(kallocs)-1 do
         kallocs[i].address:=kallocs[i-1].address+kallocs[i-1].size;
@@ -1464,7 +1474,7 @@ begin
       begin
         ok1:=true;
         try
-          testdword:=symhandler.getAddressFromName(loadbinary[i].address);
+          testptr:=symhandler.getAddressFromName(loadbinary[i].address);
         except
           ok1:=false;
         end;
@@ -1474,7 +1484,7 @@ begin
             if uppercase(labels[j].labelname)=uppercase(loadbinary[i].address) then
             begin
               ok1:=true;
-              testdword:=labels[j].address;
+              testptr:=labels[j].address;
               break;
             end;
 
@@ -1483,7 +1493,7 @@ begin
             if uppercase(allocs[j].varname)=uppercase(loadbinary[i].address) then
             begin
               ok1:=true;
-              testdword:=allocs[j].address;
+              testptr:=allocs[j].address;
               break;
             end;
 
@@ -1492,7 +1502,7 @@ begin
             if uppercase(kallocs[j].varname)=uppercase(loadbinary[i].address) then
             begin
               ok1:=true;
-              testdword:=kallocs[j].address;
+              testptr:=kallocs[j].address;
               break;
             end;
 
@@ -1501,7 +1511,7 @@ begin
             if uppercase(defines[j].name)=uppercase(loadbinary[i].address) then
             begin
               try
-                testdword:=symhandler.getAddressFromName(defines[j].whatever);
+                testptr:=symhandler.getAddressFromName(defines[j].whatever);
                 ok1:=true;
               except
               end;
@@ -1514,7 +1524,7 @@ begin
           binaryfile:=tmemorystream.Create;
           try
             binaryfile.LoadFromFile(loadbinary[i].filename);
-            ok2:=writeprocessmemory(processhandle,pointer(testdword),binaryfile.Memory,binaryfile.Size,bw);
+            ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,bw);
           finally
             binaryfile.free;
           end;
@@ -1542,7 +1552,11 @@ begin
         //see if all allocs are deallocated
         if length(dealloc)=length(ceallocarray) then //free everything
         begin
+          {$ifdef cpu64}
           baseaddress:=$FFFFFFFF;
+          {$else}
+          baseaddress:=qword($FFFFFFFFFFFFFFFF);
+          {$endif}
 
           for i:=0 to length(dealloc)-1 do
           begin

@@ -153,7 +153,7 @@ begin
 
   //find out at which position in the cache this index is
   cachepos:=i-cachestart;
-  result:=PPointerscanResult(dword(cache)+(cachepos*sizeofentry));
+  result:=PPointerscanResult(ptrUint(cache)+(cachepos*sizeofentry));
 end;
 
 function TPointerscanresultReader.getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult;

@@ -24,7 +24,7 @@ type TCircularObjectBuffer=class
     function Write(o: TObject): boolean;
     function Read: TObject;
     constructor create(InitialSize, maxTimeout: integer);
-    destructor destroy;
+    destructor destroy; override;
     property count: integer read getCount;
 end;
 

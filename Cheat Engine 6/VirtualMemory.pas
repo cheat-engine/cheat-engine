@@ -7,27 +7,27 @@ interface
 uses windows, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler;
 
 type TMemoryRegion2 = record
-  Address: dword;
-  Size: dword;
+  Address: ptrUint;
+  Size: ptrUint;
   Protect: dword;
 end;
 
 type TVirtualMemory = class(tobject)
   private
     buffer: pointer; //base address of all the memory
-    buffersize: dword;
+    buffersize: ptrUint;
     memoryregion: array of TMemoryRegion;
     memoryregion2: array of TMemoryRegion2;
     procedure quicksortmemoryregions(lo,hi: integer);
   public
-    function AddressToPointer(address: dword): pointer;
-    function PointerToAddress(p: pointer): dword;
-    function isvalid(address: dword): boolean;
+    function AddressToPointer(address: ptrUint): pointer;
+    function PointerToAddress(p: pointer): ptrUint;
+    function isvalid(address: ptrUint): boolean;
     function IsBadReadPtr(x: pointer;size: integer):boolean;
     function IsBadWritePtr(x: pointer;size: integer):boolean;
     function GetBuffer: pointer;
-    function GetBufferSize: dword;
-    constructor Create(Start,Stop: dword; progressbar: tprogressbar); //will load the current process in memory (say goodbye to memory....)
+    function GetBufferSize: ptrUint;
+    constructor Create(Start,Stop: ptrUint; progressbar: tprogressbar); //will load the current process in memory (say goodbye to memory....)
     destructor destroy; override;
 end;
 
@@ -41,27 +41,27 @@ begin
   result:=buffer;
 end;
 
-function TVirtualMemory.GetBufferSize: dword;
+function TVirtualMemory.GetBufferSize: ptrUint;
 begin
   result:=self.buffersize;
 end;
 
-function TVirtualMemory.isvalid(address: dword): boolean;
+function TVirtualMemory.isvalid(address: ptrUint): boolean;
 begin
   result:=AddressToPointer(address)<>nil;
 end;
 
 function TVirtualMemory.IsBadReadPtr(x: pointer;size: integer):boolean;
 begin
-  result:=AddressToPointer(dword(x))=nil;
+  result:=AddressToPointer(ptrUint(x))=nil;
 end;
 
 function TVirtualMemory.IsBadWritePtr(x: pointer;size: integer):boolean;
 var i: integer;
-    address: dword;
+    address: ptrUint;
 begin
   result:=true;
-  address:=dword(x);
+  address:=ptrUint(x);
 
   for i:=0 to length(memoryregion2)-1 do
   begin
@@ -74,18 +74,18 @@ begin
   end;
 end;
 
-function TVirtualMemory.PointerToAddress(p: pointer): dword;
+function TVirtualMemory.PointerToAddress(p: pointer): ptrUint;
 {
 returns the address the pointer points to
 }
-var offset: dword;
+var offset: ptrUint;
     i: integer;
 begin
   result:=0;
-  offset:=dword(p)-dword(buffer); //difference from start of the buffer till p
+  offset:=ptrUint(p)-ptrUint(buffer); //difference from start of the buffer till p
   for i:=0 to length(memoryregion)-1 do
   begin
-    if dword(memoryregion[i].startaddress) > (dword(memoryregion[0].startaddress)+offset) then
+    if ptrUint(memoryregion[i].startaddress) > (ptrUint(memoryregion[0].startaddress)+offset) then
     begin
 //      raise exception.Create('Invalid address is being accessed');
 
@@ -93,19 +93,19 @@ begin
     end;
 
     if (
-         (dword(p) >= dword(memoryregion[i].startaddress) ) and
-         (dword(p) < (dword(memoryregion[i].startaddress)+memoryregion[i].MemorySize)  )
+         (ptrUint(p) >= ptrUint(memoryregion[i].startaddress) ) and
+         (ptrUint(p) < (ptrUint(memoryregion[i].startaddress)+memoryregion[i].MemorySize)  )
        )
     then
     begin
-      result:=memoryregion[i].BaseAddress+(dword(p)-dword(memoryregion[i].startaddress));
+      result:=memoryregion[i].BaseAddress+(ptrUint(p)-ptrUint(memoryregion[i].startaddress));
       exit;
     end;
 
   end;
 end;
 
-function TVirtualMemory.AddressToPointer(address: dword): pointer;
+function TVirtualMemory.AddressToPointer(address: ptrUint): pointer;
 var i: integer;
 begin
   result:=nil;
@@ -117,7 +117,7 @@ begin
       if memoryregion[i].BaseAddress>address then exit; //sorted so higher will never be found
       if (memoryregion[i].BaseAddress+memoryregion[i].MemorySize)>address then
       begin
-        result:=pointer(dword(memoryregion[i].startaddress)+(address-memoryregion[i].BaseAddress));
+        result:=pointer(ptrUint(memoryregion[i].startaddress)+(address-memoryregion[i].BaseAddress));
         exit;
       end;
     end;
@@ -159,42 +159,42 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
-constructor TVirtualMemory.Create(Start,Stop: dword; progressbar: tprogressbar);
+constructor TVirtualMemory.Create(Start,Stop: ptrUint; progressbar: tprogressbar);
 var RMPointer: ^Byte;
 
     mbi : _MEMORY_BASIC_INFORMATION;
-    address: Dword;
-    size:       dword;
+    address: ptrUint;
+    size:       ptrUint;
 
     i: Integer;
     j: Integer;
 
     actualread: dword;
-    TotalToRead: Dword;
+    TotalToRead: ptrUint;
 begin
   address:=start;
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
   begin
-    if (not symhandler.inSystemModule(dword(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+    if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
 
 
       if Skip_PAGE_NOCACHE then
         if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
         begin
-          address:=dword(mbi.BaseAddress)+mbi.RegionSize;
+          address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
           continue;
         end;
 
       setlength(memoryregion,length(memoryregion)+1);
 
-      memoryregion[length(memoryregion)-1].BaseAddress:=dword(mbi.baseaddress);  //just remember this location
+      memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
       memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
     end;
 
 
-    address:=dword(mbi.baseaddress)+mbi.RegionSize;
+    address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
   end;
 
   setlength(memoryregion2,length(memoryregion));

@@ -196,7 +196,7 @@ var SymFromName: TSymFromName;
 
 implementation
 
-uses assemblerunit;
+uses assemblerunit, driverlist;
 
 
 const
@@ -206,10 +206,13 @@ const
   LIST_MODULES_ALL=3;
 
 type TEnumProcessModulesEx=function(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
+type TEnumProcessModules=function(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD): BOOL; stdcall;
 type TGetModuleFileNameEx=function(hProcess: HANDLE; hModule: HMODULE; lpFilename: pchar; nSize: DWORD): DWORD; stdcall;
 
+
 var EnumProcessModulesEx: TEnumProcessModulesEx;
-    GetModuleFileNameEx: TGetModuleFilenameEx;
+    EnumProcessModules:   TEnumProcessModules;
+    GetModuleFileNameEx:  TGetModuleFilenameEx;
 
 function EnumProcessModulesExNotImplemented(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
 begin
@@ -569,7 +572,7 @@ begin
       p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
       if p=nil then
         raise exception.Create('Error allocating memory');
-      AddUserdefinedSymbol(inttohex(dword(p),8),symbolname);
+      AddUserdefinedSymbol(inttohex(ptrUint(p),8),symbolname);
       i:=GetUserdefinedSymbolByNameIndex(symbolname);
       userdefinedsymbols[i].allocsize:=size;
       userdefinedsymbols[i].processid:=processid;
@@ -591,8 +594,8 @@ begin
         if p=nil then
           raise exception.Create('Error allocating memory');
 
-        userdefinedsymbols[i].address:=dword(p);
-        userdefinedsymbols[i].addressstring:=inttohex(dword(p),8);        
+        userdefinedsymbols[i].address:=ptrUint(p);
+        userdefinedsymbols[i].addressstring:=inttohex(ptrUint(p),8);
         userdefinedsymbols[i].allocsize:=size;
         userdefinedsymbols[i].processid:=processid;
       end;
@@ -1042,6 +1045,7 @@ var mi: tmoduleinfo;
 begin
   hasPointer:=false;
   haserror:=false;
+  offset:=0;
 
 
 {$ifdef autoassemblerdll}
@@ -1149,7 +1153,7 @@ begin
                 tokens[i]:=copy(tokens[i],8,length(tokens[i])-7);
                 ws:=tokens[i];
                 pws:=@ws[1];
-                result:=dword(GetKProcAddress(pws));
+                result:=ptrUint(GetKProcAddress(pws));
                 if result<>0 then
                 begin
                   tokens[i]:=inttohex(result,8);
@@ -1568,6 +1572,7 @@ initialization
   end;
 
   psa:=loadlibrary('Psapi.dll');
+  EnumProcessModules:=GetProcAddress(psa,'EnumProcessModules');
   EnumProcessModulesEx:=GetProcAddress(psa,'EnumProcessModulesEx');
   GetModuleFileNameEx:=GetProcAddress(psa,'GetModuleFileNameExA');
   if not assigned(EnumProcessModulesEx) then

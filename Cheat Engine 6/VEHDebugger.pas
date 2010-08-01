@@ -211,7 +211,7 @@ begin
         else
         begin
           lpDebugEvent.DebugString.nDebugStringLength:=VEHDebugView.Exception32.ExceptionInformation[0];
-          lpDebugEvent.DebugString.lpDebugStringData:=pointer(VEHDebugView.Exception32.ExceptionInformation[1]);
+          lpDebugEvent.DebugString.lpDebugStringData:=pointer(ptrUint(VEHDebugView.Exception32.ExceptionInformation[1]));
         end;
       end;
 
@@ -235,8 +235,8 @@ begin
         begin
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=VEHDebugView.Exception32.ExceptionCode;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionFlags:=VEHDebugView.Exception32.ExceptionFlags;
-          lpDebugEvent.Exception.ExceptionRecord.ExceptionRecord:=pointer(VEHDebugView.Exception32.ExceptionRecord);
-          lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(VEHDebugView.Exception32.ExceptionAddress);
+          lpDebugEvent.Exception.ExceptionRecord.ExceptionRecord:=pointer(ptrUint(VEHDebugView.Exception32.ExceptionRecord));
+          lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(VEHDebugView.Exception32.ExceptionAddress));
           lpDebugEvent.Exception.ExceptionRecord.NumberParameters:=VEHDebugView.Exception32.NumberParameters;
 
           for i:=0 to VEHDebugView.Exception32.NumberParameters-1 do
@@ -255,6 +255,8 @@ begin
   hasPausedProcess:=false;
   VEHDebugView.ContinueMethod:=dwContinueStatus;
   SetEvent(HasHandledDebugEvent);
+
+  result:=true;
 end;
 
 function TVEHDebugInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;

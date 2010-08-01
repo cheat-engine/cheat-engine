@@ -1991,6 +1991,7 @@ var
     z: commonNaNT;
     qhigh,qlow : qword;
 begin
+    qlow:=0;
     if ( float128_is_signaling_nan( a )<>0)  then
       float_raise( float_flag_invalid );
     z.sign := a.high shr 63;
@@ -2009,6 +2010,8 @@ function commonNaNToFloat128( a : commonNaNT): float128;
 var
     z: float128;
 begin
+    z.high:=0;
+    z.low:=0;
     shift128Right( a.high, a.low, 16, z.high, z.low );
     z.high := z.high or ( ( bits64(a.sign) ) shl 63 ) or uint64( $7FFF800000000000 );
     result:=z;
@@ -8438,6 +8441,9 @@ var
     aExp : int16;
     aSig, zSig0, zSig1 : bits64;
 begin
+    zSig0:=0;
+    zSig1:=0;
+
     aSig := extractFloat64Frac( a );
     aExp := extractFloat64Exp( a );
     aSign := extractFloat64Sign( a );

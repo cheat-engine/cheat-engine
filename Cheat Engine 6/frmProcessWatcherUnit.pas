@@ -282,7 +282,7 @@ begin
 
     //processevent
     count:=pbyte(processevents)^;
-    y:=pprocesseventstruct(dword(processevents)+1);
+    y:=pprocesseventstruct(ptrUint(processevents)+1);
 
     for i:=0 to count-1 do
     begin
@@ -299,7 +299,7 @@ begin
 
     //threadevent
     count:=pbyte(threadevents)^;
-    z:=pthreadeventstruct(dword(threadevents)+1);
+    z:=pthreadeventstruct(ptrUint(threadevents)+1);
 
 
     for i:=0 to count-1 do

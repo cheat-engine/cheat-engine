@@ -493,7 +493,7 @@ begin
 
 
     for i:=0 to codelength-1 do
-      nops[i]:=$90;  //$90=nop
+      nops[i]:=$90;  // $90=nop
 
    // get old security and set new security
     VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
@@ -712,7 +712,7 @@ begin
 
 
     for i:=0 to codelength-1 do
-      nops[i]:=$90;  //$90=nop
+      nops[i]:=$90;  //  $90=nop
 
    // get old security and set new security
     VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)

@@ -257,7 +257,7 @@ begin
 
   if DH^._lfanew>maxsize then exit; //out of range
   
-  NTH:=PImageNtHeaders(dword(headerbase)+DH^._lfanew);
+  NTH:=PImageNtHeaders(ptrUint(headerbase)+DH^._lfanew);
   if NTH^.Signature<>IMAGE_NT_SIGNATURE then exit;
 
   result:=NTH;
@@ -285,9 +285,9 @@ begin
   NTH:=peinfo_getImageNtHeaders(headerbase,maxsize);
   if NTH=nil then exit;
 
-  ISH:=PImageSectionHeader(dword(@NTH^.OptionalHeader)+NTH^.FileHeader.SizeOfOptionalHeader);
+  ISH:=PImageSectionHeader(ptrUint(@NTH^.OptionalHeader)+NTH^.FileHeader.SizeOfOptionalHeader);
 
-  if (dword(ISH)-dword(headerbase))>maxsize then exit; //overflow
+  if (ptrUint(ISH)-ptrUint(headerbase))>maxsize then exit; //overflow
   result:=ISH;
 end;
 
@@ -313,7 +313,7 @@ begin
       if ImageSectionHeader.PointerToRawData+(VirtualAddress-ImageSectionHeader.VirtualAddress)>maxsize then exit; //too big
 
       //set the found address
-      result:=pointer(dword(header)+ImageSectionHeader.PointerToRawData+(VirtualAddress-ImageSectionHeader.VirtualAddress));
+      result:=pointer(ptrUint(header)+ImageSectionHeader.PointerToRawData+(VirtualAddress-ImageSectionHeader.VirtualAddress));
       exit;
     end;
     inc(ImageSectionHeader); //next one

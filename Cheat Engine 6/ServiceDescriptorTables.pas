@@ -77,7 +77,7 @@ type TSdtStruct=record
   parametercounts: pointer;
 end;
 var sdtstruct: tsdtstruct;
-    sdt: dword;
+    sdt: ptrUint;
     x: ttreenode;
     second: boolean;
     p: thandle;
@@ -145,7 +145,7 @@ function ES(SymName: LPSTR; SymbolAddress, SymbolSize: ULONG; UserContext: Point
 var buf: array[0..14] of byte;
     ar: dword;
 begin
-  if readprocessmemory(processhandle,pointer(SymbolAddress),@buf[0],15,ar) then
+  if readprocessmemory(processhandle,pointer(ptrUint(SymbolAddress)),@buf[0],15,ar) then
   begin
     if (buf[0]=$b8) and (buf[3]=$00) and (buf[4]=$00) and (buf[5]=$ba) and (buf[10]=$ff) and (buf[11]=$12) and (buf[12]=$c2) and (buf[14]=$00) then
     begin
@@ -360,6 +360,7 @@ end;
 procedure TfrmServiceDescriptorTables.GotoSTDaddress1Click(
   Sender: TObject);
 var table: integer;
+    a: ptrUint;
     x,y: dword;
 
 begin
@@ -367,11 +368,11 @@ begin
   table:=treeview1.Selected.Parent.Index;
 
   if table=0 then
-    x:=GetSDT
+    a:=GetSDT
   else
-    x:=GetSDTShadow;
+    a:=GetSDTShadow;
 
-  readprocessmemory(processhandle,pointer(x),@y,4,x);
+  readprocessmemory(processhandle,pointer(a),@y,4,x);
   inc(y,treeview1.Selected.Index*4);
   memorybrowser.memoryaddress:=y;
 end;

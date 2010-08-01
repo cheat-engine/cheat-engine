@@ -665,7 +665,7 @@ begin
   d.showmodules:=false;
   d.showsymbols:=false;
 
-
+  setlength(specifier,0);
   setlength(originalcode,0);
   setlength(ab,0);
   specifiernr:=0;

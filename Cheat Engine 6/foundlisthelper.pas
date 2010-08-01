@@ -760,6 +760,6 @@ initialization
     selfsymhandler.targetself:=true;
   end;
 
-  selfsymhandler.AddUserdefinedSymbol(inttohex(dword(temppointer),8),'scandisplayroutine');
-  selfsymhandler.AddUserdefinedSymbol(inttohex(dword(@scandisplayroutinetype),8),'scandisplayroutinetype');
+  selfsymhandler.AddUserdefinedSymbol(inttohex(ptrUint(temppointer),8),'scandisplayroutine');
+  selfsymhandler.AddUserdefinedSymbol(inttohex(ptrUint(@scandisplayroutinetype),8),'scandisplayroutinetype');
 end.

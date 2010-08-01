@@ -57,7 +57,7 @@ end;
 procedure TfrmStructuresAddElement.edtByteSizeChange(Sender: TObject);
 begin
   bytesize:=strtoint(edtbytesize.text);
-  cbtype.Items.Objects[cbtype.itemindex]:=pointer(bytesize);
+  cbtype.Items.Objects[cbtype.itemindex]:=pointer(ptrint(bytesize));
 end;
 
 procedure TfrmStructuresAddElement.edtOffsetChange(Sender: TObject);

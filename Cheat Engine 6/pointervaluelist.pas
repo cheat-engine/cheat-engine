@@ -412,7 +412,7 @@ begin
       end
       else //dig deeper
       begin
-        result:=findClosestPointer(addresslist[i].ReversePointerlistArray, $10, level+1, maxvalue); //$F downto 0
+        result:=findClosestPointer(addresslist[i].ReversePointerlistArray, $10, level+1, maxvalue); //F downto 0
         if result<>nil then exit;
       end;
     end;

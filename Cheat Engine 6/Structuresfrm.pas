@@ -788,7 +788,7 @@ begin
 
   if selectedstructure.basestructure<0 then
   begin
-    selectedstructure:=tstructure(selectednode.parent);
+    selectedstructure:=tstructure(selectednode.parent.data);
     selectednode:=selectednode.Parent;
   end;
 
@@ -833,7 +833,7 @@ begin
       for j:=0 to length(definedstructures[i].structelement)-1 do
         inc(size,definedstructures[i].structelement[j].bytesize);
 
-      cbtype.Items.AddObject(definedstructures[i].name,pointer(size));
+      cbtype.Items.AddObject(definedstructures[i].name,pointer(ptrint(size)));
     end;
 
 
@@ -1528,8 +1528,8 @@ begin
     cbtype.Items.AddObject('8 Bytes Hexadecimal',pointer(8));
     cbtype.Items.AddObject('Float',pointer(4));
     cbtype.Items.AddObject('Double',pointer(8));
-    cbtype.Items.AddObject('String',pointer(size));
-    cbtype.Items.AddObject('String Unicode',pointer(size));
+    cbtype.Items.AddObject('String',pointer(ptrint(size)));
+    cbtype.Items.AddObject('String Unicode',pointer(ptrint(size)));
 
     cbtype.DropDownCount:=17;
 
@@ -1540,7 +1540,7 @@ begin
       for j:=0 to length(definedstructures[i].structelement)-1 do
         inc(size,definedstructures[i].structelement[j].bytesize);
 
-      cbtype.Items.AddObject(definedstructures[i].name,pointer(size));
+      cbtype.Items.AddObject(definedstructures[i].name,pointer(ptrint(size)));
     end;
 
     if definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr<0 then
@@ -2376,6 +2376,7 @@ var
   i,j,t: integer;
   t2: TVariableType;
   x,y: dword;
+  a: qword;
 begin
     setlength(buf,structsize);
     setlength(buf2,8);
@@ -2400,18 +2401,28 @@ begin
 
           definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
           definedstructures[length(definedstructures)-1].structelement[i].pointertoSize:=8;
-          definedstructures[length(definedstructures)-1].structelement[i].bytesize:=4;
+          definedstructures[length(definedstructures)-1].structelement[i].bytesize:=processhandler.pointersize;
           definedstructures[length(definedstructures)-1].structelement[i].description:='pointer to ';
 
-          if readprocessmemory(processhandle,pointer(pdword(@buf[x])^),@buf2[0],8,y) then
+          a:=0;
+          if processhandler.is64bit then
+            a:=pqword(@buf[x])^
+          else
+            a:=pdword(@buf[x])^;
+
+
+          if readprocessmemory(processhandle,pointer(ptruint(a)),@buf2[0],8,y) then
           begin
-            t2:=FindTypeOfData(pdword(@buf[x])^,@buf2[0],8);
+            t2:=FindTypeOfData(ptruint(a),@buf2[0],8);
             t:=convertVariableTypeTostructnr(t2);
             definedstructures[length(definedstructures)-1].structelement[i].structurenr:=t;
           end
           else definedstructures[length(definedstructures)-1].structelement[i].structurenr:=-9;
 
-          inc(x,4);
+          if processhandler.is64Bit then
+            inc(x,8)
+          else
+            inc(x,4);
           continue;
         end;
 

@@ -244,7 +244,7 @@ begin
       mi:=tmenuitem.Create(mainform);
 
       mi.Caption:=lvTools.Items[i].Caption;
-      mi.ShortCut:=TShortCut(lvTools.Items[i].data);
+      mi.ShortCut:=TShortCut(ptrUint(lvTools.Items[i].data));
       mi.Tag:=i;
       mi.OnClick:=mainform.OnToolsClick;
       mainform.ools1.Add(mi);
@@ -797,10 +797,10 @@ begin
                 //A is already handled (sorted) so s contaisn the name
                 li:=formsettings.lvtools.items.add;
                 li.caption:=s;
-                li.Data:=pointer(reg.readinteger(names[i]));
+                li.Data:=pointer(ptrUint(reg.readinteger(names[i])));
 
                 li.SubItems.Add(s2);
-                li.SubItems.Add(ShortCutToText(dword(li.data)));
+                li.SubItems.Add(ShortCutToText(ptrUint(li.data)));
 
               end;
             except

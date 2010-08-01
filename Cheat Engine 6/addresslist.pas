@@ -72,7 +72,7 @@ type
     procedure doTypeChange;
     procedure doValueChange;
 
-    constructor Create(AOwner: TComponent);
+    constructor Create(AOwner: TComponent); override;
     property Items: TTreeNodes read getTreeNodes write SetTreeNodes;
 
     procedure clear;

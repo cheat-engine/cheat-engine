@@ -16,7 +16,7 @@ uses windows, forms, MainUnit,LCLIntf,{standaloneunit,}SysUtils,AdvancedOptionsU
 var CurrentTableVersion: dword=10;
 procedure SaveTable(Filename: string);
 procedure LoadTable(Filename: string;merge: boolean);
-procedure SaveCEM(Filename:string;address,size:dword);
+procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 
 procedure LoadExe(filename: string);
 
@@ -5314,10 +5314,11 @@ begin
     *)
 end;
 
-procedure SaveCEM(Filename:string;address,size:dword);
+procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 var memfile: TFilestream;
     buf: pointer;
     temp:dword;
+    a: qword;
 begin
   memfile:=Tfilestream.Create(filename,fmCreate);
   buf:=nil;
@@ -5326,9 +5327,10 @@ begin
     if readprocessmemory(processhandle,pointer(address),buf,size,temp) then
     begin
       memfile.WriteBuffer(pchar('CHEATENGINE')^,11);
-      temp:=1; //version
+      temp:=2; //version
       memfile.WriteBuffer(temp,4);
-      memfile.WriteBuffer(address,4);
+      a:=address;
+      memfile.WriteBuffer(a,8);
       memfile.WriteBuffer(buf^,size);
     end else messagedlg('The region at '+IntToHex(address,8)+' was partially or completly unreadable',mterror,[mbok],0);
   finally

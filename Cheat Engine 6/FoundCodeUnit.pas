@@ -463,7 +463,7 @@ begin
         begin
           setlength(nops,codelength);
           for i:=0 to codelength-1 do
-            nops[i]:=$90;  //$90=nop
+            nops[i]:=$90;  // $90=nop
 
 
           zeromemory(@mbi,sizeof(mbi));

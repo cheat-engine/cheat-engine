@@ -145,7 +145,7 @@ begin
   pagecontrol1.ActivePage:=tabsheet2;
   listview1.Enabled:=false;
 
-  keys:=memrec.Hotkeys[integer(listview1.selected.data)].keys;
+  keys:=memrec.Hotkeys[ptruInt(listview1.selected.data)].keys;
   edtHotkey.text:=ConvertKeyComboToString(keys);
 
   cbFreezedirection.ItemIndex:=cbFreezedirection.Items.IndexOf(listview1.selected.SubItems[0]);
@@ -161,7 +161,7 @@ begin
   if editHotkey then
   begin
     //delete the old hotkey
-    hotkeytag:=integer(listview1.Selected.data);
+    hotkeytag:=ptrInt(listview1.Selected.data);
     UnregisterAddressHotkey(memrec, hotkeytag);
   end;
 
@@ -170,7 +170,7 @@ begin
   listview1.selected.Caption:=edtHotkey.Text;
   listview1.Selected.SubItems[0]:=cbFreezedirection.Text;
   listview1.selected.subitems[1]:=edtFreezeValue.text;
-  listview1.Selected.data:=pointer(hotkeytag);
+  listview1.Selected.data:=pointer(ptrInt(hotkeytag));
 
 
   pagecontrol1.ActivePage:=tabsheet1;

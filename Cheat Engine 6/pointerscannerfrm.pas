@@ -112,7 +112,7 @@ type
     currentlevel: integer;
     LookingForMin: ptrUint;
     LookingForMax: ptrUint;
-    lastaddress: ptrUint;
+    //lastaddress: ptrUint;
     
     filename: string;
 
@@ -141,7 +141,7 @@ type
     //reverse
     firstaddress: pointer;
     currentaddress: pointer;
-    lastaddress: pointer;
+    //lastaddress: pointer;
 
     lookingformin: ptrUint;
     lookingformax: ptrUint;
@@ -500,7 +500,7 @@ begin
   end;
 
 
-  lastaddress:=maxaddress;
+  //lastaddress:=maxaddress;
 
   LookingForMin:=startvalue;
   LookingForMax:=stopvalue;

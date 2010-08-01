@@ -276,7 +276,7 @@ begin
 end;
 
 
-procedure TFormSettings.SetAssociations;
+procedure TFormSettings.SetAssociations; //obsolete, done from installer
 begin
 
 end;
@@ -288,7 +288,6 @@ procedure TformSettings.Button1Click(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
     bufsize: integer;
-    newmax: integer;
     i,j,error: integer;
     ec:dword;
     found:boolean;
@@ -380,7 +379,6 @@ begin
 
 
       reg.WriteInteger('Buffersize',bufsize);
-      reg.WriteInteger('Maxresults',newmax);
       reg.WriteBool('UseDebugRegs',rbDebugRegisters.checked);
       reg.writebool('Show Disassembler',cbShowDisassembler.checked);
       reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
@@ -612,7 +610,7 @@ begin
       begin
         reg.WriteString(format('%.8x A',[i]),lvTools.Items[i].caption);
         reg.WriteString(format('%.8x B',[i]),lvTools.Items[i].subitems[0]);
-        reg.WriteInteger(format('%.8x C',[i]),dword(lvTools.Items[i].data));
+        reg.WriteInteger(format('%.8x C',[i]),ptrUint(lvTools.Items[i].data));
       end;
     end;
     UpdateToolsMenu;
@@ -1168,7 +1166,7 @@ begin
         x:=x or scShift;
 
       lblShortcutText.caption:=ShortCutToText(x);
-      lvtools.Selected.Data:=pointer(x);
+      lvtools.Selected.Data:=pointer(ptrUint(x));
       lvtools.Selected.SubItems[1]:=lblShortcutText.caption;
     end;
 

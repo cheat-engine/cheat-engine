@@ -84,8 +84,8 @@ var //DebuggerThread: TDebugger;
     ntResumeProcess: tntResumeProcess;
 
     NtQueryInformationProcess: TNtQueryInformationProcess;
-    IsDebuggerPresentLocation:dword;
-    DbgBreakPointLocation:dword;
+    IsDebuggerPresentLocation:ptrUint;
+    DbgBreakPointLocation:ptrUint;
 
 
     krn: thandle;
@@ -182,7 +182,7 @@ initialization
     @DebugSetProcessKillOnExit :=GetProcAddress(krn,'DebugSetProcessKillOnExit');
     @DebugActiveProcessStop :=GetProcAddress(krn,'DebugActiveProcessStop');
     @IsDebuggerPresent:=GetProcAddress(krn,'IsDebuggerPresent');
-    IsDebuggerPresentLocation:=DworD(GetProcAddress(krn,'IsDebuggerPresent'));
+    IsDebuggerPresentLocation:=ptrUint(GetProcAddress(krn,'IsDebuggerPresent'));
 
     if @DebugBreakProcess=nil then
       @DebugBreakProcess:=@DebugBreakProstitute;
@@ -199,7 +199,7 @@ initialization
   if ntdlllib<>0 then
   begin
     DbgUIDebugActiveProcess:=getprocaddress(ntdlllib,'DbgUiDebugActiveProcess');
-    DbgBreakPointLocation:=dword(getprocaddress(ntdlllib,'DbgBreakPoint'));
+    DbgBreakPointLocation:=ptrUint(getprocaddress(ntdlllib,'DbgBreakPoint'));
 
     NtQueryInformationProcess:=nil;
     NtQueryInformationProcess:=GetProcAddress(ntdlllib,'NtQueryInformationProcess');

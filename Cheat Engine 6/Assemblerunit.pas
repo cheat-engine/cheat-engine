@@ -2431,6 +2431,7 @@ var regs: string;
     found: boolean;
 begin
   //first split the address string up
+  setlength(splitup,0);
 
   go:=false;
   start:=1;
@@ -5317,14 +5318,12 @@ begin
 end;
 
 var i,j,k,l,m: integer;
-    lastentry: integer;
-    lastentry2: integer;
-    lastindex: PIndexArray;
+    lastentry: integer=1;
+    lastentry2: integer=1;
+    lastindex: PIndexArray=nil;
 
 initialization
 //setup the index for the assembler
-  lastentry:=1;
-  lastentry2:=1;
 
   for i:=0 to 25 do
   begin

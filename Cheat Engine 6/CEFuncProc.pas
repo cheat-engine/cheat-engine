@@ -164,9 +164,6 @@ function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
 
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
-{$ifndef standalonetrainer}
-Procedure CreateCodeCave(address:ptrUint; sourceaddress:dword; sizeofcave: integer);
-{$endif}
 
 procedure errorbeep;
 
@@ -860,65 +857,6 @@ begin
   end;
 end;
 
-
-Procedure CreateCodeCave(address:ptrUint; sourceaddress:dword; sizeofcave: integer);
-var br,oldprotect: dword;
-    x,y,z: ptrUint;
-    i:integer;
-    ignore,temp: string;
-    replacedopcodes: array of string;
-    jumpback: array [0..4] of byte;
-    reassembledinstruction:tassemblerbytes;
-
-    overwritesize: dword;
-begin
-  z:=sourceaddress;
-
-  while z<(sourceaddress+5) do
-  begin
-    setlength(replacedopcodes,length(replacedopcodes)+1);
-    temp:=disassemble(z,ignore);
-    temp:=copy(temp,pos('-',temp)+1,length(temp));
-    temp:=copy(temp,pos('-',temp)+2,length(temp));
-
-    replacedopcodes[length(replacedopcodes)-1]:=temp;
-  end;
-
-  overwritesize:=z-sourceaddress;
-
-  x:=address+sizeofcave-5;
-  y:=x;
-
-  jumpback[0]:=$e9;  //jmp construction
-  pdword(@jumpback[1])^:=sourceaddress-x;
-
-  virtualprotectex(processhandle,pointer(address),sizeofcave,PAGE_EXECUTE_READWRITE ,oldprotect);
-  fillmemoryprocess(address,sizeofcave,$90);
-
-  if sizeofcave>5 then
-    writeprocessmemory(processhandle,pointer(y),@jumpback[0],5,br);
-
-  x:=address;
-  for i:=0 to length(replacedopcodes)-1 do
-  begin
-    assemble(replacedopcodes[i],x,reassembledinstruction);
-    writeprocessmemory(processhandle,pointer(x),@reassembledinstruction[0],length(reassembledinstruction),br);
-    inc(x,length(reassembledinstruction));
-  end;
-
-  virtualprotectex(processhandle,pointer(sourceaddress),overwritesize,oldprotect,oldprotect);
-
-
-  //now place the jmp
-  setlength(reassembledinstruction,overwritesize);
-  reassembledinstruction[0]:=$e9;
-  pdword(@reassembledinstruction[1])^:=address-sourceaddress-5;
-
-  for i:=5 to overwritesize-1 do
-    reassembledinstruction[i]:=$90;
-
-  RewriteData(processhandle,sourceaddress,@reassembledinstruction[0],overwritesize);
-end;
 {$endif}
 
 
@@ -1015,6 +953,8 @@ var LoadLibraryPtr: pointer;
     injectionlocation: pointer;
     threadhandle: thandle;
 begin
+  //todo: Change this to a full AA script (but make sure not to call injectdll in there :)  )
+
   h:=LoadLibrary('Kernel32.dll');
   if h=0 then raise exception.Create('No kernel32.dll loaded');
 
@@ -1286,8 +1226,9 @@ begin
     end;
   finally
     FreeLibrary(h);
+
     if injectionlocation<>nil then
-      virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE	);
+      virtualfreeex(processhandle,injectionlocation,0,MEM_RELEASE);
   end;
 
 end;
@@ -1306,6 +1247,9 @@ var winhandle: Hwnd;
     processlist: array of Tprocesslistitem;
     hideall,hidethisone: boolean;
 begin
+  setlength(processlist,0);
+
+
   hideall:=false;
 
   allwindowsareback:=false;

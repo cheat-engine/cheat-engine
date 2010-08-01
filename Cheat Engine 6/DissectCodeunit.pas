@@ -6,12 +6,12 @@ interface
 
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,{tlhelp32,}CEFuncProc,
-  symbolhandler, LResources, frmReferencedStringsUnit;
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,CEFuncProc,
+  symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler;
 
 type tmoduledata =class
   public
-    moduleaddress: dword;
+    moduleaddress: ptrUint;
     modulesize: dword;
 end;
 
@@ -22,7 +22,7 @@ type
     ProgressBar1: TProgressBar;
     Timer1: TTimer;
     Panel1: TPanel;
-    ListBox1: TListBox;
+    lbModuleList: TListBox;
     Panel2: TPanel;
     Label2: TLabel;
     Label3: TLabel;
@@ -90,7 +90,7 @@ begin
 
 
 
-  if listbox1.SelCount=0 then raise exception.Create('Please select something to scan');
+  if lbModuleList.SelCount=0 then raise exception.Create('Please select something to scan');
 
   if dissectcode<>nil then
   begin
@@ -102,11 +102,11 @@ begin
   dissectcode:=TDissectCodeThread.create(true);
   setlength(dissectcode.memoryregion,0);
 
-  for i:=0 to listbox1.items.count-1 do
+  for i:=0 to lbModuleList.items.count-1 do
   begin
-    if listbox1.Selected[i] then
+    if lbModuleList.Selected[i] then
     begin
-      getexecutablememoryregionsfromregion(tmoduledata(listbox1.Items.Objects[i]).moduleaddress,tmoduledata(listbox1.Items.Objects[i]).moduleaddress+tmoduledata(listbox1.Items.Objects[i]).modulesize,tempregions);
+      getexecutablememoryregionsfromregion(tmoduledata(lbModuleList.Items.Objects[i]).moduleaddress,tmoduledata(lbModuleList.Items.Objects[i]).moduleaddress+tmoduledata(lbModuleList.Items.Objects[i]).modulesize,tempregions);
       setlength(dissectcode.memoryregion,length(dissectcode.memoryregion)+length(tempregions));
 
       for j:=0 to length(tempregions)-1 do
@@ -215,10 +215,10 @@ end;
 procedure TfrmDissectCode.cleanModuleList;
 var i: integer;
 begin
-  for i:=0 to listbox1.Count-1 do
-    tmoduledata(listbox1.Items.Objects[i]).Free;
+  for i:=0 to lbModuleList.Count-1 do
+    tmoduledata(lbModuleList.Items.Objects[i]).Free;
 
-  listbox1.items.Clear;
+  lbModuleList.items.Clear;
 end;
 
 procedure TfrmDissectCode.fillModuleList(withSystemModules: boolean);
@@ -228,7 +228,9 @@ var ths: thandle;
     moduledata: tmoduledata;
 begin
   cleanModuleList;
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
+
+
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
   if ths<>0 then
   begin
     try
@@ -238,13 +240,13 @@ begin
       repeat
         x:=@me32.szModule[0];
 
-        if (withSystemModules) or (not symhandler.inSystemModule(dword(me32.modBaseAddr))) then
+        if (withSystemModules) or (not symhandler.inSystemModule(ptrUint(me32.modBaseAddr))) then
         begin
           moduledata:=tmoduledata.Create;
-          moduledata.moduleaddress:=dword(me32.modBaseAddr);
+          moduledata.moduleaddress:=ptrUint(me32.modBaseAddr);
           moduledata.modulesize:=me32.modBaseSize;
           
-          listbox1.Items.AddObject(x,moduledata);
+          lbModuleList.Items.AddObject(x,moduledata);
         end;
       until module32next(ths,me32)=false;
 
@@ -257,10 +259,10 @@ end;
 procedure TfrmDissectCode.FormShow(Sender: TObject);
 begin
   fillModuleList(false);
-  if listbox1.Count>0 then
+  if lbModuleList.Count>0 then
   begin
-    listbox1.ItemIndex:=0;
-    listbox1.Selected[0]:=true;
+    lbModuleList.ItemIndex:=0;
+    lbModuleList.Selected[0]:=true;
   end;
 end;
 

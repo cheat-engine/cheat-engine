@@ -124,7 +124,7 @@ type
     procedure disablewithoutexecute;
     procedure refresh;
 
-    function getXMLNode(node: TDOMNode; selectedOnly: boolean): TDOMNode;
+    procedure getXMLNode(node: TDOMNode; selectedOnly: boolean);
     procedure setXMLnode(CheatEntry: TDOMNode);
 
     constructor Create(AOwner: TObject);
@@ -357,7 +357,7 @@ begin
 
 end;
 
-function TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean): TDOMNode;
+procedure TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean);
 var
   doc: TDOMDocument;
   cheatEntry: TDOMNode;

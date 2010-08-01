@@ -101,14 +101,12 @@ type
     OpenDllDialog: TOpenDialog;
     AutoInject1: TMenuItem;
     Dissectcode1: TMenuItem;
-    Createjumptocodecave1: TMenuItem;
     N7: TMenuItem;
     N8: TMenuItem;
     Findstaticpointers1: TMenuItem;
     Scanforcodecaves1: TMenuItem;
     Changestateofregisteratthislocation1: TMenuItem;
     ogglebreakpoint1: TMenuItem;
-    N9: TMenuItem;
     Breakpointlist1: TMenuItem;
     Makepagewritable1: TMenuItem;
     Dissectdata1: TMenuItem;
@@ -738,7 +736,7 @@ begin
   begin
     setlength(nops,codelength);
     for i:=0 to codelength-1 do
-      nops[i]:=$90;  //$90=nop
+      nops[i]:=$90;  // $90=nop
 
     zeromemory(@mbi,sizeof(mbi));
     Virtualqueryex(processhandle,pointer(disassemblerview.SelectedAddress),mbi,sizeof(mbi));
@@ -1412,23 +1410,11 @@ begin
 
     baseaddress:=nil;
     baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-    if baseaddress<>nil then
-    begin
+    if baseaddress=nil then
+      raise exception.Create('Error allocating memory!');
 
-
-      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
-        CreateCodecave(ptrUint(baseaddress),disassemblerview.SelectedAddress,memsize)
-      else
-        messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8),mtinformation,[mbok],0);
-
-
-      if messagedlg('Do you want to go there now?',mtConfirmation,[mbyes,mbno],0) = mryes then
-        disassemblerview.SelectedAddress:=ptrUint(baseaddress);
-
-
-    end else raise exception.Create('Error allocating memory!');
-
-
+    if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8)+#13#10+'Do you want to go there now?',mtConfirmation,[mbyes,mbno],0)=mryes) then
+      disassemblerview.SelectedAddress:=ptrUint(baseaddress);
   end;
 end;
 
@@ -1638,35 +1624,8 @@ begin
 end;
 
 procedure TMemoryBrowser.Createjumptocodecave1Click(Sender: TObject);
-var x: string;
-    codecaveaddress: ptrUint;
-    size: dword;
 begin
 
-  x:='';
-  if inputquery('Create Code-Cave','Give the address of the code-cave you want to use. (Use allocate memory if you couldn''t find one)',x) then
-  begin
-    try
-      codecaveaddress:=StrToInt64('$'+x);
-    except
-      raise exception.Create('Please give me a valid address');
-    end;
-
-    x:='40';
-    if inputquery('Create Code-Cave','How big is the code-cave (or how much do you think you''ll use?)',x) then
-    begin
-      try
-        size:=StrToInt(x);
-      except
-        raise exception.Create('And how many bytes are that?');
-      end;
-
-      CreateCodecave(codecaveaddress,disassemblerview.SelectedAddress,size);
-
-    end;
-
-
-  end;
 end;
 
 procedure TMemoryBrowser.Findstaticpointers1Click(Sender: TObject);
@@ -1833,17 +1792,11 @@ begin
 
     baseaddress:=nil;
     baseaddress:=KernelAlloc(memsize);
-    if baseaddress<>nil then
-    begin
-      if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(dword(baseaddress),8)+#13#10+'Do you want replace the currently selected address with a jump to that address, and copy the overwritten instructions to there?',mtConfirmation,[mbyes,mbno],0)=mryes) then
-        CreateCodecave(ptrUint(baseaddress),disassemblerview.SelectedAddress,memsize)
-      else
-        messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8),mtinformation,[mbok],0);
+    if baseaddress=nil then
+      raise exception.Create('Error allocating memory!');
 
-
-      if messagedlg('Do you want to go there now?',mtConfirmation,[mbyes,mbno],0) = mryes then
-        disassemblerview.SelectedAddress:=ptrUint(baseaddress);
-    end else raise exception.Create('Error allocating memory!');
+    if messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8)+'. Go there now?',mtinformation,[mbyes,mbno],0) = mryes then
+      disassemblerview.SelectedAddress:=ptrUint(baseaddress);
   end;
   {$endif}
 end;

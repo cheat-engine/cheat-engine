@@ -41,7 +41,7 @@ var
   is64bit, isDriver: boolean;
 
   numberofrva: integer;
-  maxaddress: dword;
+  maxaddress: ptrUint;
 
   destinationBase: uint64;
 
@@ -91,7 +91,7 @@ begin
         numberofrva:=ImageNTHeader^.OptionalHeader.NumberOfRvaAndSizes;        
       end;
 
-      ImageSectionHeader:=PImageSectionHeader(dword(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
+      ImageSectionHeader:=PImageSectionHeader(ptrUint(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
 
       maxaddress:=0;
       for i:=0 to ImageNTHeader^.FileHeader.NumberOfSections-1 do
@@ -103,7 +103,7 @@ begin
       end;
 
       //maxaddress is now known
-      ImageSectionHeader:=PImageSectionHeader(dword(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
+      ImageSectionHeader:=PImageSectionHeader(ptrUint(@ImageNTHeader^.OptionalHeader)+ImageNTHeader^.FileHeader.SizeOfOptionalHeader);
 
       tempmap.Size:=maxaddress;
       ZeroMemory(tempmap.memory, tempmap.size);
@@ -127,7 +127,7 @@ begin
       begin
         //normal memory location
         isdriver:=false;
-        destinationBase:=dword(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+        destinationBase:=ptrUint(VirtualAllocEx(processhandle, nil,maxaddress, MEM_COMMIT, PAGE_EXECUTE_READWRITE));
 
       end;
 
@@ -159,17 +159,17 @@ begin
           begin
 
             if is64bit then
-              ImageExportDirectory:=PImageExportDirectory(dword(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
+              ImageExportDirectory:=PImageExportDirectory(ptrUint(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
             else
-              ImageExportDirectory:=PImageExportDirectory(dword(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+              ImageExportDirectory:=PImageExportDirectory(ptrUint(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
 
             if ImageExportDirectory.NumberOfFunctions=ImageExportDirectory.NumberOfNames then
             begin //consistent
               for j:=0 to ImageExportDirectory.NumberOfFunctions-1 do
               begin
-                k:=pwordarray(dword(tempmap.memory)+dword(ImageExportDirectory.AddressOfNameOrdinals))[j];
-                exporttable.Add(format('%s - %s',[inttohex(destinationBase+pdwordarray(dword(tempmap.memory)+dword(ImageExportDirectory.AddressOfFunctions))[k],1), pchar(dword(tempmap.memory)+pdwordarray(dword(tempmap.memory)+dword(ImageExportDirectory.AddressOfNames))[j])]));
+                k:=pwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfNameOrdinals)[j];
+                exporttable.Add(format('%s - %s',[inttohex(destinationBase+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfFunctions)[k],1), pchar(ptrUint(tempmap.memory)+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfNames)[j])]));
               end;
             end;
           end;
@@ -178,9 +178,9 @@ begin
           begin
             j:=0;
             if is64bit then
-              ImageImportDirectory:=PImageImportDirectory(dword(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
+              ImageImportDirectory:=PImageImportDirectory(ptrUint(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
             else
-              ImageImportDirectory:=PImageImportDirectory(dword(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+              ImageImportDirectory:=PImageImportDirectory(ptrUint(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
 
 
             while (j<45) do
@@ -189,7 +189,7 @@ begin
 
               if ImageImportDirectory.ForwarderChain<>$ffffffff then
               begin
-                importmodulename:=pchar(dword(tempmap.memory)+ImageImportDirectory.name);
+                importmodulename:=pchar(ptrUint(tempmap.memory)+ImageImportDirectory.name);
                 if not isdriver then
                   InjectDll(importmodulename);
 
@@ -199,10 +199,10 @@ begin
                 k:=0;
                 if is64bit then
                 begin
-                  while PUINT64(dword(tempmap.memory)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
+                  while PUINT64(ptrUint(tempmap.memory)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
                   begin
-                    importaddress:=dword(tempmap.memory)+ImageImportDirectory.FirstThunk+8*k;
-                    importfunctionname:=pchar(dword(tempmap.memory)+pdword(importaddress)^+2);
+                    importaddress:=ptrUint(tempmap.memory)+ImageImportDirectory.FirstThunk+8*k;
+                    importfunctionname:=pchar(ptrUint(tempmap.memory)+pdword(importaddress)^+2);
 
 
                     if isDriver then
@@ -224,10 +224,10 @@ begin
                 end
                 else
                 begin
-                  while PDWORD(dword(tempmap.memory)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
+                  while PDWORD(ptrUint(tempmap.memory)+ImageImportDirectory.FirstThunk+4*k)^<>0 do
                   begin
-                    importaddress:=dword(@pdwordarray(dword(tempmap.memory)+ImageImportDirectory.FirstThunk)[k]);
-                    importfunctionname:=pchar(dword(tempmap.memory)+pdwordarray(dword(tempmap.memory)+ImageImportDirectory.FirstThunk)[k]+2);
+                    importaddress:=ptrUint(@pdwordarray(ptrUint(tempmap.memory)+ImageImportDirectory.FirstThunk)[k]);
+                    importfunctionname:=pchar(ptrUint(tempmap.memory)+pdwordarray(ptrUint(tempmap.memory)+ImageImportDirectory.FirstThunk)[k]+2);
 
                     if isDriver then
                     begin
@@ -253,7 +253,7 @@ begin
 
 
               inc(j);
-              ImageImportDirectory:=PImageImportDirectory(dword(ImageImportDirectory)+sizeof(TImageImportDirectory));
+              ImageImportDirectory:=PImageImportDirectory(ptrUint(ImageImportDirectory)+sizeof(TImageImportDirectory));
             end;
 
 
@@ -263,29 +263,29 @@ begin
           begin
             if is64bit then
             begin
-              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
-              maxaddress:=dword(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
+              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
+              maxaddress:=ptrUint(tempmap.memory)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
             end
             else
             begin
-              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
-              maxaddress:=dword(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
+              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+              maxaddress:=ptrUint(tempmap.memory)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
             end;
 
-            while dword(ImageBaseRelocation)<maxaddress do
+            while ptrUint(ImageBaseRelocation)<maxaddress do
             begin
               if ImageBaseRelocation.SizeOfBlock=0 then break;
 
               for j:=0 to ((ImageBaseRelocation.SizeOfBlock-8) div 2)-1 do
               begin
                 if (ImageBaseRelocation.rel[j] shr 12)=3 then            //replace the address at this address with a relocated one (dword)
-                  pdword(dword(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(dword(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
+                  pdword(ptrUint(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(ptrUint(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
 
                 if (ImageBaseRelocation.rel[j] shr 12)=10 then            //replace the address at this address with a relocated one (dword)
-                  PUINT64(dword(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(dword(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
+                  PUINT64(ptrUint(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(ptrUint(tempmap.memory)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
               end;
 
-              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(dword(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
+              ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
             end;
           end;
 

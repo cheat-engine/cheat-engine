@@ -1,3 +1,5 @@
+{ This is an automatically generated lazarus resource file }
+
 LazarusResources.Add('TformAddressChange','FORMDATA',[
   'TPF0'#18'TformAddressChange'#17'formAddressChange'#4'Left'#3#252#2#6'Height'
   +#2'{'#3'Top'#3#220#1#5'Width'#3']'#1#11'BorderIcons'#11#12'biSystemMenu'#0#11

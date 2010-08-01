@@ -46,7 +46,7 @@ end;
 
 procedure TfrmGDTinfo.FormCreate(Sender: TObject);
 var limit: word;
-    address: dword;
+    address: ptrUint;
 
     x: puint64array;
 

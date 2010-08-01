@@ -30,12 +30,7 @@ var frmDriverlist: TfrmDriverlist;
 
 implementation
 
-type TEnumDeviceDrivers=function(lpImageBase: LPLPVOID; cb: DWORD; var lpcbNeeded: DWORD): BOOL; stdcall;
-type TGetDeviceDriverBaseNameA=function(ImageBase: LPVOID; lpBaseName: LPSTR; nSize: DWORD): DWORD; stdcall;
 
-var
-    EnumDeviceDrivers: TEnumDeviceDrivers;
-    GetDeviceDriverBaseNameA: TGetDeviceDriverBaseNameA;
 
 
 
@@ -107,17 +102,11 @@ begin
   close;
 end;
 
-var psa: thandle;
 initialization
   {$i DriverList.lrs}
 
-  psa:=loadlibrary('Psapi.dll');
-  EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
-  GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
 
 finalization
-  if psa<>0 then
-    FreeLibrary(psa);
 
 end.
 

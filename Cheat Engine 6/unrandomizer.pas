@@ -112,6 +112,8 @@ var memoryregion: tmemoryregions;
     incremental: boolean;
     counter: pointer;
 begin
+  if processhandler.is64bit then raise exception.create('The unrandomizer will currently not work on 64-bit applications');
+
   defaultreturn:=formsettings.unrandomizersettings.defaultreturn;
 
   incremental:=formsettings.unrandomizersettings.incremental;
@@ -130,11 +132,13 @@ begin
     if ar<memoryregion[i].MemorySize then ar:=memoryregion[i].MemorySize;
   end;
 
+  totalread:=0;
   progressbar.Max:=totalmemory;
   progressbar.Position:=0;
 
   setlength(buffer,ar);
 
+  //todo: Replace this with AA scripts
 
 
   //non inremental
@@ -208,7 +212,7 @@ begin
     //mov eax,[counter]
     vcreplace[0]:=$8b;
     vcreplace[1]:=$05;
-    pdword(@vcreplace[2])^:=dword(counter);
+    pdword(@vcreplace[2])^:=ptrUint(counter);
 
     //inc eax
     vcreplace[6]:=$40;
@@ -228,7 +232,7 @@ begin
     //mov [counter],eax
     vcreplace[16]:=$89;
     vcreplace[17]:=$05;
-    pdword(@vcreplace[18])^:=dword(counter);
+    pdword(@vcreplace[18])^:=ptrUint(counter);
 
     //ret
     vcreplace[22]:=$c3;
@@ -254,7 +258,7 @@ begin
     //mov eax,[counter]
     delphireplace[3]:=$8b;
     delphireplace[4]:=$05;
-    pdword(@delphireplace[5])^:=dword(counter);
+    pdword(@delphireplace[5])^:=ptrUint(counter);
 
 
     //xor edx,edx
@@ -272,7 +276,7 @@ begin
     //inc [counter]
     delphireplace[14]:=$ff;
     delphireplace[15]:=$05;
-    pdword(@delphireplace[16])^:=dword(counter);
+    pdword(@delphireplace[16])^:=ptrUint(counter);
 
     //pop edx
     delphireplace[20]:=$5a;
@@ -310,7 +314,7 @@ begin
     //mov eax,[counter]
     ibasicreplace[6]:=$8b;
     ibasicreplace[7]:=$05;
-    pdword(@ibasicreplace[8])^:=dword(counter);
+    pdword(@ibasicreplace[8])^:=ptrUint(counter);
 
 
     //xor edx,edx
@@ -328,27 +332,27 @@ begin
     //inc [counter]
     ibasicreplace[17]:=$ff;
     ibasicreplace[18]:=$05;
-    pdword(@ibasicreplace[19])^:=dword(counter);
+    pdword(@ibasicreplace[19])^:=ptrUint(counter);
 
     //mov [counter+4],eax
     ibasicreplace[23]:=$89;
     ibasicreplace[24]:=$05;
-    pdword(@ibasicreplace[25])^:=dword(counter)+4;
+    pdword(@ibasicreplace[25])^:=ptrUint(counter)+4;
 
     //fild [counter+4]
     ibasicreplace[29]:=$db;
     ibasicreplace[30]:=$05;
-    pdword(@ibasicreplace[31])^:=dword(counter)+4;
+    pdword(@ibasicreplace[31])^:=ptrUint(counter)+4;
 
     //fstp [counter+4]
     ibasicreplace[35]:=$d9;
     ibasicreplace[36]:=$1d;
-    pdword(@ibasicreplace[37])^:=dword(counter)+4;
+    pdword(@ibasicreplace[37])^:=ptrUint(counter)+4;
 
     //mov eax,[counter+4]
     ibasicreplace[41]:=$8b;
     ibasicreplace[42]:=$05;
-    pdword(@ibasicreplace[43])^:=dword(counter)+4;
+    pdword(@ibasicreplace[43])^:=ptrUint(counter)+4;
 
     //pop edx
     ibasicreplace[47]:=$5a;
@@ -371,6 +375,7 @@ begin
 
   for i:=0 to length(memoryregion)-1 do
   begin
+
     if terminated then break;
 
     ar:=0;
@@ -533,6 +538,8 @@ begin
       end;
 
     end;
+
+    inc(totalread,memoryregion[i].MemorySize);
 
     try
       progressbar.Position:=totalread;

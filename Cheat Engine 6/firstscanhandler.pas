@@ -110,12 +110,12 @@ begin
   decision: no need to block other threads. Besides, the way threadjobs are made
   all have a seperate region to scan, so usually shouldn't have much overlap
   }
-  if not LoadedFromList[(dword(p)-dword(firstscanmemory)) shr 12] then
+  if not LoadedFromList[(ptrUint(p)-ptrUint(firstscanmemory)) shr 12] then
   begin
     //not loaded yet, load this section
-    index:=(dword(p)-dword(firstscanmemory)) shr 12;
+    index:=(ptrUint(p)-ptrUint(firstscanmemory)) shr 12;
 
-    base:=pointer(dword(firstscanmemory)+(index shl 12));
+    base:=pointer(ptrUint(firstscanmemory)+(index shl 12));
     firstscanmemoryfile.Seek((index shl 12),soFromBeginning);
 
     //read 8KB (2 entries)
@@ -149,7 +149,7 @@ begin
 
   //5.4: change routine to only read in pages of 4KB if it wasn't paged in yet (does require a page table like list of course)
 
-  p:=pointer(dword(firstscanaddress.Memory)+7);
+  p:=pointer(ptrUint(firstscanaddress.Memory)+7);
   
 
   if firstscantype=fs_advanced then
@@ -157,7 +157,7 @@ begin
     {the addressfile exists out of a list of memoryregions started with the text
      REGION or NORMAL, so skip the first 7 bytes
     }
-    pm:=pointer(dword(firstscanaddress.Memory)+7);
+    pm:=pointer(ptrUint(firstscanaddress.Memory)+7);
 
     //find the region this address belongs to
     //the region list should be sorted
@@ -175,7 +175,7 @@ begin
       if InRange(address, pm[pivot].BaseAddress, pm[pivot].BaseAddress + pm[pivot].MemorySize) then
       begin
         //found it
-        result:=loadifnotloadedRegion(pointer(dword(pm[pivot].startaddress)+(address-pm[pivot].baseaddress)));
+        result:=loadifnotloadedRegion(pointer(ptrUint(pm[pivot].startaddress)+(address-pm[pivot].baseaddress)));
         exit;
       end
       //If the Item in the middle has a bigger value than
@@ -311,7 +311,7 @@ constructor TFirstScanHandler.create;
 var datatype: string[6];
     pm: ^TArrMemoryRegion;
     i: integer;
-    p: dword;
+    p: ptrUint;
 begin
   try
     try
@@ -342,8 +342,8 @@ begin
       maxnumberofregions:=(firstscanaddress.Size-7) div sizeof(TMemoryRegion); //max number of regions
 
       //fill in startaddress elements
-      pm:=pointer(dword(firstscanaddress.Memory)+7);
-      p:=dword(firstscanmemory);
+      pm:=pointer(ptrUint(firstscanaddress.Memory)+7);
+      p:=ptrUint(firstscanmemory);
       for i:=0 to maxnumberofregions-1 do
       begin
         pm[i].startaddress:=pointer(p);

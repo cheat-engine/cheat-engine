@@ -1626,8 +1626,8 @@ begin
       begin
         if _fastscan then
         begin
-          dividableby2:=dword(p) mod 2=0;
-          dividableby4:=dword(p) mod 4=0;
+          dividableby2:=ptrUint(p) mod 2=0;
+          dividableby4:=ptrUint(p) mod 4=0;
           typesmatch[vtByte]:=true;
           typesmatch[vtWord]:=dividableby2;
           typesmatch[vtDWord]:=dividableby4;
@@ -1648,7 +1648,7 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,firstscanhandler.getpointertoaddress(base+dword(p)-dword(buffer),valuetype )) then //found one
+        if checkroutine(p,firstscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -2577,7 +2577,7 @@ begin
       if self.variableType=vtall then
       begin
         oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
-        if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(chunksize*variablesize)+' bytes for the old results. chunksize='+inttostr(chunksize)+' variablesize='+inttostr(variablesize));
+        if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(buffersize*variablesize)+' bytes for the old results. buffersize='+inttostr(buffersize)+' variablesize='+inttostr(variablesize));
       end;
 
       oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
@@ -2586,7 +2586,7 @@ begin
     begin
       setlength(oldaddresses,buffersize);
       oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
-      if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(chunksize*variablesize)+' bytes for the old results. chunksize='+inttostr(chunksize)+' variablesize='+inttostr(variablesize));
+      if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(buffersize*variablesize)+' bytes for the old results. buffersize='+inttostr(buffersize)+' variablesize='+inttostr(variablesize));
 
       oldAddressFile.seek(7+sizeof(ptruint)*startentry,soFromBeginning);   //header+addresssize*startentry
       if not (self.variableType in [vtString,vtByteArray]) then
@@ -3601,10 +3601,10 @@ begin
     //extra check to make sure the previous scan was cleared
     if OwningMemScan.previousMemoryBuffer<>nil then virtualfree(OwningMemScan.previousMemoryBuffer,0,MEM_RELEASE);
 
-    OutputDebugString(format('Allocating %xKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
-    OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT	or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
+    OutputDebugString(format('Allocating %dKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
+    OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
     if OwningMemScan.previousMemoryBuffer=nil then
-      raise exception.Create('Failure allocating memory for copy');
+      raise exception.Create('Failure allocating memory for copy. Tried allocating '+inttostr(totalProcessMemorySize div 1024)+' KB');
 
     OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
   end;

@@ -316,6 +316,8 @@ var
   hasSetInt3Back: boolean;
   oldprotect, bw: dword;
 begin
+  result:=true;
+
   if setInt3Back then
   begin
     VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
@@ -567,7 +569,7 @@ begin
     begin
       ws:=getmem(debugEvent.DebugString.nDebugStringLength+2);
       try
-        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, s, debugEvent.DebugString.nDebugStringLength,x);
+        ReadProcessMemory(processhandle, debugEvent.DebugString.lpDebugStringData, ws, debugEvent.DebugString.nDebugStringLength,x);
         ws[debugEvent.DebugString.nDebugStringLength div 2]:=#0;
         ws[x div 2]:=#0;
 

@@ -12,13 +12,13 @@ uses
 type TCodeCaveScanner=class(tthread)
   private
     found: dword;
-    progress:dword;
+    progress:ptrUint;
     procedure updateprogressbar;
     procedure done;
     procedure foundone;
   public
-    start:dword;
-    stop:dword;
+    start:ptrUint;
+    stop:ptrUint;
     size:dword;
     alsonx:boolean;
     procedure execute; override;
@@ -87,7 +87,7 @@ end;
 
 procedure TCodecavescanner.execute;
 var mbi: _MEMORY_BASIC_INFORMATION;
-    currentpos: dword;
+    currentpos: ptrUint;
     a: boolean;
     i,j: integer;
     x:dword;
@@ -130,7 +130,7 @@ begin
     i:=0;
     while x>0 do
     begin
-      memoryregion[i].BaseAddress:=dworD(mbi.BaseAddress)+i*buffersize;
+      memoryregion[i].BaseAddress:=ptrUint(mbi.BaseAddress)+i*buffersize;
       if x<buffersize then
         memoryregion[i].MemorySize:=x
       else
@@ -191,7 +191,7 @@ begin
 end;
 
 procedure TfrmCodecaveScanner.btnStartClick(Sender: TObject);
-var start,stop:dword;
+var start,stop:ptrUint;
     bytelength: dword;
 begin
 {
@@ -201,19 +201,19 @@ only memory
   if codecavescanner=nil then
   begin
     try
-      start:=StrToInt('$'+editstart.text);
+      start:=StrToInt64('$'+editstart.text);
     except
       raise exception.Create('Please provide a valid start address');
     end;
 
     try
-      stop:=StrToint('$'+editStop.text);
+      stop:=StrToint64('$'+editStop.text);
     except
       raise exception.Create('Please provide a valid stop address');
     end;
 
     try
-      bytelength:=StrToInt('$'+editsize.Text);
+      bytelength:=StrToInt64('$'+editsize.Text);
       if bytelength<3 then raise exception.Create('Please tell me you don''t need a code cave this small!!!');
     except
       raise exception.Create('Please provide a valid size for the wanted code cave');

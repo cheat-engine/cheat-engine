@@ -499,7 +499,7 @@ type
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
     procedure ScanDone(var message: TMessage); message WM_SCANDONE;
     procedure Edit;
-    function paste(simplecopypaste: boolean): integer;
+    procedure paste(simplecopypaste: boolean);
     procedure CopySelectedRecords;
 
 
@@ -3095,7 +3095,7 @@ var
   unicodevis: boolean;
   tc: tbitmap;
 begin
-
+  oldscantype:=scantype.ItemIndex;
   newvartype:=vartype.ItemIndex;
 
   dontconvert:=true;
@@ -3822,7 +3822,7 @@ begin
   clipboard.astext:=addresslist.GetTableXMLAsText(true);
 end;
 
-function TMainform.paste(simplecopypaste: boolean): integer;
+procedure TMainform.paste(simplecopypaste: boolean);
 {
 this routine will paste a entry from the cplipboard into the addresslist of CE
 If simplecopypaste is false frmPasteTableentry is shown to let the user change
@@ -4620,7 +4620,7 @@ begin
 
       assemblescreen.text:=memrec.AutoAssemblerData.script.text;
 
-
+      setlength(y,0);
       loadformposition(x,y);
       show;
     end;
@@ -5627,7 +5627,7 @@ begin
       currentmi:=TMenuItemExtra.Create(self);
       currentmi.Caption:=sl[i];
       currentmi.Default:=dword(sl.Objects[i])=ProcessID;
-      currentmi.data:=pointer(PProcessListInfo(sl.Objects[i])^.processid);
+      currentmi.data:=pointer(ptrUint(PProcessListInfo(sl.Objects[i])^.processid));
       currentmi.OnClick:=ProcessItemClick;
 
       if PProcessListInfo(sl.Objects[i])^.processIcon>0 then
@@ -5669,7 +5669,7 @@ begin
     oldprocesshandle:=processhandle;
     if (sender is TMenuItemExtra) then
     begin
-      pid:=dword(TMenuItemExtra(sender).data);
+      pid:=dword(ptrUint(TMenuItemExtra(sender).data)); //the menuitem .data field contains the processid (and not some allocated memory)
 
       unpause;
       DetachIfPossible;

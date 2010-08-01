@@ -32,10 +32,10 @@ object frmDissectCode: TfrmDissectCode
     ClientHeight = 348
     ClientWidth = 218
     TabOrder = 0
-    object ListBox1: TListBox
+    object lbModuleList: TListBox
       Left = 0
-      Height = 291
-      Top = 57
+      Height = 286
+      Top = 62
       Width = 218
       Align = alClient
       ItemHeight = 0
@@ -44,12 +44,12 @@ object frmDissectCode: TfrmDissectCode
     end
     object Panel2: TPanel
       Left = 0
-      Height = 57
+      Height = 62
       Top = 0
       Width = 218
       Align = alTop
       BevelOuter = bvNone
-      ClientHeight = 57
+      ClientHeight = 62
       ClientWidth = 218
       TabOrder = 1
       object Label2: TLabel
@@ -203,5 +203,6 @@ object frmDissectCode: TfrmDissectCode
     Enabled = False
     Interval = 500
     OnTimer = Timer1Timer
+    top = 80
   end
 end

@@ -42,7 +42,7 @@ uses
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
-  tableconverter;
+  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions;
 
 {$R cheatengine.res}
 {$R manifest.res}
