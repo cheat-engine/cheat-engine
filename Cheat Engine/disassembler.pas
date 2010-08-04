@@ -4543,8 +4543,11 @@ begin
                         description:='Double Precision Shift Right';
                         if $66 in prefix2 then tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,1,last)+r16(memory[2]) else
                                                tempresult:=tempresult+'SHRD '+MODRM(memory,prefix2,2,0,last)+r32(memory[2]);
-                        inc(offset,last-1);
 
+                        tempresult:=tempresult+inttohex(memory[last],2);
+                        inc(last);
+                        inc(offset,last-1);
+                                                 
                       end;
 
                 $ad : begin
