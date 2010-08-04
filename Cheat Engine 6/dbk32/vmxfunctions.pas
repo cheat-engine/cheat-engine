@@ -49,14 +49,27 @@ uses DBK32functions;
 
 
 function vmcall(vmcallinfo:pointer; level1pass: dword): dword; stdcall;
+{$ifndef NOVMX}
 asm
-  push edx
-  mov eax,vmcallinfo
-  mov edx,level1pass
-  db $0f, $01,$c1   //vmcall
-  pop edx
-  //prolog is done by delphi
+  {$ifdef cpu64}
+    push rdx
+    mov rax,vmcallinfo
+    mov edx,level1pass
+    vmcall
+    pop rdx
+  {$else}
+    push edx
+    mov eax,vmcallinfo
+    mov edx,level1pass
+    vmcall
+    pop edx
+  {$endif}
 end;
+{$else}
+begin
+  result:=0;
+end;
+{$endif}
 
 function dbvm_version: dword; stdcall;
 var vmcallinfo: record
@@ -263,6 +276,7 @@ end;
 
 procedure configure_vmx(userpassword1,userpassword2: dword); //warning: not multithreaded, take care to only run at init!
 begin
+  {$ifndef NOVMX}
   //configure dbvm if possible
   OutputDebugString('configure_vmx');
 
@@ -277,6 +291,7 @@ begin
   vmx_password2:=userpassword2;
   if (dbvm_version>=$ce000000) then
     vmx_enabled:=true;
+  {$endif}
 end;
 
 

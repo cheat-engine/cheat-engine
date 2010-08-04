@@ -160,6 +160,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
+    procedure cbUseWindowsDebuggerClick(Sender: TObject);
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -720,6 +721,11 @@ begin
   else
   if cbKDebug.checked then
     pcDebugConfig.ActivePageIndex:=2;
+end;
+
+procedure TformSettings.cbUseWindowsDebuggerClick(Sender: TObject);
+begin
+
 end;
 
 procedure TformSettings.checkThreadClick(Sender: TObject);

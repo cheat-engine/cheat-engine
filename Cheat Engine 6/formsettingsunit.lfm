@@ -34,6 +34,7 @@ object formSettings: TformSettings
       Indent = 19
       ReadOnly = True
       RightClickSelect = True
+      ScrollBars = ssVertical
       ShowRoot = False
       TabOrder = 0
       OnChange = tvMenuSelectionChange
@@ -208,7 +209,7 @@ object formSettings: TformSettings
           Top = 228
           Width = 602
           Caption = 'Address list specific'
-          ClientHeight = 68
+          ClientHeight = 72
           ClientWidth = 598
           TabOrder = 5
           object cbShowAsSigned: TCheckBox
@@ -937,59 +938,59 @@ object formSettings: TformSettings
           Width = 711
           Align = alTop
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
-          ClientHeight = 64
+          ClientHeight = 68
           ClientWidth = 707
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
-            Height = 23
+            Height = 20
             Top = 2
-            Width = 203
+            Width = 199
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
           end
           object cbKernelReadWriteProcessMemory: TCheckBox
             Left = 10
-            Height = 23
+            Height = 20
             Top = 21
-            Width = 355
+            Width = 351
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
           end
           object cbKernelOpenProcess: TCheckBox
             Left = 10
-            Height = 23
+            Height = 20
             Top = 40
-            Width = 110
+            Width = 106
             Caption = 'Open Process'
             TabOrder = 2
           end
         end
         object cbProcessWatcher: TCheckBox
           Left = 1
-          Height = 23
+          Height = 20
           Top = 94
-          Width = 233
+          Width = 229
           Caption = 'Enable use of the Process Watcher'
           OnClick = cbProcessWatcherClick
           TabOrder = 1
         end
         object CheckBox3: TCheckBox
           Left = 7
-          Height = 23
+          Height = 20
           Top = 422
-          Width = 154
+          Width = 150
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
           Visible = False
         end
         object CheckBox4: TCheckBox
           Left = 7
-          Height = 23
+          Height = 20
           Top = 442
-          Width = 209
+          Width = 205
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
@@ -997,33 +998,36 @@ object formSettings: TformSettings
         object cbKDebug: TRadioButton
           Tag = 2
           Left = 7
-          Height = 23
+          Height = 20
           Top = 182
-          Width = 186
+          Width = 182
           Caption = 'Use kernelmode debugger'
           OnChange = cbDebuggerInterfaceChange
+          OnClick = cbDebuggerInterfaceChange
           TabOrder = 5
           TabStop = False
         end
         object cbUseWindowsDebugger: TRadioButton
           Tag = 1
           Left = 7
-          Height = 23
+          Height = 20
           Top = 158
-          Width = 165
+          Width = 161
           Caption = 'Use windows debugger'
           Checked = True
           OnChange = cbDebuggerInterfaceChange
+          OnClick = cbDebuggerInterfaceChange
           State = cbChecked
           TabOrder = 4
         end
         object cbUseVEHDebugger: TRadioButton
           Left = 7
-          Height = 23
+          Height = 20
           Top = 134
-          Width = 144
+          Width = 140
           Caption = 'Use VEH Debugger'
           OnChange = cbDebuggerInterfaceChange
+          OnClick = cbDebuggerInterfaceChange
           TabOrder = 6
           TabStop = False
         end
@@ -1041,30 +1045,30 @@ object formSettings: TformSettings
           Top = 206
           Width = 416
           Caption = 'Debugger interface config'
-          ClientHeight = 131
+          ClientHeight = 135
           ClientWidth = 412
           TabOrder = 8
           object pcDebugConfig: TPageControl
             Left = 0
-            Height = 131
+            Height = 135
             Top = 0
             Width = 412
-            ActivePage = tsVEHDebugConfig
+            ActivePage = tsKernelDebugConfig
             Align = alClient
-            TabIndex = 0
+            TabIndex = 2
             TabOrder = 0
             object tsVEHDebugConfig: TTabSheet
               Caption = 'VEH Debugger'
-              ClientHeight = 102
+              ClientHeight = 106
               ClientWidth = 404
               object RadioButton1: TRadioButton
                 Left = 2
-                Height = 23
+                Height = 20
                 Top = 43
-                Width = 246
+                Width = 242
                 Caption = 'Hook thread-create and destroy api''s'
                 Enabled = False
-                TabOrder = 1
+                TabOrder = 2
                 TabStop = False
               end
               object Label25: TLabel
@@ -1077,19 +1081,19 @@ object formSettings: TformSettings
               end
               object RadioButton2: TRadioButton
                 Left = 2
-                Height = 23
+                Height = 20
                 Top = 67
-                Width = 147
+                Width = 143
                 Caption = 'Use processwatcher'
                 Enabled = False
-                TabOrder = 2
+                TabOrder = 1
                 TabStop = False
               end
               object RadioButton3: TRadioButton
                 Left = 2
-                Height = 23
+                Height = 20
                 Top = 19
-                Width = 113
+                Width = 109
                 Caption = 'Poll for threads'
                 Checked = True
                 State = cbChecked
@@ -1101,7 +1105,7 @@ object formSettings: TformSettings
             end
             object tsKernelDebugConfig: TTabSheet
               Caption = 'Kernel Debug'
-              ClientHeight = 102
+              ClientHeight = 106
               ClientWidth = 404
               object Label10: TLabel
                 Left = 34
@@ -1117,9 +1121,9 @@ object formSettings: TformSettings
               end
               object cbGlobalDebug: TCheckBox
                 Left = 4
-                Height = 23
+                Height = 20
                 Top = 19
-                Width = 186
+                Width = 182
                 Caption = 'Use Global Debug routines'
                 Enabled = False
                 TabOrder = 0
@@ -1326,7 +1330,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 31
+                Width = 25
               end>
             HideSelection = False
             ItemIndex = -1
