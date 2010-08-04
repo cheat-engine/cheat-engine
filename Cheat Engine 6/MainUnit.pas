@@ -1430,8 +1430,6 @@ end;
 
 procedure TMainform.exceptionhandler(Sender: TObject; E: Exception);
 begin
-  if (E.Message = 'Error creating window device context') then
-    exit;
   screen.Cursor := crdefault;
   MessageDlg(E.message, mtError, [mbOK], 0);
 end;
@@ -4453,8 +4451,14 @@ end;
 procedure TMainForm.ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
 begin
-  if (button = mbright) and (DBKLoaded) and IsValidHandle(processhandle) then
-    tfrmProcessInfo.Create(self).Show;
+  if assigned(IsValidHandle) then
+  begin
+    if (button = mbright) and (DBKLoaded) and IsValidHandle(processhandle) then
+    begin
+      outputdebugstring('(button = mbright) and (DBKLoaded) and IsValidHandle(processhandle)');
+      tfrmProcessInfo.Create(self).Show;
+    end;
+  end else outputdebugstring('IsValidHandle is unassigned');
 end;
 
 procedure TMainForm.cbUnrandomizerClick(Sender: TObject);

@@ -438,6 +438,8 @@ type
     constructor create(progressbar: TProgressbar);
     destructor destroy; override;
 
+    function DeleteFolder(dir: string) : boolean;
+
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
   end;
@@ -4345,22 +4347,64 @@ begin
   CreateDir(fScanResultFolder);
 
 end;
-     
+
+function TMemScan.DeleteFolder(dir: string) : boolean;
+var
+  DirInfo: TSearchRec;
+  r : Integer;
+begin
+  ZeroMemory(@DirInfo,sizeof(TSearchRec));
+  result := true;
+
+  while dir[length(dir)]='\' do //cut of \
+    dir:=copy(dir,1,length(dir)-1);
+
+  outputdebugstring('Deleting '+dir);
+
+
+  r := FindFirst(dir + '\*.*', FaAnyfile, DirInfo);
+  while (r = 0) and result do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+        result := DeleteFile(dir + '\' + DirInfo.Name);
+    end;
+    r := FindNext(DirInfo);
+  end;
+  FindClose(DirInfo);
+
+  if Result then
+    result := RemoveDir(dir);
+end;
+
 destructor TMemScan.destroy;
 var fos: TSHFileOpStruct;
     dir: pchar;
     i: integer;
+
+    empty: array [0..8] of byte;
+
 begin
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   {$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
   {$endif}
 
+  try
+    if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');
+  except
+    outputdebugstring('Fatal error while trying to delete the scanresults');
+  end;
+
+  {
   dir:=nil;
+
 
   try
     ZeroMemory(@fos,sizeof(fos));
 
+    fScanResultFolder:='"'+fScanResultFolder+'"';
 
     //fos.hwnd:=0;
     fos.wFunc:=FO_DELETE;
@@ -4368,11 +4412,15 @@ begin
     try
       CopyMemory(dir,pchar(fScanResultFolder),length(fScanResultFolder));
 
+
       dir[length(fScanResultFolder)]:=#0; //'*';
       dir[length(fScanResultFolder)+1]:=#0;
       dir[length(fScanResultFolder)+2]:=#0;
 
       fos.pFrom:=dir;
+
+      zeromemory(@empty[0],7);
+      fos.pTo:=@empty[0];
       fos.fFlags:=FOF_SILENT or FOF_NOCONFIRMATION or FOF_ALLOWUNDO;
 
       OutputDebugString(pchar('Deleting '+dir));
@@ -4383,7 +4431,8 @@ begin
         freemem(dir);
     end;
   except
-  end;
+  end; }
+
 
   inherited Destroy;
 end;

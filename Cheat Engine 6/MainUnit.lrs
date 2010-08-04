@@ -164,21 +164,21 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#6#5'Testr'#11'ParentColor'#8#7'Visible'#8#7'OnClick'#7#12'Label59Click'#0#0
   +#6'TLabel'#7'Label61'#4'Left'#3'p'#1#6'Height'#2#14#3'Top'#3'@'#1#5'Width'#2
   +''''#7'Caption'#6#7'Label61'#11'ParentColor'#8#7'Visible'#8#7'OnClick'#7#12
-  +'Label61Click'#0#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#174#1#6'Height'#2
-  +#17#4'Hint'#6#16'Enable speedhack'#3'Top'#3#194#0#5'Width'#2'm'#7'Anchors'#11
+  +'Label61Click'#0#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#172#1#6'Height'#2
+  +#19#4'Hint'#6#16'Enable speedhack'#3'Top'#3#194#0#5'Width'#2'o'#7'Anchors'#11
   +#5'akTop'#7'akRight'#0#7'Caption'#6#16'Enable Speedhack'#7'Enabled'#8#7'OnCl'
   +'ick'#7#16'cbSpeedhackClick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2
   +#24#7'Visible'#8#0#0#7'TButton'#7'NewScan'#4'Left'#3#213#0#6'Height'#2#25#3
   +'Top'#2'0'#5'Width'#2'A'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#10
   +'First Scan'#7'Enabled'#8#7'OnClick'#7#12'NewScanClick'#14'ParentShowHint'#8
-  +#8'TabOrder'#2#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#181#1#6'Height'#2#17
-  +#3'Top'#3#128#0#5'Width'#2':'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'
+  +#8'TabOrder'#2#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#179#1#6'Height'#2#19
+  +#3'Top'#3#128#0#5'Width'#2'<'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'
   +#6#7'Unicode'#8'TabOrder'#2#17#7'Visible'#8#0#0#9'TGroupBox'#9'GroupBox1'#4
   +'Left'#3#221#0#6'Height'#3#140#0#3'Top'#3#168#0#5'Width'#3#202#0#7'Anchors'
   +#11#5'akTop'#7'akRight'#0#7'Caption'#6#19'Memory Scan Options'#12'ClientHeig'
   +'ht'#2'z'#11'ClientWidth'#3#198#0#5'Color'#7#9'clBtnFace'#7'Enabled'#8#11'Pa'
   +'rentColor'#8#8'TabOrder'#2#0#0#9'TCheckBox'#8'Readonly'#4'Left'#2#3#6'Heigh'
-  +'t'#2#17#3'Top'#2'-'#5'Width'#3#149#0#7'Caption'#6#26'Also scan read-only me'
+  +'t'#2#19#3'Top'#2'-'#5'Width'#3#151#0#7'Caption'#6#26'Also scan read-only me'
   +'mory'#7'Enabled'#8#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#10
   +'ParentFont'#8#8'TabOrder'#2#2#0#0#5'TMemo'#11'FromAddress'#4'Left'#2')'#6'H'
   +'eight'#2#21#3'Top'#2#0#5'Width'#3#153#0#9'Alignment'#7#14'taRightJustify'#7
@@ -193,11 +193,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'aft'#13'Lines.Strings'#1#6#8'7FFFFFFF'#0#9'MaxLength'#2#8#10'OnKeyPress'#7
   +#15'AddressKeyPress'#10'ParentFont'#8#9'PopupMenu'#7#10'emptypopup'#8'TabOrd'
   +'er'#2#1#11'WantReturns'#8#8'WordWrap'#8#0#0#9'TCheckBox'#10'cbFastScan'#4'L'
-  ,'eft'#2#3#6'Height'#2#17#3'Top'#2'D'#5'Width'#2'@'#7'Caption'#6#9'Fast scan'
+  ,'eft'#2#3#6'Height'#2#19#3'Top'#2'D'#5'Width'#2'B'#7'Caption'#6#9'Fast scan'
   +#7'Checked'#9#7'Enabled'#8#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans S'
   +'erif'#7'OnClick'#7#15'cbFastScanClick'#10'ParentFont'#8#5'State'#7#9'cbChec'
   +'ked'#8'TabOrder'#2#3#0#0#9'TCheckBox'#20'cbPauseWhileScanning'#4'Left'#2#3#6
-  +'Height'#2#17#3'Top'#2'['#5'Width'#3#168#0#7'Caption'#6#29'Pause the game wh'
+  +'Height'#2#19#3'Top'#2'['#5'Width'#3#170#0#7'Caption'#6#29'Pause the game wh'
   +'ile scanning'#7'Enabled'#8#7'OnClick'#7#25'cbPauseWhileScanningClick'#8'Tab'
   +'Order'#2#4#0#0#6'TLabel'#6'Label1'#4'Left'#2#6#6'Height'#2#14#3'Top'#2#3#5
   +'Width'#2#23#7'Caption'#6#5'Start'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'
@@ -229,24 +229,24 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'ProgressBar1'#4'Left'#2'\'#6'Height'#2#16#4'Hint'#6'1This shows how far Che'
   +'at Engine is with searching'#3'Top'#2#14#5'Width'#3#141#1#7'Anchors'#11#5'a'
   +'kTop'#6'akLeft'#7'akRight'#0#14'ParentShowHint'#8#8'ShowHint'#9#4'Step'#2#1
-  +#8'TabOrder'#2#9#0#0#9'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#207#0#6
-  +'Height'#2#17#4'Hint'#6'1When checked the value you type in is hexadecimal'#3
-  +'Top'#2'`'#5'Width'#2'%'#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRigh'
-  +'t'#0#7'Caption'#6#3'Hex'#7'Enabled'#8#7'OnClick'#7#24'HexadecimalCheckboxCl'
-  +'ick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#10#0#0#7'TButton'#8'U'
-  +'ndoScan'#4'Left'#3#168#1#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'A'#7'Anchors'
-  +#11#5'akTop'#7'akRight'#0#7'Caption'#6#9'Undo scan'#7'Enabled'#8#7'OnClick'#7
-  +#13'UndoScanClick'#8'TabOrder'#2#3#0#0#12'TRadioButton'#5'rbBit'#4'Left'#3
-  +#189#0#6'Height'#2#19#3'Top'#2'X'#5'Width'#2')'#11'HelpContext'#2#7#7'Anchor'
-  +'s'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#4'Bits'#7'OnClick'#7
-  +#10'rbBitClick'#8'TabOrder'#2#11#7'Visible'#8#0#0#12'TRadioButton'#5'rbDec'#4
-  +'Left'#3#189#0#6'Height'#2#19#3'Top'#2'i'#5'Width'#2'>'#11'HelpContext'#2#7#7
-  +'Anchors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#7'Decimal'#7'O'
-  +'nClick'#7#10'rbDecClick'#8'TabOrder'#2#12#7'Visible'#8#0#0#5'TEdit'#9'scanv'
-  +'alue'#4'Left'#3#252#0#6'Height'#2#21#3'Top'#2'`'#5'Width'#3#27#1#7'Anchors'
+  +#8'TabOrder'#2#9#0#0#9'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#205#0#6
+  +'Height'#2#19#4'Hint'#6'1When checked the value you type in is hexadecimal'#3
+  +'Top'#2'`'#5'Width'#2''''#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRig'
+  +'ht'#0#7'Caption'#6#3'Hex'#7'Enabled'#8#7'OnClick'#7#24'HexadecimalCheckboxC'
+  +'lick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#10#0#0#7'TButton'#8
+  +'UndoScan'#4'Left'#3#168#1#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'A'#7'Anchor'
+  +'s'#11#5'akTop'#7'akRight'#0#7'Caption'#6#9'Undo scan'#7'Enabled'#8#7'OnClic'
+  +'k'#7#13'UndoScanClick'#8'TabOrder'#2#3#0#0#12'TRadioButton'#5'rbBit'#4'Left'
+  +#3#189#0#6'Height'#2#19#3'Top'#2'X'#5'Width'#2')'#11'HelpContext'#2#7#7'Anch'
+  +'ors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#4'Bits'#7'OnClick'
+  +#7#10'rbBitClick'#8'TabOrder'#2#11#7'Visible'#8#0#0#12'TRadioButton'#5'rbDec'
+  +#4'Left'#3#189#0#6'Height'#2#19#3'Top'#2'i'#5'Width'#2'>'#11'HelpContext'#2#7
+  +#7'Anchors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#7'Decimal'#7
+  +'OnClick'#7#10'rbDecClick'#8'TabOrder'#2#12#7'Visible'#8#0#0#5'TEdit'#9'scan'
+  +'value'#4'Left'#3#252#0#6'Height'#2#21#3'Top'#2'`'#5'Width'#3#27#1#7'Anchors'
   +#11#5'akTop'#7'akRight'#0#7'Enabled'#8#10'OnKeyPress'#7#20'ScanvalueoldKeyPr'
   +'ess'#9'PopupMenu'#7#7'ccpmenu'#8'TabOrder'#2#4#0#0#9'TCheckBox'#15'cbCaseSe'
-  +'nsitive'#4'Left'#3#177#1#6'Height'#2#17#3'Top'#3#146#0#5'Width'#2'V'#7'Anch'
+  +'nsitive'#4'Left'#3#175#1#6'Height'#2#19#3'Top'#3#146#0#5'Width'#2'X'#7'Anch'
   +'ors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#14'Case sensitive'#7'Checked'#9#7
   +'Enabled'#8#7'OnClick'#7#20'cbCaseSensitiveClick'#14'ParentShowHint'#8#8'Sho'
   +'wHint'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#13#7'Visible'#8#0#0#9'TListV'
@@ -321,11 +321,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'m'#8'AutoSize'#8#7'Caption'#6#17'Rounded (default)'#8'TabOrder'#2#0#7'TabSt'
   +'op'#8#0#0#12'TRadioButton'#3'rt2'#4'Left'#2#4#6'Height'#2#19#3'Top'#2#17#5
   +'Width'#2'r'#8'AutoSize'#8#7'Caption'#6#17'Rounded (extreme)'#8'TabOrder'#2#1
-  ,#7'TabStop'#8#0#0#0#9'TCheckBox'#14'cbUnrandomizer'#4'Left'#3#174#1#6'Height'
-  +#2#17#3'Top'#3#174#0#5'Width'#2'S'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Cap'
+  ,#7'TabStop'#8#0#0#0#9'TCheckBox'#14'cbUnrandomizer'#4'Left'#3#172#1#6'Height'
+  +#2#19#3'Top'#3#174#0#5'Width'#2'U'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Cap'
   +'tion'#6#12'Unrandomizer'#7'Enabled'#8#7'OnClick'#7#19'cbUnrandomizerClick'
   +#11'OnMouseDown'#7#23'cbUnrandomizerMouseDown'#8'TabOrder'#2#18#0#0#9'TCheck'
-  +'Box'#6'mode16'#4'Left'#2'`'#6'Height'#2#17#3'Top'#3'@'#1#5'Width'#2'8'#7'Ca'
+  +'Box'#6'mode16'#4'Left'#2'`'#6'Height'#2#19#3'Top'#3'@'#1#5'Width'#2':'#7'Ca'
   +'ption'#6#6'mode16'#8'TabOrder'#2#19#7'Visible'#8#0#0#7'TButton'#7'Button2'#4
   +'Left'#3#199#0#6'Height'#2#25#3'Top'#2' '#5'Width'#2'K'#7'Caption'#6#11'Firs'
   +'t Scan2'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#20#7'Visible'#8#0#0#7

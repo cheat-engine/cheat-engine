@@ -1275,7 +1275,7 @@ begin
   exportedfunctions.ProtectMe:=nil;
   exportedfunctions.GetCR4:=@@GetCR4;
   exportedfunctions.GetCR3:=@@GetCR3;
-  exportedfunctions.SetCR3:=@@SetCR3;
+  exportedfunctions.SetCR3:=nil; //@@SetCR3;
   exportedfunctions.GetSDT:=@@GetSDT;
   exportedfunctions.GetSDTShadow:=@@GetSDTShadow;
   exportedfunctions.setAlternateDebugMethod:=nil; //@@setAlternateDebugMethod;

@@ -425,7 +425,7 @@ var
   GetPhysicalAddress    :TGetPhysicalAddress;
   GetCR4                :TGetCR4;
   GetCR3                :TGetCR3;
-  SetCR3                :TSetCR3;
+  //SetCR3                :TSetCR3;
   GetCR0                :TGetCR0;
   GetSDT                :TGetSDT;
   GetSDTShadow          :TGetSDTShadow;
@@ -661,6 +661,8 @@ procedure LoadDBK32; stdcall;
 begin
   if not DBKLoaded then
   begin
+    outputdebugstring('LoadDBK32');
+
     DBKLoaded:=true;
 
     DBK32Initialize;
@@ -670,27 +672,27 @@ begin
 
     //the driver is loaded (I hope)
 
-    KernelVirtualAllocEx:=@VAE; //GetProcAddress(darkbytekernel,'VAE');
-    KernelOpenProcess:=@OP; //GetProcAddress(darkbytekernel,'OP');
-    KernelReadProcessMemory:=@RPM; //GetProcAddresS(darkbytekernel,'RPM');
-    KernelReadProcessMemory64:=@RPM64; //GetProcAddresS(darkbytekernel,'RPM64');
-    KernelWriteProcessMemory:=@WPM; //GetProcAddress(darkbytekernel,'WPM');
-    ReadProcessMemory64:=@RPM64; //GetProcAddress(DarkByteKernel,'RPM64');
-    WriteProcessMemory64:=@WPM64; //GetProcAddress(DarkByteKernel,'WPM64');
+    KernelVirtualAllocEx:=@dbk32functions.VAE; //GetProcAddress(darkbytekernel,'VAE');
+    KernelOpenProcess:=@dbk32functions.OP; //GetProcAddress(darkbytekernel,'OP');
+    KernelReadProcessMemory:=@dbk32functions.RPM; //GetProcAddresS(darkbytekernel,'RPM');
+    KernelReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddresS(darkbytekernel,'RPM64');
+    KernelWriteProcessMemory:=@dbk32functions.WPM; //GetProcAddress(darkbytekernel,'WPM');
+    ReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddress(DarkByteKernel,'RPM64');
+    WriteProcessMemory64:=@dbk32functions.WPM64; //GetProcAddress(DarkByteKernel,'WPM64');
 
-    GetPEProcess:=@GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
-    GetPEThread:=@GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
-    GetProcessnameOffset:=@GetProcessnameOffset; //GetProcAddress(DarkByteKernel,'GetProcessnameOffset');
-    GetThreadsProcessOffset:=@GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
-    GetThreadListEntryOffset:=@GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
-    GetDebugportOffset:=@GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
-    GetPhysicalAddress:=@GetPhysicalAddress; //GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
-    GetCR4:=@GetCR4; //GetProcAddress(DarkByteKernel,'GetCR4');
-    GetCR3:=@GetCR3;
-    SetCR3:=@SetCR3;
-    GetCR0:=@GetCR0;
-    GetSDT:=@GetSDT;
-    GetSDTShadow:=@GetSDTShadow;
+    GetPEProcess:=@dbk32functions.GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
+    GetPEThread:=@dbk32functions.GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
+    GetProcessnameOffset:=@dbk32functions.GetProcessnameOffset; //GetProcAddress(DarkByteKernel,'GetProcessnameOffset');
+    GetThreadsProcessOffset:=@dbk32functions.GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
+    GetThreadListEntryOffset:=@dbk32functions.GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
+    GetDebugportOffset:=@dbk32functions.GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
+    GetPhysicalAddress:=@dbk32functions.GetPhysicalAddress; //GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
+    GetCR4:=@dbk32functions.GetCR4; //GetProcAddress(DarkByteKernel,'GetCR4');
+    GetCR3:=@dbk32functions.GetCR3;
+//    SetCR3:=@dbk32functions.SetCR3;
+    GetCR0:=@dbk32functions.GetCR0;
+    GetSDT:=@dbk32functions.GetSDT;
+    GetSDTShadow:=@dbk32functions.GetSDTShadow;
 
 //    setAlternateDebugMethod:=@setAlternateDebugMethod;
 //    getAlternateDebugMethod:=@getAlternateDebugMethod;
@@ -699,60 +701,63 @@ begin
 //    StopRegisterChange:=@StopRegisterChange;
 //    RetrieveDebugData:=@RetrieveDebugData;
 //    ChangeRegOnBP:=@ChangeRegOnBP;
-    StartProcessWatch:=@StartProcessWatch;
-    WaitForProcessListData:=@WaitForProcessListData;
-    GetProcessNameFromID:=@GetProcessNameFromID;
-    GetProcessNameFromPEProcess:=@GetProcessNameFromPEProcess;
-    IsValidHandle:=@IsValidHandle;
-    GetIDTs:=@GetIDTs;
+    StartProcessWatch:=@dbk32functions.StartProcessWatch;
+    WaitForProcessListData:=@dbk32functions.WaitForProcessListData;
+    GetProcessNameFromID:=@dbk32functions.GetProcessNameFromID;
+    GetProcessNameFromPEProcess:=@dbk32functions.GetProcessNameFromPEProcess;
 
-    GetIDTCurrentThread:=@GetIDTCurrentThread;
-    GetGDT:=@GetGDT;
-    MakeWritable:=@MakeWritable;
-    GetLoadedState:=@GetLoadedState;
+    IsValidHandle:=@dbk32functions.IsValidHandle;
 
-    DBKResumeThread:=@DBKResumeThread;
-    DBKSuspendThread:=@DBKSuspendThread;
 
-    DBKResumeProcess:=@DBKResumeProcess;
-    DBKSuspendProcess:=@DBKSuspendProcess;
+    GetIDTs:=@dbk32functions.GetIDTs;
 
-    KernelAlloc:=@KernelAlloc;
-    KernelAlloc64:=@KernelAlloc64;
-    GetKProcAddress:=@GetKProcAddress;
-    GetKProcAddress64:=@GetKProcAddress64;
+    GetIDTCurrentThread:=@dbk32functions.GetIDTCurrentThread;
+    GetGDT:=@dbk32functions.GetGDT;
+    MakeWritable:=@dbk32functions.MakeWritable;
+    GetLoadedState:=@dbk32functions.GetLoadedState;
 
-    GetSDTEntry:= @GetSDTEntry;
-    GetSSDTEntry:=@GetSSDTEntry;
+    DBKResumeThread:=@dbk32functions.DBKResumeThread;
+    DBKSuspendThread:=@dbk32functions.DBKSuspendThread;
 
-    isDriverLoaded:=@isDriverLoaded;
-    LaunchDBVM:=@LaunchDBVM;
+    DBKResumeProcess:=@dbk32functions.DBKResumeProcess;
+    DBKSuspendProcess:=@dbk32functions.DBKSuspendProcess;
 
-    ReadPhysicalMemory:=@ReadPhysicalMemory;
-    WritePhysicalMemory:=@WritePhysicalMemory;
+    KernelAlloc:=@dbk32functions.KernelAlloc;
+    KernelAlloc64:=@dbk32functions.KernelAlloc64;
+    GetKProcAddress:=@dbk32functions.GetKProcAddress;
+    GetKProcAddress64:=@dbk32functions.GetKProcAddress64;
 
-    CreateRemoteAPC:=@CreateRemoteAPC;
+    GetSDTEntry:= @dbk32functions.GetSDTEntry;
+    GetSSDTEntry:=@dbk32functions.GetSSDTEntry;
+
+    isDriverLoaded:=@dbk32functions.isDriverLoaded;
+    LaunchDBVM:=@dbk32functions.LaunchDBVM;
+
+    ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
+    WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
+
+    CreateRemoteAPC:=@dbk32functions.CreateRemoteAPC;
 //    SetGlobalDebugState:=@SetGlobalDebugState;
 
-    DBKDebug_ContinueDebugEvent:=@DBKDebug_ContinueDebugEvent;
-    DBKDebug_WaitForDebugEvent:=@DBKDebug_WaitForDebugEvent;
-    DBKDebug_GetDebuggerState:=@DBKDebug_GetDebuggerState;
-    DBKDebug_SetDebuggerState:=@DBKDebug_SetDebuggerState;
+    DBKDebug_ContinueDebugEvent:=@debug.DBKDebug_ContinueDebugEvent;
+    DBKDebug_WaitForDebugEvent:=@debug.DBKDebug_WaitForDebugEvent;
+    DBKDebug_GetDebuggerState:=@debug.DBKDebug_GetDebuggerState;
+    DBKDebug_SetDebuggerState:=@debug.DBKDebug_SetDebuggerState;
 
-    DBKDebug_SetGlobalDebugState:=@DBKDebug_SetGlobalDebugState;
-    DBKDebug_StartDebugging:=@DBKDebug_StartDebugging;
-    DBKDebug_StopDebugging:=@DBKDebug_StopDebugging;
-    DBKDebug_GD_SetBreakpoint:=@DBKDebug_GD_SetBreakpoint;
+    DBKDebug_SetGlobalDebugState:=@debug.DBKDebug_SetGlobalDebugState;
+    DBKDebug_StartDebugging:=@debug.DBKDebug_StartDebugging;
+    DBKDebug_StopDebugging:=@debug.DBKDebug_StopDebugging;
+    DBKDebug_GD_SetBreakpoint:=@debug.DBKDebug_GD_SetBreakpoint;
 
-    dbvm_version:=@dbvm_version;
-    dbvm_changeselectors:=@dbvm_changeselectors;
-    dbvm_block_interrupts:=@dbvm_block_interrupts;
-    dbvm_restore_interrupts:=@dbvm_restore_interrupts;
+    dbvm_version:=@vmxfunctions.dbvm_version;
+    dbvm_changeselectors:=@vmxfunctions.dbvm_changeselectors;
+    dbvm_block_interrupts:=@vmxfunctions.dbvm_block_interrupts;
+    dbvm_restore_interrupts:=@vmxfunctions.dbvm_restore_interrupts;
 
-    dbvm_read_physical_memory:=@dbvm_read_physical_memory;
-    dbvm_write_physical_memory:=@dbvm_write_physical_memory;
+    dbvm_read_physical_memory:=@vmxfunctions.dbvm_read_physical_memory;
+    dbvm_write_physical_memory:=@vmxfunctions.dbvm_write_physical_memory;
 
-    dbvm_raise_privilege:=@dbvm_raise_privilege;
+    dbvm_raise_privilege:=@vmxfunctions.dbvm_raise_privilege;
 
     {$ifdef cemain}
     if pluginhandler<>nil then

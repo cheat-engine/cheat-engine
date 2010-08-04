@@ -760,6 +760,7 @@ end;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 var i: integer;
 begin
+  outputdebugstring('IsValidHandle');
   result:=false;
   for i:=0 to length(handlelist)-1 do
     if handlelist[i].processhandle=hProcess then
