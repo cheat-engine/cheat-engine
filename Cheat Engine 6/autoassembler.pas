@@ -974,7 +974,7 @@ begin
           begin
             if not DBKReadWrite then raise exception.Create('You need to use kernelmode read/writeprocessmemory if you want to use KALLOC');
 
-            if DarkByteKernel=0 then
+            if DBKLoaded=false then
               raise exception.Create('Sorry, but without the driver KALLOC will not function');
 
             //syntax: kalloc(x,size)    x=variable name size=bytes
@@ -1464,7 +1464,7 @@ begin
     begin
       virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
 
-      if (fullaccess[i].address>80000000) and (DarkByteKernel<>0) then
+      if (fullaccess[i].address>80000000) and (DBKLoaded) then
         MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
     end;
 

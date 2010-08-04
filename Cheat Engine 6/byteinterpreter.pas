@@ -17,8 +17,8 @@ takes the given
 var x: string;
     i: integer;
     isstring: boolean;
-    v: dword;
     e: integer;
+    v: qword;
 
     floathasseperator: boolean;
     couldbestringcounter: boolean;
@@ -107,10 +107,15 @@ begin
     end;
   end;
 
-  if size>=4 then
+  if size>=processhandler.pointersize then
   begin
-    //named addresses 
-    val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true),v,e);
+    //named addresses
+
+    if processhandler.is64bit then
+      val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true),v,e)
+    else
+      val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true),v,e);
+
     if e>0 then //named
     begin
       result:=vtPointer;

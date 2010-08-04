@@ -3605,9 +3605,9 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *}
 Function float32_rem(a: float32rec; b: float32rec ):float32rec; compilerproc;
   Var
-    aSign, bSign, zSign: flag;
+    aSign, zSign: flag;
     aExp, bExp, expDiff: int16;
-    aSig, bSig, q, allZero, alternateASig: bits32;
+    aSig, bSig, q, alternateASig: bits32;
     sigMean: sbits32;
   Begin
     aSig := extractFloat32Frac( a.float32 );
@@ -3615,7 +3615,7 @@ Function float32_rem(a: float32rec; b: float32rec ):float32rec; compilerproc;
     aSign := extractFloat32Sign( a.float32 );
     bSig := extractFloat32Frac( b.float32 );
     bExp := extractFloat32Exp( b.float32 );
-    bSign := extractFloat32Sign( b.float32 );
+   // bSign := extractFloat32Sign( b.float32 );
     if ( aExp = $FF ) then
     Begin
         if ( (aSig<>0) OR ( ( bExp = $FF ) AND  (bSig <>0)) ) then
@@ -3917,7 +3917,7 @@ IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 Function float32_le_quiet( a: float32 ; b : float32 ): flag;
 Var
     aSign, bSign: flag;
-    aExp, bExp: int16;
+
 Begin
     if (    ( ( extractFloat32Exp( a ) = $FF ) AND  (extractFloat32Frac( a )<>0) )
          OR ( ( extractFloat32Exp( b ) = $FF ) AND  (extractFloat32Frac( b )<>0) )
@@ -4805,7 +4805,7 @@ according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 Function float64_rem(a: float64; b : float64) : float64;
 {$ifdef fpc}[public,Alias:'FLOAT64_REM'];compilerproc;{$endif}
 Var
-    aSign, bSign, zSign: flag;
+    aSign, zSign: flag;
     aExp, bExp, expDiff: int16;
     aSig0, aSig1, bSig0, bSig1, q, term0, term1, term2: bits32;
     allZero, alternateASig0, alternateASig1, sigMean1: bits32;
@@ -4820,7 +4820,7 @@ Begin
     bSig1 := extractFloat64Frac1( b );
     bSig0 := extractFloat64Frac0( b );
     bExp := extractFloat64Exp( b );
-    bSign := extractFloat64Sign( b );
+    //bSign := extractFloat64Sign( b );
     if ( aExp = $7FF ) then
     Begin
         if ((( aSig0 OR  aSig1 )<>0)

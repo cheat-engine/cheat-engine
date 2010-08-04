@@ -4453,7 +4453,7 @@ end;
 procedure TMainForm.ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
 begin
-  if (button = mbright) and (darkbytekernel<>0) and IsValidHandle(processhandle) then
+  if (button = mbright) and (DBKLoaded) and IsValidHandle(processhandle) then
     tfrmProcessInfo.Create(self).Show;
 end;
 
@@ -4924,8 +4924,13 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  if OpenDialog1.Execute then
-    ConvertCheatTableToXML(opendialog1.filename);
+  asm
+    nop
+    nop
+    nop
+    db $0f,$ac,$d0,$0c,$c1,$ea,$0c,$89,$81,$3c,$21,$00
+
+  end;
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);

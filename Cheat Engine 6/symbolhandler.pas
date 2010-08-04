@@ -225,7 +225,6 @@ var need:dword;
     i: integer;
     count: integer;
     modulename: pchar;
-    le: integer;
 begin
   need:=0;
 
@@ -246,10 +245,6 @@ begin
       finally
         freemem(modulename);
       end;
-    end else
-    begin
-
-      le:=getlasterror;
     end;
   finally
     freemem(x);
@@ -679,7 +674,6 @@ This routine will add the symbolname+address combination to the symbollist
 }
 var
   address: dword;
-  error: boolean;
 begin
   if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' already exists');
 
@@ -809,8 +803,6 @@ end;
 
 function TSymhandler.inSystemModule(address: ptrUint): BOOLEAN;
 var mi: TModuleInfo;
-    mn: string;
-    i: integer;
 begin
   result:=false;
   if getmodulebyaddress(address,mi) then
@@ -1020,8 +1012,6 @@ function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; o
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     offset: dword;
-
-    sn: string;
     i,j: integer;
 
     ws: widestring;
@@ -1031,7 +1021,6 @@ var mi: tmoduleinfo;
     processhandle: thandle;
 
     tokens: TTokens;
-    x: dword;
     mathstring: string;
     hasMultiplication, hasPointer: boolean;
 
@@ -1039,9 +1028,6 @@ var mi: tmoduleinfo;
     regnr: integer;
 
     symbol: PSYMBOL_INFO;
-
-    ps: pbytearray;
-    d: string;
 begin
   hasPointer:=false;
   haserror:=false;
@@ -1148,7 +1134,7 @@ begin
 
               //not a userdefined symbol
               {$ifndef autoassemblerdll}
-              if (darkbytekernel<>0) and (length(tokens[i])>6) and (pos('KERNEL_',uppercase(tokens[i]))>0) then
+              if (DBKLoaded) and (length(tokens[i])>6) and (pos('KERNEL_',uppercase(tokens[i]))>0) then
               begin
                 tokens[i]:=copy(tokens[i],8,length(tokens[i])-7);
                 ws:=tokens[i];
@@ -1490,7 +1476,6 @@ Loads the commonmodules list which is used by the module enumaration to flag mod
 }
 var
   s: string;
-  f: tstringlist;
   i,j: integer;
 begin
   s:=cheatenginedir+'commonmodulelist.txt';

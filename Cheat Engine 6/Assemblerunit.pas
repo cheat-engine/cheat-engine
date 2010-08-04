@@ -1374,7 +1374,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SHR';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$c1),
 
   (mnemonic:'SHRD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_r32;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$ac),
-  (mnemonic:'SHRD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;paramtype3:par_cl;bytes:2;bt1:$0f;bt2:$ac),
+  (mnemonic:'SHRD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;paramtype3:par_cl;bytes:2;bt1:$0f;bt2:$ad),
 
   (mnemonic:'SHUFPD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$c6),
   (mnemonic:'SHUFPS';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$c6),
@@ -4166,6 +4166,7 @@ begin
 
         if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
         begin
+          //32, mm,imm8
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
           add(bytes,[v]);
@@ -4555,6 +4556,7 @@ begin
 
         if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
         begin
+          //rm16, r16,imm8
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter2),parameter1);
           add(bytes,[v]);

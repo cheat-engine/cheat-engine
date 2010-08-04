@@ -251,7 +251,7 @@ end;
 
 procedure TFormMemoryRegions.PopupMenu1Popup(Sender: TObject);
 begin
-  setselectedregionstobewritable1.enabled:=DarkByteKernel<>0;
+  setselectedregionstobewritable1.enabled:=DBKLoaded;
 
 end;
 

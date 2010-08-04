@@ -4021,6 +4021,9 @@ begin
                         if $66 in prefix2 then
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+r16(memory[2]) else
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+r32(memory[2]);
+
+                        lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohex(memory[last],2);
+                        inc(last);
                         inc(offset,last-1);
                       end;
 
@@ -4028,8 +4031,8 @@ begin
                         description:='double precision shift right';
                         lastdisassembledata.opcode:='shrd';
                         if $66 in prefix2 then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+colorreg+'cl'+endcolor else
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+colorreg+'cl'+endcolor;
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+r16(memory[2])+','+colorreg+'cl'+endcolor else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+r32(memory[2])+','+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
 
                       end;

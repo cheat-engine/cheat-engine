@@ -861,7 +861,7 @@ begin
   {$ifdef net}
   MemoryBrowser.Kerneltools1.visible:=false;
   {$else}
-  MemoryBrowser.Kerneltools1.Enabled:=DarkByteKernel<>0;
+  MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
   {$endif}
 
   HandleAutoAttachString;

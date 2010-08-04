@@ -43,10 +43,9 @@ end;
 procedure TfrmDriverlist.FormCreate(Sender: TObject);
 var need:dword;
     x: PPointerArray;
-    i,j: integer;
+    i: integer;
     count: integer;
     drivername: pchar;
-    nearest: dword; //nearest other driver (AFTER win32k.sys)
 begin
   EnumDevicedrivers(nil,0,need);
   getmem(x,need);
@@ -76,7 +75,6 @@ end;
 
 procedure TfrmDriverlist.FindDialog1Find(Sender: TObject);
 var i,j: integer;
-    s: string;
 begin
   i:=listbox1.itemindex;
   inc(i);

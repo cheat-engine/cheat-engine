@@ -3,7 +3,8 @@ unit NewKernelHandler;
 {$MODE Delphi}
 
 interface
-uses jwawindows, windows,LCLIntf,sysutils,{tlhelp32,} dialogs, controls;
+uses jwawindows, windows,LCLIntf,sysutils, dialogs, controls, dbk32functions,
+     vmxfunctions,debug, multicpuexecution;
 
 const dbkdll='DBK32.dll';
 
@@ -501,7 +502,8 @@ var
   dbvm_write_physical_memory: Tdbvm_write_physical_memory;
 
 var WindowsKernel: Thandle;
-    DarkByteKernel: Thandle;
+    //DarkByteKernel: Thandle;
+    DBKLoaded: boolean;
 
     Usephysical: boolean;
     UseFileAsMemory: boolean;
@@ -657,96 +659,100 @@ end;
 
 procedure LoadDBK32; stdcall;
 begin
-  if DarkByteKernel=0 then
+  if not DBKLoaded then
   begin
-    DarkByteKernel:= LoadLibrary(dbkdll);
-    if DarkByteKernel=0 then exit; //raise exception.Create('Failed to open DBK32.dll');
+    DBKLoaded:=true;
+
+    DBK32Initialize;
+
+    //DarkByteKernel:= LoadLibrary(dbkdll);
+//    if DarkByteKernel=0 then exit; //raise exception.Create('Failed to open DBK32.dll');
 
     //the driver is loaded (I hope)
 
-    KernelVirtualAllocEx:=GetProcAddress(darkbytekernel,'VAE');
-    KernelOpenProcess:=GetProcAddress(darkbytekernel,'OP');
-    KernelReadProcessMemory:=GetProcAddresS(darkbytekernel,'RPM');
-    KernelReadProcessMemory64:=GetProcAddresS(darkbytekernel,'RPM64');    
-    KernelWriteProcessMemory:=GetProcAddress(darkbytekernel,'WPM');
-    ReadProcessMemory64:=GetProcAddress(DarkByteKernel,'RPM64');
-    WriteProcessMemory64:=GetProcAddress(DarkByteKernel,'WPM64');
+    KernelVirtualAllocEx:=@VAE; //GetProcAddress(darkbytekernel,'VAE');
+    KernelOpenProcess:=@OP; //GetProcAddress(darkbytekernel,'OP');
+    KernelReadProcessMemory:=@RPM; //GetProcAddresS(darkbytekernel,'RPM');
+    KernelReadProcessMemory64:=@RPM64; //GetProcAddresS(darkbytekernel,'RPM64');
+    KernelWriteProcessMemory:=@WPM; //GetProcAddress(darkbytekernel,'WPM');
+    ReadProcessMemory64:=@RPM64; //GetProcAddress(DarkByteKernel,'RPM64');
+    WriteProcessMemory64:=@WPM64; //GetProcAddress(DarkByteKernel,'WPM64');
 
-    GetPEProcess:=GetProcAddress(DarkByteKernel,'GetPEProcess');
-    GetPEThread:=GetProcAddress(DarkByteKernel,'GetPEThread');
-    GetProcessnameOffset:=GetProcAddress(DarkByteKernel,'GetProcessnameOffset');
-    GetThreadsProcessOffset:=GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
-    GetThreadListEntryOffset:=GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
-    GetDebugportOffset:=GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
-    GetPhysicalAddress:=GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
-    GetCR4:=GetProcAddress(DarkByteKernel,'GetCR4');
-    GetCR3:=GetProcAddress(DarkByteKernel,'GetCR3');
-    SetCR3:=GetProcAddress(DarkByteKernel,'SetCR3');
-    GetCR0:=GetProcAddress(DarkByteKernel,'GetCR0');    
-    GetSDT:=GetProcAddress(DarkByteKernel,'GetSDT');
-    GetSDTShadow:=GetProcAddress(DarkByteKernel,'GetSDTShadow');
+    GetPEProcess:=@GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
+    GetPEThread:=@GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
+    GetProcessnameOffset:=@GetProcessnameOffset; //GetProcAddress(DarkByteKernel,'GetProcessnameOffset');
+    GetThreadsProcessOffset:=@GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
+    GetThreadListEntryOffset:=@GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
+    GetDebugportOffset:=@GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
+    GetPhysicalAddress:=@GetPhysicalAddress; //GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
+    GetCR4:=@GetCR4; //GetProcAddress(DarkByteKernel,'GetCR4');
+    GetCR3:=@GetCR3;
+    SetCR3:=@SetCR3;
+    GetCR0:=@GetCR0;
+    GetSDT:=@GetSDT;
+    GetSDTShadow:=@GetSDTShadow;
 
-//    setAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'setAlternateDebugMethod');
-//    getAlternateDebugMethod:=GetProcAddress(DarkByteKernel,'getAlternateDebugMethod');
-//    DebugProcess:=GetProcAddress(DarkByteKernel,'DebugProcess');
-//    StopDebugging:=GetProcAddress(DarkByteKernel,'StopDebugging');
-//    StopRegisterChange:=GetProcAddress(DarkByteKernel,'StopRegisterChange');
-//    RetrieveDebugData:=GetProcAddress(DarkByteKernel,'RetrieveDebugData');
-//    ChangeRegOnBP:=GetProcAddress(DarkByteKernel,'ChangeRegOnBP');
-    StartProcessWatch:=GetProcAddress(DarkByteKernel,'StartProcessWatch');
-    WaitForProcessListData:=GetProcAddress(DarkByteKernel,'WaitForProcessListData');
-    GetProcessNameFromID:=GetProcAddress(DarkByteKernel,'GetProcessNameFromID');
-    GetProcessNameFromPEProcess:=GetProcAddress(DarkByteKernel,'GetProcessNameFromPEProcess');
-    IsValidHandle:=GetProcAddress(DarkByteKernel,'IsValidHandle');
-    GetIDTs:=GetProcAddress(DarkByteKernel,'GetIDTs');
+//    setAlternateDebugMethod:=@setAlternateDebugMethod;
+//    getAlternateDebugMethod:=@getAlternateDebugMethod;
+//    DebugProcess:=@DebugProcess;
+//    StopDebugging:=@StopDebugging;
+//    StopRegisterChange:=@StopRegisterChange;
+//    RetrieveDebugData:=@RetrieveDebugData;
+//    ChangeRegOnBP:=@ChangeRegOnBP;
+    StartProcessWatch:=@StartProcessWatch;
+    WaitForProcessListData:=@WaitForProcessListData;
+    GetProcessNameFromID:=@GetProcessNameFromID;
+    GetProcessNameFromPEProcess:=@GetProcessNameFromPEProcess;
+    IsValidHandle:=@IsValidHandle;
+    GetIDTs:=@GetIDTs;
 
-    GetIDTCurrentThread:=GetProcAddress(DarkByteKernel,'GetIDTCurrentThread');
-    GetGDT:=GetProcAddress(DarkByteKernel,'GetGDT');
-    MakeWritable:=GetProcAddress(DarkByteKernel,'MakeWritable');
-    GetLoadedState:=GetProcAddress(darkbytekernel,'GetLoadedState');
+    GetIDTCurrentThread:=@GetIDTCurrentThread;
+    GetGDT:=@GetGDT;
+    MakeWritable:=@MakeWritable;
+    GetLoadedState:=@GetLoadedState;
 
-    DBKResumeThread:=GetProcAddress(darkByteKernel,'DBKResumeThread');
-    DBKSuspendThread:=GetProcAddress(darkByteKernel,'DBKSuspendThread');
+    DBKResumeThread:=@DBKResumeThread;
+    DBKSuspendThread:=@DBKSuspendThread;
 
-    DBKResumeProcess:=GetProcAddress(darkByteKernel,'DBKResumeProcess');
-    DBKSuspendProcess:=GetProcAddress(darkByteKernel,'DBKSuspendProcess');
+    DBKResumeProcess:=@DBKResumeProcess;
+    DBKSuspendProcess:=@DBKSuspendProcess;
 
-    KernelAlloc:=GetProcAddress(darkbyteKernel,'KernelAlloc');
-    KernelAlloc64:=GetProcAddress(darkbyteKernel,'KernelAlloc64');    
-    GetKProcAddress:=GetProcAddress(darkbytekernel,'GetKProcAddress');
-    GetKProcAddress64:=GetProcAddress(darkbytekernel,'GetKProcAddress64');    
+    KernelAlloc:=@KernelAlloc;
+    KernelAlloc64:=@KernelAlloc64;
+    GetKProcAddress:=@GetKProcAddress;
+    GetKProcAddress64:=@GetKProcAddress64;
 
-    GetSDTEntry:= GetProcAddress(darkbyteKernel,'GetSDTEntry');
-    GetSSDTEntry:=GetProcAddress(darkbyteKernel,'GetSSDTEntry');
+    GetSDTEntry:= @GetSDTEntry;
+    GetSSDTEntry:=@GetSSDTEntry;
 
-    isDriverLoaded:=GetProcAddress(darkbyteKernel,'isDriverLoaded');
-    LaunchDBVM:=GetProcAddress(darkbyteKernel,'LaunchDBVM');
+    isDriverLoaded:=@isDriverLoaded;
+    LaunchDBVM:=@LaunchDBVM;
 
-    ReadPhysicalMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
-    WritePhysicalMemory:=GetProcAddress(DarkByteKernel,'WritePhysicalMemory');
+    ReadPhysicalMemory:=@ReadPhysicalMemory;
+    WritePhysicalMemory:=@WritePhysicalMemory;
 
-    CreateRemoteAPC:=GetProcAddress(darkByteKernel,'CreateRemoteAPC');
-//    SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'SetGlobalDebugState');
+    CreateRemoteAPC:=@CreateRemoteAPC;
+//    SetGlobalDebugState:=@SetGlobalDebugState;
 
-    DBKDebug_ContinueDebugEvent:=GetProcAddress(DarkByteKernel,'DBKDebug_ContinueDebugEvent');
-    DBKDebug_WaitForDebugEvent:=GetProcAddress(DarkByteKernel,'DBKDebug_WaitForDebugEvent');
-    DBKDebug_GetDebuggerState:=GetProcAddress(DarkByteKernel,'DBKDebug_GetDebuggerState');
-    DBKDebug_SetDebuggerState:=GetProcAddress(DarkByteKernel,'DBKDebug_SetDebuggerState');
+    DBKDebug_ContinueDebugEvent:=@DBKDebug_ContinueDebugEvent;
+    DBKDebug_WaitForDebugEvent:=@DBKDebug_WaitForDebugEvent;
+    DBKDebug_GetDebuggerState:=@DBKDebug_GetDebuggerState;
+    DBKDebug_SetDebuggerState:=@DBKDebug_SetDebuggerState;
 
-    DBKDebug_SetGlobalDebugState:=GetProcAddress(DarkByteKernel,'DBKDebug_SetGlobalDebugState');
-    DBKDebug_StartDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StartDebugging');
-    DBKDebug_StopDebugging:=GetProcAddress(DarkByteKernel,'DBKDebug_StopDebugging');
-    DBKDebug_GD_SetBreakpoint:=GetProcAddress(DarkByteKernel,'DBKDebug_GD_SetBreakpoint');
+    DBKDebug_SetGlobalDebugState:=@DBKDebug_SetGlobalDebugState;
+    DBKDebug_StartDebugging:=@DBKDebug_StartDebugging;
+    DBKDebug_StopDebugging:=@DBKDebug_StopDebugging;
+    DBKDebug_GD_SetBreakpoint:=@DBKDebug_GD_SetBreakpoint;
 
-    dbvm_version:=GetProcAddress(DarkByteKernel,'dbvm_version');
-    dbvm_changeselectors:=GetProcAddress(DarkByteKernel,'dbvm_changeselectors');
-    dbvm_block_interrupts:=GetProcAddress(DarkByteKernel,'dbvm_block_interrupts');
-    dbvm_restore_interrupts:=GetProcAddress(DarkByteKernel,'dbvm_restore_interrupts');
+    dbvm_version:=@dbvm_version;
+    dbvm_changeselectors:=@dbvm_changeselectors;
+    dbvm_block_interrupts:=@dbvm_block_interrupts;
+    dbvm_restore_interrupts:=@dbvm_restore_interrupts;
 
-    dbvm_read_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_read_physical_memory');
-    dbvm_write_physical_memory:=GetProcAddress(DarkByteKernel,'dbvm_write_physical_memory');
+    dbvm_read_physical_memory:=@dbvm_read_physical_memory;
+    dbvm_write_physical_memory:=@dbvm_write_physical_memory;
 
-    dbvm_raise_privilege:=GetProcAddress(DarkByteKernel,'dbvm_raise_privilege');
+    dbvm_raise_privilege:=@dbvm_raise_privilege;
 
     {$ifdef cemain}
     if pluginhandler<>nil then
@@ -828,14 +834,14 @@ end;
 procedure DBKPhysicalMemory;
 begin
   LoadDBK32;
-  If DarkByteKernel=0 then exit;
+  If DBKLoaded=false then exit;
 
   UsePhysical:=true;
   Usephysicaldbvm:=false;
   if usefileasmemory then closehandle(filehandle);
   usefileasmemory:=false;
-  ReadProcessMemory:=GetProcAddress(DarkByteKernel,'ReadPhysicalMemory');
-  WriteProcessMemory:=GetProcAddress(DarkByteKernel,'WritePhysicalMemory');
+  ReadProcessMemory:=@ReadPhysicalMemory;
+  WriteProcessMemory:=@WritePhysicalMemory;
   VirtualQueryEx:=@VirtualQueryExPhysical;
 
 
@@ -888,9 +894,9 @@ procedure UseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx to the DBK32 equivalent}
 begin
   LoadDBK32;
-  If DarkByteKernel=0 then exit;
+  If DBKLoaded=false then exit;
   UseDBKOpenProcess;
-  VirtualQueryEx:=GetProcAddress(DarkByteKernel,'VQE');
+  VirtualQueryEx:=@VQE;
   usedbkquery:=true;
 
   if usephysical then DbkPhysicalMemory;
@@ -927,11 +933,11 @@ procedure UseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to the DBK32 equiv: RPM, WPM and VAE }
 begin
   LoadDBK32;
-  If DarkByteKernel=0 then exit;
+  If DBKLoaded=false then exit;
   UseDBKOpenProcess;
-  ReadProcessMemory:=GetProcAddress(DarkByteKernel,'RPM');
-  WriteProcessMemory:=GetProcAddress(DarkByteKernel,'WPM');
-  VirtualAllocEx:=GetProcAddress(DarkByteKernel,'VAE');
+  ReadProcessMemory:=@RPM;
+  WriteProcessMemory:=@WPM;
+  VirtualAllocEx:=@VAE;
   DBKReadWrite:=true;
   if usephysical then DbkPhysicalMemory;
   if usephysicaldbvm then DBKPhysicalMemoryDBVM;
@@ -960,9 +966,9 @@ end;
 procedure UseDBKOpenProcess;
 begin
   LoadDBK32;
-  If DarkByteKernel=0 then exit;
-  OpenProcess:=GetProcAddress(DarkByteKernel,'OP'); //gives back the real handle, or if it fails it gives back a value only valid for the dll
-  OpenThread:=GetProcAddress(DarkByteKernel,'OT');
+  If DBKLoaded=false then exit;
+  OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
+  OpenThread:=@OT;
 
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(10);
@@ -980,7 +986,7 @@ end;
 var x: string;
   psa: thandle;
 initialization
-  DarkByteKernel:=0;
+  DBKLoaded:=false;
 
   usephysical:=false;
   Usephysicaldbvm:=false;
