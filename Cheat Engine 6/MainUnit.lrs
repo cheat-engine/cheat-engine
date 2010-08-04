@@ -164,21 +164,21 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#6#5'Testr'#11'ParentColor'#8#7'Visible'#8#7'OnClick'#7#12'Label59Click'#0#0
   +#6'TLabel'#7'Label61'#4'Left'#3'p'#1#6'Height'#2#14#3'Top'#3'@'#1#5'Width'#2
   +''''#7'Caption'#6#7'Label61'#11'ParentColor'#8#7'Visible'#8#7'OnClick'#7#12
-  +'Label61Click'#0#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#172#1#6'Height'#2
-  +#19#4'Hint'#6#16'Enable speedhack'#3'Top'#3#194#0#5'Width'#2'o'#7'Anchors'#11
+  +'Label61Click'#0#0#9'TCheckBox'#11'cbSpeedhack'#4'Left'#3#174#1#6'Height'#2
+  +#17#4'Hint'#6#16'Enable speedhack'#3'Top'#3#194#0#5'Width'#2'm'#7'Anchors'#11
   +#5'akTop'#7'akRight'#0#7'Caption'#6#16'Enable Speedhack'#7'Enabled'#8#7'OnCl'
   +'ick'#7#16'cbSpeedhackClick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2
   +#24#7'Visible'#8#0#0#7'TButton'#7'NewScan'#4'Left'#3#213#0#6'Height'#2#25#3
   +'Top'#2'0'#5'Width'#2'A'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#10
   +'First Scan'#7'Enabled'#8#7'OnClick'#7#12'NewScanClick'#14'ParentShowHint'#8
-  +#8'TabOrder'#2#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#179#1#6'Height'#2#19
-  +#3'Top'#3#128#0#5'Width'#2'<'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'
+  +#8'TabOrder'#2#1#0#0#9'TCheckBox'#9'cbUnicode'#4'Left'#3#181#1#6'Height'#2#17
+  +#3'Top'#3#128#0#5'Width'#2':'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Caption'
   +#6#7'Unicode'#8'TabOrder'#2#17#7'Visible'#8#0#0#9'TGroupBox'#9'GroupBox1'#4
   +'Left'#3#221#0#6'Height'#3#140#0#3'Top'#3#168#0#5'Width'#3#202#0#7'Anchors'
   +#11#5'akTop'#7'akRight'#0#7'Caption'#6#19'Memory Scan Options'#12'ClientHeig'
   +'ht'#2'z'#11'ClientWidth'#3#198#0#5'Color'#7#9'clBtnFace'#7'Enabled'#8#11'Pa'
   +'rentColor'#8#8'TabOrder'#2#0#0#9'TCheckBox'#8'Readonly'#4'Left'#2#3#6'Heigh'
-  +'t'#2#19#3'Top'#2'-'#5'Width'#3#151#0#7'Caption'#6#26'Also scan read-only me'
+  +'t'#2#17#3'Top'#2'-'#5'Width'#3#149#0#7'Caption'#6#26'Also scan read-only me'
   +'mory'#7'Enabled'#8#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#10
   +'ParentFont'#8#8'TabOrder'#2#2#0#0#5'TMemo'#11'FromAddress'#4'Left'#2')'#6'H'
   +'eight'#2#21#3'Top'#2#0#5'Width'#3#153#0#9'Alignment'#7#14'taRightJustify'#7
@@ -193,11 +193,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'aft'#13'Lines.Strings'#1#6#8'7FFFFFFF'#0#9'MaxLength'#2#8#10'OnKeyPress'#7
   +#15'AddressKeyPress'#10'ParentFont'#8#9'PopupMenu'#7#10'emptypopup'#8'TabOrd'
   +'er'#2#1#11'WantReturns'#8#8'WordWrap'#8#0#0#9'TCheckBox'#10'cbFastScan'#4'L'
-  ,'eft'#2#3#6'Height'#2#19#3'Top'#2'D'#5'Width'#2'B'#7'Caption'#6#9'Fast scan'
+  ,'eft'#2#3#6'Height'#2#17#3'Top'#2'D'#5'Width'#2'@'#7'Caption'#6#9'Fast scan'
   +#7'Checked'#9#7'Enabled'#8#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans S'
   +'erif'#7'OnClick'#7#15'cbFastScanClick'#10'ParentFont'#8#5'State'#7#9'cbChec'
   +'ked'#8'TabOrder'#2#3#0#0#9'TCheckBox'#20'cbPauseWhileScanning'#4'Left'#2#3#6
-  +'Height'#2#19#3'Top'#2'['#5'Width'#3#170#0#7'Caption'#6#29'Pause the game wh'
+  +'Height'#2#17#3'Top'#2'['#5'Width'#3#168#0#7'Caption'#6#29'Pause the game wh'
   +'ile scanning'#7'Enabled'#8#7'OnClick'#7#25'cbPauseWhileScanningClick'#8'Tab'
   +'Order'#2#4#0#0#6'TLabel'#6'Label1'#4'Left'#2#6#6'Height'#2#14#3'Top'#2#3#5
   +'Width'#2#23#7'Caption'#6#5'Start'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'
@@ -229,24 +229,24 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'ProgressBar1'#4'Left'#2'\'#6'Height'#2#16#4'Hint'#6'1This shows how far Che'
   +'at Engine is with searching'#3'Top'#2#14#5'Width'#3#141#1#7'Anchors'#11#5'a'
   +'kTop'#6'akLeft'#7'akRight'#0#14'ParentShowHint'#8#8'ShowHint'#9#4'Step'#2#1
-  +#8'TabOrder'#2#9#0#0#9'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#205#0#6
-  +'Height'#2#19#4'Hint'#6'1When checked the value you type in is hexadecimal'#3
-  +'Top'#2'`'#5'Width'#2''''#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRig'
-  +'ht'#0#7'Caption'#6#3'Hex'#7'Enabled'#8#7'OnClick'#7#24'HexadecimalCheckboxC'
-  +'lick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#10#0#0#7'TButton'#8
-  +'UndoScan'#4'Left'#3#168#1#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'A'#7'Anchor'
-  +'s'#11#5'akTop'#7'akRight'#0#7'Caption'#6#9'Undo scan'#7'Enabled'#8#7'OnClic'
-  +'k'#7#13'UndoScanClick'#8'TabOrder'#2#3#0#0#12'TRadioButton'#5'rbBit'#4'Left'
-  +#3#189#0#6'Height'#2#19#3'Top'#2'X'#5'Width'#2')'#11'HelpContext'#2#7#7'Anch'
-  +'ors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#4'Bits'#7'OnClick'
-  +#7#10'rbBitClick'#8'TabOrder'#2#11#7'Visible'#8#0#0#12'TRadioButton'#5'rbDec'
-  +#4'Left'#3#189#0#6'Height'#2#19#3'Top'#2'i'#5'Width'#2'>'#11'HelpContext'#2#7
-  +#7'Anchors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#7'Decimal'#7
-  +'OnClick'#7#10'rbDecClick'#8'TabOrder'#2#12#7'Visible'#8#0#0#5'TEdit'#9'scan'
-  +'value'#4'Left'#3#252#0#6'Height'#2#21#3'Top'#2'`'#5'Width'#3#27#1#7'Anchors'
+  +#8'TabOrder'#2#9#0#0#9'TCheckBox'#19'HexadecimalCheckbox'#4'Left'#3#207#0#6
+  +'Height'#2#17#4'Hint'#6'1When checked the value you type in is hexadecimal'#3
+  +'Top'#2'`'#5'Width'#2'%'#11'HelpContext'#2#7#7'Anchors'#11#5'akTop'#7'akRigh'
+  +'t'#0#7'Caption'#6#3'Hex'#7'Enabled'#8#7'OnClick'#7#24'HexadecimalCheckboxCl'
+  +'ick'#14'ParentShowHint'#8#8'ShowHint'#9#8'TabOrder'#2#10#0#0#7'TButton'#8'U'
+  +'ndoScan'#4'Left'#3#168#1#6'Height'#2#25#3'Top'#2'0'#5'Width'#2'A'#7'Anchors'
+  +#11#5'akTop'#7'akRight'#0#7'Caption'#6#9'Undo scan'#7'Enabled'#8#7'OnClick'#7
+  +#13'UndoScanClick'#8'TabOrder'#2#3#0#0#12'TRadioButton'#5'rbBit'#4'Left'#3
+  +#189#0#6'Height'#2#19#3'Top'#2'X'#5'Width'#2')'#11'HelpContext'#2#7#7'Anchor'
+  +'s'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#4'Bits'#7'OnClick'#7
+  +#10'rbBitClick'#8'TabOrder'#2#11#7'Visible'#8#0#0#12'TRadioButton'#5'rbDec'#4
+  +'Left'#3#189#0#6'Height'#2#19#3'Top'#2'i'#5'Width'#2'>'#11'HelpContext'#2#7#7
+  +'Anchors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#8#7'Caption'#6#7'Decimal'#7'O'
+  +'nClick'#7#10'rbDecClick'#8'TabOrder'#2#12#7'Visible'#8#0#0#5'TEdit'#9'scanv'
+  +'alue'#4'Left'#3#252#0#6'Height'#2#21#3'Top'#2'`'#5'Width'#3#27#1#7'Anchors'
   +#11#5'akTop'#7'akRight'#0#7'Enabled'#8#10'OnKeyPress'#7#20'ScanvalueoldKeyPr'
   +'ess'#9'PopupMenu'#7#7'ccpmenu'#8'TabOrder'#2#4#0#0#9'TCheckBox'#15'cbCaseSe'
-  +'nsitive'#4'Left'#3#175#1#6'Height'#2#19#3'Top'#3#146#0#5'Width'#2'X'#7'Anch'
+  +'nsitive'#4'Left'#3#177#1#6'Height'#2#17#3'Top'#3#146#0#5'Width'#2'V'#7'Anch'
   +'ors'#11#5'akTop'#7'akRight'#0#7'Caption'#6#14'Case sensitive'#7'Checked'#9#7
   +'Enabled'#8#7'OnClick'#7#20'cbCaseSensitiveClick'#14'ParentShowHint'#8#8'Sho'
   +'wHint'#9#5'State'#7#9'cbChecked'#8'TabOrder'#2#13#7'Visible'#8#0#0#9'TListV'
@@ -321,11 +321,11 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'m'#8'AutoSize'#8#7'Caption'#6#17'Rounded (default)'#8'TabOrder'#2#0#7'TabSt'
   +'op'#8#0#0#12'TRadioButton'#3'rt2'#4'Left'#2#4#6'Height'#2#19#3'Top'#2#17#5
   +'Width'#2'r'#8'AutoSize'#8#7'Caption'#6#17'Rounded (extreme)'#8'TabOrder'#2#1
-  ,#7'TabStop'#8#0#0#0#9'TCheckBox'#14'cbUnrandomizer'#4'Left'#3#172#1#6'Height'
-  +#2#19#3'Top'#3#174#0#5'Width'#2'U'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Cap'
+  ,#7'TabStop'#8#0#0#0#9'TCheckBox'#14'cbUnrandomizer'#4'Left'#3#174#1#6'Height'
+  +#2#17#3'Top'#3#174#0#5'Width'#2'S'#7'Anchors'#11#5'akTop'#7'akRight'#0#7'Cap'
   +'tion'#6#12'Unrandomizer'#7'Enabled'#8#7'OnClick'#7#19'cbUnrandomizerClick'
   +#11'OnMouseDown'#7#23'cbUnrandomizerMouseDown'#8'TabOrder'#2#18#0#0#9'TCheck'
-  +'Box'#6'mode16'#4'Left'#2'`'#6'Height'#2#19#3'Top'#3'@'#1#5'Width'#2':'#7'Ca'
+  +'Box'#6'mode16'#4'Left'#2'`'#6'Height'#2#17#3'Top'#3'@'#1#5'Width'#2'8'#7'Ca'
   +'ption'#6#6'mode16'#8'TabOrder'#2#19#7'Visible'#8#0#0#7'TButton'#7'Button2'#4
   +'Left'#3#199#0#6'Height'#2#25#3'Top'#2' '#5'Width'#2'K'#7'Caption'#6#11'Firs'
   +'t Scan2'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#20#7'Visible'#8#0#0#7
@@ -769,136 +769,165 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#1#4'Text'#6#1'1'#0#0#9'TTrackBar'#7'tbSpeed'#4'Left'#2#0#6'Height'#2'!'#3'T'
   +'op'#2#24#5'Width'#2'u'#8'OnChange'#7#13'tbSpeedChange'#8'Position'#2#2#8'Ta'
   +'bOrder'#2#2#0#0#0#6'TLabel'#6'Label3'#4'Left'#3'x'#1#6'Height'#2#14#3'Top'#2
-  ,'('#5'Width'#2'!'#7'Caption'#6#6'Label3'#11'ParentColor'#8#7'OnClick'#7#11'L'
-  +'abel3Click'#0#0#0#6'TTimer'#11'UpdateTimer'#8'Interval'#3#244#1#7'OnTimer'#7
-  +#16'UpdateTimerTimer'#4'left'#3#184#1#3'top'#3#232#1#0#0#6'TTimer'#11'Freeze'
-  +'Timer'#8'Interval'#3#250#0#7'OnTimer'#7#16'FreezeTimerTimer'#4'left'#3'H'#1
-  +#3'top'#3#232#1#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7#15'PopupMenu2'
-  +'Popup'#4'left'#3#184#0#3'top'#3'x'#1#0#9'TMenuItem'#17'Deletethisrecord1'#7
-  +'Caption'#6#18'Delete this record'#8'ShortCut'#2'.'#7'OnClick'#7#22'Deleteth'
-  +'isrecord1Click'#0#0#9'TMenuItem'#7'Change1'#7'Caption'#6#13'Change record'
-  +#10'GroupIndex'#2#2#0#9'TMenuItem'#12'Description1'#7'Caption'#6#11'Descript'
-  +'ion'#8'ShortCut'#3#13'@'#7'OnClick'#7#17'Description1Click'#0#0#9'TMenuItem'
-  +#8'Address1'#7'Caption'#6#7'Address'#8'ShortCut'#4#13#192#0#0#7'OnClick'#7#13
-  +'Address1Click'#0#0#9'TMenuItem'#4'ype1'#7'Caption'#6#4'Type'#8'ShortCut'#4
-  +#13#128#0#0#7'OnClick'#7#9'ype1Click'#0#0#9'TMenuItem'#6'Value1'#7'Caption'#6
-  +#5'Value'#8'ShortCut'#2#13#7'OnClick'#7#11'Value1Click'#0#0#9'TMenuItem'#19
-  +'Smarteditaddresses1'#7'Caption'#6#22'Smart edit address(es)'#10'GroupIndex'
-  +#2#2#8'ShortCut'#4#13#224#0#0#7'OnClick'#7#24'Smarteditaddresses1Click'#0#0#0
-  +#9'TMenuItem'#23'Browsethismemoryregion1'#7'Caption'#6#25'Browse this memory'
-  +' region'#10'GroupIndex'#2#2#7'OnClick'#7#28'Browsethismemoryregion1Click'#0
-  +#0#9'TMenuItem'#18'Showashexadecimal1'#7'Caption'#6#19'Show as hexadecimal'
-  +#10'GroupIndex'#2#2#7'OnClick'#7#23'Showashexadecimal1Click'#0#0#9'TMenuItem'
-  +#10'SetHotkey1'#7'Caption'#6#13'Assign Hotkey'#10'GroupIndex'#2#2#7'OnClick'
-  +#7#15'SetHotkey1Click'#0#0#9'TMenuItem'#19'Freezealladdresses2'#7'Caption'#6
-  +#16'Toggle Addresses'#10'GroupIndex'#2#2#8'ShortCut'#2' '#7'Visible'#8#7'OnC'
-  +'lick'#7#24'Freezealladdresses2Click'#0#0#9'TMenuItem'#16'miFreezePositive'#7
-  +'Caption'#6#15'Freeze Positive'#8'ShortCut'#2'k'#7'Visible'#8#7'OnClick'#7#21
-  +'miFreezePositiveClick'#0#0#9'TMenuItem'#16'miFreezeNegative'#7'Caption'#6#15
-  +'Freeze Negative'#8'ShortCut'#2'm'#7'Visible'#8#7'OnClick'#7#21'miFreezeNega'
-  +'tiveClick'#0#0#9'TMenuItem'#13'Changescript1'#7'Caption'#6#13'Change script'
-  +#10'GroupIndex'#2#2#7'Visible'#8#7'OnClick'#7#18'Changescript1Click'#0#0#9'T'
-  +'MenuItem'#2'N5'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#26'Po'
-  +'interscanforthisaddress1'#7'Caption'#6#29'Pointer scan for this address'#10
-  +'GroupIndex'#2#2#7'OnClick'#7#31'Pointerscanforthisaddress1Click'#0#0#9'TMen'
-  +'uItem'#31'Findoutwhataccessesthisaddress1'#7'Caption'#6'#Find out what acce'
-  +'sses this address'#10'GroupIndex'#2#2#7'OnClick'#7'$Findoutwhataccessesthis'
-  +'address1Click'#0#0#9'TMenuItem'#14'Setbreakpoint1'#7'Caption'#6'$Find out w'
-  +'hat writes to this address'#10'GroupIndex'#2#2#7'OnClick'#7#19'Setbreakpoin'
-  +'t1Click'#0#0#9'TMenuItem'#4'sep1'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9
-  +'TMenuItem'#23'Calculatenewvaluepart21'#7'Caption'#6#25'Recalculate new addr'
-  +'esses'#10'GroupIndex'#2#2#7'OnClick'#7#28'Calculatenewvaluepart21Click'#0#0
-  +#9'TMenuItem'#20'Forcerechecksymbols1'#7'Caption'#6#21'Force recheck symbols'
-  +#10'GroupIndex'#2#2#7'OnClick'#7#25'Forcerechecksymbols1Click'#0#0#9'TMenuIt'
-  +'em'#2'N4'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#4'Cut1'#7'C'
-  +'aption'#6#3'Cut'#10'GroupIndex'#2#2#8'ShortCut'#3'X@'#7'OnClick'#7#9'Cut1Cl'
-  +'ick'#0#0#9'TMenuItem'#5'Copy1'#7'Caption'#6#4'Copy'#10'GroupIndex'#2#2#8'Sh'
-  +'ortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuItem'#6'Paste1'#7'Capt'
-  +'ion'#6#5'Paste'#10'GroupIndex'#2#2#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste1'
-  +'Click'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#10'Select All'#8'ShortCut'
-  +#3'A@'#7'Visible'#8#7'OnClick'#7#14'MenuItem1Click'#0#0#9'TMenuItem'#2'N1'#7
-  +'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#11'CreateGroup'#7'Capti'
-  +'on'#6#12'Create Group'#7'OnClick'#7#16'CreateGroupClick'#0#0#9'TMenuItem'#8
-  +'Plugins1'#7'Caption'#6#7'Plugins'#10'GroupIndex'#2#2#7'Visible'#8#0#0#0#10
-  +'TPopupMenu'#10'PopupMenu1'#7'OnPopup'#7#15'PopupMenu1Popup'#4'left'#2'h'#3
-  +'top'#3#184#0#0#9'TMenuItem'#22'Browsethismemoryarrea1'#7'Caption'#6#25'Brow'
-  +'se this memory region'#7'OnClick'#7#27'Browsethismemoryarrea1Click'#0#0#9'T'
-  +'MenuItem(Browsethismemoryregioninthedisassembler1'#7'Caption'#6#30'Disassem'
-  +'ble this memory region'#7'Enabled'#8#7'OnClick'#7'-Browsethismemoryregionin'
-  +'thedisassembler1Click'#0#0#9'TMenuItem'#24'Removeselectedaddresses1'#7'Capt'
-  +'ion'#6#25'Remove selected addresses'#7'Visible'#8#7'OnClick'#7#29'Removesel'
-  +'ectedaddresses1Click'#0#0#9'TMenuItem'#15'Selectallitems1'#7'Caption'#6#16
-  +'Select all items'#7'OnClick'#7#20'Selectallitems1Click'#0#0#0#11'TOpenDialo'
-  +'g'#11'OpenDialog1'#10'DefaultExt'#6#3'.CT'#6'Filter'#6#234'Cheat Engine Tab'
-  +'les (*.CET;*.CT2,*.CT3;*.CT)|*.CT;*.CT3;*.CT2;*.CET|Cheat Table XML|*.XML|G'
-  +'amehack tables (*.GH)|*.GH|ArtMoney Tables (*.AMT)|*.AMT|All files (*.*)|*.'
-  +'*|All supported cheat tables|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.XML'#11'Fi'
-  ,'lterIndex'#2#6#7'Options'#11#14'ofHideReadOnly'#15'ofFileMustExist'#14'ofEn'
-  +'ableSizing'#0#4'left'#2'0'#3'top'#2'h'#0#0#11'TSaveDialog'#11'SaveDialog1'
-  +#10'DefaultExt'#6#3'.CT'#6'Filter'#6'`Cheat Engine Tables (*.CT)|*.CT|Cheat '
-  +'Engine Trainer (*.EXE)|*.EXE|Cheat Table XML (*.XML)|*.XML'#7'Options'#11#10
-  +'ofReadOnly'#17'ofOverwritePrompt'#14'ofHideReadOnly'#15'ofPathMustExist'#14
-  +'ofEnableSizing'#0#4'left'#2#16#3'top'#2'h'#0#0#6'TTimer'#11'TopDisabler'#7
-  +'Enabled'#8#8'Interval'#3#136#19#7'OnTimer'#7#16'TopDisablerTimer'#4'left'#2
-  +'('#3'top'#3#232#1#0#0#10'TPopupMenu'#10'emptypopup'#4'left'#2'h'#3'top'#3
-  +#155#0#0#9'TMenuItem'#9'MenuItem2'#7'Caption'#6#9'New Item1'#0#0#0#10'TPopup'
-  +'Menu'#7'ccpmenu'#7'OnPopup'#7#12'ccpmenuPopup'#4'left'#3#248#1#3'top'#2'X'#0
-  +#9'TMenuItem'#4'Cut2'#7'Caption'#6#3'Cut'#8'ShortCut'#3'X@'#7'OnClick'#7#9'C'
-  +'ut2Click'#0#0#9'TMenuItem'#5'Copy2'#7'Caption'#6#4'Copy'#8'ShortCut'#3'C@'#7
-  +'OnClick'#7#10'Copy2Click'#0#0#9'TMenuItem'#6'Paste2'#7'Caption'#6#5'Paste'#8
-  +'ShortCut'#3'V@'#7'OnClick'#7#11'Paste2Click'#0#0#0#11'TActionList'#11'Actio'
-  +'nList1'#6'Images'#7#10'ImageList1'#4'left'#2'0'#3'top'#2'H'#0#7'TAction'#7
-  +'actSave'#10'ImageIndex'#2#0#9'OnExecute'#7#14'actSaveExecute'#8'ShortCut'#3
-  +'S@'#0#0#7'TAction'#7'actOpen'#10'ImageIndex'#2#1#9'OnExecute'#7#14'actOpenE'
-  +'xecute'#8'ShortCut'#3'O@'#0#0#7'TAction'#15'actAutoAssemble'#7'Caption'#6#15
-  +'actAutoAssemble'#9'OnExecute'#7#22'actAutoAssembleExecute'#8'ShortCut'#4'A'
-  +#192#0#0#0#0#7'TAction'#15'actScriptEngine'#7'Caption'#6#13'Script Engine'#9
-  +'OnExecute'#7#22'actScriptEngineExecute'#0#0#7'TAction'#13'actMemoryView'#7
-  +'Caption'#6#13'actMemoryView'#9'OnExecute'#7#18'btnMemoryViewClick'#8'ShortC'
-  +'ut'#3'M@'#0#0#7'TAction'#18'actOpenProcesslist'#9'OnExecute'#7#25'actOpenPr'
-  +'ocesslistExecute'#8'ShortCut'#3'P@'#0#0#0#10'TImageList'#10'ImageList1'#7'B'
-  +'kColor'#7#12'clForeground'#4'left'#2#8#3'top'#3#168#0#6'Bitmap'#10#14#8#0#0
-  +'Li'#2#0#0#0#16#0#0#0#16#0#0#0#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  ,'('#5'Width'#2'!'#7'Caption'#6#6'Label3'#11'ParentColor'#8#7'Visible'#8#7'On'
+  +'Click'#7#11'Label3Click'#0#0#0#6'TTimer'#11'UpdateTimer'#8'Interval'#3#244#1
+  +#7'OnTimer'#7#16'UpdateTimerTimer'#4'left'#3#184#1#3'top'#3#232#1#0#0#6'TTim'
+  +'er'#11'FreezeTimer'#8'Interval'#3#250#0#7'OnTimer'#7#16'FreezeTimerTimer'#4
+  +'left'#3'H'#1#3'top'#3#232#1#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7
+  +#15'PopupMenu2Popup'#4'left'#3#184#0#3'top'#3'x'#1#0#9'TMenuItem'#17'Deletet'
+  +'hisrecord1'#7'Caption'#6#18'Delete this record'#8'ShortCut'#2'.'#7'OnClick'
+  +#7#22'Deletethisrecord1Click'#0#0#9'TMenuItem'#7'Change1'#7'Caption'#6#13'Ch'
+  +'ange record'#10'GroupIndex'#2#2#0#9'TMenuItem'#12'Description1'#7'Caption'#6
+  +#11'Description'#8'ShortCut'#3#13'@'#7'OnClick'#7#17'Description1Click'#0#0#9
+  +'TMenuItem'#8'Address1'#7'Caption'#6#7'Address'#8'ShortCut'#4#13#192#0#0#7'O'
+  +'nClick'#7#13'Address1Click'#0#0#9'TMenuItem'#4'ype1'#7'Caption'#6#4'Type'#8
+  +'ShortCut'#4#13#128#0#0#7'OnClick'#7#9'ype1Click'#0#0#9'TMenuItem'#6'Value1'
+  +#7'Caption'#6#5'Value'#8'ShortCut'#2#13#7'OnClick'#7#11'Value1Click'#0#0#9'T'
+  +'MenuItem'#19'Smarteditaddresses1'#7'Caption'#6#22'Smart edit address(es)'#10
+  +'GroupIndex'#2#2#8'ShortCut'#4#13#224#0#0#7'OnClick'#7#24'Smarteditaddresses'
+  +'1Click'#0#0#0#9'TMenuItem'#23'Browsethismemoryregion1'#7'Caption'#6#25'Brow'
+  +'se this memory region'#10'GroupIndex'#2#2#7'OnClick'#7#28'Browsethismemoryr'
+  +'egion1Click'#0#0#9'TMenuItem'#18'Showashexadecimal1'#7'Caption'#6#19'Show a'
+  +'s hexadecimal'#10'GroupIndex'#2#2#7'OnClick'#7#23'Showashexadecimal1Click'#0
+  +#0#9'TMenuItem'#10'SetHotkey1'#7'Caption'#6#13'Assign Hotkey'#10'GroupIndex'
+  +#2#2#7'OnClick'#7#15'SetHotkey1Click'#0#0#9'TMenuItem'#19'Freezealladdresses'
+  +'2'#7'Caption'#6#16'Toggle Addresses'#10'GroupIndex'#2#2#8'ShortCut'#2' '#7
+  +'Visible'#8#7'OnClick'#7#24'Freezealladdresses2Click'#0#0#9'TMenuItem'#16'mi'
+  +'FreezePositive'#7'Caption'#6#15'Freeze Positive'#8'ShortCut'#2'k'#7'Visible'
+  +#8#7'OnClick'#7#21'miFreezePositiveClick'#0#0#9'TMenuItem'#16'miFreezeNegati'
+  +'ve'#7'Caption'#6#15'Freeze Negative'#8'ShortCut'#2'm'#7'Visible'#8#7'OnClic'
+  +'k'#7#21'miFreezeNegativeClick'#0#0#9'TMenuItem'#13'Changescript1'#7'Caption'
+  +#6#13'Change script'#10'GroupIndex'#2#2#7'Visible'#8#7'OnClick'#7#18'Changes'
+  +'cript1Click'#0#0#9'TMenuItem'#2'N5'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0
+  +#9'TMenuItem'#26'Pointerscanforthisaddress1'#7'Caption'#6#29'Pointer scan fo'
+  +'r this address'#10'GroupIndex'#2#2#7'OnClick'#7#31'Pointerscanforthisaddres'
+  +'s1Click'#0#0#9'TMenuItem'#31'Findoutwhataccessesthisaddress1'#7'Caption'#6
+  +'#Find out what accesses this address'#10'GroupIndex'#2#2#7'OnClick'#7'$Find'
+  +'outwhataccessesthisaddress1Click'#0#0#9'TMenuItem'#14'Setbreakpoint1'#7'Cap'
+  +'tion'#6'$Find out what writes to this address'#10'GroupIndex'#2#2#7'OnClick'
+  +#7#19'Setbreakpoint1Click'#0#0#9'TMenuItem'#4'sep1'#7'Caption'#6#1'-'#10'Gro'
+  +'upIndex'#2#2#0#0#9'TMenuItem'#23'Calculatenewvaluepart21'#7'Caption'#6#25'R'
+  +'ecalculate new addresses'#10'GroupIndex'#2#2#7'OnClick'#7#28'Calculatenewva'
+  +'luepart21Click'#0#0#9'TMenuItem'#20'Forcerechecksymbols1'#7'Caption'#6#21'F'
+  +'orce recheck symbols'#10'GroupIndex'#2#2#7'OnClick'#7#25'Forcerechecksymbol'
+  +'s1Click'#0#0#9'TMenuItem'#2'N4'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9
+  +'TMenuItem'#4'Cut1'#7'Caption'#6#3'Cut'#10'GroupIndex'#2#2#8'ShortCut'#3'X@'
+  +#7'OnClick'#7#9'Cut1Click'#0#0#9'TMenuItem'#5'Copy1'#7'Caption'#6#4'Copy'#10
+  +'GroupIndex'#2#2#8'ShortCut'#3'C@'#7'OnClick'#7#10'Copy1Click'#0#0#9'TMenuIt'
+  +'em'#6'Paste1'#7'Caption'#6#5'Paste'#10'GroupIndex'#2#2#8'ShortCut'#3'V@'#7
+  +'OnClick'#7#11'Paste1Click'#0#0#9'TMenuItem'#9'MenuItem1'#7'Caption'#6#10'Se'
+  +'lect All'#8'ShortCut'#3'A@'#7'Visible'#8#7'OnClick'#7#14'MenuItem1Click'#0#0
+  +#9'TMenuItem'#2'N1'#7'Caption'#6#1'-'#10'GroupIndex'#2#2#0#0#9'TMenuItem'#11
+  +'CreateGroup'#7'Caption'#6#12'Create Group'#7'OnClick'#7#16'CreateGroupClick'
+  +#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#10'GroupIndex'#2#2#7'V'
+  +'isible'#8#0#0#0#10'TPopupMenu'#10'PopupMenu1'#7'OnPopup'#7#15'PopupMenu1Pop'
+  +'up'#4'left'#2'h'#3'top'#3#184#0#0#9'TMenuItem'#22'Browsethismemoryarrea1'#7
+  +'Caption'#6#25'Browse this memory region'#7'OnClick'#7#27'Browsethismemoryar'
+  +'rea1Click'#0#0#9'TMenuItem(Browsethismemoryregioninthedisassembler1'#7'Capt'
+  +'ion'#6#30'Disassemble this memory region'#7'Enabled'#8#7'OnClick'#7'-Browse'
+  +'thismemoryregioninthedisassembler1Click'#0#0#9'TMenuItem'#24'Removeselected'
+  +'addresses1'#7'Caption'#6#25'Remove selected addresses'#7'Visible'#8#7'OnCli'
+  +'ck'#7#29'Removeselectedaddresses1Click'#0#0#9'TMenuItem'#15'Selectallitems1'
+  +#7'Caption'#6#16'Select all items'#7'OnClick'#7#20'Selectallitems1Click'#0#0
+  +#0#11'TOpenDialog'#11'OpenDialog1'#10'DefaultExt'#6#3'.CT'#6'Filter'#6#234'C'
+  +'heat Engine Tables (*.CET;*.CT2,*.CT3;*.CT)|*.CT;*.CT3;*.CT2;*.CET|Cheat Ta'
+  +'ble XML|*.XML|Gamehack tables (*.GH)|*.GH|ArtMoney Tables (*.AMT)|*.AMT|All'
+  +' files (*.*)|*.*|All supported cheat tables|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.A'
+  ,'MT;*.XML'#11'FilterIndex'#2#6#7'Options'#11#14'ofHideReadOnly'#15'ofFileMus'
+  +'tExist'#14'ofEnableSizing'#0#4'left'#2'0'#3'top'#2'h'#0#0#11'TSaveDialog'#11
+  +'SaveDialog1'#10'DefaultExt'#6#3'.CT'#6'Filter'#6'`Cheat Engine Tables (*.CT'
+  +')|*.CT|Cheat Engine Trainer (*.EXE)|*.EXE|Cheat Table XML (*.XML)|*.XML'#7
+  +'Options'#11#10'ofReadOnly'#17'ofOverwritePrompt'#14'ofHideReadOnly'#15'ofPa'
+  +'thMustExist'#14'ofEnableSizing'#0#4'left'#2#16#3'top'#2'h'#0#0#6'TTimer'#11
+  +'TopDisabler'#7'Enabled'#8#8'Interval'#3#136#19#7'OnTimer'#7#16'TopDisablerT'
+  +'imer'#4'left'#2'('#3'top'#3#232#1#0#0#10'TPopupMenu'#10'emptypopup'#4'left'
+  +#2'h'#3'top'#3#155#0#0#9'TMenuItem'#9'MenuItem2'#7'Caption'#6#9'New Item1'#0
+  +#0#0#10'TPopupMenu'#7'ccpmenu'#7'OnPopup'#7#12'ccpmenuPopup'#4'left'#3#248#1
+  +#3'top'#2'X'#0#9'TMenuItem'#4'Cut2'#7'Caption'#6#3'Cut'#8'ShortCut'#3'X@'#7
+  +'OnClick'#7#9'Cut2Click'#0#0#9'TMenuItem'#5'Copy2'#7'Caption'#6#4'Copy'#8'Sh'
+  +'ortCut'#3'C@'#7'OnClick'#7#10'Copy2Click'#0#0#9'TMenuItem'#6'Paste2'#7'Capt'
+  +'ion'#6#5'Paste'#8'ShortCut'#3'V@'#7'OnClick'#7#11'Paste2Click'#0#0#0#11'TAc'
+  +'tionList'#11'ActionList1'#6'Images'#7#10'ImageList1'#4'left'#2'0'#3'top'#2
+  +'H'#0#7'TAction'#7'actSave'#10'ImageIndex'#2#0#9'OnExecute'#7#14'actSaveExec'
+  +'ute'#8'ShortCut'#3'S@'#0#0#7'TAction'#7'actOpen'#10'ImageIndex'#2#1#9'OnExe'
+  +'cute'#7#14'actOpenExecute'#8'ShortCut'#3'O@'#0#0#7'TAction'#15'actAutoAssem'
+  +'ble'#7'Caption'#6#15'actAutoAssemble'#9'OnExecute'#7#22'actAutoAssembleExec'
+  +'ute'#8'ShortCut'#4'A'#192#0#0#0#0#7'TAction'#15'actScriptEngine'#7'Caption'
+  +#6#13'Script Engine'#9'OnExecute'#7#22'actScriptEngineExecute'#0#0#7'TAction'
+  +#13'actMemoryView'#7'Caption'#6#13'actMemoryView'#9'OnExecute'#7#18'btnMemor'
+  +'yViewClick'#8'ShortCut'#3'M@'#0#0#7'TAction'#18'actOpenProcesslist'#9'OnExe'
+  +'cute'#7#25'actOpenProcesslistExecute'#8'ShortCut'#3'P@'#0#0#0#10'TImageList'
+  +#10'ImageList1'#7'BkColor'#7#12'clForeground'#4'left'#2#8#3'top'#3#168#0#6'B'
+  +'itmap'#10#14#8#0#0'Li'#2#0#0#0#16#0#0#0#16#0#0#0#0#0#0#255#0#0#0#255#0#0#0
   +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0
-  +#0#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198
-  +#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#0#0#0#255#198
-  +#198#198#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#132#132#255#0#0#0#255#198#198#198#255#198#198#198#255#198#198#198#255
   +#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198
-  +#255#198#198#198#255#198#198#198#255#198#198#198#255#0#0#0#255#0#0#0#255#0#0
-  +#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255#198#198#198#255
+  +#255#0#0#0#255#198#198#198#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132
+  +#132#255#0#0#0#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198
+  +#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#0#0
+  +#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0
+  +#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198
+  +#198#255#198#198#198#255#198#198#198#255#198#198#198#255#0#0#0#255#0#132#132
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255#198#198
+  +#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198
+  +#198#198#255#198#198#198#255#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255#198#198#198#255
   +#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198
   +#255#198#198#198#255#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0
   +#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255#198#198#198#255#198#198#198
   +#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198
   +#198#255#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#132#132#255#0#0#0#255#198#198#198#255#198#198#198#255#198
-  +#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255
-  +#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#132#132#255#0#0#0#255#198#198#198#255#198#198#198#255#198#198#198#255
-  +#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198#255#198#198#198
-  +#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132
-  +#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0
-  +#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0
+  +#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0
+  +#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132
+  +#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0
+  +#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255
+  +#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255
+  +#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#198#198#198#255#198#198
+  +#198#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255
+  +#0#0#0#255#198#198#198#255#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0#255
+  +#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#198#198#198#255#198#198#198#255
+  +#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  ,#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
+  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#255#255#255
+  +#255#0#255#255#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255
+  +#255#255#255#255#0#255#255#255#255#255#255#255#0#255#255#255#255#255#255#255
+  +#0#255#255#255#255#255#255#255#0#255#255#255#255#255#255#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#255#255
+  +#255#255#0#255#255#255#255#255#255#255#0#255#255#255#255#255#255#255#0#255
+  +#255#255#255#255#255#255#0#255#255#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#255#255#255#255#0#255#255#255#255#255#255
+  +#255#0#255#255#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255
+  +#255#255#255#255#255#0#255#255#255#0#0#0#255#0#132#132#255#0#132#132#255#0
+  +#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132
+  +#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#255#255#255#255#0#255
+  +#255#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0
+  +#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#0#0
+  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#0#0#0#255#0#132#132#255#0
   +#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132
   +#132#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255
-  +#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0
-  +#0#255#0#0#0#255#0#0#0#255#0#0#0#255#198#198#198#255#198#198#198#255#0#0#0
-  +#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132#132#255#0
-  +#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#198
-  +#198#198#255#198#198#198#255#0#0#0#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0
-  +#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#198#198#198#255#198#198#198#255#0#0#0#255#0#132
-  +#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  ,#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
+  +#0#0#0#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255
+  +#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#0#0
   +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
   +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
   +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
@@ -907,64 +936,35 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
   +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
   +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#255#255#255#255#0#255#255
   +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#255#255#255#255#0
-  +#255#255#255#255#255#255#255#0#255#255#255#255#255#255#255#0#255#255#255#255
-  +#255#255#255#0#255#255#255#255#255#255#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0
-  +#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#255#255#255#255#0#255#255
-  +#255#255#255#255#255#0#255#255#255#255#255#255#255#0#255#255#255#255#255#255
-  +#255#0#255#255#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#255#255#255#255#0#255#255#255#255#255#255#255#0#255#255#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#255#255#255#255#255#255#255#0
-  +#255#255#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132
-  +#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#255#255#255#255#0#255#255#255#0#0#0#255#0#132
-  +#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132
-  +#255#0#132#132#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255
-  +#0#0#0#255#0#255#255#255#0#0#0#255#0#132#132#255#0#132#132#255#0#132#132#255
-  +#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132
-  +#132#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#132
-  +#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132#255#0#132#132
-  +#255#0#132#132#255#0#132#132#255#0#132#132#255#0#0#0#255#0#0#0#255#0#0#0#255
-  +#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0
-  +#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0
-  +#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#0#255#0#0#6'TTimer'#20
-  +'UpdateFoundlisttimer'#8'Interval'#3#244#1#7'OnTimer'#7#25'UpdateFoundlistti'
-  +'merTimer'#4'left'#3#184#0#3'top'#3#232#1#0#0#6'TTimer'#15'AutoAttachTimer'#7
-  +'Enabled'#8#8'Interval'#3#208#7#7'OnTimer'#7#20'AutoAttachTimerTimer'#4'left'
-  +#3#184#1#3'top'#3'h'#1#0#0#9'TMainMenu'#9'MainMenu1'#4'left'#2#16#3'top'#2'H'
-  +#0#9'TMenuItem'#5'File1'#7'Caption'#6#5'&File'#7'OnClick'#7#10'File1Click'#0
-  +#9'TMenuItem'#8'miAddTab'#7'Caption'#6#12'Add scan tab'#7'OnClick'#7#13'miAd'
-  +'dTabClick'#0#0#9'TMenuItem'#4'New1'#7'Caption'#6#10'Clear list'#7'OnClick'#7
-  +#9'New1Click'#0#0#9'TMenuItem'#2'N7'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#5'Sa'
-  +'ve1'#6'Action'#7#7'actSave'#7'Caption'#6#4'Save'#7'OnClick'#7#14'actSaveExe'
-  +'cute'#0#0#9'TMenuItem'#5'Load1'#6'Action'#7#7'actOpen'#7'Caption'#6#4'Load'
-  +#7'OnClick'#7#14'actOpenExecute'#0#0#0#9'TMenuItem'#5'Edit3'#7'Caption'#6#5
-  +'&Edit'#0#9'TMenuItem'#9'Settings1'#7'Caption'#6#8'Settings'#7'OnClick'#7#13
-  +'SettingsClick'#0#0#0#9'TMenuItem'#8'Process1'#7'Caption'#6#8'&Process'#7'On'
-  +'Click'#7#13'Process1Click'#0#9'TMenuItem'#12'OpenProcess1'#7'Caption'#6#19
-  +'Open Process window'#7'OnClick'#7#26'ShowProcessListButtonClick'#0#0#9'TMen'
-  +'uItem'#14'CreateProcess1'#7'Caption'#6#14'Create Process'#7'OnClick'#7#19'C'
-  +'reateProcess1Click'#0#0#9'TMenuItem'#2'N6'#7'Caption'#6#1'-'#0#0#9'TMenuIte'
-  +'m'#2'a1'#7'Caption'#6#1'a'#0#0#9'TMenuItem'#2'b1'#7'Caption'#6#1'b'#0#0#9'T'
-  +'MenuItem'#2'c1'#7'Caption'#6#1'c'#0#0#9'TMenuItem'#2'd1'#7'Caption'#6#1'd'#0
-  +#0#9'TMenuItem'#2'e1'#7'Caption'#6#1'e'#0#0#0#9'TMenuItem'#5'ools1'#7'Captio'
-  +'n'#6#6'&Tools'#0#0#9'TMenuItem'#8'Plugins2'#7'Caption'#6#8'P&lugins'#7'Visi'
-  +'ble'#8#0#0#9'TMenuItem'#5'Help1'#7'Caption'#6#5'&Help'#0#9'TMenuItem'#10'He'
-  +'lpindex1'#7'Caption'#6#17'Cheat Engine Help'#8'ShortCut'#2'p'#7'OnClick'#7
-  +#15'Helpindex1Click'#0#0#9'TMenuItem'#2'N8'#7'Caption'#6#1'-'#0#0#9'TMenuIte'
-  ,'m'#6'About1'#7'Caption'#6#5'About'#7'OnClick'#7#11'About1Click'#0#0#0#0#10
-  +'TPopupMenu'#9'pmTablist'#7'OnPopup'#7#14'pmTablistPopup'#4'left'#2' '#3'top'
-  +#3#0#1#0#9'TMenuItem'#11'miRenameTab'#7'Caption'#6#6'Rename'#7'OnClick'#7#16
-  +'miRenameTabClick'#0#0#9'TMenuItem'#18'miTablistSeperator'#7'Caption'#6#1'-'
-  +#0#0#9'TMenuItem'#10'miCloseTab'#7'Caption'#6#9'Close tab'#7'OnClick'#7#15'm'
-  +'iCloseTabClick'#0#0#0#0
+  +#0#0#255#0#0#6'TTimer'#20'UpdateFoundlisttimer'#8'Interval'#3#244#1#7'OnTime'
+  +'r'#7#25'UpdateFoundlisttimerTimer'#4'left'#3#184#0#3'top'#3#232#1#0#0#6'TTi'
+  +'mer'#15'AutoAttachTimer'#7'Enabled'#8#8'Interval'#3#208#7#7'OnTimer'#7#20'A'
+  +'utoAttachTimerTimer'#4'left'#3#184#1#3'top'#3'h'#1#0#0#9'TMainMenu'#9'MainM'
+  +'enu1'#4'left'#2#16#3'top'#2'H'#0#9'TMenuItem'#5'File1'#7'Caption'#6#5'&File'
+  +#7'OnClick'#7#10'File1Click'#0#9'TMenuItem'#8'miAddTab'#7'Caption'#6#12'Add '
+  +'scan tab'#7'OnClick'#7#13'miAddTabClick'#0#0#9'TMenuItem'#4'New1'#7'Caption'
+  +#6#10'Clear list'#7'OnClick'#7#9'New1Click'#0#0#9'TMenuItem'#2'N7'#7'Caption'
+  +#6#1'-'#0#0#9'TMenuItem'#5'Save1'#6'Action'#7#7'actSave'#7'Caption'#6#4'Save'
+  +#7'OnClick'#7#14'actSaveExecute'#0#0#9'TMenuItem'#5'Load1'#6'Action'#7#7'act'
+  +'Open'#7'Caption'#6#4'Load'#7'OnClick'#7#14'actOpenExecute'#0#0#0#9'TMenuIte'
+  +'m'#5'Edit3'#7'Caption'#6#5'&Edit'#0#9'TMenuItem'#9'Settings1'#7'Caption'#6#8
+  +'Settings'#7'OnClick'#7#13'SettingsClick'#0#0#0#9'TMenuItem'#8'Process1'#7'C'
+  +'aption'#6#8'&Process'#7'OnClick'#7#13'Process1Click'#0#9'TMenuItem'#12'Open'
+  +'Process1'#7'Caption'#6#19'Open Process window'#7'OnClick'#7#26'ShowProcessL'
+  +'istButtonClick'#0#0#9'TMenuItem'#14'CreateProcess1'#7'Caption'#6#14'Create '
+  +'Process'#7'OnClick'#7#19'CreateProcess1Click'#0#0#9'TMenuItem'#2'N6'#7'Capt'
+  +'ion'#6#1'-'#0#0#9'TMenuItem'#2'a1'#7'Caption'#6#1'a'#0#0#9'TMenuItem'#2'b1'
+  +#7'Caption'#6#1'b'#0#0#9'TMenuItem'#2'c1'#7'Caption'#6#1'c'#0#0#9'TMenuItem'
+  +#2'd1'#7'Caption'#6#1'd'#0#0#9'TMenuItem'#2'e1'#7'Caption'#6#1'e'#0#0#0#9'TM'
+  +'enuItem'#5'ools1'#7'Caption'#6#6'&Tools'#0#0#9'TMenuItem'#8'Plugins2'#7'Cap'
+  +'tion'#6#8'P&lugins'#7'Visible'#8#0#0#9'TMenuItem'#5'Help1'#7'Caption'#6#5'&'
+  +'Help'#0#9'TMenuItem'#10'Helpindex1'#7'Caption'#6#17'Cheat Engine Help'#8'Sh'
+  +'ortCut'#2'p'#7'OnClick'#7#15'Helpindex1Click'#0#0#9'TMenuItem'#2'N8'#7'Capt'
+  ,'ion'#6#1'-'#0#0#9'TMenuItem'#6'About1'#7'Caption'#6#5'About'#7'OnClick'#7#11
+  +'About1Click'#0#0#0#0#10'TPopupMenu'#9'pmTablist'#7'OnPopup'#7#14'pmTablistP'
+  +'opup'#4'left'#2' '#3'top'#3#0#1#0#9'TMenuItem'#11'miRenameTab'#7'Caption'#6
+  +#6'Rename'#7'OnClick'#7#16'miRenameTabClick'#0#0#9'TMenuItem'#18'miTablistSe'
+  +'perator'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#10'miCloseTab'#7'Caption'#6#9'C'
+  +'lose tab'#7'OnClick'#7#15'miCloseTabClick'#0#0#0#0
 ]);

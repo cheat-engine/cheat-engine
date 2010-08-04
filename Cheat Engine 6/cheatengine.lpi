@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="547"/>
+      <BuildNr Value="549"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.547" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.549" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -72,6 +72,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4922"/>
         <CursorPos X="1" Y="4928"/>
@@ -80,6 +82,8 @@
           <Item0 X="1" Y="1728" ID="2"/>
           <Item1 X="1" Y="32" ID="9"/>
         </Bookmarks>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
@@ -259,7 +263,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formsettingsunit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="726"/>
@@ -1905,7 +1908,7 @@
         <UsageCount Value="10"/>
       </Unit172>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="Assemblerunit.pas"/>
         <Caret Line="4665" Column="1" TopLine="4650"/>
@@ -1952,80 +1955,76 @@
       </Position11>
       <Position12>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="63" Column="3" TopLine="286"/>
+        <Caret Line="57" Column="1" TopLine="42"/>
       </Position12>
       <Position13>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="57" Column="1" TopLine="42"/>
+        <Caret Line="56" Column="1" TopLine="42"/>
       </Position13>
       <Position14>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="56" Column="1" TopLine="42"/>
+        <Caret Line="57" Column="1" TopLine="42"/>
       </Position14>
       <Position15>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="57" Column="1" TopLine="42"/>
+        <Caret Line="56" Column="1" TopLine="42"/>
       </Position15>
       <Position16>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="56" Column="1" TopLine="42"/>
+        <Caret Line="57" Column="1" TopLine="42"/>
       </Position16>
       <Position17>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="57" Column="1" TopLine="42"/>
+        <Caret Line="289" Column="11" TopLine="260"/>
       </Position17>
       <Position18>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="289" Column="11" TopLine="260"/>
+        <Caret Line="57" Column="1" TopLine="42"/>
       </Position18>
       <Position19>
         <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="57" Column="1" TopLine="42"/>
+        <Caret Line="67" Column="1" TopLine="45"/>
       </Position19>
       <Position20>
-        <Filename Value="dbk32\vmxfunctions.pas"/>
-        <Caret Line="67" Column="1" TopLine="45"/>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="1169" Column="30" TopLine="1154"/>
       </Position20>
       <Position21>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="1169" Column="30" TopLine="1154"/>
+        <Caret Line="720" Column="3" TopLine="707"/>
       </Position21>
       <Position22>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="720" Column="3" TopLine="707"/>
+        <Caret Line="715" Column="1" TopLine="707"/>
       </Position22>
       <Position23>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="715" Column="1" TopLine="707"/>
+        <Caret Line="718" Column="1" TopLine="707"/>
       </Position23>
       <Position24>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="718" Column="1" TopLine="707"/>
+        <Caret Line="721" Column="1" TopLine="707"/>
       </Position24>
       <Position25>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="721" Column="1" TopLine="707"/>
+        <Caret Line="722" Column="1" TopLine="707"/>
       </Position25>
       <Position26>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="722" Column="1" TopLine="707"/>
+        <Caret Line="715" Column="1" TopLine="707"/>
       </Position26>
       <Position27>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="715" Column="1" TopLine="707"/>
+        <Caret Line="716" Column="1" TopLine="707"/>
       </Position27>
       <Position28>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="716" Column="1" TopLine="707"/>
+        <Caret Line="723" Column="1" TopLine="707"/>
       </Position28>
       <Position29>
         <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="723" Column="1" TopLine="707"/>
-      </Position29>
-      <Position30>
-        <Filename Value="formsettingsunit.pas"/>
         <Caret Line="716" Column="31" TopLine="708"/>
-      </Position30>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

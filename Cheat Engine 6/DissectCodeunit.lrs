@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmDissectCode','FORMDATA',[
   'TPF0'#15'TfrmDissectCode'#14'frmDissectCode'#4'Left'#3#25#3#6'Height'#3'q'#1
   +#3'Top'#3#20#1#5'Width'#3'{'#1#7'Caption'#6#12'Dissect Code'#12'ClientHeight'
