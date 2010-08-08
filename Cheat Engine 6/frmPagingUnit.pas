@@ -36,6 +36,7 @@ type
     { private declarations }
     procedure FillNodeLevel3(node: TTreenode);
     procedure FillNodeLevel2(node: TTreenode);
+    procedure FillNodeLevel1(node: TTreenode);
   public
     { public declarations }
   end; 
@@ -70,9 +71,112 @@ begin
 
 end;
 
+procedure TfrmPaging.FillNodeLevel1(node: TTreenode);
+var
+  pd: PPageData;
+  buf: pointer;
+  q: Puint64Array absolute buf;
+  i: integer;
+  a,b: qword;
+
+  tn: ttreenode;
+  x: dword;
+begin
+  pd:=node.data;
+  buf:=getmem(4096);
+  try
+    if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+    begin
+      if cb8byteentries.checked then
+      begin
+        for i:=0 to 511 do
+        begin
+          if odd(q[i]) then
+          begin
+            a:=pd^.va+qword(i*qword($1000));
+            b:=a+qword($1fff);
+
+            pd:=getmem(sizeof(TPageData));
+            pd^.va:=a;
+            pd^.level:=1;
+            pd^.value:=q[i];
+            pd^.pa:=q[i] and qword($FFFFFFF000);
+
+            tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+
+            tn.HasChildren:=false;
+          end;
+        end;
+      end
+      else
+      begin
+        //4 byte entries
+      end;
+    end;
+
+  finally
+    freemem(buf);
+  end;
+end;
+
 procedure TfrmPaging.FillNodeLevel2(node: TTreenode);
+var
+  pd: PPageData;
+  buf: pointer;
+  q: Puint64Array absolute buf;
+  i: integer;
+  a,b: qword;
+
+  tn: ttreenode;
+  x: dword;
+  bigpage: boolean;
 begin
   //fill in the pagedir table
+  pd:=node.data;
+  buf:=getmem(4096);
+  try
+    if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+    begin
+      if cb8byteentries.checked then
+      begin
+        for i:=0 to 511 do
+        begin
+          if odd(q[i]) then
+          begin
+            a:=pd^.va+qword(i*qword($200000));
+            b:=a+qword($1fffff);
+
+
+            pd:=getmem(sizeof(TPageData));
+            pd^.va:=a;
+
+            bigpage:=((q[i] shr 7) and 1)=1;
+
+            if bigpage then
+              pd^.pa:=q[i] and qword($FFFFE00000)
+            else
+              pd^.pa:=q[i] and qword($FFFFFFF000);
+
+            pd^.value:=q[i];
+            pd^.level:=2;
+
+            tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+            tn.data:=pd;
+
+
+            tn.HasChildren:=not bigpage;
+          end;
+        end;
+
+      end
+      else
+      begin
+        //4 byte entries (1024 entries)
+      end;
+    end;
+  finally
+    freemem(buf);
+  end;
 
 end;
 
@@ -111,7 +215,6 @@ begin
 
 
 
-        tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(q[i],16)+')');
 
         pd:=getmem(sizeof(TPageData));
         pd^.va:=a;
@@ -119,6 +222,7 @@ begin
         pd^.value:=q[i];
         pd^.level:=3;
 
+        tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
         tn.data:=pd;
 
         tn.HasChildren:=true;
@@ -147,6 +251,7 @@ begin
     case pd.level of
       4: FillNodeLevel3(node);
       3: FillNodeLevel2(node);
+      2: FillNodeLevel1(node);
     end;
   end;
 
@@ -185,14 +290,13 @@ begin
 
             b:=a+qword($7fffffffff);
 
-            tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(q[i],16)+')');
-
             pd:=getmem(sizeof(TPageData));
             pd^.level:=4;
             pd^.value:=q[i];
             pd^.va:=a;
             pd^.pa:=q[i] and qword($FFFFFFF000);
 
+            tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
             tn.Data:=pd;
             tn.HasChildren:=true;
 
