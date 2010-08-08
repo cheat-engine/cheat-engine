@@ -1,16 +1,16 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 569
-  Height = 564
+  Left = 454
+  Height = 570
   Hint = ' '
-  Top = 155
+  Top = 164
   Width = 536
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.0'
-  ClientHeight = 544
+  ClientHeight = 550
   ClientWidth = 536
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -40,7 +40,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 175
+    Height = 181
     Top = 352
     Width = 536
     Align = alClient
@@ -53,7 +53,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 17
-    Top = 527
+    Top = 533
     Width = 536
     Align = alBottom
     ClientHeight = 17
@@ -1321,9 +1321,9 @@ object MainForm: TMainForm
       end
     end
     object Label3: TLabel
-      Left = 376
+      Left = 390
       Height = 14
-      Top = 40
+      Top = 32
       Width = 33
       Caption = 'Label3'
       ParentColor = False

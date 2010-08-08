@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmSymbolhandler','FORMDATA',[
   'TPF0'#17'TfrmSymbolhandler'#16'frmSymbolhandler'#4'Left'#3'e'#3#6'Height'#3
   +'R'#1#3'Top'#3#2#1#5'Width'#3#233#1#7'Caption'#6#13'Symbol config'#12'Client'

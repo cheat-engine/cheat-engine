@@ -17,6 +17,7 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
+    miPaging: TMenuItem;
     miDebugEvents: TMenuItem;
     miLockRowsize: TMenuItem;
     memorypopup: TPopupMenu;
@@ -178,6 +179,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
+    procedure miPagingClick(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
@@ -448,7 +450,8 @@ uses Valuechange,
   frmReferencedStringsUnit,
   Structuresfrm,
   pointerscannerfrm,
-  frmDebugEventsUnit;
+  frmDebugEventsUnit,
+  frmPagingUnit;
 
 
 
@@ -584,6 +587,11 @@ begin
     frmDebugEvents:=tfrmDebugEvents.create(nil);
 
   frmDebugEvents.show;
+end;
+
+procedure TMemoryBrowser.miPagingClick(Sender: TObject);
+begin
+  TfrmPaging.create(nil).show;
 end;
 
 procedure TMemoryBrowser.Button1Click(Sender: TObject);

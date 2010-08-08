@@ -5,7 +5,7 @@ object MemoryBrowser: TMemoryBrowser
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 552
+  ClientHeight = 557
   ClientWidth = 722
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -451,18 +451,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 247
+    Height = 252
     Top = 305
     Width = 722
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 247
+    ClientHeight = 252
     ClientWidth = 722
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 506
-      Height = 245
+      Height = 250
       Top = 1
       Width = 5
       Align = alRight
@@ -473,7 +473,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 245
+      Height = 250
       Top = 1
       Width = 505
       Align = alClient
@@ -482,19 +482,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 511
-      Height = 245
+      Height = 250
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 245
+      ClientHeight = 250
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 241
+        Height = 246
         Top = 2
         Width = 206
         Align = alClient
@@ -510,7 +510,7 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
-            Width = 31
+            Width = 25
           end>
         ItemIndex = -1
         OwnerData = True
@@ -984,6 +984,10 @@ object MemoryBrowser: TMemoryBrowser
       object IDTlist1: TMenuItem
         Caption = 'IDT list'
         OnClick = IDTlist1Click
+      end
+      object miPaging: TMenuItem
+        Caption = 'Paging'
+        OnClick = miPagingClick
       end
     end
     object Plugins1: TMenuItem

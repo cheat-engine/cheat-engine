@@ -85,7 +85,7 @@ var
 begin
   { Make sure that COM is initialized }
   //CoInitializeEx(nil, 0);
-
+   (*
   if GetSystemType<7 then exit;
 
   try
@@ -102,7 +102,7 @@ begin
     GlobalTaskBarInterface.HrInit();
   except
     GlobalTaskBarInterface := nil;
-  end;
+  end;  *)
 end;
 
 initialization

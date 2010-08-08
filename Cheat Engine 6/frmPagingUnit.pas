@@ -8,34 +8,46 @@ uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls,newkernelhandler,cefuncproc;
 
+type TPageData=record
+  level: integer;
+  value: qword;
+  va,pa: qword;
+end;
+PPageData=^TPageData;
+
 type
 
-  { TForm2 }
+  { TfrmPaging }
 
-  TForm2 = class(TForm)
+  TfrmPaging = class(TForm)
     Button1: TButton;
     cb8byteentries: TCheckBox;
     cb64bit: TCheckBox;
-    Edit1: TEdit;
+    edtCR3: TEdit;
     Label1: TLabel;
     frmPaging: TPanel;
     tvPage: TTreeView;
     procedure Button1Click(Sender: TObject);
     procedure cb64bitChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure tvPageExpanding(Sender: TObject; Node: TTreeNode;
+      var AllowExpansion: Boolean);
   private
     { private declarations }
+    procedure FillNodeLevel3(node: TTreenode);
+    procedure FillNodeLevel2(node: TTreenode);
   public
     { public declarations }
   end; 
 
 var
-  Form2: TForm2; 
+  frmPaging: TfrmPaging;
 
 implementation
 
-{ TForm2 }
+{ TfrmPaging }
 
-procedure TForm2.cb64bitChange(Sender: TObject);
+procedure TfrmPaging.cb64bitChange(Sender: TObject);
 begin
   if cb64bit.checked then
   begin
@@ -46,37 +58,142 @@ begin
     cb8byteentries.enabled:=true;
 end;
 
-procedure TForm2.Button1Click(Sender: TObject);
+procedure TfrmPaging.FormCreate(Sender: TObject);
+var cr3: ptrUint;
+begin
+  if getcr3(processhandle, cr3) then
+    edtcr3.text:=inttohex(cr3,8);
+
+  {$ifdef cpu64}
+  cb64bit.checked:=true;
+  {$endif}
+
+end;
+
+procedure TfrmPaging.FillNodeLevel2(node: TTreenode);
+begin
+  //fill in the pagedir table
+
+end;
+
+procedure TfrmPaging.FillNodeLevel3(node: TTreenode);
+var pd: PPageData;
+  buf: pointer;
+  q: Puint64Array absolute buf;
+  max: integer;
+  i: integer;
+  a,b: qword;
+
+  tn: ttreenode;
+  x: dword;
+begin
+  //fill in the pagedir pointer table
+  pd:=node.data;
+  buf:=getmem(4096);
+  try
+
+  if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+  begin
+
+
+    if cb64bit.checked then
+      max:=511
+    else
+      max:=3;
+
+    for i:=0 to max do
+    begin
+      if (odd(q[i])) then
+      begin
+
+        a:=pd^.va+qword(i*qword($40000000));
+        b:=a+qword($3fffffff);
+
+
+
+        tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(q[i],16)+')');
+
+        pd:=getmem(sizeof(TPageData));
+        pd^.va:=a;
+        pd^.pa:=q[i] and qword($FFFFFFF000);
+        pd^.value:=q[i];
+        pd^.level:=3;
+
+        tn.data:=pd;
+
+        tn.HasChildren:=true;
+      end;
+    end;
+
+  end;
+
+  finally
+    freemem(buf);
+  end;
+
+
+end;
+
+procedure TfrmPaging.tvPageExpanding(Sender: TObject; Node: TTreeNode;
+  var AllowExpansion: Boolean);
+
+var pd: PPageData;
+begin
+  if node.Count=0 then //try to expand
+  begin
+    pd:=node.data;
+    if pd=nil then exit;
+
+    case pd.level of
+      4: FillNodeLevel3(node);
+      3: FillNodeLevel2(node);
+    end;
+  end;
+
+  allowExpansion:=true;
+end;
+
+procedure TfrmPaging.Button1Click(Sender: TObject);
 var x: dword;
   base: ptrUint;
-  buf: pbyte;
+  buf: pointer;
 
   q: Puint64Array;
   i: integer;
   a,b: qword;
 
   tn: ttreenode;
+
+  pd: PPageData;
 begin
+  base:=strtoint64('$'+edtcr3.text);
   tvpage.Items.Clear;
   buf:=getmem(4096);
   try
     base:=base and ulong_ptr((not ulong_ptr($ff)));
-    if ReadPhysicalMemory(0, base, @buf, 4096, x) then
+    if ReadPhysicalMemory(0, pointer(base), buf, 4096, x) then
     begin
-      if cb64bit then //this is the pml4 table
+      if cb64bit.checked then //this is the pml4 table
       begin
         q:=buf;
         for i:=0 to 511 do
-          if (odd(q[i]) then
+          if (odd(q[i])) then
           begin
             a:=i*qword($8000000000);
             if a>=qword($0000800000000000) then
-              a:=a and qword($ffff000000000000);
+              a:=a or qword($ffff000000000000);
 
-            b:=b+qword($7fffffffff);
+            b:=a+qword($7fffffffff);
 
-            tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16));
+            tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(q[i],16)+')');
 
+            pd:=getmem(sizeof(TPageData));
+            pd^.level:=4;
+            pd^.value:=q[i];
+            pd^.va:=a;
+            pd^.pa:=q[i] and qword($FFFFFFF000);
+
+            tn.Data:=pd;
             tn.HasChildren:=true;
 
           end;

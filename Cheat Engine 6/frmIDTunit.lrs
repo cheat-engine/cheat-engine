@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmIDT','FORMDATA',[
   'TPF0'#7'TfrmIDT'#6'frmIDT'#4'Left'#3#168#3#6'Height'#3'A'#1#3'Top'#3'R'#1#5
   +'Width'#3'+'#1#7'Caption'#6#3'IDT'#12'ClientHeight'#3'A'#1#11'ClientWidth'#3

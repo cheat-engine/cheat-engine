@@ -1,11 +1,12 @@
-object Form2: TForm2
-  Left = 577
+object frmPaging: TfrmPaging
+  Left = 650
   Height = 240
-  Top = 283
+  Top = 257
   Width = 404
-  Caption = 'Form2'
+  Caption = 'frmPaging'
   ClientHeight = 240
   ClientWidth = 404
+  OnCreate = FormCreate
   LCLVersion = '0.9.29'
   object tvPage: TTreeView
     Left = 0
@@ -15,6 +16,7 @@ object Form2: TForm2
     Align = alClient
     DefaultItemHeight = 17
     TabOrder = 0
+    OnExpanding = tvPageExpanding
   end
   object frmPaging: TPanel
     Left = 0
@@ -26,7 +28,7 @@ object Form2: TForm2
     ClientHeight = 58
     ClientWidth = 404
     TabOrder = 1
-    object Edit1: TEdit
+    object edtCR3: TEdit
       Left = 5
       Height = 23
       Top = 24

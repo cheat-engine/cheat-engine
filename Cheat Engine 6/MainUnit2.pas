@@ -268,6 +268,7 @@ var reg : TRegistry;
     s,s2: string;
 begin
   ZeroMemory(@temphotkeylist, 31*sizeof(cefuncproc.tkeycombo));
+  if formsettings=nil then exit;
 
   try
     reg:=Tregistry.Create;

@@ -1,10 +1,10 @@
 object frmStructures: TfrmStructures
-  Left = 752
+  Left = 739
   Height = 392
-  Top = 320
+  Top = 285
   Width = 614
   Caption = 'Memory dissect'
-  ClientHeight = 367
+  ClientHeight = 372
   ClientWidth = 614
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -38,12 +38,12 @@ object frmStructures: TfrmStructures
   end
   object ScrollBox1: TScrollBox
     Left = 0
-    Height = 326
+    Height = 331
     Top = 41
     Width = 614
     Align = alClient
-    ClientHeight = 322
-    ClientWidth = 610
+    ClientHeight = 310
+    ClientWidth = 593
     TabOrder = 1
     object tvStructureView: TTreeView
       Left = 0

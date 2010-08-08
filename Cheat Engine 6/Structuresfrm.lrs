@@ -1,9 +1,9 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TfrmStructures','FORMDATA',[
-  'TPF0'#14'TfrmStructures'#13'frmStructures'#4'Left'#3#240#2#6'Height'#3#136#1
-  +#3'Top'#3'@'#1#5'Width'#3'f'#2#7'Caption'#6#14'Memory dissect'#12'ClientHeig'
-  +'ht'#3'o'#1#11'ClientWidth'#3'f'#2#11'Font.Height'#2#242#9'Font.Name'#6#13'M'
+  'TPF0'#14'TfrmStructures'#13'frmStructures'#4'Left'#3#227#2#6'Height'#3#136#1
+  +#3'Top'#3#29#1#5'Width'#3'f'#2#7'Caption'#6#14'Memory dissect'#12'ClientHeig'
+  +'ht'#3't'#1#11'ClientWidth'#3'f'#2#11'Font.Height'#2#242#9'Font.Name'#6#13'M'
   +'S Sans Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7
   +#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'Position'#7#14'poScreenCent'
   +'er'#10'LCLVersion'#6#6'0.9.29'#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2
@@ -12,8 +12,8 @@ LazarusResources.Add('TfrmStructures','FORMDATA',[
   +'TabOrder'#2#0#0#5'TEdit'#10'edtAddress'#4'Left'#2#5#6'Height'#2#24#3'Top'#2
   +#5#5'Width'#2'_'#8'OnChange'#7#16'edtAddressChange'#9'PopupMenu'#7#10'PopupM'
   +'enu2'#8'TabOrder'#2#0#4'Text'#6#8'00000000'#0#0#0#10'TScrollBox'#10'ScrollB'
-  +'ox1'#4'Left'#2#0#6'Height'#3'F'#1#3'Top'#2')'#5'Width'#3'f'#2#5'Align'#7#8
-  +'alClient'#12'ClientHeight'#3'B'#1#11'ClientWidth'#3'b'#2#8'TabOrder'#2#1#0#9
+  +'ox1'#4'Left'#2#0#6'Height'#3'K'#1#3'Top'#2')'#5'Width'#3'f'#2#5'Align'#7#8
+  +'alClient'#12'ClientHeight'#3'6'#1#11'ClientWidth'#3'Q'#2#8'TabOrder'#2#1#0#9
   +'TTreeView'#15'tvStructureView'#4'Left'#2#0#6'Height'#3'-'#1#3'Top'#2#21#5'W'
   +'idth'#3'b'#2#5'Align'#7#8'alClient'#11'BorderStyle'#7#6'bsNone'#17'DefaultI'
   +'temHeight'#2#15#12'Font.CharSet'#7#12'ANSI_CHARSET'#11'Font.Height'#2#241#9

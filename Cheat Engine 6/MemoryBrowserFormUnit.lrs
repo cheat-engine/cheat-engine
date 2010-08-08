@@ -1,7 +1,9 @@
+{ This is an automatically generated lazarus resource file }
+
 LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   'TPF0'#14'TMemoryBrowser'#13'MemoryBrowser'#4'Left'#3#201#2#6'Height'#3'A'#2#3
   +'Top'#3#153#0#5'Width'#3#210#2#11'HelpContext'#2#12#7'Caption'#6#13'Memory V'
-  +'iewer'#12'ClientHeight'#3'('#2#11'ClientWidth'#3#210#2#11'Font.Height'#2#242
+  +'iewer'#12'ClientHeight'#3'-'#2#11'ClientWidth'#3#210#2#11'Font.Height'#2#242
   +#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'Form'
   +'Close'#8'OnCreate'#7#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#8'OnResi'
   +'ze'#7#10'FormResize'#6'OnShow'#7#8'FormShow'#8'Position'#7#14'poScreenCente'
@@ -112,21 +114,21 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +'tColor'#8#10'ParentFont'#8#10'OnDblClick'#7#16'EAXLabelDblClick'#0#0#7'TBut'
   +'ton'#12'sbShowFloats'#4'Left'#3#152#0#6'Height'#2' '#3'Top'#3#141#0#5'Width'
   +#2#22#7'Caption'#6#1'>'#7'OnClick'#7#17'sbShowFloatsClick'#8'TabOrder'#2#0#7
-  +'Visible'#8#0#0#0#0#0#6'TPanel'#6'Panel4'#4'Left'#2#0#6'Height'#3#247#0#3'To'
+  +'Visible'#8#0#0#0#0#0#6'TPanel'#6'Panel4'#4'Left'#2#0#6'Height'#3#252#0#3'To'
   +'p'#3'1'#1#5'Width'#3#210#2#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'
-  +#11'BorderWidth'#2#1#12'ClientHeight'#3#247#0#11'ClientWidth'#3#210#2#8'TabO'
-  +'rder'#2#1#0#9'TSplitter'#9'Splitter3'#4'Left'#3#250#1#6'Height'#3#245#0#3'T'
+  +#11'BorderWidth'#2#1#12'ClientHeight'#3#252#0#11'ClientWidth'#3#210#2#8'TabO'
+  +'rder'#2#1#0#9'TSplitter'#9'Splitter3'#4'Left'#3#250#1#6'Height'#3#250#0#3'T'
   +'op'#2#1#5'Width'#2#5#5'Align'#7#7'alRight'#5'Color'#7#9'clBtnFace'#11'Paren'
   +'tColor'#8#12'ResizeAnchor'#7#7'akRight'#7'Visible'#8#0#0#6'TPanel'#6'Panel3'
-  +#4'Left'#2#1#6'Height'#3#245#0#3'Top'#2#1#5'Width'#3#249#1#5'Align'#7#8'alCl'
+  +#4'Left'#2#1#6'Height'#3#250#0#3'Top'#2#1#5'Width'#3#249#1#5'Align'#7#8'alCl'
   +'ient'#10'BevelOuter'#7#6'bvNone'#8'TabOrder'#2#0#0#0#6'TPanel'#13'pnlStackt'
-  +'race'#4'Left'#3#255#1#6'Height'#3#245#0#3'Top'#2#1#5'Width'#3#210#0#5'Align'
-  +#7#7'alRight'#10'BevelInner'#7#9'bvLowered'#12'ClientHeight'#3#245#0#11'Clie'
+  +'race'#4'Left'#3#255#1#6'Height'#3#250#0#3'Top'#2#1#5'Width'#3#210#0#5'Align'
+  +#7#7'alRight'#10'BevelInner'#7#9'bvLowered'#12'ClientHeight'#3#250#0#11'Clie'
   +'ntWidth'#3#210#0#9'PopupMenu'#7#12'pmStacktrace'#8'TabOrder'#2#1#7'Visible'
-  +#8#0#9'TListView'#16'lvStacktraceData'#4'Left'#2#2#6'Height'#3#241#0#3'Top'#2
+  +#8#0#9'TListView'#16'lvStacktraceData'#4'Left'#2#2#6'Height'#3#246#0#3'Top'#2
   +#2#5'Width'#3#206#0#5'Align'#7#8'alClient'#7'Columns'#14#1#7'Caption'#6#7'Ad'
   +'dress'#5'Width'#2'P'#0#1#7'Caption'#6#5'DWORD'#5'Width'#2'P'#0#1#8'AutoSize'
-  +#9#7'Caption'#6#5'Value'#5'Width'#2#31#0#0#9'ItemIndex'#2#255#9'OwnerData'#9
+  +#9#7'Caption'#6#5'Value'#5'Width'#2#25#0#0#9'ItemIndex'#2#255#9'OwnerData'#9
   ,#8'ReadOnly'#9#9'RowSelect'#9#8'TabOrder'#2#0#9'ViewStyle'#7#8'vsReport'#6'O'
   +'nData'#7#20'lvStacktraceDataData'#10'OnDblClick'#7#24'lvStacktraceDataDblCl'
   +'ick'#0#0#0#0#10'TPopupMenu'#11'memorypopup'#4'left'#2'x'#3'top'#3'p'#1#0#9
@@ -272,23 +274,24 @@ LazarusResources.Add('TMemoryBrowser','FORMDATA',[
   +'Service Descriptor Table'#7'OnClick'#7#27'Sericedescriptortable1Click'#0#0#9
   +'TMenuItem'#8'GDTlist1'#7'Caption'#6#8'GDT list'#7'OnClick'#7#13'GDTlist1Cli'
   +'ck'#0#0#9'TMenuItem'#8'IDTlist1'#7'Caption'#6#8'IDT list'#7'OnClick'#7#13'I'
-  +'DTlist1Click'#0#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7'Visi'
-  +'ble'#8#0#0#0#11'TOpenDialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6'Filt'
-  +'er'#6'2Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'#11'FilterIndex'#2
-  +#0#4'left'#3#152#0#3'top'#2'P'#0#0#11'TSaveDialog'#11'SaveDialog1'#10'Defaul'
-  +'tExt'#6#4'.txt'#6'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#3#184#0#3't'
-  +'op'#2'P'#0#0#11'TOpenDialog'#13'OpenDllDialog'#5'Title'#6'$Select the modul'
-  +'e you want to inject'#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file (*.dll'
-  +')|*.dll|All files (*.*)|*.*'#4'left'#3#152#0#3'top'#2'h'#0#0#10'TPopupMenu'
-  +#12'pmStacktrace'#4'left'#3#242#1#3'top'#3'D'#1#0#9'TMenuItem'#4'All1'#7'Cap'
-  +'tion'#6#10'Full stack'#10'GroupIndex'#2#1#7'OnClick'#7#9'All1Click'#0#0#9'T'
-  +'MenuItem'#12'Modulesonly1'#7'Caption'#6#12'Modules only'#10'GroupIndex'#2#1
-  +#7'OnClick'#7#17'Modulesonly1Click'#0#0#9'TMenuItem'#21'Nonsystemmodulesonly'
-  +'1'#7'Caption'#6#23'Non system modules only'#10'GroupIndex'#2#1#7'OnClick'#7
-  +#26'Nonsystemmodulesonly1Click'#0#0#9'TMenuItem'#3'N17'#7'Caption'#6#1'-'#10
-  +'GroupIndex'#2#1#0#0#9'TMenuItem'#11'stacktrace2'#7'Caption'#6#10'Stacktrace'
-  +#7'Checked'#9#10'GroupIndex'#2#1#7'OnClick'#7#16'stacktrace2Click'#0#0#9'TMe'
-  +'nuItem'#3'N18'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#18'Max'
-  +'stacktracesize1'#7'Caption'#6#15'Max stack: 4096'#10'GroupIndex'#2#1#7'OnCl'
-  +'ick'#7#23'Maxstacktracesize1Click'#0#0#0#0
+  +'DTlist1Click'#0#0#9'TMenuItem'#8'miPaging'#7'Caption'#6#6'Paging'#7'OnClick'
+  +#7#13'miPagingClick'#0#0#0#9'TMenuItem'#8'Plugins1'#7'Caption'#6#7'Plugins'#7
+  +'Visible'#8#0#0#0#11'TOpenDialog'#10'OpenMemory'#10'DefaultExt'#6#4'.CEM'#6
+  +'Filter'#6'2Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'#11'FilterInd'
+  +'ex'#2#0#4'left'#3#152#0#3'top'#2'P'#0#0#11'TSaveDialog'#11'SaveDialog1'#10
+  +'DefaultExt'#6#4'.txt'#6'Filter'#6#23'textfiles (*.txt)|*.txt'#4'left'#3#184
+  +#0#3'top'#2'P'#0#0#11'TOpenDialog'#13'OpenDllDialog'#5'Title'#6'$Select the '
+  +'module you want to inject'#10'DefaultExt'#6#4'.dll'#6'Filter'#6'*Dll-file ('
+  +'*.dll)|*.dll|All files (*.*)|*.*'#4'left'#3#152#0#3'top'#2'h'#0#0#10'TPopup'
+  +'Menu'#12'pmStacktrace'#4'left'#3#242#1#3'top'#3'D'#1#0#9'TMenuItem'#4'All1'
+  +#7'Caption'#6#10'Full stack'#10'GroupIndex'#2#1#7'OnClick'#7#9'All1Click'#0#0
+  +#9'TMenuItem'#12'Modulesonly1'#7'Caption'#6#12'Modules only'#10'GroupIndex'#2
+  +#1#7'OnClick'#7#17'Modulesonly1Click'#0#0#9'TMenuItem'#21'Nonsystemmoduleson'
+  +'ly1'#7'Caption'#6#23'Non system modules only'#10'GroupIndex'#2#1#7'OnClick'
+  +#7#26'Nonsystemmodulesonly1Click'#0#0#9'TMenuItem'#3'N17'#7'Caption'#6#1'-'
+  +#10'GroupIndex'#2#1#0#0#9'TMenuItem'#11'stacktrace2'#7'Caption'#6#10'Stacktr'
+  +'ace'#7'Checked'#9#10'GroupIndex'#2#1#7'OnClick'#7#16'stacktrace2Click'#0#0#9
+  +'TMenuItem'#3'N18'#7'Caption'#6#1'-'#10'GroupIndex'#2#1#0#0#9'TMenuItem'#18
+  +'Maxstacktracesize1'#7'Caption'#6#15'Max stack: 4096'#10'GroupIndex'#2#1#7'O'
+  +'nClick'#7#23'Maxstacktracesize1Click'#0#0#0#0
 ]);

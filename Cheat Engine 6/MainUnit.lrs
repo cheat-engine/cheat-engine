@@ -1,10 +1,10 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TMainForm','FORMDATA',[
-  'TPF0'#9'TMainForm'#8'MainForm'#3'Tag'#2#2#4'Left'#3'9'#2#6'Height'#3'4'#2#4
-  +'Hint'#6#1' '#3'Top'#3#155#0#5'Width'#3#24#2#11'HelpContext'#2#3#21'HorzScro'
+  'TPF0'#9'TMainForm'#8'MainForm'#3'Tag'#2#2#4'Left'#3#198#1#6'Height'#3':'#2#4
+  +'Hint'#6#1' '#3'Top'#3#164#0#5'Width'#3#24#2#11'HelpContext'#2#3#21'HorzScro'
   +'llBar.Visible'#8#21'VertScrollBar.Visible'#8#14'AllowDropFiles'#9#7'Caption'
-  +#6#16'Cheat Engine 6.0'#12'ClientHeight'#3' '#2#11'ClientWidth'#3#24#2#11'Fo'
+  +#6#16'Cheat Engine 6.0'#12'ClientHeight'#3'&'#2#11'ClientWidth'#3#24#2#11'Fo'
   +'nt.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#4'Menu'#7#9'MainMenu1'#7
   +'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7
   +#10'FormCreate'#9'OnDestroy'#7#11'FormDestroy'#11'OnDropFiles'#7#13'FormDrop'
@@ -13,10 +13,10 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +#2#0#6'Height'#2#7#3'Top'#3'Y'#1#5'Width'#3#24#2#5'Align'#7#5'alTop'#8'AutoS'
   +'nap'#8#7'Beveled'#9#7'MinSize'#2'2'#11'OnCanResize'#7#18'Splitter1CanResize'
   +#7'OnMoved'#7#14'Splitter1Moved'#12'ResizeAnchor'#7#5'akTop'#0#0#6'TPanel'#6
-  +'Panel1'#3'Tag'#3#9#3#4'Left'#2#0#6'Height'#3#175#0#3'Top'#3'`'#1#5'Width'#3
+  +'Panel1'#3'Tag'#3#9#3#4'Left'#2#0#6'Height'#3#181#0#3'Top'#3'`'#1#5'Width'#3
   +#24#2#5'Align'#7#8'alClient'#10'BevelOuter'#7#6'bvNone'#11'BorderWidth'#2#1
   +#11'FullRepaint'#8#9'PopupMenu'#7#10'PopupMenu2'#8'TabOrder'#2#0#0#0#6'TPane'
-  +'l'#6'Panel4'#4'Left'#2#0#6'Height'#2#17#3'Top'#3#15#2#5'Width'#3#24#2#5'Ali'
+  +'l'#6'Panel4'#4'Left'#2#0#6'Height'#2#17#3'Top'#3#21#2#5'Width'#3#24#2#5'Ali'
   +'gn'#7#8'alBottom'#12'ClientHeight'#2#17#11'ClientWidth'#3#24#2#8'TabOrder'#2
   +#1#0#6'TLabel'#6'Label7'#4'Left'#3#158#0#6'Height'#2#14#4'Hint'#6#31'Click h'
   +'ere to change the hotkey'#3'Top'#2#2#5'Width'#3#230#0#9'Alignment'#7#8'taCe'
@@ -768,12 +768,12 @@ LazarusResources.Add('TMainForm','FORMDATA',[
   +'editSH2'#4'Left'#2'0'#6'Height'#2#21#3'Top'#2#0#5'Width'#2'6'#8'TabOrder'#2
   +#1#4'Text'#6#1'1'#0#0#9'TTrackBar'#7'tbSpeed'#4'Left'#2#0#6'Height'#2'!'#3'T'
   +'op'#2#24#5'Width'#2'u'#8'OnChange'#7#13'tbSpeedChange'#8'Position'#2#2#8'Ta'
-  +'bOrder'#2#2#0#0#0#6'TLabel'#6'Label3'#4'Left'#3'x'#1#6'Height'#2#14#3'Top'#2
-  ,'('#5'Width'#2'!'#7'Caption'#6#6'Label3'#11'ParentColor'#8#7'Visible'#8#7'On'
-  +'Click'#7#11'Label3Click'#0#0#0#6'TTimer'#11'UpdateTimer'#8'Interval'#3#244#1
-  +#7'OnTimer'#7#16'UpdateTimerTimer'#4'left'#3#184#1#3'top'#3#232#1#0#0#6'TTim'
-  +'er'#11'FreezeTimer'#8'Interval'#3#250#0#7'OnTimer'#7#16'FreezeTimerTimer'#4
-  +'left'#3'H'#1#3'top'#3#232#1#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7
+  +'bOrder'#2#2#0#0#0#6'TLabel'#6'Label3'#4'Left'#3#134#1#6'Height'#2#14#3'Top'
+  ,#2' '#5'Width'#2'!'#7'Caption'#6#6'Label3'#11'ParentColor'#8#7'Visible'#8#7
+  +'OnClick'#7#11'Label3Click'#0#0#0#6'TTimer'#11'UpdateTimer'#8'Interval'#3#244
+  +#1#7'OnTimer'#7#16'UpdateTimerTimer'#4'left'#3#184#1#3'top'#3#232#1#0#0#6'TT'
+  +'imer'#11'FreezeTimer'#8'Interval'#3#250#0#7'OnTimer'#7#16'FreezeTimerTimer'
+  +#4'left'#3'H'#1#3'top'#3#232#1#0#0#10'TPopupMenu'#10'PopupMenu2'#7'OnPopup'#7
   +#15'PopupMenu2Popup'#4'left'#3#184#0#3'top'#3'x'#1#0#9'TMenuItem'#17'Deletet'
   +'hisrecord1'#7'Caption'#6#18'Delete this record'#8'ShortCut'#2'.'#7'OnClick'
   +#7#22'Deletethisrecord1Click'#0#0#9'TMenuItem'#7'Change1'#7'Caption'#6#13'Ch'

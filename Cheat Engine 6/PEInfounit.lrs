@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TfrmPEInfo','FORMDATA',[
   'TPF0'#10'TfrmPEInfo'#9'frmPEInfo'#4'Left'#3#10#1#6'Height'#3'>'#1#3'Top'#3
   +#127#2#5'Width'#3#229#1#7'Caption'#6#29'Portable Executable (PE) Info'#12'Cl'
