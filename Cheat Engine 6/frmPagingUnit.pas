@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls,newkernelhandler,cefuncproc;
+  StdCtrls, ComCtrls, ExtCtrls, Menus,newkernelhandler,cefuncproc;
 
 type TPageData=record
   level: integer;
@@ -24,12 +24,17 @@ type
     cb8byteentries: TCheckBox;
     cb64bit: TCheckBox;
     edtCR3: TEdit;
+    FindDialog1: TFindDialog;
     Label1: TLabel;
     frmPaging: TPanel;
+    MenuItem1: TMenuItem;
+    PopupMenu1: TPopupMenu;
     tvPage: TTreeView;
     procedure Button1Click(Sender: TObject);
     procedure cb64bitChange(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure tvPageExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
   private
@@ -59,6 +64,50 @@ begin
     cb8byteentries.enabled:=true;
 end;
 
+procedure TfrmPaging.FindDialog1Find(Sender: TObject);
+var n: ttreenode;
+  i,s: integer;
+  substring: string;
+begin
+  if tvpage.items.count=0 then exit;
+
+  tvpage.Items.BeginUpdate;
+  try
+    while i<tvpage.Items.count do
+    begin
+      tvpage.items[i].Expand(true);
+      inc(i);
+    end;
+  finally
+    tvpage.Items.EndUpdate;
+  end;
+
+  n:=tvpage.Selected;
+
+  if n=nil then
+    n:=tvpage.items[0];
+
+  s:=n.AbsoluteIndex;
+  if frFindNext in FindDialog1.Options then
+    inc(s);
+
+  substring:=uppercase(finddialog1.findtext);
+
+  for i:=s to tvpage.Items.Count-1 do
+    if pos(substring,  tvpage.items[i].Text)>0 then
+    begin
+      tvpage.items[i].selected:=true;
+      tvpage.items[i].MakeVisible;
+      findDialog1.Options:=findDialog1.Options+[frFindNext];
+      exit;
+    end;
+
+  showmessage('Not found');
+
+
+
+end;
+
 procedure TfrmPaging.FormCreate(Sender: TObject);
 var cr3: ptrUint;
 begin
@@ -69,6 +118,11 @@ begin
   cb64bit.checked:=true;
   {$endif}
 
+end;
+
+procedure TfrmPaging.MenuItem1Click(Sender: TObject);
+begin
+  finddialog1.Execute;
 end;
 
 procedure TfrmPaging.FillNodeLevel1(node: TTreenode);

@@ -42,7 +42,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="159">
+    <Units Count="160">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -171,7 +171,7 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6"/>
         <CursorPos X="5" Y="21"/>
@@ -728,7 +728,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="19"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="448"/>
         <CursorPos X="16" Y="454"/>
@@ -1478,7 +1478,7 @@
         <Filename Value="sfloat.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sfloat"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5304"/>
         <CursorPos X="5" Y="5319"/>
@@ -1734,7 +1734,7 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="150"/>
         <CursorPos X="42" Y="166"/>
@@ -1790,7 +1790,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="26" Y="230"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="94"/>
         <Loaded Value="True"/>
       </Unit154>
       <Unit155>
@@ -1799,7 +1799,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="71"/>
         <CursorPos X="16" Y="83"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="94"/>
         <Loaded Value="True"/>
       </Unit155>
       <Unit156>
@@ -1809,7 +1809,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="92"/>
+        <UsageCount Value="93"/>
         <Loaded Value="True"/>
       </Unit156>
       <Unit157>
@@ -1821,9 +1821,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="282"/>
-        <CursorPos X="42" Y="299"/>
-        <UsageCount Value="148"/>
+        <TopLine Value="73"/>
+        <CursorPos X="45" Y="91"/>
+        <UsageCount Value="149"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1838,132 +1838,142 @@
         <WindowIndex Value="0"/>
         <TopLine Value="346"/>
         <CursorPos X="18" Y="376"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit158>
+      <Unit159>
+        <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
+        <UnitName Value="Dialogs"/>
+        <EditorIndex Value="16"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="353"/>
+        <CursorPos X="31" Y="369"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit159>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="87" Column="1" TopLine="75"/>
+        <Caret Line="95" Column="25" TopLine="75"/>
       </Position1>
       <Position2>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="89" Column="1" TopLine="75"/>
+        <Caret Line="99" Column="1" TopLine="75"/>
       </Position2>
       <Position3>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="91" Column="1" TopLine="75"/>
+        <Caret Line="101" Column="1" TopLine="75"/>
       </Position3>
       <Position4>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="92" Column="1" TopLine="75"/>
+        <Caret Line="103" Column="1" TopLine="75"/>
       </Position4>
       <Position5>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="93" Column="1" TopLine="75"/>
+        <Caret Line="95" Column="1" TopLine="75"/>
       </Position5>
       <Position6>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="1" TopLine="75"/>
+        <Caret Line="118" Column="36" TopLine="93"/>
       </Position6>
       <Position7>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="96" Column="1" TopLine="75"/>
+        <Caret Line="103" Column="50" TopLine="98"/>
       </Position7>
       <Position8>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="99" Column="1" TopLine="75"/>
+        <Caret Line="114" Column="29" TopLine="92"/>
       </Position8>
       <Position9>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="25" TopLine="75"/>
+        <Caret Line="81" Column="12" TopLine="68"/>
       </Position9>
       <Position10>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="99" Column="1" TopLine="75"/>
+        <Caret Line="75" Column="32" TopLine="64"/>
       </Position10>
       <Position11>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="101" Column="1" TopLine="75"/>
+        <Caret Line="103" Column="13" TopLine="52"/>
       </Position11>
       <Position12>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="1" TopLine="75"/>
+        <Caret Line="38" Column="29" TopLine="26"/>
       </Position12>
       <Position13>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="1" TopLine="75"/>
+        <Caret Line="55" Column="48" TopLine="21"/>
       </Position13>
       <Position14>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="118" Column="36" TopLine="93"/>
+        <Caret Line="75" Column="30" TopLine="63"/>
       </Position14>
       <Position15>
-        <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="50" TopLine="98"/>
+        <Filename Value="ServiceDescriptorTables.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position15>
       <Position16>
-        <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="114" Column="29" TopLine="92"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="5782" Column="1" TopLine="5750"/>
       </Position16>
       <Position17>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="81" Column="12" TopLine="68"/>
+        <Caret Line="105" Column="44" TopLine="94"/>
       </Position17>
       <Position18>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="75" Column="32" TopLine="64"/>
+        <Caret Line="100" Column="35" TopLine="86"/>
       </Position18>
       <Position19>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="13" TopLine="52"/>
+        <Caret Line="90" Column="32" TopLine="73"/>
       </Position19>
       <Position20>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="38" Column="29" TopLine="26"/>
+        <Caret Line="149" Column="48" TopLine="133"/>
       </Position20>
       <Position21>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="55" Column="48" TopLine="21"/>
+        <Caret Line="292" Column="5" TopLine="279"/>
       </Position21>
       <Position22>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="75" Column="30" TopLine="63"/>
+        <Caret Line="295" Column="62" TopLine="282"/>
       </Position22>
       <Position23>
-        <Filename Value="ServiceDescriptorTables.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="frmPagingUnit.pas"/>
+        <Caret Line="296" Column="62" TopLine="283"/>
       </Position23>
       <Position24>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5782" Column="1" TopLine="5750"/>
+        <Filename Value="frmPagingUnit.pas"/>
+        <Caret Line="297" Column="62" TopLine="284"/>
       </Position24>
       <Position25>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="105" Column="44" TopLine="94"/>
+        <Caret Line="304" Column="62" TopLine="291"/>
       </Position25>
       <Position26>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="100" Column="35" TopLine="86"/>
+        <Caret Line="80" Column="20" TopLine="66"/>
       </Position26>
       <Position27>
-        <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="90" Column="32" TopLine="73"/>
+        <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
+        <Caret Line="421" Column="31" TopLine="404"/>
       </Position27>
       <Position28>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="149" Column="48" TopLine="133"/>
+        <Caret Line="86" Column="23" TopLine="72"/>
       </Position28>
       <Position29>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="105" Column="13" TopLine="182"/>
+        <Caret Line="76" Column="32" TopLine="67"/>
       </Position29>
       <Position30>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="292" Column="5" TopLine="279"/>
+        <Caret Line="71" Column="1" TopLine="64"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
