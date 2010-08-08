@@ -159,7 +159,7 @@ function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:poi
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 
 function GetCR4:DWORD; stdcall;
-function GetCR3(hProcess:THANDLE;var CR3:DWORD):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:ptrUint):BOOL; stdcall;
 //function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
@@ -177,7 +177,7 @@ function InitializeDriver(Address: ptrUint; size:dword):BOOL; stdcall;
 function GetWin32KAddress(var address:ptrUint;var size:dworD):boolean;
 function GetDriverVersion: dword;
 
-function GetIDTCurrentThread:dword; stdcall;
+function GetIDTCurrentThread:ptrUint; stdcall;
 function GetIDTs(idtstore: pointer; maxidts: integer):integer; stdcall;
 
 function GetLoadedState: BOOLEAN; stdcall;
@@ -275,7 +275,7 @@ begin
   end else result:=0;
 end;
 
-function GetIDTCurrentThread:dword;
+function GetIDTCurrentThread:ptrUint;
 var cc,br: dword;
     idtdescriptor: packed record
                      wLimit: word;
@@ -292,10 +292,12 @@ end;
 
 
 type
+  TptrUintArray=array[0..9999] of ptrUint;
+  PptrUintArray=^TptrUintArray;
   TDwordArray=array[0..9999] of Dword;
   PDwordArray=^TDwordArray;
   TGetIDTParams=record
-    idtstore: pdwordarray;
+    idtstore: PptrUintArray;
     maxidts: integer;
     currentindex: integer;
   end;
@@ -437,7 +439,7 @@ begin
   end;
 end;
 
-function GetCR3(hProcess:THANDLE;var CR3:DWORD):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:ptrUint):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
     i: integer;
@@ -453,6 +455,7 @@ begin
         x:=handlelist[i].processid;
         result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
+        outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
         if result then CR3:=_cr3 else cr3:=$11223344;
       end;
   end;

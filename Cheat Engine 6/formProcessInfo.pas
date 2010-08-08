@@ -108,7 +108,7 @@ begin
 
   if lbidt.ItemIndex<>-1 then
   begin
-    memorybrowser.memoryaddress:=strtoint('$'+lbidt.Items[lbidt.itemindex]);
+    memorybrowser.memoryaddress:=strtoint64('$'+lbidt.Items[lbidt.itemindex]);
 
     if not memorybrowser.visible then
       memorybrowser.show;

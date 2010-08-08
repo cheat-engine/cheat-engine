@@ -42,7 +42,8 @@ uses
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
-  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions;
+  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions, 
+frmPagingUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -59,6 +60,7 @@ begin
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
+  Application.CreateForm(TForm2, Form2);
   Application.Run;
 end.
 

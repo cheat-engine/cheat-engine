@@ -1,13 +1,12 @@
 object frmProcessInfo: TfrmProcessInfo
-  Left = 432
-  Height = 257
+  Left = 435
+  Height = 259
   Top = 107
-  Width = 206
+  Width = 211
   BorderIcons = []
-  BorderStyle = bsDialog
   Caption = 'Process/System Info'
-  ClientHeight = 257
-  ClientWidth = 206
+  ClientHeight = 259
+  ClientWidth = 211
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -158,16 +157,18 @@ object frmProcessInfo: TfrmProcessInfo
     Left = 96
     Height = 57
     Top = 136
-    Width = 81
+    Width = 112
+    Anchors = [akTop, akLeft, akRight]
     ItemHeight = 0
     OnDblClick = lbidtDblClick
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 72
+    Left = 75
     Height = 25
     Top = 224
     Width = 75
+    Anchors = [akTop]
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -175,10 +176,11 @@ object frmProcessInfo: TfrmProcessInfo
     TabOrder = 1
   end
   object Button2: TButton
-    Left = 128
+    Left = 133
     Height = 17
     Top = 200
     Width = 75
+    Anchors = [akTop, akRight]
     Caption = 'Threads>>'
     OnClick = Button2Click
     TabOrder = 2

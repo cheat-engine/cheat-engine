@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="571"/>
+      <BuildNr Value="577"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.571" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.577" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="176">
+    <Units Count="158">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -91,8 +91,8 @@
         <UnitName Value="NewKernelHandler"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="984"/>
-        <CursorPos X="1" Y="986"/>
+        <TopLine Value="721"/>
+        <CursorPos X="49" Y="736"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="668" ID="8"/>
@@ -170,7 +170,7 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6"/>
         <CursorPos X="5" Y="21"/>
@@ -526,7 +526,6 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4348"/>
@@ -682,8 +681,8 @@
         <UnitName Value="formProcessInfo"/>
         <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="53"/>
-        <CursorPos X="8" Y="70"/>
+        <TopLine Value="48"/>
+        <CursorPos X="39" Y="60"/>
         <UsageCount Value="221"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -728,7 +727,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1783"/>
         <CursorPos X="8" Y="1798"/>
@@ -1478,7 +1477,7 @@
         <Filename Value="sfloat.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sfloat"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5304"/>
         <CursorPos X="5" Y="5319"/>
@@ -1539,14 +1538,6 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit126>
       <Unit127>
-        <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
-        <UnitName Value="JwaWindows"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="905"/>
-        <CursorPos X="5" Y="363"/>
-        <UsageCount Value="9"/>
-      </Unit127>
-      <Unit128>
         <Filename Value="tablist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tablist"/>
@@ -1555,8 +1546,8 @@
         <CursorPos X="3" Y="55"/>
         <UsageCount Value="213"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit128>
-      <Unit129>
+      </Unit127>
+      <Unit128>
         <Filename Value="frmstructuresconfigunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmStructuresConfig"/>
@@ -1567,8 +1558,8 @@
         <CursorPos X="15" Y="58"/>
         <UsageCount Value="247"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit129>
-      <Unit130>
+      </Unit128>
+      <Unit129>
         <Filename Value="VEHDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugger"/>
@@ -1577,8 +1568,8 @@
         <CursorPos X="67" Y="238"/>
         <UsageCount Value="205"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit130>
-      <Unit131>
+      </Unit129>
+      <Unit130>
         <Filename Value="VEHDebugSharedMem.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugSharedMem"/>
@@ -1587,8 +1578,8 @@
         <CursorPos X="17" Y="14"/>
         <UsageCount Value="205"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit131>
-      <Unit132>
+      </Unit130>
+      <Unit131>
         <Filename Value="DebuggerInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterface"/>
@@ -1597,8 +1588,8 @@
         <CursorPos X="5" Y="21"/>
         <UsageCount Value="272"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit132>
-      <Unit133>
+      </Unit131>
+      <Unit132>
         <Filename Value="WindowsDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowsDebugger"/>
@@ -1607,8 +1598,8 @@
         <CursorPos X="35" Y="36"/>
         <UsageCount Value="265"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit133>
-      <Unit134>
+      </Unit132>
+      <Unit133>
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
@@ -1617,8 +1608,8 @@
         <CursorPos X="1" Y="29"/>
         <UsageCount Value="265"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit134>
-      <Unit135>
+      </Unit133>
+      <Unit134>
         <Filename Value="frmDebugEventsUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmDebugEvents"/>
@@ -1629,104 +1620,44 @@
         <CursorPos X="17" Y="26"/>
         <UsageCount Value="206"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit135>
-      <Unit136>
+      </Unit134>
+      <Unit135>
         <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1547"/>
         <CursorPos X="1" Y="1569"/>
-        <UsageCount Value="69"/>
-      </Unit136>
-      <Unit137>
+        <UsageCount Value="53"/>
+      </Unit135>
+      <Unit136>
         <Filename Value="C:\lazarus\lcl\include\listitems.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="142"/>
         <CursorPos X="1" Y="164"/>
-        <UsageCount Value="18"/>
-      </Unit137>
-      <Unit138>
+        <UsageCount Value="2"/>
+      </Unit136>
+      <Unit137>
         <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
         <UnitName Value="CustomTimer"/>
         <WindowIndex Value="0"/>
         <TopLine Value="144"/>
         <CursorPos X="1" Y="157"/>
-        <UsageCount Value="18"/>
-      </Unit138>
-      <Unit139>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1608"/>
-        <CursorPos X="1" Y="1621"/>
-        <UsageCount Value="10"/>
-      </Unit139>
-      <Unit140>
+        <UsageCount Value="2"/>
+      </Unit137>
+      <Unit138>
         <Filename Value="C:\lazarus\lcl\include\wincontrol.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4498"/>
         <CursorPos X="1" Y="4513"/>
-        <UsageCount Value="62"/>
-      </Unit140>
-      <Unit141>
-        <Filename Value="C:\lazarus\lcl\lclmessageglue.pas"/>
-        <UnitName Value="LCLMessageGlue"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="106"/>
-        <CursorPos X="1" Y="123"/>
-        <UsageCount Value="10"/>
-      </Unit141>
-      <Unit142>
-        <Filename Value="C:\lazarus\lcl\lclclasses.pp"/>
-        <UnitName Value="LCLClasses"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="127"/>
-        <CursorPos X="1" Y="141"/>
-        <UsageCount Value="10"/>
-      </Unit142>
-      <Unit143>
-        <Filename Value="C:\lazarus\lcl\interfaces\win32\win32callback.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2524"/>
-        <CursorPos X="1" Y="2546"/>
-        <UsageCount Value="10"/>
-      </Unit143>
-      <Unit144>
-        <Filename Value="C:\lazarus\lcl\interfaces\win32\win32wsforms.pp"/>
-        <UnitName Value="Win32WSForms"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="342"/>
-        <CursorPos X="43" Y="347"/>
-        <UsageCount Value="10"/>
-      </Unit144>
-      <Unit145>
-        <Filename Value="C:\lazarus\lcl\include\listitem.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="750"/>
-        <CursorPos X="1" Y="764"/>
-        <UsageCount Value="9"/>
-      </Unit145>
-      <Unit146>
-        <Filename Value="C:\lazarus\lcl\include\customlistview.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="673"/>
-        <CursorPos X="1" Y="687"/>
-        <UsageCount Value="9"/>
-      </Unit146>
-      <Unit147>
+        <UsageCount Value="46"/>
+      </Unit138>
+      <Unit139>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32wscustomlistview.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="204"/>
         <CursorPos X="15" Y="171"/>
-        <UsageCount Value="56"/>
-      </Unit147>
-      <Unit148>
-        <Filename Value="C:\lazarus\lcl\widgetset\wsproc.pp"/>
-        <UnitName Value="WSProc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="54"/>
-        <CursorPos X="1" Y="70"/>
-        <UsageCount Value="9"/>
-      </Unit148>
-      <Unit149>
+        <UsageCount Value="40"/>
+      </Unit139>
+      <Unit140>
         <Filename Value="changelist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="changelist"/>
@@ -1735,60 +1666,60 @@
         <CursorPos X="1" Y="63"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit149>
-      <Unit150>
+      </Unit140>
+      <Unit141>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2427"/>
         <CursorPos X="3" Y="2429"/>
-        <UsageCount Value="105"/>
-      </Unit150>
-      <Unit151>
+        <UsageCount Value="89"/>
+      </Unit141>
+      <Unit142>
         <Filename Value="C:\lazarus\lcl\include\canvas.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="421"/>
         <CursorPos X="3" Y="418"/>
-        <UsageCount Value="104"/>
-      </Unit151>
-      <Unit152>
+        <UsageCount Value="88"/>
+      </Unit142>
+      <Unit143>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32winapi.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2270"/>
         <CursorPos X="21" Y="2277"/>
-        <UsageCount Value="64"/>
-      </Unit152>
-      <Unit153>
+        <UsageCount Value="48"/>
+      </Unit143>
+      <Unit144>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
         <WindowIndex Value="0"/>
         <TopLine Value="670"/>
         <CursorPos X="3" Y="687"/>
-        <UsageCount Value="81"/>
-      </Unit153>
-      <Unit154>
+        <UsageCount Value="65"/>
+      </Unit144>
+      <Unit145>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\systemh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="236"/>
         <CursorPos X="3" Y="251"/>
-        <UsageCount Value="96"/>
-      </Unit154>
-      <Unit155>
+        <UsageCount Value="80"/>
+      </Unit145>
+      <Unit146>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5705"/>
         <CursorPos X="5" Y="5712"/>
-        <UsageCount Value="34"/>
-      </Unit155>
-      <Unit156>
+        <UsageCount Value="18"/>
+      </Unit146>
+      <Unit147>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win64\windows.pp"/>
         <UnitName Value="windows"/>
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="48" Y="25"/>
-        <UsageCount Value="34"/>
-      </Unit156>
-      <Unit157>
+        <UsageCount Value="18"/>
+      </Unit147>
+      <Unit148>
         <Filename Value="tableconverter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tableconverter"/>
@@ -1797,35 +1728,20 @@
         <CursorPos X="1" Y="216"/>
         <UsageCount Value="251"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit157>
-      <Unit158>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="840"/>
-        <CursorPos X="3" Y="855"/>
-        <UsageCount Value="15"/>
-      </Unit158>
-      <Unit159>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-xml\src\xmlread.pp"/>
-        <UnitName Value="XMLRead"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="29"/>
-        <CursorPos X="11" Y="44"/>
-        <UsageCount Value="8"/>
-      </Unit159>
-      <Unit160>
+      </Unit148>
+      <Unit149>
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="448"/>
-        <CursorPos X="28" Y="475"/>
+        <TopLine Value="142"/>
+        <CursorPos X="10" Y="157"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit160>
-      <Unit161>
+      </Unit149>
+      <Unit150>
         <Filename Value="dbk32\debug.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debug"/>
@@ -1836,8 +1752,8 @@
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit161>
-      <Unit162>
+      </Unit150>
+      <Unit151>
         <Filename Value="dbk32\multicpuexecution.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="multicpuexecution"/>
@@ -1846,8 +1762,8 @@
         <CursorPos X="15" Y="22"/>
         <UsageCount Value="204"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit162>
-      <Unit163>
+      </Unit151>
+      <Unit152>
         <Filename Value="dbk32\vmxfunctions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vmxfunctions"/>
@@ -1858,225 +1774,180 @@
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit163>
-      <Unit164>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\struct.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="3344"/>
-        <CursorPos X="6" Y="3359"/>
-        <UsageCount Value="16"/>
-      </Unit164>
-      <Unit165>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\func.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="165"/>
-        <CursorPos X="10" Y="180"/>
-        <UsageCount Value="3"/>
-      </Unit165>
-      <Unit166>
-        <Filename Value="ServiceDescriptorTables.pas"/>
-        <UnitName Value="ServiceDescriptorTables"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="354"/>
-        <CursorPos X="35" Y="375"/>
-        <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit166>
-      <Unit167>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawinbase.pas"/>
-        <UnitName Value="jwawinbase"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1824"/>
-        <CursorPos X="1" Y="1839"/>
-        <UsageCount Value="1"/>
-      </Unit167>
-      <Unit168>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwapsapi.pas"/>
-        <UnitName Value="jwapsapi"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="150"/>
-        <CursorPos X="1" Y="165"/>
-        <UsageCount Value="1"/>
-      </Unit168>
-      <Unit169>
+      </Unit152>
+      <Unit153>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winceunits\src\commctrl.pp"/>
         <UnitName Value="commctrl"/>
         <WindowIndex Value="0"/>
         <TopLine Value="631"/>
         <CursorPos X="3" Y="646"/>
-        <UsageCount Value="41"/>
-      </Unit169>
-      <Unit170>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\base.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="84"/>
-        <CursorPos X="27" Y="99"/>
-        <UsageCount Value="13"/>
-      </Unit170>
-      <Unit171>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\sysosh.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="4"/>
-        <CursorPos X="3" Y="19"/>
-        <UsageCount Value="13"/>
-      </Unit171>
-      <Unit172>
-        <Filename Value="C:\lazarus\lcl\lcltype.pp"/>
-        <UnitName Value="LCLType"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2769"/>
-        <CursorPos X="16" Y="2784"/>
-        <UsageCount Value="10"/>
-      </Unit172>
-      <Unit173>
+        <UsageCount Value="25"/>
+      </Unit153>
+      <Unit154>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\objpash.inc"/>
         <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="26" Y="230"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
-      </Unit173>
-      <Unit174>
+      </Unit154>
+      <Unit155>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\sysutilh.inc"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="71"/>
         <CursorPos X="16" Y="83"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
-      </Unit174>
-      <Unit175>
+      </Unit155>
+      <Unit156>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
         <UnitName Value="objpas"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
-      </Unit175>
+      </Unit156>
+      <Unit157>
+        <Filename Value="frmPagingUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form2"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmPagingUnit"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="13"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="67"/>
+        <CursorPos X="33" Y="80"/>
+        <UsageCount Value="141"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit157>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="760" Column="23" TopLine="751"/>
+        <Caret Line="180" Column="29" TopLine="165"/>
       </Position1>
       <Position2>
-        <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="formProcessInfo.pas"/>
+        <Caret Line="63" Column="7" TopLine="50"/>
       </Position2>
       <Position3>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="92" Column="24" TopLine="77"/>
+        <Caret Line="245" Column="80" TopLine="239"/>
       </Position3>
       <Position4>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="474" Column="37" TopLine="459"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position4>
       <Position5>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="580" Column="19" TopLine="565"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="41" Column="22" TopLine="26"/>
       </Position5>
       <Position6>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="186" Column="77" TopLine="183"/>
+        <Caret Line="162" Column="49" TopLine="147"/>
       </Position6>
       <Position7>
-        <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="220" Column="12" TopLine="202"/>
+        <Filename Value="formProcessInfo.pas"/>
+        <Caret Line="63" Column="10" TopLine="50"/>
       </Position7>
       <Position8>
         <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="760" Column="41" TopLine="743"/>
+        <Caret Line="427" Column="30" TopLine="412"/>
       </Position8>
       <Position9>
-        <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="220" Column="12" TopLine="202"/>
+        <Filename Value="formProcessInfo.pas"/>
+        <Caret Line="63" Column="8" TopLine="50"/>
       </Position9>
       <Position10>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="442" Column="49" TopLine="397"/>
       </Position10>
       <Position11>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="42" Column="69" TopLine="27"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position11>
       <Position12>
         <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="163" Column="18" TopLine="148"/>
+        <Caret Line="41" Column="22" TopLine="26"/>
       </Position12>
       <Position13>
-        <Filename Value="dbk32\DBK32functions.pas"/>
-        <Caret Line="463" Column="17" TopLine="448"/>
+        <Filename Value="formProcessInfo.pas"/>
+        <Caret Line="63" Column="8" TopLine="50"/>
       </Position13>
       <Position14>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="692" Column="7" TopLine="677"/>
+        <Filename Value="formProcessInfo.pas"/>
+        <Caret Line="60" Column="39" TopLine="48"/>
       </Position14>
       <Position15>
-        <Filename Value="plugin.pas"/>
-        <Caret Line="1187" Column="1" TopLine="1165"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="418" Column="31" TopLine="403"/>
       </Position15>
       <Position16>
-        <Filename Value="formProcessInfo.pas"/>
-        <Caret Line="70" Column="8" TopLine="53"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="436" Column="53" TopLine="424"/>
       </Position16>
       <Position17>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="456" Column="33" TopLine="441"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position17>
       <Position18>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4373" Column="8" TopLine="4346"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="36" Column="28" TopLine="21"/>
       </Position18>
       <Position19>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
-        <Caret Line="244" Column="7" TopLine="242"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="738" Column="63" TopLine="732"/>
       </Position19>
       <Position20>
-        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
-        <Caret Line="124" Column="11" TopLine="64"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position20>
       <Position21>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4386" Column="22" TopLine="4364"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="41" Column="22" TopLine="26"/>
       </Position21>
       <Position22>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4344" Column="37" TopLine="4336"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="42" Column="69" TopLine="26"/>
       </Position22>
       <Position23>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="441" Column="14" TopLine="421"/>
+        <Filename Value="frmPagingUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position23>
       <Position24>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4381" Column="5" TopLine="4353"/>
+        <Filename Value="frmPagingUnit.pas"/>
+        <Caret Line="46" Column="34" TopLine="16"/>
       </Position24>
       <Position25>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4351" Column="35" TopLine="4346"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="458" Column="69" TopLine="442"/>
       </Position25>
       <Position26>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4380" Column="28" TopLine="4354"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="269" Column="6" TopLine="254"/>
       </Position26>
       <Position27>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4369" Column="34" TopLine="4354"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4356" Column="15" TopLine="4341"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="476" Column="13" TopLine="461"/>
       </Position28>
       <Position29>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4370" Column="24" TopLine="4355"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="736" Column="49" TopLine="721"/>
       </Position29>
       <Position30>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4398" Column="18" TopLine="4382"/>
+        <Filename Value="frmPagingUnit.pas"/>
+        <Caret Line="76" Column="83" TopLine="52"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
