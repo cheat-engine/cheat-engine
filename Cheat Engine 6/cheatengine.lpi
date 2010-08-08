@@ -4,7 +4,11 @@
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
       <Title Value="Cheat Engine 6.0"/>
+      <ResourceType Value="res"/>
       <Icon Value="0"/>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
@@ -12,7 +16,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="584"/>
+      <BuildNr Value="590"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable ProductVersion="0.0.0.225"/>
@@ -38,15 +42,17 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="158">
+    <Units Count="159">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="34"/>
+        <TopLine Value="31"/>
         <CursorPos X="1" Y="63"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -67,11 +73,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4451"/>
-        <CursorPos X="3" Y="4454"/>
+        <TopLine Value="5750"/>
+        <CursorPos X="22" Y="5778"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="2">
           <Item0 X="1" Y="1726" ID="2"/>
@@ -85,7 +90,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="263"/>
         <CursorPos X="56" Y="280"/>
@@ -166,7 +171,7 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6"/>
         <CursorPos X="5" Y="21"/>
@@ -207,10 +212,10 @@
         <Filename Value="plugin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="plugin"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1263"/>
-        <CursorPos X="36" Y="1278"/>
+        <TopLine Value="1148"/>
+        <CursorPos X="1" Y="1165"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -522,7 +527,7 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4348"/>
         <CursorPos X="34" Y="4360"/>
@@ -675,7 +680,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formProcessInfo"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="48"/>
         <CursorPos X="39" Y="60"/>
@@ -723,7 +728,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="448"/>
         <CursorPos X="16" Y="454"/>
@@ -1473,7 +1478,7 @@
         <Filename Value="sfloat.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sfloat"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5304"/>
         <CursorPos X="5" Y="5319"/>
@@ -1729,7 +1734,7 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="150"/>
         <CursorPos X="42" Y="166"/>
@@ -1781,7 +1786,7 @@
       </Unit153>
       <Unit154>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="26" Y="230"/>
@@ -1790,7 +1795,7 @@
       </Unit154>
       <Unit155>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\sysutilh.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="71"/>
         <CursorPos X="16" Y="83"/>
@@ -1800,7 +1805,7 @@
       <Unit156>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
         <UnitName Value="objpas"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
@@ -1813,136 +1818,152 @@
         <ComponentName Value="frmPaging"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPagingUnit"/>
-        <EditorIndex Value="13"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="73"/>
-        <CursorPos X="3" Y="75"/>
-        <UsageCount Value="147"/>
+        <TopLine Value="182"/>
+        <CursorPos X="1" Y="213"/>
+        <UsageCount Value="148"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit157>
+      <Unit158>
+        <Filename Value="ServiceDescriptorTables.pas"/>
+        <ComponentName Value="frmServiceDescriptorTables"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ServiceDescriptorTables"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="346"/>
+        <CursorPos X="18" Y="376"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit158>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="104" Column="19" TopLine="90"/>
+        <Caret Line="82" Column="1" TopLine="75"/>
       </Position1>
       <Position2>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="107" Column="19" TopLine="76"/>
+        <Caret Line="83" Column="1" TopLine="75"/>
       </Position2>
       <Position3>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="93" Column="5" TopLine="79"/>
+        <Caret Line="84" Column="1" TopLine="75"/>
       </Position3>
       <Position4>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="82" Column="1" TopLine="75"/>
+        <Caret Line="85" Column="1" TopLine="75"/>
       </Position4>
       <Position5>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="83" Column="1" TopLine="75"/>
+        <Caret Line="86" Column="1" TopLine="75"/>
       </Position5>
       <Position6>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="84" Column="1" TopLine="75"/>
+        <Caret Line="87" Column="1" TopLine="75"/>
       </Position6>
       <Position7>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="85" Column="1" TopLine="75"/>
+        <Caret Line="89" Column="1" TopLine="75"/>
       </Position7>
       <Position8>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="86" Column="1" TopLine="75"/>
+        <Caret Line="91" Column="1" TopLine="75"/>
       </Position8>
       <Position9>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="87" Column="1" TopLine="75"/>
+        <Caret Line="92" Column="1" TopLine="75"/>
       </Position9>
       <Position10>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="89" Column="1" TopLine="75"/>
+        <Caret Line="93" Column="1" TopLine="75"/>
       </Position10>
       <Position11>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="91" Column="1" TopLine="75"/>
+        <Caret Line="95" Column="1" TopLine="75"/>
       </Position11>
       <Position12>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="92" Column="1" TopLine="75"/>
+        <Caret Line="96" Column="1" TopLine="75"/>
       </Position12>
       <Position13>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="93" Column="1" TopLine="75"/>
+        <Caret Line="99" Column="1" TopLine="75"/>
       </Position13>
       <Position14>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="1" TopLine="75"/>
+        <Caret Line="95" Column="25" TopLine="75"/>
       </Position14>
       <Position15>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="96" Column="1" TopLine="75"/>
+        <Caret Line="99" Column="1" TopLine="75"/>
       </Position15>
       <Position16>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="99" Column="1" TopLine="75"/>
+        <Caret Line="101" Column="1" TopLine="75"/>
       </Position16>
       <Position17>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="25" TopLine="75"/>
+        <Caret Line="103" Column="1" TopLine="75"/>
       </Position17>
       <Position18>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="99" Column="1" TopLine="75"/>
+        <Caret Line="95" Column="1" TopLine="75"/>
       </Position18>
       <Position19>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="101" Column="1" TopLine="75"/>
+        <Caret Line="118" Column="36" TopLine="93"/>
       </Position19>
       <Position20>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="1" TopLine="75"/>
+        <Caret Line="103" Column="50" TopLine="98"/>
       </Position20>
       <Position21>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="95" Column="1" TopLine="75"/>
+        <Caret Line="114" Column="29" TopLine="92"/>
       </Position21>
       <Position22>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="118" Column="36" TopLine="93"/>
+        <Caret Line="81" Column="12" TopLine="68"/>
       </Position22>
       <Position23>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="50" TopLine="98"/>
+        <Caret Line="75" Column="32" TopLine="64"/>
       </Position23>
       <Position24>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="114" Column="29" TopLine="92"/>
+        <Caret Line="103" Column="13" TopLine="52"/>
       </Position24>
       <Position25>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="81" Column="12" TopLine="68"/>
+        <Caret Line="38" Column="29" TopLine="26"/>
       </Position25>
       <Position26>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="75" Column="32" TopLine="64"/>
+        <Caret Line="55" Column="48" TopLine="21"/>
       </Position26>
       <Position27>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="103" Column="13" TopLine="52"/>
+        <Caret Line="75" Column="30" TopLine="63"/>
       </Position27>
       <Position28>
-        <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="38" Column="29" TopLine="26"/>
+        <Filename Value="ServiceDescriptorTables.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position28>
       <Position29>
-        <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="55" Column="48" TopLine="21"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="5782" Column="1" TopLine="5750"/>
       </Position29>
       <Position30>
         <Filename Value="frmPagingUnit.pas"/>
-        <Caret Line="75" Column="30" TopLine="63"/>
+        <Caret Line="105" Column="44" TopLine="94"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

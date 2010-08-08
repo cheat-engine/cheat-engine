@@ -1,6 +1,0 @@
-LazarusResources.Add('TformScanning','FORMDATA',[
-  'TPF0'#13'TformScanning'#12'formScanning'#4'Left'#3'N'#3#6'Height'#2'K'#3'Top'
-  +#3#232#0#5'Width'#3#140#0#11'BorderIcons'#11#0#11'BorderStyle'#7#8'bsSingle'
-  +#7'Caption'#6#11'Scanning...'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS San'
-  +'s Serif'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6#6'0.9.29'#0#0
-]);

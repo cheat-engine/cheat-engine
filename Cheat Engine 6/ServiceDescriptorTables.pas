@@ -377,7 +377,4 @@ begin
   memorybrowser.memoryaddress:=y;
 end;
 
-initialization
-  {$i ServiceDescriptorTables.lrs}
-
 end.

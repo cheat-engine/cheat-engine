@@ -1,10 +1,10 @@
 object frmServiceDescriptorTables: TfrmServiceDescriptorTables
-  Left = 971
+  Left = 948
   Height = 343
   Top = 356
   Width = 469
   Caption = 'Service Descriptor Table'
-  ClientHeight = 318
+  ClientHeight = 323
   ClientWidth = 469
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -15,7 +15,7 @@ object frmServiceDescriptorTables: TfrmServiceDescriptorTables
   LCLVersion = '0.9.29'
   object TreeView1: TTreeView
     Left = 0
-    Height = 318
+    Height = 323
     Top = 0
     Width = 469
     Align = alClient
