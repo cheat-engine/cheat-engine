@@ -31,7 +31,7 @@ implementation
 
 constructor TBigMemoryAllocHandler.create;
 begin
-  lastsize:=1024*1024;
+  lastsize:=1024*1024*16; //16MB
   getmem(currentbuffer,lastsize); //1mb
   ZeroMemory(currentbuffer,lastsize);
 end;

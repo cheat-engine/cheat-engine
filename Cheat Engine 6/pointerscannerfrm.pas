@@ -590,7 +590,9 @@ begin
 
       plist:=plist.previous;
       if plist<>nil then
-        stopvalue:=plist.pointervalue;
+        stopvalue:=plist.pointervalue
+      else
+        exit; //nothing else to be found
 
     end else
     begin

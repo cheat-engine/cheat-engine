@@ -69,6 +69,7 @@ var n: ttreenode;
   i,s: integer;
   substring: string;
 begin
+  i:=0;
   if tvpage.items.count=0 then exit;
 
   tvpage.Items.BeginUpdate;

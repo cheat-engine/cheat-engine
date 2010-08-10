@@ -43,7 +43,7 @@ uses
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
   tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions, 
-frmPagingUnit;
+frmPagingUnit, bigmemallochandler;
 
 {$R cheatengine.res}
 {$R manifest.res}

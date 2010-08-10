@@ -68,6 +68,8 @@ type
 
     firstPointerValue: PPointerList;
     lastPointerValue: PPointerList;
+
+    bigalloc: TBigMemoryAllocHandler;
     function BinSearchMemRegions(address: ptrUint): integer;
     function ispointer(address: ptrUint): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
@@ -185,6 +187,8 @@ var
   plist: PPointerList;
   stage: integer;
 
+  size: integer;
+
 begin
   currentarray:=level0list;
 
@@ -196,8 +200,10 @@ begin
     entrynr:=pointervalue shr ((maxlevel-level)*4) and $f;
     if currentarray[entrynr].ReversePointerlistArray=nil then //allocate
     begin
-      getmem(temp, sizeof(TReversePointerListArray));
-      ZeroMemory(temp, sizeof(TReversePointerListArray));
+      size:=sizeof(TReversePointerListArray);
+
+      temp:=bigalloc.alloc(size);
+      ZeroMemory(temp, size);
       currentarray[entrynr].ReversePointerlistArray:=temp;
     end;
 
@@ -212,8 +218,7 @@ begin
     
   if plist=nil then //allocate one
   begin
-
-    getmem(currentarray[entrynr].pointerlist, sizeof(TPointerlist));
+    currentarray[entrynr].pointerlist:=bigalloc.alloc(sizeof(TPointerlist));
     plist:=currentarray[entrynr].pointerlist;
     plist.PointerValue:=pointervalue;
 
@@ -233,7 +238,7 @@ begin
     //actually add a pointer address for this value
     if plist.list=nil then //create the list
     begin
-      getmem(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
+      plist.list:=bigalloc.alloc(plist.expectedsize*sizeof(TPointerDataArray));
       ZeroMemory(plist.list, plist.expectedsize*sizeof(TPointerDataArray));
 
       plist.maxsize:=plist.expectedsize;
@@ -241,15 +246,15 @@ begin
 
     if plist.pos>=plist.maxsize then
     begin
+      bigalloc.realloc(plist.list, plist.maxsize, plist.maxsize*4);
       plist.maxsize:=plist.maxsize*4; //quadrupple the storage
-      ReallocMem(plist.list, plist.maxsize*sizeof(TPointerDataArray)); //realloc
     end;
 
     plist.list[plist.pos].address:=pointerwiththisvalue;
     if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
     begin
       //it's a static, so create and fill in the static data
-      getmem(plist.list[plist.pos].staticdata, sizeof(TStaticData));
+      plist.list[plist.pos].staticdata:=bigalloc.alloc(sizeof(TStaticData));
       plist.list[plist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
       plist.list[plist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
     end
@@ -448,7 +453,7 @@ begin
     end
     else
     begin
-      if level=7 then
+      if level=_maxlevel then
       begin
         result:=currentarray[entrynr].pointerlist;
         break;
@@ -465,9 +470,12 @@ begin
 end;
 
 procedure TReversePointerListHandler.DeletePath(addresslist: PReversePointerListArray; level: integer);
-var
-  i,j: integer;
+//var
+//  i,j: integer;
 begin
+  //obsolete, freeing the bigmem alloc handler frees this now
+
+  {
   if level=maxlevel then
   begin
     for i:=0 to $F do
@@ -496,12 +504,17 @@ begin
       end;
     end;
   end;
+
+  }
 end;
 
 destructor TReversePointerListHandler.destroy;
 begin
   setlength(memoryregion,0);
   deletepath(level0list,0);
+
+  if bigalloc<>nil then
+    bigalloc.free;
 end;
 
 
@@ -570,8 +583,10 @@ var bytepointer: PByte;
     memoryregion2: array of TMemoryRegion2;
     lastaddress: ptrUint;
     pointermask: integer;
-
 begin
+  bigalloc:=TBigMemoryAllocHandler.create;
+
+
   modulelist:=tstringlist.create;
   symhandler.getModuleList(modulelist);
 
@@ -590,8 +605,10 @@ begin
 
   address:=start;
 
-  getmem(level0list, sizeof(TReversePointerListArray));
-  ZeroMemory(level0list, sizeof(TReversePointerListArray));
+  size:=sizeof(TReversePointerListArray);
+
+  level0list:=bigalloc.alloc(size);
+  ZeroMemory(level0list, size);
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
   begin
@@ -702,122 +719,130 @@ begin
   for i:=0 to length(memoryregion)-1 do
     maxsize:=max(maxsize, memoryregion[i].MemorySize);
 
+  buffer:=nil;
   try
     getmem(buffer,maxsize);
   except
     raise exception.Create('Not enough memory free to scan');
   end;
 
-  //initial scan to fetch the counts of memory
+  try
+
+    //initial scan to fetch the counts of memory
 
 
-  for i:=0 to length(memoryregion)-1 do
-  begin
-    actualread:=0;
-    if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+    for i:=0 to length(memoryregion)-1 do
     begin
-      bytepointer:=buffer;
-      lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
-
-      if processhandler.is64Bit then
+      actualread:=0;
+      if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
       begin
-        while ptrUint(bytepointer)<lastaddress do
+        bytepointer:=buffer;
+        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
+
+        if processhandler.is64Bit then
         begin
-
-          if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
-             ((not alligned) and ispointer(qwordpointer^) ) then
+          while ptrUint(bytepointer)<lastaddress do
           begin
-            //initial add
-            addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
-          end;
 
-          if alligned then
-            inc(qwordpointer)
-          else
-            inc(bytepointer);
+            if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+               ((not alligned) and ispointer(qwordpointer^) ) then
+            begin
+              //initial add
+              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+            end;
+
+            if alligned then
+              inc(qwordpointer)
+            else
+              inc(bytepointer);
+          end;
+        end
+        else
+        begin
+          while ptrUint(bytepointer)<lastaddress do
+          begin
+
+            if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
+               ((not alligned) and ispointer(dwordpointer^) ) then
+            begin
+              //initial add
+              addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+            end;
+
+            if alligned then
+              inc(dwordpointer)
+            else
+              inc(bytepointer);
+          end;
         end;
-      end
-      else
-      begin
-        while ptrUint(bytepointer)<lastaddress do
-        begin
 
-          if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
-             ((not alligned) and ispointer(dwordpointer^) ) then
+
+      end;
+
+      progressbar.StepIt;
+    end;
+
+    //actual add
+
+    for i:=0 to length(memoryregion)-1 do
+    begin
+      actualread:=0;
+      if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+      begin
+        bytepointer:=buffer;
+        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
+
+        if processhandler.is64Bit then
+        begin
+          while ptrUint(bytepointer)<lastaddress do
           begin
-            //initial add
-            addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+            if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+               ((not alligned) and ispointer(qwordpointer^) ) then
+            begin
+              //initial add
+              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
+              inc(count);
+            end;
+
+            if alligned then
+              inc(qwordpointer) //increase with 8
+            else
+              inc(bytepointer);
+          end;
+        end
+        else
+        begin
+          while ptrUint(bytepointer)<lastaddress do
+          begin
+            if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
+               ((not alligned) and ispointer(dwordpointer^) ) then
+            begin
+              //initial add
+              addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
+              inc(count);
+            end;
+
+            if alligned then
+              inc(dwordpointer) //increase with 4
+            else
+              inc(bytepointer);
           end;
 
-          if alligned then
-            inc(dwordpointer)
-          else
-            inc(bytepointer);
         end;
       end;
 
-
+      progressbar.StepIt;
     end;
 
-    progressbar.StepIt;
+    //and fill in the linked list
+    fillLinkedList;
+
+    progressbar.Position:=0;
+
+  finally
+    if buffer<>nil then
+      freemem(buffer);
   end;
-
-  //actual add
-
-  for i:=0 to length(memoryregion)-1 do
-  begin
-    actualread:=0;
-    if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
-    begin
-      bytepointer:=buffer;
-      lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
-
-      if processhandler.is64Bit then
-      begin
-        while ptrUint(bytepointer)<lastaddress do
-        begin
-          if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
-             ((not alligned) and ispointer(qwordpointer^) ) then
-          begin
-            //initial add
-            addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
-            inc(count);
-          end;
-
-          if alligned then
-            inc(qwordpointer) //increase with 8
-          else
-            inc(bytepointer);
-        end;
-      end
-      else
-      begin
-        while ptrUint(bytepointer)<lastaddress do
-        begin
-          if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
-             ((not alligned) and ispointer(dwordpointer^) ) then
-          begin
-            //initial add
-            addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
-            inc(count);
-          end;
-
-          if alligned then
-            inc(dwordpointer) //increase with 4
-          else
-            inc(bytepointer);
-        end;
-
-      end;
-    end;
-
-    progressbar.StepIt;
-  end;
-
-  //and fill in the linked list
-  fillLinkedList;
-
-  progressbar.Position:=0;
 
  // showmessage('count='+inttostr(count));
 end;
