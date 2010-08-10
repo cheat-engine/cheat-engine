@@ -10,7 +10,7 @@ it also contains some extra information like if it's static just so the pointers
 interface
 
 uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc, NewKernelHandler,
-     symbolhandler, math;
+     symbolhandler, math,bigmemallochandler;
 
 type
   PStaticData=^TStaticData;
