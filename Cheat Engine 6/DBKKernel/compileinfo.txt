@@ -1,0 +1,2 @@
+run ce.bat in the win2k development environment to compile the driver
+This build has last been tested with DDK build 7600.16385.0

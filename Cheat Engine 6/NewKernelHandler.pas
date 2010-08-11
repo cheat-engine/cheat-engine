@@ -220,7 +220,7 @@ type TDebuggerstate=record
   dr3 : uint64;
   dr6 : uint64;
   dr7 : uint64;
- { fxstate: TextendedRegisters; }
+  fxstate: TextendedRegisters;
 end;
 type PDebuggerstate=^TDebuggerstate;
 
