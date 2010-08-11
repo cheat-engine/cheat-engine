@@ -1695,6 +1695,7 @@ object MainForm: TMainForm
       OnClick = File1Click
       object miAddTab: TMenuItem
         Caption = 'Add scan tab'
+        ShortCut = 16468
         OnClick = miAddTabClick
       end
       object New1: TMenuItem

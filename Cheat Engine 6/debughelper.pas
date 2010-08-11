@@ -7,7 +7,7 @@ interface
 uses
   Windows, Classes, SysUtils, Controls, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
-  debuggertypedefinitions, formChangedAddresses, frmTracerUnit, VEHDebugger,
+  debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
   WindowsDebugger, debuggerinterfaceAPIWrapper;
 
 
@@ -1130,7 +1130,9 @@ begin
   if formsettings.cbUseWindowsDebugger.checked then
     CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
   else if formsettings.cbUseVEHDebugger.checked then
-    CurrentDebuggerInterface:=TVEHDebugInterface.create;
+    CurrentDebuggerInterface:=TVEHDebugInterface.create
+  else if formsettings.cbKDebug.checked then
+    CurrentDebuggerInterface:=TKernelDebugInterface.create;
 
   //prevent the user from changing this setting till next restart
   formsettings.cbUseWindowsDebugger.enabled:=false;

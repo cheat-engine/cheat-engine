@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="589"/>
+      <BuildNr Value="590"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.589" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.590" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -43,12 +43,12 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="159">
+    <Units Count="160">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="31"/>
         <CursorPos X="1" Y="64"/>
@@ -74,14 +74,16 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
+        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4451"/>
         <CursorPos X="3" Y="4454"/>
         <UsageCount Value="211"/>
-        <Bookmarks Count="2">
+        <Bookmarks Count="1">
           <Item0 X="1" Y="1726" ID="2"/>
-          <Item1 X="1" Y="32" ID="9"/>
         </Bookmarks>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
@@ -173,10 +175,12 @@
         <Filename Value="CEDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEDebugger"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="187"/>
-        <CursorPos X="35" Y="202"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
       <Unit12>
@@ -547,10 +551,12 @@
         <Filename Value="KernelDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="KernelDebugger"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="506"/>
+        <TopLine Value="121"/>
         <CursorPos X="28" Y="513"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit44>
       <Unit45>
@@ -638,7 +644,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4016"/>
         <CursorPos X="1" Y="4037"/>
@@ -1279,15 +1285,13 @@
         <Filename Value="pointervaluelist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pointervaluelist"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="438"/>
-        <CursorPos X="1" Y="465"/>
+        <TopLine Value="366"/>
+        <CursorPos X="29" Y="376"/>
         <UsageCount Value="204"/>
         <Bookmarks Count="1">
           <Item0 X="34" Y="241" ID="9"/>
         </Bookmarks>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit104>
       <Unit105>
@@ -1297,13 +1301,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="pointerscannerfrm"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="582"/>
-        <CursorPos X="5" Y="518"/>
+        <TopLine Value="330"/>
+        <CursorPos X="26" Y="589"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit105>
       <Unit106>
@@ -1413,10 +1414,12 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="557"/>
-        <CursorPos X="85" Y="572"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit116>
       <Unit117>
@@ -1433,10 +1436,12 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="822"/>
-        <CursorPos X="26" Y="837"/>
+        <TopLine Value="1118"/>
+        <CursorPos X="52" Y="1135"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit118>
       <Unit119>
@@ -1549,10 +1554,12 @@
         <Filename Value="VEHDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugger"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="223"/>
-        <CursorPos X="67" Y="238"/>
+        <TopLine Value="1"/>
+        <CursorPos X="100" Y="8"/>
         <UsageCount Value="205"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>
       <Unit130>
@@ -1569,10 +1576,12 @@
         <Filename Value="DebuggerInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterface"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="5" Y="21"/>
         <UsageCount Value="272"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit131>
       <Unit132>
@@ -1589,10 +1598,12 @@
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="22"/>
+        <TopLine Value="4"/>
         <CursorPos X="1" Y="29"/>
         <UsageCount Value="265"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit133>
       <Unit134>
@@ -1791,11 +1802,11 @@
         <ComponentName Value="frmPaging"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPagingUnit"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="62"/>
         <CursorPos X="8" Y="72"/>
-        <UsageCount Value="148"/>
+        <UsageCount Value="154"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit157>
@@ -1803,136 +1814,59 @@
         <Filename Value="bigmemallochandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="bigmemallochandler"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="55"/>
         <CursorPos X="3" Y="85"/>
-        <UsageCount Value="27"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="33"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit158>
+      <Unit159>
+        <Filename Value="KernelDebuggerInterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="KernelDebuggerInterface"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="27" Y="10"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit159>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="572" Column="85" TopLine="557"/>
       </Position1>
       <Position2>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="462" Column="1" TopLine="435"/>
+        <Filename Value="CEDebugger.pas"/>
+        <Caret Line="202" Column="1" TopLine="184"/>
       </Position2>
       <Position3>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="837" Column="26" TopLine="822"/>
       </Position3>
       <Position4>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position4>
       <Position5>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="10" Column="70" TopLine="1"/>
       </Position5>
       <Position6>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="462" Column="1" TopLine="435"/>
+        <Filename Value="VEHDebugger.pas"/>
+        <Caret Line="139" Column="101" TopLine="127"/>
       </Position6>
       <Position7>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1130" Column="40" TopLine="1115"/>
       </Position7>
       <Position8>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="10" Column="90" TopLine="1"/>
       </Position8>
-      <Position9>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
-      </Position9>
-      <Position10>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="462" Column="1" TopLine="435"/>
-      </Position10>
-      <Position11>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
-      </Position11>
-      <Position12>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
-      </Position12>
-      <Position13>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="25" TopLine="435"/>
-      </Position13>
-      <Position14>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
-      </Position14>
-      <Position15>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
-      </Position15>
-      <Position16>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
-      </Position16>
-      <Position17>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="462" Column="1" TopLine="435"/>
-      </Position17>
-      <Position18>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
-      </Position18>
-      <Position19>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
-      </Position19>
-      <Position20>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
-      </Position20>
-      <Position21>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="462" Column="1" TopLine="435"/>
-      </Position21>
-      <Position22>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="448" Column="1" TopLine="435"/>
-      </Position22>
-      <Position23>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="449" Column="1" TopLine="435"/>
-      </Position23>
-      <Position24>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="456" Column="1" TopLine="435"/>
-      </Position24>
-      <Position25>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="458" Column="1" TopLine="435"/>
-      </Position25>
-      <Position26>
-        <Filename Value="pointervaluelist.pas"/>
-        <Caret Line="459" Column="1" TopLine="438"/>
-      </Position26>
-      <Position27>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="524" Column="20" TopLine="567"/>
-      </Position27>
-      <Position28>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="591" Column="1" TopLine="567"/>
-      </Position28>
-      <Position29>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="592" Column="1" TopLine="567"/>
-      </Position29>
-      <Position30>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="591" Column="1" TopLine="567"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
