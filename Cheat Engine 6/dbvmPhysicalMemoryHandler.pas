@@ -22,13 +22,13 @@ uses NewKernelHandler;
 
 function ReadProcessMemoryPhys(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 begin
-  lpNumberOfBytesRead:=dbvm_read_physical_memory(uint64(lpBaseAddress),lpBuffer,nSize);
+  lpNumberOfBytesRead:=dbvm_read_physical_memory(uint64(ptrUint(lpBaseAddress)),lpBuffer,nSize);
   result:=lpNumberOfBytesRead>0;
 end;
 
 function WriteProcessMemoryPhys(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 begin
-  lpNumberOfBytesWritten:=dbvm_write_physical_memory(uint64(lpBaseAddress),lpBuffer,nSize);
+  lpNumberOfBytesWritten:=dbvm_write_physical_memory(uint64(ptrUint(lpBaseAddress)),lpBuffer,nSize);
   result:=lpNumberOfBytesWritten>0;
 end;
 

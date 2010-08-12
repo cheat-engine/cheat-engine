@@ -82,6 +82,7 @@ object frmdissectWindow: TfrmdissectWindow
       Caption = 'Capture Timer Messages'
       OnClick = Button4Click
       TabOrder = 3
+      Visible = False
     end
     object Button6: TButton
       Left = 200

@@ -140,7 +140,7 @@ begin
   pd:=node.data;
   buf:=getmem(4096);
   try
-    if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+    if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
     begin
       if cb8byteentries.checked then
       begin
@@ -190,7 +190,7 @@ begin
   pd:=node.data;
   buf:=getmem(4096);
   try
-    if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+    if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
     begin
       if cb8byteentries.checked then
       begin
@@ -251,7 +251,7 @@ begin
   buf:=getmem(4096);
   try
 
-  if ReadPhysicalMemory(0, pointer(pd^.pa), buf, 4096, x) then
+  if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
   begin
 
 

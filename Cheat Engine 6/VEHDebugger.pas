@@ -209,7 +209,7 @@ begin
         if is64bit then
         begin
           lpDebugEvent.DebugString.nDebugStringLength:=VEHDebugView.Exception64.ExceptionInformation[0];
-          lpDebugEvent.DebugString.lpDebugStringData:=pointer(VEHDebugView.Exception64.ExceptionInformation[1]);
+          lpDebugEvent.DebugString.lpDebugStringData:=pointer(ptrUint(VEHDebugView.Exception64.ExceptionInformation[1]));
         end
         else
         begin
@@ -223,6 +223,7 @@ begin
         //unknown event, standard exception
         lpDebugEvent.dwDebugEventCode:=EXCEPTION_DEBUG_EVENT;
         lpDebugEvent.Exception.ExceptionRecord.ExceptionRecord:=nil;
+        {$ifdef cpu64}
         if is64bit then
         begin
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=VEHDebugView.Exception64.ExceptionCode;
@@ -235,6 +236,7 @@ begin
             lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[i]:=VEHDebugView.Exception64.ExceptionInformation[i];
         end
         else
+        {$endif}
         begin
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=VEHDebugView.Exception32.ExceptionCode;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionFlags:=VEHDebugView.Exception32.ExceptionFlags;

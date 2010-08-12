@@ -161,6 +161,7 @@ function TKernelDebugInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 {Start the kerneldebugger for the current process}
 var cpe: PInjectedEvent;
     tl: tlist;
+    i: integer;
 begin
   loaddbk32;
   if not loaddbvmifneeded then
@@ -193,6 +194,16 @@ begin
 
       injectEvent(cpe);
 
+      for i:=0 to tl.count-1 do
+      begin
+        getmem(cpe, sizeof(TInjectedEvent));
+        cpe.eventType:=etCreateThread;
+        cpe.processid:=pid;
+        cpe.threadid:=ptrUint(tl.items[i]);
+        injectEvent(cpe);
+      end;
+
+
     finally
       tl.free;
     end;
@@ -208,6 +219,7 @@ end;
 
 function TKernelDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 begin
+  outputdebugstring('TKernelDebugInterface.SetThreadContext');
   if isFrozenThread then
   begin
     //use the currentdebuggerstate
@@ -244,12 +256,17 @@ begin
     currentdebuggerstate.dr6:=lpContext.Dr6;
     currentdebuggerstate.dr7:=lpContext.Dr7;
 
+    {$ifdef cpu64}
     CopyMemory(@currentdebuggerstate.fxstate, @lpContext.FltSave, 512);
-  end else result:=windows.SetThreadContext(hthread, lpContext);
+    {$else}
+    CopyMemory(@currentdebuggerstate.fxstate, @lpContext.ext, sizeof(lpContext.ext));
+    {$endif}
+  end else result:=newkernelhandler.SetThreadContext(hthread, lpContext);
 end;
 
 function TKernelDebugInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL;
 begin
+  outputdebugstring('TKernelDebugInterface.GetThreadContext');
   if isFrozenThread then
   begin
     //use the currentdebuggerstate
@@ -286,10 +303,14 @@ begin
     lpContext.Dr6:=currentdebuggerstate.dr6;
     lpContext.Dr7:=currentdebuggerstate.dr7;
 
+    {$ifdef cpu64}
     CopyMemory(@lpContext.FltSave, @currentdebuggerstate.fxstate, 512);
+    {$else}
+    CopyMemory(@lpContext.ext, @currentdebuggerstate.fxstate, sizeof(lpContext.ext));
+    {$endif}
 
     lpContext.ContextFlags:=0;
-  end else result:=windows.GetThreadContext(hthread, lpContext);
+  end else result:=newkernelhandler.GetThreadContext(hthread, lpContext);
 
 end;
 
@@ -329,9 +350,10 @@ begin
         etCreateThread:
         begin
           lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
-          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, injectedevent.threadid);
+          lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, injectedevent.threadid);
         end;
         etDestroyThread: lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
+
       end;
 
       NeedsToContinue:=false; //it's not really paused
@@ -354,7 +376,7 @@ begin
       lpDebugEvent.dwThreadId:=currentdebuggerstate.threadid;
       lpDebugEvent.Exception.dwFirstChance:=1;
       lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_SINGLE_STEP;
-      lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(currentdebuggerstate.eip);
+      lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(currentdebuggerstate.eip));
 
 
 

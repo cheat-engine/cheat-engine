@@ -36,7 +36,7 @@ begin
   {$ifndef cpu64}
   if qwBaseAddress>$FFFFFFFF then exit;
   {$endif}
-  result:=newkernelhandler.readprocessmemory(hProcess, pointer(qwBaseAddress), lpBuffer, nSize, lpNumberOfBytesRead^);
+  result:=newkernelhandler.readprocessmemory(hProcess, pointer(ptrUint(qwBaseAddress)), lpBuffer, nSize, lpNumberOfBytesRead^);
 end;
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);

@@ -1210,7 +1210,7 @@ Generic routine for storing results. Use as last resort. E.g custom scans
 begin
   //save varsize
   PPtrUintArray(CurrentAddressBuffer)[found]:=address;
-  copyMemory(pointer(ptruint(CurrentFoundBuffer)+(variablesize*found)),oldvalue,variablesize);
+  copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
   inc(found);
   if found>=buffersize then
@@ -1734,7 +1734,7 @@ begin
 
 
         
-      if (currentbase)=((alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
+      if currentbase=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -1850,7 +1850,7 @@ begin
     currentbase:=alist[i].address and qword($FFFFFFFFFFFFF000);
     while j<=maxindex do
     begin
-      if (currentbase)=((alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
+      if (currentbase)=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -1959,7 +1959,7 @@ begin
     currentbase:=alist[i] and qword($FFFFFFFFFFFFF000);
     while j<=maxindex do
     begin
-      if (currentbase)=((alist[j]+vsize-1) and qword($fffffffffffff000)) then //same page
+      if (currentbase)=(qword(alist[j]+vsize-1) and qword($fffffffffffff000)) then //same page
         inc(j)
       else
       begin
@@ -3566,7 +3566,7 @@ begin
         //still here, so a new region
         memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
         memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
-        memRegion[memRegionPos].startaddress:=pointer(totalProcessMemorySize); //starts from 0, for unknown scans
+        memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize)); //starts from 0, for unknown scans
 
         inc(memRegionPos);
         if (memRegionPos mod 16)=0 then //add another 16 to it

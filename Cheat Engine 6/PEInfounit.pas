@@ -366,7 +366,7 @@ begin
       begin
         //no use in 5.4- , but let's do it anyhow
         basedifference:=ptrUint(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
-        basedifference64:=UINT64(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
+        basedifference64:=UINT64(ptrUint(loadedmodule))-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
       end
       else
       begin
@@ -402,7 +402,7 @@ begin
         CopyMemory(@loadedmodule[0], @memorycopy[0], PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.SizeOfHeaders);
 
         basedifference:=ptrUint(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
-        basedifference64:=UINT64(loadedmodule)-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
+        basedifference64:=UINT64(ptrUint(loadedmodule))-PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase;
       end
       else
       begin

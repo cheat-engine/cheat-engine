@@ -7493,7 +7493,7 @@ begin
                 begin
                     inc(z.high);
                     if ( bits64( z.low shl 1 ) = 0 ) then
-                      z.high := z.high and not(1);
+                      z.high := z.high and qword(not(qword(1)));
                 end;
             end;
         end

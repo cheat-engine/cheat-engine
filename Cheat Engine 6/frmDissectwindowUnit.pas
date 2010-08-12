@@ -209,15 +209,19 @@ begin
 end;
 
 procedure TfrmdissectWindow.Button4Click(Sender: TObject);
-var
+{var
   winhandle,possiblewinhandle: thandle;
   winprocess: dword;
   winthreadid: dword;
   err:integer;
-  TimerhookdataMapping:thandle;
+  TimerhookdataMapping:thandle;  }
 
 begin
-    CEHOOKDLL:=LoadLibrary('CEHook.dll');
+  raise exception.Create('Removed');
+  {
+  raise exception.Create('I said Removed dickwad');
+
+  CEHOOKDLL:=LoadLibrary('CEHook.dll');
     if CEHOOKDLL=0 then exit;
 
     //still here so the dll is loaded
@@ -229,6 +233,7 @@ begin
     begin
       FreeLibrary(CEHOOKDLL);
       exit;
+
     end;
 
 
@@ -245,8 +250,8 @@ begin
     CETIMERHOOKDATA.processed:=true;
     CETIMERHOOKDATA.targetprocess:=processid;
 
-    TimerHook:=setwindowshookex(WH_GETMESSAGE,CETimerHook,CEHOOKDLL,{GetWindowThreadProcessId(possiblewinhandle,@winprocess)}0);
-    sendmessage(windowhandle,wm_user+666,$87654321,TimerHook);
+    TimerHook:=setwindowshookex(WH_GETMESSAGE,CETimerHook,CEHOOKDLL,0);
+    sendmessage(windowhandle,wm_user+666,dword($87654321),TimerHook);
 
     frmCapturedTimers.windowhandle:=windowhandle;
     frmCapturedTimers.showmodal;
@@ -256,6 +261,7 @@ begin
     FreeLibrary(CEHOOKDLL);
     UnmapViewOfFile(CETIMERHOOKDATA);
     closehandle(TimerhookdataMapping);
+    }
 end;
 
 procedure TfrmdissectWindow.Button3Click(Sender: TObject);

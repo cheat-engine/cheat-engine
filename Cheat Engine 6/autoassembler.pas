@@ -1553,9 +1553,9 @@ begin
         if length(dealloc)=length(ceallocarray) then //free everything
         begin
           {$ifdef cpu64}
-          baseaddress:=$FFFFFFFF;
-          {$else}
           baseaddress:=qword($FFFFFFFFFFFFFFFF);
+          {$else}
+          baseaddress:=$FFFFFFFF;
           {$endif}
 
           for i:=0 to length(dealloc)-1 do

@@ -137,6 +137,7 @@ procedure TDebugThreadHandler.setContext;
 var
   i: integer;
 begin
+  outputdebugstring('TDebugThreadHandler.setContext');
 
   if handle<>0 then
   begin

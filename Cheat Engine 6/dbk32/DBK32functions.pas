@@ -775,7 +775,7 @@ end;
 
 function {ReadProcessMemory64}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 begin
-  result:=rpm64(hProcess, uint64(lpBaseAddress), lpBuffer, nSize, NumberOfBytesRead);
+  result:=rpm64(hProcess, uint64(ptrUint(lpBaseAddress)), lpBuffer, nSize, NumberOfBytesRead);
 end;
 
 function {ReadProcessMemory}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
@@ -848,12 +848,12 @@ begin
     end;
 
   //not found so ....
-  result:=windows.ReadProcessMemory(hProcess,pointer(lpBaseAddress),lpBuffer,nSize,NumberOfBytesRead);
+  result:=windows.ReadProcessMemory(hProcess,pointer(ptrUint(lpBaseAddress)),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 begin
-  result:=wpm64(hprocess, uint64(lpBaseAddress), lpbuffer, nsize, NumberofbytesWritten);
+  result:=wpm64(hprocess, uint64(ptrUint(lpBaseAddress)), lpbuffer, nsize, NumberofbytesWritten);
 end;
 
 function {WriteProcessMemory}WPM64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
@@ -1809,9 +1809,11 @@ begin
           end
           else
           begin
+            InitializeDriver(0,0);
+            (*
             if not InitializeDriver(0,0) then
               messagebox(0,'The driver failed to successfully initialize. Some functions may not completly work','DBK32.dll',MB_ICONERROR or MB_OK);
-
+              *)
 
             Successfullyloaded:=true;
           end;
