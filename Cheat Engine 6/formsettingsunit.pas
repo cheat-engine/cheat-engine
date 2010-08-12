@@ -841,6 +841,8 @@ begin
   framehotkeyconfig.speedupdelta:=speedupdelta;
   framehotkeyconfig.slowdowndelta:=slowdowndelta;
 
+
+  cbDebuggerInterfaceChange(nil);
 end;
 
 procedure TformSettings.cbShowDisassemblerClick(Sender: TObject);
