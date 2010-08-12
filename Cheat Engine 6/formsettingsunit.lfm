@@ -945,7 +945,7 @@ object formSettings: TformSettings
             Left = 10
             Height = 20
             Top = 2
-            Width = 197
+            Width = 199
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
@@ -954,7 +954,7 @@ object formSettings: TformSettings
             Left = 10
             Height = 20
             Top = 21
-            Width = 349
+            Width = 351
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
@@ -963,7 +963,7 @@ object formSettings: TformSettings
             Left = 10
             Height = 20
             Top = 40
-            Width = 104
+            Width = 106
             Caption = 'Open Process'
             TabOrder = 2
           end
@@ -972,7 +972,7 @@ object formSettings: TformSettings
           Left = 1
           Height = 20
           Top = 94
-          Width = 227
+          Width = 229
           Caption = 'Enable use of the Process Watcher'
           OnClick = cbProcessWatcherClick
           TabOrder = 1
@@ -981,7 +981,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 20
           Top = 422
-          Width = 148
+          Width = 150
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
           Visible = False
@@ -990,7 +990,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 20
           Top = 442
-          Width = 203
+          Width = 205
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
@@ -1000,7 +1000,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 20
           Top = 182
-          Width = 180
+          Width = 182
           Caption = 'Use kernelmode debugger'
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
@@ -1012,7 +1012,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 20
           Top = 158
-          Width = 159
+          Width = 161
           Caption = 'Use windows debugger'
           Checked = True
           OnChange = cbDebuggerInterfaceChange
@@ -1024,7 +1024,7 @@ object formSettings: TformSettings
           Left = 7
           Height = 20
           Top = 134
-          Width = 138
+          Width = 140
           Caption = 'Use VEH Debugger'
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
@@ -1107,23 +1107,11 @@ object formSettings: TformSettings
               Caption = 'Kernel Debug'
               ClientHeight = 106
               ClientWidth = 404
-              object Label10: TLabel
-                Left = 34
-                Height = 17
-                Top = -1
-                Width = 304
-                Caption = 'Kernelmode debugger is currently not implemented'
-                Font.Color = clRed
-                Font.Height = -14
-                Font.Name = 'MS Sans Serif'
-                ParentColor = False
-                ParentFont = False
-              end
               object cbGlobalDebug: TCheckBox
                 Left = 4
                 Height = 20
                 Top = 19
-                Width = 180
+                Width = 182
                 Caption = 'Use Global Debug routines'
                 Enabled = False
                 TabOrder = 0
@@ -1330,7 +1318,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 12
+                Width = 25
               end>
             HideSelection = False
             ItemIndex = -1

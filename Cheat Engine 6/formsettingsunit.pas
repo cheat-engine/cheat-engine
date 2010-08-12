@@ -29,7 +29,6 @@ type
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
     GroupBox2: TGroupBox;
-    Label10: TLabel;
     Label2: TLabel;
     Label25: TLabel;
     LoadButton: TSpeedButton;

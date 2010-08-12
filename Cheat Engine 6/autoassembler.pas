@@ -1553,7 +1553,7 @@ begin
         if length(dealloc)=length(ceallocarray) then //free everything
         begin
           {$ifdef cpu64}
-          baseaddress:=qword($FFFFFFFFFFFFFFFF);
+          baseaddress:=ptrUint($FFFFFFFFFFFFFFFF);
           {$else}
           baseaddress:=$FFFFFFFF;
           {$endif}

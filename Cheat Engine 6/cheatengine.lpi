@@ -17,10 +17,10 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="623"/>
+      <BuildNr Value="626"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.623" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="6.0.0.626" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion="0.0.0.225"/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -191,10 +191,12 @@
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1546"/>
-        <CursorPos X="34" Y="1558"/>
+        <TopLine Value="1539"/>
+        <CursorPos X="31" Y="1555"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -259,8 +261,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="714"/>
-        <CursorPos X="3" Y="716"/>
+        <TopLine Value="713"/>
+        <CursorPos X="44" Y="720"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1412,7 +1414,7 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="133"/>
         <CursorPos X="37" Y="152"/>
@@ -1705,7 +1707,7 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1793"/>
         <CursorPos X="67" Y="1795"/>
@@ -1822,7 +1824,7 @@
         <UsageCount Value="19"/>
       </Unit159>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="15" HistoryIndex="14">
       <Position1>
         <Filename Value="NewKernelHandler.pas"/>
         <Caret Line="476" Column="34" TopLine="464"/>
@@ -1871,6 +1873,18 @@
         <Filename Value="formsettingsunit.pas"/>
         <Caret Line="845" Column="17" TopLine="822"/>
       </Position12>
+      <Position13>
+        <Filename Value="autoassembler.pas"/>
+        <Caret Line="1558" Column="34" TopLine="1546"/>
+      </Position13>
+      <Position14>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="721" Column="44" TopLine="714"/>
+      </Position14>
+      <Position15>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="720" Column="44" TopLine="713"/>
+      </Position15>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
