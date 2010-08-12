@@ -5,49 +5,384 @@ unit KernelDebuggerInterface;
 interface
 
 uses
-  windows, Classes, SysUtils,cefuncproc, newkernelhandler,DebuggerInterface;
+  jwawindows, windows, Classes, SysUtils,cefuncproc, newkernelhandler,DebuggerInterface,contnrs;
 
 type
+  TEventType=(etCreateProcess, etCreateThread, etDestroyThread);
+  TInjectedEvent=record
+    eventType: TEventType;
+    processid: dword;
+    threadid: dword;
+  end;
+  PInjectedEvent=^TInjectedEvent;
+
+
+type
+  TKernelDebugInterface=class;
+  TThreadPoller=class(tthread)
+  private
+    threadlist: TList;
+
+    procedure UpdateList;
+    procedure CreateThreadEvent(threadid: dword);
+    procedure DestroyThreadEvent(threadid: dword);
+
+  public
+    pid: dword;
+    di: TKernelDebugInterface;
+    procedure GetCurrentList(list: tlist);
+    procedure execute; override;
+  end;
+
   TKernelDebugInterface=class(TDebuggerInterface)
   private
     pid: DWORD;
     currentdebuggerstate: TDebuggerstate;
+
+    injectedEvents: Tqueue;
+    threadpoller: TThreadPoller;
+    NeedsToContinue: boolean;
   public
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
-   // function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
-   // function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
-   // function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
+    function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
+    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
+    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
+    procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    destructor destroy; override;
+    constructor create;
   end;
 
 implementation
 
+
+
+
+procedure TThreadPoller.CreateThreadEvent(threadid: dword);
+var ie: PInjectedEvent;
+begin
+  getmem(ie, sizeof(TInjectedEvent));
+  ie.eventType:=etCreateThread;
+  ie.threadid:=threadid;
+  ie.processid:=pid;
+
+  di.injectEvent(ie);
+end;
+
+procedure TThreadPoller.DestroyThreadEvent(threadid: dword);
+var ie: PInjectedEvent;
+begin
+  getmem(ie, sizeof(TInjectedEvent));
+  ie.eventType:=etDestroyThread;
+  ie.threadid:=threadid;
+  ie.processid:=pid;
+
+  di.injectEvent(ie);
+end;
+
+
+procedure TThreadPoller.GetCurrentList(list: tlist);
+var
+  ths: thandle;
+  lpte: TThreadEntry32;
+  check: boolean;
+begin
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPALL,pid);
+
+  if ths<>INVALID_HANDLE_VALUE then
+  begin
+    zeromemory(@lpte,sizeof(lpte));
+    lpte.dwSize:=sizeof(lpte);
+    check:=Thread32First(ths, lpte);
+    while check do
+    begin
+      if lpte.th32OwnerProcessID=pid then
+        list.add(pointer(ptrUint(lpte.th32ThreadID)));
+
+      check:=Thread32next(ths,lpte);
+    end;
+
+    closehandle(ths);
+  end;
+end;
+
+procedure TThreadPoller.UpdateList;
+var newlist: Tlist;
+i: integer;
+begin
+  newlist:=tlist.create;
+  GetCurrentList(newlist);
+
+  //now try to find the differences
+
+  //is there a threadid that's not in the current threadlist?
+  for i:=0 to newlist.Count-1 do
+    if threadlist.IndexOf(newlist[i])=-1 then //not found
+      CreateThreadEvent(ptrUint(newlist[i]));
+
+  for i:=0 to threadlist.count-1 do
+    if newlist.IndexOf(threadlist[i])=-1 then //the new list doesn't contain this threadid
+      DestroyThreadEvent(ptrUint(threadlist[i]));
+
+  //free the old list and make the new list the current list
+  threadlist.free;
+  threadlist:=newlist;
+end;
+
+procedure TThreadPoller.execute;
+begin
+  threadlist:=TList.Create;
+  try
+    GetCurrentList(threadlist);
+
+    while not terminated do
+    begin
+
+      sleep(1000);
+      UpdateList;
+    end;
+  finally
+    threadlist.free;
+  end;
+end;
+
+
+
+//------------------------------------------------------------------------------
+
+procedure TKernelDebugInterface.injectEvent(e: pointer);
+begin
+  if injectedEvents<>nil then
+    injectedEvents.Push(e);
+end;
+
 function TKernelDebugInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 {Start the kerneldebugger for the current process}
+var cpe: PInjectedEvent;
+    tl: tlist;
 begin
   loaddbk32;
   if not loaddbvmifneeded then
     raise exception.Create('You can''t currently use the kernel debugger');
 
+  outputdebugstring('Using the kernelmode debugger');
   result:=DBKDebug_StartDebugging(dwProcessId);
-  pid:=dwProcessID;
+
+  if result then
+  begin
+    processhandler.processid:=dwProcessID;
+    Open_Process;
+
+    pid:=dwProcessID;
+
+    threadpoller:=TThreadPoller.Create(true);
+    threadpoller.pid:=pid;
+
+    tl:=tlist.create;
+    try
+      threadpoller.GetCurrentList(tl);
+
+      getmem(cpe, sizeof(TInjectedEvent));
+      cpe.eventType:=etCreateProcess;
+      cpe.processid:=pid;
+      if tl.count>0 then
+        cpe.threadid:=ptrUint(tl.items[0])
+      else
+        cpe.threadid:=0;
+
+      injectEvent(cpe);
+
+    finally
+      tl.free;
+    end;
+
+
+    threadpoller.resume;
+  end
+  else
+    raise exception.create('DBKDebug_StartDebugging failed');
+
+
+end;
+
+function TKernelDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  if isFrozenThread then
+  begin
+    //use the currentdebuggerstate
+    currentdebuggerstate.eax:=lpContext.{$ifdef cpu64}Rax{$else}eax{$endif};
+    currentdebuggerstate.ebx:=lpContext.{$ifdef cpu64}Rbx{$else}ebx{$endif};
+    currentdebuggerstate.ecx:=lpContext.{$ifdef cpu64}Rcx{$else}ecx{$endif};
+    currentdebuggerstate.edx:=lpContext.{$ifdef cpu64}Rdx{$else}edx{$endif};
+    currentdebuggerstate.esi:=lpContext.{$ifdef cpu64}Rsi{$else}esi{$endif};
+    currentdebuggerstate.edi:=lpContext.{$ifdef cpu64}Rdi{$else}edi{$endif};
+    currentdebuggerstate.ebp:=lpContext.{$ifdef cpu64}Rbp{$else}ebp{$endif};
+    currentdebuggerstate.esp:=lpContext.{$ifdef cpu64}Rsp{$else}esp{$endif};
+    currentdebuggerstate.eip:=lpContext.{$ifdef cpu64}Rip{$else}eip{$endif};
+    {$ifdef cpu64}
+    currentdebuggerstate.r8:=lpContext.r8;
+    currentdebuggerstate.r9:=lpContext.r9;
+    currentdebuggerstate.r10:=lpContext.r10;
+    currentdebuggerstate.r11:=lpContext.r11;
+    currentdebuggerstate.r12:=lpContext.r12;
+    currentdebuggerstate.r13:=lpContext.r13;
+    currentdebuggerstate.r14:=lpContext.r14;
+    currentdebuggerstate.r15:=lpContext.r15;
+    {$endif}
+    currentdebuggerstate.cs:=lpContext.SegCs;
+    currentdebuggerstate.ss:=lpContext.SegSs;
+    currentdebuggerstate.ds:=lpContext.SegDs;
+    currentdebuggerstate.es:=lpContext.SegEs;
+    currentdebuggerstate.fs:=lpContext.SegFs;
+    currentdebuggerstate.gs:=lpContext.SegGs;
+    currentdebuggerstate.eflags:=lpContext.EFlags;
+    currentdebuggerstate.dr0:=lpContext.Dr0;
+    currentdebuggerstate.dr1:=lpContext.Dr1;
+    currentdebuggerstate.dr2:=lpContext.Dr2;
+    currentdebuggerstate.dr3:=lpContext.Dr3;
+    currentdebuggerstate.dr6:=lpContext.Dr6;
+    currentdebuggerstate.dr7:=lpContext.Dr7;
+
+    CopyMemory(@currentdebuggerstate.fxstate, @lpContext.FltSave, 512);
+  end else result:=windows.SetThreadContext(hthread, lpContext);
+end;
+
+function TKernelDebugInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL;
+begin
+  if isFrozenThread then
+  begin
+    //use the currentdebuggerstate
+    lpContext.{$ifdef cpu64}Rax{$else}eax{$endif}:=currentdebuggerstate.eax;
+    lpContext.{$ifdef cpu64}Rbx{$else}ebx{$endif}:=currentdebuggerstate.ebx;
+    lpContext.{$ifdef cpu64}Rcx{$else}ecx{$endif}:=currentdebuggerstate.ecx;
+    lpContext.{$ifdef cpu64}Rdx{$else}edx{$endif}:=currentdebuggerstate.edx;
+    lpContext.{$ifdef cpu64}Rsi{$else}esi{$endif}:=currentdebuggerstate.esi;
+    lpContext.{$ifdef cpu64}Rdi{$else}edi{$endif}:=currentdebuggerstate.edi;
+    lpContext.{$ifdef cpu64}Rbp{$else}ebp{$endif}:=currentdebuggerstate.ebp;
+    lpContext.{$ifdef cpu64}Rsp{$else}esp{$endif}:=currentdebuggerstate.esp;
+    lpContext.{$ifdef cpu64}Rip{$else}eip{$endif}:=currentdebuggerstate.eip;
+    {$ifdef cpu64}
+    lpContext.r8:=currentdebuggerstate.r8;
+    lpContext.r9:=currentdebuggerstate.r9;
+    lpContext.r10:=currentdebuggerstate.r10;
+    lpContext.r11:=currentdebuggerstate.r11;
+    lpContext.r12:=currentdebuggerstate.r12;
+    lpContext.r13:=currentdebuggerstate.r13;
+    lpContext.r14:=currentdebuggerstate.r14;
+    lpContext.r15:=currentdebuggerstate.r15;
+    {$endif}
+    lpContext.SegCs:=currentdebuggerstate.cs;
+    lpContext.SegSs:=currentdebuggerstate.ss;
+    lpContext.SegDs:=currentdebuggerstate.ds;
+    lpContext.SegEs:=currentdebuggerstate.es;
+    lpContext.SegFs:=currentdebuggerstate.fs;
+    lpContext.SegGs:=currentdebuggerstate.gs;
+    lpContext.EFlags:=currentdebuggerstate.eflags;
+    lpContext.Dr0:=currentdebuggerstate.dr0;
+    lpContext.Dr1:=currentdebuggerstate.dr1;
+    lpContext.Dr2:=currentdebuggerstate.dr2;
+    lpContext.Dr3:=currentdebuggerstate.dr3;
+    lpContext.Dr6:=currentdebuggerstate.dr6;
+    lpContext.Dr7:=currentdebuggerstate.dr7;
+
+    CopyMemory(@lpContext.FltSave, @currentdebuggerstate.fxstate, 512);
+
+    lpContext.ContextFlags:=0;
+  end else result:=windows.GetThreadContext(hthread, lpContext);
+
+end;
+
+function TKernelDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
+begin
+  if NeedsToContinue then
+  begin
+    DBKDebug_SetDebuggerState(@currentdebuggerstate);
+    result:=DBKDebug_ContinueDebugEvent(dwContinueStatus=DBG_CONTINUE)
+  end
+  else
+    result:=true;
 end;
 
 function TKernelDebugInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
+var injectedEvent: PInjectedEvent;
 begin
-  result:=DBKDebug_WaitForDebugEvent(dwMilliseconds);
-  if result then
+  ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
+
+  if injectedEvents.Count>0 then
   begin
-    //get the state and convert to lpDebugEvent
-    DBKDebug_GetDebuggerState(@currentdebuggerstate);
+    result:=true;
+    injectedEvent:=injectedEvents.Pop;
+    if injectedEvent<>nil then //just to be sure
+    begin
+      lpDebugEvent.dwProcessId:=injectedevent.processid;
+      lpDebugEvent.dwThreadId:=injectedevent.threadid;
+
+      case injectedevent.eventType of
+        etCreateProcess:
+        begin
+          lpDebugEvent.dwDebugEventCode:=CREATE_PROCESS_DEBUG_EVENT;
+          lpDebugEvent.CreateProcessInfo.hProcess:=processhandle;
+          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, injectedevent.threadid);
+        end;
+
+        etCreateThread:
+        begin
+          lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
+          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, injectedevent.threadid);
+        end;
+        etDestroyThread: lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
+      end;
+
+      NeedsToContinue:=false; //it's not really paused
+      freemem(injectedEvent);
+    end;
+  end
+  else
+  begin
+    NeedsToContinue:=true;
+    result:=DBKDebug_WaitForDebugEvent(dwMilliseconds);
+    if result then
+    begin
+      //get the state and setup lpDebugEvent
+      DBKDebug_GetDebuggerState(@currentdebuggerstate);
+
+      //this is only a bp hit event
+      lpDebugEvent.dwDebugEventCode:=EXCEPTION_DEBUG_EVENT;
+
+      lpDebugEvent.dwProcessId:=pid;
+      lpDebugEvent.dwThreadId:=currentdebuggerstate.threadid;
+      lpDebugEvent.Exception.dwFirstChance:=1;
+      lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_SINGLE_STEP;
+      lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(currentdebuggerstate.eip);
 
 
-    lpDebugEvent.dwProcessId:=pid;
-    lpDebugEvent.dwThreadId:=currentdebuggerstate.threadid;
-    lpDebugEvent.Exception.dwFirstChance:=1;
+
+
+    end;
   end;
 end;
+
+destructor TKernelDebugInterface.destroy;
+begin
+  if injectedEvents<>nil then
+    injectedEvents.free;
+
+  if threadpoller<>nil then
+    threadpoller.free;
+
+  if pid<>0 then
+    DBKDebug_StopDebugging;
+
+  inherited destroy;
+end;
+
+constructor TKernelDebugInterface.create;
+begin
+  inherited create;
+  injectedEvents:=TQueue.Create;
+end;
+
 
 end.
 

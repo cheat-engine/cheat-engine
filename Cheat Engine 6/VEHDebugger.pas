@@ -161,10 +161,13 @@ end;
 function TVEHDebugInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 var i: integer;
 begin
+
+
   result:=waitforsingleobject(HasDebugEvent, dwMilliseconds)=WAIT_OBJECT_0;
 
   if result then
   begin
+    ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
     //fetch the data from the debugged app
 
 
