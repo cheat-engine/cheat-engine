@@ -5619,7 +5619,7 @@ var ctfile: TFilestream;
     x: pchar;
     f: TSearchRec;
 begin
-  ctfile:=Tfilestream.Create(filename,fmopenread);
+  ctfile:=Tfilestream.Create(filename,fmopenread or fmsharedenynone);
   try
     getmem(x,12);
     ctfile.ReadBuffer(x^,11);
