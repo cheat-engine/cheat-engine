@@ -192,8 +192,12 @@ var enable,disable: integer;
     check: boolean;
     oldProcessID: dword;
     oldProcessHandle: thandle;
+    registeredsymbols: TStringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
+  registeredsymbols:=tstringlist.Create;
+  registeredsymbols.CaseSensitive:=false;
+  registeredsymbols.Duplicates:=dupIgnore;
 
   if cplusplus then
   begin
@@ -210,8 +214,9 @@ begin
       getenableanddisablepos(assemblescreen.Lines,a,b);
       if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
 
-      check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa) and
-             autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa);
+
+      check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
+             autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
 
       if check then
       begin
@@ -228,7 +233,7 @@ begin
       end;
     end else autoassemble(assemblescreen.lines,true);
   end;
-
+  registeredsymbols.free;
 {$endif}
 end;
 
