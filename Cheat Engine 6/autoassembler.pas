@@ -1244,11 +1244,12 @@ begin
 
     if length(allocs)>0 then
     begin
-      x:=0;
-      j:=0; //entry to go from
-      prefered:=0;
 
-      for i:=0 to length(allocs)-1 do
+      j:=0; //entry to go from
+      prefered:=allocs[0].prefered;
+      x:=allocs[0].size;
+
+      for i:=1 to length(allocs)-1 do
       begin
         //does this entry have a prefered location?
         if allocs[i].prefered<>0 then
@@ -1534,9 +1535,10 @@ begin
     //we're still here so, inject it
     for i:=0 to length(assembled)-1 do
     begin
-      virtualprotectex(processhandle,pointer(assembled[i].address),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory(processhandle,pointeR(assembled[i].address),@assembled[i].bytes[0],length(assembled[i].bytes),op2);
-      virtualprotectex(processhandle,pointer(assembled[i].address),length(assembled[i].bytes),op,op2);
+      testptr:=assembled[i].address;
+      ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+      ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),op2);
+      virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;
     end;

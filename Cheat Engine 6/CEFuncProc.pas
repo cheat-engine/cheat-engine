@@ -3142,7 +3142,7 @@ var
   minAddress,maxAddress: ptrUint;
 begin
   result:=nil;
-  if not processhandler.is64Bit then exit; //don't bother
+ // if not processhandler.is64Bit then exit; //don't bother
 
   //64-bit
 
