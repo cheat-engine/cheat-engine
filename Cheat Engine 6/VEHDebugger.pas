@@ -30,10 +30,19 @@ type
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     destructor destroy; override;
+    constructor create;
   end;
 
 
 implementation
+
+constructor TVEHDebugInterface.create;
+begin
+  inherited create;
+  fDebuggerCapabilities:=[dbcSoftwareBreakpoint,dbcHardwareBreakpoint];
+  name:='VEH Debugger';
+end;
+
 
 destructor TVEHDebugInterface.destroy;
 begin

@@ -447,6 +447,9 @@ begin
   OutputDebugString('HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
+  //if this is the first breakpoint exception check if it needs to tset the entry point bp
+  if TDebuggerThread(debuggerthread).NeedsToSetEntryPointBreakpoint then
+    TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
 
 
   case debugEvent.Exception.ExceptionRecord.ExceptionCode of

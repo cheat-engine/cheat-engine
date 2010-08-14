@@ -5,7 +5,7 @@ object frmAutoInject: TfrmAutoInject
   Width = 431
   HelpContext = 1089
   Caption = 'Auto assemble'
-  ClientHeight = 306
+  ClientHeight = 311
   ClientWidth = 431
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -19,7 +19,7 @@ object frmAutoInject: TfrmAutoInject
   object Panel1: TPanel
     Left = 0
     Height = 46
-    Top = 260
+    Top = 265
     Width = 431
     Align = alBottom
     BevelOuter = bvNone
@@ -39,7 +39,7 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 260
+    Height = 265
     Top = 0
     Width = 431
     Align = alClient

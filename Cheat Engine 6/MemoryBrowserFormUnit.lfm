@@ -510,7 +510,7 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
-            Width = 25
+            Width = 47
           end>
         ItemIndex = -1
         OwnerData = True

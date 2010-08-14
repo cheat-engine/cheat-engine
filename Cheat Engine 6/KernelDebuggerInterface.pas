@@ -50,6 +50,7 @@ type
 
     procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+
     destructor destroy; override;
     constructor create;
   end;
@@ -403,6 +404,9 @@ constructor TKernelDebugInterface.create;
 begin
   inherited create;
   injectedEvents:=TQueue.Create;
+
+  fDebuggerCapabilities:=[dbcHardwareBreakpoint];
+  name:='Kernelmode Debugger';
 end;
 
 

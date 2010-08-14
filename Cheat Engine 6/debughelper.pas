@@ -8,7 +8,7 @@ uses
   Windows, Classes, SysUtils, Controls, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
-  WindowsDebugger, debuggerinterfaceAPIWrapper;
+  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler;
 
 
 
@@ -27,6 +27,10 @@ type
     handlebreakpoints: boolean;
     hidedebugger: boolean;
     canusedebugregs: boolean;
+
+    createProcess: boolean;
+    fNeedsToSetEntryPointBreakpoint: boolean;
+    filename: string;
 
     fcurrentThread: TDebugThreadHandler;
     procedure cleanupDeletedBreakpoints;
@@ -67,7 +71,11 @@ type
 
     procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0);
 
-    constructor MyCreate2(processID: THandle);
+    procedure SetEntryPointBreakpoint;
+
+
+    constructor MyCreate2(filename: string); overload;
+    constructor MyCreate2(processID: THandle); overload;
     destructor Destroy; override;
 
     function isWaitingToContinue: boolean;
@@ -75,7 +83,7 @@ type
     function getrealbyte(address: ptrUint): byte;
 
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
-
+    property NeedsToSetEntryPointBreakpoint: boolean read createProcess;
 
     procedure Terminate;
   end;
@@ -85,7 +93,8 @@ var
 
 implementation
 
-uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit, frmBreakpointlistunit, plugin;
+uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
+     frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler;
 
 //-----------Inside thread code---------
 
@@ -97,21 +106,68 @@ var
   debugging: boolean;
   currentprocesid: dword;
   ContinueStatus: dword;
+  startupinfo: windows.STARTUPINFO;
+  processinfo: windows.PROCESS_INFORMATION;
+  dwCreationFlags: dword;
+  error: integer;
+
+  code,data: ptrUint;
+  s: tstringlist;
+  allocs: TCEAllocarray;
+
 begin
   try
     try
       currentprocesid := 0;
       DebugSetProcessKillOnExit(False); //do not kill the attached processes on exit
 
+
+
+      if createprocess then
+      begin
+        dwCreationFlags:=CREATE_SUSPENDED;
+
+        zeromemory(@startupinfo,sizeof(startupinfo));
+        zeromemory(@processinfo,sizeof(processinfo));
+
+        GetStartupInfo(@startupinfo);
+
+
+        if windows.CreateProcess(
+          pchar(filename),
+          nil,
+          nil, //lpProcessAttributes
+          nil, //lpThreadAttributes
+          false, //bInheritHandles
+          dwCreationFlags,
+          nil, //lpEnvironment
+          pchar(extractfilepath(filename)), //lpCurrentDirectory
+          @startupinfo, //lpStartupInfo
+          @processinfo //lpProcessInformation
+        ) =false then
+        begin
+          error:=getlasterror;
+          raise exception.create('CreateProcess failed:'+inttostr(error));
+        end;
+
+
+        processhandler.processid:=processinfo.dwProcessId;
+        closehandle(processinfo.hProcess);
+
+        fNeedsToSetEntryPointBreakpoint:=true;
+      end else fNeedsToSetEntryPointBreakpoint:=false;
+
       if not DebugActiveProcess(processid) then
         exit;
 
-
-
+      ResumeThread(processinfo.hthread);
+      closehandle(processinfo.hThread);
 
       currentprocesid := processid;
 
       debugging := True;
+
+
 
       while (not terminated) and debugging do
       begin
@@ -144,7 +200,8 @@ begin
       end;
 
     except
-      messagebox(0, 'debuggercrash', '', 0);
+      on e: exception do
+        messagebox(0, pchar('debuggercrash:'+e.message), '', 0);
     end;
 
   finally
@@ -525,7 +582,13 @@ var
   x: dword;
 begin
   if bpm=bpmInt3 then
-    if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
+  begin
+    if dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities then
+    begin
+      if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
+    end else raise exception.create('Debugger interface '+CurrentDebuggerInterface.name+' does not support software breakpoints');
+
+  end;
 
   getmem(newbp, sizeof(TBreakPoint));
   ZeroMemory(newbp, sizeof(TBreakPoint));
@@ -934,6 +997,25 @@ begin
   breakpointCS.leave;
 end;
 
+procedure TDebuggerthread.SetEntryPointBreakpoint;
+{Only called from the main thread, or synchronize}
+var code,data: ptruint;
+  bp: PBreakpoint;
+begin
+  if fNeedsToSetEntryPointBreakpoint then
+  begin
+    fNeedsToSetEntryPointBreakpoint:=false;
+
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded;
+    memorybrowser.GetEntryPointAndDataBase(code,data);
+
+    bp:=ToggleOnExecuteBreakpoint(code);
+    if bp<>nil then
+      bp.OneTimeOnly:=true;
+
+  end;
+end;
 
 
 function TDebuggerthread.ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
@@ -1149,9 +1231,26 @@ begin
   formdebugstrings.listbox1.Clear;
 end;
 
+
+constructor TDebuggerthread.MyCreate2(filename: string); overload;
+begin
+  defaultconstructorcode;
+
+  if not (dbcBreakOnEntry in CurrentDebuggerInterface.DebuggerCapabilities) then
+    raise exception.create('This debugger interface :'''+CurrentDebuggerInterface.name+''' doesn''t support Break On Entry yet');
+
+  createProcess:=true;
+  self.filename:=filename;
+
+  inherited Create(False);
+  WaitTillAttachedOrError;
+end;
+
 constructor TDebuggerthread.MyCreate2(processID: THandle);
 begin
   defaultconstructorcode;
+
+  createProcess:=false;
 
   inherited Create(False);
   WaitTillAttachedOrError;

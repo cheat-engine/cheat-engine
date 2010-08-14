@@ -339,7 +339,7 @@ end;
 
 procedure TProcessWindow.btnCreateThreadClick(Sender: TObject);
 begin
- (*
+
   if Opendialog1.Execute then
   begin
     unpause;
@@ -347,12 +347,6 @@ begin
     if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
 
     Debuggerthread:=TDebuggerThread.MyCreate2(opendialog1.FileName);
-
-   // processhandle:=$ffffffff;
-//    processid:=$ffffffff;
-
-
-    while (debuggerthread<>nil) and (debuggerthread.attaching) do sleep(1);
 
     mainForm.ProcessLabel.caption:=IntToHex(processid,8)+'-'+ExtractFileName(opendialog1.FileName);
 
@@ -364,7 +358,7 @@ begin
   //    memorybrowser.show;
 
     modalresult:=mrOk;
-  end;   *)
+  end;
 end;
 
 procedure TProcessWindow.Button4Click(Sender: TObject);

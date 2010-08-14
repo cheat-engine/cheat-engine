@@ -43,6 +43,7 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Direct X-Mess'
       OnClick = Button4Click
       TabOrder = 1
+      Visible = False
     end
   end
   object Panel2: TPanel

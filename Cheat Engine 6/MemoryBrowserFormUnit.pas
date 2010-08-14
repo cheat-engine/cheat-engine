@@ -389,6 +389,7 @@ type
     procedure plugintype1click(sender:tobject);
     procedure plugintype6click(sender:tobject);
     procedure setcodeanddatabase;
+    procedure GetEntryPointAndDataBase(var code: ptrUint; var data: ptrUint);
     property showvalues: boolean read getShowValues write setShowValues;
     property showDebugPanels: boolean read fShowDebugPanels write setShowDebugPanels;
     property stacktraceSize: integer read FStacktraceSize write SetStacktraceSize;
@@ -906,14 +907,18 @@ var newaddress: string;
     symbol :PImagehlpSymbol;
     oldoptions: dword;
     canceled: boolean;
+    oldAddress: ptrUint;
 begin
   newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(disassemblerview.SelectedAddress,8),true,canceled,memorybrowserHistory);
 
+  oldAddress:=disassemblerview.SelectedAddress;
   try
     disassemblerview.SelectedAddress:=symhandler.getaddressfromname(newaddress);
   except
     disassemblerview.SelectedAddress:=getaddress(newaddress);
   end;
+
+  backlist.Push(pointer(oldAddress));
 end;
 
 procedure TMemoryBrowser.Search1Click(Sender: TObject);
@@ -2100,13 +2105,15 @@ begin
     show;
 end;
 
-procedure TMemoryBrowser.SetCodeAndDataBase;
+procedure TMemoryBrowser.GetEntryPointAndDataBase(var code: ptrUint; var data: ptrUint);
 var modulelist: tstringlist;
     base: ptrUint;
     header: pointer;
     headersize: dword;
     br: dword;
 begin
+  code:=$00400000;
+  data:=$00400000; //on failure
 
   modulelist:=tstringlist.Create;
   symhandler.getModuleList(modulelist);
@@ -2114,31 +2121,43 @@ begin
   if modulelist.Count>0 then
   begin
     base:=ptrUint(modulelist.Objects[0]);
+
+
     getmem(header,4096);
     try
       if readprocessmemory(processhandle,pointer(base),header,4096,br) then
       begin
         headersize:=peinfo_getheadersize(header);
-        if headersize=0 then exit;
-        
-        if headersize>4096 then
+
+        if headersize>0 then
         begin
           if headersize>1024*512 then exit;
 
           freemem(header);
           getmem(header,headersize);
           if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
+
+
+          code:=base+peinfo_getEntryPoint(header);
+          data:=base+peinfo_getdatabase(header);
         end;
 
-        disassemblerview.SelectedAddress:=base+peinfo_getEntryPoint(header);
 
-        memoryaddress:=base+peinfo_getdatabase(header);
       end;
     finally
       freemem(header);
     end;
   end;
   modulelist.free;
+end;
+
+procedure TMemoryBrowser.SetCodeAndDataBase;
+var code,data: ptrUint;
+begin
+  GetEntryPointAndDataBase(code,data);
+
+  disassemblerview.SelectedAddress:=code;
+  memoryaddress:=data;
 end;
 
 procedure TMemoryBrowser.Back1Click(Sender: TObject);

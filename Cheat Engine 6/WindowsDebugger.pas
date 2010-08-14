@@ -9,19 +9,28 @@ It's basically just a forward for everything
 interface
 
 uses
-  Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler;
+  Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler,symbolhandler;
 
 type TWindowsDebuggerInterface=class(TDebuggerInterface)
   public
+
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    constructor create;
 end;
 
 
 implementation
+
+constructor TWindowsDebuggerInterface.create;
+begin
+  inherited create;
+  fDebuggerCapabilities:=[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcBreakOnEntry];
+  name:='Windows Debugger';
+end;
 
 function TWindowsDebuggerInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 begin
@@ -46,7 +55,11 @@ end;
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 begin
   result:=newkernelhandler.DebugActiveProcess(dwProcessId);
+  processhandler.processid:=dwProcessID;
+  Open_Process;
+  symhandler.reinitialize;
 end;
+
 
 end.
 

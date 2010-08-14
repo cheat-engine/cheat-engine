@@ -11,14 +11,22 @@ interface
 uses
   Classes, SysUtils,windows,newkernelhandler;
 
-type TDebuggerInterface=class
-  private
+type
+  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcBreakOnEntry);
+  TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
+  TDebuggerInterface=class
+  protected
+    fDebuggerCapabilities: TDebuggerCapabilitiesSet;
   public
+    name: string;
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; virtual; abstract;
+
+    property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
+
 end;
 
 implementation
