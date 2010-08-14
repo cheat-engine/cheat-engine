@@ -6352,11 +6352,14 @@ begin
     symhandler.EnumerateUserdefinedSymbols(sl);
     if sl.count>0 then
     begin
-      extradata:=pointer(sl.Objects[i]);
-      SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
-      SymbolRecord.AppendChild(doc.CreateElement('name')).TextContent:=sl[i];
+      for i:=0 to sl.count-1 do
+      begin
+        extradata:=pointer(sl.Objects[i]);
+        SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
+        SymbolRecord.AppendChild(doc.CreateElement('name')).TextContent:=sl[i];
 
-      SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
+        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
+      end;
     end;
   finally
     sl.free;
