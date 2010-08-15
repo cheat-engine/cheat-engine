@@ -262,7 +262,7 @@ begin
           extra.byteData.ShowAsHexadecimal:=tempnode.TextContent='1';
       end;
 
-      vtCustom:
+      vtAutoAssembler:
       begin
         tempnode:=Cheatentry.FindNode('AssemblerScript');
 
@@ -414,13 +414,13 @@ begin
         cheatEntry.AppendChild(doc.CreateElement('ShowAsHexadecimal')).TextContent:=booltostr(extra.byteData.ShowAsHexadecimal,'1','0');
       end;
 
-      vtCustom:
+      vtAutoAssembler:
       begin
         cheatEntry.AppendChild(doc.CreateElement('AssemblerScript')).TextContent:=AutoAssemblerData.script.Text;
       end;
     end;
 
-    if VarType<>vtCustom then
+    if VarType<>vtAutoAssembler then
     begin
       cheatEntry.AppendChild(doc.CreateElement('Address')).TextContent:=interpretableaddress;
 
@@ -652,7 +652,7 @@ begin
   end
   else
   begin
-    if self.VarType = vtCustom then
+    if self.VarType = vtAutoAssembler then
     begin
       //aa script
       try
@@ -739,7 +739,7 @@ end;
 
 procedure TMemoryRecord.ApplyFreeze;
 begin
-  if (not isgroupheader) and active and (VarType<>vtCustom) then
+  if (not isgroupheader) and active and (VarType<>vtAutoAssembler) then
     setValue(frozenValue);
 end;
 

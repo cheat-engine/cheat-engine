@@ -352,7 +352,7 @@ begin
   end
   else
   begin
-    if memoryrecord.VarType=vtCustom then
+    if memoryrecord.VarType=vtAutoAssembler then
     begin
       bitpanel.Visible:=true;
       clientwidth:=bitpanel.left+bitpanel.Width+5;

@@ -1939,7 +1939,7 @@ begin
     vtdouble: valuetype:=vt_double;
     vtQword:  valuetype:=vt_int64;
     vtAll:    valuetype:=vt_all;
-    vtCustom:
+    vtAutoAssembler:
     begin
       case vsize of
         1: valuetype:=vt_byte;
@@ -2015,7 +2015,7 @@ begin
     //user input is given
     if scanvalue1='' then raise exception.Create('Please fill something in');
 
-    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
+    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtAutoAssembler] then
     begin
       //parse scanvalue1
       try
@@ -2038,14 +2038,14 @@ begin
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
-              if variabletype<>vtCustom then
+              if variabletype<>vtAutoAssembler then
                 raise exception.Create(scanvalue1+' is not a valid value');
             end;
           end;
           value:=trunc(dvalue);
 
         end else
-          if variabletype<>vtCustom then
+          if variabletype<>vtAutoAssembler then
             raise exception.Create(scanvalue1+' is an invalid value');
       end;
 
@@ -2073,20 +2073,20 @@ begin
               try
                 dvalue:=strtofloat(scanvalue1,FloatSettings);
               except
-                if variabletype<>vtCustom then
+                if variabletype<>vtAutoAssembler then
                   raise exception.Create(scanvalue1+' is not a valid value');
               end;
             end;
             value:=trunc(dvalue);
           end
           else
-            if variabletype<>vtCustom then
+            if variabletype<>vtAutoAssembler then
               raise exception.Create(scanvalue2+' is an invalid value');
         end;
       end;
     end;
 
-    if percentage or (variableType in [vtsingle,vtDouble,vtAll,vtCustom]) then
+    if percentage or (variableType in [vtsingle,vtDouble,vtAll,vtAutoAssembler]) then
     begin
       try
         dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -2100,7 +2100,7 @@ begin
         try
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
-          if variabletype<>vtCustom then
+          if variabletype<>vtAutoAssembler then
             raise exception.Create(scanvalue1+' is not a valid value');
         end;
       end;
@@ -2119,7 +2119,7 @@ begin
           try
             dvalue2:=strtofloat(scanvalue1,FloatSettings);
           except
-            if variabletype<>vtCustom then
+            if variabletype<>vtAutoAssembler then
               raise exception.Create(scanvalue1+' is not a valid value');
           end;
         end;
@@ -2469,7 +2469,7 @@ begin
     end;
 
 {$ifndef standalonetrainerwithassemblerandaobscanner}    
-    vtCustom:
+    vtAutoAssembler:
     begin
       case customscantype of
         cstAutoAssembler:
@@ -2876,7 +2876,7 @@ begin
   end;
 
 {$ifndef standalonetrainerwithassemblerandaobscanner}
-  if (variableType=vtCustom) and (length(CustomScanAllocArray)>0) then
+  if (variableType=vtAutoAssembler) and (length(CustomScanAllocArray)>0) then
   begin
     try
       //custom scantype, and the script has been executed successfully (CustomScanAllocArray has been filled)
@@ -3071,7 +3071,7 @@ begin
     end;
 
 
-    vtCustom:
+    vtAutoAssembler:
     begin
       variablesize:=1; //customtypecallback(scanvalue1);
       fastscanalignsize:=1;

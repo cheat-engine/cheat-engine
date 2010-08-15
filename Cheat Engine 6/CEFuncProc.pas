@@ -35,7 +35,7 @@ math,syncobjs, shellapi, ProcessHandlerUnit, controls;
 type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
 type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
-type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtUnicodeString, vtByteArray, vtBinary, vtAll, vtCustom, vtPointer);
+type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtUnicodeString, vtByteArray, vtBinary, vtAll, vtAutoAssembler, vtPointer);
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 
 
@@ -2932,7 +2932,7 @@ begin
     6: result:=vtQword;
     7: result:=vtString;
     8: result:=vtByteArray;
-    255: result:=vtCustom; //aa script
+    255: result:=vtAutoAssembler; //aa script
   end;
 end;
 
@@ -2949,7 +2949,7 @@ begin
     vtSingle: Result:='Float';
     vtDouble: Result:='Double';
     vtString: Result:='String';
-    vtCustom: Result:='Auto Assembler Script';
+    vtAutoAssembler: Result:='Auto Assembler Script';
   end;
 end;
 
@@ -2966,7 +2966,7 @@ begin
   if s='float' then   Result :=vtSingle else
   if s='double' then Result :=vtDouble else
   if s='string' then  Result :=vtString else
-  if s='auto assembler script' then result:=vtCustom;
+  if s='auto assembler script' then result:=vtAutoAssembler;
 end;
 
 function readAndParseAddress(address: ptrUint; variableType: TVariableType): string;

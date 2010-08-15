@@ -1166,7 +1166,7 @@ var
 begin
 
   index:=scantype.itemindex;
-  if (getSelectedVariableType=vtCustom) and (index>=0) then
+  if (getSelectedVariableType=vtAutoAssembler) and (index>=0) then
     result:=CustomScanScripts[index].data
   else
     result:=nil;
@@ -1177,7 +1177,7 @@ function TMainform.getSelectedCustomScanType: TCustomScanType;
 var index: integer;
 begin
   index:=scantype.itemindex;
-  if (getSelectedVariableType=vtCustom) and (index>=0) then
+  if (getSelectedVariableType=vtAutoAssembler) and (index>=0) then
     result:=CustomScanScripts[index].CustomScanType
   else
     result:=cstNone;
@@ -1985,7 +1985,7 @@ begin
       //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
       wasActive:=false;
       for i := 0 to addresslist.count - 1 do
-        if (addresslist[i].VarType = vtCustom) and (addresslist[i].active) then
+        if (addresslist[i].VarType = vtAutoAssembler) and (addresslist[i].active) then
         begin
           wasActive:=true;
           break;
@@ -2008,7 +2008,7 @@ begin
           mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
         begin
           for j := 0 to addresslist.count - 1 do
-            if (addresslist[j].VarType = vtCustom) and (addresslist[j].active) then
+            if (addresslist[j].VarType = vtAutoAssembler) and (addresslist[j].active) then
               addresslist[j].disablewithoutexecute;
 
           for i:=0 to length(AdvancedOptions.code)-1 do
@@ -3586,7 +3586,7 @@ begin
 
   Freezealladdresses2.visible:=(addresslist.selectedRecord<>nil);
 
-  Changescript1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedrecord.VarType=vtCustom);
+  Changescript1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedrecord.VarType=vtAutoAssembler);
 
   n5.visible:=(addresslist.selectedRecord<>nil);
 
@@ -4635,7 +4635,7 @@ end;
 
 procedure TMainForm.Changescript1Click(Sender: TObject);
 begin
-  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtCustom) then
+  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtAutoAssembler) then
     AddressListAutoAssemblerEdit(addresslist, addresslist.selectedRecord);
 end;
 
@@ -5480,7 +5480,7 @@ var
 begin
   index:=scantype.itemindex;
 
-  if (key=vk_delete) and (getSelectedVariableType=vtCustom) and (index>=0) then //custom scan and something is selected
+  if (key=vk_delete) and (getSelectedVariableType=vtAutoAssembler) and (index>=0) then //custom scan and something is selected
     if  messagedlg('Delete this custom script?',mtConfirmation,[mbyes,mbno],0)=mryes then
     begin
       CustomScanScripts[index].data.free;

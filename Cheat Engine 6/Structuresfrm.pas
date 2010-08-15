@@ -679,7 +679,7 @@ begin
     vtByteArray: result:=-7; //FindTypeOfData should never return this
     vtBinary: result:=-7; //nor this
     vtAll: result:=-7; //also not this
-    vtCustom: result:=-7; //certainly not this
+    vtAutoAssembler: result:=-7; //certainly not this
     vtPointer: result:=-7; //currently not handled, but can be used to speed up things... 
   end;
 end;

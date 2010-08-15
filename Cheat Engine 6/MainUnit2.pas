@@ -85,7 +85,7 @@ Determine the current scanoption.
 If it's a custom type vatriable, it's always of type custom
 }
 begin
-  if getVarType2=vtCustom then result:=soCustom
+  if getVarType2=vtAutoAssembler then result:=soCustom
   else
   case GetScanType of
     exact_value:       result:=soExactValue;
@@ -163,7 +163,7 @@ begin
     7: result:=vtString;
     8: result:=vtByteArray;
     9: result:=vtAll;
-    10: result:=vtCustom;
+    10: result:=vtAutoAssembler;
     else result:=vtByte;
   end;
 end;

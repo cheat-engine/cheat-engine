@@ -307,7 +307,7 @@ begin
     currentEntry:=CheatEntries.FirstChild;
     while currententry<>nil do
     begin
-      if StringToVariableType(currententry.findnode('VariableType').TextContent)<>vtCustom then
+      if StringToVariableType(currententry.findnode('VariableType').TextContent)<>vtAutoAssembler then
       begin
         result:=false;
         exit;
@@ -447,7 +447,7 @@ begin
   memrec.AutoAssemblerData.script:=tstringlist.create;
   memrec.AutoAssemblerData.script.text:=script;
 
-  memrec.VarType:=vtCustom;
+  memrec.VarType:=vtAutoAssembler;
 
   memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
   memrec.treenode.DropTarget:=true;
@@ -622,7 +622,7 @@ begin
   begin
     if (MemRecItems[i].isSelected) then
     begin
-      if MemRecItems[i].vartype<>vtCustom then
+      if MemRecItems[i].vartype<>vtAutoAssembler then
         MemRecItems[i].VarType:=newtype;
 
       MemRecItems[i].active:=false;
@@ -655,7 +655,7 @@ begin
   end;
 
 
-  if (selcount=1) and (selectedRecord.VarType=vtcustom) then
+  if (selcount=1) and (selectedRecord.VarType=vtAutoAssembler) then
   begin
     //if it's an autoassemblerscript then spawn the autoassembler script editor that the owner might want to use
     if assigned(fOnAutoAssemblerEdit) then
@@ -721,7 +721,7 @@ begin
       if inrange(x,header.Sections[i].Left,header.Sections[i].right) then
       begin
         //if it's a auto assemble script only do the description and value
-        if (TMemoryRecord(node.data).VarType=vtCustom) then
+        if (TMemoryRecord(node.data).VarType=vtAutoAssembler) then
         begin
           case i of
             0: ; //frozen doubleclick
@@ -1031,7 +1031,7 @@ begin
       sender.canvas.pen.color:=oldpencolor;
 
 
-      if (not memrec.isGroupHeader) and (memrec.VarType<>vtCustom) then
+      if (not memrec.isGroupHeader) and (memrec.VarType<>vtAutoAssembler) then
       begin
         //draw the arrow up/down, unless it's a group or custom type
         if memrec.allowIncrease then
@@ -1058,7 +1058,7 @@ begin
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
 
 
-    if (memrec.isGroupHeader=false) and (memrec.VarType<>vtCustom) then //if it's not a groupheader of auto assemble script then show the extra data
+    if (memrec.isGroupHeader=false) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data
     begin
 
       //limit how far the texts go depending on the sections
