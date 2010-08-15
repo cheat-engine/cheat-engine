@@ -163,6 +163,8 @@ type
     Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
     miRenameTab: TMenuItem;
     miTablistSeperator: TMenuItem;
     miCloseTab: TMenuItem;
@@ -172,6 +174,7 @@ type
     mode16: TCheckBox;
     Panel1: TPanel;
     pmTablist: TPopupMenu;
+    pmValueType: TPopupMenu;
     SettingsButton: TSpeedButton;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
@@ -444,16 +447,6 @@ type
     cancelbuttonenabler: TTimer;
     //timer that will enable the cancelbutton after 3 seconds
 
-    CreateCustomScanButton: TButton;
-    EditCustomScanButton: TButton;
-    CustomScanScripts: array of record
-      Name: string;
-      Data: TStringList;
-      CustomScanType: TCustomScanType;
-    end;
-
-
-
     oldwidth, oldheight: integer;
     newaddress: ptrUint;
     isbit: boolean;
@@ -510,8 +503,6 @@ type
     procedure scanEpilogue(canceled: boolean);
     procedure CancelbuttonClick(Sender: TObject);
     procedure CancelbuttonenablerInterval(Sender: TObject);
-    procedure CreateCustomScanButtonClick(Sender: TObject);
-    procedure EditCustomScanButtonClick(Sender: TObject);
 
     procedure changeScriptCallback(memrec: TMemoryRecord; script: string; changed: boolean);
 
@@ -530,8 +521,6 @@ type
     function getScanReadonly: boolean;
     procedure setScanReadOnly(state: boolean);
 
-    function getSelectedCustomScanData: TStringList;
-    function getSelectedCustomScanType: TCustomScanType;
     function getSelectedVariableType: TVariableType;
     procedure setfoundcount(x: int64);
 
@@ -603,8 +592,7 @@ type
     property ScanStop: ptruint read getScanStop write setScanStop;
     property FastScan: boolean read getFastscan write setFastscan;
     property ScanReadOnly: boolean read getScanReadonly write setScanReadonly;
-    property SelectedCustomScanData: TStringList read getSelectedCustomScanData;
-    property SelectedCustomScanType: TCustomScanType read getSelectedCustomScanType;
+
     property SelectedVariableType: TVariableType read getSelectedVariableType;
   end;
 
@@ -1160,30 +1148,6 @@ begin
 end;
 //----------------------------------
 
-function TMainform.getSelectedCustomScanData: TStringList;
-var
-  index: integer;
-begin
-
-  index:=scantype.itemindex;
-  if (getSelectedVariableType=vtAutoAssembler) and (index>=0) then
-    result:=CustomScanScripts[index].data
-  else
-    result:=nil;
-end;
-
-
-function TMainform.getSelectedCustomScanType: TCustomScanType;
-var index: integer;
-begin
-  index:=scantype.itemindex;
-  if (getSelectedVariableType=vtAutoAssembler) and (index>=0) then
-    result:=CustomScanScripts[index].CustomScanType
-  else
-    result:=cstNone;
-end;
-
-
 function TMainform.getSelectedVariableType: TVariableType;
 {wrapper for the new getVarType2 in the new scanroutine}
 begin
@@ -1644,67 +1608,8 @@ begin
                 ScanType.DropDownCount:=1;
               end;
 
-  10:         begin
-                //custom
-                //go through the list of custom scan's
-                for i:=0 to length(CustomScanScripts)-1 do
-                  scantype.Items.Add(CustomScanScripts[i].name);
-
-                ScanType.DropDownCount:=length(CustomScanScripts);
-              end;
   end;
 
-  if varType.ItemIndex = 10 then  //custom scan
-  begin
-    //CreateCustomScanButton: TButton;
-    //EditCustomScanButton: TButton;
-
-    if CreateCustomScanButton=nil then
-    begin
-      //spawn it
-      CreateCustomScanButton:=TButton.Create(self);
-      with CreateCustomScanButton do
-      begin
-        width:=50;
-        height:=19;
-        left:=ScanType.left+ScanType.Width+3;
-        top:=ScanType.Top+(scantype.Height div 2)-(height div 2);
-
-        anchors:=[akTop,akRight];
-        caption:='New';
-        parent:=self;
-        onclick:=CreateCustomScanButtonClick;
-      end;
-
-      EditCustomScanButton:=TButton.Create(self);
-      with EditCustomScanButton do
-      begin
-        width:=50;
-        height:=19;
-        left:=CreateCustomScanButton.left+CreateCustomScanButton.Width+3;
-        top:=CreateCustomScanButton.Top;
-
-        anchors:=[akTop,akRight];
-        caption:='Edit';
-        parent:=self;
-        onclick:=EditCustomScanButtonClick;
-      end;
-    end;
-  end
-  else
-  begin
-
-    if CreateCustomScanButton<>nil then //free it
-    begin
-
-      freeandnil(CreateCustomScanButton);
-
-      if EditCustomScanButton<>nil then
-        freeandnil(EditCustomScanButton);
-    end;
-
-
-  end;
 
   if (oldtext=strUnknownInitialValue) and (NextScanButton.enabled) then scantype.itemindex:=0 else scantype.itemindex:=oldindex;
 
@@ -1803,21 +1708,6 @@ begin
     end;
 
   end else
-  if realvartype=10 then //custom
-  begin
-    case scandisplayroutinetype of
-      0: realvartype:=0;
-      1: realvartype:=1;
-      2: realvartype:=2;
-      3: realvartype:=6;
-      4: realvartype:=3;
-      5: realvartype:=4;
-      6: realvartype:=8;
-      7,8 : realvartype:=7;
-      else realvartype:=2;
-    end;
-  end
-  else
   begin
     bit:=0;
     bitl:=0;
@@ -5070,7 +4960,7 @@ begin
 
 
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
 
     DisableGui;
 
@@ -5223,7 +5113,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, SelectedCustomScanData, SelectedCustomScanType);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
   DisableGui;
   SpawnCancelButton;
 end;
@@ -5253,8 +5143,6 @@ begin
         end;
         setlength(bytes,0);
       end;
-
-      10: i:=memscan.Getcustomvariablesize;
     end;
     foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
   end
@@ -5288,213 +5176,10 @@ begin
 
 end;
 
-//-----------------custom scan-----------------//
-resourcestring
-  strCustomScanConfig = 'Custom scan config';
-
-procedure TMainform.EditCustomScanButtonClick(Sender: TObject);
-var autoinjectform: TFrmAutoInject;
-    scandata: tstringlist;
-    scriptname: string;
-begin
-
-  scandata:=SelectedCustomScanData;
-  if scandata=nil then exit;
-
-  autoinjectform:=TFrmAutoInject.Create(self);
-  try
-    with autoinjectform do
-    begin
-      caption:=caption+' '+strCustomScanConfig;
-
-      assemblescreen.Text:=scandata.text;
-      new1.Enabled:=false;
-
-      editscript:=true;
-      injectintomyself:=true;
-
-      if showmodal=mrok then
-      begin
-        scriptname:=customscanscripts[scantype.itemindex].name;
-        if not inputquery(strCustomScanConfig,'The script seems to be valid. What is the name of this script?',scriptname) then exit;
-
-        scandata.Text:=assemblescreen.Text;
-        customscanscripts[scantype.itemindex].name:=scriptname;
-      end;
-
-
-    end;
-  finally
-    autoinjectform.free;
-  end;
-end;
-
-procedure TMainform.CreateCustomScanButtonClick(Sender: TObject);
-{
-Open a autoassembler window and fill it in.
-Give hints that people can use loadlibratry and functions from dll's
-}
-
-var
-  scriptname: string;
-  i: integer;
-begin
-
-  with tfrmautoinject.Create(self) do
-  begin
-    try
-      caption:=caption+' '+strCustomScanConfig;
-      with assemblescreen.lines do
-      begin
-        add('[enable]');
-        add('{do not change the allocnames of the following code, you are free to add new allocs though');
-        add('of course then don''t forget to dealloc them at [disable] as well}');
-        add('alloc(checkroutine,2048)');
-        add('alloc(prologue,2048)');
-        add('alloc(epilogue,2048)');
-        add('alloc(fastscanstepsize,4)');
-        add('alloc(variablesize,4)');
-        add('alloc(firstscan,4)');
-        add('alloc(scantext,4) //will get the pointer to the given string');
-        add('alloc(scanvalue,8) //will get the value of the input string converted to an 8-byte value');
-        add('alloc(singlescanvalue,4) //will get the float type of the input');
-        add('alloc(doublescanvalue,8) //will get the double type of the input');
-        add('');
-        add('variablesize:');
-        add('dd 4 //defines how many bytes get saved for each found result');
-        add('');
-        add('fastscanstepsize:');
-        add('dd 1 //defines the stepsize when using fastscan (1=no difference)');
-        add('');
-        add('firstscan:');
-        add('dd 0 //set to 1 if you want the old value to be that of the first scan');
-
-        add('');
-        add('/* routines: ');
-        add('Hint: You can write these routines in any language you like and export them as dll''s. ');
-        add('Then use loadlibraty and call exportfunction to use them*/');
-        add('');
-        add('checkroutine:');
-        add('/*');
-        add('edx=pointer to new value');
-        add('ecx=pointer to old value');
-        add('*/');
-        add('');
-        add('//example of 4-byte "exact value" scan for the value 100:');
-        add('mov eax,[edx]  //eax gets the new value');
-        add('cmp eax,#100  //compare eax with #100, # tells the assembler to read it as a decimal instead of hex');
-        add('setz al //sets al to 1 if match, 0 if false (upper bits of eax are ignored)');
-        add('ret');
-        add('');
-
-        add('prologue:');
-        add('//You can put some code here that gets executed BEFORE the scan starts');
-        add('ret');
-        add('');
-        add('epilogue:');
-        add('//You can put some code here that gets executed AFTER the scan finishes');
-        add('ret');
-        add('');
-        add('scandisplayroutinetype:');
-        add('/*');
-        add('displayroutinetype is a ''special'' globally registered symbol (No need to alloc)');
-        add('The byte at this address specifies how the values are shown');
-        add('0=1 byte notation');
-        add('1=2 byte notation');
-        add('2=4 byte notation');
-        add('3=8 byte notation');
-        add('4=float notation');
-        add('5=double notation');
-        add('6=array of bytes');
-        add('7=string ascii');
-        add('8=string unicode');
-        add('ff=use ''scandisplayroutine:'' to convert the data to a string');
-        add('*/');
-        add('db 2 //2=4 byte notation');
-        add('');
-        add('scandisplayroutine:');
-        add('/*');
-        add('displayroutine is a ''special'' globally registered symbol (No need to alloc)');
-        add('if ''scandisplayroutinetype:'' is set to 255 then this routine will be called to');
-        add('convert the value at the address specified to a ascii-string');
-        add('eax=pointer to bytes at the address');
-        add('edx=pointer to destination string (max 50 chars)');
-        add('');
-        add('note: scandisplayroutine is only 16KB big');
-        add('*/');
-        add('mov [edx],"N" //NYI, not yet implemented');
-        add('mov [edx+1],"Y"');
-        add('mov [edx+2],"I"');
-        add('mov [edx+3],0');
-        add('ret');
-
-        add('');
-        add('');
-        add('[disable]');
-        add('dealloc(checkroutine)');
-        add('dealloc(prologue,2048)');
-        add('dealloc(epilogue,2048)');
-        add('dealloc(fastscanstepsize)');
-        add('dealloc(variablesize)');
-        add('dealloc(scantext)');
-        add('dealloc(scanvalue)');
-        add('dealloc(singlescanvalue)');
-        add('dealloc(doublescanvalue)');
-      end;
-
-      new1.Enabled:=false;
-
-      editscript:=true;
-      injectintomyself:=true;
-
-      if showmodal=mrok then
-      begin
-        scriptname:='script '+inttostr(length(customscanscripts)+1);
-        if not inputquery(strCustomScanConfig,'The script seems to be valid. What is the name of this script?',scriptname) then exit;
-
-        //create a new entry in the custom list
-        i:=length(customscanscripts);
-        setlength(CustomScanScripts,i+1);
-
-        CustomScanScripts[i].name:=scriptname;
-        CustomScanScripts[i].data:=tstringlist.create;
-        CustomScanScripts[i].data.Text:=assemblescreen.Text;
-        CustomScanScripts[i].CustomScanType:=cstAutoAssembler;
-
-        UpdateScanType; //reload the custom script list
-
-        scantype.ItemIndex:=i;
-      end;
-    finally
-      free; //clean up
-    end;
-  end;
-
-
-end;
 
 procedure TMainForm.ScanTypeKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
-var
-  i: integer;
-  index: integer;
 begin
-  index:=scantype.itemindex;
 
-  if (key=vk_delete) and (getSelectedVariableType=vtAutoAssembler) and (index>=0) then //custom scan and something is selected
-    if  messagedlg('Delete this custom script?',mtConfirmation,[mbyes,mbno],0)=mryes then
-    begin
-      CustomScanScripts[index].data.free;
-      for i:=index to length(customscanscripts)-2 do
-        CustomScanScripts[i]:=CustomScanScripts[i+1];
-
-      setlength(CustomScanScripts,length(CustomScanScripts)-1);
-      scantype.Items.Delete(index);
-
-      if length(CustomScanScripts)>=index then
-        scantype.ItemIndex:=length(CustomScanScripts)-1;
-
-      scantype.Refresh;
-    end;
 
 end;
 

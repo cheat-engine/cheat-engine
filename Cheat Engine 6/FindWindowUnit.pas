@@ -73,8 +73,8 @@ begin
   if memscan<>nil then exit;
   
   try
-    start:=StrToInt('$'+editStart.text);
-    stop:=strtoint('$'+editstop.Text);
+    start:=StrToInt64('$'+editStart.text);
+    stop:=strtoint64('$'+editstop.Text);
   except
     raise exception.Create('The specified range is invalid');
   end;
@@ -104,7 +104,7 @@ begin
     Controls[i].Enabled:=false;
 
 
-  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, false, true, true, false, cbunicode.checked, false,false, nil, cstNone);
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, false, true, true, false, cbunicode.checked, false,false);
 
 
     {

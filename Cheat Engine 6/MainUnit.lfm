@@ -417,7 +417,7 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 435
+      Left = 431
       Height = 19
       Top = 128
       Width = 60
@@ -601,10 +601,9 @@ object MainForm: TMainForm
         'Text'
         'Array of Bytes'
         'All (Byte to Double)'
-        'Custom'
       )
       OnChange = VarTypeChange
-      PopupMenu = emptypopup
+      PopupMenu = pmValueType
       Style = csDropDownList
       TabOrder = 6
     end
@@ -1790,6 +1789,16 @@ object MainForm: TMainForm
     object miCloseTab: TMenuItem
       Caption = 'Close tab'
       OnClick = miCloseTabClick
+    end
+  end
+  object pmValueType: TPopupMenu
+    left = 104
+    top = 240
+    object MenuItem3: TMenuItem
+      Caption = 'Define new custom type'
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Edit selected custom type'
     end
   end
 end

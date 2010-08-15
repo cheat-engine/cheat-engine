@@ -81,9 +81,6 @@ type
     {$endif}
     scandir: string;
 
-    customprologue: procedure; stdcall; //customscan call before scan starts
-    customepilogue: procedure; stdcall; //customscan call after scan ends
-
     found :dword;
 
     value,value2: int64;
@@ -268,12 +265,6 @@ type
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
     useNextNextscan: boolean; //determines to use the nextNextScan or firstNextScan
 
-    customscanscript: tstrings; //holds the info for the custom type, script for AA, script for CScript, 2 lines for dll: dllname+function
-    customscantype: TCustomScanType;
-    customscanAllocArray: TCEAllocArray;
-
-
-
 
     //thread controlling variables:
     isdone: boolean; //will get set to true when the thread finishes normally
@@ -354,9 +345,6 @@ type
     variableType: TVariableType;
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
 
-    customscanscript: tstrings; //holds the info for the custom type, script for AA, script for CScript, 2 lines for dll: dllname+function
-    customscantype: TCustomScanType;    
-
     //memregion info
     memregion: TMemoryregions;  //scanners have access to this, but make sure to NOT WRITE it
     memRegionPos: Integer;
@@ -409,9 +397,6 @@ type
     //binary stuff:
     binaryLength:  integer;
 
-    //custom:
-    customvariablesize: integer;
-
     //array stuff:
     arrayLength:   integer;
 
@@ -423,12 +408,11 @@ type
     function GetErrorString: string;
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
-    function Getcustomvariablesize: integer;
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //first scan routine, e.g unknown initial value, or exact scan
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //first scan routine, e.g unknown initial value, or exact scan
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -2468,78 +2452,6 @@ begin
       //the other types have to be filled in by the nextscan routines
     end;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}    
-    vtAutoAssembler:
-    begin
-      case customscantype of
-        cstAutoAssembler:
-        begin
-          //execute autoassemblescript and read out the alloced addresses and vars
-
-          if not autoassemble(customscanscript,false,true,false,true,CustomScanAllocArray) then
-            raise exception.Create('Invalid Auto Assembler script');
-
-
-          for i:=0 to length(CustomScanAllocArray)-1 do
-          begin
-            if lowercase(CustomScanAllocArray[i].varname)='checkroutine' then
-              pointer(@checkroutine):=pointer(CustomScanAllocArray[i].address)
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='prologue' then
-              customprologue:=pointer(CustomScanAllocArray[i].address)
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='epilogue' then
-              customepilogue:=pointer(CustomScanAllocArray[i].address)
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='fastscanstepsize' then
-              fastscanalignsize:=pdword(CustomScanAllocArray[i].address)^
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='variablesize' then
-            begin
-              variablesize:=pdword(CustomScanAllocArray[i].address)^;
-              OwningScanController.OwningMemScan.customvariablesize:=variablesize;
-            end
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='scantext' then
-              PULONG_PTR(CustomScanAllocArray[i].address)^:=ULONG_PTR(@scanvalue1[1])
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='scanvalue' then
-              PQWORD(CustomScanAllocArray[i].address)^:=value
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='singlescanvalue' then
-              psingle(CustomScanAllocArray[i].address)^:=svalue
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='doublescanvalue' then
-              pdouble(CustomScanAllocArray[i].address)^:=dvalue
-            else
-            if lowercase(CustomScanAllocArray[i].varname)='firstscan' then
-              if pinteger(CustomScanAllocArray[i].address)^=1 then
-                scanoption:=soSameAsFirst;
-          end;
-          //set the buffersizes to what they will be
-
-          scanOption:=soCustom;
-
-          FoundBufferSize:=buffersize*variablesize;
-
-          //use the generic save routine
-          StoreResultRoutine:=GenericSaveResult;
-
-          //and flush
-          FlushRoutine:=genericFlush;
-
-
-          //what better time to call customprologue then the present
-          customprologue();
-        end;
-
-      end;
-
-
-    end;
-{$endif}    
-
-
   end;
 
   getmem(CurrentFoundBuffer,FoundBufferSize);
@@ -2875,35 +2787,6 @@ begin
     end;
   end;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
-  if (variableType=vtAutoAssembler) and (length(CustomScanAllocArray)>0) then
-  begin
-    try
-      //custom scantype, and the script has been executed successfully (CustomScanAllocArray has been filled)
-      //call customepilogue
-      if assigned(customepilogue) then //customepilogue isn't nil so has been set
-        CustomEpilogue; //call it
-
-      //and dealloc the memory
-      autoassemble(customscanscript,false,false,false,true,CustomScanAllocArray);
-
-
-
-    except
-      on e: exception do
-      begin
-        if not haserror then
-        begin
-          haserror:=true;
-          errorstring:='Custom scan cleanup error:'+e.Message;
-        end else errorstring:=errorstring+#13#10+'Additional error:'+e.message;
-      end;
-
-    end;
-
-  end;
-{$endif}  
-
   isdone:=true;
 end;
 
@@ -3070,12 +2953,6 @@ begin
       fastscanalignsize:=1;
     end;
 
-
-    vtAutoAssembler:
-    begin
-      variablesize:=1; //customtypecallback(scanvalue1);
-      fastscanalignsize:=1;
-    end;
   end;
 
 
@@ -3159,8 +3036,6 @@ begin
           scanners[i].fastscanalignsize:=fastscanalignsize;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
-          scanners[i].customscanscript:=customscanscript;
-          scanners[i].customscantype:=customscantype;
 
           if i=0 then //first thread gets the header part
           begin
@@ -3365,8 +3240,6 @@ begin
       scanners[i].fastscanalignsize:=fastscanalignsize;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
-      scanners[i].customscanscript:=customscanscript;
-      scanners[i].customscantype:=customscantype;
 
       if i=0 then //first thread gets the header part
       begin
@@ -3734,8 +3607,6 @@ begin
 
       scanners[i].fastscanalignsize:=fastscanalignsize;
       scanners[i].variablesize:=variablesize;
-      scanners[i].customscanscript:=customscanscript;
-      scanners[i].customscantype:=customscantype;
 
       if i=0 then //first thread gets the header part
       begin
@@ -4176,14 +4047,6 @@ begin
   result:=found;
 end;
 
-function TMemscan.Getcustomvariablesize: integer;
-{
-Rturns the veriable size of the custom type
-only valid after having done a scan, not before
-}
-begin
-  result:=customvariablesize;
-end;
 
 function TMemscan.Getbinarysize: int64;
 begin
@@ -4224,7 +4087,7 @@ begin
   fLastscantype:=stNewScan;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean);
 begin
 
   if scanController<>nil then
@@ -4261,16 +4124,13 @@ begin
   scancontroller.percentage:=percentage;
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
-  
-  scancontroller.CustomScanScript:=CustomScanScript;
-  scanController.CustomScanType:=CustomScanType;
 
   fLastscantype:=stNextScan;
   scanController.Resume;
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customscanscript: tstrings; customscantype: TCustomScanType);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
@@ -4309,8 +4169,6 @@ begin
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 
-  scancontroller.CustomScanScript:=CustomScanScript;
-  scanController.CustomScanType:=CustomScanType;
   scanController.OnlyOne:=onlyone;
 
   flastscantype:=stFirstScan;
@@ -4331,7 +4189,6 @@ constructor TMemScan.create(progressbar: TProgressbar);
 var guid: TGUID;
 begin
   self.progressbar:=progressbar;
-  customvariablesize:=1;
 
   //setyp the location of the scan results
   CreateGUID(guid);
@@ -4396,43 +4253,6 @@ begin
   except
     outputdebugstring('Fatal error while trying to delete the scanresults');
   end;
-
-  {
-  dir:=nil;
-
-
-  try
-    ZeroMemory(@fos,sizeof(fos));
-
-    fScanResultFolder:='"'+fScanResultFolder+'"';
-
-    //fos.hwnd:=0;
-    fos.wFunc:=FO_DELETE;
-    getmem(dir,length(fScanResultFolder)+3);
-    try
-      CopyMemory(dir,pchar(fScanResultFolder),length(fScanResultFolder));
-
-
-      dir[length(fScanResultFolder)]:=#0; //'*';
-      dir[length(fScanResultFolder)+1]:=#0;
-      dir[length(fScanResultFolder)+2]:=#0;
-
-      fos.pFrom:=dir;
-
-      zeromemory(@empty[0],7);
-      fos.pTo:=@empty[0];
-      fos.fFlags:=FOF_SILENT or FOF_NOCONFIRMATION or FOF_ALLOWUNDO;
-
-      OutputDebugString(pchar('Deleting '+dir));
-      i:=SHFileOperation(fos);
-      OutputDebugString('i='+inttostr(i));
-    finally
-      if dir<>nil then
-        freemem(dir);
-    end;
-  except
-  end; }
-
 
   inherited Destroy;
 end;

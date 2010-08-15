@@ -19,11 +19,19 @@ function findaob(aobstring: string): dword;
 var
   ms: tmemscan;
   x: ptruint;
+  max: ptrUint;
 begin
   ms:=tmemscan.create(nil);
   ms.onlyone:=true;
+  {$ifdef cpu64}
+  if processhandler.is64Bit then
+    max:=qword($7fffffffffffffff)
+  else
+  {$else}
+    max:=$7fffffff;
+  {$endif}
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, $7fffffff, false, true, true, false, false, false,false, nil, cstNone);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then
