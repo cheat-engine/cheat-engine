@@ -189,7 +189,11 @@ begin
   if TDOMElement(CheatEntry).TagName<>'CheatEntry' then exit; //invalid node type
 
   tempnode:=CheatEntry.FindNode('Description');
-  if tempnode<>nil then Description:=tempnode.TextContent;
+  if tempnode<>nil then
+    Description:=tempnode.TextContent;
+
+  if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
+    description:=copy(description,2,length(description)-2);
 
   tempnode:=CheatEntry.FindNode('GroupHeader');
   if tempnode<>nil then
@@ -372,7 +376,8 @@ begin
 
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
-  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=description;
+  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+description+'"';
+
 
 
   if isGroupHeader then
