@@ -58,7 +58,7 @@ object AdvancedOptions: TAdvancedOptions
     TabOrder = 1
     OnResize = Panel2Resize
     object Pausebutton: TSpeedButton
-      Left = 42
+      Left = 8
       Height = 30
       Hint = 'Pause the game'
       Top = 4
@@ -88,7 +88,7 @@ object AdvancedOptions: TAdvancedOptions
       ParentShowHint = False
     end
     object SaveButton: TSpeedButton
-      Left = 2
+      Left = 144
       Height = 30
       Hint = 'Create a standalone trainer'
       Top = 4
@@ -120,6 +120,7 @@ object AdvancedOptions: TAdvancedOptions
         0000000000000000000000000000
       }
       NumGlyphs = 0
+      Visible = False
       OnClick = SaveButtonClick
       ShowHint = True
       ParentShowHint = False

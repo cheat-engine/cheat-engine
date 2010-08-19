@@ -14,7 +14,7 @@ uses
   foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
-  windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter;
+  windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter, customtypehandler;
 
 //the following are just for compatibility
 
@@ -163,7 +163,7 @@ type
     Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    miDefineNewCustomType: TMenuItem;
     MenuItem4: TMenuItem;
     miRenameTab: TMenuItem;
     miTablistSeperator: TMenuItem;
@@ -321,6 +321,7 @@ type
       Selected: Boolean);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miDefineNewCustomTypeClick(Sender: TObject);
     procedure miRenameTabClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
     procedure miCloseTabClick(Sender: TObject);
@@ -530,6 +531,10 @@ type
     procedure SaveCurrentState(scanstate: PScanState);
     procedure SetupInitialScanTabState(scanstate: PScanState; IsFirstEntry: boolean);
     procedure ScanTabListTabChange(sender: TObject; oldselection: integer);
+
+    //custom type:
+    procedure CreateCustomType(script:string; changed: boolean);
+    procedure RefreshCustomTypes;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -1555,44 +1560,50 @@ begin
   ScanType.Items.Clear;
 
   ScanText.Caption:=strScantextcaptiontoValue;
+
+  if (varType.ItemIndex in [1,2,3,4,5,6,9]) or (vartype.itemindex>=10) then  //byte-word-dword--8bytes-float-double-all   - custom
+  begin
+
+    if vartype.itemindex in [5,6,9] then //float/all
+    begin
+      if oldindex=0 then
+        floatvis:=true;
+
+      if vartype.itemindex<>9 then
+        hexvis:=false;
+    end;
+
+    ScanType.Items.Add(strExactValue);
+    ScanType.Items.Add(strBiggerThan);
+    ScanType.Items.Add(strsmallerThan);
+    ScanType.Items.Add(strValueBetween);
+
+    if NextScanbutton.Enabled then
+    begin
+      scantype.Items.Add(strIncreasedValue);
+      Scantype.Items.Add(strIncreasedValueBy);
+      ScanType.Items.Add(strDecreasedValue);
+      ScanType.Items.Add(strDecreasedValueBy);
+      ScanType.Items.add(strChangedValue);
+      ScanType.Items.Add(strUnchangedValue);
+      ScanType.Items.Add(strSameAsFirstScan);
+      Scantype.DropDownCount:=11;
+
+    end else
+    begin
+      ScanType.Items.Add(strUnknownInitialValue);
+      ScanType.DropDownCount:=5;
+    end;
+
+  end
+  else
   case varType.ItemIndex of
     0   :     begin
                 ScanType.Items.Add(strExact);
                 ScanType.DropDownCount:=1;
               end;
 
-  1,2,3,4,5,6,9:begin  //byte-word-dword--8bytes-float-double-all
-                if vartype.itemindex in [5,6,9] then
-                begin
-                  if oldindex=0 then
-                    floatvis:=true;
 
-                  if vartype.itemindex<>9 then
-                    hexvis:=false;
-                end;
-
-                ScanType.Items.Add(strExactValue);
-                ScanType.Items.Add(strBiggerThan);
-                ScanType.Items.Add(strsmallerThan);
-                ScanType.Items.Add(strValueBetween);
-
-                if NextScanbutton.Enabled then
-                begin
-                  scantype.Items.Add(strIncreasedValue);
-                  Scantype.Items.Add(strIncreasedValueBy);
-                  ScanType.Items.Add(strDecreasedValue);
-                  ScanType.Items.Add(strDecreasedValueBy);
-                  ScanType.Items.add(strChangedValue);
-                  ScanType.Items.Add(strUnchangedValue);
-                  ScanType.Items.Add(strSameAsFirstScan);
-                  Scantype.DropDownCount:=11;
-
-                end else
-                begin
-                  ScanType.Items.Add(strUnknownInitialValue);
-                  ScanType.DropDownCount:=5;
-                end;
-              end;
 
   7:          begin  //text
                 ScanText.caption:=strScanTextCaptionToText;
@@ -2038,6 +2049,89 @@ begin
   addresslist.SelectAll;
 end;
 
+procedure TMainForm.RefreshCustomTypes;
+{
+In short: remove all custom scan types and add them back
+}
+var i: integer;
+begin
+  vartype.items.BeginUpdate;
+  try
+    while VarType.Items.Count>10 do
+      vartype.items.Delete(10);
+
+
+    for i:=0 to customTypes.Count-1 do
+      vartype.Items.AddObject(TCustomType(customTypes[i]).name, customTypes[i]);
+
+  finally
+    vartype.items.EndUpdate;
+  end;
+end;
+
+procedure TMainForm.CreateCustomType(script:string; changed: boolean);
+var s: tstringlist;
+begin
+  if changed then
+  begin
+    s:=tstringlist.create;
+    s.Text:=script;
+    TCustomType.CreateTypeFromAutoAssemblerScript(s);
+
+    s.free;
+
+    RefreshCustomTypes;
+  end;
+end;
+
+procedure TMainForm.miDefineNewCustomTypeClick(Sender: TObject);
+begin
+  with TfrmAutoInject.create(self) do
+  begin
+    injectintomyself:=true;
+    CustomTypeScript:=true;
+    CustomTypeCallback:=CreateCustomType;
+
+    with assemblescreen.Lines do
+    begin
+      Add('alloc(TypeName,256)');
+      Add('alloc(ByteSize,4)');
+      Add('alloc(ConvertRoutine,1024)');
+      Add('alloc(ConvertBackRoutine,1024)');
+      Add('');
+      Add('TypeName:');
+      Add('db ''Custom Type Name'',0');
+      Add('');
+      Add('ByteSize:');
+      Add('dd 4');
+      Add('');
+      Add('//The convert routine should hold a routine that converts the data to an integer (in eax)');
+      Add('//function declared as: stdcall DWORD ConvertRoutine(int i);');
+      Add('//Note: Keep in mind that this routine can be called by multiple threads at the same time.');
+      Add('ConvertRoutine:');
+      {$ifdef cpu64}
+      Add('//parameters: (64-bit)');
+
+      {$else}
+      Add('//parameters: (32-bit)');
+      {$endif}
+
+      Add('');
+      Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes');
+      Add('//function declared as: stdcall void ConvertBackRoutine(int i, unsigned char *output);');
+      Add('ConvertBackRoutine:');
+      Add('');
+      Add('');
+    end;
+
+    show;
+  end;
+
+
+
+
+end;
+
 procedure TMainForm.miRenameTabClick(Sender: TObject);
 var s: string;
 begin
@@ -2336,6 +2430,8 @@ begin
     if panel5.Height<panel5.Constraints.MinHeight then
       panel5.Height:=panel5.Constraints.MinHeight;
 
+
+
   end
   else
   begin
@@ -2347,6 +2443,10 @@ begin
     scantablist.SelectedTab:=i;
     inc(tabcounter);
   end;
+
+  if NextScanButton.Enabled then
+    newScan.click;
+
 end;
 
 procedure TMainForm.miCloseTabClick(Sender: TObject);
@@ -2983,6 +3083,7 @@ var
   unicodevis: boolean;
   tc: tbitmap;
 begin
+  //todo: rewrite this
   oldscantype:=scantype.ItemIndex;
   newvartype:=vartype.ItemIndex;
 
@@ -2999,6 +3100,115 @@ begin
   decbitvis:=false;
 
   //convertroutine:
+
+  if (oldvartype in [1,2,3,4,5,6,9]) or (oldvartype>10) then
+  begin
+    //it was one of the normal values
+    hexstateForIntTypes:=hexadecimalcheckbox.Checked;
+
+    if (newvartype in [1,2,3,4]) or (oldvartype>10) then
+    begin
+      //converted to a normal type
+      if oldvartype in [5,6] then
+      begin
+        try
+          scanvalue.text:=inttostr(trunc(strtofloat(scanvalue.text)));
+        except
+          scanvalue.Text:='';
+        end;
+
+      end;
+
+    end
+    else
+    case newvartype of
+      0: //it gets converted to a binary
+      begin
+        //set
+
+        if oldvartype in [1,2,3,4] then
+        begin
+          try
+            if hexadecimalcheckbox.Checked then
+              a:=strtoint('$'+scanvalue.text)
+            else
+              a:=strtoint(scanvalue.text);
+            scanvalue.Text:=inttostr(a);
+          except
+            scanvalue.text:='';
+          end;
+        end
+        else
+        if oldvartype=5 then
+        begin
+          try
+            d:=strtofloat(scanvalue.Text);
+            pb:=@d;
+            scanvalue.Text:=inttostr(pb^);
+          except
+            scanvalue.text:='';
+          end;
+        end else
+        if oldvartype=6 then
+        begin
+          try
+            b:=strtofloat(scanvalue.Text);
+            pa:=@b;
+            scanvalue.Text:=inttostr(pa^);
+          except
+            scanvalue.text:='';
+          end;
+        end;
+
+        isbit:=false;
+        rbdec.checked:=true;
+        rbdec.OnClick(rbdec);
+      end;
+
+      5,6: ; //converted to a float, leave it the same
+
+      7: ;//converted to a string , leave it
+
+      8: //converted to a array of byte
+      begin
+        if oldvartype in [1,2,3,4] then
+        begin
+          //now convert it to a array of byte
+          if oldvartype in [1,2,3,4] then
+          begin
+            try
+              a:=strtoint(scanvalue.text);
+              scanvalue.text:=vartobytes(@a,8);
+            except
+              scanvalue.text:='';
+            end;
+          end
+          else
+          if oldvartype=5 then
+          begin
+            try
+              d:=strtofloat(scanvalue.Text);
+              scanvalue.Text:=vartobytes(@d,4);
+            except
+              scanvalue.text:='';
+            end;
+          end else
+          if oldvartype=6 then
+          begin
+            try
+              b:=strtofloat(scanvalue.Text);
+              scanvalue.Text:=vartobytes(@b,8);
+            except
+              scanvalue.text:='';
+            end;
+          end;
+
+        end;
+      end;
+
+
+    end;
+  end;
 
   case oldvartype of
     0:  //it was a bit
@@ -3038,116 +3248,6 @@ begin
         end;
       end;
     end;
-
-    1,2,3,4,5,6,9:
-    begin
-      //it was one of the normal values
-      hexstateForIntTypes:=hexadecimalcheckbox.Checked;
-
-      case newvartype of
-        0: //it gets converted to a binary
-        begin
-          //set
-
-          if oldvartype in [1,2,3,4] then
-          begin
-            try
-              if hexadecimalcheckbox.Checked then
-                a:=strtoint('$'+scanvalue.text)
-              else
-                a:=strtoint(scanvalue.text);
-              scanvalue.Text:=inttostr(a);
-            except
-              scanvalue.text:='';
-            end;
-          end
-          else
-          if oldvartype=5 then
-          begin
-            try
-              d:=strtofloat(scanvalue.Text);
-              pb:=@d;
-              scanvalue.Text:=inttostr(pb^);
-            except
-              scanvalue.text:='';
-            end;
-          end else
-          if oldvartype=6 then
-          begin
-            try
-              b:=strtofloat(scanvalue.Text);
-              pa:=@b;
-              scanvalue.Text:=inttostr(pa^);
-            except
-              scanvalue.text:='';
-            end;
-          end;
-
-          isbit:=false;
-          rbdec.checked:=true;
-          rbdec.OnClick(rbdec);
-        end;
-
-        1,2,3,4:
-        begin
-           //converted to a normal type
-          if oldvartype in [5,6] then
-          begin
-            try
-              scanvalue.text:=inttostr(trunc(strtofloat(scanvalue.text)));
-            except
-              scanvalue.Text:='';
-            end;
-
-          end;
-
-        end;
-
-        5,6: ; //converted to a float, leave it the same
-
-        7: ;//converted to a string , leave it
-
-        8: //converted to a array of byte
-        begin
-          if oldvartype in [1,2,3,4] then
-          begin
-            //now convert it to a array of byte
-            if oldvartype in [1,2,3,4] then
-            begin
-              try
-                a:=strtoint(scanvalue.text);
-                scanvalue.text:=vartobytes(@a,8);
-              except
-                scanvalue.text:='';
-              end;
-            end
-            else
-            if oldvartype=5 then
-            begin
-              try
-                d:=strtofloat(scanvalue.Text);
-                scanvalue.Text:=vartobytes(@d,4);
-              except
-                scanvalue.text:='';
-              end;
-            end else
-            if oldvartype=6 then
-            begin
-              try
-                b:=strtofloat(scanvalue.Text);
-                scanvalue.Text:=vartobytes(@b,8);
-              except
-                scanvalue.text:='';
-              end;
-            end;
-
-          end;
-        end;
-
-
-      end;
-    end;
-
 
     7: //it was text
     begin
@@ -3236,6 +3336,15 @@ begin
   if not (oldscantype in [smallerthan,biggerthan,valueBetween,exact_value,Advanced_Scan]) then
     scantype.itemindex:=0;
 
+  if (newvartype in [1,2,3,4,9]) or (newvartype>=10) then //if normal or custom type
+  begin
+    casevis:=false;
+    hexvis:=true;
+    scanvalue.MaxLength:=0;
+    hexadecimalcheckbox.enabled:=newscan.enabled;
+    hexadecimalcheckbox.Checked:=hexstateForIntTypes;
+  end
+  else
   case newvartype of
   0: begin //binary
        rbdec.checked:=true;
@@ -3243,15 +3352,6 @@ begin
        HexadecimalCheckbox.visible:=false;
        decbitvis:=true;
        Scantype.itemindex:=0;
-     end;
-
-   1,2,3,4,9,10:
-     begin
-       casevis:=false;
-       hexvis:=true;
-       scanvalue.MaxLength:=0;
-       hexadecimalcheckbox.enabled:=newscan.enabled;
-       hexadecimalcheckbox.Checked:=hexstateForIntTypes;
      end;
 
   5: begin //float;
@@ -4960,7 +5060,7 @@ begin
 
 
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 

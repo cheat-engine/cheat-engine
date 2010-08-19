@@ -14,7 +14,7 @@ uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
 {$ifndef standalonetrainerwithassemblerandaobscanner}
      , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,
-     CEFuncProc,shellapi
+     CEFuncProc,shellapi, customtypehandler
 {$endif}
 ;
 
@@ -200,6 +200,20 @@ type
     function AllChanged(newvalue,oldvalue: pointer): boolean;
     function AllUnchanged(newvalue,oldvalue: pointer): boolean;
 
+    function CustomExact(newvalue,oldvalue: pointer): boolean;
+    function CustomBetween(newvalue,oldvalue: pointer): boolean;
+    function CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
+    function CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
+    function CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
+    function CustomIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+    function CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
+    function CustomDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+    function CustomChanged(newvalue,oldvalue: pointer): boolean;
+    function CustomUnChanged(newvalue,oldvalue: pointer): boolean;
+
+
     //following types only have exact: Array of byte, binary and string
     function ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
     function BinaryExact(newvalue,oldvalue: pointer):boolean;
@@ -262,6 +276,7 @@ type
     widescanvalue1: widestring;
     scanOption: TScanOption;
     variableType: TVariableType;
+    customType: TCustomType;
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
     useNextNextscan: boolean; //determines to use the nextNextScan or firstNextScan
 
@@ -343,6 +358,7 @@ type
     stopaddress: ptruint; //stop of the whole scan
     scanOption: TScanOption;
     variableType: TVariableType;
+    customType: TCustomType;
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
 
     //memregion info
@@ -388,6 +404,7 @@ type
     notifymessage: integer;
 
     currentVariableType: TVariableType;
+    currentCustomType: TCustomType;
     found: uint64;
 
     //string stuff:
@@ -411,7 +428,7 @@ type
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //first scan routine, e.g unknown initial value, or exact scan
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customtype: TCustomType=nil); //first scan routine, e.g unknown initial value, or exact scan
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
@@ -916,6 +933,68 @@ begin
 end;
 
 
+//--------------\/custom\/
+function TScanner.CustomExact(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)=integer(value);
+end;
+
+function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(customType.ConvertDataToInteger(newvalue)>=integer(value)) and (customType.ConvertDataToInteger(newvalue)<=integer(value2));
+end;
+
+function TScanner.CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)>integer(value);
+end;
+
+function TScanner.CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)<integer(value);
+end;
+
+function TScanner.CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)>customType.ConvertDataToInteger(oldvalue);
+end;
+
+function TScanner.CustomIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)+dword(value);
+end;
+
+function TScanner.CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(customType.ConvertDataToInteger(newvalue)>=trunc(customType.ConvertDataToInteger(oldvalue)+pdword(oldvalue)^*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
+end;
+
+function TScanner.CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)<customType.ConvertDataToInteger(oldvalue);
+end;
+
+function TScanner.CustomDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue)-dword(value);
+end;
+
+function TScanner.CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(customType.ConvertDataToInteger(newvalue)>=trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
+end;
+
+function TScanner.CustomChanged(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)<>customType.ConvertDataToInteger(oldvalue);
+end;
+
+function TScanner.CustomUnChanged(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue);
+end;
+//--------------/\custom/\
+
 //dword:
 function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean;
 begin
@@ -1184,6 +1263,8 @@ function TScanner.DoubleUnchanged(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pDouble(newvalue)^=pDouble(oldvalue)^;
 end;
+
+
 
 //=============Save result routines===========//
 
@@ -1923,7 +2004,7 @@ begin
     vtdouble: valuetype:=vt_double;
     vtQword:  valuetype:=vt_int64;
     vtAll:    valuetype:=vt_all;
-    vtAutoAssembler:
+    vtCustom:
     begin
       case vsize of
         1: valuetype:=vt_byte;
@@ -1999,7 +2080,7 @@ begin
     //user input is given
     if scanvalue1='' then raise exception.Create('Please fill something in');
 
-    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtAutoAssembler] then
+    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
     begin
       //parse scanvalue1
       try
@@ -2022,15 +2103,13 @@ begin
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
-              if variabletype<>vtAutoAssembler then
-                raise exception.Create(scanvalue1+' is not a valid value');
+              raise exception.Create(scanvalue1+' is not a valid value');
             end;
           end;
           value:=trunc(dvalue);
 
         end else
-          if variabletype<>vtAutoAssembler then
-            raise exception.Create(scanvalue1+' is an invalid value');
+          raise exception.Create(scanvalue1+' is an invalid value');
       end;
 
       if scanOption=soValueBetween then
@@ -2057,20 +2136,18 @@ begin
               try
                 dvalue:=strtofloat(scanvalue1,FloatSettings);
               except
-                if variabletype<>vtAutoAssembler then
-                  raise exception.Create(scanvalue1+' is not a valid value');
+                raise exception.Create(scanvalue1+' is not a valid value');
               end;
             end;
             value:=trunc(dvalue);
           end
           else
-            if variabletype<>vtAutoAssembler then
-              raise exception.Create(scanvalue2+' is an invalid value');
+            raise exception.Create(scanvalue2+' is an invalid value');
         end;
       end;
     end;
 
-    if percentage or (variableType in [vtsingle,vtDouble,vtAll,vtAutoAssembler]) then
+    if percentage or (variableType in [vtsingle,vtDouble,vtAll]) then
     begin
       try
         dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -2084,8 +2161,7 @@ begin
         try
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
-          if variabletype<>vtAutoAssembler then
-            raise exception.Create(scanvalue1+' is not a valid value');
+          raise exception.Create(scanvalue1+' is not a valid value');
         end;
       end;
 
@@ -2103,8 +2179,7 @@ begin
           try
             dvalue2:=strtofloat(scanvalue1,FloatSettings);
           except
-            if variabletype<>vtAutoAssembler then
-              raise exception.Create(scanvalue1+' is not a valid value');
+            raise exception.Create(scanvalue1+' is not a valid value');
           end;
         end;
 
@@ -2450,6 +2525,33 @@ begin
         soSameAsFirst:      checkroutine:=allUnchanged;
       end;
       //the other types have to be filled in by the nextscan routines
+    end;
+
+    vtCustom:
+    begin
+      //dword config
+      FoundBufferSize:=buffersize*customtype.bytesize;
+      StoreResultRoutine:=GenericSaveResult;
+
+      case scanOption of
+        soExactValue:       checkRoutine:=customExact;
+        soValueBetween:     checkroutine:=customBetween;
+        soBiggerThan:       checkroutine:=customBiggerThan;
+        soSmallerThan:      checkroutine:=customSmallerThan;
+        soIncreasedValue:   checkroutine:=customIncreasedValue;
+        soIncreasedValueBy: if percentage then
+                              checkroutine:=customIncreasedValueByPercentage
+                            else
+                              checkroutine:=customIncreasedValueBy;
+        soDecreasedValue:   checkroutine:=customDecreasedValue;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=customDecreasedValueByPercentage
+                            else
+                              checkroutine:=customDecreasedValueBy;
+        soChanged:          checkroutine:=customChanged;
+        soUnChanged:        checkroutine:=customUnchanged;
+        soSameAsFirst:      checkroutine:=customUnchanged;
+      end;
     end;
 
   end;
@@ -2953,6 +3055,12 @@ begin
       fastscanalignsize:=1;
     end;
 
+    vtCustom:
+    begin
+      variablesize:=customtype.bytesize;
+      fastscanalignsize:=min(4, variablesize);
+    end;
+
   end;
 
 
@@ -3022,6 +3130,7 @@ begin
           scanners[i].scanType:=scanType; //stNextScan obviously
           scanners[i].scanoption:=scanoption;
           scanners[i].variableType:=VariableType;
+          scanners[i].customType:=CustomType;
           scanners[i].roundingtype:=roundingtype;
           scanners[i].fastscan:=fastscan;
           scanners[i].scanValue1:=scanvalue1; //usual scanvalue
@@ -3226,6 +3335,7 @@ begin
       scanners[i].scanType:=scanType; //stNextScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
+      scanners[i].customType:=CustomType;
       scanners[i].roundingtype:=roundingtype;
       scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
@@ -3593,6 +3703,7 @@ begin
       scanners[i].scanType:=scanType; //stFirstScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
+      scanners[i].customType:=CustomType;
       scanners[i].roundingtype:=roundingtype;
       scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
@@ -4061,6 +4172,7 @@ begin
     vtString:    if stringUnicode then result:=16*stringLength else result:=8*stringLength;
     vtBinary:    result:=binaryLength;
     vtByteArray: result:=arrayLength*8;
+    vtCustom:    result:=currentCustomType.bytesize*8;
     else result:=8;
   end;
 end;
@@ -4109,6 +4221,7 @@ begin
   scanController.scantype:=stNextScan;
   scanController.scanOption:=scanOption;
   scanController.variableType:=CurrentVariableType;
+  scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;
   scanController.fastscan:=fastscan;
   scanController.scanValue1:=scanvalue1; //usual scanvalue
@@ -4130,7 +4243,7 @@ begin
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customtype: TCustomType=nil);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
@@ -4147,12 +4260,16 @@ begin
 {$endif}  
 
   currentVariableType:=VariableType;
+  currentCustomType:=customtype;
 
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
   scanController.scantype:=stFirstScan;
   scanController.scanOption:=scanOption;
   scanController.variableType:=VariableType;
+  scancontroller.customType:=customtype;
+
+
   scanController.roundingtype:=roundingtype;
   scanController.fastscan:=fastscan;
   scanController.scanValue1:=scanvalue1; //usual scanvalue

@@ -276,6 +276,7 @@ type tdefine=record
 end;
 var i,j,k,l,e: integer;
     currentline: string;
+    currentlinenr: integer;
     currentlinep: pchar;
 
     currentaddress: ptrUint;
@@ -397,6 +398,7 @@ begin
       try
         try
           currentline:=code[i];
+          currentlinenr:=ptrUint(code.Objects[i]);
 
           currentline:=trim(currentline);
 
@@ -1093,7 +1095,7 @@ begin
 
       except
         on E:exception do
-          raise exception.Create('Error in line '+IntToStr(i+1)+' ('+currentline+')'+' :'+e.Message);
+          raise exception.Create('Error in line '+IntToStr(currentlinenr)+' ('+currentline+')'+' :'+e.Message);
 
       end;
     end;
@@ -1796,7 +1798,9 @@ begin
     //
     if ((not insideenable) and (not insidedisable)) or
        (insideenable and enablescript) or
-       (insidedisable and not enablescript) then newscript.Add(code[i]);
+       (insidedisable and not enablescript) then newscript.AddObject(code[i], code.Objects[i]);
+
+
 
   end;
 
@@ -1812,6 +1816,9 @@ var tempstrings: tstringlist;
     currentline: string;
     enablepos,disablepos: integer;
 begin
+  for i:=0 to code.Count-1 do
+    code.Objects[i]:=pointer(i+1);
+
   getenableanddisablepos(code,enablepos,disablepos);
 
   result:=false;

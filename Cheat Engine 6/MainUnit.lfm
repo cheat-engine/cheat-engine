@@ -581,7 +581,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 253
+      Left = 252
       Height = 21
       Top = 144
       Width = 170
@@ -1794,8 +1794,9 @@ object MainForm: TMainForm
   object pmValueType: TPopupMenu
     left = 104
     top = 240
-    object MenuItem3: TMenuItem
+    object miDefineNewCustomType: TMenuItem
       Caption = 'Define new custom type'
+      OnClick = miDefineNewCustomTypeClick
     end
     object MenuItem4: TMenuItem
       Caption = 'Edit selected custom type'

@@ -152,6 +152,9 @@ var i: integer;
 begin
   i:=getVarType;
 
+  if i>=10 then
+    result:=vtCustom
+  else
   case i of
     5: result:=vtBinary;
     0: result:=vtByte;
@@ -163,9 +166,10 @@ begin
     7: result:=vtString;
     8: result:=vtByteArray;
     9: result:=vtAll;
-    10: result:=vtAutoAssembler;
     else result:=vtByte;
   end;
+
+
 end;
 
 function getVarType: Integer;

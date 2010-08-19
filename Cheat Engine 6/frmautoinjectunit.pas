@@ -109,11 +109,13 @@ type
     selectedtab: integer;
 
     fcplusplus: boolean;
+    fCustomTypeScript: boolean;
 
     undolist: array [0..5] of string;
     procedure setcplusplus(state: boolean);
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
+    procedure setCustomTypeScript(x: boolean);
 
   public
     { Public declarations }
@@ -121,12 +123,19 @@ type
     assemblescreen: TSynEdit;
     tlist: TTablist;
     {$endif}
+
+
     editscript: boolean;
     editscript2: boolean;
     memrec: TMemoryRecord;
     callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
+
+
+    CustomTypeCallback: procedure(script:string; changed: boolean) of object;
+
     injectintomyself: boolean;
-    property cplusplus: boolean read fcplusplus write setcplusplus; 
+    property cplusplus: boolean read fcplusplus write setcplusplus;
+    property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   end;
 
   procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
@@ -138,6 +147,13 @@ implementation
 {$ifndef standalonetrainerwithassembler}
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm;
 {$endif}
+
+procedure TfrmAutoInject.setCustomTypeScript(x: boolean);
+begin
+  fCustomTypeScript:=x;
+  if x then
+    editscript:=true;
+end;
 
 procedure TfrmAutoInject.setcplusplus(state: boolean);
 begin
@@ -212,7 +228,8 @@ begin
 
       setlength(aa,1);
       getenableanddisablepos(assemblescreen.Lines,a,b);
-      if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
+      if not CustomTypeScript then
+        if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
 
 
       check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
@@ -221,7 +238,7 @@ begin
       if check then
       begin
         modalresult:=mrok; //not modal anymore, but can still be used to pass info
-        if editscript2 then close; //can only be used when not modal
+        if editscript2 or CustomTypeScript then close; //can only be used when not modal
       end
       else
       begin
@@ -292,6 +309,16 @@ begin
         callbackroutine(memrec, assemblescreen.text,true)
       else
         callbackroutine(memrec, assemblescreen.text,false);
+
+      action:=cafree;
+    end
+    else
+    if CustomTypeScript then
+    begin
+      if modalresult=mrok then
+        CustomTypeCallback(assemblescreen.text,true)
+      else
+        CustomTypeCallback(assemblescreen.text,false);
 
       action:=cafree;
     end;

@@ -2089,7 +2089,7 @@ begin
     checkbox2.checked:=(_tag=0) or (_tag=1);
     checkbox3.checked:=(_tag=0) or (_tag=2);
     
-    sbShowFloats.click;
+    button1.click;
     waittilldone;
 
     free;

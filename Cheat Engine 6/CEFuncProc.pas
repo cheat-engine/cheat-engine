@@ -35,7 +35,7 @@ math,syncobjs, shellapi, ProcessHandlerUnit, controls;
 type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soSameAsFirst, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
 type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
-type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtUnicodeString, vtByteArray, vtBinary, vtAll, vtAutoAssembler, vtPointer);
+type TVariableType=(vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtString, vtUnicodeString, vtByteArray, vtBinary, vtAll, vtAutoAssembler, vtPointer, vtCustom);
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 
 
