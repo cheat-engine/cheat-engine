@@ -365,6 +365,8 @@ end;
 
 procedure TFoundCodeDialog.FoundcodeListClick(Sender: TObject);
 var coderecord: TCodeRecord;
+    selectedRecord: integer;
+    i: integer;
 begin
   if foundcodelist.SelCount>0 then
   begin
@@ -373,7 +375,21 @@ begin
     btnAddToCodeList.enabled:=true;
     btnExtraInfo.Enabled:=true;
 
-    coderecord:=TCodeRecord(foundcodelist.Items.Objects[foundcodelist.itemindex]);
+    selectedRecord:=foundcodelist.itemindex;
+    if selectedRecord<>-1 then
+      if foundcodelist.Selected[selectedrecord]=false then
+      begin
+        for i:=foundcodelist.Count-1 downto 0 do
+          if foundcodelist.Selected[i] then
+          begin
+            selectedRecord:=i;
+            break;
+          end;
+
+      end;
+
+
+    coderecord:=TCodeRecord(foundcodelist.Items.Objects[selectedrecord]);
     description.Caption:=coderecord.description;
   end
   else
