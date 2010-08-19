@@ -160,8 +160,11 @@ begin
       if not DebugActiveProcess(processid) then
         exit;
 
-      ResumeThread(processinfo.hthread);
-      closehandle(processinfo.hThread);
+      if createprocess then
+      begin
+        ResumeThread(processinfo.hthread);
+        closehandle(processinfo.hThread);
+      end;
 
       currentprocesid := processid;
 
@@ -194,8 +197,8 @@ begin
           no event has happened, for 100 miliseconds
           Do some maintenance in here
           }
+          //remove the breakpoints that have been unset and are marked for deletion
           cleanupDeletedBreakpoints;
-          //remove the breakpoints that heve been unset and are marked for deletion
         end;
       end;
 
@@ -548,8 +551,7 @@ begin
       breakpoint := breakpoint.owner;
 
     //clean up all it's children
-    j := 0;
-    while j < breakpointlist.Count do
+    for j:=0 to breakpointlist.Count-1 do
     begin
       BP := breakpointlist.items[j];
       if bp.owner = breakpoint then
@@ -558,9 +560,6 @@ begin
         bp.deletecountdown:=10; //10*100=1000=1 second
         bp.markedfordeletion := True; //set this flag so it gets deleted on next no-event
       end
-      else
-        Inc(j);
-
     end;
 
     //and finally itself
@@ -806,7 +805,7 @@ begin
       if usedDebugRegister = -1 then
         exit; //at least one has been set, so be happy...
 
-      AddBreakpoint(newbp, bplist[i].address, bptAccess,
+      AddBreakpoint(newbp, bplist[i].address, bpt,
         bpmDebugRegister, bo_FindCode, usedDebugRegister,
         bplist[i].size, foundcodedialog, 0);
     end;
