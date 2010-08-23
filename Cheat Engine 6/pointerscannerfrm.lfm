@@ -4,7 +4,7 @@ object frmPointerScanner: TfrmPointerScanner
   Top = 314
   Width = 622
   Caption = 'Pointer scan'
-  ClientHeight = 492
+  ClientHeight = 497
   ClientWidth = 622
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -17,7 +17,7 @@ object frmPointerScanner: TfrmPointerScanner
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
-    Top = 471
+    Top = 476
     Width = 622
     Align = alBottom
     Step = 1
@@ -52,7 +52,7 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pgcPScandata: TPageControl
     Left = 0
-    Height = 447
+    Height = 452
     Top = 24
     Width = 622
     ActivePage = tsPSReverse
@@ -61,12 +61,12 @@ object frmPointerScanner: TfrmPointerScanner
     TabOrder = 2
     object tsPSReverse: TTabSheet
       Caption = 'tsPSReverse'
-      ClientHeight = 418
+      ClientHeight = 423
       ClientWidth = 614
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
-        Height = 318
+        Height = 323
         Top = 65
         Width = 614
         Align = alClient
@@ -114,7 +114,7 @@ object frmPointerScanner: TfrmPointerScanner
       object Panel3: TPanel
         Left = 0
         Height = 35
-        Top = 383
+        Top = 388
         Width = 614
         Align = alBottom
         BevelOuter = bvNone

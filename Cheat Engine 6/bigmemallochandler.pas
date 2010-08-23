@@ -11,11 +11,13 @@ of individual memory allocs, so no data loss for allocating small chunks of memo
 
 interface
 
-uses windows,classes;
+uses windows,classes,sysutils, newkernelhandler;
 
 type TBigMemoryAllocHandler=class
 private
   allocs: array of pointer;
+  allocspos: integer;
+  allocssize: integer;
 
   currentBuffer: pointer; //current memory region to use //updated on each alloc
   lastsize: integer;
@@ -31,45 +33,69 @@ implementation
 
 constructor TBigMemoryAllocHandler.create;
 begin
-  lastsize:=1024*1024*16; //16MB
-  getmem(currentbuffer,lastsize); //1mb
-  ZeroMemory(currentbuffer,lastsize);
+  currentbuffer:=0;
+  memoryleft:=0;
+  lastsize:=1;
+
+
+  allocssize:=32;
+  allocspos:=0;
+  setlength(allocs,32);
 end;
 
 destructor TBigMemoryAllocHandler.destroy;
 var i: integer;
 begin
   for i:=0 to length(allocs)-1 do
-    freemem(allocs[i]);
+    VirtualFree(allocs[i],0,MEM_RELEASE);
+
+  setlength(allocs,0);
 
   inherited destroy;
 end;
 
 
 function TBigMemoryAllocHandler.alloc(size: integer):pointer;
-var newsize: dword;
+var newsize: size_t;
+  flAllocationType : dword;
+  lpm: size_t;
 begin
 try
-  while size>memoryleft do
+  if size>memoryleft then
   begin
-    newsize:=lastsize*2;
-    if newsize>(16*1024*1024) then
-      newsize:=lastsize;
+    //need to alloce a new memory regions
+    lpm:=GetLargePageMinimum;
+    newsize:=lpm;
+    if newsize=0 then
+      newsize:=2*1024*1024; //2mb
+
+    newsize:=newsize*lastsize;
+    if newsize<16*1024*1024 then
+      inc(lastsize); //next time allocate more memory
 
     if newsize<size then
-      newsize:=size*2;
+      raise Exception.create('some really fucked up parameter is given for size:'+inttostr(size));
 
-    //allocate a new buffer
-    setlength(allocs,length(allocs)+1);
+    flAllocationType:=MEM_COMMIT or MEM_RESERVE;
+    if lpm>0 then //cpu supports large pages
+      flAllocationType:=flAllocationType or MEM_LARGE_PAGES;
+
+    currentbuffer:=VirtualAlloc(nil,newsize, flAllocationType , PAGE_READWRITE);
+    if currentbuffer=nil then
+      raise Exception.create('VirtualAlloc failed');
+
+    allocs[allocspos]:=currentbuffer;
+    inc(allocspos);
+    if allocspos>=allocssize then
+    begin
+      allocssize:=min(allocssize*2, allocssize+4096); //allocate twice the ammount it was, with a max of 4096
+      setlength(allocs,allocssize);
+    end;
 
 
-    getmem(currentBuffer,newsize);
-    ZeroMemory(currentbuffer,newsize);
-    allocs[length(allocs)-1]:=currentBuffer;
     memoryleft:=newsize;
-    lastsize:=newsize;
-
   end;
+
 
   result:=currentBuffer;
   inc(pbyte(currentbuffer),size); //adjust the pointer to point to the next free spot

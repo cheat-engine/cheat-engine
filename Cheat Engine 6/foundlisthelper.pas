@@ -1,11 +1,12 @@
 unit foundlisthelper;
 
 {$MODE Delphi}
+//todo: Change to the 'new' type
 
 interface
 
 uses windows, LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
-     NewKernelHandler, memscan;
+     NewKernelHandler, memscan, CustomTypeHandler;
 
 type TScanType=(fs_advanced,fs_addresslist);
 
@@ -29,6 +30,7 @@ type
     addressfile: tfilestream;
     scantype: TScanType;
     fvartype: integer;
+    customType: TCustomType;
     varlength: integer; //bitlength, stringlength, customscan
     hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
@@ -48,8 +50,8 @@ type
     procedure deleteaddress(i:integer);
     procedure clear;
     procedure RefetchValueList;
-    function Initialize(vartype: integer):int64; overload;
-    function Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean):int64; overload;  //initialize after a scan
+    function Initialize(vartype: integer; customtype: TCustomType):int64; overload;
+    function Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
     function GetAddressOnly(i: integer; var extra: dword): ptruint;
@@ -65,9 +67,6 @@ end;
 
 type Tscandisplayroutine=procedure(value: pointer; output: pchar);
 
-var
-  scandisplayroutinetype: byte;
-  scandisplayroutine: Tscandisplayroutine;
 
 implementation
 
@@ -204,7 +203,7 @@ begin
   renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.TMP');
   renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.TMP');
 
-  Initialize(vartype);
+  Initialize(vartype,customtype);
 end;
 
 procedure TFoundList.RebaseAddresslistAgain;
@@ -423,32 +422,6 @@ begin
       end;
     end else vtype:=vartype;
 
-    if vtype=10 then
-    begin
-      case scandisplayroutinetype of
-        0: vtype:=0;
-        1: vtype:=1;
-        2: vtype:=2;
-        3: vtype:=6;
-        4: vtype:=3;
-        5: vtype:=4;
-        6: vtype:=8;
-        7:
-        begin
-          vtype:=7;
-          unicode:=false;
-        end;
-
-        8:
-        begin
-          vtype:=7;
-          unicode:=true;
-        end;
-
-        255: vtype:=255;
-      end;
-
-    end;
 
     case vtype of
       0: //byte
@@ -481,37 +454,37 @@ begin
 	else valuelist[j]:='??';
       end;
 
-			2: //dword
-			begin
+      2: //dword
+      begin
         if readprocessmemory(processhandle,pointer(currentaddress),@read3,4,count) then
-				begin
+        begin
           if hexadecimal then
-					  valuelist[j]:=IntToHex(read3,8)
-					else if signed then
-						valuelist[j]:=IntToStr(Longint(read3))
-					else
-          	valuelist[j]:=IntToStr(read3);
-				end
-				else valuelist[j]:='??';
-			end;
+            valuelist[j]:=IntToHex(read3,8)
+          else if signed then
+            valuelist[j]:=IntToStr(Longint(read3))
+          else
+            valuelist[j]:=IntToStr(read3);
+        end
+	else valuelist[j]:='??';
+      end;
 
-  	  3:
+      3:
       begin //float
         if readprocessmemory(processhandle,pointer(currentaddress),@read4,4,count) then
-					valuelist[j]:=FloatToStr(read4)
-				else 
-					valuelist[j]:='??';
+          valuelist[j]:=FloatToStr(read4)
+        else
+          valuelist[j]:='??';
       end;
 
-  	  4:
+      4:
       begin //double
         if readprocessmemory(processhandle,pointer(currentaddress),@read5,8,count) then
-					valuelist[j]:=FloatToStr(read5)
-				else 
-					valuelist[j]:='??';
+          valuelist[j]:=FloatToStr(read5)
+        else
+          valuelist[j]:='??';
       end;
 
-    	5:
+      5:
       begin //binary
         //read the bytes
 
@@ -548,21 +521,21 @@ begin
             end;
           end else valuelist[j]:=temp2;
         end
-				else
- 					valuelist[j]:='??'; 
+        else
+        valuelist[j]:='??';
       end;
 
-  	  6:
+      6:
       begin //int64
         if readprocessmemory(processhandle,pointer(currentaddress),@read6,8,count) then
         begin
           if hexadecimal then
-						valuelist[j]:=inttohex(read6,16)
-					else 
-						valuelist[j]:=inttostr(read6)
-				end
-				else 
-					valuelist[j]:='??';
+            valuelist[j]:=inttohex(read6,16)
+          else
+            valuelist[j]:=inttostr(read6)
+	end
+	else
+          valuelist[j]:='??';
       end;
 
 
@@ -576,7 +549,7 @@ begin
             read72[varlength]:=chr(0);
             valuelist[j]:=read72;
           end
-					else valuelist[j]:='??';
+          else valuelist[j]:='??';
           freemem(read72);
         end
         else
@@ -587,12 +560,12 @@ begin
             read7[varlength]:=chr(0);
             valuelist[j]:=read7;
           end
-					else valuelist[j]:='??';
+          else valuelist[j]:='??';
           freemem(read7);
         end;
       end;
 
-    	8:
+      8:
       begin //array of byte
         setlength(read8,varlength);
 
@@ -608,23 +581,32 @@ begin
         setlength(read8,0);
       end;
 
-      255: //custom routine
+      10: //custom routine
       begin
         try
-          getmem(tempbuf,varlength);
-          getmem(resultstring,50);
+          getmem(tempbuf,customType.bytesize);
           try
-            if readprocessmemory(processhandle,pointer(addresslist[j]),tempbuf,varlength,count) then
+            if readprocessmemory(processhandle,pointer(addresslist[j]),tempbuf,customType.bytesize,count) then
             begin
-              scandisplayroutine(tempbuf,resultstring);
-              valuelist[j]:=resultstring;
-            end else valuelist[j]:='??';
+              if customType<>nil then
+              begin
+                read3:=customType.ConvertDataToInteger(tempbuf);
+                if hexadecimal then
+                  valuelist[j]:=IntToHex(read3,8)
+                else if signed then
+                  valuelist[j]:=IntToStr(Longint(read3))
+                else
+                  valuelist[j]:=IntToStr(read3);
+              end else valuelist[j]:='Undefined error';
+
+            end
+            else
+              valuelist[j]:='??';
           finally
             freemem(tempbuf);
-            freemem(resultstring);
           end;
         except
-          valuelist[j]:='Exception';
+          valuelist[j]:='Error';
         end;
       end;
     end;
@@ -633,7 +615,7 @@ begin
   value:=valuelist[j];
 end;
 
-function TFoundList.Initialize(vartype: integer):int64;
+function TFoundList.Initialize(vartype: integer; customtype: TCustomType=nil):int64;
 var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
 begin
   result:=0;
@@ -645,6 +627,7 @@ begin
 
 
   fvartype:=vartype;
+  self.customType:=customtype;
 
 
 
@@ -709,9 +692,9 @@ begin
 end;
 
 
-function TFoundList.Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean):int64;
+function TFoundList.Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
 begin
-  result:=Initialize(vartype);
+  result:=Initialize(vartype,customtype);
 
   if scantype=fs_addresslist then
   begin
@@ -746,20 +729,4 @@ begin
   deleteresults;
 end;
 
-var temppointer: pointer;
-initialization
-  //Allocate a block of 16KB for the userdefined display routine for custom scans
-  temppointer:=VirtualAlloc(nil,16*1024,MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-  scandisplayroutine:=temppointer;
-  scandisplayroutinetype:=2;
-
-  //and register these symbols with the selfsymhandler so the symbolhandler can use it
-  if selfsymhandler=nil then //whatever comes first
-  begin
-    selfsymhandler:=Tsymhandler.create;
-    selfsymhandler.targetself:=true;
-  end;
-
-  selfsymhandler.AddUserdefinedSymbol(inttohex(ptrUint(temppointer),8),'scandisplayroutine');
-  selfsymhandler.AddUserdefinedSymbol(inttohex(ptrUint(@scandisplayroutinetype),8),'scandisplayroutinetype');
 end.

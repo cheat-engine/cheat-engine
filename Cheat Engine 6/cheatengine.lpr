@@ -42,8 +42,8 @@ uses
   MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
-  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions, 
-frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler;
+  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
+  frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler;
 
 {$R cheatengine.res}
 {$R manifest.res}

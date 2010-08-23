@@ -1871,7 +1871,7 @@ begin
         else vtype:=vtDword;
       end;
 
-      mainform.addresslist.addaddress('pointerscan result', t, offsets, length(offsets), vtype);
+      mainform.addresslist.addaddress('pointerscan result', t, offsets, c, vtype);
     except
 
     end;

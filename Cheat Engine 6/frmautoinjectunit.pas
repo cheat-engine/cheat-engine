@@ -9,7 +9,7 @@ uses
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
-  MemoryRecordUnit, tablist;
+  MemoryRecordUnit, tablist, customtypehandler;
 
 type
 
@@ -128,10 +128,11 @@ type
     editscript: boolean;
     editscript2: boolean;
     memrec: TMemoryRecord;
+
+    customtype: TCustomType;
+
     callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
-
-
-    CustomTypeCallback: procedure(script:string; changed: boolean) of object;
+    CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean) of object;
 
     injectintomyself: boolean;
     property cplusplus: boolean read fcplusplus write setcplusplus;
@@ -316,9 +317,9 @@ begin
     if CustomTypeScript then
     begin
       if modalresult=mrok then
-        CustomTypeCallback(assemblescreen.text,true)
+        CustomTypeCallback(customtype, assemblescreen.text,true)
       else
-        CustomTypeCallback(assemblescreen.text,false);
+        CustomTypeCallback(customtype, assemblescreen.text,false);
 
       action:=cafree;
     end;

@@ -21,6 +21,7 @@ type
     Treeview: TTreeview;
     CurrentlyDraggedOverNode: TTreenode;
     CurrentlyDraggedOverBefore: boolean; //set to true if inserting before
+    CurrentlyDraggedOverAfter: boolean; //set to true if inserting after
     fOnDropByListview: TDropByListviewEvent;
     fOnAutoAssemblerEdit: TAutoAssemblerEditEvent;
 
@@ -34,6 +35,7 @@ type
     procedure DragDrop(Sender, Source: TObject; X,Y: Integer);
     procedure DragEnd(Sender, Target: TObject; X,Y: Integer);
     procedure TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
+    procedure TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
     procedure TreeviewDblClick(Sender: TObject);
     procedure TreeviewMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
    // procedure TreeviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -64,7 +66,7 @@ type
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
-    function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
+    function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function findRecordWithDescription(description: string): TMemoryRecord;
 
     procedure doDescriptionChange;
@@ -466,7 +468,7 @@ begin
 
 end;
 
-function TAddresslist.addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; length: integer=0; startbit: integer=0; unicode: boolean=false;node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
+function TAddresslist.addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
 var
   memrec: TMemoryRecord;
   i: integer;
@@ -479,6 +481,7 @@ begin
 
 
   memrec.VarType:=vartype;
+  memrec.CustomTypeName:=customtypename;
 
   setlength(memrec.pointeroffsets,offsetcount);
   for i:=0 to offsetcount-1 do
@@ -577,11 +580,15 @@ var
   newtype,oldType: TVariableType;
   memrec: TMemoryRecord;
 begin
+  TypeForm.RefreshCustomTypes;
+
   memrec:=TMemoryRecord(node.data);
   OldType:=memrec.Vartype;
 
 
   case memrec.vartype of
+    vtCustom:  typeform.VarType.itemindex:=typeform.VarType.Items.IndexOf(memrec.CustomTypeName);
+
     vtBinary:
     begin
       TypeForm.VarType.itemindex:=1;
@@ -689,9 +696,23 @@ begin
   end;
 end;
 
+procedure TAddresslist.TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
+var r: TMemoryRecord;
+begin
+  AllowExpansion:=true;
+
+  r:=TMemoryRecord(node.data);
+  if (moHideChildren in r.options) and (not r.active) then //if not active then don't allow expanding
+    AllowExpansion:=false;
+end;
+
 procedure TAddresslist.TreeviewOnCollapse(Sender: TObject; Node: TTreeNode; var AllowCollapse: Boolean);
+var r: TMemoryRecord;
 begin
   AllowCollapse:=false;
+  r:=TMemoryRecord(node.data);
+  if (moHideChildren in r.options) and (not r.active) then //if not active then allow collapse
+    AllowCollapse:=true;
 end;
 
 procedure TAddresslist.TreeviewDblClick(Sender: TObject);
@@ -810,11 +831,17 @@ procedure TAddresslist.DragOver(Sender, Source: TObject; X,Y: Integer; State: TD
 begin
   CurrentlyDraggedOverNode:=TreeView.GetNodeAt(x,y);
 
-  if CurrentlyDraggedOverNode<>nil then
+  CurrentlyDraggedOverBefore:=false;
+  CurrentlyDraggedOverAfter:=false;
+
+  if (CurrentlyDraggedOverNode<>nil) and (TMemoryRecord(CurrentlyDraggedOverNode.data).isGroupHeader=false) then //if something focused AND not a groupheader
   begin
     outputdebugstring(inttostr(y-(CurrentlyDraggedOverNode.top)));
-    CurrentlyDraggedOverBefore:=(y-CurrentlyDraggedOverNode.top)<(CurrentlyDraggedOverNode.height div 2); //it's before if the offset into the node is smaller than half the height
-  end;
+    CurrentlyDraggedOverBefore:=(y-CurrentlyDraggedOverNode.top)<(CurrentlyDraggedOverNode.height div 3); //it's before if the offset into the node is smaller than half the height - 2
+    CurrentlyDraggedOverAfter:=(y-CurrentlyDraggedOverNode.top)>(CurrentlyDraggedOverNode.height div 3)*2;
+  end; //groupheaders are always perfect targets
+
+
   accept:=true;
   treeview.refresh;
 end;
@@ -841,9 +868,9 @@ begin
 
   if node<>nil then
   begin
-    if TMemoryRecord(node.data).isGroupHeader then
+    if not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter) then //add it
     begin
-      //add it to this group at the end
+      //add it to this entry at the end
 
       if source=treeview then //just be sure
         for i:=0 to length(selectednodelist)-1 do
@@ -857,7 +884,7 @@ begin
     else
     begin
       //else place it before or after this object   depending on the x,y pos
-      if (y-node.top)<(node.height div 2) then //before
+      if CurrentlyDraggedOverBefore then //before
       begin
         if source=treeview then
           for i:=0 to length(selectednodelist)-1 do
@@ -869,7 +896,7 @@ begin
             fOnDropByListview(self, node, naInsert);
       end
       else
-      begin
+      begin  //after
         if source=treeview then
           for i:=length(selectednodelist)-1 downto 0 do
             selectednodelist[i].MoveTo(node, naInsertBehind); //after
@@ -892,12 +919,11 @@ begin
   end else
   begin
     //place it at the very end
-    if treeview.items.count>0 then
-      node:=treeview.items[treeview.items.count-1];
 
     if source=treeview then
       for i:=length(selectednodelist)-1 downto 0 do
-        selectednodelist[i].MoveTo(node, naInsertBehind); //after
+        selectednodelist[i].MoveTo(nil, naAdd); //last sibling
+
 
     if source is Tlistview then
       if assigned(fOnDropByListview) then
@@ -1060,12 +1086,20 @@ begin
 
     if (memrec.isGroupHeader=false) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data
     begin
-
       //limit how far the texts go depending on the sections
       sender.Canvas.TextRect(rect(descriptionstart, textrect.Top, header.Sections[1].right, textrect.bottom), descriptionstart, textrect.Top, memrec.description);
-      sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
-      sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
-      sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
+
+      //if this is not the currently dragged over node
+      //or if it is and either CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter is set then draw the rest
+      if not ((node=CurrentlyDraggedOverNode) and (not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter))) then //don't draw the rest on insert drag/drop
+      begin
+        sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
+        if memrec.VarType=vtCustom then
+          sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName)
+        else
+          sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
+      end;
     end
     else
     begin
@@ -1075,18 +1109,13 @@ begin
 
     if node=CurrentlyDraggedOverNode then
     begin
-      if tmemoryrecord(CurrentlyDraggedOverNode.data).isGroupHeader then
-      begin
-        //draw inside
-        sender.Canvas.Line(descriptionstart+sender.canvas.textwidth(memrec.description),(linerect.top+linerect.Bottom) div 2,linerect.right,(linerect.top+linerect.Bottom) div 2)
-      end
+      if CurrentlyDraggedOverBefore then //draw before
+        sender.Canvas.Line(0,max(0,linerect.top-1),linerect.right,max(0,linerect.top-1))
       else
-      begin
-        if CurrentlyDraggedOverBefore then
-          sender.Canvas.Line(0,max(0,linerect.top-1),linerect.right,max(0,linerect.top-1))
-        else
-          sender.Canvas.Line(0,linerect.bottom-1,linerect.right,linerect.bottom-1)
-      end;
+      if CurrentlyDraggedOverAfter then //raw after
+        sender.Canvas.Line(0,linerect.bottom-1,linerect.right,linerect.bottom-1)
+      else  //draw inside
+        sender.Canvas.Line(descriptionstart+sender.canvas.textwidth(memrec.description)+1,(linerect.top+linerect.Bottom) div 2,linerect.right,(linerect.top+linerect.Bottom) div 2)
     end;
 
 
@@ -1133,6 +1162,7 @@ begin
  // treeview.OnKeyDown:=treeviewkeydown;
   //treeview.Indent:=2;
   treeview.OnCollapsing:=TreeviewOnCollapse;
+  treeview.OnExpanding:=TreeviewOnExpand;
 
   treeview.OnMouseDown:=TreeviewMouseDown;
   treeview.OnDblClick:=TreeviewDblClick;

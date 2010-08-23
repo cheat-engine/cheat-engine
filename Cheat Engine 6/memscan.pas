@@ -443,6 +443,7 @@ type
 
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
+    property CustomType: TCustomType read currentCustomType;
   end;
 
 

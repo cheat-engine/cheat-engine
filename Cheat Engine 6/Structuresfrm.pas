@@ -1813,7 +1813,7 @@ begin
 
 
     //now add it to the list
-    mainform.addresslist.addaddress(definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description, inttohex(selectedstructure.addresses[section]+definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].offset,8), [], 0, OldVarTypeToNewVarType(vtype), vlength);
+    mainform.addresslist.addaddress(definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description, inttohex(selectedstructure.addresses[section]+definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].offset,8), [], 0, OldVarTypeToNewVarType(vtype), '', vlength);
 
     mainform.itemshavechanged:=true;
   end;

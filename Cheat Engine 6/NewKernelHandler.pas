@@ -232,6 +232,8 @@ type TEnumDeviceDrivers=function(lpImageBase: LPLPVOID; cb: DWORD; var lpcbNeede
 type TGetDeviceDriverBaseNameA=function(ImageBase: LPVOID; lpBaseName: LPSTR; nSize: DWORD): DWORD; stdcall;
 type TGetDeviceDriverFileName=function(ImageBase: LPVOID; lpFilename: LPTSTR; nSize: DWORD): DWORD; stdcall;
 
+type TGetLargePageMinimum=function: SIZE_T; stdcall;
+
 
 type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
@@ -408,6 +410,7 @@ var
   DebugActiveProcess    :TDebugActiveProcess;
 
 
+  GetLargePageMinimum   :TGetLargePageMinimum;
   VirtualProtect        :TVirtualProtect;
   VirtualProtectEx      :TVirtualProtectEx;
   VirtualQueryEx        :TVirtualQueryEx;
@@ -981,6 +984,11 @@ begin
 
 end;
 
+function GetLargePageMinimumStub: SIZE_T; stdcall;
+begin
+  result:=0;
+end;
+
 procedure OutputDebugString(msg: string);
 begin
 //{$ifdef DEBUG}
@@ -1044,9 +1052,18 @@ initialization
 
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
 
+  GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'IsWow64Process');
+
+  if not assigned(GetLargePageMinimum) then
+    GetLargePageMinimum:=@GetLargePageMinimumStub;
+
+
+
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
   GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
+
+
 
 
 finalization

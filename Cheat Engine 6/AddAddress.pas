@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LResources , LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Menus,CEFuncProc,NewKernelHandler,symbolhandler;
+  StdCtrls, ExtCtrls, Menus,CEFuncProc,NewKernelHandler,symbolhandler, customTypeHandler;
 
 type TPointerInfo=record
   addresstext:tlabel;
@@ -20,7 +20,7 @@ end;
 type
   TAddForm = class(TForm)
     VarType: TComboBox;
-    Button1: TButton;
+    miHideChildren: TButton;
     Button2: TButton;
     Label1: TLabel;
     Label2: TLabel;
@@ -72,6 +72,7 @@ type
     PointerInfo: Array of TPointerInfo;
     procedure offsetKeyPress(Sender: TObject; var Key: Char);
     procedure processaddress;
+    procedure RefreshCustomTypes;
   public
     { Public declarations }
   end;
@@ -205,8 +206,10 @@ var i,j,error: Integer;
     tempoff: dword;
 
     vartype3: TVariableType;
-
+    stringlength: integer;
+    customtypename: string;
 begin
+  customtypename:='';
   {
   5.4: Parse the string and see if it complies to the [[[[xxxx+xx]+xx]+xx]+xx] form, and if so, change it to a pointer of this type before progressing
   }
@@ -300,6 +303,7 @@ begin
   begin
     try
       bit:=strtoint(edit1.Text);
+      stringlength:=strtoint(edit1.Text);
     except
       raise exception.Create(edit1.text+' is not a valid value');
     end;
@@ -328,7 +332,14 @@ begin
     6  :  VarType2:=4;
     7  :  Vartype2:=7;
     8  :  VarType2:=8;
-    else vartype2:=0;
+    else
+    begin
+      if vartype.Items.Objects[vartype.Itemindex]<>nil then
+      begin
+        vartype2:=9;
+        customtypename:=TCustomType(vartype.Items.Objects[vartype.Itemindex]).name;
+      end;
+    end;
   end;
 
   vartype3:=OldVarTypeToNewVarType(VarType2);
@@ -338,7 +349,7 @@ begin
   else
     baseaddress:=newaddress.text;
 
-  Mainform.addresslist.addaddress(description.text, baseaddress, offsets, length(offsets), vartype3 );
+  Mainform.addresslist.addaddress(description.text, baseaddress, offsets, length(offsets), vartype3,customtypename, stringlength,bit, cbunicode.checked );
 
   addform.close;
 
@@ -361,12 +372,51 @@ begin
   else valuepanel.visible:=false;
 end;
 
+procedure TAddForm.RefreshCustomTypes;
+var old:  TNotifyEvent;
+    i: integer;
+
+    oldtype: string;
+begin
+  old:=VarType.OnChange;
+  VarType.OnChange:=nil;
+
+  oldtype:=vartype.text;
+
+  i:=0;
+  //first clear all custom types
+  while i<vartype.Items.Count do
+  begin
+    if vartype.Items.Objects[i]<>nil then
+      vartype.Items.Delete(i)
+    else
+      inc(i);
+  end;
+
+  //now add the custom types back
+  for i:=0 to customtypes.Count-1 do
+    vartype.Items.AddObject(TcustomType(customtypes[i]).name,customtypes[i]);
+
+
+
+  //set the selected index back if possible
+  i:=vartype.Items.IndexOf(oldtype);
+  if i<>-1 then
+    vartype.ItemIndex:=i
+  else
+    vartype.itemindex:=3; //4 byte
+
+  VarType.OnChange:=old;
+end;
+
 procedure TAddForm.FormShow(Sender: TObject);
 begin
   addform.cbPointer.checked:=false;
   NewAddress.SetFocus;
   NewAddress.SelectAll;
   description.Text:='No description';
+
+  RefreshCustomTypes;
 end;
 
 procedure TAddForm.NewAddressKeyPress(Sender: TObject; var Key: Char);
@@ -471,7 +521,7 @@ begin
   end
   else
   begin
-    clientheight:=cbPointer.Top+cbPointer.Height+8+button1.Height+8;
+    clientheight:=cbPointer.Top+cbPointer.Height+8+miHideChildren.Height+8;
     newaddress.enabled:=true;
     button3.visible:=false;
     button4.visible:=false;

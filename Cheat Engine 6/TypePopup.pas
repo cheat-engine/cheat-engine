@@ -8,7 +8,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, LResources, MemoryRecordUnit, cefuncproc;
+  StdCtrls, ExtCtrls, LResources, MemoryRecordUnit, cefuncproc, customtypehandler;
 
 type
   TTypeForm = class(TForm)
@@ -50,6 +50,7 @@ type
     { Public declarations }
     nrofrecord: Integer;
     MemoryRecord: TMemoryRecord;
+    procedure RefreshCustomTypes;
   end;
 
 var
@@ -63,6 +64,44 @@ uses Unit2;
 {$else}
 uses MainUnit;
 {$endif}
+
+Procedure TTypeForm.RefreshCustomTypes;
+var old:  TNotifyEvent;
+    i: integer;
+
+    oldtype: string;
+begin
+  old:=VarType.OnChange;
+  VarType.OnChange:=nil;
+
+  oldtype:=vartype.text;
+
+  i:=0;
+  //first clear all custom types
+  while i<vartype.Items.Count do
+  begin
+    if vartype.Items.Objects[i]<>nil then
+      vartype.Items.Delete(i)
+    else
+      inc(i);
+  end;
+
+  //now add the custom types back
+  for i:=0 to customtypes.Count-1 do
+    vartype.Items.AddObject(TcustomType(customtypes[i]).name,customtypes[i]);
+
+
+
+  //set the selected index back if possible
+  i:=vartype.Items.IndexOf(oldtype);
+  if i<>-1 then
+    vartype.ItemIndex:=i
+  else
+    vartype.itemindex:=3; //4 byte
+
+  VarType.OnChange:=old;
+end;
+
 
 Procedure TTypeForm.UpdateTypeForm;
 begin

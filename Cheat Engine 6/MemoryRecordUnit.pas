@@ -5,11 +5,16 @@ unit MemoryRecordUnit;
 interface
 
 uses
-  Windows, forms, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler, cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite;
+  Windows, forms, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
+  cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
+  customtypehandler;
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
+
+type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue);
+type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
   unicode: boolean;
@@ -59,6 +64,12 @@ type
 
     fShowAsHex: boolean;
     editcount: integer; //=0 when not being edited
+
+    fOptions: TMemrecOptions;
+
+    CustomType: TCustomType;
+    fCustomTypeName: string;
+
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
@@ -66,8 +77,8 @@ type
     procedure setAllowDecrease(state: boolean);
     procedure setAllowIncrease(state: boolean);
     procedure setShowAsHex(state: boolean);
-
-
+    procedure setOptions(newOptions: TMemrecOptions);
+    procedure setCustomTypeName(name: string);
   public
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
@@ -127,6 +138,8 @@ type
     procedure getXMLNode(node: TDOMNode; selectedOnly: boolean);
     procedure setXMLnode(CheatEntry: TDOMNode);
 
+    procedure SetVisibleChildrenState;
+
     constructor Create(AOwner: TObject);
     destructor destroy; override;
 
@@ -138,7 +151,8 @@ type
     property allowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property allowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property showAsHex: boolean read fShowAsHex write setShowAsHex;
-
+    property options: TMemrecOptions read fOptions write setOptions;
+    property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
   end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
@@ -178,6 +192,28 @@ begin
     treenode.free;
 end;
 
+procedure TMemoryRecord.SetVisibleChildrenState;
+{Called when options change and when children are assigned}
+begin
+  if moHideChildren in foptions then
+    treenode.Collapse(true)
+  else
+    treenode.Expand(true);
+end;
+
+procedure TMemoryRecord.setOptions(newOptions: TMemrecOptions);
+begin
+  foptions:=newOptions;
+  //apply changes (moHideChildren, moBindActivation, moRecursiveSetValue)
+  SetVisibleChildrenState;
+end;
+
+procedure TMemoryRecord.setCustomTypeName(name: string);
+begin
+  fCustomTypeName:=name;
+  CustomType:=GetCustomTypeFromName(name);
+end;
+
 procedure TMemoryRecord.setXMLnode(CheatEntry: TDOMNode);
 var tempnode,tempnode2: TDOMNode;
 i,j,k,l: integer;
@@ -199,36 +235,43 @@ begin
   if tempnode<>nil then
     isGroupHeader:=tempnode.TextContent='1';
 
-  if isGroupHeader then
+
+  tempnode:=CheatEntry.FindNode('CheatEntries');
+  if tempnode<>nil then
   begin
-    tempnode:=CheatEntry.FindNode('CheatEntries');
-    if tempnode<>nil then
+    currentEntry:=tempnode.FirstChild;
+    while currentEntry<>nil do
     begin
-      currentEntry:=tempnode.FirstChild;
-      while currentEntry<>nil do
-      begin
-        //create a blank entry
-        memrec:=TMemoryRecord.create(fOwner);
+      //create a blank entry
+      memrec:=TMemoryRecord.create(fOwner);
 
-        memrec.treenode:=treenode.owner.AddObject(nil,'',memrec);
-        memrec.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
+      memrec.treenode:=treenode.owner.AddObject(nil,'',memrec);
+      memrec.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
 
-        //fill the entry with the node info
-        memrec.setXMLnode(currentEntry);
-        currentEntry:=currentEntry.NextSibling;
-      end;
-
+      //fill the entry with the node info
+      memrec.setXMLnode(currentEntry);
+      currentEntry:=currentEntry.NextSibling;
     end;
 
-    treenode.Expand(true);
-  end
-  else
+  end;
+
+  treenode.Expand(true);
+
+
+
   begin
     tempnode:=CheatEntry.FindNode('VariableType');
     if tempnode<>nil then
       VarType:=StringToVariableType(tempnode.TextContent);
 
     case VarType of
+      vtCustom:
+      begin
+        tempnode:=CheatEntry.FindNode('CustomType');
+        if tempnode<>nil then
+          setCustomTypeName(tempnode.TextContent);
+      end;
+
       vtBinary:
       begin
         tempnode:=CheatEntry.FindNode('BitStart');
@@ -359,6 +402,9 @@ begin
   end;
 
 
+  SetVisibleChildrenState;
+
+
 end;
 
 procedure TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean);
@@ -383,23 +429,16 @@ begin
   if isGroupHeader then
   begin
     cheatEntry.AppendChild(doc.CreateElement('GroupHeader')).TextContent:='1';
-    if treenode.HasChildren then
-    begin
-      CheatEntries:=doc.CreateElement('CheatEntries');
-      tn:=treenode.GetFirstChild;
-      while tn<>nil do
-      begin
-        TMemoryRecord(tn.data).getXMLNode(CheatEntries, false); //take over ALL attached nodes, not just the selected ones
-        tn:=tn.GetNextSibling;
-      end;
-
-      cheatentry.AppendChild(CheatEntries);
-    end;
   end
   else
   begin
     cheatEntry.AppendChild(doc.CreateElement('VariableType')).TextContent:=VariableTypeToString(vartype);
     case VarType of
+      vtCustom:
+      begin
+        cheatentry.AppendChild(doc.CreateElement('CustomType')).TextContent:=CustomTypeName;
+      end;
+
       vtBinary:
       begin
         cheatEntry.AppendChild(doc.CreateElement('BitStart')).TextContent:=inttostr(extra.bitData.Bit);
@@ -462,6 +501,21 @@ begin
 
     end;
   end;
+
+  //append the children if it has any
+  if treenode.HasChildren then
+  begin
+    CheatEntries:=doc.CreateElement('CheatEntries');
+    tn:=treenode.GetFirstChild;
+    while tn<>nil do
+    begin
+      TMemoryRecord(tn.data).getXMLNode(CheatEntries, false); //take over ALL attached nodes, not just the selected ones
+      tn:=tn.GetNextSibling;
+    end;
+
+    cheatentry.AppendChild(CheatEntries);
+  end;
+
 
   node.AppendChild(cheatEntry);
 end;
@@ -646,16 +700,7 @@ procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
 begin
-
-  if isGroupHeader then
-  begin
-    //apply this state to all the children
-    for i:=0 to treenode.Count-1 do
-      TMemoryRecord(treenode[i].data).setActive(state);
-
-    fActive:=state;
-  end
-  else
+  if not isGroupHeader then
   begin
     if self.VarType = vtAutoAssembler then
     begin
@@ -692,16 +737,25 @@ begin
       fActive:=state;
     end;
 
+  end else fActive:=state;
 
-    if state=false then
-    begin
-      //on disable or failure setting the state to true, also reset the option if it's allowed to increase/decrease
-      allowDecrease:=false;
-      allowIncrease:=false;
-    end;
-    treenode.update;
 
+  if state=false then
+  begin
+    //on disable or failure setting the state to true, also reset the option if it's allowed to increase/decrease
+    allowDecrease:=false;
+    allowIncrease:=false;
   end;
+  treenode.update;
+
+  if moBindActivation in options then
+  begin
+    //apply this state to all the children
+    for i:=0 to treenode.Count-1 do
+      TMemoryRecord(treenode[i].data).setActive(active);
+  end;
+
+  if active then SetVisibleChildrenState;
 end;
 
 procedure TMemoryRecord.setShowAsHex(state:boolean);
@@ -728,6 +782,11 @@ begin
 
     vtByteArray: result:=extra.byteData.bytelength;
     vtBinary: result:=(extra.bitData.Bit+extra.bitData.bitlength div 8);
+    vtCustom:
+    begin
+      if customtype<>nil then
+        result:=customtype.bytesize;
+    end;
   end;
 end;
 
@@ -813,6 +872,16 @@ begin
   if ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,br) then
   begin
     case vartype of
+      vtCustom:
+      begin
+        if customtype<>nil then
+        begin
+          if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf))) else result:=inttostr(customtype.ConvertDataToInteger(buf));
+        end
+        else
+          result:='error';
+      end;
+
       vtByte : if showashex then result:=inttohex(pb^,2) else if showassigned then result:=inttostr(shortint(pb^)) else result:=inttostr(pb^);
       vtWord : if showashex then result:=inttohex(pw^,4) else if showassigned then result:=inttostr(SmallInt(pw^)) else result:=inttostr(pw^);
       vtDWord: if showashex then result:=inttohex(pdw^,8) else if showassigned then result:=inttostr(Integer(pdw^)) else result:=inttostr(pdw^);
@@ -844,6 +913,8 @@ begin
         if result<>'' then
           result:=copy(result,1,length(result)-1); //cut off the last space
       end;
+
+
     end;
   end
   else
@@ -899,7 +970,7 @@ begin
   end;
 
 
-  if isGroupHeader then //do this for all it's children
+  if moRecursiveSetValue in options then //do this for all it's children
   begin
     for i:=0 to treenode.Count-1 do
     begin
@@ -909,96 +980,97 @@ begin
         //some won't take the value, like 12.1112 on a 4 byte value, so just skip that error
       end;
     end;
-  end
-  else
-  begin
-    //not a groupheader
+  end;
 
-    realAddress:=GetRealAddress; //quick update
-
-    currentValue:=v;
-    frozenValue:=currentValue;
-
-    bufsize:=getbytesize;
-
-    if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
-    if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
-
-    getmem(buf,bufsize);
+  //and now set it for myself
 
 
+  realAddress:=GetRealAddress; //quick update
 
-    VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
-    try
+  currentValue:=v;
+  frozenValue:=currentValue;
 
-      if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
-        if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
+  bufsize:=getbytesize;
 
-      case VarType of
-        vtByte: pb^:=strtoint(FrozenValue);
-        vtWord: pw^:=strtoint(FrozenValue);
-        vtDword: pdw^:=strtoint(FrozenValue);
-        vtQword: pqw^:=strtoint64(FrozenValue);
-        vtSingle: ps^:=StrToFloat(FrozenValue);
-        vtDouble: pd^:=StrToFloat(FrozenValue);
-        vtBinary:
-        begin
-          if not Extra.bitData.showasbinary then
-            temps:=FrozenValue
-          else
-            temps:=IntToStr(BinToInt(FrozenValue));
+  if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
+  if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
 
-          temp:=StrToInt64(temps);
-          temp:=temp shl extra.bitData.Bit;
-          mask:=qword($ffffffffffffffff) shl extra.bitData.BitLength;
-          mask:=not mask; //mask now contains the length of the bits (4 bits would be 0001111)
+  getmem(buf,bufsize);
 
 
-          mask:=mask shl extra.bitData.Bit; //shift the mask to the proper start position
-          temp:=temp and mask; //cut off extra bits
 
-          case bufsize of
-            1: pb^:=(pb^ and (not mask)) or temp;
-            2: pw^:=(pw^ and (not mask)) or temp;
-            4: pdw^:=(pdw^ and (not mask)) or temp;
-            8: pqw^:=(pqw^ and (not mask)) or temp;
-          end;
-        end;
+  VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
+  try
 
-        vtString:
-        begin
-          for i:=0 to min(length(FrozenValue), bufsize)-1 do
-          begin
-            if extra.stringData.unicode then
-            begin
-              wc[i]:=FrozenValue[i];
-            end
-            else
-            begin
-              c[i]:=FrozenValue[i];
-            end;
-          end;
-        end;
+    if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
+      if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
 
-        vtByteArray:
-        begin
-          ConvertStringToBytes(FrozenValue, showAsHex, bts);
-          for i:=0 to min(length(bts),bufsize)-1 do
-            if bts[i]<>-1 then
-              pba[i]:=bts[i];
+    case VarType of
+      vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(FrozenValue), pdw);
+      vtByte: pb^:=strtoint(FrozenValue);
+      vtWord: pw^:=strtoint(FrozenValue);
+      vtDword: pdw^:=strtoint(FrozenValue);
+      vtQword: pqw^:=strtoint64(FrozenValue);
+      vtSingle: ps^:=StrToFloat(FrozenValue);
+      vtDouble: pd^:=StrToFloat(FrozenValue);
+      vtBinary:
+      begin
+        if not Extra.bitData.showasbinary then
+          temps:=FrozenValue
+        else
+          temps:=IntToStr(BinToInt(FrozenValue));
+
+        temp:=StrToInt64(temps);
+        temp:=temp shl extra.bitData.Bit;
+        mask:=qword($ffffffffffffffff) shl extra.bitData.BitLength;
+        mask:=not mask; //mask now contains the length of the bits (4 bits would be 0001111)
+
+
+        mask:=mask shl extra.bitData.Bit; //shift the mask to the proper start position
+        temp:=temp and mask; //cut off extra bits
+
+        case bufsize of
+          1: pb^:=(pb^ and (not mask)) or temp;
+          2: pw^:=(pw^ and (not mask)) or temp;
+          4: pdw^:=(pdw^ and (not mask)) or temp;
+          8: pqw^:=(pqw^ and (not mask)) or temp;
         end;
       end;
 
-      WriteProcessMemory(processhandle, pointer(realAddress), buf, bufsize, x);
+      vtString:
+      begin
+        for i:=0 to min(length(FrozenValue), bufsize)-1 do
+        begin
+          if extra.stringData.unicode then
+          begin
+            wc[i]:=FrozenValue[i];
+          end
+          else
+          begin
+            c[i]:=FrozenValue[i];
+          end;
+        end;
+      end;
 
-
-    finally
-      VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
+      vtByteArray:
+      begin
+        ConvertStringToBytes(FrozenValue, showAsHex, bts);
+        for i:=0 to min(length(bts),bufsize)-1 do
+          if bts[i]<>-1 then
+            pba[i]:=bts[i];
+      end;
     end;
 
-    freemem(buf);
+    WriteProcessMemory(processhandle, pointer(realAddress), buf, bufsize, x);
 
+
+  finally
+    VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
   end;
+
+  freemem(buf);
+
+
 end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;

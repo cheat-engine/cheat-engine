@@ -163,8 +163,13 @@ type
     Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miDeleteCustomType: TMenuItem;
+    miHideChildren: TMenuItem;
+    miBindActivation: TMenuItem;
+    miRecursiveSetValue: TMenuItem;
     miDefineNewCustomType: TMenuItem;
-    MenuItem4: TMenuItem;
+    miEditCustomType: TMenuItem;
     miRenameTab: TMenuItem;
     miTablistSeperator: TMenuItem;
     miCloseTab: TMenuItem;
@@ -321,7 +326,12 @@ type
       Selected: Boolean);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miDeleteCustomTypeClick(Sender: TObject);
+    procedure miBindActivationClick(Sender: TObject);
+    procedure miEditCustomTypeClick(Sender: TObject);
+    procedure miHideChildrenClick(Sender: TObject);
     procedure miDefineNewCustomTypeClick(Sender: TObject);
+    procedure miRecursiveSetValueClick(Sender: TObject);
     procedure miRenameTabClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
     procedure miCloseTabClick(Sender: TObject);
@@ -533,8 +543,9 @@ type
     procedure ScanTabListTabChange(sender: TObject; oldselection: integer);
 
     //custom type:
-    procedure CreateCustomType(script:string; changed: boolean);
+    procedure CreateCustomType(customtype: TCustomtype; script:string; changed: boolean);
     procedure RefreshCustomTypes;
+    procedure LoadCustomTypesFromRegistry;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -1732,7 +1743,7 @@ begin
     addressstring:=inttohex(address,8);
 
 
-  addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), bit,bitl , scandisplayroutinetype=8,node,attachmode);
+  addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), '', bit,bitl , false,node,attachmode);
 end;
 
 procedure TMainForm.SetExpectedTableName;
@@ -2049,6 +2060,70 @@ begin
   addresslist.SelectAll;
 end;
 
+
+
+procedure TMainForm.miBindActivationClick(Sender: TObject);
+begin
+  miBindActivation.Checked:=not miBindActivation.Checked;
+
+  if addresslist.selectedRecord<>nil then
+  begin
+    if miBindActivation.Checked then
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options+[moBindActivation]
+    else
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options-[moBindActivation];
+  end;
+end;
+
+
+
+procedure TMainForm.miHideChildrenClick(Sender: TObject);
+begin
+  miHideChildren.Checked:=not miHideChildren.Checked;
+
+  if addresslist.selectedRecord<>nil then
+  begin
+    if miHideChildren.Checked then
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options+[moHideChildren]
+    else
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options-[moHideChildren]
+  end;
+end;
+
+procedure TMainForm.LoadCustomTypesFromRegistry;
+var
+  reg: TRegistry;
+  customtypes: TStringlist;
+  i: integer;
+begin
+  reg:=tregistry.create;
+  vartype.OnChange:=nil; //disable the onchange event so CreateCustomType doesn't keep setting it
+  try
+    if reg.OpenKey('\Software\Cheat Engine\CustomTypes\',false) then
+    begin
+      CustomTypes:=TStringlist.create;
+      reg.GetKeyNames(CustomTypes);
+      for i:=0 to CustomTypes.count-1 do
+      begin
+        if reg.OpenKey('\Software\Cheat Engine\CustomTypes\'+CustomTypes[i],false) then
+        begin
+          try
+            CreateCustomType(nil, reg.ReadString('Script'),true);
+          except
+            outputdebugstring('The custom type script '''+CustomTypes[i]+''' could not be loaded');
+          end;
+        end;
+      end;
+
+      CustomTypes.free;
+    end;
+    reg.free;
+    RefreshCustomTypes;
+  finally
+    vartype.OnChange:=VarTypeChange;   //set the onchange event back
+  end;
+end;
+
 procedure TMainForm.RefreshCustomTypes;
 {
 In short: remove all custom scan types and add them back
@@ -2064,25 +2139,110 @@ begin
     for i:=0 to customTypes.Count-1 do
       vartype.Items.AddObject(TCustomType(customTypes[i]).name, customTypes[i]);
 
+    //set to default (4 bytes) if not selected anything anymore
+    if (vartype.ItemIndex=-1) or (vartype.ItemIndex>=VarType.Items.Count) then
+      vartype.itemindex:=3;
   finally
     vartype.items.EndUpdate;
   end;
 end;
 
-procedure TMainForm.CreateCustomType(script:string; changed: boolean);
-var s: tstringlist;
+procedure TMainForm.miDeleteCustomTypeClick(Sender: TObject);
+var reg : TRegistry;
+  ct: TCustomType;
 begin
-  if changed then
+  ct:=TCustomType(vartype.Items.Objects[vartype.ItemIndex]);
+  if (ct<>nil) and (ct.CustomTypeType=cttAutoAssembler) then
   begin
-    s:=tstringlist.create;
-    s.Text:=script;
-    TCustomType.CreateTypeFromAutoAssemblerScript(s);
-
-    s.free;
-
-    RefreshCustomTypes;
+    if messagedlg('Are you sure you want to delete '+ct.name+'?',mtconfirmation, [mbno,mbyes],0)=mryes then
+    begin
+      reg:=tregistry.create;
+      reg.DeleteKey('\Software\Cheat Engine\CustomTypes\'+ct.name);
+      ct.remove;
+      RefreshCustomTypes;
+    end;
   end;
 end;
+
+procedure TMainForm.CreateCustomType(customtype: TCustomtype; script:string; changed: boolean);
+var
+  reg : TRegistry;
+  ct: TCustomType;
+  oldname: string;
+  i: integer;
+begin
+
+  ct:=nil;
+  if changed then
+  begin
+
+
+    if customtype=nil then
+      ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script)
+    else
+    begin
+      ct:=customtype;
+      oldname:=ct.name;
+      ct.setScript(script);
+
+      //if the new script has a different name then delete the old one
+      if oldname<>ct.name then
+      begin
+        //delete the old one
+        reg:=Tregistry.Create;
+        reg.DeleteKey('\Software\Cheat Engine\CustomTypes\'+oldname);
+        reg.free;
+      end;
+    end;
+
+
+
+    //Add/change this to the registry
+    reg:=Tregistry.Create;
+    if Reg.OpenKey('\Software\Cheat Engine\CustomTypes\'+ct.name,true) then
+      reg.WriteString('Script',script);
+
+    reg.free;
+
+    RefreshCustomTypes;
+
+    //now set the type to the created type
+    if (customtype=nil) and (ct<>nil) then
+    begin
+      for i:=0 to vartype.Items.Count-1 do
+        if TCustomType(vartype.items.objects[i])=ct then
+        begin
+          vartype.itemindex:=i;
+          if assigned(vartype.OnChange) then
+            vartype.OnChange(vartype);
+          break;
+        end;
+    end;
+  end;
+end;
+
+procedure TMainForm.miEditCustomTypeClick(Sender: TObject);
+var ct: TCustomType;
+begin
+  ct:=TCustomType(vartype.Items.Objects[vartype.itemindex]);
+  if (ct<>nil) and (ct.CustomTypeType=cttAutoAssembler) then
+  begin
+
+    with TfrmAutoInject.create(self) do
+    begin
+      injectintomyself:=true;
+      CustomTypeScript:=true;
+      CustomTypeCallback:=CreateCustomType;
+      CustomType:=ct;
+
+      assemblescreen.Lines.Text:=CustomType.script;
+
+      show;
+    end;
+
+  end;
+end;
+
 
 procedure TMainForm.miDefineNewCustomTypeClick(Sender: TObject);
 begin
@@ -2091,6 +2251,7 @@ begin
     injectintomyself:=true;
     CustomTypeScript:=true;
     CustomTypeCallback:=CreateCustomType;
+    CustomType:=nil;
 
     with assemblescreen.Lines do
     begin
@@ -2106,21 +2267,68 @@ begin
       Add('dd 4');
       Add('');
       Add('//The convert routine should hold a routine that converts the data to an integer (in eax)');
-      Add('//function declared as: stdcall DWORD ConvertRoutine(int i);');
+      Add('//function declared as: stdcall int ConvertRoutine(unsigned char *input);');
       Add('//Note: Keep in mind that this routine can be called by multiple threads at the same time.');
       Add('ConvertRoutine:');
       {$ifdef cpu64}
+      Add('//jmp dllname.functionname');
+      Add('//or manual:');
       Add('//parameters: (64-bit)');
+      Add('//rcx=address of input');
+      Add('mov eax,[rcx] //eax now contains the bytes ''input'' pointed to');
+      Add('');
+      Add('ret');
 
       {$else}
-      Add('//parameters: (32-bit)');
+      Add('//jmp dllname.functionname');
+      Add('//or manual:');
+      Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
+      Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
+      Add('mov ebp,esp');  //[ebp]=ebp , [esp+4]=return [esp+8]=input
+      Add('//[ebp+8]=input');
+      Add('//example:');
+      Add('mov eax,[ebp+8] //place the address that contains the bytes into eax');
+      Add('mov eax,[eax] //place the bytes into eax so it''s handled as a normal 4 byte value');
+      Add('');
+      Add('pop ebp');
+      Add('ret 4');
       {$endif}
 
       Add('');
-      Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes');
+      Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes (e.g when the user wats to write a new value)');
       Add('//function declared as: stdcall void ConvertBackRoutine(int i, unsigned char *output);');
       Add('ConvertBackRoutine:');
+      {$ifdef cpu64}
+      Add('//jmp dllname.functionname');
+      Add('//or manual:');
+      Add('//parameters: (64-bit)');
+      Add('//ecx=input');
+      Add('//rdx=address of output');
+      Add('//example:');
+      Add('mov [rdx],ecx //place the integer the 4 bytes pointed to by rdx');
       Add('');
+      Add('ret');
+      {$else}
+      Add('//jmp dllname.functionname');
+      Add('//or manual:');
+      Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
+      Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
+      Add('mov ebp,esp');  //[ebp]=ebp , [esp+4]=return [esp+8]=input
+      Add('//[ebp+8]=input');
+      Add('//[ebp+c]=address of output');
+      Add('//example:');
+      Add('push eax');
+      Add('push ebx');
+      Add('mov eax,[ebp+8] //load the value into eax');
+      Add('mov ebx,[ebp+c] //load the address into ebx');
+      Add('mov [ebx],eax //write the value into the address');
+      Add('pop ebx');
+      Add('pop eax');
+
+      Add('');
+      Add('pop ebp');
+      Add('ret 8');
+      {$endif}
       Add('');
     end;
 
@@ -2130,6 +2338,19 @@ begin
 
 
 
+end;
+
+procedure TMainForm.miRecursiveSetValueClick(Sender: TObject);
+begin
+  miRecursiveSetValue.Checked:=not miRecursiveSetValue.Checked;
+
+  if addresslist.selectedRecord<>nil then
+  begin
+    if miRecursiveSetValue.Checked then
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options+[moRecursiveSetValue]
+    else
+      addresslist.selectedRecord.options:=addresslist.selectedRecord.options-[moRecursiveSetValue];
+  end;
 end;
 
 procedure TMainForm.miRenameTabClick(Sender: TObject);
@@ -2333,7 +2554,8 @@ begin
 
 
 
-    foundcount:=foundlist.Initialize(getvartype);
+
+    foundcount:=foundlist.Initialize(getvartype,memscan.customtype);
 
     foundlist3.endupdate;
 
@@ -2781,6 +3003,8 @@ begin
     foundlist3.columns[0].Width := x[6];
   end;
 
+  //custom types
+  LoadCustomTypesFromRegistry;
 
 end;
 
@@ -3689,7 +3913,7 @@ begin
   end;
 
   foundlist.deinitialize;
-  foundlist.initialize(getvartype);
+  foundlist.initialize(getvartype,memscan.CustomType);
 end;
 
 
@@ -3994,7 +4218,7 @@ begin
   begin
     foundlist.Deinitialize;
     memscan.undolastscan;
-    foundcount:=foundlist.Initialize(getvartype);
+    foundcount:=foundlist.Initialize(getvartype,memscan.CustomType);
     undoscan.Enabled:=false;
   end;
 end;
@@ -5114,7 +5338,7 @@ begin
 
 
 
-  foundlist.Initialize(getvartype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
+  foundlist.Initialize(getvartype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
 
   if memscan.lastscantype=stFirstScan then
   begin
@@ -5244,9 +5468,9 @@ begin
         setlength(bytes,0);
       end;
     end;
-    foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked);
+    foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked,memscan.CustomType);
   end
-  else foundlist.Initialize(vtype); //failed scan, just reopen the addressfile
+  else foundlist.Initialize(vtype,memscan.CustomType); //failed scan, just reopen the addressfile
 
 
 

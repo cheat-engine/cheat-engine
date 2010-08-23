@@ -4,14 +4,14 @@ object MainForm: TMainForm
   Height = 570
   Hint = ' '
   Top = 216
-  Width = 536
+  Width = 537
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.0'
   ClientHeight = 550
-  ClientWidth = 536
+  ClientWidth = 537
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 7
     Top = 345
-    Width = 536
+    Width = 537
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -42,7 +42,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 181
     Top = 352
-    Width = 536
+    Width = 537
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -54,13 +54,13 @@ object MainForm: TMainForm
     Left = 0
     Height = 17
     Top = 533
-    Width = 536
+    Width = 537
     Align = alBottom
     ClientHeight = 17
-    ClientWidth = 536
+    ClientWidth = 537
     TabOrder = 1
     object Label7: TLabel
-      Left = 158
+      Left = 159
       Height = 14
       Hint = 'Click here to change the hotkey'
       Top = 2
@@ -90,7 +90,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 439
+      Left = 440
       Height = 15
       Hint = 'abcdefg'
       Top = 1
@@ -113,18 +113,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 345
     Top = 0
-    Width = 536
+    Width = 537
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 345
-    ClientWidth = 536
+    ClientWidth = 537
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 17
       Top = 0
-      Width = 593
+      Width = 594
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -150,7 +150,7 @@ object MainForm: TMainForm
       ShowHint = True
     end
     object ScanText: TLabel
-      Left = 252
+      Left = 253
       Height = 14
       Top = 80
       Width = 58
@@ -160,7 +160,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object Label4: TLabel
-      Left = 201
+      Left = 202
       Height = 14
       Top = 124
       Width = 49
@@ -170,7 +170,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object Label8: TLabel
-      Left = 199
+      Left = 200
       Height = 14
       Top = 148
       Width = 51
@@ -260,7 +260,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 257
+      Left = 258
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320
@@ -390,7 +390,7 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 428
+      Left = 429
       Height = 19
       Hint = 'Enable speedhack'
       Top = 194
@@ -405,7 +405,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object NewScan: TButton
-      Left = 213
+      Left = 214
       Height = 25
       Top = 48
       Width = 65
@@ -417,7 +417,7 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 431
+      Left = 432
       Height = 19
       Top = 128
       Width = 60
@@ -427,7 +427,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object GroupBox1: TGroupBox
-      Left = 221
+      Left = 222
       Height = 140
       Top = 168
       Width = 202
@@ -540,7 +540,7 @@ object MainForm: TMainForm
       end
     end
     object NextScanButton: TButton
-      Left = 285
+      Left = 286
       Height = 25
       Top = 48
       Width = 65
@@ -554,7 +554,7 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object ScanType: TComboBox
-      Left = 253
+      Left = 254
       Height = 21
       Top = 120
       Width = 170
@@ -576,12 +576,11 @@ object MainForm: TMainForm
       )
       OnChange = ScanTypeChange
       OnKeyDown = ScanTypeKeyDown
-      PopupMenu = emptypopup
       Style = csDropDownList
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 252
+      Left = 253
       Height = 21
       Top = 144
       Width = 170
@@ -618,7 +617,7 @@ object MainForm: TMainForm
       TabOrder = 7
     end
     object Button1: TButton
-      Left = 428
+      Left = 429
       Height = 17
       Top = 322
       Width = 113
@@ -632,7 +631,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 14
-      Width = 397
+      Width = 398
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
       ShowHint = True
@@ -640,7 +639,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object HexadecimalCheckbox: TCheckBox
-      Left = 205
+      Left = 206
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -655,7 +654,7 @@ object MainForm: TMainForm
       TabOrder = 10
     end
     object UndoScan: TButton
-      Left = 424
+      Left = 425
       Height = 25
       Top = 48
       Width = 65
@@ -666,7 +665,7 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object rbBit: TRadioButton
-      Left = 189
+      Left = 190
       Height = 19
       Top = 88
       Width = 41
@@ -679,7 +678,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object rbDec: TRadioButton
-      Left = 189
+      Left = 190
       Height = 19
       Top = 105
       Width = 62
@@ -692,7 +691,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 252
+      Left = 253
       Height = 21
       Top = 96
       Width = 283
@@ -703,7 +702,7 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 431
+      Left = 432
       Height = 19
       Top = 146
       Width = 88
@@ -719,11 +718,11 @@ object MainForm: TMainForm
       Visible = False
     end
     object Foundlist3: TListView
-      Left = 1
+      Left = -8
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
-      Top = 48
-      Width = 188
+      Top = 50
+      Width = 189
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
       Columns = <      
@@ -733,7 +732,7 @@ object MainForm: TMainForm
         end      
         item
           Caption = 'Value'
-          Width = 90
+          Width = 91
         end>
       DragMode = dmAutomatic
       Font.CharSet = ANSI_CHARSET
@@ -827,7 +826,7 @@ object MainForm: TMainForm
       end
     end
     object pnlFloat: TPanel
-      Left = 424
+      Left = 425
       Height = 53
       Top = 120
       Width = 121
@@ -869,7 +868,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 428
+      Left = 429
       Height = 19
       Top = 174
       Width = 85
@@ -910,7 +909,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 490
+      Left = 491
       Height = 84
       Top = 0
       Width = 50
@@ -1257,7 +1256,7 @@ object MainForm: TMainForm
       end
     end
     object Panel14: TPanel
-      Left = 421
+      Left = 422
       Height = 94
       Top = 216
       Width = 119
@@ -1487,8 +1486,23 @@ object MainForm: TMainForm
       GroupIndex = 2
     end
     object CreateGroup: TMenuItem
-      Caption = 'Create Group'
+      Caption = 'Create Header'
       OnClick = CreateGroupClick
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Group config'
+      object miHideChildren: TMenuItem
+        Caption = 'Hide children when deactivated'
+        OnClick = miHideChildrenClick
+      end
+      object miBindActivation: TMenuItem
+        Caption = '(De)Activating this entry (de)activates children'
+        OnClick = miBindActivationClick
+      end
+      object miRecursiveSetValue: TMenuItem
+        Caption = 'Setting a value to this entry sets same value to children'
+        OnClick = miRecursiveSetValueClick
+      end
     end
     object Plugins1: TMenuItem
       Caption = 'Plugins'
@@ -1798,8 +1812,13 @@ object MainForm: TMainForm
       Caption = 'Define new custom type'
       OnClick = miDefineNewCustomTypeClick
     end
-    object MenuItem4: TMenuItem
+    object miEditCustomType: TMenuItem
       Caption = 'Edit selected custom type'
+      OnClick = miEditCustomTypeClick
+    end
+    object miDeleteCustomType: TMenuItem
+      Caption = 'Delete selected custom type'
+      OnClick = miDeleteCustomTypeClick
     end
   end
 end

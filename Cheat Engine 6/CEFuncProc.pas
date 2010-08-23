@@ -498,6 +498,7 @@ function ProcessHandle: THandle;
 
 //Global vars:
 var
+  systemtype: integer;
   old8087CW: word;  //you never know...
   ProcessSelected: Boolean;
   //ProcessID: Dword; //deperecated
@@ -1375,57 +1376,59 @@ var
  majorVer, minorVer : Integer;
 
 begin
- if overridedebug then
- begin
-   result:=cOsWinXP;
-   exit;
- end;
-
-{ set operating system type flag }
- osVerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
- if GetVersionEx(osVerInfo) then
+   if overridedebug then
    begin
-     majorVer := osVerInfo.dwMajorVersion;
-     minorVer := osVerInfo.dwMinorVersion;
-     case osVerInfo.dwPlatformId of
-       VER_PLATFORM_WIN32_NT : { Windows NT/2000 }
-         begin
-           if majorVer <= 4 then
-             result := cOsWinNT
-           else
-             if (majorVer = 5) AND (minorVer= 0) then
-               result := cOsWin2000
-             else
-               if (majorVer = 5) AND (minorVer = 1) then
-                 result := cOsWinXP
-             else if (majorver > 5) then result:=cOsNewer
-           else
-           result := cOsUnknown;
-         end; {case }
-     VER_PLATFORM_WIN32_WINDOWS : { Windows 9x/ME }
-       begin
-         if (majorVer = 4) AND (minorVer = 0) then
-           result := cOsWin95
-         else
-           if (majorVer = 4) AND (minorVer = 10) then
-             begin
-               if osVerInfo.szCSDVersion[1] = 'A' then
-                 result := cOsWin98SE
-               else
-                  result := cOsWin98;
-               end {if Version = 'A'}
-             else
-               if (majorVer = 4) AND (minorVer = 90) then
-                 result := cOsWinME
-               else
-                  result := cOsUnknown;
-       end; {case VER_PLATFORM_WIN32_WINDOWS}
-     else
-      result := cOsUnknown;
+     result:=cOsWinXP;
+     exit;
    end;
- end
-else
-  result := cOsUnknown;
+
+  { set operating system type flag }
+   osVerInfo.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
+   if GetVersionEx(osVerInfo) then
+     begin
+       majorVer := osVerInfo.dwMajorVersion;
+       minorVer := osVerInfo.dwMinorVersion;
+       case osVerInfo.dwPlatformId of
+         VER_PLATFORM_WIN32_NT : { Windows NT/2000 }
+           begin
+             if majorVer <= 4 then
+               result := cOsWinNT
+             else
+               if (majorVer = 5) AND (minorVer= 0) then
+                 result := cOsWin2000
+               else
+                 if (majorVer = 5) AND (minorVer = 1) then
+                   result := cOsWinXP
+               else if (majorver > 5) then result:=cOsNewer
+             else
+             result := cOsUnknown;
+           end; {case }
+       VER_PLATFORM_WIN32_WINDOWS : { Windows 9x/ME }
+         begin
+           if (majorVer = 4) AND (minorVer = 0) then
+             result := cOsWin95
+           else
+             if (majorVer = 4) AND (minorVer = 10) then
+               begin
+                 if osVerInfo.szCSDVersion[1] = 'A' then
+                   result := cOsWin98SE
+                 else
+                    result := cOsWin98;
+                 end {if Version = 'A'}
+               else
+                 if (majorVer = 4) AND (minorVer = 90) then
+                   result := cOsWinME
+                 else
+                    result := cOsUnknown;
+         end; {case VER_PLATFORM_WIN32_WINDOWS}
+       else
+        result := cOsUnknown;
+     end;
+   end
+  else
+    result := cOsUnknown;
+
+  systemtype:=result;
 end;
 
 
@@ -2932,6 +2935,7 @@ begin
     6: result:=vtQword;
     7: result:=vtString;
     8: result:=vtByteArray;
+    9: result:=vtCustom;
     255: result:=vtAutoAssembler; //aa script
   end;
 end;
@@ -3235,6 +3239,7 @@ initialization
 
   processhandler:=TProcessHandler.create;
   GetSystemInfo(@systeminfo);
+
 
 finalization
 
