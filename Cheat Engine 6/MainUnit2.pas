@@ -166,7 +166,6 @@ begin
     7: result:=vtString;
     8: result:=vtByteArray;
     9: result:=vtAll;
-    else result:=vtByte;
   end;
 
 
@@ -184,8 +183,12 @@ Float =3
 Double =4
 Text = 7
 }
+  result:=-1;
   with mainform do
   begin
+    if vartype.itemindex>=10 then
+      result:=10 //"custom"
+    else
     case VarType.ItemIndex of
       0: result:=5; //binary
       1: result:=0; //byte
@@ -197,8 +200,8 @@ Text = 7
       7: result:=7; //text
       8: result:=8; //array of byte
       9: result:=9; //all, only for new memscan
-      10: result:=10; //"custom"
-      else result:=-1;
+
+
     end;
   end;
 end;

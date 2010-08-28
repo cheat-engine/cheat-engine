@@ -1,11 +1,12 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 543
+  Left = 600
   Height = 155
-  Top = 227
+  Top = 281
   Width = 391
   Caption = 'Dissect Data Config'
   ClientHeight = 155
   ClientWidth = 391
+  OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Button1: TButton
@@ -34,7 +35,7 @@ object frmStructuresConfig: TfrmStructuresConfig
     Top = 8
     Width = 185
     Caption = 'Normal'
-    ClientHeight = 82
+    ClientHeight = 86
     ClientWidth = 181
     ParentColor = False
     TabOrder = 2
@@ -43,9 +44,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 1
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 4
-      Width = 50
+      Width = 39
       Caption = 'Default'
       ParentColor = False
       OnClick = ColorClick
@@ -54,9 +55,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 2
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 36
-      Width = 60
+      Width = 47
       Caption = 'Different'
       ParentColor = False
       OnClick = ColorClick
@@ -65,9 +66,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 3
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 52
-      Width = 83
+      Width = 66
       Caption = 'Group equal'
       ParentColor = False
       OnClick = ColorClick
@@ -76,9 +77,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 8
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 20
-      Width = 38
+      Width = 30
       Caption = 'Equal'
       ParentColor = False
       OnClick = ColorClick
@@ -91,7 +92,7 @@ object frmStructuresConfig: TfrmStructuresConfig
     Top = 8
     Width = 185
     Caption = 'Highlighted'
-    ClientHeight = 82
+    ClientHeight = 86
     ClientWidth = 181
     Color = clHighlight
     ParentColor = False
@@ -101,9 +102,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 5
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 4
-      Width = 50
+      Width = 39
       Caption = 'Default'
       ParentColor = False
       OnClick = ColorClick
@@ -112,9 +113,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 6
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 36
-      Width = 60
+      Width = 47
       Caption = 'Different'
       ParentColor = False
       OnClick = ColorClick
@@ -123,9 +124,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 7
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 52
-      Width = 83
+      Width = 66
       Caption = 'Group equal'
       ParentColor = False
       OnClick = ColorClick
@@ -134,9 +135,9 @@ object frmStructuresConfig: TfrmStructuresConfig
       Tag = 9
       Cursor = crHandPoint
       Left = 14
-      Height = 21
+      Height = 16
       Top = 20
-      Width = 38
+      Width = 30
       Caption = 'Equal'
       ParentColor = False
       OnClick = ColorClick

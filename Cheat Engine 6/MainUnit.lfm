@@ -360,15 +360,6 @@ object MainForm: TMainForm
       ParentColor = False
       Visible = False
     end
-    object Label58: TLabel
-      Left = 136
-      Height = 14
-      Top = 320
-      Width = 56
-      Caption = 'ProtectMe2'
-      ParentColor = False
-      Visible = False
-    end
     object Label59: TLabel
       Left = 376
       Height = 14
@@ -1809,8 +1800,12 @@ object MainForm: TMainForm
     left = 104
     top = 240
     object miDefineNewCustomType: TMenuItem
-      Caption = 'Define new custom type'
+      Caption = 'Define new custom type (Auto Assembler)'
       OnClick = miDefineNewCustomTypeClick
+    end
+    object miDefineNewCustomTypeLua: TMenuItem
+      Caption = 'Define new custom type (LUA)'
+      OnClick = miDefineNewCustomTypeLuaClick
     end
     object miEditCustomType: TMenuItem
       Caption = 'Edit selected custom type'

@@ -123,6 +123,7 @@ type
     procedure decreaseValue(value: string);
     function GetRealAddress: PtrUInt;
     function getBaseAddress: ptrUint; //if it's a pointer, return the base address
+    procedure RefreshCustomType;
     procedure ReinterpretAddress;
     property Value: string read GetValue write SetValue;
     property bytesize: integer read getByteSize;
@@ -211,7 +212,7 @@ end;
 procedure TMemoryRecord.setCustomTypeName(name: string);
 begin
   fCustomTypeName:=name;
-  CustomType:=GetCustomTypeFromName(name);
+  RefreshCustomType;
 end;
 
 procedure TMemoryRecord.setXMLnode(CheatEntry: TDOMNode);
@@ -788,6 +789,12 @@ begin
         result:=customtype.bytesize;
     end;
   end;
+end;
+
+procedure TMemoryRecord.RefreshCustomType;
+begin
+  if vartype=vtCustom then
+    CustomType:=GetCustomTypeFromName(fCustomTypeName);
 end;
 
 procedure TMemoryRecord.ReinterpretAddress;

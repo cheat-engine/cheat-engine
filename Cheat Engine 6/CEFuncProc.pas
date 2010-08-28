@@ -2542,6 +2542,11 @@ this function will return how many active cpu cores there are at your disposal
 var cpucount: integer;
     PA,SA: dword;
 begin
+{$ifdef NOTMULTITHREADED}
+  result:=1;
+  exit;
+{$endif}
+
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 

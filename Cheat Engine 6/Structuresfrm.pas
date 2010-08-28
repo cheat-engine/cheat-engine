@@ -102,6 +102,8 @@ type TbaseStructure=record
     Setgroup1: TMenuItem;
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
+    procedure HeaderControl1SectionTrack(HeaderControl: TCustomHeaderControl;
+      Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure MenuItem3Click(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
@@ -915,6 +917,18 @@ begin
         tvStructureView.Items.GetFirstNode.Expand(false);
     end;
   end;
+end;
+
+procedure TfrmStructures.HeaderControl1SectionTrack(
+  HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer;
+  State: TSectionTrackState);
+var x: integer;
+begin
+  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
+  scrollbox1.HorzScrollBar.Range:=x;
+
+  tvStructureView.refresh;
+  ShowScrollBar(tvStructureView.Handle,SB_HORZ , false);
 end;
 
 procedure TfrmStructures.MenuItem3Click(Sender: TObject);
@@ -1898,13 +1912,7 @@ end;
 
 procedure TfrmStructures.HeaderControl1SectionResize(
   HeaderControl: THeaderControl; Section: THeaderSection);
-var x: integer;
 begin
-  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
-  scrollbox1.HorzScrollBar.Range:=x;
-
-  tvStructureView.refresh;
-  ShowScrollBar(tvStructureView.Handle,SB_HORZ	, false);
 end;
 
 procedure TfrmStructures.FormCreate(Sender: TObject);

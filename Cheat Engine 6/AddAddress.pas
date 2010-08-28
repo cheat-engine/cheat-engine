@@ -398,7 +398,6 @@ begin
     vartype.Items.AddObject(TcustomType(customtypes[i]).name,customtypes[i]);
 
 
-
   //set the selected index back if possible
   i:=vartype.Items.IndexOf(oldtype);
   if i<>-1 then

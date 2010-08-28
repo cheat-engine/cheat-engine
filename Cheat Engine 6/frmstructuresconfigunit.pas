@@ -27,6 +27,7 @@ type
     Label7: TLabel;
     Label8: TLabel;
     procedure ColorClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { private declarations }
     fbackgroundcolor: TColor;
@@ -177,6 +178,11 @@ begin
   ColorDialog1.Color:=GetColor(TControl(sender).tag);
   if ColorDialog1.Execute then
     SetColor(TControl(sender).tag,ColorDialog1.Color);
+end;
+
+procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
+begin
+
 end;
 
 initialization

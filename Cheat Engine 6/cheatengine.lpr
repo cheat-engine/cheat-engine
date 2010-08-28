@@ -43,7 +43,8 @@ uses
   frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
   tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
-  frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler;
+  frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler,
+  LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}

@@ -5,11 +5,13 @@ unit MemoryBrowserFormUnit;
 interface
 
 uses
-  jwawindows, windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, frmMemoryAllocHandlerUnit,
-  math, StdCtrls, Spin, ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,plugin,CEDebugger,KernelDebugger, Assemblerunit,disassembler,addressparser,
-  Buttons,imagehlp, Contnrs, disassemblerviewunit, peinfofunctions ,dissectcodethread
-  ,stacktrace2, NewKernelHandler, ComCtrls, LResources,
-  byteinterpreter, StrUtils, hexviewunit, debughelper, debuggertypedefinitions;
+  jwawindows, windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics,
+  Controls, Forms, Dialogs, frmMemoryAllocHandlerUnit, math, StdCtrls, Spin,
+  ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,plugin,CEDebugger,KernelDebugger,
+  Assemblerunit,disassembler,addressparser, Buttons,imagehlp, Contnrs,
+  disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
+  NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
+  debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry;
 
 
 type
@@ -17,6 +19,8 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
+    miTextPreferences: TMenuItem;
+    miLuaEngine: TMenuItem;
     miPaging: TMenuItem;
     miDebugEvents: TMenuItem;
     miLockRowsize: TMenuItem;
@@ -177,8 +181,9 @@ type
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
     procedure Button1Click(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
+    procedure miLuaEngineClick(Sender: TObject);
     procedure miPagingClick(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -265,7 +270,6 @@ type
     procedure debuggerpopupPopup(Sender: TObject);
     procedure GDTlist1Click(Sender: TObject);
     procedure IDTlist1Click(Sender: TObject);
-    procedure ScriptEngine1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
     procedure Follow1Click(Sender: TObject);
@@ -452,7 +456,10 @@ uses Valuechange,
   Structuresfrm,
   pointerscannerfrm,
   frmDebugEventsUnit,
-  frmPagingUnit;
+  frmPagingUnit,
+  frmluaengineunit,
+  disassemblerviewlinesunit
+  ;
 
 
 
@@ -590,6 +597,16 @@ begin
   frmDebugEvents.show;
 end;
 
+procedure TMemoryBrowser.miLuaEngineClick(Sender: TObject);
+begin
+  //start lua engine window
+  if frmLuaEngine=nil then
+    frmLuaEngine:=TfrmLuaEngine.create(nil);
+
+  frmLuaEngine.show;
+
+end;
+
 procedure TMemoryBrowser.miPagingClick(Sender: TObject);
 begin
   TfrmPaging.create(nil).show;
@@ -600,9 +617,53 @@ begin
 
 end;
 
-procedure TMemoryBrowser.MenuItem1Click(Sender: TObject);
+procedure TMemoryBrowser.miTextPreferencesClick(Sender: TObject);
+var
+  x: TfrmMemviewPreferences;
+  i: TDisassemblerViewColorsState;
+  reg: tregistry;
 begin
+  with TfrmMemviewPreferences.create(self) do
+  begin
 
+    fontdialog1.Font.name:=disassemblerview.Font.name;
+    fontdialog1.Font.size:=disassemblerview.Font.size;
+
+    btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
+
+    //set the current colors
+    colors:=disassemblerview.colors;
+
+    //and now apply those colors
+    cbColorGroupChange(cbColorGroup);
+
+
+
+    if showmodal=mrok then
+    begin
+      //set the colors and save to registry
+      disassemblerview.Font.Name:=fontdialog1.Font.name;
+      disassemblerview.Font.size:=fontdialog1.Font.size;
+      disassemblerview.colors:=colors;
+    end;
+    free;
+  end;
+
+  disassemblerview.reinitialize;
+
+  //save to the registry
+  reg:=Tregistry.Create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',true) then
+    begin
+      reg.WriteBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
+      reg.WriteString('font.name', disassemblerview.font.name);
+      reg.WriteInteger('font.size', disassemblerview.font.size);
+    end;
+
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
@@ -626,6 +687,7 @@ end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
+  reg: tregistry;
 begin
 
   displaytype:=dtByte;
@@ -634,14 +696,36 @@ begin
 
   disassembler:=true;
 
-  disassemblerview:=TDisassemblerview.Create(self);
+  disassemblerview:=TDisassemblerview.Create(nil);
   disassemblerview.Align:=alClient;
   disassemblerview.Parent:=panel5;
   disassemblerview.PopupMenu:=debuggerpopup;
   disassemblerview.OnKeyDown:=FControl1keydown;
   disassemblerview.OnDblClick:=disassemblerviewDblClick;
-
   disassemblerview.TopAddress:=$00400000;
+
+  //save to the registry
+  reg:=Tregistry.Create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview\',false) then
+    begin
+      if reg.ValueExists('colors') then
+        reg.ReadBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
+
+      if reg.ValueExists('font.name') then
+        disassemblerview.font.name:=reg.ReadString('font.name');
+
+      if reg.ValueExists('font.size') then
+        disassemblerview.font.size:=reg.ReadInteger('font.size');
+
+      disassemblerview.reinitialize;
+    end;
+
+  finally
+    reg.free;
+  end;
+
+
 
   hexview:=THexview.create(nil);
   hexview.Align:=alClient;
@@ -1980,14 +2064,7 @@ begin
   TfrmIDT.create(self).show;
 end;
 
-procedure TMemoryBrowser.ScriptEngine1Click(Sender: TObject);
-var x: tfrmautoinject;
-begin
 
-  x:=tfrmautoinject.create(self);
-  x.cplusplus:=true;
-  x.show;
-end;
 
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
 var h0,h1,h2,h3: integer;
@@ -2023,19 +2100,18 @@ begin
     end;
   end;
 
+  if disassemblerview<>nil then
+    freeandnil(self.disassemblerview);
+
   if self.hexview<>nil then
     freeandnil(self.hexview);
-
-  if disassemblerview<>nil then
-    freeandnil(disassemblerview);
-
-
 
 
 end;
 
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);
 begin
+
   with tmemorybrowser.create(nil) do
   begin
     inc(mbchildcount);

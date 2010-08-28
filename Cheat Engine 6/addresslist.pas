@@ -53,6 +53,7 @@ type
 
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
   public
+    procedure RefreshCustomTypes;
     procedure ReinterpretAddresses;
     procedure ApplyFreeze;
     procedure refresh;
@@ -112,9 +113,17 @@ begin
      MemRecItems[0].Free;
 end;
 
+procedure TAddresslist.RefreshCustomTypes;
+var i: integer;
+begin
+  for i:=0 to count-1 do
+    MemRecItems[i].RefreshCustomType;
+end;
+
 procedure TAddresslist.ReinterpretAddresses;
 var i: integer;
 begin
+  RefreshCustomTypes;
   for i:=0 to count-1 do
     MemRecItems[i].ReinterpretAddress;
 end;

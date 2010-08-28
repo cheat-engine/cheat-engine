@@ -827,6 +827,10 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = Onlyshowjumplineswithinrange1Click
         end
       end
+      object miTextPreferences: TMenuItem
+        Caption = 'Text preferences'
+        OnClick = miTextPreferencesClick
+      end
     end
     object Debug1: TMenuItem
       Caption = 'Debug'
@@ -944,6 +948,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Find static addresses'
         ShortCut = 49235
         OnClick = Findstaticpointers1Click
+      end
+      object miLuaEngine: TMenuItem
+        Caption = 'Lua Engine'
+        OnClick = miLuaEngineClick
       end
       object N11: TMenuItem
         Caption = '-'

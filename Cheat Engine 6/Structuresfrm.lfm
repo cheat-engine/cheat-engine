@@ -42,12 +42,12 @@ object frmStructures: TfrmStructures
     Top = 41
     Width = 614
     Align = alClient
-    ClientHeight = 310
-    ClientWidth = 593
+    ClientHeight = 327
+    ClientWidth = 610
     TabOrder = 1
     object tvStructureView: TTreeView
       Left = 0
-      Height = 301
+      Height = 306
       Top = 21
       Width = 610
       Align = alClient
@@ -92,6 +92,7 @@ object frmStructures: TfrmStructures
           Visible = True
         end>
       OnSectionResize = HeaderControl1SectionResize
+      OnSectionTrack = HeaderControl1SectionTrack
       Align = alTop
     end
   end

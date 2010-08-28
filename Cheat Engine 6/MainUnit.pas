@@ -14,7 +14,8 @@ uses
   foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
   simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
-  windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter, customtypehandler;
+  windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
+  customtypehandler, lua,luahandler, lauxlib, lualib;
 
 //the following are just for compatibility
 
@@ -160,10 +161,10 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label53: TLabel;
-    Label58: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miDefineNewCustomTypeLua: TMenuItem;
     miDeleteCustomType: TMenuItem;
     miHideChildren: TMenuItem;
     miBindActivation: TMenuItem;
@@ -325,7 +326,9 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure Label3Click(Sender: TObject);
+    procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
     procedure miDeleteCustomTypeClick(Sender: TObject);
     procedure miBindActivationClick(Sender: TObject);
     procedure miEditCustomTypeClick(Sender: TObject);
@@ -543,7 +546,8 @@ type
     procedure ScanTabListTabChange(sender: TObject; oldselection: integer);
 
     //custom type:
-    procedure CreateCustomType(customtype: TCustomtype; script:string; changed: boolean);
+    procedure CreateCustomType(customtype: TCustomtype; script:string; changed: boolean; lua: boolean=false);
+
     procedure RefreshCustomTypes;
     procedure LoadCustomTypesFromRegistry;
   public
@@ -2062,6 +2066,7 @@ end;
 
 
 
+
 procedure TMainForm.miBindActivationClick(Sender: TObject);
 begin
   miBindActivation.Checked:=not miBindActivation.Checked;
@@ -2095,6 +2100,7 @@ var
   reg: TRegistry;
   customtypes: TStringlist;
   i: integer;
+  islua: boolean;
 begin
   reg:=tregistry.create;
   vartype.OnChange:=nil; //disable the onchange event so CreateCustomType doesn't keep setting it
@@ -2108,7 +2114,11 @@ begin
         if reg.OpenKey('\Software\Cheat Engine\CustomTypes\'+CustomTypes[i],false) then
         begin
           try
-            CreateCustomType(nil, reg.ReadString('Script'),true);
+            islua:=false;
+            if reg.ValueExists('lua') then
+              islua:=reg.ReadBool('lua');
+
+            CreateCustomType(nil, reg.ReadString('Script'),true, islua);
           except
             outputdebugstring('The custom type script '''+CustomTypes[i]+''' could not be loaded');
           end;
@@ -2145,6 +2155,8 @@ begin
   finally
     vartype.items.EndUpdate;
   end;
+
+  addresslist.refreshcustomtypes;
 end;
 
 procedure TMainForm.miDeleteCustomTypeClick(Sender: TObject);
@@ -2152,7 +2164,7 @@ var reg : TRegistry;
   ct: TCustomType;
 begin
   ct:=TCustomType(vartype.Items.Objects[vartype.ItemIndex]);
-  if (ct<>nil) and (ct.CustomTypeType=cttAutoAssembler) then
+  if (ct<>nil) and ((ct.CustomTypeType=cttAutoAssembler) or (ct.CustomTypeType=cttLuaScript)) then
   begin
     if messagedlg('Are you sure you want to delete '+ct.name+'?',mtconfirmation, [mbno,mbyes],0)=mryes then
     begin
@@ -2164,7 +2176,7 @@ begin
   end;
 end;
 
-procedure TMainForm.CreateCustomType(customtype: TCustomtype; script:string; changed: boolean);
+procedure TMainForm.CreateCustomType(customtype: TCustomtype; script:string; changed: boolean; lua: boolean=false);
 var
   reg : TRegistry;
   ct: TCustomType;
@@ -2175,15 +2187,20 @@ begin
   ct:=nil;
   if changed then
   begin
-
-
     if customtype=nil then
-      ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script)
+    begin
+      if not lua then
+        ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script)
+      else
+        ct:=TcustomType.CreateTypeFromLuaScript(script);
+    end
     else
     begin
+      //edited script
+
       ct:=customtype;
       oldname:=ct.name;
-      ct.setScript(script);
+      ct.setScript(script,lua);
 
       //if the new script has a different name then delete the old one
       if oldname<>ct.name then
@@ -2200,32 +2217,40 @@ begin
     //Add/change this to the registry
     reg:=Tregistry.Create;
     if Reg.OpenKey('\Software\Cheat Engine\CustomTypes\'+ct.name,true) then
+    begin
       reg.WriteString('Script',script);
+      if lua then
+        reg.WriteBool('lua',true);
+    end;
 
     reg.free;
 
     RefreshCustomTypes;
 
-    //now set the type to the created type
-    if (customtype=nil) and (ct<>nil) then
+    //now set the type to the current type
+    if (ct<>nil) then
     begin
       for i:=0 to vartype.Items.Count-1 do
         if TCustomType(vartype.items.objects[i])=ct then
         begin
           vartype.itemindex:=i;
-          if assigned(vartype.OnChange) then
+          if assigned(vartype.OnChange) then  //force an onchange (lazarus bug)
             vartype.OnChange(vartype);
           break;
         end;
     end;
+
+
   end;
 end;
+
+
 
 procedure TMainForm.miEditCustomTypeClick(Sender: TObject);
 var ct: TCustomType;
 begin
   ct:=TCustomType(vartype.Items.Objects[vartype.itemindex]);
-  if (ct<>nil) and (ct.CustomTypeType=cttAutoAssembler) then
+  if (ct<>nil) and ((ct.CustomTypeType=cttAutoAssembler) or (ct.CustomTypeType=cttLuaScript))then
   begin
 
     with TfrmAutoInject.create(self) do
@@ -2234,6 +2259,8 @@ begin
       CustomTypeScript:=true;
       CustomTypeCallback:=CreateCustomType;
       CustomType:=ct;
+      if ct.CustomTypeType=cttLuaScript then
+        luamode:=true;
 
       assemblescreen.Lines.Text:=CustomType.script;
 
@@ -2244,8 +2271,55 @@ begin
 end;
 
 
+procedure TMainForm.miDefineNewCustomTypeLuaClick(Sender: TObject);
+var n: string;
+begin
+  n:='';
+
+
+  with TfrmAutoInject.create(self) do
+  begin
+    injectintomyself:=true;
+    CustomTypeScript:=true;
+    CustomTypeCallback:=CreateCustomType;
+    CustomType:=nil;
+    luamode:=true;
+
+    with assemblescreen.Lines do
+    begin
+      Add('--Note: this is juat a proof of concept. It is slow and limits the scan');
+      add('--to only one thread. But it can be used for other parts in ce that ');
+      Add('--make use of the custom type');
+      Add('');
+      Add('typename="Custom LUA type" --shown as the type in ce');
+      Add('bytecount=4  --number of bytes of this type');
+      Add('functionbasename="customvaluetype" --basename of the functiontypes used KEEP THIS UNIQUE');
+      Add('');
+      Add('function customvaluetype_bytestovalue(b)');
+      Add('--table b contains the bytes b[0], b[1], b[2], ....');
+      Add('return 123');
+      Add('');
+      Add('end');
+      Add('');
+      Add('function customvaluetype_valuetobytes(i)');
+      Add('');
+      Add('--return the bytes to write');
+      Add('--E.g: return b[0],b[1],b[2],....');
+      Add('return 0,0,0,0');
+      Add('');
+      Add('end');
+      Add('return typename,bytecount,functionbasename');
+    end;
+    show;
+
+  end;
+end;
+
+
 procedure TMainForm.miDefineNewCustomTypeClick(Sender: TObject);
 begin
+
+
   with TfrmAutoInject.create(self) do
   begin
     injectintomyself:=true;
@@ -2847,7 +2921,6 @@ var
 
   errormode: dword;
 begin
-
 
   forms.Application.ShowButtonGlyphs:=sbgNever;
   application.OnException := exceptionhandler;
@@ -5149,6 +5222,11 @@ begin
     db $0f,$ac,$d0,$0c,$c1,$ea,$0c,$89,$81,$3c,$21,$00
 
   end;
+end;
+
+procedure TMainForm.Label58Click(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);

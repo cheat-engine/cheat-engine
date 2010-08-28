@@ -7,7 +7,19 @@ interface
 uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin;
 
-type TDisassemblerLine=class
+type
+  TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
+  TDisassemblerViewColors=array [csNormal..csHighlightedbreakpoint] of record
+    backgroundcolor: TColor;
+    normalcolor: TColor;
+    registercolor: TColor;
+    symbolcolor: TColor;
+    hexcolor: TColor;
+  end;
+
+  PDisassemblerViewColors=^TDisassemblerViewColors;
+
+  TDisassemblerLine=class
   private
     fbitmap: tbitmap;
     fCanvas: TCanvas;
@@ -23,6 +35,7 @@ type TDisassemblerLine=class
 
     fisJump: boolean;
     fJumpsTo: ptrUint;
+    fcolors: PDisassemblerViewColors;
 
 
     addressstring: string;
@@ -33,6 +46,10 @@ type TDisassemblerLine=class
     referencedbylineheight: integer;
     boldheight: integer;
     textheight: integer;
+
+    isbp: boolean;
+    focused: boolean;
+
     function truncatestring(s: string; maxwidth: integer): string;
     function buildReferencedByString: string;
     procedure DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
@@ -47,7 +64,7 @@ type TDisassemblerLine=class
     procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
-    constructor create(bitmap: TBitmap; headersections: THeaderSections);
+    constructor create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
 end;
 
 implementation
@@ -143,7 +160,7 @@ begin
 end;
 
 procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
-var isbp: boolean;
+var
     baseofsymbol: ptrUint;
     symbolname: string;
     refferencedby: string;
@@ -161,6 +178,8 @@ var isbp: boolean;
 
     bp: PBreakpoint;
 begin
+  self.focused:=focused;
+
   top:=linestart;
   faddress:=address;
   isselected:=selected;
@@ -246,20 +265,20 @@ begin
       //default
       if not focused then
       begin
-        fcanvas.Brush.Color:=clGradientActiveCaption;
-        fcanvas.Font.Color:=clHighlightText;
+        fcanvas.Brush.Color:=fcolors^[csSecondaryHighlighted].backgroundcolor;
+        fcanvas.Font.Color:=fcolors^[csSecondaryHighlighted].normalcolor;
       end
       else
       begin
-        fcanvas.Brush.Color:=clHighlight;
-        fcanvas.Font.Color:=clHighlightText;
+        fcanvas.Brush.Color:=fcolors^[csHighlighted].backgroundcolor;
+        fcanvas.Font.Color:=fcolors^[csHighlighted].normalcolor;
       end;
     end
     else
     begin
       //it's a breakpoint
-      fCanvas.Brush.Color:=clGreen;
-      fCanvas.font.Color:=clWhite;
+      fcanvas.Brush.Color:=fcolors^[csHighlightedbreakpoint].backgroundcolor;
+      fcanvas.Font.Color:=fcolors^[csHighlightedbreakpoint].normalcolor;
     end;
     fcanvas.Refresh;
 
@@ -271,13 +290,13 @@ begin
     //not selected
     if isbp then
     begin
-      fCanvas.Brush.Color:=clRed;
-      fCanvas.font.Color:=clBlack;
+      fCanvas.Brush.Color:=fcolors^[csbreakpoint].backgroundcolor;
+      fCanvas.font.Color:=fcolors^[csbreakpoint].normalcolor;
       fcanvas.Refresh
     end else
     begin
-      fcanvas.Brush.Color:=clBtnFace;
-      fcanvas.Font.Color:=clWindowText;
+      fCanvas.Brush.Color:=fcolors^[csNormal].backgroundcolor;
+      fCanvas.font.Color:=fcolors^[csNormal].normalcolor;
       fcanvas.Refresh
     end;
   end;
@@ -380,8 +399,8 @@ begin
 
   if selected then //restore
   begin
-    fcanvas.Brush.Color:=clBtnFace;
-    fcanvas.Font.Color:=clWindowText;
+    fCanvas.Brush.Color:=fcolors^[csNormal].backgroundcolor;
+    fCanvas.font.Color:=fcolors^[csNormal].normalcolor;
     fcanvas.Refresh;
   end;
 end;
@@ -392,16 +411,35 @@ var defaultfontcolor: TColor;
     start: integer;
 
     s: string;
+
+    colorcode: integer; //0=normal, 1=hex, 2=reg, 3=symbol
+    colorstate: TDisassemblerViewColorsState;
 begin
   defaultfontcolor:=fcanvas.Font.color;
   start:=1;
   s:='';
   i:=1;
+  colorcode:=0;
+
   while i<length(text) do
   begin
     case text[i] of
       '{':
       begin
+        if (not isselected and not isbp) then colorstate:=csNormal else
+        if (not isselected and isbp) then colorstate:=csBreakpoint else
+        if (isselected and not isbp and focused) then colorstate:=csHighlighted else
+        if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
+        if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
+        if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
+
+        case colorcode of
+          0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;
+          1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
+          2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
+          3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
+        end;
+
         s:=copy(text, start,i-start);
         fcanvas.TextRect(ARect,x,y,s);
         x:=x+fcanvas.TextWidth(s);
@@ -410,10 +448,10 @@ begin
         while i<length(text) do
         begin
           case text[i] of
-            'N': fcanvas.Font.color:=defaultfontcolor;
-            'H': if isselected then fcanvas.Font.color:=clYellow else fcanvas.Font.color:=clBlue;
-            'R': fcanvas.font.color:=clRed;
-            'S': if isselected then fcanvas.Font.color:=clLime else fcanvas.font.color:=clLime;
+            'N': colorcode:=0;
+            'H': colorcode:=1;
+            'R': colorcode:=2;
+            'S': colorcode:=3;
             '}':
             begin
               inc(i);
@@ -432,6 +470,24 @@ begin
     end;
 
 
+  end;
+
+  colorstate:=csNormal;
+
+
+
+  if (not isselected and not isbp) then colorstate:=csNormal else
+  if (not isselected and isbp) then colorstate:=csBreakpoint else
+  if (isselected and not isbp and focused) then colorstate:=csHighlighted else
+  if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
+  if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
+  if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
+
+  case colorcode of
+    0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;
+    1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
+    2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
+    3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
   end;
 
   s:=copy(text, start,i-start);
@@ -455,7 +511,7 @@ begin
   result:=top;
 end;
 
-constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections);
+constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
 begin
   fCanvas:=bitmap.canvas;
   fBitmap:=bitmap;
@@ -463,6 +519,8 @@ begin
   boldheight:=-1; //bypass for memory leak
   textheight:=-1;
   referencedbylineheight:=-1;
+
+  fcolors:=colors;
 
   height:=fCanvas.TextHeight('X');
 end;

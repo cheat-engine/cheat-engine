@@ -27,7 +27,8 @@ uses jwawindows, windows, sysutils, LCLIntf,forms, classes, controls, comctrls, 
 
 
 type TShowjumplineState=(jlsAll, jlsOnlyWithinRange);     
-     
+
+
 
 type TDisassemblerview=class(TPanel)
   private
@@ -57,6 +58,7 @@ type TDisassemblerview=class(TPanel)
     fdissectCode: TDissectCodeThread;
 
     lastupdate: dword;
+    destroyed: boolean;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -95,6 +97,10 @@ type TDisassemblerview=class(TPanel)
     property OnDblClick: TNotifyEvent read getOnDblClick write setOnDblClick;
 
   public
+    colors: TDisassemblerViewColors;
+
+    procedure reinitialize; //deletes the assemblerlines
+
     procedure BeginUpdate; //stops painting until endupdate
     procedure EndUpdate;
     procedure Update; override;
@@ -111,6 +117,7 @@ type TDisassemblerview=class(TPanel)
     property ShowJumplines: boolean read fShowJumplines write setJumpLines;
     property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
     constructor create(AOwner: TComponent); override;
+    destructor destroy; override;
 end;
 
 
@@ -130,44 +137,51 @@ end;
 
 function TDisassemblerview.getOnDblClick: TNotifyEvent;
 begin
-  result:=disCanvas.OnDblClick;
+  if discanvas<>nil then
+    result:=disCanvas.OnDblClick;
 end;
 
 procedure TDisassemblerview.setOnDblClick(x: TNotifyEvent);
 begin
-  disCanvas.OnDblClick:=x;
+  if discanvas<>nil then
+    disCanvas.OnDblClick:=x;
 end;
 
 function TDisassemblerview.getheaderWidth(headerid: integer): integer;
 begin
-  result:=header.Sections[headerid].width;
+  if header<>nil then
+    result:=header.Sections[headerid].width;
 end;
 
 procedure TDisassemblerview.setheaderWidth(headerid: integer; size: integer);
 begin
-  header.Sections[headerid].width:=size;
+  if header<>nil then
+    header.Sections[headerid].width:=size;
 end;
 
 procedure TDisassemblerview.setCommentsTab(state:boolean);
 begin
-  if not state then
+  if header<>nil then
   begin
-    previousCommentsTabWidth:=header.Sections[3].Width;
-    header.Sections[3].MinWidth:=0;
-    header.Sections[3].Width:=0;
-    header.Sections[3].MaxWidth:=0;
-  end
-  else
-  begin
-    header.Sections[3].MaxWidth:=10000;
-    if previousCommentsTabWidth>0 then
-      header.Sections[3].Width:=previousCommentsTabWidth;
+    if not state then
+    begin
+      previousCommentsTabWidth:=header.Sections[3].Width;
+      header.Sections[3].MinWidth:=0;
+      header.Sections[3].Width:=0;
+      header.Sections[3].MaxWidth:=0;
+    end
+    else
+    begin
+      header.Sections[3].MaxWidth:=10000;
+      if previousCommentsTabWidth>0 then
+        header.Sections[3].Width:=previousCommentsTabWidth;
 
-    header.Sections[3].MinWidth:=5;
+      header.Sections[3].MinWidth:=5;
+    end;
+
+    update;
+    headerSectionResize(header, header.Sections[3]);
   end;
-
-  update;
-  headerSectionResize(header, header.Sections[3]);
 end;
 
 procedure TDisassemblerview.setTopAddress(address: ptrUint);
@@ -227,7 +241,8 @@ end;
 
 procedure TDisassemblerview.SetPopupMenu(p: tpopupmenu);
 begin
-  discanvas.PopupMenu:=p;
+  if discanvas<>nil then
+    discanvas.PopupMenu:=p;
 end;
 
 procedure TDisassemblerview.HandleSpecialKey(key: word);
@@ -512,6 +527,9 @@ var
 begin
   inherited update;
 
+  if destroyed then exit;
+
+
   synchronizeDisassembler;
 
   //if gettickcount-lastupdate>50 then
@@ -552,10 +570,12 @@ begin
     selstart:=minX(fSelectedAddress,fSelectedAddress2);
     selstop:=maxX(fSelectedAddress,fSelectedAddress2);
 
+    offscreenbitmap.Canvas.Font:=font;
+
     while currenttop<offscreenbitmap.Height do
     begin
       while i>=disassemblerlines.Count do //add a new line
-        disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections));
+        disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections, @colors));
 
       currentline:=disassemblerlines[i];
 
@@ -582,6 +602,20 @@ begin
     lastupdate:=gettickcount;
   end;
 
+
+end;
+
+procedure TDisassemblerview.reinitialize;
+var i: integer;
+begin
+  fTotalvisibledisassemblerlines:=0;
+  if disassemblerlines<>nil then
+  begin
+    for i:=0 to disassemblerlines.Count-1 do
+      TDisassemblerLine(disassemblerlines[i]).free;
+
+    disassemblerlines.Clear;
+  end;
 
 end;
 
@@ -707,17 +741,52 @@ begin
 end;
 
 
+destructor TDisassemblerview.destroy;
+begin
+  destroyed:=true;
+
+  reinitialize;
+  if disassemblerlines<>nil then
+    freeandnil(disassemblerlines);
+
+  if offscreenbitmap<>nil then
+    freeandnil(offscreenbitmap);
+
+  if disCanvas<>nil then
+    freeandnil(disCanvas);
+
+  if header<>nil then
+    freeandnil(header);
+
+  if scrollbox<>nil then
+    freeandnil(scrollbox);
+
+
+  if disassembleDescription<>nil then
+    freeandnil(disassembleDescription);
+
+  if statusinfolabel<>nil then
+    freeandnil(statusinfolabel);
+
+  if statusinfo<>nil then
+    freeandnil(statusinfo);
+
+
+  inherited destroy;
+end;
 
 constructor TDisassemblerview.create(AOwner: TComponent);
 var i: integer;
 begin
   inherited create(AOwner);
+
   tabstop:=true;
   DoubleBuffered:=true;
 
   statusinfo:=tpanel.Create(self);
   with statusinfo do
   begin
+    ParentFont:=false;
     align:=alTop;
     bevelInner:=bvLowered;
     height:=19;
@@ -728,6 +797,7 @@ begin
   statusinfolabel:=TLabel.Create(self);
   with statusinfolabel do
   begin
+    parentfont:=false;
     align:=alClient;
     Alignment:=taCenter;
     autosize:=false;
@@ -752,6 +822,7 @@ begin
     Font.Style:=[];
 
     parent:=self;
+
 
   end;
 
@@ -804,6 +875,7 @@ begin
     parent:=scrollbox;
     onenter:=OnLostFocus;
     header.Align:=alTop;
+    header.ParentFont:=false;
   end;
 
 
@@ -849,12 +921,12 @@ begin
   with disCanvas do
   begin
     align:=alClient;
-    ParentFont:=False;
-    Font.Charset:=DEFAULT_CHARSET;
+    ParentFont:=true; //False;
+{    Font.Charset:=DEFAULT_CHARSET;
     Font.Color:=clwindow;
     Font.Height:=-11;
     Font.Name:='Courier';
-    Font.Style:=[];
+    Font.Style:=[];}
     parent:=scrollbox;
     OnPaint:=DisCanvasPaint;
     OnMouseDown:=DisCanvasMouseDown;
@@ -864,12 +936,52 @@ begin
 
   offscreenbitmap:=Tbitmap.Create;
 
+
   disassemblerlines:=TList.Create;
 
   fShowjumplineState:=jlsOnlyWithinRange;
   fShowJumplines:=true;
 
   self.OnMouseWheel:=mousescroll;
+
+  //setup the default colors:
+  colors[csNormal].backgroundcolor:=clBtnFace;
+  colors[csNormal].normalcolor:=clWindowText;
+  colors[csNormal].registercolor:=clRed;
+  colors[csNormal].symbolcolor:=clLime;
+  colors[csNormal].hexcolor:=clBlue;
+
+  colors[csHighlighted].backgroundcolor:=clHighlight;
+  colors[csHighlighted].normalcolor:=clHighlightText;
+  colors[csHighlighted].registercolor:=clRed;
+  colors[csHighlighted].symbolcolor:=clLime;
+  colors[csHighlighted].hexcolor:=clYellow;
+
+  colors[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
+  colors[csSecondaryHighlighted].normalcolor:=clHighlightText;
+  colors[csSecondaryHighlighted].registercolor:=clRed;
+  colors[csSecondaryHighlighted].symbolcolor:=clLime;
+  colors[csSecondaryHighlighted].hexcolor:=clYellow;
+
+  colors[csBreakpoint].backgroundcolor:=clRed;
+  colors[csBreakpoint].normalcolor:=clBlack;
+  colors[csBreakpoint].registercolor:=clRed;
+  colors[csBreakpoint].symbolcolor:=clLime;
+  colors[csBreakpoint].hexcolor:=clBlue;
+
+  colors[csHighlightedbreakpoint].backgroundcolor:=clGreen;
+  colors[csHighlightedbreakpoint].normalcolor:=clWhite;
+  colors[csHighlightedbreakpoint].registercolor:=clRed;
+  colors[csHighlightedbreakpoint].symbolcolor:=clLime;
+  colors[csHighlightedbreakpoint].hexcolor:=clBlue;
+
+  colors[csSecondaryHighlightedbreakpoint].backgroundcolor:=clGreen;
+  colors[csSecondaryHighlightedbreakpoint].normalcolor:=clWhite;
+  colors[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
+  colors[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
+  colors[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
+
+
 end;
 
 

@@ -14,7 +14,7 @@ uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
 {$ifndef standalonetrainerwithassemblerandaobscanner}
      , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,
-     CEFuncProc,shellapi, customtypehandler
+     CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib, LuaHandler
 {$endif}
 ;
 
@@ -72,6 +72,8 @@ type
     The scanner class will scan a specified range of memory
   }
   private
+
+
     CheckRoutine: TCheckRoutine;
     StoreResultRoutine: TStoreResultRoutine;
     FlushRoutine: TFlushRoutine; //pointer to routine used to flush the buffer, generic, string, etc...
@@ -2855,6 +2857,8 @@ end;
 procedure TScanner.execute;
 var i: integer;
 begin
+
+
   Set8087CW($133f); //disable floating point exceptions in this thread
   SetSSECSR($1f80);
 
@@ -2941,6 +2945,8 @@ begin
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
   Priority:=cefuncproc.scanpriority;
+
+
 
   if not suspended then resume;   //would be stupid, but ok...
 end;
@@ -3086,6 +3092,8 @@ var
     datatype: string[6];
 begin
   threadcount:=getcpucount;
+  if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
+    threadcount:=1;
 
   
   //read the results and split up
@@ -3229,6 +3237,9 @@ var
   datatype: string[6];
 begin
   threadcount:=GetCPUCount;
+  if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
+    threadcount:=1;
+
   totalProcessMemorySize:=0;
 
   memregion:=OwningMemscan.memRegion;
@@ -3466,6 +3477,10 @@ begin
     threadcount:=1
   else
     threadcount:=GetCPUCount;
+
+  //if it's a custom scan with luascript as type just use one cpu so there is less overhead
+  if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
+    threadcount:=1;
     
   totalProcessMemorySize:=0;
 

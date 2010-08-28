@@ -108,11 +108,11 @@ type
              
     selectedtab: integer;
 
-    fcplusplus: boolean;
+    fluamode: boolean;
     fCustomTypeScript: boolean;
 
     undolist: array [0..5] of string;
-    procedure setcplusplus(state: boolean);
+    procedure setluamode(state: boolean);
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
     procedure setCustomTypeScript(x: boolean);
@@ -132,10 +132,10 @@ type
     customtype: TCustomType;
 
     callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
-    CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean) of object;
+    CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
 
     injectintomyself: boolean;
-    property cplusplus: boolean read fcplusplus write setcplusplus;
+    property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   end;
 
@@ -156,24 +156,23 @@ begin
     editscript:=true;
 end;
 
-procedure TfrmAutoInject.setcplusplus(state: boolean);
+procedure TfrmAutoInject.setluamode(state: boolean);
 begin
 {$ifndef standalonetrainerwithassembler}
-
-  fcplusplus:=state;
+  fluamode:=state;
   if state then
   begin
-    assemblescreen.Highlighter:=CPPHighlighter;
+    assemblescreen.Highlighter:=nil;
 
     //change gui to c++ style
     button1.Caption:='Execute script';
-    opendialog1.DefaultExt:='CEC';
-    opendialog1.Filter:='Cheat Engine Script (*.CEC)|*.CEC|All Files ( *.* )|*.*';
-    savedialog1.DefaultExt:='CEC';
-    savedialog1.Filter:='Cheat Engine Script (*.CEC)|*.CEC|All Files ( *.* )|*.*';
+    opendialog1.DefaultExt:='LUA';
+    opendialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
+    savedialog1.DefaultExt:='LUA';
+    savedialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
     Assigntocurrentcheattable1.visible:=false;
     emplate1.Visible:=false;
-    caption:='Script engine';
+    caption:='LUA Script engine';
     inject1.Visible:=true;
     helpcontext:=19; //c-script help
   end
@@ -216,10 +215,14 @@ begin
   registeredsymbols.CaseSensitive:=false;
   registeredsymbols.Duplicates:=dupIgnore;
 
-  if cplusplus then
+  if luamode then
   begin
     //no implementation
-
+    if editscript then
+    begin
+      modalresult:=mrok; //not modal anymore, but can still be used to pass info
+      if editscript2 or CustomTypeScript then close;
+    end;
   end
   else
   begin
@@ -246,7 +249,7 @@ begin
         if messagedlg('Not all code is injectable. Are you sure you wan''t to edit it to this?',mtWarning,[mbyes,mbno],0)=mryes then
         begin
           modalresult:=mrok; //not modal anymore, but can still be used to pass info
-          if editscript2 then close;
+          if editscript2 or CustomTypeScript then close;
         end;
       end;
     end else autoassemble(assemblescreen.lines,true);
@@ -302,26 +305,36 @@ begin
   end
   else
   begin
-    if editscript2 then
-    begin
-      //call finish routine with script
+    try
+      if editscript2 then
+      begin
+        //call finish routine with script
 
-      if modalresult=mrok then
-        callbackroutine(memrec, assemblescreen.text,true)
+        if modalresult=mrok then
+          callbackroutine(memrec, assemblescreen.text,true)
+        else
+          callbackroutine(memrec, assemblescreen.text,false);
+
+        action:=cafree;
+      end
       else
-        callbackroutine(memrec, assemblescreen.text,false);
+      if CustomTypeScript then
+      begin
 
-      action:=cafree;
-    end
-    else
-    if CustomTypeScript then
-    begin
-      if modalresult=mrok then
-        CustomTypeCallback(customtype, assemblescreen.text,true)
-      else
-        CustomTypeCallback(customtype, assemblescreen.text,false);
+        if modalresult=mrok then
+          CustomTypeCallback(customtype, assemblescreen.text,true,luamode)
+        else
+          CustomTypeCallback(customtype, assemblescreen.text,false,luamode);
 
-      action:=cafree;
+        action:=cafree;
+      end;
+
+    except
+      on e: exception do
+      begin
+        modalresult:=mrNone;
+        raise exception.create(e.message);
+      end;
     end;
   end;
 {$endif}
