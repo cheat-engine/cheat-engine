@@ -83,10 +83,10 @@ var
   Unk: IInterface;
 
 begin
-  { Make sure that COM is initialized }
-  //CoInitializeEx(nil, 0);
-   (*
   if GetSystemType<7 then exit;
+
+  { Make sure that COM is initialized }
+  CoInitializeEx(nil, 0);
 
   try
     { Obtain an IUnknown }
@@ -102,7 +102,7 @@ begin
     GlobalTaskBarInterface.HrInit();
   except
     GlobalTaskBarInterface := nil;
-  end;  *)
+  end;
 end;
 
 initialization

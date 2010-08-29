@@ -161,7 +161,7 @@ function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 
 implementation
 
-uses addresslist, formsettingsunit;
+uses mainunit, addresslist, formsettingsunit;
 
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
@@ -369,7 +369,7 @@ begin
 
           tempnode2:=tempnode.childnodes[i].FindNode('Action');
           if tempnode2<>nil then
-            hotkeys[j].action:=TextToMemRecHotkeyAction(tempnode.TextContent);
+            hotkeys[j].action:=TextToMemRecHotkeyAction(tempnode2.TextContent);
 
           tempnode2:=tempnode.childnodes[i].findnode('Value');
           if tempnode2<>nil then
@@ -392,6 +392,12 @@ begin
             end;
 
           end;
+
+          hotkeys[j].active:=true;
+
+          RegisterHotKey2(mainform.handle, 0, hotkeys[j].keys, self, j);
+
+
           inc(j);
         end;
       end;

@@ -414,6 +414,24 @@ var defaultfontcolor: TColor;
 
     colorcode: integer; //0=normal, 1=hex, 2=reg, 3=symbol
     colorstate: TDisassemblerViewColorsState;
+
+  procedure setcolor;
+  begin
+    if (not isselected and not isbp) then colorstate:=csNormal else
+    if (not isselected and isbp) then colorstate:=csBreakpoint else
+    if (isselected and not isbp and focused) then colorstate:=csHighlighted else
+    if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
+    if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
+    if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
+
+    case colorcode of
+      0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;
+      1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
+      2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
+      3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
+    end;
+  end;
+
 begin
   defaultfontcolor:=fcanvas.Font.color;
   start:=1;
@@ -426,19 +444,7 @@ begin
     case text[i] of
       '{':
       begin
-        if (not isselected and not isbp) then colorstate:=csNormal else
-        if (not isselected and isbp) then colorstate:=csBreakpoint else
-        if (isselected and not isbp and focused) then colorstate:=csHighlighted else
-        if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
-        if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
-        if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
-
-        case colorcode of
-          0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;
-          1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
-          2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
-          3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
-        end;
+        setcolor;
 
         s:=copy(text, start,i-start);
         fcanvas.TextRect(ARect,x,y,s);
@@ -472,23 +478,7 @@ begin
 
   end;
 
-  colorstate:=csNormal;
-
-
-
-  if (not isselected and not isbp) then colorstate:=csNormal else
-  if (not isselected and isbp) then colorstate:=csBreakpoint else
-  if (isselected and not isbp and focused) then colorstate:=csHighlighted else
-  if (isselected and not isbp and not focused) then colorstate:=csSecondaryHighlighted else
-  if (isselected and isbp and focused) then colorstate:=csHighlightedbreakpoint else
-  if (isselected and isbp and not focused) then colorstate:=csSecondaryHighlightedbreakpoint;
-
-  case colorcode of
-    0: fcanvas.font.color:=fcolors^[colorstate].normalcolor;
-    1: fcanvas.font.color:=fcolors^[colorstate].hexcolor;
-    2: fcanvas.font.color:=fcolors^[colorstate].registercolor;
-    3: fcanvas.font.color:=fcolors^[colorstate].symbolcolor;
-  end;
+  setcolor;
 
   s:=copy(text, start,i-start);
   fcanvas.TextRect(ARect,x,y,s);

@@ -33,7 +33,9 @@ object HotKeyForm: THotKeyForm
         Caption = 'Value'
         Width = 80
       end>
+    HideSelection = False
     ItemIndex = -1
+    RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
     OnSelectItem = ListView1SelectItem
