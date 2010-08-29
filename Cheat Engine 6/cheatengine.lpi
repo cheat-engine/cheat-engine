@@ -12,7 +12,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="719"/>
+      <BuildNr Value="721"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable ProductVersion="0.0.0.225"/>
@@ -431,7 +431,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="HotKeys"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="102"/>
@@ -737,10 +736,11 @@
         <Filename Value="disassemblerviewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassemblerviewunit"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="939"/>
-        <CursorPos X="5" Y="573"/>
+        <TopLine Value="942"/>
+        <CursorPos X="16" Y="946"/>
         <UsageCount Value="218"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1637,7 +1637,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="198"/>
         <CursorPos X="16" Y="213"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="11"/>
       </Unit136>
       <Unit137>
         <Filename Value="changelist.pas"/>
@@ -1662,7 +1662,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="421"/>
         <CursorPos X="3" Y="418"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit139>
       <Unit140>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -1670,14 +1670,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="571"/>
         <CursorPos X="3" Y="589"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit140>
       <Unit141>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\systemh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="756"/>
         <CursorPos X="17" Y="773"/>
-        <UsageCount Value="46"/>
+        <UsageCount Value="45"/>
       </Unit141>
       <Unit142>
         <Filename Value="tableconverter.pas"/>
@@ -1734,14 +1734,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="26" Y="230"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit147>
       <Unit148>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\sysutilh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="49"/>
         <CursorPos X="4" Y="66"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit148>
       <Unit149>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
@@ -1749,7 +1749,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="12"/>
       </Unit149>
       <Unit150>
         <Filename Value="frmPagingUnit.pas"/>
@@ -1806,7 +1806,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1954"/>
         <CursorPos X="23" Y="1971"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="22"/>
       </Unit155>
       <Unit156>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-registry\src\registry.pp"/>
@@ -1814,7 +1814,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="427"/>
         <CursorPos X="54" Y="444"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit156>
       <Unit157>
         <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
@@ -1822,7 +1822,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="337"/>
         <CursorPos X="36" Y="354"/>
-        <UsageCount Value="18"/>
+        <UsageCount Value="17"/>
       </Unit157>
       <Unit158>
         <Filename Value="LuaHandler.pas"/>
@@ -1831,7 +1831,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="27" Y="34"/>
-        <UsageCount Value="193"/>
+        <UsageCount Value="194"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit158>
       <Unit159>
@@ -1868,7 +1868,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="36"/>
         <CursorPos X="1" Y="61"/>
-        <UsageCount Value="144"/>
+        <UsageCount Value="145"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit162>
       <Unit163>
@@ -1896,7 +1896,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="123"/>
         <CursorPos X="56" Y="143"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="48"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit165>
       <Unit166>
