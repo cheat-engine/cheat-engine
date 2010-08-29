@@ -473,7 +473,8 @@ procedure TMemoryBrowser.setShowValues(newstate: boolean);
 begin
   Showvaluesofstaticaddresses1.checked:=newstate;
   FShowValues:=newstate;
-  disassemblerview.setCommentsTab(FShowValues);
+  if disassemblerview<>nil then
+    disassemblerview.setCommentsTab(FShowValues);
 end;
 
 procedure TMemoryBrowser.setShowDebugPanels(state: boolean);

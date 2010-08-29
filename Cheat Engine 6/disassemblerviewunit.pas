@@ -529,7 +529,6 @@ begin
 
   if destroyed then exit;
 
-
   synchronizeDisassembler;
 
   //if gettickcount-lastupdate>50 then
@@ -944,42 +943,43 @@ begin
 
   self.OnMouseWheel:=mousescroll;
 
+
   //setup the default colors:
-  colors[csNormal].backgroundcolor:=clBtnFace;
-  colors[csNormal].normalcolor:=clWindowText;
-  colors[csNormal].registercolor:=clRed;
-  colors[csNormal].symbolcolor:=clLime;
-  colors[csNormal].hexcolor:=clBlue;
+  self.colors[csNormal].backgroundcolor:=clBtnFace;
+  self.colors[csNormal].normalcolor:=clWindowText;
+  self.colors[csNormal].registercolor:=clRed;
+  self.colors[csNormal].symbolcolor:=clLime;
+  self.colors[csNormal].hexcolor:=clBlue;
 
-  colors[csHighlighted].backgroundcolor:=clHighlight;
-  colors[csHighlighted].normalcolor:=clHighlightText;
-  colors[csHighlighted].registercolor:=clRed;
-  colors[csHighlighted].symbolcolor:=clLime;
-  colors[csHighlighted].hexcolor:=clYellow;
+  self.colors[csHighlighted].backgroundcolor:=clHighlight;
+  self.colors[csHighlighted].normalcolor:=clHighlightText;
+  self.colors[csHighlighted].registercolor:=clRed;
+  self.colors[csHighlighted].symbolcolor:=clLime;
+  self.colors[csHighlighted].hexcolor:=clYellow;
 
-  colors[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
-  colors[csSecondaryHighlighted].normalcolor:=clHighlightText;
-  colors[csSecondaryHighlighted].registercolor:=clRed;
-  colors[csSecondaryHighlighted].symbolcolor:=clLime;
-  colors[csSecondaryHighlighted].hexcolor:=clYellow;
+  self.colors[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
+  self.colors[csSecondaryHighlighted].normalcolor:=clHighlightText;
+  self.colors[csSecondaryHighlighted].registercolor:=clRed;
+  self.colors[csSecondaryHighlighted].symbolcolor:=clLime;
+  self.colors[csSecondaryHighlighted].hexcolor:=clYellow;
 
-  colors[csBreakpoint].backgroundcolor:=clRed;
-  colors[csBreakpoint].normalcolor:=clBlack;
-  colors[csBreakpoint].registercolor:=clRed;
-  colors[csBreakpoint].symbolcolor:=clLime;
-  colors[csBreakpoint].hexcolor:=clBlue;
+  self.colors[csBreakpoint].backgroundcolor:=clRed;
+  self.colors[csBreakpoint].normalcolor:=clBlack;
+  self.colors[csBreakpoint].registercolor:=clRed;
+  self.colors[csBreakpoint].symbolcolor:=clLime;
+  self.colors[csBreakpoint].hexcolor:=clBlue;
 
-  colors[csHighlightedbreakpoint].backgroundcolor:=clGreen;
-  colors[csHighlightedbreakpoint].normalcolor:=clWhite;
-  colors[csHighlightedbreakpoint].registercolor:=clRed;
-  colors[csHighlightedbreakpoint].symbolcolor:=clLime;
-  colors[csHighlightedbreakpoint].hexcolor:=clBlue;
+  self.colors[csHighlightedbreakpoint].backgroundcolor:=clGreen;
+  self.colors[csHighlightedbreakpoint].normalcolor:=clWhite;
+  self.colors[csHighlightedbreakpoint].registercolor:=clRed;
+  self.colors[csHighlightedbreakpoint].symbolcolor:=clLime;
+  self.colors[csHighlightedbreakpoint].hexcolor:=clBlue;
 
-  colors[csSecondaryHighlightedbreakpoint].backgroundcolor:=clGreen;
-  colors[csSecondaryHighlightedbreakpoint].normalcolor:=clWhite;
-  colors[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
-  colors[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
-  colors[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
+  self.colors[csSecondaryHighlightedbreakpoint].backgroundcolor:=clGreen;
+  self.colors[csSecondaryHighlightedbreakpoint].normalcolor:=clWhite;
+  self.colors[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
+  self.colors[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
+  self.colors[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
 
 
 end;
