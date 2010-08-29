@@ -9,7 +9,7 @@ uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
 
 type
   TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
-  TDisassemblerViewColors=array [csNormal..csHighlightedbreakpoint] of record
+  TDisassemblerViewColors=array [csNormal..csSecondaryHighlightedbreakpoint] of record
     backgroundcolor: TColor;
     normalcolor: TColor;
     registercolor: TColor;
