@@ -726,20 +726,22 @@ begin
     else
     begin
       //freeze/unfreeze
-      f:=GetValue;
+      if state then
+      begin
+        f:=GetValue;
 
-      try
-        SetValue(f);
-      except
-        fActive:=false;
-        beep;
-        exit;
-      end;
+        try
+          SetValue(f);
+        except
+          fActive:=false;
+          beep;
+          exit;
+        end;
 
-      //still here so F is ok
-
-      if state then //enabled
+        //still here so F is ok
+        //enabled
         FrozenValue:=f;
+      end;
 
       fActive:=state;
     end;
@@ -877,7 +879,15 @@ begin
   bufsize:=getbytesize;
   if bufsize=0 then exit;
 
+  if vartype=vtString then
+  begin
+    inc(bufsize);
+    if Extra.stringData.unicode then
+      inc(bufsize);
+  end;
+
   getmem(buf,bufsize);
+
 
 
   GetRealAddress;
@@ -1052,15 +1062,17 @@ begin
 
       vtString:
       begin
-        for i:=0 to min(length(FrozenValue), bufsize)-1 do
+        bufsize:=min(length(frozenvalue),bufsize);
+
+        for i:=1 to bufsize do
         begin
           if extra.stringData.unicode then
           begin
-            wc[i]:=FrozenValue[i];
+            wc[i-1]:=FrozenValue[i];
           end
           else
           begin
-            c[i]:=FrozenValue[i];
+            c[i-1]:=FrozenValue[i];
           end;
         end;
       end;
@@ -1068,7 +1080,8 @@ begin
       vtByteArray:
       begin
         ConvertStringToBytes(FrozenValue, showAsHex, bts);
-        for i:=0 to min(length(bts),bufsize)-1 do
+        bufsize:=min(length(bts),bufsize);
+        for i:=0 to bufsize-1 do
           if bts[i]<>-1 then
             pba[i]:=bts[i];
       end;

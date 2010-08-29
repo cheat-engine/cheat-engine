@@ -313,6 +313,8 @@ object formSettings: TformSettings
           Top = 138
           Width = 156
           Caption = 'Save window positions'
+          Checked = True
+          State = cbChecked
           TabOrder = 13
         end
         object cbProcessIcons: TCheckBox

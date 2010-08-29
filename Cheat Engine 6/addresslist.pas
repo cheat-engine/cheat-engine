@@ -511,7 +511,10 @@ begin
     end;
 
     vtByteArray:
+    begin
+      memrec.showAsHex:=true; //aob's are hex by default
       memrec.Extra.byteData.bytelength:=length;
+    end;
   end;
 
   memrec.ReinterpretAddress;

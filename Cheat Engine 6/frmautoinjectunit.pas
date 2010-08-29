@@ -9,7 +9,7 @@ uses
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
-  MemoryRecordUnit, tablist, customtypehandler;
+  MemoryRecordUnit, tablist, customtypehandler, registry;
 
 type
 
@@ -1176,6 +1176,7 @@ end;
 
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
 var x: array of integer;
+    reg: tregistry;
 begin
 {$ifndef standalonetrainerwithassembler}
 
@@ -1218,6 +1219,34 @@ begin
 
   setlength(x,0);
   loadformposition(self,x);
+
+  reg:=tregistry.create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',false) then
+    begin
+      if reg.valueexists('Font.name') then
+        assemblescreen.Font.Name:=reg.readstring('Font.name');
+
+      if reg.valueexists('Font.size') then
+        assemblescreen.Font.size:=reg.ReadInteger('Font.size');
+
+      if reg.valueexists('Show Line Numbers') then
+        assemblescreen.Gutter.linenumberpart.visible:=reg.ReadBool('Show Line Numbers');
+
+      if reg.valueexists('Show Gutter') then
+        assemblescreen.Gutter.Visible:=reg.ReadBool('Show Gutter');
+
+      if reg.valueexists('smart tabs') then
+        if reg.ReadBool('smart tabs') then assemblescreen.Options:=assemblescreen.options+[eoSmartTabs];
+
+      if reg.valueexists('tabs to spaces') then
+        if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces];
+    end;
+
+  finally
+    reg.free;
+  end;
+
 {$endif}
 end;
 
@@ -1494,6 +1523,7 @@ end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
 procedure TfrmAutoInject.AAPref1Click(Sender: TObject);
+var reg: tregistry;
 begin
 {$ifndef standalonetrainerwithassembler}
 
@@ -1503,6 +1533,22 @@ begin
       if execute(assemblescreen) then
       begin
         //save these settings
+        reg:=tregistry.create;
+        try
+          if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',true) then
+          begin
+            reg.WriteString('Font.name', assemblescreen.Font.Name);
+            reg.WriteInteger('Font.size', assemblescreen.Font.size);
+            reg.WriteBool('Show Line Numbers', assemblescreen.Gutter.linenumberpart.visible);
+            reg.WriteBool('Show Gutter', assemblescreen.Gutter.Visible);
+
+            reg.WriteBool('smart tabs', eoSmartTabs in assemblescreen.Options);
+            reg.WriteBool('tabs to spaces', eoTabsToSpaces in assemblescreen.Options);
+          end;
+
+        finally
+          reg.free;
+        end;
       end;
     finally
       free;

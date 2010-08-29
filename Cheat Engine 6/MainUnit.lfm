@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 741
+  Left = 603
   Height = 570
   Hint = ' '
-  Top = 216
+  Top = 200
   Width = 537
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1480,7 +1480,7 @@ object MainForm: TMainForm
       Caption = 'Create Header'
       OnClick = CreateGroupClick
     end
-    object MenuItem3: TMenuItem
+    object miGroupconfig: TMenuItem
       Caption = 'Group config'
       object miHideChildren: TMenuItem
         Caption = 'Hide children when deactivated'

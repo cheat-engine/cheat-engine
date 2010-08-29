@@ -56,27 +56,27 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     TabOrder = 1
     object cbShowLineNumbers: TCheckBox
       Left = 32
-      Height = 23
+      Height = 19
       Top = 8
-      Width = 113
+      Width = 109
       Caption = 'Show line numbers'
       OnClick = cbShowLineNumbersClick
       TabOrder = 0
     end
     object cbShowGutter: TCheckBox
       Left = 32
-      Height = 23
+      Height = 19
       Top = 24
-      Width = 101
+      Width = 97
       Caption = 'Show bar on left'
       OnClick = cbShowGutterClick
       TabOrder = 1
     end
     object cbSmartTab: TCheckBox
       Left = 32
-      Height = 23
+      Height = 19
       Top = 40
-      Width = 69
+      Width = 65
       Caption = 'Smart tab'
       OnClick = cbSmartTabClick
       TabOrder = 2
@@ -92,9 +92,9 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     end
     object cbTabsToSpace: TCheckBox
       Left = 32
-      Height = 23
+      Height = 19
       Top = 56
-      Width = 92
+      Width = 88
       Caption = 'Tabs to space'
       OnClick = cbTabsToSpaceClick
       TabOrder = 4
@@ -106,7 +106,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     MinFontSize = 0
     MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
-    left = 32
-    top = 64
+    left = 136
+    top = 8
   end
 end

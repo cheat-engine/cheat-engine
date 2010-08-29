@@ -163,7 +163,7 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    miGroupconfig: TMenuItem;
     miDefineNewCustomTypeLua: TMenuItem;
     miDeleteCustomType: TMenuItem;
     miHideChildren: TMenuItem;
@@ -3868,7 +3868,7 @@ begin
   Smarteditaddresses1.enabled:=true;
 
   BrowseThisMemoryRegion1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
-  ShowAsHexadecimal1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble]) and (not addresslist.selectedRecord.isGroupHeader);
+  ShowAsHexadecimal1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and (not addresslist.selectedRecord.isGroupHeader);
   SetHotkey1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
 
   Freezealladdresses2.visible:=(addresslist.selectedRecord<>nil);
@@ -3889,6 +3889,16 @@ begin
 
   n1.visible:=true;
   CreateGroup.visible:=true;
+
+  if (selectedrecord<>nil) and selectedrecord.treenode.HasChildren then
+  begin
+    miGroupconfig.visible:=true;
+    miHideChildren.checked:=moHideChildren in selectedrecord.options;
+    miBindActivation.checked:=moBindActivation in selectedrecord.options;
+    miRecursiveSetValue.checked:=moRecursiveSetValue in selectedrecord.options;
+  end
+  else
+    miGroupconfig.Visible:=false;
 
 end;
 
