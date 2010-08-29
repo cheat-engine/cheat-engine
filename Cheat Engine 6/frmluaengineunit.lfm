@@ -1,0 +1,103 @@
+object frmLuaEngine: TfrmLuaEngine
+  Left = 272
+  Height = 269
+  Top = 240
+  Width = 605
+  Caption = 'Lua Engine'
+  ClientHeight = 249
+  ClientWidth = 605
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 138
+    Top = 0
+    Width = 605
+    Align = alClient
+    Caption = 'Output'
+    ClientHeight = 120
+    ClientWidth = 601
+    TabOrder = 1
+    object mOutput: TMemo
+      Left = 0
+      Height = 120
+      Top = 0
+      Width = 601
+      Align = alClient
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 106
+    Top = 143
+    Width = 605
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 106
+    ClientWidth = 605
+    TabOrder = 0
+    object mScript: TMemo
+      Left = 0
+      Height = 106
+      Top = 0
+      Width = 523
+      Align = alClient
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+    end
+    object Panel2: TPanel
+      Left = 523
+      Height = 106
+      Top = 0
+      Width = 82
+      Align = alRight
+      BevelOuter = bvNone
+      ClientHeight = 106
+      ClientWidth = 82
+      TabOrder = 1
+      OnResize = Panel2Resize
+      object btnExecute: TButton
+        Left = 4
+        Height = 56
+        Top = 24
+        Width = 75
+        Caption = 'Execute'
+        OnClick = btnExecuteClick
+        TabOrder = 0
+      end
+    end
+  end
+  object Splitter1: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 138
+    Width = 605
+    Align = alBottom
+    ResizeAnchor = akBottom
+  end
+  object MainMenu1: TMainMenu
+    left = 263
+    top = 43
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Open script'
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Save current script'
+      end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Clear output'
+        OnClick = MenuItem5Click
+      end
+    end
+  end
+end
