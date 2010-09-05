@@ -23,7 +23,7 @@ type
     lockedthreadid: dword;
     lockcount: integer;
   public
-    procedure enter;
+    procedure enter(maxtimeout: DWORD=INFINITE);
     procedure leave;
     constructor Create;
     destructor Destroy; override;
@@ -31,7 +31,8 @@ type
 
 implementation
 
-procedure TGuiSafeCriticalSection.enter;
+procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE);
+var deadlockprevention: integer;
 begin
   if haslock and (getcurrentthreadid = lockedthreadid) then
   begin
@@ -39,13 +40,23 @@ begin
     exit; //same thread called it
   end;
 
+  deadlockprevention:=0;
+
+
   if getcurrentthreadid = MainThreadID then
   begin
-    while e.WaitFor(10) = wrTimeout do
+    if maxtimeout=INFINITE then maxtimeout:=10000; //10 seconds max for the main gui
+    maxtimeout:=maxtimeout div 10;
+
+    while (e.WaitFor(10) = wrTimeout) and (deadlockprevention<maxtimeout) do
+    begin
       CheckSynchronize;
+      inc(deadlockprevention);
+    end;
   end
   else
-    e.WaitFor(infinite);
+    e.WaitFor(maxtimeout);
+
 
   haslock   := True;
   lockedthreadid := getcurrentthreadid;

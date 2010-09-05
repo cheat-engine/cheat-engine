@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = GeneralSettings
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 0
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -567,6 +567,8 @@ object formSettings: TformSettings
           Top = 39
           Width = 157
           Caption = 'Fast scan on by default'
+          Checked = True
+          State = cbChecked
           TabOrder = 1
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
@@ -583,7 +585,7 @@ object formSettings: TformSettings
         object cbLowMemoryUsage: TCheckBox
           Left = 0
           Height = 20
-          Top = 81
+          Top = 86
           Width = 520
           Caption = 'Keep low memory usage when doing an "Unkown Initial Value scan" with Hyper Scan'
           TabOrder = 3

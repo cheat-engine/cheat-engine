@@ -151,6 +151,8 @@ type
     //set if the debugger should handle it fully, or just skip it (but no dbg_nothandled)
     markedfordeletion: boolean;
     deletecountdown: integer; //when markedfordeletion is set and deletecountdown hits 0, it'll get deleted
+    referencecount: integer; //the number of windows this bp is currently being edited in (mainly used in 'set/change condition')
+
     //If set the next time no events take place this breakpoint will be removed
 
     //    condition: TCondition;
@@ -177,6 +179,11 @@ type
     OneTimeOnly: boolean; //true if the breakpoint should be removed after the first time it is hit
 
     changereg: tregistermodificationBP;
+
+    conditonalbreakpoint: record
+      script: pchar;
+      easymode: boolean;
+    end;
   end;
 
 

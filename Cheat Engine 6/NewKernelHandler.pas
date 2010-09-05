@@ -1052,7 +1052,7 @@ initialization
 
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
 
-  GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'IsWow64Process');
+  GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'GetLargePageMinimum');
 
   if not assigned(GetLargePageMinimum) then
     GetLargePageMinimum:=@GetLargePageMinimumStub;

@@ -216,12 +216,14 @@ begin
 end;
 
 procedure TMemoryRecord.setXMLnode(CheatEntry: TDOMNode);
-var tempnode,tempnode2: TDOMNode;
-i,j,k,l: integer;
+var
+  tempnode,tempnode2: TDOMNode;
+  i,j,k,l: integer;
 
-currentEntry: TDOMNode;
+  currentEntry: TDOMNode;
 
-memrec: TMemoryRecord;
+  memrec: TMemoryRecord;
+  a:TDOMNode;
 begin
   if TDOMElement(CheatEntry).TagName<>'CheatEntry' then exit; //invalid node type
 
@@ -231,6 +233,26 @@ begin
 
   if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
     description:=copy(description,2,length(description)-2);
+
+
+  tempnode:=CheatEntry.FindNode('Options');
+  if tempnode<>nil then
+  begin
+    if tempnode.HasAttributes then
+    begin
+      a:=tempnode.Attributes.GetNamedItem('moHideChildren');
+      if (a<>nil) and (a.TextContent='1') then
+          foptions:=foptions+[moHideChildren];
+
+      a:=tempnode.Attributes.GetNamedItem('moBindActivation');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moBindActivation];
+
+      a:=tempnode.Attributes.GetNamedItem('moRecursiveSetValue');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moRecursiveSetValue];
+    end;
+  end;
 
   tempnode:=CheatEntry.FindNode('GroupHeader');
   if tempnode<>nil then
@@ -421,15 +443,45 @@ var
   cheatEntries: TDOMNode;
   offsets: TDOMNode;
   hks, hk,hkkc: TDOMNode;
+  opt: TDOMNode;
 
   tn: TTreenode;
   i,j: integer;
+  a:TDOMAttr;
 begin
   if selectedonly and (not isselected) then exit; //don't add if not selected and only the selected items should be added
 
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
   cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+description+'"';
+
+  //save options
+  //(moHideChildren, moBindActivation, moRecursiveSetValue);
+  if options<>[] then
+  begin
+    opt:=cheatEntry.AppendChild(doc.CreateElement('Options'));
+
+    if moHideChildren in options then
+    begin
+      a:=doc.CreateAttribute('moHideChildren');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+    if moBindActivation in options then
+    begin
+      a:=doc.CreateAttribute('moBindActivation');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+    if moRecursiveSetValue in options then
+    begin
+      a:=doc.CreateAttribute('moRecursiveSetValue');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+  end;
 
 
 

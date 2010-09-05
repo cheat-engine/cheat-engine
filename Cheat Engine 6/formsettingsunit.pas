@@ -586,10 +586,6 @@ begin
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
 
-      if (cbGlobalDebug.checked) then
-        kdebugger.GlobalDebug:=cbGlobalDebug.checked;
-
-
 
       unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);
       unrandomizersettings.incremental:=cbincremental.Checked;

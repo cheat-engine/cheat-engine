@@ -5,8 +5,9 @@ unit frmBreakpointlistunit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEDebugger,KernelDebugger, ExtCtrls, LResources, ComCtrls;
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  StdCtrls, CEDebugger, KernelDebugger, ExtCtrls, LResources, ComCtrls, Menus,
+  debuggertypedefinitions;
 
 const
   WM_BPUPDATE=WM_USER+1;
@@ -16,10 +17,15 @@ type
 
   TfrmBreakpointlist = class(TForm)
     ListView1: TListView;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    pmBreakpoint: TPopupMenu;
     Timer1: TTimer;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
@@ -36,7 +42,7 @@ var
 implementation
 
 
-uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper;
+uses formsettingsunit, MemoryBrowserFormUnit, DebugHelper, frmBreakpointConditionunit;
 
 procedure TFrmBreakpointlist.update(var m: tmessage);
 begin
@@ -68,6 +74,72 @@ procedure TfrmBreakpointlist.ListBox1DblClick(Sender: TObject);
 begin
   if listview1.ItemIndex>=0 then
     memorybrowser.disassemblerview.SelectedAddress:=StrToInt('$'+listview1.Items[listview1.itemindex].Caption);
+end;
+
+procedure TfrmBreakpointlist.MenuItem1Click(Sender: TObject);
+var bp: Pbreakpoint;
+begin
+  debuggerthread.lockbplist; //prevent the list from updating/deleting bp's
+  try
+    if listview1.Selected<>nil then
+    begin
+      bp:=listview1.Selected.Data;
+      if not bp.markedfordeletion then
+        debuggerthread.RemoveBreakpoint(bp);
+    end;
+  finally
+    debuggerthread.unlockbplist;
+  end;
+end;
+
+procedure TfrmBreakpointlist.MenuItem2Click(Sender: TObject);
+var bp: PBreakpoint;
+  script: string;
+  easy: boolean;
+begin
+  debuggerthread.lockbplist;
+  try
+    if listview1.selected<>nil then
+      bp:=listview1.Selected.Data;
+
+    if bp.markedfordeletion then exit; //useless breakpoint
+
+    //still here so use this breakpoint
+    inc(bp.referencecount);
+
+  finally
+    debuggerthread.unlockbplist;
+  end;
+
+  //still here so bp isn't about to be deleted.
+  try
+    with TfrmBreakpointCondition.create(self) do
+    begin
+      script:=debuggerthread.getbreakpointcondition(bp, easy);
+      if easy then
+        edtEasy.text:=script
+      else
+        mComplex.text:=script;
+
+      rbEasy.Checked:=easy;
+      rbComplex.checked:=not easy;
+
+      if showmodal=mrok then
+      begin
+        easy:=rbEasy.checked;
+        if easy then
+          script:=edtEasy.text
+        else
+          script:=mComplex.text;
+
+        debuggerthread.setbreakpointcondition(bp, easy, script);
+      end;
+      free;
+    end;
+  finally
+    dec(bp.referencecount);
+  end;
+
 end;
 
 procedure TfrmBreakpointlist.Timer1Timer(Sender: TObject);

@@ -350,6 +350,7 @@ type
     binaryStringAsDecimal: boolean;
     readonly: boolean;
     fastscan: boolean;
+    fastscanalignment: integer;
     unicode: boolean;
     casesensitive: boolean;
     percentage: boolean;
@@ -421,8 +422,10 @@ type
 
     FLastScanType: TScanType;
     fscanresultfolder: string; //the location where all the scanfiles will be stored
+
   public
     onlyOne: boolean;
+    Alignment: integer;
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
     function GetErrorString: string;
     function GetFoundCount: uint64;
@@ -3071,6 +3074,10 @@ begin
   end;
 
 
+  if fastscanalignment<>0 then //override the alignment if given
+    fastscanalignsize:=fastscanalignment;
+
+
   OutputDebugString('fillVariableAndFastScanAlignSize:');
 
   OutputDebugString(format('variableType=%d',[integer(variableType)]));
@@ -4104,7 +4111,6 @@ begin
 end;
 
 
-
 function TMemscan.GetErrorString: string;
 begin
   result:='';
@@ -4288,6 +4294,8 @@ begin
 
   scanController.roundingtype:=roundingtype;
   scanController.fastscan:=fastscan;
+  scanController.fastscanalignment:=alignment;
+
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
   scanController.readonly:=readonly;

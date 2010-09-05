@@ -1,5 +1,7 @@
 unit KernelDebugger;
 
+{obsolete}
+
 {$MODE Delphi}
 
 interface
@@ -7,6 +9,7 @@ interface
 uses jwawindows, windows, LCLIntf, classes, sysutils, syncobjs,dialogs,{classes,}CEDebugger,disassembler,NewKernelHandler,FoundCodeUnit,
      {tlhelp32,}ComCtrls,addressparser, graphics, CEFuncProc, debughelper, debuggertypedefinitions;
 
+(*
 type
 
   TKDebugger=class;
@@ -101,14 +104,14 @@ type
     property nrofbreakpoints: integer read getNumberOfBreakpoints;
   end;
 
-var KDebugger: TKDebugger;
+var KDebugger: TKDebugger;  *)
 
 implementation
 
 uses frmProcessWatcherUnit,formchangedaddresses,memorybrowserformunit, frmstacktraceunit;
 
 
-
+    (*
 Procedure TKDebugger.StartDebugger;
 begin
   if processid=0 then raise exception.Create('Please open a process first');
@@ -949,6 +952,6 @@ end;
 
 initialization
   KDebugger:=TKDebugger.create;
-
+ *)
 
 end.

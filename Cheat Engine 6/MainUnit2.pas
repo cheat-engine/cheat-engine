@@ -770,8 +770,6 @@ begin
             if (frmProcessWatcher=nil) then //propably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
-
-          KDebugger.GlobalDebug:=cbGlobalDebug.checked;
           {$endif}
 
 

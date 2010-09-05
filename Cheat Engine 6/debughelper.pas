@@ -53,17 +53,23 @@ type
     function lockThreadlist: TList;
     procedure unlockThreadlist;
 
+    procedure lockbplist;
+    procedure unlockbplist;
+
     procedure updatebplist(lv: TListview);
-    function isBreakpoint(address: uint_ptr): PBreakpoint;
-    function CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
-    function setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
+    procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
+    function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
+
+    function  isBreakpoint(address: uint_ptr): PBreakpoint;
+    function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
+    function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
     procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer);
-    function stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
+    function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     procedure FindWhatCodeAccesses(address: uint_ptr);
-    function FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
+    function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
     procedure FindWhatAccesses(address: uint_ptr; size: integer);
     procedure FindWhatWrites(address: uint_ptr; size: integer);
-    function ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
+    function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 
     procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
     procedure RemoveBreakpoint(breakpoint: PBreakpoint);
@@ -263,23 +269,31 @@ begin
       bp:=PBreakpoint(breakpointlist[i]);
       if bp.markedfordeletion then
       begin
-        if not bp.active then
+        if bp.referencecount=0 then
         begin
-          if bp.deletecountdown=0 then
+          if not bp.active then
           begin
-            outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
-            breakpointlist.Delete(i);
-            freemem(bp);
+            if bp.deletecountdown=0 then
+            begin
+              outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
+              breakpointlist.Delete(i);
 
-            deleted:=true;
-          end else dec(bp.deletecountdown);
-        end
-        else
-        begin
-          UnsetBreakpoint(bp);
-          bp.deletecountdown:=10;
-          //Some douche forgot to disable it first, waste of processing cycle
-          Inc(i);
+              if bp.conditonalbreakpoint.script<>nil then
+                StrDispose(bp.conditonalbreakpoint.script);
+
+              freemem(bp);
+
+              deleted:=true;
+            end else dec(bp.deletecountdown);
+          end
+          else
+          begin
+            //Some douche forgot to disable it first, waste of processing cycle
+            UnsetBreakpoint(bp);
+            bp.deletecountdown:=10;
+
+            Inc(i);
+          end;
         end;
       end
       else
@@ -316,6 +330,17 @@ function TDebuggerThread.isWaitingToContinue: boolean;
 begin
   result:=(CurrentThread<>nil) and (currentthread.isWaitingToContinue);
 end;
+
+procedure TDebuggerThread.lockBPList;
+begin
+  breakpointCS.enter;
+end;
+
+procedure TDebuggerThread.unlockBPList;
+begin
+  breakpointCS.leave;
+end;
+
 
 function TDebuggerThread.lockThreadlist: TList;
 begin
@@ -539,7 +564,7 @@ end;
 
 procedure TDebuggerThread.RemoveBreakpoint(breakpoint: PBreakpoint);
 var
-  j: integer;
+  i,j: integer;
   bp: PBreakpoint;
 begin
   breakpointCS.enter;
@@ -549,6 +574,7 @@ begin
 
     if breakpoint.owner <> nil then //it's a child, but we need the owner
       breakpoint := breakpoint.owner;
+
 
     //clean up all it's children
     for j:=0 to breakpointlist.Count-1 do
@@ -566,6 +592,19 @@ begin
     UnsetBreakpoint(breakpoint);
     breakpoint.markedfordeletion := True;
     //set this flag so it gets deleted on next no-event
+
+    if bp.frmTracer<>nil then
+    begin
+      //go through all thread's to see if it was tracing, if so, set the frm to nil so the tracer knows not to handle it
+      ThreadListCS.enter(1000);
+      try
+        for i:=0 to threadlist.count-1 do
+          TDebugThreadHandler(ThreadList.Items[i]).TracerQuit;
+      finally
+        threadlistCS.leave;
+      end;
+    end;
+
   finally
     breakpointCS.leave;
   end;
@@ -832,14 +871,7 @@ begin
     if Result then
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
 
-    //go through all thread's to see if it was tracing, if so, set the frm to nil so the tracer knows now to handle it
-    ThreadListCS.enter;
-    try
-      for i:=0 to threadlist.count-1 do
-        TDebugThreadHandler(ThreadList.Items[i]).TracerQuit;
-    finally
-      threadlistCS.leave;
-    end;
+
   finally
     breakpointCS.leave;
   end;
@@ -869,6 +901,7 @@ begin
   finally
     breakpointCS.leave;
   end;
+
 
 end;
 
@@ -962,6 +995,26 @@ begin
   AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, frmchangedaddresses);
 end;
 
+procedure TDebuggerthread.setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
+begin
+  breakpointCS.enter;
+
+  if bp.conditonalbreakpoint.script<>nil then
+    StrDispose(bp.conditonalbreakpoint.script);
+
+  bp.conditonalbreakpoint.script:=strnew(pchar(script));
+  bp.conditonalbreakpoint.easymode:=easymode;
+  breakpointCS.leave;
+end;
+
+function TDebuggerthread.getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
+begin
+  breakpointCS.enter;
+  result:=bp.conditonalbreakpoint.script;
+  easymode:=bp.conditonalbreakpoint.easymode;
+  breakpointCS.leave;
+end;
+
 procedure TDebuggerthread.updatebplist(lv: TListview);
 {
 Only called by the breakpointlist form running in the main thread. It's called after the WM_BPUPDATE is sent to the breakpointlist window
@@ -992,6 +1045,8 @@ begin
     li.SubItems.Add(BoolToStr(bp.active,'Yes','No'));
     if bp.markedfordeletion then
       li.SubItems.Add('Yes');
+
+    li.Data:=bp;
   end;
   breakpointCS.leave;
 end;
@@ -1190,16 +1245,6 @@ begin
   threadlist := TList.Create;
   BreakpointList := TList.Create;
   eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, breakpointCS, threadlistCS);
-
-
-  if (KDebugger <> nil) and (KDebugger.isActive) then
-  begin
-
-    if messagedlg('The kerneldebugger is currently active. Enabling the default windows debugger will cause the kernel debugger to terminate itself. Continue?', mtWarning, [mbYes, mbNo], 0) <> mrYes then
-      exit;
-
-    FreeAndNil(KDebugger);
-  end;
 
 
   //get config parameters

@@ -584,6 +584,7 @@ var bytepointer: PByte;
     lastaddress: ptrUint;
     pointermask: integer;
 begin
+  OutputDebugString('TReversePointerListHandler.create');
   bigalloc:=TBigMemoryAllocHandler.create;
 
 
@@ -609,6 +610,8 @@ begin
 
   level0list:=bigalloc.alloc(size);
   ZeroMemory(level0list, size);
+
+  OutputDebugString('Querying memoryregions');
 
   while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
   begin
@@ -646,7 +649,11 @@ begin
   end;
 
 
-  if length(memoryregion)=0 then raise exception.create('No memory found in the specified region');
+  if length(memoryregion)=0 then
+  begin
+    OutputDebugString('No memory found in the specified region');
+    raise exception.create('No memory found in the specified region');
+  end;
 
   //lets search really at the start of the location the user specified
   if (memoryregion[0].BaseAddress<start) and (memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress)>0) then
@@ -719,10 +726,13 @@ begin
   for i:=0 to length(memoryregion)-1 do
     maxsize:=max(maxsize, memoryregion[i].MemorySize);
 
+  outputdebugstring('Allocating '+inttostr(maxsize)+' bytes to ''buffer''');
+
   buffer:=nil;
   try
     getmem(buffer,maxsize);
   except
+    outputdebugstring('Not enough memory free to scan');
     raise exception.Create('Not enough memory free to scan');
   end;
 
@@ -730,6 +740,7 @@ begin
 
     //initial scan to fetch the counts of memory
 
+    outputdebugstring('Initial scan to determine the memory needed');
 
     for i:=0 to length(memoryregion)-1 do
     begin
@@ -783,6 +794,7 @@ begin
     end;
 
     //actual add
+    OutputDebugString('Secondary scan actually allocating the memory and filling in the data');
 
     for i:=0 to length(memoryregion)-1 do
     begin
@@ -835,16 +847,18 @@ begin
     end;
 
     //and fill in the linked list
+    OutputDebugString('filling linked list');
     fillLinkedList;
 
     progressbar.Position:=0;
 
   finally
+    OutputDebugString('Freeing the buffer');
     if buffer<>nil then
       freemem(buffer);
   end;
 
- // showmessage('count='+inttostr(count));
+  OutputDebugString('Finished without an exception');
 end;
 
 end.

@@ -510,6 +510,7 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
+            Width = 47
           end>
         ItemIndex = -1
         OwnerData = True
@@ -676,6 +677,10 @@ object MemoryBrowser: TMemoryBrowser
     object Findoutwhataddressesthisinstructionaccesses1: TMenuItem
       Caption = 'Find out what addresses this instruction accesses'
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Set/Change break condition'
+      OnClick = MenuItem1Click
     end
   end
   object Timer2: TTimer
@@ -950,6 +955,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object miLuaEngine: TMenuItem
         Caption = 'Lua Engine'
+        ShortCut = 16460
         OnClick = miLuaEngineClick
       end
       object N11: TMenuItem

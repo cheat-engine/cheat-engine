@@ -59,50 +59,59 @@ function TBigMemoryAllocHandler.alloc(size: integer):pointer;
 var newsize: size_t;
   flAllocationType : dword;
   lpm: size_t;
+  e: integer;
 begin
-try
-  if size>memoryleft then
-  begin
-    //need to alloce a new memory regions
-    lpm:=GetLargePageMinimum;
-    newsize:=lpm;
-    if newsize=0 then
-      newsize:=2*1024*1024; //2mb
-
-    newsize:=newsize*lastsize;
-    if newsize<16*1024*1024 then
-      inc(lastsize); //next time allocate more memory
-
-    if newsize<size then
-      raise Exception.create('some really fucked up parameter is given for size:'+inttostr(size));
-
-    flAllocationType:=MEM_COMMIT or MEM_RESERVE;
-    if lpm>0 then //cpu supports large pages
-      flAllocationType:=flAllocationType or MEM_LARGE_PAGES;
-
-    currentbuffer:=VirtualAlloc(nil,newsize, flAllocationType , PAGE_READWRITE);
-    if currentbuffer=nil then
-      raise Exception.create('VirtualAlloc failed');
-
-    allocs[allocspos]:=currentbuffer;
-    inc(allocspos);
-    if allocspos>=allocssize then
+  try
+    if size>memoryleft then
     begin
-      allocssize:=min(allocssize*2, allocssize+4096); //allocate twice the ammount it was, with a max of 4096
-      setlength(allocs,allocssize);
+      //need to alloce a new memory regions
+      lpm:=GetLargePageMinimum;
+      newsize:=lpm;
+      if newsize=0 then
+        newsize:=2*1024*1024; //2mb
+
+      newsize:=newsize*lastsize;
+      if newsize<16*1024*1024 then
+        inc(lastsize); //next time allocate more memory
+
+      if newsize<size then
+        raise Exception.create('some really fucked up parameter is given for size:'+inttostr(size));
+
+      flAllocationType:=MEM_COMMIT or MEM_RESERVE;
+      if lpm>0 then //cpu supports large pages
+        flAllocationType:=flAllocationType or MEM_LARGE_PAGES;
+
+
+      currentbuffer:=VirtualAlloc(nil,newsize, flAllocationType , PAGE_READWRITE);
+      while (currentbuffer=nil) and (newsize>size) do
+      begin
+        currentbuffer:=VirtualAlloc(nil,newsize, MEM_COMMIT or MEM_RESERVE , PAGE_READWRITE);
+        if currentbuffer=nil then
+          newsize:=newsize div 2;
+      end;
+
+      if currentbuffer=nil then raise exception.create('VirtualAlloc failed');
+
+      allocs[allocspos]:=currentbuffer;
+      inc(allocspos);
+      if allocspos>=allocssize then
+      begin
+        allocssize:=min(allocssize*2, allocssize+4096); //allocate twice the ammount it was, with a max of 4096
+        setlength(allocs,allocssize);
+      end;
+
+
+      memoryleft:=newsize;
     end;
 
 
-    memoryleft:=newsize;
+    result:=currentBuffer;
+    inc(pbyte(currentbuffer),size); //adjust the pointer to point to the next free spot
+    dec(memoryleft,size);
+  except
+    on e: Exception do
+      messagebox(0,pchar(e.message),'CE Pointerscan memory manager',0);
   end;
-
-
-  result:=currentBuffer;
-  inc(pbyte(currentbuffer),size); //adjust the pointer to point to the next free spot
-  dec(memoryleft,size);
-except
-  messagebox(0,'Allocation error','CE Pointerscan memory manager',0);
-end;
 
 end;
 

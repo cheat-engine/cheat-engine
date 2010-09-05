@@ -98,7 +98,8 @@ uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM;
 
 procedure TAddresslist.refresh;
 begin
-  treeview.Refresh;
+  if treeview<>nil then
+    treeview.Refresh;
 end;
 
 procedure TAddresslist.clear;
@@ -163,7 +164,10 @@ end;
 
 function TAddresslist.GetCount: integer;
 begin
-  result:=treeview.items.count;
+  if treeview<>nil then
+    result:=treeview.items.count
+  else
+    result:=0;
 end;
 
 function TAddresslist.GetMemRecItemByIndex(i: integer): TMemoryRecord;
@@ -1106,10 +1110,13 @@ begin
       if not ((node=CurrentlyDraggedOverNode) and (not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter))) then //don't draw the rest on insert drag/drop
       begin
         sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
-        if memrec.VarType=vtCustom then
-          sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName)
-        else
-          sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
+        case memrec.vartype of
+          vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName);
+          vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
+          else sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
+        end;
+
+
         sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
       end;
     end

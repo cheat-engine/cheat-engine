@@ -2,10 +2,10 @@ object frmBreakpointlist: TfrmBreakpointlist
   Left = 743
   Height = 292
   Top = 164
-  Width = 672
+  Width = 670
   Caption = 'Breakpoint list'
   ClientHeight = 292
-  ClientWidth = 672
+  ClientWidth = 670
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -16,7 +16,7 @@ object frmBreakpointlist: TfrmBreakpointlist
     Left = 0
     Height = 292
     Top = 0
-    Width = 672
+    Width = 670
     Align = alClient
     Columns = <    
       item
@@ -59,6 +59,7 @@ object frmBreakpointlist: TfrmBreakpointlist
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFF
     }
+    PopupMenu = pmBreakpoint
     TabOrder = 0
     ViewStyle = vsReport
   end
@@ -67,5 +68,17 @@ object frmBreakpointlist: TfrmBreakpointlist
     OnTimer = Timer1Timer
     left = 45
     top = 108
+  end
+  object pmBreakpoint: TPopupMenu
+    left = 140
+    top = 116
+    object MenuItem1: TMenuItem
+      Caption = 'Delete breakpoint'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Set/change condition'
+      OnClick = MenuItem2Click
+    end
   end
 end

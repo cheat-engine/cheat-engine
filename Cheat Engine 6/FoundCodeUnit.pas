@@ -430,18 +430,10 @@ var original: dword;
 begin
   if btnOK.caption=strStop then
   begin
-    if kdebugger.isactive then
-    begin
-      //todo: Make this only disable the related breakpoints
-      kdebugger.DisableAllBreakpoints;
-      btnOK.caption:=strClose;
-    end
-    else
-    begin
-      debuggerthread.CodeFinderStop(self);
-      btnOK.caption:=strClose;
-    end;
-  end else close;
+    debuggerthread.CodeFinderStop(self);
+    btnOK.caption:=strClose;
+  end
+  else close;
 
 
 end;

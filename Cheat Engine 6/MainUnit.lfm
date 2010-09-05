@@ -392,7 +392,7 @@ object MainForm: TMainForm
       OnClick = cbSpeedhackClick
       ParentShowHint = False
       ShowHint = True
-      TabOrder = 24
+      TabOrder = 23
       Visible = False
     end
     object NewScan: TButton
@@ -529,6 +529,15 @@ object MainForm: TMainForm
         Caption = 'Stop'
         ParentColor = False
       end
+      object edtAlignment: TEdit
+        Left = 72
+        Height = 21
+        Top = 66
+        Width = 112
+        Enabled = False
+        TabOrder = 5
+        Text = '4'
+      end
     end
     object NextScanButton: TButton
       Left = 286
@@ -571,7 +580,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 253
+      Left = 254
       Height = 21
       Top = 144
       Width = 170
@@ -870,15 +879,6 @@ object MainForm: TMainForm
       OnMouseDown = cbUnrandomizerMouseDown
       TabOrder = 18
     end
-    object mode16: TCheckBox
-      Left = 96
-      Height = 19
-      Top = 320
-      Width = 58
-      Caption = 'mode16'
-      TabOrder = 19
-      Visible = False
-    end
     object Button2: TButton
       Left = 199
       Height = 25
@@ -886,7 +886,7 @@ object MainForm: TMainForm
       Width = 75
       Caption = 'First Scan2'
       OnClick = Button2Click
-      TabOrder = 20
+      TabOrder = 19
       Visible = False
     end
     object Button4: TButton
@@ -896,7 +896,7 @@ object MainForm: TMainForm
       Width = 75
       Caption = 'Next scan 2'
       OnClick = Button4Click
-      TabOrder = 21
+      TabOrder = 20
       Visible = False
     end
     object LogoPanel: TPanel
@@ -910,7 +910,7 @@ object MainForm: TMainForm
       ClientHeight = 84
       ClientWidth = 50
       FullRepaint = False
-      TabOrder = 22
+      TabOrder = 21
       object Logo: TImage
         Cursor = crHandPoint
         Left = 0
@@ -1255,7 +1255,7 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       ClientHeight = 94
       ClientWidth = 119
-      TabOrder = 23
+      TabOrder = 22
       Visible = False
       object Label54: TLabel
         Left = 13

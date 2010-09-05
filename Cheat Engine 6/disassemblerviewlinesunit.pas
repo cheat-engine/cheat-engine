@@ -255,8 +255,7 @@ begin
     bp:=nil;
 
 
-  isbp:=((kdebugger.isactive) and (kdebugger.isExecutableBreakpoint(faddress))) or
-        ((bp<>nil) and (bp.breakpointTrigger=bptExecute));
+  isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute);
   
   if selected then
   begin

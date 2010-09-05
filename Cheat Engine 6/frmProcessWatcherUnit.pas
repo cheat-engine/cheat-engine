@@ -304,9 +304,6 @@ begin
 
     for i:=0 to count-1 do
     begin
-      if (kdebugger.isactive) and (z^.Created>0) and (z^.processid=ProcessID) then
-          KDebugger.AddThread(z^.ThreadID);
-
       self.created:=z^.Created>0;
       self.pid:=z^.ProcessID;
       self.tid:=z^.threadid;

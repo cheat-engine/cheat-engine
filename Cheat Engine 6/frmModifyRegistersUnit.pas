@@ -270,96 +270,6 @@ begin
 
 
   end;
-
-  if KDebugger.isActive then
-  begin
-  {
-    //find the address in debuggerthread.registermodificationBPs
-    for i:=0 to 3 do
-      if debuggerthread2.breakpoints[i]=address then
-      begin
-        if debuggerthread2.breakpointchanges[i].change_eax then
-        begin
-          checkbox1.checked:=true;
-          edit1.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_eax,8);
-        end;
-
-        if debuggerthread2.breakpointchanges[i].change_ebx then
-        begin
-          checkbox2.checked:=true;
-          edit2.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_ebx,8);
-        end;
-
-        if debuggerthread2.breakpointchanges[i].change_ecx then
-        begin
-          checkbox3.checked:=true;
-          edit3.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_ecx,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_edx then
-        begin
-          checkbox4.checked:=true;
-          edit4.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_edx,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_esi then
-        begin
-          checkbox5.checked:=true;
-          edit5.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_esi,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_edi then
-        begin
-          checkbox6.checked:=true;
-          edit6.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_edi,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_ebp then
-        begin
-          checkbox7.checked:=true;
-          edit7.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_ebp,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_esp then
-        begin
-          checkbox8.checked:=true;
-          edit8.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_esp,8);
-        end;
-        if debuggerthread2.breakpointchanges[i].change_eip then
-        begin
-          checkbox9.checked:=true;
-          edit9.Text:=inttohex(debuggerthread2.breakpointchanges[i].new_eip,8);
-        end;
-
-        if debuggerthread2.breakpointchanges[i].change_cf then
-        begin
-          checkbox10.checked:=true;
-          checkbox16.checked:=debuggerthread2.breakpointchanges[i].new_cf;
-        end;
-        if debuggerthread2.breakpointchanges[i].change_pf then
-        begin
-          checkbox11.checked:=true;
-          checkbox17.checked:=debuggerthread2.breakpointchanges[i].new_pf;
-        end;
-        if debuggerthread2.breakpointchanges[i].change_af then
-        begin
-          checkbox12.checked:=true;
-          checkbox18.checked:=debuggerthread2.breakpointchanges[i].new_af;
-        end;
-        if debuggerthread2.breakpointchanges[i].change_zf then
-        begin
-          checkbox13.checked:=true;
-          checkbox19.checked:=debuggerthread2.breakpointchanges[i].new_zf;
-        end;
-        if debuggerthread2.breakpointchanges[i].change_sf then
-        begin
-          checkbox14.checked:=true;
-          checkbox20.checked:=debuggerthread2.breakpointchanges[i].new_sf;
-        end;
-        if debuggerthread2.breakpointchanges[i].change_of then
-        begin
-          checkbox15.checked:=true;
-          checkbox21.checked:=debuggerthread2.breakpointchanges[i].new_of;
-        end;
-
-      end;
-      }
-  end;
 end;
 
 
@@ -546,17 +456,8 @@ begin
   if tempregedit.change_of then tempregedit.new_of:=checkbox21.checked;
 
   //set a breakpoint at this spot
-  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
-  begin
-    KDebugger.StartDebugger;  //if it wasn't enabled yet
-    KDebugger.SetBreakpoint(address, bt_OnInstruction, 1, bo_ChangeRegister, @tempregedit);
-  end
-  else
-  begin
-    if debuggerthread<>nil then
-      debuggerthread.setChangeRegBreakpoint(@tempregedit);
-
-  end;
+  if debuggerthread<>nil then
+    debuggerthread.setChangeRegBreakpoint(@tempregedit);
 
   memorybrowser.disassemblerview.Update;
   modalresult:=mrok;

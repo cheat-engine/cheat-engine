@@ -19,6 +19,7 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
+    MenuItem1: TMenuItem;
     miTextPreferences: TMenuItem;
     miLuaEngine: TMenuItem;
     miPaging: TMenuItem;
@@ -181,6 +182,7 @@ type
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
     procedure Button1Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
     procedure miLuaEngineClick(Sender: TObject);
@@ -458,7 +460,8 @@ uses Valuechange,
   frmDebugEventsUnit,
   frmPagingUnit,
   frmluaengineunit,
-  disassemblerviewlinesunit
+  disassemblerviewlinesunit,
+  frmBreakpointConditionunit
   ;
 
 
@@ -602,7 +605,7 @@ procedure TMemoryBrowser.miLuaEngineClick(Sender: TObject);
 begin
   //start lua engine window
   if frmLuaEngine=nil then
-    frmLuaEngine:=TfrmLuaEngine.create(nil);
+    frmLuaEngine:=TfrmLuaEngine.create(MemoryBrowser); //main mb
 
   frmLuaEngine.show;
 
@@ -616,6 +619,49 @@ end;
 procedure TMemoryBrowser.Button1Click(Sender: TObject);
 begin
 
+end;
+
+procedure TMemoryBrowser.MenuItem1Click(Sender: TObject);
+var
+  script: string;
+  easy: boolean;
+  bp: PBreakpoint;
+begin
+  bp:=debuggerthread.isBreakpoint(disassemblerview.SelectedAddress);
+  if bp<>nil then
+  begin
+    inc(bp.referencecount);
+    try
+      with TfrmBreakpointCondition.create(self) do
+      begin
+        script:=debuggerthread.getbreakpointcondition(bp, easy);
+        if easy then
+          edtEasy.text:=script
+        else
+          mComplex.text:=script;
+
+        rbEasy.Checked:=easy;
+        rbComplex.checked:=not easy;
+
+        if showmodal=mrok then
+        begin
+          easy:=rbEasy.checked;
+          if easy then
+            script:=edtEasy.text
+          else
+            script:=mComplex.text;
+
+          debuggerthread.setbreakpointcondition(bp, easy, script);
+        end;
+
+        free;
+      end;
+
+    finally
+      dec(bp.referencecount);
+    end;
+
+  end;
 end;
 
 procedure TMemoryBrowser.miTextPreferencesClick(Sender: TObject);
@@ -1092,10 +1138,6 @@ end;
 
 procedure TMemoryBrowser.Run1Click(Sender: TObject);
 begin
-
-  if kdebugger.isactive then
-    kdebugger.continue(co_run)
-  else
   if debuggerthread<>nil then
     debuggerthread.ContinueDebugging(co_run);
 
@@ -1104,9 +1146,6 @@ end;
 
 procedure TMemoryBrowser.Step1Click(Sender: TObject);
 begin
-  if kdebugger.isactive then
-    kdebugger.continue(co_stepinto)
-  else
   if debuggerthread<>nil then
     debuggerthread.ContinueDebugging(co_stepinto);
 
@@ -1141,9 +1180,6 @@ begin
   end
   else
   begin
-    if kdebugger.isactive then
-      kdebugger.continue(co_stepover)
-    else
     if debuggerthread<>nil then
       debuggerthread.continueDebugging(co_runtill, x);
   end;
@@ -1158,15 +1194,9 @@ var x: ptrUint;
     int3: byte;
     original,a,written:dword;
 begin
-  if kdebugger.isactive then
-  begin
-    kdebugger.continue(co_runtill, disassemblerview.SelectedAddress);
-  end
-  else
   if debuggerthread<>nil then
-  begin
     debuggerthread.ContinueDebugging(co_run, disassemblerview.SelectedAddress);
-  end;
+
   caption:='Memory Viewer - Running';
 end;
 
@@ -1750,15 +1780,6 @@ procedure TMemoryBrowser.Changestateofregisteratthislocation1Click(
   Sender: TObject);
 begin
 {$ifndef net}
-  if foundcodedialog<>nil then //todo: this is kinda obsolete
-    raise exception.Create('I can''t do that! You are currently using one of the code finder options, please, stop it first');
-
-  if (formsettings.cbKdebug.checked) and (kdebugger.isactive) and (kdebugger.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up
-
-  if (not formsettings.cbKdebug.checked) then
-    if (not startdebuggerifneeded) then exit;
-
-
   tfrmModifyRegisters.create(self,disassemblerview.SelectedAddress).showmodal;
 {$endif}
 end;
@@ -1767,22 +1788,11 @@ procedure TMemoryBrowser.ogglebreakpoint1Click(Sender: TObject);
 begin
 
 {$ifndef net}
-  if (formsettings.cbKdebug.checked) and (debuggerthread=nil) then
+  if startdebuggerifneeded(true) then
   begin
-    KDebugger.StartDebugger;
-    KDebugger.ToggleBreakpoint(disassemblerview.SelectedAddress);
-  end
-  else
-  begin
-    //normal debugger
-    if startdebuggerifneeded(true) then
-    begin
-      DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress);
-      disassemblerview.Update;
-    end;
+    DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress);
+    disassemblerview.Update;
   end;
-
-
 {$endif}
 end;
 

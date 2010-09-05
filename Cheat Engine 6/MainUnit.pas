@@ -157,6 +157,7 @@ type
 
   TMainForm = class(TForm)
     CreateGroup: TMenuItem;
+    edtAlignment: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -177,7 +178,6 @@ type
     miAddTab: TMenuItem;
     miFreezePositive: TMenuItem;
     miFreezeNegative: TMenuItem;
-    mode16: TCheckBox;
     Panel1: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
@@ -1352,6 +1352,8 @@ begin
     Groupbox1.Enabled:=true;
     for i:=0 to groupbox1.ControlCount-1 do
       groupbox1.Controls[i].Enabled:=true;
+
+    cbFastScanClick(cbfastscan);
   end;
 
   scanvalue.Enabled:=true;
@@ -1685,7 +1687,8 @@ end;
 
 procedure TMainform.reinterpretaddresses;
 begin
-  addresslist.ReinterpretAddresses;
+  if addresslist<>nil then
+    addresslist.ReinterpretAddresses;
 end;
 
 
@@ -2583,6 +2586,8 @@ begin
     for i:=0 to GroupBox1.ControlCount-1 do
       GroupBox1.Controls[i].Enabled:=newstate.groupbox1enabled;
 
+    cbFastScanClick(cbfastscan);    //update the alignment textbox
+
     pnlfloat.visible:=newstate.floatpanel.visible;
     rt1.checked:=newstate.floatpanel.rounded;
     rt2.checked:=newstate.floatpanel.roundedextreme;
@@ -2877,6 +2882,8 @@ begin
   for i:=0 to groupbox1.ControlCount-1 do
     groupbox1.Controls[i].Enabled:=true;
 
+  cbFastScanClick(cbfastscan);
+
 
   VartypeChange(vartype);
   foundlist.deleteresults;
@@ -2920,7 +2927,10 @@ var
   x: array of integer;
 
   errormode: dword;
+  minworkingsize, maxworkingsize: size_t;
 begin
+
+
 
   forms.Application.ShowButtonGlyphs:=sbgNever;
   application.OnException := exceptionhandler;
@@ -2938,13 +2948,17 @@ begin
   pid := GetCurrentProcessID;
 
   ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, pid);
+
+
+
+
   tokenhandle := 0;
 
   if ownprocesshandle <> 0 then
   begin
-    if OpenProcessToken(ownprocesshandle, TOKEN_QUERY or
-      TOKEN_ADJUST_PRIVILEGES, tokenhandle) then
+    if OpenProcessToken(ownprocesshandle, TOKEN_QUERY or TOKEN_ADJUST_PRIVILEGES, tokenhandle) then
     begin
+      ZeroMemory(@tp,sizeof(tp));
       if lookupPrivilegeValue(nil, 'SeDebugPrivilege', tp.Privileges[0].Luid) then
       begin
         tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
@@ -2954,8 +2968,23 @@ begin
           ShowMessage('Failure setting the debug privilege. Debugging may be limited.');
       end;
 
+
+      ZeroMemory(@tp,sizeof(tp));
+      if lookupPrivilegeValue(nil, SE_LOAD_DRIVER_NAME, tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if not AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),
+          prev, returnlength) then
+          ShowMessage('Failure setting the load driver privilege. Debugging may be limited.');
+      end;
+
+
+
+
       if GetSystemType>=7 then
       begin
+        ZeroMemory(@tp,sizeof(tp));
         if lookupPrivilegeValue(nil, 'SeCreateGlobalPrivilege', tp.Privileges[0].Luid) then
         begin
           tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
@@ -2964,8 +2993,40 @@ begin
             prev, returnlength) then
             ShowMessage('Failure setting the CreateGlobal privilege.');
         end;
+
+
+
+        {$ifdef cpu64}
+        ZeroMemory(@tp,sizeof(tp));
+        ZeroMemory(@prev, sizeof(prev));
+        if lookupPrivilegeValue(nil, 'SeLockMemoryPrivilege', tp.Privileges[0].Luid) then
+        begin
+          tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+          tp.PrivilegeCount := 1; // One privilege to set
+          AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+        end;
+
+        {$endif}
       end;
+
+
+      ZeroMemory(@tp,sizeof(tp));
+      ZeroMemory(@prev, sizeof(prev));
+      if lookupPrivilegeValue(nil, 'SeIncreaseWorkingSetPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+      end;
+
+
+
     end;
+
+    if GetProcessWorkingSetSize(ownprocesshandle, minworkingsize, maxworkingsize) then
+      SetProcessWorkingSetSize(ownprocesshandle, 16*1024*1024, 64*1024*1024);
+
+
   end;
 
 
@@ -3115,7 +3176,8 @@ end;
 
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
 begin
-  addresslist.Refresh;
+  if addresslist<>nil then
+    addresslist.Refresh;
 
   updatetimer.Enabled:=false;
 
@@ -3129,7 +3191,8 @@ procedure TMainForm.FreezeTimerTimer(Sender: TObject);
 var x: double;
 begin
   freezetimer.enabled:=false;
-  addresslist.ApplyFreeze;
+  if addresslist<>nil then
+    addresslist.ApplyFreeze;
   freezetimer.enabled:=true;
 
   AvailMem;
@@ -3379,6 +3442,8 @@ var
   newvartype: integer;
   unicodevis: boolean;
   tc: tbitmap;
+
+  oldalignsize, alignsize: integer;
 begin
   //todo: rewrite this
   oldscantype:=scantype.ItemIndex;
@@ -3396,8 +3461,39 @@ begin
 
   decbitvis:=false;
 
-  //convertroutine:
 
+  //alignsize
+  case newvartype of
+    1: alignsize:=1;
+    2: alignsize:=2;
+    else alignsize:=4;
+  end;
+
+  if vartype.Items.Objects[vartype.ItemIndex]<>nil then
+  begin
+    //custom type is ALWAYS the decider
+    edtAlignment.text:=inttohex(TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize,1);
+  end
+  else
+  begin
+    try
+      oldalignsize:=strtoint('$'+edtAlignment.text);
+      //still here
+
+      case oldvartype of
+        1: if oldalignsize<>1 then alignsize:=oldalignsize; //non standard alignment for this type
+        2: if oldalignsize<>2 then alignsize:=oldalignsize; //non standard alignment for this type
+        else if oldalignsize<>4 then alignsize:=oldalignsize; //non standard alignment for this type
+      end;
+
+      edtAlignment.text:=inttohex(alignsize,1);
+    except
+    end;
+  end;
+
+
+
+  //convertroutine:
   if (oldvartype in [1,2,3,4,5,6,9]) or (oldvartype>10) then
   begin
     //it was one of the normal values
@@ -4698,6 +4794,7 @@ end;
 
 procedure TMainForm.cbFastScanClick(Sender: TObject);
 begin
+  edtAlignment.enabled:=cbFastScan.checked;
 end;
 
 
@@ -5340,6 +5437,8 @@ var
   svalue2: string;
   percentage: boolean;
 begin
+
+
   foundlist.Deinitialize; //unlock file handles
 
   if cbpercentage<>nil then
@@ -5372,6 +5471,7 @@ begin
 
 
 
+    memscan.alignment:=strtoint('$'+edtAlignment.text);
     memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
@@ -5878,6 +5978,10 @@ begin
 end;
 
 initialization
+  DecimalSeparator:='.';
+  ThousandSeparator:=',';
+
+
   {$i MainUnit.lrs}
 
 end.
