@@ -558,39 +558,98 @@ object MemoryBrowser: TMemoryBrowser
     object DisplayType1: TMenuItem
       Caption = 'Display Type'
       object dispBytes: TMenuItem
+        AutoCheck = True
         Caption = 'Byte hex'
+        Checked = True
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16433
         OnClick = DisplayTypeClick
       end
       object dispWords: TMenuItem
         Tag = 1
+        AutoCheck = True
         Caption = '2 Byte hex'
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16434
         OnClick = DisplayTypeClick
       end
       object dispDwords: TMenuItem
         Tag = 2
+        AutoCheck = True
         Caption = '4 Byte hex'
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16435
         OnClick = DisplayTypeClick
       end
       object dispInts: TMenuItem
         Tag = 3
+        AutoCheck = True
         Caption = '4 Byte decimal'
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16436
         OnClick = DisplayTypeClick
       end
-      object dispFloat: TMenuItem
+      object dispQwords: TMenuItem
         Tag = 4
-        Caption = 'Float'
+        AutoCheck = True
+        Caption = '8 Byte hex'
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16437
         OnClick = DisplayTypeClick
       end
-      object dispDouble: TMenuItem
+      object dispFloat: TMenuItem
         Tag = 5
-        Caption = 'Double'
+        AutoCheck = True
+        Caption = 'Float'
+        GroupIndex = 3
+        RadioItem = True
         ShortCut = 16438
         OnClick = DisplayTypeClick
+      end
+      object dispDouble: TMenuItem
+        Tag = 6
+        AutoCheck = True
+        Caption = 'Double'
+        GroupIndex = 3
+        RadioItem = True
+        ShortCut = 16439
+        OnClick = DisplayTypeClick
+      end
+    end
+    object miSeperators: TMenuItem
+      Caption = 'Seperators'
+      object miSepEvery2Bytes: TMenuItem
+        Tag = 2
+        AutoCheck = True
+        Caption = '2 Bytes'
+        GroupIndex = 2
+        RadioItem = True
+        ShortCut = 49201
+        OnClick = miSepClick
+      end
+      object miSepEvery4Bytes: TMenuItem
+        Tag = 4
+        AutoCheck = True
+        Caption = '4 Bytes'
+        GroupIndex = 2
+        RadioItem = True
+        ShortCut = 49202
+        OnClick = miSepClick
+      end
+      object miSepEvery8Bytes: TMenuItem
+        Tag = 8
+        AutoCheck = True
+        Caption = '8 Bytes'
+        Checked = True
+        GroupIndex = 2
+        RadioItem = True
+        ShortCut = 49203
+        OnClick = miSepClick
       end
     end
     object miLockRowsize: TMenuItem
@@ -678,9 +737,9 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Find out what addresses this instruction accesses'
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
-    object MenuItem1: TMenuItem
+    object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'
-      OnClick = MenuItem1Click
+      OnClick = miConditionalBreakClick
     end
   end
   object Timer2: TTimer

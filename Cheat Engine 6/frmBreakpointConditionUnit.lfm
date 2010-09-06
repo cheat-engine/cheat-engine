@@ -64,8 +64,8 @@ object frmBreakpointCondition: TfrmBreakpointCondition
         Left = 4
         Height = 16
         Top = 32
-        Width = 125
-        Caption = 'Example: eax == 0x1234'
+        Width = 380
+        Caption = 'Example: EAX == 0x1234  (case sensitive and hexadecimal starts with 0x )'
         ParentColor = False
       end
     end

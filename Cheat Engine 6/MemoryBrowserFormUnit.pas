@@ -19,7 +19,12 @@ type
   { TMemoryBrowser }
 
   TMemoryBrowser = class(TForm)
-    MenuItem1: TMenuItem;
+    dispQwords: TMenuItem;
+    miSepEvery4Bytes: TMenuItem;
+    miSepEvery8Bytes: TMenuItem;
+    miSepEvery2Bytes: TMenuItem;
+    miSeperators: TMenuItem;
+    miConditionalBreak: TMenuItem;
     miTextPreferences: TMenuItem;
     miLuaEngine: TMenuItem;
     miPaging: TMenuItem;
@@ -182,7 +187,9 @@ type
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
     procedure Button1Click(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure dispQwordsClick(Sender: TObject);
+    procedure miConditionalBreakClick(Sender: TObject);
+    procedure miSepClick(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
     procedure miLuaEngineClick(Sender: TObject);
@@ -621,7 +628,12 @@ begin
 
 end;
 
-procedure TMemoryBrowser.MenuItem1Click(Sender: TObject);
+procedure TMemoryBrowser.dispQwordsClick(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.miConditionalBreakClick(Sender: TObject);
 var
   script: string;
   easy: boolean;
@@ -662,6 +674,11 @@ begin
     end;
 
   end;
+end;
+
+procedure TMemoryBrowser.miSepClick(Sender: TObject);
+begin
+  hexview.bytesPerSeperator:=TMenuItem(sender).Tag;
 end;
 
 procedure TMemoryBrowser.miTextPreferencesClick(Sender: TObject);
@@ -2057,10 +2074,16 @@ begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   ogglebreakpoint1.Enabled:=processhandle<>0;
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
+  Findoutwhataddressesthisinstructionaccesses1.enabled:=processhandle<>0;
+
   follow1.visible:=isjumporcall(disassemblerview.SelectedAddress,x);
   back1.Visible:=backlist.Count>0;
 
   pluginhandler.handledisassemblerContextPopup(disassemblerview.SelectedAddress);
+
+  miConditionalBreak.enabled:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil);
+
+
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
@@ -2304,8 +2327,9 @@ begin
       1: hexview.DisplayType:=dtWord;
       2: hexview.DisplayType:=dtDword;
       3: hexview.DisplayType:=dtDwordDec;
-      4: hexview.DisplayType:=dtsingle;
-      5: hexview.DisplayType:=dtDouble;
+      4: hexview.DisplayType:=dtQword;
+      5: hexview.DisplayType:=dtsingle;
+      6: hexview.DisplayType:=dtDouble;
     end;
   end;
 end;

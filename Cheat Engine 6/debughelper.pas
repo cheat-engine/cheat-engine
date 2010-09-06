@@ -63,7 +63,7 @@ type
     function  isBreakpoint(address: uint_ptr): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
-    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer);
+    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer; condition:string='');
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     procedure FindWhatCodeAccesses(address: uint_ptr);
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
@@ -280,6 +280,9 @@ begin
 
               if bp.conditonalbreakpoint.script<>nil then
                 StrDispose(bp.conditonalbreakpoint.script);
+
+              if bp.traceendcondition<>nil then
+                Strdispose(bp.traceendcondition);
 
               freemem(bp);
 
@@ -952,24 +955,37 @@ begin
   result:=AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
 end;
 
-procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer);
+procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; count: integer; condition:string='');
 var
   method: TBreakpointMethod;
   useddebugregister: integer;
+  bp: PBreakpoint;
 begin
-  method:=bpmDebugRegister;
-  usedDebugRegister := GetUsableDebugRegister;
-  if usedDebugRegister = -1 then
-  begin
-    if MessageDlg(
-      'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
-      method := bpmInt3
-    else
-      exit;
+  breakpointCS.enter;
+  try
 
+    method:=bpmDebugRegister;
+    usedDebugRegister := GetUsableDebugRegister;
+    if usedDebugRegister = -1 then
+    begin
+      if MessageDlg(
+        'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+        method := bpmInt3
+      else
+        exit;
+
+    end;
+
+
+
+    bp:=AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, nil,frmTracer,count);
+    if bp<>nil then
+      bp.traceendcondition:=strnew(pchar(condition));
+
+
+  finally
+    breakpointCS.leave;
   end;
-
-  AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, nil,frmTracer,count);
 end;
 
 procedure TDebuggerthread.FindWhatCodeAccesses(address: uint_ptr);

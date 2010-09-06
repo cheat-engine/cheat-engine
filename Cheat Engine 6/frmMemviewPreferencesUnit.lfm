@@ -3,7 +3,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   Height = 256
   Top = 380
   Width = 193
-  Caption = 'Memoryview Preferences'
+  Caption = 'Disassembler Preferences'
   ClientHeight = 256
   ClientWidth = 193
   OnCreate = FormCreate

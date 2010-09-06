@@ -49,6 +49,10 @@ type
       checked: boolean;
     end;
 
+    edtAlignment: record
+      text: string;
+    end;
+
 
 
 
@@ -2448,6 +2452,7 @@ begin
   scanstate.ReadOnly.checked:=readonly.checked;
 
   scanstate.cbfastscan.checked:=cbFastScan.checked;
+  scanstate.edtAlignment.text:=edtAlignment.Text;
 
   scanstate.scanvalue.text:=scanvalue.text;
   scanstate.scanvalue.visible:=scanvalue.visible;
@@ -2581,6 +2586,8 @@ begin
 
     nextscanbutton.Enabled:=newstate.nextscanstate.enabled;
 
+    cbFastScan.Checked:=newstate.cbfastscan.checked;
+    edtAlignment.Text:=newstate.edtAlignment.text;
 
     GroupBox1.Enabled:=newstate.groupbox1enabled;
     for i:=0 to GroupBox1.ControlCount-1 do
@@ -4794,7 +4801,10 @@ end;
 
 procedure TMainForm.cbFastScanClick(Sender: TObject);
 begin
-  edtAlignment.enabled:=cbFastScan.checked;
+  edtAlignment.enabled:=cbFastScan.checked and cbfastscan.enabled;
+
+
+
 end;
 
 

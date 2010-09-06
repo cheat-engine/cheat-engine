@@ -171,6 +171,8 @@ type
     frmchangedaddresses: Tfrmchangedaddresses;
     frmTracer: TfrmTracer;
     tracecount: integer;
+    traceendcondition: pchar;
+
     //set if it's a bpaFetchRegistersandcontinue set on memory access
     //ChangedAddresses: TfrmChangedAddresses; //set if it's a bpaFetchRegistersandcontinue set on execute
     ThreadID: DWORD;

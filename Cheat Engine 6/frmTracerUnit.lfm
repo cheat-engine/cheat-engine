@@ -1,14 +1,15 @@
 object frmTracer: TfrmTracer
-  Left = 695
-  Height = 370
-  Top = 405
+  Left = 917
+  Height = 391
+  Top = 275
   Width = 410
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
-  ClientHeight = 370
+  ClientHeight = 371
   ClientWidth = 410
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -17,7 +18,7 @@ object frmTracer: TfrmTracer
   LCLVersion = '0.9.29'
   object Splitter1: TSplitter
     Left = 188
-    Height = 370
+    Height = 371
     Top = 0
     Width = 4
     Align = alRight
@@ -25,7 +26,7 @@ object frmTracer: TfrmTracer
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 370
+    Height = 371
     Top = 0
     Width = 188
     Align = alClient
@@ -36,12 +37,12 @@ object frmTracer: TfrmTracer
   end
   object Panel1: TPanel
     Left = 192
-    Height = 370
+    Height = 371
     Top = 0
     Width = 218
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 370
+    ClientHeight = 371
     ClientWidth = 218
     TabOrder = 1
     OnResize = Panel1Resize
@@ -355,5 +356,32 @@ object frmTracer: TfrmTracer
       Caption = 'Close'
       TabOrder = 0
     end
+  end
+  object MainMenu1: TMainMenu
+    left = 72
+    top = 56
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem3: TMenuItem
+        Caption = 'Save results to disk'
+        ShortCut = 16467
+        OnClick = MenuItem3Click
+      end
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Search'
+      object MenuItem4: TMenuItem
+        Caption = 'Find...'
+        ShortCut = 16454
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Find Next'
+        ShortCut = 114
+      end
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    left = 72
+    top = 119
   end
 end

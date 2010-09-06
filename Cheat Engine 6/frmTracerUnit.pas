@@ -6,8 +6,8 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler, NewKernelHandler, ExtCtrls,
-  Buttons, LResources, frmFloatingPointPanelUnit, strutils, cefuncproc,clipbrd;
+  Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
+  LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus;
 
 type TTraceDebugInfo=class
   private
@@ -22,6 +22,12 @@ type
   TfrmTracer = class(TForm)
     Button1: TButton;
     ListBox1: TListBox;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
     Panel1: TPanel;
     EAXLabel: TLabel;
     EBXlabel: TLabel;
@@ -35,6 +41,7 @@ type
     cflabel: TLabel;
     pflabel: TLabel;
     aflabel: TLabel;
+    SaveDialog1: TSaveDialog;
     zflabel: TLabel;
     sflabel: TLabel;
     oflabel: TLabel;
@@ -47,6 +54,7 @@ type
     Splitter1: TSplitter;
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
+    procedure MenuItem3Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
@@ -75,7 +83,7 @@ type
 implementation
 
 
-uses cedebugger, debughelper, MemoryBrowserFormUnit;
+uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit;
 
 procedure TfrmTracer.addRecord;
 var s: string;
@@ -102,23 +110,23 @@ end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var tcount: integer;
-    tcounts: string;
+    condition: string;
     x: array of integer;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
-  tcounts:='1000';
-
-  if inputquery('Cheat Engine Trace','Trace count',tcounts) then
+  with TfrmTracerConfig.create(self) do
   begin
-    try
-      tcount:=strtoint(tcounts);
-    except
-      raise exception.Create('That isn''t a valid count');
-    end;
+    if showmodal=mrok then
+    begin
+      tcount:=strtoint(edtMaxTrace.text);
+      condition:=edtCondition.text;
+      if startdebuggerifneeded then
+        debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount, condition);
 
-    if startdebuggerifneeded then
-      debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount);
+    end;
+    free;
   end;
+
 
   setlength(x,0);
   loadformposition(self,x);
@@ -140,6 +148,66 @@ begin
         s:=copy(s,i+1,length(s));
         clipboard.AsText:=s;
       end;
+    end;
+  end;
+end;
+
+procedure TfrmTracer.MenuItem3Click(Sender: TObject);
+var z: Tstringlist;
+i: integer;
+t: TTraceDebugInfo;
+c: PContext;
+pref: string;
+begin
+  if savedialog1.Execute then
+  begin
+    z:=tstringlist.create;
+    try
+      for i:=0 to listbox1.count-1 do
+      begin
+        z.add(listbox1.Items[i]);
+        t:=TTraceDebugInfo(listbox1.Items.Objects[i]);
+        if t<>nil then
+        begin
+          c:=@t.c;
+          if processhandler.is64Bit then
+            pref:='R'
+          else
+            pref:='E';
+
+          t.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},8);
+          t.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8);
+          t.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8);
+          t.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},8);
+          t.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},8);
+          t.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},8);
+          t.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8);
+          t.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},8);
+
+          if processhandler.is64bit then
+          begin
+            t.add('R8='+inttohex(c.r8,8);
+            t.add('R9='+inttohex(c.r9,8);
+            t.add('R10='+inttohex(c.r10,8);
+            t.add('R11='+inttohex(c.r11,8);
+            t.add('R12='+inttohex(c.r12,8);
+            t.add('R13='+inttohex(c.r13,8);
+            t.add('R14='+inttohex(c.r14,8);
+            t.add('R15='+inttohex(c.r15,8);
+          end;
+
+          t.add('');
+          t.add('EFLAGS='+inttohex(c.EFlags,8);
+          t.add('');
+          t.add('-');
+
+
+        end;
+      end;
+
+      z.SaveToFile(savedialog1.filename);
+    finally
+      z.free;
     end;
   end;
 end;

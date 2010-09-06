@@ -11,6 +11,131 @@ var
   LuaVM: Plua_State;
   LuaCS: Tcriticalsection;
 
+
+function CheckIfConditionIsMetContext(context: PContext; script: string);
+{
+precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
+}
+begin
+  LuaCS.Enter;
+  try
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif});
+    lua_setglobal(luavm, 'RAX');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EAX');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rbx{$else}ebx{$endif});
+    lua_setglobal(luavm, 'RBX');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EBX');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rcx{$else}ecx{$endif});
+    lua_setglobal(luavm, 'RCX');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ECX');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rdx{$else}edx{$endif});
+    lua_setglobal(luavm, 'RDX');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EDX');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rsi{$else}esi{$endif});
+    lua_setglobal(luavm, 'RSI');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ESI');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rdi{$else}edi{$endif});
+    lua_setglobal(luavm, 'RDI');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EDI');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}Rbp{$else}ebp{$endif});
+    lua_setglobal(luavm, 'RBP');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EBP');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}RSP{$else}eSP{$endif});
+    lua_setglobal(luavm, 'RSP');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ESP');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}RIP{$else}eIP{$endif});
+    lua_setglobal(luavm, 'RIP');
+    {$endif}
+    lua_pushinteger(luavm, context.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EIP');
+
+    lua_pushinteger(luavm, context.EFlags);
+    lua_setglobal(luavm, 'EFLAGS');
+
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context.r8);
+    lua_setglobal(luavm, 'R8');
+
+    lua_pushinteger(luavm, context.r9);
+    lua_setglobal(luavm, 'R9');
+
+    lua_pushinteger(luavm, context.r10);
+    lua_setglobal(luavm, 'R10');
+
+    lua_pushinteger(luavm, context.r11);
+    lua_setglobal(luavm, 'R11');
+
+    lua_pushinteger(luavm, context.r12);
+    lua_setglobal(luavm, 'R12');
+
+    lua_pushinteger(luavm, context.r13);
+    lua_setglobal(luavm, 'R13');
+
+    lua_pushinteger(luavm, context.r14);
+    lua_setglobal(luavm, 'R14');
+
+    lua_pushinteger(luavm, context.r15);
+    lua_setglobal(luavm, 'R15');
+    {$endif}
+
+
+    if lua_dostring(luavm, pchar(script))=0 then
+    begin
+      i:=lua_gettop(LuaVM);
+      if i=1 then //valid return
+      begin
+        result:=lua_toboolean(LuaVM, -1);
+
+
+        //and now set the register values
+      end;
+    end else lua_pop(LuaVM, lua_gettop(luavm)); //balance the stack
+  finally
+    LuaCS.Leave;
+  end;
+end;
+
 implementation
 
 function LuaPanic(L: Plua_State): Integer; cdecl;

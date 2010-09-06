@@ -11,7 +11,7 @@ uses
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
-  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtSingle, dtDouble);
+  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
 
   TPageinfo=record
     readable: boolean;
@@ -38,6 +38,7 @@ type
     addresswidth: integer;
     usablewidth: integer;
     bytesPerLine: integer;
+    fbytesPerSeperator: integer; //only 8, 4 or 2
     lockedRowSize: integer; //if 0 then bytesPerLine is calculated by the size of the object, else it's lockedRowSize
 
     totallines: integer;
@@ -72,6 +73,7 @@ type
     function getByte(a: ptrUint): string; overload;
     function getWord(a: ptrUint): string;
     function getDWord(a: ptrUint): string;
+    function getQWord(a: ptrUint): string;
     function getDWordDec(a: ptrUint): string;
     function getSingle(a: ptrUint): string;
     function getDouble(a: ptrUint): string;
@@ -89,6 +91,7 @@ type
     procedure setDisplayType(newdt: TDisplaytype);
 
     function CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
+    procedure setBytesPerSeperator(b: integer);
 
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -110,11 +113,21 @@ type
 
     property address: ptrUint read fAddress write setAddress;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
+    property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
   end;
 
 implementation
 
 uses formsettingsunit, Valuechange, AddAddress;
+
+procedure THexView.setBytesPerSeperator(b: integer);
+begin
+  if not (b in [2,4,8]) then
+    raise exception.create('Invalid BytesPerSeperator value:'+inttostr(b));
+
+  fbytesPerSeperator:=b;
+  update;
+end;
 
 procedure THexView.LockRowsize;
 begin
@@ -912,6 +925,29 @@ begin
     result:=inttohex(w,4);
 end;
 
+function THexView.getQWord(a: ptrUint): string;
+var
+  qw: qword;
+  pqw: pbytearray;
+  err,err2,err3,err4, err5, err6, err7, err8: boolean;
+begin
+  pqw:=@qw;
+  pqw[0]:=getbyte(a,err);
+  pqw[1]:=getbyte(a+1,err2);
+  pqw[2]:=getbyte(a+2,err3);
+  pqw[3]:=getbyte(a+3,err4);
+  pqw[4]:=getbyte(a+4,err5);
+  pqw[5]:=getbyte(a+5,err6);
+  pqw[6]:=getbyte(a+6,err7);
+  pqw[7]:=getbyte(a+7,err8);
+
+  if err or err2 or err3 or err4 or err5 or err6 or err7 or err8 then
+    result:='????????????????'
+  else
+    result:=inttohex(qw,16);
+end;
+
+
 function THexView.getDWord(a: ptrUint): string;
 var
   dw: dword;
@@ -1031,10 +1067,27 @@ var
 
   itemnr: integer;
   displaythis: boolean;
+
+  seperatorshift: integer;
+  seperatormask: integer;
+  bps: integer;
 begin
   if Parent=nil then exit;
 
-  setlength(seperators, bytesperline shr 3);
+  if displayType=dtByte then
+    bps:=fbytesPerSeperator
+  else
+    bps:=0;
+
+  case bps of
+    8: seperatorshift:=3;
+    4: seperatorshift:=2;
+    2: seperatorshift:=1;
+    else seperatorshift:=0;
+  end;
+  seperatormask:=bps-1;
+
+  setlength(seperators, bytesperline shr seperatorshift);
   seperatorindex:=0;
 
   currentaddress:=fAddress;
@@ -1056,13 +1109,13 @@ begin
     case displayType of
       dtByte: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ';
       dtWord: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
-      dtDWord,dtDwordDec,dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
-      dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtDWord, dtDwordDec, dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtQword, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
     end;
 
     cheader:=cheader+inttohex((initialoffset+i) and $f,1);
 
-    if (((initialoffset+i) and 7)=7) and (i<>bytesperline-1) then
+    if (((initialoffset+i) and seperatormask)=seperatormask) and (i<>bytesperline-1) then
     begin
       seperators[seperatorindex]:=i;
       inc(seperatorindex);
@@ -1116,6 +1169,7 @@ begin
         dtDWordDec: if (j mod 4)=0 then begin changelist.values[itemnr]:=getDWordDec(currentAddress); displaythis:=true; end;
         dtSingle: if (j mod 4)=0 then begin changelist.values[itemnr]:=getsingle(currentAddress); displaythis:=true; end;
         dtDouble: if (j mod 8)=0 then begin changelist.values[itemnr]:=getDouble(currentAddress); displaythis:=true; end;
+        dtQWord: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWord(currentAddress); displaythis:=true; end;
       end;
 
       if gettickcount-changelist.LastChange[itemnr]<1000 then
@@ -1315,6 +1369,8 @@ begin
   inherited create(AOwner);
 
   changelist:=TChangelist.create;
+
+  bytesPerSeperator:=8;
 
   getmem(buffer,8192);
   self.buffersize:=8192;

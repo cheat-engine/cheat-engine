@@ -434,13 +434,13 @@ object About: TAbout
       Left = 10
       Height = 17
       Top = 116
-      Width = 268
-      Caption = 'Script engine powered by the UnderC Project'
+      Width = 182
+      Caption = 'Script engine powered by LUA'
       ParentColor = False
     end
     object lblDBVM: TLabel
       Left = 10
-      Height = 17
+      Height = 1
       Top = 207
       Width = 1
       ParentColor = False
