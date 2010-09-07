@@ -256,6 +256,7 @@ begin
           z.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8));
           z.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},8));
 
+          {$ifdef cpu64}
           if processhandler.is64bit then
           begin
             z.add('R8='+inttohex(c.r8,8));
@@ -267,6 +268,7 @@ begin
             z.add('R14='+inttohex(c.r14,8));
             z.add('R15='+inttohex(c.r15,8));
           end;
+          {$endif}
 
           z.add('');
           z.add('EFLAGS='+inttohex(c.EFlags,8));
