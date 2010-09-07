@@ -1271,11 +1271,15 @@ begin
               begin
                 //try allocating untill a memory region has been found (e.g due to quick allocating by the game)
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+                if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 1');
+
                 dec(k);
               end;
 
               if allocs[j].address=0 then
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+
+              if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 2');
 
               //adjust the addresses of entries that are part of this block
               for k:=j+1 to i-1 do
@@ -1308,11 +1312,14 @@ begin
 
 
           allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+          if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 3');
           dec(k);
         end;
 
         if allocs[j].address=0 then
           allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
+
+        if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 4');
 
         for i:=j+1 to length(allocs)-1 do
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;

@@ -1,10 +1,10 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1137
-  Height = 293
-  Top = 162
+  Left = 695
+  Height = 292
+  Top = 212
   Width = 333
   Caption = 'Changed Addresses'
-  ClientHeight = 293
+  ClientHeight = 292
   ClientWidth = 333
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -26,17 +26,17 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Height = 51
-    Top = 242
+    Height = 44
+    Top = 248
     Width = 333
     Align = alBottom
-    ClientHeight = 51
+    ClientHeight = 44
     ClientWidth = 333
     TabOrder = 0
     object OKButton: TButton
       Left = 10
-      Height = 31
-      Top = 10
+      Height = 24
+      Top = 8
       Width = 92
       Caption = 'Stop'
       Default = True
@@ -46,7 +46,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     object cbDisplayType: TComboBox
       Left = 118
       Height = 24
-      Top = 10
+      Top = 8
       Width = 179
       ItemHeight = 16
       ItemIndex = 2
@@ -64,7 +64,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 209
+    Height = 215
     Top = 33
     Width = 333
     Align = alClient

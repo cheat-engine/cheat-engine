@@ -596,18 +596,6 @@ begin
     breakpoint.markedfordeletion := True;
     //set this flag so it gets deleted on next no-event
 
-    if bp.frmTracer<>nil then
-    begin
-      //go through all thread's to see if it was tracing, if so, set the frm to nil so the tracer knows not to handle it
-      ThreadListCS.enter(1000);
-      try
-        for i:=0 to threadlist.count-1 do
-          TDebugThreadHandler(ThreadList.Items[i]).TracerQuit;
-      finally
-        threadlistCS.leave;
-      end;
-    end;
-
   finally
     breakpointCS.leave;
   end;
@@ -976,9 +964,7 @@ begin
 
     end;
 
-
-
-    bp:=AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, nil,frmTracer,count);
+    bp:=AddBreakpoint(nil, address, bptExecute, method, bo_BreakAndTrace, usedDebugRegister, 1, nil, 0, nil,frmTracer,count);
     if bp<>nil then
       bp.traceendcondition:=strnew(pchar(condition));
 

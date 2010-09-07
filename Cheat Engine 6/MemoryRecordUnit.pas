@@ -5,7 +5,7 @@ unit MemoryRecordUnit;
 interface
 
 uses
-  Windows, forms, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
+  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
   customtypehandler;
 
@@ -69,6 +69,7 @@ type
 
     CustomType: TCustomType;
     fCustomTypeName: string;
+    fColor: TColor;
 
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
@@ -79,6 +80,7 @@ type
     procedure setShowAsHex(state: boolean);
     procedure setOptions(newOptions: TMemrecOptions);
     procedure setCustomTypeName(name: string);
+    procedure setColor(c: TColor);
   public
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
@@ -154,6 +156,7 @@ type
     property showAsHex: boolean read fShowAsHex write setShowAsHex;
     property options: TMemrecOptions read fOptions write setOptions;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
+    property Color: TColor read fColor write setColor;
   end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
@@ -166,6 +169,7 @@ uses mainunit, addresslist, formsettingsunit;
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
   fOwner:=AOwner;
+  fColor:=clWindowText;
   inherited create;
 end;
 
@@ -193,6 +197,8 @@ begin
     treenode.free;
 end;
 
+
+
 procedure TMemoryRecord.SetVisibleChildrenState;
 {Called when options change and when children are assigned}
 begin
@@ -213,6 +219,12 @@ procedure TMemoryRecord.setCustomTypeName(name: string);
 begin
   fCustomTypeName:=name;
   RefreshCustomType;
+end;
+
+procedure TMemoryRecord.setColor(c: TColor);
+begin
+  fColor:=c;
+  TAddresslist(fOwner).Update;
 end;
 
 procedure TMemoryRecord.setXMLnode(CheatEntry: TDOMNode);
@@ -254,9 +266,20 @@ begin
     end;
   end;
 
+  tempnode:=CheatEntry.FindNode('Color');
+  if tempnode<>nil then
+  begin
+    try
+      fColor:=strtoint('$'+tempnode.textcontent);
+    except
+    end;
+  end;
+
   tempnode:=CheatEntry.FindNode('GroupHeader');
   if tempnode<>nil then
+  begin
     isGroupHeader:=tempnode.TextContent='1';
+  end;
 
 
   tempnode:=CheatEntry.FindNode('CheatEntries');
@@ -483,7 +506,7 @@ begin
     end;
   end;
 
-
+  cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
   if isGroupHeader then
   begin

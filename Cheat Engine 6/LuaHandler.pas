@@ -12,14 +12,15 @@ var
   LuaCS: Tcriticalsection;
 
 
-function CheckIfConditionIsMetContext(context: PContext; script: string);
-{
-precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
-}
+function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+procedure LUA_SetCurrentContextState(context: PContext);
+
+implementation
+
+procedure LUA_SetCurrentContextState(context: PContext);
 begin
   LuaCS.Enter;
   try
-
     {$ifdef cpu64}
     lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif});
     lua_setglobal(luavm, 'RAX');
@@ -120,6 +121,21 @@ begin
     {$endif}
 
 
+  finally
+    LuaCS.Leave;
+  end;
+end;
+
+function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+{
+precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
+}
+var i: integer;
+begin
+  LuaCS.Enter;
+  try
+    LUA_SetCurrentContextState(context);
+
     if lua_dostring(luavm, pchar(script))=0 then
     begin
       i:=lua_gettop(LuaVM);
@@ -127,7 +143,7 @@ begin
       begin
         result:=lua_toboolean(LuaVM, -1);
 
-
+        lua_pop(LuaVM, lua_gettop(luavm));
         //and now set the register values
       end;
     end else lua_pop(LuaVM, lua_gettop(luavm)); //balance the stack
@@ -135,8 +151,6 @@ begin
     LuaCS.Leave;
   end;
 end;
-
-implementation
 
 function LuaPanic(L: Plua_State): Integer; cdecl;
 begin

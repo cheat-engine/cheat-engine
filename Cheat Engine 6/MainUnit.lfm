@@ -721,7 +721,7 @@ object MainForm: TMainForm
       Left = -8
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
-      Top = 50
+      Top = 48
       Width = 189
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
@@ -1381,6 +1381,10 @@ object MainForm: TMainForm
       GroupIndex = 2
       OnClick = Showashexadecimal1Click
     end
+    object miChangeColor: TMenuItem
+      Caption = 'Change Color'
+      OnClick = miChangeColorClick
+    end
     object SetHotkey1: TMenuItem
       Caption = 'Assign Hotkey'
       GroupIndex = 2
@@ -1815,5 +1819,32 @@ object MainForm: TMainForm
       Caption = 'Delete selected custom type'
       OnClick = miDeleteCustomTypeClick
     end
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 128
+    top = 72
   end
 end

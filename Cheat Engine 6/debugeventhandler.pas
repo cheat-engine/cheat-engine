@@ -349,11 +349,11 @@ begin
     dwContinueStatus:=DBG_CONTINUE;
   end else hasSetInt3Back:=false;
 
-  if singlestepping then
-    handlebreak(nil)
-  else
   if isTracing then
     handleTrace
+  else
+  if singlestepping then
+    handlebreak(nil)
   else
     if not hasSetInt3Back then dwContinuestatus:=DBG_EXCEPTION_NOT_HANDLED; //if it wasn't a int3 set back or not expected single step, then raise an error
 end;
@@ -445,9 +445,9 @@ begin
         begin
           isTracing:=true;
           tracecount:=bp.TraceCount;
-          traceWindow:=bpp.frmTracer;
-
-          traceQuitCondition:=bpp.traceendcondition;
+          traceWindow:=bp.frmTracer;
+          if bpp.traceendcondition<>nil then
+            traceQuitCondition:=bpp.traceendcondition;
 
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
         end;

@@ -1,11 +1,11 @@
 object frmTracerConfig: TfrmTracerConfig
   Left = 676
-  Height = 146
+  Height = 158
   Top = 400
   Width = 231
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 146
+  ClientHeight = 158
   ClientWidth = 231
   Position = poScreenCenter
   LCLVersion = '0.9.29'
@@ -43,7 +43,7 @@ object frmTracerConfig: TfrmTracerConfig
   object Button1: TButton
     Left = 34
     Height = 25
-    Top = 112
+    Top = 128
     Width = 75
     Caption = 'OK'
     Default = True
@@ -53,11 +53,21 @@ object frmTracerConfig: TfrmTracerConfig
   object Button2: TButton
     Left = 126
     Height = 25
-    Top = 112
+    Top = 128
     Width = 75
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
+  end
+  object cbDereferenceAddresses: TCheckBox
+    Left = 17
+    Height = 19
+    Top = 104
+    Width = 213
+    Caption = 'Dereference Addresses (Slows down)'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
   end
 end

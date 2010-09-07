@@ -15,6 +15,7 @@ type
   TfrmTracerConfig = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    cbDereferenceAddresses: TCheckBox;
     edtMaxTrace: TEdit;
     edtCondition: TEdit;
     Label1: TLabel;

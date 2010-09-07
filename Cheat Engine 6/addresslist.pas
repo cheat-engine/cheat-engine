@@ -1053,6 +1053,8 @@ begin
 
     sender.canvas.pen.color:=clWindowtext;
 
+    sender.Canvas.Font.Color:=memrec.Color;
+
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
     checkbox.Right:=checkbox.left+(linerect.bottom-linerect.top)-2; //(header.Sections[0].Width div 2)+((linerect.bottom-linerect.top) div 2)-1;
     checkbox.Top:=linerect.top+1;

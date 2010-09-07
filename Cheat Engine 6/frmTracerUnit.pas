@@ -7,12 +7,20 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
-  LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus;
+  LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus,
+  ComCtrls, luahandler, symbolhandler, byteinterpreter;
 
 type TTraceDebugInfo=class
   private
   public
+    instruction: string;
+    referencedAddress: ptrUint;
     c: _CONTEXT;
+    bytes: pbytearray;
+    bytesize: dword;
+    function datatype: TVariableType;
+    procedure fillbytes;
+    destructor destroy; override;
 end;
 
 type
@@ -21,13 +29,16 @@ type
 
   TfrmTracer = class(TForm)
     Button1: TButton;
+    Button2: TButton;
+    lblInstruction: TLabel;
+    lblAddressed: TLabel;
     ListBox1: TListBox;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
-    MenuItem5: TMenuItem;
+    miSearchNext: TMenuItem;
     Panel1: TPanel;
     EAXLabel: TLabel;
     EBXlabel: TLabel;
@@ -39,8 +50,11 @@ type
     ESPlabel: TLabel;
     EIPlabel: TLabel;
     cflabel: TLabel;
+    Panel2: TPanel;
+    pnlSearch: TPanel;
     pflabel: TLabel;
     aflabel: TLabel;
+    ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
     zflabel: TLabel;
     sflabel: TLabel;
@@ -54,7 +68,9 @@ type
     Splitter1: TSplitter;
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
+    procedure Button2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
@@ -72,8 +88,13 @@ type
     traceaddress: dword;
     fpp: TfrmFloatingPointPanel;
     isConfigured: boolean;
+    dereference: boolean;
 
     RXlabels: array of TLabel;
+
+    lastsearchstring: string;
+    stopsearch: boolean;
+
     procedure configuredisplay;
   public
     { Public declarations }
@@ -85,26 +106,72 @@ implementation
 
 uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit;
 
+destructor TTraceDebugInfo.destroy;
+begin
+  if bytes<>nil then
+    freemem(bytes);
+end;
+
+function TTraceDebugInfo.datatype: TVariableType;
+begin
+  result:=FindTypeOfData(referencedAddress, bytes, bytesize);
+end;
+
+procedure TTraceDebugInfo.fillbytes;
+begin
+  getmem(bytes, 64);
+  bytesize:=0;
+  ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, 64, bytesize);
+end;
+
 procedure TfrmTracer.addRecord;
-var s: string;
+var s,s2: string;
     i: integer;
     d: TTraceDebugInfo;
 
-    a,prev: ptrUint;
+    a,address: ptrUint;
+    referencedAddress: ptrUint;
+    haserror: boolean;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
-  a:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
-  prev:=disassembler.previousopcode(a);
+  address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
+  a:=address;
+  s:=disassemble(a);
 
-  s:=disassemble(prev);
+  referencedAddress:=0;
+  if dereference then
+  begin
+    i:=pos('[',s)+1;
+    if i>0 then
+    begin
+      s2:=copy(s,i,pos(']',s)-i);
+      referencedAddress:=symhandler.getAddressFromName(s2, false, haserror, debuggerthread.CurrentThread.context);
+    end;
+  end;
+
+
+
+
   i:=posex('-',s);
   i:=posex('-',s,i+1);
   s:=copy(s,i+2,length(s));
-  s:=inttohex(prev,8)+' - '+s;
+
 
   d:=TTraceDebugInfo.Create;
+  d.instruction:=s;
+  d.referencedAddress:=referencedAddress;
+  d.fillbytes;
   d.c:=debuggerthread.CurrentThread.context^;
+
+//  referencesAddress:=
+
+
+
+
+
+  s:=inttohex(address,8)+' - '+s;
+
   ListBox1.Items.AddObject(s,d);
 end;
 
@@ -112,14 +179,17 @@ procedure TfrmTracer.FormCreate(Sender: TObject);
 var tcount: integer;
     condition: string;
     x: array of integer;
+    testcontext: TContext;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   with TfrmTracerConfig.create(self) do
   begin
     if showmodal=mrok then
     begin
+      dereference:= cbDereferenceAddresses.checked;
       tcount:=strtoint(edtMaxTrace.text);
       condition:=edtCondition.text;
+
       if startdebuggerifneeded then
         debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount, condition);
 
@@ -175,31 +245,33 @@ begin
           else
             pref:='E';
 
-          t.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},8);
-          t.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8);
-          t.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8);
-          t.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},8);
-          t.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},8);
-          t.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},8);
-          t.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8);
-          t.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},8);
+
+
+          z.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},8));
+          z.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8));
+          z.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8));
+          z.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},8));
+          z.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},8));
+          z.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},8));
+          z.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8));
+          z.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},8));
 
           if processhandler.is64bit then
           begin
-            t.add('R8='+inttohex(c.r8,8);
-            t.add('R9='+inttohex(c.r9,8);
-            t.add('R10='+inttohex(c.r10,8);
-            t.add('R11='+inttohex(c.r11,8);
-            t.add('R12='+inttohex(c.r12,8);
-            t.add('R13='+inttohex(c.r13,8);
-            t.add('R14='+inttohex(c.r14,8);
-            t.add('R15='+inttohex(c.r15,8);
+            z.add('R8='+inttohex(c.r8,8));
+            z.add('R9='+inttohex(c.r9,8));
+            z.add('R10='+inttohex(c.r10,8));
+            z.add('R11='+inttohex(c.r11,8));
+            z.add('R12='+inttohex(c.r12,8));
+            z.add('R13='+inttohex(c.r13,8));
+            z.add('R14='+inttohex(c.r14,8));
+            z.add('R15='+inttohex(c.r15,8));
           end;
 
-          t.add('');
-          t.add('EFLAGS='+inttohex(c.EFlags,8);
-          t.add('');
-          t.add('-');
+          z.add('');
+          z.add('EFLAGS='+inttohex(c.EFlags,8));
+          z.add('');
+          z.add('-');
 
 
         end;
@@ -211,6 +283,56 @@ begin
     end;
   end;
 end;
+
+procedure TfrmTracer.Button2Click(Sender: TObject);
+begin
+  stopsearch:=true;
+end;
+
+procedure TfrmTracer.MenuItem4Click(Sender: TObject);
+var
+i: integer;
+c: PContext;
+check: boolean;
+begin
+  if (sender = miSearchNext) then
+    check:=true
+  else
+  begin
+    check:=InputQuery('Search','Type the (LUA) condition you want to search for (Example: EAX==0x1234)', lastsearchstring);
+    lastsearchstring:='return '+lastsearchstring;
+  end;
+
+  if check then
+  begin
+    stopsearch:=false;
+    progressbar1.Position:=0;
+    progressbar1.Max:=listbox1.Count;
+    pnlSearch.visible:=true;
+
+    i:=listbox1.itemindex+1;
+
+    while (i<listbox1.count) and (not stopsearch) do
+    begin
+      c:=@TTraceDebugInfo(listbox1.Items.Objects[i]).c;
+      if CheckIfConditionIsMetContext(c, lastsearchstring) then
+      begin
+        listbox1.ItemIndex:=i;
+        listbox1.MakeCurrentVisible;
+        listbox1Click(listbox1);
+        break;
+      end;
+
+
+      inc(i);
+      if (i mod 50)=0 then application.ProcessMessages;
+    end;
+
+    pnlSearch.visible:=false;
+  end;
+end;
+
+
 
 procedure TfrmTracer.FormClose(Sender: TObject; var Action: TCloseAction);
 var i: integer;
@@ -299,70 +421,89 @@ end;
 procedure TfrmTracer.ListBox1Click(Sender: TObject);
 var temp: string;
     context: _context;
+    t: TTraceDebugInfo;
+    prefix: char;
 begin
   configuredisplay;
 
   if listbox1.ItemIndex<>-1 then
   begin
-    context:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c;
+    t:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]);
 
-    temp:='EAX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},8);
+    lblinstruction.caption:=t.instruction;
+    if dereference then
+    begin
+      if t.referencedAddress<>0 then
+        lblAddressed.caption:=inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype)
+      else
+        lblAddressed.caption:='';
+    end else lblAddressed.Caption:='';
+
+
+    context:=t.c;
+
+    if processhandler.is64bit then
+      prefix:='R'
+    else
+      prefix:='E';
+
+    temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},8);
     if temp<>eaxlabel.Caption then
     begin
       eaxlabel.Font.Color:=clred;
       eaxlabel.Caption:=temp;
     end else eaxlabel.Font.Color:=clWindowText;
 
-    temp:='EBX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
+    temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
     if temp<>ebxlabel.Caption then
     begin
       ebxlabel.Font.Color:=clred;
       ebxlabel.Caption:=temp;
     end else ebxlabel.Font.Color:=clWindowText;
 
-    temp:='ECX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
+    temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
     if temp<>eCxlabel.Caption then
     begin
       eCXlabel.Font.Color:=clred;
       eCXlabel.Caption:=temp;
     end else eCXlabel.Font.Color:=clWindowText;
 
-    temp:='EDX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},8);
+    temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},8);
     if temp<>eDxlabel.Caption then
     begin
       eDxlabel.Font.Color:=clred;
       eDxlabel.Caption:=temp;
     end else eDxlabel.Font.Color:=clWindowText;
 
-    temp:='ESI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},8);
+    temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},8);
     if temp<>eSIlabel.Caption then
     begin
       eSIlabel.Font.Color:=clred;
       eSIlabel.Caption:=temp;
     end else eSIlabel.Font.Color:=clWindowText;
 
-    temp:='EDI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},8);
+    temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},8);
     if temp<>eDIlabel.Caption then
     begin
       eDIlabel.Font.Color:=clred;
       eDIlabel.Caption:=temp;
     end else eDIlabel.Font.Color:=clWindowText;
 
-    temp:='EBP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
+    temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
     if temp<>eBPlabel.Caption then
     begin
       eBPlabel.Font.Color:=clred;
       eBPlabel.Caption:=temp;
     end else eBPlabel.Font.Color:=clWindowText;
 
-    temp:='ESP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},8);
+    temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},8);
     if temp<>eSPlabel.Caption then
     begin
       eSPlabel.Font.Color:=clred;
       eSPlabel.Caption:=temp;
     end else eSPlabel.Font.Color:=clWindowText;
 
-    temp:='EIP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},8);
+    temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},8);
     if temp<>eIPlabel.Caption then
     begin
       eIPlabel.Font.Color:=clred;
@@ -371,64 +512,68 @@ begin
 
     {$ifdef cpu64}
 
-
-    temp:='R8 '+IntToHex(context.r8,8);
-    if temp<>RXlabels[0].Caption then
+    if length(rxlabels)>0 then
     begin
-      RXlabels[0].Font.Color:=clred;
-      RXlabels[0].Caption:=temp;
-    end else RXlabels[0].Font.Color:=clWindowText;
 
-    temp:='R9 '+IntToHex(context.r9,8);
-    if temp<>RXlabels[9].Caption then
-    begin
-      RXlabels[9].Font.Color:=clred;
-      RXlabels[9].Caption:=temp;
-    end else RXlabels[9].Font.Color:=clWindowText;
+      temp:='R8 '+IntToHex(context.r8,8);
+      if temp<>RXlabels[0].Caption then
+      begin
+        RXlabels[0].Font.Color:=clred;
+        RXlabels[0].Caption:=temp;
+      end else RXlabels[0].Font.Color:=clWindowText;
 
-    temp:='R10 '+IntToHex(context.r10,8);
-    if temp<>RXlabels[10].Caption then
-    begin
-      RXlabels[10].Font.Color:=clred;
-      RXlabels[10].Caption:=temp;
-    end else RXlabels[10].Font.Color:=clWindowText;
+      temp:='R9 '+IntToHex(context.r9,8);
+      if temp<>RXlabels[1].Caption then
+      begin
+        RXlabels[1].Font.Color:=clred;
+        RXlabels[1].Caption:=temp;
+      end else RXlabels[1].Font.Color:=clWindowText;
 
-    temp:='R11 '+IntToHex(context.r11,8);
-    if temp<>RXlabels[11].Caption then
-    begin
-      RXlabels[11].Font.Color:=clred;
-      RXlabels[11].Caption:=temp;
-    end else RXlabels[11].Font.Color:=clWindowText;
+      temp:='R10 '+IntToHex(context.r10,8);
+      if temp<>RXlabels[2].Caption then
+      begin
+        RXlabels[2].Font.Color:=clred;
+        RXlabels[2].Caption:=temp;
+      end else RXlabels[2].Font.Color:=clWindowText;
 
-    temp:='R12 '+IntToHex(context.r12,8);
-    if temp<>RXlabels[12].Caption then
-    begin
-      RXlabels[12].Font.Color:=clred;
-      RXlabels[12].Caption:=temp;
-    end else RXlabels[12].Font.Color:=clWindowText;
+      temp:='R11 '+IntToHex(context.r11,8);
+      if temp<>RXlabels[3].Caption then
+      begin
+        RXlabels[3].Font.Color:=clred;
+        RXlabels[3].Caption:=temp;
+      end else RXlabels[3].Font.Color:=clWindowText;
 
-    temp:='R13 '+IntToHex(context.r13,8);
-    if temp<>RXlabels[13].Caption then
-    begin
-      RXlabels[13].Font.Color:=clred;
-      RXlabels[13].Caption:=temp;
-    end else RXlabels[13].Font.Color:=clWindowText;
+      temp:='R12 '+IntToHex(context.r12,8);
+      if temp<>RXlabels[4].Caption then
+      begin
+        RXlabels[4].Font.Color:=clred;
+        RXlabels[4].Caption:=temp;
+      end else RXlabels[4].Font.Color:=clWindowText;
 
-    temp:='R14 '+IntToHex(context.r14,8);
-    if temp<>RXlabels[14].Caption then
-    begin
-      RXlabels[14].Font.Color:=clred;
-      RXlabels[14].Caption:=temp;
-    end else RXlabels[14].Font.Color:=clWindowText;
+      temp:='R13 '+IntToHex(context.r13,8);
+      if temp<>RXlabels[5].Caption then
+      begin
+        RXlabels[5].Font.Color:=clred;
+        RXlabels[5].Caption:=temp;
+      end else RXlabels[5].Font.Color:=clWindowText;
 
-    temp:='R15 '+IntToHex(context.r15,8);
-    if temp<>RXlabels[15].Caption then
-    begin
-      RXlabels[15].Font.Color:=clred;
-      RXlabels[15].Caption:=temp;
-    end else RXlabels[15].Font.Color:=clWindowText;
+      temp:='R14 '+IntToHex(context.r14,8);
+      if temp<>RXlabels[6].Caption then
+      begin
+        RXlabels[6].Font.Color:=clred;
+        RXlabels[6].Caption:=temp;
+      end else RXlabels[6].Font.Color:=clWindowText;
+
+      temp:='R15 '+IntToHex(context.r15,8);
+      if temp<>RXlabels[7].Caption then
+      begin
+        RXlabels[7].Font.Color:=clred;
+        RXlabels[7].Caption:=temp;
+      end else RXlabels[7].Font.Color:=clWindowText;
+    end;
 
     {$endif}
+
 
     temp:='CS '+IntToHex(context.SEGCS,4);
     if temp<>CSlabel.Caption then
@@ -544,6 +689,7 @@ procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
   button1.Top:=clientheight-button1.height-3;
   sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height div 2);
+  sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);

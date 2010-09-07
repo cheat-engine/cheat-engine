@@ -4,11 +4,48 @@ unit byteinterpreter;
 
 interface
 
-uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler;
+uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math;
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
+function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 
 implementation
+
+function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
+{note: If type is of stringo unicode, the last 2 bytes will get set to 0, so watch what you're calling}
+var tr: Widestring;
+    i: integer;
+begin
+  case vartype of
+    vtByte: result:='(byte)'+inttohex(buf[0],2) + '('+inttostr(buf[0])+')';
+    vtWord: result:='(word)'+inttohex(pword(buf)^,4) + '('+inttostr(pword(buf)^)+')';
+    vtDword: result:='(dword)'+inttohex(pdword(buf)^,8) + '('+inttostr(pdword(buf)^)+')';
+    vtSingle: result:='(float)'+format('%.2f',[psingle(buf)^]);
+    vtDouble: result:='(double)'+format('%.2f',[pdouble(buf)^]);
+    vtString:
+    begin
+      buf[size-1]:=0;
+      result:=pchar(buf);
+    end;
+
+    vtUnicodeString:
+    begin
+      buf[size-1]:=0;
+      buf[size-2]:=0;
+      tr:=PWideChar(buf);
+      result:=tr;
+    end;
+
+    vtPointer: if processhandler.is64bit then result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
+    else
+    begin
+      result:='(...)';
+      for i:=0 to min(size,8)-1 do
+        result:=result+inttohex(buf[i],2)+' ';
+
+    end;
+  end;
+end;
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 {

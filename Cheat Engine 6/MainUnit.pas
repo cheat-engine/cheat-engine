@@ -160,6 +160,7 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
+    ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
     Label1: TLabel;
@@ -168,6 +169,7 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miChangeColor: TMenuItem;
     miGroupconfig: TMenuItem;
     miDefineNewCustomTypeLua: TMenuItem;
     miDeleteCustomType: TMenuItem;
@@ -332,6 +334,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miChangeColorClick(Sender: TObject);
     procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
     procedure miDeleteCustomTypeClick(Sender: TObject);
     procedure miBindActivationClick(Sender: TObject);
@@ -2069,6 +2072,16 @@ procedure TMainForm.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
   addresslist.SelectAll;
+end;
+
+procedure TMainForm.miChangeColorClick(Sender: TObject);
+var i: integer;
+begin
+  if (addresslist.SelCount>0) and (colordialog1.execute) then
+  begin
+    for i:=0 to addresslist.Count-1 do
+      addresslist[i].color:=colordialog1.Color;
+  end;
 end;
 
 
@@ -4002,6 +4015,8 @@ begin
   end
   else
     miGroupconfig.Visible:=false;
+
+  miChangeColor.Visible:=addresslist.selcount>0;
 
 end;
 
