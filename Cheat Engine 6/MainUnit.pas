@@ -2080,7 +2080,8 @@ begin
   if (addresslist.SelCount>0) and (colordialog1.execute) then
   begin
     for i:=0 to addresslist.Count-1 do
-      addresslist[i].color:=colordialog1.Color;
+      if addresslist[i].isSelected then
+        addresslist[i].color:=colordialog1.Color;
   end;
 end;
 
