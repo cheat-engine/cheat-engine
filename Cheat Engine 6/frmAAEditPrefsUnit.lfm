@@ -1,11 +1,11 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
   Left = 795
-  Height = 147
+  Height = 173
   Top = 297
   Width = 189
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
-  ClientHeight = 147
+  ClientHeight = 173
   ClientWidth = 189
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -16,7 +16,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   object Panel2: TPanel
     Left = 0
     Height = 41
-    Top = 106
+    Top = 132
     Width = 189
     Align = alBottom
     BevelOuter = bvNone
@@ -46,12 +46,12 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   end
   object Panel1: TPanel
     Left = 0
-    Height = 106
+    Height = 132
     Top = 0
     Width = 189
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 106
+    ClientHeight = 132
     ClientWidth = 189
     TabOrder = 1
     object cbShowLineNumbers: TCheckBox
@@ -84,7 +84,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
     object btnFont: TButton
       Left = 16
       Height = 25
-      Top = 80
+      Top = 104
       Width = 161
       Caption = 'font'
       OnClick = btnFontClick
@@ -98,6 +98,23 @@ object frmAAEditPrefs: TfrmAAEditPrefs
       Caption = 'Tabs to space'
       OnClick = cbTabsToSpaceClick
       TabOrder = 4
+    end
+    object edtTabWidth: TEdit
+      Left = 88
+      Height = 21
+      Top = 80
+      Width = 80
+      OnChange = edtTabWidthChange
+      TabOrder = 5
+      Text = '4'
+    end
+    object Label1: TLabel
+      Left = 31
+      Height = 14
+      Top = 83
+      Width = 51
+      Caption = 'Tab Width'
+      ParentColor = False
     end
   end
   object FontDialog1: TFontDialog

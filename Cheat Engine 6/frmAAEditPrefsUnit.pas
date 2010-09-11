@@ -9,7 +9,12 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources, SynEdit;
 
 type
+
+  { TfrmAAEditPrefs }
+
   TfrmAAEditPrefs = class(TForm)
+    edtTabWidth: TEdit;
+    Label1: TLabel;
     Panel2: TPanel;
     Button1: TButton;
     Button2: TButton;
@@ -21,6 +26,7 @@ type
     btnFont: TButton;
     cbTabsToSpace: TCheckBox;
     procedure btnFontClick(Sender: TObject);
+    procedure edtTabWidthChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure cbShowLineNumbersClick(Sender: TObject);
@@ -88,6 +94,13 @@ begin
     fsynedit.font.size:=fontdialog1.Font.size;
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
   end;
+end;
+
+procedure TfrmAAEditPrefs.edtTabWidthChange(Sender: TObject);
+var i: integer;
+begin
+  if TryStrToInt(edtTabWidth.text,i) then
+    fSynEdit.TabWidth:=i;
 end;
 
 procedure TfrmAAEditPrefs.FormCreate(Sender: TObject);

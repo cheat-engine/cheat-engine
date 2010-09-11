@@ -264,9 +264,12 @@ begin
 
   if opendialog1.Execute then
   begin
+
     assemblescreen.Lines.Clear;
     assemblescreen.Lines.LoadFromFile(opendialog1.filename);
     savedialog1.FileName:=opendialog1.filename;
+    assemblescreen.AfterLoadFromFile;
+
   end;
 {$endif}
 end;
@@ -1207,7 +1210,7 @@ begin
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent];
   assemblescreen.WantTabs:=true;
-  assemblescreen.TabWidth:=2;
+  assemblescreen.TabWidth:=4;
 
 
   assemblescreen.Gutter.MarksPart.Visible:=false;
@@ -1244,6 +1247,9 @@ begin
 
       if reg.valueexists('tabs to spaces') then
         if reg.ReadBool('tabs to spaces') then assemblescreen.Options:=assemblescreen.options+[eoTabsToSpaces];
+
+      if reg.valueexists('tab width') then
+        assemblescreen.tabwidth:=reg.ReadInteger('tab width');
     end;
 
   finally
