@@ -696,7 +696,6 @@ begin
           Scan_MEM_IMAGE:=cbMemImage.Checked;
           Scan_MEM_MAPPED:=cbMemMapped.Checked;
 
-          try cbLowMemoryUsage.Checked:=reg.ReadBool('Low Memory Usage'); except end;
 
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;

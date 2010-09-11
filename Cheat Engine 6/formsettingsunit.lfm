@@ -512,7 +512,7 @@ object formSettings: TformSettings
         object Label3: TLabel
           Left = 0
           Height = 17
-          Top = 278
+          Top = 254
           Width = 88
           Caption = 'Thread priority'
           ParentColor = False
@@ -536,7 +536,7 @@ object formSettings: TformSettings
         object Label21: TLabel
           Left = 0
           Height = 17
-          Top = 190
+          Top = 166
           Width = 199
           Caption = 'Scan the following memory types:'
           ParentColor = False
@@ -544,7 +544,7 @@ object formSettings: TformSettings
         object combothreadpriority: TComboBox
           Left = 0
           Height = 24
-          Top = 294
+          Top = 270
           Width = 122
           ItemHeight = 16
           ItemIndex = 4
@@ -582,71 +582,63 @@ object formSettings: TformSettings
           ShowHint = True
           TabOrder = 2
         end
-        object cbLowMemoryUsage: TCheckBox
-          Left = 0
-          Height = 20
-          Top = 86
-          Width = 520
-          Caption = 'Keep low memory usage when doing an "Unkown Initial Value scan" with Hyper Scan'
-          TabOrder = 3
-        end
         object cbMemImage: TCheckBox
           Left = 0
           Height = 20
-          Top = 229
+          Top = 205
           Width = 437
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
-          TabOrder = 4
+          TabOrder = 3
         end
         object cbMemMapped: TCheckBox
           Left = 0
           Height = 20
-          Top = 249
+          Top = 225
           Width = 552
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, slow)'
-          TabOrder = 5
+          TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
           Left = 0
           Height = 20
-          Top = 209
+          Top = 185
           Width = 252
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
-          TabOrder = 6
+          TabOrder = 5
         end
         object EditBufsize: TEdit
           Left = 177
           Height = 24
           Top = 2
           Width = 51
-          TabOrder = 7
+          TabOrder = 6
           Text = '1024'
         end
         object cbDontusetempdir: TCheckBox
           Left = 0
           Height = 20
-          Top = 110
+          Top = 86
           Width = 361
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
-          TabOrder = 8
+          TabOrder = 7
         end
         object edtTempScanFolder: TEdit
           Left = 6
           Height = 24
-          Top = 158
+          Top = 134
           Width = 521
           Enabled = False
-          TabOrder = 9
+          TabOrder = 8
         end
         object Label2: TLabel
           Left = 6
           Height = 17
-          Top = 136
+          Top = 112
           Width = 254
           Caption = 'Store the temporary scanfiles here instead:'
           Enabled = False

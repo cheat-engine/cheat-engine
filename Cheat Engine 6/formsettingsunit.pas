@@ -83,7 +83,6 @@ type
     combothreadpriority: TComboBox;
     cbFastscan: TCheckBox;
     cbSkip_PAGE_NOCACHE: TCheckBox;
-    cbLowMemoryUsage: TCheckBox;
     cbMemImage: TCheckBox;
     cbMemMapped: TCheckBox;
     cbMemPrivate: TCheckBox;
@@ -438,7 +437,6 @@ begin
       reg.WriteBool('MEM_IMAGE',cbMemImage.Checked);
       reg.WriteBool('MEM_MAPPED',cbMemMapped.Checked);
       onlyfront:=not temphideall;
-      reg.WriteBool('Low Memory Usage',cbLowMemoryUsage.checked);
 
       //check the module list
 

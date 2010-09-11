@@ -110,6 +110,7 @@ type
     procedure CheckBox14Click(Sender: TObject);
     procedure CheckBox15Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -463,6 +464,11 @@ begin
   modalresult:=mrok;
 end;
 
+procedure TfrmModifyRegisters.FormCreate(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmModifyRegisters.FormShow(Sender: TObject);
 begin
   if not processhandler.is64Bit then
@@ -476,6 +482,27 @@ begin
     label22.visible:=false;
     label23.visible:=false;
     label24.visible:=false;
+
+    checkbox22.visible:=false;
+    checkbox23.visible:=false;
+    checkbox24.visible:=false;
+    checkbox25.visible:=false;
+    checkbox26.visible:=false;
+    checkbox27.visible:=false;
+    checkbox28.visible:=false;
+    checkbox29.visible:=false;
+
+    edit10.visible:=false;
+    edit11.visible:=false;
+    edit12.visible:=false;
+    edit13.visible:=false;
+    edit14.visible:=false;
+    edit15.visible:=false;
+    edit16.visible:=false;
+    edit17.visible:=false;
+
+
+
   end;
 end;
 

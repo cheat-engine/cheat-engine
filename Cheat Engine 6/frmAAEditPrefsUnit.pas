@@ -84,7 +84,8 @@ procedure TfrmAAEditPrefs.btnFontClick(Sender: TObject);
 begin
   if fontdialog1.Execute then
   begin
-    fsynedit.font:=fontdialog1.Font;
+    fsynedit.font.name:=fontdialog1.Font.name;
+    fsynedit.font.size:=fontdialog1.Font.size;
     btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
   end;
 end;

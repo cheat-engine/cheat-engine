@@ -329,10 +329,12 @@ end;
 function TFoundList.GetAddressOnly(i: integer; var extra: dword): ptruint;
 var j: integer;
 begin
-  if i=-1 then exit;
-
   extra:=0;
   result:=0;
+
+  if i=-1 then exit;
+  if i>=foundlist.Items.Count then exit;
+
   if addressfile=nil then exit; //during a scan
   if scantype=fs_advanced then exit; //should never happen...
 

@@ -54,6 +54,7 @@ object frmAutoInject: TfrmAutoInject
       object New1: TMenuItem
         Caption = 'New tab'
         ShortCut = 16462
+        Visible = False
         OnClick = New1Click
       end
       object Load1: TMenuItem

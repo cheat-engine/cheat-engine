@@ -70,15 +70,16 @@ object frmBreakpointlist: TfrmBreakpointlist
     top = 108
   end
   object pmBreakpoint: TPopupMenu
+    OnPopup = pmBreakpointPopup
     left = 140
     top = 116
-    object MenuItem1: TMenuItem
+    object miDelBreakpoint: TMenuItem
       Caption = 'Delete breakpoint'
-      OnClick = MenuItem1Click
+      OnClick = miDelBreakpointClick
     end
-    object MenuItem2: TMenuItem
+    object miSetCondition: TMenuItem
       Caption = 'Set/change condition'
-      OnClick = MenuItem2Click
+      OnClick = miSetConditionClick
     end
   end
 end

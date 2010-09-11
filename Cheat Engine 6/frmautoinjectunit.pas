@@ -283,6 +283,9 @@ begin
   try
     s:=assemblescreen.text;
     f.Write(s[1],length(assemblescreen.text));
+
+    assemblescreen.MarkTextAsSaved;
+
   finally
     f.Free;
   end;
@@ -1202,7 +1205,7 @@ begin
 
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
-  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol];
+  assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent];
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=2;
 
@@ -1539,6 +1542,8 @@ begin
           begin
             reg.WriteString('Font.name', assemblescreen.Font.Name);
             reg.WriteInteger('Font.size', assemblescreen.Font.size);
+            //assemblescreen.Font.
+
             reg.WriteBool('Show Line Numbers', assemblescreen.Gutter.linenumberpart.visible);
             reg.WriteBool('Show Gutter', assemblescreen.Gutter.Visible);
 

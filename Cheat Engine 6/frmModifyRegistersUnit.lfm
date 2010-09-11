@@ -1,19 +1,20 @@
 object frmModifyRegisters: TfrmModifyRegisters
   Left = 796
-  Height = 450
+  Height = 445
   Top = 263
   Width = 305
   Caption = 'Modify register(s) at xxxxxxxx'
-  ClientHeight = 450
+  ClientHeight = 445
   ClientWidth = 305
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
-    Left = 4
+    Left = 3
     Height = 14
     Top = 6
     Width = 22
@@ -21,7 +22,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 4
+    Left = 3
     Height = 14
     Top = 30
     Width = 22
@@ -37,7 +38,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label4: TLabel
-    Left = 4
+    Left = 2
     Height = 14
     Top = 78
     Width = 23
@@ -45,7 +46,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label5: TLabel
-    Left = 4
+    Left = 7
     Height = 14
     Top = 102
     Width = 18
@@ -53,7 +54,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label6: TLabel
-    Left = 4
+    Left = 6
     Height = 14
     Top = 126
     Width = 19
@@ -61,7 +62,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label7: TLabel
-    Left = 4
+    Left = 3
     Height = 14
     Top = 150
     Width = 22
@@ -69,7 +70,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label8: TLabel
-    Left = 4
+    Left = 3
     Height = 14
     Top = 174
     Width = 22
@@ -77,7 +78,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ParentColor = False
   end
   object Label9: TLabel
-    Left = 4
+    Left = 7
     Height = 14
     Top = 198
     Width = 18
@@ -142,9 +143,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox1: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 1
-    Width = 24
+    Width = 20
     OnClick = CheckBox1Click
     TabOrder = 0
   end
@@ -158,9 +159,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox2: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 25
-    Width = 24
+    Width = 20
     OnClick = CheckBox2Click
     TabOrder = 2
   end
@@ -174,9 +175,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox3: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 49
-    Width = 24
+    Width = 20
     OnClick = CheckBox3Click
     TabOrder = 4
   end
@@ -190,9 +191,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox4: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 73
-    Width = 24
+    Width = 20
     OnClick = CheckBox4Click
     TabOrder = 6
   end
@@ -206,9 +207,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox5: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 97
-    Width = 24
+    Width = 20
     OnClick = CheckBox5Click
     TabOrder = 8
   end
@@ -222,9 +223,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox6: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 121
-    Width = 24
+    Width = 20
     OnClick = CheckBox6Click
     TabOrder = 10
   end
@@ -238,9 +239,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox7: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 145
-    Width = 24
+    Width = 20
     OnClick = CheckBox7Click
     TabOrder = 12
   end
@@ -254,9 +255,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox8: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 169
-    Width = 24
+    Width = 20
     OnClick = CheckBox8Click
     TabOrder = 14
   end
@@ -270,9 +271,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox9: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 193
-    Width = 24
+    Width = 20
     OnClick = CheckBox9Click
     TabOrder = 16
   end
@@ -286,104 +287,104 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox10: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 22
-    Width = 24
+    Width = 20
     OnClick = CheckBox10Click
     TabOrder = 18
   end
   object CheckBox11: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 46
-    Width = 24
+    Width = 20
     OnClick = CheckBox11Click
     TabOrder = 19
   end
   object CheckBox12: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 70
-    Width = 24
+    Width = 20
     OnClick = CheckBox12Click
     TabOrder = 20
   end
   object CheckBox13: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 94
-    Width = 24
+    Width = 20
     OnClick = CheckBox13Click
     TabOrder = 21
   end
   object CheckBox14: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 118
-    Width = 24
+    Width = 20
     OnClick = CheckBox14Click
     TabOrder = 22
   end
   object CheckBox15: TCheckBox
     Left = 248
-    Height = 23
+    Height = 19
     Top = 142
-    Width = 24
+    Width = 20
     OnClick = CheckBox15Click
     TabOrder = 23
   end
   object CheckBox16: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 22
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 24
   end
   object CheckBox17: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 46
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 25
   end
   object CheckBox18: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 70
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 26
   end
   object CheckBox19: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 94
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 27
   end
   object CheckBox20: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 118
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 28
   end
   object CheckBox21: TCheckBox
     Left = 264
-    Height = 23
+    Height = 19
     Top = 142
-    Width = 24
+    Width = 20
     Enabled = False
     TabOrder = 29
   end
   object Button1: TButton
     Left = 91
     Height = 28
-    Top = 419
+    Top = 414
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
@@ -394,7 +395,7 @@ object frmModifyRegisters: TfrmModifyRegisters
   object Button2: TButton
     Left = 171
     Height = 28
-    Top = 419
+    Top = 414
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
@@ -403,7 +404,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     TabOrder = 31
   end
   object Label17: TLabel
-    Left = 4
+    Left = 10
     Height = 14
     Top = 222
     Width = 15
@@ -412,9 +413,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox22: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 217
-    Width = 24
+    Width = 20
     OnChange = CheckBox22Change
     OnClick = CheckBox9Click
     TabOrder = 32
@@ -428,7 +429,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     TabOrder = 33
   end
   object Label18: TLabel
-    Left = 4
+    Left = 10
     Height = 14
     Top = 246
     Width = 15
@@ -437,9 +438,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox23: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 241
-    Width = 24
+    Width = 20
     OnChange = CheckBox23Change
     OnClick = CheckBox9Click
     TabOrder = 34
@@ -462,9 +463,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox24: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 265
-    Width = 24
+    Width = 20
     OnChange = CheckBox24Change
     OnClick = CheckBox9Click
     TabOrder = 36
@@ -487,9 +488,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox25: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 289
-    Width = 24
+    Width = 20
     OnChange = CheckBox25Change
     OnClick = CheckBox9Click
     TabOrder = 38
@@ -512,9 +513,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox26: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 313
-    Width = 24
+    Width = 20
     OnChange = CheckBox26Change
     OnClick = CheckBox9Click
     TabOrder = 40
@@ -528,7 +529,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     TabOrder = 41
   end
   object Label22: TLabel
-    Left = 6
+    Left = 4
     Height = 14
     Top = 342
     Width = 21
@@ -537,9 +538,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox27: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 337
-    Width = 24
+    Width = 20
     OnChange = CheckBox27Change
     OnClick = CheckBox9Click
     TabOrder = 42
@@ -562,9 +563,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox28: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 361
-    Width = 24
+    Width = 20
     OnChange = CheckBox28Change
     OnClick = CheckBox9Click
     TabOrder = 44
@@ -587,9 +588,9 @@ object frmModifyRegisters: TfrmModifyRegisters
   end
   object CheckBox29: TCheckBox
     Left = 27
-    Height = 23
+    Height = 19
     Top = 385
-    Width = 24
+    Width = 20
     OnChange = CheckBox29Change
     OnClick = CheckBox9Click
     TabOrder = 46

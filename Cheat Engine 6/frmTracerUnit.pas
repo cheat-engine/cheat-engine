@@ -246,6 +246,14 @@ begin
             pref:='E';
 
 
+          if dereference then
+          begin
+            if t.referencedAddress<>0 then
+              z.add(inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype));
+          end;
+
+
+
 
           z.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},8));
           z.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8));
