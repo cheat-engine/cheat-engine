@@ -246,7 +246,7 @@ begin
 
     if plist.pos>=plist.maxsize then
     begin
-      bigalloc.realloc(plist.list, plist.maxsize*sizeof(TPointerDataArray), plist.maxsize**sizeof(TPointerDataArray)*4);
+      bigalloc.realloc(plist.list, plist.maxsize*sizeof(TPointerDataArray), plist.maxsize*sizeof(TPointerDataArray)*4);
       plist.maxsize:=plist.maxsize*4; //quadrupple the storage
     end;
 
