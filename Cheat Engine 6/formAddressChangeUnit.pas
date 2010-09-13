@@ -120,7 +120,7 @@ begin
 
     //still here so that address was right
 
-    currentaddress:=0;
+
     currentaddress2:=0;
 
     check:=readprocessmemory(processhandle,pointer(currentaddress),@currentaddress2,processhandler.pointersize,read);
