@@ -93,10 +93,7 @@ type
     Label4: TLabel;
     Label6: TLabel;
     Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
     rbDebugRegisters: TRadioButton;
-    rdWriteExceptions: TRadioButton;
     CheckBox1: TCheckBox;
     cbHandleBreakpoints: TCheckBox;
     cbShowDisassembler: TCheckBox;
@@ -105,7 +102,6 @@ type
     askforreplacewithnops: TCheckBox;
     rbDebugAsBreakpoint: TRadioButton;
     rbInt3AsBreakpoint: TRadioButton;
-    cbBreakOnAttach: TCheckBox;
     Extra: TTabSheet;
     TauntOldOsUser: TLabel;
     GroupBox3: TGroupBox;
@@ -417,7 +413,6 @@ begin
       reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
       reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
-      reg.WriteBool('Break when debuging',cbBreakOnAttach.Checked);
       reg.WriteBool('Hide all windows',cbHideAllWindows.checked);
       reg.WriteBool('Really hide all windows',temphideall);
 
@@ -806,19 +801,6 @@ begin
 
   //load the settings from the register and apply them to this window
 
-
-  {$ifndef net}
-  if GetSystemType<3 then //not a supported os for hardware breakpoints
-  begin
-    rdWriteExceptions.Checked:=true;
-    rbDebugRegisters.Enabled:=false;
-
-    rbDebugAsBreakpoint.enabled:=false;
-    rbInt3AsBreakpoint.enabled:=true;
-    label6.Enabled:=false;
-    label7.Enabled:=false;
-  end;
-  {$endif}
 
   //fill hotkey list
   for i:=0 to length(hotkeythread.hotkeylist)-1 do

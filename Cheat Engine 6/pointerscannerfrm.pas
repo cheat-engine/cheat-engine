@@ -185,6 +185,7 @@ type
     mustEndWithSpecificOffset: boolean;
     mustendwithoffsetlist: array of dword;
     onlyOneStaticInPath: boolean;
+    noReadOnly: boolean;
 
 
     threadcount: integer;
@@ -782,11 +783,14 @@ begin
       phase:=1;
       progressbar.Position:=0;
       try
-        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar);
+        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar, noreadonly);
       except
-        postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar('Failure copying target process memory'))); //I can just provide this string as it's static in the .code section
-        terminate;
-        exit;
+        on e: exception do
+        begin
+          postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar('Failure copying target process memory ('+e.message+')'))); //I can just provide this string as it's static in the .code section
+          terminate;
+          exit;
+        end;
       end;
     end; 
 
@@ -933,6 +937,8 @@ begin
       staticscanner.ownerform:=self;
       staticscanner.filename:=savedialog1.FileName;
       staticscanner.reverse:=true; //since 5.6 this is always true
+
+      staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
 
       staticscanner.start:=frmpointerscannersettings.start;
       staticscanner.stop:=frmpointerscannersettings.Stop;
@@ -1785,7 +1791,7 @@ begin
       if p.modulenr=-1 then
         item.Caption:=inttohex(p.moduleoffset,8)
       else
-        item.Caption:=pointerscanresults.getModulename(p.modulenr)+'+'+inttohex(p.moduleoffset,8);
+        item.Caption:='"'+pointerscanresults.getModulename(p.modulenr)+'"'+'+'+inttohex(p.moduleoffset,8);
 
       for i:=p.offsetcount-1 downto 0 do
         item.SubItems.Add(inttohex(p.offsets[i],1));

@@ -4580,19 +4580,6 @@ begin
   if paramcount >= 1 then
     LoadTable(paramstr(1),false);
 
-  if GetSystemType < 3 then //not a supported os for hardware breakpoints
-    with formsettings do
-    begin
-      rdWriteExceptions.Checked := True;
-      rbDebugRegisters.Enabled := False;
-      label6.Enabled := False;
-      label7.Enabled := False;
-
-      rbDebugAsBreakpoint.Enabled := False;
-      rbInt3AsBreakpoint.Checked := True;
-
-    end;
-
   if (GetSystemType < 4) {or (is64bitos)} then  //not nt or later
   begin
     with formsettings do

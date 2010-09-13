@@ -578,12 +578,9 @@ begin
           {$ifdef net} mainform.buffersize:=buffersize; {$endif}
 
           if reg.ValueExists('UseDebugRegs') then
-          begin
             if reg.ReadBool('UseDebugRegs') then
-              formsettings.rbDebugRegisters.checked:=true
-            else
-              formsettings.rdWriteExceptions.checked:=true;
-          end;
+              formsettings.rbDebugRegisters.checked:=true;
+
 
 
           if reg.ValueExists('Show Disassembler') then
@@ -678,8 +675,6 @@ begin
             
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
-          //try cbBreakOnAttach.Checked:=reg.readbool('Break when debuging'); except end;
-          cbBreakOnattach.Checked:=false;
 
           if reg.ValueExists('Hide all windows') then
             cbHideAllWindows.Checked:=reg.ReadBool('Hide all windows');
@@ -689,9 +684,15 @@ begin
             
           onlyfront:=not formsettings.temphideall;
 
-          try cbMemPrivate.Checked:=reg.ReadBool('MEM_PRIVATE'); except end;
-          try cbMemImage.Checked:=reg.ReadBool('MEM_IMAGE'); except end;
-          try cbMemMapped.Checked:=reg.ReadBool('MEM_MAPPED'); except end;
+          if reg.ValueExists('MEM_PRIVATE') then
+            cbMemPrivate.Checked:=reg.ReadBool('MEM_PRIVATE');
+
+          if reg.ValueExists('MEM_IMAGE') then
+            cbMemImage.Checked:=reg.ReadBool('MEM_IMAGE');
+
+          if reg.ValueExists('MEM_MAPPED') then
+            cbMemMapped.Checked:=reg.ReadBool('MEM_MAPPED');
+
           Scan_MEM_PRIVATE:=cbMemPrivate.checked;
           Scan_MEM_IMAGE:=cbMemImage.Checked;
           Scan_MEM_MAPPED:=cbMemMapped.Checked;

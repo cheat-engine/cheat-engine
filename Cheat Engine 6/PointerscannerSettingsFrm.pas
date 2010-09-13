@@ -31,7 +31,11 @@ type TOffsetEntry=class(Tedit)
 end;
 
 type
+
+  { TfrmPointerScannerSettings }
+
   TfrmPointerScannerSettings = class(TForm)
+    cbNoReadOnly: TCheckBox;
     edtAddress: TEdit;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;

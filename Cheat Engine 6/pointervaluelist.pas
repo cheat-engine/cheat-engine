@@ -92,7 +92,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean);
     destructor destroy; override;
   end;
 
@@ -246,7 +246,7 @@ begin
 
     if plist.pos>=plist.maxsize then
     begin
-      bigalloc.realloc(plist.list, plist.maxsize, plist.maxsize*4);
+      bigalloc.realloc(plist.list, plist.maxsize*sizeof(TPointerDataArray), plist.maxsize**sizeof(TPointerDataArray)*4);
       plist.maxsize:=plist.maxsize*4; //quadrupple the storage
     end;
 
@@ -560,7 +560,7 @@ begin
     raise exception.create('Pointer value setup error');
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -585,6 +585,7 @@ var bytepointer: PByte;
     pointermask: integer;
 begin
   OutputDebugString('TReversePointerListHandler.create');
+  try
   bigalloc:=TBigMemoryAllocHandler.create;
 
 
@@ -623,6 +624,16 @@ begin
           address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
           continue;
         end;
+
+      if noreadonly then
+      begin
+        //check if it's read only
+        if mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ] then
+        begin
+          address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+          continue;
+        end;
+      end;
 
       setlength(memoryregion,length(memoryregion)+1);
 
@@ -858,7 +869,15 @@ begin
       freemem(buffer);
   end;
 
-  OutputDebugString('Finished without an exception');
+  OutputDebugString('TReversePointerListHandler.create: Finished without an exception');
+
+  except
+    on e: exception do
+    begin
+      outputdebugstring('TReversePointerListHandler.create: Exception:'+e.message);
+      raise Exception.Create(e.message);
+    end;
+  end;
 end;
 
 end.

@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = ScanSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 3
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -768,6 +768,7 @@ object formSettings: TformSettings
           Width = 569
           Caption = 'Advantage: Not as memory intensive as the "Write Exceptions" type. And very high compatibility.'
           ParentColor = False
+          Visible = False
         end
         object Label7: TLabel
           Left = 0
@@ -776,23 +777,7 @@ object formSettings: TformSettings
           Width = 326
           Caption = 'Disadvantage: May sometimes return a wrong address'
           ParentColor = False
-        end
-        object Label8: TLabel
-          Left = 0
-          Height = 17
-          Top = 138
-          Width = 417
-          Caption = 'Advantage: Finds every address that accesses the specified address.'
-          ParentColor = False
-        end
-        object Label9: TLabel
-          Left = 0
-          Height = 17
-          Top = 155
-          Width = 631
-          Caption = 'Disadvantage: Memory intensive so slows down the game. And might cause stability problems in the game'
-          ParentColor = False
-          WordWrap = True
+          Visible = False
         end
         object rbDebugRegisters: TRadioButton
           Left = 0
@@ -803,15 +788,7 @@ object formSettings: TformSettings
           Checked = True
           State = cbChecked
           TabOrder = 0
-        end
-        object rdWriteExceptions: TRadioButton
-          Left = 0
-          Height = 20
-          Top = 118
-          Width = 186
-          Caption = 'Memory Access Exceptions'
-          TabOrder = 1
-          TabStop = False
+          Visible = False
         end
         object CheckBox1: TCheckBox
           Left = 0
@@ -820,7 +797,7 @@ object formSettings: TformSettings
           Width = 257
           Caption = 'Try to prevent detection of the debugger'
           OnClick = CheckBox1Click
-          TabOrder = 2
+          TabOrder = 1
         end
         object cbHandleBreakpoints: TCheckBox
           Left = 0
@@ -829,7 +806,7 @@ object formSettings: TformSettings
           Width = 242
           Caption = 'Handle beakpoints not caused by CE'
           OnClick = CheckBox1Click
-          TabOrder = 3
+          TabOrder = 2
         end
       end
       object Assembler: TTabSheet
@@ -839,9 +816,9 @@ object formSettings: TformSettings
         ImageIndex = 5
         object cbShowDisassembler: TCheckBox
           Left = 1
-          Height = 23
+          Height = 20
           Top = 2
-          Width = 142
+          Width = 138
           Caption = 'Show disassembler'
           Checked = True
           OnClick = cbShowDisassemblerClick
@@ -850,9 +827,9 @@ object formSettings: TformSettings
         end
         object cbShowDebugoptions: TCheckBox
           Left = 20
-          Height = 23
+          Height = 20
           Top = 30
-          Width = 166
+          Width = 162
           Caption = 'Show debugger options'
           Checked = True
           State = cbChecked
@@ -860,10 +837,10 @@ object formSettings: TformSettings
         end
         object replacewithnops: TCheckBox
           Left = 20
-          Height = 23
+          Height = 20
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 89
-          Width = 260
+          Width = 256
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -874,9 +851,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 39
-          Height = 23
+          Height = 20
           Top = 108
-          Width = 165
+          Width = 161
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -884,31 +861,22 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 39
-          Height = 23
+          Height = 20
           Top = 49
-          Width = 228
-          Caption = 'Use hardware breakpoints (Max 3)'
+          Width = 178
+          Caption = 'Use hardware breakpoints'
           Checked = True
           State = cbChecked
           TabOrder = 4
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 39
-          Height = 23
+          Height = 20
           Top = 69
-          Width = 300
+          Width = 296
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           TabOrder = 5
           TabStop = False
-        end
-        object cbBreakOnAttach: TCheckBox
-          Left = 20
-          Height = 23
-          Top = 148
-          Width = 382
-          Caption = 'Break when attaching/creating process using the process list'
-          TabOrder = 6
-          Visible = False
         end
       end
       object Extra: TTabSheet
