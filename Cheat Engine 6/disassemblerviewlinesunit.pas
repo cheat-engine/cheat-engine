@@ -161,7 +161,7 @@ end;
 
 procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
 var
-    baseofsymbol: ptrUint;
+    baseofsymbol: qword;
     symbolname: string;
     refferencedby: string;
     refferencedbylinecount: integer;
@@ -177,6 +177,8 @@ var
     textcolor: TColor;
 
     bp: PBreakpoint;
+
+    z: ptrUint;
 begin
   self.focused:=focused;
 
@@ -189,7 +191,11 @@ begin
 
   height:=0;
   baseofsymbol:=0;
-  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
+  z:=address;
+
+
+  symbolname:=symhandler.getNameFromAddress(z,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
+
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin

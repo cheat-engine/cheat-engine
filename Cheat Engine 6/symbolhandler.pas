@@ -148,9 +148,9 @@ type
 
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
-    function GetUserdefinedSymbolByName(symbolname:string):dword;
+    function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
     function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
-    function GetUserdefinedSymbolByAddress(address:dword):string;
+    function GetUserdefinedSymbolByAddress(address:ptrUint):string;
     procedure AddUserdefinedSymbol(addressstring: string; symbolname: string);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
 
@@ -639,7 +639,7 @@ begin
   end;  
 end;
 
-function TSymhandler.GetUserdefinedSymbolByName(symbolname:string):dword;
+function TSymhandler.GetUserdefinedSymbolByName(symbolname:string):ptrUint;
 var i:integer;
 begin
   result:=0;
@@ -654,7 +654,7 @@ begin
   end;
 end;
 
-function TSymhandler.GetUserdefinedSymbolByAddress(address:dword):string;
+function TSymhandler.GetUserdefinedSymbolByAddress(address:ptrUint):string;
 var i:integer;
 begin
   result:='';
@@ -889,12 +889,14 @@ begin
   end;
 {$endif}
 
+
   //check the userdefined symbols
   if found<>nil then
     found^:=false;
 
   result:=self.GetUserdefinedSymbolByAddress(address);
   if result<>'' then exit;
+
 
   if symbols then
   begin
@@ -944,8 +946,13 @@ begin
   end;
 
 
+
+
+
+
   if modules then
   begin
+
     //get the dllname+offset
     if getmodulebyaddress(address,mi) then
     begin
@@ -953,6 +960,9 @@ begin
         result:=mi.modulename
       else
         result:=mi.modulename+'+'+inttohex(address-mi.baseaddress,1);
+
+
+
 
       if baseaddress<>nil then
         baseaddress^:=mi.baseaddress;

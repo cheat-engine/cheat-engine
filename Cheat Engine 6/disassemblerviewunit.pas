@@ -578,6 +578,7 @@ begin
 
       currentline:=disassemblerlines[i];
 
+
       currentline.renderLine(currentAddress,currenttop, inrangeX(currentAddress,selStart,selStop), currentAddress=fSelectedAddress);
 
       inc(currenttop, currentline.getHeight);
