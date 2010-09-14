@@ -1,42 +1,29 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   Left = 522
-  Height = 207
+  Height = 279
   Top = 346
-  Width = 499
+  Width = 525
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Memory Allocations'
-  ClientHeight = 207
-  ClientWidth = 499
+  ClientHeight = 279
+  ClientWidth = 525
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.29'
-  object StatusBar1: TStatusBar
-    Left = 0
-    Height = 28
-    Top = 179
-    Width = 499
-    Panels = <    
-      item
-        Width = 300
-      end    
-      item
-        Width = 50
-      end>
-  end
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 138
+    Height = 238
     Top = 41
-    Width = 499
+    Width = 525
     Align = alClient
     Caption = 'Data'
-    ClientHeight = 116
-    ClientWidth = 495
-    TabOrder = 1
+    ClientHeight = 220
+    ClientWidth = 521
+    TabOrder = 0
     object Label1: TLabel
       Left = 40
       Height = 17
@@ -55,21 +42,21 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     end
     object lblHeapHandle: TLabel
       Left = 144
-      Height = 17
+      Height = 1
       Top = 48
       Width = 1
       ParentColor = False
     end
     object lblFlags: TLabel
       Left = 144
-      Height = 17
+      Height = 1
       Top = 64
       Width = 1
       ParentColor = False
     end
     object lblBaseAddress: TLabel
       Left = 144
-      Height = 17
+      Height = 1
       Top = 16
       Width = 1
       ParentColor = False
@@ -92,7 +79,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     end
     object lblSize: TLabel
       Left = 144
-      Height = 17
+      Height = 1
       Top = 32
       Width = 1
       ParentColor = False
@@ -110,17 +97,33 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       ParentFont = False
       Visible = False
     end
+    object StatusBar1: TStatusBar
+      Left = 0
+      Height = 23
+      Top = 197
+      Width = 521
+      Panels = <      
+        item
+          Text = '-'
+          Width = 300
+        end      
+        item
+          Text = '--'
+          Width = 50
+        end>
+      SimplePanel = False
+    end
   end
   object Panel1: TPanel
     Left = 0
     Height = 41
     Top = 0
-    Width = 499
+    Width = 525
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 41
-    ClientWidth = 499
-    TabOrder = 2
+    ClientWidth = 525
+    TabOrder = 1
     object Edit1: TEdit
       Left = 8
       Height = 24
@@ -138,7 +141,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
       TabOrder = 1
     end
     object btnReload: TButton
-      Left = 416
+      Left = 440
       Height = 25
       Top = 8
       Width = 75
@@ -148,9 +151,9 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
     end
     object cbHookAllocs: TCheckBox
       Left = 256
-      Height = 23
+      Height = 20
       Top = 12
-      Width = 144
+      Width = 140
       Caption = 'Hook alloc functions'
       OnClick = cbHookAllocsClick
       TabOrder = 3

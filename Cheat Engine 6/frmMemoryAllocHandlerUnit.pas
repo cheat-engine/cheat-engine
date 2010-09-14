@@ -22,37 +22,37 @@ const
 
 type
   TAllocData=record
-    handle: dword;
-    baseaddress: dword;
+    handle: qword;
+    baseaddress: qword;
     allocationType: dword;
     protect: dword;
     size: dword;
-    esp: dword;
+    esp: qword;
   end;
 
   TFreeData=record
-    handle: dword;
-    baseaddress: dword;
+    handle: qword;
+    baseaddress: qword;
     size: dword;
     FreeType: dword;
   end;
 
   THeapAllocData=record
-    HeapHandle: pointer;
+    HeapHandle: qword;
     Flags: DWORD;
     Size: dword;
-    esp:dword;
-    address: pointer;
+    esp:qword;
+    address: qword;
   end;
 
   THeapFreeData=record
-    HeapHandle: pointer;
+    HeapHandle: qword;
     Flags: dword;
-    HeapBase: pointer;
+    HeapBase: qword;
   end;
 
   THeapDestroyData=record
-    HeapHandle: pointer;
+    HeapHandle: qword;
   end;
 
   THookEvent = record
@@ -89,6 +89,7 @@ type
 
 type TDisplayThread=class(tthread)
   private
+    maxlevel: integer;
     procedure AddAddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
     procedure removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
   public
@@ -104,7 +105,7 @@ type TDisplayThread=class(tthread)
     procedure AddObject_HeapAlloc(o: TMemoryAllocEvent);
     procedure AddObject_HeapFree(o: TMemoryAllocEvent);
     procedure AddObject_HeapDestroy(o: TMemoryAllocEvent);
-    procedure AddObject_HeapDestroy2(a: PMemrectableArray; level: integer; heaphandle: pointer);
+    procedure AddObject_HeapDestroy2(a: PMemrectableArray; level: integer; heaphandle: qword);
     procedure addobject(objecttoadd: TMemoryAllocEvent);
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -120,6 +121,7 @@ type TAllocWatcher=class(TThread)
     errorcount: dword; //debug variable
 
     HookEvent: THookEvent;
+    maxlevel: integer;
     procedure allocevent;
     procedure freeEvent;
     procedure heapAllocEvent;
@@ -129,7 +131,7 @@ type TAllocWatcher=class(TThread)
     procedure addObjectToList(o: TmemoryAllocevent);
   public
     procedure execute; override;
-    constructor create(suspended: boolean; HasSetupDataEvent: THandle; CEHasHandledItEvent: THandle; HookEventDataAddress: DWORD);
+    constructor create(suspended: boolean; HasSetupDataEvent: THandle; CEHasHandledItEvent: THandle; HookEventDataAddress: ptrUint);
 end;
 
 
@@ -137,6 +139,9 @@ end;
 
 
 type
+
+  { TfrmMemoryAllocHandler }
+
   TfrmMemoryAllocHandler = class(TForm)
     StatusBar1: TStatusBar;
     Timer1: TTimer;
@@ -155,6 +160,7 @@ type
     lblErr: TLabel;
     btnReload: TButton;
     cbHookAllocs: TCheckBox;
+    procedure cbHookAllocsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -167,17 +173,20 @@ type
     CEHasHandledItEvent: THandle;
     CEInitializationFinished: THandle;
     watcher: TAllocWatcher;
-    HookEventDataAddress: dword;
+    HookEventDataAddress: ptrUint;
 
     hookscript: tstringlist;
     hookallocarray: TCEAllocArray;
+
+    maxlevel: integer;
+    pointermask: integer;
   public
     { Public declarations }
 
 //level0 (0000000-10000000-20000000-30000000-40000000-50000000-60000000-70000000-80000000-90000000-a0000000-b0000000-c0000000-d0000000-e0000000-f0000000
 //level1.0 (01000000-02000000-03000000-04000000-....
 //level1.1 (11000000-12000000-13000000-14000000-....
-//max level (7) is the actual record
+//max level (7/15) is the actual record
     memrecCS: TCriticalSection;
     HeapBaselevel: TMemRecTableArray;
     AllocBaseLevel: TMemRecTableArray;
@@ -185,7 +194,7 @@ type
     hookedprocessid: dword;
     displaythread: TDisplayThread;
 
-    function FindAddress(addresslist: PMemrecTableArray; address: dword): TMemoryAllocEvent;
+    function FindAddress(addresslist: PMemrecTableArray; address: ptrUint): TMemoryAllocEvent;
     function WaitForInitializationToFinish: boolean;
   end;
 
@@ -207,9 +216,9 @@ var
 begin
   level:=0;
   currentarray:=addresslist;
-  while level<7 do
+  while level<maxlevel do
   begin
-    entrynr:=memallocevent.baseaddress shr ((7-level)*4) and $f;
+    entrynr:=memallocevent.baseaddress shr ((maxlevel-level)*4) and $f;
     if currentarray[entrynr].MemrecArray=nil then
       exit; //not found
 
@@ -218,7 +227,7 @@ begin
     inc(level);
   end;
 
-  entrynr:=memallocevent.baseaddress shr ((7-level)*4) and $f;
+  entrynr:=memallocevent.baseaddress shr ((maxlevel-level)*4) and $f;
   if currentarray[entrynr].memallocevent<>nil then
   begin
     //remove it
@@ -242,10 +251,10 @@ var
 begin
   level:=0;
   currentarray:=addresslist;
-  while level<7 do
+  while level<maxlevel do
   begin
 
-    entrynr:=memallocevent.baseaddress shr ((7-level)*4) and $f;
+    entrynr:=memallocevent.baseaddress shr ((maxlevel-level)*4) and $f;
     if currentarray[entrynr].MemrecArray=nil then //allocate the array
     begin
       GetMem(temp, sizeof(TMemRecTableArray));
@@ -258,7 +267,7 @@ begin
     inc(level);
   end;
 
-  entrynr:=memallocevent.baseaddress shr ((7-level)*4) and $f;
+  entrynr:=memallocevent.baseaddress shr ((maxlevel-level)*4) and $f;
   if currentarray[entrynr].memallocevent<>nil then
   begin
     temp2:=currentarray[entrynr].memallocevent;
@@ -292,11 +301,11 @@ begin
   o.Free;
 end;
 
-procedure TDisplayThread.AddObject_HeapDestroy2(a: PMemrectableArray; level: integer; heaphandle: pointer);
+procedure TDisplayThread.AddObject_HeapDestroy2(a: PMemrectableArray; level: integer; heaphandle: qword);
 var i: integer;
     temp: TMemoryAllocEvent;
 begin
-  if level=7 then
+  if level=maxlevel then
   begin
     for i:=0 to 15 do
       if (a[i].memallocevent<>nil) and (a[i].memallocevent.HookEvent.HeapAllocEvent.HeapHandle=heaphandle) then
@@ -360,7 +369,7 @@ begin
     end;
   except
     inc(errorcount);
-    OutputDebugString('Exception in TDisplayThread.addobject2. objecttoadd='+inttohex(dword(objecttoadd),8));
+    OutputDebugString('Exception in TDisplayThread.addobject2. objecttoadd='+inttohex(ptrUint(objecttoadd),8));
   end;
 end;
 
@@ -404,6 +413,12 @@ begin
   ObjectQueue:=TCircularObjectBuffer.Create(5000000, 1000); //arround 20MB of of pointe storage   
 
   ListContainsEntries:=TEvent.Create(nil,false,false,'');
+
+  if processhandler.is64Bit then
+    maxlevel:=15
+  else
+    maxlevel:=7;
+
   inherited create(suspended);
 end;
 
@@ -551,12 +566,17 @@ begin
   end;
 end;
 
-constructor TAllocWatcher.create(suspended: boolean; HasSetupDataEvent: THandle; CEHasHandledItEvent: THandle; HookEventDataAddress: DWORD);
+constructor TAllocWatcher.create(suspended: boolean; HasSetupDataEvent: THandle; CEHasHandledItEvent: THandle; HookEventDataAddress: ptrUint);
 begin
   self.HasSetupDataEvent:=HasSetupDataEvent;
   self.CeHasHandledItEvent:=CeHasHandledItEvent;
 
   self.HookEventDataAddress:=HookEventDataAddress;
+
+  if processhandler.is64Bit then
+    maxlevel:=15
+  else
+    maxlevel:=7;
 
   inherited create(suspended);
 end;
@@ -564,18 +584,39 @@ end;
 
 
 procedure TfrmMemoryAllocHandler.FormCreate(Sender: TObject);
-var injectionscript: TStringlist;
-var x,y,z: THandle;
-mi: tmoduleinfo;
+var
+  injectionscript: TStringlist;
+  x,y,z: THandle;
+  mi: tmoduleinfo;
+  mname: string;
 begin
+  if processhandler.is64Bit then
+  begin
+    maxlevel:=15;
+    pointermask:=7; //AND the value/address with this value. If the result=0 it's aligned
+  end
+  else
+  begin
+    maxlevel:=7;
+    pointermask:=3;
+  end;
+
+
   memrecCS:=TCriticalSection.Create;
   displaythread:=TDisplayThread.create(false);
   injectionscript:=tstringlist.Create;
   try
     //inject allochook.dll
-    if not symhandler.getmodulebyname('allochook.dll',mi) then
+
+    if processhandler.is64bit then
+      mname:='allochook-x86_64.dll'
+    else
+      mname:='allochook-i386.dll';
+
+
+    if not symhandler.getmodulebyname(mname,mi) then
     begin
-      injectdll(CheatEngineDir+'allochook.dll');
+      injectdll(CheatEngineDir+mname);
       symhandler.reinitialize;
     end;
       
@@ -600,11 +641,11 @@ begin
 
     //set event handles
     injectionscript.Add('HasSetupDataEvent:');
-    injectionscript.Add('DD '+inttohex(x,8));
+    injectionscript.Add('DQ '+inttohex(x,8));
     injectionscript.Add('CEHasHandledItEvent:');
-    injectionscript.Add('DD '+inttohex(y,8));
+    injectionscript.Add('DQ '+inttohex(y,8));
     injectionscript.Add('CEInitializationFinished:');
-    injectionscript.Add('DD '+inttohex(z,8));
+    injectionscript.Add('DQ '+inttohex(z,8));
 
 
     if not autoassemble(injectionscript,false) then raise exception.Create('Failure hooking apis');
@@ -625,6 +666,11 @@ begin
     injectionscript.Free;
   end;
 
+
+end;
+
+procedure TfrmMemoryAllocHandler.cbHookAllocsChange(Sender: TObject);
+begin
 
 end;
 
@@ -684,17 +730,17 @@ begin
   end;
 end;
 
-type TMemrectablearraylist = array [0..7] of record
+type TMemrectablearraylist = array [0..15] of record
  arr:PMemrectablearray;
  entrynr: integer;
  end;
 
-function findMaxOfPath(a: PMemrectablearray; level: integer):TMemoryAllocEvent;
+function findMaxOfPath(a: PMemrectablearray; level: integer; maxlevel: integer):TMemoryAllocEvent;
 var
   i: integer;
 begin
   result:=nil;
-  if level=7 then
+  if level=maxlevel then
   begin
     for i:=15 downto 0 do
     begin
@@ -711,20 +757,20 @@ begin
     begin
       if a[i].MemrecArray<>nil then
       begin
-        result:=findMaxOfPath(a[i].MemrecArray,level+1);
+        result:=findMaxOfPath(a[i].MemrecArray,level+1, maxlevel);
         if result<>nil then exit;
       end;
     end;
   end;
 end;
 
-function findprevious(lvl: TMemrectablearraylist; level: integer):TMemoryAllocEvent;
+function findprevious(lvl: TMemrectablearraylist; level: integer; maxlevel: integer):TMemoryAllocEvent;
 var
   i: integer;
   currentarray: PMemrectablearray;
 begin
   result:=nil;
-  if level=7 then
+  if level=maxlevel then
   begin
     currentarray:=lvl[level].arr;
     for i:=lvl[level].entrynr-1 downto 0 do
@@ -744,7 +790,7 @@ begin
     begin
       if currentarray[i].MemrecArray<>nil then
       begin
-        result:=findMaxOfPath(currentarray[i].MemrecArray,level+1);
+        result:=findMaxOfPath(currentarray[i].MemrecArray,level+1, maxlevel);
         if result<>nil then exit;
       end;
     end;
@@ -754,7 +800,7 @@ begin
   if level>0 then
   begin
     lvl[level].entrynr:=$f;
-    result:=findprevious(lvl,level-1);
+    result:=findprevious(lvl,level-1, maxlevel);
   end;
 end;
 
@@ -763,7 +809,7 @@ begin
   result:=WaitForSingleObject(CEInitializationFinished,5000)=WAIT_OBJECT_0;
 end;
 
-function TfrmMemoryAllocHandler.FindAddress(addresslist: PMemrecTableArray; address: dword): TMemoryAllocEvent;
+function TfrmMemoryAllocHandler.FindAddress(addresslist: PMemrecTableArray; address: ptrUint): TMemoryAllocEvent;
   //only call this when displaythread is suspended
 var
   level: integer;
@@ -782,7 +828,7 @@ begin
     level:=0;
     currentarray:=addresslist;
 
-    while level<7 do
+    while level<maxlevel do
     begin
       entrynr:=address shr ((7-level)*4) and $f;
       lvl[level].arr:=currentarray;
@@ -794,8 +840,8 @@ begin
 
         //not a direct match (this will happen almost every time)
         //try to find a previous entry
-        result:=findprevious(lvl,level);
-        if (result<>nil) and (not InRange(address,result.BaseAddress,result.BaseAddress+result.HookEvent.HeapAllocEvent.Size)) then
+        result:=findprevious(lvl, level, maxlevel);
+        if (result<>nil) and (not InRangeX(address,result.BaseAddress,result.BaseAddress+result.HookEvent.HeapAllocEvent.Size)) then
           result:=nil;
 
         exit;
@@ -806,7 +852,7 @@ begin
       inc(level);
     end;
 
-    entrynr:=address shr ((7-level)*4) and $f;
+    entrynr:=address shr ((maxlevel-level)*4) and $f;
     lvl[level].arr:=currentarray;
     lvl[level].entrynr:=entrynr;
 
@@ -816,11 +862,11 @@ begin
     begin
       //not a direct match
       //try to find a previous entry
-      result:=findprevious(lvl,level);
+      result:=findprevious(lvl,level, maxlevel);
     end;
 
 
-    if (result<>nil) and (not InRange(address,result.BaseAddress,result.BaseAddress+result.HookEvent.HeapAllocEvent.Size)) then
+    if (result<>nil) and (not InRangeX(address,result.BaseAddress,result.BaseAddress+result.HookEvent.HeapAllocEvent.Size)) then
       result:=nil;
   {
   finally
@@ -828,11 +874,11 @@ begin
   end;}
 end;
 
-procedure DeletePath(addresslist: PMemrecTableArray; level: integer);
+procedure DeletePath(addresslist: PMemrecTableArray; level: integer; maxlevel: integer);
 var
   i: integer;
 begin
-  if level=7 then
+  if level=maxlevel then
   begin
     for i:=0 to 15 do
     begin
@@ -846,7 +892,7 @@ begin
     begin
       if addresslist[i].MemrecArray<>nil then
       begin
-        deletepath(addresslist[i].MemrecArray,level+1);
+        deletepath(addresslist[i].MemrecArray,level+1, maxlevel);
         freemem(addresslist[i].MemrecArray);
         addresslist[i].MemrecArray:=nil;
       end;
@@ -872,7 +918,7 @@ begin
   displaythread.csObjectList.Enter;
   try
     //whipe the old list
-    DeletePath(@HeapBaselevel, 0);
+    DeletePath(@HeapBaselevel, 0, maxlevel);
     displaythread.heapcount:=0;
 
 
