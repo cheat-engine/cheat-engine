@@ -1529,7 +1529,7 @@ end;
 
 
 function GetWin32KAddress(var address:ptrUint;var size:dworD):boolean;
-(*var need:dword;
+{var need:dword;
     p: pointer;
     oldx: dword;
     x: array of pointer;
@@ -1537,11 +1537,11 @@ function GetWin32KAddress(var address:ptrUint;var size:dworD):boolean;
     count: integer;
     drivername: pchar;
     nearest: dword; //nearest other driver (AFTER win32k.sys)
-    *)
+    }
 begin
 
   result:=false;
- (*
+{
   copymemory(@oldx,@x,4);
 
   EnumDevicedrivers(nil,0,need);
@@ -1586,7 +1586,7 @@ begin
   finally
     freemem(p);
   end;
-  *)
+}
 end;
 
 var hscManager: thandle;
@@ -1810,10 +1810,10 @@ begin
           else
           begin
             InitializeDriver(0,0);
-            (*
+            {
             if not InitializeDriver(0,0) then
               messagebox(0,'The driver failed to successfully initialize. Some functions may not completly work','DBK32.dll',MB_ICONERROR or MB_OK);
-              *)
+              }
 
             Successfullyloaded:=true;
           end;

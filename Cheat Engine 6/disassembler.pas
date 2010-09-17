@@ -3123,7 +3123,7 @@ begin
                         else
                         begin
                           description:='move 64 bits';
-                          lastdisassembledata.opcode:='movdqa';
+                          lastdisassembledata.opcode:='movq';
                           lastdisassembledata.parameters:=mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           inc(offset,last-1);

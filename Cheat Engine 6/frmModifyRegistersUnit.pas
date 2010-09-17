@@ -457,8 +457,12 @@ begin
   if tempregedit.change_of then tempregedit.new_of:=checkbox21.checked;
 
   //set a breakpoint at this spot
-  if debuggerthread<>nil then
-    debuggerthread.setChangeRegBreakpoint(@tempregedit);
+  if startdebuggerifneeded then
+  begin
+    if debuggerthread<>nil then
+      debuggerthread.setChangeRegBreakpoint(@tempregedit);
+
+  end;
 
   memorybrowser.disassemblerview.Update;
   modalresult:=mrok;
