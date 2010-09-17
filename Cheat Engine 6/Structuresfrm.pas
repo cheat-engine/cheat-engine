@@ -841,8 +841,13 @@ begin
 
     if selectedstructure.basestructure>=0 then
     begin
-      if selectednode.index>=0 then
-        edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectednode.index].offset-1,1)
+      if selectedelement>=0 then
+      begin
+        if length(definedstructures[selectedstructure.basestructure].structelement)>selectedelement then
+          edtOffset.text:=inttohex(definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset-1,1)
+        else
+          edtOffset.text:='0';
+      end
       else
       begin
         if length(definedstructures[selectedstructure.basestructure].structelement)>0 then
