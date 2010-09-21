@@ -22,11 +22,13 @@ var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandl
     Thread32First: function(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
     Thread32Next: function(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
 
+var oldExceptionHandler: pointer=nil;
+
 implementation
 
 uses DebugHandler,threadpoll;
 
-var oldExceptionHandler: pointer=nil;
+
 
 type Ttest=class(tthread)
   private
@@ -50,6 +52,7 @@ var ep: TEXCEPTIONPOINTERS;
     cpid: dword;
     isfirst: boolean;
 begin
+  OutputDebugString('EmulateInitializeEvents');
   cpid:=GetCurrentProcessId;
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
@@ -95,22 +98,6 @@ end;
 procedure InitializeVEH;
 var k: THandle;
 begin
-  if ThreadPoller<>nil then
-  begin
-    ThreadPoller.free;
-    ThreadPoller:=nil;
-  end;
-  OutputDebugString('InitializeVEH');
-
-
-  //get the shared memory object
-  fm:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),@ConfigName[0]);
-  VEHSharedMem:=MapViewOfFile(OpenFileMapping(FILE_MAP_ALL_ACCESS,false,@ConfigName[0]),FILE_MAP_ALL_ACCESS,0,0,0);
-
-  if VEHSharedMem=nil then
-    outputdebugstring('VEHDebugSharedMem=nil');
-
-
   k:=LoadLibrary('kernel32.dll');
   AddVectoredExceptionHandler:=GetProcAddress(k,'AddVectoredExceptionHandler');
   RemoveVectoredExceptionHandler:=GetProcAddress(k,'RemoveVectoredExceptionHandler');
@@ -119,13 +106,52 @@ begin
   Thread32Next:=GetProcAddress(k,'Thread32Next');
 
 
-  if assigned(AddVectoredExceptionHandler) then
+
+  if assigned(RemoveVectoredExceptionHandler) then
   begin
     if oldExceptionHandler<>nil then //this is a re-initialization, first disable the old one
+    begin
       RemoveVectoredExceptionHandler(oldExceptionHandler);
+      oldExceptionHandler:=nil;
+    end;
+  end;
 
+  testandfixcs_start;
+
+  OutputDebugString('VEHDebug init');
+
+
+
+  if ThreadPoller<>nil then
+  begin
+    ThreadPoller.Terminate;
+    ThreadPoller.WaitFor;
+    ThreadPoller.free;
+    ThreadPoller:=nil;
+  end;
+
+  testandfixcs_final;
+
+
+  //get the shared memory object
+  fm:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),@ConfigName[0]);
+  VEHSharedMem:=MapViewOfFile(OpenFileMapping(FILE_MAP_ALL_ACCESS,false,@ConfigName[0]),FILE_MAP_ALL_ACCESS,0,0,0);
+
+
+
+
+
+  if assigned(AddVectoredExceptionHandler) then
+  begin
+    if oldExceptionHandler<>nil then
+      outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
+
+    OutputDebugString('Calling EmulateInitializeEvents');
     EmulateInitializeEvents;
 
+    OutputDebugString('returned from EmulateInitializeEvents');
+
+    OutputDebugString('Registering exception handler');
     oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
 
     if oldExceptionHandler<>nil then

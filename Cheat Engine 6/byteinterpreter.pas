@@ -136,10 +136,10 @@ begin
 
     2,3: //2 byte
     begin
-      if (pword(@buf[0])^>500) and ((pword(@buf[0])^ mod 10)>0) then
-        result:=vtByte
+      if (pword(@buf[0])^>=260) and ((pword(@buf[0])^ mod 10)=0) then //2 bytes and dividable by 10
+        result:=vtWord
       else
-        result:=vtWord;
+        result:=vtByte;
       exit;
     end;
   end;

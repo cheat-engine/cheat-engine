@@ -1222,10 +1222,16 @@ var
   Result: TWaitResult;
   starttime: dword;
   currentloopstarttime: dword;
+  timeout: dword;
 begin
   starttime:=GetTickCount;
 
-  while (gettickcount-starttime)<5000 do
+  if IsDebuggerPresent then //when debugging the debugger 5 seconds is too short
+    timeout:=5000000
+  else
+    timeout:=5000;
+
+  while (gettickcount-starttime)<timeout do
   begin
     currentloopstarttime:=GetTickCount;
     while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long

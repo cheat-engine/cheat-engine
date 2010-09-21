@@ -1008,12 +1008,17 @@ begin
   result:='';
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create('Error loading '+dllname+'. Only DLL files are allowed');
   hmodule:=loadlibrary(pchar(dllname));
-  GetVersion:=getprocaddress(hmodule,'GetVersion');
+  GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
+  if not assigned(GetVersion) then
+    getVersion:=getprocaddress(hmodule,'GetVersion');
 
-  if getprocaddress(hmodule,'InitializePlugin')=nil then raise exception.Create(dllname+' is missing the InitializePlugin export');
-  if getprocaddress(hmodule,'DisablePlugin')=nil then raise exception.Create(dllname+' is missing the DisablePlugin export');
+  if not assigned(GetVersion) then
+    raise exception.Create('Error loading '+dllname+'. The dll is missing the CEPlugin_GetVersion function');
 
-  if @GetVersion=nil then raise exception.Create('Error loading '+dllname+'. The dll is missing the GetVersion function');
+
+  if (getprocaddress(hmodule,'CEPlugin_InitializePlugin')=nil) and (getprocaddress(hmodule,'InitializePlugin')=nil) then raise exception.Create(dllname+' is missing the CEPlugin_InitializePlugin export');
+  if (getprocaddress(hmodule,'CEPlugin_DisablePlugin')=nil) and (getprocaddress(hmodule,'DisablePlugin')=nil) then raise exception.Create(dllname+' is missing the CEPlugin_DisablePlugin export');
+
   if GetVersion(PluginVersion,sizeof(TPluginVersion)) then
     result:=PluginVersion.pluginname;
 

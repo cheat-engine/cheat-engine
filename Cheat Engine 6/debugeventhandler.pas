@@ -509,7 +509,7 @@ begin
 
 
   case debugEvent.Exception.ExceptionRecord.ExceptionCode of
-    EXCEPTION_BREAKPOINT:
+    EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT:
     begin
       OutputDebugString('EXCEPTION_BREAKPOINT');
       Result := DispatchBreakpoint(exceptionAddress, dwContinueStatus);

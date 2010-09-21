@@ -32,9 +32,8 @@ procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
-  c: Tcontext;
+  c:  Tcontext;
 begin
-  //outputdebugstring(pchar('TThreadPoller.CreateThreadEvent('+inttohex(threadid,1)+')'));
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
@@ -49,7 +48,6 @@ var
   er: TEXCEPTIONRECORD;
   c: Tcontext;
 begin
-  //outputdebugstring(pchar('TThreadPoller.DestroyThreadEvent('+inttohex(threadid,1)+')'));
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
@@ -64,13 +62,10 @@ var
   ths: thandle;
   lpte: TThreadEntry32;
   check: boolean;
- // i,j: integer;
   cpi: dword;
 begin
   cpi:=GetCurrentProcessId();
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPALL,cpi);
- // i:=0;
-  //j:=0;
 
   if ths<>INVALID_HANDLE_VALUE then
   begin
@@ -80,38 +75,22 @@ begin
     while check do
     begin
       if lpte.th32OwnerProcessID=cpi then
-      begin
         list.add(pointer(lpte.th32ThreadID));
-        //inc(i);
-      end;
+
       check:=Thread32next(ths,lpte);
-      //inc(j);
     end;
-
-   { if list.count=0 then
-      outputdebugstring('GetCurrentList returned 0 threads');
-
-    if i=0 then
-      outputdebugstring('It''s actually 0');
-
-    outputdebugstring(pchar('j='+inttostr(j)));  }
-
 
 
     closehandle(ths);
-  end;// else outputdebugstring('GetCurrentList failed on CreateToolhelp32Snapshot');
+  end;
 end;
 
 procedure TThreadPoller.UpdateList;
 var newlist: Tlist;
 i: integer;
 begin
- // OutputDebugString('TThreadPoller.UpdateList');
-
   newlist:=tlist.create;
   GetCurrentList(newlist);
-
- // outputdebugstring(pchar(format('newlist.count=%d oldlist.count=%d',[newlist.count, threadlist.count])));
 
   //now try to find the differences
 
@@ -137,11 +116,11 @@ begin
 
     while not terminated do
     begin
-
-      sleep(1000);
+      sleep(500);
       UpdateList;
     end;
   finally
+    OutputDebugString('TThreadPoller terminated');
     threadlist.free;
   end;
 end;
