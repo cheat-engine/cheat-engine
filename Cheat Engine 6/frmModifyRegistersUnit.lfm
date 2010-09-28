@@ -1,7 +1,7 @@
 object frmModifyRegisters: TfrmModifyRegisters
-  Left = 796
+  Left = 922
   Height = 445
-  Top = 263
+  Top = 284
   Width = 305
   Caption = 'Modify register(s) at xxxxxxxx'
   ClientHeight = 445

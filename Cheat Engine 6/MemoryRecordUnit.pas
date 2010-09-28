@@ -677,10 +677,10 @@ var
   increasevalue: qword;
   increasevaluedouble: double;
 begin
-  if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble] then
+  if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom] then
   begin
     try
-      if VarType in [vtByte, vtWord, vtDword, vtQword] then
+      if VarType in [vtByte, vtWord, vtDword, vtQword, vtCustom] then
       begin
         oldvalue:=StrToInt64(getvalue);
         increasevalue:=StrToInt64(value);
@@ -845,7 +845,8 @@ end;
 procedure TMemoryRecord.setShowAsHex(state:boolean);
 begin
   fShowAsHex:=state;
-  self.treenode.Update;
+  if treenode<>nil then
+    treenode.Update;
 end;
 
 function TMemoryRecord.getByteSize: integer;

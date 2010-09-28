@@ -1,7 +1,7 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 522
+  Left = 604
   Height = 279
-  Top = 346
+  Top = 373
   Width = 525
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle

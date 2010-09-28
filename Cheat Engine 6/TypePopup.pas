@@ -115,7 +115,7 @@ begin
     clientwidth:=bitpanel.left+bitpanel.Width+vartype.left;
   end
   else
-  if vartype.itemindex>=7 then
+  if vartype.itemindex in [7,8] then
   begin
     bitpanel.visible:=false;
     lengthpanel.visible:=true;
@@ -140,7 +140,7 @@ end;
 procedure TTypeForm.Button1Click(Sender: TObject);
 var bit,bitl: Byte;
     err: integer;
-
+    ct: TCustomType;
 begin
   err:=0;
   bitl:=0;
@@ -155,6 +155,15 @@ begin
     6: MemoryRecord.VarType:=vtDouble;
     7: MemoryRecord.Vartype:=vtString;
     8: MemoryRecord.VarType:=vtByteArray;
+    else
+    begin
+      ct:=TCustomType(vartype.Items.Objects[Vartype.ItemIndex]);
+      if ct<>nil then
+      begin
+        MemoryRecord.VarType:=vtCustom;
+        MemoryRecord.CustomTypeName:=ct.name;
+      end;
+    end;
   end;
 
   if Vartype.ItemIndex<7 then

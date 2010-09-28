@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, registry, CEFuncProc, ExtCtrls, LResources,
-  ComCtrls, hotkeyhandler, MemoryRecordUnit;
+  ComCtrls, Menus, hotkeyhandler, MemoryRecordUnit;
 
 type
 
@@ -25,9 +25,11 @@ type
     edtHotkey: TEdit;
     Label1: TLabel;
     ListView1: TListView;
+    miDelete: TMenuItem;
     PageControl1: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
+    pmHotkeylist: TPopupMenu;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     procedure BitBtn1Click(Sender: TObject);
@@ -43,7 +45,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure miDeleteClick(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
+    procedure pmHotkeylistPopup(Sender: TObject);
   private
     { Private declarations }
     keys: tkeycombo;
@@ -123,6 +127,7 @@ begin
   li:=listview1.items.add;
   li.SubItems.add('');
   li.SubItems.add('');
+  li.Data:=pointer(-1);
   li.selected:=true;
 
   edtHotkey.text:='';
@@ -179,6 +184,9 @@ end;
 
 procedure THotKeyForm.btnCancelClick(Sender: TObject);
 begin
+  if (listview1.Selected<>nil) and (ptrint(listview1.selected.data)=-1) then //created hotkey
+    listview1.selected.delete;
+
   pagecontrol1.ActivePage:=tabsheet1;
   listview1.Enabled:=true;
 end;
@@ -234,9 +242,27 @@ begin
   btnEditHotkey.enabled:=selected;
 end;
 
+procedure THotKeyForm.miDeleteClick(Sender: TObject);
+var hkt: integer;
+begin
+  if listview1.enabled and (listview1.Selected<>nil) then
+  begin
+    hkt:=ptrint(listview1.selected.data);
+    if hkt>=0 then
+      UnregisterAddressHotkey(memrec, hkt);
+
+    listview1.selected.delete;
+  end;
+end;
+
 procedure THotKeyForm.Panel2Resize(Sender: TObject);
 begin
   bitbtn1.left:=(panel2.clientwidth div 2) - (bitbtn1.width div 2);
+end;
+
+procedure THotKeyForm.pmHotkeylistPopup(Sender: TObject);
+begin
+  midelete.visible:=listview1.enabled and (listview1.Selected<>nil);
 end;
 
 initialization

@@ -20,6 +20,8 @@ type
 
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
+    MenuItem1: TMenuItem;
+    miUserdefinedComment: TMenuItem;
     miSepEvery4Bytes: TMenuItem;
     miSepEvery8Bytes: TMenuItem;
     miSepEvery2Bytes: TMenuItem;
@@ -188,6 +190,7 @@ type
     Executetillreturn1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure dispQwordsClick(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
@@ -629,6 +632,11 @@ begin
 end;
 
 procedure TMemoryBrowser.dispQwordsClick(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
 begin
 
 end;

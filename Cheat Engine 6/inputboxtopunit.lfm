@@ -1,7 +1,7 @@
 object InputboxTop: TInputboxTop
-  Left = 780
+  Left = 903
   Height = 66
-  Top = 388
+  Top = 418
   Width = 283
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

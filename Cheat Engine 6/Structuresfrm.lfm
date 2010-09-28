@@ -1,7 +1,7 @@
 object frmStructures: TfrmStructures
-  Left = 739
+  Left = 856
   Height = 392
-  Top = 285
+  Top = 307
   Width = 614
   Caption = 'Memory dissect'
   ClientHeight = 372

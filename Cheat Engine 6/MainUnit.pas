@@ -4622,6 +4622,7 @@ begin
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
+  InitializeLuaScripts;
   FileAccessTest;
 
 end;

@@ -14,8 +14,14 @@ var
 
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_SetCurrentContextState(context: PContext);
+procedure InitializeLuaScripts;
 
 implementation
+
+procedure InitializeLuaScripts;
+begin
+
+end;
 
 procedure LUA_SetCurrentContextState(context: PContext);
 begin
@@ -157,39 +163,8 @@ begin
   raise exception.create('LUA panic!');
 end;
 
-function writeBytes_fromlua(L: PLua_state): integer; cdecl;
-var
-  paramcount: integer;
-  bytes: array of byte;
-  i: integer;
-  address: ptruint;
-  x: dword;
-  oldprotect: dword;
-begin
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
 
-  setlength(bytes,paramcount-1);
-
-  address:=lua_tointeger(L, -paramcount);
-
-
-  for i:=-paramcount+1 to -1 do
-   bytes[i]:=lua_tointeger(L,i);
-
-  x:=0;
-  VirtualProtectEx(processhandle, pointer(address), paramcount-1, PAGE_EXECUTE_READWRITE, oldprotect);
-  WriteProcessMemory(processhandle, pointer(address), @bytes[0], paramcount-1, x);
-  VirtualProtectEx(processhandle, pointer(address), paramcount-1, oldprotect, oldprotect);
-
-
-  lua_pop(L, paramcount);
-  lua_pushinteger(L, x);
-
-  result:=1; //returns the number of bytes written
-end;
-
-function readBytes_fromlua(L: PLua_State): integer; cdecl;
+function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
 var paramcount: integer;
   addresstoread: ptruint;
   bytestoread: integer;
@@ -218,6 +193,60 @@ begin
   result:=x;
 end;
 
+
+function writeBytes(processhandle: dword; L: PLua_State): integer;
+var
+  paramcount: integer;
+  bytes: array of byte;
+  i: integer;
+  address: ptruint;
+  x: dword;
+  oldprotect: dword;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  setlength(bytes,paramcount-1);
+
+  address:=lua_tointeger(L, -paramcount);
+
+
+  for i:=-paramcount+1 to -1 do
+   bytes[i]:=lua_tointeger(L,i);
+
+  x:=0;
+  VirtualProtectEx(processhandle, pointer(address), paramcount-1, PAGE_EXECUTE_READWRITE, oldprotect);
+  WriteProcessMemory(processhandle, pointer(address), @bytes[0], paramcount-1, x);
+  VirtualProtectEx(processhandle, pointer(address), paramcount-1, oldprotect, oldprotect);
+
+
+  lua_pop(L, paramcount);
+  lua_pushinteger(L, x);    //return the number of bytes written
+
+  result:=1;  //return 1 value
+end;
+
+function writeBytes_fromlua(L: PLua_state): integer; cdecl;
+begin
+  result:=writeBytes(processhandle, L);
+end;
+
+function readBytes_fromlua(L: PLua_State): integer; cdecl;
+begin
+  result:=readBytes(processhandle, L);
+end;
+
+function writeBytesLocal_fromlua(L: PLua_state): integer; cdecl;
+begin
+  result:=writebytes(getcurrentprocess, L);
+end;
+
+function readBytesLocal_fromlua(L: PLua_State): integer; cdecl;
+begin
+  result:=readbytes(getcurrentprocess, L);
+end;
+
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -228,6 +257,10 @@ initialization
 
     lua_atpanic(LuaVM, LuaPanic);
     lua_register(LuaVM, 'readBytes', readbytes_fromlua);
+    lua_register(LuaVM, 'writeBytes', writebytes_fromlua);
+
+    lua_register(LuaVM, 'readBytesLocal', readbyteslocal_fromlua);
+    lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
   end;
 
 finalization

@@ -219,7 +219,7 @@ begin
     if currentscript<>nil then
     begin
       autoassemble(currentscript,false, false, false, true, c); //popupmessages is false so it won't complain if there is no disable section
-      currentscript.free;
+      freeandnil(currentscript);
     end;
   end;
 end;
@@ -287,9 +287,10 @@ begin
         reverseroutine:=newreverseroutine;
 
         fCustomTypeType:=cttAutoAssembler;
-        if currentscript=nil then
-          currentscript:=tstringlist.create;
+        if currentscript<>nil then
+          freeandnil(currentscript);
 
+        currentscript:=tstringlist.create;
         currentscript.text:=script;
 
       end;

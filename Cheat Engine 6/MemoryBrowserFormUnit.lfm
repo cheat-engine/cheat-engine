@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 713
+  Left = 825
   Height = 577
-  Top = 153
+  Top = 165
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -740,6 +740,12 @@ object MemoryBrowser: TMemoryBrowser
     object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'
       OnClick = miConditionalBreakClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miUserdefinedComment: TMenuItem
+      Caption = 'Userdefined tags'
     end
   end
   object Timer2: TTimer
