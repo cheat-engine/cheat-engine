@@ -5,7 +5,8 @@ unit LuaHandler;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc, newkernelhandler;
+  windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
+  newkernelhandler, autoassembler;
 
 var
   LuaVM: Plua_State;
@@ -19,7 +20,41 @@ procedure InitializeLuaScripts;
 implementation
 
 procedure InitializeLuaScripts;
+var f: string;
+  i: integer;
+  pc: pchar;
 begin
+  f:='main.lua';
+  if not FileExists(f) then //perhaps in the cedir
+  begin
+    f:=CheatEngineDir+'main.lua';
+    if not FileExists(f) then
+      exit;
+  end;
+
+  //file exists
+
+  LuaCS.Enter;
+  try
+    if lua_dofile(luavm, pchar(f))<>0 then
+    begin
+      i:=lua_gettop(luavm);
+      if i>0 then
+      begin
+        pc:=lua_tolstring(luavm, -1,nil);
+        if pc<>nil then
+          showmessage('main.lua error:'+pc)
+        else
+          showmessage('main.lua error');
+      end
+      else showmessage('main.lua error');
+
+    end;
+
+    lua_pop(LuaVM, lua_gettop(luavm)); //reset stack
+  finally
+    LuaCS.Leave;
+  end;
 
 end;
 
@@ -246,6 +281,52 @@ begin
   result:=readbytes(getcurrentprocess, L);
 end;
 
+function autoAssemble_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  s: pchar;
+  code: TStringlist;
+  r: boolean;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  code:=tstringlist.create;
+  try
+    s:=lua_tostring(L, -1);
+    code.text:=s;
+
+    try
+      r:=autoassemble(code, false);
+    except
+      r:=false;
+    end;
+
+    lua_pop(L, paramcount);
+    lua_pushboolean(L, r);
+  finally
+    code.free;
+  end;
+
+  result:=1;
+end;
+
+function showMessage_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  s: pchar;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  s:=lua_tostring(L, -1);
+  MessageBox(0, s,'LUA',mb_ok);
+
+
+  lua_pop(L, paramcount);
+  result:=0;
+end;
+
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -261,6 +342,9 @@ initialization
 
     lua_register(LuaVM, 'readBytesLocal', readbyteslocal_fromlua);
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
+    lua_register(LuaVM, 'autoAssemble', autoAssemble_fromlua);
+    lua_register(LuaVM, 'showMessage', showMessage_fromlua);
+
   end;
 
 finalization

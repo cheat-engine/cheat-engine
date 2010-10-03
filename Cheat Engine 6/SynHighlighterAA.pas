@@ -127,7 +127,7 @@ type
     function Func14: TtkTokenKind; //bl
     function Func15: TtkTokenKind; //cl
     function Func16: TtkTokenKind; //dl
-    function Func18: TtkTokenKind; //edi  / bp
+    function Func18: TtkTokenKind; //edi  / bp /r8-r15
     function Func23: TtkTokenKind; //ebp
     function Func25: TtkTokenKind; //ax / 25
     function Func26: TtkTokenKind; //bx
@@ -138,10 +138,15 @@ type
     function Func32: TtkTokenKind; //ecx
     function Func33: TtkTokenKind; //edx / esi
     function Func35: TtkTokenKind; //sp
+    function Func36: TtkTokenKind; //rbp
     function Func39: TtkTokenKind; //enable
     function Func40: TtkTokenKind; //esp
-    function Func43: TtkTokenKind; //alloc /define
+    function Func43: TtkTokenKind; //alloc /define //rax   /rip
+    function Func44: TtkTokenKind;
+    function Func45: TtkTokenKind;
+    function Func46: TtkTokenKind;
     function Func52: TtkTokenKind; //dealloc / disable
+    function Func53: TtkTokenKind; //rsp
     function Func54: TtkTokenKind; //kalloc
     function Func55: TtkTokenKind; //aobscan
     function Func59: TtkTokenKind; //readmem    
@@ -335,10 +340,15 @@ begin
   fIdentFuncTable[32] := {$IFDEF FPC}@{$ENDIF}Func32;
   fIdentFuncTable[33] := {$IFDEF FPC}@{$ENDIF}Func33;
   fIdentFuncTable[35] := {$IFDEF FPC}@{$ENDIF}Func35;
+  fIdentFuncTable[36] := {$IFDEF FPC}@{$ENDIF}Func36;
   fIdentFuncTable[39] := {$IFDEF FPC}@{$ENDIF}Func39;
   fIdentFuncTable[40] := {$IFDEF FPC}@{$ENDIF}Func40;
   fIdentFuncTable[43] := {$IFDEF FPC}@{$ENDIF}Func43;
+  fIdentFuncTable[44] := {$IFDEF FPC}@{$ENDIF}Func44;
+  fIdentFuncTable[45] := {$IFDEF FPC}@{$ENDIF}Func45;
+  fIdentFuncTable[46] := {$IFDEF FPC}@{$ENDIF}Func46;
   fIdentFuncTable[52] := {$IFDEF FPC}@{$ENDIF}Func52;
+  fIdentFuncTable[53] := {$IFDEF FPC}@{$ENDIF}Func53;
   fIdentFuncTable[54] := {$IFDEF FPC}@{$ENDIF}Func54;
   fIdentFuncTable[55] := {$IFDEF FPC}@{$ENDIF}Func55;
   fIdentFuncTable[59] := {$IFDEF FPC}@{$ENDIF}Func59;
@@ -439,6 +449,16 @@ function TSynAASyn.Func18: TtkTokenKind;
 begin
   if KeyComp('edi') then Result := tkRegister else
     if KeyComp('bp') then Result := tkRegister else
+    {$ifdef cpu64}
+    if KeyComp('r8') then Result := tkRegister else
+    if KeyComp('r9') then Result := tkRegister else
+    if KeyComp('r10') then Result := tkRegister else
+    if KeyComp('r11') then Result := tkRegister else
+    if KeyComp('r12') then Result := tkRegister else
+    if KeyComp('r13') then Result := tkRegister else
+    if KeyComp('r14') then Result := tkRegister else
+    if KeyComp('r15') then Result := tkRegister else
+    {$endif}
       Result := tkIdentifier;
 end;
 
@@ -478,7 +498,10 @@ function TSynAASyn.Func30: TtkTokenKind;
 begin
   if KeyComp('eax') then Result := tkRegister else
     if KeyComp('eip') then Result := tkRegister else
-      Result := tkIdentifier;
+    {$ifdef cpu64}
+      if KeyComp('bpl') then Result := tkRegister else
+    {$endif}
+        Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func31: TtkTokenKind;
@@ -507,6 +530,14 @@ begin
     Result := tkIdentifier;
 end;
 
+function TSynAASyn.Func36: TtkTokenKind;
+begin
+  {$ifdef cpu64}
+  if KeyComp('rbp') then Result := tkRegister else
+  {$endif}
+    Result := tkIdentifier;
+end;
+
 function TSynAASyn.Func39: TtkTokenKind; //enable
 begin
   if KeyComp('enable') then Result := tkspace else
@@ -516,20 +547,59 @@ end;
 function TSynAASyn.Func40: TtkTokenKind; //enable
 begin
   if KeyComp('esp') then Result := tkRegister else
-    Result := tkIdentifier;
+  {$ifdef cpu64}
+    if KeyComp('sil') then Result := tkRegister else
+  {$endif}
+      Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func43: TtkTokenKind; //alloc /define
 begin
-  if KeyComp('alloc') then Result := tkKey else
-    if KeyComp('define') then Result := tkKey else
-      Result := tkIdentifier;
+  {$ifdef cpu64}
+  if KeyComp('rax') then Result := tkRegister else
+    if KeyComp('rip') then Result := tkRegister else
+  {$endif}
+      if KeyComp('alloc') then Result := tkKey else
+        if KeyComp('define') then Result := tkKey else
+          Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func44: TtkTokenKind; //rbx
+begin
+  {$ifdef cpu64}
+  if KeyComp('rbx') then Result := tkRegister else
+  {$endif}
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func45: TtkTokenKind; //rcx
+begin
+  {$ifdef cpu64}
+  if KeyComp('rcx') then Result := tkRegister else
+  {$endif}
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func46: TtkTokenKind; //rdx
+begin
+  {$ifdef cpu64}
+  if KeyComp('rdx') then Result := tkRegister else
+  {$endif}
+    Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func52: TtkTokenKind; //dealloc
 begin
   if KeyComp('dealloc') then Result := tkKey else
     if KeyComp('disable') then Result := tkspace else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func53: TtkTokenKind; //rsp
+begin
+  {$ifdef cpu64}
+  if KeyComp('rsp') then Result := tkRegister else
+  {$endif}
     Result := tkIdentifier;
 end;
 

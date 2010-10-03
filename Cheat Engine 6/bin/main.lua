@@ -1,0 +1,10 @@
+--This lua script gets loaded when Cheat Engine loads
+--You can use this to define some often used functions and libraries you'd like to use
+--
+--List of CE specific functions:
+--readBytes(address,bytecount) : Reads the bytes at the given address and returns it
+--writeBytes(address, x,x,x,x) : Write the given bytes to the given address
+--readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
+--writeBytesLocal(address, x,x,x,x) : See writeBytes but then it's for Cheat Engine's memory
+--autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
+--showMessage(text) : shows a messagebox with the given text

@@ -21,6 +21,7 @@ type
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     miUserdefinedComment: TMenuItem;
     miSepEvery4Bytes: TMenuItem;
     miSepEvery8Bytes: TMenuItem;
@@ -190,6 +191,7 @@ type
     Executetillreturn1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure dispQwordsClick(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
@@ -634,6 +636,131 @@ end;
 procedure TMemoryBrowser.dispQwordsClick(Sender: TObject);
 begin
 
+end;
+
+procedure TMemoryBrowser.MenuItem2Click(Sender: TObject);
+var start,stop: ptrUint;
+  pa, a: ptruint;
+
+  d: TDisassembler;
+  s: string;
+  infloop: integer;
+begin
+  backlist.Push(pointer(disassemblerview.SelectedAddress));
+
+  //disassemble the code and find the last address
+//  parametervaluetype:=dvtaddress;
+  d:=TDisassembler.create;
+  try
+    start:=disassemblerview.SelectedAddress;
+
+
+
+
+    //find stop:
+    stop:=start;
+    a:=stop;
+
+    infloop:=0;
+    while infloop<10000000 do
+    begin
+      inc(infloop);
+
+      pa:=a;
+      d.disassemble(a,s);
+      if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then //found the end
+      begin
+        stop:=pa;
+        break;
+      end;
+
+      if (d.LastDisassembleData.isjump) and (not d.LastDisassembleData.iscall) then
+      begin
+        //adjust the current address to point
+        if d.LastDisassembleData.parameterValueType=dvtAddress then //direct address
+        begin
+          if d.LastDisassembleData.parameterValue < start then
+          begin
+            start:=d.LastDisassembleData.parameterValue;
+            continue;
+          end;
+
+          if d.LastDisassembleData.parameterValue > stop then
+          begin
+            stop:=d.LastDisassembleData.parameterValue;
+            a:=stop;
+            continue;
+          end;
+
+          if (d.LastDisassembleData.parameterValue <= a) and (d.LastDisassembleData.opcode='jmp') then //an unconditonal jump that jumps back and no conditonal jump encountered that went after this. Meaning: Infinite loop
+          begin
+            stop:=pa;
+            break;
+          end;
+
+
+        end;
+      end;
+
+    end;
+
+
+    //find start
+    infloop:=0;
+
+    pa:=start;
+    d.disassemble(pa,s); //start from next one in case it's started from the begin
+
+    while infloop<1000000 do
+    begin
+      inc(infloop);
+
+
+      a:=previousopcode(pa);
+      pa:=a;
+      d.disassemble(a,s);
+
+      //look for ret, int3 or nop
+      if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then
+      begin
+        start:=a; //start from next instruction
+        break;
+      end;
+
+      if processhandler.is64Bit then
+      begin
+        //looks for sub rsp,xxxx on an address that is dividable by 0x10
+
+        if (pa mod $10 = 0) and (d.LastDisassembleData.opcode='sub') then
+        begin
+          if pos('rsp,', lowercase(d.LastDisassembleData.parameters))>0 then
+          begin
+            start:=pa;
+            break;
+          end;
+        end;
+      end
+      else
+      begin
+        //look for push ebp
+        if (d.LastDisassembleData.opcode='push') then
+        begin
+          if lowercase(d.LastDisassembleData.parameters)='ebp' then
+          begin
+            start:=pa;
+            break;
+          end;
+        end;
+      end;
+
+    end;
+
+  finally
+    d.free;
+  end;
+
+  disassemblerview.SelectedAddress:=start;
+  disassemblerview.SelectedAddress2:=stop;
 end;
 
 procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);

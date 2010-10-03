@@ -1,0 +1,20 @@
+object frmStackView: TfrmStackView
+  Left = 872
+  Height = 240
+  Top = 415
+  Width = 320
+  BorderStyle = bsSizeToolWin
+  Caption = 'Stack View'
+  ClientHeight = 240
+  ClientWidth = 320
+  LCLVersion = '0.9.29'
+  object ListBox1: TListBox
+    Left = 0
+    Height = 240
+    Top = 0
+    Width = 320
+    Align = alClient
+    ItemHeight = 0
+    TabOrder = 0
+  end
+end

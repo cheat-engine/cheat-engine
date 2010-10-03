@@ -744,8 +744,13 @@ object MemoryBrowser: TMemoryBrowser
     object MenuItem1: TMenuItem
       Caption = '-'
     end
+    object MenuItem2: TMenuItem
+      Caption = 'Select current function'
+      OnClick = MenuItem2Click
+    end
     object miUserdefinedComment: TMenuItem
       Caption = 'Userdefined tags'
+      Visible = False
     end
   end
   object Timer2: TTimer

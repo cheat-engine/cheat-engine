@@ -1719,8 +1719,12 @@ var error: Integer;
     realvartype: integer;
     tempvartype: TVariableType;
     addressstring: string;
+
+    ct: TCustomType;
+    customname: string;
 begin
   //first check if this address is already in the list!
+  customname:='';
 
   realvartype:=getvartype;
   if realvartype=5 then //binary
@@ -1743,7 +1747,14 @@ begin
       vtDouble: realvartype:=4;
     end;
 
-  end else
+  end
+  else
+  if realvartype=10 then //custom
+  begin
+    ct:=TCustomType(vartype.items.objects[vartype.itemindex]);
+    customname:=ct.name;
+  end
+  else
   begin
     bit:=0;
     bitl:=0;
@@ -1757,7 +1768,7 @@ begin
     addressstring:=inttohex(address,8);
 
 
-  addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), '', bit,bitl , false,node,attachmode);
+  addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), customname, bit,bitl , false,node,attachmode);
 end;
 
 procedure TMainForm.SetExpectedTableName;
@@ -3808,6 +3819,7 @@ begin
        scanvalue.MaxLength:=0;
        hexadecimalcheckbox.enableD:=newscan.enabled;
        hexadecimalcheckbox.Checked:=true;
+       cbfastscan.checked:=false;
      end;
 
   end;
@@ -3831,6 +3843,8 @@ begin
   cbCaseSensitive.visible:=casevis;
 
   cbfastscan.Enabled:=(vartype.ItemIndex in [2..6]) and newscan.enabled;
+
+
 
   UpdateScanType;
   dontconvert:=false;

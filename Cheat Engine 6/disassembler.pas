@@ -96,6 +96,7 @@ type
     //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
 
       isjump: boolean;
+      iscall: boolean;
     end;
 
 
@@ -1239,6 +1240,7 @@ begin
   LastDisassembleData.opcode:='';
   LastDisassembleData.parameters:='';
   lastdisassembledata.isjump:=false;
+  lastdisassembledata.iscall:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
 
@@ -9657,6 +9659,7 @@ begin
               description:='call procedure';
               lastdisassembledata.opcode:='call';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.iscall:=true;
 
               inc(offset,4);
               lastdisassembledata.parametervaluetype:=dvtaddress;
@@ -10047,6 +10050,7 @@ begin
                       description:='call procedure';
                       lastdisassembledata.opcode:='call';
                       lastdisassembledata.isjump:=true;
+                      lastdisassembledata.iscall:=true;
 
                       if memory[1]>=$c0 then
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
@@ -10065,6 +10069,7 @@ begin
                       description:='call procedure';
                       lastdisassembledata.opcode:='call';
                       lastdisassembledata.isjump:=true;
+                      lastdisassembledata.iscall:=true;
 
                       lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
 

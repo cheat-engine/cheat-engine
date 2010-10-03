@@ -79,6 +79,7 @@ type TDisassemblerview=class(TPanel)
     procedure SetPopupMenu(p: Tpopupmenu);
     function getPopupMenu: Tpopupmenu; //hidden on purpose
     procedure setSelectedAddress(address: ptrUint);
+    procedure setSelectedAddress2(address: ptrUint);
     procedure setTopAddress(address: ptrUint);
     function getOnDblClick: TNotifyEvent;
     procedure setOnDblClick(x: TNotifyEvent);
@@ -112,7 +113,7 @@ type TDisassemblerview=class(TPanel)
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
     property PopupMenu: TPopupMenu read getPopupMenu write SetPopupMenu;
     property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
-    property SelectedAddress2: ptrUint read fSelectedAddress2;
+    property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
     property TopAddress: ptrUint read fTopAddress write setTopAddress;
     property ShowJumplines: boolean read fShowJumplines write setJumpLines;
     property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
@@ -188,6 +189,13 @@ procedure TDisassemblerview.setTopAddress(address: ptrUint);
 begin
   fTopAddress:=address;
   fSelectedAddress:=address;
+  fSelectedAddress2:=address;
+  update;
+end;
+
+procedure TDisassemblerview.setSelectedAddress2(address: ptrUint);
+begin
+  //just set the address and refresh, no need to do anything special
   fSelectedAddress2:=address;
   update;
 end;

@@ -1,11 +1,11 @@
 object frmTracerConfig: TfrmTracerConfig
   Left = 676
-  Height = 158
+  Height = 191
   Top = 400
   Width = 231
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 158
+  ClientHeight = 191
   ClientWidth = 231
   Position = poScreenCenter
   LCLVersion = '0.9.29'
@@ -41,9 +41,9 @@ object frmTracerConfig: TfrmTracerConfig
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 34
+    Left = 40
     Height = 25
-    Top = 128
+    Top = 152
     Width = 75
     Caption = 'OK'
     Default = True
@@ -51,9 +51,9 @@ object frmTracerConfig: TfrmTracerConfig
     TabOrder = 2
   end
   object Button2: TButton
-    Left = 126
+    Left = 132
     Height = 25
-    Top = 128
+    Top = 152
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -69,5 +69,13 @@ object frmTracerConfig: TfrmTracerConfig
     Checked = True
     State = cbChecked
     TabOrder = 4
+  end
+  object cbSaveStack: TCheckBox
+    Left = 17
+    Height = 19
+    Top = 127
+    Width = 210
+    Caption = 'Save stack snapshots (Eats memory)'
+    TabOrder = 5
   end
 end

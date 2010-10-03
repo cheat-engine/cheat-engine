@@ -2940,7 +2940,7 @@ begin
     6: result:=vtQword;
     7: result:=vtString;
     8: result:=vtByteArray;
-    9: result:=vtCustom;
+    10: result:=vtCustom;
     255: result:=vtAutoAssembler; //aa script
   end;
 end;

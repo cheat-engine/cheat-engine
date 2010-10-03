@@ -532,7 +532,7 @@ object MainForm: TMainForm
       object edtAlignment: TEdit
         Left = 72
         Height = 21
-        Top = 66
+        Top = 68
         Width = 112
         Enabled = False
         TabOrder = 5

@@ -16,6 +16,7 @@ type
     Button1: TButton;
     Button2: TButton;
     cbDereferenceAddresses: TCheckBox;
+    cbSaveStack: TCheckBox;
     edtMaxTrace: TEdit;
     edtCondition: TEdit;
     Label1: TLabel;
@@ -28,6 +29,10 @@ type
 
 
 implementation
+
+{ TfrmTracerConfig }
+
+
 
 initialization
   {$I frmTracerConfigUnit.lrs}

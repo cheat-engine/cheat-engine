@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
   LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus,
-  ComCtrls, luahandler, symbolhandler, byteinterpreter;
+  ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit;
 
 type TTraceDebugInfo=class
   private
@@ -18,8 +18,15 @@ type TTraceDebugInfo=class
     c: _CONTEXT;
     bytes: pbytearray;
     bytesize: dword;
+
+    stack: record
+      savedsize: dword;
+      stack: pbyte;
+    end;
+
     function datatype: TVariableType;
     procedure fillbytes;
+    procedure savestack;
     destructor destroy; override;
 end;
 
@@ -56,6 +63,7 @@ type
     aflabel: TLabel;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
+    sbShowstack: TSpeedButton;
     zflabel: TLabel;
     sflabel: TLabel;
     oflabel: TLabel;
@@ -83,12 +91,16 @@ type
     procedure Panel1Resize(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure sbShowstackClick(Sender: TObject);
   private
     { Private declarations }
+    Stackview: TfrmStackView;
+
     traceaddress: dword;
     fpp: TfrmFloatingPointPanel;
     isConfigured: boolean;
     dereference: boolean;
+    fsavestack: boolean;
 
     RXlabels: array of TLabel;
 
@@ -96,9 +108,12 @@ type
     stopsearch: boolean;
 
     procedure configuredisplay;
+    procedure setSavestack(x: boolean);
+    procedure updatestackview;
   public
     { Public declarations }
     procedure addRecord;
+    property savestack: boolean read fsavestack write setSavestack;
   end;
 
 implementation
@@ -110,6 +125,9 @@ destructor TTraceDebugInfo.destroy;
 begin
   if bytes<>nil then
     freemem(bytes);
+
+  if stack.stack<>nil then
+    freemem(stack.stack);
 end;
 
 function TTraceDebugInfo.datatype: TVariableType;
@@ -122,6 +140,12 @@ begin
   getmem(bytes, 64);
   bytesize:=0;
   ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, 64, bytesize);
+end;
+
+procedure TTraceDebugInfo.SaveStack;
+begin
+  getmem(stack.stack, 4096);
+  ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, 4096, stack.savedsize);
 end;
 
 procedure TfrmTracer.addRecord;
@@ -151,28 +175,29 @@ begin
   end;
 
 
-
-
   i:=posex('-',s);
   i:=posex('-',s,i+1);
   s:=copy(s,i+2,length(s));
 
 
   d:=TTraceDebugInfo.Create;
+  d.c:=debuggerthread.CurrentThread.context^;
   d.instruction:=s;
   d.referencedAddress:=referencedAddress;
   d.fillbytes;
-  d.c:=debuggerthread.CurrentThread.context^;
 
-//  referencesAddress:=
-
-
-
-
+  if savestack then
+    d.savestack;
 
   s:=inttohex(address,8)+' - '+s;
 
   ListBox1.Items.AddObject(s,d);
+end;
+
+procedure TfrmTracer.setSavestack(x: boolean);
+begin
+  fsavestack:=x;
+  sbShowstack.visible:=x;
 end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
@@ -187,11 +212,14 @@ begin
     if showmodal=mrok then
     begin
       dereference:= cbDereferenceAddresses.checked;
+      savestack:= cbSaveStack.checked;
+
       tcount:=strtoint(edtMaxTrace.text);
       condition:=edtCondition.text;
 
       if startdebuggerifneeded then
         debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount, condition);
+
 
     end;
     free;
@@ -678,6 +706,21 @@ begin
 
     if fpp<>nil then
       fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+
+    if Stackview<>nil then
+      updatestackview;
+
+  end;
+end;
+
+procedure TfrmTracer.updatestackview;
+var di: TTraceDebugInfo;
+begin
+  if (Stackview<>nil) and (listbox1.ItemIndex<>-1) then
+  begin
+    //get stack
+    di:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]);
+    StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
   end;
 end;
 
@@ -687,7 +730,7 @@ begin
   s:=tlabel(sender).Caption;
   s:=copy(s,5,8);
 
-  memorybrowser.memoryaddress:=strtoint('$'+s);
+  memorybrowser.memoryaddress:=strtoint64('$'+s);
 end;
 
 procedure TfrmTracer.ListBox1DblClick(Sender: TObject);
@@ -698,8 +741,19 @@ end;
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
   button1.Top:=clientheight-button1.height-3;
-  sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height div 2);
-  sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
+
+  if sbShowstack.visible then
+  begin
+    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height);
+    sbShowstack.top:=(clientheight div 2);
+    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
+    sbShowstack.left:=sbshowfloats.left;
+  end
+  else
+  begin
+    sbShowFloats.top:=(clientheight div 2)-(sbshowFloats.height div 2);
+    sbShowFloats.Left:=panel1.ClientWidth-sbshowfloats.width-2;
+  end;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
@@ -720,6 +774,16 @@ end;
 procedure TfrmTracer.FormShow(Sender: TObject);
 begin
   sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.Height div 2);
+end;
+
+procedure TfrmTracer.sbShowstackClick(Sender: TObject);
+begin
+  if Stackview=nil then
+    stackview:=TfrmStackView.create(self);
+
+  stackview.show;
+
+  updatestackview;
 end;
 
 initialization
