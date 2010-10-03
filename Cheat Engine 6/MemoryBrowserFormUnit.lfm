@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 825
+  Left = 823
   Height = 577
-  Top = 165
+  Top = 220
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -510,6 +510,7 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
+            Width = 47
           end>
         ItemIndex = -1
         OwnerData = True
@@ -1061,6 +1062,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object GDTlist1: TMenuItem
         Caption = 'GDT list'
+        Visible = False
         OnClick = GDTlist1Click
       end
       object IDTlist1: TMenuItem

@@ -6,7 +6,7 @@ interface
 
 uses lclproc, windows, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,NewKernelHandler, graphics;
 
-const CurrentPluginVersion=3;
+const CurrentPluginVersion=4;
 
 //structures
 type TPluginVersion = record
@@ -14,6 +14,114 @@ type TPluginVersion = record
   pluginname: pchar; //pointer to a 0-terminated string in the dll
 end;
 type PPluginVersion=^TPluginVersion;
+
+type TExportedFunctions4 = record
+  sizeofExportedFunctions: integer;
+  showmessage: pointer;
+  registerfunction: pointer;
+  unregisterfunction: pointer;
+  OpenedProcessID: ^dword;
+  OpenedProcessHandle: ^thandle;
+
+  GetMainWindowHandle: pointer;
+  AutoAssemble: pointer;
+  assembler: pointer;
+  disassembler: pointer;
+  ChangeRegistersAtAddress: pointer;
+  InjectDLL: pointer;
+  freezemem: pointer;
+  unfreezemem: pointer;
+  fixmem: pointer;
+  processlist: pointer;
+  reloadsettings: pointer;
+  getaddressfrompointer: pointer;
+
+  //pointers to the address that contains the pointers to the functions
+  ReadProcessMemory     :pointer;
+  WriteProcessMemory    :pointer;
+  GetThreadContext      :pointer;
+  SetThreadContext      :pointer;
+  SuspendThread         :pointer;
+  ResumeThread          :pointer;
+  OpenProcess           :pointer;
+  WaitForDebugEvent     :pointer;
+  ContinueDebugEvent    :pointer;
+  DebugActiveProcess    :pointer;
+  StopDebugging         :pointer;
+  StopRegisterChange    :pointer;
+  VirtualProtect        :pointer;
+  VirtualProtectEx      :pointer;
+  VirtualQueryEx        :pointer;
+  VirtualAllocEx        :pointer;
+  CreateRemoteThread    :pointer;
+  OpenThread            :pointer;
+  GetPEProcess          :pointer;
+  GetPEThread           :pointer;
+  GetThreadsProcessOffset:pointer;
+  GetThreadListEntryOffset:pointer;
+  GetProcessnameOffset  :pointer;
+  GetDebugportOffset    :pointer;
+  GetPhysicalAddress    :pointer;
+  ProtectMe             :pointer;
+  GetCR4                :pointer;
+  GetCR3                :pointer;
+  SetCR3                :pointer;
+  GetSDT                :pointer;
+  GetSDTShadow          :pointer;
+  setAlternateDebugMethod: pointer;
+  getAlternateDebugMethod: pointer;
+  DebugProcess          :pointer;
+  ChangeRegOnBP         :pointer;
+  RetrieveDebugData     :pointer;
+  StartProcessWatch     :pointer;
+  WaitForProcessListData:pointer;
+  GetProcessNameFromID  :pointer;
+  GetProcessNameFromPEProcess:pointer;
+  KernelOpenProcess       :pointer;
+  KernelReadProcessMemory :pointer;
+  KernelWriteProcessMemory:pointer;
+  KernelVirtualAllocEx    :pointer;
+  IsValidHandle           :pointer;
+  GetIDTCurrentThread     :pointer;
+  GetIDTs                 :pointer;
+  MakeWritable            :pointer;
+  GetLoadedState          :pointer;
+  DBKSuspendThread        :pointer;
+  DBKResumeThread         :pointer;
+  DBKSuspendProcess       :pointer;
+  DBKResumeProcess        :pointer;
+  KernelAlloc             :pointer;
+  GetKProcAddress         :pointer;
+  CreateToolhelp32Snapshot:pointer;
+  Process32First          :pointer;
+  Process32Next           :pointer;
+  Thread32First           :pointer;
+  Thread32Next            :pointer;
+  Module32First           :pointer;
+  Module32Next            :pointer;
+  Heap32ListFirst         :pointer;
+  Heap32ListNext          :pointer;
+
+  //advanced for delphi 7 enterprise dll programmers only
+  mainform                :pointer;
+  memorybrowser           :pointer;
+
+  //version 2 extension:
+  sym_nameToAddress         : pointer;
+  sym_addressToName         : pointer;
+  sym_generateAPIHookScript : pointer;
+
+  //version 3 extension
+  loadDBK32         : pointer;
+  loaddbvmifneeded  : pointer;
+  previousOpcode    : pointer;
+  nextOpcode        : pointer;
+  disassembleEx     : pointer;
+  loadModule        : pointer;
+  aa_AddExtraCommand: pointer;
+  aa_RemoveExtraCommand: pointer;
+end;
+type PExportedFunctions4 = ^TExportedFunctions4;
 
 type TExportedFunctions3 = record
   sizeofExportedFunctions: integer;
@@ -317,7 +425,7 @@ type PExportedFunctions1 = ^TExportedFunctions1;
 
 //exported functions of the plugin
 type TGetVersion=function(var PluginVersion:TPluginVersion; TPluginVersionSize: integer):BOOL; stdcall;
-type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions3; pluginid: dword):BOOL; stdcall;
+type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions4; pluginid: dword):BOOL; stdcall;
 type TDisablePlugin=function:BOOL; stdcall;
 
 
@@ -494,7 +602,7 @@ type TPluginHandler=class
 end;
 
 var pluginhandler: TPluginhandler;
-    exportedfunctions: TExportedFunctions3;
+    exportedfunctions: TExportedFunctions4;
 
 implementation
 
@@ -928,7 +1036,7 @@ begin
 end;
 
 procedure TPluginHandler.EnablePlugin(pluginid: integer);
-var e: texportedfunctions3;
+var e: texportedfunctions4;
     x: boolean;
 begin
   e:=exportedfunctions;  //save it to prevent plugins from fucking it up
@@ -938,6 +1046,9 @@ begin
 
   if plugins[pluginid].pluginversion=2 then
     e.sizeofExportedFunctions:=sizeof(Texportedfunctions2);
+
+  if plugins[pluginid].pluginversion=3 then
+    e.sizeofExportedFunctions:=sizeof(Texportedfunctions3);
 
   pluginMREW.BeginRead;
   if pluginid>=length(plugins) then exit;
@@ -1229,7 +1340,7 @@ constructor TPluginHandler.create;
 var test: pchar;
 begin
   pluginMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
-  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions3);
+  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions4);
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;
   exportedfunctions.unregisterfunction:=@ce_unregisterfunction;
@@ -1339,6 +1450,9 @@ begin
 
   exportedfunctions.aa_AddExtraCommand:=@aa_AddExtraCommand;
   exportedfunctions.aa_RemoveExtraCommand:=@aa_RemoveExtraCommand;
+
+  //version 4 init
+
 
 end;
 

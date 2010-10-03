@@ -668,6 +668,14 @@ begin
 
       pa:=a;
       d.disassemble(a,s);
+
+      if (length(d.LastDisassembleData.Bytes)>=2) and (d.LastDisassembleData.Bytes[0]=0) and (d.LastDisassembleData.Bytes[1]=0) then
+      begin
+        stop:=pa;
+        break;
+      end;
+
+
       if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then //found the end
       begin
         stop:=pa;
@@ -719,6 +727,14 @@ begin
       a:=previousopcode(pa);
       pa:=a;
       d.disassemble(a,s);
+
+      //look for 00 , 00  (add [eax],al is an 100% completly useless instruction)
+      if (length(d.LastDisassembleData.Bytes)>=2) and (d.LastDisassembleData.Bytes[0]=0) and (d.LastDisassembleData.Bytes[1]=0) then
+      begin
+        stop:=a;
+        break;
+      end;
+
 
       //look for ret, int3 or nop
       if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then
