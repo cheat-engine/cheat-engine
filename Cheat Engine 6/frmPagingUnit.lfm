@@ -3,10 +3,11 @@ object frmPaging: TfrmPaging
   Height = 240
   Top = 257
   Width = 404
-  Caption = 'frmPaging'
+  Caption = 'Paging'
   ClientHeight = 240
   ClientWidth = 404
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '0.9.29'
   object tvPage: TTreeView
     Left = 0
@@ -14,10 +15,12 @@ object frmPaging: TfrmPaging
     Top = 58
     Width = 404
     Align = alClient
-    DefaultItemHeight = 17
+    DefaultItemHeight = 15
     PopupMenu = PopupMenu1
+    ReadOnly = True
     TabOrder = 0
     OnExpanding = tvPageExpanding
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object frmPaging: TPanel
     Left = 0
@@ -31,7 +34,7 @@ object frmPaging: TfrmPaging
     TabOrder = 1
     object edtCR3: TEdit
       Left = 5
-      Height = 23
+      Height = 21
       Top = 24
       Width = 192
       TabOrder = 0
@@ -47,25 +50,25 @@ object frmPaging: TfrmPaging
     end
     object Label1: TLabel
       Left = 5
-      Height = 16
+      Height = 14
       Top = 4
-      Width = 302
+      Width = 278
       Caption = 'Fill in the physical address of the paging base (or just cr3)'
       ParentColor = False
     end
     object cb8byteentries: TCheckBox
       Left = 312
-      Height = 19
+      Height = 17
       Top = 8
-      Width = 92
+      Width = 86
       Caption = '8-byte entries'
       TabOrder = 2
     end
     object cb64bit: TCheckBox
       Left = 312
-      Height = 19
+      Height = 17
       Top = 32
-      Width = 51
+      Width = 46
       Caption = '64-bit'
       OnChange = cb64bitChange
       TabOrder = 3

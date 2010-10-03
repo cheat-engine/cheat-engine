@@ -34,12 +34,14 @@ type
     procedure cb64bitChange(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure tvPageExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
   private
     { private declarations }
     base: ptrUint;
+    procedure cleanup;
     procedure FillNodeLevel3(node: TTreenode);
     procedure FillNodeLevel2(node: TTreenode);
     procedure FillNodeLevel1(node: TTreenode);
@@ -129,6 +131,23 @@ begin
 
 end;
 
+procedure TfrmPaging.cleanup;
+var i: integer;
+begin
+  for i:=0 to tvpage.Items.Count-1 do
+  begin
+    freemem(tvpage.items[i].data);
+    tvpage.items[i].data:=nil;
+  end;
+
+  tvpage.items.Clear;
+end;
+
+procedure TfrmPaging.FormDestroy(Sender: TObject);
+begin
+  cleanup;
+end;
+
 procedure TfrmPaging.MenuItem1Click(Sender: TObject);
 begin
   finddialog1.Execute;
@@ -145,12 +164,27 @@ var
 
   tn: ttreenode;
   x: dword;
+  virtualbase: qword;
+  physicalbase: qword;
+
 begin
   //page table
-  pd:=node.data;
+
+  if node=nil then
+  begin
+    virtualbase:=0;
+    physicalbase:=base;
+  end
+  else
+  begin
+    pd:=node.data;
+    virtualbase:=pd^.va;
+    physicalbase:=pd^.pa;
+  end;
+
   buf:=getmem(4096);
   try
-    if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
+    if ReadPhysicalMemory(0, pointer(ptrUint(physicalbase)), buf, 4096, x) then
     begin
       if cb8byteentries.checked then
       begin
@@ -158,7 +192,7 @@ begin
         begin
           if odd(q[i]) then
           begin
-            a:=pd^.va+qword(i*qword($1000));
+            a:=virtualbase+qword(i*qword($1000));
             b:=a+qword($1fff);
 
             pd:=getmem(sizeof(TPageData));
@@ -220,20 +254,27 @@ var
   tn: ttreenode;
   x: dword;
   bigpage: boolean;
+
+  virtualbase: qword;
+  physicalbase: qword;
+
 begin
   //fill in the pagedir table
   if node=nil then
   begin
-    getmem(pd, sizeof(TPageData));
-    pd^.pa:=base;
-    pd^.va:=0;
+    virtualbase:=0;
+    physicalbase:=base;
   end
   else
+  begin
     pd:=node.data;
+    virtualbase:=pd^.va;
+    physicalbase:=pd^.pa;
+  end;
 
   buf:=getmem(4096);
   try
-    if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
+    if ReadPhysicalMemory(0, pointer(ptrUint(physicalbase)), buf, 4096, x) then
     begin
       if cb8byteentries.checked then
       begin
@@ -241,7 +282,7 @@ begin
         begin
           if odd(q[i]) then
           begin
-            a:=pd^.va+qword(i*qword($200000));
+            a:=virtualbase+qword(i*qword($200000));
             b:=a+qword($1fffff);
 
 
@@ -278,7 +319,7 @@ begin
         begin
           if odd(d[i]) then
           begin
-            a:=pd^.va+dword(i*qword($400000));
+            a:=virtualbase+dword(i*qword($400000));
             b:=a+dword($3fffff);
 
 
@@ -327,22 +368,28 @@ var pd: PPageData;
 
   tn: ttreenode;
   x: dword;
+
+  virtualbase: qword;
+  physicalbase: qword;
 begin
   //fill in the pagedir pointer table
   if node=nil then
   begin
-    getmem(pd, sizeof(TPageData));
-    pd^.pa:=base;
-    pd^.va:=0;
+    virtualbase:=0;
+    physicalbase:=base;
   end
   else
+  begin
     pd:=node.data;
+    virtualbase:=pd^.va;
+    physicalbase:=pd^.pa;
+  end;
 
 
   buf:=getmem(4096);
   try
 
-  if ReadPhysicalMemory(0, pointer(ptrUint(pd^.pa)), buf, 4096, x) then
+  if ReadPhysicalMemory(0, pointer(ptrUint(physicalbase)), buf, 4096, x) then
   begin
 
 
@@ -356,7 +403,7 @@ begin
       if (odd(q[i])) then
       begin
 
-        a:=pd^.va+qword(i*qword($40000000));
+        a:=virtualbase+qword(i*qword($40000000));
         b:=a+qword($3fffffff);
 
 
@@ -426,10 +473,16 @@ var x: dword;
   cr4: ptruint;
 begin
   base:=strtoint64('$'+edtcr3.text);
-  tvpage.Items.Clear;
+
+  cleanup;
+
   buf:=getmem(4096);
   try
-    base:=base and ulong_ptr((not ulong_ptr($ff)));
+    if cb8byteentries.checked then
+      base:=base and ulong_ptr((not ulong_ptr($1f)))
+    else
+      base:=base and ulong_ptr((not ulong_ptr($ff)));
+
     if ReadPhysicalMemory(0, pointer(base), buf, 4096, x) then
     begin
       if cb64bit.checked then //this is the pml4 table

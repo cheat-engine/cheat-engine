@@ -677,9 +677,9 @@ end;
 
 
 function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-type TInputstruct=record
-  startaddress: uint64;
-  bytestoread: uint64;
+type TInputstruct=packed record
+  startaddress: qword;
+  bytestoread: qword;
 end;
 var ao: array [0..600] of byte;
     input: TInputstruct absolute ao[0];
