@@ -641,9 +641,23 @@ end;
 procedure TDisassemblerview.updateScrollbox;
 var x: integer;
 begin
+  scrollbox.OnResize:=nil;
+
   x:=(header.Sections[header.Sections.Count-1].Left+header.Sections[header.Sections.Count-1].Width);
-  scrollbox.HorzScrollBar.Range:=x;
+ // scrollbox.HorzScrollBar.Range:=x-scrollbox.clientwidth;
+
+  header.width:=max(x, scrollbox.ClientWidth);
+  discanvas.width:=max(x, scrollbox.ClientWidth);
+ // discanvas.height:=scrollbox.ClientHeight-header.height;
+
+
+  scrollbox.VertScrollBar.Visible:=false;
+
+
   update;
+
+  scrollbox.OnResize:=scrollboxResize;
+
 end;
 
 procedure TDisassemblerView.scrollboxResize(Sender: TObject);
@@ -877,12 +891,13 @@ begin
 
   with header do
   begin
+    top:=0;
     height:=20;
     OnSectionResize:=headerSectionResize;
     OnSectionTrack:=headerSectionTrack;
     parent:=scrollbox;
     onenter:=OnLostFocus;
-    header.Align:=alTop;
+    //header.Align:=alTop;
     header.ParentFont:=false;
   end;
 
@@ -928,13 +943,13 @@ begin
   disCanvas:=TPaintbox.Create(self);
   with disCanvas do
   begin
-    align:=alClient;
+    top:=header.Top+header.height;
     ParentFont:=true; //False;
-{    Font.Charset:=DEFAULT_CHARSET;
-    Font.Color:=clwindow;
-    Font.Height:=-11;
-    Font.Name:='Courier';
-    Font.Style:=[];}
+
+    height:=scrollbox.ClientHeight-header.height;
+    anchors:=[akBottom, akLeft, akTop, akRight];
+
+
     parent:=scrollbox;
     OnPaint:=DisCanvasPaint;
     OnMouseDown:=DisCanvasMouseDown;

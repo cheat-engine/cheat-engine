@@ -90,7 +90,14 @@ begin
           newsize:=newsize div 2;
       end;
 
-      if currentbuffer=nil then raise exception.create('VirtualAlloc failed');
+      if currentbuffer=nil then
+      begin
+        {$ifdef cpu64}
+          raise exception.create('VirtualAlloc failed. You probably don''t have enough system memory free. Either install more RAM, or increase the maximum allowed paging size');
+        {$else}
+          raise exception.create('VirtualAlloc failed. You probably don''t have enough virtual memory free. Use the 64-bit version instead');
+        {$endif}
+      end;
 
       allocs[allocspos]:=currentbuffer;
       inc(allocspos);
