@@ -4022,6 +4022,9 @@ begin
       end;
     end;
 
+
+
+
     if (opcodes[j].paramtype1=par_rm32) and (isrm32(paramtype1)) then
     begin
       //r/m32,
@@ -4183,6 +4186,14 @@ begin
         exit;
       end;
 
+      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+      begin
+        //mm,mm/m64
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,getreg(parameter1),parameter2);
+        exit;
+      end;
+
       if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         //mm,xmm/m64
@@ -4199,6 +4210,33 @@ begin
         exit;
       end;
     end;
+
+
+
+
+    if (opcodes[j].paramtype1=par_mm_m64) and (ismm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='['))) then
+    begin
+      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
+      begin
+        //mm/m64, mm
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,getreg(parameter2),parameter1);
+        exit;
+      end;
+    end;
+
+    if (opcodes[j].paramtype1=par_xmm_m64) and (isxmm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
+    begin
+      //xmm/m64,
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+      begin
+        //xmm/m64, xmm
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,getreg(parameter2),parameter1);
+        exit;
+      end;
+    end;
+
 
     if (opcodes[j].paramtype1=par_xmm) and (paramtype1=ttRegisterxmm) then
     begin

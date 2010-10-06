@@ -97,6 +97,7 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure AAPref1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Undo1Click(Sender: TObject);
   private
     { Private declarations }
     {$ifndef standalonetrainerwithassembler}
@@ -1332,6 +1333,11 @@ begin
     saveformposition(self,[]);
 
   end;
+end;
+
+procedure TfrmAutoInject.Undo1Click(Sender: TObject);
+begin
+  assemblescreen.Undo;
 end;
 
 end.

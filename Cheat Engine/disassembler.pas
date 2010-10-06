@@ -3922,7 +3922,7 @@ begin
                         else
                         begin
                           description:='Move 64 Bits';
-                          tempresult:=tempresult+'MOVDQA '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          tempresult:=tempresult+'MOVQ '+mm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           tempresult:=copy(tempresult,1,length(tempresult)-1);
                           inc(offset,last-1);
                         end;
