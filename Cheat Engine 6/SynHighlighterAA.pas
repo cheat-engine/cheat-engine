@@ -134,7 +134,7 @@ type
     function Func27: TtkTokenKind; //cx
     function Func28: TtkTokenKind; //dx / si
     function Func30: TtkTokenKind; //eax / eip
-    function Func31: TtkTokenKind; //ebx
+    function Func31: TtkTokenKind; //ebx / rdi
     function Func32: TtkTokenKind; //ecx
     function Func33: TtkTokenKind; //edx / esi
     function Func35: TtkTokenKind; //sp
@@ -507,7 +507,10 @@ end;
 function TSynAASyn.Func31: TtkTokenKind;
 begin
   if KeyComp('ebx') then Result := tkRegister else
-    Result := tkIdentifier;
+  {$ifdef cpu64}
+    if KeyComp('rdi') then Result := tkRegister else
+  {$endif}
+      Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func32: TtkTokenKind;
@@ -584,6 +587,7 @@ function TSynAASyn.Func46: TtkTokenKind; //rdx
 begin
   {$ifdef cpu64}
   if KeyComp('rdx') then Result := tkRegister else
+  if KeyComp('rsi') then Result := tkRegister else
   {$endif}
     Result := tkIdentifier;
 end;

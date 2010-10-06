@@ -95,8 +95,9 @@ type
       parameterValue: ptrUint;
     //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
 
-      isjump: boolean;
-      iscall: boolean;
+      isjump: boolean; //set for anything that can change eip/rip
+      iscall: boolean; //set if it's a call
+      isconditionaljump: boolean; //set if it's only effective when an conditon is met
     end;
 
 
@@ -1241,6 +1242,7 @@ begin
   LastDisassembleData.parameters:='';
   lastdisassembledata.isjump:=false;
   lastdisassembledata.iscall:=false;
+  lastdisassembledata.isconditionaljump:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
 
@@ -3502,6 +3504,7 @@ begin
                         description:='jump near if overflow';
                         lastdisassembledata.opcode:='jo';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3521,6 +3524,7 @@ begin
                         description:='jump near if not overflow';
                         lastdisassembledata.opcode:='jno';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3542,6 +3546,7 @@ begin
 
                         lastdisassembledata.opcode:='jb';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3562,6 +3567,7 @@ begin
                         description:='jump near if above or equal';
                         lastdisassembledata.opcode:='jae';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3581,6 +3587,7 @@ begin
                         description:='jump near if equal';
                         lastdisassembledata.opcode:='je';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3601,6 +3608,7 @@ begin
                         description:='jump near if not equal';
                         lastdisassembledata.opcode:='jne';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3621,6 +3629,8 @@ begin
                         description:='jump near if below or equal';
                         lastdisassembledata.opcode:='jbe';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
+
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3640,6 +3650,7 @@ begin
                         description:='jump near if above';
                         lastdisassembledata.opcode:='ja';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3659,6 +3670,7 @@ begin
                         description:='jump near if sign';
                         lastdisassembledata.opcode:='js';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3678,6 +3690,7 @@ begin
                         description:='jump near if less';
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3697,6 +3710,7 @@ begin
                         description:='jump near if parity';
                         lastdisassembledata.opcode:='jp';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3716,6 +3730,7 @@ begin
                         description:='jump near if not parity';
                         lastdisassembledata.opcode:='jnp';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3735,6 +3750,7 @@ begin
                         description:='jump near if less';
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3754,6 +3770,7 @@ begin
                         description:='jump near if not less';
                         lastdisassembledata.opcode:='jnl';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3773,6 +3790,7 @@ begin
                         description:='jump near if not greater';
                         lastdisassembledata.opcode:='jng';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3792,6 +3810,7 @@ begin
                         description:='jump near if greater';
                         lastdisassembledata.opcode:='jg';
                         lastdisassembledata.isjump:=true;
+                        lastdisassembledata.isconditionaljump:=true;
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -6062,6 +6081,7 @@ begin
               description:='jump short if overflow';
               lastdisassembledata.opcode:='jo';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6084,6 +6104,7 @@ begin
               description:='jump short if not overflow';
               lastdisassembledata.opcode:='jno';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6104,6 +6125,7 @@ begin
               description:='jump short if below/carry';
               lastdisassembledata.opcode:='jb';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6124,6 +6146,7 @@ begin
               description:='jump short if above or equal';
               lastdisassembledata.opcode:='jae';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6144,6 +6167,7 @@ begin
               description:='jump short if equal';
               lastdisassembledata.opcode:='je';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6166,6 +6190,7 @@ begin
               description:='jump short if not equal';
               lastdisassembledata.opcode:='jne';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6186,6 +6211,7 @@ begin
               description:='jump short if not above';
               lastdisassembledata.opcode:='jna';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6206,6 +6232,7 @@ begin
               description:='jump short if above';
               lastdisassembledata.opcode:='ja';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6226,6 +6253,7 @@ begin
               description:='jump short if sign';
               lastdisassembledata.opcode:='js';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6246,6 +6274,7 @@ begin
               description:='jump short if not sign';
               lastdisassembledata.opcode:='jns';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6266,6 +6295,7 @@ begin
               description:='jump short if parity';
               lastdisassembledata.opcode:='jp';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6286,6 +6316,7 @@ begin
               description:='jump short if not parity';
               lastdisassembledata.opcode:='jnp';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6306,6 +6337,7 @@ begin
               description:='jump short if not greater or equal';
               lastdisassembledata.opcode:='jnge';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6326,6 +6358,7 @@ begin
               description:='jump short if not less (greater or equal)';
               lastdisassembledata.opcode:='jnl';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6346,6 +6379,7 @@ begin
               description:='jump short if less or equal';
               lastdisassembledata.opcode:='jle';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -6364,6 +6398,7 @@ begin
               description:='jump short if greater';
               lastdisassembledata.opcode:='jg';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
               inc(offset);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -9508,6 +9543,7 @@ begin
       $e0 : begin
               description:='loop according to ecx counter';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if processhandler.is64bit then
@@ -9531,6 +9567,7 @@ begin
       $e1 : begin
               description:='loop according to ecx counter';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
 
               if $66 in prefix2 then
               begin
@@ -9575,6 +9612,7 @@ begin
       $e3 : begin
               description:='jump short if cx=0';
               lastdisassembledata.isjump:=true;
+              lastdisassembledata.isconditionaljump:=true;
 
               if $66 in prefix2 then
                 lastdisassembledata.opcode:='jcxz'

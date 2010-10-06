@@ -1077,7 +1077,7 @@ begin
 
       if (not memrec.isGroupHeader) and (memrec.VarType<>vtAutoAssembler) then
       begin
-        //draw the arrow up/down, unless it's a group or custom type
+        //draw the arrow up/down, unless it's a group or auto assembler type
         if memrec.allowIncrease then
         begin
           sender.Canvas.Pen.Color:=clGreen;
@@ -1125,7 +1125,10 @@ begin
     else
     begin
       sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description); //no limit on how far
-      //nothing else
+
+      if (memrec.VarType=vtAutoAssembler) then //give it the <script> text for value
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, '<script>');
+
     end;
 
     if node=CurrentlyDraggedOverNode then

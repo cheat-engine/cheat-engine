@@ -662,7 +662,7 @@ begin
     a:=stop;
 
     infloop:=0;
-    while infloop<10000000 do
+    while infloop<100000 do
     begin
       inc(infloop);
 
@@ -676,7 +676,7 @@ begin
       end;
 
 
-      if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then //found the end
+      if (d.LastDisassembleData.opcode='??') or (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then //found the end
       begin
         stop:=pa;
         break;
@@ -687,23 +687,26 @@ begin
         //adjust the current address to point
         if d.LastDisassembleData.parameterValueType=dvtAddress then //direct address
         begin
-          if d.LastDisassembleData.parameterValue < start then
+          if isAddress(d.LastDisassembleData.parameterValue) then
           begin
-            start:=d.LastDisassembleData.parameterValue;
-            continue;
-          end;
+            if d.LastDisassembleData.parameterValue < start then
+            begin
+              start:=d.LastDisassembleData.parameterValue;
+              continue;
+            end;
 
-          if d.LastDisassembleData.parameterValue > stop then
-          begin
-            stop:=d.LastDisassembleData.parameterValue;
-            a:=stop;
-            continue;
-          end;
+            if d.LastDisassembleData.parameterValue > pa then
+            begin
+              stop:=d.LastDisassembleData.parameterValue;
+              a:=stop;
+              continue;
+            end;
 
-          if (d.LastDisassembleData.parameterValue <= a) and (d.LastDisassembleData.opcode='jmp') then //an unconditonal jump that jumps back and no conditonal jump encountered that went after this. Meaning: Infinite loop
-          begin
-            stop:=pa;
-            break;
+            if (d.LastDisassembleData.parameterValue <= a) and (d.LastDisassembleData.opcode='jmp') then //an unconditonal jump that jumps back and no conditonal jump encountered that went after this. Meaning: Infinite loop
+            begin
+              stop:=pa;
+              break;
+            end;
           end;
 
 
@@ -719,7 +722,7 @@ begin
     pa:=start;
     d.disassemble(pa,s); //start from next one in case it's started from the begin
 
-    while infloop<1000000 do
+    while infloop<100000 do
     begin
       inc(infloop);
 
@@ -731,13 +734,13 @@ begin
       //look for 00 , 00  (add [eax],al is an 100% completly useless instruction)
       if (length(d.LastDisassembleData.Bytes)>=2) and (d.LastDisassembleData.Bytes[0]=0) and (d.LastDisassembleData.Bytes[1]=0) then
       begin
-        stop:=a;
+        start:=a;
         break;
       end;
 
 
       //look for ret, int3 or nop
-      if (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then
+      if (d.LastDisassembleData.opcode='??') or (d.LastDisassembleData.opcode='ret') or (d.LastDisassembleData.opcode='int 3') or (d.LastDisassembleData.opcode='nop') then
       begin
         start:=a; //start from next instruction
         break;

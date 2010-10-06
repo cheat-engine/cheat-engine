@@ -511,7 +511,7 @@ begin
               speedhackspeed5.speed:=2;
 
           //fill the hotkeylist
-          for i:=0 to 29 do
+          for i:=0 to 30 do
           begin
             found:=false;
 

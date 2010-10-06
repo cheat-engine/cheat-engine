@@ -51,6 +51,7 @@ type
   TReversePointerListArray=array [0..15] of TReversePointerTable;
 
 
+
   //-
   TMemrectablearraylist = array [0..15] of record
      arr:PReversePointerListArray;
@@ -228,7 +229,25 @@ begin
     if not add then
       plist.expectedsize:=0
     else
+    begin
+      //guess the number of pointers there will be with this exact value
       plist.expectedsize:=2;
+
+      if pointervalue mod $10=0 then
+      begin
+        plist.expectedsize:=5;
+        if pointervalue mod $100=0 then
+        begin
+          plist.expectedsize:=10;
+          if pointervalue mod $1000=0 then
+          begin
+            plist.expectedsize:=20;
+            if pointervalue mod $10000=0 then
+              plist.expectedsize:=50;
+          end;
+        end;
+      end
+    end;
   end;
 
   if not add then
@@ -244,10 +263,11 @@ begin
       plist.maxsize:=plist.expectedsize;
     end;
 
-    if plist.pos>=plist.maxsize then
+    if plist.pos>=plist.maxsize then  //the new entry will be over the maximum. Reallocate
     begin
-      bigalloc.realloc(plist.list, plist.maxsize*sizeof(TPointerDataArray), plist.maxsize*sizeof(TPointerDataArray)*4);
-      plist.maxsize:=plist.maxsize*4; //quadrupple the storage
+      //quadrupple the storage
+      plist.list:=bigalloc.realloc(plist.list, plist.maxsize*sizeof(TPointerDataArray), plist.maxsize*sizeof(TPointerDataArray)*4);
+      plist.maxsize:=plist.maxsize*4;
     end;
 
     plist.list[plist.pos].address:=pointerwiththisvalue;
@@ -759,18 +779,21 @@ begin
       if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
       begin
         bytepointer:=buffer;
-        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
+
+
+
+        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize-processhandler.pointersize;
 
         if processhandler.is64Bit then
         begin
-          while ptrUint(bytepointer)<lastaddress do
+          while ptrUint(bytepointer)<=lastaddress do
           begin
 
             if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
                ((not alligned) and ispointer(qwordpointer^) ) then
             begin
               //initial add
-              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),false);
             end;
 
             if alligned then
@@ -781,7 +804,7 @@ begin
         end
         else
         begin
-          while ptrUint(bytepointer)<lastaddress do
+          while ptrUint(bytepointer)<=lastaddress do
           begin
 
             if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
@@ -874,7 +897,7 @@ begin
   except
     on e: exception do
     begin
-      outputdebugstring('TReversePointerListHandler.create: Exception:'+e.message);
+      outputdebugstring('TReversePointerListHandler.create: Exception:'+e.message+'  (count='+inttostr(count)+')');
       raise Exception.Create(e.message);
     end;
   end;

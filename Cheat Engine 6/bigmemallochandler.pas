@@ -110,7 +110,10 @@ begin
     dec(memoryleft,size);
   except
     on e: Exception do
+    begin
       messagebox(0,pchar(e.message),'CE Pointerscan memory manager',0);
+      raise exception.create(e.message);
+    end;
   end;
 
 end;

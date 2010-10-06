@@ -2587,7 +2587,7 @@ begin
         setsibbase(modrm[1],0);
         createsibscaleindex(modrm[1],reg[-k]);
 
-        showmessage('RexPrefix='+inttohex(rexprefix,2));
+       // showmessage('RexPrefix='+inttohex(rexprefix,2));
 
       end else setrm(modrm[0],0); //no sib needed
       found:=true;

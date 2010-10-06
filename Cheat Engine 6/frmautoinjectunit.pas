@@ -433,6 +433,18 @@ begin
         add('label(originalcode'+inttostr(injectnr)+')');
         add('label(exit'+inttostr(injectnr)+')');
         add('');
+        add('newmem'+inttostr(injectnr)+': //this is allocated memory, you have read,write,execute access');
+        add('//place your code here');
+
+        add('');
+        add('originalcode'+inttostr(injectnr)+':');
+        for i:=0 to length(originalcode)-1 do
+          add(originalcode[i]);
+        add('');
+        add('exit'+inttostr(injectnr)+':');
+        add('jmp returnhere'+inttostr(injectnr)+'');
+
+        add('');
         add(address+':');
         add('jmp newmem'+inttostr(injectnr)+'');
         while codesize>5 do
@@ -443,17 +455,6 @@ begin
 
         add('returnhere'+inttostr(injectnr)+':');
         add('');
-        add('newmem'+inttostr(injectnr)+': //this is allocated memory, you have read,write,execute access');
-        add('//place your code here');
-
-        add('');
-        add('');
-        add('originalcode'+inttostr(injectnr)+':');
-        for i:=0 to length(originalcode)-1 do
-          add(originalcode[i]);
-        add('');
-        add('exit'+inttostr(injectnr)+':');
-        add('jmp returnhere'+inttostr(injectnr)+'');
       end;
 
       with disablecode do

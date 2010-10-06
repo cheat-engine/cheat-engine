@@ -86,7 +86,7 @@ type
       checked: boolean;
     end;
 
-    groupbox1enabled: boolean;
+    gbScanOptionsEnabled: boolean;
 
     scantype: record
       options: string;
@@ -163,12 +163,14 @@ type
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
+    FromAddress: TMemo;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miResetRange: TMenuItem;
     miChangeColor: TMenuItem;
     miGroupconfig: TMenuItem;
     miDefineNewCustomTypeLua: TMenuItem;
@@ -187,7 +189,9 @@ type
     Panel1: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
+    pmResetRange: TPopupMenu;
     SettingsButton: TSpeedButton;
+    ToAddress: TMemo;
     UpdateTimer: TTimer;
     FreezeTimer: TTimer;
     PopupMenu2: TPopupMenu;
@@ -219,10 +223,8 @@ type
     Label6: TLabel;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
-    GroupBox1: TGroupBox;
+    gbScanOptions: TGroupBox;
     ReadOnly: TCheckBox;
-    FromAddress: TMemo;
-    ToAddress: TMemo;
     NewScan: TButton;
     NextScanButton: TButton;
     ScanType: TComboBox;
@@ -334,6 +336,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miResetRangeClick(Sender: TObject);
     procedure miChangeColorClick(Sender: TObject);
     procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
     procedure miDeleteCustomTypeClick(Sender: TObject);
@@ -557,6 +560,11 @@ type
 
     procedure RefreshCustomTypes;
     procedure LoadCustomTypesFromRegistry;
+
+    procedure setGbScanOptionsEnabled(state: boolean);
+
+
+
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -1315,9 +1323,7 @@ screen.
 var
   i: integer;
 begin
-  Groupbox1.Enabled := False;
-  for i := 0 to groupbox1.ControlCount - 1 do
-    groupbox1.Controls[i].Enabled := False;
+  setGbScanOptionsEnabled(false);
 
   scanvalue.Enabled := False;
   if scanvalue2 <> nil then
@@ -1356,10 +1362,7 @@ begin
 
   if not scanstarted then
   begin
-    Groupbox1.Enabled:=true;
-    for i:=0 to groupbox1.ControlCount-1 do
-      groupbox1.Controls[i].Enabled:=true;
-
+    setGbScanOptionsEnabled(true);
     cbFastScanClick(cbfastscan);
   end;
 
@@ -1851,9 +1854,7 @@ begin
 
     newscan.Caption := strFirstScan;
 
-    Groupbox1.Enabled := False;
-    for i := 0 to groupbox1.ControlCount - 1 do
-      groupbox1.Controls[i].Enabled := False;
+    setGbScanOptionsEnabled(false);
 
 
     scanvalue.Enabled := False;
@@ -2085,6 +2086,17 @@ begin
   addresslist.SelectAll;
 end;
 
+procedure TMainForm.miResetRangeClick(Sender: TObject);
+begin
+  {$ifdef cpu64}
+    FromAddress.text:='0000000000000000';
+    ToAddress.text:='7fffffffffffffff';
+  {$else}
+    FromAddress.text:='00000000';
+    ToAddress.text:='ffffffff';
+  {$endif}
+end;
+
 procedure TMainForm.miChangeColorClick(Sender: TObject);
 var i: integer;
 begin
@@ -2127,6 +2139,14 @@ begin
   end;
 end;
 
+procedure TMainForm.setGbScanOptionsEnabled(state: boolean);
+var i,j: integer;
+begin
+  gbScanOptions.Enabled := state;
+  for i := 0 to gbScanOptions.ControlCount - 1 do
+    gbScanOptions.Controls[i].Enabled := state;
+end;
+
 procedure TMainForm.LoadCustomTypesFromRegistry;
 var
   reg: TRegistry;
@@ -2149,6 +2169,15 @@ begin
             islua:=false;
             if reg.ValueExists('lua') then
               islua:=reg.ReadBool('lua');
+
+            if reg.ValueExists('64bit') then
+            begin
+              {$ifdef cpu64}
+              if reg.ReadBool('64bit')=false then continue;
+              {$else}
+              if reg.ReadBool('64bit')=true then continue;
+              {$endif}
+            end;
 
             CreateCustomType(nil, reg.ReadString('Script'),true, islua);
           except
@@ -2253,6 +2282,12 @@ begin
       reg.WriteString('Script',script);
       if lua then
         reg.WriteBool('lua',true);
+
+      {$ifdef cpu64}
+      reg.writebool('64bit',true);
+      {$else}
+      reg.writebool('64bit',false);
+      {$endif}
     end;
 
     reg.free;
@@ -2502,7 +2537,7 @@ begin
   scanstate.nextscanstate.enabled:=nextscanbutton.Enabled;
 
 
-  scanstate.groupbox1enabled:=GroupBox1.Enabled;
+  scanstate.gbScanOptionsEnabled:=gbScanOptions.Enabled;
 
   scanstate.floatpanel.visible:=pnlfloat.visible;
   scanstate.floatpanel.rounded:=rt1.checked;
@@ -2614,9 +2649,7 @@ begin
     cbFastScan.Checked:=newstate.cbfastscan.checked;
     edtAlignment.Text:=newstate.edtAlignment.text;
 
-    GroupBox1.Enabled:=newstate.groupbox1enabled;
-    for i:=0 to GroupBox1.ControlCount-1 do
-      GroupBox1.Controls[i].Enabled:=newstate.groupbox1enabled;
+    setGbScanOptionsEnabled(newstate.gbScanOptionsEnabled);
 
     cbFastScanClick(cbfastscan);    //update the alignment textbox
 
@@ -2758,7 +2791,7 @@ begin
 
     foundlist3.Height:=btnMemoryView.top-foundlist3.top-foundlistheightdiff;
 
-    panel5.Constraints.MinHeight:=groupbox1.top+groupbox1.height+speedbutton2.height+3;
+    panel5.Constraints.MinHeight:=gbScanOptions.top+gbScanOptions.height+speedbutton2.height+3;
 
     if panel5.Height<panel5.Constraints.MinHeight then
       panel5.Height:=panel5.Constraints.MinHeight;
@@ -2910,9 +2943,7 @@ begin
   Scantype.ItemIndex:=0;
 
   //enable the memory scan groupbox
-  Groupbox1.Enabled:=true;
-  for i:=0 to groupbox1.ControlCount-1 do
-    groupbox1.Controls[i].Enabled:=true;
+  setGbScanOptionsEnabled(true);
 
   cbFastScanClick(cbfastscan);
 
@@ -3065,14 +3096,16 @@ begin
   tempbitmap := TBitmap.Create;
 
   scanvalue.Text := '';
-{$ifdef cpu64}
-  FromAddress.text:='0000000000000000';
-  ToAddress.text:='7fffffffffffffff';
-{$else}
-  FromAddress.text:='00000000';
-  ToAddress.text:='7fffffff';
-{$endif}
 
+  {$ifdef cpu64}
+  fromaddress.MaxLength:=16;
+  toaddress.MaxLength:=16;
+  {$else}
+  fromaddress.MaxLength:=8;
+  toaddress.MaxLength:=8;
+  {$endif}
+
+  miResetRange.click;
 
   isbit := False;
 
@@ -3140,7 +3173,7 @@ begin
 
   oldhandle := mainform.handle;
 
-  panel5.Constraints.MinHeight:=groupbox1.top+groupbox1.height+speedbutton2.height+3;
+  panel5.Constraints.MinHeight:=gbScanOptions.top+gbScanOptions.height+speedbutton2.height+3;
   mainform.Constraints.MinWidth:=400;
   mainform.Constraints.MinHeight:=panel5.height+150;
 
@@ -3992,14 +4025,25 @@ begin
 
 
   DeleteThisRecord1.visible:=(addresslist.selectedRecord<>nil);
-  Change1.visible:=(addresslist.selectedrecord<>nil);
+  Change1.visible:=(addresslist.selectedrecord<>nil) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
   address1.enabled:=(addresslist.selectedrecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
   ype1.enabled:=address1.enabled;
   Value1.enabled:=address1.enabled;
   Smarteditaddresses1.enabled:=true;
 
-  BrowseThisMemoryRegion1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
+  BrowseThisMemoryRegion1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
   ShowAsHexadecimal1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and (not addresslist.selectedRecord.isGroupHeader);
+
+  if (addresslist.selectedRecord<>nil) then
+  begin
+    if addresslist.selectedRecord.showAsHex then
+      ShowAsHexadecimal1.Caption:='Show as hexadecimal'
+    else
+      ShowAsHexadecimal1.Caption:='Show as decimal';
+  end;
+
+
+
   SetHotkey1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
 
   Freezealladdresses2.visible:=(addresslist.selectedRecord<>nil);
@@ -4008,13 +4052,17 @@ begin
 
   n5.visible:=(addresslist.selectedRecord<>nil);
 
-  Pointerscanforthisaddress1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
-  Findoutwhataccessesthisaddress1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
-  Setbreakpoint1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
+  Pointerscanforthisaddress1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
+  Findoutwhataccessesthisaddress1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
+  Setbreakpoint1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
 
-  sep1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
-  Calculatenewvaluepart21.visible:=addresslist.count>0;
+  sep1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
+  Calculatenewvaluepart21.visible:=(addresslist.count>0);
   Forcerechecksymbols1.visible:=addresslist.count>0;
+
+  //one extra check for recalculate (don't show it when an aa address is selected)
+  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.vartype=vtAutoAssembler) then
+    Calculatenewvaluepart21.visible:=false;
 
   n4.visible:=addresslist.count>0;
 
@@ -5366,11 +5414,7 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-  foundlist3.items.count:=0;
-  foundlist3.clear;
-
-//mainform.Foundlist3.items.count:=0;
-//mainform.Foundlist3.clear;
+  setGbScanOptionsEnabled(true);
 
 end;
 
@@ -5559,9 +5603,7 @@ begin
   if memscan.lastscantype=stFirstScan then
   begin
     //firstscan Epilogue
-    Groupbox1.Enabled:=false;
-    for i:=0 to groupbox1.ControlCount-1 do
-      groupbox1.Controls[i].Enabled:=false;
+    setGbScanOptionsEnabled(false);
 
     vartype.Enabled:=false;
     nextscanbutton.enabled:=true;

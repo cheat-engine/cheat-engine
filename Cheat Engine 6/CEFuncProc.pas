@@ -2866,60 +2866,7 @@ begin
         result:=true;
       end;
     end;
-      {
 
-    if readprocessmemory(processhandle,pointer(address),@buf[0],32,actualread) then
-    begin
-      if buf[0] in [$0f,$70..$7f,$e3,$e8,$e9,$eb,$ff] then //possible
-      begin
-        case buf[0] of
-          $0f:
-          begin
-            if (not (buf[1] in [$80..$8f])) then exit; //not one of them
-            result:=true;
-            addresstojumpto:=address+plongint(@buf[2])^+6;
-          end;
-
-          $70..$7f,$e3,$eb:  //(un)conditional jump (1 byte)
-          begin
-            result:=true;
-            addresstojumpto:=address+pshortint(@buf[1])^+2;
-          end;
-
-          $e8,$e9: //jump or call unconditional (4 byte)
-          begin
-            result:=true;
-            addresstojumpto:=address+plongint(@buf[1])^+5;
-          end;
-
-          $ff: //disassemble to see what it is
-          begin
-            st:=disassemble(address);
-            st:=copy(st,pos('-',st)+2,length(st));
-            st:=copy(st,pos('-',st)+2,length(st));
-
-            i:=pos('jmp',st);
-            j:=pos('call',st);
-            if (i=1) or (j=1) then
-            begin
-              //now determine where it jumps to
-              i:=pos('[',st);
-              if i>0 then
-              begin
-                st:=copy(st,i,pos(']',st)-i+1);
-
-                addresstojumpto:=symhandler.getAddressFromName(st, false, haserror); //the pointer interpreter code can do this
-                result:=not haserror;
-              end;
-
-            end;
-          end;
-
-
-        end;
-      end;
-
-    end;   }
   finally
     dis.free;
   end;

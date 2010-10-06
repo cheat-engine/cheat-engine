@@ -156,6 +156,7 @@ object AdvancedOptions: TAdvancedOptions
     ItemIndex = -1
     MultiSelect = True
     PopupMenu = PopupMenu2
+    ReadOnly = True
     RowSelect = True
     TabOrder = 2
     ViewStyle = vsReport

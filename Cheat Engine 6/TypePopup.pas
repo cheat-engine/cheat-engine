@@ -157,11 +157,14 @@ begin
     8: MemoryRecord.VarType:=vtByteArray;
     else
     begin
-      ct:=TCustomType(vartype.Items.Objects[Vartype.ItemIndex]);
-      if ct<>nil then
+      if Vartype.ItemIndex<>-1 then
       begin
-        MemoryRecord.VarType:=vtCustom;
-        MemoryRecord.CustomTypeName:=ct.name;
+        ct:=TCustomType(vartype.Items.Objects[Vartype.ItemIndex]);
+        if ct<>nil then
+        begin
+          MemoryRecord.VarType:=vtCustom;
+          MemoryRecord.CustomTypeName:=ct.name;
+        end;
       end;
     end;
   end;

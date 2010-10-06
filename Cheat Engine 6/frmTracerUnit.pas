@@ -773,7 +773,7 @@ end;
 
 procedure TfrmTracer.FormShow(Sender: TObject);
 begin
-  sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.Height div 2);
+  Panel1Resize(panel1);
 end;
 
 procedure TfrmTracer.sbShowstackClick(Sender: TObject);

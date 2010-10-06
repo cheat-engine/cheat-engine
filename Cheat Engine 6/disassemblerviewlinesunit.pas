@@ -34,6 +34,7 @@ type
     fdisassembled: string;
 
     fisJump: boolean;
+    fjumpcolor: TColor;
     fJumpsTo: ptrUint;
     fcolors: PDisassemblerViewColors;
 
@@ -77,11 +78,13 @@ var
   oldpenstyle: Tpenstyle;
   oldpencolor, oldbrushcolor: TColor;
 begin
+
+
   oldpenstyle:=fCanvas.Pen.Style;
   oldpencolor:=fCanvas.Pen.color;
   oldbrushcolor:=fCanvas.Brush.color;
 
-  fCanvas.Pen.Color:=clBlack;
+  fCanvas.Pen.Color:=fjumpcolor;
   fCanvas.Pen.Style:=psDot;
 
 
@@ -94,7 +97,7 @@ begin
   if showendtriangle then
   begin
     fCanvas.Brush.Style:=bsSolid; //should be the default, but in case something fucked with it (not in the planning, never intended, so even if someone did do it, I'll undo it)
-    fCanvas.Brush.Color:=clblack;
+    fCanvas.Brush.Color:=fjumpcolor;
     fCanvas.Polygon([point(fheaders.items[2].Left-4,yposition-4),point(fheaders.items[2].Left,yposition),point(fheaders.items[2].Left-4,yposition+4)]);
   end;
   fCanvas.Brush.Color:=oldbrushcolor;
@@ -186,8 +189,6 @@ begin
   faddress:=address;
   isselected:=selected;
 
-  fisJump:=cefuncproc.isjumporcall(faddress, fJumpsTo);
-
 
   height:=0;
   baseofsymbol:=0;
@@ -244,6 +245,23 @@ begin
   end;
 
   fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
+
+  fisJump:=visibleDisassembler.LastDisassembleData.isjump;
+
+  if fisJump then
+  begin
+    cefuncproc.isjumporcall(faddress, fJumpsTo);
+
+    if visibleDisassembler.LastDisassembleData.iscall then
+      fjumpcolor:=clYellow
+    else
+    begin
+      if visibleDisassembler.LastDisassembleData.isconditionaljump then
+        fjumpcolor:=clRed
+      else
+        fjumpcolor:=clGreen;
+    end;
+  end;
 
 
   if boldheight=-1 then

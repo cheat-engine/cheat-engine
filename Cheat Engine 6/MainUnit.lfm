@@ -319,7 +319,6 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label5'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label38: TLabel
@@ -417,7 +416,7 @@ object MainForm: TMainForm
       TabOrder = 17
       Visible = False
     end
-    object GroupBox1: TGroupBox
+    object gbScanOptions: TGroupBox
       Left = 222
       Height = 140
       Top = 168
@@ -440,7 +439,61 @@ object MainForm: TMainForm
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         ParentFont = False
+        TabOrder = 0
+      end
+      object cbFastScan: TCheckBox
+        Left = 3
+        Height = 19
+        Top = 68
+        Width = 66
+        Caption = 'Fast scan'
+        Checked = True
+        Enabled = False
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        OnClick = cbFastScanClick
+        ParentFont = False
+        State = cbChecked
+        TabOrder = 1
+      end
+      object cbPauseWhileScanning: TCheckBox
+        Left = 3
+        Height = 19
+        Top = 91
+        Width = 170
+        Caption = 'Pause the game while scanning'
+        Enabled = False
+        OnClick = cbPauseWhileScanningClick
         TabOrder = 2
+      end
+      object edtAlignment: TEdit
+        Left = 72
+        Height = 21
+        Top = 68
+        Width = 112
+        Enabled = False
+        TabOrder = 3
+        Text = '4'
+      end
+      object Label2: TLabel
+        Left = 6
+        Height = 14
+        Top = 27
+        Width = 23
+        Caption = 'Stop'
+        Enabled = False
+        ParentColor = False
+        PopupMenu = pmResetRange
+      end
+      object Label1: TLabel
+        Left = 6
+        Height = 14
+        Top = 3
+        Width = 23
+        Caption = 'Start'
+        Enabled = False
+        ParentColor = False
+        PopupMenu = pmResetRange
       end
       object FromAddress: TMemo
         Left = 41
@@ -458,17 +511,16 @@ object MainForm: TMainForm
           '00000000'
         )
         MaxLength = 8
-        OnKeyPress = AddressKeyPress
         ParentFont = False
-        PopupMenu = emptypopup
-        TabOrder = 0
+        PopupMenu = pmResetRange
+        TabOrder = 4
         WantReturns = False
         WordWrap = False
       end
       object ToAddress: TMemo
         Left = 41
         Height = 21
-        Top = 24
+        Top = 21
         Width = 153
         Alignment = taRightJustify
         Enabled = False
@@ -481,62 +533,11 @@ object MainForm: TMainForm
           '7FFFFFFF'
         )
         MaxLength = 8
-        OnKeyPress = AddressKeyPress
         ParentFont = False
-        PopupMenu = emptypopup
-        TabOrder = 1
+        PopupMenu = pmResetRange
+        TabOrder = 5
         WantReturns = False
         WordWrap = False
-      end
-      object cbFastScan: TCheckBox
-        Left = 3
-        Height = 19
-        Top = 68
-        Width = 66
-        Caption = 'Fast scan'
-        Checked = True
-        Enabled = False
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        OnClick = cbFastScanClick
-        ParentFont = False
-        State = cbChecked
-        TabOrder = 3
-      end
-      object cbPauseWhileScanning: TCheckBox
-        Left = 3
-        Height = 19
-        Top = 91
-        Width = 170
-        Caption = 'Pause the game while scanning'
-        Enabled = False
-        OnClick = cbPauseWhileScanningClick
-        TabOrder = 4
-      end
-      object Label1: TLabel
-        Left = 6
-        Height = 14
-        Top = 3
-        Width = 23
-        Caption = 'Start'
-        ParentColor = False
-      end
-      object Label2: TLabel
-        Left = 6
-        Height = 14
-        Top = 27
-        Width = 23
-        Caption = 'Stop'
-        ParentColor = False
-      end
-      object edtAlignment: TEdit
-        Left = 72
-        Height = 21
-        Top = 68
-        Width = 112
-        Enabled = False
-        TabOrder = 5
-        Text = '4'
       end
     end
     object NextScanButton: TButton
@@ -843,8 +844,8 @@ object MainForm: TMainForm
         AutoSize = False
         Caption = 'Truncated'
         Checked = True
-        State = cbChecked
         TabOrder = 2
+        TabStop = True
       end
       object rt1: TRadioButton
         Left = 4
@@ -854,7 +855,6 @@ object MainForm: TMainForm
         AutoSize = False
         Caption = 'Rounded (default)'
         TabOrder = 0
-        TabStop = False
       end
       object rt2: TRadioButton
         Left = 4
@@ -864,7 +864,6 @@ object MainForm: TMainForm
         AutoSize = False
         Caption = 'Rounded (extreme)'
         TabOrder = 1
-        TabStop = False
       end
     end
     object cbUnrandomizer: TCheckBox
@@ -1391,7 +1390,7 @@ object MainForm: TMainForm
       OnClick = SetHotkey1Click
     end
     object Freezealladdresses2: TMenuItem
-      Caption = 'Toggle Addresses'
+      Caption = 'Toggle Selected Entries'
       GroupIndex = 2
       ShortCut = 32
       Visible = False
@@ -1846,5 +1845,13 @@ object MainForm: TMainForm
     )
     left = 128
     top = 72
+  end
+  object pmResetRange: TPopupMenu
+    left = 360
+    top = 176
+    object miResetRange: TMenuItem
+      Caption = 'Reset range'
+      OnClick = miResetRangeClick
+    end
   end
 end
