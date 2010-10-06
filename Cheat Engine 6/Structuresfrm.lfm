@@ -140,6 +140,10 @@ object frmStructures: TfrmStructures
         Caption = 'Change colors'
         OnClick = miChangeColorsClick
       end
+      object miUpdateInterval: TMenuItem
+        Caption = 'Update interval: 500'
+        OnClick = miUpdateIntervalClick
+      end
     end
     object Structures1: TMenuItem
       Caption = 'Structures'

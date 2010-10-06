@@ -55,6 +55,7 @@ type TbaseStructure=record
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miUpdateInterval: TMenuItem;
     miUpdateOffsets: TMenuItem;
     miChangeColors: TMenuItem;
     Open1: TMenuItem;
@@ -104,8 +105,10 @@ type TbaseStructure=record
     procedure Addelement1Click(Sender: TObject);
     procedure HeaderControl1SectionTrack(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+
     procedure MenuItem3Click(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
+    procedure miUpdateIntervalClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
@@ -282,7 +285,7 @@ var c,i,j,k: integer;
 begin
   //check if all nodes are present and remove those not needed anymore
   //and adjust the text when needed
- // treeviewused.Items.BeginUpdate;
+  treeviewused.Items.BeginUpdate;
   setlength(buf,32);
 
   if basestructure<0 then
@@ -587,7 +590,7 @@ begin
   if treeviewused.Items.GetFirstNode<>nil then
     treeviewused.Items.GetFirstNode.Expand(false);
 
-  //treeviewused.Items.endupdate;
+  treeviewused.Items.endupdate;
 end;
 
 procedure sortStructure(struct: TbaseStructure);
@@ -936,6 +939,7 @@ begin
   ShowScrollBar(tvStructureView.Handle,SB_HORZ , false);
 end;
 
+
 procedure TfrmStructures.MenuItem3Click(Sender: TObject);
 var
   i,j: integer;
@@ -1033,6 +1037,21 @@ begin
       LoadColors; //and do an update on the components
     end;
     c.free;
+  end;
+end;
+
+procedure TfrmStructures.miUpdateIntervalClick(Sender: TObject);
+var interval: string;
+begin
+  interval:=inttostr(updatetimer.interval);
+  if InputQuery('Update interval','New interval:',interval) then
+  begin
+    try
+      updatetimer.interval:=strtoint(interval);
+    except
+    end;
+
+    miUpdateInterval.caption:='Update interval: '+inttostr(interval);
   end;
 end;
 
