@@ -1051,7 +1051,7 @@ begin
     except
     end;
 
-    miUpdateInterval.caption:='Update interval: '+inttostr(interval);
+    miUpdateInterval.caption:='Update interval: '+inttostr(updatetimer.interval);
   end;
 end;
 
