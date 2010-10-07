@@ -4177,7 +4177,7 @@ begin
                       end;
 
                 $b7 : begin
-                        description:='load far pointer';
+                        description:='Move with zero-extend';
                         lastdisassembledata.opcode:='movzx';
                         lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,1,last,16);
 
