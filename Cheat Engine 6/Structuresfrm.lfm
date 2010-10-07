@@ -1,11 +1,11 @@
 object frmStructures: TfrmStructures
-  Left = 856
-  Height = 392
-  Top = 307
-  Width = 614
+  Left = 632
+  Height = 348
+  Top = 305
+  Width = 653
   Caption = 'Memory dissect'
-  ClientHeight = 372
-  ClientWidth = 614
+  ClientHeight = 328
+  ClientWidth = 653
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -18,12 +18,12 @@ object frmStructures: TfrmStructures
     Left = 0
     Height = 41
     Top = 0
-    Width = 614
+    Width = 653
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
     ClientHeight = 37
-    ClientWidth = 610
+    ClientWidth = 649
     TabOrder = 0
     object edtAddress: TEdit
       Left = 5
@@ -35,66 +35,65 @@ object frmStructures: TfrmStructures
       TabOrder = 0
       Text = '00000000'
     end
+    object Button1: TButton
+      Left = 342
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'Button1'
+      OnClick = Button1Click
+      TabOrder = 1
+    end
   end
-  object ScrollBox1: TScrollBox
-    Left = 0
-    Height = 331
-    Top = 41
-    Width = 614
-    Align = alClient
-    ClientHeight = 327
-    ClientWidth = 610
+  object tvStructureView: TTreeView
+    Left = 16
+    Height = 229
+    Top = 64
+    Width = 424
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderStyle = bsNone
+    DefaultItemHeight = 15
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -15
+    Font.Name = 'Courier'
+    HideSelection = False
+    Indent = 19
+    ParentFont = False
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
     TabOrder = 1
-    object tvStructureView: TTreeView
-      Left = 0
-      Height = 306
-      Top = 21
-      Width = 610
-      Align = alClient
-      BorderStyle = bsNone
-      DefaultItemHeight = 15
-      Font.CharSet = ANSI_CHARSET
-      Font.Height = -15
-      Font.Name = 'Courier'
-      HideSelection = False
-      Indent = 19
-      ParentFont = False
-      PopupMenu = PopupMenu1
-      ReadOnly = True
-      RowSelect = True
-      TabOrder = 0
-      OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
-      OnCollapsing = tvStructureViewCollapsing
-      OnDblClick = tvStructureViewDblClick
-      OnExpanding = tvStructureViewExpanding
-      OnMouseDown = tvStructureViewMouseDown
-      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
-    end
-    object HeaderControl1: THeaderControl
-      Left = 0
-      Height = 21
-      Top = 0
-      Width = 610
-      DragReorder = False
-      Sections = <      
-        item
-          Alignment = taLeftJustify
-          MinWidth = 50
-          Text = 'Offset-description'
-          Width = 250
-          Visible = True
-        end      
-        item
-          Alignment = taLeftJustify
-          MinWidth = 20
-          Text = 'Address: Value'
-          Width = 200
-          Visible = True
-        end>
-      OnSectionResize = HeaderControl1SectionResize
-      OnSectionTrack = HeaderControl1SectionTrack
-      Align = alTop
-    end
+    OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
+    OnCollapsing = tvStructureViewCollapsing
+    OnDblClick = tvStructureViewDblClick
+    OnExpanding = tvStructureViewExpanding
+    OnMouseDown = tvStructureViewMouseDown
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+  object HeaderControl1: THeaderControl
+    Left = 0
+    Height = 21
+    Top = 40
+    Width = 653
+    DragReorder = False
+    Sections = <    
+      item
+        Alignment = taLeftJustify
+        MinWidth = 50
+        Text = 'Offset-description'
+        Width = 250
+        Visible = True
+      end    
+      item
+        Alignment = taLeftJustify
+        MinWidth = 20
+        Text = 'Address: Value'
+        Width = 200
+        Visible = True
+      end>
+    OnSectionResize = HeaderControl1SectionResize
+    OnSectionTrack = HeaderControl1SectionTrack
+    Anchors = [akTop, akLeft, akRight]
   end
   object MainMenu1: TMainMenu
     left = 256

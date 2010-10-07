@@ -114,6 +114,7 @@ var
   Found: Boolean;
   Pivot: integer;
 begin
+
   First  := 0; //Sets the first item of the range
   Last   := length(memoryregion)-1; //Sets the last item of the range
   Found  := False; //Initializes the Found flag (Not found yet)

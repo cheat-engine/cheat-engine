@@ -74,8 +74,14 @@ begin
       if newsize<16*1024*1024 then
         inc(lastsize); //next time allocate more memory
 
-      if newsize<size then
-        raise Exception.create('some really fucked up parameter is given for size:'+inttostr(size));
+      while newsize<size do
+      begin
+        newsize:=newsize*lastsize;
+        if newsize<16*1024*1024 then
+          inc(lastsize); //next time allocate more memory
+
+//        raise Exception.create('some really fucked up parameter is given for size:'+inttostr(size));
+      end;
 
       flAllocationType:=MEM_COMMIT or MEM_RESERVE;
       if lpm>0 then //cpu supports large pages

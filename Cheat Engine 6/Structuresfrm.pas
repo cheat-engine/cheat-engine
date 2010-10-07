@@ -5,12 +5,107 @@ unit Structuresfrm;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls,
+  windows, LCLIntf, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls,
   Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
   symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, underc, dom, xmlread, xmlwrite,
   LResources, registry;
 
 const structureversion=1;
+
+type
+  TTreeView = class(TCustomTreeView)
+  public
+    procedure WMHScroll(var Msg: TLMScroll); message LM_HSCROLL;
+  published
+    property Align;
+    property Anchors;
+    property AutoExpand;
+    property BorderSpacing;
+    //property BiDiMode;
+    property BackgroundColor;
+    property BorderStyle;
+    property BorderWidth;
+    property Color;
+    property Constraints;
+    property DefaultItemHeight;
+    property DragKind;
+    property DragCursor;
+    property DragMode;
+    property Enabled;
+    property ExpandSignType;
+    property Font;
+    property HideSelection;
+    property HotTrack;
+    property Images;
+    property Indent;
+    //property ParentBiDiMode;
+    property ParentColor default False;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property ReadOnly;
+    property RightClickSelect;
+    property RowSelect;
+    property ScrollBars;
+    property SelectionColor;
+    property ShowButtons;
+    property ShowHint;
+    property ShowLines;
+    property ShowRoot;
+    property SortType;
+    property StateImages;
+    property TabOrder;
+    property TabStop default True;
+    property Tag;
+    property ToolTips;
+    property Visible;
+    property OnAddition;
+    property OnAdvancedCustomDraw;
+    property OnAdvancedCustomDrawItem;
+    property OnChange;
+    property OnChanging;
+    property OnClick;
+    property OnCollapsed;
+    property OnCollapsing;
+    property OnCompare;
+    property OnContextPopup;
+    property OnCreateNodeClass;
+    property OnCustomCreateItem;
+    property OnCustomDraw;
+    property OnCustomDrawItem;
+    property OnDblClick;
+    property OnDeletion;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnEdited;
+    property OnEditing;
+    //property OnEndDock;
+    property OnEndDrag;
+    property OnEnter;
+    property OnExit;
+    property OnExpanded;
+    property OnExpanding;
+    property OnGetImageIndex;
+    property OnGetSelectedIndex;
+    property OnKeyDown;
+    property OnKeyPress;
+    property OnKeyUp;
+    property OnMouseDown;
+    property OnMouseEnter;
+    property OnMouseLeave;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnSelectionChanged;
+    property OnShowHint;
+    //property OnStartDock;
+    property OnStartDrag;
+    property OnUTF8KeyPress;
+    property Options;
+    property Items;
+    property TreeLineColor;
+    property TreeLinePenStyle;
+    property ExpandSignColor;
+  end;
 
 
 type TStructElement=record
@@ -50,6 +145,8 @@ type TbaseStructure=record
   end;
 
   TfrmStructures = class(TForm)
+    Button1: TButton;
+    HeaderControl1: THeaderControl;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     MenuItem1: TMenuItem;
@@ -67,6 +164,7 @@ type TbaseStructure=record
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     Addelement1: TMenuItem;
+    tvStructureView: TTreeView;
     updatetimer: TTimer;
     Deleteelement1: TMenuItem;
     OpenDialog1: TOpenDialog;
@@ -94,15 +192,14 @@ type TbaseStructure=record
     Commands1: TMenuItem;
     Deletecurrentstructure1: TMenuItem;
     Renamestructure1: TMenuItem;
-    ScrollBox1: TScrollBox;
-    tvStructureView: TTreeView;
-    HeaderControl1: THeaderControl;
     Memorybrowsepointer1: TMenuItem;
     Memorybrowsethisaddress1: TMenuItem;
     Autoguessoffsets1: TMenuItem;
     Setgroup1: TMenuItem;
+    procedure Button1Click(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
     procedure Addelement1Click(Sender: TObject);
+    procedure HeaderControl1Resize(Sender: TObject);
     procedure HeaderControl1SectionTrack(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
 
@@ -277,7 +374,9 @@ var c,i,j,k: integer;
     pwc: pwidechar;
     newaddress: dword;
 
+
     s: tstructure;
+    st: string;
 
     elementnr: integer;
     currentvalues: array of string;
@@ -287,6 +386,7 @@ begin
   //and adjust the text when needed
   treeviewused.Items.BeginUpdate;
   setlength(buf,32);
+
 
   if basestructure<0 then
   begin
@@ -311,7 +411,17 @@ begin
 
 
     end;
-    treeviewused.Items.GetFirstNode.Text:=definedstructures[basestructure].name+#13;
+
+
+    st:=definedstructures[basestructure].name+#13;
+
+
+    i:=TfrmStructures(treeviewused.Parent).HeaderControl1.Sections[TfrmStructures(treeviewused.Parent).HeaderControl1.Sections.Count-1].Left+TfrmStructures(treeviewused.Parent).HeaderControl1.Sections[TfrmStructures(treeviewused.Parent).HeaderControl1.Sections.Count-1].Width;
+
+    while treeviewused.Canvas.TextWidth(st)<i do
+      st:=st+'PADDING';
+
+    treeviewused.Items.GetFirstNode.Text:=st;
   end;
 
   setlength(currentvalues,length(addresses));
@@ -719,6 +829,11 @@ begin
   update(true);
 end;
 
+procedure TfrmStructures.Button1Click(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmStructures.definedstructureselect(sender:tobject);
 var name: string;
 begin
@@ -927,16 +1042,44 @@ begin
   end;
 end;
 
+procedure TfrmStructures.HeaderControl1Resize(Sender: TObject);
+begin
+
+end;
+
+
+
 procedure TfrmStructures.HeaderControl1SectionTrack(
   HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer;
   State: TSectionTrackState);
 var x: integer;
+    i: integer;
+    s: string;
 begin
-  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
-  scrollbox1.HorzScrollBar.Range:=x;
+
+//  scrollbox1.HorzScrollBar.Range:=x;
 
   tvStructureView.refresh;
-  ShowScrollBar(tvStructureView.Handle,SB_HORZ , false);
+
+  if tvStructureView.Items.Count>0 then
+  begin
+    //make the first line be as long as x
+    if currentstructure<>nil then
+      if currentstructure.basestructure>=0 then
+      begin
+        s:=definedstructures[currentstructure.basestructure].name+#13;
+        x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
+
+        while tvStructureView.Canvas.TextWidth(s)<x do
+          s:=s+'PADDING';
+
+        tvStructureView.items[0].Text:=s;
+
+        tvStructureView.Resize;
+      end;
+
+  end;
+
 end;
 
 
@@ -1086,6 +1229,8 @@ begin
     end;
   end;
 end;
+
+
 
 procedure TfrmStructures.SaveColors;
 var reg: TRegistry;
@@ -1649,6 +1794,8 @@ var
 begin
   //find out what part is doubleclicked
 
+
+
   //find the position that is clicked
   cursorpos:=mouse.CursorPos;
   GetWindowRect(TTreeview(sender).Handle, tvrect);
@@ -1941,6 +2088,11 @@ end;
 
 procedure TfrmStructures.FormCreate(Sender: TObject);
 begin
+  tvStructureView.Top:=headercontrol1.top+headercontrol1.height;
+  tvStructureView.left:=0;
+  tvStructureView.width:=clientwidth;
+  tvStructureView.height:=clientheight-tvStructureView.Top;
+
   setlength(groups,1);
   setlength(addresses,1);
   setlength(edits,1);
@@ -1955,6 +2107,7 @@ begin
   UpdateGroupIndex;
 
   LoadColors;
+
 end;
 
 procedure TfrmStructures.ExtraEnter(Sender: TObject);
@@ -2086,6 +2239,9 @@ var
   groupmatches: array of boolean;
   groupcolors: array of tcolor;
   groupvalues: array of string;
+
+  s: Tstructure;
+  description: string;
 begin
   //looks like it's even called before create is done...
   if stage=cdPostPaint then
@@ -2118,6 +2274,7 @@ begin
 
       groupmatches[i]:=true;
     end;
+
 
     laststart:=1;
     //search for seperators (#13)
@@ -2174,7 +2331,7 @@ begin
 
     textlinerect.left:=textrect.left;
     textlinerect.Top:=linerect.Top;
-    textlinerect.Right:=headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+sender.Canvas.textwidth(sections[totalsections-1]);
+    textlinerect.Right:=headercontrol1.left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+sender.Canvas.textwidth(sections[totalsections-1]);
     textlinerect.Bottom:=linerect.Bottom;
     if textlinerect.right<textlinerect.left then
       textlinerect.right:=textlinerect.left;
@@ -2197,11 +2354,12 @@ begin
     sender.Canvas.Refresh;
 
     clip:=textrect;
-    clip.Right:=headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
+    clip.Right:=headercontrol1.left+headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
     if (cdsSelected in State) then
       sender.Canvas.Font.Color:=selecteddefaulttext
     else
       sender.Canvas.Font.Color:=defaulttext;
+
 
     sender.Canvas.TextRect(clip,textrect.Left,textrect.Top,sections[0]);
 
@@ -2212,15 +2370,16 @@ begin
       currentGroup:=internalgrouplist[i-1];
       tvStructureView.canvas.Font.Color:=groupcolors[currentgroup];
 
-      clip.Left:=headercontrol1.Sections[i].Left;
-      clip.Right:=headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;
-      sender.Canvas.TextRect(clip, headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
+      clip.Left:=headercontrol1.left+headercontrol1.Sections[i].Left;
+      clip.Right:=headercontrol1.left+headercontrol1.Sections[i].Left+headercontrol1.Sections[i].Width;
+      sender.Canvas.TextRect(clip, headercontrol1.left+headercontrol1.Sections[i].Left+(node.Level-1)*tvStructureView.Indent,textrect.Top,sections[i]);
       sender.Canvas.Refresh;
     end;
   end;
 
   DefaultDraw:=true;
-  ShowScrollBar(tvStructureView.Handle,SB_HORZ		, false);
+
+//  SetScrollRange(tvStructureView.handle, SB_HORZ, 0, 50000, true);
 end;
 
 procedure TfrmStructures.FormDestroy(Sender: TObject);
@@ -2606,6 +2765,17 @@ begin
   updategroupindex;
 
   tvStructureView.Refresh;
+
+end;
+
+procedure TTreeview.WMHScroll(var Msg: TLMScroll);
+begin
+  inherited WMHScroll(msg);
+//  messagebox(0,'scroll','scroll',0);
+  frmStructures[0].HeaderControl1.Left:=-self.ScrolledLeft;
+
+  frmStructures[0].HeaderControl1.Width:=clientwidth+self.GetMaxScrollLeft+100;
+
 end;
 
 initialization
