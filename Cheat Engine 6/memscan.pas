@@ -1467,6 +1467,7 @@ begin
 end;
 
 //==================Tscanfilewriter=================//
+
 procedure Tscanfilewriter.execute;
 var part: integer;
 begin

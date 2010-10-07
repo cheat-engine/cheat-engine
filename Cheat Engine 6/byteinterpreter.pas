@@ -149,9 +149,16 @@ begin
     //named addresses
 
     if processhandler.is64bit then
-      val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true),v,e)
+    begin
+      if (address mod 8) = 0 then
+        val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true),v,e)
+      else
+        e:=0;
+    end
     else
+    begin
       val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true),v,e);
+    end;
 
     if e>0 then //named
     begin
@@ -217,7 +224,8 @@ begin
 
   if processhandler.is64Bit then
   begin
-    if isreadable(pqword(@buf[0])^) then
+
+    if (address mod 8 = 0) and isreadable(pqword(@buf[0])^) then
     begin
       result:=vtPointer;
       exit;

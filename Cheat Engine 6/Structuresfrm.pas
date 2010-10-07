@@ -414,7 +414,6 @@ begin
 
     st:=definedstructures[basestructure].name+#13;
 
-
     i:=TfrmStructures(treeviewused.Parent).HeaderControl1.Sections[TfrmStructures(treeviewused.Parent).HeaderControl1.Sections.Count-1].Left+TfrmStructures(treeviewused.Parent).HeaderControl1.Sections[TfrmStructures(treeviewused.Parent).HeaderControl1.Sections.Count-1].Width;
 
     while treeviewused.Canvas.TextWidth(st)<i do
@@ -1309,10 +1308,13 @@ end;
 procedure TfrmStructures.tvStructureViewCollapsing(Sender: TObject;
   Node: TTreeNode; var AllowCollapse: Boolean);
 begin
-  allowcollapse:=not (node=tvStructureView.Items.GetFirstNode);
+  if tvStructureView<>nil then
+  begin
+    allowcollapse:=not (node=tvStructureView.Items.GetFirstNode);
 
-  if currentstructure<>nil then
-    currentstructure.refresh;
+    if currentstructure<>nil then
+      currentstructure.refresh;
+  end;
 end;
 
 procedure TfrmStructures.edtAddressChange(Sender: TObject);
@@ -1867,8 +1869,8 @@ end;
 
 procedure TfrmStructures.Addtoaddresslist1Click(Sender: TObject);
 var
-  selectedstructure: tstructure;
-  selectednode: ttreenode;
+  selectedstructure,ts: tstructure;
+  selectednode,tn: ttreenode;
   selectedelement: integer;
   offsets: array of dword;
 
@@ -1884,8 +1886,13 @@ var
   tvrect: trect;
   clickpos: tpoint;
   section: integer;
+
+  address: string;
+  a: ptruint;
 begin
   if currentstructure=nil then exit;
+  objectname:='';
+  address:='';
 
   GetWindowRect(tvStructureView.Handle, tvrect);
 
@@ -1917,56 +1924,132 @@ begin
 
     if selectedstructure<>nil then
     begin
-      //find out the type
-      if selectedstructure.basestructure>=0 then
-      case definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].structurenr of
-        -1,-2,-3: vtype:=0;
-        -4,-5,-6: vtype:=1;
-        -7,-8,-9: vtype:=2;
-        -10,-11: vtype:=6;
-        -12: vtype:=3;
-        -13: vtype:=4;
-        -14: begin
-               vtype:=7;
-               vlength:=definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].bytesize;
-               unicode:=false;
-             end;
 
-        -15: begin
-               vtype:=8;
-               vlength:=definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].bytesize div 2;
-               unicode:=true;
-             end;
+      //find the base address of this structure
 
-        0..maxint :
-             begin
-               vtype:=2;
-               showashex:=true;
-             end;
-      end else
-      case selectedstructure.basestructure of
-        -1,-2,-3: vtype:=0;
-        -4,-5,-6: vtype:=1;
-        -7,-8,-9: vtype:=2;
-        -10,-11: vtype:=6;
-        -12: vtype:=3;
-        -13: vtype:=4;
-        -14: begin
-               vtype:=7;
-               vlength:=4;
-               unicode:=false;
-             end;
+      setlength(offsets,0);
+      tn:=selectednode;
+      ts:=nil;
+      while (tn<>nil) and (tn.Level>1) do
+      begin
+        ts:=tn.data;
+        if ts=nil then break;
 
-        -15: begin
-               vtype:=8;
-               vlength:=4;
-               unicode:=true;
-             end;
+        setlength(offsets,length(offsets)+1);
 
-        0..maxint : exit;
+        if ts.basestructure>=0 then
+          offsets[length(offsets)-1]:=definedstructures[ts.basestructure].structelement[tn.Index].offset
+        else
+          offsets[length(offsets)-1]:=0;
+
+        tn:=tn.parent;
+      end;
+
+      if (tn<>nil)  then
+      begin
+        ts:=tn.data;
+        if ts<>nil then
+        begin
+          a:=ts.addresses[section];
+          if ts.basestructure>0 then
+            a:=a+definedstructures[ts.basestructure].structelement[tn.index].offset;
+        end;
       end
+      else
+        a:=selectedstructure.addresses[section];
+
+
+
+
+
+      if selectedstructure.basestructure>=0 then
+      begin
+
+
+        objectname:=definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description;
+        case definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].structurenr of
+          -1,-2,-3: vtype:=0;
+          -4,-5,-6: vtype:=1;
+          -7,-8,-9: vtype:=2;
+          -10,-11: vtype:=6;
+          -12: vtype:=3;
+          -13: vtype:=4;
+          -14: begin
+                 vtype:=7;
+                 vlength:=definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].bytesize;
+                 unicode:=false;
+               end;
+
+          -15: begin
+                 vtype:=8;
+                 vlength:=definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].bytesize div 2;
+                 unicode:=true;
+               end;
+
+          0..maxint :
+               begin
+                 vtype:=2;
+                 showashex:=true;
+               end;
+        end
+      end
+      else
+      begin
+        case selectedstructure.basestructure of
+          -1,-2,-3:
+          begin
+            vtype:=0;
+            objectname:='Byte';
+          end;
+          -4,-5,-6:
+          begin
+            vtype:=1;
+            objectname:='2 Bytes';
+          end;
+          -7,-8,-9:
+          begin
+            vtype:=2;
+            objectname:='4 Bytes';
+          end;
+          -10,-11:
+          begin
+            vtype:=6;
+            objectname:='8 Bytes';
+          end;
+          -12:
+          begin
+            vtype:=3;
+            objectname:='Float';
+          end;
+          -13:
+          begin
+            vtype:=4;
+            objectname:='Double';
+          end;
+
+          -14: begin
+                 vtype:=7;
+                 vlength:=4;
+                 unicode:=false;
+                 objectname:='String';
+               end;
+
+          -15: begin
+                 vtype:=8;
+                 vlength:=4;
+                 unicode:=true;
+                 objectname:='AOB';
+               end;
+
+          0..maxint : exit;
+        end
+
+      end;
 
     end else exit;
+
+
+    address:=inttohex(a,8);
     {
     objectname:='';
     setlength(offsets,0);
@@ -1996,8 +2079,9 @@ begin
   //   s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset
 
 
-    //now add it to the list
-    mainform.addresslist.addaddress(definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].description, inttohex(selectedstructure.addresses[section]+definedstructures[selectedstructure.basestructure].structelement[selectednode.Index].offset,8), [], 0, OldVarTypeToNewVarType(vtype), '', vlength);
+    // Tstructure(selectednode.Parent.Data)
+
+    mainform.addresslist.addaddress(objectname, address, offsets, length(offsets), OldVarTypeToNewVarType(vtype), '', vlength);
 
     mainform.itemshavechanged:=true;
   end;
@@ -2255,6 +2339,7 @@ begin
 
     fulltextline:=linerect;
     fulltextline.Left:=textrect.Left;
+    fulltextline.Right:=tvStructureView.ClientWidth;
     oldcolor:=sender.Canvas.Brush.Color;
     sender.Canvas.Brush.color:=tvStructureView.color;
     sender.Canvas.FillRect(fulltextline); //whipe the original text
@@ -2332,10 +2417,9 @@ begin
 
     //if laststart=1 then
     //  sections[currentsection]:=node.text;
-
     textlinerect.left:=textrect.left;
     textlinerect.Top:=linerect.Top;
-    textlinerect.Right:=headercontrol1.left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+sender.Canvas.textwidth(sections[totalsections-1]);
+    textlinerect.Right:=max(tvStructureView.clientwidth, headercontrol1.left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Width);
     textlinerect.Bottom:=linerect.Bottom;
     if textlinerect.right<textlinerect.left then
       textlinerect.right:=textlinerect.left;
@@ -2398,8 +2482,10 @@ begin
         frmStructures[j]:=frmStructures[j+1];
 
       setlength(frmStructures,length(frmStructures)-1);
-      exit;
+      break;
     end;
+
+  freeandnil(tvStructureView);
 end;
 
 procedure TfrmStructures.PopupMenu2Popup(Sender: TObject);

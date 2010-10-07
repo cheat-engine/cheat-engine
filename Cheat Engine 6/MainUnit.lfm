@@ -319,6 +319,7 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label5'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label38: TLabel
