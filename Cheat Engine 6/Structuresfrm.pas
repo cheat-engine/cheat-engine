@@ -145,7 +145,6 @@ type TbaseStructure=record
   end;
 
   TfrmStructures = class(TForm)
-    Button1: TButton;
     HeaderControl1: THeaderControl;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -2174,12 +2173,17 @@ begin
 
   lastnewedit:=edits[length(edits)-1];
 
+  HeaderControl1.Sections.Delete(headercontrol1.Sections.Count-1); //remove last section
+
+
   if currentstructure<>nil then
     currentstructure.removeAddress(x.tag);
 
   UpdateGroupIndex;
   
   x.free;
+
+
 end;
 
 procedure TfrmStructures.Undo1Click(Sender: TObject);
