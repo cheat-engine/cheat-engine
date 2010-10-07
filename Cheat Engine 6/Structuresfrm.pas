@@ -1951,7 +1951,7 @@ begin
         if ts<>nil then
         begin
           a:=ts.addresses[section];
-          if ts.basestructure>0 then
+          if ts.basestructure>=0 then
             a:=a+definedstructures[ts.basestructure].structelement[tn.index].offset;
         end;
       end
