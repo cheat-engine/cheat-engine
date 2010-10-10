@@ -524,6 +524,7 @@ object MemoryBrowser: TMemoryBrowser
     end
   end
   object memorypopup: TPopupMenu
+    OnPopup = memorypopupPopup
     left = 120
     top = 368
     object Change1: TMenuItem
@@ -655,6 +656,15 @@ object MemoryBrowser: TMemoryBrowser
     object miLockRowsize: TMenuItem
       Caption = 'Lock current rowsize'
       OnClick = miLockRowsizeClick
+    end
+    object MenuItem3: TMenuItem
+      Caption = '-'
+    end
+    object miLock: TMenuItem
+      Caption = 'Link with other hexview'
+    end
+    object miShowDifference: TMenuItem
+      Caption = 'Show difference'
     end
     object N1: TMenuItem
       Caption = '-'

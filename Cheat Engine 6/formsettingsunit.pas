@@ -158,6 +158,7 @@ type
     procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
@@ -732,6 +733,11 @@ begin
   editbufsize.Text:='512';
 end;
 
+procedure TformSettings.FormDestroy(Sender: TObject);
+begin
+  formsettings:=nil;
+end;
+
 procedure TformSettings.FormShow(Sender: TObject);
   function CheckAssociation(ext: string):boolean;
   var  reg: TRegistry;
@@ -933,8 +939,6 @@ begin
   begin
     TauntOldOsUser.Visible:=true;
     TauntOldOsUser.Caption:='Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
-
-    cbKernelQueryMemoryRegion.enabled:=false; //currently no 64-bit paging support (yet)
 
     cbKdebug.Enabled:=isDBVMCapable;
     cbKdebug.Caption:=cbKdebug.Caption+' (Requires DBVM)';

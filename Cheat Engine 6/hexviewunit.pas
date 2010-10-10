@@ -61,6 +61,12 @@ type
     lastupdate: dword;
     changelist: TChangelist;
 
+    //lock on vars:
+    fLockedTo: THexview;
+    fLockedToBaseAddress: ptruint;
+
+    fShowDiffHv: THexview;
+
     procedure LoadMemoryRegion;
     procedure UpdateMemoryInfo;
     procedure OnLostFocus(sender: TObject);
@@ -107,6 +113,16 @@ type
     procedure AddSelectedAddressToCheatTable;
     function getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
 
+    procedure ShowDifference(hv: THexview);
+    procedure EndDifferenceView;
+
+    procedure Lock(hv: THexview);
+    procedure Unlock;
+    function isLocked: boolean;
+    function isShowingDifference: boolean;
+
+
+
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
 
@@ -114,11 +130,74 @@ type
     property address: ptrUint read fAddress write setAddress;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
+
   end;
 
 implementation
 
 uses formsettingsunit, Valuechange, AddAddress;
+
+
+
+function THexview.isLocked:boolean;
+begin
+  result:=fLockedTo<>nil;
+end;
+
+function THexview.isShowingDifference: boolean;
+begin
+  result:=fShowDiffHv<>nil;
+end;
+
+procedure THexView.Lock(hv: THexview);
+begin
+  unlock; //first unlock with other entries it might have
+  fLockedTo:=hv;
+  hv.fLockedTo:=self; //same unit class accessing private vars is allowed in pascal, quick whining
+
+  fLockedToBaseAddress:=fAddress;
+  hv.fLockedToBaseAddress:=hv.fAddress;
+end;
+
+procedure THexView.Unlock;
+begin
+  if fLockedTo<>nil then
+    fLockedTo.fLockedTo:=nil;
+
+  fLockedTo:=nil;
+end;
+
+procedure THexView.EndDifferenceView;
+begin
+  unlock;
+
+  if fShowDiffhv<>nil then
+  begin
+    fShowDiffHv.fShowDiffHv:=nil;
+    fShowDiffHv.update;
+
+    fShowDiffHv:=nil;
+  end;
+  update;
+end;
+
+procedure THexView.ShowDifference(hv: THexview);
+begin
+  EndDifferenceView;
+
+  if hv=self then raise exception.create('Big fucking error');
+  //set an addresslock between this and that hexview
+
+  lock(hv);
+
+  fShowDiffHv:=hv;
+  hv.fShowDiffHv:=self;
+
+  update;
+  hv.update;
+end;
+
+
 
 procedure THexView.setBytesPerSeperator(b: integer);
 begin
@@ -170,6 +249,22 @@ begin
   end;
 
   changelist.Clear;
+
+
+  if fShowDiffHv<>nil then
+  begin
+    fShowDiffHv.fDisplayType:=newdt;
+    if fDisplayType<>dtByte then
+    begin
+      fShowDiffHv.isSelecting:=false;
+      fShowDiffHv.hasSelection:=false;
+      fShowDiffHv.isEditing:=false;
+    end;
+
+    fShowDiffHv.changelist.clear;
+    fShowDiffHv.update;
+  end;
+
   update;
 end;
 
@@ -240,9 +335,9 @@ begin
       beforeOffset:=fAddress-selected;
       afterOffset:=selected-lastaddress;
       if beforeOffset>afteroffset then
-        faddress:=fAddress+afterOffset-column
+        address:=Address+afterOffset-column
       else
-        faddress:=fAddress-beforeOffset-column;
+        address:=Address-beforeOffset-column;
 
       update;
     end;
@@ -332,7 +427,8 @@ begin
         if isEditing then
           dec(selected,bytesPerLine)
         else
-          dec(faddress,bytesPerLine);
+          address:=address-bytesPerLine;
+
 
         update;
       end;
@@ -342,7 +438,8 @@ begin
         if isEditing then
           inc(selected,bytesPerLine)
         else
-          inc(faddress,bytesPerLine);
+          address:=address+bytesperline;
+
         update;
       end;
 
@@ -363,7 +460,7 @@ begin
           end;
         end
         else
-          dec(faddress);
+          address:=address-1;
         update;
       end;
 
@@ -385,7 +482,7 @@ begin
 
         end
         else
-          inc(faddress);
+          address:=address+1;
         update;
       end;
 
@@ -394,7 +491,8 @@ begin
         if isEditing then
           dec(selected,bytesPerLine*(totallines-1))
         else
-          dec(faddress,bytesPerLine*(totallines-1));
+          address:=address-bytesPerLine*(totallines-1);
+
         update;
       end;
 
@@ -403,7 +501,8 @@ begin
         if isEditing then
           inc(selected,bytesPerLine*(totallines-1))
         else
-          inc(faddress,bytesPerLine*(totallines-1));
+          address:=address+bytesPerLine*(totallines-1);
+
         update;
       end;
 
@@ -748,14 +847,14 @@ var delta: integer;
 begin
   SetFocus; //get the focus back
   case scrollcode of
-    scLineUp:   dec(faddress,bytesPerLine);
-    scLineDown: inc(faddress,bytesPerLine);
-    scPageDown: inc(faddress,bytesPerLine*(totallines-1));
-    scPageUp:   dec(faddress,bytesPerLine*(totallines-1));
+    scLineUp:   address:=address-bytesPerLine;
+    scLineDown: address:=address+bytesPerLine;
+    scPageDown: address:=address+bytesPerLine*(totallines-1);
+    scPageUp:   address:=address+bytesPerLine*(totallines-1);
     sctrack:
     begin
       delta:=scrollpos-50;
-      faddress:=faddress+bytesPerLine*delta;
+      address:=address+bytesPerLine*delta;
     end;
   end;
 
@@ -768,9 +867,9 @@ var i: integer;
 begin
   if Focused then i:=2 else i:=4;
   if WheelDelta>0 then
-    fAddress:=fAddress-(bytesPerLine*i)
+    address:=address-(bytesPerLine*i)
   else
-    fAddress:=fAddress+(bytesPerLine*i);
+    address:=address+(bytesPerLine*i);
 
   update;
 end;
@@ -782,31 +881,34 @@ var
   a64: qword;
   mi: TModuleInfo;
 begin
+  try
+    zeromemory(@mbi,sizeof(mbi));
+    Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
+    memoryInfo:='Protect:';
 
-  zeromemory(@mbi,sizeof(mbi));
-  Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
-  memoryInfo:='Protect:';
-
-  if (mbi.AllocationProtect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+'No Access ';
-  if (mbi.AllocationProtect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+'Read Only ';
-  if (mbi.AllocationProtect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+'Read/Write ';
-  if (mbi.AllocationProtect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Write Copy ';
-  if (mbi.AllocationProtect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+'Execute ';
-  if (mbi.AllocationProtect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+'Execute/Read only ';
-  if (mbi.AllocationProtect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+'Execute/Read/Write ';
-  if (mbi.AllocationProtect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Execute/Write Copy ';
-  if (mbi.AllocationProtect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+'Guarded ';
-  if (mbi.AllocationProtect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+'Not Cached';
-
-
-  memoryInfo:=memoryInfo+' Base='+IntToHex(ptrUint(mbi.BaseAddress),8)+' Size='+IntTohex(mbi.RegionSize,1);
-
-  if (formsettings<>nil) and formsettings.cbKernelOpenProcess.checked and assigned(GetPhysicalAddress) and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
-    memoryInfo:=memoryInfo+' Physical Address='+IntToHex(a64,8);
+    if (mbi.AllocationProtect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+'No Access ';
+    if (mbi.AllocationProtect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+'Read Only ';
+    if (mbi.AllocationProtect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+'Read/Write ';
+    if (mbi.AllocationProtect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Write Copy ';
+    if (mbi.AllocationProtect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+'Execute ';
+    if (mbi.AllocationProtect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+'Execute/Read only ';
+    if (mbi.AllocationProtect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+'Execute/Read/Write ';
+    if (mbi.AllocationProtect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Execute/Write Copy ';
+    if (mbi.AllocationProtect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+'Guarded ';
+    if (mbi.AllocationProtect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+'Not Cached';
 
 
-  if symhandler.getmodulebyaddress(fAddress,mi) then
-    memoryInfo:=memoryInfo+' Module='+mi.modulename;
+    memoryInfo:=memoryInfo+' Base='+IntToHex(ptrUint(mbi.BaseAddress),8)+' Size='+IntTohex(mbi.RegionSize,1);
+
+    if (formsettings<>nil) and assigned(GetPhysicalAddress) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
+      memoryInfo:=memoryInfo+' Physical Address='+IntToHex(a64,8);
+
+
+    if symhandler.getmodulebyaddress(fAddress,mi) then
+      memoryInfo:=memoryInfo+' Module='+mi.modulename;
+
+  except
+  end;
 end;
 
 procedure THexView.LoadMemoryRegion;
@@ -821,6 +923,11 @@ var memorysize: integer;
     actualread: dword;
 begin
   memorysize:=bytesPerLine*totallines;
+
+  if fShowDiffHv<>nil then //if the difference is shown read more memory
+    memorysize:=max(memorysize, fShowDiffHv.bytesPerLine*fShowDiffHv.totallines);
+
+
   if self.buffersize<memorysize then //make sure the buffer is big enough
   begin
     ReAllocMem(buffer,memorysize*2);
@@ -1071,6 +1178,9 @@ var
   seperatorshift: integer;
   seperatormask: integer;
   bps: integer;
+
+  compareToAddress: ptruint;
+  different: boolean;
 begin
   if Parent=nil then exit;
 
@@ -1100,7 +1210,7 @@ begin
 
   //(re)initialize the changelist (only has affect if the size is different)
   changelist.Initialize(currentAddress, totallines*bytesperline);
-
+  different:=false;
 
   //create header
   initialoffset:=currentaddress and $f;
@@ -1171,6 +1281,26 @@ begin
         dtDouble: if (j mod 8)=0 then begin changelist.values[itemnr]:=getDouble(currentAddress); displaythis:=true; end;
         dtQWord: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWord(currentAddress); displaythis:=true; end;
       end;
+
+      if fShowDiffHV<>nil then
+      begin
+        //slows it down a lot, especially fucks up the getByte function
+        compareToAddress:=fShowDiffHv.fAddress+currentAddress-fAddress;
+
+        case displayType of
+          dtByte: different:=changelist.values[itemnr]<>fShowDiffHV.getByte(compareToAddress);
+          dtWord: if (j mod 2)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getWord(compareToAddress);
+          dtDWord: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDWord(compareToAddress);
+          dtDWordDec: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDWordDec(compareToAddress);
+          dtSingle: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getsingle(compareToAddress);
+          dtDouble: if (j mod 8)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDouble(compareToAddress);
+          dtQWord: if (j mod 8)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getQWord(compareToAddress);
+        end;
+
+        if different then
+          offscreenbitmap.canvas.Brush.Color:=clBlue;
+      end;
+
 
       if gettickcount-changelist.LastChange[itemnr]<1000 then
       begin
@@ -1244,6 +1374,27 @@ begin
   fAddress:=a;
   if changelist<>nil then
     changelist.Clear;
+
+  if fShowDiffHv<>nil then
+  begin
+    LoadMemoryRegion;
+    fShowDiffHv.LoadMemoryRegion;
+
+    if fLockedTo=nil then
+      fShowDiffHv.update;
+  end;
+
+  if fLockedTo<>nil then
+  begin
+    //first update the other
+    fLockedTo.fAddress:=fLockedTo.fLockedToBaseAddress+(a-fLockedToBaseAddress);
+
+    if fLockedTo.changelist<>nil then
+      fLockedTo.changelist.clear;
+
+    flockedTo.update;
+    //and now for myself
+  end;
 
   update;
 end;
@@ -1343,6 +1494,8 @@ end;
 
 destructor THexview.destroy;
 begin
+  unlock; //always destroy links
+  EndDifferenceView;
 
   if changelist<>nil then
     freeandnil(changelist);

@@ -193,7 +193,7 @@ begin
           if odd(q[i]) then
           begin
             a:=virtualbase+qword(i*qword($1000));
-            b:=a+qword($1fff);
+            b:=a+qword($fff);
 
             pd:=getmem(sizeof(TPageData));
             pd^.va:=a;

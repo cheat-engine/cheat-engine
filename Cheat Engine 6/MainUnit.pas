@@ -5402,7 +5402,7 @@ begin
     nop
     nop
     nop
-    db $0f,$ac,$d0,$0c,$c1,$ea,$0c,$89,$81,$3c,$21,$00
+     mov [0],rax
 
   end;
 end;

@@ -15,7 +15,7 @@ object frmPaging: TfrmPaging
     Top = 58
     Width = 404
     Align = alClient
-    DefaultItemHeight = 15
+    DefaultItemHeight = 17
     PopupMenu = PopupMenu1
     ReadOnly = True
     TabOrder = 0
@@ -34,7 +34,7 @@ object frmPaging: TfrmPaging
     TabOrder = 1
     object edtCR3: TEdit
       Left = 5
-      Height = 21
+      Height = 23
       Top = 24
       Width = 192
       TabOrder = 0
@@ -50,25 +50,25 @@ object frmPaging: TfrmPaging
     end
     object Label1: TLabel
       Left = 5
-      Height = 14
+      Height = 16
       Top = 4
-      Width = 278
+      Width = 302
       Caption = 'Fill in the physical address of the paging base (or just cr3)'
       ParentColor = False
     end
     object cb8byteentries: TCheckBox
       Left = 312
-      Height = 17
+      Height = 19
       Top = 8
-      Width = 86
+      Width = 92
       Caption = '8-byte entries'
       TabOrder = 2
     end
     object cb64bit: TCheckBox
       Left = 312
-      Height = 17
+      Height = 19
       Top = 32
-      Width = 46
+      Width = 51
       Caption = '64-bit'
       OnChange = cb64bitChange
       TabOrder = 3

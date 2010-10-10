@@ -11,6 +11,7 @@ object formSettings: TformSettings
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
   LCLVersion = '0.9.29'
@@ -60,9 +61,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = Assembler
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 6
+      TabIndex = 7
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -786,8 +787,8 @@ object formSettings: TformSettings
           Width = 321
           Caption = 'Use Debug Registers (aka Hardware Breakpoints)'
           Checked = True
-          State = cbChecked
           TabOrder = 0
+          TabStop = True
           Visible = False
         end
         object CheckBox1: TCheckBox
@@ -866,8 +867,8 @@ object formSettings: TformSettings
           Width = 178
           Caption = 'Use hardware breakpoints'
           Checked = True
-          State = cbChecked
           TabOrder = 4
+          TabStop = True
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 39
@@ -876,7 +877,6 @@ object formSettings: TformSettings
           Width = 296
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           TabOrder = 5
-          TabStop = False
         end
       end
       object Extra: TTabSheet
@@ -969,7 +969,6 @@ object formSettings: TformSettings
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
           TabOrder = 5
-          TabStop = False
         end
         object cbUseWindowsDebugger: TRadioButton
           Tag = 1
@@ -981,8 +980,8 @@ object formSettings: TformSettings
           Checked = True
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
-          State = cbChecked
           TabOrder = 4
+          TabStop = True
         end
         object cbUseVEHDebugger: TRadioButton
           Left = 7
@@ -993,7 +992,6 @@ object formSettings: TformSettings
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
           TabOrder = 6
-          TabStop = False
         end
         object Panel1: TPanel
           Left = 183
@@ -1033,7 +1031,6 @@ object formSettings: TformSettings
                 Caption = 'Hook thread-create and destroy api''s'
                 Enabled = False
                 TabOrder = 2
-                TabStop = False
               end
               object Label25: TLabel
                 Left = 2
@@ -1051,7 +1048,6 @@ object formSettings: TformSettings
                 Caption = 'Use processwatcher'
                 Enabled = False
                 TabOrder = 1
-                TabStop = False
               end
               object RadioButton3: TRadioButton
                 Left = 2
@@ -1060,8 +1056,8 @@ object formSettings: TformSettings
                 Width = 109
                 Caption = 'Poll for threads'
                 Checked = True
-                State = cbChecked
                 TabOrder = 0
+                TabStop = True
               end
             end
             object tsWindowsDebuggerConfig: TTabSheet

@@ -1013,12 +1013,12 @@ end;
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 var
   input: record
-    ProcessID: DWORD;
-    StartAddress: UINT64;
+    ProcessID: QWORD;
+    StartAddress: QWORD;
   end;
 
   output: record
-  	length : DWORD ;
+  	length : QWORD ;
   	protection : DWORD ;
   end;
 

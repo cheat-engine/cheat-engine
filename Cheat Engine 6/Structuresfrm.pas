@@ -1959,9 +1959,6 @@ begin
         a:=selectedstructure.addresses[section];
 
 
-
-
-
       if selectedstructure.basestructure>=0 then
       begin
 

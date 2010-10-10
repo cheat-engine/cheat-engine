@@ -22,6 +22,9 @@ type
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miLock: TMenuItem;
+    miShowDifference: TMenuItem;
     miUserdefinedComment: TMenuItem;
     miSepEvery4Bytes: TMenuItem;
     miSepEvery8Bytes: TMenuItem;
@@ -189,8 +192,7 @@ type
     N18: TMenuItem;
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
-    procedure Button1Click(Sender: TObject);
-    procedure dispQwordsClick(Sender: TObject);
+    procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
@@ -416,12 +418,19 @@ type
     function GetReturnaddress: ptrUint;
 
     procedure UpdateDebugContext(threadhandle: THandle; threadid: dword);
+    procedure miLockOnClick(Sender: TObject);
+    procedure miLockMemviewClick(sender: TObject);
+
+    procedure miDifferenceClick(Sender: TObject);
+    procedure miStopDifferenceClick(Sender: TObject);
   end;
 
 var
   MemoryBrowser: TMemoryBrowser;
   mbchildcount: integer; //global so all other children can increase it as well
 
+
+  MemoryBrowsers: TList; //contains a list of all the memorybrowsers
   
 implementation
 
@@ -628,14 +637,89 @@ begin
   TfrmPaging.create(nil).show;
 end;
 
-procedure TMemoryBrowser.Button1Click(Sender: TObject);
+procedure TMemoryBrowser.miLockOnClick(Sender: TObject);
 begin
-
+  hexview.unlock;
 end;
 
-procedure TMemoryBrowser.dispQwordsClick(Sender: TObject);
+procedure TMemoryBrowser.miLockMemviewClick(sender: TObject);
 begin
+  hexview.Lock(TMemoryBrowser(MemoryBrowsers[(sender as TMenuItem).tag]).hexview);
+end;
 
+procedure TMemoryBrowser.miDifferenceClick(Sender: TObject);
+begin
+  hexview.ShowDifference(TMemoryBrowser(MemoryBrowsers[(sender as TMenuItem).tag]).hexview);
+end;
+
+procedure TMemoryBrowser.miStopDifferenceClick(Sender: TObject);
+begin
+  hexview.EndDifferenceView;
+end;
+
+
+
+procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
+var
+  m: TMemorybrowser;
+  mi: TMenuItem;
+  i: integer;
+
+  islocked: boolean;
+begin
+  miShowDifference.clear;
+  miLock.Clear;
+
+  islocked:=hexview.isLocked;
+  if isLocked then
+  begin
+    miLock.OnClick:=miLockOnClick;
+    miLock.caption:='Unlink from other hexview';
+  end
+  else
+  begin
+    miLock.OnClick:=nil;
+    miLock.caption:='Link with other hexview';
+  end;
+
+  if hexview.isShowingDifference then
+  begin
+    miShowDifference.caption:='Stop showing the difference';
+    miShowDifference.onclick:=miStopDifferenceClick;
+  end
+  else
+  begin
+    miShowDifference.caption:='Show difference';
+    miShowDifference.onclick:=nil;
+  end;
+
+  miLock.enabled:=MemoryBrowsers.count>1;
+
+  for i:=0 to MemoryBrowsers.count-1 do
+  begin
+    m:=Memorybrowsers[i];
+    if m<>self then
+    begin
+      if not hexview.isShowingDifference then
+      begin
+        mi:=TMenuItem.Create(miShowDifference);
+        mi.Caption:='Between '+m.Caption;
+        mi.OnClick:=miDifferenceClick;
+        mi.tag:=i;
+        miShowDifference.Add(mi);
+      end;
+
+      if not islocked then
+      begin
+        mi:=TMenuItem.Create(miLock);
+        mi.caption:=m.caption;
+        mi.OnClick:=miLockMemviewClick;
+        mi.tag:=i;
+        miLock.add(mi);
+      end;
+    end;
+
+  end;
 end;
 
 procedure TMemoryBrowser.MenuItem2Click(Sender: TObject);
@@ -787,6 +871,8 @@ begin
 
 end;
 
+
+
 procedure TMemoryBrowser.miConditionalBreakClick(Sender: TObject);
 var
   script: string;
@@ -907,6 +993,7 @@ procedure TMemoryBrowser.FormCreate(Sender: TObject);
 var x: array of integer;
   reg: tregistry;
 begin
+  MemoryBrowsers.Add(self);
 
   displaytype:=dtByte;
 
@@ -2257,6 +2344,7 @@ end;
 procedure TMemoryBrowser.FormDestroy(Sender: TObject);
 var h0,h1,h2,h3: integer;
 begin
+  MemoryBrowsers.Remove(self);
 
   if strace<>nil then
     strace.free;
@@ -3295,6 +3383,13 @@ begin
 end;
 
 initialization
+  MemoryBrowsers:=TList.Create;
+
   {$i MemoryBrowserFormUnit.lrs}
+
+finalization
+  if MemoryBrowsers<>nil then
+    FreeAndNil(MemoryBrowsers);
+
 
 end.
