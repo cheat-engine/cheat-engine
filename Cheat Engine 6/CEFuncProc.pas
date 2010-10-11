@@ -26,7 +26,7 @@ firstscanhandler,
 {$endif}
 {$endif}
 {$endif}
-math,syncobjs, shellapi, ProcessHandlerUnit, controls, CustomTypeHandler;
+math,syncobjs, shellapi, ProcessHandlerUnit, controls;
 
 
 
@@ -74,7 +74,7 @@ function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
 
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
+
 function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
 {
 procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
@@ -2927,64 +2927,7 @@ begin
   if s='auto assembler script' then result:=vtAutoAssembler;
 end;
 
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
-var buf: array [0..7] of byte;
-    buf2: pbytearray;
-    x: dword;
-    check: boolean;
-begin
-  result:='???';
-  case variableType of
-    vtByte:
-    begin
-      if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
-        result:=inttostr(buf[0]);
-    end;
 
-    vtWord:
-    begin
-      if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
-        result:=inttostr(pword(@buf[0])^);
-    end;
-
-    vtDWord:
-    begin
-      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=inttostr(pdword(@buf[0])^);
-    end;
-
-    vtSingle:
-    begin
-      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=floattostr(psingle(@buf[0])^);
-    end;
-
-    vtDouble:
-    begin
-      if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        result:=floattostr(pdouble(@buf[0])^);
-    end;
-
-    vtCustom:
-    begin
-      if customtype<>nil then
-      begin
-        getmem(buf2, customtype.bytesize);
-        try
-          if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
-          begin
-            try
-              result:=IntToStr(customtype.ConvertDataToInteger(buf2));
-            except //no need to flood the user with meaningless error messages
-            end;
-          end;
-        finally
-          freemem(buf2);
-        end;
-      end;
-    end;
-  end;
-end;
 
 const HEAP_NO_SERIALIZE               =$00000001;
 const HEAP_GROWABLE                   =$00000002;

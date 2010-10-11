@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="827"/>
+      <BuildNr Value="828"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable ProductVersion="0.0.0.225"/>
@@ -97,11 +97,10 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2954"/>
-        <CursorPos X="23" Y="2977"/>
+        <TopLine Value="1"/>
+        <CursorPos X="54" Y="29"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -164,10 +163,11 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="28"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="222"/>
-        <CursorPos X="32" Y="228"/>
+        <TopLine Value="1"/>
+        <CursorPos X="93" Y="7"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1180,8 +1180,8 @@
         <UnitName Value="formChangedAddresses"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="174"/>
-        <CursorPos X="21" Y="194"/>
+        <TopLine Value="1"/>
+        <CursorPos X="49" Y="10"/>
         <UsageCount Value="205"/>
         <Bookmarks Count="1">
           <Item0 X="11" Y="181" ID="8"/>
@@ -1553,7 +1553,7 @@
         <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="252"/>
-        <CursorPos X="44" Y="276"/>
+        <CursorPos X="47" Y="266"/>
         <UsageCount Value="215"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1776,8 +1776,8 @@
         <UnitName Value="CustomTypeHandler"/>
         <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="198"/>
-        <CursorPos X="3" Y="200"/>
+        <TopLine Value="11"/>
+        <CursorPos X="22" Y="11"/>
         <UsageCount Value="238"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2054,124 +2054,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="formChangedAddresses.pas"/>
-        <Caret Line="217" Column="14" TopLine="200"/>
-      </Position1>
-      <Position2>
-        <Filename Value="formFoundcodeListExtraUnit.pas"/>
-        <Caret Line="204" Column="43" TopLine="189"/>
-      </Position2>
-      <Position3>
-        <Filename Value="formFoundcodeListExtraUnit.pas"/>
-        <Caret Line="156" Column="7" TopLine="138"/>
-      </Position3>
-      <Position4>
-        <Filename Value="formFoundcodeListExtraUnit.pas"/>
-        <Caret Line="63" Column="19" TopLine="46"/>
-      </Position4>
-      <Position5>
-        <Filename Value="formChangedAddresses.pas"/>
-        <Caret Line="217" Column="14" TopLine="200"/>
-      </Position5>
-      <Position6>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="1417" Column="101" TopLine="1407"/>
-      </Position6>
-      <Position7>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="296" Column="33" TopLine="286"/>
-      </Position7>
-      <Position8>
         <Filename Value="addresslist.pas"/>
         <Caret Line="253" Column="30" TopLine="247"/>
+      </Position1>
+      <Position2>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="483" Column="3" TopLine="461"/>
+      </Position2>
+      <Position3>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="517" Column="16" TopLine="500"/>
+      </Position3>
+      <Position4>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="540" Column="114" TopLine="514"/>
+      </Position4>
+      <Position5>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="31" Column="1" TopLine="14"/>
+      </Position5>
+      <Position6>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="64" Column="15" TopLine="47"/>
+      </Position6>
+      <Position7>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="79" Column="27" TopLine="47"/>
+      </Position7>
+      <Position8>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="109" Column="14" TopLine="92"/>
       </Position8>
       <Position9>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="483" Column="3" TopLine="461"/>
+        <Caret Line="155" Column="67" TopLine="138"/>
       </Position9>
       <Position10>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="517" Column="16" TopLine="500"/>
+        <Caret Line="350" Column="69" TopLine="335"/>
       </Position10>
       <Position11>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="540" Column="114" TopLine="514"/>
+        <Caret Line="535" Column="1" TopLine="518"/>
       </Position11>
       <Position12>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="31" Column="1" TopLine="14"/>
+        <Caret Line="839" Column="37" TopLine="822"/>
       </Position12>
       <Position13>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="64" Column="15" TopLine="47"/>
+        <Caret Line="841" Column="13" TopLine="822"/>
       </Position13>
       <Position14>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="79" Column="27" TopLine="47"/>
+        <Caret Line="1135" Column="34" TopLine="1123"/>
       </Position14>
       <Position15>
         <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="109" Column="14" TopLine="92"/>
+        <Caret Line="273" Column="6" TopLine="252"/>
       </Position15>
       <Position16>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="155" Column="67" TopLine="138"/>
-      </Position16>
-      <Position17>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="350" Column="69" TopLine="335"/>
-      </Position17>
-      <Position18>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="535" Column="1" TopLine="518"/>
-      </Position18>
-      <Position19>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="839" Column="37" TopLine="822"/>
-      </Position19>
-      <Position20>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="841" Column="13" TopLine="822"/>
-      </Position20>
-      <Position21>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="1135" Column="34" TopLine="1123"/>
-      </Position21>
-      <Position22>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="273" Column="6" TopLine="252"/>
-      </Position22>
-      <Position23>
         <Filename Value="cheatengine.lpr"/>
         <Caret Line="66" Column="1" TopLine="33"/>
-      </Position23>
-      <Position24>
+      </Position16>
+      <Position17>
         <Filename Value="formChangedAddresses.pas"/>
         <Caret Line="181" Column="11" TopLine="170"/>
-      </Position24>
-      <Position25>
+      </Position17>
+      <Position18>
         <Filename Value="formChangedAddresses.pas"/>
         <Caret Line="192" Column="14" TopLine="164"/>
-      </Position25>
-      <Position26>
+      </Position18>
+      <Position19>
         <Filename Value="formChangedAddresses.pas"/>
         <Caret Line="194" Column="27" TopLine="177"/>
+      </Position19>
+      <Position20>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="77" Column="95" TopLine="60"/>
+      </Position20>
+      <Position21>
+        <Filename Value="formChangedAddresses.pas"/>
+        <Caret Line="194" Column="21" TopLine="174"/>
+      </Position21>
+      <Position22>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="77" Column="10" TopLine="60"/>
+      </Position22>
+      <Position23>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2977" Column="41" TopLine="2951"/>
+      </Position23>
+      <Position24>
+        <Filename Value="CustomTypeHandler.pas"/>
+        <Caret Line="200" Column="3" TopLine="198"/>
+      </Position24>
+      <Position25>
+        <Filename Value="CustomTypeHandler.pas"/>
+        <Caret Line="11" Column="22" TopLine="11"/>
+      </Position25>
+      <Position26>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2930" Column="1" TopLine="2916"/>
       </Position26>
       <Position27>
         <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="77" Column="95" TopLine="60"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="formChangedAddresses.pas"/>
-        <Caret Line="194" Column="21" TopLine="174"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="77" Column="1" TopLine="60"/>
       </Position28>
       <Position29>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="77" Column="10" TopLine="60"/>
+        <Filename Value="formChangedAddresses.pas"/>
+        <Caret Line="191" Column="27" TopLine="185"/>
       </Position29>
       <Position30>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2977" Column="41" TopLine="2951"/>
+        <Filename Value="byteinterpreter.pas"/>
+        <Caret Line="1" Column="21" TopLine="1"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

@@ -4,12 +4,73 @@ unit byteinterpreter;
 
 interface
 
-uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math;
+uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, CustomTypeHandler;
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
 
 implementation
+
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
+var buf: array [0..7] of byte;
+    buf2: pbytearray;
+    x: dword;
+    check: boolean;
+begin
+  result:='???';
+  case variableType of
+    vtByte:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
+        result:=inttostr(buf[0]);
+    end;
+
+    vtWord:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
+        result:=inttostr(pword(@buf[0])^);
+    end;
+
+    vtDWord:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
+        result:=inttostr(pdword(@buf[0])^);
+    end;
+
+    vtSingle:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
+        result:=floattostr(psingle(@buf[0])^);
+    end;
+
+    vtDouble:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
+        result:=floattostr(pdouble(@buf[0])^);
+    end;
+
+    vtCustom:
+    begin
+      if customtype<>nil then
+      begin
+        getmem(buf2, customtype.bytesize);
+        try
+          if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
+          begin
+            try
+              result:=IntToStr(customtype.ConvertDataToInteger(buf2));
+            except //no need to flood the user with meaningless error messages
+            end;
+          end;
+        finally
+          freemem(buf2);
+        end;
+      end;
+    end;
+  end;
+end;
+
 
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 {note: If type is of stringo unicode, the last 2 bytes will get set to 0, so watch what you're calling}
