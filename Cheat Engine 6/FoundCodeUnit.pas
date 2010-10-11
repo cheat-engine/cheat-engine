@@ -10,12 +10,18 @@ uses
 
 type Tcoderecord = class
   public
-  address: ptrUint;
-  size: integer;
-  opcode: string;
-  description: string;
- // eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
-  context: TContext;
+    address: ptrUint;
+    size: integer;
+    opcode: string;
+    description: string;
+   // eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
+    context: TContext;
+    stack: record
+      savedsize: dword;
+      stack: pbyte;
+    end;
+    procedure savestack;
+    destructor destroy; override;
 end;
 
 type
@@ -81,6 +87,20 @@ uses CEDebugger,debughelper, debugeventhandler,
      {$ifdef net}unit2,ceclient,{$else}MainUnit,kerneldebugger,{$endif}
      AdvancedOptionsUnit ,formFoundcodeListExtraUnit,MainUnit2;
 
+destructor TCodeRecord.Destroy;
+begin
+  if stack.stack<>nil then
+    freemem(stack.stack);
+
+  inherited destroy;
+end;
+
+procedure TCodeRecord.savestack;
+begin
+  getmem(stack.stack, 4096);
+  ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, 4096, stack.savedsize);
+end;
+
 procedure TFoundCodedialog.AddRecord;
 {
 Invoked by the debugger thread
@@ -116,6 +136,7 @@ begin
     coderecord.opcode:=opcode;
     coderecord.description:=desc;
     coderecord.context:=currentthread.context^;
+    coderecord.savestack;
     FoundcodeList.Items.AddObject(opcode, tobject(coderecord));
   end;
 end;
@@ -358,6 +379,13 @@ begin
 
 
     formfoundcodelistextra.context:=coderecord.context;
+    if coderecord.stack.stack<>nil then
+    begin
+      getmem(formfoundcodelistextra.stack.stack, coderecord.stack.savedsize);
+      formfoundcodelistextra.stack.savedsize:=coderecord.stack.savedsize;
+      CopyMemory(formfoundcodelistextra.stack.stack, coderecord.stack.stack, coderecord.stack.savedsize);
+    end;
+
     FormFoundCodeListExtra.Show;
   //  FormFoundCodeListExtra.free;
   end;

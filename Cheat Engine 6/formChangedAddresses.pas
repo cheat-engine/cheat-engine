@@ -7,9 +7,22 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
-  disassembler, symbolhandler;
+  disassembler, symbolhandler, CustomTypeHandler;
 
 type
+  TAddressEntry=class
+  public
+    address: ptruint; //for whatever reason it could be used in the future
+    context: TContext;
+    stack: record
+      savedsize: dword;
+      stack: pbyte;
+    end;
+
+    procedure savestack;
+    destructor destroy; override;
+  end;
+
 
   { TfrmChangedAddresses }
 
@@ -47,6 +60,21 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper, debugeventhandler;
 
+destructor TAddressEntry.destroy;
+begin
+  if stack.stack<>nil then
+    freemem(stack.stack);
+
+  inherited destroy;
+end;
+
+procedure TAddressEntry.savestack;
+begin
+  getmem(stack.stack, 4096);
+  ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, 4096, stack.savedsize);
+end;
+
+
 procedure TfrmChangedAddresses.AddRecord;
 var s: string;
 haserror: boolean;
@@ -55,7 +83,7 @@ address: ptrUint;
  li: tlistitem;
  currentthread: TDebugThreadHandler;
 
- x: pcontext;
+ x: TaddressEntry;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
@@ -82,8 +110,10 @@ begin
       li.SubItems.Add('');
 
 
-      getmem(x,sizeof(tcontext));
-      x^:=currentthread.context^;
+      x:=TAddressEntry.create;
+      x.context:=currentthread.context^;
+      x.address:=address;
+      x.savestack;
 
       li.Data:=x;
 
@@ -110,10 +140,16 @@ procedure TfrmChangedAddresses.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var temp:dword;
     i: integer;
+    ae: TAddressEntry;
 begin
   action:=caFree;
+
+
   for i:=0 to changedlist.Items.Count-1 do
-    freemem(changedlist.Items[i].Data);
+  begin
+    ae:=TAddressEntry(changedlist.Items[i].Data);
+    ae.free;
+  end;
 
   if OKButton.caption='Stop' then
     OKButton.Click;
@@ -152,6 +188,11 @@ begin
         2: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDWord);
         3: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtSingle);
         4: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDouble);
+        else
+        begin
+          //custom type
+          s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]));
+        end;
       end;
 
       if Changedlist.Items[i].SubItems.Count=0 then
@@ -168,18 +209,21 @@ begin
 end;
 
 procedure TfrmChangedAddresses.Showregisterstates1Click(Sender: TObject);
+var ae: TAddressEntry;
 begin
   if changedlist.Selected<>nil then
   begin
     with TRegisters.create(self) do
     begin
       borderstyle:=bsSingle;
-      SetContextPointer(changedlist.Selected.Data);
+
+      ae:=@TAddressEntry(changedlist.Selected.Data);
+
+      SetContextPointer(@ae.context, ae.stack.stack, ae.stack.savedsize);
+
       show;
     end;
   end;
-
-  //for frmfloatingpointpanel: SetContextPointer(changedlist.Selected.Data);
 end;
 
 procedure TfrmChangedAddresses.Browsethismemoryregion1Click(
@@ -200,9 +244,14 @@ end;
 
 procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
 var x: array of integer;
+    i: integer;
 begin
   setlength(x, 0);
   loadformposition(self,x);
+
+  //fill in the custom types
+  for i:=0 to customTypes.count-1 do
+    cbDisplayType.Items.AddObject(TCustomType(customTypes[i]).name, customTypes[i]);
 end;
 
 initialization

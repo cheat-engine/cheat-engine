@@ -28,7 +28,6 @@ type TMemRecBitData=record
     end;
 
 type TMemRecByteData=record
-      ShowAsHexadecimal: boolean;
       bytelength: integer;
     end;
 
@@ -266,6 +265,16 @@ begin
     end;
   end;
 
+
+  tempnode:=CheatEntry.FindNode('ShowAsHex');
+  if tempnode<>nil then
+    fshowashex:=tempnode.textcontent='1';
+
+
+  tempnode:=CheatEntry.FindNode('ShowAsSigned');
+  if tempnode<>nil then
+    showAsSigned:=tempnode.textcontent='1';
+
   tempnode:=CheatEntry.FindNode('Color');
   if tempnode<>nil then
   begin
@@ -349,10 +358,6 @@ begin
         tempnode:=CheatEntry.FindNode('ByteLength');
         if tempnode<>nil then
           extra.byteData.bytelength:=strtoint(tempnode.TextContent);
-
-        tempnode:=CheatEntry.FindNode('ShowAsHexadecimal');
-        if tempnode<>nil then
-          extra.byteData.ShowAsHexadecimal:=tempnode.TextContent='1';
       end;
 
       vtAutoAssembler:
@@ -506,6 +511,13 @@ begin
     end;
   end;
 
+  if showAsHex then
+    cheatEntry.AppendChild(doc.CreateElement('ShowAsHex')).TextContent:='1';
+
+  if showAsSigned then
+    cheatEntry.AppendChild(doc.CreateElement('ShowAsSigned')).TextContent:='1';
+
+
   cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
   if isGroupHeader then
@@ -537,7 +549,6 @@ begin
       vtByteArray:
       begin
         cheatEntry.AppendChild(doc.CreateElement('ByteLength')).TextContent:=inttostr(extra.byteData.bytelength);
-        cheatEntry.AppendChild(doc.CreateElement('ShowAsHexadecimal')).TextContent:=booltostr(extra.byteData.ShowAsHexadecimal,'1','0');
       end;
 
       vtAutoAssembler:

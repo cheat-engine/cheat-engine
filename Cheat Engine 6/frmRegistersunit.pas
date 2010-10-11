@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, Buttons, ExtCtrls, StdCtrls, frmFloatingPointPanelUnit, NewKernelHandler,
-  cefuncproc, LResources,Clipbrd;
+  cefuncproc, LResources,Clipbrd, frmStackViewunit;
 
 type
 
@@ -25,6 +25,7 @@ type
     ESPlabel: TLabel;
     EIPlabel: TLabel;
     Label14: TLabel;
+    sbShowStack: TSpeedButton;
     Shape1: TShape;
     Panel2: TPanel;
     sbShowFloats: TSpeedButton;
@@ -34,6 +35,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure EAXLabelDblClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure sbShowStackClick(Sender: TObject);
   private
     { Private declarations }
     r8label: TLabel;
@@ -47,10 +49,17 @@ type
 
     context: PContext;
     fpp: TfrmFloatingPointPanel;
+    stack: record
+      savedsize: dword;
+      stack: pbyte;
+    end;
+
+    stackview: TfrmStackView;
+
     function TagToValue(tag: integer): ptrUint;
   public
     { Public declarations }
-    procedure SetContextPointer(context: PContext);
+    procedure SetContextPointer(context: PContext; stack: PByte; stacksize: integer);
   end;
 
 implementation
@@ -59,7 +68,7 @@ implementation
 uses MemoryBrowserFormUnit;
 
 
-procedure TRegisters.SetContextPointer(context: PContext);
+procedure TRegisters.SetContextPointer(context: PContext; stack: PByte; stacksize: integer);
 var pre,f: string;
 begin
   self.context:=context;
@@ -227,6 +236,14 @@ begin
 
   clientheight:=max(clientheight, eiplabel.top+eiplabel.height+8);
   clientwidth:=max(clientwidth, eaxlabel.left+eaxlabel.Canvas.TextWidth(eaxlabel.caption)+ panel2.width+8);
+
+  if stack<>nil then
+  begin
+    getmem(self.stack.stack, stacksize);
+    self.stack.savedsize:=stacksize;
+
+    copymemory(self.stack.stack, stack, stacksize);
+  end;
 end;
 
 procedure TRegisters.sbShowFloatsClick(Sender: TObject);
@@ -299,7 +316,19 @@ end;
 
 procedure TRegisters.FormResize(Sender: TObject);
 begin
-  sbShowFloats.Top:=(clientheight div 2)-(sbShowFloats.height div 2);
+  sbShowFloats.Top:=(clientheight div 2)-sbShowFloats.Height;
+  sbShowStack.top:=sbShowFloats.top+sbShowFloats.height;
+end;
+
+procedure TRegisters.sbShowStackClick(Sender: TObject);
+begin
+  if stack.stack=nil then exit;
+
+  if Stackview=nil then
+    stackview:=TfrmStackView.create(self);
+
+  stackview.SetContextPointer(@context, stack.stack, stack.savedsize);
+  stackview.show;
 end;
 
 initialization

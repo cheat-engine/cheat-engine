@@ -1,7 +1,7 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 850
+  Left = 679
   Height = 314
-  Top = 343
+  Top = 374
   Width = 472
   Caption = 'Extra info'
   ClientHeight = 314
@@ -331,12 +331,25 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Left = 448
       Height = 30
       Hint = 'Floating point registers'
-      Top = 28
+      Top = 12
       Width = 21
-      Caption = '>'
+      Caption = 'F'
       Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowFloatsClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object sbShowStack: TSpeedButton
+      Left = 448
+      Height = 30
+      Hint = 'Stack view'
+      Top = 40
+      Width = 21
+      Caption = 'S'
+      Color = clBtnFace
+      NumGlyphs = 0
+      OnClick = sbShowStackClick
       ShowHint = True
       ParentShowHint = False
     end

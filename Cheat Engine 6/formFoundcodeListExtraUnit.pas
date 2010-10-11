@@ -5,8 +5,9 @@ unit formFoundcodeListExtraUnit;
 interface
 
 uses
-  windows, LResources, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons, frmFloatingPointPanelUnit, NewKernelHandler,cefuncproc;
+  windows, LResources, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons,
+  frmFloatingPointPanelUnit, NewKernelHandler,cefuncproc, frmStackViewUnit;
 
 type
 
@@ -44,6 +45,7 @@ type
     Copyguesstoclipboard1: TMenuItem;
     pmEmpty: TPopupMenu;
     sbShowFloats: TSpeedButton;
+    sbShowStack: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
@@ -53,15 +55,21 @@ type
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Panel6Resize(Sender: TObject);
+    procedure sbShowStackClick(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
   private
     { Private declarations }
     fprobably: ptrUint;
-    fpp: TfrmFloatingPointPanel;
+    fpp:       TfrmFloatingPointPanel;
+    stackview: TfrmStackView;
     procedure setprobably(address:ptrUint);
   public
     { Public declarations }
     context: Context;
+    stack: record
+      savedsize: dword;
+      stack: pbyte;
+    end;
     property probably: ptrUint read fprobably write setprobably;
   end;
 
@@ -81,8 +89,14 @@ end;
 procedure TFormFoundCodeListExtra.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
+  if Stackview<>nil then
+    freeandnil(Stackview);
+
   if fpp<>nil then
     freeandnil(fpp);
+
+  if stack.stack<>nil then
+    freemem(stack.stack);
     
   action:=cafree;
 end;
@@ -135,8 +149,15 @@ end;
 
 procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
 begin
+  if stackview<>nil then
+    stackview.free;
+
+  if fpp<>nil then
+    fpp.Free;
+
   saveformposition(self,[]);
 end;
+
 
 procedure TFormFoundCodeListExtra.RegisterMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -169,10 +190,25 @@ begin
   label16.left:=label11.left;
   label14.Left:=label11.left;
 
-  sbShowFloats.top:=label13.Top+(label13.height div 2)-(sbShowFloats.height div 2);
+
+  sbShowFloats.top:=label13.Top+(label13.height div 2)-(sbShowFloats.height);
   sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
 
+  sbShowstack.top:=label13.Top+(label13.height div 2);
+  sbShowstack.left:=sbShowFloats.left;
+
   label18.top:=panel6.clientheight-label18.height;
+end;
+
+procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);
+begin
+  if stack.stack=nil then exit;
+
+  if Stackview=nil then
+    stackview:=TfrmStackView.create(self);
+
+  stackview.SetContextPointer(@context, stack.stack, stack.savedsize);
+  stackview.show;
 end;
 
 procedure TFormFoundCodeListExtra.sbShowFloatsClick(Sender: TObject);

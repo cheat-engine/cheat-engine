@@ -4036,7 +4036,7 @@ begin
 
   if (addresslist.selectedRecord<>nil) then
   begin
-    if addresslist.selectedRecord.showAsHex then
+    if not addresslist.selectedRecord.showAsHex then
       ShowAsHexadecimal1.Caption:='Show as hexadecimal'
     else
       ShowAsHexadecimal1.Caption:='Show as decimal';

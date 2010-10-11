@@ -184,12 +184,25 @@ object Registers: TRegisters
       Left = 0
       Height = 30
       Hint = 'Floating point registers'
-      Top = 84
+      Top = 72
       Width = 21
-      Caption = '>'
+      Caption = 'F'
       Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowFloatsClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object sbShowStack: TSpeedButton
+      Left = 0
+      Height = 30
+      Hint = 'Stack view'
+      Top = 100
+      Width = 21
+      Caption = 'S'
+      Color = clBtnFace
+      NumGlyphs = 0
+      OnClick = sbShowStackClick
       ShowHint = True
       ParentShowHint = False
     end

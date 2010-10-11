@@ -128,6 +128,8 @@ begin
 
   if stack.stack<>nil then
     freemem(stack.stack);
+
+  inherited destroy;
 end;
 
 function TTraceDebugInfo.datatype: TVariableType;
