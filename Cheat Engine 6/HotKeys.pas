@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, registry, CEFuncProc, ExtCtrls, LResources,
-  ComCtrls, Menus, hotkeyhandler, MemoryRecordUnit;
+  comCtrls, menus, hotkeyhandler, MemoryRecordUnit;
 
 type
 
@@ -249,7 +249,7 @@ begin
   begin
     hkt:=ptrint(listview1.selected.data);
     if hkt>=0 then
-      UnregisterAddressHotkey(memrec, hkt);
+      memrec.removeHotkey(hkt);
 
     listview1.selected.delete;
   end;

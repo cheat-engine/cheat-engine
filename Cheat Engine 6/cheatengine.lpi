@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="829"/>
+      <BuildNr Value="832"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable ProductVersion="0.0.0.225"/>
@@ -39,16 +39,15 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="172">
+    <Units Count="174">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="33"/>
-        <CursorPos X="19" Y="38"/>
+        <TopLine Value="30"/>
+        <CursorPos X="130" Y="61"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -73,8 +72,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="5712"/>
-        <CursorPos X="89" Y="5729"/>
+        <TopLine Value="16"/>
+        <CursorPos X="1" Y="35"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1669" ID="2"/>
@@ -117,7 +116,7 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="52"/>
         <CursorPos X="29" Y="63"/>
@@ -276,10 +275,12 @@
         <Filename Value="hotkeyhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="HotkeyHandler"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="13"/>
-        <CursorPos X="17" Y="30"/>
+        <TopLine Value="109"/>
+        <CursorPos X="3" Y="237"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
       <Unit22>
@@ -288,9 +289,13 @@
         <ComponentName Value="FormHotkey"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formhotkeyunit"/>
-        <TopLine Value="1"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="169"/>
         <CursorPos X="26" Y="6"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
       <Unit23>
@@ -412,7 +417,7 @@
         <ComponentName Value="AddForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="AddAddress"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="358"/>
         <CursorPos X="31" Y="364"/>
@@ -427,10 +432,13 @@
         <ComponentName Value="HotKeyForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="HotKeys"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="227"/>
-        <CursorPos X="3" Y="252"/>
+        <TopLine Value="238"/>
+        <CursorPos X="21" Y="252"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit34>
       <Unit35>
@@ -439,7 +447,7 @@
         <ComponentName Value="TypeForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="TypePopup"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="179"/>
         <CursorPos X="52" Y="187"/>
@@ -1416,10 +1424,11 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
-        <EditorIndex Value="4"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="631"/>
-        <CursorPos X="9" Y="640"/>
+        <TopLine Value="1050"/>
+        <CursorPos X="58" Y="1061"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1438,10 +1447,10 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1158"/>
-        <CursorPos X="29" Y="1175"/>
+        <TopLine Value="142"/>
+        <CursorPos X="24" Y="159"/>
         <UsageCount Value="215"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="275" ID="8"/>
@@ -1887,127 +1896,146 @@
         <CursorPos X="24" Y="1622"/>
         <UsageCount Value="40"/>
       </Unit171>
+      <Unit172>
+        <Filename Value="C:\lazarus\lcl\interfaces\win32\win32wscustomlistview.inc"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="193"/>
+        <CursorPos X="6" Y="213"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit172>
+      <Unit173>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
+        <UnitName Value="Graphics"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1858"/>
+        <CursorPos X="21" Y="1875"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit173>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="108" Column="17" TopLine="91"/>
+        <Filename Value="hotkeyhandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="274" Column="46" TopLine="257"/>
+        <Filename Value="hotkeyhandler.pas"/>
+        <Caret Line="37" Column="10" TopLine="20"/>
       </Position2>
       <Position3>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="2990" Column="32" TopLine="2979"/>
+        <Filename Value="hotkeyhandler.pas"/>
+        <Caret Line="250" Column="10" TopLine="234"/>
       </Position3>
       <Position4>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="HotKeys.pas"/>
+        <Caret Line="170" Column="14" TopLine="153"/>
       </Position4>
       <Position5>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5601" Column="92" TopLine="5584"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="181" Column="10" TopLine="176"/>
       </Position5>
       <Position6>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="276" Column="44" TopLine="257"/>
+        <Filename Value="HotKeys.pas"/>
+        <Caret Line="170" Column="14" TopLine="153"/>
       </Position6>
       <Position7>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="HotKeys.pas"/>
+        <Caret Line="252" Column="21" TopLine="238"/>
       </Position7>
       <Position8>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="108" Column="17" TopLine="91"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4471" Column="45" TopLine="4459"/>
       </Position8>
       <Position9>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="513" Column="1" TopLine="496"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="638" Column="48" TopLine="631"/>
       </Position9>
       <Position10>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="982" Column="106" TopLine="965"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position10>
       <Position11>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="988" Column="78" TopLine="965"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1059" Column="40" TopLine="1045"/>
       </Position11>
       <Position12>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="989" Column="78" TopLine="965"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1092" Column="46" TopLine="1075"/>
       </Position12>
       <Position13>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="990" Column="79" TopLine="965"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1227" Column="49" TopLine="1210"/>
       </Position13>
       <Position14>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="972" Column="23" TopLine="965"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position14>
       <Position15>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1014" Column="24" TopLine="997"/>
       </Position15>
       <Position16>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="256" Column="44" TopLine="247"/>
+        <Caret Line="1017" Column="22" TopLine="997"/>
       </Position16>
       <Position17>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="1027" Column="45" TopLine="997"/>
       </Position17>
       <Position18>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="12" Column="5" TopLine="1"/>
+        <Caret Line="1036" Column="44" TopLine="1019"/>
       </Position18>
       <Position19>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="599" Column="7" TopLine="593"/>
+        <Caret Line="1046" Column="34" TopLine="1019"/>
       </Position19>
       <Position20>
-        <Filename Value="AddAddress.pas"/>
-        <Caret Line="352" Column="3" TopLine="299"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1048" Column="34" TopLine="1019"/>
       </Position20>
       <Position21>
-        <Filename Value="TypePopup.pas"/>
-        <Caret Line="57" Column="3" TopLine="40"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="649" Column="70" TopLine="640"/>
       </Position21>
       <Position22>
-        <Filename Value="TypePopup.pas"/>
-        <Caret Line="204" Column="7" TopLine="181"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position22>
       <Position23>
-        <Filename Value="TypePopup.pas"/>
-        <Caret Line="124" Column="44" TopLine="106"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1024" Column="18" TopLine="1014"/>
       </Position23>
       <Position24>
-        <Filename Value="TypePopup.pas"/>
-        <Caret Line="200" Column="48" TopLine="122"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1062" Column="41" TopLine="1038"/>
       </Position24>
       <Position25>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="640" Column="41" TopLine="616"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="159" Column="24" TopLine="142"/>
       </Position25>
       <Position26>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="614" Column="40" TopLine="602"/>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
+        <Caret Line="46" Column="47" TopLine="28"/>
       </Position26>
       <Position27>
-        <Filename Value="MemoryRecordUnit.pas"/>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="12" Column="127" TopLine="1"/>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
+        <Caret Line="398" Column="25" TopLine="381"/>
       </Position28>
       <Position29>
-        <Filename Value="MemoryRecordUnit.pas"/>
-        <Caret Line="16" Column="74" TopLine="1"/>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
+        <Caret Line="404" Column="25" TopLine="381"/>
       </Position29>
       <Position30>
-        <Filename Value="cheatengine.lpr"/>
-        <Caret Line="47" Column="30" TopLine="33"/>
+        <Filename Value="C:\lazarus\lcl\graphics.pp"/>
+        <Caret Line="409" Column="25" TopLine="381"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

@@ -4015,7 +4015,7 @@ var i: Integer;
     selectionCount: integer;
     selectedrecord: TMemoryRecord;
 begin
-  sethotkey1.Caption:=strsethotkey;
+  sethotkey1.Caption:='Set/Change hotkeys';
 
   selectedrecord:=addresslist.selectedRecord;
   selectionCount:=0;

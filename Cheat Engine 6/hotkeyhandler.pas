@@ -246,6 +246,7 @@ begin
         for j:=i to length(hotkeythread.hotkeylist)-2 do
           hotkeythread.hotkeylist[j]:=hotkeythread.hotkeylist[j+1];
 
+
         setlength(hotkeythread.hotkeylist,length(hotkeythread.hotkeylist)-1);
         result:=true;
         exit;
