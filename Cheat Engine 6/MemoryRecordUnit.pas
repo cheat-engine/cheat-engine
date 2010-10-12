@@ -105,7 +105,7 @@ type
     treenode: TTreenode;
 
     isSelected: boolean; //lazarus bypass. Because lazarus does not implement multiselect I have to keep track of which entries are selected
-    showAsSigned: boolean;
+
     showAsHex: boolean;
 
     //free for editing by user:
@@ -113,6 +113,7 @@ type
 
 
     function isBeingEdited: boolean;
+    function showAsSigned: boolean;
     procedure beginEdit;
     procedure endEdit;
 
@@ -270,10 +271,6 @@ begin
   if tempnode<>nil then
     fshowashex:=tempnode.textcontent='1';
 
-
-  tempnode:=CheatEntry.FindNode('ShowAsSigned');
-  if tempnode<>nil then
-    showAsSigned:=tempnode.textcontent='1';
 
   tempnode:=CheatEntry.FindNode('Color');
   if tempnode<>nil then
@@ -514,9 +511,6 @@ begin
   if showAsHex then
     cheatEntry.AppendChild(doc.CreateElement('ShowAsHex')).TextContent:='1';
 
-  if showAsSigned then
-    cheatEntry.AppendChild(doc.CreateElement('ShowAsSigned')).TextContent:='1';
-
 
   cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
@@ -616,6 +610,11 @@ end;
 procedure TMemoryRecord.refresh;
 begin
   treenode.Update;
+end;
+
+function TMemoryRecord.showAsSigned: boolean;
+begin
+  result:=formSettings.cbShowAsSigned.checked;
 end;
 
 function TMemoryRecord.isBeingEdited: boolean;
@@ -1167,6 +1166,17 @@ begin
       vtByteArray:
       begin
         ConvertStringToBytes(FrozenValue, showAsHex, bts);
+        if length(bts)>bufsize then
+        begin
+          //the user wants to input more bytes than it should have
+          Extra.byteData.bytelength:=length(bts);  //so next time this won't happen again
+          bufsize:=length(bts);
+          freemem(buf);
+          getmem(buf,bufsize);
+          if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
+        end;
+
+
         bufsize:=min(length(bts),bufsize);
         for i:=0 to bufsize-1 do
           if bts[i]<>-1 then

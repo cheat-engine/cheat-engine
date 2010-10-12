@@ -370,6 +370,8 @@ begin
     label12.Caption:='Nr. of Bytes';
   end
   else valuepanel.visible:=false;
+
+  cbUnicode.visible:=vartype.itemindex=7;
 end;
 
 procedure TAddForm.RefreshCustomTypes;

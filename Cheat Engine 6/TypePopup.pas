@@ -121,7 +121,7 @@ begin
     lengthpanel.visible:=true;
     lengthlabel.visible:=true;
     clientwidth:=lengthpanel.left+lengthpanel.Width;
-
+    cbunicode.visible:=vartype.itemindex=7;
   end else
   begin
     bitpanel.visible:=false;
@@ -141,9 +141,14 @@ procedure TTypeForm.Button1Click(Sender: TObject);
 var bit,bitl: Byte;
     err: integer;
     ct: TCustomType;
+    wasNotAOB: boolean;
 begin
   err:=0;
   bitl:=0;
+
+  wasNotAOB:=MemoryRecord.Vartype<>vtByteArray;
+
+
 
   case Vartype.ItemIndex of
     0: MemoryRecord.VarType:=vtBinary;
@@ -195,6 +200,13 @@ begin
 
   if memoryrecord.vartype=vtString then
     MemoryRecord.Extra.stringData.length:=bit;
+
+  if memoryrecord.vartype=vtByteArray then
+  begin
+    MemoryRecord.Extra.byteData.bytelength:=bit;
+    if wasNotAOB then //it wasn't an aob before, set the hexadecimal value
+      MemoryRecord.showAsHex:=true;
+  end;
 
   modalresult:=mryes;
 end;

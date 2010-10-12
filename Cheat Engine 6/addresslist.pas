@@ -633,7 +633,12 @@ begin
       TypeForm.Edit1.text:=inttostr(memrec.Extra.stringData.length);
       typeform.cbunicode.checked:=memrec.Extra.stringData.unicode;
     end;
-    vtByteArray: TypeForm.VarType.itemindex:=8;
+    vtByteArray:
+    begin
+      TypeForm.edit1.text:=inttostr(memrec.Extra.byteData.bytelength);
+      TypeForm.VarType.itemindex:=8;
+      Typeform.cbunicode.visible:=false;
+    end;
   end;
 
   typeform.MemoryRecord:=memrec;

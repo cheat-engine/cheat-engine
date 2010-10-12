@@ -15,7 +15,7 @@ object AddForm: TAddForm
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
-    Left = 28
+    Left = 22
     Height = 17
     Top = 10
     Width = 52
@@ -23,7 +23,7 @@ object AddForm: TAddForm
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 47
+    Left = 41
     Height = 17
     Top = 68
     Width = 33
@@ -31,7 +31,7 @@ object AddForm: TAddForm
     ParentColor = False
   end
   object Label3: TLabel
-    Left = 10
+    Left = 5
     Height = 17
     Top = 39
     Width = 69
@@ -225,8 +225,8 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       Checked = True
-      State = cbChecked
       TabOrder = 0
+      TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 79
@@ -234,7 +234,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 1
-      TabStop = False
     end
     object RadioButton3: TRadioButton
       Left = 98
@@ -242,7 +241,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 2
-      TabStop = False
     end
     object RadioButton4: TRadioButton
       Left = 118
@@ -250,7 +248,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 3
-      TabStop = False
     end
     object RadioButton5: TRadioButton
       Left = 138
@@ -258,7 +255,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 4
-      TabStop = False
     end
     object RadioButton6: TRadioButton
       Left = 158
@@ -266,7 +262,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 5
-      TabStop = False
     end
     object RadioButton7: TRadioButton
       Left = 177
@@ -274,7 +269,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 6
-      TabStop = False
     end
     object RadioButton8: TRadioButton
       Left = 197
@@ -282,7 +276,6 @@ object AddForm: TAddForm
       Top = 15
       Width = 20
       TabOrder = 7
-      TabStop = False
     end
     object Edit2: TEdit
       Left = 266

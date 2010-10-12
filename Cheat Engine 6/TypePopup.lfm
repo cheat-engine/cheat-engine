@@ -185,8 +185,8 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       Checked = True
-      State = cbChecked
       TabOrder = 0
+      TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 20
@@ -194,7 +194,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 1
-      TabStop = False
     end
     object RadioButton3: TRadioButton
       Left = 39
@@ -202,7 +201,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 2
-      TabStop = False
     end
     object RadioButton4: TRadioButton
       Left = 59
@@ -210,7 +208,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 3
-      TabStop = False
     end
     object RadioButton5: TRadioButton
       Left = 79
@@ -218,7 +215,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 4
-      TabStop = False
     end
     object RadioButton6: TRadioButton
       Left = 98
@@ -226,7 +222,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 5
-      TabStop = False
     end
     object RadioButton7: TRadioButton
       Left = 118
@@ -234,7 +229,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 6
-      TabStop = False
     end
     object RadioButton8: TRadioButton
       Left = 138
@@ -242,7 +236,6 @@ object TypeForm: TTypeForm
       Top = 15
       Width = 20
       TabOrder = 7
-      TabStop = False
     end
     object Edit2: TEdit
       Left = 207
