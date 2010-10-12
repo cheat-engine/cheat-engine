@@ -261,13 +261,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				struct InputBuf
 				{
-				    DWORD ProcessID;
+				    UINT64 ProcessID;
 					UINT64 StartAddress;
 				} *PInputBuf;
 
 				struct OutputBuf
 				{				
-					DWORD length;
+					UINT64 length;
 					DWORD protection;
 				} *POutputBuf;
 
@@ -275,14 +275,29 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			     
 				UINT_PTR BaseAddress;
 				UINT_PTR length;
+				BOOL ShowResult=0;
 
 				
                 ntStatus=STATUS_SUCCESS;
 				PInputBuf=Irp->AssociatedIrp.SystemBuffer;
 				POutputBuf=Irp->AssociatedIrp.SystemBuffer;
 
-				ntStatus=GetMemoryRegionData(PInputBuf->ProcessID,NULL,(PVOID)(PInputBuf->StartAddress),&(POutputBuf->protection),&length,&BaseAddress) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
-				POutputBuf->length=(DWORD)length;
+
+				if (PInputBuf->StartAddress==(UINT64)0x12000)
+					ShowResult=1;
+				
+
+				ntStatus=GetMemoryRegionData((DWORD)PInputBuf->ProcessID,NULL,(PVOID)(PInputBuf->StartAddress),&(POutputBuf->protection),&length,&BaseAddress);
+				POutputBuf->length=(UINT64)length;
+
+				if (ShowResult)
+				{									
+				  DbgPrint("GetMemoryRegionData returned %x\n",ntStatus);
+				  DbgPrint("protection=%x\n",POutputBuf->protection);
+				  DbgPrint("length=%p\n",POutputBuf->length);
+				  DbgPrint("BaseAddress=%p\n", BaseAddress);
+				}
+
 
 				
 				break;
@@ -396,7 +411,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *pinp;
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 
-				DbgPrint("IOCTL_CE_READPHYSICALMEMORY:pinp->startaddress=%p, pinp->bytestoread=%d", pinp->startaddress, pinp->bytestoread); 
+				DbgPrint("IOCTL_CE_READPHYSICALMEMORY:pinp->startaddress=%x, pinp->bytestoread=%d", pinp->startaddress, pinp->bytestoread); 
 
 
 				ntStatus = ReadPhysicalMemory((PVOID)(UINT_PTR)pinp->startaddress, (UINT_PTR)pinp->bytestoread, pinp);
@@ -633,6 +648,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					}
 
 				}
+
+				DbgPrint("cr3reg=%p\n",cr3reg);
 
 				*(UINT64*)Irp->AssociatedIrp.SystemBuffer=cr3reg;
 

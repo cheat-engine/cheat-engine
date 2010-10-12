@@ -19,6 +19,8 @@ BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 
 	//return TRUE;
 #ifdef AMD64
+    UINT_PTR kernelbase=0x7fffffffffffffffULL;
+
 	return TRUE; //for now untill I ave figure out the win 4 paging scheme
 #else
 /*	MDL x;
@@ -181,7 +183,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 	__try
 	{
 		UINT_PTR temp=(UINT_PTR)Address;
-		UINT_PTR currentcr3;
+		//UINT_PTR currentcr3;
 		//DbgPrint("b");
 		
 		/*				
@@ -214,7 +216,7 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
         {
 			char* target;
 			char* source;
-			unsigned int i;	
+			//unsigned int i;	
 
 			//DbgPrint("Checking safety of memory\n");
 
@@ -279,6 +281,8 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 	UCHAR*			memoryview;
 	NTSTATUS		ntStatus = STATUS_UNSUCCESSFUL;
 
+	DbgPrint("ReadPhysicalMemory(%p, %d, %p)", startaddress, bytestoread, output);
+
 	__try
 	{
 		RtlInitUnicodeString( &physmemString, physmemName );	
@@ -341,27 +345,54 @@ NTSTATUS ReadPhysicalMemory(char *startaddress, UINT_PTR bytestoread, void *outp
 	return ntStatus;
 }
 
+UINT_PTR SignExtend(UINT_PTR a)
+{
+#ifdef AMD64
+	if ((a >> 47)==1)
+		return a | 0xFFFF000000000000ULL; //add sign extended bits
+	else
+		return a;
+#else
+	return a;
+#endif
+}
+
 BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULONG *regiontype, UINT_PTR *memorysize,UINT_PTR *baseaddress)
 {
+#ifdef AMD64
+	UINT_PTR pagebase=0xfffff68000000000ULL;
+#else
+	UINT_PTR pagebase=0xc0000000;
+#endif
+
 	UINT_PTR StartAddress;
 	KAPC_STATE apc_state;
 	NTSTATUS ntStatus=STATUS_SUCCESS;
-	struct PTEStruct *PPTE,*PPDE;
+	struct PTEStruct *PPTE,*PPDE, *PPDPE, * PPML4E;
 	PEPROCESS selectedprocess=PEProcess;
+	BOOL ShowResult=0;
+
+	if ((UINT_PTR)mempointer==(UINT_PTR)0x12000)
+		ShowResult=1;
 
 	if (PEProcess==NULL)
 	{
-		DbgPrint("GetMemoryRegionData:Getting PEPROCESS\n");
+		//DbgPrint("GetMemoryRegionData:Getting PEPROCESS\n");
         if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
 
-		DbgPrint("Retrieved peprocess");  
+		//DbgPrint("Retrieved peprocess");  
 	}
 
 	StartAddress=(UINT_PTR)mempointer;
 
-	*baseaddress=((StartAddress) /0x1000) *0x1000;
 
+
+	*baseaddress=StartAddress & (UINT_PTR)(~0xfff);
+
+
+	*memorysize=0;
+	*regiontype=0;
 	//switch context to the target process
 
 	RtlZeroMemory(&apc_state,sizeof(apc_state));
@@ -373,215 +404,283 @@ BOOLEAN GetMemoryRegionData(DWORD PID,PEPROCESS PEProcess, PVOID mempointer,ULON
 		{
 			//do my stuff here
 
+			//address -> strip off signed extended bit  , shift left by 12 and increase by 0xfffff68000000000ULL
+			(UINT_PTR)PPTE=((*baseaddress & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
 
-			(UINT_PTR)PPTE=*baseaddress / 0x1000 *PTESize+0xc0000000;
-			(UINT_PTR)PPDE=((UINT_PTR)PPTE) / 0x1000 *PTESize+0xc0000000;
-
-			//DbgPrint("PPTE=%p\nPPDE=%p\n",PPTE,PPDE);
-			if ((PPDE->P==0) && (PPDE->A2==0))
+			while ((UINT_PTR)PPTE<MAX_PTE_POS)
 			{
-				//Not paged
-    			//thats 4KB of PTE, wich is 1024 PTE's wich is 4096*1024 bytes wich is 4MB non-paged memory(in case of PAE obnlt 512 PTE's wich is 4096*512=2MB)
-				UINT_PTR BaseAddressOfPDE;
-					
-				BaseAddressOfPDE=(((UINT_PTR)PPDE)-0xc0000000)/PTESize * 0x1000 ; //=address of pte (if it had one)
-				BaseAddressOfPDE=((BaseAddressOfPDE)-0xc0000000)/PTESize * 0x1000 ; //=*baseaddress that this PDE points too . (Actually, just looking at the last 3 hex digits and filling the rest with 0's should also have worked)
-
-				*memorysize=PAGE_SIZE_LARGE-(*baseaddress-BaseAddressOfPDE);
-				*regiontype=PAGE_NOACCESS;
-				(UINT_PTR)PPDE=(UINT_PTR)PPDE+PTESize;  //perhaps PPDE++ also works but at least I'm sure this works
-				(UINT_PTR)PPTE=((UINT_PTR)(PPDE)-0xc0000000)/PTESize*0x1000; //point to the first PTE of the new PDE
-			}
-			else
-			if (PPDE->PS) //it's a 4mb page meaning the PTE is invalid
-			{
-				UINT_PTR BaseAddressOfPDE;
-					
-				BaseAddressOfPDE=(((UINT_PTR)PPDE)-0xc0000000)/PTESize * 0x1000 ; //=address of pte (if it had one)
-				BaseAddressOfPDE=((BaseAddressOfPDE)-0xc0000000)/PTESize * 0x1000 ; //=*baseaddress that this PDE points too . (Actually, just looking at the last 3 hex digits and filling the rest with 0's should also have worked)
-				//find the *baseaddress in this 4 MB page
-
-				*memorysize=PAGE_SIZE_LARGE-(*baseaddress-BaseAddressOfPDE);
-
-				if ((PPDE->P)==0)
-				{
-					if (PPDE->A2==1)
-                        *regiontype=PAGE_EXECUTE_READ;
-					else
-						*regiontype=PAGE_NOACCESS;
-				}
+				(UINT_PTR)PPDE=((((UINT_PTR)PPTE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase;
+				if (PTESize==8)
+					(UINT_PTR)PPDPE=((((UINT_PTR)PPDE) & 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase; //pagedir pointer entry
 				else
-				{								
-					if (PPDE->RW)
-						*regiontype=PAGE_EXECUTE_READWRITE;
-					else
-		                *regiontype=PAGE_EXECUTE_READ;
-				}
-					
+					(UINT_PTR)PPDPE=0; 
 
-                //next PDE
-				(UINT_PTR)PPDE=(UINT_PTR)PPDE+PTESize;  //perhaps PPDE++ also works but at least I'm sure this works
-				(UINT_PTR)PPTE=((UINT_PTR)(PPDE)-0xc0000000)/PTESize*0x1000; //point to the first PTE of the new PDE
-			}
-			else
-			{
-				//4 KB
-				*memorysize=0x1000;								
+#ifdef AMD64
+				(UINT_PTR)PPML4E=((((UINT_PTR)PPDPE)& 0xFFFFFFFFFFFFULL) >> 12) *PTESize + pagebase; //pagedir pointer entry
+#else
+				(UINT_PTR)PPML4E=0;
+#endif
+				
 
-				//the PTE is readable
-				if ((PPTE->P==0) && (PPTE->A2==0))
-					*regiontype=PAGE_NOACCESS;
-                else
-				{						
-					if (PPTE->P==1)
-					{
-						if (PPTE->RW==1)
-							*regiontype=PAGE_EXECUTE_READWRITE;
-						else
-			                *regiontype=PAGE_EXECUTE_READ;
-					}
-					else
-					{
-						//not present, but paged
-						//and since I don''t know if it's writable or not lets make it readonly
-                        *regiontype=PAGE_EXECUTE_READ;
-					}
-				}
-
-				(UINT_PTR)PPTE=(UINT_PTR)PPTE+PTESize; //next PTE in the list
-    			(UINT_PTR)PPDE=((UINT_PTR)PPTE) / 0x1000 *PTESize+0xc0000000;
-			}
-
-			//now the location of the PDE and PTE are set as they should and I can scan the rest of the memory
-			//DbgPrint("after first check: PPTE=%p\nPPDE=%p\n",PPTE,PPDE);
-
-			while ((UINT_PTR)PPDE<MAX_PDE_POS)
-			{
-				//DbgPrint("PPTE=%p(%x)\nPPDE=%p(%x)\n",PPTE,(UINT_PTR)PPTE,PPDE,(UINT_PTR)PPDE);
-
-				if (!((PPDE->P==0) && (PPDE->A2==0)))
+#ifdef AMD64
+				if ((PPML4E==0) || (PPML4E->P))
 				{
-					//this is a valid PDE
-					if (PPDE->PS==1)
+					//DbgPrint("PML4E=valid: %p\n", *(UINT_PTR *)PPML4E);
+					//return 0;
+#endif
+					//PML4E is valid or not needed
+					if ((PPDPE==0) || (PPDPE->P))
 					{
-                        //it's a 4 MB PDE (so no PTE)								
-						//now check the protection, if it is the same as *regiontype add 4 MB to the size
-						//else break out of the loop
-						if (*regiontype==PAGE_EXECUTE_READ)
+						//PPDPE is valid or not needed
+						if (PPDE->P)
 						{
-							if ((PPDE->RW==0) || ((PPDE->P==0) && (PPDE->A2==1)) )  //paged to disk, I gues it's read-only
-								*memorysize+=PAGE_SIZE_LARGE;
-							else
-								break; //not the same protection so let's quit
-						}
-						
-						if (*regiontype==PAGE_EXECUTE_READWRITE)
-						{
-							if ((PPDE->RW==1) && (PPDE->P==1) ) //only if it's present in memory.
-								*memorysize+=PAGE_SIZE_LARGE;
-							else
-								break;
-						}
-
-						if (*regiontype==PAGE_NOACCESS)
-						{
-							if ((PPDE->P==0) && (PPDE->A2==0))
-								*memorysize+=PAGE_SIZE_LARGE; 
-							else
-								break;
-						}
-						
-						
-					}
-					else
-					{
-						//the 4MB bit wasn't set										
-						//this means that we'll have to look through the PTEa PTE follows
-						BOOLEAN EverythingOK=TRUE;
-						while ((UINT_PTR)PPTE<((((UINT_PTR)(PPDE)+PTESize)-0xc0000000)/PTESize*0x1000)) //while the current PTE isn't in the memorylocation of the next PDE check the memory
-						{											
-							if (*regiontype==PAGE_NOACCESS)
-							{									
-								if ((PPTE->P==0) && (PPTE->A2==0)) //not readable so
-									*memorysize+=0x1000;
-								else
-								{
-									EverythingOK=FALSE;
-									break; //the memory I found IS accessible																										
-								}
-								
-								
-							}
-
-							if (*regiontype==PAGE_EXECUTE_READWRITE)
+							//PDE is valid
+							if (PPDE->PS==1)
 							{
-								if ((PPTE->RW==1) || ((PPTE->P==1) || (PPTE->A2==1) )) 
-									*memorysize+=0x1000; //writable or paged
-								else
+								//2/4mb page
+								if (*regiontype==0) //first time init
 								{
-									EverythingOK=FALSE;
-									break;
-								}										
+									
 									
 
-							}
-
-							if (*regiontype==PAGE_EXECUTE_READ)
-							{
-								if ((PPTE->RW==0) || ((PPTE->P==0) && (PPTE->A2==1) )) //read only or paged to disk (lets assume that the protection follows (just a gues)
-									*memorysize+=0x1000;
+									*baseaddress=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //PPDE->PPTE
+									*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPTE->address
+											
+									*memorysize=PAGE_SIZE_LARGE-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+									if (PPDE->RW==1)
+										*regiontype=PAGE_EXECUTE_READWRITE;
+									else
+										*regiontype=PAGE_EXECUTE_READ;
+								}
 								else
 								{
-									//if it's writable
-									//or if it's not paged and the global bit is on
-									//then it isn't read-only
-									EverythingOK=FALSE;
-									break;
-								}	
-							}            
+									//make sure the protection is the same, if not, exit
+									if ((PPDE->RW==1) && (*regiontype!=PAGE_EXECUTE_READWRITE))
+										return 0;
 
-							(UINT_PTR)PPTE=(UINT_PTR)PPTE+PTESize;
+
+									if ((PPDE->RW==0) && (*regiontype!=PAGE_EXECUTE_READ))
+										return 0;
+
+									//still here so the same
+									*memorysize+=4096;
+								}
+
+								//still here
+								(UINT_PTR)PPDE+=PTESize; //next pagedir entry							
+								(UINT_PTR)PPTE=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //set the pagetable to the start of the pagedir table
+								continue;
+
+							}
+							else
+							{
+								//has a page table
+								if (PPTE->P)
+								{
+									
+
+									//valid pte
+									if (*regiontype==0) //first time init
+									{										
+										//find the virtual address of this pagetable entry and use it as base address														
+										*baseaddress=SignExtend(((((UINT_PTR)PPTE)-pagebase) / PTESize) << 12); //PPTE->address			
+
+										*memorysize=4096-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+
+										if (PPTE->RW==1)
+											*regiontype=PAGE_EXECUTE_READWRITE;
+										else
+											*regiontype=PAGE_EXECUTE_READ;
+
+										
+									}
+									else
+									{
+										//make sure the protection is the same, if not, exit
+										if ((PPTE->RW==1) && (*regiontype!=PAGE_EXECUTE_READWRITE))
+											return 0;
+
+
+										if ((PPTE->RW==0) && (*regiontype!=PAGE_EXECUTE_READ))
+											return 0;
+
+										//still here so the same
+										*memorysize+=4096;
+
+										//DbgPrint("Extending\n");
+									}
+
+									//still here
+									(UINT_PTR)PPTE+=PTESize; //next pagetable entry	
+									continue;
+
+								}
+								else
+								{
+
+									if (ShowResult)
+										DbgPrint("PTE is not paged in\n");
+
+									//PTE is not paged in
+									if (*regiontype==0) //first occurance
+									{
+										//find the virtual address of this pagetable entry and use it as base address														
+										*baseaddress=SignExtend(((((UINT_PTR)PPTE)-pagebase) / PTESize) << 12); //PPTE->address
+		
+										*memorysize=4096-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+										*regiontype = PAGE_NOACCESS;
+									}
+									else 
+									if (*regiontype == PAGE_NOACCESS)
+									{
+										*memorysize=*memorysize+4096; 
+									}
+									else
+										return 0; //new region
+
+								
+									//still here
+									(UINT_PTR)PPTE+=PTESize; //next pagetable entry	
+									continue;
+								}
+
+
+							}
 						}
+						else
+						{
+							//PDE is not paged in
+							if (ShowResult)
+								DbgPrint("PDE is not paged in\n");
 
-						if (!EverythingOK) break;
+							if (*regiontype==0) //first occurance
+							{
+								//find the virtual address of this pagedir entry and use it as base address														
+								*baseaddress=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //PPDE->PPTE
+								*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPTE->address
+	
 
+								*memorysize=PAGE_SIZE_LARGE-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+								*regiontype = PAGE_NOACCESS;
+
+							}
+							else
+							if (*regiontype == PAGE_NOACCESS)
+							{
+								*memorysize=*memorysize+PAGE_SIZE_LARGE; //increase with 2 or 4 MB
+							}
+							else
+								return 0; //new section
+
+							//still here
+							(UINT_PTR)PPDE+=PTESize; //next pagedir entry							
+							(UINT_PTR)PPTE=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //set the pagetable to the start of the pagedir table
+							continue;
+
+						}
 					}
+					else
+					{
+						//PPDPE is invalid
+						if (ShowResult)
+							DbgPrint("PDPE is not paged in\n");
+
+						if (*regiontype==0) //first occurance
+						{
+							//find the virtual address of this pagedir pointer entry and use it as base address							
+							*baseaddress=SignExtend(((((UINT_PTR)PPDPE)-pagebase) / PTESize) << 12); //>PPDPE->PPDE
+							*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPDE->PPTE
+							*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPTE->address
+
+							*memorysize=0x40000000-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+							*regiontype = PAGE_NOACCESS;
+						}
+						else if (*regiontype==PAGE_NOACCESS)
+						{
+							*memorysize=*memorysize+0x40000000; //increase with 1GB 
+						}
+						else
+							return 0; //new section
+
+						//still here
+						(UINT_PTR)PPDPE+=PTESize; //next pagedirptr entry
+						(UINT_PTR)PPDE=SignExtend(((((UINT_PTR)PPDPE)-pagebase) / PTESize) << 12); //set the pagedir entry to the start of the pagedirptr table
+						(UINT_PTR)PPTE=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //set the pagetable to the start of the pagedir table
+						continue;
+					}
+
+#ifdef AMD64
 				}
+
+				//no need to compile this in for the 32-bit version
 				else
 				{
-					//4MB of non paged memory
-					if (*regiontype==PAGE_NOACCESS)
-						*memorysize+=PAGE_SIZE_LARGE; //increase the size of page_noaccess memory with 4 MB
-					else
-						break; //no, the previous wasn't PAGE_NOACCESS so break with the current length
-				}
+					if (ShowResult)
+					    DbgPrint("PML4E is not paged in\n");
+					
+					//DbgPrint("PML4E=invalid: %p\n", *(UINT_PTR *)PPML4E);
+					//return 0;
 
-				(UINT_PTR)PPDE=(UINT_PTR)PPDE+PTESize;
-				(UINT_PTR)PPTE=((UINT_PTR)(PPDE)-0xc0000000)/PTESize*0x1000; //point to the first PTE of the new PDE
+					//PML4 is invalid (but not 0)
+					if (*regiontype==0) //first occurance
+					{
+						//find the virtual address of this pml4 entry and use it as base address
+						*baseaddress=SignExtend(((((UINT_PTR)PPML4E)-pagebase) / PTESize) << 12); //PML4E->PDPTE
+						*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PDPTE->PPDE					
+						*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPDE->PPTE
+						*baseaddress=SignExtend((((*baseaddress)-pagebase) / PTESize) << 12); //PPTE->address
+
+						*memorysize=0x8000000000ULL-((UINT_PTR)mempointer-*baseaddress); //size is relative to the start of the mempointer
+
+						*regiontype = PAGE_NOACCESS;
+					}
+					else
+					if (*regiontype == PAGE_NOACCESS)
+						*memorysize=*memorysize+0x8000000000ULL; //increase with 512GB 
+					else
+						return 0; //New regiontype reached (inaccessible memory)
+
+					//still here so continue.
+					(UINT_PTR)PPML4E+=PTESize;
+					(UINT_PTR)PPDPE=SignExtend(((((UINT_PTR)PPML4E)-pagebase) / PTESize) << 12); //set the pagedir ptr entry to the start of the pml4 table
+					(UINT_PTR)PPDE=SignExtend(((((UINT_PTR)PPDPE)-pagebase) / PTESize) << 12); //set the pagedir entry to the start of the pagedirptr table
+					(UINT_PTR)PPTE=SignExtend(((((UINT_PTR)PPDE)-pagebase) / PTESize) << 12); //set the pagetable to the start of the pagedir table
+
+					continue;
+				}
+#endif
+
+
 			}
 
-		
-			if ((UINT_PTR)PPDE>=MAX_PDE_POS)
-                ntStatus=STATUS_UNSUCCESSFUL;
-
+			ntStatus=STATUS_SUCCESS;
 		}
 		__finally
 		{
 			KeDetachProcess();
+			if (PEProcess==NULL) //no valid peprocess was given so I made a reference, so lets also dereference
+				ObDereferenceObject(selectedprocess);
 		}
+
+
 
 	}
 	__except(1)
 	{
 		DbgPrint("Exception in GetMemoryRegionData\n");
+		DbgPrint("mempointer=%p",mempointer);
+		DbgPrint("PPML4E=%p\n", PPML4E);
+		DbgPrint("PPDPE=%p\n", PPDPE);
+		DbgPrint("PPDE=%p\n", PPDE);
+		DbgPrint("PPTE=%p\n", PPTE);
+		
 		ntStatus=STATUS_UNSUCCESSFUL;
 	}
 	
 
-	if (PEProcess==NULL) //no valid peprocess was given so I made a reference, so lets also dereference
-		ObDereferenceObject(selectedprocess);
 
-	return NT_SUCCESS(ntStatus);
+
+	return 0; 
 
 }
 

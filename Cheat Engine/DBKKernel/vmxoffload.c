@@ -687,13 +687,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		DbgPrint("originalstate->rip=%llx",originalstate->rip);
 
 		DbgPrint("Calling entervmm2. (Originalstate=%p (%llx))\n",originalstate,originalstatePA);
-		/*{//debug code
+		{//debug code
 			LARGE_INTEGER wait;
 			wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
 			
 			KeDelayExecutionThread(KernelMode, TRUE, &wait);
 		}
-		*/
+		
 
 		//call to entervmmprologue, pushes the return value on the stack
 		enterVMMPrologue();
@@ -721,6 +721,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		DbgPrint("cpunr=%d\n",cpunr());
 		KeLowerIrql(oldirql);
 
+		
 		DbgPrint("cpunr=%d\n",cpunr());
 #else
 		

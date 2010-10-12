@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "cepluginsdk.h"
+#include "bla.h"
 
 int selfid;
 int memorybrowserpluginid=-1; //initialize it to -1 to indicate failure (used by the DisablePlugin routine)
@@ -18,6 +19,8 @@ int PointerReassignmentPluginID=-1;
 int MainMenuPluginID=-1;
 
 ExportedFunctions Exported;
+
+
 
 void __stdcall mainmenuplugin(void)
 {

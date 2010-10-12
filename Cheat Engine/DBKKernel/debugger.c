@@ -555,7 +555,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			fxsave [DebuggerState.fxstate]
 		}
 #endif
-
+ 
 
 
 		//notify usermore app that this thread has halted due to a debug event
