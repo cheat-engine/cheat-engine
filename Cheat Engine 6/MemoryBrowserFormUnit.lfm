@@ -7,7 +7,7 @@ object MemoryBrowser: TMemoryBrowser
   Caption = 'Memory Viewer'
   ClientHeight = 557
   ClientWidth = 722
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
@@ -380,9 +380,9 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label14: TLabel
           Left = 10
-          Height = 17
+          Height = 14
           Top = 0
-          Width = 62
+          Width = 48
           Caption = 'Registers:'
           ParentColor = False
         end
@@ -395,9 +395,9 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label15: TLabel
           Left = 139
-          Height = 17
+          Height = 14
           Top = 0
-          Width = 35
+          Width = 26
           Caption = 'Flags'
           ParentColor = False
         end
@@ -410,9 +410,9 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label16: TLabel
           Left = 7
-          Height = 17
+          Height = 14
           Top = 162
-          Width = 116
+          Width = 90
           Caption = 'Segment Registers'
           ParentColor = False
         end
@@ -510,7 +510,6 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
-            Width = 47
           end>
         ItemIndex = -1
         OwnerData = True

@@ -1,42 +1,51 @@
 object AddForm: TAddForm
-  Left = 535
+  Left = 269
   Height = 167
-  Top = 352
+  Top = 304
   Width = 545
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Add address'
   ClientHeight = 167
   ClientWidth = 545
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
-    Left = 22
-    Height = 17
+    Left = 27
+    Height = 14
     Top = 10
-    Width = 52
+    Width = 39
     Caption = 'Address'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     ParentColor = False
+    ParentFont = False
   end
   object Label2: TLabel
     Left = 41
-    Height = 17
+    Height = 14
     Top = 68
-    Width = 33
+    Width = 25
     Caption = 'Type'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     ParentColor = False
+    ParentFont = False
   end
   object Label3: TLabel
-    Left = 5
-    Height = 17
+    Left = 12
+    Height = 14
     Top = 39
-    Width = 69
+    Width = 54
     Caption = 'Description'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     ParentColor = False
+    ParentFont = False
   end
   object ValuePanel: TPanel
     Left = 209
@@ -60,7 +69,7 @@ object AddForm: TAddForm
     end
     object Edit1: TEdit
       Left = 118
-      Height = 24
+      Height = 21
       Top = 2
       Width = 51
       PopupMenu = MainForm.emptypopup
@@ -69,20 +78,22 @@ object AddForm: TAddForm
     end
     object cbUnicode: TCheckBox
       Left = 177
-      Height = 20
+      Height = 17
       Top = 5
-      Width = 71
+      Width = 58
       Caption = 'Unicode'
       TabOrder = 1
     end
   end
   object VarType: TComboBox
-    Left = 79
+    Left = 72
     Height = 24
     Top = 63
     Width = 129
     DropDownCount = 9
-    ItemHeight = 16
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ItemHeight = 13
     Items.Strings = (
       'Binary'
       'Byte'
@@ -95,14 +106,15 @@ object AddForm: TAddForm
       'Array of Byte'
     )
     OnChange = VarTypeChange
+    ParentFont = False
     Style = csDropDownList
     TabOrder = 2
   end
   object miHideChildren: TButton
-    Left = 10
-    Height = 31
+    Left = 11
+    Height = 27
     Top = 124
-    Width = 92
+    Width = 90
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
     Default = True
@@ -110,10 +122,10 @@ object AddForm: TAddForm
     TabOrder = 3
   end
   object Button2: TButton
-    Left = 118
-    Height = 31
+    Left = 109
+    Height = 28
     Top = 124
-    Width = 92
+    Width = 88
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
@@ -121,11 +133,14 @@ object AddForm: TAddForm
     TabOrder = 4
   end
   object Description: TEdit
-    Left = 79
-    Height = 24
+    Left = 72
+    Height = 21
     Top = 34
     Width = 464
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     MaxLength = 50
+    ParentFont = False
     TabOrder = 1
     Text = 'No Description!'
   end
@@ -141,145 +156,148 @@ object AddForm: TAddForm
     Visible = False
     object Label4: TLabel
       Left = 63
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 84
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '1'
       ParentColor = False
     end
     object Label6: TLabel
       Left = 102
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '2'
       ParentColor = False
     end
     object Label7: TLabel
       Left = 123
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '3'
       ParentColor = False
     end
     object Label8: TLabel
       Left = 143
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '4'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 162
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '5'
       ParentColor = False
     end
     object Label10: TLabel
       Left = 181
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '6'
       ParentColor = False
     end
     object Label11: TLabel
       Left = 202
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '7'
       ParentColor = False
     end
     object Label13: TLabel
       Left = 10
-      Height = 17
+      Height = 14
       Top = 10
-      Width = 45
+      Width = 37
       Caption = 'Startbit:'
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
       ParentColor = False
+      ParentFont = False
     end
     object Label14: TLabel
       Left = 217
-      Height = 17
+      Height = 14
       Top = 7
-      Width = 47
+      Width = 38
       Caption = 'nrofbits:'
       ParentColor = False
     end
     object RadioButton1: TRadioButton
       Left = 59
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 79
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 1
     end
     object RadioButton3: TRadioButton
       Left = 98
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 2
     end
     object RadioButton4: TRadioButton
       Left = 118
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 3
     end
     object RadioButton5: TRadioButton
       Left = 138
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 4
     end
     object RadioButton6: TRadioButton
       Left = 158
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 5
     end
     object RadioButton7: TRadioButton
       Left = 177
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 6
     end
     object RadioButton8: TRadioButton
       Left = 197
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 7
     end
     object Edit2: TEdit
       Left = 266
-      Height = 24
+      Height = 21
       Top = 5
       Width = 45
       TabOrder = 8
@@ -287,19 +305,22 @@ object AddForm: TAddForm
     end
   end
   object NewAddress: TEdit
-    Left = 79
-    Height = 24
+    Left = 72
+    Height = 21
     Top = 5
     Width = 129
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     OnKeyPress = NewAddressKeyPress
+    ParentFont = False
     TabOrder = 0
     Text = '00400000'
   end
   object cbPointer: TCheckBox
     Left = 23
-    Height = 20
+    Height = 17
     Top = 98
-    Width = 62
+    Width = 51
     Caption = 'Pointer'
     OnClick = cbPointerClick
     ParentBidiMode = False
@@ -311,7 +332,10 @@ object AddForm: TAddForm
     Top = 126
     Width = 90
     Caption = 'Add pointer'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     OnClick = Button3Click
+    ParentFont = False
     TabOrder = 8
     Visible = False
   end
@@ -321,7 +345,10 @@ object AddForm: TAddForm
     Top = 126
     Width = 90
     Caption = 'Remove'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     OnClick = Button4Click
+    ParentFont = False
     TabOrder = 9
     Visible = False
   end

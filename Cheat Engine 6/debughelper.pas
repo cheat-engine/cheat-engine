@@ -35,8 +35,10 @@ type
     fcurrentThread: TDebugThreadHandler;
     procedure cleanupDeletedBreakpoints;
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
+    {$ifdef cpu64}
     procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
     procedure UnsetBreakpoint(breakpoint: PBreakpoint);
+    {$endif}
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
     procedure defaultConstructorcode;
     procedure WaitTillAttachedOrError;
@@ -50,6 +52,11 @@ type
     procedure Execute; override;
 
   public
+    {$ifdef cpu32} //xp hack
+    procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
+    procedure UnsetBreakpoint(breakpoint: PBreakpoint);
+    {$endif}
+
     function lockThreadlist: TList;
     procedure unlockThreadlist;
 

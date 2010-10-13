@@ -7,7 +7,7 @@ object frmTracer: TfrmTracer
   Caption = 'Tracer'
   ClientHeight = 387
   ClientWidth = 410
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
@@ -348,17 +348,17 @@ object frmTracer: TfrmTracer
     end
     object lblInstruction: TLabel
       Left = 5
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 60
+      Width = 50
       Caption = 'Instruction'
       ParentColor = False
     end
     object lblAddressed: TLabel
       Left = 5
-      Height = 17
+      Height = 14
       Top = 16
-      Width = 118
+      Width = 91
       Caption = 'Accesses Address:'
       ParentColor = False
     end

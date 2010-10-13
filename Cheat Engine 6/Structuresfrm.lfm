@@ -6,7 +6,7 @@ object frmStructures: TfrmStructures
   Caption = 'Memory dissect'
   ClientHeight = 328
   ClientWidth = 653
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
   OnClose = FormClose
@@ -27,7 +27,7 @@ object frmStructures: TfrmStructures
     TabOrder = 0
     object edtAddress: TEdit
       Left = 5
-      Height = 24
+      Height = 21
       Top = 5
       Width = 95
       OnChange = edtAddressChange

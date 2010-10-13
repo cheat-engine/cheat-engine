@@ -5398,13 +5398,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  asm
-    nop
-    nop
-    nop
-     mov [0],rax
 
-  end;
 end;
 
 procedure TMainForm.Label58Click(Sender: TObject);

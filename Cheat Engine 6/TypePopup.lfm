@@ -8,24 +8,24 @@ object TypeForm: TTypeForm
   Caption = 'Type'
   ClientHeight = 98
   ClientWidth = 489
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
     Left = 10
-    Height = 17
+    Height = 14
     Top = 0
-    Width = 119
+    Width = 98
     Caption = 'Select the new type:'
     ParentColor = False
   end
   object lengthlabel: TLabel
     Left = 217
-    Height = 17
+    Height = 14
     Top = -1
-    Width = 41
+    Width = 34
     Caption = 'Length'
     ParentColor = False
   end
@@ -35,7 +35,7 @@ object TypeForm: TTypeForm
     Top = 20
     Width = 198
     DropDownCount = 9
-    ItemHeight = 16
+    ItemHeight = 13
     Items.Strings = (
       'Binary'
       'Byte'
@@ -53,7 +53,7 @@ object TypeForm: TTypeForm
   end
   object Button1: TButton
     Left = 15
-    Height = 31
+    Height = 25
     Top = 59
     Width = 92
     Caption = 'OK'
@@ -63,7 +63,7 @@ object TypeForm: TTypeForm
   end
   object Button2: TButton
     Left = 116
-    Height = 31
+    Height = 25
     Top = 59
     Width = 92
     Cancel = True
@@ -82,7 +82,7 @@ object TypeForm: TTypeForm
     TabOrder = 3
     object Edit1: TEdit
       Left = 5
-      Height = 24
+      Height = 21
       Top = 4
       Width = 45
       TabOrder = 0
@@ -90,9 +90,9 @@ object TypeForm: TTypeForm
     end
     object cbunicode: TCheckBox
       Left = 59
-      Height = 20
+      Height = 17
       Top = 6
-      Width = 71
+      Width = 58
       Caption = 'Unicode'
       TabOrder = 1
     end
@@ -108,138 +108,138 @@ object TypeForm: TTypeForm
     TabOrder = 4
     object Label4: TLabel
       Left = 4
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 25
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '1'
       ParentColor = False
     end
     object Label6: TLabel
       Left = 43
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '2'
       ParentColor = False
     end
     object Label7: TLabel
       Left = 64
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '3'
       ParentColor = False
     end
     object Label8: TLabel
       Left = 84
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '4'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 103
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '5'
       ParentColor = False
     end
     object Label10: TLabel
       Left = 122
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '6'
       ParentColor = False
     end
     object Label11: TLabel
       Left = 143
-      Height = 17
+      Height = 14
       Top = 0
-      Width = 8
+      Width = 7
       Caption = '7'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 162
-      Height = 17
+      Height = 14
       Top = 14
-      Width = 41
+      Width = 34
       Caption = 'Length'
       ParentColor = False
       Visible = False
     end
     object RadioButton1: TRadioButton
       Left = 0
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 20
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 1
     end
     object RadioButton3: TRadioButton
       Left = 39
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 2
     end
     object RadioButton4: TRadioButton
       Left = 59
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 3
     end
     object RadioButton5: TRadioButton
       Left = 79
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 4
     end
     object RadioButton6: TRadioButton
       Left = 98
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 5
     end
     object RadioButton7: TRadioButton
       Left = 118
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 6
     end
     object RadioButton8: TRadioButton
       Left = 138
-      Height = 19
+      Height = 17
       Top = 15
-      Width = 20
+      Width = 18
       TabOrder = 7
     end
     object Edit2: TEdit
       Left = 207
-      Height = 24
+      Height = 21
       Top = 10
       Width = 40
       TabOrder = 8

@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, Windows, Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
-  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib;
+  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc;
 
 type
   TDebugEventHandler = class;
@@ -26,6 +26,11 @@ type
 
     setInt3Back: boolean;
     Int3setbackAddress: ptrUint;
+
+    {$ifdef cpu32}
+    setInt1Back: boolean;
+    Int1SetBackBP: PBreakpoint;
+    {$endif}
 
     singlestepping: boolean;
 
@@ -242,13 +247,31 @@ begin
         context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
         setInt3Back:=true;
         Int3setbackAddress:=bp.address;
+
       end;
+    end
+    else
+    begin
+{$ifdef cpu32}
+      //----XP HACK----
+      if (WindowsVersion=wvXP) then
+      begin
+        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
+
+        setInt1Back:=true;
+        context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+        Int1SetBackBP:=bp;
+      end;
+
     end;
+{$endif}
 
 
     if (not singlestepping) and ((bp.ThreadID<>0) and (bp.threadid<>self.ThreadId)) then
     begin
       //not singlestepping and this breakpoint isn't set to break for this thread, so:
+
+
       context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
       exit; //and exit
     end;
@@ -333,10 +356,27 @@ end;
 
 function TDebugThreadHandler.singleStep(var dwContinueStatus: dword): boolean;
 var
+  {$ifdef cpu32}
+  hasSetInt1Back: boolean;
+  {$endif}
   hasSetInt3Back: boolean;
   oldprotect, bw: dword;
 begin
   result:=true;
+
+  {$ifdef cpu32}
+  if setint1back then
+  begin
+    //set the breakpoint back
+    TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP);
+    setInt1Back:=false;
+    hasSetInt1Back:=true;
+  end
+  else
+    hasSetInt1Back:=false;
+
+  {$endif}
+
 
   if setInt3Back then
   begin
@@ -355,7 +395,7 @@ begin
   if singlestepping then
     handlebreak(nil)
   else
-    if not hasSetInt3Back then dwContinuestatus:=DBG_EXCEPTION_NOT_HANDLED; //if it wasn't a int3 set back or not expected single step, then raise an error
+    if (not (hasSetInt3Back {$ifdef cpu32} or hasSetInt1Back{$endif})) then dwContinuestatus:=DBG_EXCEPTION_NOT_HANDLED; //if it wasn't a int3 set back or not expected single step, then raise an error
 end;
 
 function TDebugThreadHandler.CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
