@@ -262,9 +262,9 @@ begin
         context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
         Int1SetBackBP:=bp;
       end;
-
+     {$endif}
     end;
-{$endif}
+
 
 
     if (not singlestepping) and ((bp.ThreadID<>0) and (bp.threadid<>self.ThreadId)) then

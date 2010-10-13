@@ -59,7 +59,7 @@ type
     function TagToValue(tag: integer): ptrUint;
   public
     { Public declarations }
-    procedure SetContextPointer(context: PContext; stack: PByte; stacksize: integer);
+    procedure SetContextPointer(context: PContext; _stack: PByte; stacksize: integer);
   end;
 
 implementation
@@ -68,7 +68,7 @@ implementation
 uses MemoryBrowserFormUnit;
 
 
-procedure TRegisters.SetContextPointer(context: PContext; stack: PByte; stacksize: integer);
+procedure TRegisters.SetContextPointer(context: PContext; _stack: PByte; stacksize: integer);
 var pre,f: string;
 begin
   self.context:=context;
@@ -237,12 +237,12 @@ begin
   clientheight:=max(clientheight, eiplabel.top+eiplabel.height+8);
   clientwidth:=max(clientwidth, eaxlabel.left+eaxlabel.Canvas.TextWidth(eaxlabel.caption)+ panel2.width+8);
 
-  if stack<>nil then
+  if _stack<>nil then
   begin
-    getmem(self.stack.stack, stacksize);
-    self.stack.savedsize:=stacksize;
+    getmem(stack.stack, stacksize);
+    stack.savedsize:=stacksize;
 
-    copymemory(self.stack.stack, stack, stacksize);
+    copymemory(stack.stack, _stack, stacksize);
   end;
 end;
 
@@ -327,7 +327,7 @@ begin
   if Stackview=nil then
     stackview:=TfrmStackView.create(self);
 
-  stackview.SetContextPointer(@context, stack.stack, stack.savedsize);
+  stackview.SetContextPointer(context, stack.stack, stack.savedsize);
   stackview.show;
 end;
 

@@ -5438,6 +5438,9 @@ var pl: TStringlist;
     i,j,k: integer;
     newPID: dword;
     pli: PProcessListInfo;
+    a: string;
+    p: string;
+
 begin
   //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
   if (not formsettings.cbAlwaysAutoAttach.checked) and ((processhandle<>0) or (processid<>0)) then
@@ -5450,13 +5453,15 @@ begin
 
     for i:=0 to autoattachlist.Count-1 do
     begin
+      a:=uppercase(autoattachlist.Strings[i]);
       for j:=0 to pl.Count-1 do //can't do indexof
       begin
-        if pos(uppercase(autoattachlist.Strings[i]),uppercase(pl.strings[j]))=10 then
+        p:=uppercase(pl.strings[j]);
+        if pos(a,p)=10 then
         begin
           //the process is found
-
-          val('$'+pl.strings[j],newPID,k);
+          p:='$'+copy(p,1,8);
+          val(p,newPID,k);
           if processid=newPID then exit; //already attached to this one
 
           ProcessHandler.processid:=newPID;

@@ -15,8 +15,8 @@ type
     address: ptruint; //for whatever reason it could be used in the future
     context: TContext;
     stack: record
-      savedsize: dword;
       stack: pbyte;
+      savedsize: dword;
     end;
 
     procedure savestack;
@@ -217,7 +217,7 @@ begin
     begin
       borderstyle:=bsSingle;
 
-      ae:=@TAddressEntry(changedlist.Selected.Data);
+      ae:=TAddressEntry(changedlist.Selected.Data);
 
       SetContextPointer(@ae.context, ae.stack.stack, ae.stack.savedsize);
 
