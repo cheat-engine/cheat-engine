@@ -288,6 +288,10 @@ begin
         begin
           LoadingSettingsFromRegistry:=true;
 
+          if reg.ValueExists('Show all windows on taskbar') then
+            if reg.ReadBool('Show all windows on taskbar') then
+              Application.TaskBarBehavior:=tbMultiButton;
+
 
           if reg.ValueExists('Undo') then
             cbshowundo.checked:=reg.ReadBool('Undo');

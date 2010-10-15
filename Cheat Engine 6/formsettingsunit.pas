@@ -25,6 +25,7 @@ type
   TformSettings = class(TForm)
     cbDontusetempdir: TCheckBox;
     cbGlobalDebug: TCheckBox;
+    cbShowallWindows: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -373,6 +374,8 @@ begin
         7: scanpriority:=tpTimeCritical;
       end;
 
+
+      reg.WriteBool('Show all windows on taskbar',cbShowallWindows.checked);
 
       reg.WriteInteger('Buffersize',bufsize);
       reg.WriteBool('UseDebugRegs',rbDebugRegisters.checked);
