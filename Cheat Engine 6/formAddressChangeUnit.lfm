@@ -1,12 +1,12 @@
 object formAddressChange: TformAddressChange
   Left = 1283
-  Height = 123
+  Height = 115
   Top = 412
   Width = 349
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
-  ClientHeight = 123
+  ClientHeight = 115
   ClientWidth = 349
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -33,8 +33,8 @@ object formAddressChange: TformAddressChange
   end
   object Button1: TButton
     Left = 10
-    Height = 30
-    Top = 89
+    Height = 25
+    Top = 81
     Width = 80
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
@@ -44,8 +44,8 @@ object formAddressChange: TformAddressChange
   end
   object Button2: TButton
     Left = 98
-    Height = 30
-    Top = 89
+    Height = 25
+    Top = 81
     Width = 80
     Anchors = [akLeft, akBottom]
     Cancel = True
@@ -55,9 +55,9 @@ object formAddressChange: TformAddressChange
   end
   object cbPointer: TCheckBox
     Left = 10
-    Height = 17
+    Height = 19
     Top = 59
-    Width = 51
+    Width = 53
     Caption = 'Pointer'
     OnClick = cbPointerClick
     TabOrder = 3
@@ -146,60 +146,60 @@ object formAddressChange: TformAddressChange
     end
     object RadioButton1: TRadioButton
       Left = 0
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 20
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 1
     end
     object RadioButton3: TRadioButton
       Left = 39
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 2
     end
     object RadioButton4: TRadioButton
       Left = 59
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 3
     end
     object RadioButton5: TRadioButton
       Left = 79
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 4
     end
     object RadioButton6: TRadioButton
       Left = 98
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 5
     end
     object RadioButton7: TRadioButton
       Left = 118
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 6
     end
     object RadioButton8: TRadioButton
       Left = 138
-      Height = 17
+      Height = 19
       Top = 34
-      Width = 18
+      Width = 20
       TabOrder = 7
     end
   end

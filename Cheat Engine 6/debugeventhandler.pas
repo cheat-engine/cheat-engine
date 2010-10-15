@@ -371,6 +371,7 @@ begin
     TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP);
     setInt1Back:=false;
     hasSetInt1Back:=true;
+    dwContinueStatus:=DBG_CONTINUE;
   end
   else
     hasSetInt1Back:=false;

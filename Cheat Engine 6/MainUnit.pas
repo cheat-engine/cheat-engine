@@ -2093,7 +2093,10 @@ begin
     ToAddress.text:='7fffffffffffffff';
   {$else}
     FromAddress.text:='00000000';
-    ToAddress.text:='ffffffff';
+    if Is64bitOS then
+      ToAddress.text:='ffffffff' //games with 3GB aware will use this in 64-bit os's
+    else
+      ToAddress.text:='7fffffff';
   {$endif}
 end;
 
