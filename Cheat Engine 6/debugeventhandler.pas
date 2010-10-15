@@ -233,76 +233,87 @@ BP can be nil if it's a single step breakpoint
 }
 var oldprotect,bw: dword;
 begin
-  if (bp<>nil) then
-  begin
-    if (bp.breakpointMethod=bpmInt3) then
+  try
+    if (bp<>nil) then
     begin
-      //bp is set and it's an int3 breakpoint
-      VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
-      WriteProcessMemory(processhandle, pointer(bp.address), @bp.originalbyte, 1, bw);
-      VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
-
-      if not bp.OneTimeOnly then //if it's not a one time only breakpoint then set it back on next instruction
+      if (bp.breakpointMethod=bpmInt3) then
       begin
-        context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
-        setInt3Back:=true;
-        Int3setbackAddress:=bp.address;
+        //bp is set and it's an int3 breakpoint
+        VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+        WriteProcessMemory(processhandle, pointer(bp.address), @bp.originalbyte, 1, bw);
+        VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
 
-      end;
-    end
-    else
-    begin
-{$ifdef cpu32}
-      //----XP HACK----
-      if (WindowsVersion=wvXP) then
-      begin
-        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
+        if not bp.OneTimeOnly then //if it's not a one time only breakpoint then set it back on next instruction
+        begin
+          context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+          setInt3Back:=true;
+          Int3setbackAddress:=bp.address;
 
-        setInt1Back:=true;
-        context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
-        Int1SetBackBP:=bp;
-      end;
-     {$endif}
-    end;
-
-
-
-    if (not singlestepping) and ((bp.ThreadID<>0) and (bp.threadid<>self.ThreadId)) then
-    begin
-      //not singlestepping and this breakpoint isn't set to break for this thread, so:
-
-
-      context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
-      exit; //and exit
-    end;
-  end;
-
-
-  case continueoption of
-    co_run:
-    begin
-      //just continue
-      singlestepping:=false;
-
-      if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
-      begin
-        //it's a debug register breakpoint or single step, we can continue by just setting the RF flag so it won't break on next execution
-        context.EFlags:=eflags_setRF(context.EFlags,1);
+        end;
       end
+      else
+      begin
+  {$ifdef cpu32}
+        //----XP HACK----
+        if (WindowsVersion=wvXP) then
+        begin
+          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
-    end;
+          setInt1Back:=true;
+          context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+          Int1SetBackBP:=bp;
+        end;
+       {$endif}
+      end;
 
-    co_stepinto:
-    begin
-      //single step
-      singlestepping:=true;
-      if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
+
+
+      if (not singlestepping) and ((bp.ThreadID<>0) and (bp.threadid<>self.ThreadId)) then
+      begin
+        //not singlestepping and this breakpoint isn't set to break for this thread, so:
+
         context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
 
-      context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag
+        exit; //and exit
+      end;
     end;
 
-    //the other event types are just setting of one time breakpoints
+
+    case continueoption of
+      co_run:
+      begin
+        //just continue
+        singlestepping:=false;
+
+        if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
+        begin
+          //it's a debug register breakpoint or single step, we can continue by just setting the RF flag so it won't break on next execution
+          context.EFlags:=eflags_setRF(context.EFlags,1);
+        end
+
+      end;
+
+      co_stepinto:
+      begin
+        //single step
+        singlestepping:=true;
+        if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
+          context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
+
+        context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag
+      end;
+
+      //the other event types are just setting of one time breakpoints
+
+    end;
+  finally
+    {$ifdef cpu32}
+    if setInt1Back then
+    begin
+      eflags_setTF(context.Eflags,1);
+      eflags_setRF(context.Eflags,0);
+    end;
+    {$endif}
 
   end;
 end;
@@ -476,7 +487,7 @@ begin
       bo_Break:
       begin
         //todo: check break conditions
-        HandleBreak(@bp); //cause break in memory browser at address
+        HandleBreak(bpp); //cause break in memory browser at address
       end;
 
       bo_BreakAndTrace:
@@ -505,7 +516,7 @@ begin
         ModifyRegisters(@bp);
 
         //and
-        continueFromBreakpoint(@bp, co_run); //just continue running
+        continueFromBreakpoint(bpp, co_run); //just continue running
       end;
 
       bo_FindCode:
@@ -525,7 +536,7 @@ begin
       bo_FindWhatCodeAccesses:
       begin
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bp.frmchangedaddresses.AddRecord);
-        continueFromBreakpoint(@bp, co_run); //just continue running
+        continueFromBreakpoint(bpp, co_run); //just continue running
       end;
 
 
