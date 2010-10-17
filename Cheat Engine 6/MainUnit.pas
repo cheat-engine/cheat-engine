@@ -170,6 +170,7 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miZeroTerminate: TMenuItem;
     miResetRange: TMenuItem;
     miChangeColor: TMenuItem;
     miGroupconfig: TMenuItem;
@@ -350,6 +351,7 @@ type
     procedure miCloseTabClick(Sender: TObject);
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
+    procedure miZeroTerminateClick(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
@@ -2003,6 +2005,9 @@ var
   oldprocessname: string;
   modulelist: TStringList;
 begin
+
+
+
   if not openprocessPrologue then
     exit;
 
@@ -2860,6 +2865,12 @@ begin
     addresslist.selectedRecord.allowIncrease:=true;
     addresslist.selectedRecord.active:=true;
   end;
+end;
+
+procedure TMainForm.miZeroTerminateClick(Sender: TObject);
+begin
+  if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtString) then
+    addresslist.selectedRecord.Extra.stringData.ZeroTerminate:=not addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
 end;
 
 procedure TMainForm.Panel5Resize(Sender: TObject);
@@ -4026,6 +4037,9 @@ begin
     if addresslist.MemRecItems[i].isSelected then
       inc(selectioncount);
 
+
+  miZeroTerminate.visible:=(selectedrecord<>nil) and (selectedrecord.VarType=vtString);
+  miZeroTerminate.Checked:=(miZeroTerminate.visible) and (selectedrecord.Extra.stringData.ZeroTerminate);
 
   DeleteThisRecord1.visible:=(addresslist.selectedRecord<>nil);
   Change1.visible:=(addresslist.selectedrecord<>nil) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
@@ -5267,6 +5281,8 @@ var x: TPluginfunctionType0;
     offsets: PDwordArray;
 
     a,b,c,d,e,f,g,h,j: dword;
+
+    t: TVariableType;
 begin
   if addresslist.selectedRecord=nil then exit;
 
@@ -5317,7 +5333,8 @@ begin
         addresslist.selectedRecord.interpretableaddress:=interpretableaddress;
 
         addresslist.selectedRecord.Description:=description;
-        byte(addresslist.selectedRecord.VarType):=selectedrecord.valuetype;
+        byte(t):=selectedrecord.valuetype;
+        addresslist.selectedRecord.VarType:=t;
 
         //load back and free memory
         freemem(offsets); //using my own var instead the user is lame enough to mess up the pointer

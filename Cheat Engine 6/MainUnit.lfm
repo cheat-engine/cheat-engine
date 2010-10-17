@@ -1381,6 +1381,12 @@ object MainForm: TMainForm
       GroupIndex = 2
       OnClick = Showashexadecimal1Click
     end
+    object miZeroTerminate: TMenuItem
+      Caption = 'Zero-Terminate string'
+      Checked = True
+      GroupIndex = 10
+      OnClick = miZeroTerminateClick
+    end
     object miChangeColor: TMenuItem
       Caption = 'Change Color'
       OnClick = miChangeColorClick

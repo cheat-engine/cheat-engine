@@ -630,7 +630,6 @@ begin
 
 
 
-          try EditNetworkUpdateInterval.Text:=IntToStr(reg.ReadInteger('Network Update Interval')); except end;
           try cbShowDebugoptions.checked:=reg.ReadBool('Show debugger options'); except end;
           try replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS'); except end;
           try askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS'); except end;

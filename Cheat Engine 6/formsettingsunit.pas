@@ -54,8 +54,6 @@ type
     Label12: TLabel;
     Label13: TLabel;
     Label14: TLabel;
-    Label16: TLabel;
-    Label17: TLabel;
     Label18: TLabel;
     Label19: TLabel;
     Label23: TLabel;
@@ -69,7 +67,6 @@ type
     cbShowAsSigned: TCheckBox;
     cbBinariesAsDecimal: TCheckBox;
     cbsimplecopypaste: TCheckBox;
-    EditNetworkUpdateInterval: TEdit;
     cbUpdatefoundList: TCheckBox;
     editUpdatefoundInterval: TEdit;
     cbHideAllWindows: TCheckBox;
@@ -332,9 +329,6 @@ begin
   val(editupdateinterval.text,updateinterval,error);
   if (error<>0) or (updateinterval<=0) then raise exception.Create(editupdateinterval.text+' is not a valid interval');
 
-  val(editnetworkupdateinterval.text,networkupdateinterval,error);
-  if (error<>0) or (networkupdateinterval<=0) then raise exception.Create(editnetworkupdateinterval.text+' is not a valid interval');
-
   val(editfreezeinterval.text,freezeinterval,error);
   if (error<>0) or (updateinterval<=0) then raise exception.Create(editfreezeinterval.text+' is not a valid interval');
 
@@ -376,6 +370,11 @@ begin
 
 
       reg.WriteBool('Show all windows on taskbar',cbShowallWindows.checked);
+      if cbShowallWindows.checked then
+        Application.TaskBarBehavior:=tbMultiButton
+      else
+        Application.TaskBarBehavior:=tbSingleButton;
+
 
       reg.WriteInteger('Buffersize',bufsize);
       reg.WriteBool('UseDebugRegs',rbDebugRegisters.checked);

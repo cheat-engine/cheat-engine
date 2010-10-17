@@ -19,6 +19,7 @@ type TMemrecOptions=set of TMemrecOption;
 type TMemrecStringData=record
   unicode: boolean;
   length: integer;
+  ZeroTerminate: boolean;
 end;
 
 type TMemRecBitData=record
@@ -70,6 +71,8 @@ type
     fCustomTypeName: string;
     fColor: TColor;
 
+    fVarType : TVariableType;
+
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
@@ -80,6 +83,7 @@ type
     procedure setOptions(newOptions: TMemrecOptions);
     procedure setCustomTypeName(name: string);
     procedure setColor(c: TColor);
+    procedure setVarType(v:  TVariableType);
   public
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
@@ -90,7 +94,7 @@ type
 
     pointeroffsets: array of dword; //if set this is an pointer
 
-    VarType : TVariableType;
+
 
     Extra: TMemRecExtraData;
     AutoAssemblerData: TMemRecAutoAssemblerData;
@@ -157,6 +161,8 @@ type
     property options: TMemrecOptions read fOptions write setOptions;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
     property Color: TColor read fColor write setColor;
+    property VarType: TVariableType read fVarType write setVarType;
+    property Value: string read GetValue write SetValue;
   end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
@@ -219,6 +225,19 @@ procedure TMemoryRecord.setCustomTypeName(name: string);
 begin
   fCustomTypeName:=name;
   RefreshCustomType;
+end;
+
+procedure TMemoryRecord.setVarType(v:  TVariableType);
+begin
+  case v of
+    vtString: //if setting to the type of string enable the zero terminate method by default
+      extra.stringData.ZeroTerminate:=true;
+
+  end;
+
+
+
+  fVarType:=v;
 end;
 
 procedure TMemoryRecord.setColor(c: TColor);
@@ -348,6 +367,10 @@ begin
         tempnode:=CheatEntry.FindNode('Unicode');
         if tempnode<>nil then
           extra.stringData.Unicode:=tempnode.TextContent='1';
+
+        tempnode:=CheatEntry.FindNode('ZeroTerminate');
+        if tempnode<>nil then
+          extra.stringdata.ZeroTerminate:=tempnode.TextContent='1';
       end;
 
       vtByteArray:
@@ -538,6 +561,8 @@ begin
       begin
         cheatEntry.AppendChild(doc.CreateElement('Length')).TextContent:=inttostr(extra.stringData.length);
         cheatEntry.AppendChild(doc.CreateElement('Unicode')).TextContent:=BoolToStr(extra.stringData.unicode,'1','0');
+        cheatEntry.AppendChild(doc.CreateElement('ZeroTerminate')).TextContent:=BoolToStr(extra.stringData.ZeroTerminate,'1','0');
+
       end;
 
       vtByteArray:
@@ -1148,19 +1173,36 @@ begin
 
       vtString:
       begin
-        bufsize:=min(length(frozenvalue),bufsize);
+        //x contains the max length in characters for the string
+        x:=bufsize;
+        if extra.stringData.unicode then
+          x:=bufsize div 2; //each character is 2 bytes so only half the size is available
 
-        for i:=1 to bufsize do
+        if Extra.stringData.ZeroTerminate then
+          x:=min(length(frozenvalue)+1,x) //also copy the zero terminator
+        else
+          x:=min(length(frozenvalue),x);
+
+        if extra.stringData.length<length(frozenvalue) then
+          extra.stringData.length:=length(frozenvalue);
+
+        //copy the string to the buffer
+        for i:=0 to x-1 do
         begin
           if extra.stringData.unicode then
           begin
-            wc[i-1]:=FrozenValue[i];
+            wc[i]:=pwidechar(FrozenValue)[i];
           end
           else
           begin
-            c[i-1]:=FrozenValue[i];
+            c[i]:=pchar(FrozenValue)[i];
           end;
         end;
+
+        if extra.stringData.unicode then
+          bufsize:=x*2 //two times the number of characters
+        else
+          bufsize:=x;
       end;
 
       vtByteArray:
