@@ -1174,6 +1174,14 @@ begin
       vtString:
       begin
         //x contains the max length in characters for the string
+        if extra.stringData.length<length(frozenvalue) then
+        begin
+          extra.stringData.length:=length(frozenvalue);
+          freemem(buf);
+          bufsize:=getbytesize;
+          getmem(buf, bufsize);
+        end;
+
         x:=bufsize;
         if extra.stringData.unicode then
           x:=bufsize div 2; //each character is 2 bytes so only half the size is available
@@ -1183,8 +1191,7 @@ begin
         else
           x:=min(length(frozenvalue),x);
 
-        if extra.stringData.length<length(frozenvalue) then
-          extra.stringData.length:=length(frozenvalue);
+
 
         //copy the string to the buffer
         for i:=0 to x-1 do
