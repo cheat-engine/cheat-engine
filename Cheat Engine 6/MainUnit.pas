@@ -2005,9 +2005,6 @@ var
   oldprocessname: string;
   modulelist: TStringList;
 begin
-
-
-
   if not openprocessPrologue then
     exit;
 

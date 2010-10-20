@@ -458,7 +458,9 @@ var original: dword;
 begin
   if btnOK.caption=strStop then
   begin
-    debuggerthread.CodeFinderStop(self);
+    if debuggerthread<>nil then
+      debuggerthread.CodeFinderStop(self);
+
     btnOK.caption:=strClose;
   end
   else close;

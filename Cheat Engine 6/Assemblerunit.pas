@@ -4785,6 +4785,19 @@ begin
       end;
     end;
 
+    if (opcodes[j].paramtype1=par_xmm_m128) and (isxmm_m128(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
+    begin
+      //xmm/m128,
+      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+      begin
+        //xmm/m128, xmm
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,getreg(parameter2),parameter1);
+        exit;
+      end;
+    end;
+
+
 
     if (opcodes[j].paramtype1=par_xmm) and (paramtype1=ttRegisterxmm) then
     begin
