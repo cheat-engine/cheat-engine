@@ -1,7 +1,7 @@
 object formAddressChange: TformAddressChange
-  Left = 1283
+  Left = 884
   Height = 115
-  Top = 412
+  Top = 351
   Width = 349
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -13,7 +13,7 @@ object formAddressChange: TformAddressChange
   OnActivate = FormActivate
   OnClose = FormClose
   OnWindowStateChange = FormWindowStateChange
-  Position = poOwnerFormCenter
+  Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
     Left = 10

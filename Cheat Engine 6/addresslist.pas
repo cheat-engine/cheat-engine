@@ -849,6 +849,7 @@ begin
 end;
 
 procedure TAddresslist.DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
+var t: integer;
 begin
   CurrentlyDraggedOverNode:=TreeView.GetNodeAt(x,y);
 
@@ -857,9 +858,11 @@ begin
 
   if (CurrentlyDraggedOverNode<>nil) and (TMemoryRecord(CurrentlyDraggedOverNode.data).isGroupHeader=false) then //if something focused AND not a groupheader
   begin
-    outputdebugstring(inttostr(y-(CurrentlyDraggedOverNode.top)));
-    CurrentlyDraggedOverBefore:=(y-CurrentlyDraggedOverNode.top)<(CurrentlyDraggedOverNode.height div 3); //it's before if the offset into the node is smaller than half the height - 2
-    CurrentlyDraggedOverAfter:=(y-CurrentlyDraggedOverNode.top)>(CurrentlyDraggedOverNode.height div 3)*2;
+    t:=GetScrollPos(treeview.handle, SB_VERT)+y;
+
+    outputdebugstring(inttostr(t-(CurrentlyDraggedOverNode.top)));
+    CurrentlyDraggedOverBefore:=(t-CurrentlyDraggedOverNode.top)<(CurrentlyDraggedOverNode.height div 3); //it's before if the offset into the node is smaller than half the height - 2
+    CurrentlyDraggedOverAfter:=(t-CurrentlyDraggedOverNode.top)>(CurrentlyDraggedOverNode.height div 3)*2;
   end; //groupheaders are always perfect targets
 
 

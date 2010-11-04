@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 534
+  Left = 644
   Height = 574
-  Top = 248
+  Top = 311
   Width = 869
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -1340,8 +1340,8 @@ object formSettings: TformSettings
   object OpenDialog2: TOpenDialog
     DefaultExt = '.exe'
     Filter = 'Application (*.exe)|*.exe'
-    left = 3
-    top = 441
+    left = 52
+    top = 352
   end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
     left = 8

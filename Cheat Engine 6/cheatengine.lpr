@@ -50,6 +50,10 @@ frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit;
 {$R cheatengine.res}
 {$R manifest.res}
 
+{$ifdef cpu32}
+{$SetPEFlags $20}
+{$endif}
+
 
 begin
   Application.Title:='Cheat Engine 6.0';

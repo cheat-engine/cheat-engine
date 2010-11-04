@@ -6413,7 +6413,7 @@ begin
               lastdisassembledata.parameterValueType:=dvtAddress;
             end;
 
-      $80 : begin
+      $80,$82 : begin
               case getreg(memory[1]) of
                 0:  begin
                       //add
