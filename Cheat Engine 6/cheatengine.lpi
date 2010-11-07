@@ -72,12 +72,12 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1999"/>
-        <CursorPos X="1" Y="2008"/>
+        <TopLine Value="4299"/>
+        <CursorPos X="45" Y="4319"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="2">
           <Item0 X="1" Y="1671" ID="2"/>
-          <Item1 X="31" Y="5471" ID="8"/>
+          <Item1 X="31" Y="5478" ID="8"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -574,8 +574,8 @@
         <UnitName Value="formAddressChangeUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="531"/>
-        <CursorPos X="3" Y="526"/>
+        <TopLine Value="549"/>
+        <CursorPos X="53" Y="549"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1443,11 +1443,10 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="848"/>
-        <CursorPos X="49" Y="861"/>
+        <TopLine Value="243"/>
+        <CursorPos X="31" Y="255"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1466,10 +1465,11 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1210"/>
-        <CursorPos X="23" Y="1219"/>
+        <TopLine Value="485"/>
+        <CursorPos X="34" Y="501"/>
         <UsageCount Value="215"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1749,7 +1749,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="3142"/>
         <CursorPos X="42" Y="3157"/>
-        <UsageCount Value="59"/>
+        <UsageCount Value="47"/>
       </Unit150>
       <Unit151>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
@@ -1757,7 +1757,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1303"/>
         <CursorPos X="15" Y="1320"/>
-        <UsageCount Value="31"/>
+        <UsageCount Value="19"/>
       </Unit151>
       <Unit152>
         <Filename Value="frmStackViewUnit.pas"/>
@@ -1776,7 +1776,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="122"/>
         <CursorPos X="10" Y="268"/>
-        <UsageCount Value="27"/>
+        <UsageCount Value="15"/>
       </Unit153>
       <Unit154>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
@@ -1784,7 +1784,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2149"/>
         <CursorPos X="14" Y="2166"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="18"/>
       </Unit154>
       <Unit155>
         <Filename Value="C:\lazarus\lcl\lmessages.pp"/>
@@ -1792,21 +1792,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="179"/>
         <CursorPos X="3" Y="196"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="13"/>
       </Unit155>
       <Unit156>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="764"/>
         <CursorPos X="15" Y="781"/>
-        <UsageCount Value="17"/>
+        <UsageCount Value="5"/>
       </Unit156>
       <Unit157>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\streams.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="133"/>
         <CursorPos X="8" Y="136"/>
-        <UsageCount Value="17"/>
+        <UsageCount Value="5"/>
       </Unit157>
       <Unit158>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-xml\src\xmlread.pp"/>
@@ -1814,7 +1814,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="27"/>
         <CursorPos X="11" Y="44"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="4"/>
       </Unit158>
       <Unit159>
         <Filename Value="C:\lazarus\lcl\forms.pp"/>
@@ -1836,127 +1836,119 @@
         <Loaded Value="True"/>
       </Unit160>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="41" Column="37" TopLine="13"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="861" Column="1" TopLine="848"/>
       </Position1>
       <Position2>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="58" Column="31" TopLine="41"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="864" Column="1" TopLine="848"/>
       </Position2>
       <Position3>
-        <Filename Value="disassembler.pas"/>
-        <Caret Line="6416" Column="14" TopLine="6396"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="861" Column="3" TopLine="848"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="345" Column="45" TopLine="324"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="863" Column="1" TopLine="848"/>
       </Position4>
       <Position5>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="858" Column="39" TopLine="851"/>
+        <Caret Line="865" Column="1" TopLine="848"/>
       </Position5>
       <Position6>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="853" Column="1" TopLine="847"/>
+        <Caret Line="863" Column="1" TopLine="848"/>
       </Position6>
       <Position7>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="856" Column="47" TopLine="847"/>
+        <Caret Line="865" Column="1" TopLine="848"/>
       </Position7>
       <Position8>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="901" Column="57" TopLine="889"/>
+        <Caret Line="866" Column="1" TopLine="848"/>
       </Position8>
       <Position9>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="863" Column="1" TopLine="848"/>
       </Position9>
       <Position10>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="761" Column="1" TopLine="730"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2005" Column="12" TopLine="1999"/>
       </Position10>
       <Position11>
-        <Filename Value="addresslist.pas"/>
+        <Filename Value="MainUnit.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position11>
       <Position12>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="854" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4124" Column="20" TopLine="4110"/>
       </Position12>
       <Position13>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="856" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3977" Column="26" TopLine="3968"/>
       </Position13>
       <Position14>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="857" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3972" Column="1" TopLine="3966"/>
       </Position14>
       <Position15>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="859" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3973" Column="1" TopLine="3966"/>
       </Position15>
       <Position16>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="861" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3974" Column="1" TopLine="3966"/>
       </Position16>
       <Position17>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="859" Column="19" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3977" Column="5" TopLine="3966"/>
       </Position17>
       <Position18>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="854" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3507" Column="19" TopLine="3498"/>
       </Position18>
       <Position19>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="856" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position19>
       <Position20>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="857" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2873" Column="10" TopLine="2861"/>
       </Position20>
       <Position21>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="859" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2866" Column="93" TopLine="2861"/>
       </Position21>
       <Position22>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="861" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3910" Column="12" TopLine="3894"/>
       </Position22>
       <Position23>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="864" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4350" Column="5" TopLine="4348"/>
       </Position23>
       <Position24>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="861" Column="3" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4333" Column="25" TopLine="4322"/>
       </Position24>
       <Position25>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="863" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4339" Column="14" TopLine="4322"/>
       </Position25>
       <Position26>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="865" Column="1" TopLine="848"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4319" Column="45" TopLine="4299"/>
       </Position26>
       <Position27>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="863" Column="1" TopLine="848"/>
+        <Caret Line="63" Column="14" TopLine="47"/>
       </Position27>
       <Position28>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="865" Column="1" TopLine="848"/>
+        <Caret Line="255" Column="31" TopLine="243"/>
       </Position28>
-      <Position29>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="866" Column="1" TopLine="848"/>
-      </Position29>
-      <Position30>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="863" Column="1" TopLine="848"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -2015,7 +2007,7 @@
       </Item2>
       <Item3>
         <Source Value="MemoryRecordUnit.pas"/>
-        <Line Value="1177"/>
+        <Line Value="1201"/>
       </Item3>
     </BreakPoints>
     <Watches Count="2">

@@ -115,6 +115,7 @@ type
     //free for editing by user:
     autoAssembleWindow: TForm; //window storage for an auto assembler editor window
 
+    function hasSelectedParent: boolean;
 
     function isBeingEdited: boolean;
     function showAsSigned: boolean;
@@ -484,6 +485,23 @@ begin
 
 end;
 
+function TMemoryRecord.hasSelectedParent: boolean;
+var tn: TTreenode;
+  m: TMemoryRecord;
+begin
+  //if this node has a direct parent that is selected it returns true, else it will ask the parent if that one has a selected parent etc... untill there is no more parent, or one is selected
+  result:=false;
+  tn:=treenode.Parent;
+  if tn<>nil then
+  begin
+    m:=TMemoryRecord(tn.data);
+    if m.isSelected then
+      result:=true
+    else
+      result:=m.hasSelectedParent;
+  end;
+end;
+
 procedure TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean);
 var
   doc: TDOMDocument;
@@ -497,7 +515,13 @@ var
   i,j: integer;
   a:TDOMAttr;
 begin
-  if selectedonly and (not isselected) then exit; //don't add if not selected and only the selected items should be added
+  if selectedonly then
+  begin
+    if (not isselected) then exit; //don't add if not selected and only the selected items should be added
+
+    //it is selected, check if it has a parent that is selected, if not, continue, else exit
+    if hasSelectedParent then exit;
+  end;
 
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');

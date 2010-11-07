@@ -3907,6 +3907,8 @@ begin
   if decbitvis then
     HexadecimalCheckbox.visible:=false;
 
+  panel5.OnResize(panel5); //lazarus, force the scantext left
+
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
@@ -3969,8 +3971,13 @@ procedure TMainForm.Selectallitems1Click(Sender: TObject);
 var
   i: integer;
 begin
-  for i := 0 to foundlist3.Items.Count - 1 do
-    foundlist3.items[i].Selected := True;
+  foundlist3.BeginUpdate;
+  try
+    for i := 0 to foundlist3.Items.Count - 1 do
+      foundlist3.items[i].Selected := True;
+  finally
+    foundlist3.EndUpdate;
+  end;
 
 end;
 

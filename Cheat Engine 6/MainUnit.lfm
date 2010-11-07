@@ -1531,6 +1531,7 @@ object MainForm: TMainForm
     end
     object Selectallitems1: TMenuItem
       Caption = 'Select all items'
+      ShortCut = 16449
       OnClick = Selectallitems1Click
     end
   end

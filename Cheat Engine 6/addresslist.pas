@@ -246,12 +246,18 @@ end;
 
 procedure TAddresslist.saveTableXMLToNode(CheatEntries: TDOMNode; selectedOnly: boolean=false);
 var tn: TTreenode;
+p: TTreenode;
+m: TMemoryRecord;
 begin
   tn:=treeview.Items.GetFirstNode;
   while tn<>nil do
   begin
     TMemoryRecord(tn.data).getXMLNode(CheatEntries,selectedonly);
-    tn:=tn.GetNextSibling;
+
+    if selectedonly then //go through all entries, not just the main
+      tn:=tn.GetNext
+    else
+      tn:=tn.GetNextSibling;
   end;
 end;
 
@@ -414,14 +420,19 @@ begin
               if replace_find<>'' then
                 memrec.Description:=stringreplace(memrec.Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
 
-              if memrec.interpretableaddress<>'' then //always true
+              if changeoffset<>0 then
               begin
-                try
-                  x:=symhandler.getAddressFromName(memrec.interpretableaddress);
-                  x:=x+changeoffset;
-                  memrec.interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
-                except
-                  memrec.interpretableaddress:=inttohex(memrec.getBaseAddress+changeoffset,8);
+                if memrec.interpretableaddress<>'' then //always true
+                begin
+                  try
+                    x:=symhandler.getAddressFromName(memrec.interpretableaddress);
+                    x:=x+changeoffset;
+                    memrec.interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+                  except
+                    memrec.interpretableaddress:=inttohex(memrec.getBaseAddress+changeoffset,8);
+                  end;
+
+                  memrec.ReinterpretAddress;
                 end;
               end;
             end;
