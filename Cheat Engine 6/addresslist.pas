@@ -1072,7 +1072,7 @@ begin
 
     if memrec.isSelected then
     begin
-      sender.canvas.pen.color:=InvertColor(clWindowText);
+      sender.canvas.pen.color:=clWindowtext; //InvertColor(clWindowText);
       sender.Canvas.Font.Color:=InvertColor(memrec.Color)
     end
     else
@@ -1083,6 +1083,7 @@ begin
 
 
 
+    //draw checkbox
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
     checkbox.Right:=checkbox.left+(linerect.bottom-linerect.top)-2; //(header.Sections[0].Width div 2)+((linerect.bottom-linerect.top) div 2)-1;
     checkbox.Top:=linerect.top+1;
