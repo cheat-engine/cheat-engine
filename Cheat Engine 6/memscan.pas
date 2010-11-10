@@ -2077,6 +2077,9 @@ var FloatSettings: TFormatSettings;
     p: pointer;
     td: double;
 begin
+  OutputDebugString('configurescanroutine');
+  foundbuffersize:=0;
+
   //fill FloatSettings with formatting data (e.g difference between , and . for decimal)
   //GetLocaleFormatSettings(GetThreadLocale, FloatSettings);
   FloatSettings:=DefaultFormatSettings;
@@ -2483,6 +2486,8 @@ begin
 
     vtString:
     begin
+      FoundBufferSize:=0;
+
       //check if unicode or casesensitive is used
       if not casesensitive then
       begin
@@ -2565,6 +2570,8 @@ begin
 
   getmem(CurrentFoundBuffer,FoundBufferSize);
   getmem(SecondaryFoundBuffer,FoundBufferSize);
+
+  OutputDebugString('configurescanroutine: Normal exit');
 end;
 
 procedure TScanner.nextNextscan;
