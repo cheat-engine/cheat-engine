@@ -1,7 +1,7 @@
 object frmServiceDescriptorTables: TfrmServiceDescriptorTables
-  Left = 471
+  Left = 455
   Height = 343
-  Top = 237
+  Top = 227
   Width = 469
   Caption = 'Service Descriptor Table'
   ClientHeight = 323
