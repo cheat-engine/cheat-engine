@@ -53,9 +53,12 @@ function DBKDebug_SetDebuggerState(state: PDebuggerstate): boolean; stdcall;
 function DBKDebug_SetGlobalDebugState(state: BOOL): BOOL; stdcall;
 function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 function DBKDebug_StopDebugging:BOOL; stdcall;
-function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
+function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
+
 
 implementation
+
+
 
 function internal_hookints(parameters: pointer): BOOL; stdcall;
 var cc,br: dword;
@@ -121,12 +124,12 @@ begin
   foreachcpu(internal_touchdebugregister,nil);
 end;
 
-function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
+function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
 var
   input: record
     active: BOOL;
     debugregspot: integer;
-    address: DWORD;
+    address: QWORD;
     breaktype: DWORD;
     breakLength: DWORD;
   end;

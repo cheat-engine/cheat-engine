@@ -337,7 +337,7 @@ type TDBKDebug_SetDebuggerState=function(state: PDebuggerstate): boolean; stdcal
 type TDBKDebug_SetGlobalDebugState=function(state: BOOL): BOOL; stdcall;
 type TDBKDebug_StartDebugging=function(processid:dword):BOOL; stdcall;
 type TDBKDebug_StopDebugging=function:BOOL; stdcall;
-type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: dword; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
+type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
 
 //-----------------------------------DBVM-------------------------------------//
 type Tdbvm_version=function: dword; stdcall;
@@ -528,6 +528,8 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler; //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+
+
 
 
 function Is64bitOS: boolean;

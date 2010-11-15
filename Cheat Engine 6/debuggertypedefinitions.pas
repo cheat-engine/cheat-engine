@@ -5,7 +5,7 @@ unit debuggertypedefinitions;
 interface
 
 uses
-  Classes, SysUtils, Windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit;
+  Classes, SysUtils, Windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit, NewKernelHandler;
 
 type
   TNewProcedureData = record
@@ -201,9 +201,39 @@ function breakpointTriggerToString(bpt: TBreakpointTrigger): string;
 function breakpointMethodToString(bpm: TBreakpointMethod): string;
 function breakpointActionToString(bpa: TBreakpointAction): string;
 
+//kernel debug
+function SizeToBreakLength(size: integer): TBreakLength;
+function BreakPointTriggerToBreakType(bpt: TBreakpointTrigger): TBreakType;
+
+
 var int3byte: byte = $cc;
 
 implementation
+
+
+function SizeToBreakLength(size: integer): TBreakLength;
+begin
+  case size of
+    1: result:=bl_1byte;
+    2: result:=bl_2byte;
+    4: result:=bl_4byte;
+    8: result:=bl_8byte;
+    else
+       result:=bl_1byte;
+  end;
+end;
+
+function BreakPointTriggerToBreakType(bpt: TBreakpointTrigger): TBreakType;
+begin
+  case bpt of
+    bptExecute: result:=bt_OnInstruction;
+    bptAccess: result:=bt_OnReadsAndWrites;
+    bptWrite: result:=bt_OnWrites;
+    else
+       result:=bt_OnInstruction;
+  end;
+end;
+
 
 function breakpointTriggerToString(bpt: TBreakpointTrigger): string;
 begin

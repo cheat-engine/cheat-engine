@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,CEFuncProc,ExtCtrls, Menus, NewKernelHandler, clipbrd;
+  Dialogs, StdCtrls,disassembler,ExtCtrls, Menus, NewKernelHandler, clipbrd;
 
 type Tcoderecord = class
   public
@@ -82,7 +82,7 @@ var
 
 implementation
 
-uses CEDebugger,debughelper, debugeventhandler,
+uses CEFuncProc, CEDebugger,debughelper, debugeventhandler,
      MemoryBrowserFormUnit,
      {$ifdef net}unit2,ceclient,{$else}MainUnit,kerneldebugger,{$endif}
      AdvancedOptionsUnit ,formFoundcodeListExtraUnit,MainUnit2;

@@ -33,6 +33,7 @@ type
     filename: string;
 
     fcurrentThread: TDebugThreadHandler;
+    globalDebug: boolean; //kernelmode debugger only
     procedure cleanupDeletedBreakpoints;
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
     {$ifdef cpu64}
@@ -471,20 +472,27 @@ begin
     begin
       //update all threads with the new debug register data
 
-      for i := 0 to ThreadList.Count - 1 do
+      if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
       begin
-        currentthread := threadlist.items[i];
-        currentthread.suspend;
-        currentthread.fillContext;
-        case breakpoint.debugregister of
-          0: currentthread.context.Dr0 := breakpoint.address;
-          1: currentthread.context.Dr1 := breakpoint.address;
-          2: currentthread.context.Dr2 := breakpoint.address;
-          3: currentthread.context.Dr3 := breakpoint.address;
+        DBKDebug_GD_SetBreakpoint(true, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
+      end
+      else
+      begin
+        for i := 0 to ThreadList.Count - 1 do
+        begin
+          currentthread := threadlist.items[i];
+          currentthread.suspend;
+          currentthread.fillContext;
+          case breakpoint.debugregister of
+            0: currentthread.context.Dr0 := breakpoint.address;
+            1: currentthread.context.Dr1 := breakpoint.address;
+            2: currentthread.context.Dr2 := breakpoint.address;
+            3: currentthread.context.Dr3 := breakpoint.address;
+          end;
+          currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
+          currentthread.setContext;
+          currentthread.resume;
         end;
-        currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
-        currentthread.setContext;
-        currentthread.resume;
       end;
     end;
 
@@ -541,20 +549,28 @@ begin
     else
     begin
       //do all threads
-      for i := 0 to ThreadList.Count - 1 do
+      if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
       begin
-        currentthread := threadlist.items[i];
-        currentthread.suspend;
-        currentthread.fillContext;
-        case breakpoint.debugregister of
-          0: currentthread.context.Dr0 := 0;
-          1: currentthread.context.Dr1 := 0;
-          2: currentthread.context.Dr2 := 0;
-          3: currentthread.context.Dr3 := 0;
+        DBKDebug_GD_SetBreakpoint(false, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
+      end
+      else
+      begin
+        for i := 0 to ThreadList.Count - 1 do
+        begin
+          currentthread := threadlist.items[i];
+          currentthread.suspend;
+          currentthread.fillContext;
+          case breakpoint.debugregister of
+            0: currentthread.context.Dr0 := 0;
+            1: currentthread.context.Dr1 := 0;
+            2: currentthread.context.Dr2 := 0;
+            3: currentthread.context.Dr3 := 0;
+          end;
+          currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+          currentthread.setcontext;
+          currentthread.resume;
         end;
-        currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-        currentthread.setcontext;
-        currentthread.resume;
+
       end;
     end;
 
@@ -1273,7 +1289,10 @@ begin
   else if formsettings.cbUseVEHDebugger.checked then
     CurrentDebuggerInterface:=TVEHDebugInterface.create
   else if formsettings.cbKDebug.checked then
-    CurrentDebuggerInterface:=TKernelDebugInterface.create;
+  begin
+    globalDebug:=formsettings.cbGlobalDebug.checked;
+    CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug);
+  end;
 
   //prevent the user from changing this setting till next restart
   formsettings.cbUseWindowsDebugger.enabled:=false;

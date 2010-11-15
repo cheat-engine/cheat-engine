@@ -795,26 +795,30 @@ procedure TMemoryRecord.DoHotkey(i: integer);
 begin
   if i<length(Hotkeys) then
   begin
-    case hotkeys[i].action of
-      mrhToggleActivation: active:=not active;
-      mrhSetValue:         SetValue(hotkeys[i].value);
-      mrhIncreaseValue:    increaseValue(hotkeys[i].value);
-      mrhDecreaseValue:    decreaseValue(hotkeys[i].value);
+    try
+      case hotkeys[i].action of
+        mrhToggleActivation: active:=not active;
+        mrhSetValue:         SetValue(hotkeys[i].value);
+        mrhIncreaseValue:    increaseValue(hotkeys[i].value);
+        mrhDecreaseValue:    decreaseValue(hotkeys[i].value);
 
 
-      mrhToggleActivationAllowDecrease:
-      begin
-        allowDecrease:=True;
-        active:=true;
+        mrhToggleActivationAllowDecrease:
+        begin
+          allowDecrease:=True;
+          active:=true;
+        end;
+
+        mrhToggleActivationAllowIncrease:
+        begin
+          allowIncrease:=True;
+          active:=true;
+        end;
+
+
       end;
-
-      mrhToggleActivationAllowIncrease:
-      begin
-        allowIncrease:=True;
-        active:=true;
-      end;
-
-
+    except
+      //don't complain about incorrect values
     end;
   end;
 end;

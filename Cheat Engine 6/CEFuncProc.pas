@@ -26,7 +26,7 @@ firstscanhandler,
 {$endif}
 {$endif}
 {$endif}
-math,syncobjs, shellapi, ProcessHandlerUnit, controls;
+ math,syncobjs, shellapi, ProcessHandlerUnit, controls;
 
 
 
@@ -163,6 +163,7 @@ function MaxX(a, b: ptrUint): ptrUint;inline; overload;
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
 
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
+
 
 
 procedure errorbeep;
@@ -3140,6 +3141,7 @@ begin
   end;
 
 end;
+
 
 initialization
   getmem(tempdir,256);

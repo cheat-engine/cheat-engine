@@ -52,7 +52,7 @@ type
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
 
     destructor destroy; override;
-    constructor create;
+    constructor create(globalDebug: boolean);
   end;
 
 implementation
@@ -169,6 +169,7 @@ begin
     raise exception.Create('You can''t currently use the kernel debugger');
 
   outputdebugstring('Using the kernelmode debugger');
+
   result:=DBKDebug_StartDebugging(dwProcessId);
 
   if result then
@@ -250,6 +251,7 @@ begin
     currentdebuggerstate.fs:=lpContext.SegFs;
     currentdebuggerstate.gs:=lpContext.SegGs;
     currentdebuggerstate.eflags:=lpContext.EFlags;
+
     currentdebuggerstate.dr0:=lpContext.Dr0;
     currentdebuggerstate.dr1:=lpContext.Dr1;
     currentdebuggerstate.dr2:=lpContext.Dr2;
@@ -257,12 +259,19 @@ begin
     currentdebuggerstate.dr6:=lpContext.Dr6;
     currentdebuggerstate.dr7:=lpContext.Dr7;
 
+
+
+
+
     {$ifdef cpu64}
+
     CopyMemory(@currentdebuggerstate.fxstate, @lpContext.FltSave, 512);
     {$else}
     CopyMemory(@currentdebuggerstate.fxstate, @lpContext.ext, sizeof(lpContext.ext));
     {$endif}
-  end else result:=newkernelhandler.SetThreadContext(hthread, lpContext);
+  end else
+    result:=newkernelhandler.SetThreadContext(hthread, lpContext);
+
 end;
 
 function TKernelDebugInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL;
@@ -400,9 +409,11 @@ begin
   inherited destroy;
 end;
 
-constructor TKernelDebugInterface.create;
+constructor TKernelDebugInterface.create(globalDebug: boolean);
 begin
   inherited create;
+
+  DBKDebug_SetGlobalDebugState(globalDebug);
   injectedEvents:=TQueue.Create;
 
   fDebuggerCapabilities:=[dbcHardwareBreakpoint];

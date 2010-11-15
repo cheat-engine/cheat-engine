@@ -152,8 +152,6 @@ type
     procedure Button2Click(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
-    procedure cbUseWindowsDebuggerClick(Sender: TObject);
-    procedure checkThreadClick(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -171,7 +169,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure cbKernelQueryMemoryRegionClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure cbKdebugClick(Sender: TObject);
     procedure cbProcessWatcherClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
@@ -711,18 +708,15 @@ begin
     pcDebugConfig.ActivePageIndex:=1
   else
   if cbKDebug.checked then
+  begin
     pcDebugConfig.ActivePageIndex:=2;
-end;
+    cbGlobalDebug.enabled:=true;
+  end;
 
-procedure TformSettings.cbUseWindowsDebuggerClick(Sender: TObject);
-begin
-
-end;
-
-procedure TformSettings.checkThreadClick(Sender: TObject);
-begin
 
 end;
+
+
 
 procedure TformSettings.EditBufSizeKeyPress(Sender: TObject;
   var Key: Char);
@@ -1021,30 +1015,6 @@ begin
 
 end;
 
-procedure TformSettings.cbKdebugClick(Sender: TObject);
-begin
-  if (cbkdebug.checked) or (cbKernelQueryMemoryRegion.Checked) or (cbKernelReadWriteProcessMemory.Checked) then
-  begin
-    cbKernelOpenProcess.Checked:=true;
-    cbKernelOpenProcess.Enabled:=false;
-    cbGlobalDebug.enabled:=true;
-  end
-  else
-  begin
-    cbKernelOpenProcess.Enabled:=true;
-    cbGlobalDebug.enabled:=false;
-  end;
-
-  if cbkdebug.Checked then
-  begin
-    cbKernelOpenProcess.enabled:=false;
-    cbKernelOpenProcess.Checked:=true;
-    cbProcessWatcher.Enabled:=false;
-    cbProcesswatcher.Checked:=true;
-
-    cbProcessWatcherClick(cbProcessWatcher);
-  end else cbprocesswatcher.enableD:=true;
-end;
 
 procedure TformSettings.cbProcessWatcherClick(Sender: TObject);
 var

@@ -61,9 +61,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = Plugins
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 4
+      TabIndex = 7
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -995,9 +995,9 @@ object formSettings: TformSettings
             Height = 135
             Top = 0
             Width = 412
-            ActivePage = tsVEHDebugConfig
+            ActivePage = tsKernelDebugConfig
             Align = alClient
-            TabIndex = 0
+            TabIndex = 2
             TabOrder = 0
             object tsVEHDebugConfig: TTabSheet
               Caption = 'VEH Debugger'
@@ -1045,13 +1045,13 @@ object formSettings: TformSettings
             end
             object tsKernelDebugConfig: TTabSheet
               Caption = 'Kernel Debug'
-              ClientHeight = 106
+              ClientHeight = 109
               ClientWidth = 404
               object cbGlobalDebug: TCheckBox
                 Left = 4
-                Height = 17
-                Top = 19
-                Width = 145
+                Height = 19
+                Top = 5
+                Width = 147
                 Caption = 'Use Global Debug routines'
                 Enabled = False
                 TabOrder = 0
