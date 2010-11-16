@@ -1139,13 +1139,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					BOOL active;
 					int debugregspot;
-					DWORD address;
+					UINT64 address;
 					DWORD breakType;
 					DWORD breakLength;
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
 				
 				DbgPrint("sizeof(struct input)=%d\n",sizeof(struct input));
-				DbgPrint("breakType=%d breakLength=%d\n",inp->breakType,inp->breakLength);
+				//DbgPrint("address=%llx breakType=%d breakLength=%d\n",inp->address, inp->breakType,inp->breakLength);
 				ntStatus=debugger_setGDBreakpoint(inp->debugregspot, inp->address, (BreakType)inp->breakType, (BreakLength)inp->breakLength);
 				break;
 			}

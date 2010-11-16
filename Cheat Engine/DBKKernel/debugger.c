@@ -504,7 +504,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	
 	
 	
-	DbgPrint("breakpointHandler for kernel breakpoints\n");
+	//DbgPrint("breakpointHandler for kernel breakpoints\n");
 
 #ifdef AMD64
 	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",getCS(), getSS(), getDS(), getES(), getFS(), getGS());
@@ -982,10 +982,10 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				else
 				{
 					
-					if (getDR7() != oldDR7)
+					/*if (getDR7() != oldDR7)
 					{
 						DbgPrint("Something changed DR7. old=%llx new=%llx\n",oldDR7, getDR7());
-					}
+					}*/
 
 					
 					//set the debugregisters to what they where set to before taskswitching was enable
@@ -1048,14 +1048,14 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	int handled=0; //if 0 at return, the interupt will be passed down to the operating system
 	int i;
 
-	DbgPrint("interrupt1_centry cpunr=%d esp=%x\n",cpunr(), getRSP());
+	//DbgPrint("interrupt1_centry cpunr=%d esp=%x\n",cpunr(), getRSP());
 
 	before=getRSP();
 
-	for (i=-12; i<7; i++)
+/*	for (i=-12; i<7; i++)
 	{	
 		DbgPrint("stackpointer %d=%x\n",i, stackpointer[i]);
-	}
+	}*/
 
 	
 #ifdef AMD64
