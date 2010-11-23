@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
-  newkernelhandler, autoassembler;
+  newkernelhandler, autoassembler, Graphics, controls;
 
 var
   LuaVM: Plua_State;
@@ -18,6 +18,8 @@ procedure LUA_SetCurrentContextState(context: PContext);
 procedure InitializeLuaScripts;
 
 implementation
+
+uses pluginexports;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -199,6 +201,22 @@ begin
 end;
 
 
+function showMessage_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  s: pchar;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  s:=lua_tostring(L, -1);
+  MessageBox(0, s,'LUA',mb_ok);
+
+
+  lua_pop(L, paramcount);
+  result:=0;
+end;
+
 function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
 var paramcount: integer;
   addresstoread: ptruint;
@@ -311,20 +329,582 @@ begin
   result:=1;
 end;
 
-function showMessage_fromlua(L: PLua_State): integer; cdecl;
+function getPixel_fromlua(L: PLua_State): integer; cdecl;
+var t:TCanvas;
+  paramcount: integer;
+  r: dword;
+  x,y: integer;
+begin
+  result:=0; //return 0 paramaters
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    x:=lua_tointeger(L, -2); //x
+    y:=lua_tointeger(L, -1); //y
+    lua_pop(L, 2);
+
+    try
+      t:=TCanvas.create;
+      try
+        t.Handle:=getdc(0);
+        r:=t.Pixels[x,y];
+
+        lua_pushinteger(L,r); //push the color on the stack
+        result:=1; //tell lue I put 1 parameter on the stack
+
+        ReleaseDC(0,t.handle);
+      finally
+        t.free;
+      end;
+    except
+    end;
+  end else lua_pop(L, paramcount);
+end;
+
+function getMousePos_fromlua(L: PLua_State): integer; cdecl;
+var t:TCanvas;
+  paramcount: integer;
+  cp: Tpoint;
+begin
+  result:=0; //return 0 parameters
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then
+  begin
+    cp:=mouse.CursorPos;
+    lua_pushinteger(L, cp.x);
+    lua_pushinteger(L, cp.y);
+    result:=2;   //return 2 parameters
+  end else lua_pop(L, paramcount);
+end;
+
+function setMousePos_fromlua(L: PLua_State): integer; cdecl;
+var t:TCanvas;
+  paramcount: integer;
+  cp: Tpoint;
+begin
+  result:=0; //return 0 parameters
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cp.x:=lua_tointeger(L, -2); //x
+    cp.y:=lua_tointeger(L, -1); //y
+    lua_pop(L, 2);
+
+    mouse.CursorPos:=cp;
+  end else lua_pop(L, paramcount);
+end;
+
+function createTableEntry_fromlua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  r: pointer;
+begin
+  lua_pop(L, lua_gettop(L)); //clear the stack
+
+  r:=ce_createTableEntry;
+  lua_pushlightuserdata(L, r);
+  result:=1;
+end;
+
+function getTableEntry_fromlua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  description: pchar;
+  r: pointer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    description:=lua_tostring(L,-1); //description
+
+    lua_pop(L, paramcount);  //clear stack
+
+    r:=ce_getTableEntry(description);
+    if r<>nil then
+    begin
+      lua_pushlightuserdata(L,r); //return the pointer
+      result:=1;
+    end;
+  end else lua_pop(L, paramcount);
+end;
+
+function memrec_setDescription_fromlua(L: PLUA_State): integer; cdecl;
 var
   paramcount: integer;
-  s: pchar;
+  description: pchar;
+  memrec: pointer;
 begin
+  result:=0;
   paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  if paramcount=2 then
+  begin
+    memrec:=lua_touserdata(L,-2); //memrec
+    description:=lua_tostring(L,-1); //description
 
-  s:=lua_tostring(L, -1);
-  MessageBox(0, s,'LUA',mb_ok);
+    lua_pop(L, paramcount);  //clear stack
+
+    ce_memrec_setDescription(memrec, description);
+  end;
+
+  lua_pop(L, paramcount);  //clear stack
+
+end;
+
+function memrec_getDescription_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  d: pchar;
+  memrec: pointer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L,-1);
+    d:=ce_memrec_getDescription(memrec);
+    if d<>nil then
+    begin
+      lua_pushstring(L, d);
+      result:=1;
+    end;
+  end else lua_pop(L, paramcount);
+end;
+
+function memrec_getAddress_fromlua(L: PLua_state): integer; cdecl;
+var
+  paramcount: integer;
+  memrec: pointer;
+  address: ptruint;
+  offsets: array of dword;
+  offsetcount: integer;
+  i: integer;
+begin
+  result:=0;
+  offsetcount:=0;
+  setlength(offsets,0);
+
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    if ce_memrec_getAddress(memrec, @address, nil, 0, @offsetcount) then
+    begin
+      if offsetcount>0 then
+      begin
+        setlength(offsets,offsetcount);
+        ce_memrec_getAddress(memrec, @address, @offsets[0], length(offsets), @offsetcount);
+      end;
+
+
+      lua_pushinteger(L,address);
+
+      for i:=0 to offsetcount-1 do
+        lua_pushinteger(L, offsets[i]);
+
+      result:=1+offsetcount;
+
+
+    end;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memrec_setAddress_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+  address: pchar;
+  offsets: array of dword;
+  i,j: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=2 then
+  begin
+    memrec:=lua_touserdata(L, (-paramcount));
+    address:=lua_tostring(L, (-paramcount)+1);
+
+    setlength(offsets,paramcount-2);
+    j:=0;
+    for i:=(-paramcount)+2 to -1 do
+    begin
+      offsets[j]:=lua_tointeger(L, i);
+      inc(j);
+    end;
+
+    lua_pop(L, paramcount);
+
+    ce_memrec_setAddress(memrec, address, @offsets[0], length(offsets))
+  end else
+    lua_pop(L, paramcount);
+end;
+
+function memrec_getType_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L, (-paramcount));
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, ce_memrec_getType(memrec));
+    result:=1;
+
+  end;
+end;
+
+function memrec_setType_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  vtype: integer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memrec:=lua_touserdata(L, -2);
+    vtype:=lua_tointeger(L, -1);
+    lua_pop(L, paramcount);
+
+    ce_memrec_setType(memrec, vtype);
+  end
+  else
+    lua_pop(L, paramcount);
+
+end;
+
+function memrec_getValue_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+
+  v: pchar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L, (-paramcount));
+    lua_pop(L, paramcount);
+
+
+    getmem(v,255);
+    try
+      if ce_memrec_getValue(memrec, v, 255) then
+      begin
+        lua_pushstring(L, v);
+        result:=1;
+      end;
+
+    finally
+      freemem(v);
+    end;
+  end;
+end;
+
+
+function memrec_setValue_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+
+  v: pchar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memrec:=lua_touserdata(L, -2);
+    v:=lua_tostring(L, -1);
+
+
+    ce_memrec_setValue(memrec, v);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function memrec_getScript_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+
+  v: pchar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L, -1);
+    v:=ce_memrec_getScript(memrec);
+    lua_pop(L, paramcount);
+
+    if v<>nil then
+    begin
+      lua_pushstring(L, v);
+      result:=1;
+    end;
+
+  end else lua_pop(L, paramcount);
+
+
+end;
+
+
+function memrec_setScript_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+
+  v: pchar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memrec:=lua_touserdata(L, -2);
+    v:=lua_tostring(L, -1);
+
+    ce_memrec_setScript(memrec, v);
+  end;
 
 
   lua_pop(L, paramcount);
+end;
+
+
+function memrec_freeze_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+  direction: integer;
+begin
   result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+  begin
+    memrec:=lua_touserdata(L, -paramcount);
+
+
+    if paramcount=2 then
+      direction:=lua_tointeger(L, -1)
+    else
+      direction:=0;
+
+    ce_memrec_freeze(memrec, direction);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memrec_unfreeze_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+  direction: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L, -paramcount);
+    ce_memrec_unfreeze(memrec);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memrec_setColor_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+  color: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memrec:=lua_touserdata(L,-2);
+    color:=lua_tointeger(L,-1);
+    ce_memrec_setColor(memrec,color);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memrec_appendToEntry_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec1,memrec2: pointer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memrec1:=lua_touserdata(L,-2);
+    memrec2:=lua_touserdata(L,-1);
+    ce_memrec_appendtoentry(memrec1,memrec2);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memrec_delete_fromlua(L: PLua_State): integer; cdecl;
+var
+  memrec: pointer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L,-2);
+    ce_memrec_delete(memrec);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function isKeyPressed_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  keyinput: pchar;
+  key: integer;
+  w: word;
+  r: boolean;
+begin
+  result:=0;
+  r:=false;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L,-1) then  //char given isntead of keycode
+    begin
+      keyinput:=lua_tostring(L,-1);
+      if keyinput<>nil then
+        key:=ord(keyinput[0]);
+    end
+    else
+
+    if lua_isnumber(L,-1) then //keycode
+      key:=lua_tointeger(L,-1);
+
+    lua_pop(L, paramcount); //parameters have been fetched, clear stack
+
+    if key<>0 then
+    begin
+      w:=GetAsyncKeyState(key);
+      r:=(w and 1)=1;
+
+      if not r then
+        r:=((w shr 15) and 1)=1;
+
+      lua_pushboolean(L, r);
+      result:=1;
+    end;
+
+  end else lua_pop(L, paramcount);
+
+end;
+
+
+function keyDown_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  keyinput: pchar;
+  key: integer;
+  w: word;
+  r: boolean;
+begin
+  result:=0;
+  r:=false;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L,-1) then  //char given isntead of keycode
+    begin
+      keyinput:=lua_tostring(L,-1);
+      if keyinput<>nil then
+        key:=ord(uppercase(keyinput[0]));
+    end
+    else
+    if lua_isnumber(L,-1) then //keycode
+      key:=lua_tointeger(L,-1);
+
+
+    if key<>0 then
+      keybd_event(key, 0,0,0);
+
+  end;
+  lua_pop(L, paramcount);
+end;
+
+
+function keyUp_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  keyinput: pchar;
+  key: integer;
+  w: word;
+  r: boolean;
+begin
+  result:=0;
+  r:=false;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L,-1) then  //char given isntead of keycode
+    begin
+      keyinput:=lua_tostring(L,-1);
+      if keyinput<>nil then
+        key:=ord(uppercase(keyinput[0]));
+    end
+    else
+    if lua_isnumber(L,-1) then //keycode
+      key:=lua_tointeger(L,-1);
+
+
+    if key<>0 then
+      keybd_event(key, 0,KEYEVENTF_KEYUP,0);
+
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function doKeyPress_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  keyinput: pchar;
+  key: integer;
+  w: word;
+  r: boolean;
+begin
+  result:=0;
+  r:=false;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L,-1) then  //char given isntead of keycode
+    begin
+      keyinput:=lua_tostring(L,-1);
+      if keyinput<>nil then
+        key:=ord(uppercase(keyinput[0]));
+    end
+    else
+    if lua_isnumber(L,-1) then //keycode
+      key:=lua_tointeger(L,-1);
+
+
+    if key<>0 then
+    begin
+      keybd_event(key, 0, 0, 0);
+      sleep(110);
+      keybd_event(key, 0, KEYEVENTF_KEYUP, 0);
+    end;
+
+  end;
+  lua_pop(L, paramcount);
 end;
 
 
@@ -344,6 +924,29 @@ initialization
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
     lua_register(LuaVM, 'autoAssemble', autoAssemble_fromlua);
     lua_register(LuaVM, 'showMessage', showMessage_fromlua);
+    lua_register(LuaVM, 'getPixel', getPixel_fromlua);
+    lua_register(LuaVM, 'getMousePos', getMousePos_fromlua);
+    lua_register(LuaVM, 'setMousePos', setMousePos_fromlua);
+    lua_register(LuaVM, 'createTableEntry', createTableEntry_fromlua);
+    lua_register(LuaVM, 'getTableEntry', getTableEntry_fromlua);
+    lua_register(LuaVM, 'memrec_setDescription', memrec_setDescription_fromlua);
+    lua_register(LuaVM, 'memrec_getDescription', memrec_getDescription_fromlua);
+    lua_register(LuaVM, 'memrec_getAddress', memrec_getAddress_fromlua);
+    lua_register(LuaVM, 'memrec_getType', memrec_getType_fromlua);
+    lua_register(LuaVM, 'memrec_setType', memrec_setType_fromlua);
+    lua_register(LuaVM, 'memrec_getValue', memrec_getValue_fromlua);
+    lua_register(LuaVM, 'memrec_setValue', memrec_setValue_fromlua);
+    lua_register(LuaVM, 'memrec_getScript', memrec_getScript_fromlua);
+    lua_register(LuaVM, 'memrec_freeze', memrec_freeze_fromlua);
+    lua_register(LuaVM, 'memrec_setColor', memrec_setColor_fromlua);
+    lua_register(LuaVM, 'memrec_appendToEntry', memrec_appendToEntry_fromlua);
+    lua_register(LuaVM, 'memrec_delete', memrec_delete_fromlua);
+    lua_register(LuaVM, 'isKeyPressed', isKeyPressed_fromlua);
+    lua_register(LuaVM, 'keyDown', keyDown_fromLua);
+    lua_register(LuaVM, 'keyUp', keyUp_fromLua);
+    lua_register(LuaVM, 'doKeyPress', doKeyPress_fromLua);
+
+
 
   end;
 

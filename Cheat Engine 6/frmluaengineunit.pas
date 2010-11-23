@@ -67,7 +67,14 @@ begin
           if pc<>nil then
             mOutput.lines.add(':'+pc)
           else
-            moutput.lines.add(':'+'nil');
+          begin
+            if lua_islightuserdata(luavm,i) then
+            begin
+              moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1));
+
+            end else moutput.lines.add(':'+'nil');
+
+          end;
         end;
 
         lua_pop(luavm, lua_gettop(luavm)); //balance the stack

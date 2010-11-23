@@ -28,6 +28,7 @@ type
 
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
+    micbShowAsHexadecimal: TMenuItem;
     Panel1: TPanel;
     OKButton: TButton;
     Changedlist: TListView;
@@ -36,6 +37,7 @@ type
     PopupMenu1: TPopupMenu;
     Showregisterstates1: TMenuItem;
     Browsethismemoryregion1: TMenuItem;
+    procedure micbShowAsHexadecimalClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -136,6 +138,11 @@ begin
 
 end;
 
+procedure TfrmChangedAddresses.micbShowAsHexadecimalClick(Sender: TObject);
+begin
+  refetchvalues;
+end;
+
 procedure TfrmChangedAddresses.FormClose(Sender: TObject;
   var Action: TCloseAction);
 var temp:dword;
@@ -177,23 +184,26 @@ end;
 procedure TfrmChangedAddresses.refetchValues;
 var i: integer;
     s: string;
+    handled: boolean;
 begin
   if changedlist.Items.Count>0 then
   begin
     for i:=0 to changedlist.Items.Count-1 do
     begin
       case cbDisplayType.ItemIndex of
-        0: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtByte);
-        1: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtWord);
-        2: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDWord);
-        3: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtSingle);
-        4: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDouble);
+        0: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtByte,  nil, micbShowAsHexadecimal.checked);
+        1: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtWord,  nil, micbShowAsHexadecimal.checked);
+        2: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDWord, nil, micbShowAsHexadecimal.checked);
+        3: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtSingle,nil, micbShowAsHexadecimal.checked);
+        4: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDouble,nil, micbShowAsHexadecimal.checked);
         else
         begin
           //custom type
-          s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]));
+          s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
         end;
       end;
+
+
 
       if Changedlist.Items[i].SubItems.Count=0 then
         Changedlist.Items[i].SubItems.Add('');

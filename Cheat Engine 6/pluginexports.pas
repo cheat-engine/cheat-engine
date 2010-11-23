@@ -4,8 +4,12 @@ unit pluginexports;
 
 interface
 
-uses jwawindows, windows, StdCtrls,sysutils,Controls, SyncObjs,dialogs,LCLIntf,classes,autoassembler,
-     CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger,{tlhelp32,} plugin, math, debugHelper, debuggertypedefinitions;
+uses jwawindows, windows, comctrls, Graphics, StdCtrls,sysutils,Controls, SyncObjs,dialogs,LCLIntf,classes,autoassembler,
+     CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
+     debugHelper, debuggertypedefinitions;
+
+type TPluginFunc=function(parameters: pointer): pointer;
+function pluginsync(func: TPluginFunc; parameters: pointer): pointer;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
@@ -30,21 +34,33 @@ function ce_unfreezemem(id: integer):BOOL; stdcall;
 function ce_sym_addressToName(address:ptrUint; name: pchar; maxnamesize: integer):BOOL; stdcall;
 function ce_sym_nameToAddress(name: pchar; address: PDWORD):BOOL; stdcall;
 function ce_generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress, script: pchar; maxscriptsize: integer): BOOL; stdcall;
-  {
-function addresslist_getcount: integer; stdcall;
-function addresslist_additem(newitem: PPlugin0_SelectedRecord): BOOL; stdcall;
-function addresslist_getitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
-function addresslist_setitem(itemnr: integer; item:PPlugin0_SelectedRecord): BOOL; stdcall;
-       }
+
 
 function ce_loadModule(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
-
+function ce_createTableEntry: pointer; stdcall;
+function ce_getTableEntry(description: pchar): pointer; stdcall;
+function ce_memrec_setDescription(memrec: pointer; description: pchar): BOOL; stdcall;
+function ce_memrec_getDescription(memrec: pointer): pchar; stdcall;
+function ce_memrec_getAddress(memrec: pointer; address: pptruint; offsets: PDwordArray; maxoffsets: integer; neededOffsets: pinteger): BOOL; stdcall;
+function ce_memrec_setAddress(memrec: pointer; address: pchar; offsets: PDwordArray; offsetcount: integer): BOOL; stdcall;
+function ce_memrec_getType(memrec: pointer): integer; stdcall;
+function ce_memrec_setType(memrec: pointer; vtype: integer): BOOL; stdcall;
+function ce_memrec_getValue(memrec: pointer; value: pchar; maxsize: integer): BOOL; stdcall;
+function ce_memrec_setValue(memrec: pointer; value: pchar): BOOL; stdcall;
+function ce_memrec_getScript(memrec: pointer): pchar; stdcall;
+function ce_memrec_setScript(memrec: pointer; script: pchar): BOOL; stdcall;
+function ce_memrec_freeze(memrec: pointer; direction: integer): BOOL; stdcall;
+function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
+function ce_memrec_setColor(memrec: pointer; color: TColor): BOOL; stdcall;
+function ce_memrec_appendtoentry(memrec1: pointer; memrec2: pointer): BOOL; stdcall;
+function ce_memrec_delete(memrec: pointer): BOOL; stdcall;
 
 
 implementation
 
 uses MainUnit,MainUnit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
-     formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader;
+     formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
+     MemoryRecordUnit;
 
 var plugindisassembler: TDisassembler;
 
@@ -584,6 +600,470 @@ begin
   except
   end;
 end;
+
+function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;
+{
+Pluginsync calls the required function from the mainthread and returns a pointer.
+This pointer can be an allocated block of data, or just a result, depending on the function (boolean might be stored as 0 or 1)
+}
+begin
+  result:=pointer(SendMessage(mainform.handle, wm_pluginsync, ptruint(@func), ptruint(parameters) ));
+end;
+
+function ce_createTableEntry2(parameters: pointer): pointer;
+begin
+  result:=MainForm.addresslist.addaddress('Plugin Address', '0',[],0,vtDword);
+end;
+
+function ce_createTableEntry: pointer; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_createTableEntry2(nil)
+  else
+    result:=pluginsync(ce_createTableEntry2, nil);
+end;
+
+function ce_getTableEntry2(description: pointer): pointer;
+begin
+  result:=mainform.addresslist.findRecordWithDescription(pchar(description));
+end;
+
+function ce_getTableEntry(description: pchar): pointer; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_getTableEntry2(description)
+  else
+    result:=pluginsync(ce_getTableEntry2, description);
+end;
+
+type
+  TSetDescription=record
+    memrec: tmemoryrecord;
+    description: pchar;
+  end;
+  PSetDescription=^TSetDescription;
+
+function ce_memrec_setDescription2(params: pointer): pointer;
+var
+  memrec: TMemoryRecord;
+begin
+  result:=nil;
+  memrec:=PSetDescription(params).memrec;
+
+  try
+    if (memrec is TMemoryRecord) then
+    begin
+      memrec.Description:=PSetDescription(params).description;
+      memrec.refresh;
+    end;
+
+    result:=pointer(1);
+  except
+  end;
+end;
+
+function ce_memrec_setDescription(memrec: pointer; description: pchar): BOOL; stdcall;
+var d: TsetDescription;
+begin
+  d.memrec:=memrec;
+  d.description:=description;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_setDescription2(@d)<>nil
+  else
+    result:=pluginsync(ce_memrec_setDescription2, @d)<>nil;
+end;
+
+function ce_memrec_getDescription(memrec: pointer): pchar; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=nil;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+      result:=pchar(m.Description);
+  except
+  end;
+
+end;
+
+function ce_memrec_getAddress(memrec: pointer; address: pptruint; offsets: PDwordArray; maxoffsets: integer; neededOffsets: pinteger): BOOL; stdcall;
+var m: TMemoryRecord;
+  i: integer;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+    begin
+
+      if neededoffsets<>nil then
+        neededOffsets^:=length(m.pointeroffsets);
+
+      if offsets<>nil then
+        for i:=0 to maxoffsets-1 do
+          offsets[i]:=m.pointeroffsets[i];
+
+      if address<>nil then
+        address^:=m.GetRealAddress;
+
+      result:=true;
+    end;
+  except
+  end;
+end;
+
+type
+  TSetAddress=record
+    memrec: tmemoryrecord;
+    address: pchar;
+    offsets: pdwordarray;
+    offsetcount: integer;
+  end;
+  PSetAddress=^TSetAddress;
+
+function ce_memrec_setAddress2(params: pointer): pointer;
+var p: PSetAddress;
+  i: integer;
+begin
+  result:=nil;
+  try
+    p:=params;
+    if (p.memrec is TMemoryRecord) then
+    begin
+      setlength(p.memrec.pointeroffsets, p.offsetcount);
+
+      p.memrec.interpretableaddress:=p.address;
+      for i:=0 to p.offsetcount-1 do
+        p.memrec.pointeroffsets[i]:=p.offsets[i];
+
+      result:=pointer(1);
+
+      p.memrec.ReinterpretAddress;
+      p.memrec.refresh;
+    end;
+  except
+  end;
+end;
+
+function ce_memrec_setAddress(memrec: pointer; address: pchar; offsets: PDwordArray; offsetcount: integer): BOOL; stdcall;
+var
+  a: TSetAddress;
+begin
+  result:=false;
+  a.memrec:=memrec;
+  a.address:=address;
+  a.offsets:=offsets;
+  a.offsetcount:=offsetcount;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_setAddress2(@a)<>nil
+  else
+    result:=pluginsync(ce_memrec_setAddress2, @a)<>nil;
+end;
+
+function ce_memrec_getType(memrec: pointer): integer; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=-1;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+      result:=integer(m.VarType);
+  except
+  end;
+end;
+
+type
+  TSetType=record
+    memrec: TMemoryRecord;
+    vtype: integer;
+  end;
+  PSetType=^TSetType;
+
+function ce_memrec_setType2(params: pointer): pointer;
+var p: PSetType;
+begin
+  result:=nil;
+  p:=params;
+  try
+    if p.memrec is TMemoryRecord then
+    begin
+      p.memrec.VarType:=Tvariabletype(p.vtype);
+      p.memrec.refresh;
+
+      result:=pointer(1); //still here
+    end;
+  except
+  end;
+end;
+
+function ce_memrec_setType(memrec: pointer; vtype: integer): BOOL; stdcall;
+var p: TSetType;
+begin
+  result:=false;
+  p.memrec:=memrec;
+  p.vtype:=vtype;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_setType2(@p)<>nil
+  else
+    result:=pluginsync(ce_memrec_setType2, @p)<>nil;
+end;
+
+function ce_memrec_getValue(memrec: pointer; value: pchar; maxsize: integer): BOOL; stdcall;
+var m: TMemoryRecord;
+  v: string;
+  i: integer;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+    begin
+      v:=m.Value;
+
+      for i:=0 to min(length(v) , maxsize-1) do
+        value[i]:=v[i+1];
+
+      if maxsize>0 then
+        value[maxsize-1]:=#0;
+
+      if maxsize>length(v) then
+        value[length(v)]:=#0;
+
+      result:=true;
+    end;
+
+    result:=true;
+  except
+  end;
+end;
+
+function ce_memrec_setValue(memrec: pointer; value: pchar): BOOL; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+    begin
+      m.Value:=value;
+      result:=true;
+    end;
+  except
+  end;
+
+end;
+
+
+function ce_memrec_getScript(memrec: pointer): pchar; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=nil;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+    begin
+      if m.VarType=vtAutoAssembler then
+        result:=pchar(m.AutoAssemblerData.script.text);
+    end;
+  except
+  end;
+end;
+
+function ce_memrec_setScript(memrec: pointer; script: pchar): BOOL; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+    begin
+      if m.VarType=vtAutoAssembler then
+      begin
+        m.AutoAssemblerData.script.text:=script;
+        result:=true;
+      end;
+
+    end;
+  except
+  end;
+end;
+
+
+type
+  TFreezeparams=record
+    memrec: TMemoryRecord;
+    direction: integer;
+  end;
+  PFreezeParams=^Tfreezeparams;
+
+function ce_memrec_freeze2(params: pointer): pointer;
+var m: TMemoryRecord;
+  p: PFreezeParams;
+begin
+  p:=params;
+
+
+  result:=nil;
+  try
+    m:=p.memrec;
+    if (m is TMemoryRecord) then
+    begin
+      m.active:=true;
+
+      m.allowIncrease:=p.direction=1;
+      m.allowDecrease:=p.direction=2;
+      result:=pointer(1);
+
+      m.refresh;
+    end;
+
+  except
+  end;
+end;
+
+function ce_memrec_freeze(memrec: pointer; direction: integer): BOOL; stdcall;
+var p: TFreezeparams;
+begin
+  p.memrec:=memrec;
+  p.direction:=direction;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_freeze2(@p)<>nil
+  else
+    result:=pluginsync(ce_memrec_freeze2, @p)<>nil;
+
+end;
+
+function ce_memrec_unfreeze2(params: pointer): pointer;
+var m: TMemoryRecord;
+begin
+  result:=nil;
+  try
+    m:=params;
+    if (m is TMemoryRecord) then
+    begin
+      m.active:=false;
+      m.refresh;
+      result:=pointer(1);
+    end;
+
+  except
+  end;
+end;
+
+function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_unfreeze2(memrec)<>nil
+  else
+    result:=pluginsync(ce_memrec_unfreeze2, memrec)<>nil;
+end;
+
+
+type
+  TSetColorparams=record
+    memrec: TMemoryRecord;
+    color: TColor;
+  end;
+  PSetColorparams=^TSetColorparams;
+
+function ce_memrec_setColor2(params: pointer): pointer;
+var m: TMemoryRecord;
+  p: PSetColorparams;
+begin
+  p:=params;
+
+
+  result:=nil;
+  try
+    m:=p.memrec;
+    if (m is TMemoryRecord) then
+    begin
+      m.Color:=p.color;
+      m.refresh;
+      result:=pointer(1);
+    end;
+
+  except
+  end;
+end;
+
+function ce_memrec_setColor(memrec: pointer; color: TColor): BOOL; stdcall;
+var p: TSetColorparams;
+begin
+  p.memrec:=memrec;
+  p.color:=color;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_setColor2(@p)<>nil
+  else
+    result:=pluginsync(ce_memrec_setColor2, @p)<>nil;
+
+end;
+
+
+
+type
+  TAppendParams=record
+    memrec1: TMemoryRecord;
+    memrec2: TMemoryRecord;
+  end;
+  PAppendParams=^TAppendParams;
+
+function ce_memrec_appendToEntry2(params: pointer): pointer;
+var m1,m2: TMemoryRecord;
+  p: PAppendParams;
+begin
+  p:=params;
+
+
+  result:=nil;
+  try
+    m1:=p.memrec1;
+    m2:=p.memrec2;
+    if (m1 is TMemoryRecord) and (m2 is TMemoryRecord) then
+    begin
+      m1.treenode.MoveTo(m2.treenode, naAddChild);
+      result:=pointer(1);
+    end;
+
+  except
+  end;
+end;
+
+function ce_memrec_appendToEntry(memrec1: pointer; memrec2: pointer): BOOL; stdcall;
+var p: TAppendParams;
+begin
+  p.memrec1:=memrec1;
+  p.memrec2:=memrec2;
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_appendToEntry2(@p)<>nil
+  else
+    result:=pluginsync(ce_memrec_appendToEntry2, @p)<>nil;
+
+end;
+
+
+
+
+function ce_memrec_delete2(params: pointer): pointer;
+var m: TMemoryRecord;
+begin
+  result:=nil;
+  try
+    m:=params;
+    if (m is TMemoryRecord) then
+      m.Free;
+  except
+  end;
+end;
+
+function ce_memrec_delete(memrec: pointer): BOOL; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_memrec_delete2(memrec)<>nil
+  else
+    result:=pluginsync(ce_memrec_delete2, memrec)<>nil;
+end;
+
 
 initialization
   plugindisassembler:=TDisassembler.create;

@@ -1,5 +1,8 @@
 --This lua script gets loaded when Cheat Engine loads
 --You can use this to define some often used functions and libraries you'd like to use
+
+require("defines")
+
 --
 --List of CE specific functions:
 --readBytes(address,bytecount) : Reads the bytes at the given address and returns it
@@ -8,3 +11,38 @@
 --writeBytesLocal(address, x,x,x,x) : See writeBytes but then it's for Cheat Engine's memory
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
+
+--getPixel(x,y) : returns the rgb value of the pixel at the specific screen coordinate
+--getMousePos: returns the x,y coordinates of the mouse
+--setMousePos(x,y): sets the mouse position
+
+--isKeyPressed(key) : returns true if the specified key is currently pressed
+--keyDown(key) : causes the key to go into down state
+--keyUp(key) :causes the key to go up
+--doKeyPress(key) : simmulates a key press
+
+
+
+--Cheat table functions:
+--createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+--getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+--memrec_setDescription(te, description): sets the specified description for this entry
+--memrec_getDescription(te): gets the current description of this entry
+--memrec_getAddress(te): returns the address and optional offsets for a pointer
+--memrec_setAddress(te,address,offsets OPTIONAL)
+--memrec_getType(te)
+--memrec_setType(te, vartype)
+--memrec_getValue(te): returns the current value of the cheat table entry as a string
+--memrec_setValue(te, value): sets the value of a cheat table entry
+--memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
+--memrec_setScript(te, script)
+--memrec_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
+--memrec_unfreeze(te) :unfreezes an entry
+--memrec_setColor(te, colorrgb): Sets the color of the entry
+--memrec_appendToEntry(te,te) : Adds the entry to another entry
+--memrec_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
+
+
+
+
+

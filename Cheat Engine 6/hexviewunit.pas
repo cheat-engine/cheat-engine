@@ -850,7 +850,7 @@ begin
     scLineUp:   address:=address-bytesPerLine;
     scLineDown: address:=address+bytesPerLine;
     scPageDown: address:=address+bytesPerLine*(totallines-1);
-    scPageUp:   address:=address+bytesPerLine*(totallines-1);
+    scPageUp:   address:=address-bytesPerLine*(totallines-1);
     sctrack:
     begin
       delta:=scrollpos-50;

@@ -29,6 +29,7 @@ const
 
 const
   wm_scandone = WM_USER + 2;
+  wm_pluginsync = WM_USER + 3;
 
 //scantabs
 type
@@ -517,6 +518,7 @@ type
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
     procedure ScanDone(var message: TMessage); message WM_SCANDONE;
+    procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure Edit;
     procedure paste(simplecopypaste: boolean);
     procedure CopySelectedRecords;
@@ -644,13 +646,8 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , HotKeys{, standaloneunit}, aboutunit,  formScanningUnit,  formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit, FoundCodeUnit, advancedoptionsunit,
   frmProcessWatcherUnit,formPointerOrPointeeUnit,OpenSave, formmemoryregionsunit, formProcessInfo
-  , frmautoinjectunit,PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit{,
-  , ,
-  formMemoryTrainerUnit, MemoryTrainerDesignUnit, ,
-  ,,
-  ,
-  , , ,
-  , frmGDTunit, frmFunctionlistUnit, };
+  , frmautoinjectunit,PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
+  pluginexports;
 
 var
   ncol: TColor;
@@ -1183,6 +1180,19 @@ begin
 
 
 end;
+
+
+procedure TMainform.PluginSync(var m: TMessage);
+var func: TPluginFunc;
+  params: pointer;
+begin
+  func:=pointer(m.wparam);
+  params:=pointer(m.lparam);
+
+
+  m.result:=ptruint(func(params));
+end;
+
 //----------------------------------
 
 function TMainform.getSelectedVariableType: TVariableType;
@@ -1223,7 +1233,7 @@ end;
 
 function TMainform.getFastscan: boolean;
 begin
-  Result := cbFastscan.Checked;
+  Result := cbFastscan.enabled and cbFastscan.Checked;
 end;
 
 procedure TMainform.setFastScan(state: boolean);
@@ -3540,8 +3550,9 @@ begin
 
   //alignsize
   case newvartype of
-    1: alignsize:=1;
+    0,1,7,8,9: alignsize:=1;
     2: alignsize:=2;
+
     else alignsize:=4;
   end;
 
@@ -4875,9 +4886,18 @@ begin
 end;
 
 procedure TMainForm.Showashexadecimal1Click(Sender: TObject);
+var
+  i: integer;
+  newstate: boolean;
 begin
   if addresslist.selectedRecord<>nil then
-    addresslist.selectedRecord.showAsHex:=not addresslist.selectedRecord.showAsHex;
+  begin
+    newstate:=not addresslist.selectedRecord.showAsHex;
+
+    for i:=0 to addresslist.Count-1 do
+      if addresslist[i].isSelected then
+        addresslist[i].showAsHex:=newstate;
+  end;
 end;
 
 procedure TMainForm.OpenMemorybrowser1Click(Sender: TObject);
@@ -5532,7 +5552,7 @@ var
   svalue2: string;
   percentage: boolean;
 begin
-
+  Mouse.CursorPos;
 
   foundlist.Deinitialize; //unlock file handles
 

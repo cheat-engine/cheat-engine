@@ -8,11 +8,11 @@ uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, Custo
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false): string;
 
 implementation
 
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil): string;
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false): string;
 var buf: array [0..7] of byte;
     buf2: pbytearray;
     x: dword;
@@ -23,31 +23,46 @@ begin
     vtByte:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
-        result:=inttostr(buf[0]);
+        if showashexadecimal then
+          result:=inttohex(buf[0],2)
+        else
+          result:=inttostr(buf[0]);
     end;
 
     vtWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
-        result:=inttostr(pword(@buf[0])^);
+        if showashexadecimal then
+          result:=inttohex(pword(@buf[0])^,4)
+        else
+          result:=inttostr(pword(@buf[0])^);
     end;
 
     vtDWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=inttostr(pdword(@buf[0])^);
+        if showashexadecimal then
+          result:=inttohex(pdword(@buf[0])^,8)
+        else
+          result:=inttostr(pdword(@buf[0])^);
     end;
 
     vtSingle:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        result:=floattostr(psingle(@buf[0])^);
+        if showashexadecimal then
+          result:=inttohex(pdword(@buf[0])^,8)
+        else
+          result:=floattostr(psingle(@buf[0])^);
     end;
 
     vtDouble:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        result:=floattostr(pdouble(@buf[0])^);
+        if showashexadecimal then
+          result:=inttohex(pqword(@buf[0])^,16)
+        else
+          result:=floattostr(pdouble(@buf[0])^);
     end;
 
     vtCustom:
@@ -59,7 +74,10 @@ begin
           if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
           begin
             try
-              result:=IntToStr(customtype.ConvertDataToInteger(buf2));
+              if showashexadecimal then
+                result:=inttohex(customtype.ConvertDataToInteger(buf2),8)
+              else
+                result:=IntToStr(customtype.ConvertDataToInteger(buf2));
             except //no need to flood the user with meaningless error messages
             end;
           end;

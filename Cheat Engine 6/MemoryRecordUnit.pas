@@ -957,8 +957,15 @@ end;
 
 procedure TMemoryRecord.ApplyFreeze;
 begin
+  //debug
+
   if (not isgroupheader) and active and (VarType<>vtAutoAssembler) then
-    setValue(frozenValue);
+  begin
+    try
+      setValue(frozenValue);
+    except
+    end;
+  end;
 end;
 
 function TMemoryRecord.getAddressString: string;
@@ -1112,8 +1119,12 @@ var
   temps: string;
 
   mr: TMemoryRecord;
+
+  unparsedvalue: string;
 begin
   //check if it is a '(description)' notation
+  unparsedvalue:=v;
+
   if vartype<>vtString then
   begin
     v:=trim(v);
@@ -1150,7 +1161,21 @@ begin
   realAddress:=GetRealAddress; //quick update
 
   currentValue:=v;
-  frozenValue:=currentValue;
+
+  if fShowAsHex then
+  begin
+    currentvalue:=trim(currentValue);
+    if length(currentvalue)>1 then
+    begin
+      if currentvalue[1]='-' then
+      begin
+        currentvalue:='-$'+copy(currentvalue,2,length(currentvalue));
+      end
+      else
+        currentvalue:='$'+currentvalue;
+    end;
+  end;
+
 
   bufsize:=getbytesize;
 
@@ -1168,19 +1193,19 @@ begin
       if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
 
     case VarType of
-      vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(FrozenValue), pdw);
-      vtByte: pb^:=strtoint(FrozenValue);
-      vtWord: pw^:=strtoint(FrozenValue);
-      vtDword: pdw^:=strtoint(FrozenValue);
-      vtQword: pqw^:=strtoint64(FrozenValue);
-      vtSingle: ps^:=StrToFloat(FrozenValue);
-      vtDouble: pd^:=StrToFloat(FrozenValue);
+      vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
+      vtByte: pb^:=strtoint(currentValue);
+      vtWord: pw^:=strtoint(currentValue);
+      vtDword: pdw^:=strtoint(currentValue);
+      vtQword: pqw^:=strtoint64(currentValue);
+      vtSingle: ps^:=StrToFloat(currentValue);
+      vtDouble: pd^:=StrToFloat(currentValue);
       vtBinary:
       begin
         if not Extra.bitData.showasbinary then
-          temps:=FrozenValue
+          temps:=currentValue
         else
-          temps:=IntToStr(BinToInt(FrozenValue));
+          temps:=IntToStr(BinToInt(currentValue));
 
         temp:=StrToInt64(temps);
         temp:=temp shl extra.bitData.Bit;
@@ -1202,9 +1227,9 @@ begin
       vtString:
       begin
         //x contains the max length in characters for the string
-        if extra.stringData.length<length(frozenvalue) then
+        if extra.stringData.length<length(currentValue) then
         begin
-          extra.stringData.length:=length(frozenvalue);
+          extra.stringData.length:=length(currentValue);
           freemem(buf);
           bufsize:=getbytesize;
           getmem(buf, bufsize);
@@ -1215,9 +1240,9 @@ begin
           x:=bufsize div 2; //each character is 2 bytes so only half the size is available
 
         if Extra.stringData.ZeroTerminate then
-          x:=min(length(frozenvalue)+1,x) //also copy the zero terminator
+          x:=min(length(currentValue)+1,x) //also copy the zero terminator
         else
-          x:=min(length(frozenvalue),x);
+          x:=min(length(currentValue),x);
 
 
 
@@ -1226,11 +1251,11 @@ begin
         begin
           if extra.stringData.unicode then
           begin
-            wc[i]:=pwidechar(FrozenValue)[i];
+            wc[i]:=pwidechar(currentValue)[i];
           end
           else
           begin
-            c[i]:=pchar(FrozenValue)[i];
+            c[i]:=pchar(currentValue)[i];
           end;
         end;
 
@@ -1242,7 +1267,7 @@ begin
 
       vtByteArray:
       begin
-        ConvertStringToBytes(FrozenValue, showAsHex, bts);
+        ConvertStringToBytes(currentValue, showAsHex, bts);
         if length(bts)>bufsize then
         begin
           //the user wants to input more bytes than it should have
@@ -1270,7 +1295,7 @@ begin
 
   freemem(buf);
 
-
+  frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
 end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;
