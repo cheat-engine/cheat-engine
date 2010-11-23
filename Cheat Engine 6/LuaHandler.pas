@@ -828,7 +828,7 @@ begin
     begin
       keyinput:=lua_tostring(L,-1);
       if keyinput<>nil then
-        key:=ord(uppercase(keyinput[0]));
+        key:=ord(keyinput[0]);
     end
     else
     if lua_isnumber(L,-1) then //keycode
@@ -859,7 +859,7 @@ begin
     begin
       keyinput:=lua_tostring(L,-1);
       if keyinput<>nil then
-        key:=ord(uppercase(keyinput[0]));
+        key:=ord(keyinput[0]);
     end
     else
     if lua_isnumber(L,-1) then //keycode
@@ -889,7 +889,7 @@ begin
     begin
       keyinput:=lua_tostring(L,-1);
       if keyinput<>nil then
-        key:=ord(uppercase(keyinput[0]));
+        key:=ord(keyinput[0]);
     end
     else
     if lua_isnumber(L,-1) then //keycode

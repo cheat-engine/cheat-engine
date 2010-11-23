@@ -120,6 +120,25 @@ type TExportedFunctions4 = record
   loadModule        : pointer;
   aa_AddExtraCommand: pointer;
   aa_RemoveExtraCommand: pointer;
+
+  //version 4 extension
+  createTableEntry: pointer;
+  getTableEntry: pointer;
+  memrec_setDescription: pointer;
+  memrec_getDescription: pointer ;
+  memrec_getAddress: pointer;
+  memrec_setAddress: pointer;
+  memrec_getType: pointer;
+  memrec_setType: pointer;
+  memrec_getValue: pointer;
+  memrec_setValue: pointer;
+  memrec_getScript: pointer;
+  memrec_setScript: pointer;
+  memrec_freeze: pointer;
+  memrec_unfreeze: pointer;
+  memrec_setColor: pointer;
+  memrec_appendtoentry: pointer;
+  memrec_delete: pointer;
 end;
 type PExportedFunctions4 = ^TExportedFunctions4;
 
@@ -228,6 +247,10 @@ type TExportedFunctions3 = record
   loadModule        : pointer;
   aa_AddExtraCommand: pointer;
   aa_RemoveExtraCommand: pointer;
+
+
+
+
 end;
 type PExportedFunctions3 = ^TExportedFunctions3;
 
@@ -1452,6 +1475,23 @@ begin
   exportedfunctions.aa_RemoveExtraCommand:=@aa_RemoveExtraCommand;
 
   //version 4 init
+  exportedfunctions.createTableEntry:=@ce_createTableEntry;
+  exportedfunctions.getTableEntry:=@ce_getTableEntry;
+  exportedfunctions.memrec_setDescription:=@ce_memrec_setDescription;
+  exportedfunctions.memrec_getDescription:=@ce_memrec_getDescription;
+  exportedfunctions.memrec_getAddress:=@ce_memrec_getAddress;
+  exportedfunctions.memrec_setAddress:=@ce_memrec_setAddress;
+  exportedfunctions.memrec_getType:=@ce_memrec_getType;
+  exportedfunctions.memrec_setType:=@ce_memrec_setType;
+  exportedfunctions.memrec_getValue:=@ce_memrec_getValue;
+  exportedfunctions.memrec_setValue:=@ce_memrec_setValue;
+  exportedfunctions.memrec_getScript:=@ce_memrec_getScript;
+  exportedfunctions.memrec_setScript:=@ce_memrec_setScript;
+  exportedfunctions.memrec_freeze:=@ce_memrec_freeze;
+  exportedfunctions.memrec_unfreeze:=@ce_memrec_unfreeze;
+  exportedfunctions.memrec_setColor:=@ce_memrec_setColor;
+  exportedfunctions.memrec_appendtoentry:=@ce_memrec_appendtoentry;
+  exportedfunctions.memrec_delete:=@ce_memrec_delete;
 
 
 end;
