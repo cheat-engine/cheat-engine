@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 883
+  Left = 739
   Height = 570
   Hint = ' '
-  Top = 219
+  Top = 216
   Width = 537
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -82,7 +82,6 @@ object MainForm: TMainForm
       Width = 96
       Anchors = [akLeft, akBottom]
       Caption = 'Advanced options'
-      Color = clBtnFace
       Flat = True
       NumGlyphs = 0
       OnClick = advancedbuttonClick
@@ -97,7 +96,6 @@ object MainForm: TMainForm
       Width = 96
       Anchors = [akRight, akBottom]
       Caption = 'Table Comments'
-      Color = clBtnFace
       Flat = True
       Font.Height = -12
       Font.Name = 'MS Sans Serif'
@@ -185,7 +183,6 @@ object MainForm: TMainForm
       Top = 3
       Width = 25
       Action = actOpen
-      Color = clBtnFace
       Glyph.Data = {
         D6020000424DD6020000000000003600000028000000100000000E0000000100
         180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -221,7 +218,6 @@ object MainForm: TMainForm
       Top = 3
       Width = 25
       Action = actSave
-      Color = clBtnFace
       Glyph.Data = {
         CA020000424DCA0200000000000036000000280000000E0000000F0000000100
         18000000000094020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -266,7 +262,6 @@ object MainForm: TMainForm
       Top = 320
       Width = 23
       Anchors = [akBottom]
-      Color = clBtnFace
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000130B0000130B00001000000000000000000000000000
@@ -292,7 +287,6 @@ object MainForm: TMainForm
       Hint = 'Copy all selected items to the address list'
       Top = 294
       Width = 23
-      Color = clBtnFace
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000120B0000120B00001000000000000000000000000000
@@ -741,7 +735,6 @@ object MainForm: TMainForm
       Font.Height = -13
       Font.Name = 'Courier'
       HideSelection = False
-      ItemIndex = -1
       MultiSelect = True
       OwnerData = True
       ParentFont = False
@@ -775,7 +768,6 @@ object MainForm: TMainForm
         Hint = 'Select a process to open'
         Top = 3
         Width = 25
-        Color = clBtnFace
         Glyph.Data = {
           46050000424D4605000000000000360400002800000010000000110000000100
           08000000000010010000C40E0000C40E00000001000000000000000000000000
@@ -1240,7 +1232,6 @@ object MainForm: TMainForm
         Width = 49
         Anchors = [akTop, akRight]
         Caption = 'Settings'
-        Color = clBtnFace
         Flat = True
         NumGlyphs = 0
         OnClick = SettingsClick

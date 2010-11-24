@@ -506,8 +506,6 @@ type
 
     hexstateForIntTypes: boolean;
 
-    function openprocessPrologue: boolean;
-    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
     procedure doNewScan;
     procedure SetExpectedTableName;
     procedure autoattachcheck;
@@ -598,6 +596,10 @@ type
     oldcodelistcount: integer;
 
     memscan: tmemscan;
+
+    function openprocessPrologue: boolean;
+    procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
+
 
     procedure ChangedHandle(Sender: TObject);
     procedure plugintype0click(Sender: TObject);

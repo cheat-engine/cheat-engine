@@ -64,7 +64,6 @@ object AdvancedOptions: TAdvancedOptions
       Top = 4
       Width = 31
       AllowAllUp = True
-      Color = clBtnFace
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000C40E0000C40E00001000000000000000000000000000
@@ -93,7 +92,6 @@ object AdvancedOptions: TAdvancedOptions
       Hint = 'Create a standalone trainer'
       Top = 4
       Width = 31
-      Color = clBtnFace
       Glyph.Data = {
         CA020000424DCA0200000000000036000000280000000E0000000F0000000100
         18000000000094020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -153,7 +151,6 @@ object AdvancedOptions: TAdvancedOptions
       end>
     ColumnClick = False
     HideSelection = False
-    ItemIndex = -1
     MultiSelect = True
     PopupMenu = PopupMenu2
     ReadOnly = True

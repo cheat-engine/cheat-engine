@@ -590,9 +590,6 @@ procedure TAdvancedOptions.PausebuttonClick(Sender: TObject);
 var i: integer;
     ct: _Context;
 begin
-
-  {$ifndef net}
-
   if processhandle=0 then
   begin
     pausebutton.down:=false;
@@ -636,30 +633,6 @@ begin
 
     pausebutton.Down:=false;
   end;
-
-  {$else}
-  //network version
-  if pausebutton.down then
-  begin
-    if not startdebuggerifneeded then
-    begin
-      pausebutton.Down:=false;
-      exit;
-    end;
-
-    output[0]:=CS_SuspenProcess;
-    sendbuf(1);
-    pausebutton.Hint:='Resume the game'+pausehotkeystring;
-    pausebutton.down:=true;
-  end
-  else
-  begin
-    output[0]:=CS_ResumeProcess;
-    sendbuf(1);
-    pausebutton.Hint:='Pause the game';
-    pausebutton.Down:=false;
-  end;
-{$endif}
 end;
 
 procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;

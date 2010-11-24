@@ -85,6 +85,7 @@ procedure rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; 
 
 procedure GetProcessList(ProcessList: TListBox); overload;
 procedure GetProcessList(ProcessList: TStrings); overload;
+procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 function AvailMem:SIZE_T;
 function isreadable(address:ptrUint):boolean;
@@ -2189,6 +2190,23 @@ begin
   end;
 end;
 
+procedure cleanProcessList(processlist: TStrings);
+var
+  i: integer;
+  ProcessListInfo: PProcessListInfo;
+begin
+  for i:=0 to processlist.count-1 do
+  if processlist.Objects[i]<>nil then
+  begin
+    ProcessListInfo:= pointer( processlist.Objects[i]);
+    if ProcessListInfo.processIcon>0 then
+      DestroyIcon(ProcessListInfo.processIcon);
+    freemem(ProcessListInfo);
+  end;
+
+  processlist.clear;
+end;
+
 procedure GetProcessList(ProcessList: TStrings);
 Var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
@@ -2202,16 +2220,8 @@ begin
   HI:=0;
 
   j:=0;
-  for i:=0 to processlist.count-1 do
-    if processlist.Objects[i]<>nil then
-    begin
-      ProcessListInfo:= pointer( processlist.Objects[i]);
-      if ProcessListInfo.processIcon>0 then
-        DestroyIcon(ProcessListInfo.processIcon);
-      freemem(ProcessListInfo);
-    end;
 
-  processlist.clear;
+  cleanProcessList(ProcessList);
 
 
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);

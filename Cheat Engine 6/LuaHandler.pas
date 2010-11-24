@@ -201,6 +201,19 @@ begin
 end;
 
 
+function sleep_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+begin
+  paramcount:=lua_gettop(L);
+
+  result:=0;
+  if paramcount=1 then
+    sleep(lua_tointeger(L, -1));
+
+  lua_pop(L, paramcount);
+end;
+
 function showMessage_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
@@ -907,6 +920,84 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function getProcessIDFromProcessName_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  pname: pchar;
+  pid: dword;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    pname:=lua_tostring(L, -1);
+    lua_pop(L, paramcount);
+
+    pid:=ce_getProcessIDFromProcessName(pname);
+    if pid<>0 then
+    begin
+      lua_pushinteger(L, pid);
+      result:=1;
+    end;
+
+
+  end else lua_pop(L, paramcount);
+end;
+
+function openProcess_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  pname: pchar;
+  pid: dword;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L,-1) then
+    begin
+      pname:=lua_tostring(L,-1);
+      pid:=ce_getProcessIDFromProcessName(pname);
+    end
+    else
+      pid:=lua_tointeger(L,-1);
+
+    lua_pop(L, paramcount);
+
+    if pid<>0 then
+      ce_openProcess(pid);
+
+  end else lua_pop(L, paramcount);
+end;
+
+function pause_fromLua(L: PLua_state): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L)); //clear the stack
+  ce_pause;
+  result:=0;
+end;
+
+function unpause_fromLua(L: PLua_state): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L)); //clear the stack
+  ce_unpause;
+  result:=0;
+end;
+
+
+function debugProcess_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  debuggerinterface: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+    debuggerinterface:=lua_tointeger(L, -1)
+  else
+    debuggerinterface:=0;
+
+  lua_pop(L, lua_gettop(L)); //clear the stack
+
+  ce_debugProcess(debuggerinterface);
+end;
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -917,6 +1008,9 @@ initialization
     luaL_openlibs(LuaVM);
 
     lua_atpanic(LuaVM, LuaPanic);
+    lua_register(LuaVM, 'sleep', sleep_fromlua);
+    lua_register(LuaVM, 'pause', pause_fromlua);
+    lua_register(LuaVM, 'unpause', unpause_fromlua);
     lua_register(LuaVM, 'readBytes', readbytes_fromlua);
     lua_register(LuaVM, 'writeBytes', writebytes_fromlua);
 
@@ -945,8 +1039,9 @@ initialization
     lua_register(LuaVM, 'keyDown', keyDown_fromLua);
     lua_register(LuaVM, 'keyUp', keyUp_fromLua);
     lua_register(LuaVM, 'doKeyPress', doKeyPress_fromLua);
-
-
+    lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName_fromLua);
+    lua_register(LuaVM, 'openProcess', openProcess_fromLua);
+    lua_register(LuaVM, 'debugProcess', debugProcess_fromLua);
 
   end;
 

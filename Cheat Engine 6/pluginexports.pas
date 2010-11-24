@@ -54,11 +54,17 @@ function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
 function ce_memrec_setColor(memrec: pointer; color: TColor): BOOL; stdcall;
 function ce_memrec_appendtoentry(memrec1: pointer; memrec2: pointer): BOOL; stdcall;
 function ce_memrec_delete(memrec: pointer): BOOL; stdcall;
+function ce_getProcessIDFromProcessName(name: pchar): DWORD; stdcall;
+function ce_openProcess(pid: dword): BOOL; stdcall;
+function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
+procedure ce_pause;
+procedure ce_unpause;
+
 
 
 implementation
 
-uses MainUnit,MainUnit2,Assemblerunit,disassembler,frmModifyRegistersUnit,
+uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
      formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
      MemoryRecordUnit;
 
@@ -1064,6 +1070,173 @@ begin
     result:=pluginsync(ce_memrec_delete2, memrec)<>nil;
 end;
 
+
+function ce_getProcessIDFromProcessName(name: pchar): DWORD; stdcall;
+var plist: TStringlist;
+  i,j: integer;
+  pname: string;
+  compareto: string;
+  ProcessListInfo: PProcessListInfo;
+
+  bestpick: record
+    i: integer;
+    pos: integer;
+  end;
+begin
+  result:=0;
+  if name=nil then exit;
+  compareto:=uppercase(name);
+
+  plist:=TStringList.Create;
+  try
+    GetProcessList(plist);
+
+    for i:=plist.Count-1 downto 0 do  //reverse order because the newest process is at the bottom
+    begin
+      pname:=plist[i];
+      j:=Pos('-', pname);
+      pname:=uppercase(copy(pname, j+1,length(pname)));
+
+
+      //processname found
+      if compareto=pname then
+      begin
+        ProcessListInfo:=PProcessListInfo(plist.Objects[i]);
+        result:=ProcessListInfo.processID;
+        exit;
+      end;
+    end;
+
+    //not found, try a half match
+
+    bestpick.i:=-1;
+    bestpick.pos:=65535;
+    for i:=plist.Count-1 downto 0 do
+    begin
+      pname:=plist[i];
+      j:=Pos('-', pname);
+      pname:=uppercase(copy(pname, j+1,length(pname)));
+
+
+      //processname found
+      j:=pos(compareto, pname);
+      if j>0 then
+      begin
+        if j=1 then
+        begin
+          ProcessListInfo:=PProcessListInfo(plist.Objects[i]);
+          result:=ProcessListInfo.processID;
+          exit;
+        end;
+
+        //not 1, just add it to the best pick if a smaller pos
+        if j<bestpick.pos then
+        begin
+          bestpick.i:=i;
+          bestpick.pos:=j;
+        end;
+
+      end;
+
+      if bestpick.i<>-1 then
+      begin
+        ProcessListInfo:=PProcessListInfo(plist.Objects[bestpick.i]);
+        result:=ProcessListInfo.processID;
+        exit;
+      end;
+    end;
+
+  finally
+    cleanProcessList(plist);
+    plist.free;
+  end;
+end;
+
+
+function ce_openProcess2(pid: pointer): pointer;
+var p: ptruint;
+  oldprocessname: string;
+  oldprocess: dword;
+  oldprocesshandle: thandle;
+begin
+  p:=ptruint(pid);
+
+  result:=nil;
+  try
+    if not mainform.openprocessPrologue then exit;
+
+    oldprocessname := copy(mainform.ProcessLabel.Caption, pos('-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
+    oldprocess := processID;
+    oldprocesshandle := processhandle;
+
+    processhandler.processid:=p;
+    Open_Process;
+
+    mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+
+    result:=pointer(1); //made it till here, so no exception
+  except
+  end;
+end;
+
+function ce_openProcess(pid: dword): BOOL; stdcall;
+var p: pointer;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_openProcess2(pointer(pid))<>nil
+  else
+    result:=pluginsync(ce_openProcess2, pointer(pid))<>nil;
+
+end;
+
+function ce_pause2(params: pointer): pointer;
+begin
+  AdvancedOptions.Pausebutton.Down:=true;
+  AdvancedOptions.Pausebutton.Click;
+end;
+
+procedure ce_pause; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    ce_pause2(nil)
+  else
+    pluginsync(ce_pause2, nil);
+end;
+
+function ce_unpause2(params: pointer): pointer;
+begin
+  AdvancedOptions.Pausebutton.Down:=false;
+  AdvancedOptions.Pausebutton.Click;
+end;
+
+procedure ce_unpause; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    ce_unpause2(nil)
+  else
+    pluginsync(ce_unpause2, nil);
+end;
+
+function ce_debugProcess2(params: pointer):pointer;
+var debuggerinterface: integer;
+begin
+  debuggerinterface:=integer(params);
+  case debuggerinterface of
+    1: formSettings.cbUseWindowsDebugger.checked:=true;
+    2: formSettings.cbUseVEHDebugger.checked:=true;
+    3: formSettings.cbKDebug.checked:=true;
+  end;
+
+  startdebuggerifneeded(false);
+end;
+
+function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_debugProcess2(pointer(debuggerinterface))<>nil
+  else
+    result:=pluginsync(ce_debugProcess2, pointer(debuggerinterface))<>nil;
+end;
 
 initialization
   plugindisassembler:=TDisassembler.create;
