@@ -144,7 +144,6 @@ object frmPointerScanner: TfrmPointerScanner
     Columns = <>
     ColumnClick = False
     HideSelection = False
-    ItemIndex = -1
     OwnerData = True
     PopupMenu = PopupMenu1
     ReadOnly = True

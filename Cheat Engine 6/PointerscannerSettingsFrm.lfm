@@ -1,12 +1,12 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 701
+  Left = 578
   Height = 430
-  Top = 268
-  Width = 443
+  Top = 211
+  Width = 408
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 430
-  ClientWidth = 443
+  ClientWidth = 408
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -15,57 +15,63 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   LCLVersion = '0.9.29'
   object edtAddress: TEdit
     Left = 10
-    Height = 24
+    Height = 21
     Top = 28
-    Width = 111
+    Width = 254
     CharCase = ecUppercase
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     MaxLength = 8
     OnChange = edtAddressChange
+    ParentFont = False
     TabOrder = 0
   end
   object PSSettings: TPageControl
     Left = 10
     Height = 221
     Top = 59
-    Width = 434
+    Width = 394
     ActivePage = PSReverse
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
     TabIndex = 0
     TabOrder = 1
     object PSReverse: TTabSheet
       Caption = 'Reverse'
-      ClientHeight = 192
-      ClientWidth = 426
+      ClientHeight = 195
+      ClientWidth = 386
       ImageIndex = 1
       TabVisible = False
       object Label10: TLabel
         Left = 4
-        Height = 17
+        Height = 14
         Top = 102
-        Width = 32
+        Width = 24
         Caption = 'From'
         ParentColor = False
       end
       object Label11: TLabel
         Left = 90
-        Height = 17
+        Height = 14
         Top = 102
-        Width = 21
+        Width = 17
         Caption = 'To:'
         ParentColor = False
       end
       object Label13: TLabel
         Left = 4
-        Height = 17
+        Height = 14
         Top = 83
-        Width = 254
+        Width = 201
         Caption = 'Pointer path may only be inside this region:'
         ParentColor = False
       end
       object Label14: TLabel
         Left = 0
-        Height = 17
+        Height = 14
         Top = 214
-        Width = 151
+        Width = 122
         Caption = 'Maximum offset to accept'
         Enabled = False
         ParentColor = False
@@ -73,9 +79,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object CbAlligned: TCheckBox
         Left = 0
-        Height = 20
+        Height = 17
         Top = 0
-        Width = 222
+        Width = 175
         Caption = 'Addresses must be 32-bit alligned'
         Checked = True
         State = cbChecked
@@ -83,7 +89,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object edtReverseStop: TEdit
         Left = 90
-        Height = 24
+        Height = 21
         Top = 118
         Width = 80
         CharCase = ecUppercase
@@ -93,7 +99,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object edtReverseStart: TEdit
         Left = 4
-        Height = 24
+        Height = 21
         Top = 118
         Width = 80
         CharCase = ecUppercase
@@ -103,9 +109,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStaticOnly: TCheckBox
         Left = 0
-        Height = 20
+        Height = 17
         Top = 20
-        Width = 230
+        Width = 187
         Caption = 'Only find paths with a static address'
         Checked = True
         State = cbChecked
@@ -113,16 +119,16 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStackAsBase: TCheckBox
         Left = 0
-        Height = 20
+        Height = 17
         Top = 194
-        Width = 413
+        Width = 330
         Caption = 'Accept stack addresses of the main thread as base pointer as well'
         TabOrder = 4
         Visible = False
       end
       object Edit3: TEdit
         Left = 0
-        Height = 24
+        Height = 21
         Top = 233
         Width = 149
         Enabled = False
@@ -132,28 +138,28 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyStackAsBase: TCheckBox
         Left = 162
-        Height = 20
+        Height = 17
         Top = 236
-        Width = 254
+        Width = 204
         Caption = 'Only use the maintread stack as a base'
         TabOrder = 6
         Visible = False
       end
       object cbUseHeapData: TCheckBox
         Left = 0
-        Height = 20
-        Top = 155
-        Width = 288
+        Height = 17
+        Top = 148
+        Width = 232
         Caption = 'Improve pointerscan with gathered heap data'
         OnClick = cbUseHeapDataClick
         TabOrder = 7
       end
       object cbHeapOnly: TCheckBox
         Left = 16
-        Height = 20
+        Height = 17
         Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
-        Top = 172
-        Width = 306
+        Top = 165
+        Width = 246
         Caption = 'Only allow static and heap addresses in the path'
         Enabled = False
         OnClick = cbHeapOnlyClick
@@ -163,17 +169,17 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyOneStatic: TCheckBox
         Left = 0
-        Height = 20
+        Height = 17
         Top = 60
-        Width = 324
+        Width = 265
         Caption = 'Stop traversing a path when a static has been found'
         TabOrder = 9
       end
       object cbNoReadOnly: TCheckBox
         Left = 0
-        Height = 20
+        Height = 17
         Top = 40
-        Width = 274
+        Width = 220
         Caption = 'Don''t include pointers with read-only nodes'
         Checked = True
         State = cbChecked
@@ -183,44 +189,50 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 10
-    Height = 20
+    Height = 17
     Top = 300
-    Width = 242
+    Width = 197
     Caption = 'Pointers must end with specific offsets'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
     OnClick = cbMustEndWithSpecificOffsetClick
+    ParentFont = False
     TabOrder = 2
   end
   object Panel1: TPanel
     Left = 0
     Height = 107
     Top = 323
-    Width = 443
+    Width = 408
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 107
-    ClientWidth = 443
+    ClientWidth = 408
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
     TabOrder = 3
     object Label3: TLabel
       Left = 24
-      Height = 17
+      Height = 14
       Top = 42
-      Width = 132
+      Width = 106
       Caption = 'Maximum offset value:'
       ParentColor = False
     end
     object Label12: TLabel
       Left = 226
-      Height = 17
+      Height = 14
       Top = 42
-      Width = 58
+      Width = 46
       Caption = 'Max level'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 16
-      Height = 17
+      Height = 14
       Top = 10
-      Width = 140
+      Width = 114
       Caption = 'Nr of threads scanning: '
       ParentColor = False
     end
@@ -236,7 +248,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object editStructsize: TEdit
       Left = 158
-      Height = 24
+      Height = 21
       Top = 38
       Width = 60
       TabOrder = 1
@@ -244,7 +256,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object editMaxLevel: TEdit
       Left = 286
-      Height = 24
+      Height = 21
       Top = 37
       Width = 80
       TabOrder = 2
@@ -262,7 +274,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object edtThreadcount: TEdit
       Left = 158
-      Height = 24
+      Height = 21
       Top = 6
       Width = 60
       TabOrder = 4
@@ -273,7 +285,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Height = 24
       Top = 5
       Width = 140
-      ItemHeight = 16
+      ItemHeight = 13
       ItemIndex = 3
       Items.Strings = (
         'Idle'
@@ -289,17 +301,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
   end
   object cbValueType: TComboBox
-    Left = 126
+    Left = 272
     Height = 24
     Top = 28
     Width = 132
-    ItemHeight = 16
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
       '4 Byte'
       'Float'
       'Double'
     )
+    ParentFont = False
     Style = csDropDownList
     TabOrder = 4
     Text = '4 Byte'
@@ -308,41 +323,46 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 25
     Top = 0
-    Width = 249
+    Width = 425
     BevelOuter = bvNone
     ClientHeight = 25
-    ClientWidth = 249
+    ClientWidth = 425
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
     TabOrder = 5
     object rbFindAddress: TRadioButton
       Left = 0
-      Height = 20
+      Height = 17
       Top = 4
-      Width = 112
+      Width = 91
       Caption = 'Address to find:'
       Checked = True
       OnClick = rbFindValueClick
-      State = cbChecked
       TabOrder = 0
+      TabStop = True
     end
     object rbFindValue: TRadioButton
-      Left = 120
-      Height = 20
+      Left = 96
+      Height = 17
       Top = 4
-      Width = 96
+      Width = 80
       Caption = 'Value to find:'
       OnClick = rbFindValueClick
       TabOrder = 1
-      TabStop = False
     end
   end
   object CheckBox1: TCheckBox
     Left = 10
-    Height = 20
+    Height = 17
     Top = 280
-    Width = 273
+    Width = 216
     Caption = 'Use pointermap from previous pointerscan'
     Checked = True
     Enabled = False
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
     State = cbChecked
     TabOrder = 6
   end

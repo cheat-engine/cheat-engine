@@ -15,6 +15,7 @@ uses
 const staticscanner_done=wm_user+1;
 const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
+const starttimer=wm_user+4;
 
 type
   TfrmPointerscanner = class;
@@ -265,6 +266,7 @@ type
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
     procedure openscanner(var message: tmessage); message open_scanner;
+    procedure _starttimer(var message: TMessage); message starttimer;
     procedure doneui;
     procedure resyncloadedmodulelist;
     procedure OpenPointerfile(filename: string);
@@ -463,10 +465,6 @@ var p: ^byte;
   DontGoDeeper: boolean;
 
 begin
-  {$ifdef benchmarkps}
-  inc(totalpathsevaluated);
-  {$endif}
-
   if (level>=maxlevel) or self.staticscanner.Terminated then exit;
 
   _pointersize:=pointersize;
@@ -520,6 +518,9 @@ begin
       found:=true;
       for j:=0 to plist.pos-1 do
       begin
+        {$ifdef benchmarkps}
+        inc(totalpathsevaluated);
+        {$endif}
 
         tempresults[level]:=valuetofind-stopvalue; //store the offset
         if (plist.list[j].staticdata=nil) then
@@ -597,6 +598,9 @@ begin
 
     end else
     begin
+      {$ifdef benchmarkps}
+      inc(totalpathsevaluated);
+      {$endif}
      { if (not found) and (not staticonly) then
       begin
         //nothing was found, let's just say this is the final level and store it...
@@ -784,6 +788,10 @@ begin
       progressbar.Position:=0;
       try
         ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar, noreadonly);
+
+        postmessage(ownerform.Handle, starttimer, 0,0);
+
+
       except
         on e: exception do
         begin
@@ -923,7 +931,7 @@ begin
     listview1.Visible:=false;
 
 
-    timer2.Enabled:=true;
+
 
     //initialize array's
 
@@ -932,6 +940,8 @@ begin
 
     //default scan
     staticscanner:=TStaticscanner.Create(true);
+
+    label5.caption:='Generating pointermap...';
 
     try
       staticscanner.ownerform:=self;
@@ -1715,6 +1725,11 @@ begin
 
   frmpointerscannersettings.edtAddress.text:=inttohex(message.WParam,8);
   Method3Fastspeedandaveragememoryusage1.Click;
+end;
+
+procedure Tfrmpointerscanner._starttimer(var message: TMessage);
+begin
+  timer2.enabled:=true;
 end;
 
 
