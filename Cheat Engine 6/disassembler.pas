@@ -553,7 +553,19 @@ begin
                   result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'],';
             4:
             begin
-               result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+               result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
+
+                dwordptr:=@memory[last];
+                if dwordptr^ <=$7FFFFFFF then
+                  result:=result+'+'+inttohexs(dwordptr^,8)+'],' else
+                  result:=result+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+
+
+                LastdisassembleData.modrmValueType:=dvtAddress;
+                LastdisassembleData.modrmValue:=dwordptr^;
+
+                inc(last,4);
+
             end;
 
             5:
@@ -1092,6 +1104,8 @@ var
 
   indexstring: string;
 begin
+  result:='';
+
   dwordptr:=@memory[sibbyte+1];
   inc(last);  //sib byte
 
@@ -1117,7 +1131,7 @@ begin
     4: result:='esp';
     5:
     begin
-      if _mod<>0 then result:='ebp';
+        if _mod<>0 then result:='ebp';
     end;
     6: result:='esi';
     7: result:='edi';
@@ -1136,7 +1150,9 @@ begin
 
 
   end;
-  result:=colorreg+result+endcolor;
+
+  if result<>'' then
+    result:=colorreg+result+endcolor;
 
 
   case index of
