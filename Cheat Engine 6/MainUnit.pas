@@ -4370,9 +4370,7 @@ begin
   if addresslist.selectedRecord<>nil then
   begin
     address:=addresslist.selectedRecord.GetRealAddress;
-
-    if (not formsettings.cbKdebug.checked) then
-      if (not startdebuggerifneeded) then exit;
+    if (not startdebuggerifneeded) then exit;
 
     if addresslist.selectedRecord.IsPointer then
     begin

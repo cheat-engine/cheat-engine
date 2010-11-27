@@ -380,8 +380,7 @@ begin
   result:=false;
  { if (formsettings.cbKdebug.checked) and (debuggerthread3<>nil) and (debuggerthread2.nrofbreakpoints=4) then raise exception.Create('You have reached the maximum of 4 debugregs. Disable at least one breakpoint first'); //all spots filled up}
 
-  if (not formsettings.cbKdebug.checked) then
-    if (not startdebuggerifneeded) then exit;
+  if (not startdebuggerifneeded) then exit;
     
   frmModifyRegisters:=tfrmModifyRegisters.create(nil,address);
 
