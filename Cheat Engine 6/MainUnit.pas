@@ -4401,12 +4401,13 @@ procedure TMainForm.Setbreakpoint1Click(Sender: TObject);
 var address: ptrUint;
     res: word;
 begin
+  OutputDebugString('Setbreakpoint1Click');
+
   if addresslist.selectedRecord<>nil then
   begin
     address:=addresslist.selectedRecord.GetRealAddress;
 
-    if (not formsettings.cbKdebug.checked) then
-      if (not startdebuggerifneeded) then exit;
+    if (not startdebuggerifneeded) then exit;
 
     if addresslist.selectedRecord.IsPointer then
     begin

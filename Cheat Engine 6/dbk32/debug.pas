@@ -137,6 +137,8 @@ var
   br,cc: dword;
 begin
   OutputDebugString('DBKDebug_GD_SetBreakpoint');
+  if not active then OutputDebugString('Deactivating breakpoint');
+
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     result:=StartCEKernelDebug;
