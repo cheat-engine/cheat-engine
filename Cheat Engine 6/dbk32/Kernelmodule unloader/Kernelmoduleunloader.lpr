@@ -274,8 +274,32 @@ begin
       end;
 
 
+      hService := OpenService(hSCManager, 'CEDRIVER55', SERVICE_ALL_ACCESS);
+      if hservice<>0 then
+      begin
+        outputdebugstring('Opened service CEDRIVER52');
+        hDevice := FileCreate('\\.\CEDRIVER52'); { *Converted from CreateFile*  }
+
+        if hdevice<>INVALID_HANDLE_VALUE then
+        begin
+          //unhook (in case it was protecting something)
+          outputdebugstring('Calling disableglobaldebug');
+          foreachcpu(disableGlobalDebug,nil);
+
+          outputdebugstring('calling disableInterruptHooks');
+          foreachcpu(disableInterruptHooks,nil);
+
+          FileClose(hdevice); { *Converted from CloseHandle*  }
+        end else ok:=false;
+
+        ControlService(hService, SERVICE_CONTROL_STOP, serviceStatus);
+        ok:=DeleteService(hService);
+
+        CloseServiceHandle(hservice);
+      end;
+
       try
-        s:='CEDRIVER55';
+        s:='CEDRIVER60';
         getmem(apppath,250);
         GetModuleFileName(0,apppath,250);
 
