@@ -12,7 +12,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution;
 
 
 
-const currentversion=2000011;
+const currentversion=2000012;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -1645,9 +1645,9 @@ begin
         if not fileexists(dataloc) then
         begin
           outputdebugstring('b1');
-          servicename:='CEDRIVER55';
-          processeventname:='DBKProcList55';
-          threadeventname:='DBKThreadList55';
+          servicename:='CEDRIVER60';
+          processeventname:='DBKProcList60';
+          threadeventname:='DBKThreadList60';
           if iswow64 then
             sysfile:='dbk64.sys'
           else

@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="937"/>
+      <BuildNr Value="938"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable ProductVersion="0.0.0.225"/>
@@ -1446,7 +1446,7 @@
         <Filename Value="sfloat.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sfloat"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="531"/>
         <CursorPos X="19" Y="547"/>
@@ -1478,7 +1478,6 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1278"/>
@@ -1617,10 +1616,13 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1607"/>
-        <CursorPos X="7" Y="1623"/>
+        <TopLine Value="1687"/>
+        <CursorPos X="55" Y="1704"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit137>
       <Unit138>
@@ -1659,7 +1661,7 @@
         <ComponentName Value="frmPaging"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPagingUnit"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="482"/>
         <CursorPos X="24" Y="498"/>
@@ -1892,7 +1894,7 @@
         <UsageCount Value="10"/>
       </Unit166>
     </Units>
-    <JumpHistory Count="23" HistoryIndex="22">
+    <JumpHistory Count="24" HistoryIndex="23">
       <Position1>
         <Filename Value="cheatengine.lpr"/>
         <Caret Line="58" Column="1" TopLine="34"/>
@@ -1985,6 +1987,10 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <Caret Line="1202" Column="58" TopLine="1187"/>
       </Position23>
+      <Position24>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="1616" Column="27" TopLine="1607"/>
+      </Position24>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

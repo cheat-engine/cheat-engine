@@ -20,7 +20,7 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="2" Active="release">
+    <BuildModes Count="2" Active="debug">
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>
