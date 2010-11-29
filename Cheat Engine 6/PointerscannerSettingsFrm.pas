@@ -204,37 +204,44 @@ begin
   begin
     edtReverseStart.Width:=160;
     edtReverseStart.maxlength:=16;
+    edtReverseStop.MaxLength:=edtReverseStart.MaxLength;
 
     //if it's not edited by the user, then fill in the default ranges for 64-bit
     if edtReverseStart.text='00000000' then
       edtReverseStart.text:='0000000000000000';
 
-    if ((not Is64bitOS) and (edtReverseStop.text='7FFFFFFF')) or (Is64bitOS and (edtReverseStop.text='FFFFFFFF')) then
+    if (edtReverseStop.text='7FFFFFFF') or (edtReverseStop.text='FFFFFFFF') then
+    begin
       edtReverseStop.text:='7FFFFFFFFFFFFFFF';
-
-
+    end;
   end
   else
   begin
     edtReverseStart.Width:=80;
-    edtReverseStart.maxlength:=16;
+
+
 
     //if it's not edited by the user, then fill in the default ranges for 32-bit
     if edtReverseStart.text='0000000000000000' then
       edtReverseStart.text:='00000000';
 
-    if edtReverseStop.text='7FFFFFFFFFFFFFFF' then
+    if (edtReverseStop.text='7FFFFFFFFFFFFFFF') or (edtReverseStop.text='7FFFFFFF') then
     begin
       if Is64bitOS then
         edtReverseStop.text:='FFFFFFFF'
       else
         edtReverseStop.text:='7FFFFFFF';
     end;
+
+    edtReverseStart.maxlength:=8;
+    edtReverseStop.MaxLength:=edtReverseStart.MaxLength;
   end;
 
-  edtReverseStop.MaxLength:=edtReverseStart.MaxLength;
+
   edtReverseStop.Width:=edtReverseStart.width;
   edtReverseStop.Left:=edtReverseStart.Left+edtReverseStart.Width+8;
+
+  Label11.left:=edtReverseStop.left;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
