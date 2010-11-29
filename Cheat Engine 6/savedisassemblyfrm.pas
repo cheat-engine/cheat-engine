@@ -134,7 +134,8 @@ begin
     else
       writeln(f,temps); //write to file
 
-    if (i mod 10=0) and (currentaddress<$7fffffff) then
+
+    if (i mod 10=0) and (currentaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
       progressbar.position:=currentaddress;
   end;
 
@@ -204,7 +205,7 @@ begin
     SaveDisassemblyThread.copymode:=fcopymode;
     SaveDisassemblyThread.form:=self;
 
-    if (start<$7fffffff) and (stop<$7fffffff) then
+    if (start<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) and (stop<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
     begin
       progressbar1.Max:=stop;
       progressbar1.Min:=start;

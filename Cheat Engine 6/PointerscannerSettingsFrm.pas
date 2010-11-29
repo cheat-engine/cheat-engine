@@ -142,12 +142,6 @@ begin
   start:=strtoint64('$'+edtReverseStart.text);
   stop:=strtoint64('$'+edtReverseStop.text);
 
-{$ifdef cpu64}
-  if stop>ptruint($7fffffffffffffff) then stop:=$7fffffffffffffff;
-{$else}
-  if stop>$7fffffff then stop:=$7fffffff;
-{$endif}
-
   automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 
   unalligned:=not cballigned.checked;
@@ -215,7 +209,7 @@ begin
     if edtReverseStart.text='00000000' then
       edtReverseStart.text:='0000000000000000';
 
-    if edtReverseStop.text='7FFFFFFF' then
+    if ((not Is64bitOS) and (edtReverseStop.text='7FFFFFFF')) or (Is64bitOS and (edtReverseStop.text='FFFFFFFF')) then
       edtReverseStop.text:='7FFFFFFFFFFFFFFF';
 
 
@@ -230,7 +224,12 @@ begin
       edtReverseStart.text:='00000000';
 
     if edtReverseStop.text='7FFFFFFFFFFFFFFF' then
-      edtReverseStop.text:='7FFFFFFF';
+    begin
+      if Is64bitOS then
+        edtReverseStop.text:='FFFFFFFF'
+      else
+        edtReverseStop.text:='7FFFFFFF';
+    end;
   end;
 
   edtReverseStop.MaxLength:=edtReverseStart.MaxLength;
