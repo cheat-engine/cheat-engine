@@ -3024,6 +3024,8 @@ begin
 
     vtByteArray:
     begin
+      OutputDebugString('aobscan for '+scanvalue1);
+
       if scanoption<>soUnknownValue then
         variablesize:=getBytecountArrayOfByteString(scanvalue1)
       else
@@ -3534,10 +3536,14 @@ begin
      startaddress:=startaddress-(startaddress mod 8);
   end;
 
+  OutputDebugString('processhandle='+inttostr(processhandle));
   OutputDebugString(format('startaddress=%x',[startaddress]));
+  OutputDebugString(format('stopaddress=%x',[stopaddress]));
 
   OutputDebugString('Finding out memory size');
   currentBaseAddress:=startaddress;
+  ZeroMemory(@mbi,sizeof(mbi));
+
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
     if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited

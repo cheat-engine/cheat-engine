@@ -49,6 +49,7 @@ object MainForm: TMainForm
     FullRepaint = False
     PopupMenu = PopupMenu2
     TabOrder = 0
+    OnClick = Panel1Click
   end
   object Panel4: TPanel
     Left = 0

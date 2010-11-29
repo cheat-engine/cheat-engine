@@ -1109,6 +1109,9 @@ var
   pd: pdouble absolute buf;
   pqw: PQWord absolute buf;
 
+  li: PLongInt absolute buf;
+  li64: PInt64 absolute buf;
+
   wc: PWideChar absolute buf;
   c: PChar absolute buf;
   originalprotection: dword;
@@ -1162,7 +1165,7 @@ begin
 
   currentValue:=v;
 
-  if fShowAsHex then
+  if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
   begin
     currentvalue:=trim(currentValue);
     if length(currentvalue)>1 then
@@ -1198,8 +1201,9 @@ begin
       vtWord: pw^:=strtoint(currentValue);
       vtDword: pdw^:=strtoint(currentValue);
       vtQword: pqw^:=strtoint64(currentValue);
-      vtSingle: ps^:=StrToFloat(currentValue);
-      vtDouble: pd^:=StrToFloat(currentValue);
+      vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then ps^:=StrToFloat(currentValue);
+      vtDouble: if (not fShowAsHex) or (not TryStrToInt64('$'+currentvalue, li64^)) then pd^:=StrToFloat(currentValue);
+
       vtBinary:
       begin
         if not Extra.bitData.showasbinary then

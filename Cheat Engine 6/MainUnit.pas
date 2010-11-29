@@ -353,6 +353,7 @@ type
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
+    procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
@@ -2880,6 +2881,11 @@ procedure TMainForm.miZeroTerminateClick(Sender: TObject);
 begin
   if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtString) then
     addresslist.selectedRecord.Extra.stringData.ZeroTerminate:=not addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
+end;
+
+procedure TMainForm.Panel1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.Panel5Resize(Sender: TObject);

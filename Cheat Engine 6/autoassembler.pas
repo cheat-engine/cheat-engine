@@ -740,17 +740,18 @@ begin
               s1:=copy(currentline,a+1,b-a-1);
               s2:=trim(copy(currentline,b+1,c-b-1));
 
+
               //s1=varname
               //s2=AOBstring
-              testdword:=0;
+              testPtr:=0;
               if (not syntaxcheckonly) then
               begin
-                testdword:=findaob(s2);
-                if (testdword=0) then
+                testPtr:=findaob(s2);
+                if (testPtr=0) then
                   raise exception.Create('The array of byte '''+s2+''' could not be found');
               end;
 
-              currentline:='DEFINE('+s1+','+inttohex(testdword,8)+')';
+              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
               //NO CONTINUE LINE HERE
             end else raise exception.Create('Wrong syntax. AOBSCAN(name,11 22 33 ** 55)');
           end;

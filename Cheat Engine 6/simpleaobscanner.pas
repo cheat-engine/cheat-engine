@@ -10,11 +10,13 @@ interface
 
 uses LCLIntf, memscan, CEFuncProc;
 
-function findaob(aobstring: string): dword;
+function findaob(aobstring: string): ptruint;
 
 implementation
 
-function findaob(aobstring: string): dword;
+uses NewKernelHandler;
+
+function findaob(aobstring: string): ptruint;
 {scans the game's memory for aobstring and returns the pointer if found. returns 0 if not found}
 var
   ms: tmemscan;
@@ -27,9 +29,13 @@ begin
   if processhandler.is64Bit then
     max:=qword($7fffffffffffffff)
   else
-  {$else}
-    max:=$7fffffff;
   {$endif}
+  begin
+    if Is64bitOS then
+      max:=$ffffffff
+    else
+      max:=$7fffffff;
+  end;
 
   ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false);
 
@@ -38,6 +44,8 @@ begin
     result:=x
   else
     result:=0;
+
+  ms.free;
 end;
 
 end.
