@@ -111,7 +111,8 @@ type
 
 implementation
 
-uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit, frmDebugEventsUnit, formdebugstringsunit;
+uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
+     KernelDebuggerInterface, frmDebugEventsUnit, formdebugstringsunit;
 
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
@@ -257,11 +258,14 @@ begin
         //----XP HACK----
         if (WindowsVersion=wvXP) then
         begin
-          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
+          if not (CurrentDebuggerInterface is TKernelDebugInterface) then
+          begin
+            TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
-          setInt1Back:=true;
-          context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
-          Int1SetBackBP:=bp;
+            setInt1Back:=true;
+            context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+            Int1SetBackBP:=bp;
+          end;
         end;
        {$endif}
       end;
@@ -308,10 +312,13 @@ begin
     end;
   finally
     {$ifdef cpu32}
-    if setInt1Back then
+    if not (CurrentDebuggerInterface is TKernelDebugInterface) then
     begin
-      eflags_setTF(context.Eflags,1);
-      eflags_setRF(context.Eflags,0);
+      if setInt1Back then
+      begin
+        eflags_setTF(context.Eflags,1);
+        eflags_setRF(context.Eflags,0);
+      end;
     end;
     {$endif}
 
@@ -373,19 +380,23 @@ var
   hasSetInt3Back: boolean;
   oldprotect, bw: dword;
 begin
+  OutputDebugString('Handling as a single step event');
   result:=true;
 
   {$ifdef cpu32}
-  if setint1back then
+  if not (CurrentDebuggerInterface is TKernelDebugInterface) then
   begin
-    //set the breakpoint back
-    TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP);
-    setInt1Back:=false;
-    hasSetInt1Back:=true;
-    dwContinueStatus:=DBG_CONTINUE;
-  end
-  else
-    hasSetInt1Back:=false;
+    if setint1back then
+    begin
+      //set the breakpoint back
+      TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP);
+      setInt1Back:=false;
+      hasSetInt1Back:=true;
+      dwContinueStatus:=DBG_CONTINUE;
+    end
+    else
+      hasSetInt1Back:=false;
+  end;
 
   {$endif}
 
@@ -407,7 +418,11 @@ begin
   if singlestepping then
     handlebreak(nil)
   else
-    if (not (hasSetInt3Back {$ifdef cpu32} or hasSetInt1Back{$endif})) then dwContinuestatus:=DBG_EXCEPTION_NOT_HANDLED; //if it wasn't a int3 set back or not expected single step, then raise an error
+    if (not (hasSetInt3Back {$ifdef cpu32} or hasSetInt1Back{$endif})) then
+    begin
+      OutputDebugString('Not handled');
+      dwContinuestatus:=DBG_EXCEPTION_NOT_HANDLED; //if it wasn't a int3 set back or not expected single step, then raise an error
+    end;
 end;
 
 function TDebugThreadHandler.CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
@@ -569,7 +584,7 @@ begin
 
     EXCEPTION_SINGLE_STEP, STATUS_WX86_SINGLE_STEP:
     begin
-      OutputDebugString('EXCEPTION_SINGLE_STEP');
+      OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context.dr6,8));
 
     //  debugEvent.Exception.ExceptionRecord.
 

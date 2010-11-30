@@ -443,41 +443,42 @@ begin
 
     breakpoint^.active := True;
 
-    if (breakpoint.ThreadID <> 0) or (UpdateForOneThread<>nil) then
+    if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
     begin
-      //only one thread
-      if updateForOneThread=nil then
-        currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID)
-      else
-        currentthread:=updateForOneThread;
-
-      if currentthread = nil then //thread has been destroyed
-        exit;
-
-      currentthread.suspend;
-      currentthread.fillContext;
-      case breakpoint.debugregister of
-        0: currentthread.context.Dr0 := breakpoint.address;
-        1: currentthread.context.Dr1 := breakpoint.address;
-        2: currentthread.context.Dr2 := breakpoint.address;
-        3: currentthread.context.Dr3 := breakpoint.address;
-      end;
-      currentthread.context.Dr7 :=
-        (currentthread.context.Dr7 and clearmask) + Debugregistermask;
-
-      currentthread.setContext;
-      currentthread.resume;
+      //set the breakpoint using globaldebug
+      DBKDebug_GD_SetBreakpoint(true, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
     end
     else
     begin
-      //update all threads with the new debug register data
-
-      if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
+      if (breakpoint.ThreadID <> 0) or (UpdateForOneThread<>nil) then
       begin
-        DBKDebug_GD_SetBreakpoint(true, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
+        //only one thread
+        if updateForOneThread=nil then
+          currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID)
+        else
+          currentthread:=updateForOneThread;
+
+        if currentthread = nil then //thread has been destroyed
+          exit;
+
+        currentthread.suspend;
+        currentthread.fillContext;
+        case breakpoint.debugregister of
+          0: currentthread.context.Dr0 := breakpoint.address;
+          1: currentthread.context.Dr1 := breakpoint.address;
+          2: currentthread.context.Dr2 := breakpoint.address;
+          3: currentthread.context.Dr3 := breakpoint.address;
+        end;
+        currentthread.context.Dr7 :=
+          (currentthread.context.Dr7 and clearmask) + Debugregistermask;
+
+        currentthread.setContext;
+        currentthread.resume;
       end
       else
       begin
+        //update all threads with the new debug register data
+
         for i := 0 to ThreadList.Count - 1 do
         begin
           currentthread := threadlist.items[i];
@@ -493,7 +494,9 @@ begin
           currentthread.setContext;
           currentthread.resume;
         end;
+
       end;
+
     end;
 
   end
@@ -527,51 +530,54 @@ begin
     Debugregistermask := not Debugregistermask; //inverse the bits
 
 
-    if breakpoint.ThreadID <> 0 then
+    if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
     begin
-      //only one thread
-      currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID);
-      if currentthread = nil then //it's gone
-        exit;
-
-      currentthread.suspend;
-      currentthread.fillContext;
-      case breakpoint.debugregister of
-        0: currentthread.context.Dr0 := 0;
-        1: currentthread.context.Dr1 := 0;
-        2: currentthread.context.Dr2 := 0;
-        3: currentthread.context.Dr3 := 0;
-      end;
-      currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-      currentthread.setContext;
-      currentthread.resume;
+      DBKDebug_GD_SetBreakpoint(false, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
     end
     else
     begin
-      //do all threads
-      if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
+      if breakpoint.ThreadID <> 0 then
       begin
-        DBKDebug_GD_SetBreakpoint(false, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
+        //only one thread
+        currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID);
+        if currentthread = nil then //it's gone
+          exit;
+
+        currentthread.suspend;
+        currentthread.fillContext;
+        case breakpoint.debugregister of
+          0: currentthread.context.Dr0 := 0;
+          1: currentthread.context.Dr1 := 0;
+          2: currentthread.context.Dr2 := 0;
+          3: currentthread.context.Dr3 := 0;
+        end;
+        currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+        currentthread.setContext;
+        currentthread.resume;
       end
       else
       begin
-        for i := 0 to ThreadList.Count - 1 do
+        //do all threads
         begin
-          currentthread := threadlist.items[i];
-          currentthread.suspend;
-          currentthread.fillContext;
-          case breakpoint.debugregister of
-            0: currentthread.context.Dr0 := 0;
-            1: currentthread.context.Dr1 := 0;
-            2: currentthread.context.Dr2 := 0;
-            3: currentthread.context.Dr3 := 0;
+          for i := 0 to ThreadList.Count - 1 do
+          begin
+            currentthread := threadlist.items[i];
+            currentthread.suspend;
+            currentthread.fillContext;
+            case breakpoint.debugregister of
+              0: currentthread.context.Dr0 := 0;
+              1: currentthread.context.Dr1 := 0;
+              2: currentthread.context.Dr2 := 0;
+              3: currentthread.context.Dr3 := 0;
+            end;
+            currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+            currentthread.setcontext;
+            currentthread.resume;
           end;
-          currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-          currentthread.setcontext;
-          currentthread.resume;
-        end;
 
+        end;
       end;
+
     end;
 
   end
