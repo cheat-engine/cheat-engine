@@ -173,7 +173,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses mainunit2, symbolhandler;
+uses mainunit2, symbolhandler, LuaHandler;
 
 
 
@@ -257,7 +257,7 @@ end;
 procedure LoadXML(doc: TXMLDocument; merge: boolean);
 var newrec: MemoryRecordV6;
     CheatTable: TDOMNode;
-    Entries, Codes, Symbols, Comments: TDOMNode;
+    Entries, Codes, Symbols, Comments, luascript: TDOMNode;
     CheatEntry, CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
     Offsets: TDOMNode;
@@ -290,6 +290,7 @@ begin
       Symbols:=CheatTable.FindNode('UserdefinedSymbols');
       Structures:=CheatTable.FindNode('Structures');
       Comments:=CheatTable.FindNode('Comments');
+      LuaScript:=CheatTable.FindNode('LuaScript');
     end;
 
     if entries<>nil then
@@ -456,13 +457,23 @@ begin
     end;
 
     if comments<>nil then
+      Commentsunit.Comments.Memo1.text:=comments.TextContent;
+
+    if luaScript<>nil then
+      Commentsunit.Comments.mLuaScript.text:=luaScript.TextContent;
+
+    if Commentsunit.Comments.mLuaScript.text<>'' then
     begin
-      for i:=0 to comments.ChildNodes.Count-1 do
-      begin
-        if comments.ChildNodes[i].NodeName='Comment' then
-          Commentsunit.Comments.Memo1.Lines.Add(comments.ChildNodes[i].TextContent);
+      try
+        LUA_DoScript(Commentsunit.Comments.mLuaScript.text);
+      except
+        on e: exception do
+        begin
+          raise Exception.create('Error executing this table''s lua script: '+e.message);
+        end;
       end;
     end;
+
   finally
 
   end;
@@ -685,7 +696,7 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: TDOMNode;
-    Entries,Codes,Symbols, Structures, Comment: TDOMNode;
+    Entries,Codes,Symbols, Structures, Comment,luascript: TDOMNode;
     CheatRecord, CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
     Offsets: TDOMNode;
@@ -767,10 +778,14 @@ begin
   if comments.memo1.Lines.Count>0 then
   begin
     comment:=CheatTable.AppendChild(doc.CreateElement('Comments'));
-    for i:=0 to comments.Memo1.Lines.Count-1 do
-      comment.AppendChild(doc.CreateElement('Comment')).TextContent:=comments.Memo1.Lines[i];
+    comment.TextContent:=comments.Memo1.text;
   end;
 
+  if comments.mLuaScript.lines.count>0 then
+  begin
+    luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
+    luascript.TextContent:=comments.mLuaScript.text;
+  end;
   WriteXMLFile(doc, filename);
 
   doc.Free;

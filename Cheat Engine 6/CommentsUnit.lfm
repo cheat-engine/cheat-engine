@@ -77,6 +77,7 @@ object Comments: TComments
           Top = 1
           Width = 99
           Caption = 'Execute now'
+          OnClick = btnExecuteScriptClick
           TabOrder = 0
         end
       end
@@ -99,12 +100,13 @@ object Comments: TComments
           ParentColor = False
           WordWrap = True
         end
-        object Memo2: TMemo
+        object mLuaScript: TMemo
           Left = 1
           Height = 241
           Top = 34
           Width = 404
           Align = alClient
+          OnChange = mLuaScriptChange
           TabOrder = 0
         end
       end

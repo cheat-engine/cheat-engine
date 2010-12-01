@@ -39,7 +39,7 @@ require("defines")
 --getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
 --memrec_setDescription(te, description): sets the specified description for this entry
 --memrec_getDescription(te): gets the current description of this entry
---memrec_getAddress(te): returns the address and optional offsets for a pointer
+--memrec_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
 --memrec_setAddress(te,address,offsets OPTIONAL)
 --memrec_getType(te)
 --memrec_setType(te, vartype)
@@ -52,3 +52,12 @@ require("defines")
 --memrec_setColor(te, colorrgb): Sets the color of the entry
 --memrec_appendToEntry(te,te) : Adds the entry to another entry
 --memrec_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
+
+
+--Table related routines:
+--If a cheat entry is about to get enabled or disabled it will check if a lua function named "_memrec_description_activating" or "_memrec_description_deactivating" is available, and if so call it.
+--If a cheat entry is enabled or disabled it will check if a lua function named "_memrec_description_activated" or "_memrec_description_deactivated" is available, and if so call it.
+--It passes the tableEntry pointer as parameter
+--Example:
+--If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated
+--If the cheat entry table with description "xxx" gets disabled it will call "_memrec_xxx_deactivating(te)" before it is activated and "_memrec_xxx_deactivated(te)" after it has been deactivated

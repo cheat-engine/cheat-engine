@@ -14,8 +14,8 @@ var
 
 
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+procedure LUA_DoScript(s: string);
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
-
 procedure LUA_SetCurrentContextState(context: PContext);
 procedure InitializeLuaScripts;
 
@@ -171,23 +171,52 @@ begin
   end;
 end;
 
+procedure LUA_DoScript(s: string);
+var i: integer;
+  pc: pchar;
+begin
+  if GetCurrentThreadId<>MainThreadID then raise exception.create('LUA_DoScript was not called rom the main thread');
+
+  LUACS.Enter;
+  try
+    i:=lua_dostring(luavm, pchar(s));
+    if i<>0 then
+    begin
+      pc:=lua_tostring(luavm, -1);
+      if pc<>nil then
+        raise Exception.Create(pc)
+      else
+        raise exception.create('Undefined lua error');
+
+    end;
+  finally
+    lua_pop(luavm, lua_gettop(luavm)); //clear the stack
+    LUACS.Leave;
+  end;
+end;
+
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
 var m: TMemoryrecord;
   p: integer;
 begin
-  m:=memrec;
-  lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
+  LuaCS.Enter;
+  try
+    m:=memrec;
+    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
 
-  p:=lua_gettop(luavm);
-  if p<>0 then
-  begin
-    if lua_isfunction(luavm, -1) then
+    p:=lua_gettop(luavm);
+    if p<>0 then
     begin
-      lua_pushlightuserdata(luavm, memrec);
-      lua_pcall(luavm, 1, 0, 0);
-    end;
+      if lua_isfunction(luavm, -1) then
+      begin
+        lua_pushlightuserdata(luavm, memrec);
+        lua_pcall(luavm, 1, 0, 0);
+      end;
 
-    lua_pop(luavm,lua_gettop(luavm));
+      lua_pop(luavm,lua_gettop(luavm));
+    end;
+  finally
+    luacs.Leave;
   end;
 end;
 

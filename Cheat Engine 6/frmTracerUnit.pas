@@ -39,12 +39,13 @@ type
     Button2: TButton;
     lblInstruction: TLabel;
     lblAddressed: TLabel;
-    ListBox1: TListBox;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    miSaveToDisk: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miSearchNext: TMenuItem;
     Panel1: TPanel;
     EAXLabel: TLabel;
@@ -61,9 +62,11 @@ type
     pnlSearch: TPanel;
     pflabel: TLabel;
     aflabel: TLabel;
+    pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
     sbShowstack: TSpeedButton;
+    lvTracer: TTreeView;
     zflabel: TLabel;
     sflabel: TLabel;
     oflabel: TLabel;
@@ -77,7 +80,7 @@ type
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
     procedure Button2Click(Sender: TObject);
-    procedure MenuItem3Click(Sender: TObject);
+    procedure miSaveToDiskClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -85,9 +88,9 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure ListBox1Click(Sender: TObject);
+    procedure lvTracerClick(Sender: TObject);
     procedure EAXLabelDblClick(Sender: TObject);
-    procedure ListBox1DblClick(Sender: TObject);
+    procedure lvTracerDblClick(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -106,6 +109,8 @@ type
 
     lastsearchstring: string;
     stopsearch: boolean;
+
+    currentAppendage: TTreenode;
 
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
@@ -158,12 +163,14 @@ var s,s2: string;
     a,address: ptrUint;
     referencedAddress: ptrUint;
     haserror: boolean;
+    thisnode: TTreenode;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
   address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
   a:=address;
   s:=disassemble(a);
+
 
   referencedAddress:=0;
   if dereference then
@@ -193,7 +200,20 @@ begin
 
   s:=inttohex(address,8)+' - '+s;
 
-  ListBox1.Items.AddObject(s,d);
+  if currentAppendage<>nil then
+    thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
+  else
+    thisnode:=lvTracer.Items.AddObject(nil,s,d);
+
+  if defaultDisassembler.LastDisassembleData.iscall then
+    currentAppendage:=thisnode;
+
+  if defaultDisassembler.LastDisassembleData.isret then
+  begin
+    if currentAppendage<>nil then
+      currentAppendage:=currentAppendage.Parent;
+  end;
+
 end;
 
 procedure TfrmTracer.setSavestack(x: boolean);
@@ -252,21 +272,25 @@ begin
   end;
 end;
 
-procedure TfrmTracer.MenuItem3Click(Sender: TObject);
-var z: Tstringlist;
-i: integer;
-t: TTraceDebugInfo;
-c: PContext;
-pref: string;
+procedure TfrmTracer.miSaveToDiskClick(Sender: TObject);
+var
+  z: Tstringlist;
+  i: integer;
+  t: TTraceDebugInfo;
+  c: PContext;
+  pref: string;
 begin
+  //save the results of the trace to disk
   if savedialog1.Execute then
   begin
     z:=tstringlist.create;
     try
-      for i:=0 to listbox1.count-1 do
+
+      for i:=0 to lvTracer.Items.Count-1 do
       begin
-        z.add(listbox1.Items[i]);
-        t:=TTraceDebugInfo(listbox1.Items.Objects[i]);
+
+        z.add(lvTracer.Items[i].Text);
+        t:=TTraceDebugInfo(lvTracer.Items[i].data);
         if t<>nil then
         begin
           c:=@t.c;
@@ -329,6 +353,7 @@ begin
   stopsearch:=true;
 end;
 
+
 procedure TfrmTracer.MenuItem4Click(Sender: TObject);
 var
 i: integer;
@@ -347,19 +372,22 @@ begin
   begin
     stopsearch:=false;
     progressbar1.Position:=0;
-    progressbar1.Max:=listbox1.Count;
+    progressbar1.Max:=lvTracer.items.Count;
     pnlSearch.visible:=true;
 
-    i:=listbox1.itemindex+1;
+    if lvTracer.Selected=nil then
+      i:=0
+    else
+      i:=lvTracer.Selected.AbsoluteIndex+1;
 
-    while (i<listbox1.count) and (not stopsearch) do
+    while (i<lvTracer.items.count) and (not stopsearch) do
     begin
-      c:=@TTraceDebugInfo(listbox1.Items.Objects[i]).c;
+      c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
       if CheckIfConditionIsMetContext(c, lastsearchstring) then
       begin
-        listbox1.ItemIndex:=i;
-        listbox1.MakeCurrentVisible;
-        listbox1Click(listbox1);
+        lvTracer.Items[i].Selected:=true;
+        lvTracer.MakeSelectionVisible;
+        lvTracerClick(lvTracer);
         break;
       end;
 
@@ -381,8 +409,8 @@ begin
   if debuggerthread<>nil then
     debuggerthread.stopBreakAndTrace(self);
 
-  for i:=0 to listbox1.Items.Count-1 do
-    TTraceDebugInfo(listbox1.Items.Objects[i]).Free;
+  for i:=0 to lvTracer.Items.Count-1 do
+    TTraceDebugInfo(lvTracer.Items[i].data).Free;
 
   action:=cafree;
 end;
@@ -458,7 +486,7 @@ begin
   end;
 end;
 
-procedure TfrmTracer.ListBox1Click(Sender: TObject);
+procedure TfrmTracer.lvTracerClick(Sender: TObject);
 var temp: string;
     context: _context;
     t: TTraceDebugInfo;
@@ -466,9 +494,9 @@ var temp: string;
 begin
   configuredisplay;
 
-  if listbox1.ItemIndex<>-1 then
+  if lvTracer.selected<>nil then
   begin
-    t:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]);
+    t:=TTraceDebugInfo(lvTracer.selected.data);
 
     lblinstruction.caption:=t.instruction;
     if dereference then
@@ -707,7 +735,7 @@ begin
     end else Oflabel.Font.Color:=clWindowText;
 
     if fpp<>nil then
-      fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+      fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
 
     if Stackview<>nil then
       updatestackview;
@@ -718,10 +746,10 @@ end;
 procedure TfrmTracer.updatestackview;
 var di: TTraceDebugInfo;
 begin
-  if (Stackview<>nil) and (listbox1.ItemIndex<>-1) then
+  if (Stackview<>nil) and (lvTracer.selected<>nil) then
   begin
     //get stack
-    di:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]);
+    di:=TTraceDebugInfo(lvTracer.selected.data);
     StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
   end;
 end;
@@ -735,9 +763,9 @@ begin
   memorybrowser.memoryaddress:=strtoint64('$'+s);
 end;
 
-procedure TfrmTracer.ListBox1DblClick(Sender: TObject);
+procedure TfrmTracer.lvTracerDblClick(Sender: TObject);
 begin
-  memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c.{$ifdef cpu64}rip{$else}Eip{$endif};
+  memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
 end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
@@ -760,7 +788,7 @@ end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
 begin
-  if listbox1.ItemIndex=-1 then exit;
+  if lvTracer.selected=nil then exit;
 
   if fpp=nil then
   begin
@@ -769,7 +797,7 @@ begin
 
   fpp.Left:=self.left+self.Width;
   fpp.Top:=self.top;
-  fpp.SetContextPointer(@TTraceDebugInfo(listbox1.Items.Objects[listbox1.ItemIndex]).c);
+  fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
   fpp.show;//pop to foreground
 end;
 

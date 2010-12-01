@@ -1269,6 +1269,17 @@ begin
     if result=wrSignaled then exit;
   end;
 
+  //wait one more second for a thread
+  i:=0;
+  while (ThreadList.Count=0) and (i<10) do
+  begin
+    CheckSynchronize;
+    sleep(100);
+
+    inc(i);
+  end;
+
+
   if not terminated then
     raise Exception.Create('Debugger failed to attach');
 end;

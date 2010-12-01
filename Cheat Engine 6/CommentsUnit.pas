@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls;
+  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, LuaHandler;
 
 type
 
@@ -16,7 +16,7 @@ type
     btnExecuteScript: TButton;
     Label1: TLabel;
     Memo1: TMemo;
-    Memo2: TMemo;
+    mLuaScript: TMemo;
     PageControl1: TPageControl;
     Panel1: TPanel;
     Button1: TButton;
@@ -24,7 +24,9 @@ type
     Panel3: TPanel;
     tsComment: TTabSheet;
     tsLuaScript: TTabSheet;
+    procedure btnExecuteScriptClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure mLuaScriptChange(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -53,6 +55,17 @@ end;
 procedure TComments.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TComments.mLuaScriptChange(Sender: TObject);
+begin
+
+end;
+
+procedure TComments.btnExecuteScriptClick(Sender: TObject);
+begin
+  LUA_DoScript(mLuaScript.text);
+  showmessage('Successfully executed');
 end;
 
 procedure TComments.Panel1Resize(Sender: TObject);

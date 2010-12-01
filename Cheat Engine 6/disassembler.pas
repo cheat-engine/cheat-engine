@@ -97,6 +97,7 @@ type
 
       isjump: boolean; //set for anything that can change eip/rip
       iscall: boolean; //set if it's a call
+      isret: boolean; //set if it's a ret
       isconditionaljump: boolean; //set if it's only effective when an conditon is met
     end;
 
@@ -153,7 +154,7 @@ procedure splitDisassembledString(disassembled: string; showvalues: boolean; var
 var visibleDisassembler: TDisassembler; //this disassembler is used to render the disassembly output. Each update it gets synced with the default
 
 
-
+var defaultDisassembler: TDisassembler;
 
 implementation
 
@@ -164,7 +165,7 @@ uses Assemblerunit,CEDebugger, debughelper, StrUtils;
 {$endif}
 {$endif}
 
-var defaultDisassembler: TDisassembler;
+
 
 
 function TDisassembler.rd(bt:byte):string;
@@ -1286,6 +1287,7 @@ begin
   LastDisassembleData.parameters:='';
   lastdisassembledata.isjump:=false;
   lastdisassembledata.iscall:=false;
+  lastdisassembledata.isret:=false;
   lastdisassembledata.isconditionaljump:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
@@ -7928,13 +7930,17 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
               lastdisassembledata.opcode:='ret';
+              LastDisassembleData.isret:=true;
               lastdisassembledata.parameters:=inttohexs(wordptr^,4);
               inc(offset,2);
+
+
             end;
 
       $c3 : begin
               description:='near return to calling procedure';
               lastdisassembledata.opcode:='ret';
+              LastDisassembleData.isret:=true;
             end;
 
       $c4 : begin
@@ -8042,6 +8048,7 @@ begin
               description:='far return to calling procedure and pop 2 bytes from stack';
               wordptr:=@memory[1];
               lastdisassembledata.opcode:='ret';
+              LastDisassembleData.isret:=true;
 
               lastdisassembledata.parametervaluetype:=dvtvalue;
               lastdisassembledata.parametervalue:=wordptr^;
@@ -8055,6 +8062,7 @@ begin
       $cb : begin
               description:='far return to calling procedure';
               lastdisassembledata.opcode:='ret';
+              LastDisassembleData.isret:=true;
             end;
 
       $cc : begin

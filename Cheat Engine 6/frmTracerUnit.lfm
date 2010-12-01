@@ -331,7 +331,6 @@ object frmTracer: TfrmTracer
       Top = 158
       Width = 21
       Caption = 'F'
-      Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowFloatsClick
       ShowHint = True
@@ -369,7 +368,6 @@ object frmTracer: TfrmTracer
       Top = 186
       Width = 21
       Caption = 'S'
-      Color = clBtnFace
       NumGlyphs = 0
       Visible = False
       OnClick = sbShowstackClick
@@ -387,17 +385,6 @@ object frmTracer: TfrmTracer
     ClientHeight = 387
     ClientWidth = 188
     TabOrder = 2
-    object ListBox1: TListBox
-      Left = 0
-      Height = 337
-      Top = 0
-      Width = 188
-      Align = alClient
-      ItemHeight = 0
-      OnClick = ListBox1Click
-      OnDblClick = ListBox1DblClick
-      TabOrder = 0
-    end
     object pnlSearch: TPanel
       Left = 0
       Height = 50
@@ -407,7 +394,7 @@ object frmTracer: TfrmTracer
       BevelOuter = bvNone
       ClientHeight = 50
       ClientWidth = 188
-      TabOrder = 1
+      TabOrder = 0
       Visible = False
       object ProgressBar1: TProgressBar
         Left = 0
@@ -427,16 +414,31 @@ object frmTracer: TfrmTracer
         TabOrder = 1
       end
     end
+    object lvTracer: TTreeView
+      Left = 0
+      Height = 337
+      Top = 0
+      Width = 188
+      Align = alClient
+      DefaultItemHeight = 15
+      HideSelection = False
+      ReadOnly = True
+      TabOrder = 1
+      OnClick = lvTracerClick
+      OnDblClick = lvTracerDblClick
+      OnSelectionChanged = lvTracerClick
+      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    end
   end
   object MainMenu1: TMainMenu
     left = 72
     top = 56
     object MenuItem1: TMenuItem
       Caption = 'File'
-      object MenuItem3: TMenuItem
+      object miSaveToDisk: TMenuItem
         Caption = 'Save results to disk'
         ShortCut = 16467
-        OnClick = MenuItem3Click
+        OnClick = miSaveToDiskClick
       end
     end
     object MenuItem2: TMenuItem
@@ -456,5 +458,15 @@ object frmTracer: TfrmTracer
   object SaveDialog1: TSaveDialog
     left = 72
     top = 119
+  end
+  object pmTracer: TPopupMenu
+    left = 72
+    top = 184
+    object MenuItem5: TMenuItem
+      Caption = 'Expand all'
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Collapse all'
+    end
   end
 end
