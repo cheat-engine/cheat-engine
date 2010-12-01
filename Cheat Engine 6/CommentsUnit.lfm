@@ -1,46 +1,113 @@
 object Comments: TComments
-  Left = 388
-  Height = 378
-  Top = 268
-  Width = 470
+  Left = 805
+  Height = 369
+  Top = 308
+  Width = 414
   HelpContext = 11
   BorderIcons = [biMaximize]
   Caption = 'Comments'
-  ClientHeight = 378
-  ClientWidth = 470
+  ClientHeight = 369
+  ClientWidth = 414
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
   LCLVersion = '0.9.29'
-  object Memo1: TMemo
-    Left = 0
-    Height = 337
-    Top = 0
-    Width = 470
-    Align = alClient
-    ScrollBars = ssVertical
-    TabOrder = 0
-  end
   object Panel1: TPanel
     Left = 0
-    Height = 41
-    Top = 337
-    Width = 470
+    Height = 36
+    Top = 333
+    Width = 414
     Align = alBottom
     BevelOuter = bvNone
-    ClientHeight = 41
-    ClientWidth = 470
-    TabOrder = 1
+    ClientHeight = 36
+    ClientWidth = 414
+    TabOrder = 0
     OnResize = Panel1Resize
     object Button1: TButton
-      Left = 184
+      Left = 168
       Height = 31
-      Top = 6
+      Top = 0
       Width = 87
-      Caption = 'OK'
+      Caption = 'Close'
       OnClick = Button1Click
       TabOrder = 0
+    end
+  end
+  object PageControl1: TPageControl
+    Left = 0
+    Height = 333
+    Top = 0
+    Width = 414
+    ActivePage = tsLuaScript
+    Align = alClient
+    TabIndex = 1
+    TabOrder = 1
+    object tsComment: TTabSheet
+      Caption = 'Comments'
+      ClientHeight = 299
+      ClientWidth = 406
+      object Memo1: TMemo
+        Left = 0
+        Height = 299
+        Top = 0
+        Width = 406
+        Align = alClient
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
+    end
+    object tsLuaScript: TTabSheet
+      Caption = 'LUA script'
+      ClientHeight = 304
+      ClientWidth = 406
+      object Panel2: TPanel
+        Left = 0
+        Height = 28
+        Top = 276
+        Width = 406
+        Align = alBottom
+        BevelOuter = bvNone
+        ClientHeight = 28
+        ClientWidth = 406
+        TabOrder = 0
+        object btnExecuteScript: TButton
+          Left = 156
+          Height = 25
+          Top = 1
+          Width = 99
+          Caption = 'Execute now'
+          TabOrder = 0
+        end
+      end
+      object Panel3: TPanel
+        Left = 0
+        Height = 276
+        Top = 0
+        Width = 406
+        Align = alClient
+        ClientHeight = 276
+        ClientWidth = 406
+        TabOrder = 1
+        object Label1: TLabel
+          Left = 1
+          Height = 33
+          Top = 1
+          Width = 404
+          Align = alTop
+          Caption = 'The following script will get run when the table is loaded or manually executed'
+          ParentColor = False
+          WordWrap = True
+        end
+        object Memo2: TMemo
+          Left = 1
+          Height = 241
+          Top = 34
+          Width = 404
+          Align = alClient
+          TabOrder = 0
+        end
+      end
     end
   end
 end

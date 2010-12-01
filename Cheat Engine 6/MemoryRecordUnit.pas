@@ -171,7 +171,7 @@ function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 
 implementation
 
-uses mainunit, addresslist, formsettingsunit;
+uses mainunit, addresslist, formsettingsunit, LuaHandler;
 
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
@@ -844,7 +844,14 @@ end;
 procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
+
 begin
+  if (state) then
+    LUA_memrec_callback(self, '_memrec_'+description+'_activating')
+  else
+    LUA_memrec_callback(self, '_memrec_'+description+'_deactivating');
+
+
   if not isGroupHeader then
   begin
     if self.VarType = vtAutoAssembler then
@@ -902,7 +909,14 @@ begin
       TMemoryRecord(treenode[i].data).setActive(active);
   end;
 
-  if active then SetVisibleChildrenState;
+  if (active) then
+  begin
+    SetVisibleChildrenState;
+    LUA_memrec_callback(self, '_memrec_'+description+'_activated')
+  end
+  else
+    LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
+
 end;
 
 procedure TMemoryRecord.setShowAsHex(state:boolean);

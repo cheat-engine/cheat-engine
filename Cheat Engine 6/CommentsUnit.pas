@@ -6,13 +6,24 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources;
+  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls;
 
 type
+
+  { TComments }
+
   TComments = class(TForm)
+    btnExecuteScript: TButton;
+    Label1: TLabel;
     Memo1: TMemo;
+    Memo2: TMemo;
+    PageControl1: TPageControl;
     Panel1: TPanel;
     Button1: TButton;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    tsComment: TTabSheet;
+    tsLuaScript: TTabSheet;
     procedure Button1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -47,7 +58,7 @@ end;
 procedure TComments.Panel1Resize(Sender: TObject);
 begin
   button1.Left:=(panel1.ClientWidth div 2) - (button1.Width div 2);
-
+  btnExecuteScript.left:=(panel2.clientwidth div 2) - (btnExecuteScript.width div 2);
 end;
 
 procedure TComments.FormClose(Sender: TObject; var Action: TCloseAction);

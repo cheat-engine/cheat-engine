@@ -14,12 +14,14 @@ var
 
 
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
+procedure LUA_memrec_callback(memrec: pointer; routine: string);
+
 procedure LUA_SetCurrentContextState(context: PContext);
 procedure InitializeLuaScripts;
 
 implementation
 
-uses pluginexports;
+uses pluginexports, MemoryRecordUnit;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -166,6 +168,26 @@ begin
 
   finally
     LuaCS.Leave;
+  end;
+end;
+
+procedure LUA_memrec_callback(memrec: pointer; routine: string);
+var m: TMemoryrecord;
+  p: integer;
+begin
+  m:=memrec;
+  lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
+
+  p:=lua_gettop(luavm);
+  if p<>0 then
+  begin
+    if lua_isfunction(luavm, -1) then
+    begin
+      lua_pushlightuserdata(luavm, memrec);
+      lua_pcall(luavm, 1, 0, 0);
+    end;
+
+    lua_pop(luavm,lua_gettop(luavm));
   end;
 end;
 
