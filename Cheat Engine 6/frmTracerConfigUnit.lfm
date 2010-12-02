@@ -1,12 +1,13 @@
 object frmTracerConfig: TfrmTracerConfig
-  Left = 676
-  Height = 191
-  Top = 400
+  Left = 540
+  Height = 206
+  Top = 111
   Width = 231
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 191
+  ClientHeight = 206
   ClientWidth = 231
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object edtMaxTrace: TEdit
@@ -40,20 +41,20 @@ object frmTracerConfig: TfrmTracerConfig
     Width = 200
     TabOrder = 1
   end
-  object Button1: TButton
+  object btnOK: TButton
     Left = 40
     Height = 25
-    Top = 152
+    Top = 176
     Width = 75
     Caption = 'OK'
     Default = True
     ModalResult = 1
     TabOrder = 2
   end
-  object Button2: TButton
+  object btnCancel: TButton
     Left = 132
     Height = 25
-    Top = 152
+    Top = 176
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -77,5 +78,25 @@ object frmTracerConfig: TfrmTracerConfig
     Width = 210
     Caption = 'Save stack snapshots (Eats memory)'
     TabOrder = 5
+  end
+  object rbBreakOnAccess: TRadioButton
+    Left = 16
+    Height = 19
+    Top = 152
+    Width = 105
+    Caption = 'Break on Access'
+    TabOrder = 6
+    Visible = False
+  end
+  object rbBreakOnWrite: TRadioButton
+    Left = 128
+    Height = 19
+    Top = 152
+    Width = 97
+    Caption = 'Break on Write'
+    Checked = True
+    TabOrder = 7
+    TabStop = True
+    Visible = False
   end
 end

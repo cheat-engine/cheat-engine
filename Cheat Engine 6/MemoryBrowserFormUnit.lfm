@@ -510,8 +510,8 @@ object MemoryBrowser: TMemoryBrowser
           item
             AutoSize = True
             Caption = 'Value'
+            Width = 42
           end>
-        ItemIndex = -1
         OwnerData = True
         ReadOnly = True
         RowSelect = True
@@ -675,6 +675,28 @@ object MemoryBrowser: TMemoryBrowser
     object Makepagewritable1: TMenuItem
       Caption = 'Make page writable'
       OnClick = Makepagewritable1Click
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Data Breakpoint'
+      object MenuItem6: TMenuItem
+        Caption = 'Break on Write'
+        OnClick = MenuItem6Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Break on Access'
+        OnClick = MenuItem5Click
+      end
+      object MenuItem7: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem8: TMenuItem
+        Caption = 'Break and trace'
+        OnClick = MenuItem8Click
+      end
+    end
+    object miDeleteBP: TMenuItem
+      Caption = 'Delete Breakpoint'
+      OnClick = miDeleteBPClick
     end
   end
   object debuggerpopup: TPopupMenu

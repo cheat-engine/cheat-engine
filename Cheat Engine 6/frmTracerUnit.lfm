@@ -421,11 +421,12 @@ object frmTracer: TfrmTracer
       Width = 188
       Align = alClient
       DefaultItemHeight = 15
+      ExpandSignType = tvestPlusMinus
       HideSelection = False
       ReadOnly = True
       TabOrder = 1
-      OnClick = lvTracerClick
       OnDblClick = lvTracerDblClick
+      OnMouseMove = lvTracerMouseMove
       OnSelectionChanged = lvTracerClick
       Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end

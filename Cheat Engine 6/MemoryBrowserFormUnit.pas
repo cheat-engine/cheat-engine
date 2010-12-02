@@ -23,6 +23,12 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    miDeleteBP: TMenuItem;
     miLock: TMenuItem;
     miShowDifference: TMenuItem;
     miUserdefinedComment: TMenuItem;
@@ -195,7 +201,11 @@ type
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
+    procedure MenuItem8Click(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
+    procedure miDeleteBPClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
@@ -666,6 +676,8 @@ var
   i: integer;
 
   islocked: boolean;
+  a,a2: ptruint;
+  hasbp: boolean;
 begin
   miShowDifference.clear;
   miLock.Clear;
@@ -719,6 +731,31 @@ begin
       end;
     end;
 
+  end;
+
+
+  if (hexview.DisplayType=dtByte) and (hexview.hasSelection) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+
+    hasbp:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(a,a2)<>nil);
+    MenuItem4.visible:=not hasbp;
+    MenuItem6.visible:=not hasbp;
+    MenuItem5.visible:=not hasbp;
+    MenuItem7.visible:=not hasbp;
+    MenuItem8.visible:=not hasbp;
+
+
+    miDeleteBP.visible:=hasbp;
+  end
+  else
+  begin
+    MenuItem4.visible:=false;
+    MenuItem6.visible:=false;
+    MenuItem5.visible:=false;
+    MenuItem7.visible:=false;
+    MenuItem8.visible:=false;
+    miDeleteBP.visible:=false;
   end;
 end;
 
@@ -871,6 +908,38 @@ begin
 
 end;
 
+procedure TMemoryBrowser.MenuItem5Click(Sender: TObject);
+var
+  a,a2: ptruint;
+begin
+  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+    DebuggerThread.SetOnAccessBreakpoint(a, 1+(a2-a));
+    hexview.Update;
+  end;
+
+end;
+
+procedure TMemoryBrowser.MenuItem6Click(Sender: TObject);
+var
+  a,a2: ptruint;
+begin
+  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+    DebuggerThread.SetOnWriteBreakpoint(a, 1+(a2-a));
+    hexview.Update;
+  end;
+
+
+end;
+
+procedure TMemoryBrowser.MenuItem8Click(Sender: TObject);
+begin
+  TFrmTracer.create(self,true).show;
+end;
+
 
 
 procedure TMemoryBrowser.miConditionalBreakClick(Sender: TObject);
@@ -913,6 +982,28 @@ begin
       dec(bp.referencecount);
     end;
 
+  end;
+end;
+
+procedure TMemoryBrowser.miDeleteBPClick(Sender: TObject);
+var bp: PBreakpoint;
+  a,a2: ptruint;
+begin
+  if (debuggerthread<>nil) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+
+    debuggerthread.lockbplist;
+    try
+      repeat
+        bp:=debuggerthread.isBreakpoint(a,a2);
+        debuggerthread.RemoveBreakpoint(bp);
+      until bp=nil;
+
+    finally
+      debuggerthread.unlockbplist;
+    end;
+    hexview.update;
   end;
 end;
 

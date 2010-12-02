@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs, changelist;
+  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions;
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
@@ -48,7 +48,7 @@ type
     editing: boolean;
 
 
-    isSelecting, hasSelection: boolean;
+    isSelecting, fhasSelection: boolean;
     selected, selected2: ptrUint;
 
     isEditing: boolean;
@@ -106,6 +106,7 @@ type
     procedure LockRowsize;
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
+    procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
     procedure PasteFromClipboard;
 
     procedure update; //hidden on purpose
@@ -121,7 +122,7 @@ type
     function isLocked: boolean;
     function isShowingDifference: boolean;
 
-
+    function hasSelection: boolean;
 
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
@@ -137,7 +138,10 @@ implementation
 
 uses formsettingsunit, Valuechange, AddAddress;
 
-
+function THexview.hasSelection: boolean;
+begin
+  result:=fhasSelection or isEditing;
+end;
 
 function THexview.isLocked:boolean;
 begin
@@ -244,7 +248,7 @@ begin
   if fDisplayType<>dtByte then
   begin
     isSelecting:=false;
-    hasSelection:=false;
+    fhasSelection:=false;
     isEditing:=false;
   end;
 
@@ -257,7 +261,7 @@ begin
     if fDisplayType<>dtByte then
     begin
       fShowDiffHv.isSelecting:=false;
-      fShowDiffHv.hasSelection:=false;
+      fShowDiffHv.fhasSelection:=false;
       fShowDiffHv.isEditing:=false;
     end;
 
@@ -550,7 +554,7 @@ end;
 
 procedure THexView.AddSelectedAddressToCheatTable;
 begin
-  if hasSelection or isediting then
+  if fhasSelection or isediting then
   begin
     //selected
     if addform=nil then
@@ -561,6 +565,13 @@ begin
   end;
 end;
 
+
+procedure THexView.GetSelectionRange(var start: ptruint; var stop: ptruint);
+begin
+  start:=MinX(selected,selected2);
+  stop:=MaxX(selected,selected2);
+end;
+
 procedure THexView.CopySelectionToClipboard;
 var fromAddress, toAddress: ptrUint;
 s: string;
@@ -569,7 +580,7 @@ unreadable: boolean;
 begin
   s:='';
 
-  if isEditing or hasSelection then
+  if isEditing or fhasSelection then
   begin
     fromAddress:=MinX(selected,selected2);
     toAddress:=MaxX(selected,selected2);
@@ -629,7 +640,7 @@ fromAddress, toAddress: ptrUint;
 
 
 begin
-  if isEditing or hasSelection then
+  if isEditing or fhasSelection then
   begin
     s:=clipboard.AsText;
     fromAddress:=MinX(selected,selected2);
@@ -704,7 +715,7 @@ end;
 procedure THexView.ChangeSelected;
 var unreadable: boolean;
 begin
-  if hasSelection then
+  if fhasSelection then
   begin
     getByte(selected,unreadable);
     if unreadable then exit;
@@ -750,7 +761,7 @@ begin
         if (a<>selected) or (hr=hrInvalid) then exit; //out of bounds exit
 
         isEditing:=true;
-        hasSelection:=false;
+        fhasSelection:=false;
 
 
 
@@ -790,7 +801,7 @@ var
 begin
   setfocus;
 
-  if (button=mbRight) and (hasSelection=false) then
+  if (button=mbRight) and (fhasSelection=false) then
   begin
     button:=mbLeft; //handle the rightclick as a selection if nothing is selected
     wasrightclick:=true;
@@ -799,7 +810,7 @@ begin
 
   if (button=mbLeft) then
   begin
-    hasSelection:=false;
+    fhasSelection:=false;
     oldselected:=selected;
     selected:=getAddressFromPosition(x,y,hr);
     selected2:=selected;
@@ -807,7 +818,7 @@ begin
     if hr<>hrInvalid then
     begin
 
-      hasSelection:=fDisplayType=dtByte;
+      fhasSelection:=fDisplayType=dtByte;
       isSelecting:=fDisplayType=dtByte; //only start selecting if the type is byte
       selectionType:=hr;
 
@@ -1181,6 +1192,8 @@ var
 
   compareToAddress: ptruint;
   different: boolean;
+
+  bp: PBreakpoint;
 begin
   if Parent=nil then exit;
 
@@ -1251,7 +1264,7 @@ begin
       else
         offscreenbitmap.canvas.Font.Color:=clWindowText;
 
-      if hasSelection and inrangex(currentaddress,minx(selected,selected2),maxx(selected,selected2)) then
+      if fhasSelection and inrangex(currentaddress,minx(selected,selected2),maxx(selected,selected2)) then
         offscreenbitmap.canvas.Font.Color:=clRed;
 
 
@@ -1268,6 +1281,19 @@ begin
           offscreenbitmap.canvas.Font.Color:=clWindowText;
         end;
       end;
+
+      if debuggerthread<>nil then
+      begin
+        //check if the current address has a breakpoint
+        bp:=debuggerthread.isBreakpoint(currentaddress);
+        if bp<>nil then
+        begin
+          offscreenbitmap.canvas.Brush.Color:=clGreen;
+          offscreenbitmap.canvas.Font.Color:=clBlack;
+        end;
+      end;
+
+
 
       //todo: refactor this
 

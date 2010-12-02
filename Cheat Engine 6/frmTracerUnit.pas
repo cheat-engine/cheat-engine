@@ -80,6 +80,8 @@ type
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
     procedure Button2Click(Sender: TObject);
+    procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure miSaveToDiskClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
@@ -112,19 +114,25 @@ type
 
     currentAppendage: TTreenode;
 
+
+    fDataTrace: boolean;
+
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
   public
     { Public declarations }
+    procedure setDataTrace(state: boolean);
     procedure addRecord;
     property savestack: boolean read fsavestack write setSavestack;
+    constructor create(Owner: TComponent; DataTrace: boolean=false);
   end;
 
 implementation
 
 
-uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit;
+uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit, debuggertypedefinitions;
+
 
 destructor TTraceDebugInfo.destroy;
 begin
@@ -153,6 +161,12 @@ procedure TTraceDebugInfo.SaveStack;
 begin
   getmem(stack.stack, 4096);
   ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, 4096, stack.savedsize);
+end;
+
+constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false);
+begin
+  inherited create(owner);
+  fDataTrace:=Datatrace;
 end;
 
 procedure TfrmTracer.addRecord;
@@ -216,6 +230,11 @@ begin
 
 end;
 
+procedure TfrmTracer.setDataTrace(state: boolean);
+begin
+  fDataTrace:=state;
+end;
+
 procedure TfrmTracer.setSavestack(x: boolean);
 begin
   fsavestack:=x;
@@ -227,10 +246,16 @@ var tcount: integer;
     condition: string;
     x: array of integer;
     testcontext: TContext;
+
+    fromaddress: ptruint;
+    toaddress: ptruint;
+
+    bpTrigger: TBreakpointTrigger;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   with TfrmTracerConfig.create(self) do
   begin
+    DataTrace:=fDataTrace;
     if showmodal=mrok then
     begin
       dereference:= cbDereferenceAddresses.checked;
@@ -240,7 +265,32 @@ begin
       condition:=edtCondition.text;
 
       if startdebuggerifneeded then
-        debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, tcount, condition);
+      begin
+        if fDataTrace then
+        begin
+          //get breakpoint trigger
+          if rbBreakOnAccess.checked then
+            bpTrigger:=bptAccess
+          else
+            bpTrigger:=bptWrite;
+
+          //get address to break on
+          if (owner is TMemoryBrowser) then
+            (owner as TMemoryBrowser).hexview.GetSelectionRange(fromaddress,toaddress)
+          else
+            memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
+
+          //set the breakpoint
+          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition);
+        end
+        else
+        begin
+          if (owner is TMemoryBrowser) then
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition)
+          else
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition);
+        end;
+      end;
 
 
     end;
@@ -351,6 +401,12 @@ end;
 procedure TfrmTracer.Button2Click(Sender: TObject);
 begin
   stopsearch:=true;
+end;
+
+procedure TfrmTracer.lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  //update the help based on what register is focused
 end;
 
 

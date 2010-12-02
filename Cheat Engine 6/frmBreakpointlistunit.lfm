@@ -1,7 +1,7 @@
 object frmBreakpointlist: TfrmBreakpointlist
-  Left = 743
+  Left = 844
   Height = 292
-  Top = 164
+  Top = 260
   Width = 670
   Caption = 'Breakpoint list'
   ClientHeight = 292
@@ -48,7 +48,6 @@ object frmBreakpointlist: TfrmBreakpointlist
         Caption = 'Pending deletion'
         Width = 125
       end>
-    ItemIndex = -1
     Items.LazData = {
       EA00000002000000FFFFFFFFFFFFFFFFFFFFFFFF050000000800000044444444
       444444440100000034090000004F6E2041636365737313000000486172647761
