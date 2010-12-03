@@ -1,5 +1,17 @@
 --Defines:
 
+--debug variables
+--Breakpoint triggers:
+bptExecute=0
+bptAccess=1
+bptWrite=2
+
+--breakpoint continue methods:
+co_run=0
+co_stepinto=1
+co_stepover=2
+
+
 --Variable types
 vtByte=0
 vtWord=1

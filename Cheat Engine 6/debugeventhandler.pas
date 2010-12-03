@@ -123,7 +123,9 @@ end;
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
   MemoryBrowser.lastdebugcontext:=context^;
-  MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
+
+  if lua_onBreakpoint(context)=false then //no lua script or it returned 0
+    MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
 end;
 
 procedure TDebugThreadHandler.fillContext;
@@ -361,11 +363,12 @@ end;
 
 procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint);
 begin
-  TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
-
   //go to sleep and wait for an event that wakes it up. No need to worry about deleted breakpoints, since the cleanup will not be called untill this routine exits
   onContinueEvent.ResetEvent;
   WaitingToContinue:=true;
+
+  TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
+
   onContinueEvent.WaitFor(infinite);
   WaitingToContinue:=false;
 

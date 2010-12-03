@@ -20,7 +20,7 @@ type
 
 
 type
-  TContinueOption = (co_run, co_stepinto, co_stepover, co_runtill);
+  TContinueOption = (co_run=0, co_stepinto=1, co_stepover=2, co_runtill=3);
 
 type
   TBreakpointMethod = (bpmInt3, bpmDebugRegister);
@@ -30,7 +30,7 @@ type
   TBreakPointAction = TBreakOption;
 
 type
-  TBreakpointTrigger = (bptExecute, bptAccess, bptWrite);
+  TBreakpointTrigger = (bptExecute=0, bptAccess=1, bptWrite=2);
 
 type
   tregistermodificationBP32 = record

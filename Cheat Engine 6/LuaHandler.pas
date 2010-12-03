@@ -17,11 +17,12 @@ function CheckIfConditionIsMetContext(context: PContext; script: string): boolea
 procedure LUA_DoScript(s: string);
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
 procedure LUA_SetCurrentContextState(context: PContext);
+function LUA_onBreakpoint(context: PContext): boolean;
 procedure InitializeLuaScripts;
 
 implementation
 
-uses pluginexports, MemoryRecordUnit;
+uses pluginexports, MemoryRecordUnit, debuggertypedefinitions;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -62,10 +63,344 @@ begin
 
 end;
 
+function LUA_onBreakpoint(context: PContext): boolean;
+var p: integer;
+begin
+  result:=false;
+  LuaCS.enter;
+  try
+    lua_pop(LuaVM, lua_gettop(luavm)); //clear it just to be sure
+
+    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar('debugger_onBreakpoint'));
+
+    p:=lua_gettop(luavm);
+    if p<>0 then //debugger_onBreakpoint is defined
+    begin
+      if lua_isfunction(luavm, -1) then //it's a function, yeeeeeeeeh
+      begin
+        LUA_SetCurrentContextState(context);
+
+        //set the "changedREG" variables
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'hasChangedARegister');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEAX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEBX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedECX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEDX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedESI');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEDI');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEBP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedESP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEIP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedEFLAGS');
+
+        {$ifdef cpu64}
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRAX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRBX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRCX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRDX');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRSI');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRDI');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRBP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRSP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedRIP');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR8');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR9');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR10');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR11');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR12');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR13');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR14');
+
+        lua_pushboolean(luavm, false);
+        lua_setglobal(luavm, 'changedR15');
+        {$endif}
+
+
+
+        if lua_pcall(LuaVM, 0, 1, 0)=0 then
+        begin
+          if (lua_gettop(luavm)=1) then //only 1 parameter returned
+            result:=lua_tointeger(luavm, -1)<>0;  //return the result is not 0
+
+
+          lua_pop(LuaVM, lua_gettop(luavm)); //clear stack
+
+          //set new state if changes where made
+
+          lua_getglobal(luavm, 'hasChangedARegister');
+          p:=lua_gettop(luavm);
+          if p<>0 then
+          begin
+            if lua_toboolean(luavm, -1) then
+            begin
+              //hasChangedARegister is true, check which ones...
+              lua_settop(luavm, lua_gettop(luavm));
+
+              lua_getglobal(luavm, 'changedEAX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EAX');
+                context.{$ifdef cpu64}Rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEBX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EBX');
+                context.{$ifdef cpu64}RBX{$else}EBX{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedECX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'ECX');
+                context.{$ifdef cpu64}RCX{$else}ECX{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEDX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EDX');
+                context.{$ifdef cpu64}RDX{$else}EDX{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedESI');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'ESI');
+                context.{$ifdef cpu64}RSI{$else}ESI{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEDI');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EDI');
+                context.{$ifdef cpu64}RDI{$else}EDI{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEBP');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EBP');
+                context.{$ifdef cpu64}RBP{$else}EBP{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEIP');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EIP');
+                context.{$ifdef cpu64}RIP{$else}EIP{$endif}:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedEFLAGS');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'EFLAGS');
+                context.EFLAGS:=lua_tointeger(luavm, -1);
+              end;
+
+
+              lua_pop(LuaVM, lua_gettop(luavm)); //clear stack (just to make sure no overflow happens, not even sure if it's needed)
+
+              {$ifdef cpu64}
+              lua_getglobal(luavm, 'changedRAX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RAX');
+                context.RAX:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRBX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RBX');
+                context.RBX:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRCX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RCX');
+                context.RCX:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRDX');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RDX');
+                context.RDX:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRSI');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RSI');
+                context.RSI:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRDI');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RDI');
+                context.RDI:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRBP');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RBP');
+                context.RBP:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRSP');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RSP');
+                context.RSP:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedRIP');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'RIP');
+                context.RIP:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_pop(LuaVM, lua_gettop(luavm)); //clear stack (just to make sure no overflow happens, not even sure if it's needed)
+
+              lua_getglobal(luavm, 'changedR8');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R8');
+                context.R8:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR9');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R9');
+                context.R9:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR10');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R10');
+                context.R10:=lua_tointeger(luavm, -1);
+              end;
+
+
+              lua_getglobal(luavm, 'changedR11');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R11');
+                context.R11:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR12');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R12');
+                context.R12:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR13');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R13');
+                context.R13:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR14');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R14');
+                context.R14:=lua_tointeger(luavm, -1);
+              end;
+
+              lua_getglobal(luavm, 'changedR15');
+              if lua_toboolean(luavm, -1) then
+              begin
+                lua_getglobal(luavm, 'R15');
+                context.R15:=lua_tointeger(luavm, -1);
+              end;
+
+
+              {$endif}
+
+              lua_pop(luavm, lua_gettop(luavm));
+
+            end;
+          end;
+
+        end;
+      end;
+    end;
+
+    lua_pop(LuaVM, lua_gettop(luavm));
+
+  finally
+    LuaCS.leave;
+  end;
+end;
+
 procedure LUA_SetCurrentContextState(context: PContext);
 begin
   LuaCS.Enter;
   try
+
     {$ifdef cpu64}
     lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif});
     lua_setglobal(luavm, 'RAX');
@@ -166,6 +501,9 @@ begin
     {$endif}
 
 
+
+
+    lua_pop(LuaVM, lua_gettop(luavm));
   finally
     LuaCS.Leave;
   end;
@@ -1050,6 +1388,68 @@ begin
   ce_debugProcess(debuggerinterface);
 end;
 
+function debug_setBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+var paramcount: integer;
+  i,j: integer;
+
+  address: ptruint;
+  size: integer;
+  trigger: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+  begin
+    j:=0;
+    address:=0;
+    size:=1;
+    trigger:=integer(bptexecute);
+    for i:=-paramcount to -1 do
+    begin
+      case j of
+        0: address:=lua_tointeger(L, i);
+        1: size:=lua_tointeger(L,i);
+        2: trigger:=lua_tointeger(L,i);
+      end;
+      inc(j);
+    end;
+
+    ce_debug_setBreakpoint(address,size,TBreakpointTrigger(trigger));
+  end;
+
+  lua_pop(L, lua_gettop(L)); //clear the stack
+end;
+
+function debug_removeBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+var paramcount: integer;
+  address: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    address:=lua_tointeger(L, -1);
+    ce_debug_removeBreakpoint(address);
+  end;
+
+  lua_pop(L, lua_gettop(L)); //clear the stack
+end;
+
+function debug_continueFromBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+var paramcount: integer;
+  method: TContinueOption;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    method:=TContinueOption(lua_tointeger(L, -1));
+    ce_debug_continuefrombreakpoint(method);
+  end;
+
+  lua_pop(L, lua_gettop(L)); //clear the stack
+end;
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -1093,6 +1493,10 @@ initialization
     lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName_fromLua);
     lua_register(LuaVM, 'openProcess', openProcess_fromLua);
     lua_register(LuaVM, 'debugProcess', debugProcess_fromLua);
+    lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint_fromLua);
+    lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint_fromLua);
+    lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint_fromLua);
+
 
   end;
 

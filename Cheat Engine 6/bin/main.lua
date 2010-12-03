@@ -18,7 +18,6 @@ require("defines")
 --getProcessIDFromProcessName(name) : returns a processid
 --openProcess(processid) : causes cheat engine to open the given processid
 --openProcess(processname): causes cheat engine to find and open the given process
---debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 --pause : pauses the current opened process
 --unpause: resumes the current opened process
 
@@ -61,3 +60,39 @@ require("defines")
 --Example:
 --If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated
 --If the cheat entry table with description "xxx" gets disabled it will call "_memrec_xxx_deactivating(te)" before it is activated and "_memrec_xxx_deactivated(te)" after it has been deactivated
+
+-----debugging------
+
+--debug variables
+--EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
+--RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+
+--Debug related routines:
+--When a breaking breakpoint hits and the lua function debugger_onBreakpoint() is defined it will be called and the global variables EAX, EBX, .... will be filled in
+--Return 0 if you want the userinterface toi be updated and enything else if not (e.g: You continued from the breakpoint in your script)
+
+
+--debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
+--debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
+--debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
+--debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), c_stepover (when on top of a call run till after the call)
+
+
+
+
+--Changing registers:
+--This annoying method has been chosen because LUA only supports encoding up to 52-bits, after which rounding will happen
+--So automatically setting the new value would surely cause unpredictable behaviour if the target app uses higher values
+
+--hasChangedARegister : Set this to true before continuing and the changedREG variables will be checked to see if the new value should be set (just an optimization so not every variable has to be checked each time even if you didn't change a thing)
+--changedEAX, changedRAX, changedEBX, changedRBX, changed.....
+
+
+
+
+
+
+
+
+
+

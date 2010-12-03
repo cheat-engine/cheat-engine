@@ -60,13 +60,16 @@ function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
 procedure ce_pause;
 procedure ce_unpause;
 
+function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
+function ce_debug_removeBreakpoint(address: ptruint): BOOL; stdcall;
+function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL; stdcall;
 
 
 implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
      formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
-     MemoryRecordUnit;
+     MemoryRecordUnit, MemoryBrowserFormUnit;
 
 var plugindisassembler: TDisassembler;
 
@@ -1235,6 +1238,82 @@ begin
     result:=ce_debugProcess2(pointer(debuggerinterface))<>nil
   else
     result:=pluginsync(ce_debugProcess2, pointer(debuggerinterface))<>nil;
+end;
+
+type
+  TsetBreakpointParams=record
+    address: ptruint;
+    size: integer;
+    trigger: TBreakpointTrigger;
+  end;
+  PSetBreakpointParams=^TSetBreakpointParams;
+
+function ce_debug_setBreakpoint2(params: pointer): pointer;
+var p: PSetBreakpointParams;
+begin
+  if startdebuggerifneeded(false) then
+  begin
+    case p.trigger of
+      bptAccess: debuggerthread.SetOnAccessBreakpoint(p.address, p.size);
+      bptWrite: debuggerthread.SetOnWriteBreakpoint(p.address, p.size);
+      bptExecute: debuggerthread.SetOnExecuteBreakpoint(p.address);
+    end;
+
+    MemoryBrowser.hexview.update;
+    Memorybrowser.disassemblerview.Update;
+  end;
+
+  result:=pointer(1);
+end;
+
+function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
+var p: PsetBreakpointParams;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_debug_setBreakpoint2(pointer(@p))<>nil
+  else
+    result:=pluginsync(ce_debug_setBreakpoint2, pointer(@p))<>nil;
+end;
+
+function ce_debug_removeBreakpoint(address: ptruint): BOOL; stdcall;
+var bp: PBreakpoint;
+begin
+  result:=false;
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.lockbplist;
+    try
+      bp:=debuggerthread.isBreakpoint(address);
+      if bp<>nil then
+      begin
+        debuggerthread.RemoveBreakpoint(bp);
+        result:=true;
+      end;
+    finally
+      debuggerthread.unlockbplist;
+    end;
+  end;
+end;
+
+function ce_debug_continueFromBreakpoint2(params: pointer): pointer;
+var ContinueOption: TContinueOption;
+begin
+  if debuggerthread<>nil then
+  begin
+    ContinueOption:=TContinueOption(integer(params));
+    debuggerthread.ContinueDebugging(continueoption);
+    result:=pointer(1);
+  end
+  else
+    result:=nil;
+end;
+
+function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL; stdcall;
+begin
+  if GetCurrentThreadId=MainThreadID then
+    result:=ce_debug_continueFromBreakpoint2(pointer(integer(ContinueOption)))<>nil
+  else
+    result:=pluginsync(ce_debug_continueFromBreakpoint2, pointer(integer(ContinueOption)))<>nil;
 end;
 
 initialization

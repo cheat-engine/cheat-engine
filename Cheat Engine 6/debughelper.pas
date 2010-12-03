@@ -79,6 +79,7 @@ type
     procedure FindWhatWrites(address: uint_ptr; size: integer);
     function  SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
     function  SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
+    function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
     function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 
     procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
@@ -1124,6 +1125,51 @@ begin
   end;
 end;
 
+function TDebuggerthread.SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
+var
+  i: integer;
+  found: boolean;
+  originalbyte: byte;
+  oldprotect, bw, br: dword;
+
+  usableDebugReg: integer;
+  method: TBreakpointMethod;
+begin
+  found := False;
+
+  result:=nil;
+  breakpointCS.enter;
+  try
+    //set the breakpoint
+
+    method:=bpmDebugRegister;;
+    usableDebugReg := GetUsableDebugRegister;
+    if usableDebugReg = -1 then
+    begin
+      if askforsoftwarebp then
+      begin
+        if MessageDlg(
+          'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+        begin
+          if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+            method := bpmInt3
+          else
+            raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+        end
+        else
+          exit;
+
+      end
+        else method := bpmInt3;
+
+
+    end;
+
+    result:=AddBreakpoint(nil, address, bptExecute, method, bo_Break, usableDebugreg, 1, nil, tid);
+  finally
+    breakpointCS.leave;
+  end;
+end;
 
 function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
 var
