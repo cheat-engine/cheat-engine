@@ -5450,6 +5450,7 @@ end;
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
 
+
 end;
 
 procedure TMainForm.Label58Click(Sender: TObject);
@@ -5559,7 +5560,6 @@ var
   svalue2: string;
   percentage: boolean;
 begin
-  Mouse.CursorPos;
 
   foundlist.Deinitialize; //unlock file handles
 

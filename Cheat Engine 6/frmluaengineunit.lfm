@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 272
+  Left = 351
   Height = 269
-  Top = 240
+  Top = 225
   Width = 605
   Caption = 'Lua Engine'
   ClientHeight = 249
@@ -97,6 +97,14 @@ object frmLuaEngine: TfrmLuaEngine
       object MenuItem5: TMenuItem
         Caption = 'Clear output'
         OnClick = MenuItem5Click
+      end
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'View'
+      object cbShowOnPrint: TMenuItem
+        AutoCheck = True
+        Caption = 'Show on "print"'
+        Checked = True
       end
     end
   end

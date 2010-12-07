@@ -11,6 +11,10 @@ require("defines")
 --writeBytes(address, x,x,x,x) : Write the given bytes to the given address
 --readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
 --writeBytesLocal(address, x,x,x,x) : See writeBytes but then it's for Cheat Engine's memory
+--readInteger(address)
+--readFloat(address)
+--readDouble(address)
+--readString(address, maxlength) : maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
@@ -46,6 +50,7 @@ require("defines")
 --memrec_setValue(te, value): sets the value of a cheat table entry
 --memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
 --memrec_setScript(te, script)
+--memrec_isFrozen(te)
 --memrec_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
 --memrec_unfreeze(te) :unfreezes an entry
 --memrec_setColor(te, colorrgb): Sets the color of the entry
@@ -58,7 +63,7 @@ require("defines")
 --If a cheat entry is enabled or disabled it will check if a lua function named "_memrec_description_activated" or "_memrec_description_deactivated" is available, and if so call it.
 --It passes the tableEntry pointer as parameter
 --Example:
---If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated
+--If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated (check with isFrozen to see if it actually did get activated in case of errors in a script or unreadable memory)
 --If the cheat entry table with description "xxx" gets disabled it will call "_memrec_xxx_deactivating(te)" before it is activated and "_memrec_xxx_deactivated(te)" after it has been deactivated
 
 -----debugging------
@@ -88,9 +93,42 @@ require("defines")
 --changedEAX, changedRAX, changedEBX, changedRBX, changed.....
 
 
+------gui------
+--closeCE() : just closes ce
+--hideAllCEWindows() : makes all normal ce windows invisible (e.g trainer table)
+--unhideMainCEwindow() : shows the main cheat engine window
+
+------gui-objects-----
+--The following objects are descendent from the object named "control", therefore the returned pointer when they are created can also be used for functions that start with control_
+
+--createForm(): creates a form (window) and returns the pointer used for the form_... functions (or control_... functions)
+--form_centerScreen(form);
+
+--The following create routines take an owner as parameter. Owner can be a Form, Panel or Groupbox
+--The x,y position will be based on the client array of the owner
+--createPanel(owner)
+--createGroupBox(owner)
+--createButton(owner)
+--createImage(owner)
+--createLabel(owner)
+--createEdit(owner)
+--createMemo(owner)
+
+--control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
+--control_getCaption(control)
+--control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
+--control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
+--control_setSize(control, width,height) :
+--control_getSize(control)
+--control_align(control, alignmentoption): 
+--control_destroy(control)
 
 
+messageDialog(text, type, buttons)
 
+speedhack_Enable()
+speedhack_setSpeed(speed)
+speedhack_Disable()
 
 
 

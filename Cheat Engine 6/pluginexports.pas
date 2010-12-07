@@ -4,7 +4,8 @@ unit pluginexports;
 
 interface
 
-uses jwawindows, windows, comctrls, Graphics, StdCtrls,sysutils,Controls, SyncObjs,dialogs,LCLIntf,classes,autoassembler,
+uses jwawindows, windows, ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
+     SyncObjs,dialogs,LCLIntf,classes,autoassembler,
      CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
      debugHelper, debuggertypedefinitions;
 
@@ -49,6 +50,7 @@ function ce_memrec_getValue(memrec: pointer; value: pchar; maxsize: integer): BO
 function ce_memrec_setValue(memrec: pointer; value: pchar): BOOL; stdcall;
 function ce_memrec_getScript(memrec: pointer): pchar; stdcall;
 function ce_memrec_setScript(memrec: pointer; script: pchar): BOOL; stdcall;
+function ce_memrec_isFrozen(memrec: pointer): BOOL; stdcall;
 function ce_memrec_freeze(memrec: pointer; direction: integer): BOOL; stdcall;
 function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
 function ce_memrec_setColor(memrec: pointer; color: TColor): BOOL; stdcall;
@@ -63,6 +65,29 @@ procedure ce_unpause;
 function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
 function ce_debug_removeBreakpoint(address: ptruint): BOOL; stdcall;
 function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL; stdcall;
+
+procedure ce_closeCE; stdcall;
+procedure ce_hideAllCEWindows; stdcall;
+procedure ce_unhideMainCEwindow; stdcall;
+function ce_createForm: pointer; stdcall;
+procedure ce_form_centerScreen(f: pointer); stdcall;
+function ce_createPanel(owner: pointer): pointer; stdcall;
+function ce_createGroupBox(owner: pointer): pointer; stdcall;
+function ce_createButton(owner: pointer): pointer; stdcall;
+function ce_createImage(owner: pointer): pointer; stdcall;
+function ce_createLabel(owner: pointer): pointer; stdcall;
+function ce_createEdit(owner: pointer): pointer; stdcall;
+function ce_createMemo(owner: pointer): pointer; stdcall;
+procedure ce_control_setCaption(control: pointer; caption: pchar); stdcall;
+function ce_control_getCaption(control: pointer; caption: pchar; maxsize: integer): BOOL; stdcall;
+procedure ce_control_setPosition(control: pointer; x,y: integer); stdcall;
+function ce_control_getX(control: pointer): integer; stdcall;
+function ce_control_getY(control: pointer): integer; stdcall;
+procedure ce_control_setSize(control: pointer; width,height: integer); stdcall;
+function ce_control_getWidth(control: pointer): integer; stdcall;
+function ce_control_getHeight(control: pointer): integer; stdcall;
+procedure ce_control_setAlign(control: pointer; align: integer); stdcall;
+procedure ce_control_destroy(control: pointer); stdcall;
 
 
 implementation
@@ -615,7 +640,10 @@ Pluginsync calls the required function from the mainthread and returns a pointer
 This pointer can be an allocated block of data, or just a result, depending on the function (boolean might be stored as 0 or 1)
 }
 begin
-  result:=pointer(SendMessage(mainform.handle, wm_pluginsync, ptruint(@func), ptruint(parameters) ));
+  if GetCurrentThreadId=MainThreadID then
+    result:=func(parameters)
+  else
+    result:=pointer(SendMessage(mainform.handle, wm_pluginsync, ptruint(@func), ptruint(parameters) ));
 end;
 
 function ce_createTableEntry2(parameters: pointer): pointer;
@@ -625,10 +653,7 @@ end;
 
 function ce_createTableEntry: pointer; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_createTableEntry2(nil)
-  else
-    result:=pluginsync(ce_createTableEntry2, nil);
+  result:=pluginsync(ce_createTableEntry2, nil);
 end;
 
 function ce_getTableEntry2(description: pointer): pointer;
@@ -638,10 +663,7 @@ end;
 
 function ce_getTableEntry(description: pchar): pointer; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_getTableEntry2(description)
-  else
-    result:=pluginsync(ce_getTableEntry2, description);
+  result:=pluginsync(ce_getTableEntry2, description);
 end;
 
 type
@@ -675,10 +697,7 @@ var d: TsetDescription;
 begin
   d.memrec:=memrec;
   d.description:=description;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_setDescription2(@d)<>nil
-  else
-    result:=pluginsync(ce_memrec_setDescription2, @d)<>nil;
+  result:=pluginsync(ce_memrec_setDescription2, @d)<>nil;
 end;
 
 function ce_memrec_getDescription(memrec: pointer): pchar; stdcall;
@@ -762,10 +781,7 @@ begin
   a.address:=address;
   a.offsets:=offsets;
   a.offsetcount:=offsetcount;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_setAddress2(@a)<>nil
-  else
-    result:=pluginsync(ce_memrec_setAddress2, @a)<>nil;
+  result:=pluginsync(ce_memrec_setAddress2, @a)<>nil;
 end;
 
 function ce_memrec_getType(memrec: pointer): integer; stdcall;
@@ -810,10 +826,7 @@ begin
   result:=false;
   p.memrec:=memrec;
   p.vtype:=vtype;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_setType2(@p)<>nil
-  else
-    result:=pluginsync(ce_memrec_setType2, @p)<>nil;
+  result:=pluginsync(ce_memrec_setType2, @p)<>nil;
 end;
 
 function ce_memrec_getValue(memrec: pointer; value: pchar; maxsize: integer): BOOL; stdcall;
@@ -896,6 +909,17 @@ begin
   end;
 end;
 
+function ce_memrec_isFrozen(memrec: pointer): BOOL; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+      result:=m.active;
+  except
+  end;
+end;
 
 type
   TFreezeparams=record
@@ -934,10 +958,7 @@ var p: TFreezeparams;
 begin
   p.memrec:=memrec;
   p.direction:=direction;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_freeze2(@p)<>nil
-  else
-    result:=pluginsync(ce_memrec_freeze2, @p)<>nil;
+  result:=pluginsync(ce_memrec_freeze2, @p)<>nil;
 
 end;
 
@@ -960,10 +981,7 @@ end;
 
 function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_unfreeze2(memrec)<>nil
-  else
-    result:=pluginsync(ce_memrec_unfreeze2, memrec)<>nil;
+  result:=pluginsync(ce_memrec_unfreeze2, memrec)<>nil;
 end;
 
 
@@ -1000,10 +1018,7 @@ var p: TSetColorparams;
 begin
   p.memrec:=memrec;
   p.color:=color;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_setColor2(@p)<>nil
-  else
-    result:=pluginsync(ce_memrec_setColor2, @p)<>nil;
+  result:=pluginsync(ce_memrec_setColor2, @p)<>nil;
 
 end;
 
@@ -1042,10 +1057,7 @@ var p: TAppendParams;
 begin
   p.memrec1:=memrec1;
   p.memrec2:=memrec2;
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_appendToEntry2(@p)<>nil
-  else
-    result:=pluginsync(ce_memrec_appendToEntry2, @p)<>nil;
+  result:=pluginsync(ce_memrec_appendToEntry2, @p)<>nil;
 
 end;
 
@@ -1066,10 +1078,7 @@ end;
 
 function ce_memrec_delete(memrec: pointer): BOOL; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_memrec_delete2(memrec)<>nil
-  else
-    result:=pluginsync(ce_memrec_delete2, memrec)<>nil;
+  result:=pluginsync(ce_memrec_delete2, memrec)<>nil;
 end;
 
 
@@ -1184,10 +1193,7 @@ end;
 function ce_openProcess(pid: dword): BOOL; stdcall;
 var p: pointer;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_openProcess2(pointer(pid))<>nil
-  else
-    result:=pluginsync(ce_openProcess2, pointer(pid))<>nil;
+  result:=pluginsync(ce_openProcess2, pointer(pid))<>nil;
 
 end;
 
@@ -1199,10 +1205,7 @@ end;
 
 procedure ce_pause; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    ce_pause2(nil)
-  else
-    pluginsync(ce_pause2, nil);
+  pluginsync(ce_pause2, nil);
 end;
 
 function ce_unpause2(params: pointer): pointer;
@@ -1213,10 +1216,7 @@ end;
 
 procedure ce_unpause; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    ce_unpause2(nil)
-  else
-    pluginsync(ce_unpause2, nil);
+  pluginsync(ce_unpause2, nil);
 end;
 
 function ce_debugProcess2(params: pointer):pointer;
@@ -1234,10 +1234,7 @@ end;
 
 function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_debugProcess2(pointer(debuggerinterface))<>nil
-  else
-    result:=pluginsync(ce_debugProcess2, pointer(debuggerinterface))<>nil;
+  result:=pluginsync(ce_debugProcess2, pointer(debuggerinterface))<>nil;
 end;
 
 type
@@ -1269,10 +1266,10 @@ end;
 function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
 var p: PsetBreakpointParams;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_debug_setBreakpoint2(pointer(@p))<>nil
-  else
-    result:=pluginsync(ce_debug_setBreakpoint2, pointer(@p))<>nil;
+  p.address:=address;
+  p.size:=size;
+  p.trigger:=trigger;
+  result:=pluginsync(ce_debug_setBreakpoint2, pointer(@p))<>nil;
 end;
 
 function ce_debug_removeBreakpoint(address: ptruint): BOOL; stdcall;
@@ -1310,10 +1307,373 @@ end;
 
 function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL; stdcall;
 begin
-  if GetCurrentThreadId=MainThreadID then
-    result:=ce_debug_continueFromBreakpoint2(pointer(integer(ContinueOption)))<>nil
-  else
-    result:=pluginsync(ce_debug_continueFromBreakpoint2, pointer(integer(ContinueOption)))<>nil;
+  result:=pluginsync(ce_debug_continueFromBreakpoint2, pointer(integer(ContinueOption)))<>nil;
+end;
+
+function ce_closeCE2(params: pointer):pointer;
+begin
+  mainform.Close;
+end;
+
+procedure ce_closeCE; stdcall;
+begin
+  //try to do a "normal" close
+  pluginsync(ce_closeCE2,nil);
+
+end;
+
+function ce_hideAllCEWindows2(params: pointer):pointer;
+var i: integer;
+begin
+  for i:=0 to screen.FormCount-1 do
+  begin
+    if copy(screen.CustomForms[i].name,1, 4)<>'UDF_' then //if not a userdefined form
+      screen.Forms[i].Visible:=false;
+  end;
+
+  MemoryBrowser.visible:=false;
+
+end;
+
+procedure ce_hideAllCEWindows; stdcall;
+begin
+  pluginsync(ce_hideAllCEWindows2,nil);
+
+end;
+
+function ce_unhideMainCEwindow2(params: pointer):pointer;
+begin
+  Mainform.show;
+
+end;
+
+procedure ce_unhideMainCEwindow; stdcall;
+begin
+  pluginsync(ce_unhideMainCEwindow2,nil);
+
+end;
+
+function ce_createForm2(params: pointer):pointer;
+var f: tform;
+begin
+  f:=Tform.Create(nil);
+  f.show;
+  result:=f;
+end;
+
+function ce_createForm: pointer; stdcall;
+begin
+  result:=pluginsync(ce_createForm2,nil);
+end;
+
+function ce_form_centerScreen2(params: pointer):pointer;
+var f: tform;
+begin
+  f:=Tform(params);
+
+  try
+    if (f is Tform) then
+      f.Position:=poScreenCenter;
+
+  except
+  end;
+end;
+
+procedure ce_form_centerScreen(f: pointer); stdcall;
+begin
+  pluginsync(ce_form_centerScreen2,f);
+end;
+
+function ce_createPanel2(params: pointer):pointer;
+var p: TPanel;
+begin
+  p:=TPanel.Create(tcontrol(params));
+  p.parent:=twincontrol(params);
+  result:=p;
+end;
+
+function ce_createPanel(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createPanel2,owner);
+end;
+
+function ce_createGroupBox2(params: pointer):pointer;
+var g: TGroupBox;
+begin
+  g:=TGroupBox.Create(tcontrol(params));
+  g.parent:=twincontrol(params);
+  result:=g;
+end;
+
+function ce_createGroupBox(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createGroupBox2,owner);
+end;
+
+function ce_createButton2(params: pointer):pointer;
+var b: TButton;
+begin
+  b:=Tbutton.Create(tcontrol(params));
+  b.parent:=twincontrol(params);
+  result:=b;
+end;
+
+function ce_createButton(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createButton2,owner);
+end;
+
+function ce_createImage2(params: pointer):pointer;
+var i: TImage;
+begin
+  i:=TImage.Create(tcontrol(params));
+  i.parent:=twincontrol(params);
+  result:=i;
+end;
+
+function ce_createImage(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createImage2,owner);
+end;
+
+function ce_createLabel2(params: pointer):pointer;
+var i: TLabel;
+begin
+  i:=TLabel.Create(tcontrol(params));
+  i.parent:=twincontrol(params);
+  result:=i;
+end;
+
+function ce_createLabel(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createLabel2,owner);
+end;
+
+function ce_createEdit2(params: pointer):pointer;
+var i: TEdit;
+begin
+  i:=TEdit.Create(tcontrol(params));
+  i.parent:=twincontrol(params);
+  result:=i;
+end;
+
+function ce_createEdit(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createEdit2,owner);
+end;
+
+function ce_createMemo2(params: pointer):pointer;
+var i: TMemo;
+begin
+  i:=TMemo.Create(tcontrol(params));
+  i.parent:=twincontrol(params);
+  result:=i;
+end;
+
+function ce_createMemo(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createImage2,owner);
+end;
+
+function ce_control_setCaption2(params: pointer):pointer;
+type TP=record
+  control: TControl;
+  caption: pchar;
+end;
+var  p: ^TP;
+begin
+  p:=params;
+  try
+    p.control.Caption:=p.caption;
+  except
+  end;
+end;
+
+procedure ce_control_setCaption(control: pointer; caption: pchar); stdcall;
+var
+  p: record
+    control: TControl;
+    caption: pchar;
+  end;
+begin
+  p.control:=control;
+  p.caption:=caption;
+  pluginsync(ce_control_setCaption2, @p);
+end;
+
+function ce_control_getCaption2(params: pointer): pointer;
+type
+  tp= record
+    control: TControl;
+    caption: pchar;
+    maxsize: integer;
+  end;
+var p: ^tp;
+  s: pchar;
+  l: integer;
+begin
+  p:=params;
+
+  s:=pchar(p.control.Caption);
+
+  l:=min(length(s), p.maxsize-2);
+  CopyMemory(p.caption, s, l);
+
+  p.caption[l+1]:=#0;
+
+  result:=pointer(1);
+end;
+
+function ce_control_getCaption(control: pointer; caption: pchar; maxsize: integer): BOOL; stdcall;
+var
+  p: record
+    control: TControl;
+    caption: pchar;
+    maxsize: integer;
+  end;
+begin
+  p.control:=control;
+  p.caption:=caption;
+  p.maxsize:=maxsize;
+  result:=pluginsync(ce_control_getCaption2, @p)<>nil;
+end;
+
+function ce_control_setPosition2(params: pointer): pointer;
+type
+  tp= record
+    control: TControl;
+    x: integer;
+    y: integer;
+  end;
+var p: ^tp;
+begin
+  result:=nil;
+
+  p:=params;
+  p.control.Left:=p.x;
+  p.control.top:=p.y;
+end;
+
+
+procedure ce_control_setPosition(control: pointer; x,y: integer); stdcall;
+var
+  p: record
+    control: TControl;
+    x: integer;
+    y: integer;
+  end;
+begin
+  p.control:=control;
+  p.x:=x;
+  p.y:=y;
+  pluginsync(ce_control_setPosition2, @p);
+end;
+
+
+function ce_control_getX2(params: pointer): pointer;
+begin
+  result:=pointer(TControl(params).left);
+end;
+
+
+function ce_control_getX(control: pointer): integer; stdcall;
+begin
+  result:=integer(pluginsync(ce_control_getX2, control));
+end;
+
+function ce_control_getY2(params: pointer): pointer;
+begin
+  result:=pointer(TControl(params).top);
+end;
+
+
+function ce_control_getY(control: pointer): integer; stdcall;
+begin
+  result:=integer(pluginsync(ce_control_getY2, control));
+end;
+
+function ce_control_setSize2(params: pointer): pointer;
+type tp=record
+  control: Tcontrol;
+  width,height: integer;
+end;
+var p:^tp;
+begin
+  p:=params;
+  p.control.Width:=p.width;
+  p.control.height:=p.height;
+  result:=nil;
+end;
+
+procedure ce_control_setSize(control: pointer; width,height: integer); stdcall;
+var p: record
+  control: Tcontrol;
+  width,height: integer;
+end;
+begin
+  pluginsync(ce_control_setSize2, @p);
+end;
+
+function ce_control_getWidth2(params: pointer): pointer;
+begin
+  result:=pointer(TControl(params).width);
+end;
+
+
+function ce_control_getWidth(control: pointer): integer; stdcall;
+begin
+  result:=integer(pluginsync(ce_control_getWidth2, control));
+end;
+
+function ce_control_getHeight2(params: pointer): pointer;
+begin
+  result:=pointer(TControl(params).height);
+end;
+
+
+function ce_control_getHeight(control: pointer): integer; stdcall;
+begin
+  result:=integer(pluginsync(ce_control_getHeight2, control));
+end;
+
+function ce_control_setAlign2(params: pointer): pointer;
+type Tp= record
+    control: Tcontrol;
+    align: talign;
+  end;
+var p: ^tp;
+begin
+  result:=nil;
+  p.control.Align:=p.align;
+end;
+
+procedure ce_control_setAlign(control: pointer; align: integer); stdcall;
+var p: record
+    control: Tcontrol;
+    align: talign;
+  end;
+begin
+  case align of
+    0: p.align:=alNone;
+    1: p.align:=alTop;
+    2: p.align:=alBottom;
+    3: p.align:=alLeft;
+    4: p.align:=alRight;
+    5: p.align:=alClient;
+    else p.align:=alNone;
+  end;
+  p.control:=control;
+  pluginsync(ce_control_setAlign2, @p)
+end;
+
+function ce_control_destroy2(params: pointer): pointer;
+begin
+  TControl(params).Free;
+end;
+
+procedure ce_control_destroy(control: pointer); stdcall;
+begin
+  pluginsync(ce_control_destroy2, control)
 end;
 
 initialization
@@ -1321,7 +1681,6 @@ initialization
   plugindisassembler.showsymbols:=false;
   plugindisassembler.showmodules:=false;
   plugindisassembler.isdefault:=false;
-
 
 finalization
   if plugindisassembler<>nil then

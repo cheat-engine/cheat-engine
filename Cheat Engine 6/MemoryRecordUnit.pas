@@ -909,13 +909,17 @@ begin
       TMemoryRecord(treenode[i].data).setActive(active);
   end;
 
-  if (active) then
-  begin
-    SetVisibleChildrenState;
+
+  if state then
     LUA_memrec_callback(self, '_memrec_'+description+'_activated')
-  end
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
+
+
+  if (active) then
+    SetVisibleChildrenState;
+
+
 
 end;
 

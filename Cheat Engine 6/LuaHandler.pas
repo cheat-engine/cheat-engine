@@ -22,7 +22,7 @@ procedure InitializeLuaScripts;
 
 implementation
 
-uses pluginexports, MemoryRecordUnit, debuggertypedefinitions;
+uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions, symbolhandler;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -540,6 +540,7 @@ begin
   LuaCS.Enter;
   try
     m:=memrec;
+
     lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
 
     p:=lua_gettop(luavm);
@@ -603,6 +604,44 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function print2(param: pointer): pointer;
+begin
+  if frmLuaEngine=nil then
+    frmLuaEngine:=TfrmLuaEngine.Create(nil);
+
+  frmLuaEngine.mOutput.Lines.add(pchar(param));
+
+  if frmLuaEngine.cbShowOnPrint.checked then
+    frmLuaEngine.show;
+
+end;
+
+function print_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  s: pchar;
+
+  str: string;
+  i: integer;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  str:='';
+  for i:=-paramcount to -1 do
+  begin
+    s:=lua_tostring(L, i);
+    str:=str+s+' ';
+  end;
+
+  if str<>'' then
+    pluginsync(print2, @str[1]);
+
+  lua_pop(L, paramcount);
+  lua_pushstring(L, str);
+  result:=1;
+end;
+
 function showMessage_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
@@ -619,6 +658,155 @@ begin
   result:=0;
 end;
 
+function readInteger_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: integer;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=1 then
+    begin
+      if lua_isstring(L, -1) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      else
+        address:=lua_tointeger(L,-1);
+
+      lua_pop(L, paramcount);
+
+      v:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
+      begin
+        lua_pushinteger(L, v);
+        result:=1;
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function readFloat_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: single;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=1 then
+    begin
+      if lua_isstring(L, -1) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      else
+        address:=lua_tointeger(L,-1);
+
+      lua_pop(L, paramcount);
+
+      v:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
+      begin
+        lua_pushnumber(L, v);
+        result:=1;
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function readDouble_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: double;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=1 then
+    begin
+      if lua_isstring(L, -1) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      else
+        address:=lua_tointeger(L,-1);
+
+      lua_pop(L, paramcount);
+
+      v:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
+      begin
+        lua_pushnumber(L, v);
+        result:=1;
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function readString_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: pchar;
+  r: dword;
+  maxsize: integer;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount>=1 then
+    begin
+      if lua_isstring(L, -paramcount) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      else
+        address:=lua_tointeger(L,-paramcount);
+
+      if paramcount=2 then
+        maxsize:=lua_tointeger(L,-1)
+      else
+        maxsize:=50;
+
+      lua_pop(L, paramcount);
+
+      getmem(v,maxsize);
+      try
+        if ReadProcessMemory(processhandle, pointer(address), v, maxsize, r) then
+        begin
+          v[maxsize-1]:=#0;
+          lua_pushstring(L, v);
+          result:=1;
+        end;
+
+
+      finally
+        freemem(v);
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
 function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
 var paramcount: integer;
   addresstoread: ptruint;
@@ -628,7 +816,6 @@ var paramcount: integer;
   x: dword;
 begin
   paramcount:=lua_gettop(L);
-
 
   addresstoread:=lua_tointeger(L,-paramcount);
 
@@ -1080,6 +1267,26 @@ begin
 end;
 
 
+function memrec_isFrozen_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  direction: integer;
+  memrec: pointer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memrec:=lua_touserdata(L, -paramcount);
+
+
+    lua_pushboolean(L, ce_memrec_isFrozen(memrec));
+    result:=1;
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
 function memrec_freeze_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
@@ -1395,6 +1602,7 @@ var paramcount: integer;
   address: ptruint;
   size: integer;
   trigger: integer;
+  e: boolean;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
@@ -1407,7 +1615,22 @@ begin
     for i:=-paramcount to -1 do
     begin
       case j of
-        0: address:=lua_tointeger(L, i);
+        0:
+        begin
+          if lua_isstring(L, i) then
+          begin
+            e:=false;
+            address:=symhandler.getAddressFromName(lua_tostring(L, i), false,e);
+            if e then //unrecognizable address
+            begin
+              lua_pop(L, lua_gettop(L));
+              exit;
+            end;
+          end
+          else
+            address:=lua_tointeger(L, i);
+
+        end;
         1: size:=lua_tointeger(L,i);
         2: trigger:=lua_tointeger(L,i);
       end;
@@ -1423,12 +1646,25 @@ end;
 function debug_removeBreakpoint_fromLua(L: Plua_State): integer; cdecl;
 var paramcount: integer;
   address: ptruint;
+  e: boolean;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    address:=lua_tointeger(L, -1);
+    if lua_isstring(L, -1) then
+    begin
+      e:=false;
+      address:=symhandler.getAddressFromName(lua_tostring(L, -1), false,e);
+      if e then //unrecognizable address
+      begin
+        lua_pop(L, lua_gettop(L));
+        exit;
+      end;
+    end
+    else
+      address:=lua_tointeger(L, -1);
+
     ce_debug_removeBreakpoint(address);
   end;
 
@@ -1450,6 +1686,348 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
+function closeCE_fromLua(L: Plua_state): integer; cdecl;
+begin
+  ce_closeCE;
+end;
+
+function hideAllCEWindows_fromLua(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L)); //clear the stack
+
+  ce_hideAllCEWindows;
+end;
+
+function unhideMainCEwindow_fromLua(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L)); //clear the stack
+
+  ce_unhideMainCEwindow;
+end;
+
+function createForm_fromLua(L: Plua_State): integer; cdecl;
+var f: pointer;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(L));
+
+
+  f:=ce_createForm;
+  lua_pushlightuserdata(L, f);
+  result:=1;
+end;
+
+function form_centerScreen_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    ce_form_centerScreen(f);
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function createPanel_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createPanel(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createButton_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createButton(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createGroupBox_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createGroupBox(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createImage_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createImage(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createLabel_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createLabel(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createEdit_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createEdit(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createMemo_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createMemo(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function control_setCaption_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  caption: pchar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    caption:=lua_tostring(L, -1);
+    ce_control_setCaption(c,caption);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function control_getCaption_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  d: pchar;
+  control: pointer;
+
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    getmem(d,255);
+    try
+      if ce_control_getCaption(control, d, 255) then
+      begin
+        lua_pushstring(L, d);
+        result:=1;
+      end;
+
+
+    finally
+      freemem(d);
+    end;
+  end else lua_pop(L, paramcount);
+end;
+
+
+function control_setPosition_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  x,y: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    c:=lua_touserdata(L, -3);
+    x:=lua_tointeger(L, -2);
+    y:=lua_tointeger(L, -1);
+
+    ce_control_setPosition(c,x,y);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+function control_getPosition_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  x,y: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    x:=ce_control_getX(control);
+    y:=ce_control_getY(control);
+
+    lua_pushinteger(L, x);
+    lua_pushinteger(L, y);
+    result:=2;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function control_setSize_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  width,height: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    c:=lua_touserdata(L, -3);
+    width:=lua_tointeger(L, -2);
+    height:=lua_tointeger(L, -1);
+
+    ce_control_setSize(c,width,height);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function control_getSize_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  width,height: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    width:=ce_control_getWidth(control);
+    height:=ce_control_getHeight(control);
+
+    lua_pushinteger(L, width);
+    lua_pushinteger(L, height);
+    result:=2;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function control_setAlign_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    a:=lua_tointeger(L,-1);
+    ce_control_setAlign(control,a);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_destroy_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  x,y: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+
+    ce_control_destroy(control);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -1459,11 +2037,16 @@ initialization
     luaL_openlibs(LuaVM);
 
     lua_atpanic(LuaVM, LuaPanic);
+    lua_register(LuaVM, 'print', print_fromlua);
     lua_register(LuaVM, 'sleep', sleep_fromlua);
     lua_register(LuaVM, 'pause', pause_fromlua);
     lua_register(LuaVM, 'unpause', unpause_fromlua);
     lua_register(LuaVM, 'readBytes', readbytes_fromlua);
     lua_register(LuaVM, 'writeBytes', writebytes_fromlua);
+    lua_register(LuaVM, 'readInteger', readInteger_fromlua);
+    lua_register(LuaVM, 'readFloat', readFloat_fromlua);
+    lua_register(LuaVM, 'readDouble', readDouble_fromlua);
+    lua_register(LuaVM, 'readString', readString_fromlua);
 
     lua_register(LuaVM, 'readBytesLocal', readbyteslocal_fromlua);
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
@@ -1482,7 +2065,9 @@ initialization
     lua_register(LuaVM, 'memrec_getValue', memrec_getValue_fromlua);
     lua_register(LuaVM, 'memrec_setValue', memrec_setValue_fromlua);
     lua_register(LuaVM, 'memrec_getScript', memrec_getScript_fromlua);
+    lua_register(LuaVM, 'memrec_isFrozen', memrec_isFrozen_fromlua);
     lua_register(LuaVM, 'memrec_freeze', memrec_freeze_fromlua);
+    lua_register(LuaVM, 'memrec_unfreeze', memrec_unfreeze_fromlua);
     lua_register(LuaVM, 'memrec_setColor', memrec_setColor_fromlua);
     lua_register(LuaVM, 'memrec_appendToEntry', memrec_appendToEntry_fromlua);
     lua_register(LuaVM, 'memrec_delete', memrec_delete_fromlua);
@@ -1496,6 +2081,26 @@ initialization
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint_fromLua);
     lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint_fromLua);
     lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint_fromLua);
+    lua_register(LuaVM, 'closeCE', closeCE_fromLua);
+    lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows_fromLua);
+    lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow_fromLua);
+    lua_register(LuaVM, 'createForm', createForm_fromLua);
+    lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
+    lua_register(LuaVM, 'createPanel', createPanel_fromLua);
+    lua_register(LuaVM, 'createGroupBox', createPanel_fromLua);
+    lua_register(LuaVM, 'createButton', createButton_fromLua);
+    lua_register(LuaVM, 'createImage', createImage_fromLua);
+    lua_register(LuaVM, 'createLabel', createLabel_fromLua);
+    lua_register(LuaVM, 'createEdit', createEdit_fromLua);
+    lua_register(LuaVM, 'createMemo', createMemo_fromLua);
+    lua_register(LuaVM, 'control_setCaption', control_setCaption_fromLua);
+    lua_register(LuaVM, 'control_getCaption', control_getCaption_fromLua);
+    lua_register(LuaVM, 'control_setPosition', control_setPosition_fromLua);
+    lua_register(LuaVM, 'control_getPosition', control_getPosition_fromLua);
+    lua_register(LuaVM, 'control_setSize', control_setSize_fromLua);
+    lua_register(LuaVM, 'control_getSize', control_getSize_fromLua);
+    lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
+    lua_register(LuaVM, 'control_destroy', control_destroy_fromLua);
 
 
   end;

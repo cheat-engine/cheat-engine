@@ -11,6 +11,15 @@ co_run=0
 co_stepinto=1
 co_stepover=2
 
+--alignment types
+alNone=0
+alTop=1
+alBottom=2
+alLeft=3
+alRight=4
+alClient=5
+
+
 
 --Variable types
 vtByte=0

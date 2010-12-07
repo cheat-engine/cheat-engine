@@ -18,6 +18,8 @@ type
     MainMenu1: TMainMenu;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    cbShowOnPrint: TMenuItem;
     mOutput: TMemo;
     mScript: TMemo;
     MenuItem1: TMenuItem;
@@ -54,9 +56,10 @@ var pc: pchar;
 begin
   luacs.Enter;
   try
+    mOutput.lines.add(mscript.text);
     if lua_dostring(luavm, pchar(mScript.text) )=0 then
     begin
-      mOutput.lines.add(mscript.text);
+
 
       j:=lua_gettop(luavm);
       if j>0 then
