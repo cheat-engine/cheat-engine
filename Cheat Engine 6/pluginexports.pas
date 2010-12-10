@@ -80,6 +80,10 @@ function ce_createPanel(owner: pointer): pointer; stdcall;
 function ce_createGroupBox(owner: pointer): pointer; stdcall;
 function ce_createButton(owner: pointer): pointer; stdcall;
 function ce_createImage(owner: pointer): pointer; stdcall;
+function ce_image_loadImageFromFile(image: pointer; filename: pchar): BOOL; stdcall;
+procedure ce_image_transparent(image: pointer; transparent: boolean); stdcall;
+procedure ce_image_stretch(image: pointer; stretch: boolean); stdcall;
+
 function ce_createLabel(owner: pointer): pointer; stdcall;
 function ce_createEdit(owner: pointer): pointer; stdcall;
 function ce_createMemo(owner: pointer): pointer; stdcall;
@@ -1634,6 +1638,85 @@ end;
 function ce_createImage(owner: pointer): pointer; stdcall;
 begin
   result:=pluginsync(ce_createImage2,owner);
+end;
+
+function ce_image_loadImageFromFile2(params: pointer): pointer;
+type tp=record
+  image: TImage;
+  filename: pchar;
+end;
+var p: ^tp;
+begin
+  result:=nil;
+  p:=params;
+  try
+    p.image.Picture.LoadFromFile(p.filename);
+    result:=pointer(1);
+  except
+  end;
+end;
+
+function ce_image_loadImageFromFile(image: pointer; filename: pchar): BOOL; stdcall;
+var p: record
+  image: TImage;
+  filename: pchar;
+end;
+begin
+  p.image:=image;
+  p.filename:=filename;
+  result:=pluginsync(ce_image_loadImageFromFile2,@p)<>nil;
+end;
+
+function ce_image_stretch2(params: pointer): pointer;
+type tp=record
+  image: TImage;
+  stretch: boolean;
+end;
+var p: ^tp;
+begin
+  result:=nil;
+  p:=params;
+  try
+    p.image.Stretch:=p.stretch;
+  except
+  end;
+end;
+
+procedure ce_image_stretch(image: pointer; stretch: boolean); stdcall;
+var p: record
+  image: TImage;
+  stretch: boolean;
+end;
+begin
+  p.image:=image;
+  p.stretch:=stretch;
+  pluginsync(ce_image_stretch2,@p);
+end;
+
+function ce_image_transparent2(params: pointer): pointer;
+type tp=record
+  image: TImage;
+  transparent: boolean;
+end;
+var p: ^tp;
+begin
+  result:=nil;
+  p:=params;
+  try
+    p.image.transparent:=p.transparent;
+  except
+  end;
+end;
+
+procedure ce_image_transparent(image: pointer; transparent: boolean); stdcall;
+var p: record
+  image: TImage;
+  transparent: boolean;
+end;
+begin
+  p.image:=image;
+  p.transparent:=transparent;
+  pluginsync(ce_image_transparent2,@p);
 end;
 
 function ce_createLabel2(params: pointer):pointer;

@@ -113,9 +113,9 @@ require("defines")
 --createGroupBox(owner)
 --createButton(owner)
 --createImage(owner)
---image_loadImageFromFile(filename) xxx
---image_scaling(boolean)xxx
---image_transparent(boolean)xxx
+--image_loadImageFromFile(filename)
+--image_stretch(boolean)
+--image_transparent(boolean)
 --createLabel(owner)
 --createEdit(owner)
 --createMemo(owner)

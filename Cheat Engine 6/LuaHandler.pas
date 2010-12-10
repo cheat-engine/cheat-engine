@@ -1858,6 +1858,59 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
+function image_loadImageFromFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  i: pointer;
+  filename: pchar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    i:=lua_touserdata(L, -2);
+    filename:=lua_tostring(L, -1);
+    ce_image_loadImageFromFile(i,filename);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function image_stretch_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  i: pointer;
+  state: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    i:=lua_touserdata(L, -2);
+    state:=lua_toboolean(L, -1);
+    ce_image_stretch(i,state);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function image_transparent_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  i: pointer;
+  state: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    i:=lua_touserdata(L, -2);
+    state:=lua_toboolean(L, -1);
+    ce_image_transparent(i,state);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+
 function createLabel_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
@@ -2290,6 +2343,9 @@ initialization
     lua_register(LuaVM, 'createGroupBox', createPanel_fromLua);
     lua_register(LuaVM, 'createButton', createButton_fromLua);
     lua_register(LuaVM, 'createImage', createImage_fromLua);
+    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile_fromLua);
+    lua_register(LuaVM, 'image_transparent', image_transparent_fromLua);
+    lua_register(LuaVM, 'image_stretch', image_stretch_fromLua);
     lua_register(LuaVM, 'createLabel', createLabel_fromLua);
     lua_register(LuaVM, 'createEdit', createEdit_fromLua);
     lua_register(LuaVM, 'createMemo', createMemo_fromLua);
