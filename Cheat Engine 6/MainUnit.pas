@@ -2188,13 +2188,17 @@ begin
             if reg.ValueExists('lua') then
               islua:=reg.ReadBool('lua');
 
-            if reg.ValueExists('64bit') then
+            if not isLua then
             begin
-              {$ifdef cpu64}
-              if reg.ReadBool('64bit')=false then continue;
-              {$else}
-              if reg.ReadBool('64bit')=true then continue;
-              {$endif}
+              if reg.ValueExists('64bit') then
+              begin
+                {$ifdef cpu64}
+                if reg.ReadBool('64bit')=false then continue;
+                {$else}
+                if reg.ReadBool('64bit')=true then continue;
+                {$endif}
+              end;
+
             end;
 
             CreateCustomType(nil, reg.ReadString('Script'),true, islua);
@@ -2380,16 +2384,15 @@ begin
       Add('bytecount=4  --number of bytes of this type');
       Add('functionbasename="customvaluetype" --basename of the functiontypes used KEEP THIS UNIQUE');
       Add('');
-      Add('function customvaluetype_bytestovalue(b)');
-      Add('--table b contains the bytes b[0], b[1], b[2], ....');
+      Add('function customvaluetype_bytestovalue(b1,b2,b3,b4)');
+      Add('--Add extra byte parameters as required');
       Add('return 123');
       Add('');
       Add('end');
       Add('');
       Add('function customvaluetype_valuetobytes(i)');
       Add('');
-      Add('--return the bytes to write');
-      Add('--E.g: return b[0],b[1],b[2],....');
+      Add('--return the bytes to write (usually only used when you change the value)');
       Add('return 0,0,0,0');
       Add('');
       Add('end');
@@ -4229,7 +4232,6 @@ var
   crashcounter: integer;
 begin
 
-
   //close codefinder
   if foundcodedialog<>nil then
   begin
@@ -5449,7 +5451,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-
+  cbSpeedhack.Checked:=true;
 
 end;
 

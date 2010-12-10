@@ -69,8 +69,13 @@ function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL;
 procedure ce_closeCE; stdcall;
 procedure ce_hideAllCEWindows; stdcall;
 procedure ce_unhideMainCEwindow; stdcall;
-function ce_createForm: pointer; stdcall;
+function ce_createForm(visible: boolean): pointer; stdcall;
 procedure ce_form_centerScreen(f: pointer); stdcall;
+procedure ce_form_hide(f: pointer); stdcall;
+procedure ce_form_show(f: pointer); stdcall;
+procedure ce_form_onClose(frm: pointer; f: pointer); stdcall;
+procedure ce_form_onCloseLua(frm: pointer; f: integer);
+
 function ce_createPanel(owner: pointer): pointer; stdcall;
 function ce_createGroupBox(owner: pointer): pointer; stdcall;
 function ce_createButton(owner: pointer): pointer; stdcall;
@@ -78,6 +83,10 @@ function ce_createImage(owner: pointer): pointer; stdcall;
 function ce_createLabel(owner: pointer): pointer; stdcall;
 function ce_createEdit(owner: pointer): pointer; stdcall;
 function ce_createMemo(owner: pointer): pointer; stdcall;
+function ce_createTimer(owner: pointer): pointer; stdcall;
+procedure ce_timer_setInterval(timer: pointer; interval: integer); stdcall;
+procedure ce_timer_onTimer(t: pointer; f: pointer); stdcall;
+procedure ce_timer_onTimerLua(t: pointer; f: integer);
 procedure ce_control_setCaption(control: pointer; caption: pchar); stdcall;
 function ce_control_getCaption(control: pointer; caption: pchar; maxsize: integer): BOOL; stdcall;
 procedure ce_control_setPosition(control: pointer; x,y: integer); stdcall;
@@ -87,16 +96,176 @@ procedure ce_control_setSize(control: pointer; width,height: integer); stdcall;
 function ce_control_getWidth(control: pointer): integer; stdcall;
 function ce_control_getHeight(control: pointer): integer; stdcall;
 procedure ce_control_setAlign(control: pointer; align: integer); stdcall;
-procedure ce_control_destroy(control: pointer); stdcall;
+procedure ce_control_onClick(c: pointer; f: pointer); stdcall;
+procedure ce_control_onClickLua(c: pointer; f: integer); stdcall;
 
+procedure ce_object_destroy(o: pointer); stdcall;
+function ce_messageDialog(message: pchar; messagetype: integer; buttoncombination: integer): integer; stdcall;
+function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;
 
 implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
      formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
-     MemoryRecordUnit, MemoryBrowserFormUnit;
+     MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler;
 
-var plugindisassembler: TDisassembler;
+var
+  plugindisassembler: TDisassembler;
+
+
+type TNotifyCall2=procedure(sender: TObject); stdcall;
+
+type
+  TComponentFunctionHandlerClass=class //just a handler class for functions of type object
+  private
+    lowestfreetag: integer;
+    Components: array of record
+      Component: TObject;
+      OnClick: TNotifyCall2;
+      OnClose: TNotifyCall2;
+      OnTimer: TNotifyCall2;
+      LuaOnClick: integer;
+      LuaOnClose: integer;
+      LuaOnTimer: integer;
+    end;
+    procedure OnClick(sender: TObject);
+    procedure OnClose(Sender: TObject; var Action: TCloseAction);
+    procedure OnTimer(Sender: TObject);
+  public
+    function inputComponent(c: TComponent): integer;
+    function removeComponent(c: TComponent): integer;
+    procedure DefaultOnClose(Sender: TObject; var Action: TCloseAction);
+
+    procedure setOnClick(control: Tcontrol; functiontocall: pointer; luafunction: integer);
+    procedure setOnClose(control: TForm; functiontocall: pointer; luafunction: integer);
+    procedure setOnTimer(control: TTimer; functiontocall: pointer; luafunction: integer);
+    constructor create;
+end;
+var ComponentFunctionHandlerClass: TComponentFunctionHandlerClass;
+
+constructor TComponentFunctionHandlerClass.create;
+var i: integer;
+begin
+  lowestfreetag:=0;
+  setlength(components,16);
+
+  for i:=0 to 15 do
+    components[i].component:=nil;
+end;
+
+function TComponentFunctionHandlerClass.removeComponent(c: TComponent): integer;
+begin
+  if lowestfreetag>c.tag then
+    lowestfreetag:=c.tag;
+
+  components[c.Tag].Component:=nil;
+end;
+
+function TComponentFunctionHandlerClass.inputComponent(c: TComponent): integer;
+var i,j: integer;
+begin
+  //check in the list if there is a free spot
+  for i:=lowestfreetag to length(Components)-1 do
+    if Components[i].Component=nil then
+    begin
+      Components[i].component:=c;
+      c.tag:=i;
+      result:=i;
+      if lowestfreetag>=i then
+        lowestfreetag:=i+1;
+      exit;
+    end;
+
+  //still here so no free spot, allocate new room and place it there
+  j:=length(components);
+  setlength(components,length(components)*2);
+  for i:=j to length(components)-1 do
+    components[i].component:=nil;
+
+  components[j].component:=c;
+  c.tag:=j;
+  result:=j;
+  if lowestfreetag>=j then
+    lowestfreetag:=j+1;
+end;
+
+procedure TComponentFunctionHandlerClass.OnClick(sender: TObject);
+begin
+  if assigned(components[TControl(sender).tag].onclick) then
+    components[TControl(sender).tag].onclick(sender)
+  else
+    LUA_onNotify(components[TControl(sender).tag].LuaOnclick, sender);     //lua call
+end;
+
+procedure TComponentFunctionHandlerClass.OnClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if assigned(components[TControl(sender).tag].onClose) then
+    components[TControl(sender).tag].onClose(sender)
+  else
+    LUA_onNotify(components[TControl(sender).tag].LuaOnClose, sender);     //lua call
+
+  action:=caFree;
+end;
+
+procedure TComponentFunctionHandlerClass.DefaultOnClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action:=cafree;
+end;
+
+procedure TComponentFunctionHandlerClass.OnTimer(Sender: TObject);
+begin
+  if assigned(components[TControl(sender).tag].onTimer) then
+    components[TControl(sender).tag].onTimer(sender)
+  else
+    LUA_onNotify(components[TControl(sender).tag].LuaOnTimer, sender);     //lua call
+end;
+
+
+
+
+procedure TComponentFunctionHandlerClass.setOnClick(control: TControl; functiontocall: pointer; luafunction: integer);
+begin
+  control.OnClick:=OnClick;
+  if functiontocall<>nil then
+    components[control.tag].OnClick:=functiontocall
+  else
+  begin
+    components[control.tag].OnClick:=nil;
+    components[control.tag].LuaOnClick:=luafunction
+  end;
+
+end;
+
+procedure TComponentFunctionHandlerClass.setOnClose(control: TForm; functiontocall: pointer; luafunction: integer);
+begin
+  control.OnClose:=OnClose;
+  if functiontocall<>nil then
+    components[control.tag].OnClose:=functiontocall
+  else
+  begin
+    components[control.tag].OnClose:=nil;
+    components[control.tag].LuaOnClose:=luafunction
+  end;
+
+end;
+
+procedure TComponentFunctionHandlerClass.setOnTimer(control: TTimer; functiontocall: pointer; luafunction: integer);
+begin
+  control.OnTimer:=OnTimer;
+  control.enabled:=true;
+
+  if functiontocall<>nil then
+    components[control.tag].OnTimer:=functiontocall
+  else
+  begin
+    components[control.tag].OnTimer:=nil;
+    components[control.tag].LuaOnTimer:=luafunction
+  end;
+
+end;
+
+
+//---------------------------------
 
 type TFreezeMem_Entry=record
   id: integer;
@@ -1355,15 +1524,22 @@ end;
 
 function ce_createForm2(params: pointer):pointer;
 var f: tform;
+  visible: ^boolean;
 begin
+  visible:=params;
   f:=Tform.Create(nil);
-  f.show;
+
+  if visible^ then f.show;
+
   result:=f;
+  ComponentFunctionHandlerClass.inputComponent(result);
+  f.onclose:=ComponentFunctionHandlerClass.DefaultOnClose;
 end;
 
-function ce_createForm: pointer; stdcall;
+function ce_createForm(visible: boolean): pointer; stdcall;
 begin
-  result:=pluginsync(ce_createForm2,nil);
+  result:=pluginsync(ce_createForm2,@visible);
+
 end;
 
 function ce_form_centerScreen2(params: pointer):pointer;
@@ -1384,12 +1560,33 @@ begin
   pluginsync(ce_form_centerScreen2,f);
 end;
 
+function ce_form_hide2(params: pointer): pointer;
+begin
+  TForm(params).Hide;
+end;
+
+procedure ce_form_hide(f: pointer); stdcall;
+begin
+  pluginsync(ce_form_hide2,f);
+end;
+
+function ce_form_show2(params: pointer): pointer;
+begin
+  TForm(params).show;
+end;
+
+procedure ce_form_show(f: pointer); stdcall;
+begin
+  pluginsync(ce_form_show2,f);
+end;
+
 function ce_createPanel2(params: pointer):pointer;
 var p: TPanel;
 begin
   p:=TPanel.Create(tcontrol(params));
   p.parent:=twincontrol(params);
   result:=p;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createPanel(owner: pointer): pointer; stdcall;
@@ -1403,6 +1600,7 @@ begin
   g:=TGroupBox.Create(tcontrol(params));
   g.parent:=twincontrol(params);
   result:=g;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createGroupBox(owner: pointer): pointer; stdcall;
@@ -1416,6 +1614,7 @@ begin
   b:=Tbutton.Create(tcontrol(params));
   b.parent:=twincontrol(params);
   result:=b;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createButton(owner: pointer): pointer; stdcall;
@@ -1429,6 +1628,7 @@ begin
   i:=TImage.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createImage(owner: pointer): pointer; stdcall;
@@ -1442,6 +1642,7 @@ begin
   i:=TLabel.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createLabel(owner: pointer): pointer; stdcall;
@@ -1455,6 +1656,7 @@ begin
   i:=TEdit.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createEdit(owner: pointer): pointer; stdcall;
@@ -1468,12 +1670,95 @@ begin
   i:=TMemo.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
+  ComponentFunctionHandlerClass.inputComponent(result);
 end;
 
 function ce_createMemo(owner: pointer): pointer; stdcall;
 begin
   result:=pluginsync(ce_createImage2,owner);
 end;
+
+function ce_createTimer2(params: pointer):pointer;
+var i: TTimer;
+begin
+  i:=TTimer.Create(tcontrol(params));
+  result:=i;
+  ComponentFunctionHandlerClass.inputComponent(result);
+end;
+
+function ce_createTimer(owner: pointer): pointer; stdcall;
+begin
+  result:=pluginsync(ce_createTimer2, owner);
+end;
+
+function ce_timer_setInterval2(params: pointer):pointer;
+type tp=record
+  timer: TTimer;
+  interval: integer;
+end;
+var p: ^tp;
+begin
+  p:=params;
+  p.timer.interval:=p.interval;
+  result:=nil;
+end;
+
+procedure ce_timer_setInterval(timer: pointer; interval: integer); stdcall;
+var p:record
+  timer: TTimer;
+  interval: integer;
+end;
+begin
+  p.timer:=timer;
+  p.interval:=interval;
+  pluginsync(ce_timer_setInterval2, @p);
+end;
+
+type TOnTimer=record
+    t: pointer;
+    f: pointer;
+    luafunction: integer;
+end;
+  POnTimer=^TOnTimer;
+
+
+function ce_timer_onTimer2(params: pointer): pointer;
+var p: POnTimer;
+  t: TTimer;
+begin
+  p:=params;
+  t:=p.t;
+  if (p.f=nil) and (p.luafunction=-1) then
+  begin
+    t.enabled:=false;
+    t.Ontimer:=nil;
+  end
+  else
+  begin
+    ComponentFunctionHandlerClass.setOnTimer(tTimer(p.t), p.f, p.luafunction);
+  end;
+end;
+
+
+procedure ce_timer_onTimer(t: pointer; f: pointer); stdcall;
+var p: TONTimer;
+begin
+  p.luafunction:=-1;
+  p.t:=t;
+  p.f:=f;
+  pluginsync(ce_Timer_onTimer2, @p)
+end;
+
+procedure ce_timer_onTimerLua(t: pointer; f: integer);
+var p: TONTimer;
+begin
+  p.luafunction:=f;
+  p.t:=t;
+  p.f:=nil;
+
+  pluginsync(ce_Timer_onTimer2, @p)
+end;
+
 
 function ce_control_setCaption2(params: pointer):pointer;
 type TP=record
@@ -1666,25 +1951,173 @@ begin
   pluginsync(ce_control_setAlign2, @p)
 end;
 
-function ce_control_destroy2(params: pointer): pointer;
+function ce_component_destroy2(params: pointer): pointer;
 begin
-  TControl(params).Free;
+  if (tobject(params) is Tcomponent) then
+    ComponentFunctionHandlerClass.removeComponent(params);
+
+  if (TComponent(params) is TForm) then
+    TForm(params).close
+  else
+    TComponent(params).Free;
 end;
 
-procedure ce_control_destroy(control: pointer); stdcall;
+procedure ce_object_destroy(o: pointer); stdcall;
 begin
-  pluginsync(ce_control_destroy2, control)
+  pluginsync(ce_component_destroy2, o)
 end;
 
+function ce_messageDialog2(params: pointer): pointer;
+type tp= record
+    message: pchar;
+    messagetype: TMsgDlgType;
+    buttons: TMsgDlgButtons;
+end;
+var p:^tp;
+begin
+  result:=pointer(MessageDlg(p.message, p.messagetype, p.buttons,0));
+end;
+
+function ce_messageDialog(message: pchar; messagetype: integer; buttoncombination: integer): integer; stdcall;
+var p: record
+    message: pchar;
+    messagetype: TMsgDlgType;
+    buttons: TMsgDlgButtons;
+end;
+
+begin
+  p.message:=message;
+  case messagetype of
+    0: p.messagetype:=mtWarning;
+    1: p.messagetype:=mtError;
+    2: p.messagetype:=mtInformation;
+    3: p.messagetype:=mtConfirmation;
+    else
+      p.messagetype:=mtInformation;
+  end;
+
+  case buttoncombination of
+    0: p.buttons:=[mbok];
+    1: p.buttons:=mbYesNo;
+    2: p.buttons:=mbYesNo+[mbCancel];
+    3: p.buttons:=mbOKCancel;
+  end;
+
+  result:=integer(pluginsync(ce_messageDialog2, @p));
+end;
+
+function ce_speedhack2_setSpeed(params: pointer): pointer;
+var speed: psingle;
+begin
+  speed:=params;
+  if not MainForm.cbSpeedhack.checked then
+    MainForm.cbSpeedhack.Checked:=true;
+
+  if mainform.cbspeedhack.checked then
+  begin
+    mainform.editsh2.Text:=format('%.2f', [speed^]);
+    mainform.btnSetSpeedhack2.Click;
+
+  end;
+end;
+
+function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;
+begin
+  result:=pluginsync(ce_speedhack2_setSpeed, @speed)<>nil;
+end;
+
+type TOnclick=record
+    c: pointer;
+    f: pointer;
+    luafunction: integer;
+end;
+  POnClick=^TOnClick;
+
+
+function ce_control_onClick2(params: pointer): pointer;
+var p: POnClick;
+begin
+  p:=params;
+  if (p.f=nil) and (p.luafunction=-1) then
+    TControl(p.c).OnClick:=nil
+  else
+    ComponentFunctionHandlerClass.setOnClick(tcontrol(p.c), p.f, p.luafunction);
+end;
+
+
+procedure ce_control_onClick(c: pointer; f: pointer); stdcall;
+var p: TONClick;
+begin
+  p.luafunction:=-1;
+  p.c:=c;
+  p.f:=f;
+  pluginsync(ce_control_onClick2, @p)
+end;
+
+procedure ce_control_onClickLua(c: pointer; f: integer);
+var p: TONClick;
+begin
+  p.luafunction:=f;
+  p.c:=c;
+  p.f:=nil;
+
+  pluginsync(ce_control_onClick2, @p)
+end;
+
+
+type TOnCloseParams=record
+    frm: pointer;
+    f: pointer;
+    luafunction: integer;
+end;
+  POnCloseParams=^TOnCloseParams;
+
+
+function ce_form_onClose2(params: pointer): pointer;
+var p: POnCloseParams;
+begin
+  p:=params;
+  if (p.f=nil) and (p.luafunction=-1) then
+    TForm(p.frm).OnClose:=nil
+  else
+    ComponentFunctionHandlerClass.setOnClose(tform(p.frm), p.f, p.luafunction);
+end;
+
+
+procedure ce_form_onClose(frm: pointer; f: pointer); stdcall;
+var p: TOnCloseParams;
+begin
+  p.luafunction:=-1;
+  p.frm:=frm;
+  p.f:=f;
+  pluginsync(ce_form_onClose2, @p)
+end;
+
+procedure ce_form_onCloseLua(frm: pointer; f: integer);
+var p: TOnCloseParams;
+begin
+  p.luafunction:=f;
+  p.frm:=frm;
+  p.f:=nil;
+
+  pluginsync(ce_form_onClose2, @p)
+end;
+
+var index: integer;
 initialization
   plugindisassembler:=TDisassembler.create;
   plugindisassembler.showsymbols:=false;
   plugindisassembler.showmodules:=false;
   plugindisassembler.isdefault:=false;
 
+  ComponentFunctionHandlerClass:=TComponentFunctionHandlerClass.create;
+
 finalization
   if plugindisassembler<>nil then
     plugindisassembler.free;
+
+  if ComponentFunctionHandlerClass<>nil then
+    ComponentFunctionHandlerClass.free;
 end.
 
 

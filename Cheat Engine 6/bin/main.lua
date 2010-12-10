@@ -101,8 +101,11 @@ require("defines")
 ------gui-objects-----
 --The following objects are descendent from the object named "control", therefore the returned pointer when they are created can also be used for functions that start with control_
 
---createForm(): creates a form (window) and returns the pointer used for the form_... functions (or control_... functions)
+--createForm(visible OPT): creates a form (window) and returns the pointer for it. Visible is default true but can be changed
 --form_centerScreen(form);
+--form_onClose(form, function)
+--form_hide(form)
+--form_show(form)
 
 --The following create routines take an owner as parameter. Owner can be a Form, Panel or Groupbox
 --The x,y position will be based on the client array of the owner
@@ -110,9 +113,13 @@ require("defines")
 --createGroupBox(owner)
 --createButton(owner)
 --createImage(owner)
+--image_loadImageFromFile(filename) xxx
+--image_scaling(boolean)xxx
+--image_transparent(boolean)xxx
 --createLabel(owner)
 --createEdit(owner)
 --createMemo(owner)
+
 
 --control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
 --control_getCaption(control)
@@ -121,14 +128,24 @@ require("defines")
 --control_setSize(control, width,height) :
 --control_getSize(control)
 --control_align(control, alignmentoption): 
---control_destroy(control)
+--control_onClick(control, function) : 
 
 
-messageDialog(text, type, buttons)
 
-speedhack_Enable()
-speedhack_setSpeed(speed)
-speedhack_Disable()
+
+--createTimer(owner)
+--timer_setInterval(timer, interval)
+--timer_onInterval(timer, function)
+
+
+--object_destroy(object) : Destroys the object (basically everything inherits from this class)
+
+
+
+
+--messageDialog(text, type, buttons)
+
+--speedhack_setSpeed(speed)
 
 
 

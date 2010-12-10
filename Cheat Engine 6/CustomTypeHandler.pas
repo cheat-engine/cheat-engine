@@ -21,6 +21,7 @@ type
     fname: string;
     ffunctiontypename: string; //lua
 
+    lua_bytestovaluefunctionid: integer;
     lua_bytestovalue: string; //help string that contains the functionname so it doesn't have to build up this string at runtime
     lua_valuetobytes: string;
 
@@ -174,16 +175,14 @@ begin
 
   LuaCS.Enter;
   try
-    lua_getfield(L, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
-    lua_createtable(l, bytesize,0);
-    t:=lua_gettop(l);
-    for i:=0 to bytesize-1 do
-    begin
-      lua_pushinteger(L,data[i]);
-      lua_rawseti(L, t,i);
-    end;
+    //lua_getfield(L, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
 
-    lua_call(L, 1,1);
+
+    for i:=0 to bytesize-1 do
+      lua_pushinteger(L,data[i]);
+
+    lua_call(L, bytesize,1);
     result:=lua_tointeger(L, -1);
 
     lua_pop(L,lua_gettop(l));
@@ -347,9 +346,9 @@ begin
     //now load the script into the actual vm
     if lua_dostring(LuaVM, pchar(script))<>0 then
     begin
-      if lua_gettop(templua)>0 then
+      if lua_gettop(LuaVM)>0 then
       begin
-        error:=lua_tostring(templua,-1);
+        error:=lua_tostring(LuaVM,-1);
         raise exception.create(error);
       end else raise exception.create('Undefined error');
     end else lua_pop(LuaVM,3);
@@ -360,6 +359,13 @@ begin
       currentscript:=tstringlist.create;
 
     currentscript.text:=script;
+
+
+    lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+    lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+
+    lua_pop(LuaVM,lua_getTop(luavm));
+
   end;
 
   except

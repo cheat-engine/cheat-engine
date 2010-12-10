@@ -18,6 +18,7 @@ procedure LUA_DoScript(s: string);
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
 procedure LUA_SetCurrentContextState(context: PContext);
 function LUA_onBreakpoint(context: PContext): boolean;
+procedure LUA_onNotify(functionid: integer; sender: tobject);
 procedure InitializeLuaScripts;
 
 implementation
@@ -533,6 +534,20 @@ begin
   end;
 end;
 
+procedure LUA_onNotify(functionid: integer; sender: tobject);
+begin
+  LUACS.enter;
+  try
+    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, functionid);
+
+    lua_pushlightuserdata(Luavm, sender);
+    lua_pcall(Luavm, 1, 0, 0);
+  finally
+    lua_pop(luavm, lua_gettop(luavm)); //clear the stack
+    LUACS.Leave;
+  end;
+end;
+
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
 var m: TMemoryrecord;
   p: integer;
@@ -552,9 +567,10 @@ begin
         lua_pcall(luavm, 1, 0, 0);
       end;
 
-      lua_pop(luavm,lua_gettop(luavm));
+
     end;
   finally
+    lua_pop(luavm,lua_gettop(luavm));
     luacs.Leave;
   end;
 end;
@@ -1709,12 +1725,21 @@ end;
 
 function createForm_fromLua(L: Plua_State): integer; cdecl;
 var f: pointer;
+  parameters: integer;
+  visible: boolean;
 begin
   result:=1;
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+    visible:=lua_toboolean(L,-1)
+  else
+    visible:=true;
+
   lua_pop(L, lua_gettop(L));
 
 
-  f:=ce_createForm;
+  f:=ce_createForm(visible);
   lua_pushlightuserdata(L, f);
   result:=1;
 end;
@@ -1729,6 +1754,34 @@ begin
   begin
     f:=lua_touserdata(L, -1);
     ce_form_centerScreen(f);
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function form_hide_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    ce_form_hide(f);
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function form_show_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    ce_form_show(f);
   end;
   lua_pop(L, lua_gettop(L));
 end;
@@ -1858,6 +1911,63 @@ begin
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
+
+function createTimer_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f,p: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    p:=ce_createTimer(f);
+
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushlightuserdata(L, p);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function timer_setInterval_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  t: pointer;
+  interval: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    t:=lua_touserdata(L, -2);
+    interval:=lua_tointeger(L, -1);
+    ce_timer_setInterval(t,interval);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function timer_onTimer_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  f: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+      ce_timer_onTimerLua(control, f);
+    end;
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
 
 function control_setCaption_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -2009,21 +2119,108 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function control_destroy_fromLua(L: PLua_State): integer; cdecl;
+
+function form_onClose_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
   control: pointer;
+  f: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+      ce_form_onCloseLua(control, f);
+    end;
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_onClick_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: pointer;
+  f: integer;
+
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+      ce_control_onClickLua(control, f);
+    end;
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function object_destroy_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  component: pointer;
   x,y: integer;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    component:=lua_touserdata(L,-1);
 
-    ce_control_destroy(control);
+    ce_object_destroy(component);
   end;
 
+  lua_pop(L, paramcount);
+end;
+
+function messageDialog_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  message: pchar;
+  dialogtype: integer;
+  buttontype: integer;
+
+  r: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=3 then
+  begin
+    message:=lua_tostring(L,-3);
+    dialogtype:=lua_tointeger(L,-2);
+    buttontype:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    r:=ce_messageDialog(message, dialogtype, buttontype);
+
+    lua_pushinteger(L,r);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function speedhack_setSpeed_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  speed: single;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    speed:=lua_tonumber(L,-1);
+    ce_speedhack_setSpeed(speed);
+  end;
   lua_pop(L, paramcount);
 end;
 
@@ -2086,6 +2283,9 @@ initialization
     lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow_fromLua);
     lua_register(LuaVM, 'createForm', createForm_fromLua);
     lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
+    lua_register(LuaVM, 'form_onClose', form_onClose_fromLua);
+    lua_register(LuaVM, 'form_show', form_show_fromLua);
+    lua_register(LuaVM, 'form_hide', form_hide_fromLua);
     lua_register(LuaVM, 'createPanel', createPanel_fromLua);
     lua_register(LuaVM, 'createGroupBox', createPanel_fromLua);
     lua_register(LuaVM, 'createButton', createButton_fromLua);
@@ -2093,6 +2293,9 @@ initialization
     lua_register(LuaVM, 'createLabel', createLabel_fromLua);
     lua_register(LuaVM, 'createEdit', createEdit_fromLua);
     lua_register(LuaVM, 'createMemo', createMemo_fromLua);
+    lua_register(LuaVM, 'createTimer', createTimer_fromLua);
+    lua_register(LuaVM, 'timer_setInterval', timer_setInterval_fromLua);
+    lua_register(LuaVM, 'timer_onTimer', timer_onTimer_fromLua);
     lua_register(LuaVM, 'control_setCaption', control_setCaption_fromLua);
     lua_register(LuaVM, 'control_getCaption', control_getCaption_fromLua);
     lua_register(LuaVM, 'control_setPosition', control_setPosition_fromLua);
@@ -2100,7 +2303,10 @@ initialization
     lua_register(LuaVM, 'control_setSize', control_setSize_fromLua);
     lua_register(LuaVM, 'control_getSize', control_getSize_fromLua);
     lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
-    lua_register(LuaVM, 'control_destroy', control_destroy_fromLua);
+    lua_register(LuaVM, 'control_onClick', control_onClick_fromLua);
+    lua_register(LuaVM, 'object_destroy', object_destroy_fromLua);
+    lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
+    lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
 
 
   end;

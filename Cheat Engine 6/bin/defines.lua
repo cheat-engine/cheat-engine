@@ -19,6 +19,26 @@ alLeft=3
 alRight=4
 alClient=5
 
+--message dialog types
+mtWarning=0
+mtError=1
+mtInformation=2
+mtConfirmation=3
+
+--message dialog button types
+mbOk=0
+mbYesNo=1
+mbYesNoCancel=2
+mbOkCancel=3
+
+--message dialog results:
+mrNone = 0;
+mrOK = 1;
+mrCancel = 2;
+mrYes = 6;
+mrNo = 7;
+
+
 
 
 --Variable types
