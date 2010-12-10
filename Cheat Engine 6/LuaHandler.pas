@@ -667,8 +667,7 @@ begin
   if paramcount=0 then exit;
 
   s:=lua_tostring(L, -1);
-  MessageBox(0, s,'LUA',mb_ok);
-
+  ce_showmessage(s);
 
   lua_pop(L, paramcount);
   result:=0;

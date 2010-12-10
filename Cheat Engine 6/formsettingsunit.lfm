@@ -61,9 +61,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = Extra
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 7
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -144,25 +144,15 @@ object formSettings: TformSettings
           State = cbChecked
           TabOrder = 0
         end
-        object cbShowAdvanced: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 22
-          Width = 138
-          Caption = 'Show advanced options.'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
-        end
         object cbCenterOnPopup: TCheckBox
           Left = 1
           Height = 19
-          Top = 60
+          Top = 41
           Width = 223
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
-          TabOrder = 2
+          TabOrder = 1
         end
         object EditUpdateInterval: TEdit
           Left = 165
@@ -172,7 +162,7 @@ object formSettings: TformSettings
           Width = 53
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 3
+          TabOrder = 2
           Text = '500'
         end
         object EditFreezeInterval: TEdit
@@ -183,7 +173,7 @@ object formSettings: TformSettings
           Width = 53
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 4
+          TabOrder = 3
           Text = '250'
         end
         object GroupBox1: TGroupBox
@@ -194,7 +184,7 @@ object formSettings: TformSettings
           Caption = 'Address list specific'
           ClientHeight = 72
           ClientWidth = 598
-          TabOrder = 5
+          TabOrder = 4
           object cbShowAsSigned: TCheckBox
             Left = 13
             Height = 19
@@ -223,13 +213,13 @@ object formSettings: TformSettings
         object cbUpdatefoundList: TCheckBox
           Left = 1
           Height = 19
-          Top = 41
+          Top = 22
           Width = 278
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
           State = cbChecked
-          TabOrder = 6
+          TabOrder = 5
         end
         object editUpdatefoundInterval: TEdit
           Left = 167
@@ -239,28 +229,28 @@ object formSettings: TformSettings
           Width = 51
           ParentShowHint = False
           ShowHint = True
-          TabOrder = 7
+          TabOrder = 6
           Text = '1000'
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
           Height = 19
-          Top = 79
+          Top = 60
           Width = 345
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
           State = cbChecked
-          TabOrder = 8
+          TabOrder = 7
         end
         object btnExcludeProcesses: TButton
           Left = 351
           Height = 21
-          Top = 77
+          Top = 59
           Width = 90
           Caption = 'More...'
           OnClick = btnExcludeProcessesClick
-          TabOrder = 9
+          TabOrder = 8
         end
         object EditAutoAttach: TEdit
           Left = 209
@@ -268,7 +258,7 @@ object formSettings: TformSettings
           Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
           Top = 340
           Width = 143
-          TabOrder = 10
+          TabOrder = 9
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
@@ -276,62 +266,82 @@ object formSettings: TformSettings
           Top = 367
           Width = 334
           Caption = 'Even autoattach when another process has already been selected'
-          TabOrder = 11
+          TabOrder = 10
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
           Height = 19
-          Top = 138
+          Top = 145
           Width = 128
           Caption = 'Save window positions'
           Checked = True
           State = cbChecked
-          TabOrder = 12
+          TabOrder = 11
         end
         object cbProcessIcons: TCheckBox
           Left = 1
           Height = 19
-          Top = 192
+          Top = 199
           Width = 172
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
           State = cbChecked
-          TabOrder = 13
+          TabOrder = 12
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
           Height = 19
-          Top = 210
+          Top = 217
           Width = 180
           Caption = 'Only show processes with an icon'
-          TabOrder = 14
+          TabOrder = 13
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
           Height = 19
-          Top = 174
+          Top = 181
           Width = 101
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
-          TabOrder = 15
+          TabOrder = 14
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
           Height = 19
-          Top = 98
+          Top = 79
           Width = 259
           Caption = 'Pointer adding: Append pointerline instead of insert'
-          TabOrder = 16
+          TabOrder = 15
         end
         object cbShowallWindows: TCheckBox
           Left = 1
           Height = 19
-          Top = 156
+          Top = 163
           Width = 171
           Caption = 'Show all windows in the taskbar'
+          TabOrder = 16
+        end
+        object cbAskIfTableHasLuascript: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 100
+          Width = 172
+          Caption = 'Ask to run lua scripts from tables'
+          Checked = True
+          OnChange = cbAskIfTableHasLuascriptChange
+          State = cbChecked
           TabOrder = 17
+        end
+        object cbAlwaysRunScript: TCheckBox
+          Left = 15
+          Height = 19
+          Top = 117
+          Width = 175
+          Caption = 'Always run lua scripts from tables'
+          Enabled = False
+          TabOrder = 18
         end
       end
       object tsHotkeys: TTabSheet
@@ -629,7 +639,6 @@ object formSettings: TformSettings
           Height = 25
           Top = 157
           Width = 25
-          Color = clBtnFace
           Enabled = False
           Glyph.Data = {
             D6020000424DD6020000000000003600000028000000100000000E0000000100
@@ -1138,7 +1147,6 @@ object formSettings: TformSettings
             Height = 26
             Top = 69
             Width = 31
-            Color = clBtnFace
             Enabled = False
             Glyph.Data = {
               D6020000424DD6020000000000003600000028000000100000000E0000000100
@@ -1261,7 +1269,6 @@ object formSettings: TformSettings
                 Width = 171
               end>
             HideSelection = False
-            ItemIndex = -1
             ReadOnly = True
             RowSelect = True
             TabOrder = 1

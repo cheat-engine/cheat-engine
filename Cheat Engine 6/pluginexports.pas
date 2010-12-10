@@ -310,9 +310,15 @@ end;
 
 var FreezeMem: TFreezeMem;
 
+function ce_showmessage2(params: pointer): pointer;
+begin
+  showmessage(pchar(params));
+end;
+
 procedure ce_showmessage(s: pchar); stdcall;
 begin
-  showmessage(s);
+  pluginsync(ce_showmessage2, s);
+
 end;
 
 

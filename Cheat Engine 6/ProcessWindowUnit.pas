@@ -184,16 +184,6 @@ end;
 
 procedure TProcessWindow.setbuttons;
 begin
-
-  if not formsettings.cbShowAdvanced.Checked then
-  begin
-    button4.Visible:=false;
-    btnCreateThread.Visible:=false;
-    Panel1.Height:=panel1.Height-40;
-    button1.Top:=button1.Top-40;
-    button2.Top:=button2.Top-40;
-  end;
-
   if formsettings.cbProcesswatcher.Checked then
   begin
     button6.Visible:=true;

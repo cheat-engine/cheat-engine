@@ -26,6 +26,8 @@ type
     cbDontusetempdir: TCheckBox;
     cbGlobalDebug: TCheckBox;
     cbShowallWindows: TCheckBox;
+    cbAskIfTableHasLuascript: TCheckBox;
+    cbAlwaysRunScript: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -59,7 +61,6 @@ type
     Label23: TLabel;
     Label24: TLabel;
     cbShowUndo: TCheckBox;
-    cbShowAdvanced: TCheckBox;
     cbCenterOnPopup: TCheckBox;
     EditUpdateInterval: TEdit;
     EditFreezeInterval: TEdit;
@@ -150,6 +151,7 @@ type
     clbPlugins: TCheckListBox;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
@@ -341,7 +343,6 @@ begin
   {$endif}
 
   mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
-  mainform.advancedbutton.Visible:=cbShowAdvanced.checked;
 
 
   //save to the registry
@@ -352,7 +353,6 @@ begin
     begin
       //write the settings
       reg.WriteBool('Undo',cbshowundo.checked);
-      reg.WriteBool('Advanced',cbShowAdvanced.checked);
       reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
       case combothreadpriority.itemindex of
         0: scanpriority:=tpIdle;
@@ -396,6 +396,10 @@ begin
       reg.WriteBool('Simple copy/paste',cbsimplecopypaste.checked);
       reg.WriteString('AutoAttach',EditAutoAttach.text);
       reg.writebool('Always AutoAttach', cbAlwaysAutoAttach.checked);
+
+      reg.WriteBool('Ask if table has lua script',cbAskIfTableHasLuascript.Checked);
+      reg.WriteBool('Always run script',cbAlwaysRunScript.Checked);
+
 
 
       {$ifndef net}
@@ -690,6 +694,11 @@ end;
 procedure TformSettings.Button2Click(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
+begin
+  cbAlwaysRunScript.enabled:=not cbAskIfTableHasLuascript.checked;
 end;
 
 procedure TformSettings.cbDontusetempdirChange(Sender: TObject);

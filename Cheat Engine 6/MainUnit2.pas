@@ -288,6 +288,13 @@ begin
         begin
           LoadingSettingsFromRegistry:=true;
 
+          if reg.ValueExists('Ask if table has lua script') then
+            cbAskIfTableHasLuascript.Checked:=reg.ReadBool('Ask if table has lua script');
+
+          if reg.ValueExists('Always run script') then
+            cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script');
+
+
           if reg.ValueExists('Show all windows on taskbar') then
             if reg.ReadBool('Show all windows on taskbar') then
               Application.TaskBarBehavior:=tbMultiButton;
@@ -295,9 +302,6 @@ begin
 
           if reg.ValueExists('Undo') then
             cbshowundo.checked:=reg.ReadBool('Undo');
-
-          if reg.ValueExists('Advanced') then
-            cbShowAdvanced.checked:=reg.ReadBool('Advanced');
 
           if reg.ValueExists('ScanThreadpriority') then
             combothreadpriority.itemindex:=reg.ReadInteger('ScanThreadpriority');
@@ -314,9 +318,6 @@ begin
           end;
 
           mainform.UndoScan.visible:=cbshowundo.checked;
-          mainform.advancedbutton.Visible:=cbShowAdvanced.checked;
-          mainform.cbspeedhack.Visible:=cbShowAdvanced.checked;
-
 
           {$ifndef net}
           if reg.ValueExists('hotkey poll interval') then

@@ -29,12 +29,20 @@ var
   CheatTable: TDOMNode;
   Entries: TDOMNode;
   cheatEntry: TDOMNode;
+  CodeRecords: TDOMNode;
+  CodeRecord: TDOMNode;
 
   Address: TDOMNode;
   offsets: TDOMNode;
+  CodeBytes: TDOMNode;
 
+  nrofbytes: integer;
+  tempaddress: dword;
   tempdword: dword;
+  tempoffset: dword;
   tempbyte: byte;
+
+  tempmodulename: string;
 
   groups: Array [1..6] of record
     node: TDOMNode;
@@ -43,6 +51,10 @@ var
   end;
 
   pointercount: dword;
+  tempbefore: array of byte;
+  tempactual: array of byte;
+  tempafter: array of byte;
+  tempdescription: string;
 
   s: TFileStream;
 
@@ -199,6 +211,73 @@ begin
 
 
     end;
+
+
+    ctfile.ReadBuffer(records,4);
+    if records>0 then
+    begin
+      //it has code records
+      CodeRecords:=CheatTable.AppendChild(doc.CreateElement('CheatCodes'));
+
+      for i:=0 to records-1 do
+      begin
+
+        CodeRecord:=CodeRecords.AppendChild(doc.CreateElement('CodeEntry'));
+        ctfile.ReadBuffer(tempaddress,4);
+        nrofbytes:=0;
+        ctfile.ReadBuffer(nrofbytes,1);
+        getmem(x,nrofbytes+1);
+        ctfile.ReadBuffer(pointer(x)^,nrofbytes);
+        x[nrofbytes]:=#0;
+        tempmodulename:=x;
+        freemem(x);
+
+        ctfile.ReadBuffer(tempoffset,4);
+
+        nrofbytes:=0;
+        ctfile.ReadBuffer(nrofbytes,1);
+        setlength(tempbefore,nrofbytes);
+        ctfile.ReadBuffer(pointer(tempbefore)^,nrofbytes);
+
+        nrofbytes:=0;
+        ctfile.ReadBuffer(nrofbytes,1);
+        setlength(tempactual,nrofbytes);
+        ctfile.ReadBuffer(pointer(tempactual)^,nrofbytes);
+
+        nrofbytes:=0;
+        ctfile.ReadBuffer(nrofbytes,1);
+        setlength(tempafter,nrofbytes);
+        ctfile.ReadBuffer(pointer(tempafter)^,nrofbytes);
+
+        nrofbytes:=0;
+        ctfile.ReadBuffer(nrofbytes,1);
+        getmem(x,nrofbytes+1);
+        ctfile.ReadBuffer(pointer(x)^,nrofbytes);
+        x[nrofbytes]:=#0;
+        tempdescription:=x;
+        freemem(x);
+
+        //now add it to the xml
+        CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=tempdescription;
+        CodeRecord.AppendChild(doc.CreateElement('Address')).TextContent:=inttohex(tempaddress,8);
+        CodeRecord.AppendChild(doc.CreateElement('ModuleName')).TextContent:=tempmodulename;
+        CodeRecord.AppendChild(doc.CreateElement('ModuleNameOffset')).TextContent:=inttohex(tempoffset,1);
+        CodeBytes:=CodeRecord.AppendChild(doc.CreateElement('Before'));
+        for j:=0 to length(tempbefore)-1 do
+          CodeBytes.AppendChild(doc.CreateElement('Byte')).TextContent:=inttohex(tempbefore[j],2);
+
+        CodeBytes:=CodeRecord.AppendChild(doc.CreateElement('Actual'));
+        for j:=0 to length(tempactual)-1 do
+          CodeBytes.AppendChild(doc.CreateElement('Byte')).TextContent:=inttohex(tempactual[j],2);
+
+        CodeBytes:=CodeRecord.AppendChild(doc.CreateElement('After'));
+        for j:=0 to length(tempafter)-1 do
+          CodeBytes.AppendChild(doc.CreateElement('Byte')).TextContent:=inttohex(tempafter[j],2);
+      end;
+
+    end;
+
+
 
 
     //add the used groups as last

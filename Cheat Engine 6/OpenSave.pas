@@ -7,7 +7,7 @@ unit OpenSave;
 interface
 
 
-uses windows, forms, MainUnit,LCLIntf,{standaloneunit,}SysUtils,AdvancedOptionsUnit,CommentsUnit,
+uses windows, forms, MainUnit,LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls, tableconverter,
      ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, comctrls,dom, xmlread,xmlwrite;
@@ -173,7 +173,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses mainunit2, symbolhandler, LuaHandler;
+uses mainunit2, symbolhandler, LuaHandler, formsettingsunit;
 
 
 
@@ -276,6 +276,9 @@ var newrec: MemoryRecordV6;
     symbolname: string;
     address: ptrUint;
     li: tlistitem;
+
+    r: integer;
+    reg: Tregistry;
 begin
 
   try
@@ -464,12 +467,62 @@ begin
 
     if Commentsunit.Comments.mLuaScript.text<>'' then
     begin
-      try
-        LUA_DoScript(Commentsunit.Comments.mLuaScript.text);
-      except
-        on e: exception do
+      if formSettings.cbAskIfTableHasLuascript.checked then
+      begin
+        r:=MessageDlg('This table contains a lua script. Do you want to run it?', mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll],0);
+
+        if r in [mrYesToAll, mrNoToAll] then
         begin
-          raise Exception.create('Error executing this table''s lua script: '+e.message);
+          case r of
+
+            mrYesToAll:
+            begin
+              r:=mryes;
+              formsettings.cbAskIfTableHasLuascript.Checked:=false;
+              formsettings.cbAlwaysRunScript.checked:=true;
+            end;
+
+            mrNoToAll:
+            begin
+              r:=mrNo;
+              formsettings.cbAskIfTableHasLuascript.Checked:=false;
+              formsettings.cbAlwaysRunScript.checked:=false;
+            end;
+          end;
+
+          reg:=TRegistry.Create;
+          try
+            Reg.RootKey := HKEY_CURRENT_USER;
+            if Reg.OpenKey('\Software\Cheat Engine',true) then
+            begin
+              reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
+              reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
+            end;
+          finally
+            reg.free;
+          end;
+        end;
+
+
+
+      end
+      else
+      begin
+        if formSettings.cbAlwaysRunScript.checked then
+          r:=mrYes
+        else
+          r:=mrNo;
+      end;
+
+      if r=mryes then
+      begin
+        try
+          LUA_DoScript(Commentsunit.Comments.mLuaScript.text);
+        except
+          on e: exception do
+          begin
+            raise Exception.create('Error executing this table''s lua script: '+e.message);
+          end;
         end;
       end;
     end;
