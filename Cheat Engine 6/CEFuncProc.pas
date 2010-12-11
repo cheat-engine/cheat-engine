@@ -543,14 +543,14 @@ var
 
   SearchAddressB: array of TBitAddress;}
 
-  previousmemory1,previousmemory1switch: array of Byte;
-  previousmemory2,previousmemory2switch: array of word;
+ // previousmemory1,previousmemory1switch: array of Byte;
+  {previousmemory2,previousmemory2switch: array of word;
   previousmemory3,previousmemory3switch: array of dword;
   previousmemory4,previousmemory4switch: array of Single;
   previousmemory5,previousmemory5switch: array of Double;
   previousmemory6,previousmemory6switch: array of int64; //Byte;
   PreviousMemory7,previousmemory7switch: Array of Int64;
-  PreviousMemory8,previousmemory8switch: array of byte;
+  PreviousMemory8,previousmemory8switch: array of byte; }
 
 //---------
   helpstr,helpstr2: string;
@@ -613,7 +613,7 @@ var
 
 
   processhandler: TProcessHandler;
-
+  PreventDebuggerDetection: boolean;
 
 
 type

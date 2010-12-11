@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = CodeFinder
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 8
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -994,7 +994,7 @@ object formSettings: TformSettings
                 Top = 5
                 Width = 209
                 Caption = 'Try to prevent detection of the debugger'
-                OnClick = CheckBox1Click
+                OnChange = CheckBox1Change
                 TabOrder = 0
               end
             end

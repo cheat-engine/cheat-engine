@@ -25,6 +25,8 @@ end;
 
 implementation
 
+uses autoassembler;
+
 constructor TWindowsDebuggerInterface.create;
 begin
   inherited create;
@@ -53,7 +55,28 @@ begin
 end;
 
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
+var d: tstringlist;
 begin
+  if PreventDebuggerDetection then
+  begin
+    processhandler.processid:=dwProcessID;
+    Open_Process;
+
+    d:=tstringlist.create;
+    try
+      d.Add('IsDebuggerPresent:');
+      d.add('xor eax,eax');
+      d.add('ret');
+      try
+        autoassemble(d,false);
+      except
+      end;
+
+    finally
+      d.free;
+    end;
+  end;
+
   result:=newkernelhandler.DebugActiveProcess(dwProcessId);
   processhandler.processid:=dwProcessID;
   Open_Process;

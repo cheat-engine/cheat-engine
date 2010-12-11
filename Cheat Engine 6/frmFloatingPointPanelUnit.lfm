@@ -1,7 +1,7 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 862
+  Left = 842
   Height = 322
-  Top = 252
+  Top = 197
   Width = 353
   BorderStyle = bsSizeToolWin
   Caption = 'FPU'

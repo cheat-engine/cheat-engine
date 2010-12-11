@@ -150,6 +150,7 @@ type
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
+    procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -698,6 +699,11 @@ begin
 
 end;
 
+procedure TformSettings.CheckBox1Change(Sender: TObject);
+begin
+  PreventDebuggerDetection:=checkbox1.checked;
+end;
+
 
 
 procedure TformSettings.EditBufSizeKeyPress(Sender: TObject;
@@ -761,11 +767,6 @@ begin
     tempdonthidelist[i]:=donthidelist[i];
   {$endif net}
 
-
-  if IsDebuggerPresentLocation=0 then
-  begin
-    checkbox1.Enabled:=false;
-  end;
 
   {$ifndef net}
   if debuggerthread<>nil then

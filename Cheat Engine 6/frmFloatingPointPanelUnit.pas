@@ -256,7 +256,93 @@ begin
 
         end;
         {$else}
-        memo1.lines.add('Not implemented in the 32-bit version yet');
+        //memo1.lines.add('Not implemented in the 32-bit version yet');
+
+        for i:=0 to 7 do
+        begin
+          case combobox2.ItemIndex of
+            0: //byte
+            begin
+              str:='';
+              for j:=0 to 15 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].Bytes[j],2);
+                if j<15 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+
+            1: //word
+            begin
+              str:='';
+              for j:=0 to 7 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].words[j],4);
+                if j<7 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+
+            2: //dword
+            begin
+              str:='';
+              for j:=0 to 3 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].dwords[j],8);
+                if j<3 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+
+            3:   //8 byte
+            begin
+              str:='';
+              for j:=0 to 1 do
+              begin
+                str:=str+inttohex(context.ext.XMMRegisters.LegacyXMM[i].qwords[j],16);
+                if j<1 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+
+            4:
+            begin
+              str:='';
+              for j:=0 to 3 do
+              begin
+                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].singles[j]]);
+                if j<3 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+
+            5:
+            begin
+              str:='';
+              for j:=0 to 1 do
+              begin
+                str:=str+format('%f',[context.ext.XMMRegisters.LegacyXMM[i].doubles[j]]);
+                if j<1 then
+                  str:=str+' - ';
+              end;
+
+              memo1.Lines.Add('xmm'+inttostr(i)+':'+str);
+            end;
+          end;
+         end;
+
+
+
         {$endif}
 
 

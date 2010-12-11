@@ -84,7 +84,6 @@ var //DebuggerThread: TDebugger;
     ntResumeProcess: tntResumeProcess;
 
     NtQueryInformationProcess: TNtQueryInformationProcess;
-    IsDebuggerPresentLocation:ptrUint;
     DbgBreakPointLocation:ptrUint;
 
 
@@ -182,7 +181,6 @@ initialization
     @DebugSetProcessKillOnExit :=GetProcAddress(krn,'DebugSetProcessKillOnExit');
     @DebugActiveProcessStop :=GetProcAddress(krn,'DebugActiveProcessStop');
     @IsDebuggerPresent:=GetProcAddress(krn,'IsDebuggerPresent');
-    IsDebuggerPresentLocation:=ptrUint(GetProcAddress(krn,'IsDebuggerPresent'));
 
     if @DebugBreakProcess=nil then
       @DebugBreakProcess:=@DebugBreakProstitute;
