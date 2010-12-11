@@ -23,6 +23,10 @@
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTable=NULL;
 
+typedef PCHAR (*GET_PROCESS_IMAGE_NAME) (PEPROCESS Process); 
+GET_PROCESS_IMAGE_NAME PsGetProcessImageFileName; 
+
+
 
 void mykapc2(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
@@ -1020,7 +1024,6 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				} *inp;
 				PVOID address;
 				char *x;
-				int i;
 				int size;
 
 				inp=Irp->AssociatedIrp.SystemBuffer;
@@ -1072,6 +1075,40 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer,&result,8);
 				ntStatus=STATUS_SUCCESS;
 
+				break;
+			}
+
+		case IOCTL_CE_GETPROCESSNAMEADDRESS:
+			{
+				struct input
+				{
+					UINT64 PEPROCESS;
+				} *inp;
+
+				struct output
+				{
+					UINT64 Address;
+				} *outp;
+
+				UNICODE_STRING temp;
+
+				inp=Irp->AssociatedIrp.SystemBuffer;
+				outp=Irp->AssociatedIrp.SystemBuffer;
+
+				RtlInitUnicodeString(&temp, L"PsGetProcessImageFileName");
+				PsGetProcessImageFileName=MmGetSystemRoutineAddress(&temp);
+				if (PsGetProcessImageFileName!=NULL)
+				{
+					outp->Address=(UINT_PTR)PsGetProcessImageFileName((PEPROCESS)((UINT_PTR)(inp->PEPROCESS)));
+					ntStatus=STATUS_SUCCESS;
+				}
+				else 
+				{
+					DbgPrint("PsGetProcessImageFileName==NULL");
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
+
+				
 				break;
 			}
 /*x
@@ -1150,7 +1187,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				if (inp->active)
 				{
 					DbgPrint("activating breapoint %d\n", inp->debugregspot);
-					ntStatus=debugger_setGDBreakpoint(inp->debugregspot, inp->address, (BreakType)inp->breakType, (BreakLength)inp->breakLength);
+					ntStatus=debugger_setGDBreakpoint(inp->debugregspot, (UINT_PTR)inp->address, (BreakType)inp->breakType, (BreakLength)inp->breakLength);
 				}
 				else
 				{					

@@ -204,11 +204,11 @@ Return Value:
 	RtlAppendUnicodeToString(&temp, L"Service");
 	RtlAppendUnicodeToString(&temp, L"Descriptor");
 	RtlAppendUnicodeToString(&temp, L"Table");
-
-
 	
-
 	KeServiceDescriptorTable=MmGetSystemRoutineAddress(&temp);         
+
+
+
 	
 	
 
