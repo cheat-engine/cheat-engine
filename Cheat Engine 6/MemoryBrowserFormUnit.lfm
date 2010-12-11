@@ -1,11 +1,11 @@
 object MemoryBrowser: TMemoryBrowser
   Left = 823
-  Height = 577
-  Top = 220
+  Height = 587
+  Top = 210
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 557
+  ClientHeight = 567
   ClientWidth = 722
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -44,7 +44,7 @@ object MemoryBrowser: TMemoryBrowser
     TabOrder = 0
     OnResize = Panel1Resize
     object Splitter2: TSplitter
-      Left = 528
+      Left = 507
       Height = 300
       Top = 0
       Width = 5
@@ -56,29 +56,29 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 300
       Top = 0
-      Width = 528
+      Width = 507
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
     end
     object RegisterView: TPanel
-      Left = 533
+      Left = 512
       Height = 300
       Top = 0
-      Width = 189
+      Width = 210
       Align = alRight
       ClientHeight = 300
-      ClientWidth = 189
+      ClientWidth = 210
       TabOrder = 1
       Visible = False
       object ScrollBox1: TScrollBox
         Left = 1
         Height = 298
         Top = 1
-        Width = 187
+        Width = 208
         Align = alClient
         ClientHeight = 294
-        ClientWidth = 183
+        ClientWidth = 204
         TabOrder = 0
         OnClick = ScrollBox1Click
         OnResize = ScrollBox1Resize
@@ -437,7 +437,7 @@ object MemoryBrowser: TMemoryBrowser
           OnDblClick = EAXLabelDblClick
         end
         object sbShowFloats: TButton
-          Left = 152
+          Left = 162
           Height = 32
           Top = 141
           Width = 22
@@ -451,18 +451,18 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 252
+    Height = 262
     Top = 305
     Width = 722
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 252
+    ClientHeight = 262
     ClientWidth = 722
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 506
-      Height = 250
+      Height = 260
       Top = 1
       Width = 5
       Align = alRight
@@ -473,7 +473,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 250
+      Height = 260
       Top = 1
       Width = 505
       Align = alClient
@@ -482,19 +482,19 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 511
-      Height = 250
+      Height = 260
       Top = 1
       Width = 210
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 250
+      ClientHeight = 260
       ClientWidth = 210
       PopupMenu = pmStacktrace
       TabOrder = 1
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 246
+        Height = 256
         Top = 2
         Width = 206
         Align = alClient
