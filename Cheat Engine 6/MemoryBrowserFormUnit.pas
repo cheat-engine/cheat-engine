@@ -997,7 +997,8 @@ begin
     try
       repeat
         bp:=debuggerthread.isBreakpoint(a,a2);
-        debuggerthread.RemoveBreakpoint(bp);
+        if bp<>nil then
+          debuggerthread.RemoveBreakpoint(bp);
       until bp=nil;
 
     finally
