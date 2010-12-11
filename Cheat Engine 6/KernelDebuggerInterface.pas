@@ -165,8 +165,8 @@ var cpe: PInjectedEvent;
     i: integer;
 begin
   loaddbk32;
-  if not loaddbvmifneeded then
-    raise exception.Create('You can''t currently use the kernel debugger');
+  //if not loaddbvmifneeded then
+  //  raise exception.Create('You can''t currently use the kernel debugger');
 
   outputdebugstring('Using the kernelmode debugger');
 
@@ -412,6 +412,8 @@ end;
 constructor TKernelDebugInterface.create(globalDebug: boolean);
 begin
   inherited create;
+
+  LoadDBK32;
 
   DBKDebug_SetGlobalDebugState(globalDebug);
   injectedEvents:=TQueue.Create;
