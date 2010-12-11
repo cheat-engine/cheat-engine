@@ -1408,7 +1408,7 @@ begin
   exportedfunctions.GetPEThread:=@@GetPEThread;
   exportedfunctions.GetThreadsProcessOffset:=@@GetThreadsProcessOffset;
   exportedfunctions.GetThreadListEntryOffset:=@@GetThreadListEntryOffset;
-  exportedfunctions.GetProcessnameOffset:=@@GetProcessnameOffset;
+  exportedfunctions.GetProcessnameOffset:=nil; //obsolete
   exportedfunctions.GetDebugportOffset:=@@GetDebugportOffset;
   exportedfunctions.GetPhysicalAddress:=@@GetPhysicalAddress;
   exportedfunctions.ProtectMe:=nil;

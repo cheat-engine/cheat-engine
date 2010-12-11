@@ -667,7 +667,6 @@ var
 begin
 
 {$ifndef ceasinjecteddll}
-  freeonterminate := True;
   decreasered := True;
   red := 254;
   green := 0;
@@ -688,14 +687,16 @@ begin
         decreasered := True;
     end;
     ncol := (green shl 8) + red;
-    synchronize(col);
-    //sigh (without it works too, but at least with this I know for sure it works.
+
+    if not terminated then
+      synchronize(col);
 
     sleep(10);
   end;
 
 {$endif}
-  mainform.Panel7.Color := clBtnFace;
+  ncol:=clBtnFace;
+  synchronize(col);
 end;
 
 constructor TToggleWindows.Create(CreateSuspended: boolean);
@@ -1825,7 +1826,7 @@ begin
   if flashprocessbutton <> nil then
   begin
     flashprocessbutton.Terminate;
-    flashprocessbutton := nil;
+    freeandnil(flashprocessbutton);
   end;
 
   if (debuggerthread<>nil) then
@@ -4230,6 +4231,8 @@ var
   i: integer;
   reg: Tregistry;
   crashcounter: integer;
+
+  h: thandle;
 begin
 
   //close codefinder
@@ -4250,7 +4253,7 @@ begin
   begin
     flashprocessbutton.Terminate;
     flashprocessbutton.WaitFor;
-    flashprocessbutton:=nil;
+    freeandnil(FlashProcessButton);
   end;
 
   try
@@ -5451,7 +5454,6 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  cbSpeedhack.Checked:=true;
 
 end;
 

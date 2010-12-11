@@ -271,7 +271,6 @@ type TOpenThread=function(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:D
 type TGetPEProcess=function(ProcessID:DWORD):UINT64; stdcall;
 type TGetPEThread=function(Threadid: dword):UINT64; stdcall;
 type TGetDebugportOffset=function:DWORD; stdcall;
-type TGetProcessnameOffset=function:DWORD; stdcall;
 type TGetThreadsProcessOffset=function: dword; stdcall;
 type TGetThreadListEntryOffset=function: dword; stdcall;
 
@@ -422,7 +421,6 @@ var
   GetPEThread           :TGetPEThread;
   GetThreadsProcessOffset:TGetThreadsProcessOffset;
   GetThreadListEntryOffset:TGetThreadListEntryOffset;
-  GetProcessnameOffset  :TGetProcessnameOffset;
 
   GetDebugportOffset    :TGetDebugportOffset;
   GetPhysicalAddress    :TGetPhysicalAddress;
@@ -687,7 +685,6 @@ begin
 
     GetPEProcess:=@dbk32functions.GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
     GetPEThread:=@dbk32functions.GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
-    GetProcessnameOffset:=@dbk32functions.GetProcessnameOffset; //GetProcAddress(DarkByteKernel,'GetProcessnameOffset');
     GetThreadsProcessOffset:=@dbk32functions.GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
     GetThreadListEntryOffset:=@dbk32functions.GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
     GetDebugportOffset:=@dbk32functions.GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');

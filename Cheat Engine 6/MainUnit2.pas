@@ -582,12 +582,6 @@ begin
           buffersize:=buffersize*1024;
           {$ifdef net} mainform.buffersize:=buffersize; {$endif}
 
-          if reg.ValueExists('UseDebugRegs') then
-            if reg.ReadBool('UseDebugRegs') then
-              formsettings.rbDebugRegisters.checked:=true;
-
-
-
           if reg.ValueExists('Show Disassembler') then
           begin
             if reg.readbool('Show Disassembler') then

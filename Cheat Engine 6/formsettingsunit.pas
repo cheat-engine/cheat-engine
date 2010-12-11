@@ -28,6 +28,7 @@ type
     cbShowallWindows: TCheckBox;
     cbAskIfTableHasLuascript: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
+    CheckBox1: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -89,11 +90,6 @@ type
     Plugins: TTabSheet;
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
-    Label4: TLabel;
-    Label6: TLabel;
-    Label7: TLabel;
-    rbDebugRegisters: TRadioButton;
-    CheckBox1: TCheckBox;
     cbHandleBreakpoints: TCheckBox;
     cbShowDisassembler: TCheckBox;
     cbShowDebugoptions: TCheckBox;
@@ -171,7 +167,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure cbKernelQueryMemoryRegionClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure cbProcessWatcherClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure tvMenuSelectionChange(Sender: TObject; Node: TTreeNode);
@@ -196,8 +191,6 @@ type
     tempstateSpeedhack:word;
     tempSpeedhackmodifier:dword;
 
-    systemcallretrieverexecuted:boolean;
-    systemcallretrieverhandle: thandle;
 
     tempmodulelist: pchar;
     tempmodulelistsize: integer;
@@ -207,8 +200,6 @@ type
     deletedmodules: tstringlist;
 
     procedure SetAssociations;
-    procedure startsystemcallretrieverifneeded; overload;
-    procedure startsystemcallretrieverifneeded(why:string); overload;
   public
     { Public declarations }
     
@@ -294,27 +285,10 @@ begin
 
   if cbProcessWatcher.checked and (frmprocesswatcher=nil) then
   begin
-    if messagedlg(strProcessWatcherWillPreventUnloader,mtwarning,[mbok,mbcancel],0)=mrcancel then
-      exit
-    else
-    begin
-      loaddbk32;
-      frmprocesswatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
-    end;
+    loaddbk32;
+    frmprocesswatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
   end;
 
-
-  if systemcallretrieverexecuted then
-  begin
-    if GetExitCodeProcess(systemcallretrieverhandle,ec) then
-    begin
-      if ec=STILL_ACTIVE then
-         if messagedlg('It''s best to wait till the systemcall retriever is done. Continue anyhow?',mtconfirmation,[mbyes,mbno],0)=mrno then exit;
-
-      closehandle(systemcallretrieverhandle);
-      systemcallretrieverexecuted:=false;
-    end;
-  end;
 
 {$endif}
 
@@ -374,7 +348,6 @@ begin
 
 
       reg.WriteInteger('Buffersize',bufsize);
-      reg.WriteBool('UseDebugRegs',rbDebugRegisters.checked);
       reg.writebool('Show Disassembler',cbShowDisassembler.checked);
       reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
       reg.WriteInteger('Update interval',updateinterval);
@@ -987,52 +960,8 @@ begin
 {$endif}
 end;
 
-procedure TformSettings.startsystemcallretrieverifneeded;
-begin
-  startsystemcallretrieverifneeded('');
-end;
-
-procedure TformSettings.startsystemcallretrieverifneeded(why:string);
-var
-  proc_info: TProcessInformation;
-  startinfo: TStartupInfo;
-  ec: dword;
-begin
-  if systemcallretrieverexecuted then
-  begin
-    //check if it's still running
-    if GetExitCodeProcess(systemcallretrieverhandle,ec) then
-      if ec=STILL_ACTIVE then exit; //still running
-  end;
-
-  //start the systemsignalretriever if there's no callnumbers.dat
-  if not fileexists(cheatenginedir+'kerneldata.dat') then
-  begin
-    if why<>'' then
-      if messagedlg(why,mtconfirmation,[mbyes,mbno],0)<>mryes then exit;
-
-    zeromemory(@proc_info,sizeof(proc_info));
-    zeromemory(@startinfo,sizeof(startinfo));
-    startinfo.cb:=sizeof(startinfo);
-
-    if Createprocess(nil,'systemcallretriever.exe',nil,nil,false,NORMAL_PRIORITY_CLASS,nil,nil,startinfo,proc_info) then
-    begin
-      systemcallretrieverexecuted:=true;
-      systemcallretrieverhandle:=proc_info.hProcess;
-    end;
-  end;
-
-end;
 
 
-procedure TformSettings.cbProcessWatcherClick(Sender: TObject);
-var
-  proc_info: TProcessInformation;
-  startinfo: TStartupInfo;
-begin
-  if cbprocesswatcher.checked then
-    startsystemcallretrieverifneeded('To get more detailed information about processes, like the processname, it''s recommended to run the kerneldataretriever program. Do you want to run it ?');
-end;
 
 procedure TformSettings.Button4Click(Sender: TObject);
 var pluginname: string;

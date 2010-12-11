@@ -92,6 +92,7 @@ const IOCTL_CE_TOUCHDEBUGREGISTER    	= (IOCTL_UNKNOWN_BASE shl 16) or ($0836 sh
 const IOCTL_CE_LAUNCHDBVM           	= (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_UNHOOKALLINTERRUPTS    = (IOCTL_UNKNOWN_BASE shl 16) or ($083b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_EXECUTE_CODE           = (IOCTL_UNKNOWN_BASE shl 16) or ($083c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GETPROCESSNAMEADDRESS  = (IOCTL_UNKNOWN_BASE shl 16) or ($083d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -118,7 +119,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     driverloc: string;
     iamprotected:boolean;
     SDTShadow: DWORD;
-    debugport,processname: dword;
+    debugport: dword;
 
     ThreadsProcess,ThreadListEntry:dword;
 
@@ -150,7 +151,6 @@ Function CreateRemoteAPC(threadid: dword; lpStartAddress: TFNAPCProc): THandle; 
 Function GetPEProcess(ProcessID: dword):UINT64; stdcall;
 Function GetPEThread(Threadid: dword):UINT64; stdcall;
 function GetDebugportOffset: DWORD; stdcall;
-function GetProcessnameOffset: dword; stdcall;
 function GetThreadsProcessOffset: dword; stdcall;
 function GetThreadListEntryOffset: dword; stdcall;
 
@@ -331,25 +331,32 @@ begin
 end;
 
 function GetProcessNameFromPEProcess(peprocess:uint64; buffer:pchar;buffersize:dword):integer; stdcall;
-var ar:dword;
+var x,cc: dword;
+    ar:dword;
     i:integer;
+    address: uint64;
 begin
-  if buffersize>16 then buffersize:=16;
-
-  result:=-1;
-  if processname=0 then exit;
-  if (hdevice<>INVALID_HANDLE_VALUE) and (ownprocess<>0) then
+  result:=0;
+  if hdevice<>INVALID_HANDLE_VALUE then
   begin
-    if rpm64(ownprocess,peprocess+processname,buffer,buffersize,ar) then
+    if buffersize>16 then buffersize:=16;
+
+    cc:=IOCTL_CE_GETPROCESSNAMEADDRESS;
+    if deviceiocontrol(hdevice,cc,@peprocess,8,@address,8,x,nil) then
     begin
-      for i:=0 to buffersize-1 do
-        if buffer[i]=#0 then
-        begin
-          result:=i+i;
-          exit;
-        end;
+      if rpm64(ownprocess,address,buffer,buffersize,ar) then
+      begin
+        for i:=0 to buffersize-1 do
+          if buffer[i]=#0 then
+          begin
+            result:=i-1;
+            exit;
+          end;
+      end;
     end;
   end;
+
+
 
 end;
 
@@ -410,11 +417,6 @@ begin
   result:=ThreadListEntry;
 end;
 
-
-function GetProcessnameOffset: dword; stdcall;
-begin
-  result:=processname;
-end;
 
 function GetDebugportOffset: DWORD; stdcall;
 begin
@@ -1185,9 +1187,11 @@ end;
 function StartProcessWatch:BOOL;stdcall;
 var cc,x: dword;
 begin
+
   result:=false;
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
+    OutputDebugString('StartProcessWatch');
     cc:=IOCTL_CE_STARTPROCESSWATCH;
     result:=deviceiocontrol(hdevice,cc,@x,0,@x,0,x,nil);
   end;
@@ -1481,7 +1485,7 @@ begin
 
           if (not a) or (majorversion<>windowsversion.dwMajorVersion) or (MinorVersion<>windowsversion.dwMinorVersion) or (buildnumber<>windowsversion.dwBuildNumber) then
           begin
-            messagebox(0,'It is recommended to run the systemcallretriever since the kerneldata.dat you have is outdated and will not be used. Of course, if this is the systemcallretriever, ignore this message...','Outdated kerneldata.dat',mb_ok);
+            //messagebox(0,'It is recommended to run the systemcallretriever since the kerneldata.dat you have is outdated and will not be used. Of course, if this is the systemcallretriever, ignore this message...','Outdated kerneldata.dat',mb_ok);
 //not a valid kerneldata.dat file            
           end
           else
@@ -1503,7 +1507,6 @@ begin
             callnumberfile.ReadBuffer(buf.debugportoffset,4);
 
             debugport:=buf.debugportoffset;
-            processname:=buf.processnameoffset;
 
             //----------------Add this part to the file---------
             ThreadsProcess:=$220;

@@ -44,8 +44,8 @@ uses
   WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
   tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
   frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler,
-  LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit, 
-frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit;
+  LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit,
+  frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit;
 
 {$R cheatengine.res}
 {$R manifest.res}
