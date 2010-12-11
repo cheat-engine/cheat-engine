@@ -10,7 +10,7 @@ uses jwawindows, windows, ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutil
      debugHelper, debuggertypedefinitions;
 
 type TPluginFunc=function(parameters: pointer): pointer;
-function pluginsync(func: TPluginFunc; parameters: pointer): pointer;
+function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;
 
 procedure ce_showmessage(s: pchar); stdcall;
 function ce_registerfunction(pluginid,functiontype:integer; init: pointer):integer; stdcall;
