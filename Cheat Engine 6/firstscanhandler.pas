@@ -66,7 +66,7 @@ type TFirstScanHandler = class
     LoadedFromList: array of boolean;
     LoadedFromListMREW: TMultiReadExclusiveWriteSynchronizer;
     maxnumberofregions: integer;
-
+    scandir: string;
 
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
@@ -79,7 +79,7 @@ type TFirstScanHandler = class
     function getfirstscanint64(address: dword): int64;
     function getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
 
-    constructor create;
+    constructor create(scandir: string);
     destructor destroy; override;
 end;
 
@@ -307,16 +307,17 @@ begin
 end;
 
 
-constructor TFirstScanHandler.create;
+constructor TFirstScanHandler.create(scandir: string);
 var datatype: string[6];
     pm: ^TArrMemoryRegion;
     i: integer;
     p: ptrUint;
 begin
+  self.scandir:=scandir;
   try
     try
 
-      firstscanmemoryfile:=Tfilestream.Create(CheatEngineDir+'MEMORYFIRST.TMP',fmOpenRead or fmsharedenynone);
+      firstscanmemoryfile:=Tfilestream.Create(scandir+'MEMORYFIRST.TMP',fmOpenRead or fmsharedenynone);
       firstscanmemory:=virtualalloc(nil, firstscanmemoryfile.Size+$2000, mem_commit, page_readwrite);
 
       //make an array to store the previous memory in blocks of 4KB
@@ -330,7 +331,7 @@ begin
 
     firstscanaddress:=tmemorystream.Create;
     try
-      firstscanaddress.LoadFromFile(cheatenginedir+'ADDRESSESFIRST.TMP');
+      firstscanaddress.LoadFromFile(scandir+'ADDRESSESFIRST.TMP');
     except
       raise exception.Create('No first scan data files found');
     end;

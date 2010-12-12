@@ -2303,7 +2303,7 @@ begin
 
 {$ifndef standalonetrainerwithassemblerandaobscanner}
   if scanOption=soSameAsFirst then //create a first scan handler
-    FirstScanHandler:=TFirstscanhandler.create;
+    FirstScanHandler:=TFirstscanhandler.create(scandir);
 {$endif}
 
   case variableType of
@@ -4032,7 +4032,7 @@ begin
       if scantype=stFirstScan then
       begin
         outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
-        OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
+        OwningMemScan.SaveFirstScanThread:=TSaveFirstScanThread.create(OwningMemScan.ScanresultFolder, false,@OwningMemScan.memregion,@OwningMemScan.memregionpos, OwningMemScan.previousMemoryBuffer);
       end;
     except
       on e: exception do

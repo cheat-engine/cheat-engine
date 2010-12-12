@@ -80,7 +80,7 @@ object formSettings: TformSettings
         object Label12: TLabel
           Left = 223
           Height = 14
-          Top = 425
+          Top = 422
           Width = 14
           Caption = 'ms'
           ParentColor = False
@@ -112,7 +112,7 @@ object formSettings: TformSettings
         object Label19: TLabel
           Left = 223
           Height = 14
-          Top = 456
+          Top = 449
           Width = 14
           Caption = 'ms'
           ParentColor = False
@@ -1230,9 +1230,9 @@ object formSettings: TformSettings
         ImageIndex = 4
         object cbHandleBreakpoints: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Top = 9
-          Width = 194
+          Width = 196
           Caption = 'Handle beakpoints not caused by CE'
           OnClick = CheckBox1Click
           TabOrder = 0

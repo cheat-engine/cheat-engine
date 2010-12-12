@@ -723,7 +723,9 @@ begin
             
           if modulelist<>nil then freemem(modulelist);
           getmem(modulelist,modulelistsize);
-          try reg.ReadBinaryData('Module List',ModuleList^,ModuleListSize); except end;
+
+          if reg.ValueExists('Module List') then
+            reg.ReadBinaryData('Module List',ModuleList^,ModuleListSize);
 
 
 

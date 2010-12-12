@@ -5034,8 +5034,8 @@ var s: string;
 begin
 
   defaultdraw:=true;
-  s:=item.Caption;
-  item.SubItems[0]:='';
+ // s:=item.Caption;
+//  item.SubItems[0]:='';
 //  s:=item.SubItems[0];
 
 

@@ -146,7 +146,7 @@ require("defines")
 --messageDialog(text, type, buttons)
 
 --speedhack_setSpeed(speed)
-
+injectDll(filename)
 
 
 
