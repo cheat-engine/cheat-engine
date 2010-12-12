@@ -3996,11 +3996,16 @@ var
 begin
   foundlist3.BeginUpdate;
   try
+
     for i := 0 to foundlist3.Items.Count - 1 do
-      foundlist3.items[i].Selected := True;
+    begin
+      //foundlist3.items[i].Selected := True;
+      foundlist3.Items[i].Selected:=true;
+    end;
   finally
     foundlist3.EndUpdate;
   end;
+
 
 end;
 
@@ -5025,8 +5030,19 @@ end;
 
 procedure TMainForm.Foundlist3CustomDrawItem(Sender: TCustomListView;
   Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
+var s: string;
 begin
-  if foundlist.inmodule(item.index) then foundlist3.Canvas.Font.Color:=clgreen;
+
+  defaultdraw:=true;
+  s:=item.Caption;
+  item.SubItems[0]:='';
+//  s:=item.SubItems[0];
+
+
+
+
+  if foundlist.inmodule(item.index) then
+    foundlist3.Canvas.Font.Color:=clgreen;
 end;
 
 resourcestring
@@ -5510,7 +5526,7 @@ begin
     for i:=0 to autoattachlist.Count-1 do
     begin
       a:=uppercase(autoattachlist.Strings[i]);
-      for j:=0 to pl.Count-1 do //can't do indexof
+      for j:=pl.Count-1 downto 0 do //can't do indexof
       begin
         p:=uppercase(pl.strings[j]);
         if pos(a,p)=10 then

@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = Extra
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 6
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -135,9 +135,9 @@ object formSettings: TformSettings
         end
         object cbShowUndo: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 2
-          Width = 105
+          Width = 107
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -145,9 +145,9 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 41
-          Width = 221
+          Width = 223
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
@@ -186,34 +186,34 @@ object formSettings: TformSettings
           TabOrder = 4
           object cbShowAsSigned: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 0
-            Width = 176
+            Width = 178
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
           object cbBinariesAsDecimal: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 24
-            Width = 260
+            Width = 262
             Caption = 'Show and work with binaries as if they are decimals'
             TabOrder = 1
           end
           object cbsimplecopypaste: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 48
-            Width = 78
+            Width = 80
             Caption = 'Simple paste'
             TabOrder = 2
           end
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 22
-          Width = 276
+          Width = 278
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
@@ -233,9 +233,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 60
-          Width = 343
+          Width = 345
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
@@ -261,17 +261,17 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
-          Height = 17
+          Height = 19
           Top = 367
-          Width = 332
+          Width = 334
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 10
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 145
-          Width = 126
+          Width = 128
           Caption = 'Save window positions'
           Checked = True
           State = cbChecked
@@ -279,9 +279,9 @@ object formSettings: TformSettings
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 199
-          Width = 170
+          Width = 172
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
@@ -290,17 +290,17 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
-          Height = 17
+          Height = 19
           Top = 217
-          Width = 178
+          Width = 180
           Caption = 'Only show processes with an icon'
           TabOrder = 13
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 181
-          Width = 99
+          Width = 101
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -308,25 +308,25 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 79
-          Width = 257
+          Width = 259
           Caption = 'Pointer adding: Append pointerline instead of insert'
           TabOrder = 15
         end
         object cbShowallWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 163
-          Width = 169
+          Width = 171
           Caption = 'Show all windows in the taskbar'
           TabOrder = 16
         end
         object cbAskIfTableHasLuascript: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 100
-          Width = 170
+          Width = 172
           Caption = 'Ask to run lua scripts from tables'
           Checked = True
           OnChange = cbAskIfTableHasLuascriptChange
@@ -335,9 +335,9 @@ object formSettings: TformSettings
         end
         object cbAlwaysRunScript: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Top = 117
-          Width = 173
+          Width = 175
           Caption = 'Always run lua scripts from tables'
           Enabled = False
           TabOrder = 18
@@ -486,9 +486,9 @@ object formSettings: TformSettings
         end
         object cbIncremental: TCheckBox
           Left = 11
-          Height = 17
+          Height = 19
           Top = 39
-          Width = 102
+          Width = 104
           Caption = 'Incremental value'
           TabOrder = 1
         end
@@ -552,9 +552,9 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 39
-          Width = 128
+          Width = 130
           Caption = 'Fast scan on by default'
           Checked = True
           State = cbChecked
@@ -562,10 +562,10 @@ object formSettings: TformSettings
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
           Top = 62
-          Width = 310
+          Width = 312
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
           ShowHint = True
@@ -573,9 +573,9 @@ object formSettings: TformSettings
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 192
-          Width = 353
+          Width = 355
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
@@ -583,17 +583,17 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 212
-          Width = 529
+          Width = 531
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 172
-          Width = 204
+          Width = 206
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -609,9 +609,9 @@ object formSettings: TformSettings
         end
         object cbDontusetempdir: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 86
-          Width = 290
+          Width = 292
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
           TabOrder = 7
@@ -741,9 +741,9 @@ object formSettings: TformSettings
         ImageIndex = 5
         object cbShowDisassembler: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 2
-          Width = 108
+          Width = 110
           Caption = 'Show disassembler'
           Checked = True
           OnClick = cbShowDisassemblerClick
@@ -753,9 +753,9 @@ object formSettings: TformSettings
         end
         object cbShowDebugoptions: TCheckBox
           Left = 20
-          Height = 17
+          Height = 19
           Top = 30
-          Width = 130
+          Width = 132
           Caption = 'Show debugger options'
           Checked = True
           State = cbChecked
@@ -763,10 +763,10 @@ object formSettings: TformSettings
         end
         object replacewithnops: TCheckBox
           Left = 20
-          Height = 17
+          Height = 19
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 89
-          Width = 204
+          Width = 206
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -777,9 +777,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 39
-          Height = 17
+          Height = 19
           Top = 108
-          Width = 132
+          Width = 134
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -787,9 +787,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 39
-          Height = 17
+          Height = 19
           Top = 49
-          Width = 142
+          Width = 144
           Caption = 'Use hardware breakpoints'
           Checked = True
           TabOrder = 4
@@ -797,9 +797,9 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 39
-          Height = 17
+          Height = 19
           Top = 69
-          Width = 238
+          Width = 240
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           TabOrder = 5
         end
@@ -832,53 +832,53 @@ object formSettings: TformSettings
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 2
-            Width = 157
+            Width = 159
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
           end
           object cbKernelReadWriteProcessMemory: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 21
-            Width = 280
+            Width = 282
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
           end
           object cbKernelOpenProcess: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 40
-            Width = 85
+            Width = 87
             Caption = 'Open Process'
             TabOrder = 2
           end
         end
         object cbProcessWatcher: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 94
-          Width = 186
+          Width = 188
           Caption = 'Enable use of the Process Watcher'
           TabOrder = 1
         end
         object CheckBox3: TCheckBox
           Left = 7
-          Height = 17
+          Height = 19
           Top = 422
-          Width = 121
+          Width = 123
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
           Visible = False
         end
         object CheckBox4: TCheckBox
           Left = 7
-          Height = 17
+          Height = 19
           Top = 442
-          Width = 167
+          Width = 169
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
@@ -886,9 +886,9 @@ object formSettings: TformSettings
         object cbKDebug: TRadioButton
           Tag = 2
           Left = 7
-          Height = 17
+          Height = 19
           Top = 182
-          Width = 143
+          Width = 145
           Caption = 'Use kernelmode debugger'
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
@@ -897,9 +897,9 @@ object formSettings: TformSettings
         object cbUseWindowsDebugger: TRadioButton
           Tag = 1
           Left = 7
-          Height = 17
+          Height = 19
           Top = 158
-          Width = 129
+          Width = 131
           Caption = 'Use windows debugger'
           Checked = True
           OnChange = cbDebuggerInterfaceChange
@@ -909,9 +909,9 @@ object formSettings: TformSettings
         end
         object cbUseVEHDebugger: TRadioButton
           Left = 7
-          Height = 17
+          Height = 19
           Top = 134
-          Width = 112
+          Width = 114
           Caption = 'Use VEH Debugger'
           OnChange = cbDebuggerInterfaceChange
           OnClick = cbDebuggerInterfaceChange
@@ -990,9 +990,9 @@ object formSettings: TformSettings
               ClientWidth = 404
               object CheckBox1: TCheckBox
                 Left = 2
-                Height = 17
+                Height = 19
                 Top = 5
-                Width = 209
+                Width = 211
                 Caption = 'Try to prevent detection of the debugger'
                 OnChange = CheckBox1Change
                 TabOrder = 0

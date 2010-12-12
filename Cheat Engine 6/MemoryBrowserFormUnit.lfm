@@ -77,8 +77,8 @@ object MemoryBrowser: TMemoryBrowser
         Top = 1
         Width = 208
         Align = alClient
-        ClientHeight = 294
-        ClientWidth = 204
+        ClientHeight = 277
+        ClientWidth = 187
         TabOrder = 0
         OnClick = ScrollBox1Click
         OnResize = ScrollBox1Resize
@@ -437,7 +437,7 @@ object MemoryBrowser: TMemoryBrowser
           OnDblClick = EAXLabelDblClick
         end
         object sbShowFloats: TButton
-          Left = 162
+          Left = 151
           Height = 32
           Top = 141
           Width = 22

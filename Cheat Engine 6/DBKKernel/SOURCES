@@ -1,5 +1,0 @@
-TARGETNAME=dbk
-TARGETPATH=obj
-TARGETTYPE=DRIVER
-AMD64_SOURCES=dbkfunca.asm vmxhelpera.asm debuggera.asm vmxoffloada.asm
-SOURCES=DBKDrvr.c DBKFunc.c IOPLDispatcher.c memscan.c threads.c processlist.c vmxhelper.c interrupthook.c debugger.c vmxoffload.c deepkernel.c
