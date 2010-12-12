@@ -221,6 +221,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Goto1Click(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure Splitter2Moved(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Replacewithnops1Click(Sender: TObject);
 
@@ -589,8 +590,10 @@ end;
 
 procedure TMemoryBrowser.Panel1Resize(Sender: TObject);
 begin
+
   sbShowFloats.Left:=panel1.ClientWidth-sbShowfloats.width-2;
   sbShowFloats.top:=(panel1.clientheight div 2)-(sbShowFloats.height div 2);
+
 end;
 
 procedure TMemoryBrowser.miLockRowsizeClick(Sender: TObject);
@@ -1184,8 +1187,15 @@ end;
 
 procedure TMemoryBrowser.FormResize(Sender: TObject);
 begin
+
   if disassemblerview<>nil then
     disassemblerview.Update;
+
+end;
+
+procedure TMemoryBrowser.Splitter2Moved(Sender: TObject);
+begin
+  //caption:=inttostr(registerview.width);
 end;
 
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
@@ -1446,6 +1456,7 @@ end;
 procedure TMemoryBrowser.Splitter1CanResize(Sender: TObject;
   var NewSize: Integer; var Accept: Boolean);
 begin
+
   if newsize<80 then
   begin
     newsize:=80;
@@ -1457,6 +1468,8 @@ begin
     newsize:=memorybrowser.Height-80;
     accept:=false;
   end;
+  accept:=true;
+
 
 end;
 
@@ -1758,7 +1771,6 @@ begin
       end;
 
       value:=StrToInt('$'+input);
-
 
 
       context:=debuggerthread.CurrentThread.context;
@@ -2708,8 +2720,10 @@ end;
 
 procedure TMemoryBrowser.ScrollBox1Resize(Sender: TObject);
 begin
+
   sbShowFloats.Top:=registerview.ClientHeight div 2-sbShowFloats.Height div 2;
   sbShowFloats.Left:=registerview.clientwidth - sbShowFloats.Width-2;
+
 end;
 
 procedure TMemoryBrowser.reloadStacktrace;
@@ -3466,7 +3480,9 @@ begin
     splitter3.Visible:=true;
 
     //first time show
-    registerview.ClientWidth:=label15.left+label15.width+16;
+
+    registerview.ClientWidth:=label15.left+label15.width+16+scrollbox1.VertScrollBar.Size;
+    scrollbox1.Invalidate;
   end;
 
 

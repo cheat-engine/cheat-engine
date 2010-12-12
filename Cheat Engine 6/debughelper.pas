@@ -108,6 +108,8 @@ type
 var
   debuggerthread: TDebuggerthread = nil;
 
+
+
 implementation
 
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
@@ -1109,6 +1111,7 @@ procedure TDebuggerthread.SetEntryPointBreakpoint;
 {Only called from the main thread, or synchronize}
 var code,data: ptruint;
   bp: PBreakpoint;
+  oldstate: boolean;
 begin
   if fNeedsToSetEntryPointBreakpoint then
   begin
@@ -1118,9 +1121,18 @@ begin
     symhandler.waitforsymbolsloaded;
     memorybrowser.GetEntryPointAndDataBase(code,data);
 
-    bp:=ToggleOnExecuteBreakpoint(code);
-    if bp<>nil then
-      bp.OneTimeOnly:=true;
+    //set the breakpoint preference to int3 for this breakpoint
+    oldstate:=preferHwBP;
+    preferHwBP:=false;
+
+    try
+      bp:=ToggleOnExecuteBreakpoint(code);
+
+      if bp<>nil then
+        bp.OneTimeOnly:=true;
+    finally
+      preferHwBP:=oldstate;
+    end;
 
   end;
 end;
@@ -1278,22 +1290,32 @@ begin
 
     if not found then
     begin
-
-      usableDebugReg := GetUsableDebugRegister;
       method := bpmDebugRegister;
-      if usableDebugReg = -1 then
-      begin
-        if MessageDlg(
-          'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
-        begin
-          if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-            method := bpmInt3
-          else
-            raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
-        end
-        else
-          exit;
 
+      if not preferHwBP then //prefers int3
+      begin
+        if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+          method := bpmInt3
+      end;
+
+      if method = bpmDebugRegister then //failure, try debug registers anyhow...
+      begin
+        usableDebugReg := GetUsableDebugRegister;
+
+        if usableDebugReg = -1 then
+        begin
+          if MessageDlg(
+            'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+          begin
+            if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+              method := bpmInt3
+            else
+              raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+          end
+          else
+            exit;
+
+        end;
       end;
 
       result:=AddBreakpoint(nil, address, bptExecute, method, bo_Break, usableDebugreg, 1, nil, tid);

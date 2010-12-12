@@ -50,9 +50,9 @@ object formSettings: TformSettings
         6F6D697A6572FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000D
         0000005363616E2053657474696E6773FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         00000000000000000007000000506C7567696E73FFFFFFFFFFFFFFFFFFFFFFFF
-        FFFFFFFF00000000000000000011000000417373656D626C6572204F7074696F
-        6E73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000500000045
-        78747261
+        FFFFFFFF000000000000000000100000004465627567676572204F7074696F6E
+        73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000050000004578
+        747261
       }
     end
     object pcSetting: TPageControl
@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 525
       Top = 1
       Width = 719
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -735,37 +735,15 @@ object formSettings: TformSettings
         end
       end
       object Assembler: TTabSheet
-        Caption = 'Assembler'
+        Caption = 'Debugger Options'
         ClientHeight = 499
         ClientWidth = 711
         ImageIndex = 5
-        object cbShowDisassembler: TCheckBox
-          Left = 1
-          Height = 19
-          Top = 2
-          Width = 110
-          Caption = 'Show disassembler'
-          Checked = True
-          OnClick = cbShowDisassemblerClick
-          State = cbChecked
-          TabOrder = 0
-          Visible = False
-        end
-        object cbShowDebugoptions: TCheckBox
-          Left = 20
-          Height = 19
-          Top = 30
-          Width = 132
-          Caption = 'Show debugger options'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
-        end
         object replacewithnops: TCheckBox
-          Left = 20
+          Left = 15
           Height = 19
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
-          Top = 89
+          Top = 73
           Width = 206
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
@@ -773,35 +751,187 @@ object formSettings: TformSettings
           ParentShowHint = False
           ShowHint = True
           State = cbChecked
-          TabOrder = 2
+          TabOrder = 0
         end
         object askforreplacewithnops: TCheckBox
-          Left = 39
+          Left = 31
           Height = 19
-          Top = 108
+          Top = 92
           Width = 134
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
-          TabOrder = 3
+          TabOrder = 1
         end
         object rbDebugAsBreakpoint: TRadioButton
-          Left = 39
+          Left = 15
           Height = 19
-          Top = 49
+          Top = 9
           Width = 144
           Caption = 'Use hardware breakpoints'
           Checked = True
+          OnChange = rbInt3AsBreakpointChange
           TabOrder = 4
           TabStop = True
         end
         object rbInt3AsBreakpoint: TRadioButton
-          Left = 39
+          Left = 15
           Height = 19
-          Top = 69
+          Top = 29
           Width = 240
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
+          OnChange = rbInt3AsBreakpointChange
+          TabOrder = 2
+        end
+        object GroupBox2: TGroupBox
+          Left = 7
+          Height = 153
+          Top = 233
+          Width = 416
+          Caption = 'Debugger interface config'
+          ClientHeight = 135
+          ClientWidth = 412
+          TabOrder = 3
+          object pcDebugConfig: TPageControl
+            Left = 0
+            Height = 135
+            Top = 0
+            Width = 412
+            ActivePage = tsWindowsDebuggerConfig
+            Align = alClient
+            TabIndex = 1
+            TabOrder = 0
+            object tsVEHDebugConfig: TTabSheet
+              Caption = 'VEH Debugger'
+              ClientHeight = 109
+              ClientWidth = 404
+              object RadioButton1: TRadioButton
+                Left = 2
+                Height = 17
+                Top = 43
+                Width = 192
+                Caption = 'Hook thread-create and destroy api''s'
+                Enabled = False
+                TabOrder = 2
+              end
+              object Label25: TLabel
+                Left = 2
+                Height = 14
+                Top = 3
+                Width = 82
+                Caption = 'Thread following:'
+                ParentColor = False
+              end
+              object RadioButton2: TRadioButton
+                Left = 2
+                Height = 17
+                Top = 67
+                Width = 115
+                Caption = 'Use processwatcher'
+                Enabled = False
+                TabOrder = 1
+              end
+              object RadioButton3: TRadioButton
+                Left = 2
+                Height = 17
+                Top = 19
+                Width = 88
+                Caption = 'Poll for threads'
+                Checked = True
+                TabOrder = 0
+                TabStop = True
+              end
+            end
+            object tsWindowsDebuggerConfig: TTabSheet
+              Caption = 'Windows Debugger'
+              ClientHeight = 109
+              ClientWidth = 404
+              object CheckBox1: TCheckBox
+                Left = 2
+                Height = 19
+                Top = 5
+                Width = 211
+                Caption = 'Try to prevent detection of the debugger'
+                OnChange = CheckBox1Change
+                TabOrder = 0
+              end
+            end
+            object tsKernelDebugConfig: TTabSheet
+              Caption = 'Kernel Debug'
+              ClientHeight = 109
+              ClientWidth = 404
+              object cbGlobalDebug: TCheckBox
+                Left = 4
+                Height = 17
+                Top = 5
+                Width = 145
+                Caption = 'Use Global Debug routines'
+                Enabled = False
+                TabOrder = 0
+              end
+            end
+          end
+        end
+        object RadioGroup1: TRadioGroup
+          Left = 7
+          Height = 105
+          Top = 121
+          Width = 185
+          AutoFill = True
+          Caption = 'Debugger method'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.TopBottomSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 1
+          ClientHeight = 87
+          ClientWidth = 181
           TabOrder = 5
+          object cbUseVEHDebugger: TRadioButton
+            Left = 6
+            Height = 25
+            Top = 6
+            Width = 169
+            Caption = 'Use VEH Debugger'
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 0
+          end
+          object cbUseWindowsDebugger: TRadioButton
+            Tag = 1
+            Left = 6
+            Height = 25
+            Top = 31
+            Width = 169
+            Caption = 'Use windows debugger'
+            Checked = True
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 1
+            TabStop = True
+          end
+          object cbKDebug: TRadioButton
+            Tag = 2
+            Left = 6
+            Height = 25
+            Top = 56
+            Width = 169
+            Caption = 'Use kernelmode debugger'
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 2
+          end
+        end
+        object Label4: TLabel
+          Left = 15
+          Height = 14
+          Top = 57
+          Width = 102
+          Caption = 'Single line assembler:'
+          ParentColor = False
         end
       end
       object Extra: TTabSheet
@@ -883,136 +1013,13 @@ object formSettings: TformSettings
           TabOrder = 3
           Visible = False
         end
-        object cbKDebug: TRadioButton
-          Tag = 2
-          Left = 7
-          Height = 19
-          Top = 182
-          Width = 145
-          Caption = 'Use kernelmode debugger'
-          OnChange = cbDebuggerInterfaceChange
-          OnClick = cbDebuggerInterfaceChange
-          TabOrder = 5
-        end
-        object cbUseWindowsDebugger: TRadioButton
-          Tag = 1
-          Left = 7
-          Height = 19
-          Top = 158
-          Width = 131
-          Caption = 'Use windows debugger'
-          Checked = True
-          OnChange = cbDebuggerInterfaceChange
-          OnClick = cbDebuggerInterfaceChange
-          TabOrder = 4
-          TabStop = True
-        end
-        object cbUseVEHDebugger: TRadioButton
-          Left = 7
-          Height = 19
-          Top = 134
-          Width = 114
-          Caption = 'Use VEH Debugger'
-          OnChange = cbDebuggerInterfaceChange
-          OnClick = cbDebuggerInterfaceChange
-          TabOrder = 6
-        end
         object Panel1: TPanel
           Left = 183
           Height = 19
           Top = 134
           Width = 368
           BevelOuter = bvNone
-          TabOrder = 7
-        end
-        object GroupBox2: TGroupBox
-          Left = 7
-          Height = 153
-          Top = 206
-          Width = 416
-          Caption = 'Debugger interface config'
-          ClientHeight = 135
-          ClientWidth = 412
-          TabOrder = 8
-          object pcDebugConfig: TPageControl
-            Left = 0
-            Height = 135
-            Top = 0
-            Width = 412
-            ActivePage = tsWindowsDebuggerConfig
-            Align = alClient
-            TabIndex = 1
-            TabOrder = 0
-            object tsVEHDebugConfig: TTabSheet
-              Caption = 'VEH Debugger'
-              ClientHeight = 109
-              ClientWidth = 404
-              object RadioButton1: TRadioButton
-                Left = 2
-                Height = 17
-                Top = 43
-                Width = 192
-                Caption = 'Hook thread-create and destroy api''s'
-                Enabled = False
-                TabOrder = 2
-              end
-              object Label25: TLabel
-                Left = 2
-                Height = 14
-                Top = 3
-                Width = 82
-                Caption = 'Thread following:'
-                ParentColor = False
-              end
-              object RadioButton2: TRadioButton
-                Left = 2
-                Height = 17
-                Top = 67
-                Width = 115
-                Caption = 'Use processwatcher'
-                Enabled = False
-                TabOrder = 1
-              end
-              object RadioButton3: TRadioButton
-                Left = 2
-                Height = 17
-                Top = 19
-                Width = 88
-                Caption = 'Poll for threads'
-                Checked = True
-                TabOrder = 0
-                TabStop = True
-              end
-            end
-            object tsWindowsDebuggerConfig: TTabSheet
-              Caption = 'Windows Debugger'
-              ClientHeight = 109
-              ClientWidth = 404
-              object CheckBox1: TCheckBox
-                Left = 2
-                Height = 19
-                Top = 5
-                Width = 211
-                Caption = 'Try to prevent detection of the debugger'
-                OnChange = CheckBox1Change
-                TabOrder = 0
-              end
-            end
-            object tsKernelDebugConfig: TTabSheet
-              Caption = 'Kernel Debug'
-              ClientHeight = 109
-              ClientWidth = 404
-              object cbGlobalDebug: TCheckBox
-                Left = 4
-                Height = 17
-                Top = 5
-                Width = 145
-                Caption = 'Use Global Debug routines'
-                Enabled = False
-                TabOrder = 0
-              end
-            end
-          end
+          TabOrder = 4
         end
       end
       object tsTools: TTabSheet

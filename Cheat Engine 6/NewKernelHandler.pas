@@ -47,11 +47,16 @@ LPMODULEENTRY32 = ^MODULEENTRY32;
 TModuleEntry32 = MODULEENTRY32;
 
 
-{$ifndef cpu64}
-
+{$ifdef cpu32}
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
 {$endif}
+
+{$ifdef cpu64}
+const
+  CONTEXT_MMX_REGISTERS = 0;
+{$endif}
+
 
 //credits to jedi code library for filling in the "extended registers"
 type

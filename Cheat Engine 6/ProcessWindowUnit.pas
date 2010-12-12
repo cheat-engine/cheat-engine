@@ -79,8 +79,7 @@ var
 implementation
 
 
-uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit{,memorybrowserformunit,
-  };
+uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,memorybrowserformunit;
 
 procedure TProcessListLong.drawprocesses;
 var i: integer;
@@ -344,9 +343,7 @@ begin
     mainform.debugproc:=true;
 
 
-  //  if formsettings.cbBreakOnAttach.checked then
-  //    memorybrowser.show;
-
+    memorybrowser.show;
     modalresult:=mrOk;
   end;
 end;

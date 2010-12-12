@@ -613,8 +613,8 @@ var
 
 
   processhandler: TProcessHandler;
-  PreventDebuggerDetection: boolean;
-
+  PreventDebuggerDetection: boolean=false;
+  preferHwBP: boolean=true;
 
 type
   SYSTEM_INFO = record

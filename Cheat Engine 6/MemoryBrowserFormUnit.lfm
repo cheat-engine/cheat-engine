@@ -49,6 +49,7 @@ object MemoryBrowser: TMemoryBrowser
       Top = 0
       Width = 5
       Align = alRight
+      OnMoved = Splitter2Moved
       ResizeAnchor = akRight
       Visible = False
     end
@@ -77,8 +78,8 @@ object MemoryBrowser: TMemoryBrowser
         Top = 1
         Width = 208
         Align = alClient
-        ClientHeight = 277
-        ClientWidth = 187
+        ClientHeight = 294
+        ClientWidth = 204
         TabOrder = 0
         OnClick = ScrollBox1Click
         OnResize = ScrollBox1Resize
@@ -444,7 +445,6 @@ object MemoryBrowser: TMemoryBrowser
           Caption = '>'
           OnClick = sbShowFloatsClick
           TabOrder = 0
-          Visible = False
         end
       end
     end

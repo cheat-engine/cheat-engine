@@ -134,8 +134,8 @@ var
 begin
   if handle<>0 then
   begin
-    context.ContextFlags := CONTEXT_ALL;// or CONTEXT_MMX_REGISTERS;
-    outputdebugstring(pchar(format('GetThreadContext(%d,%p)',[handle,@context])));
+    context.ContextFlags := CONTEXT_ALL or CONTEXT_MMX_REGISTERS;
+    outputdebugstring(pchar(format('GetThreadContext(%x, %x, %p)',[threadid, handle,@context])));
 
 
     if not getthreadcontext(handle, context^,  isHandled) then
@@ -150,12 +150,12 @@ procedure TDebugThreadHandler.setContext;
 var
   i: integer;
 begin
-  outputdebugstring('TDebugThreadHandler.setContext');
+  outputdebugstring(pchar(format('setThreadContext(%x, %x, %p)',[threadid, handle,@context])));
 
   if handle<>0 then
   begin
     context:=self.context;
-    context.ContextFlags := CONTEXT_ALL;
+    context.ContextFlags := CONTEXT_ALL or CONTEXT_MMX_REGISTERS;
     if not setthreadcontext(self.handle, context^, isHandled) then
     begin
       i := getlasterror;
@@ -489,6 +489,9 @@ begin
   begin
     outputdebugstring('Handling breakpoint');
 
+    if bp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
+      dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
+
     OutputDebugString('Checking if condition is set');
     if not CheckIfConditionIsMet(@bp) then
     begin
@@ -573,16 +576,24 @@ begin
   OutputDebugString('HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
-  //if this is the first breakpoint exception check if it needs to tset the entry point bp
-  if TDebuggerThread(debuggerthread).NeedsToSetEntryPointBreakpoint then
-    TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
 
 
   case debugEvent.Exception.ExceptionRecord.ExceptionCode of
     EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT:
     begin
       OutputDebugString('EXCEPTION_BREAKPOINT');
+
+      //if this is the first breakpoint exception check if it needs to tset the entry point bp
+      if TDebuggerThread(debuggerthread).NeedsToSetEntryPointBreakpoint then
+      begin
+        OutputDebugString('Calling SetEntryPointBreakpoint');
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
+      end;
+
+
       Result := DispatchBreakpoint(exceptionAddress, dwContinueStatus);
+      context.dr6:=0;
+      setContext;
     end;
 
     EXCEPTION_SINGLE_STEP, STATUS_WX86_SINGLE_STEP:
@@ -857,7 +868,7 @@ begin
   if currentthread<>nil then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
     currentthread.isHandled:=false;
 
-  OutputDebugString('Returned from handleExceptionDebugEvent');
+  OutputDebugString('Returned from HandleDebugEvent');
 end;
 
 procedure TDebugEventHandler.updatethreadlist;

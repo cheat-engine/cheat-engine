@@ -582,24 +582,6 @@ begin
           buffersize:=buffersize*1024;
           {$ifdef net} mainform.buffersize:=buffersize; {$endif}
 
-          if reg.ValueExists('Show Disassembler') then
-          begin
-            if reg.readbool('Show Disassembler') then
-            begin
-              formsettings.cbShowDisassembler.checked:=true;
-              memorybrowser.Panel1.Visible:=true;
-              if memorybrowser.disassemblerview<>nil then memorybrowser.disassemblerview.Update;
-              if memorybrowser.hexview<>nil then memorybrowser.hexview.update;
-            end
-            else
-            begin
-              formsettings.cbShowDisassembler.checked:=false;
-              memorybrowser.Panel1.Visible:=false;
-              if memorybrowser.hexview<>nil then memorybrowser.hexview.update;
-            end;
-          end;
-
-
 
           try formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup'); except end;
           try mainform.updatetimer.Interval:=reg.readInteger('Update interval'); except end;
@@ -625,7 +607,6 @@ begin
 
 
 
-          try cbShowDebugoptions.checked:=reg.ReadBool('Show debugger options'); except end;
           try replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS'); except end;
           try askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS'); except end;
           try cbFastscan.checked:=reg.ReadBool('Fastscan on by default'); except end;

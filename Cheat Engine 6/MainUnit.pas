@@ -4852,20 +4852,6 @@ begin
   resumehotkeyhandler;
 
 
-  //set the memorybrowser settings if they changed
-  if formsettings.cbShowDisassembler.checked then
-  begin
-    memorybrowser.splitter1.Visible:=true;
-    memorybrowser.panel1.Visible:=true;
-  end
-  else
-  begin
-  //  panel1.Visible:=false;
-    memorybrowser.Panel1.Visible:=false;
-    memorybrowser.splitter1.Visible:=false;
-  end;
-
-
   if formsettings.cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
   if formsettings.cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
   if formsettings.cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;

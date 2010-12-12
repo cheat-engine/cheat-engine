@@ -25,9 +25,12 @@ type
   TformSettings = class(TForm)
     cbDontusetempdir: TCheckBox;
     cbGlobalDebug: TCheckBox;
+    cbKDebug: TRadioButton;
     cbShowallWindows: TCheckBox;
     cbAskIfTableHasLuascript: TCheckBox;
     cbAlwaysRunScript: TCheckBox;
+    cbUseVEHDebugger: TRadioButton;
+    cbUseWindowsDebugger: TRadioButton;
     CheckBox1: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -35,16 +38,15 @@ type
     GroupBox2: TGroupBox;
     Label2: TLabel;
     Label25: TLabel;
+    Label4: TLabel;
     LoadButton: TSpeedButton;
     Panel1: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
-    cbKDebug: TRadioButton;
-    cbUseWindowsDebugger: TRadioButton;
-    cbUseVEHDebugger: TRadioButton;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
+    RadioGroup1: TRadioGroup;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
@@ -91,8 +93,6 @@ type
     CodeFinder: TTabSheet;
     Assembler: TTabSheet;
     cbHandleBreakpoints: TCheckBox;
-    cbShowDisassembler: TCheckBox;
-    cbShowDebugoptions: TCheckBox;
     replacewithnops: TCheckBox;
     askforreplacewithnops: TCheckBox;
     rbDebugAsBreakpoint: TRadioButton;
@@ -158,6 +158,7 @@ type
     procedure cbShowDisassemblerClick(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
+    procedure rbInt3AsBreakpointChange(Sender: TObject);
     procedure replacewithnopsClick(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
     procedure CheckBox2Click(Sender: TObject);
@@ -349,14 +350,13 @@ begin
 
 
       reg.WriteInteger('Buffersize',bufsize);
-      reg.writebool('Show Disassembler',cbShowDisassembler.checked);
       reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
       reg.WriteInteger('Update interval',updateinterval);
       reg.WriteInteger('Freeze interval',freezeinterval);
       reg.writebool('Show values as signed',cbShowAsSigned.checked);
       reg.writebool('Handle binarys as decimals',cbBinariesAsDecimal.checked);
       reg.WriteInteger('Network Update Interval',Networkupdateinterval);
-      reg.WriteBool('Show debugger options',cbShowDebugOptions.checked);
+
       reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
       reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
       reg.WriteBool('Use Anti-debugdetection',checkbox1.checked);
@@ -807,19 +807,7 @@ end;
 
 procedure TformSettings.cbShowDisassemblerClick(Sender: TObject);
 begin
-  if cbshowdisassembler.Checked then
-  begin
-    cbShowDebugOptions.Enabled:=true;
-    ReplaceWithNops.enabled:=true;
 
-    askforreplacewithnops.Enabled:=replacewithnops.Checked;
-  end
-  else
-  begin
-    cbShowDebugOptions.Enabled:=false;
-    ReplaceWithNops.enabled:=false;
-    askforreplacewithnops.Enabled:=false;
-  end;
 end;
 
 procedure TformSettings.LoadButtonClick(Sender: TObject);
@@ -831,6 +819,11 @@ end;
 procedure TformSettings.pcSettingChange(Sender: TObject);
 begin
 
+end;
+
+procedure TformSettings.rbInt3AsBreakpointChange(Sender: TObject);
+begin
+  preferHwBP:=rbDebugAsBreakpoint.checked;
 end;
 
 procedure TformSettings.replacewithnopsClick(Sender: TObject);

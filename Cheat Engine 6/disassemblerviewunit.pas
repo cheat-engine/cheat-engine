@@ -644,20 +644,23 @@ begin
   scrollbox.OnResize:=nil;
 
   x:=(header.Sections[header.Sections.Count-1].Left+header.Sections[header.Sections.Count-1].Width);
- // scrollbox.HorzScrollBar.Range:=x-scrollbox.clientwidth;
 
   header.width:=max(x, scrollbox.ClientWidth);
   discanvas.width:=max(x, scrollbox.ClientWidth);
- // discanvas.height:=scrollbox.ClientHeight-header.height;
-
 
   scrollbox.VertScrollBar.Visible:=false;
 
 
+
+
+  scrollbox.HorzScrollBar.Range:=(x+scrollbox.HorzScrollBar.Page)-scrollbox.clientwidth;
+  scrollbox.HorzScrollBar.Visible:=true;
+
   update;
 
-  scrollbox.OnResize:=scrollboxResize;
 
+
+  scrollbox.OnResize:=scrollboxResize;
 end;
 
 procedure TDisassemblerView.scrollboxResize(Sender: TObject);
@@ -804,6 +807,7 @@ begin
 
   tabstop:=true;
   DoubleBuffered:=true;
+  AutoSize:=false;
 
   statusinfo:=tpanel.Create(self);
   with statusinfo do
@@ -989,7 +993,7 @@ begin
 
   self.colors[csBreakpoint].backgroundcolor:=clRed;
   self.colors[csBreakpoint].normalcolor:=clBlack;
-  self.colors[csBreakpoint].registercolor:=clRed;
+  self.colors[csBreakpoint].registercolor:=clGreen;
   self.colors[csBreakpoint].symbolcolor:=clLime;
   self.colors[csBreakpoint].hexcolor:=clBlue;
 
@@ -1005,6 +1009,8 @@ begin
   self.colors[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
   self.colors[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
 
+  scrollbox.AutoSize:=false;
+  scrollbox.AutoScroll:=false;
 
 end;
 
