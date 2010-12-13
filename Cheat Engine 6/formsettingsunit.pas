@@ -692,6 +692,8 @@ begin
   else
   if cbKDebug.checked then
   begin
+    rbDebugAsBreakpoint.checked:=true;
+    rbInt3AsBreakpoint.enabled:=false;
     pcDebugConfig.ActivePageIndex:=2;
     cbGlobalDebug.enabled:=true;
   end;

@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 497
       Top = 1
       Width = 719
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -736,15 +736,15 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 499
+        ClientHeight = 471
         ClientWidth = 711
         ImageIndex = 5
         object replacewithnops: TCheckBox
           Left = 15
-          Height = 19
+          Height = 17
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 73
-          Width = 206
+          Width = 204
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -755,9 +755,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 31
-          Height = 19
+          Height = 17
           Top = 92
-          Width = 134
+          Width = 132
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -765,9 +765,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 15
-          Height = 19
+          Height = 17
           Top = 9
-          Width = 144
+          Width = 142
           Caption = 'Use hardware breakpoints'
           Checked = True
           OnChange = rbInt3AsBreakpointChange
@@ -776,9 +776,9 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 15
-          Height = 19
+          Height = 17
           Top = 29
-          Width = 240
+          Width = 238
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           OnChange = rbInt3AsBreakpointChange
           TabOrder = 2
@@ -848,9 +848,9 @@ object formSettings: TformSettings
               ClientWidth = 404
               object CheckBox1: TCheckBox
                 Left = 2
-                Height = 19
+                Height = 17
                 Top = 5
-                Width = 211
+                Width = 209
                 Caption = 'Try to prevent detection of the debugger'
                 OnChange = CheckBox1Change
                 TabOrder = 0
