@@ -44,6 +44,7 @@ type
     {$endif}
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
     procedure defaultConstructorcode;
+    procedure lockSettings;
     procedure WaitTillAttachedOrError;
     procedure setCurrentThread(x: TDebugThreadHandler);
     function getCurrentThread: TDebugThreadHandler;
@@ -1491,6 +1492,14 @@ begin
     raise Exception.Create('Debugger failed to attach');
 end;
 
+procedure TDebuggerThread.lockSettings;
+begin
+  //prevent the user from changing this setting till next restart
+  formsettings.cbUseWindowsDebugger.enabled:=false;
+  formsettings.cbUseVEHDebugger.enabled:=false;
+  formsettings.cbKDebug.enabled:=false;
+end;
+
 procedure TDebuggerthread.defaultConstructorcode;
 begin
   breakpointCS := TGuiSafeCriticalSection.Create;
@@ -1518,10 +1527,6 @@ begin
     CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug);
   end;
 
-  //prevent the user from changing this setting till next restart
-  formsettings.cbUseWindowsDebugger.enabled:=false;
-  formsettings.cbUseVEHDebugger.enabled:=false;
-  formsettings.cbKDebug.enabled:=false;
 
 
 
@@ -1549,6 +1554,7 @@ begin
   end;
 
   fRunning:=true;
+  lockSettings;
 
   createProcess:=true;
   self.filename:=filename;
@@ -1563,6 +1569,7 @@ begin
 
   createProcess:=false;
   fRunning:=true;
+  locksettings;
 
   inherited Create(False);
   WaitTillAttachedOrError;
