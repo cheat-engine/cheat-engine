@@ -54,7 +54,7 @@ const
 
 {$ifdef cpu64}
 const
-  CONTEXT_MMX_REGISTERS = 0;
+  CONTEXT_EXTENDED_REGISTERS = 0;
 {$endif}
 
 

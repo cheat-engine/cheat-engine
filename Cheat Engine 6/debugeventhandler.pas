@@ -134,7 +134,7 @@ var
 begin
   if handle<>0 then
   begin
-    context.ContextFlags := CONTEXT_ALL or CONTEXT_MMX_REGISTERS;
+    context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
     outputdebugstring(pchar(format('GetThreadContext(%x, %x, %p)',[threadid, handle,@context])));
 
 
@@ -155,7 +155,7 @@ begin
   if handle<>0 then
   begin
     context:=self.context;
-    context.ContextFlags := CONTEXT_ALL or CONTEXT_MMX_REGISTERS;
+    context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
     if not setthreadcontext(self.handle, context^, isHandled) then
     begin
       i := getlasterror;
