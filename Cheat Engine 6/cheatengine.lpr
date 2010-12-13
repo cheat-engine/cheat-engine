@@ -45,7 +45,8 @@ uses
   tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
   frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler,
   LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit,
-  frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit;
+  frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit,
+  ScrollBoxEx;
 
 {$R cheatengine.res}
 {$R manifest.res}

@@ -11,10 +11,14 @@ require("defines")
 --writeBytes(address, x,x,x,x) : Write the given bytes to the given address
 --readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
 --writeBytesLocal(address, x,x,x,x) : See writeBytes but then it's for Cheat Engine's memory
---readInteger(address)
---readFloat(address)
---readDouble(address)
+--readInteger(address) : Reads a integer from the specified address
+--readFloat(address) : Reads a single precision floating point value from the specified address
+--readDouble(address) : Reads a double precision floating point value from the specified address
 --readString(address, maxlength) : maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much
+--writeInteger(address,value) : Writes an integer to the specified address. Returns true on success
+--writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
+--writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
+--writeString(address,string) : Write a string to the specified address. Returns true on success
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
@@ -43,9 +47,9 @@ require("defines")
 --memrec_setDescription(te, description): sets the specified description for this entry
 --memrec_getDescription(te): gets the current description of this entry
 --memrec_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
---memrec_setAddress(te,address,offsets OPTIONAL)
---memrec_getType(te)
---memrec_setType(te, vartype)
+--memrec_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
+--memrec_getType(te) : returns the Variable type. (vtByte to vtCustom)
+--memrec_setType(te, vartype) : sets the type of the entry
 --memrec_getValue(te): returns the current value of the cheat table entry as a string
 --memrec_setValue(te, value): sets the value of a cheat table entry
 --memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
@@ -146,7 +150,7 @@ require("defines")
 --messageDialog(text, type, buttons)
 
 --speedhack_setSpeed(speed)
-injectDll(filename)
+--injectDll(filename): Injects a dll, and returns true on success
 
 
 

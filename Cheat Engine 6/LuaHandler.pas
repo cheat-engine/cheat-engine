@@ -822,6 +822,130 @@ begin
   end;
 end;
 
+function writeInteger_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: integer;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=2 then
+    begin
+      if lua_isstring(L, -2) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      else
+        address:=lua_tointeger(L,-2);
+
+      v:=lua_tointeger(L, -2);
+
+      lua_pop(L, paramcount);
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function writeFloat_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: single;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=2 then
+    begin
+      if lua_isstring(L, -2) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      else
+        address:=lua_tointeger(L,-2);
+
+      v:=lua_tonumber(L, -2);
+
+      lua_pop(L, paramcount);
+
+
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function writeDouble_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: double;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=2 then
+    begin
+      if lua_isstring(L, -2) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      else
+        address:=lua_tointeger(L,-2);
+
+      v:=lua_tonumber(L, -2);
+
+      lua_pop(L, paramcount);
+
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function writeString_fromlua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+
+  v: pchar;
+  r: dword;
+begin
+  result:=0;
+  try
+    paramcount:=lua_gettop(L);
+    if paramcount=2 then
+    begin
+      if lua_isstring(L, -2) then
+        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      else
+        address:=lua_tointeger(L,-2);
+
+      v:=lua_tostring(L, -2);
+
+      lua_pop(L, paramcount);
+
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), v, length(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
 function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
 var paramcount: integer;
   addresstoread: ptruint;
@@ -2276,6 +2400,29 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function injectDLL_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  filename: pchar;
+  r: boolean;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    filename:=lua_tostring(L,-1);
+    r:=false;
+    try
+      r:=ce_InjectDLL(filename,pchar(''));
+    except
+    end;
+
+    result:=1;
+    lua_pushboolean(L, r);
+  end;
+  lua_pop(L, paramcount);
+end;
+
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -2296,6 +2443,10 @@ initialization
     lua_register(LuaVM, 'readFloat', readFloat_fromlua);
     lua_register(LuaVM, 'readDouble', readDouble_fromlua);
     lua_register(LuaVM, 'readString', readString_fromlua);
+    lua_register(LuaVM, 'writeInteger', writeInteger_fromlua);
+    lua_register(LuaVM, 'writeFloat', writeFloat_fromlua);
+    lua_register(LuaVM, 'writeDouble', writeDouble_fromlua);
+    lua_register(LuaVM, 'writeString', writeString_fromlua);
 
     lua_register(LuaVM, 'readBytesLocal', readbyteslocal_fromlua);
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
@@ -2362,6 +2513,7 @@ initialization
     lua_register(LuaVM, 'object_destroy', object_destroy_fromLua);
     lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
+    lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
 
 
   end;

@@ -11,7 +11,8 @@ uses
   Assemblerunit,disassembler,addressparser, Buttons,imagehlp, Contnrs,
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
-  debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry;
+  debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
+  scrollboxex;
 
 
 type
@@ -216,6 +217,9 @@ type
     procedure miLockRowsizeClick(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure ScrollBox1Click(Sender: TObject);
+    procedure ScrollBox1ConstrainedResize(Sender: TObject; var MinWidth,
+      MinHeight, MaxWidth, MaxHeight: TConstraintSize);
+    procedure ScrollBox1Paint(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -358,7 +362,7 @@ type
     memorystring: array of string;
     lengthof8bytes: Integer;
 
-
+//        x:tno
 
     lines: integer;
     oldlines: integer;
@@ -434,6 +438,7 @@ type
 
     procedure miDifferenceClick(Sender: TObject);
     procedure miStopDifferenceClick(Sender: TObject);
+    procedure Scrollboxscroll(sender: TObject);
   end;
 
 var
@@ -588,11 +593,19 @@ begin
 
 end;
 
-procedure TMemoryBrowser.Panel1Resize(Sender: TObject);
+procedure TMemoryBrowser.ScrollBox1ConstrainedResize(Sender: TObject;
+  var MinWidth, MinHeight, MaxWidth, MaxHeight: TConstraintSize);
 begin
 
-  sbShowFloats.Left:=panel1.ClientWidth-sbShowfloats.width-2;
-  sbShowFloats.top:=(panel1.clientheight div 2)-(sbShowFloats.height div 2);
+end;
+
+procedure TMemoryBrowser.ScrollBox1Paint(Sender: TObject);
+begin
+
+end;
+
+procedure TMemoryBrowser.Panel1Resize(Sender: TObject);
+begin
 
 end;
 
@@ -1169,7 +1182,14 @@ begin
   end;
 
 
+  scrollbox1.OnVScroll:=Scrollboxscroll;
 
+
+end;
+
+procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);
+begin
+  sbShowFloats.Top:=max(oflabel.top+oflabel.height+2 , scrollbox1.vertscrollbar.Position+(registerview.ClientHeight div 2)-sbShowFloats.Height div 2);
 end;
 
 procedure TMemoryBrowser.Goto1Click(Sender: TObject);
@@ -2653,6 +2673,8 @@ begin
   frmFloatingPointPanel.Left:=self.left+self.Width;
   frmFloatingPointPanel.Top:=self.top+(self.ClientOrigin.y-self.top)-(frmFloatingPointPanel.ClientOrigin.y-frmFloatingPointPanel.top);
   frmFloatingPointPanel.ClientHeight:=scrollbox1.Height;
+
+  frmFloatingPointPanel.SetContextPointer(@lastdebugcontext);
   frmFloatingPointPanel.show;//pop to foreground
 end;
 
@@ -2720,10 +2742,11 @@ end;
 
 procedure TMemoryBrowser.ScrollBox1Resize(Sender: TObject);
 begin
+//  sbShowFloats.Top:=max(oflabel.top+oflabel.height+2 , scrollbox1.vertscrollbar.Position+(registerview.ClientHeight div 2)-sbShowFloats.Height div 2);
+  sbShowFloats.Left:=ScrollBox1.clientwidth - sbShowFloats.Width;
 
-  sbShowFloats.Top:=registerview.ClientHeight div 2-sbShowFloats.Height div 2;
-  sbShowFloats.Left:=registerview.clientwidth - sbShowFloats.Width-2;
-
+  scrollbox1.vertscrollbar.range:=(gslabel.top+gslabel.height+scrollbox1.vertscrollbar.page)-scrollbox1.clientheight;
+  Scrollboxscroll(Scrollbox1);
 end;
 
 procedure TMemoryBrowser.reloadStacktrace;
@@ -3482,7 +3505,16 @@ begin
     //first time show
 
     registerview.ClientWidth:=label15.left+label15.width+16+scrollbox1.VertScrollBar.Size;
+
+    scrollbox1.HorzScrollBar.Visible:=false;
+
+
+
+
     scrollbox1.Invalidate;
+    ScrollBox1Resize(scrollbox1);
+
+
   end;
 
 

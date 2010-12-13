@@ -77,7 +77,13 @@ object MemoryBrowser: TMemoryBrowser
         Height = 298
         Top = 1
         Width = 208
+        HorzScrollBar.Page = 204
+        HorzScrollBar.Range = 177
+        VertScrollBar.Page = 294
+        VertScrollBar.Range = 279
+        VertScrollBar.Tracking = True
         Align = alClient
+        AutoScroll = False
         ClientHeight = 294
         ClientWidth = 204
         TabOrder = 0

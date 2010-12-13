@@ -55,8 +55,6 @@ type
     end;
 
 
-
-
     cbpercentage: record
       exists: boolean;
       checked: boolean;
