@@ -336,6 +336,7 @@ begin
     if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
 
     Debuggerthread:=TDebuggerThread.MyCreate2(opendialog1.FileName);
+    if not Debuggerthread.running then exit;
 
     mainForm.ProcessLabel.caption:=IntToHex(processid,8)+'-'+ExtractFileName(opendialog1.FileName);
 

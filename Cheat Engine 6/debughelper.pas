@@ -34,6 +34,8 @@ type
 
     fcurrentThread: TDebugThreadHandler;
     globalDebug: boolean; //kernelmode debugger only
+
+    fRunning: boolean;
     procedure cleanupDeletedBreakpoints;
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
     {$ifdef cpu64}
@@ -101,6 +103,7 @@ type
 
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
     property NeedsToSetEntryPointBreakpoint: boolean read createProcess;
+    property running: boolean read fRunning;
 
     procedure Terminate;
   end;
@@ -135,6 +138,8 @@ var
   allocs: TCEAllocarray;
 
 begin
+  if terminated then exit;
+
   try
     try
       currentprocesid := 0;
@@ -256,6 +261,8 @@ begin
 
   //tell all events to stop waiting and continue the debug loop. (that now has no breakpoints set)
   ContinueDebugging(co_run);
+
+  fRunning:=false;
   inherited terminate; //and the normal terminate telling the thread to stop
 
 
@@ -1506,15 +1513,24 @@ end;
 
 constructor TDebuggerthread.MyCreate2(filename: string); overload;
 begin
+  inherited Create(true);
   defaultconstructorcode;
 
+
   if not (dbcBreakOnEntry in CurrentDebuggerInterface.DebuggerCapabilities) then
-    raise exception.create('This debugger interface :'''+CurrentDebuggerInterface.name+''' doesn''t support Break On Entry yet');
+  begin
+    MessageDlg('This debugger interface :'''+CurrentDebuggerInterface.name+''' doesn''t support Break On Entry yet', mtError, [mbok],0);
+    terminate;
+    resume;
+    exit;
+  end;
+
+  fRunning:=true;
 
   createProcess:=true;
   self.filename:=filename;
 
-  inherited Create(False);
+  resume;
   WaitTillAttachedOrError;
 end;
 
@@ -1523,6 +1539,7 @@ begin
   defaultconstructorcode;
 
   createProcess:=false;
+  fRunning:=true;
 
   inherited Create(False);
   WaitTillAttachedOrError;
