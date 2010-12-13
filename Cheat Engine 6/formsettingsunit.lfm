@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 644
+  Left = 803
   Height = 546
-  Top = 311
+  Top = 394
   Width = 869
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -135,9 +135,9 @@ object formSettings: TformSettings
         end
         object cbShowUndo: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 2
-          Width = 107
+          Width = 105
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -145,9 +145,9 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 41
-          Width = 223
+          Width = 221
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
@@ -186,34 +186,34 @@ object formSettings: TformSettings
           TabOrder = 4
           object cbShowAsSigned: TCheckBox
             Left = 13
-            Height = 19
+            Height = 17
             Top = 0
-            Width = 178
+            Width = 176
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
           object cbBinariesAsDecimal: TCheckBox
             Left = 13
-            Height = 19
+            Height = 17
             Top = 24
-            Width = 262
+            Width = 260
             Caption = 'Show and work with binaries as if they are decimals'
             TabOrder = 1
           end
           object cbsimplecopypaste: TCheckBox
             Left = 13
-            Height = 19
+            Height = 17
             Top = 48
-            Width = 80
+            Width = 78
             Caption = 'Simple paste'
             TabOrder = 2
           end
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 22
-          Width = 278
+          Width = 276
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
@@ -233,9 +233,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 60
-          Width = 345
+          Width = 343
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
@@ -261,17 +261,17 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
-          Height = 19
+          Height = 17
           Top = 367
-          Width = 334
+          Width = 332
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 10
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 145
-          Width = 128
+          Width = 126
           Caption = 'Save window positions'
           Checked = True
           State = cbChecked
@@ -279,9 +279,9 @@ object formSettings: TformSettings
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 199
-          Width = 172
+          Width = 170
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
@@ -290,17 +290,17 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
-          Height = 19
+          Height = 17
           Top = 217
-          Width = 180
+          Width = 178
           Caption = 'Only show processes with an icon'
           TabOrder = 13
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 181
-          Width = 101
+          Width = 99
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -308,25 +308,25 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 79
-          Width = 259
+          Width = 257
           Caption = 'Pointer adding: Append pointerline instead of insert'
           TabOrder = 15
         end
         object cbShowallWindows: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 163
-          Width = 171
+          Width = 169
           Caption = 'Show all windows in the taskbar'
           TabOrder = 16
         end
         object cbAskIfTableHasLuascript: TCheckBox
           Left = 1
-          Height = 19
+          Height = 17
           Top = 100
-          Width = 172
+          Width = 170
           Caption = 'Ask to run lua scripts from tables'
           Checked = True
           OnChange = cbAskIfTableHasLuascriptChange
@@ -335,9 +335,9 @@ object formSettings: TformSettings
         end
         object cbAlwaysRunScript: TCheckBox
           Left = 15
-          Height = 19
+          Height = 17
           Top = 117
-          Width = 175
+          Width = 173
           Caption = 'Always run lua scripts from tables'
           Enabled = False
           TabOrder = 18

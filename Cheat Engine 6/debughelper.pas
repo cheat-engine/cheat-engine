@@ -1160,28 +1160,45 @@ begin
   breakpointCS.enter;
   try
     //set the breakpoint
+    method := bpmDebugRegister;
 
-    method:=bpmDebugRegister;;
-    usableDebugReg := GetUsableDebugRegister;
-    if usableDebugReg = -1 then
+    if (not preferHwBP) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then //prefers int3
     begin
-      if askforsoftwarebp then
+      if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+        method := bpmInt3
+    end;
+
+    if method = bpmDebugRegister then //failure, try debug registers anyhow...
+    begin
+      usableDebugReg := GetUsableDebugRegister;
+
+      if usableDebugReg = -1 then
       begin
-        if MessageDlg(
-          'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+        if askforsoftwarebp then
         begin
-          if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-            method := bpmInt3
+          if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
+            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0)
           else
-            raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+          begin
+            if MessageDlg(
+              'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+            begin
+              if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+                method := bpmInt3
+              else
+                raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+            end
+            else
+              exit;
+          end
+
         end
         else
-          exit;
-
-      end
-        else method := bpmInt3;
-
-
+        begin
+          if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then exit;
+          method := bpmInt3;
+        end;
+      end;
     end;
 
     result:=AddBreakpoint(nil, address, bptExecute, method, bo_Break, usableDebugreg, 1, nil, tid);
@@ -1299,7 +1316,7 @@ begin
     begin
       method := bpmDebugRegister;
 
-      if not preferHwBP then //prefers int3
+      if (not preferHwBP) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then //prefers int3
       begin
         if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
           method := bpmInt3
@@ -1311,16 +1328,22 @@ begin
 
         if usableDebugReg = -1 then
         begin
-          if MessageDlg(
-            'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
-          begin
-            if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-              method := bpmInt3
-            else
-              raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
-          end
+
+          if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
+            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0)
           else
-            exit;
+          begin
+            if MessageDlg(
+              'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+            begin
+              if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
+                method := bpmInt3
+              else
+                raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+            end
+            else
+              exit;
+          end
 
         end;
       end;
