@@ -50,9 +50,9 @@ object ChangeOffset: TChangeOffset
     end
     object CheckBox1: TCheckBox
       Left = 8
-      Height = 23
+      Height = 19
       Top = 56
-      Width = 85
+      Width = 81
       Caption = 'Hexadecimal'
       OnClick = CheckBox1Click
       TabOrder = 2
@@ -63,7 +63,6 @@ object ChangeOffset: TChangeOffset
       Top = 32
       Width = 185
       TabOrder = 3
-      Text = 'Edit1'
     end
   end
 end

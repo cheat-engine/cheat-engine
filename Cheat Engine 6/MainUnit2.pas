@@ -296,12 +296,23 @@ begin
 
 
           if reg.ValueExists('Show all windows on taskbar') then
+          begin
             if reg.ReadBool('Show all windows on taskbar') then
+            begin
+              cbShowallWindows.checked:=true;
               Application.TaskBarBehavior:=tbMultiButton;
+            end
+            else
+            begin
+              cbShowallWindows.checked:=false;
+              Application.TaskBarBehavior:=tbSingleButton;
+            end;
+          end;
 
 
           if reg.ValueExists('Undo') then
             cbshowundo.checked:=reg.ReadBool('Undo');
+
 
           if reg.ValueExists('ScanThreadpriority') then
             combothreadpriority.itemindex:=reg.ReadInteger('ScanThreadpriority');

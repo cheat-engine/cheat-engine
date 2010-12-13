@@ -216,16 +216,12 @@ object frmStructures: TfrmStructures
       ShortCut = 16469
       OnClick = miUpdateOffsetsClick
     end
-    object MenuItem4: TMenuItem
-      Caption = 'Create AOB string from selected entries'
-      Visible = False
-    end
   end
   object updatetimer: TTimer
     Interval = 500
     OnTimer = updatetimerTimer
-    left = 8
-    top = 112
+    left = 32
+    top = 96
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CSX'

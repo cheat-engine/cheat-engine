@@ -23,8 +23,8 @@ type
 
   TformAddressChange = class(TForm)
     editAddress: TEdit;
-    Button1: TButton;
-    Button2: TButton;
+    btnOk: TButton;
+    btnCancel: TButton;
     cbPointer: TCheckBox;
     Label1: TLabel;
     BitPanel: TPanel;
@@ -45,17 +45,18 @@ type
     RadioButton7: TRadioButton;
     RadioButton8: TRadioButton;
     Label2: TLabel;
-    Button3: TButton;
-    Button4: TButton;
+    btnAddOffset: TButton;
+    btnRemoveOffset: TButton;
     Timer1: TTimer;
     Timer2: TTimer;
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cbPointerClick(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnRemoveOffsetClick(Sender: TObject);
+    procedure btnAddOffsetClick(Sender: TObject);
+    procedure btnOkClick(Sender: TObject);
     procedure editAddressKeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -68,6 +69,7 @@ type
     procedure processaddress;
     procedure setMemoryRecord(rec: TMemoryRecord);
     procedure DelayedResize;
+    procedure AdjustHeightAndButtons;
   public
     { Public declarations }
     index: integer;
@@ -213,7 +215,7 @@ begin
       clientwidth:=bitpanel.Left+bitpanel.width;
     end
     else
-      clientwidth:=button4.Left+button4.Width+5;
+      clientwidth:=btnRemoveOffset.Left+btnRemoveOffset.Width+5;
 
   end;
 
@@ -222,7 +224,7 @@ begin
   begin
     cbPointer.Checked:=true;
 
-    for i:=1 to length(rec.pointeroffsets)-1 do button3.Click; //add lines  (-1 because checking the cbpointer already adds one)
+    for i:=1 to length(rec.pointeroffsets)-1 do btnAddOffset.Click; //add lines  (-1 because checking the cbpointer already adds one)
 
     //fill the lines
     for i:=0 to length(rec.pointeroffsets)-1 do
@@ -233,6 +235,8 @@ begin
 
 
   processaddress;
+  AdjustHeightAndButtons
+
 end;
 
 
@@ -267,11 +271,11 @@ begin
 
     editAddress.Enabled:=false;
 
-    button3.visible:=true;
-    button4.visible:=true;
+    btnAddOffset.visible:=true;
+    btnRemoveOffset.visible:=true;
     //create a address+offset combination and disable the normal address
 
-    startoffset:=button3.Top+button3.Height+2;
+    startoffset:=btnAddOffset.Top+btnAddOffset.Height+2;
 
     setlength(pointerinfo,1);
     pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
@@ -348,7 +352,7 @@ begin
 
     clientwidth:=a+b+5;
 
-    height:=height+66;
+
   end
   else
   begin
@@ -358,10 +362,10 @@ begin
       clientwidth:=bitpanel.left+bitpanel.Width+5;
     end else clientwidth:=editaddress.Left+editaddress.Width+5;
 
-    clientheight:=cbPointer.Top+cbPointer.Height+8+button1.Height+8;
+    clientheight:=cbPointer.Top+cbPointer.Height+8+btnOk.Height+8;
     editaddress.enabled:=true;
-    button3.visible:=false;
-    button4.visible:=false;
+    btnAddOffset.visible:=false;
+    btnRemoveOffset.visible:=false;
 
     for i:=0 to length(PointerInfo)-1 do
     begin
@@ -376,9 +380,21 @@ begin
     setlength(pointerinfo,0);
 
   end;
+  AdjustHeightAndButtons;
 end;
 
-procedure TformAddressChange.Button4Click(Sender: TObject);
+procedure TformAddressChange.AdjustHeightAndButtons;
+begin
+  if length(pointerinfo)>0 then
+    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6
+  else
+    btnok.top:=cbPointer.top+cbPointer.height+6;
+
+  btnCancel.top:=btnok.top;
+  clientheight:=btncancel.top+btnCancel.height+6;
+end;
+
+procedure TformAddressChange.btnRemoveOffsetClick(Sender: TObject);
 var
   rowheight: integer;
   i: integer;
@@ -413,12 +429,12 @@ begin
 
 
     setlength(pointerinfo,length(pointerinfo)-1);
-    height:=height-rowheight;
+    AdjustHeightAndButtons; //height:=height-rowheight;
 
   end;
 end;
 
-procedure TformAddressChange.Button3Click(Sender: TObject);
+procedure TformAddressChange.btnAddOffsetClick(Sender: TObject);
 var
   rowheight: integer;
   i: integer;
@@ -510,10 +526,10 @@ begin
     pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
   end;
     
-  height:=height+rowheight;
+  AdjustHeightAndButtons; //height:=height+rowheight;
 end;
 
-procedure TformAddressChange.Button1Click(Sender: TObject);
+procedure TformAddressChange.btnOkClick(Sender: TObject);
 var bit: integer;
     address: dword;
     err:integer;
@@ -582,6 +598,11 @@ begin
   hexadecimal(key);
   if cbpointer.Checked then timer1.Interval:=1;
   
+end;
+
+procedure TformAddressChange.FormShow(Sender: TObject);
+begin
+
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);

@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 803
+  Left = 495
   Height = 546
-  Top = 394
+  Top = 220
   Width = 869
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 497
       Top = 1
       Width = 719
-      ActivePage = Assembler
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 5
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -135,9 +135,9 @@ object formSettings: TformSettings
         end
         object cbShowUndo: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 2
-          Width = 105
+          Width = 107
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -145,9 +145,9 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 41
-          Width = 221
+          Width = 223
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
@@ -186,34 +186,34 @@ object formSettings: TformSettings
           TabOrder = 4
           object cbShowAsSigned: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 0
-            Width = 176
+            Width = 178
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
           object cbBinariesAsDecimal: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 24
-            Width = 260
+            Width = 262
             Caption = 'Show and work with binaries as if they are decimals'
             TabOrder = 1
           end
           object cbsimplecopypaste: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 48
-            Width = 78
+            Width = 80
             Caption = 'Simple paste'
             TabOrder = 2
           end
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 22
-          Width = 276
+          Width = 278
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
@@ -233,9 +233,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 60
-          Width = 343
+          Width = 345
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
@@ -261,17 +261,17 @@ object formSettings: TformSettings
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
-          Height = 17
+          Height = 19
           Top = 367
-          Width = 332
+          Width = 334
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 10
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 145
-          Width = 126
+          Width = 128
           Caption = 'Save window positions'
           Checked = True
           State = cbChecked
@@ -279,9 +279,9 @@ object formSettings: TformSettings
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 199
-          Width = 170
+          Width = 172
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
@@ -290,17 +290,17 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
-          Height = 17
+          Height = 19
           Top = 217
-          Width = 178
+          Width = 180
           Caption = 'Only show processes with an icon'
           TabOrder = 13
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 181
-          Width = 99
+          Width = 101
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -308,25 +308,25 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 79
-          Width = 257
+          Width = 259
           Caption = 'Pointer adding: Append pointerline instead of insert'
           TabOrder = 15
         end
         object cbShowallWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 163
-          Width = 169
+          Width = 171
           Caption = 'Show all windows in the taskbar'
           TabOrder = 16
         end
         object cbAskIfTableHasLuascript: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 100
-          Width = 170
+          Width = 172
           Caption = 'Ask to run lua scripts from tables'
           Checked = True
           OnChange = cbAskIfTableHasLuascriptChange
@@ -335,9 +335,9 @@ object formSettings: TformSettings
         end
         object cbAlwaysRunScript: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Top = 117
-          Width = 173
+          Width = 175
           Caption = 'Always run lua scripts from tables'
           Enabled = False
           TabOrder = 18
@@ -741,10 +741,10 @@ object formSettings: TformSettings
         ImageIndex = 5
         object replacewithnops: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 73
-          Width = 204
+          Width = 206
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -755,9 +755,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 31
-          Height = 17
+          Height = 19
           Top = 92
-          Width = 132
+          Width = 134
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -765,9 +765,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 15
-          Height = 17
+          Height = 19
           Top = 9
-          Width = 142
+          Width = 144
           Caption = 'Use hardware breakpoints'
           Checked = True
           OnChange = rbInt3AsBreakpointChange
@@ -776,9 +776,9 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 15
-          Height = 17
+          Height = 19
           Top = 29
-          Width = 238
+          Width = 240
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           OnChange = rbInt3AsBreakpointChange
           TabOrder = 2
@@ -848,9 +848,9 @@ object formSettings: TformSettings
               ClientWidth = 404
               object CheckBox1: TCheckBox
                 Left = 2
-                Height = 17
+                Height = 19
                 Top = 5
-                Width = 209
+                Width = 211
                 Caption = 'Try to prevent detection of the debugger'
                 OnChange = CheckBox1Change
                 TabOrder = 0

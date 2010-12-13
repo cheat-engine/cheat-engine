@@ -606,6 +606,7 @@ var
   i, j: integer;
   newtype,oldType: TVariableType;
   memrec: TMemoryRecord;
+  extra:  TMemRecExtraData;
 begin
   TypeForm.RefreshCustomTypes;
 
@@ -618,7 +619,7 @@ begin
 
     vtBinary:
     begin
-      TypeForm.VarType.itemindex:=1;
+      TypeForm.VarType.itemindex:=0;
       TypeForm.Edit2.text:=IntToStr(memrec.extra.bitData.bitlength);
 
       case memrec.extra.bitData.Bit of
@@ -656,15 +657,16 @@ begin
   if TypeForm.Showmodal=mrNo then exit;
 
   newtype:=memrec.VarType;
+  extra:=memrec.Extra;
 
   for i:=0 to count-1 do
   begin
     if (MemRecItems[i].isSelected) then
     begin
-      if MemRecItems[i].vartype<>vtAutoAssembler then
-        MemRecItems[i].VarType:=newtype;
-
       MemRecItems[i].active:=false;
+
+      MemRecItems[i].VarType:=newtype;
+      MemRecItems[i].Extra:=extra;
 
       MemRecItems[i].treenode.update;
     end;
@@ -1090,7 +1092,7 @@ begin
     checkbox.Bottom:=linerect.bottom-1;
     sender.Canvas.Rectangle(checkbox);
 
-    if memrec.Active then
+    if memrec.Active then //draw a check
     begin
       oldpencolor:=sender.canvas.pen.color;
 
@@ -1144,6 +1146,13 @@ begin
         case memrec.vartype of
           vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName);
           vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
+          vtBinary:
+          begin
+            if memrec.Extra.bitData.bitlength=0 then
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
+            else
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
+          end
           else sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
         end;
 

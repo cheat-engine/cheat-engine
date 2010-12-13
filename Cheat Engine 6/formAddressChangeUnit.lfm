@@ -1,18 +1,16 @@
 object formAddressChange: TformAddressChange
   Left = 884
-  Height = 115
+  Height = 155
   Top = 351
   Width = 349
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
-  ClientHeight = 115
+  ClientHeight = 155
   ClientWidth = 349
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  OnActivate = FormActivate
   OnClose = FormClose
-  OnWindowStateChange = FormWindowStateChange
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
@@ -31,23 +29,21 @@ object formAddressChange: TformAddressChange
     OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
-  object Button1: TButton
+  object btnOk: TButton
     Left = 10
     Height = 25
-    Top = 81
+    Top = 121
     Width = 80
-    Anchors = [akLeft, akBottom]
     Caption = 'OK'
     Default = True
-    OnClick = Button1Click
+    OnClick = btnOkClick
     TabOrder = 1
   end
-  object Button2: TButton
+  object btnCancel: TButton
     Left = 98
     Height = 25
-    Top = 81
+    Top = 121
     Width = 80
-    Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -59,7 +55,7 @@ object formAddressChange: TformAddressChange
     Top = 59
     Width = 53
     Caption = 'Pointer'
-    OnClick = cbPointerClick
+    OnChange = cbPointerClick
     TabOrder = 3
   end
   object BitPanel: TPanel
@@ -203,23 +199,23 @@ object formAddressChange: TformAddressChange
       TabOrder = 7
     end
   end
-  object Button3: TButton
+  object btnAddOffset: TButton
     Left = 10
     Height = 26
     Top = 86
     Width = 90
     Caption = 'Add pointer'
-    OnClick = Button3Click
+    OnClick = btnAddOffsetClick
     TabOrder = 5
     Visible = False
   end
-  object Button4: TButton
+  object btnRemoveOffset: TButton
     Left = 108
     Height = 26
     Top = 86
     Width = 90
     Caption = 'Remove'
-    OnClick = Button4Click
+    OnClick = btnRemoveOffsetClick
     TabOrder = 6
     Visible = False
   end

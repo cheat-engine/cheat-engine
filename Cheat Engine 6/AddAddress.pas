@@ -18,10 +18,13 @@ type TPointerInfo=record
 end;
 
 type
+
+  { TAddForm }
+
   TAddForm = class(TForm)
     VarType: TComboBox;
-    miHideChildren: TButton;
-    Button2: TButton;
+    btnOk: TButton;
+    btnCancel: TButton;
     Label1: TLabel;
     Label2: TLabel;
     Description: TEdit;
@@ -51,12 +54,12 @@ type
     NewAddress: TEdit;
     Edit2: TEdit;
     cbPointer: TCheckBox;
-    Button3: TButton;
-    Button4: TButton;
+    btnAddOffset: TButton;
+    btnRemoveOffset: TButton;
     Timer1: TTimer;
     cbUnicode: TCheckBox;
     procedure FormCreate(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -64,8 +67,8 @@ type
     procedure Edit2KeyPress(Sender: TObject; var Key: Char);
     procedure cbPointerClick(Sender: TObject);
     procedure Edit3KeyPress(Sender: TObject; var Key: Char);
-    procedure Button4Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure btnRemoveOffsetClick(Sender: TObject);
+    procedure btnAddOffsetClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
@@ -73,6 +76,8 @@ type
     procedure offsetKeyPress(Sender: TObject; var Key: Char);
     procedure processaddress;
     procedure RefreshCustomTypes;
+    procedure DefaultNoPointerview;
+    procedure AdjustForPointers;
   public
     { Public declarations }
   end;
@@ -183,7 +188,7 @@ begin
   cbunicode.Checked:=false;
 end;
 
-procedure TAddForm.Button2Click(Sender: TObject);
+procedure TAddForm.btnCancelClick(Sender: TObject);
 begin
   AddForm.close;
 end;
@@ -234,7 +239,7 @@ begin
       end;
 
       for i:=1 to length(offsets)-1 do
-        button3.Click;
+        btnAddOffset.Click;
 
       for i:=0 to length(offsets)-1 do
         pointerinfo[length(pointerinfo)-1-i].offset.Text:=inttohex(offsets[i],1);
@@ -410,14 +415,56 @@ begin
   VarType.OnChange:=old;
 end;
 
+procedure TAddForm.AdjustForPointers;
+var pos: integer;
+begin
+  if length(pointerinfo)>0 then
+  begin
+    pos:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+2;
+
+    btnOk.top:=pos;
+    btnCancel.top:=btnOk.top;
+
+    clientheight:=btnOk.top+btnOk.height+8;
+  end;
+
+end;
+
+procedure TAddForm.DefaultNoPointerView;
+var i: integer;
+begin
+  btnOk.top:=cbPointer.top+cbPointer.height+6;
+  btnCancel.top:=btnOk.top;
+
+  clientheight:=btnOk.top+btnOk.height+8;
+  newaddress.enabled:=true;
+  btnAddOffset.visible:=false;
+  btnRemoveOffset.visible:=false;
+
+  for i:=0 to length(PointerInfo)-1 do
+  begin
+    pointerinfo[i].addresstext.free;
+    pointerinfo[i].address.Free;
+    pointerinfo[i].offsettext.Free;
+    pointerinfo[i].offset.Free;
+    pointerinfo[i].ValueAtAddressText.Free;
+    pointerinfo[i].FinalDestination.Free;
+  end;
+
+  setlength(pointerinfo,0);
+end;
+
 procedure TAddForm.FormShow(Sender: TObject);
 begin
-  addform.cbPointer.checked:=false;
+  cbPointer.checked:=false;
   NewAddress.SetFocus;
   NewAddress.SelectAll;
   description.Text:='No description';
 
   RefreshCustomTypes;
+
+
+  DefaultNoPointerView;
 end;
 
 procedure TAddForm.NewAddressKeyPress(Sender: TObject; var Key: Char);
@@ -436,14 +483,13 @@ var i: integer;
 begin
   if cbpointer.checked then
   begin
-
     newaddress.Enabled:=false;
 
-    button3.visible:=true;
-    button4.visible:=true;
+    btnAddOffset.visible:=true;
+    btnRemoveOffset.visible:=true;
 
     //create a address+offset combination and disable the normal address
-    startoffset:=button3.Top+button3.Height+2;
+    startoffset:=btnAddOffset.Top+btnAddOffset.Height+2;
 
     setlength(pointerinfo,1);
     pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
@@ -511,34 +557,12 @@ begin
       parent:=self;
     end;
 
+    AdjustForPointers;
 
-
-
-    rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
-    rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
-    inc(rowheight,2);
-
-    height:=height+rowheight+button3.Height+5;
   end
   else
   begin
-    clientheight:=cbPointer.Top+cbPointer.Height+8+miHideChildren.Height+8;
-    newaddress.enabled:=true;
-    button3.visible:=false;
-    button4.visible:=false;
-
-    for i:=0 to length(PointerInfo)-1 do
-    begin
-      pointerinfo[i].addresstext.free;
-      pointerinfo[i].address.Free;
-      pointerinfo[i].offsettext.Free;
-      pointerinfo[i].offset.Free;
-      pointerinfo[i].ValueAtAddressText.Free;
-      pointerinfo[i].FinalDestination.Free;
-    end;
-
-    setlength(pointerinfo,0);
-
+    DefaultNoPointerView;
   end;
 
 end;
@@ -548,7 +572,7 @@ begin
   if key<>'-' then hexadecimal(key);
 end;
 
-procedure TAddForm.Button4Click(Sender: TObject);
+procedure TAddForm.btnRemoveOffsetClick(Sender: TObject);
 var
   rowheight: integer;
   i: integer;
@@ -583,12 +607,13 @@ begin
 
 
     setlength(pointerinfo,length(pointerinfo)-1);
-    height:=height-rowheight;
+   // height:=height-rowheight;
+    AdjustForPointers;
 
   end;
 end;
 
-procedure TAddForm.Button3Click(Sender: TObject);
+procedure TAddForm.btnAddOffsetClick(Sender: TObject);
 var
   rowheight: integer;
   i: integer;
@@ -679,7 +704,8 @@ begin
     pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
   end;
   
-  height:=height+rowheight;
+
+  AdjustForPointers;
 end;
 
 procedure TAddForm.Timer1Timer(Sender: TObject);

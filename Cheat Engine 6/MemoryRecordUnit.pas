@@ -947,7 +947,7 @@ begin
     end;
 
     vtByteArray: result:=extra.byteData.bytelength;
-    vtBinary: result:=(extra.bitData.Bit+extra.bitData.bitlength div 8);
+    vtBinary: result:=1+(extra.bitData.Bit+extra.bitData.bitlength div 8);
     vtCustom:
     begin
       if customtype<>nil then
