@@ -39,6 +39,7 @@ type
     N3: TMenuItem;
     Codelist2: TListView;
     procedure Codelist2Resize(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
@@ -286,6 +287,11 @@ end;
 procedure TAdvancedOptions.Codelist2Resize(Sender: TObject);
 begin
 
+end;
+
+procedure TAdvancedOptions.FormDestroy(Sender: TObject);
+begin
+  saveformposition(self,[]);
 end;
 
 procedure TAdvancedOptions.FormResize(Sender: TObject);
@@ -606,7 +612,11 @@ begin
     end;
 
     if (assigned(ntsuspendprocess)) then
-      ntsuspendProcess(processhandle);
+    begin
+      OutputDebugString('Calling ntsuspendProcess');
+      i:=ntsuspendProcess(processhandle);
+      OutputDebugString('r='+inttostr(i));
+    end;
 
     pausebutton.Hint:='Resume the game'+pausehotkeystring;
     pausebutton.down:=true;
@@ -783,12 +793,13 @@ begin
 end;
 
 procedure TAdvancedOptions.FormCreate(Sender: TObject);
+var x: array of integer;
 begin
-  {$ifdef net}
   button4.Visible:=false;
   savebutton.Visible:=false;
-  pausebutton.Left:=savebutton.Left;
-  {$endif}
+ // pausebutton.Left:=savebutton.Left;
+
+  loadformposition(self,x);
 end;
 
 procedure TAdvancedOptions.Button2Click(Sender: TObject);

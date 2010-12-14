@@ -39,17 +39,17 @@ object Comments: TComments
     Height = 333
     Top = 0
     Width = 414
-    ActivePage = tsLuaScript
+    ActivePage = tsComment
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     object tsComment: TTabSheet
       Caption = 'Comments'
-      ClientHeight = 299
+      ClientHeight = 304
       ClientWidth = 406
       object Memo1: TMemo
         Left = 0
-        Height = 299
+        Height = 304
         Top = 0
         Width = 406
         Align = alClient

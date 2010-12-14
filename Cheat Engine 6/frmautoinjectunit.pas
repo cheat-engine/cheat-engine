@@ -87,11 +87,11 @@ type
     procedure Undo1Click(Sender: TObject);
   private
     { Private declarations }
-    {$ifndef standalonetrainerwithassembler}
+
     AAHighlighter: TSynAASyn;
     CPPHighlighter: TSynCppSyn;
     assembleSearch: TSynEditSearch;
-    {$endif}
+
 
     updating: boolean;
     pagecontrol: tpagecontrol;
@@ -119,10 +119,10 @@ type
 
   public
     { Public declarations }
-    {$ifndef standalonetrainerwithassembler}
+
     assemblescreen: TSynEdit;
     tlist: TTablist;
-    {$endif}
+
 
 
     editscript: boolean;
@@ -139,15 +139,15 @@ type
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   end;
 
-  procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
-  procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+
+procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
+procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+
 
 implementation
 
 
-{$ifndef standalonetrainerwithassembler}
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm;
-{$endif}
 
 procedure TfrmAutoInject.setCustomTypeScript(x: boolean);
 begin

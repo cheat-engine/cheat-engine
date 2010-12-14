@@ -58,7 +58,7 @@ type
 implementation
 
 
-
+uses symbolhandler;
 
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var ie: PInjectedEvent;
@@ -176,6 +176,8 @@ begin
   begin
     processhandler.processid:=dwProcessID;
     Open_Process;
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded;
 
     pid:=dwProcessID;
 

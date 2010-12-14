@@ -37,7 +37,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false, fsmAligned);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then

@@ -449,6 +449,9 @@ begin
       end;
     end;
 
+    while length(frmStructures)>0 do
+      frmStructures[0].free;
+
     if Structures<>nil then
     begin
       setlength(definedstructures, Structures.ChildNodes.Count);
@@ -457,13 +460,19 @@ begin
         Structure:=Structures.ChildNodes[i];
         LoadStructFromXMLNode(definedstructures[i], Structure);
       end;
-    end;
+    end
+    else
+      setlength(definedstructures,0);
 
     if comments<>nil then
-      Commentsunit.Comments.Memo1.text:=comments.TextContent;
+      Commentsunit.Comments.Memo1.text:=comments.TextContent
+    else
+      Commentsunit.Comments.Memo1.Clear;
 
     if luaScript<>nil then
-      Commentsunit.Comments.mLuaScript.text:=luaScript.TextContent;
+      Commentsunit.Comments.mLuaScript.text:=luaScript.TextContent
+    else
+      Commentsunit.Comments.mLuaScript.clear;
 
     if Commentsunit.Comments.mLuaScript.text<>'' then
     begin
@@ -705,7 +714,7 @@ begin
 
   mainform.editedsincelastsave:=false;
 
-  if comments.memo1.Lines.Count>0 then
+  if (comments.memo1.Lines.Count>0) or (comments.mLuaScript.lines.count>0) then
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];

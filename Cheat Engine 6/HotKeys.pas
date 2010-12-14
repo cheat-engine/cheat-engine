@@ -83,7 +83,7 @@ end;
 function THotkeyform.HotkeyActionToText(a: TMemrecHotkeyAction): string;
 begin
   {
-  Toggle freeze
+  Toggle freeze/Toggle activated
   Toggle freeze and allow increase
   Toggle freeze and allow decrease
   Set value to:
@@ -105,6 +105,14 @@ procedure THotkeyform.SetMemrec(x: TMemoryRecord);
 var i: integer;
 li: TListItem;
 begin
+  if memrec.VarType=vtAutoAssembler then
+  begin
+    cbFreezedirection.Clear;
+    cbFreezedirection.Items.add('Toggle script');
+    cbFreezedirection.Enabled:=false;
+    edtFreezeValue.visible:=false;
+  end;
+
   listview1.clear;
   fmemrec:=x;
   for i:=0 to length(memrec.Hotkeys)-1 do
@@ -118,6 +126,8 @@ begin
       li.SubItems.Add(memrec.hotkeys[i].value);
     end;
   end;
+
+
 end;
 
 procedure THotKeyForm.btnCreateHotkeyClick(Sender: TObject);

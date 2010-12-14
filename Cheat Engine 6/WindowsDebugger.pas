@@ -61,6 +61,8 @@ begin
   begin
     processhandler.processid:=dwProcessID;
     Open_Process;
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded;
 
     d:=tstringlist.create;
     try

@@ -190,6 +190,8 @@ type
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
+    rbFsmAligned: TRadioButton;
+    rbfsmLastDigts: TRadioButton;
     SettingsButton: TSpeedButton;
     ToAddress: TMemo;
     UpdateTimer: TTimer;
@@ -3569,7 +3571,8 @@ begin
   if vartype.Items.Objects[vartype.ItemIndex]<>nil then
   begin
     //custom type is ALWAYS the decider
-    edtAlignment.text:=inttohex(TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize,1);
+    if rbFsmAligned.checked then
+      edtAlignment.text:=inttohex(TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize,1);
   end
   else
   begin
@@ -3583,7 +3586,8 @@ begin
         else if oldalignsize<>4 then alignsize:=oldalignsize; //non standard alignment for this type
       end;
 
-      edtAlignment.text:=inttohex(alignsize,1);
+      if rbFsmAligned.checked then
+        edtAlignment.text:=inttohex(alignsize,1);
     except
     end;
   end;
@@ -3961,7 +3965,8 @@ resourcestring
 
 procedure TMainForm.SpeedButton2Click(Sender: TObject);
 begin
-  addresslist.clear;
+  if messagedlg(strdeleteall, mtConfirmation, [mbno,mbyes],0)=mryes then
+    addresslist.clear;
 end;
 
 resourcestring
@@ -5563,6 +5568,7 @@ procedure TMainForm.Button2Click(Sender: TObject);
 var
   svalue2: string;
   percentage: boolean;
+  fastscanmethod: TFastscanmethod;
 begin
 
   foundlist.Deinitialize; //unlock file handles
@@ -5598,7 +5604,12 @@ begin
 
 
     memscan.alignment:=strtoint('$'+edtAlignment.text);
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, TCustomType(vartype.items.objects[vartype.itemindex]));
+    if rbFsmAligned.checked then
+      fastscanmethod:=fsmAligned
+    else
+      fastscanmethod:=fsmLastDigits;
+
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 
@@ -5749,7 +5760,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
   DisableGui;
   SpawnCancelButton;
 end;

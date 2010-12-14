@@ -1,7 +1,7 @@
 object HotKeyForm: THotKeyForm
-  Left = 1192
+  Left = 839
   Height = 331
-  Top = 197
+  Top = 222
   Width = 454
   BorderIcons = []
   BorderStyle = bsSingle
@@ -34,7 +34,6 @@ object HotKeyForm: THotKeyForm
         Width = 80
       end>
     HideSelection = False
-    ItemIndex = -1
     PopupMenu = pmHotkeylist
     RowSelect = True
     TabOrder = 0

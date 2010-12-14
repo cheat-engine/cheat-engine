@@ -273,6 +273,8 @@ type
     caseSensitive: boolean;
     percentage: boolean;
     fastscanalignsize: integer;
+    fastscanmethod: TFastScanMethod;
+    fastscandigitcount: integer;
     variablesize: integer;
     scanvalue1,scanvalue2: string;
     widescanvalue1: widestring;
@@ -351,6 +353,8 @@ type
     readonly: boolean;
     fastscan: boolean;
     fastscanalignment: integer;
+    fastscanmethod: TFastscanmethod;
+    fastscandigitcount: integer;
     unicode: boolean;
     casesensitive: boolean;
     percentage: boolean;
@@ -410,6 +414,12 @@ type
     currentCustomType: TCustomType;
     found: uint64;
 
+    //fastscan options (only set by firstscan)
+    fastscan: boolean;
+    fastscanalignment: integer;
+    fastscanmethod: TFastscanmethod;
+    fastscandigitcount: integer;
+
     //string stuff:
     stringUnicode: boolean;
     stringLength:  integer;
@@ -433,8 +443,8 @@ type
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customtype: TCustomType=nil); //first scan routine, e.g unknown initial value, or exact scan
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -1603,14 +1613,25 @@ var stepsize: integer;
     dividableby4: boolean;
 begin
   _fastscan:=fastscan;
+  p:=buffer;
+  lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
+
+
   if _fastscan then
-    stepsize:=fastscanalignsize
+  begin
+    if fastscanmethod=fsmAligned then
+      stepsize:=fastscanalignsize
+    else
+    begin
+      stepsize:=trunc(power(16, fastscandigitcount));
+      inc(p, fastscanalignsize);
+    end;
+  end
   else
     stepsize:=1;
 
-  p:=buffer;
 
-  lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
+
 
 
   if variableType=vtAll then
@@ -1670,16 +1691,28 @@ var stepsize:  integer;
     dividableby4: boolean;
     i:         TVariableType;   
 begin
+  p:=buffer;
+  oldp:=oldbuffer;
+  lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
+
+
   _fastscan:=fastscan;
   if _fastscan then
-    stepsize:=fastscanalignsize
+  begin
+    if fastscanmethod=fsmAligned then
+      stepsize:=fastscanalignsize
+    else
+    begin
+      stepsize:=trunc(power(16, fastscandigitcount));
+      inc(p, fastscanalignsize);
+      inc(oldp, fastscanalignsize);
+    end;
+  end
   else
     stepsize:=1;
 
-  p:=buffer;
-  oldp:=oldbuffer;
 
-  lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
+
 
 {$ifndef standalonetrainerwithassemblerandaobscanner}
   if scanOption=soSameAsFirst then //stupid, but ok...
@@ -3084,8 +3117,11 @@ begin
   end;
 
 
-  if fastscanalignment<>0 then //override the alignment if given
-    fastscanalignsize:=fastscanalignment;
+  if fastscan then //override the alignment if given
+  begin
+    if (fastscanmethod=fsmLastDigits) or (fastscanalignment<>0) then
+      fastscanalignsize:=fastscanalignment;
+  end;
 
 
   OutputDebugString('fillVariableAndFastScanAlignSize:');
@@ -3169,6 +3205,8 @@ begin
           scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
           scanners[i].fastscanalignsize:=fastscanalignsize;
+          scanners[i].fastscanmethod:=fastscanmethod;
+          scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
 
@@ -3377,6 +3415,8 @@ begin
       scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
       scanners[i].fastscanalignsize:=fastscanalignsize;
+      scanners[i].fastscanmethod:=fastscanmethod;
+      scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
 
@@ -3754,6 +3794,8 @@ begin
       scanners[i].binaryStringAsDecimal:=binaryStringAsDecimal;
 
       scanners[i].fastscanalignsize:=fastscanalignsize;
+      scanners[i].fastscanmethod:=fastscanmethod;
+      scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
 
       if i=0 then //first thread gets the header part
@@ -3871,7 +3913,14 @@ begin
       end;
 
       if fastscan then //divide by alignsize of fastscan
-        OwningMemScan.found:=OwningMemScan.found div fastscanalignsize;
+      begin
+        if fastscanmethod=fsmAligned then
+          OwningMemScan.found:=OwningMemScan.found div fastscanalignsize
+        else
+        begin
+          OwningMemScan.found:=OwningMemScan.found div trunc(power(16, fastscandigitcount));
+        end;
+      end;
 
       savescannerresults:=true;
     end
@@ -4235,7 +4284,7 @@ begin
   fLastscantype:=stNewScan;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean);
 begin
 
   if scanController<>nil then
@@ -4259,7 +4308,12 @@ begin
   scanController.variableType:=CurrentVariableType;
   scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;
-  scanController.fastscan:=fastscan;
+
+  scanController.fastscan:=fastscan; //memrec stored
+  scanController.fastscanalignment:=alignment;
+  scanController.fastscanmethod:=fastscanmethod;
+  scancontroller.fastscandigitcount:=fastscandigitcount;
+
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
   scanController.readonly:=readonly;
@@ -4279,7 +4333,7 @@ begin
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; customtype: TCustomType=nil);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
@@ -4307,8 +4361,16 @@ begin
 
 
   scanController.roundingtype:=roundingtype;
+
+  self.fastscan:=fastscan;
+  self.fastscanalignment:=alignment;
+  self.fastscanmethod:=fastscanmethod;
+  self.fastscandigitcount:=fastscandigitcount;
+
   scanController.fastscan:=fastscan;
   scanController.fastscanalignment:=alignment;
+  scanController.fastscanmethod:=fastscanmethod;
+  scancontroller.fastscandigitcount:=fastscandigitcount;
 
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan

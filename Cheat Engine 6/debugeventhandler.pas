@@ -112,7 +112,7 @@ type
 implementation
 
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
-     KernelDebuggerInterface, frmDebugEventsUnit, formdebugstringsunit;
+     KernelDebuggerInterface, frmDebugEventsUnit, formdebugstringsunit, symbolhandler;
 
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
@@ -256,17 +256,23 @@ begin
       end
       else
       begin
+
+
   {$ifdef cpu32}
         //----XP HACK----
         if (WindowsVersion=wvXP) then
         begin
           if not (CurrentDebuggerInterface is TKernelDebugInterface) then
           begin
-            TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
-            setInt1Back:=true;
-            context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
-            Int1SetBackBP:=bp;
+            if (bp.breakpointTrigger=bptExecute) and (not bp.markedfordeletion) then //if windows xp, and it is a hw bp, and it's an execute hw bp, and it's not marked for deletion, only THEN set the bp back
+            begin
+              TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
+
+              setInt1Back:=true;
+              context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
+              Int1SetBackBP:=bp;
+            end;
           end;
         end;
        {$endif}
@@ -660,6 +666,9 @@ begin
 
   ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
   ProcessHandler.processid     := debugEvent.dwProcessId;
+  Open_Process;
+  symhandler.reinitialize;
+
   onAttachEvent.SetEvent;
 
   Result := true;

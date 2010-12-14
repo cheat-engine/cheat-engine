@@ -76,7 +76,7 @@ end;
 
 procedure TComments.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if memo1.Lines.Count>0 then
+  if (memo1.Lines.Count>0) or (mLuaScript.lines.count>0) then
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold]  

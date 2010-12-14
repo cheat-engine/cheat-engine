@@ -1,7 +1,7 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 772
+  Left = 499
   Height = 297
-  Top = 158
+  Top = 383
   Width = 628
   Caption = 'Advanced Options'
   ClientHeight = 297
@@ -9,6 +9,7 @@ object AdvancedOptions: TAdvancedOptions
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter

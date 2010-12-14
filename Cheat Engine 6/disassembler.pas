@@ -10340,7 +10340,17 @@ begin
     disassemble(y,s);
   end;
 
-  i:=address-20;
+  if y=address then //next disassembly results in the exact address
+  begin
+    if defaultDisassembler.LastDisassembleData.parameters <> '[eax],al' then
+    begin
+      result:=x;
+      exit;
+    end
+    else y:=address-15;
+  end;
+
+  i:=address-15;
   while (i<address) and (y<>address) do
   begin
     y:=i;
@@ -10349,10 +10359,23 @@ begin
       x:=y;
       disassemble(y,s);
     end;
+
+    if defaultDisassembler.LastDisassembleData.parameters = '[eax],al' then
+      y:=i;
+
     inc(i);
   end;
 
   if i=address then result:=address-1 else result:=x;
+
+{   perhaps someday...
+  y:=result;
+  disassemble(y,s);
+
+  begin
+    //override this decision
+  end;
+  }
 
  // if x<>address then result:=address-1 else result:=y;
 end;

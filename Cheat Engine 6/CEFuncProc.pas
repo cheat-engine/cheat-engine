@@ -37,6 +37,7 @@ type TScanType=(stNewScan, stFirstScan, stNextScan);
 type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
 type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDouble=5, vtString=6, vtUnicodeString=7, vtByteArray=8, vtBinary=9, vtAll=10, vtAutoAssembler=11, vtPointer=12, vtCustom=13);
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
+type TFastScanMethod=(fsmAligned, fsmLastDigits);
 
 
 Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
