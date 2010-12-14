@@ -19,6 +19,8 @@ type
 
     ftabData: array of pointer;
 
+    offset: integer; //defines how many tabs must be shifted to the left
+
     procedure setSelectedTab(i: integer);
     function getTabData(i: integer):pointer;
     procedure setTabData(i: integer; p: pointer);
@@ -100,7 +102,7 @@ begin
   result:=-1;
 
   //find what is selected
-  i:=x div fTabWidth;
+  i:=offset+(x div fTabWidth);
 
   if i<fTabs.count then
     result:=i;
@@ -109,9 +111,33 @@ end;
 procedure TTablist.MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
 var i: integer;
 begin
-  i:=GetTabIndexAt(x,y);
-  if i<>-1 then
-    selectedTab:=i;
+  if (fTabs.count*fTabWidth>width) and (x>width-30) then
+  begin
+    //clicked on an arrow
+    if x>width-15 then
+    begin
+      //click right
+      //check if you can go left
+
+      if (fTabs.count-offset)*fTabWidth>width then //if you can still scroll to the right then increase offset
+        inc(offset)
+    end
+    else
+    begin
+      //click left
+      if offset>0 then
+        dec(offset);
+    end;
+
+    Repaint;
+
+  end
+  else
+  begin
+    i:=GetTabIndexAt(x,y);
+    if i<>-1 then
+      selectedTab:=i;
+  end;
 
   inherited MouseDown(button,shift,x,y);
 end;
@@ -149,7 +175,7 @@ begin
 end;
 
 procedure TTablist.Paint;
-var i: integer;
+var i,j: integer;
 selectedoffset: integer;
 gradientColor: Tcolor;
 oldstyle: TBrushStyle;
@@ -160,9 +186,11 @@ begin
 
 
   //create a total of 'fTabs.count' tabs
-  for i:=0 to fTabs.count-1 do
+  for j:=offset to fTabs.count-1 do
   begin
-    if i=fselectedTab then
+    i:=j-offset;
+
+    if j=fselectedTab then
     begin
       selectedoffset:=1;
       gradientColor:=color;
@@ -179,7 +207,7 @@ begin
 
     oldstyle:=canvas.Brush.Style;
     canvas.Brush.Style:=bsClear;
-    Canvas.TextOut(i*ftabWidth+((ftabwidth div 2)-(canvas.TextWidth(ftabs[i]) div 2)) ,(height div 2)-(canvas.TextHeight(ftabs[i]) div 2),fTabs[i]);
+    Canvas.TextOut(i*ftabWidth+((ftabwidth div 2)-(canvas.TextWidth(ftabs[j]) div 2)) ,(height div 2)-(canvas.TextHeight(ftabs[j]) div 2),fTabs[j]);
     canvas.Brush.Style:=OldStyle;
   end;
 
@@ -188,7 +216,34 @@ begin
   canvas.Line(0,height-1,width,height-1);
 
   canvas.Pen.Color:=color;
-  Canvas.Line(fselectedTab*ftabWidth,height-1,fselectedTab*ftabwidth+ftabwidth,height-1);
+  Canvas.Line((fselectedTab-offset)*ftabWidth,height-1,(fselectedTab-offset)*ftabwidth+ftabwidth,height-1);
+
+  if fTabs.count*fTabWidth>width then //if there are more tabs than visible
+  begin
+    if (fTabs.count-offset)*fTabWidth>width then
+    begin
+      canvas.Pen.Color:=clred;
+      canvas.Brush.color:=clblue;
+    end
+    else
+    begin
+      Canvas.pen.color:=clInactiveBorder;
+      Canvas.brush.color:=clInactiveCaption;
+    end;
+    canvas.Polygon([point(width-14, 2), point(width-14, height-2), point(width-1, (height div 2))]);
+
+    if (offset>0) then //can you scroll to the left
+    begin
+      canvas.Pen.Color:=clred;
+      canvas.Brush.color:=clblue;
+    end
+    else
+    begin
+      Canvas.pen.color:=clInactiveBorder;
+      Canvas.brush.color:=clInactiveCaption;
+    end;
+    canvas.Polygon([point(width-16, 2), point(width-16, height-2), point(width-30, (height div 2))]);
+  end;
 end;
 
 constructor TTablist.Create(AOwner: TComponent);
