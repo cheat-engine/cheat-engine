@@ -1137,8 +1137,8 @@ object MemoryBrowser: TMemoryBrowser
     top = 104
   end
   object pmStacktrace: TPopupMenu
-    left = 498
-    top = 324
+    left = 536
+    top = 360
     object All1: TMenuItem
       Caption = 'Full stack'
       GroupIndex = 1

@@ -4672,11 +4672,9 @@ begin
   decodedate(now, year, month, day);
   if (month = 7) and (day = 1) then
     ShowMessage(strhappybirthday);
-  if (month = 12) and ((day = 25) or (day = 26)) then
-    ShowMessage(strXmess);
   if (month = 1) and (day = 1) then
     ShowMessage(strnewyear);
-  if (month = 1) and (day = 1) and (year >= 2010) then
+  if (month = 1) and (day = 1) and (year >= 2015) then
     ShowMessage(strFuture);
 
   if (month = 4) and (day = 1) then
@@ -4923,9 +4921,7 @@ end;
 
 
 resourcestring
-  strdontbother =
-    'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
-  strneeddebugger = 'To use this option the debugger must be attached to the game';
+  strdontbother = 'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
 
 procedure TMainForm.cbPauseWhileScanningClick(Sender: TObject);
 
@@ -4937,10 +4933,7 @@ begin
   end;
 
   if (cbPauseWhileScanning.checked) and (not startdebuggerifneeded) then
-  begin
     cbPauseWhileScanning.Checked:=false;
-    messagedlg(strneeddebugger,mtInformation,[mbok],0);
-  end;
 end;
 
 procedure TMainForm.ProcessLabelDblClick(Sender: TObject);

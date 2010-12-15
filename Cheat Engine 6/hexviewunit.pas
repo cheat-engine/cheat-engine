@@ -1457,7 +1457,8 @@ begin
 
 
   totallines:=1+(mbCanvas.clientHeight-(textheight*2)) div textheight;  //-(textheight*2) for the header
-
+  if totallines<=0 then
+    totallines:=1;
 
 
   if (oldsizex<>bytesperline) or (oldsizey<>totallines) then

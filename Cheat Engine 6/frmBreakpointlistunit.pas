@@ -52,11 +52,28 @@ end;
 
 procedure TFrmBreakpointlist.updatebplist;
 var i: integer;
+ s: pointer;
 begin
+  //store the selected item
+  if listview1.Selected<>nil then
+    s:=listview1.selected.data
+  else
+    s:=nil;
 
   listview1.Clear;
   if debuggerthread<>nil then
     debuggerthread.updatebplist(ListView1);
+
+  if s<>nil then //if something was selected then try to find it back
+  begin
+    for i:=0 to listview1.Items.count-1 do
+      if listview1.items[i].data=s then
+      begin
+        listview1.items[i].Selected:=true;
+        exit;
+      end;
+  end;
+
 end;
 
 procedure TfrmBreakpointlist.FormClose(Sender: TObject;

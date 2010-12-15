@@ -48,6 +48,8 @@ object frmBreakpointlist: TfrmBreakpointlist
         Caption = 'Pending deletion'
         Width = 125
       end>
+    ColumnClick = False
+    HideSelection = False
     Items.LazData = {
       EA00000002000000FFFFFFFFFFFFFFFFFFFFFFFF050000000800000044444444
       444444440100000034090000004F6E2041636365737313000000486172647761
@@ -59,6 +61,8 @@ object frmBreakpointlist: TfrmBreakpointlist
       FFFFFFFFFFFFFFFFFFFF
     }
     PopupMenu = pmBreakpoint
+    ReadOnly = True
+    RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
   end

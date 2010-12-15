@@ -821,7 +821,7 @@ begin
       begin
         extradata:=pointer(sl.Objects[i]);
         SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
-        SymbolRecord.AppendChild(doc.CreateElement('name')).TextContent:=sl[i];
+        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=sl[i];
 
         SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
       end;

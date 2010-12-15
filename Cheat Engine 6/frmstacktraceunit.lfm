@@ -39,8 +39,8 @@ object frmStacktrace: TfrmStacktrace
       item
         AutoSize = True
         Caption = 'Parameters'
+        Width = 187
       end>
-    ItemIndex = -1
     PopupMenu = PopupMenu1
     ReadOnly = True
     TabOrder = 0

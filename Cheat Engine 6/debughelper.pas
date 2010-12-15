@@ -1017,6 +1017,7 @@ begin
     end;
 
     bp:=AddBreakpoint(nil, bplist[0].address, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister, bplist[0].size, nil, 0, nil,frmTracer,count);
+
     if bp<>nil then
       bp.traceendcondition:=strnew(pchar(condition));
 
@@ -1096,6 +1097,7 @@ begin
     bp:=PBreakpoint(BreakpointList[i]);
 
     li:=lv.items.Add;
+    li.data:=bp;
     li.Caption:=inttohex(bp.address,8);
     li.SubItems.add(inttostr(bp.size));
     li.SubItems.Add(breakpointTriggerToString(bp.breakpointTrigger));
@@ -1305,7 +1307,7 @@ begin
     for i := 0 to BreakpointList.Count - 1 do
       if (PBreakpoint(BreakpointList[i])^.address = address) and
         (PBreakpoint(BreakpointList[i])^.breakpointTrigger = bptExecute) and
-        (PBreakpoint(BreakpointList[i])^.breakpointAction = bo_break) and
+        ((PBreakpoint(BreakpointList[i])^.breakpointAction = bo_break) or (PBreakpoint(BreakpointList[i])^.breakpointAction = bo_ChangeRegister) ) and
         (PBreakpoint(BreakpointList[i])^.active) then
       begin
         found := True;
@@ -1463,10 +1465,10 @@ var
 begin
   starttime:=GetTickCount;
 
-  if IsDebuggerPresent then //when debugging the debugger 5 seconds is too short
+  if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
     timeout:=5000000
   else
-    timeout:=5000;
+    timeout:=10000;
 
   while (gettickcount-starttime)<timeout do
   begin
@@ -1477,7 +1479,8 @@ begin
     if result=wrSignaled then exit;
   end;
 
-  //wait one more second for a thread
+  //wait just a little and wait for some threads
+  sleep(100);
   i:=0;
   while (ThreadList.Count=0) and (i<10) do
   begin

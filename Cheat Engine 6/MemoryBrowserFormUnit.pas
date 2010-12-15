@@ -1585,7 +1585,9 @@ end;
 
 procedure TMemoryBrowser.Stacktrace1Click(Sender: TObject);
 begin
-  frmstacktrace:=tfrmstacktrace.create(self);
+  if frmstacktrace=nil then
+    frmstacktrace:=tfrmstacktrace.create(self);
+
   frmstacktrace.Show;
 end;
 
@@ -2522,6 +2524,8 @@ begin
     sbShowFloats.Visible:=false;
     caption:=caption+'* ('+inttostr(mbchildcount)+')';
 
+    Kerneltools1.enabled:=memorybrowser.Kerneltools1.enabled;
+
     ischild:=true;
     show;
   end;
@@ -2836,6 +2840,7 @@ begin
     end;
   finally
     lvStacktraceData.Items.EndUpdate;
+    lvStacktraceData.Refresh;
   end;
 
 end;
@@ -2972,7 +2977,9 @@ begin
 
     //show frmstacktrace
     if frmStacktrace=nil then
+    begin
       frmstacktrace:=TfrmStacktrace.Create(self); //should never happen
+    end;
 
     if item.Index<frmStacktrace.ListView1.Items.Count then
     begin
@@ -3068,6 +3075,7 @@ begin
       end;
       inc(currentleft, lvStacktraceData.Columns[i].width);
     end;
+
 
     if column=0 then
       s:=lvStacktraceData.Selected.Caption
@@ -3517,9 +3525,8 @@ begin
 
   end;
 
+  reloadStacktrace;
 
-  if frmstacktrace<>nil then
-    frmstacktrace.stacktrace(threadhandle,debuggerthread.CurrentThread.context^);
 end;
 
 initialization

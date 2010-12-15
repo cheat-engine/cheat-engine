@@ -30,6 +30,8 @@ var
 
 implementation
 
+uses MemoryBrowserFormUnit;
+
 function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall;
 begin
   result:=false;
@@ -100,8 +102,9 @@ Called when the debugger is paused on a breakpoint
 }
 var c: _CONTEXT;
 begin
-  if debuggerthread<>nil then
-    stacktrace(debuggerthread.CurrentThread.handle,debuggerthread.CurrentThread.context^);
+
+  if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+    stacktrace(debuggerthread.CurrentThread.handle,MemoryBrowser.lastdebugcontext);
 end;
 
 

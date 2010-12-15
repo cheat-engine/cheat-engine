@@ -150,7 +150,7 @@ procedure TDebugThreadHandler.setContext;
 var
   i: integer;
 begin
-  outputdebugstring(pchar(format('setThreadContext(%x, %x, %p)',[threadid, handle,@context])));
+  outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,@context, context.dr0, context.dr1, context.dr2, context.dr3, context.dr7])));
 
   if handle<>0 then
   begin
@@ -526,7 +526,9 @@ begin
           tracecount:=bp.TraceCount;
           traceWindow:=bp.frmTracer;
           if bpp.traceendcondition<>nil then
-            traceQuitCondition:=bpp.traceendcondition;
+            traceQuitCondition:=bpp.traceendcondition
+          else
+            traceQuitCondition:='';
 
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
         end;
@@ -642,7 +644,7 @@ begin
   OutputDebugString('CreateThreadDebugEvent');
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
-  handle    := debugevent.CreateThread.hThread;
+  handle    := OpenThread(THREAD_ALL_ACCESS, false, threadid ); //debugevent.CreateThread.hThread;
 
   Result    := true;
 
@@ -664,10 +666,15 @@ begin
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
 
-  ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
-  ProcessHandler.processid     := debugEvent.dwProcessId;
-  Open_Process;
-  symhandler.reinitialize;
+
+
+  if ProcessHandler.processid<>debugevent.dwProcessId then
+  begin
+    ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
+    ProcessHandler.processid     := debugEvent.dwProcessId;
+    Open_Process;
+    symhandler.reinitialize;
+  end;
 
   onAttachEvent.SetEvent;
 

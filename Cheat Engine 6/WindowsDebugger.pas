@@ -57,13 +57,13 @@ end;
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 var d: tstringlist;
 begin
+  processhandler.processid:=dwProcessID;
+  Open_Process;
+  symhandler.reinitialize;
+  symhandler.waitforsymbolsloaded;
+
   if PreventDebuggerDetection then
   begin
-    processhandler.processid:=dwProcessID;
-    Open_Process;
-    symhandler.reinitialize;
-    symhandler.waitforsymbolsloaded;
-
     d:=tstringlist.create;
     try
       d.Add('IsDebuggerPresent:');
@@ -80,8 +80,8 @@ begin
   end;
 
   result:=newkernelhandler.DebugActiveProcess(dwProcessId);
-  processhandler.processid:=dwProcessID;
-  Open_Process;
+  //processhandler.processid:=dwProcessID;
+  //Open_Process;
   symhandler.reinitialize;
 end;
 
