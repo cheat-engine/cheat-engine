@@ -267,6 +267,7 @@ begin
 
             if (bp.breakpointTrigger=bptExecute) and (not bp.markedfordeletion) then //if windows xp, and it is a hw bp, and it's an execute hw bp, and it's not marked for deletion, only THEN set the bp back
             begin
+              setContext; //apply changes made by the user
               TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
               setInt1Back:=true;
