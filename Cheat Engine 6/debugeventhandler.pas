@@ -447,7 +447,7 @@ begin
       if script='' then
       begin
         script:=bp.conditonalbreakpoint.script;
-        if bp.conditonalbreakpoint.easymode then script:='return '+script;
+        if bp.conditonalbreakpoint.easymode then script:='return ('+script+')';
       end;
 
 
@@ -464,7 +464,7 @@ var
   c: PContext;
 
   bpp: PBreakpoint;
-  bp: TBreakpoint;
+ // bp: TBreakpoint;
 begin
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
   found := False;
@@ -480,7 +480,8 @@ begin
       if (bpp.address = address) then
       begin
         found:=true;
-        bp:=bpp^; //copy all the data of this breakpoint into a local copy (so when the lock is gone the user can fuck it up as much as he wants to, it won't affect the current handled bp
+       // bp:=bpp^; //copy all the data of this breakpoint into a local copy (so when the lock is gone the user can fuck it up as much as he wants to, it won't affect the current handled bp
+       //saving is not needed anymore as breakpoints won't get deleted at once, they just get set to inactive
 
         if bpp^.OneTimeOnly then //delete it
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
@@ -496,22 +497,22 @@ begin
   begin
     outputdebugstring('Handling breakpoint');
 
-    if bp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
+    if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
       dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
 
     OutputDebugString('Checking if condition is set');
-    if not CheckIfConditionIsMet(@bp) then
+    if not CheckIfConditionIsMet(bpp) then
     begin
       OutputDebugString('Condition was not met');
 
-      continueFromBreakpoint(@bp, co_run);
+      continueFromBreakpoint(bpp, co_run);
       dwContinueStatus:=DBG_CONTINUE;
       Result:=true;
       exit;
     end;
 
 
-    case bp.breakpointAction of
+    case bpp.breakpointAction of
       bo_Break:
       begin
         //todo: check break conditions
@@ -524,8 +525,8 @@ begin
         if not isTracing then //don't handle it if already tracing
         begin
           isTracing:=true;
-          tracecount:=bp.TraceCount;
-          traceWindow:=bp.frmTracer;
+          tracecount:=bpp.TraceCount;
+          traceWindow:=bpp.frmTracer;
           if bpp.traceendcondition<>nil then
             traceQuitCondition:=bpp.traceendcondition
           else
@@ -543,7 +544,7 @@ begin
         //modify accordingly
         outputdebugstring('Handling bo_ChangeRegister breakpoint');
 
-        ModifyRegisters(@bp);
+        ModifyRegisters(bpp);
 
         //and
         continueFromBreakpoint(bpp, co_run); //just continue running
@@ -552,10 +553,10 @@ begin
       bo_FindCode:
       begin
         outputdebugstring('Save registers and continue');
-        if bp.active then
+        if bpp.active then
         begin
-          fcd:=bp.FoundcodeDialog;
-          fcd.usesdebugregs:=bp.breakpointMethod=bpmDebugRegister;
+          fcd:=bpp.FoundcodeDialog;
+          fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
 
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
         end;
@@ -565,7 +566,7 @@ begin
 
       bo_FindWhatCodeAccesses:
       begin
-        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bp.frmchangedaddresses.AddRecord);
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bpp.frmchangedaddresses.AddRecord);
         continueFromBreakpoint(bpp, co_run); //just continue running
       end;
 

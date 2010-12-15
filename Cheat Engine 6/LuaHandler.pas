@@ -390,9 +390,10 @@ begin
       end;
     end;
 
-    lua_pop(LuaVM, lua_gettop(luavm));
+
 
   finally
+    lua_pop(LuaVM, lua_gettop(luavm));
     LuaCS.leave;
   end;
 end;
@@ -581,6 +582,7 @@ precondition: script returns a value (so already has the 'return ' part appended
 }
 var i: integer;
 begin
+  result:=false;
   LuaCS.Enter;
   try
     LUA_SetCurrentContextState(context);
@@ -589,14 +591,10 @@ begin
     begin
       i:=lua_gettop(LuaVM);
       if i=1 then //valid return
-      begin
         result:=lua_toboolean(LuaVM, -1);
-
-        lua_pop(LuaVM, lua_gettop(luavm));
-        //and now set the register values
-      end;
-    end else lua_pop(LuaVM, lua_gettop(luavm)); //balance the stack
+    end;
   finally
+    lua_pop(LuaVM, lua_gettop(luavm));
     LuaCS.Leave;
   end;
 end;
