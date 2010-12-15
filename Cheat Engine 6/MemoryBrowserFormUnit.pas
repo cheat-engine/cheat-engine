@@ -2163,27 +2163,20 @@ end;
 procedure TMemoryBrowser.Changestateofregisteratthislocation1Click(
   Sender: TObject);
 begin
-{$ifndef net}
   tfrmModifyRegisters.create(self,disassemblerview.SelectedAddress).showmodal;
-{$endif}
 end;
 
 procedure TMemoryBrowser.ogglebreakpoint1Click(Sender: TObject);
 begin
-
-{$ifndef net}
   if startdebuggerifneeded(true) then
   begin
     DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress);
     disassemblerview.Update;
   end;
-{$endif}
 end;
 
 procedure TMemoryBrowser.Breakpointlist1Click(Sender: TObject);
 begin
-
-{$ifndef net}
   if frmbreakpointlist=nil then
   begin
     frmbreakpointlist:=tfrmBreakpointlist.create(self);
@@ -2191,18 +2184,16 @@ begin
   end
   else
     frmbreakpointlist.bringtofront;
-{$endif}
 end;
 
 
 procedure TMemoryBrowser.Makepagewritable1Click(Sender: TObject);
 var x: dword;
 begin
-{$ifndef net}
   VirtualProtectEx(processhandle,pointer(memoryaddress),4096,PAGE_EXECUTE_READWRITE,x);
 //  if (memoryaddress>80000000) and (DarkByteKernel<>0) then
 //    MakeWritableEx(processhandle,memoryaddress,4096,false);
-{$endif}
+
 end;
 
 procedure TMemoryBrowser.Dissectdata1Click(Sender: TObject);

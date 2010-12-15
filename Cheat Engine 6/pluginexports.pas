@@ -595,83 +595,76 @@ begin
   with frmModifyRegisters do
   begin
     if changereg.change_eax then
-    begin
-      checkbox1.checked:=true;
-      edit1.Text:=inttohex(changereg.new_eax,8);
-    end;
+      edtEAX.Text:=inttohex(changereg.new_eax,8);
 
     if changereg.change_ebx then
-    begin
-      checkbox2.checked:=true;
-      edit2.Text:=inttohex(changereg.new_ebx,8);
-    end;
+      edtEbX.Text:=inttohex(changereg.new_ebx,8);
 
     if changereg.change_ecx then
-    begin
-      checkbox3.checked:=true;
-      edit3.Text:=inttohex(changereg.new_ecx,8);
-    end;
+      edtECX.Text:=inttohex(changereg.new_ecx,8);
+
     if changereg.change_edx then
-    begin
-      checkbox4.checked:=true;
-      edit4.Text:=inttohex(changereg.new_edx,8);
-    end;
+      edtEDX.Text:=inttohex(changereg.new_edx,8);
+
     if changereg.change_esi then
-    begin
-      checkbox5.checked:=true;
-      edit5.Text:=inttohex(changereg.new_esi,8);
-    end;
+      edtESI.Text:=inttohex(changereg.new_esi,8);
+
     if changereg.change_edi then
-    begin
-      checkbox6.checked:=true;
-      edit6.Text:=inttohex(changereg.new_edi,8);
-    end;
+      edtEDI.Text:=inttohex(changereg.new_edi,8);
+
     if changereg.change_ebp then
-    begin
-      checkbox7.checked:=true;
-      edit7.Text:=inttohex(changereg.new_ebp,8);
-    end;
+      edtEBP.Text:=inttohex(changereg.new_ebp,8);
+
     if changereg.change_esp then
-    begin
-      checkbox8.checked:=true;
-      edit8.Text:=inttohex(changereg.new_esp,8);
-    end;
+      edtESP.Text:=inttohex(changereg.new_esp,8);
+
     if changereg.change_eip then
-    begin
-      checkbox9.checked:=true;
-      edit9.Text:=inttohex(changereg.new_eip,8);
-    end;
+      edtEIP.Text:=inttohex(changereg.new_eip,8);
+    {$ifdef cpu64}
+    if changereg.change_r8 then
+      edtR8.Text:=inttohex(changereg.new_r8,8);
+
+    if changereg.change_r9 then
+      edtR9.Text:=inttohex(changereg.new_r9,8);
+
+    if changereg.change_r10 then
+      edtR10.Text:=inttohex(changereg.new_r10,8);
+
+    if changereg.change_r11 then
+      edtR11.Text:=inttohex(changereg.new_r11,8);
+
+    if changereg.change_r12 then
+      edtR12.Text:=inttohex(changereg.new_r12,8);
+
+    if changereg.change_r13 then
+      edtR13.Text:=inttohex(changereg.new_r13,8);
+
+    if changereg.change_r14 then
+      edtR14.Text:=inttohex(changereg.new_r14,8);
+
+    if changereg.change_r15 then
+      edtR15.Text:=inttohex(changereg.new_r15,8);
+    {$endif}
+
 
     if changereg.change_cf then
-    begin
-      checkbox10.checked:=true;
-      checkbox16.checked:=changereg.new_cf;
-    end;
+      cbCF.checked:=changereg.new_cf;
+
     if changereg.change_pf then
-    begin
-      checkbox11.checked:=true;
-      checkbox17.checked:=changereg.new_pf;
-    end;
+      cbPF.checked:=changereg.new_pf;
+
     if changereg.change_af then
-    begin
-      checkbox12.checked:=true;
-      checkbox18.checked:=changereg.new_af;
-    end;
+      cbAF.checked:=changereg.new_af;
+
     if changereg.change_zf then
-    begin
-      checkbox13.checked:=true;
-      checkbox19.checked:=changereg.new_zf;
-    end;
+      cbZF.checked:=changereg.new_zf;
+
     if changereg.change_sf then
-    begin
-      checkbox14.checked:=true;
-      checkbox20.checked:=changereg.new_sf;
-    end;
+      cbSF.checked:=changereg.new_sf;
+
     if changereg.change_of then
-    begin
-      checkbox15.checked:=true;
-      checkbox21.checked:=changereg.new_of;
-    end;
+      cbOF.checked:=changereg.new_of;
+
 
   end;
 

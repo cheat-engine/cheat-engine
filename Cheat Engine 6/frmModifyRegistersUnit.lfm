@@ -1,11 +1,11 @@
 object frmModifyRegisters: TfrmModifyRegisters
-  Left = 922
-  Height = 445
-  Top = 284
-  Width = 305
+  Left = 729
+  Height = 462
+  Top = 262
+  Width = 274
   Caption = 'Modify register(s) at xxxxxxxx'
-  ClientHeight = 445
-  ClientWidth = 305
+  ClientHeight = 462
+  ClientWidth = 274
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -14,593 +14,469 @@ object frmModifyRegisters: TfrmModifyRegisters
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Label1: TLabel
-    Left = 3
+    Left = 6
     Height = 14
-    Top = 6
-    Width = 22
+    Top = 32
+    Width = 25
     Caption = 'EAX'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label2: TLabel
-    Left = 3
+    Left = 6
     Height = 14
-    Top = 30
-    Width = 22
+    Top = 55
+    Width = 25
     Caption = 'EBX'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label3: TLabel
-    Left = 3
-    Height = 14
-    Top = 54
-    Width = 22
-    Caption = 'ECX'
-    ParentColor = False
-  end
-  object Label4: TLabel
-    Left = 2
+    Left = 6
     Height = 14
     Top = 78
-    Width = 23
-    Caption = 'EDX'
+    Width = 25
+    Caption = 'ECX'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
+  end
+  object Label4: TLabel
+    Left = 6
+    Height = 14
+    Top = 101
+    Width = 25
+    Caption = 'EDX'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
   end
   object Label5: TLabel
-    Left = 7
+    Left = 6
     Height = 14
-    Top = 102
-    Width = 18
+    Top = 124
+    Width = 25
     Caption = 'ESI'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label6: TLabel
     Left = 6
     Height = 14
-    Top = 126
-    Width = 19
+    Top = 147
+    Width = 25
     Caption = 'EDI'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label7: TLabel
-    Left = 3
+    Left = 6
     Height = 14
-    Top = 150
-    Width = 22
+    Top = 170
+    Width = 25
     Caption = 'EBP'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label8: TLabel
-    Left = 3
+    Left = 6
     Height = 14
-    Top = 174
-    Width = 22
+    Top = 193
+    Width = 25
     Caption = 'ESP'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Label9: TLabel
-    Left = 7
+    Left = 6
     Height = 14
-    Top = 198
-    Width = 18
+    Top = 216
+    Width = 25
     Caption = 'EIP'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
-  end
-  object Label10: TLabel
-    Left = 232
-    Height = 14
-    Top = 24
-    Width = 14
-    Caption = 'CF'
-    ParentColor = False
-  end
-  object Label11: TLabel
-    Left = 232
-    Height = 14
-    Top = 48
-    Width = 14
-    Caption = 'PF'
-    ParentColor = False
-  end
-  object Label12: TLabel
-    Left = 232
-    Height = 14
-    Top = 72
-    Width = 14
-    Caption = 'AF'
-    ParentColor = False
-  end
-  object Label13: TLabel
-    Left = 232
-    Height = 14
-    Top = 96
-    Width = 14
-    Caption = 'ZF'
-    ParentColor = False
-  end
-  object Label14: TLabel
-    Left = 232
-    Height = 14
-    Top = 120
-    Width = 14
-    Caption = 'SF'
-    ParentColor = False
-  end
-  object Label15: TLabel
-    Left = 232
-    Height = 14
-    Top = 144
-    Width = 15
-    Caption = 'OF'
-    ParentColor = False
+    ParentFont = False
   end
   object Label16: TLabel
-    Left = 248
+    Left = 230
     Height = 14
-    Top = 8
+    Top = 24
     Width = 26
     Caption = 'Flags'
     ParentColor = False
   end
-  object CheckBox1: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 1
-    Width = 20
-    OnClick = CheckBox1Click
+  object edtEAX: TEdit
+    Left = 32
+    Height = 21
+    Top = 29
+    Width = 171
     TabOrder = 0
   end
-  object Edit1: TEdit
-    Left = 50
+  object edtEBX: TEdit
+    Left = 32
     Height = 21
-    Top = 3
+    Top = 52
     Width = 171
-    Enabled = False
     TabOrder = 1
   end
-  object CheckBox2: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 25
-    Width = 20
-    OnClick = CheckBox2Click
-    TabOrder = 2
-  end
-  object Edit2: TEdit
-    Left = 50
-    Height = 21
-    Top = 27
-    Width = 171
-    Enabled = False
-    TabOrder = 3
-  end
-  object CheckBox3: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 49
-    Width = 20
-    OnClick = CheckBox3Click
-    TabOrder = 4
-  end
-  object Edit3: TEdit
-    Left = 50
-    Height = 21
-    Top = 51
-    Width = 171
-    Enabled = False
-    TabOrder = 5
-  end
-  object CheckBox4: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 73
-    Width = 20
-    OnClick = CheckBox4Click
-    TabOrder = 6
-  end
-  object Edit4: TEdit
-    Left = 50
+  object edtECX: TEdit
+    Left = 32
     Height = 21
     Top = 75
     Width = 171
-    Enabled = False
+    TabOrder = 2
+  end
+  object edtEDX: TEdit
+    Left = 32
+    Height = 21
+    Top = 98
+    Width = 171
+    TabOrder = 3
+  end
+  object edtESI: TEdit
+    Left = 32
+    Height = 21
+    Top = 121
+    Width = 171
+    TabOrder = 4
+  end
+  object edtEDI: TEdit
+    Left = 32
+    Height = 21
+    Top = 144
+    Width = 171
+    TabOrder = 5
+  end
+  object edtEBP: TEdit
+    Left = 32
+    Height = 21
+    Top = 167
+    Width = 171
+    TabOrder = 6
+  end
+  object edtESP: TEdit
+    Left = 32
+    Height = 21
+    Top = 190
+    Width = 171
     TabOrder = 7
   end
-  object CheckBox5: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 97
-    Width = 20
-    OnClick = CheckBox5Click
+  object edtEIP: TEdit
+    Left = 32
+    Height = 21
+    Top = 213
+    Width = 171
     TabOrder = 8
   end
-  object Edit5: TEdit
-    Left = 50
-    Height = 21
-    Top = 99
-    Width = 171
-    Enabled = False
+  object cbCF: TCheckBox
+    Left = 223
+    Height = 19
+    Top = 42
+    Width = 33
+    BidiMode = bdRightToLeft
+    Caption = 'CF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 9
   end
-  object CheckBox6: TCheckBox
-    Left = 27
+  object cbPF: TCheckBox
+    Left = 223
     Height = 19
-    Top = 121
-    Width = 20
-    OnClick = CheckBox6Click
+    Top = 66
+    Width = 33
+    AllowGrayed = True
+    BidiMode = bdRightToLeft
+    Caption = 'PF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 10
   end
-  object Edit6: TEdit
-    Left = 50
-    Height = 21
-    Top = 123
-    Width = 171
-    Enabled = False
+  object cbAF: TCheckBox
+    Left = 223
+    Height = 19
+    Top = 90
+    Width = 33
+    AllowGrayed = True
+    BidiMode = bdRightToLeft
+    Caption = 'AF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 11
   end
-  object CheckBox7: TCheckBox
-    Left = 27
+  object cbZF: TCheckBox
+    Left = 223
     Height = 19
-    Top = 145
-    Width = 20
-    OnClick = CheckBox7Click
+    Top = 114
+    Width = 33
+    AllowGrayed = True
+    BidiMode = bdRightToLeft
+    Caption = 'ZF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 12
   end
-  object Edit7: TEdit
-    Left = 50
-    Height = 21
-    Top = 147
-    Width = 171
-    Enabled = False
+  object cbSF: TCheckBox
+    Left = 223
+    Height = 19
+    Top = 138
+    Width = 33
+    AllowGrayed = True
+    BidiMode = bdRightToLeft
+    Caption = 'SF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 13
   end
-  object CheckBox8: TCheckBox
-    Left = 27
+  object cbOF: TCheckBox
+    Left = 222
     Height = 19
-    Top = 169
-    Width = 20
-    OnClick = CheckBox8Click
+    Top = 162
+    Width = 34
+    AllowGrayed = True
+    BidiMode = bdRightToLeft
+    Caption = 'OF'
+    ParentBidiMode = False
+    State = cbGrayed
     TabOrder = 14
   end
-  object Edit8: TEdit
-    Left = 50
-    Height = 21
-    Top = 171
-    Width = 171
-    Enabled = False
-    TabOrder = 15
-  end
-  object CheckBox9: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 193
-    Width = 20
-    OnClick = CheckBox9Click
-    TabOrder = 16
-  end
-  object Edit9: TEdit
-    Left = 50
-    Height = 21
-    Top = 195
-    Width = 171
-    Enabled = False
-    TabOrder = 17
-  end
-  object CheckBox10: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 22
-    Width = 20
-    OnClick = CheckBox10Click
-    TabOrder = 18
-  end
-  object CheckBox11: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 46
-    Width = 20
-    OnClick = CheckBox11Click
-    TabOrder = 19
-  end
-  object CheckBox12: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 70
-    Width = 20
-    OnClick = CheckBox12Click
-    TabOrder = 20
-  end
-  object CheckBox13: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 94
-    Width = 20
-    OnClick = CheckBox13Click
-    TabOrder = 21
-  end
-  object CheckBox14: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 118
-    Width = 20
-    OnClick = CheckBox14Click
-    TabOrder = 22
-  end
-  object CheckBox15: TCheckBox
-    Left = 248
-    Height = 19
-    Top = 142
-    Width = 20
-    OnClick = CheckBox15Click
-    TabOrder = 23
-  end
-  object CheckBox16: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 22
-    Width = 20
-    Enabled = False
-    TabOrder = 24
-  end
-  object CheckBox17: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 46
-    Width = 20
-    Enabled = False
-    TabOrder = 25
-  end
-  object CheckBox18: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 70
-    Width = 20
-    Enabled = False
-    TabOrder = 26
-  end
-  object CheckBox19: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 94
-    Width = 20
-    Enabled = False
-    TabOrder = 27
-  end
-  object CheckBox20: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 118
-    Width = 20
-    Enabled = False
-    TabOrder = 28
-  end
-  object CheckBox21: TCheckBox
-    Left = 264
-    Height = 19
-    Top = 142
-    Width = 20
-    Enabled = False
-    TabOrder = 29
-  end
   object Button1: TButton
-    Left = 91
+    Left = 72
     Height = 28
-    Top = 414
+    Top = 431
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
     Default = True
     OnClick = Button1Click
-    TabOrder = 30
+    TabOrder = 15
   end
   object Button2: TButton
-    Left = 171
+    Left = 152
     Height = 28
-    Top = 414
+    Top = 431
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 31
+    TabOrder = 16
   end
   object Label17: TLabel
-    Left = 10
+    Left = 14
     Height = 14
-    Top = 222
-    Width = 15
+    Top = 239
+    Width = 17
     Caption = 'R8'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox22: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 217
-    Width = 20
-    OnChange = CheckBox22Change
-    OnClick = CheckBox9Click
-    TabOrder = 32
-  end
-  object Edit10: TEdit
-    Left = 50
+  object edtR8: TEdit
+    Left = 32
     Height = 21
-    Top = 219
+    Top = 236
     Width = 171
-    Enabled = False
-    TabOrder = 33
+    TabOrder = 17
   end
   object Label18: TLabel
-    Left = 10
+    Left = 14
     Height = 14
-    Top = 246
-    Width = 15
+    Top = 262
+    Width = 17
     Caption = 'R9'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox23: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 241
-    Width = 20
-    OnChange = CheckBox23Change
-    OnClick = CheckBox9Click
-    TabOrder = 34
-  end
-  object Edit11: TEdit
-    Left = 50
+  object edtR9: TEdit
+    Left = 32
     Height = 21
-    Top = 243
+    Top = 259
     Width = 171
-    Enabled = False
-    TabOrder = 35
+    TabOrder = 18
   end
   object Label19: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 270
-    Width = 21
+    Top = 285
+    Width = 25
     Caption = 'R10'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox24: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 265
-    Width = 20
-    OnChange = CheckBox24Change
-    OnClick = CheckBox9Click
-    TabOrder = 36
-  end
-  object Edit12: TEdit
-    Left = 50
+  object edtR10: TEdit
+    Left = 32
     Height = 21
-    Top = 267
+    Top = 282
     Width = 171
-    Enabled = False
-    TabOrder = 37
+    TabOrder = 19
   end
   object Label20: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 294
-    Width = 21
+    Top = 308
+    Width = 25
     Caption = 'R11'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox25: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 289
-    Width = 20
-    OnChange = CheckBox25Change
-    OnClick = CheckBox9Click
-    TabOrder = 38
-  end
-  object Edit13: TEdit
-    Left = 50
+  object edtR11: TEdit
+    Left = 32
     Height = 21
-    Top = 291
+    Top = 305
     Width = 171
-    Enabled = False
-    TabOrder = 39
+    TabOrder = 20
   end
   object Label21: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 318
-    Width = 21
+    Top = 331
+    Width = 25
     Caption = 'R12'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox26: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 313
-    Width = 20
-    OnChange = CheckBox26Change
-    OnClick = CheckBox9Click
-    TabOrder = 40
-  end
-  object Edit14: TEdit
-    Left = 50
+  object edtR12: TEdit
+    Left = 32
     Height = 21
-    Top = 315
+    Top = 328
     Width = 171
-    Enabled = False
-    TabOrder = 41
+    TabOrder = 21
   end
   object Label22: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 342
-    Width = 21
+    Top = 354
+    Width = 25
     Caption = 'R13'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox27: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 337
-    Width = 20
-    OnChange = CheckBox27Change
-    OnClick = CheckBox9Click
-    TabOrder = 42
-  end
-  object Edit15: TEdit
-    Left = 50
+  object edtR13: TEdit
+    Left = 32
     Height = 21
-    Top = 339
+    Top = 351
     Width = 171
-    Enabled = False
-    TabOrder = 43
+    TabOrder = 22
   end
   object Label23: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 366
-    Width = 21
+    Top = 377
+    Width = 25
     Caption = 'R14'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox28: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 361
-    Width = 20
-    OnChange = CheckBox28Change
-    OnClick = CheckBox9Click
-    TabOrder = 44
-  end
-  object Edit16: TEdit
-    Left = 50
+  object edtR14: TEdit
+    Left = 32
     Height = 21
-    Top = 363
+    Top = 374
     Width = 171
-    Enabled = False
-    TabOrder = 45
+    TabOrder = 23
   end
   object Label24: TLabel
-    Left = 4
+    Left = 6
     Height = 14
-    Top = 390
-    Width = 21
+    Top = 400
+    Width = 25
     Caption = 'R15'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Courier'
+    Font.Pitch = fpFixed
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
-  object CheckBox29: TCheckBox
-    Left = 27
-    Height = 19
-    Top = 385
-    Width = 20
-    OnChange = CheckBox29Change
-    OnClick = CheckBox9Click
-    TabOrder = 46
-  end
-  object Edit17: TEdit
-    Left = 50
+  object edtR15: TEdit
+    Left = 32
     Height = 21
-    Top = 387
+    Top = 397
     Width = 171
-    Enabled = False
-    TabOrder = 47
+    TabOrder = 24
+  end
+  object Label25: TLabel
+    Left = 8
+    Height = 14
+    Top = 0
+    Width = 259
+    Caption = 'Leave blank if you don''t want to edit the register or flag'
+    ParentColor = False
   end
 end
