@@ -372,7 +372,7 @@ begin
   end
   else
   begin
-    edtAddress.Width:=rbFindAddress.Width;
+    edtAddress.Width:=cbValueType.left-edtAddress.Left-3;
     cbValueType.Visible:=true;
 
   end;

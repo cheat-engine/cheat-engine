@@ -338,7 +338,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Width = 93
       Caption = 'Address to find:'
       Checked = True
-      OnClick = rbFindValueClick
+      OnChange = rbFindValueClick
       TabOrder = 0
       TabStop = True
     end
@@ -348,7 +348,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       Top = 4
       Width = 82
       Caption = 'Value to find:'
-      OnClick = rbFindValueClick
+      OnChange = rbFindValueClick
       TabOrder = 1
     end
   end

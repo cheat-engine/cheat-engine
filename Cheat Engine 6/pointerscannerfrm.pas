@@ -15,7 +15,7 @@ uses
 const staticscanner_done=wm_user+1;
 const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
-const starttimer=wm_user+4;
+const wm_starttimer=wm_user+4;
 
 type
   TfrmPointerscanner = class;
@@ -266,7 +266,7 @@ type
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
     procedure openscanner(var message: tmessage); message open_scanner;
-    procedure _starttimer(var message: TMessage); message starttimer;
+    procedure _starttimer(var message: TMessage); message wm_starttimer;
     procedure doneui;
     procedure resyncloadedmodulelist;
     procedure OpenPointerfile(filename: string);
@@ -304,6 +304,7 @@ var
 procedure TFrmpointerscanner.doneui;
 begin
   progressbar1.position:=0;
+  progressbar1.visible:=false;
 
   pgcPScandata.Visible:=false;
   open1.Enabled:=true;
@@ -789,7 +790,7 @@ begin
       try
         ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar, noreadonly);
 
-        postmessage(ownerform.Handle, starttimer, 0,0);
+        postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
 
       except
@@ -942,6 +943,7 @@ begin
     staticscanner:=TStaticscanner.Create(true);
 
     label5.caption:='Generating pointermap...';
+    progressbar1.Visible:=true;
 
     try
       staticscanner.ownerform:=self;
@@ -1575,6 +1577,7 @@ begin
   rescan:=trescanpointers.create(true);
   rescan.ownerform:=self;
   rescan.progressbar:=progressbar1;
+  progressbar1.visible:=true;
 
 
 
@@ -1729,6 +1732,7 @@ end;
 
 procedure Tfrmpointerscanner._starttimer(var message: TMessage);
 begin
+  ProgressBar1.Visible:=false;
   timer2.enabled:=true;
 end;
 

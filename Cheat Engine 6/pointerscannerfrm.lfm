@@ -22,6 +22,7 @@ object frmPointerScanner: TfrmPointerScanner
     Align = alBottom
     Step = 1
     TabOrder = 0
+    Visible = False
   end
   object Panel1: TPanel
     Left = 0
