@@ -26,19 +26,33 @@ mtInformation=2
 mtConfirmation=3
 
 --message dialog button types
-mbOk=0
-mbYesNo=1
-mbYesNoCancel=2
-mbOkCancel=3
+mbYes=0
+mbNo=1
+mbOK=2
+mbCancel=3
+mbAbort=4
+mbRetry=5
+mbIgnore=6
+mbAll=7
+mbNoToAll=8
+mbYesToAll=9
+mbHelp=10
+mbClose=11
+
 
 --message dialog results:
 mrNone = 0;
-mrOK = 1;
-mrCancel = 2;
-mrYes = 6;
-mrNo = 7;
-
-
+mrOK = mrNone + 1
+mrCancel = mrNone + 2
+mrAbort = mrNone + 3
+mrRetry = mrNone + 4
+mrIgnore = mrNone + 5
+mrYes = mrNone + 6
+mrNo = mrNone + 7
+mrAll = mrNone + 8
+mrNoToAll = mrNone + 9
+mrYesToAll = mrNone + 10
+mrLast = mrYesToAll
 
 
 --Variable types

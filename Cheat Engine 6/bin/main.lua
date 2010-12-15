@@ -147,7 +147,7 @@ require("defines")
 
 
 
---messageDialog(text, type, buttons)
+--messageDialog(text, type, buttons...) : pops up a message with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 
 --speedhack_setSpeed(speed)
 --injectDll(filename): Injects a dll, and returns true on success

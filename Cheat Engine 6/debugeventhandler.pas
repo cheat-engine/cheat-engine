@@ -575,15 +575,17 @@ begin
   end else
   begin
     OutputDebugString('Unexpected breakpoint');
-    if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
-      dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
-    else
+    if (CurrentDebuggerInterface.name='Windows Debugger') then
     begin
-      dwContinueStatus:=DBG_CONTINUE;
-      TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
-    end;
-
-     //DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+      if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
+        dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
+      else
+      begin
+        dwContinueStatus:=DBG_CONTINUE;
+        TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+      end;
+    end
+    else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
   end;
 
   Result := True;

@@ -2367,18 +2367,39 @@ var
   buttontype: integer;
 
   r: integer;
+
+  i: integer;
+  b: TMsgDlgButtons;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
-  if paramcount=3 then
+  if paramcount>=3 then
   begin
-    message:=lua_tostring(L,-3);
-    dialogtype:=lua_tointeger(L,-2);
-    buttontype:=lua_tointeger(L,-1);
+    message:=lua_tostring(L,-paramcount);
+    dialogtype:=lua_tointeger(L,-paramcount+1);
+    b:=[];
+    for i:=-paramcount+2 to -1 do
+    begin
+      buttontype:=lua_tointeger(L,i);
+      case buttontype of
+        0:  b:=b+[mbYes];
+        1:  b:=b+[mbNo];
+        2:  b:=b+[mbOK];
+        3:  b:=b+[mbCancel];
+        4:  b:=b+[mbAbort];
+        5:  b:=b+[mbRetry];
+        6:  b:=b+[mbIgnore];
+        7:  b:=b+[mbAll];
+        8:  b:=b+[mbNoToAll];
+        9:  b:=b+[mbYesToAll];
+        10: b:=b+[mbHelp];
+        11: b:=b+[mbClose];
+        else b:=b+[mbyes];
+      end;
+    end;
     lua_pop(L, paramcount);
 
-    r:=ce_messageDialog(message, dialogtype, buttontype);
-
+    r:=ce_messageDialog_lua(message, dialogtype, b);
     lua_pushinteger(L,r);
     result:=1;
 

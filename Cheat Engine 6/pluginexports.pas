@@ -105,6 +105,7 @@ procedure ce_control_onClickLua(c: pointer; f: integer); stdcall;
 
 procedure ce_object_destroy(o: pointer); stdcall;
 function ce_messageDialog(message: pchar; messagetype: integer; buttoncombination: integer): integer; stdcall;
+function ce_messageDialog_Lua(message: pchar; messagetype: integer; buttoncombination: TMsgDlgButtons): integer;
 function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;
 
 implementation
@@ -1427,6 +1428,7 @@ type
 function ce_debug_setBreakpoint2(params: pointer): pointer;
 var p: PSetBreakpointParams;
 begin
+  p:=params;
   if startdebuggerifneeded(false) then
   begin
     case p.trigger of
@@ -2017,6 +2019,7 @@ type Tp= record
   end;
 var p: ^tp;
 begin
+  p:=params;
   result:=nil;
   p.control.Align:=p.align;
 end;
@@ -2064,6 +2067,7 @@ type tp= record
 end;
 var p:^tp;
 begin
+  p:=params;
   result:=pointer(MessageDlg(p.message, p.messagetype, p.buttons,0));
 end;
 
@@ -2093,6 +2097,29 @@ begin
   end;
 
   result:=integer(pluginsync(ce_messageDialog2, @p));
+end;
+
+function ce_messageDialog_Lua(message: pchar; messagetype: integer; buttoncombination: TMsgDlgButtons): integer;
+var p: record
+    message: pchar;
+    messagetype: TMsgDlgType;
+    buttons: TMsgDlgButtons;
+end;
+
+begin
+  p.message:=message;
+  case messagetype of
+    0: p.messagetype:=mtWarning;
+    1: p.messagetype:=mtError;
+    2: p.messagetype:=mtInformation;
+    3: p.messagetype:=mtConfirmation;
+    else
+      p.messagetype:=mtInformation;
+  end;
+
+  p.buttons:=buttoncombination;
+  result:=integer(pluginsync(ce_messageDialog2, @p));
+
 end;
 
 function ce_speedhack2_setSpeed(params: pointer): pointer;
