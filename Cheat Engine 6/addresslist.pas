@@ -25,6 +25,7 @@ type
     fOnDropByListview: TDropByListviewEvent;
     fOnAutoAssemblerEdit: TAutoAssemblerEditEvent;
 
+
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -38,6 +39,7 @@ type
     procedure TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
     procedure TreeviewDblClick(Sender: TObject);
     procedure TreeviewMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
    // procedure TreeviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     procedure descriptiondblclick(node: TTreenode);
@@ -980,6 +982,8 @@ begin
   //Because the multiselect of lazarus is horribly broken in the build I use, I've just implemented it myself
 
   shift:=GetKeyShiftState;
+  if (GetKeyState(VK_RBUTTON) and $8000)<>0 then
+    Include(shift,ssRight);
 
   if Treeview.Selected<>nil then
   begin
@@ -1010,11 +1014,15 @@ begin
     else
     begin
       //else unselect all old selections (and select the current item)
-      for i:=0 to Count-1 do
-        MemRecItems[i].isSelected:=false;
+      //unless it's a rightclick on something that is already selected
+      if not ((ssRight in shift) and (TMemoryRecord(Treeview.Selected.data).isSelected) ) then
+      begin
+        for i:=0 to Count-1 do
+          MemRecItems[i].isSelected:=false;
 
-      TMemoryRecord(Treeview.Selected.data).isSelected:=true;
-      lastSelected:=Treeview.Selected.AbsoluteIndex;
+        TMemoryRecord(Treeview.Selected.data).isSelected:=true;
+        lastSelected:=Treeview.Selected.AbsoluteIndex;
+      end;
     end;
   end;
 end;
