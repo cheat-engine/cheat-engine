@@ -56,6 +56,7 @@ type
     procedure Execute; override;
 
   public
+    InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
     {$ifdef cpu32} //xp hack
     procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
     procedure UnsetBreakpoint(breakpoint: PBreakpoint);
@@ -117,7 +118,7 @@ var
 implementation
 
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
-     frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler;
+     frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler, pluginexports;
 
 //-----------Inside thread code---------
 
@@ -150,7 +151,7 @@ begin
 
       if createprocess then
       begin
-        dwCreationFlags:=CREATE_SUSPENDED;
+        dwCreationFlags:=DEBUG_PROCESS;
 
         zeromemory(@startupinfo,sizeof(startupinfo));
         zeromemory(@processinfo,sizeof(processinfo));
@@ -172,23 +173,23 @@ begin
         ) =false then
         begin
           error:=getlasterror;
-          raise exception.create('CreateProcess failed:'+inttostr(error));
+          ce_showmessage(pchar('CreateProcess failed:'+inttostr(error)));
+          exit;
         end;
 
 
         processhandler.processid:=processinfo.dwProcessId;
+        Open_Process;
+        symhandler.reinitialize;
+
         closehandle(processinfo.hProcess);
 
         fNeedsToSetEntryPointBreakpoint:=true;
-      end else fNeedsToSetEntryPointBreakpoint:=false;
-
-      if not DebugActiveProcess(processid) then
-        exit;
-
-      if createprocess then
+      end else
       begin
-        ResumeThread(processinfo.hthread);
-        closehandle(processinfo.hThread);
+        fNeedsToSetEntryPointBreakpoint:=false;
+        if not DebugActiveProcess(processid) then
+          exit;
       end;
 
       currentprocesid := processid;
@@ -204,6 +205,7 @@ begin
 
           if pluginhandler.handledebuggerplugins(@debugEvent) = 1 then continue; //plugin doesn't want ce to handle the event
 
+          ContinueStatus:=DBG_CONTINUE;
           debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
           if debugging then

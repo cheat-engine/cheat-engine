@@ -572,7 +572,19 @@ begin
     end;
 
     dwContinueStatus:=DBG_CONTINUE;
-  end else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+  end else
+  begin
+    OutputDebugString('Unexpected breakpoint');
+    if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
+      dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
+    else
+    begin
+      dwContinueStatus:=DBG_CONTINUE;
+      TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+    end;
+
+     //DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+  end;
 
   Result := True;
 end;
@@ -581,6 +593,8 @@ function TDebugThreadHandler.HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; 
 var
   exceptionAddress: ptrUint;
 begin
+
+
   OutputDebugString('HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
@@ -592,11 +606,13 @@ begin
       OutputDebugString('EXCEPTION_BREAKPOINT');
 
       //if this is the first breakpoint exception check if it needs to tset the entry point bp
+
       if TDebuggerThread(debuggerthread).NeedsToSetEntryPointBreakpoint then
       begin
         OutputDebugString('Calling SetEntryPointBreakpoint');
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
       end;
+
 
 
       Result := DispatchBreakpoint(exceptionAddress, dwContinueStatus);
@@ -885,6 +901,9 @@ begin
     currentthread.isHandled:=false;
 
   OutputDebugString('Returned from HandleDebugEvent');
+
+
+
 end;
 
 procedure TDebugEventHandler.updatethreadlist;
