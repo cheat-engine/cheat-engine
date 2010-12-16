@@ -493,20 +493,26 @@ begin
       begin
         //update all threads with the new debug register data
 
-        for i := 0 to ThreadList.Count - 1 do
-        begin
-          currentthread := threadlist.items[i];
-          currentthread.suspend;
-          currentthread.fillContext;
-          case breakpoint.debugregister of
-            0: currentthread.context.Dr0 := breakpoint.address;
-            1: currentthread.context.Dr1 := breakpoint.address;
-            2: currentthread.context.Dr2 := breakpoint.address;
-            3: currentthread.context.Dr3 := breakpoint.address;
+        ThreadListCS.enter;
+        try
+          for i := 0 to ThreadList.Count - 1 do
+          begin
+            currentthread := threadlist.items[i];
+            currentthread.suspend;
+            currentthread.fillContext;
+            case breakpoint.debugregister of
+              0: currentthread.context.Dr0 := breakpoint.address;
+              1: currentthread.context.Dr1 := breakpoint.address;
+              2: currentthread.context.Dr2 := breakpoint.address;
+              3: currentthread.context.Dr3 := breakpoint.address;
+            end;
+            currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
+            currentthread.setContext;
+            currentthread.resume;
           end;
-          currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
-          currentthread.setContext;
-          currentthread.resume;
+
+        finally
+          ThreadListCS.leave;
         end;
 
       end;
@@ -659,7 +665,14 @@ begin
       if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
     end else raise exception.create('Debugger interface '+CurrentDebuggerInterface.name+' does not support software breakpoints');
 
+  end
+  else
+  if bpm=bpmDebugRegister then
+  begin
+    if (debugregister<0) or (debugregister>3) then raise exception.create('AddBreakpoint: An invalid debug register is used');
   end;
+
+
 
   getmem(newbp, sizeof(TBreakPoint));
   ZeroMemory(newbp, sizeof(TBreakPoint));
@@ -682,7 +695,9 @@ begin
 
 
   //add to the bp list
+  breakpointcs.enter;
   BreakpointList.Add(newbp);
+  breakpointcs.leave;
 
   //apply this breakpoint
   SetBreakpoint(newbp);
@@ -812,24 +827,31 @@ var
   i: integer;
   available: array [0..3] of boolean;
 begin
-  Result := -1;
 
-  for i := 0 to 3 do
-    available[i] := True;
+  breakpointcs.enter;
+  try
+    Result := -1;
 
-  for i := 0 to breakpointlist.Count - 1 do
-  begin
-    if (pbreakpoint(breakpointlist.Items[i])^.breakpointMethod = bpmDebugRegister) and
-      (pbreakpoint(breakpointlist.Items[i])^.active) then
-      available[pbreakpoint(breakpointlist.Items[i])^.debugRegister] := False;
-  end;
+    for i := 0 to 3 do
+      available[i] := True;
 
-  for i := 0 to 3 do
-    if available[i] then
+    for i := 0 to breakpointlist.Count - 1 do
     begin
-      Result := i;
-      break;
+      if (pbreakpoint(breakpointlist.Items[i])^.breakpointMethod = bpmDebugRegister) and
+        (pbreakpoint(breakpointlist.Items[i])^.active) then
+        available[pbreakpoint(breakpointlist.Items[i])^.debugRegister] := False;
     end;
+
+    for i := 0 to 3 do
+      if available[i] then
+      begin
+        Result := i;
+        break;
+      end;
+
+  finally
+    breakpointcs.leave;
+  end;
 
 end;
 
@@ -966,8 +988,17 @@ function TDebuggerthread.setChangeRegBreakpoint(regmod: PRegisterModificationBP)
 var
   method: TBreakpointMethod;
   useddebugregister: integer;
+  address: ptruint;
+  bp: pbreakpoint;
 begin
   result:=nil;
+
+  address:=regmod^.address;
+  bp:=isBreakpoint(address);
+
+  if bp<>nil then
+    RemoveBreakpoint(bp);
+
 
   method:=bpmDebugRegister;
   usedDebugRegister := GetUsableDebugRegister;
@@ -983,6 +1014,8 @@ begin
 
   //todo: Make this breakpoint show up in the memory view
   result:=AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
+
+
 end;
 
 procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string='');
@@ -1452,7 +1485,7 @@ begin
         begin
           bp:=ToggleOnExecuteBreakpoint(runTillAddress,fcurrentThread.threadid);
           if bp=nil then
-            exit; //error
+            exit; //error,failure setting the breakpoint so exit. don't continue
 
           bp.OneTimeOnly:=true;
           bp.StepOverBp:=true;

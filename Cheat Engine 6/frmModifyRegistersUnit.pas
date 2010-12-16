@@ -89,6 +89,7 @@ begin
   if debuggerthread<>nil then
   begin
     x:=debuggerthread.isBreakpoint(address);
+
     if x<>nil then
     begin
 
@@ -186,7 +187,6 @@ var itsin:boolean;
     i,drnr:integer;
     tempregedit:tregistermodificationBP;
 begin
-
   tempregedit.address:=address;
   tempregedit.change_eax:=edtEAX.text<>'';
   tempregedit.change_ebx:=edtEBX.text<>'';
@@ -246,6 +246,7 @@ begin
   begin
     if debuggerthread<>nil then
       debuggerthread.setChangeRegBreakpoint(@tempregedit);
+
 
   end;
 

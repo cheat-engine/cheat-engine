@@ -592,6 +592,8 @@ begin
     OutputDebugString('Unexpected breakpoint');
     if (CurrentDebuggerInterface.name='Windows Debugger') then
     begin
+      onAttachEvent.SetEvent;
+
       if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
         dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
       else
@@ -705,11 +707,13 @@ begin
   begin
     ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
     ProcessHandler.processid     := debugEvent.dwProcessId;
+
     Open_Process;
     symhandler.reinitialize;
   end;
 
-  onAttachEvent.SetEvent;
+  if (CurrentDebuggerInterface.name<>'Windows Debugger') then
+    onAttachEvent.SetEvent;
 
   Result := true;
   dwContinueStatus:=DBG_CONTINUE;

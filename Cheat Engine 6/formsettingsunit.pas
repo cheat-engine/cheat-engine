@@ -70,7 +70,6 @@ type
     EditFreezeInterval: TEdit;
     GroupBox1: TGroupBox;
     cbShowAsSigned: TCheckBox;
-    cbBinariesAsDecimal: TCheckBox;
     cbsimplecopypaste: TCheckBox;
     cbUpdatefoundList: TCheckBox;
     editUpdatefoundInterval: TEdit;
@@ -357,7 +356,6 @@ begin
       reg.WriteInteger('Update interval',updateinterval);
       reg.WriteInteger('Freeze interval',freezeinterval);
       reg.writebool('Show values as signed',cbShowAsSigned.checked);
-      reg.writebool('Handle binarys as decimals',cbBinariesAsDecimal.checked);
       reg.WriteInteger('Network Update Interval',Networkupdateinterval);
 
       reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);

@@ -169,6 +169,7 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miShowAsBinary: TMenuItem;
     miZeroTerminate: TMenuItem;
     miResetRange: TMenuItem;
     miChangeColor: TMenuItem;
@@ -352,6 +353,7 @@ type
     procedure miCloseTabClick(Sender: TObject);
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
+    procedure miShowAsBinaryClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
@@ -1728,12 +1730,13 @@ procedure TMainForm.AddToRecord(Line: integer; node: TTreenode=nil; attachmode: 
 var error: Integer;
     Address: ptrUint;
     i,j:  Integer;
-    bit: Integer;
+
     tmp: string;
     pc: ^char;
 
     found: boolean;
-    bitl: integer;
+    startbit: Integer;
+    l: integer;
 
     realvartype: integer;
     tempvartype: TVariableType;
@@ -1741,21 +1744,23 @@ var error: Integer;
 
     ct: TCustomType;
     customname: string;
+    m: tmemoryrecord;
 begin
+
   //first check if this address is already in the list!
   customname:='';
 
   realvartype:=getvartype;
   if realvartype=5 then //binary
   begin
-    bit:=foundlist.getstartbit(line);
-    bitl:=foundlist.GetVarLength;
+    startbit:=foundlist.getstartbit(line);
+    l:=memscan.Getbinarysize;
   end
   else
   if realvartype=9 then //all
   begin
-    bit:=0;
-    bitl:=0;
+    l:=0;
+    startbit:=0;
     tempvartype:=TVariableType(foundlist.getstartbit(line));
     case tempvartype of
       vtByte: realvartype:=0;
@@ -1775,9 +1780,8 @@ begin
   end
   else
   begin
-    bit:=0;
-    bitl:=0;
-    bit:=foundlist.GetVarLength;
+    startbit:=0;
+    l:=foundlist.GetVarLength;
   end;
   address:=foundlist.GetAddress(line);
 
@@ -1787,7 +1791,9 @@ begin
     addressstring:=inttohex(address,8);
 
 
-  addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), customname, bit,bitl , false,node,attachmode);
+  m:=addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), customname, l,startbit , false,node,attachmode);
+  if m.VarType=vtBinary then
+    m.Extra.bitData.showasbinary:=rbBit.checked;
 end;
 
 procedure TMainForm.SetExpectedTableName;
@@ -2879,6 +2885,12 @@ begin
     addresslist.selectedRecord.allowIncrease:=true;
     addresslist.selectedRecord.active:=true;
   end;
+end;
+
+procedure TMainForm.miShowAsBinaryClick(Sender: TObject);
+begin
+  if (addresslist.selectedrecord<>nil) and (addresslist.selectedrecord.vartype=vtbinary) then
+    addresslist.selectedrecord.extra.bitData.showasbinary:=not addresslist.selectedrecord.extra.bitData.showasbinary;
 end;
 
 procedure TMainForm.miZeroTerminateClick(Sender: TObject);
@@ -4085,6 +4097,18 @@ begin
 
   BrowseThisMemoryRegion1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype=vtAutoAssembler));
   ShowAsHexadecimal1.visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and (not addresslist.selectedRecord.isGroupHeader);
+
+  if (addresslist.selectedRecord<>nil) and (addresslist.selectedrecord.VarType = vtBinary) then
+  begin
+    if addresslist.selectedRecord.Extra.bitData.showasbinary then
+      miShowAsBinary.caption:='Show as decimal'
+    else
+      miShowAsBinary.caption:='Show as binary';
+
+    miShowAsBinary.visible:=true;
+  end
+  else miShowAsBinary.visible:=false;
+
 
   if (addresslist.selectedRecord<>nil) then
   begin
@@ -5656,7 +5680,7 @@ begin
 
 
 
-  foundlist.Initialize(getvartype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
+  foundlist.Initialize(getvartype,memscan.Getbinarysize,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
 
   if memscan.lastscantype=stFirstScan then
   begin
@@ -5784,7 +5808,7 @@ begin
         setlength(bytes,0);
       end;
     end;
-    foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,formsettings.cbBinariesAsDecimal.Checked,cbunicode.checked,memscan.CustomType);
+    foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked,memscan.CustomType);
   end
   else foundlist.Initialize(vtype,memscan.CustomType); //failed scan, just reopen the addressfile
 

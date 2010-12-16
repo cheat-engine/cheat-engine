@@ -1015,7 +1015,8 @@ begin
 
   temp:=temp and (not mask); //temp now only contains the bits that are of meaning
 
-  if formsettings.cbBinariesAsDecimal.checked then
+
+  if not extra.bitData.showasbinary then
     result:=inttostr(temp)
   else
     result:=IntToBin(temp);

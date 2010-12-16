@@ -1,12 +1,12 @@
 object formSettings: TformSettings
   Left = 496
-  Height = 546
+  Height = 517
   Top = 222
-  Width = 869
+  Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 546
-  ClientWidth = 869
+  ClientHeight = 517
+  ClientWidth = 772
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -17,16 +17,16 @@ object formSettings: TformSettings
   LCLVersion = '0.9.29'
   object pnlConfig: TPanel
     Left = 0
-    Height = 499
+    Height = 470
     Top = 0
-    Width = 869
+    Width = 772
     Align = alClient
-    ClientHeight = 499
-    ClientWidth = 869
+    ClientHeight = 470
+    ClientWidth = 772
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 497
+      Height = 468
       Top = 1
       Width = 148
       Align = alLeft
@@ -57,9 +57,9 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 497
+      Height = 468
       Top = 1
-      Width = 719
+      Width = 622
       ActivePage = GeneralSettings
       Align = alClient
       TabIndex = 0
@@ -67,12 +67,12 @@ object formSettings: TformSettings
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 471
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         object Label11: TLabel
           Left = 223
           Height = 14
-          Top = 395
+          Top = 368
           Width = 14
           Caption = 'ms'
           ParentColor = False
@@ -80,7 +80,7 @@ object formSettings: TformSettings
         object Label12: TLabel
           Left = 223
           Height = 14
-          Top = 422
+          Top = 395
           Width = 14
           Caption = 'ms'
           ParentColor = False
@@ -88,7 +88,7 @@ object formSettings: TformSettings
         object Label13: TLabel
           Left = 87
           Height = 14
-          Top = 395
+          Top = 368
           Width = 73
           Caption = 'Update interval'
           ParentColor = False
@@ -96,7 +96,7 @@ object formSettings: TformSettings
         object Label14: TLabel
           Left = 90
           Height = 14
-          Top = 422
+          Top = 395
           Width = 70
           Caption = 'Freeze interval'
           ParentColor = False
@@ -104,7 +104,7 @@ object formSettings: TformSettings
         object Label18: TLabel
           Left = 1
           Height = 14
-          Top = 449
+          Top = 422
           Width = 159
           Caption = 'Found address list update interval'
           ParentColor = False
@@ -112,7 +112,7 @@ object formSettings: TformSettings
         object Label19: TLabel
           Left = 223
           Height = 14
-          Top = 449
+          Top = 422
           Width = 14
           Caption = 'ms'
           ParentColor = False
@@ -120,7 +120,7 @@ object formSettings: TformSettings
         object Label23: TLabel
           Left = 10
           Height = 14
-          Top = 345
+          Top = 318
           Width = 194
           Caption = 'Automatically attach to processes named'
           ParentColor = False
@@ -128,16 +128,16 @@ object formSettings: TformSettings
         object Label24: TLabel
           Left = 359
           Height = 14
-          Top = 345
+          Top = 318
           Width = 115
           Caption = '(Seperate entries with ; )'
           ParentColor = False
         end
         object cbShowUndo: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 2
-          Width = 105
+          Width = 107
           Caption = 'Show undo button'
           Checked = True
           State = cbChecked
@@ -145,9 +145,9 @@ object formSettings: TformSettings
         end
         object cbCenterOnPopup: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 41
-          Width = 221
+          Width = 223
           Caption = 'Center Cheat Engine when bringing to front'
           Checked = True
           State = cbChecked
@@ -157,7 +157,7 @@ object formSettings: TformSettings
           Left = 165
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-          Top = 393
+          Top = 366
           Width = 53
           ParentShowHint = False
           ShowHint = True
@@ -168,7 +168,7 @@ object formSettings: TformSettings
           Left = 165
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-          Top = 419
+          Top = 392
           Width = 53
           ParentShowHint = False
           ShowHint = True
@@ -177,45 +177,35 @@ object formSettings: TformSettings
         end
         object GroupBox1: TGroupBox
           Left = 0
-          Height = 90
+          Height = 64
           Top = 241
           Width = 602
           Caption = 'Address list specific'
-          ClientHeight = 72
+          ClientHeight = 46
           ClientWidth = 598
           TabOrder = 4
           object cbShowAsSigned: TCheckBox
             Left = 13
-            Height = 17
+            Height = 19
             Top = 0
-            Width = 176
+            Width = 178
             Caption = 'Show values as if they are signed'
             TabOrder = 0
           end
-          object cbBinariesAsDecimal: TCheckBox
-            Left = 13
-            Height = 17
-            Top = 24
-            Width = 260
-            Caption = 'Show and work with binaries as if they are decimals'
-            Checked = True
-            State = cbChecked
-            TabOrder = 1
-          end
           object cbsimplecopypaste: TCheckBox
             Left = 13
-            Height = 17
-            Top = 48
-            Width = 78
+            Height = 19
+            Top = 24
+            Width = 80
             Caption = 'Simple paste'
-            TabOrder = 2
+            TabOrder = 1
           end
         end
         object cbUpdatefoundList: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 22
-          Width = 276
+          Width = 278
           Caption = 'Update the list of found addresses even after scanning'
           Checked = True
           OnClick = cbUpdatefoundListClick
@@ -226,7 +216,7 @@ object formSettings: TformSettings
           Left = 167
           Height = 21
           Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-          Top = 445
+          Top = 418
           Width = 51
           ParentShowHint = False
           ShowHint = True
@@ -235,9 +225,9 @@ object formSettings: TformSettings
         end
         object cbHideAllWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 60
-          Width = 343
+          Width = 345
           Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
           Checked = True
           OnClick = cbHideAllWindowsClick
@@ -257,23 +247,23 @@ object formSettings: TformSettings
           Left = 209
           Height = 21
           Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-          Top = 340
+          Top = 313
           Width = 143
           TabOrder = 9
         end
         object cbAlwaysAutoAttach: TCheckBox
           Left = 10
-          Height = 17
-          Top = 367
-          Width = 332
+          Height = 19
+          Top = 340
+          Width = 334
           Caption = 'Even autoattach when another process has already been selected'
           TabOrder = 10
         end
         object cbSaveWindowPos: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 145
-          Width = 126
+          Width = 128
           Caption = 'Save window positions'
           Checked = True
           State = cbChecked
@@ -281,9 +271,9 @@ object formSettings: TformSettings
         end
         object cbProcessIcons: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 199
-          Width = 170
+          Width = 172
           Caption = 'Get process icons for processlist'
           Checked = True
           OnClick = cbProcessIconsClick
@@ -292,17 +282,17 @@ object formSettings: TformSettings
         end
         object cbProcessIconsOnly: TCheckBox
           Left = 20
-          Height = 17
+          Height = 19
           Top = 217
-          Width = 178
+          Width = 180
           Caption = 'Only show processes with an icon'
           TabOrder = 13
         end
         object cbShowMainMenu: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 181
-          Width = 99
+          Width = 101
           Caption = 'Show main menu'
           Checked = True
           State = cbChecked
@@ -310,25 +300,25 @@ object formSettings: TformSettings
         end
         object cbOldPointerAddMethod: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 79
-          Width = 257
+          Width = 259
           Caption = 'Pointer adding: Append pointerline instead of insert'
           TabOrder = 15
         end
         object cbShowallWindows: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 163
-          Width = 169
+          Width = 171
           Caption = 'Show all windows in the taskbar'
           TabOrder = 16
         end
         object cbAskIfTableHasLuascript: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 100
-          Width = 170
+          Width = 172
           Caption = 'Ask to run lua scripts from tables'
           Checked = True
           OnChange = cbAskIfTableHasLuascriptChange
@@ -337,9 +327,9 @@ object formSettings: TformSettings
         end
         object cbAlwaysRunScript: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Top = 117
-          Width = 173
+          Width = 175
           Caption = 'Always run lua scripts from tables'
           Enabled = False
           TabOrder = 18
@@ -347,38 +337,38 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 471
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 471
-          Width = 711
+          Height = 442
+          Width = 614
           Align = alClient
-          ClientHeight = 471
-          ClientWidth = 711
+          ClientHeight = 442
+          ClientWidth = 614
           inherited Panel1: TPanel
-            Height = 409
+            Height = 380
             Top = 62
-            Width = 485
-            ClientHeight = 409
-            ClientWidth = 485
+            Width = 388
+            ClientHeight = 380
+            ClientWidth = 388
             inherited Label1: TLabel
               Height = 14
-              Width = 485
+              Width = 388
             end
             inherited ListBox1: TListBox
-              Height = 395
+              Height = 366
               Top = 14
-              Width = 485
+              Width = 388
               ItemHeight = 13
             end
           end
           inherited Panel2: TPanel
-            Left = 485
-            Height = 409
+            Left = 388
+            Height = 380
             Top = 62
             Width = 226
-            ClientHeight = 409
+            ClientHeight = 380
             ClientWidth = 226
             inherited Label2: TLabel
               Left = 7
@@ -399,10 +389,10 @@ object formSettings: TformSettings
             end
             inherited Panel3: TPanel
               Left = 2
-              Height = 411
+              Height = 382
               Top = 72
               Width = 224
-              ClientHeight = 411
+              ClientHeight = 382
               ClientWidth = 224
               inherited Label52: TLabel
                 Left = 184
@@ -438,9 +428,9 @@ object formSettings: TformSettings
           end
           inherited Panel5: TPanel
             Height = 62
-            Width = 711
+            Width = 614
             ClientHeight = 62
-            ClientWidth = 711
+            ClientWidth = 614
             inherited Label4: TLabel
               Left = 128
               Height = 14
@@ -467,8 +457,8 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 471
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 8
         object Label5: TLabel
           Left = 10
@@ -497,8 +487,8 @@ object formSettings: TformSettings
       end
       object ScanSettings: TTabSheet
         Caption = 'Scan Settings'
-        ClientHeight = 471
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 1
         object Label3: TLabel
           Left = 0
@@ -554,9 +544,9 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 39
-          Width = 128
+          Width = 130
           Caption = 'Fast scan on by default'
           Checked = True
           State = cbChecked
@@ -564,10 +554,10 @@ object formSettings: TformSettings
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
           Top = 62
-          Width = 310
+          Width = 312
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
           ShowHint = True
@@ -575,9 +565,9 @@ object formSettings: TformSettings
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 192
-          Width = 353
+          Width = 355
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
@@ -585,17 +575,17 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 212
-          Width = 529
+          Width = 531
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 172
-          Width = 204
+          Width = 206
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -611,9 +601,9 @@ object formSettings: TformSettings
         end
         object cbDontusetempdir: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 86
-          Width = 290
+          Width = 292
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
           TabOrder = 7
@@ -674,17 +664,17 @@ object formSettings: TformSettings
       end
       object Plugins: TTabSheet
         Caption = 'Plugins'
-        ClientHeight = 499
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 3
         object Panel7: TPanel
-          Left = 614
-          Height = 499
+          Left = 517
+          Height = 442
           Top = 0
           Width = 97
           Align = alRight
           BevelOuter = bvNone
-          ClientHeight = 499
+          ClientHeight = 442
           ClientWidth = 97
           TabOrder = 0
           object Button5: TButton
@@ -708,28 +698,28 @@ object formSettings: TformSettings
         end
         object Panel8: TPanel
           Left = 0
-          Height = 499
+          Height = 442
           Top = 0
-          Width = 614
+          Width = 517
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 499
-          ClientWidth = 614
+          ClientHeight = 442
+          ClientWidth = 517
           TabOrder = 1
           object Label22: TLabel
             Left = 0
             Height = 14
             Top = 0
-            Width = 614
+            Width = 517
             Align = alTop
             Caption = 'The following plugins are available:'
             ParentColor = False
           end
           object clbPlugins: TCheckListBox
             Left = 0
-            Height = 485
+            Height = 428
             Top = 14
-            Width = 614
+            Width = 517
             Align = alClient
             ItemHeight = 0
             TabOrder = 0
@@ -738,15 +728,15 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 471
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 5
         object replacewithnops: TCheckBox
           Left = 15
-          Height = 17
+          Height = 19
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 73
-          Width = 204
+          Width = 206
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -757,9 +747,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 31
-          Height = 17
+          Height = 19
           Top = 92
-          Width = 132
+          Width = 134
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -767,9 +757,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 15
-          Height = 17
+          Height = 19
           Top = 9
-          Width = 142
+          Width = 144
           Caption = 'Use hardware breakpoints'
           Checked = True
           OnChange = rbInt3AsBreakpointChange
@@ -778,9 +768,9 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 15
-          Height = 17
+          Height = 19
           Top = 29
-          Width = 238
+          Width = 240
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           OnChange = rbInt3AsBreakpointChange
           TabOrder = 2
@@ -864,17 +854,17 @@ object formSettings: TformSettings
               ClientWidth = 404
               object cbGlobalDebug: TCheckBox
                 Left = 4
-                Height = 17
+                Height = 19
                 Top = 5
-                Width = 145
+                Width = 147
                 Caption = 'Use Global Debug routines'
                 TabOrder = 0
               end
               object cbCanStepKernelcode: TCheckBox
                 Left = 4
-                Height = 17
+                Height = 19
                 Top = 26
-                Width = 178
+                Width = 180
                 Caption = 'Ability to step through kernel code'
                 TabOrder = 1
               end
@@ -945,14 +935,14 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 499
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 14
-          Top = 485
-          Width = 711
+          Top = 428
+          Width = 614
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -963,11 +953,11 @@ object formSettings: TformSettings
           Left = 0
           Height = 86
           Top = 0
-          Width = 711
+          Width = 614
           Align = alTop
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
           ClientHeight = 68
-          ClientWidth = 707
+          ClientWidth = 610
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
@@ -1033,18 +1023,18 @@ object formSettings: TformSettings
       end
       object tsTools: TTabSheet
         Caption = 'tsTools'
-        ClientHeight = 499
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 9
         object Panel2: TPanel
           Left = 0
           Height = 26
           Top = 0
-          Width = 711
+          Width = 614
           Align = alTop
           BevelOuter = bvNone
           ClientHeight = 26
-          ClientWidth = 711
+          ClientWidth = 614
           TabOrder = 0
           object cbShowTools: TCheckBox
             Left = 0
@@ -1059,13 +1049,13 @@ object formSettings: TformSettings
           end
         end
         object Panel3: TPanel
-          Left = 483
-          Height = 473
+          Left = 386
+          Height = 416
           Top = 26
           Width = 228
           Align = alRight
           BevelOuter = bvNone
-          ClientHeight = 473
+          ClientHeight = 416
           ClientWidth = 228
           TabOrder = 1
           object lblApplicationTool: TLabel
@@ -1173,23 +1163,23 @@ object formSettings: TformSettings
         end
         object Panel5: TPanel
           Left = 0
-          Height = 473
+          Height = 416
           Top = 26
-          Width = 483
+          Width = 386
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 473
-          ClientWidth = 483
+          ClientHeight = 416
+          ClientWidth = 386
           TabOrder = 2
           object Panel4: TPanel
             Left = 0
             Height = 28
-            Top = 445
-            Width = 483
+            Top = 388
+            Width = 386
             Align = alBottom
             BevelOuter = bvNone
             ClientHeight = 28
-            ClientWidth = 483
+            ClientWidth = 386
             TabOrder = 0
             object btnToolNew: TButton
               Left = 10
@@ -1212,9 +1202,9 @@ object formSettings: TformSettings
           end
           object lvTools: TListView
             Left = 0
-            Height = 445
+            Height = 388
             Top = 0
-            Width = 483
+            Width = 386
             Align = alClient
             Columns = <            
               item
@@ -1241,8 +1231,8 @@ object formSettings: TformSettings
       end
       object CodeFinder: TTabSheet
         Caption = 'CodeFinder'
-        ClientHeight = 499
-        ClientWidth = 711
+        ClientHeight = 442
+        ClientWidth = 614
         ImageIndex = 4
         object cbHandleBreakpoints: TCheckBox
           Left = 15
@@ -1259,17 +1249,17 @@ object formSettings: TformSettings
   object Panel6: TPanel
     Left = 0
     Height = 47
-    Top = 499
-    Width = 869
+    Top = 470
+    Width = 772
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 47
-    ClientWidth = 869
+    ClientWidth = 772
     TabOrder = 1
     OnResize = Panel6Resize
     object AboutLabel: TLabel
       Cursor = crHandPoint
-      Left = 821
+      Left = 724
       Height = 14
       Top = 33
       Width = 46
@@ -1284,7 +1274,7 @@ object formSettings: TformSettings
       OnClick = AboutLabelClick
     end
     object Button2: TButton
-      Left = 440
+      Left = 343
       Height = 22
       Top = 9
       Width = 87
@@ -1296,7 +1286,7 @@ object formSettings: TformSettings
       TabOrder = 0
     end
     object Button1: TButton
-      Left = 336
+      Left = 239
       Height = 22
       Top = 9
       Width = 87

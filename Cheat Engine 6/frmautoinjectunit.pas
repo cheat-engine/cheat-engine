@@ -11,10 +11,8 @@ uses
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
   MemoryRecordUnit, tablist, customtypehandler, registry;
 
+
 type
-
-  { TfrmAutoInject }
-
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -133,8 +131,8 @@ type
 
     callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
     CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
-
     injectintomyself: boolean;
+
     property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   end;

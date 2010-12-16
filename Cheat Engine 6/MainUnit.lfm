@@ -1396,6 +1396,10 @@ object MainForm: TMainForm
       GroupIndex = 10
       OnClick = miZeroTerminateClick
     end
+    object miShowAsBinary: TMenuItem
+      Caption = 'Show as binary'
+      OnClick = miShowAsBinaryClick
+    end
     object miChangeColor: TMenuItem
       Caption = 'Change Color'
       OnClick = miChangeColorClick

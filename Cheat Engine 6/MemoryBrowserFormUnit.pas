@@ -3256,6 +3256,7 @@ begin
   stepover1.Enabled:=true;
   runtill1.Enabled:=true;
   stacktrace1.Enabled:=true;
+  Executetillreturn1.Enabled:=true;
 
   caption:='Memory Viewer - Currently debugging thread '+inttohex(threadid,1);
 

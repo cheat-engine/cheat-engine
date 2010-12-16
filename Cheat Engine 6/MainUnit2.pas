@@ -607,9 +607,7 @@ begin
           {$endif}
 
           try cbShowAsSigned.checked:=reg.readbool('Show values as signed'); except end;
-          try cbBinariesAsDecimal.checked:=reg.readbool('Handle binarys as decimals'); except end;
 
-    //      reg.ValueExists()
           if reg.ValueExists('AutoAttach') then
             EditAutoAttach.Text:=reg.ReadString('AutoAttach');
 
@@ -617,8 +615,9 @@ begin
             cbAlwaysAutoAttach.checked:=reg.readbool('Always AutoAttach');
 
 
+          if reg.ValueExists('Replace incomplete opcodes with NOPS') then
+            replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS');
 
-          try replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS'); except end;
           try askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS'); except end;
           try cbFastscan.checked:=reg.ReadBool('Fastscan on by default'); except end;
           try checkbox1.Checked:=reg.readbool('Use Anti-debugdetection'); except end;
