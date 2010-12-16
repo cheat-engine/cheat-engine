@@ -362,132 +362,148 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 {
 	DbgPrint("debugger_getDebuggerState\n");
 	state->threadid=(UINT64)DebuggerState.LastThreadID;
-	state->rflags=(UINT_PTR)DebuggerState.LastStackPointer[si_eflags];
-	state->rax=DebuggerState.LastStackPointer[si_eax];
-	state->rbx=DebuggerState.LastStackPointer[si_ebx];
-	state->rcx=DebuggerState.LastStackPointer[si_ecx];
-	state->rdx=DebuggerState.LastStackPointer[si_edx];
-	state->rsi=DebuggerState.LastStackPointer[si_esi];
-	state->rdi=DebuggerState.LastStackPointer[si_edi];
-	state->rbp=DebuggerState.LastStackPointer[si_ebp];
-
-	
-
-#ifdef AMD64
-	//fill in the extra registers
-	state->r8=DebuggerState.LastStackPointer[si_r8];
-	state->r9=DebuggerState.LastStackPointer[si_r9];
-	state->r10=DebuggerState.LastStackPointer[si_r10];
-	state->r11=DebuggerState.LastStackPointer[si_r11];
-	state->r12=DebuggerState.LastStackPointer[si_r12];
-	state->r13=DebuggerState.LastStackPointer[si_r13];
-	state->r14=DebuggerState.LastStackPointer[si_r14];
-	state->r15=DebuggerState.LastStackPointer[si_r15];	
-#endif
-
-	
-	memcpy(state->fxstate, (void *)DebuggerState.fxstate,512);
-
-
-	//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
-	if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
+	if (DebuggerState.LastStackPointer)
 	{
-		//priv level change, so the stack info was pushed as well
-		state->rsp=DebuggerState.LastStackPointer[si_esp]; 
-		state->ss=DebuggerState.LastStackPointer[si_ss];
+		state->rflags=(UINT_PTR)DebuggerState.LastStackPointer[si_eflags];
+		state->rax=DebuggerState.LastStackPointer[si_eax];
+		state->rbx=DebuggerState.LastStackPointer[si_ebx];
+		state->rcx=DebuggerState.LastStackPointer[si_ecx];
+		state->rdx=DebuggerState.LastStackPointer[si_edx];
+		state->rsi=DebuggerState.LastStackPointer[si_esi];
+		state->rdi=DebuggerState.LastStackPointer[si_edi];
+		state->rbp=DebuggerState.LastStackPointer[si_ebp];
 
+		
+
+	#ifdef AMD64
+		//fill in the extra registers
+		state->r8=DebuggerState.LastStackPointer[si_r8];
+		state->r9=DebuggerState.LastStackPointer[si_r9];
+		state->r10=DebuggerState.LastStackPointer[si_r10];
+		state->r11=DebuggerState.LastStackPointer[si_r11];
+		state->r12=DebuggerState.LastStackPointer[si_r12];
+		state->r13=DebuggerState.LastStackPointer[si_r13];
+		state->r14=DebuggerState.LastStackPointer[si_r14];
+		state->r15=DebuggerState.LastStackPointer[si_r15];	
+	#endif
+
+		
+		memcpy(state->fxstate, (void *)DebuggerState.fxstate,512);
+
+
+		//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
+		if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
+		{
+			//priv level change, so the stack info was pushed as well
+			state->rsp=DebuggerState.LastStackPointer[si_esp]; 
+			state->ss=DebuggerState.LastStackPointer[si_ss];
+
+		}
+		else
+		{
+			//kernelmode stack, yeah, it's really useless here since changing it here only means certain doom, but hey...
+			state->rsp=(UINT_PTR)(DebuggerState.LastStackPointer)-4;
+			state->ss=getSS();; //unchangeble by the user
+		}
+
+		
+		state->rip=DebuggerState.LastStackPointer[si_eip];
+		state->cs=DebuggerState.LastStackPointer[si_cs];
+		state->ds=DebuggerState.LastStackPointer[si_ds];
+	#ifdef AMD64
+		state->fs=0;
+		state->gs=0;
+	#else
+		state->fs=DebuggerState.LastStackPointer[si_fs];
+		state->gs=DebuggerState.LastStackPointer[si_gs];
+	#endif
+
+		state->dr0=DebuggerState.LastRealDebugRegisters[0];
+		state->dr1=DebuggerState.LastRealDebugRegisters[1];
+		state->dr2=DebuggerState.LastRealDebugRegisters[2];
+		state->dr3=DebuggerState.LastRealDebugRegisters[3];
+		state->dr6=DebuggerState.LastRealDebugRegisters[4];
+		state->dr7=DebuggerState.LastRealDebugRegisters[5];
+
+
+		return STATUS_SUCCESS;
 	}
 	else
 	{
-		//kernelmode stack, yeah, it's really useless here since changing it here only means certain doom, but hey...
-		state->rsp=(UINT_PTR)(DebuggerState.LastStackPointer)-4;
-		state->ss=getSS();; //unchangeble by the user
+		DbgPrint("debugger_getDebuggerState was called while DebuggerState.LastStackPointer was still NULL");
+		return STATUS_UNSUCCESSFUL;
 	}
-
-	
-	state->rip=DebuggerState.LastStackPointer[si_eip];
-	state->cs=DebuggerState.LastStackPointer[si_cs];
-	state->ds=DebuggerState.LastStackPointer[si_ds];
-#ifdef AMD64
-	state->fs=0;
-	state->gs=0;
-#else
-	state->fs=DebuggerState.LastStackPointer[si_fs];
-	state->gs=DebuggerState.LastStackPointer[si_gs];
-#endif
-
-	state->dr0=DebuggerState.LastRealDebugRegisters[0];
-	state->dr1=DebuggerState.LastRealDebugRegisters[1];
-	state->dr2=DebuggerState.LastRealDebugRegisters[2];
-	state->dr3=DebuggerState.LastRealDebugRegisters[3];
-	state->dr6=DebuggerState.LastRealDebugRegisters[4];
-	state->dr7=DebuggerState.LastRealDebugRegisters[5];
-
-
-	return STATUS_SUCCESS;
 }
 
 NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 {
-	DebuggerState.LastStackPointer[si_eflags]=(UINT_PTR)state->rflags;
-
-	DbgPrint("have set eflags to %x\n",DebuggerState.LastStackPointer[si_eflags]);
-
-
-	DebuggerState.LastStackPointer[si_eax]=(UINT_PTR)state->rax;
-	DebuggerState.LastStackPointer[si_ebx]=(UINT_PTR)state->rbx;
-	DebuggerState.LastStackPointer[si_ecx]=(UINT_PTR)state->rcx;
-	DebuggerState.LastStackPointer[si_edx]=(UINT_PTR)state->rdx;
-	
-	DebuggerState.LastStackPointer[si_esi]=(UINT_PTR)state->rsi;
-	DebuggerState.LastStackPointer[si_edi]=(UINT_PTR)state->rdi;
-	
-	DebuggerState.LastStackPointer[si_ebp]=(UINT_PTR)state->rbp;
-
-	//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
-	if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
+	if (DebuggerState.LastStackPointer)
 	{
-		//priv level change, so the stack info was pushed as well
-		DebuggerState.LastStackPointer[si_esp]=(UINT_PTR)state->rsp;
-		//don't mess with ss
+		DebuggerState.LastStackPointer[si_eflags]=(UINT_PTR)state->rflags;
+
+		DbgPrint("have set eflags to %x\n",DebuggerState.LastStackPointer[si_eflags]);
+
+
+		DebuggerState.LastStackPointer[si_eax]=(UINT_PTR)state->rax;
+		DebuggerState.LastStackPointer[si_ebx]=(UINT_PTR)state->rbx;
+		DebuggerState.LastStackPointer[si_ecx]=(UINT_PTR)state->rcx;
+		DebuggerState.LastStackPointer[si_edx]=(UINT_PTR)state->rdx;
+		
+		DebuggerState.LastStackPointer[si_esi]=(UINT_PTR)state->rsi;
+		DebuggerState.LastStackPointer[si_edi]=(UINT_PTR)state->rdi;
+		
+		DebuggerState.LastStackPointer[si_ebp]=(UINT_PTR)state->rbp;
+
+		//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
+		if ((DebuggerState.LastStackPointer[si_cs] & 3) == 3) //if usermode code segment
+		{
+			//priv level change, so the stack info was pushed as well
+			DebuggerState.LastStackPointer[si_esp]=(UINT_PTR)state->rsp;
+			//don't mess with ss
+		}
+		else
+		{
+			//no change in kernelmode allowed		
+		}
+
+		
+		DebuggerState.LastStackPointer[si_eip]=(UINT_PTR)state->rip;
+		DebuggerState.LastStackPointer[si_cs]=(UINT_PTR)state->cs;
+		DebuggerState.LastStackPointer[si_ds]=(UINT_PTR)state->ds;
+	#ifndef AMD64
+		DebuggerState.LastStackPointer[si_fs]=(UINT_PTR)state->fs;
+		DebuggerState.LastStackPointer[si_gs]=(UINT_PTR)state->gs;
+	#else //don't touch fs or gs in 64-bit
+		DebuggerState.LastStackPointer[si_r8]=(UINT_PTR)state->r8;
+		DebuggerState.LastStackPointer[si_r9]=(UINT_PTR)state->r9;
+		DebuggerState.LastStackPointer[si_r10]=(UINT_PTR)state->r10;
+		DebuggerState.LastStackPointer[si_r11]=(UINT_PTR)state->r11;
+		DebuggerState.LastStackPointer[si_r12]=(UINT_PTR)state->r12;
+		DebuggerState.LastStackPointer[si_r13]=(UINT_PTR)state->r13;
+		DebuggerState.LastStackPointer[si_r14]=(UINT_PTR)state->r14;
+		DebuggerState.LastStackPointer[si_r15]=(UINT_PTR)state->r15;
+	#endif
+
+		if (!DebuggerState.globalDebug)
+		{
+			//no idea why someone would want to use this method, but it's in (for NON globaldebug only)
+
+			//updating this array too just so the user can see it got executed. (it eases their state of mind...)
+			DebuggerState.LastRealDebugRegisters[0]=(UINT_PTR)state->dr0; 
+			DebuggerState.LastRealDebugRegisters[1]=(UINT_PTR)state->dr1;
+			DebuggerState.LastRealDebugRegisters[2]=(UINT_PTR)state->dr2;
+			DebuggerState.LastRealDebugRegisters[3]=(UINT_PTR)state->dr3;
+			DebuggerState.LastRealDebugRegisters[4]=(UINT_PTR)state->dr6;
+			DebuggerState.LastRealDebugRegisters[5]=(UINT_PTR)state->dr7;
+
+			//no setting of the DebugRegs here
+
+		}
 	}
 	else
 	{
-		//no change in kernelmode allowed		
-	}
-
-	
-	DebuggerState.LastStackPointer[si_eip]=(UINT_PTR)state->rip;
-	DebuggerState.LastStackPointer[si_cs]=(UINT_PTR)state->cs;
-	DebuggerState.LastStackPointer[si_ds]=(UINT_PTR)state->ds;
-#ifndef AMD64
-	DebuggerState.LastStackPointer[si_fs]=(UINT_PTR)state->fs;
-	DebuggerState.LastStackPointer[si_gs]=(UINT_PTR)state->gs;
-#else //don't touch fs or gs in 64-bit
-	DebuggerState.LastStackPointer[si_r8]=(UINT_PTR)state->r8;
-	DebuggerState.LastStackPointer[si_r9]=(UINT_PTR)state->r9;
-	DebuggerState.LastStackPointer[si_r10]=(UINT_PTR)state->r10;
-	DebuggerState.LastStackPointer[si_r11]=(UINT_PTR)state->r11;
-	DebuggerState.LastStackPointer[si_r12]=(UINT_PTR)state->r12;
-	DebuggerState.LastStackPointer[si_r13]=(UINT_PTR)state->r13;
-	DebuggerState.LastStackPointer[si_r14]=(UINT_PTR)state->r14;
-	DebuggerState.LastStackPointer[si_r15]=(UINT_PTR)state->r15;
-#endif
-
-	if (!DebuggerState.globalDebug)
-	{
-		//no idea why someone would want to use this method, but it's in (for NON globaldebug only)
-
-		//updating this array too just so the user can see it got executed. (it eases their state of mind...)
-		DebuggerState.LastRealDebugRegisters[0]=(UINT_PTR)state->dr0; 
-		DebuggerState.LastRealDebugRegisters[1]=(UINT_PTR)state->dr1;
-		DebuggerState.LastRealDebugRegisters[2]=(UINT_PTR)state->dr2;
-		DebuggerState.LastRealDebugRegisters[3]=(UINT_PTR)state->dr3;
-		DebuggerState.LastRealDebugRegisters[4]=(UINT_PTR)state->dr6;
-		DebuggerState.LastRealDebugRegisters[5]=(UINT_PTR)state->dr7;
-
-		//no setting of the DebugRegs here
-
+		DbgPrint("debugger_setDebuggerState was called while DebuggerState.LastStackPointer was still NULL");
+		return STATUS_UNSUCCESSFUL;
 	}
 
 	return STATUS_SUCCESS;
@@ -604,6 +620,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		}
 
 
+		DebuggerState.LastStackPointer=NULL; //NULL the stackpointer so routines know it should not be called
 
 		//i'm done, let other threads catch it
 		KeSetEvent(&debugger_event_CanBreak, 0, FALSE);
@@ -996,9 +1013,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					debugger_dr3_setValue(currentdebugregs[3]);
 					debugger_dr6_setValue(currentdebugregs[4]);
 
-					if ((currentdebugregs[5] >> 11) & 1)
+					if ((currentdebugregs[5] >> 13) & 1)
 					{
-						DbgPrint("WTF? GD is 1 in currentdebugregs[5]\n");
+						DbgPrint("WTF? GD is 1 in currentdebugregs[5]: %llx\n", currentdebugregs[5]);
 					}
 					else
 						debugger_dr7_setValue(*(DebugReg7 *)&currentdebugregs[5]);	
