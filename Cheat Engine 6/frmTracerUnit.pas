@@ -82,6 +82,8 @@ type
     procedure Button2Click(Sender: TObject);
     procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
     procedure miSaveToDiskClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
@@ -177,7 +179,7 @@ var s,s2: string;
     a,address: ptrUint;
     referencedAddress: ptrUint;
     haserror: boolean;
-    thisnode: TTreenode;
+    thisnode, thatnode: TTreenode;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
@@ -225,7 +227,22 @@ begin
   if defaultDisassembler.LastDisassembleData.isret then
   begin
     if currentAppendage<>nil then
-      currentAppendage:=currentAppendage.Parent;
+      currentAppendage:=currentAppendage.Parent
+    else
+    begin
+      //create a node at the top and append the current top node to it
+      thisnode:=lvTracer.items.AddFirst(nil,'');
+
+      thatnode:=thisnode.GetNextSibling;
+      while thatnode<>nil do
+      begin
+        thatnode.MoveTo(thisnode, naAddChild);
+        thatnode:=thisnode.GetNextSibling;
+      end;
+
+//      thisnode.Items.
+//      lvTracer.Items.GetFirstNode);
+    end;
   end;
 
 end;
@@ -410,6 +427,28 @@ begin
   //update the help based on what register is focused
 end;
 
+procedure TfrmTracer.MenuItem5Click(Sender: TObject);
+var t: ttreenode;
+begin
+  t:=lvTracer.Items.GetFirstNode;
+  while t<>nil do
+  begin
+    t.Expand(true);
+    t:=t.GetNextSibling;
+  end;
+end;
+
+procedure TfrmTracer.MenuItem6Click(Sender: TObject);
+var t: ttreenode;
+begin
+  t:=lvTracer.Items.GetFirstNode;
+  while t<>nil do
+  begin
+    t.Collapse(true);
+    t:=t.GetNextSibling;
+  end;
+end;
+
 
 procedure TfrmTracer.MenuItem4Click(Sender: TObject);
 var
@@ -440,17 +479,21 @@ begin
     while (i<lvTracer.items.count) and (not stopsearch) do
     begin
       c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
-      if CheckIfConditionIsMetContext(c, lastsearchstring) then
+      if c<>nil then
       begin
-        lvTracer.Items[i].Selected:=true;
-        lvTracer.MakeSelectionVisible;
-        lvTracerClick(lvTracer);
-        break;
+        if CheckIfConditionIsMetContext(c, lastsearchstring) then
+        begin
+          lvTracer.Items[i].Selected:=true;
+          lvTracer.MakeSelectionVisible;
+          lvTracerClick(lvTracer);
+          break;
+        end;
+
+
+        inc(i);
+        if (i mod 50)=0 then application.ProcessMessages;
+
       end;
-
-
-      inc(i);
-      if (i mod 50)=0 then application.ProcessMessages;
     end;
 
     pnlSearch.visible:=false;
@@ -467,7 +510,10 @@ begin
     debuggerthread.stopBreakAndTrace(self);
 
   for i:=0 to lvTracer.Items.Count-1 do
-    TTraceDebugInfo(lvTracer.Items[i].data).Free;
+  begin
+    if lvTracer.Items[i].data<>nil then
+      TTraceDebugInfo(lvTracer.Items[i].data).Free;
+  end;
 
   action:=cafree;
 end;
@@ -554,248 +600,252 @@ begin
   if lvTracer.selected<>nil then
   begin
     t:=TTraceDebugInfo(lvTracer.selected.data);
-
-    lblinstruction.caption:=t.instruction;
-    if dereference then
+    if t<>nil then
     begin
-      if t.referencedAddress<>0 then
-        lblAddressed.caption:=inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype)
+
+      lblinstruction.caption:=t.instruction;
+      if dereference then
+      begin
+        if t.referencedAddress<>0 then
+          lblAddressed.caption:=inttohex(t.referencedAddress,8)+' = '+DataToString(t.bytes, t.bytesize, t.datatype)
+        else
+          lblAddressed.caption:='';
+      end else lblAddressed.Caption:='';
+
+
+      context:=t.c;
+
+      if processhandler.is64bit then
+        prefix:='R'
       else
-        lblAddressed.caption:='';
-    end else lblAddressed.Caption:='';
+        prefix:='E';
 
-
-    context:=t.c;
-
-    if processhandler.is64bit then
-      prefix:='R'
-    else
-      prefix:='E';
-
-    temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},8);
-    if temp<>eaxlabel.Caption then
-    begin
-      eaxlabel.Font.Color:=clred;
-      eaxlabel.Caption:=temp;
-    end else eaxlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
-    if temp<>ebxlabel.Caption then
-    begin
-      ebxlabel.Font.Color:=clred;
-      ebxlabel.Caption:=temp;
-    end else ebxlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
-    if temp<>eCxlabel.Caption then
-    begin
-      eCXlabel.Font.Color:=clred;
-      eCXlabel.Caption:=temp;
-    end else eCXlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},8);
-    if temp<>eDxlabel.Caption then
-    begin
-      eDxlabel.Font.Color:=clred;
-      eDxlabel.Caption:=temp;
-    end else eDxlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},8);
-    if temp<>eSIlabel.Caption then
-    begin
-      eSIlabel.Font.Color:=clred;
-      eSIlabel.Caption:=temp;
-    end else eSIlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},8);
-    if temp<>eDIlabel.Caption then
-    begin
-      eDIlabel.Font.Color:=clred;
-      eDIlabel.Caption:=temp;
-    end else eDIlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
-    if temp<>eBPlabel.Caption then
-    begin
-      eBPlabel.Font.Color:=clred;
-      eBPlabel.Caption:=temp;
-    end else eBPlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},8);
-    if temp<>eSPlabel.Caption then
-    begin
-      eSPlabel.Font.Color:=clred;
-      eSPlabel.Caption:=temp;
-    end else eSPlabel.Font.Color:=clWindowText;
-
-    temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},8);
-    if temp<>eIPlabel.Caption then
-    begin
-      eIPlabel.Font.Color:=clred;
-      eIPlabel.Caption:=temp;
-    end else eIPlabel.Font.Color:=clWindowText;
-
-    {$ifdef cpu64}
-
-    if length(rxlabels)>0 then
-    begin
-
-      temp:='R8 '+IntToHex(context.r8,8);
-      if temp<>RXlabels[0].Caption then
+      temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},8);
+      if temp<>eaxlabel.Caption then
       begin
-        RXlabels[0].Font.Color:=clred;
-        RXlabels[0].Caption:=temp;
-      end else RXlabels[0].Font.Color:=clWindowText;
+        eaxlabel.Font.Color:=clred;
+        eaxlabel.Caption:=temp;
+      end else eaxlabel.Font.Color:=clWindowText;
 
-      temp:='R9 '+IntToHex(context.r9,8);
-      if temp<>RXlabels[1].Caption then
+      temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
+      if temp<>ebxlabel.Caption then
       begin
-        RXlabels[1].Font.Color:=clred;
-        RXlabels[1].Caption:=temp;
-      end else RXlabels[1].Font.Color:=clWindowText;
+        ebxlabel.Font.Color:=clred;
+        ebxlabel.Caption:=temp;
+      end else ebxlabel.Font.Color:=clWindowText;
 
-      temp:='R10 '+IntToHex(context.r10,8);
-      if temp<>RXlabels[2].Caption then
+      temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
+      if temp<>eCxlabel.Caption then
       begin
-        RXlabels[2].Font.Color:=clred;
-        RXlabels[2].Caption:=temp;
-      end else RXlabels[2].Font.Color:=clWindowText;
+        eCXlabel.Font.Color:=clred;
+        eCXlabel.Caption:=temp;
+      end else eCXlabel.Font.Color:=clWindowText;
 
-      temp:='R11 '+IntToHex(context.r11,8);
-      if temp<>RXlabels[3].Caption then
+      temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},8);
+      if temp<>eDxlabel.Caption then
       begin
-        RXlabels[3].Font.Color:=clred;
-        RXlabels[3].Caption:=temp;
-      end else RXlabels[3].Font.Color:=clWindowText;
+        eDxlabel.Font.Color:=clred;
+        eDxlabel.Caption:=temp;
+      end else eDxlabel.Font.Color:=clWindowText;
 
-      temp:='R12 '+IntToHex(context.r12,8);
-      if temp<>RXlabels[4].Caption then
+      temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},8);
+      if temp<>eSIlabel.Caption then
       begin
-        RXlabels[4].Font.Color:=clred;
-        RXlabels[4].Caption:=temp;
-      end else RXlabels[4].Font.Color:=clWindowText;
+        eSIlabel.Font.Color:=clred;
+        eSIlabel.Caption:=temp;
+      end else eSIlabel.Font.Color:=clWindowText;
 
-      temp:='R13 '+IntToHex(context.r13,8);
-      if temp<>RXlabels[5].Caption then
+      temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},8);
+      if temp<>eDIlabel.Caption then
       begin
-        RXlabels[5].Font.Color:=clred;
-        RXlabels[5].Caption:=temp;
-      end else RXlabels[5].Font.Color:=clWindowText;
+        eDIlabel.Font.Color:=clred;
+        eDIlabel.Caption:=temp;
+      end else eDIlabel.Font.Color:=clWindowText;
 
-      temp:='R14 '+IntToHex(context.r14,8);
-      if temp<>RXlabels[6].Caption then
+      temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
+      if temp<>eBPlabel.Caption then
       begin
-        RXlabels[6].Font.Color:=clred;
-        RXlabels[6].Caption:=temp;
-      end else RXlabels[6].Font.Color:=clWindowText;
+        eBPlabel.Font.Color:=clred;
+        eBPlabel.Caption:=temp;
+      end else eBPlabel.Font.Color:=clWindowText;
 
-      temp:='R15 '+IntToHex(context.r15,8);
-      if temp<>RXlabels[7].Caption then
+      temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},8);
+      if temp<>eSPlabel.Caption then
       begin
-        RXlabels[7].Font.Color:=clred;
-        RXlabels[7].Caption:=temp;
-      end else RXlabels[7].Font.Color:=clWindowText;
+        eSPlabel.Font.Color:=clred;
+        eSPlabel.Caption:=temp;
+      end else eSPlabel.Font.Color:=clWindowText;
+
+      temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},8);
+      if temp<>eIPlabel.Caption then
+      begin
+        eIPlabel.Font.Color:=clred;
+        eIPlabel.Caption:=temp;
+      end else eIPlabel.Font.Color:=clWindowText;
+
+      {$ifdef cpu64}
+
+      if length(rxlabels)>0 then
+      begin
+
+        temp:='R8 '+IntToHex(context.r8,8);
+        if temp<>RXlabels[0].Caption then
+        begin
+          RXlabels[0].Font.Color:=clred;
+          RXlabels[0].Caption:=temp;
+        end else RXlabels[0].Font.Color:=clWindowText;
+
+        temp:='R9 '+IntToHex(context.r9,8);
+        if temp<>RXlabels[1].Caption then
+        begin
+          RXlabels[1].Font.Color:=clred;
+          RXlabels[1].Caption:=temp;
+        end else RXlabels[1].Font.Color:=clWindowText;
+
+        temp:='R10 '+IntToHex(context.r10,8);
+        if temp<>RXlabels[2].Caption then
+        begin
+          RXlabels[2].Font.Color:=clred;
+          RXlabels[2].Caption:=temp;
+        end else RXlabels[2].Font.Color:=clWindowText;
+
+        temp:='R11 '+IntToHex(context.r11,8);
+        if temp<>RXlabels[3].Caption then
+        begin
+          RXlabels[3].Font.Color:=clred;
+          RXlabels[3].Caption:=temp;
+        end else RXlabels[3].Font.Color:=clWindowText;
+
+        temp:='R12 '+IntToHex(context.r12,8);
+        if temp<>RXlabels[4].Caption then
+        begin
+          RXlabels[4].Font.Color:=clred;
+          RXlabels[4].Caption:=temp;
+        end else RXlabels[4].Font.Color:=clWindowText;
+
+        temp:='R13 '+IntToHex(context.r13,8);
+        if temp<>RXlabels[5].Caption then
+        begin
+          RXlabels[5].Font.Color:=clred;
+          RXlabels[5].Caption:=temp;
+        end else RXlabels[5].Font.Color:=clWindowText;
+
+        temp:='R14 '+IntToHex(context.r14,8);
+        if temp<>RXlabels[6].Caption then
+        begin
+          RXlabels[6].Font.Color:=clred;
+          RXlabels[6].Caption:=temp;
+        end else RXlabels[6].Font.Color:=clWindowText;
+
+        temp:='R15 '+IntToHex(context.r15,8);
+        if temp<>RXlabels[7].Caption then
+        begin
+          RXlabels[7].Font.Color:=clred;
+          RXlabels[7].Caption:=temp;
+        end else RXlabels[7].Font.Color:=clWindowText;
+      end;
+
+      {$endif}
+
+
+      temp:='CS '+IntToHex(context.SEGCS,4);
+      if temp<>CSlabel.Caption then
+      begin
+        CSlabel.Font.Color:=clred;
+        CSlabel.Caption:=temp;
+      end else CSlabel.Font.Color:=clWindowText;
+
+      temp:='DS '+IntToHex(context.SEGDS,4);
+      if temp<>DSlabel.Caption then
+      begin
+        DSlabel.Font.Color:=clred;
+        DSlabel.Caption:=temp;
+      end else DSLabel.Font.Color:=clWindowText;
+
+      temp:='SS '+IntToHex(context.SEGSS,4);
+      if temp<>SSlabel.Caption then
+      begin
+        SSlabel.Font.Color:=clred;
+        SSlabel.Caption:=temp;
+      end else SSlabel.Font.Color:=clWindowText;
+
+      temp:='ES '+IntToHex(context.SEGES,4);
+      if temp<>ESlabel.Caption then
+      begin
+        ESlabel.Font.Color:=clred;
+        ESlabel.Caption:=temp;
+      end else ESlabel.Font.Color:=clWindowText;
+
+      temp:='FS '+IntToHex(context.SEGFS,4);
+      if temp<>FSlabel.Caption then
+      begin
+        FSlabel.Font.Color:=clred;
+        FSlabel.Caption:=temp;
+      end else FSlabel.Font.Color:=clWindowText;
+
+      temp:='GS '+IntToHex(context.SEGGS,4);
+      if temp<>GSlabel.Caption then
+      begin
+        GSlabel.Font.Color:=clred;
+        GSlabel.Caption:=temp;
+      end else GSlabel.Font.Color:=clWindowText;
+
+      temp:='CF '+IntToStr(GetBitOf(context.EFLAgs,0));
+      if temp<>cflabel.Caption then
+      begin
+        CFlabel.Font.Color:=clred;
+        CFlabel.caption:=temp;
+      end else cflabel.Font.Color:=clWindowText;
+
+      temp:='PF '+IntToStr(GetBitOf(context.EFlags,2));
+      if temp<>Pflabel.Caption then
+      begin
+        Pflabel.Font.Color:=clred;
+        Pflabel.caption:=temp;
+      end else Pflabel.Font.Color:=clWindowText;
+
+      temp:='AF '+IntToStr(GetBitOf(context.EFlags,4));
+      if temp<>Aflabel.Caption then
+      begin
+        Aflabel.Font.Color:=clred;
+        Aflabel.caption:=temp;
+      end else Aflabel.Font.Color:=clWindowText;
+
+      temp:='ZF '+IntToStr(GetBitOf(context.EFlags,6));
+      if temp<>Zflabel.Caption then
+      begin
+        Zflabel.Font.Color:=clred;
+        Zflabel.caption:=temp;
+      end else Zflabel.Font.Color:=clWindowText;
+
+      temp:='SF '+IntToStr(GetBitOf(context.EFlags,7));
+      if temp<>Sflabel.Caption then
+      begin
+        Sflabel.Font.Color:=clred;
+        Sflabel.caption:=temp;
+      end else Sflabel.Font.Color:=clWindowText;
+
+      temp:='DF '+IntToStr(GetBitOf(context.EFlags,10));
+      if temp<>Dflabel.Caption then
+      begin
+        Dflabel.Font.Color:=clred;
+        Dflabel.caption:=temp;
+      end else Dflabel.Font.Color:=clWindowText;
+
+      temp:='OF '+IntToStr(GetBitOf(context.EFlags,11));
+      if temp<>Oflabel.Caption then
+      begin
+        Oflabel.Font.Color:=clred;
+        Oflabel.caption:=temp;
+      end else Oflabel.Font.Color:=clWindowText;
+
+      if fpp<>nil then
+        fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
+
+      if Stackview<>nil then
+        updatestackview;
+
     end;
-
-    {$endif}
-
-
-    temp:='CS '+IntToHex(context.SEGCS,4);
-    if temp<>CSlabel.Caption then
-    begin
-      CSlabel.Font.Color:=clred;
-      CSlabel.Caption:=temp;
-    end else CSlabel.Font.Color:=clWindowText;
-
-    temp:='DS '+IntToHex(context.SEGDS,4);
-    if temp<>DSlabel.Caption then
-    begin
-      DSlabel.Font.Color:=clred;
-      DSlabel.Caption:=temp;
-    end else DSLabel.Font.Color:=clWindowText;
-
-    temp:='SS '+IntToHex(context.SEGSS,4);
-    if temp<>SSlabel.Caption then
-    begin
-      SSlabel.Font.Color:=clred;
-      SSlabel.Caption:=temp;
-    end else SSlabel.Font.Color:=clWindowText;
-
-    temp:='ES '+IntToHex(context.SEGES,4);
-    if temp<>ESlabel.Caption then
-    begin
-      ESlabel.Font.Color:=clred;
-      ESlabel.Caption:=temp;
-    end else ESlabel.Font.Color:=clWindowText;
-
-    temp:='FS '+IntToHex(context.SEGFS,4);
-    if temp<>FSlabel.Caption then
-    begin
-      FSlabel.Font.Color:=clred;
-      FSlabel.Caption:=temp;
-    end else FSlabel.Font.Color:=clWindowText;
-
-    temp:='GS '+IntToHex(context.SEGGS,4);
-    if temp<>GSlabel.Caption then
-    begin
-      GSlabel.Font.Color:=clred;
-      GSlabel.Caption:=temp;
-    end else GSlabel.Font.Color:=clWindowText;
-
-    temp:='CF '+IntToStr(GetBitOf(context.EFLAgs,0));
-    if temp<>cflabel.Caption then
-    begin
-      CFlabel.Font.Color:=clred;
-      CFlabel.caption:=temp;
-    end else cflabel.Font.Color:=clWindowText;
-
-    temp:='PF '+IntToStr(GetBitOf(context.EFlags,2));
-    if temp<>Pflabel.Caption then
-    begin
-      Pflabel.Font.Color:=clred;
-      Pflabel.caption:=temp;
-    end else Pflabel.Font.Color:=clWindowText;
-
-    temp:='AF '+IntToStr(GetBitOf(context.EFlags,4));
-    if temp<>Aflabel.Caption then
-    begin
-      Aflabel.Font.Color:=clred;
-      Aflabel.caption:=temp;
-    end else Aflabel.Font.Color:=clWindowText;
-
-    temp:='ZF '+IntToStr(GetBitOf(context.EFlags,6));
-    if temp<>Zflabel.Caption then
-    begin
-      Zflabel.Font.Color:=clred;
-      Zflabel.caption:=temp;
-    end else Zflabel.Font.Color:=clWindowText;
-
-    temp:='SF '+IntToStr(GetBitOf(context.EFlags,7));
-    if temp<>Sflabel.Caption then
-    begin
-      Sflabel.Font.Color:=clred;
-      Sflabel.caption:=temp;
-    end else Sflabel.Font.Color:=clWindowText;
-
-    temp:='DF '+IntToStr(GetBitOf(context.EFlags,10));
-    if temp<>Dflabel.Caption then
-    begin
-      Dflabel.Font.Color:=clred;
-      Dflabel.caption:=temp;
-    end else Dflabel.Font.Color:=clWindowText;
-
-    temp:='OF '+IntToStr(GetBitOf(context.EFlags,11));
-    if temp<>Oflabel.Caption then
-    begin
-      Oflabel.Font.Color:=clred;
-      Oflabel.caption:=temp;
-    end else Oflabel.Font.Color:=clWindowText;
-
-    if fpp<>nil then
-      fpp.SetContextPointer(@TTraceDebugInfo(lvTracer.selected.data).c);
-
-    if Stackview<>nil then
-      updatestackview;
 
   end;
 end;
@@ -807,7 +857,8 @@ begin
   begin
     //get stack
     di:=TTraceDebugInfo(lvTracer.selected.data);
-    StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
+    if di<>nil then
+      StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
   end;
 end;
 
@@ -822,7 +873,8 @@ end;
 
 procedure TfrmTracer.lvTracerDblClick(Sender: TObject);
 begin
-  memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
+  if (lvTracer.selected<>nil) and (lvTracer.selected.data<>nil) then
+    memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
 end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
@@ -845,7 +897,7 @@ end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
 begin
-  if lvTracer.selected=nil then exit;
+  if (lvTracer.selected=nil) or (lvTracer.selected.data=nil) then exit;
 
   if fpp=nil then
   begin

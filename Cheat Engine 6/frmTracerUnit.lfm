@@ -423,6 +423,7 @@ object frmTracer: TfrmTracer
       DefaultItemHeight = 15
       ExpandSignType = tvestPlusMinus
       HideSelection = False
+      PopupMenu = pmTracer
       ReadOnly = True
       TabOrder = 1
       OnDblClick = lvTracerDblClick
@@ -465,9 +466,11 @@ object frmTracer: TfrmTracer
     top = 184
     object MenuItem5: TMenuItem
       Caption = 'Expand all'
+      OnClick = MenuItem5Click
     end
     object MenuItem6: TMenuItem
       Caption = 'Collapse all'
+      OnClick = MenuItem6Click
     end
   end
 end
