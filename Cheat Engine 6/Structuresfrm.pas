@@ -2588,7 +2588,12 @@ begin
         section:=section-1; //count starts from 1, so decrease
 
       if readprocessmemory(processhandle, pointer(s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset), @address,4,x) then
+      begin
+        if not MemoryBrowser.visible then
+          MemoryBrowser.Show;
+
         memorybrowser.memoryaddress:=address;
+      end;
 
     end;
    // definedstructures[s.basestructure].structelement[elementnr].
@@ -2638,7 +2643,12 @@ begin
         section:=section-1; //count starts from 1, so decrease
 
       if s.basestructure>=0 then
+      begin
+        if not MemoryBrowser.visible then
+          MemoryBrowser.Show;
+
         memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
+      end;
 
     end;
    // definedstructures[s.basestructure].structelement[elementnr].

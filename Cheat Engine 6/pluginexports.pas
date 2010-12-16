@@ -1505,6 +1505,7 @@ begin
       screen.Forms[i].Visible:=false;
   end;
 
+  mainform.visible:=false;
   MemoryBrowser.visible:=false;
 
 end;
@@ -1533,11 +1534,13 @@ var f: tform;
 begin
   visible:=params;
   f:=Tform.Create(nil);
+  f.borderstyle:=bsSingle;
 
   if visible^ then f.show;
 
   result:=f;
   ComponentFunctionHandlerClass.inputComponent(result);
+  f.name:='UDF_'+inttostr(f.tag);
   f.onclose:=ComponentFunctionHandlerClass.DefaultOnClose;
 end;
 
@@ -1980,6 +1983,9 @@ var p: record
   width,height: integer;
 end;
 begin
+  p.control:=control;
+  p.width:=width;
+  p.height:=height;
   pluginsync(ce_control_setSize2, @p);
 end;
 
