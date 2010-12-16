@@ -25,10 +25,14 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
+    SaveDialog1: TSaveDialog;
     Splitter1: TSplitter;
     procedure btnExecuteClick(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
   private
@@ -101,6 +105,18 @@ begin
   finally
     luacs.Leave;
   end;
+end;
+
+procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
+begin
+  if OpenDialog1.Execute then
+    mscript.Lines.LoadFromFile(opendialog1.filename);
+end;
+
+procedure TfrmLuaEngine.MenuItem3Click(Sender: TObject);
+begin
+  if savedialog1.execute then
+    mscript.lines.SaveToFile(savedialog1.filename);
 end;
 
 procedure TfrmLuaEngine.MenuItem5Click(Sender: TObject);

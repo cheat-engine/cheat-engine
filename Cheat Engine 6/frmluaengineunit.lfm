@@ -87,9 +87,13 @@ object frmLuaEngine: TfrmLuaEngine
       Caption = 'File'
       object MenuItem2: TMenuItem
         Caption = 'Open script'
+        ShortCut = 16463
+        OnClick = MenuItem2Click
       end
       object MenuItem3: TMenuItem
         Caption = 'Save current script'
+        ShortCut = 16467
+        OnClick = MenuItem3Click
       end
       object MenuItem4: TMenuItem
         Caption = '-'
@@ -107,5 +111,17 @@ object frmLuaEngine: TfrmLuaEngine
         Checked = True
       end
     end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.LUA'
+    Filter = 'Lua files (*.lua)|*.lua'
+    left = 56
+    top = 41
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.LUA'
+    Filter = 'Lua files (*.lua)|*.lua'
+    left = 128
+    top = 43
   end
 end
