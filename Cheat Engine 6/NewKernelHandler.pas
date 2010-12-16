@@ -339,6 +339,7 @@ type TDBKDebug_WaitForDebugEvent=function(timeout: dword): boolean; stdcall;
 type TDBKDebug_GetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
 type TDBKDebug_SetDebuggerState=function(state: PDebuggerstate): boolean; stdcall;
 type TDBKDebug_SetGlobalDebugState=function(state: BOOL): BOOL; stdcall;
+type TDBKDebug_SetAbilityToStepKernelCode=function(state: boolean):BOOL; stdcall;
 type TDBKDebug_StartDebugging=function(processid:dword):BOOL; stdcall;
 type TDBKDebug_StopDebugging=function:BOOL; stdcall;
 type TDBKDebug_GD_SetBreakpoint=function(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TbreakLength): BOOL; stdcall;
@@ -492,6 +493,7 @@ var
   DBKDebug_GetDebuggerState   : TDBKDebug_GetDebuggerState;
   DBKDebug_SetDebuggerState   : TDBKDebug_SetDebuggerState;
   DBKDebug_SetGlobalDebugState: TDBKDebug_SetGlobalDebugState;
+  DBKDebug_SetAbilityToStepKernelCode: TDBKDebug_SetAbilityToStepKernelCode;
   DBKDebug_StartDebugging     : TDBKDebug_StartDebugging;
   DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
@@ -752,6 +754,7 @@ begin
     DBKDebug_SetDebuggerState:=@debug.DBKDebug_SetDebuggerState;
 
     DBKDebug_SetGlobalDebugState:=@debug.DBKDebug_SetGlobalDebugState;
+    DBKDebug_SetAbilityToStepKernelCode:=@debug.DBKDebug_SetAbilityToStepKernelCode;
     DBKDebug_StartDebugging:=@debug.DBKDebug_StartDebugging;
     DBKDebug_StopDebugging:=@debug.DBKDebug_StopDebugging;
     DBKDebug_GD_SetBreakpoint:=@debug.DBKDebug_GD_SetBreakpoint;

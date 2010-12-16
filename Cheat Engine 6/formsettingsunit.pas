@@ -32,6 +32,7 @@ type
     cbUseVEHDebugger: TRadioButton;
     cbUseWindowsDebugger: TRadioButton;
     CheckBox1: TCheckBox;
+    cbCanStepKernelcode: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -348,6 +349,8 @@ begin
       else
         Application.TaskBarBehavior:=tbSingleButton;
 
+
+      reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
 
       reg.WriteInteger('Buffersize',bufsize);
       reg.WriteBool('Center on popup',cbCenterOnPopup.checked);
@@ -696,7 +699,6 @@ begin
   begin
     rbDebugAsBreakpoint.checked:=true;
     pcDebugConfig.ActivePageIndex:=2;
-    cbGlobalDebug.enabled:=true;
   end;
 
 

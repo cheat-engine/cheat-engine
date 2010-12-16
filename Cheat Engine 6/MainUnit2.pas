@@ -687,6 +687,10 @@ begin
           Scan_MEM_IMAGE:=cbMemImage.Checked;
           Scan_MEM_MAPPED:=cbMemMapped.Checked;
 
+          if reg.ValueExists('Can Step Kernelcode') then
+            cbCanStepKernelcode.checked:=reg.ReadBool('Can Step Kernelcode');
+
+
 
           try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
           try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;

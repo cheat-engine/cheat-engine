@@ -53,7 +53,7 @@ type
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
 
     destructor destroy; override;
-    constructor create(globalDebug: boolean);
+    constructor create(globalDebug, canStepKernelcode: boolean);
   end;
 
 implementation
@@ -427,7 +427,7 @@ begin
   inherited destroy;
 end;
 
-constructor TKernelDebugInterface.create(globalDebug: boolean);
+constructor TKernelDebugInterface.create(globalDebug, canStepKernelcode: boolean);
 begin
   inherited create;
 
@@ -435,6 +435,7 @@ begin
 
   LoadDBK32;
 
+  DBKDebug_SetAbilityToStepKernelCode(canStepKernelcode);
   DBKDebug_SetGlobalDebugState(globalDebug);
   injectedEvents:=TQueue.Create;
 

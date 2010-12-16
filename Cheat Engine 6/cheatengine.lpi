@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="975"/>
+      <BuildNr Value="977"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -132,10 +132,11 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="9"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="981"/>
-        <CursorPos X="1" Y="1001"/>
+        <TopLine Value="737"/>
+        <CursorPos X="84" Y="757"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -248,7 +249,7 @@
         <Filename Value="plugin.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="plugin"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1301"/>
         <CursorPos X="1" Y="1326"/>
@@ -304,10 +305,10 @@
         <ComponentName Value="formSettings"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formsettingsunit"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="685"/>
-        <CursorPos X="30" Y="686"/>
+        <TopLine Value="676"/>
+        <CursorPos X="6" Y="695"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1427,7 +1428,7 @@
         <Filename Value="guisafecriticalsection.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="guisafecriticalsection"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="42"/>
         <CursorPos X="1" Y="64"/>
@@ -1439,8 +1440,7 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="454"/>
         <CursorPos X="1" Y="470"/>
@@ -1591,7 +1591,7 @@
         <Filename Value="WindowsDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowsDebugger"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="49"/>
         <CursorPos X="38" Y="65"/>
@@ -1603,7 +1603,7 @@
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="32"/>
         <CursorPos X="1" Y="42"/>
@@ -1647,10 +1647,12 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1472"/>
-        <CursorPos X="15" Y="1488"/>
+        <TopLine Value="83"/>
+        <CursorPos X="41" Y="95"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit137>
       <Unit138>
@@ -1659,8 +1661,8 @@
         <UnitName Value="debug"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="241"/>
-        <CursorPos X="1" Y="270"/>
+        <TopLine Value="263"/>
+        <CursorPos X="45" Y="274"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1713,8 +1715,8 @@
         <UnitName Value="KernelDebuggerInterface"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="415"/>
-        <CursorPos X="32" Y="434"/>
+        <TopLine Value="417"/>
+        <CursorPos X="21" Y="439"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1736,7 +1738,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="260"/>
         <CursorPos X="40" Y="387"/>
@@ -1956,7 +1958,7 @@
       </Unit169>
       <Unit170>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3051"/>
         <CursorPos X="6" Y="3067"/>
@@ -2088,7 +2090,7 @@
       <Unit187>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-xml\src\xmlread.pp"/>
         <UnitName Value="XMLRead"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="28"/>
         <CursorPos X="11" Y="44"/>
@@ -2099,123 +2101,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="476" Column="1" TopLine="461"/>
+        <Caret Line="428" Column="1" TopLine="409"/>
       </Position1>
       <Position2>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="479" Column="1" TopLine="461"/>
+        <Caret Line="429" Column="1" TopLine="409"/>
       </Position2>
       <Position3>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="480" Column="1" TopLine="461"/>
+        <Caret Line="431" Column="1" TopLine="424"/>
       </Position3>
       <Position4>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="481" Column="1" TopLine="461"/>
+        <Caret Line="437" Column="1" TopLine="424"/>
       </Position4>
       <Position5>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="483" Column="1" TopLine="461"/>
+        <Caret Line="444" Column="1" TopLine="430"/>
       </Position5>
       <Position6>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="488" Column="1" TopLine="461"/>
+        <Caret Line="446" Column="1" TopLine="433"/>
       </Position6>
       <Position7>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="454" Column="25" TopLine="469"/>
+        <Caret Line="452" Column="33" TopLine="430"/>
       </Position7>
       <Position8>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="452" Column="67" TopLine="409"/>
+        <Caret Line="450" Column="1" TopLine="430"/>
       </Position8>
       <Position9>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="428" Column="1" TopLine="409"/>
+        <Caret Line="452" Column="37" TopLine="433"/>
       </Position9>
       <Position10>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="429" Column="1" TopLine="409"/>
+        <Caret Line="457" Column="60" TopLine="439"/>
       </Position10>
       <Position11>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="431" Column="1" TopLine="424"/>
+        <Caret Line="456" Column="1" TopLine="439"/>
       </Position11>
       <Position12>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="437" Column="1" TopLine="424"/>
+        <Caret Line="458" Column="1" TopLine="439"/>
       </Position12>
       <Position13>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="444" Column="1" TopLine="430"/>
+        <Caret Line="460" Column="1" TopLine="448"/>
       </Position13>
       <Position14>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="446" Column="1" TopLine="433"/>
+        <Caret Line="467" Column="1" TopLine="451"/>
       </Position14>
       <Position15>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="452" Column="33" TopLine="430"/>
+        <Caret Line="496" Column="1" TopLine="480"/>
       </Position15>
       <Position16>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="450" Column="1" TopLine="430"/>
+        <Caret Line="498" Column="1" TopLine="480"/>
       </Position16>
       <Position17>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="452" Column="37" TopLine="433"/>
+        <Caret Line="499" Column="1" TopLine="480"/>
       </Position17>
       <Position18>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="457" Column="60" TopLine="439"/>
+        <Caret Line="500" Column="1" TopLine="480"/>
       </Position18>
       <Position19>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="456" Column="1" TopLine="439"/>
+        <Caret Line="501" Column="1" TopLine="480"/>
       </Position19>
       <Position20>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="458" Column="1" TopLine="439"/>
+        <Caret Line="503" Column="1" TopLine="480"/>
       </Position20>
       <Position21>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="460" Column="1" TopLine="448"/>
+        <Caret Line="487" Column="55" TopLine="480"/>
       </Position21>
       <Position22>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="467" Column="1" TopLine="451"/>
+        <Caret Line="423" Column="34" TopLine="412"/>
       </Position22>
       <Position23>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="496" Column="1" TopLine="480"/>
+        <Filename Value="KernelDebuggerInterface.pas"/>
+        <Caret Line="438" Column="23" TopLine="416"/>
       </Position23>
       <Position24>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="498" Column="1" TopLine="480"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="494" Column="25" TopLine="478"/>
       </Position24>
       <Position25>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="499" Column="1" TopLine="480"/>
+        <Filename Value="dbk32\debug.pas"/>
+        <Caret Line="171" Column="20" TopLine="165"/>
       </Position25>
       <Position26>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="500" Column="1" TopLine="480"/>
+        <Filename Value="dbk32\debug.pas"/>
+        <Caret Line="274" Column="45" TopLine="262"/>
       </Position26>
       <Position27>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="501" Column="1" TopLine="480"/>
+        <Filename Value="KernelDebuggerInterface.pas"/>
+        <Caret Line="438" Column="38" TopLine="416"/>
       </Position27>
       <Position28>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="503" Column="1" TopLine="480"/>
+        <Filename Value="KernelDebuggerInterface.pas"/>
+        <Caret Line="439" Column="21" TopLine="417"/>
       </Position28>
       <Position29>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="487" Column="55" TopLine="480"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="494" Column="42" TopLine="478"/>
       </Position29>
       <Position30>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="423" Column="34" TopLine="412"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="442" Column="103" TopLine="421"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

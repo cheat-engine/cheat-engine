@@ -1527,7 +1527,7 @@ begin
   else if formsettings.cbKDebug.checked then
   begin
     globalDebug:=formsettings.cbGlobalDebug.checked;
-    CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug);
+    CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
   end;
 
 

@@ -54,7 +54,7 @@ function DBKDebug_SetGlobalDebugState(state: BOOL): BOOL; stdcall;
 function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 function DBKDebug_StopDebugging:BOOL; stdcall;
 function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
-
+function DBKDebug_SetAbilityToStepKernelCode(state: boolean):BOOL; stdcall;
 
 implementation
 
@@ -175,6 +175,8 @@ end;
 
 
 
+
+
 function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 begin
   result:=foreachcpu(DBKDebug_StartDebuggingInternal, @processid);
@@ -267,6 +269,25 @@ begin
     cc:=IOCTL_CE_WAITFORDEBUGEVENT;
     result:=deviceiocontrol(hdevice,cc,@x,sizeof(x),nil,0,cc,nil);
   end;
+end;
+
+function DBKDebug_SetAbilityToStepKernelCode(state: boolean):BOOL; stdcall;
+type Tinput=record
+  state: integer;
+end;
+var input:TInput;
+    br,cc: dword;
+begin
+
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    result:=false;
+    if state then input.state:=1 else input.state:=0;
+
+
+    cc:=IOCTL_CE_SETKERNELSTEPABILITY;
+    result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
+  end else result:=false;
 end;
 
 
