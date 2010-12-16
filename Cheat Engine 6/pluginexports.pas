@@ -59,8 +59,8 @@ function ce_memrec_delete(memrec: pointer): BOOL; stdcall;
 function ce_getProcessIDFromProcessName(name: pchar): DWORD; stdcall;
 function ce_openProcess(pid: dword): BOOL; stdcall;
 function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
-procedure ce_pause;
-procedure ce_unpause;
+procedure ce_pause; stdcall;
+procedure ce_unpause; stdcall;
 
 function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
 function ce_debug_removeBreakpoint(address: ptruint): BOOL; stdcall;

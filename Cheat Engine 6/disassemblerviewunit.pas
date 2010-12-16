@@ -207,7 +207,7 @@ begin
   fSelectedAddress:=address;
   fSelectedAddress2:=address;
 
-  if (fTotalvisibledisassemblerlines>0) and (InRangeX(fSelectedAddress, Tdisassemblerline(disassemblerlines[0]).address, Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-1]).address)) then
+  if (fTotalvisibledisassemblerlines>1) and (InRangeX(fSelectedAddress, Tdisassemblerline(disassemblerlines[0]).address, Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-2]).address)) then
   begin
     //in range
     found:=false;
@@ -277,12 +277,14 @@ begin
     VK_DOWN:
     begin
       disassemble(fSelectedAddress);
-
-      if (fSelectedAddress >= TDisassemblerLine(disassemblerlines[fTotalvisibledisassemblerlines-1]).address) then
+      if (fTotalvisibledisassemblerlines-2)>0 then
       begin
-        disassemble(fTopAddress);
-        update;
-        fSelectedAddress:=TDisassemblerLine(disassemblerlines[fTotalvisibledisassemblerlines-1]).address;
+        if (fSelectedAddress >= TDisassemblerLine(disassemblerlines[fTotalvisibledisassemblerlines-2]).address) then
+        begin
+          disassemble(fTopAddress);
+          update;
+          fSelectedAddress:=TDisassemblerLine(disassemblerlines[fTotalvisibledisassemblerlines-2]).address;
+        end;
       end;
 
     end;

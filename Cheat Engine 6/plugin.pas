@@ -139,6 +139,55 @@ type TExportedFunctions4 = record
   memrec_setColor: pointer;
   memrec_appendtoentry: pointer;
   memrec_delete: pointer;
+
+  getProcessIDFromProcessName: pointer;
+  openProcessEx: pointer;
+  debugProcessEx: pointer;
+  pause: pointer;
+  unpause: pointer;
+
+  debug_setBreakpoint: pointer;
+  debug_removeBreakpoint: pointer;
+  debug_continueFromBreakpoint: pointer;
+
+  closeCE: pointer;
+  hideAllCEWindows: pointer;
+  unhideMainCEwindow: pointer;
+  createForm: pointer;
+  form_centerScreen: pointer;
+  form_hide: pointer;
+  form_show: pointer;
+  form_onClose: pointer;
+
+  createPanel: pointer;
+  createGroupBox: pointer;
+  createButton: pointer;
+  createImage: pointer;
+  image_loadImageFromFile: pointer;
+  image_transparent: pointer;
+  image_stretch: pointer;
+
+  createLabel: pointer;
+  createEdit: pointer;
+  createMemo: pointer;
+  createTimer: pointer;
+  timer_setInterval: pointer;
+  timer_onTimer: pointer;
+  control_setCaption: pointer;
+  control_getCaption: pointer;
+  control_setPosition: pointer;
+  control_getX: pointer;
+  control_getY: pointer;
+  control_setSize: pointer;
+  control_getWidth: pointer;
+  control_getHeight: pointer;
+  control_setAlign: pointer;
+  control_onClick: pointer;
+
+  object_destroy: pointer;
+  messageDialog: pointer;
+  speedhack_setSpeed: pointer;
+
 end;
 type PExportedFunctions4 = ^TExportedFunctions4;
 
@@ -1493,6 +1542,53 @@ begin
   exportedfunctions.memrec_appendtoentry:=@ce_memrec_appendtoentry;
   exportedfunctions.memrec_delete:=@ce_memrec_delete;
 
+  exportedfunctions.getProcessIDFromProcessName:=@ce_getProcessIDFromProcessName;
+  exportedfunctions.openProcessEx:=@ce_openProcess;
+  exportedfunctions.debugProcessEx:=@ce_debugProcess;
+  exportedfunctions.pause:=@ce_pause;
+  exportedfunctions.unpause:=@ce_unpause;
+
+  exportedfunctions.debug_setBreakpoint:=@ce_debug_setBreakpoint;
+  exportedfunctions.debug_removeBreakpoint:=@ce_debug_removeBreakpoint;
+  exportedfunctions.debug_continueFromBreakpoint:=@ce_debug_continueFromBreakpoint;
+
+  exportedfunctions.closeCE:=@ce_closeCE;
+  exportedfunctions.hideAllCEWindows:=@ce_hideAllCEWindows;
+  exportedfunctions.unhideMainCEwindow:=@ce_unhideMainCEwindow;
+  exportedfunctions.createForm:=@ce_createForm;
+  exportedfunctions.form_centerScreen:=@ce_form_centerScreen;
+  exportedfunctions.form_hide:=@ce_form_hide;
+  exportedfunctions.form_show:=@ce_form_show;
+  exportedfunctions.form_onClose:=@ce_form_onClose;
+
+  exportedfunctions.createPanel:=@ce_createPanel;
+  exportedfunctions.createGroupBox:=@ce_createGroupBox;
+  exportedfunctions.createButton:=@ce_createButton;
+  exportedfunctions.createImage:=@ce_createImage;
+  exportedfunctions.image_loadImageFromFile:=@ce_image_loadImageFromFile;
+  exportedfunctions.image_transparent:=@ce_image_transparent;
+  exportedfunctions.image_stretch:=@ce_image_stretch;
+
+  exportedfunctions.createLabel:=@ce_createLabel;
+  exportedfunctions.createEdit:=@ce_createEdit;
+  exportedfunctions.createMemo:=@ce_createMemo;
+  exportedfunctions.createTimer:=@ce_createTimer;
+  exportedfunctions.timer_setInterval:=@ce_timer_setInterval;
+  exportedfunctions.timer_onTimer:=@ce_timer_onTimer;
+  exportedfunctions.control_setCaption:=@ce_control_setCaption;
+  exportedfunctions.control_getCaption:=@ce_control_getCaption;
+  exportedfunctions.control_setPosition:=@ce_control_setPosition;
+  exportedfunctions.control_getX:=@ce_control_getX;
+  exportedfunctions.control_getY:=@ce_control_getY;
+  exportedfunctions.control_setSize:=@ce_control_setSize;
+  exportedfunctions.control_getWidth:=@ce_control_getWidth;
+  exportedfunctions.control_getHeight:=@ce_control_getHeight;
+  exportedfunctions.control_setAlign:=@ce_control_setAlign;
+  exportedfunctions.control_onClick:=@ce_control_onClick;
+
+  exportedfunctions.object_destroy:=@ce_object_destroy;
+  exportedfunctions.messageDialog:=@ce_messageDialog;
+  exportedfunctions.speedhack_setSpeed:=@ce_speedhack_setSpeed;
 
 end;
 
