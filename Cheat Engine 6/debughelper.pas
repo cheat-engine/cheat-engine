@@ -449,8 +449,7 @@ begin
     //and set the Lx bit
     Debugregistermask := Debugregistermask or (1 shl 10); //and set bit 10 to 1
 
-    clearmask := (($F shl (16 + 4 * breakpoint.debugRegister)) or
-      (3 shl (breakpoint.debugregister * 2))) xor $FFFFFFFF;
+    clearmask := (($F shl (16 + 4 * breakpoint.debugRegister)) or (3 shl (breakpoint.debugregister * 2))) xor $FFFFFFFF;
     //create a mask that can be used to undo the old settings
 
     outputdebugstring(PChar('3:Debugregistermask=' + inttohex(Debugregistermask, 8)));
@@ -485,7 +484,7 @@ begin
           3: currentthread.context.Dr3 := breakpoint.address;
         end;
         currentthread.context.Dr7 :=
-          (currentthread.context.Dr7 and clearmask) + Debugregistermask;
+          (currentthread.context.Dr7 and clearmask) or Debugregistermask;
 
         currentthread.setContext;
         currentthread.resume;
@@ -540,8 +539,7 @@ begin
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
     //debug registers
-    Debugregistermask := $F shl (16 + 4 * breakpoint.debugRegister) +
-      (3 shl (breakpoint.debugregister * 2));
+    Debugregistermask := $F shl (16 + 4 * breakpoint.debugRegister) + (3 shl (breakpoint.debugregister * 2));
     Debugregistermask := not Debugregistermask; //inverse the bits
 
 

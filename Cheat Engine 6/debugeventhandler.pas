@@ -236,6 +236,8 @@ BP can be nil if it's a single step breakpoint
 }
 var oldprotect,bw: dword;
 begin
+  context.EFlags:=eflags_setTF(context.EFlags,0);
+
   try
     if (bp<>nil) then
     begin
@@ -297,6 +299,7 @@ begin
       begin
         //just continue
         singlestepping:=false;
+
 
         if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
         begin

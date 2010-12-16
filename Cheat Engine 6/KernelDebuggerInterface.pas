@@ -42,6 +42,7 @@ type
     injectedEvents: Tqueue;
     threadpoller: TThreadPoller;
     NeedsToContinue: boolean;
+    globalDebug: boolean;
   public
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
@@ -224,7 +225,7 @@ end;
 function TKernelDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 begin
   outputdebugstring('TKernelDebugInterface.SetThreadContext');
-  if isFrozenThread then
+  if NeedsToContinue and isFrozenThread then
   begin
     //use the currentdebuggerstate
     currentdebuggerstate.eax:=lpContext.{$ifdef cpu64}Rax{$else}eax{$endif};
@@ -254,16 +255,15 @@ begin
     currentdebuggerstate.gs:=lpContext.SegGs;
     currentdebuggerstate.eflags:=lpContext.EFlags;
 
-    currentdebuggerstate.dr0:=lpContext.Dr0;
-    currentdebuggerstate.dr1:=lpContext.Dr1;
-    currentdebuggerstate.dr2:=lpContext.Dr2;
-    currentdebuggerstate.dr3:=lpContext.Dr3;
-    currentdebuggerstate.dr6:=lpContext.Dr6;
-    currentdebuggerstate.dr7:=lpContext.Dr7;
-
-
-
-
+    if not globalDebug then
+    begin
+      currentdebuggerstate.dr0:=lpContext.Dr0;
+      currentdebuggerstate.dr1:=lpContext.Dr1;
+      currentdebuggerstate.dr2:=lpContext.Dr2;
+      currentdebuggerstate.dr3:=lpContext.Dr3;
+      currentdebuggerstate.dr6:=lpContext.Dr6;
+      currentdebuggerstate.dr7:=lpContext.Dr7;
+    end;
 
     {$ifdef cpu64}
 
@@ -271,6 +271,9 @@ begin
     {$else}
     CopyMemory(@currentdebuggerstate.fxstate, @lpContext.ext, sizeof(lpContext.ext));
     {$endif}
+
+    result:=DBKDebug_SetDebuggerState(@currentdebuggerstate);
+
   end else
     result:=newkernelhandler.SetThreadContext(hthread, lpContext);
 
@@ -279,8 +282,12 @@ end;
 function TKernelDebugInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL;
 begin
   outputdebugstring('TKernelDebugInterface.GetThreadContext');
-  if isFrozenThread then
+  if NeedsToContinue and isFrozenThread then
   begin
+    outputdebugstring('This is the frozen thread so use the internal method');
+
+    result:=DBKDebug_GetDebuggerState(@currentdebuggerstate);
+
     //use the currentdebuggerstate
     lpContext.{$ifdef cpu64}Rax{$else}eax{$endif}:=currentdebuggerstate.eax;
     lpContext.{$ifdef cpu64}Rbx{$else}ebx{$endif}:=currentdebuggerstate.ebx;
@@ -322,19 +329,29 @@ begin
     {$endif}
 
     lpContext.ContextFlags:=0;
-  end else result:=newkernelhandler.GetThreadContext(hthread, lpContext);
+  end else
+  begin
+    outputdebugstring('Use the default method');
+    result:=newkernelhandler.GetThreadContext(hthread, lpContext);
+  end;
 
 end;
 
 function TKernelDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
 begin
+  outputdebugstring('TKernelDebugInterface.ContinueDebugEvent');
   if NeedsToContinue then
   begin
+    outputdebugstring('NeedsToContinue=true');
     DBKDebug_SetDebuggerState(@currentdebuggerstate);
-    result:=DBKDebug_ContinueDebugEvent(dwContinueStatus=DBG_CONTINUE)
+    result:=DBKDebug_ContinueDebugEvent(dwContinueStatus=DBG_CONTINUE);
+    NeedsToContinue:=false;
   end
   else
+  begin
+    outputdebugstring('NeedsToContinue=false');
     result:=true;
+  end;
 end;
 
 function TKernelDebugInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
@@ -374,10 +391,13 @@ begin
   end
   else
   begin
+
     NeedsToContinue:=true;
     result:=DBKDebug_WaitForDebugEvent(dwMilliseconds);
     if result then
     begin
+      OutputDebugString('Received a debug event that wasn''t injected');
+
       //get the state and setup lpDebugEvent
       DBKDebug_GetDebuggerState(@currentdebuggerstate);
 
@@ -389,10 +409,6 @@ begin
       lpDebugEvent.Exception.dwFirstChance:=1;
       lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_SINGLE_STEP;
       lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(currentdebuggerstate.eip));
-
-
-
-
     end;
   end;
 end;
@@ -414,6 +430,8 @@ end;
 constructor TKernelDebugInterface.create(globalDebug: boolean);
 begin
   inherited create;
+
+  self.globalDebug:=globalDebug;
 
   LoadDBK32;
 

@@ -684,6 +684,8 @@ end;
 
 procedure TformSettings.cbDebuggerInterfaceChange(Sender: TObject);
 begin
+  rbInt3AsBreakpoint.enabled:=not cbKDebug.checked;
+
   if cbUseVEHDebugger.Checked then
     pcDebugConfig.ActivePageIndex:=0
   else
@@ -693,7 +695,6 @@ begin
   if cbKDebug.checked then
   begin
     rbDebugAsBreakpoint.checked:=true;
-    rbInt3AsBreakpoint.enabled:=false;
     pcDebugConfig.ActivePageIndex:=2;
     cbGlobalDebug.enabled:=true;
   end;

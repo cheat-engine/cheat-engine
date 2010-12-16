@@ -6,8 +6,6 @@ uses
   Classes, hookedfunctions
   { you can add units after this };
 
-{$R *.res}
-
 exports NtAllocateVirtualMemoryOrig;
 exports NtFreeVirtualMemoryOrig;
 exports RtlAllocateHeapOrig;
