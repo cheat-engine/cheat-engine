@@ -466,7 +466,7 @@ var
   fcd: TFoundCodeDialog;
   c: PContext;
 
-  bpp: PBreakpoint;
+  bpp,bpp2: PBreakpoint;
  // bp: TBreakpoint;
 begin
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
@@ -488,6 +488,7 @@ begin
 
         if bpp^.OneTimeOnly then //delete it
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
+
 
         break;
       end;
@@ -518,7 +519,16 @@ begin
     case bpp.breakpointAction of
       bo_Break:
       begin
-        //todo: check break conditions
+        //check if there is a step over breakpoint and remove it
+        breakpointCS.enter;
+        for i:=0 to breakpointlist.count-1 do
+        begin
+          bpp2:=PBreakpoint(breakpointlist.Items[i]);
+          if (bpp2.active) and (bpp2.StepOverBp) and (bpp2.markedfordeletion=false) then
+            TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp2);
+        end;
+        breakpointCS.leave;
+
         HandleBreak(bpp); //cause break in memory browser at address
       end;
 

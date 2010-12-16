@@ -60,7 +60,6 @@ begin
   else
     s:=nil;
 
-  listview1.Clear;
   if debuggerthread<>nil then
     debuggerthread.updatebplist(ListView1);
 

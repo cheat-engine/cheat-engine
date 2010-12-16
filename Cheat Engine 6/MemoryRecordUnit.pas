@@ -1013,7 +1013,7 @@ begin
   temp:=temp shr extra.bitData.Bit; //shift to the proper start
   mask:=qword($ffffffffffffffff) shl extra.bitData.bitlength; //create a mask that stripps of the excessive bits
 
-  temp:=temp xor mask; //temp now only contains the bits that are of meaning
+  temp:=temp and (not mask); //temp now only contains the bits that are of meaning
 
   if formsettings.cbBinariesAsDecimal.checked then
     result:=inttostr(temp)

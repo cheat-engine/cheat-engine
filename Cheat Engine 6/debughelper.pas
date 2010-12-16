@@ -1096,9 +1096,15 @@ begin
   begin
     bp:=PBreakpoint(BreakpointList[i]);
 
-    li:=lv.items.Add;
+    if i<lv.Items.Count-1 then
+      li:=lv.items[i]
+    else
+      li:=lv.items.add;
+
     li.data:=bp;
     li.Caption:=inttohex(bp.address,8);
+    li.SubItems.Clear;
+
     li.SubItems.add(inttostr(bp.size));
     li.SubItems.Add(breakpointTriggerToString(bp.breakpointTrigger));
     s:=breakpointMethodToString(bp.breakpointMethod);
@@ -1112,8 +1118,11 @@ begin
     if bp.markedfordeletion then
       li.SubItems.Add('Yes');
 
-    li.Data:=bp;
   end;
+
+  for i:=lv.items.count-1 downto BreakpointList.Count do
+    lv.items[i].Delete;
+
   breakpointCS.leave;
 end;
 
@@ -1180,7 +1189,10 @@ begin
         if askforsoftwarebp then
         begin
           if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
-            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0)
+          begin
+            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0);
+            exit;
+          end
           else
           begin
             if MessageDlg(
@@ -1333,7 +1345,10 @@ begin
         begin
 
           if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
-            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0)
+          begin
+            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0);
+            exit;
+          end
           else
           begin
             if MessageDlg(
@@ -1440,6 +1455,7 @@ begin
             exit; //error
 
           bp.OneTimeOnly:=true;
+          bp.StepOverBp:=true;
         end;
 
 

@@ -179,6 +179,7 @@ type
     //set if the breakpoint is for one specific thread, ignore breaks if it happens on other threads
 
     OneTimeOnly: boolean; //true if the breakpoint should be removed after the first time it is hit
+    StepOverBp: boolean;
 
     changereg: tregistermodificationBP;
 
