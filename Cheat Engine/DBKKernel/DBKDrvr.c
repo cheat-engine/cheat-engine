@@ -154,7 +154,7 @@ Return Value:
 
 	//DbgPrint("%S",oa.ObjectName.Buffer); 
 	
-
+	KernelCodeStepping=0;
 	
 
 	

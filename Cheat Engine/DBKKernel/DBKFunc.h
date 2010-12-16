@@ -220,6 +220,8 @@ UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;
 UINT_PTR MAX_PTE_POS;
 
+int KernelCodeStepping;
+
 int isPrefix(unsigned char b);
 EFLAGS getEflags(void);
 int cpunr(void);

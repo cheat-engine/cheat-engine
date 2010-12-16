@@ -1169,6 +1169,18 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+		case IOCTL_CE_SETKERNELSTEPABILITY:
+			{
+				struct input
+				{
+					int state;
+					
+				} *inp=Irp->AssociatedIrp.SystemBuffer;
+				KernelCodeStepping=inp->state;
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}
+
 		
 		case IOCTL_CE_GD_SETBREAKPOINT:
 			{
