@@ -651,7 +651,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	DebugReg6 _dr6=*(DebugReg6 *)&currentdebugregs[4];
 //	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
-	DbgPrint("interrupt1_handler\n");
+
+
+	//DbgPrint("interrupt1_handler\n");
 	
 	//check if this break should be handled or not
 	
@@ -886,14 +888,42 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	
 	if (DebuggerState.isDebugging)
 	{
-		DbgPrint("DebuggerState.isDebugging\n");
+		//DbgPrint("DebuggerState.isDebugging\n");
 		//check if this should break
 		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{	
 			UINT_PTR originaldebugregs[6];
 			UINT64 oldDR7=getDR7();
 
-			DbgPrint("CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID\n");
+			if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
+			{
+				
+
+				if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
+				{
+					if (!KernelCodeStepping)
+					{
+						((PEFLAGS)&stackpointer[si_eflags])->TF=0;
+						((PEFLAGS)&stackpointer[si_eflags])->RF=1;
+						debugger_dr6_setValue(0xffff0ff0);
+						return 1;
+					}
+
+					if (((PEFLAGS)&stackpointer[si_eflags])->IF==0) //no kernelcode stepping, but continue until IF == 1
+					{
+						((PEFLAGS)&stackpointer[si_eflags])->TF=1;
+						((PEFLAGS)&stackpointer[si_eflags])->RF=1;
+						debugger_dr6_setValue(0xffff0ff0);
+						return 1;
+					}
+				
+					
+				}
+			}
+
+
+
+			//DbgPrint("CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID\n");
 
 			if (DebuggerState.globalDebug)
 			{
@@ -909,6 +939,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			
 			//no extra checks if it's caused by the debugger or not. That is now done in the usermode part
 			//if (*(PEFLAGS)(&stackpointer[si_eflags]).IF)	
+/*
 			if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
 			{
 				//DbgPrint("Breakpoint while interrupts are disabled: %x\n",stackpointer[si_eip]);
@@ -917,7 +948,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				((PEFLAGS)&stackpointer[si_eflags])->TF=1; //keep going until IF=1
 				DbgPrint("IF==0\n");
 				return 1; //don't handle it but also don't tell windows
-			}
+			}*/
 
 			//set the real debug registers to what it is according to the guest (so taskswitches take over these values) .... shouldn't be needed as global debug is on which fakes that read...
 
@@ -1040,14 +1071,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	//DbgPrint("interrupt1_centry cpunr=%d esp=%x\n",cpunr(), getRSP());
 
 	//bsod crashfix, but also disables kernelmode stepping
-	//if (((stackpointer[si_cs] & 3)==0) || (((PEFLAGS)&stackpointer[si_eflags])->IF==0) )
-	if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
-	{
-		((PEFLAGS)&stackpointer[si_eflags])->TF=KernelCodeStepping;
-		((PEFLAGS)&stackpointer[si_eflags])->RF=1;
-		debugger_dr6_setValue(0xffff0ff0);
-		return 1;
-	}
+
 
 
 
@@ -1084,7 +1108,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	
 
-	DbgPrint("handled=%d\n",handled);
+	//DbgPrint("handled=%d\n",handled);
 
 	//DbgPrint("After interrupt1_handler dr6=%x\n",currentdebugregs[4]);
 	
@@ -1295,6 +1319,8 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	//after=getRSP();
 
 	//DbgPrint("before=%llx after=%llx\n",before,after);
+
+	//DbgPrint("end of interrupt1_centry. eflags=%x", stackpointer[si_eflags]);
 
 	return handled;
 }
