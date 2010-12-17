@@ -856,12 +856,12 @@ end;
 
 function TScanner.ByteIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pbyte(newvalue)^>=trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue)) and (pbyte(newvalue)^<=trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue2));
+  result:=(pbyte(newvalue)^>trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue)) and (pbyte(newvalue)^<trunc(pbyte(oldvalue)^+pbyte(oldvalue)^*svalue2));
 end;
 
 function TScanner.ByteDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pbyte(newvalue)^>=trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue2)) and (pbyte(newvalue)^<=trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue));
+  result:=(pbyte(newvalue)^>trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue2)) and (pbyte(newvalue)^<trunc(pbyte(oldvalue)^-pbyte(oldvalue)^*svalue));
 end;
 
 
@@ -930,12 +930,12 @@ end;
 
 function TScanner.WordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pword(newvalue)^>=trunc(pword(oldvalue)^+pword(oldvalue)^*svalue)) and (pword(newvalue)^<=trunc(pword(oldvalue)^+pword(oldvalue)^*svalue2));
+  result:=(pword(newvalue)^>trunc(pword(oldvalue)^+pword(oldvalue)^*svalue)) and (pword(newvalue)^<trunc(pword(oldvalue)^+pword(oldvalue)^*svalue2));
 end;
 
 function TScanner.WordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pword(newvalue)^>=trunc(pword(oldvalue)^-pword(oldvalue)^*svalue2)) and (pword(newvalue)^<=trunc(pword(oldvalue)^-pword(oldvalue)^*svalue));
+  result:=(pword(newvalue)^>trunc(pword(oldvalue)^-pword(oldvalue)^*svalue2)) and (pword(newvalue)^<trunc(pword(oldvalue)^-pword(oldvalue)^*svalue));
 end;
 
 function TScanner.WordChanged(newvalue,oldvalue: pointer):boolean;
@@ -982,7 +982,7 @@ end;
 
 function TScanner.CustomIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(customType.ConvertDataToInteger(newvalue)>=trunc(customType.ConvertDataToInteger(oldvalue)+pdword(oldvalue)^*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
+  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)+pdword(oldvalue)^*svalue)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)+customType.ConvertDataToInteger(oldvalue)*svalue2));
 end;
 
 function TScanner.CustomDecreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -997,7 +997,7 @@ end;
 
 function TScanner.CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(customType.ConvertDataToInteger(newvalue)>=trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
+  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue2)) and (customType.ConvertDataToInteger(newvalue)<trunc(customType.ConvertDataToInteger(oldvalue)-customType.ConvertDataToInteger(oldvalue)*svalue));
 end;
 
 function TScanner.CustomChanged(newvalue,oldvalue: pointer): boolean;
@@ -1054,12 +1054,12 @@ end;
 
 function TScanner.DWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pdword(newvalue)^>=trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue)) and (pdword(newvalue)^<=trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue2));
+  result:=(pdword(newvalue)^>trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue)) and (pdword(newvalue)^<trunc(pdword(oldvalue)^+pdword(oldvalue)^*svalue2));
 end;
 
 function TScanner.DWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pdword(newvalue)^>=trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue2)) and (pdword(newvalue)^<=trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue));
+  result:=(pdword(newvalue)^>trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue2)) and (pdword(newvalue)^<trunc(pdword(oldvalue)^-pdword(oldvalue)^*svalue));
 end;
 
 function TScanner.DWordChanged(newvalue,oldvalue: pointer):boolean;
@@ -1116,12 +1116,12 @@ end;
 
 function TScanner.QWordIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(PQWORD(newvalue)^>=trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue)) and (PQWORD(newvalue)^<=trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue2));
+  result:=(PQWORD(newvalue)^>trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue)) and (PQWORD(newvalue)^<trunc(PQWORD(oldvalue)^+PQWORD(oldvalue)^*svalue2));
 end;
 
 function TScanner.QWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(PQWORD(newvalue)^>=trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue2)) and (PQWORD(newvalue)^<=trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue));
+  result:=(PQWORD(newvalue)^>trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue2)) and (PQWORD(newvalue)^<trunc(PQWORD(oldvalue)^-PQWORD(oldvalue)^*svalue));
 end;
 
 function TScanner.QWordChanged(newvalue,oldvalue: pointer):boolean;
@@ -1191,12 +1191,12 @@ end;
 
 function TScanner.SingleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(psingle(newvalue)^>=psingle(oldvalue)^+psingle(oldvalue)^*svalue) and (psingle(newvalue)^<=psingle(oldvalue)^+psingle(oldvalue)^*svalue2);
+  result:=(psingle(newvalue)^>psingle(oldvalue)^+psingle(oldvalue)^*svalue) and (psingle(newvalue)^<psingle(oldvalue)^+psingle(oldvalue)^*svalue2);
 end;
 
 function TScanner.SingleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(psingle(newvalue)^>=psingle(oldvalue)^-psingle(oldvalue)^*svalue2) and (psingle(newvalue)^<=psingle(oldvalue)^-psingle(oldvalue)^*svalue);
+  result:=(psingle(newvalue)^>psingle(oldvalue)^-psingle(oldvalue)^*svalue2) and (psingle(newvalue)^<psingle(oldvalue)^-psingle(oldvalue)^*svalue);
 end;
 
 function TScanner.SingleChanged(newvalue,oldvalue: pointer):boolean;
@@ -1262,12 +1262,12 @@ end;
 
 function TScanner.DoubleIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pdouble(newvalue)^>=pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue) and (pdouble(newvalue)^<=pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue2);
+  result:=(pdouble(newvalue)^>pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue) and (pdouble(newvalue)^<pdouble(oldvalue)^+pdouble(oldvalue)^*dvalue2);
 end;
 
 function TScanner.DoubleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
 begin
-  result:=(pdouble(newvalue)^>=pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue2) and (pdouble(newvalue)^<=pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue);
+  result:=(pdouble(newvalue)^>pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue2) and (pdouble(newvalue)^<pdouble(oldvalue)^-pdouble(oldvalue)^*dvalue);
 end;
 
 function TScanner.DoubleChanged(newvalue,oldvalue: pointer):boolean;
@@ -2208,7 +2208,7 @@ begin
         end;
       end;
 
-      if scanoption=soValueBetween then
+      if percentage or (scanoption=soValueBetween) then
       begin
         try
           dvalue2:=strtofloat(scanvalue2,FloatSettings);

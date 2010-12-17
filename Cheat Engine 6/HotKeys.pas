@@ -105,7 +105,7 @@ procedure THotkeyform.SetMemrec(x: TMemoryRecord);
 var i: integer;
 li: TListItem;
 begin
-  if memrec.VarType=vtAutoAssembler then
+  if x.VarType=vtAutoAssembler then
   begin
     cbFreezedirection.Clear;
     cbFreezedirection.Items.add('Toggle script');

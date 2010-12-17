@@ -1500,9 +1500,8 @@ begin
   begin
     //turn this into a double value scan like "value between"
     CreateScanValue2;
-    ScanText.caption:='Between';
+    ScanText.caption:='Between %';
     ScanText2.caption:=scantext2.caption+' %';
-
   end
   else
   begin
@@ -1540,16 +1539,28 @@ begin
   if scanvalue2=nil then
   begin
     //decrease the width of the scanvalue editbox
+    andlabel:=tlabel.Create(self);
+    andlabel.Parent:=scanvalue.Parent;
+    andlabel.Caption:='and';
+
     oldwidth:=scanvalue.width;
-    scanvalue.Width:=(scanvalue.Width div 2)-20;
+    scanvalue.Width:=(scanvalue.Width div 2)-(andlabel.width div 2)-3;
+
+
+    andlabel.Left:=scanvalue.Left+scanvalue.width+3;
+    andlabel.Top:=scanvalue.Top+(scanvalue.height div 2)-(andlabel.height div 2);
+
+    andlabel.Anchors:=scantext.Anchors;
+
+
 
     //create a 2nd editbox
     scanvalue2:=tedit.create(self);
     //scanvalue2.onkeydown:=scanvalueKeyDown;
     scanvalue2.OnKeyPress:=ScanvalueoldKeyPress;
     scanvalue2.PopupMenu:=ccpmenu;
-    scanvalue2.Left:=scanvalue.left+scanvalue.Width+20;
-    scanvalue2.Width:=oldwidth-scanvalue.width-20;
+    scanvalue2.Left:=andlabel.left+andlabel.width+3;
+    scanvalue2.Width:=oldwidth-(scanvalue2.left-scanvalue.left);
     scanvalue2.Top:=scanvalue.top;
     scanvalue2.Parent:=scanvalue.Parent;
     scanvalue2.Anchors:=scanvalue.Anchors;
@@ -1563,12 +1574,7 @@ begin
     scantext2.Parent:=scantext.parent;
     scantext2.Anchors:=scantext.Anchors;
 
-    andlabel:=tlabel.Create(self);
-    andlabel.Caption:='and';
-    andlabel.Left:=scanvalue2.Left-20;
-    andlabel.Top:=scanvalue2.Top+2;
-    andlabel.Parent:=scanvalue2.Parent;
-    andlabel.Anchors:=scantext.Anchors;
+
 
   end;
 end;
@@ -1577,7 +1583,7 @@ procedure TMainForm.DestroyScanValue2;
 begin
   if scanvalue2<>nil then
   begin
-    scanvalue.Width:=scanvalue.width+20+scanvalue2.width;
+    scanvalue.Width:=(scanvalue2.left+scanvalue2.width)-scanvalue.left;
     oldscanvalue2text:=scanvalue2.Text;
     freeandnil(scanvalue2);
     freeandnil(scantext2);
@@ -2908,10 +2914,14 @@ procedure TMainForm.Panel5Resize(Sender: TObject);
 begin
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
-  ScanText.left:=scanvalue.left; //lazarus rev  25348 32-bit fix
-
-
   foundlist3.Columns[1].width:=foundlist3.ClientWidth-foundlist3.Columns[0].Width;
+
+  ScanText.left:=scanvalue.left; //lazarus rev  25348 32-bit fix
+  if ScanText2<>nil then
+    scantext2.left:=scanvalue2.Left;
+
+  if andlabel<>nil then
+    andlabel.Left:=scanvalue2.Left-20;
 
  // if cbpercentage<>nil then
  //   cbpercentage.left:=scantype.left+scantype.width+3;
@@ -5699,6 +5709,10 @@ begin
 
   Scantype.ItemIndex:=lastscantype;
   UpdateScanType;
+
+  if cbpercentage<>nil then
+    cbPercentageOnChange(cbpercentage);
+
 
   scanepilogue(canceled);
 end;
