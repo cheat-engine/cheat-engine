@@ -194,6 +194,8 @@ type TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWOR
 var SymFromName: TSymFromName;
     SymFromAddr: TSymFromAddr;
 
+procedure symhandlerInitialize;
+
 implementation
 
 uses assemblerunit, driverlist;
@@ -1556,9 +1558,9 @@ begin
 end;
 
 
-
+procedure symhandlerInitialize;
 var psa,dbghlp: THandle;
-initialization
+begin
   symhandler:=tsymhandler.create;
   if selfsymhandler=nil then
   begin
@@ -1566,17 +1568,21 @@ initialization
     selfsymhandler.targetself:=true;
   end;
 
+{$ifdef cpu32}
+  dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win32\dbghelp.dll'));
+{$else}
+  dbghlp:=loadlibrary('Dbghelp.dll');
+{$endif}
+  SymFromName:=GetProcAddress(dbghlp,'SymFromName');
+  SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
+
   psa:=loadlibrary('Psapi.dll');
   EnumProcessModules:=GetProcAddress(psa,'EnumProcessModules');
   EnumProcessModulesEx:=GetProcAddress(psa,'EnumProcessModulesEx');
   GetModuleFileNameEx:=GetProcAddress(psa,'GetModuleFileNameExA');
   if not assigned(EnumProcessModulesEx) then
     EnumProcessModulesEx:=EnumProcessModulesExNotImplemented;
-
-
-  dbghlp:=loadlibrary('Dbghelp.dll');
-  SymFromName:=GetProcAddress(dbghlp,'SymFromName');
-  SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
+end;
 
 
 finalization

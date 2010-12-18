@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="979"/>
+      <BuildNr Value="980"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -95,10 +95,12 @@
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="40"/>
-        <CursorPos X="1" Y="71"/>
+        <TopLine Value="56"/>
+        <CursorPos X="13" Y="66"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -144,8 +146,8 @@
         <UnitName Value="CEFuncProc"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1662"/>
-        <CursorPos X="3" Y="1666"/>
+        <TopLine Value="2367"/>
+        <CursorPos X="3" Y="2369"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -164,10 +166,13 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="471"/>
-        <CursorPos X="3" Y="473"/>
+        <TopLine Value="1561"/>
+        <CursorPos X="3" Y="1564"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
@@ -1428,7 +1433,6 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="694"/>
@@ -1584,7 +1588,7 @@
         <Filename Value="WindowsDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowsDebugger"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="38" Y="30"/>
@@ -1596,7 +1600,7 @@
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="32"/>
         <CursorPos X="1" Y="42"/>
@@ -2074,126 +2078,126 @@
         <Loaded Value="True"/>
       </Unit186>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="25">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="190" Column="3" TopLine="238"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="986" Column="1" TopLine="970"/>
       </Position1>
       <Position2>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="248" Column="1" TopLine="238"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="988" Column="1" TopLine="970"/>
       </Position2>
       <Position3>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="249" Column="1" TopLine="238"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="989" Column="1" TopLine="970"/>
       </Position3>
       <Position4>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="979" Column="1" TopLine="963"/>
+        <Caret Line="991" Column="1" TopLine="970"/>
       </Position4>
       <Position5>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="981" Column="1" TopLine="963"/>
+        <Caret Line="995" Column="1" TopLine="970"/>
       </Position5>
       <Position6>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="982" Column="1" TopLine="963"/>
+        <Caret Line="996" Column="1" TopLine="970"/>
       </Position6>
       <Position7>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="984" Column="1" TopLine="963"/>
+        <Filename Value="frmModifyRegistersUnit.pas"/>
+        <Caret Line="100" Column="37" TopLine="91"/>
       </Position7>
       <Position8>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="988" Column="1" TopLine="972"/>
+        <Filename Value="frmModifyRegistersUnit.pas"/>
+        <Caret Line="248" Column="29" TopLine="238"/>
       </Position8>
       <Position9>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="989" Column="1" TopLine="972"/>
+        <Caret Line="1008" Column="16" TopLine="982"/>
       </Position9>
       <Position10>
         <Filename Value="debughelper.pas"/>
-        <Caret Line="990" Column="1" TopLine="972"/>
+        <Caret Line="698" Column="10" TopLine="676"/>
       </Position10>
       <Position11>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="982" Column="14" TopLine="972"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="63" Column="6" TopLine="46"/>
       </Position11>
       <Position12>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="989" Column="34" TopLine="975"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="75" Column="21" TopLine="56"/>
       </Position12>
       <Position13>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="845" Column="24" TopLine="819"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="68" Column="1" TopLine="56"/>
       </Position13>
       <Position14>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="248" Column="1" TopLine="238"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="69" Column="1" TopLine="56"/>
       </Position14>
       <Position15>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="249" Column="1" TopLine="238"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="70" Column="1" TopLine="56"/>
       </Position15>
       <Position16>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="986" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="72" Column="1" TopLine="56"/>
       </Position16>
       <Position17>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="988" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="68" Column="1" TopLine="56"/>
       </Position17>
       <Position18>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="989" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="69" Column="1" TopLine="56"/>
       </Position18>
       <Position19>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="991" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="72" Column="1" TopLine="56"/>
       </Position19>
       <Position20>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="995" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="74" Column="1" TopLine="56"/>
       </Position20>
       <Position21>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="996" Column="1" TopLine="970"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="75" Column="1" TopLine="56"/>
       </Position21>
       <Position22>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="191" Column="49" TopLine="229"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="917" Column="20" TopLine="901"/>
       </Position22>
       <Position23>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="100" Column="37" TopLine="91"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="195" Column="23" TopLine="179"/>
       </Position23>
       <Position24>
-        <Filename Value="frmModifyRegistersUnit.pas"/>
-        <Caret Line="248" Column="29" TopLine="238"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="187" Column="44" TopLine="176"/>
       </Position24>
       <Position25>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1008" Column="16" TopLine="982"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="192" Column="18" TopLine="176"/>
       </Position25>
       <Position26>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="698" Column="10" TopLine="676"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="195" Column="30" TopLine="176"/>
       </Position26>
       <Position27>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="702" Column="41" TopLine="691"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="917" Column="27" TopLine="902"/>
       </Position27>
       <Position28>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1569" Column="1" TopLine="1552"/>
       </Position28>
       <Position29>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="688" Column="48" TopLine="676"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="75" Column="18" TopLine="56"/>
       </Position29>
       <Position30>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="403" Column="3" TopLine="400"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="66" Column="13" TopLine="56"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
