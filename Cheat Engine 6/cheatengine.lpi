@@ -25,7 +25,7 @@
           <Version Value="9"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\cheatengine60-$(TargetCPU)"/>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -118,10 +118,11 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1738"/>
-        <CursorPos X="7" Y="1746"/>
+        <TopLine Value="4663"/>
+        <CursorPos X="45" Y="4689"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1687" ID="2"/>
@@ -521,11 +522,10 @@
         <ComponentName Value="FoundCodeDialog"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FoundCodeUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="123"/>
-        <CursorPos X="14" Y="140"/>
+        <CursorPos X="22" Y="130"/>
         <UsageCount Value="210"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -2093,7 +2093,7 @@
         <Loaded Value="True"/>
       </Unit188>
     </Units>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="19" HistoryIndex="18">
       <Position1>
         <Filename Value="MainUnit.pas"/>
         <Caret Line="1796" Column="10" TopLine="1776"/>
@@ -2162,13 +2162,21 @@
         <Filename Value="FoundCodeUnit.pas"/>
         <Caret Line="138" Column="67" TopLine="123"/>
       </Position17>
+      <Position18>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="1744" Column="17" TopLine="1738"/>
+      </Position18>
+      <Position19>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position19>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="bin\cheatengine60-$(TargetCPU)"/>
+      <Filename Value="bin\cheatengine-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -2207,6 +2215,9 @@
         <ShowNothing Value="True"/>
       </Verbosity>
       <WriteFPCLogo Value="False"/>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNOVMX"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>

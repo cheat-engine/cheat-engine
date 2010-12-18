@@ -43,9 +43,9 @@ begin
   end;
 
   if launch32bit then
-    ShellExecute(0, 'open', 'cheatengine60-i386.exe', nil, nil, sw_show)
+    ShellExecute(0, 'open', 'cheatengine-i386.exe', nil, nil, sw_show)
   else
-    ShellExecute(0, 'open', 'cheatengine60-x86_64.exe', nil, nil, sw_show)
+    ShellExecute(0, 'open', 'cheatengine-x86_64.exe', nil, nil, sw_show)
 
 end.
 

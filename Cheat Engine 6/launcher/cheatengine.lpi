@@ -20,7 +20,7 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="2" Active="debug">
+    <BuildModes Count="2" Active="release">
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>
@@ -43,6 +43,10 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
             <LinkSmart Value="True"/>
             <Options>
               <Win32>
@@ -77,8 +81,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="22"/>
-        <CursorPos X="30" Y="32"/>
+        <TopLine Value="19"/>
+        <CursorPos X="41" Y="48"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>

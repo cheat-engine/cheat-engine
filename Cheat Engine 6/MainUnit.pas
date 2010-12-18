@@ -4686,7 +4686,7 @@ begin
 
     if messagedlg('Do you want to try out the tutorial?', mtConfirmation,
       [mbYes, mbNo], 0) = mrYes then
-      shellexecute(0, 'open', 'Tutorial.exe', nil, nil, sw_show);
+      shellexecute(0, 'open', 'Tutorial-i386.exe', nil, nil, sw_show);
   end;
 
 
