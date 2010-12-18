@@ -19,7 +19,7 @@ type
     ThreadList: TList; //only the debugger thread can add or remove from this list
     BreakpointList: TList; //only the main thread can add or remove from this list
     breakpointCS: TGuiSafeCriticalSection;
-    ThreadListCS: TGuiSafeCriticalSection;
+    ThreadListCS: TGuiSafeCriticalSection; //must never be locked before breakpointCS
     OnAttachEvent: Tevent; //event that gets set when a process has been created
     OnContinueEvent: TEvent; //event that gets set by the user when he/she wants to continue from a break
 
@@ -369,7 +369,9 @@ end;
 
 
 function TDebuggerThread.lockThreadlist: TList;
+//called from main thread
 begin
+  BreakpointCS.enter;
   ThreadListCS.enter;
   result:=threadlist;
 end;
@@ -377,6 +379,7 @@ end;
 procedure TDebuggerThread.unlockThreadlist;
 begin
   ThreadListCS.leave;
+  BreakpointCS.leave;
 end;
 
 function TDebuggerThread.getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
@@ -694,13 +697,17 @@ begin
 
 
 
-  //add to the bp list
   breakpointcs.enter;
-  BreakpointList.Add(newbp);
-  breakpointcs.leave;
+  try
+    //add to the bp list
+    BreakpointList.Add(newbp);
+    //apply this breakpoint
+    SetBreakpoint(newbp);
+  finally
+    breakpointcs.leave;
+  end;
 
-  //apply this breakpoint
-  SetBreakpoint(newbp);
+
 
   Result := newbp;
 

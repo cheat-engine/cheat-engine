@@ -449,6 +449,7 @@ type
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 
+    function canUndo: boolean;
     procedure undoLastScan;
 
     constructor create(progressbar: TProgressbar);
@@ -459,6 +460,7 @@ type
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property CustomType: TCustomType read currentCustomType;
+
   end;
 
 
@@ -4074,7 +4076,6 @@ begin
 
     outputdebugstring('bla2');
 
-    {$ifndef standalonetrainerwithassemblerandaobscanner}
 
     //save the first scan results if needed
     try
@@ -4091,8 +4092,6 @@ begin
         errorstring:='controller:Cleanup:Failed spawning the Save First Scan thread:'+e.message;
       end;
     end;
-    {$endif}
-
   except
     on e: exception do
     begin
@@ -4186,13 +4185,32 @@ begin
 
 end;
 
+function TMemscan.canUndo: boolean;
+var u: TFileStream;
+begin
+  result:=false;
+  try
+    u:=tfilestream.create(fScanResultFolder+'Memory.UNDO', fmopenread or fmShareDenyNone);
+    try
+      result:=u.Size>0;
+    finally
+      u.free;
+    end;
+  except
+  end;
+//  LastScanType;
+end;
+
 procedure TMemscan.undoLastScan;
 begin
-  deletefile(fScanResultFolder+'Memory.tmp');
-  deletefile(fScanResultFolder+'Addresses.tmp');
+  if canUndo then
+  begin
+    deletefile(fScanResultFolder+'Memory.tmp');
+    deletefile(fScanResultFolder+'Addresses.tmp');
 
-  renamefile(fScanResultFolder+'Memory.UNDO',fScanResultFolder+'Memory.tmp');
-  renamefile(fScanResultFolder+'Addresses.UNDO',fScanResultFolder+'Addresses.tmp');
+    renamefile(fScanResultFolder+'Memory.UNDO',fScanResultFolder+'Memory.tmp');
+    renamefile(fScanResultFolder+'Addresses.UNDO',fScanResultFolder+'Addresses.tmp');
+  end;
 end;
 
 procedure TMemscan.waittilldone;
@@ -4329,6 +4347,7 @@ begin
   scancontroller.notifymessage:=notifymessage;
 
   fLastscantype:=stNextScan;
+
   scanController.Resume;
 
 end;
@@ -4389,7 +4408,6 @@ begin
   scanController.OnlyOne:=onlyone;
 
   flastscantype:=stFirstScan;
-
 
   scanController.Resume;
 

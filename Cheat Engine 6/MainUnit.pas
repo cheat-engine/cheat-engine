@@ -1393,7 +1393,7 @@ begin
   end;
   newscan.Enabled:=true;
 
-  undoscan.Enabled:=isnextscan; //nextscan was already enabled
+  undoscan.Enabled:=isnextscan and memscan.canUndo; //nextscan was already enabled
   nextscanbutton.Enabled:=scanstarted;
   vartype.Enabled:=not scanstarted;
   scantype.Enabled:=true;

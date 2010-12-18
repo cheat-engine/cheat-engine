@@ -930,7 +930,7 @@ begin
     ImageIndex:=-1;
     MinWidth:=50;
     Text:='Opcode';
-    Width:=300;
+    Width:=200;
   end;
 
   with header.Sections.Add do
