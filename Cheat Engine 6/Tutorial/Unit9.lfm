@@ -1,13 +1,13 @@
 object Form9: TForm9
-  Left = 411
-  Height = 308
-  Top = 229
+  Left = 471
+  Height = 250
+  Top = 160
   Width = 703
   BorderStyle = bsDialog
   Caption = 'Step 8'
-  ClientHeight = 308
+  ClientHeight = 250
   ClientWidth = 703
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -16,36 +16,35 @@ object Form9: TForm9
   LCLVersion = '0.9.29'
   Visible = True
   object Label1: TLabel
-    Left = 10
-    Height = 17
-    Top = 266
-    Width = 22
+    Left = 8
+    Height = 14
+    Top = 209
+    Width = 19
     Caption = '100'
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 118
-    Height = 17
-    Top = 265
-    Width = 8
+    Left = 116
+    Height = 14
+    Top = 208
+    Width = 7
     Caption = '3'
     ParentColor = False
     Visible = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 670
+    Left = 668
     Height = 20
-    Top = 286
+    Top = 229
     Width = 30
     Caption = 'Skip'
-    Color = clBtnFace
     Flat = True
     NumGlyphs = 0
     OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
     Left = 0
-    Height = 228
+    Height = 185
     Top = 0
     Width = 703
     Align = alTop
@@ -85,28 +84,28 @@ object Form9: TForm9
     TabOrder = 0
   end
   object Button2: TButton
-    Left = 305
-    Height = 31
-    Top = 236
-    Width = 93
+    Left = 248
+    Height = 25
+    Top = 192
+    Width = 75
     Caption = 'Next'
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 10
+    Left = 8
     Height = 23
-    Top = 281
+    Top = 224
     Width = 100
     Caption = 'Change value'
     OnClick = Button1Click
     TabOrder = 2
   end
   object Button3: TButton
-    Left = 114
+    Left = 112
     Height = 23
-    Top = 281
+    Top = 224
     Width = 100
     Caption = 'Change pointer'
     OnClick = Button3Click

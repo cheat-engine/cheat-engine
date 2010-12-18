@@ -20,6 +20,7 @@ type Tcoderecord = class
       savedsize: dword;
       stack: pbyte;
     end;
+    hitcount: integer;
     procedure savestack;
     destructor destroy; override;
 end;
@@ -122,13 +123,24 @@ begin
     if usesdebugregs then //find out the previous opcode
       address:=previousopcode(address);
 
-    //check if address is inside the list
-    for i:=0 to foundcodelist.Items.Count-1 do
-      if TCodeRecord(foundcodelist.Items.Objects[i]).address=address then exit; //it's already in the list
+    address2:=address;
+    opcode:=disassemble(address2,desc);
 
     //disassemble to get the opcode and size
     address2:=address;
     opcode:=disassemble(address2,desc);
+
+    //check if address is inside the list
+    for i:=0 to foundcodelist.Items.Count-1 do
+      if TCodeRecord(foundcodelist.Items.Objects[i]).address=address then
+      begin
+        //it's already in the list
+        inc(TCodeRecord(foundcodelist.Items.Objects[i]).hitcount);
+        FoundcodeList.items[i]:=opcode+'  ('+inttostr(TCodeRecord(foundcodelist.Items.Objects[i]).hitcount)+')';
+        exit;
+      end;
+
+
 
     coderecord:=TCoderecord.create;
     coderecord.address:=address;
@@ -137,6 +149,8 @@ begin
     coderecord.description:=desc;
     coderecord.context:=currentthread.context^;
     coderecord.savestack;
+    coderecord.hitcount:=1;
+
     FoundcodeList.Items.AddObject(opcode, tobject(coderecord));
   end;
 end;

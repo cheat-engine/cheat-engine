@@ -121,8 +121,6 @@ type
     assemblescreen: TSynEdit;
     tlist: TTablist;
 
-
-
     editscript: boolean;
     editscript2: boolean;
     memrec: TMemoryRecord;
@@ -135,7 +133,7 @@ type
 
     property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
-  end;
+end;
 
 
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);

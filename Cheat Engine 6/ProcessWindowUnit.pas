@@ -327,15 +327,20 @@ begin
 end;
 
 procedure TProcessWindow.btnCreateThreadClick(Sender: TObject);
+var parameters: string;
 begin
-
   if Opendialog1.Execute then
   begin
+    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
+    parameters:='';
+    if not InputQuery('Create Process', 'Optional launch parameters', parameters) then exit;
+
+
     unpause;
     detachIfPossible;
-    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
 
-    Debuggerthread:=TDebuggerThread.MyCreate2(opendialog1.FileName);
+
+    Debuggerthread:=TDebuggerThread.MyCreate2(opendialog1.FileName, parameters);
     if not Debuggerthread.running then exit;
 
     mainForm.ProcessLabel.caption:=IntToHex(processid,8)+'-'+ExtractFileName(opendialog1.FileName);

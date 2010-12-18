@@ -740,6 +740,7 @@ begin
         vk_lbutton: newstr:='Left MB';
         vk_mbutton: newstr:='Middle MB';
         vk_rbutton: newstr:='Right MB';
+        VK_CANCEL: newstr:='Break';
         VK_BACK	: newstr:='Backspace';
         VK_SHIFT: newstr:='Shift';
         VK_CONTROL: newstr:='Ctrl';

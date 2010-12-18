@@ -1,51 +1,51 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TForm9','FORMDATA',[
-  'TPF0'#6'TForm9'#5'Form9'#4'Left'#3#155#1#6'Height'#3'4'#1#3'Top'#3#229#0#5'W'
-  +'idth'#3#191#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 8'#12'Clien'
-  +'tHeight'#3'4'#1#11'ClientWidth'#3#191#2#11'Font.Height'#2#242#9'Font.Name'#6
-  +#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormClose'
-  +'Query'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10
-  +'LCLVersion'#6#6'0.9.29'#7'Visible'#9#0#6'TLabel'#6'Label1'#4'Left'#2#10#6'H'
-  +'eight'#2#17#3'Top'#3#10#1#5'Width'#2#22#7'Caption'#6#3'100'#11'ParentColor'
-  +#8#0#0#6'TLabel'#6'Label2'#4'Left'#2'v'#6'Height'#2#17#3'Top'#3#9#1#5'Width'
-  +#2#8#7'Caption'#6#1'3'#11'ParentColor'#8#7'Visible'#8#0#0#12'TSpeedButton'#12
-  +'SpeedButton1'#4'Left'#3#158#2#6'Height'#2#20#3'Top'#3#30#1#5'Width'#2#30#7
-  +'Caption'#6#4'Skip'#5'Color'#7#9'clBtnFace'#4'Flat'#9#9'NumGlyphs'#2#0#7'OnC'
-  +'lick'#7#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3
-  +#228#0#3'Top'#2#0#5'Width'#3#191#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFac'
-  +'e'#13'Lines.Strings'#1#6'7This step will explain how to use multi-level poi'
-  +'nters.'#6'mIn step 6 you had a simple level-1 pointer, with the first addre'
-  +'ss found already being the real base address.'#6'{This step however is a le'
-  +'vel-4 pointer. It has a pointer to a pointer to a pointer to a pointer to a'
-  +' pointer to the health.'#6#0#6'uYou basicly do the same as in step 6. Find '
-  +'out what accesses the value, look at the instruction and what probably is '
-  +#6'xthe base pointer value, and what is the offset, and already fill that in'
-  +' or write it down. But in this case the address '#6'zyou''ll find will also'
-  +' be a pointer. You just have to find out the pointer to that pointer exactl'
-  +'y the same way as you did '#6'twith the value. Find out what accesses that '
-  +'address you found, look at the assembler instruction, note the probable '#6
-  +'%instruction and offset, and use that.'#6'rand continue till you can''t get'
-  +' any further (usually when the base address is a static address, shown up a'
-  +'s green)'#6#0#6'9Click Change Value to let the tutorial access the health.'
-  +#6'uIf you think you''ve found the pointer path click Change Register. The p'
-  +'ointers and value will then change and you''ll '#6',have 3 seconds to freez'
-  +'e the address to 5000'#6#0#6'bExtra: This problem can also be solved using '
-  +'a auto assembler script, or using the pointer scanner'#6'jExtra2: In some s'
-  +'ituations it is recommended to change ce''s codefinder settings to Access v'
-  +'iolations when '#6'rencountering instructions like mov eax,[eax] since debu'
-  +'gregisters show it AFTER it was changed, making it hard to '#6'%find out th'
-  +'e the value of the pointer'#6#0#6#0#6#0#6#0#6#0#6'vExtra3: If you''re still'
-  +' reading. You might notice that when looking at the assembler instructions '
-  +'that the pointer is '#6'tbeing read and filled out in the same codeblock (s'
-  +'ame routine, if you know assembler, look up till the start of the '#6'Lrout'
-  +'ine). This doesn''t always happen, but can be really useful in finding a '#6
-  +'%pointer when debugging is troublesome'#0#8'ReadOnly'#9#10'ScrollBars'#7#10
-  +'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button2'#4'Left'#3'1'#1#6'Heig'
-  +'ht'#2#31#3'Top'#3#236#0#5'Width'#2']'#7'Caption'#6#4'Next'#7'Enabled'#8#7'O'
-  +'nClick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#4'Left'
-  +#2#10#6'Height'#2#23#3'Top'#3#25#1#5'Width'#2'd'#7'Caption'#6#12'Change valu'
-  +'e'#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#2#0#0#7'TButton'#7'Button3'#4
-  +'Left'#2'r'#6'Height'#2#23#3'Top'#3#25#1#5'Width'#2'd'#7'Caption'#6#14'Chang'
-  +'e pointer'#7'OnClick'#7#12'Button3Click'#8'TabOrder'#2#3#0#0#0
+  'TPF0'#6'TForm9'#5'Form9'#4'Left'#3#215#1#6'Height'#3#250#0#3'Top'#3#160#0#5
+  +'Width'#3#191#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 8'#12'Clie'
+  +'ntHeight'#3#250#0#11'ClientWidth'#3#191#2#11'Font.Height'#2#245#9'Font.Name'
+  +#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormClo'
+  +'seQuery'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10
+  +'LCLVersion'#6#6'0.9.29'#7'Visible'#9#0#6'TLabel'#6'Label1'#4'Left'#2#8#6'He'
+  +'ight'#2#14#3'Top'#3#209#0#5'Width'#2#19#7'Caption'#6#3'100'#11'ParentColor'
+  +#8#0#0#6'TLabel'#6'Label2'#4'Left'#2't'#6'Height'#2#14#3'Top'#3#208#0#5'Widt'
+  +'h'#2#7#7'Caption'#6#1'3'#11'ParentColor'#8#7'Visible'#8#0#0#12'TSpeedButton'
+  +#12'SpeedButton1'#4'Left'#3#156#2#6'Height'#2#20#3'Top'#3#229#0#5'Width'#2#30
+  +#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'#2#0#7'OnClick'#7#17'SpeedButton'
+  +'1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3#185#0#3'Top'#2#0#5'Wi'
+  +'dth'#3#191#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13'Lines.Strings'#1
+  +#6'7This step will explain how to use multi-level pointers.'#6'mIn step 6 yo'
+  +'u had a simple level-1 pointer, with the first address found already being '
+  +'the real base address.'#6'{This step however is a level-4 pointer. It has a'
+  +' pointer to a pointer to a pointer to a pointer to a pointer to the health.'
+  +#6#0#6'uYou basicly do the same as in step 6. Find out what accesses the val'
+  +'ue, look at the instruction and what probably is '#6'xthe base pointer valu'
+  +'e, and what is the offset, and already fill that in or write it down. But i'
+  +'n this case the address '#6'zyou''ll find will also be a pointer. You just '
+  +'have to find out the pointer to that pointer exactly the same way as you di'
+  +'d '#6'twith the value. Find out what accesses that address you found, look '
+  +'at the assembler instruction, note the probable '#6'%instruction and offset'
+  +', and use that.'#6'rand continue till you can''t get any further (usually w'
+  +'hen the base address is a static address, shown up as green)'#6#0#6'9Click '
+  +'Change Value to let the tutorial access the health.'#6'uIf you think you''v'
+  +'e found the pointer path click Change Register. The pointers and value will'
+  +' then change and you''ll '#6',have 3 seconds to freeze the address to 5000'
+  +#6#0#6'bExtra: This problem can also be solved using a auto assembler script'
+  +', or using the pointer scanner'#6'jExtra2: In some situations it is recomme'
+  +'nded to change ce''s codefinder settings to Access violations when '#6'renc'
+  +'ountering instructions like mov eax,[eax] since debugregisters show it AFTE'
+  +'R it was changed, making it hard to '#6'%find out the the value of the poin'
+  +'ter'#6#0#6#0#6#0#6#0#6#0#6'vExtra3: If you''re still reading. You might not'
+  +'ice that when looking at the assembler instructions that the pointer is '#6
+  +'tbeing read and filled out in the same codeblock (same routine, if you know'
+  +' assembler, look up till the start of the '#6'Lroutine). This doesn''t alwa'
+  +'ys happen, but can be really useful in finding a '#6'%pointer when debuggin'
+  +'g is troublesome'#0#8'ReadOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrde'
+  +'r'#2#0#0#0#7'TButton'#7'Button2'#4'Left'#3#248#0#6'Height'#2#25#3'Top'#3#192
+  +#0#5'Width'#2'K'#7'Caption'#6#4'Next'#7'Enabled'#8#7'OnClick'#7#12'Button2Cl'
+  +'ick'#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#4'Left'#2#8#6'Height'#2#23#3
+  +'Top'#3#224#0#5'Width'#2'd'#7'Caption'#6#12'Change value'#7'OnClick'#7#12'Bu'
+  +'tton1Click'#8'TabOrder'#2#2#0#0#7'TButton'#7'Button3'#4'Left'#2'p'#6'Height'
+  +#2#23#3'Top'#3#224#0#5'Width'#2'd'#7'Caption'#6#14'Change pointer'#7'OnClick'
+  +#7#12'Button3Click'#8'TabOrder'#2#3#0#0#0
 ]);

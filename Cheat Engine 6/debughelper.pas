@@ -30,7 +30,8 @@ type
 
     createProcess: boolean;
     fNeedsToSetEntryPointBreakpoint: boolean;
-    filename: string;
+    filename,parameters: string;
+
 
     fcurrentThread: TDebugThreadHandler;
     globalDebug: boolean; //kernelmode debugger only
@@ -95,7 +96,7 @@ type
     procedure SetEntryPointBreakpoint;
 
 
-    constructor MyCreate2(filename: string); overload;
+    constructor MyCreate2(filename: string; parameters: string); overload;
     constructor MyCreate2(processID: THandle); overload;
     destructor Destroy; override;
 
@@ -159,9 +160,11 @@ begin
         GetStartupInfo(@startupinfo);
 
 
+
+
         if windows.CreateProcess(
           pchar(filename),
-          nil,
+          pchar('"'+filename+'" '+parameters),
           nil, //lpProcessAttributes
           nil, //lpThreadAttributes
           false, //bInheritHandles
@@ -1598,7 +1601,7 @@ begin
 end;
 
 
-constructor TDebuggerthread.MyCreate2(filename: string); overload;
+constructor TDebuggerthread.MyCreate2(filename: string; parameters: string); overload;
 begin
   inherited Create(true);
   defaultconstructorcode;
@@ -1617,6 +1620,7 @@ begin
 
   createProcess:=true;
   self.filename:=filename;
+  self.parameters:=parameters;
 
   resume;
   WaitTillAttachedOrError;
