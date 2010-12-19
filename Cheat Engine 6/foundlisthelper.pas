@@ -253,7 +253,7 @@ begin
       begin
         RebaseAgainThread:=TRebaseAgain.Create(true);
         RebaseAgainThread.foundlist:=self;
-        RebaseAgainThread.Resume;
+        RebaseAgainThread.start;
       end;
     end;
     
@@ -361,7 +361,7 @@ begin
     begin
       RebaseAgainThread:=TRebaseAgain.Create(true);
       RebaseAgainThread.foundlist:=self;
-      RebaseAgainThread.Resume;
+      RebaseAgainThread.start;
     end;
   end;
 

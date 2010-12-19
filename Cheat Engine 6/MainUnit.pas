@@ -12,7 +12,7 @@ uses
   unrandomizer, symbolhandler, ActnList, LResources, hypermode, memscan,
   autoassembler, plugin, savefirstscan, menuitemExtra, speedhack2,AccessCheck,
   foundlisthelper, disassembler,peinfounit, PEInfoFunctions,
-  simpleaobscanner, pointervaluelist, ManualModuleLoader, underc, debughelper,
+  simpleaobscanner, pointervaluelist, ManualModuleLoader, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
   customtypehandler, lua,luahandler, lauxlib, lualib;
@@ -1106,10 +1106,6 @@ end;
 
 procedure TMainForm.hotkey(var Message: TMessage);
 //stays because the old hotkeyhandler is still used in some places
-var
-  x: TDevMode;
-  i: integer;
-  c: integer;
 begin
 
   if (formhotkey<>nil) and (formhotkey.visible) then exit;
@@ -1338,8 +1334,6 @@ procedure TMainform.DisableGui;
 This procedure will disable the gui. E.g while scanning the memory with no wait
 screen.
 }
-var
-  i: integer;
 begin
   setGbScanOptionsEnabled(false);
 
@@ -1371,8 +1365,6 @@ no scan, enable everything
 already scanning, disable the group and type
 }
 var
-  i: integer;
-  fname, expectedfilename: string;
   scanstarted: boolean;
 begin
 
@@ -1464,7 +1456,6 @@ resourcestring strOpcodeChanged='The following opcodes changed the selected addr
 resourcestring strAskToSave='You haven''t saved your last changes yet. Save Now?';
 function TMainForm.CheckIfSaved: boolean;
 var help :word;
-    i,j: Integer;
 begin
   //result:=true;
   result:=not editedsincelastsave;
@@ -1597,9 +1588,6 @@ var
   OldIndex: integer;
   hexvis: boolean;
   floatvis: boolean;
-  oldwidth: integer;
-  i: integer;
-
 begin
 
 
@@ -1733,14 +1721,7 @@ begin
 end;
 
 procedure TMainForm.AddToRecord(Line: integer; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd);
-var error: Integer;
-    Address: ptrUint;
-    i,j:  Integer;
-
-    tmp: string;
-    pc: ^char;
-
-    found: boolean;
+var Address: ptrUint;
     startbit: Integer;
     l: integer;
 
@@ -1854,15 +1835,11 @@ end;
 
 procedure TMainform.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
 var
-  newprocessname: string;
   i, j: integer;
   fname, expectedfilename: string;
+
   wasActive: boolean; //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
-
-  newprocessname := copy(mainform.ProcessLabel.Caption, pos(
-    '-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
-
   symhandler.reinitialize;
   reinterpretaddresses;
 
@@ -2026,10 +2003,8 @@ procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);
 var
   oldprocess: Dword;
   resu: integer;
-  i, j: integer;
   oldprocesshandle: thandle;
   oldprocessname: string;
-  modulelist: TStringList;
 begin
   if not openprocessPrologue then
     exit;
@@ -2109,7 +2084,6 @@ end;
 
 
 procedure TMainForm.MenuItem1Click(Sender: TObject);
-var i: integer;
 begin
   addresslist.SelectAll;
 end;
@@ -2171,7 +2145,7 @@ begin
 end;
 
 procedure TMainForm.setGbScanOptionsEnabled(state: boolean);
-var i,j: integer;
+var i: integer;
 begin
   gbScanOptions.Enabled := state;
   for i := 0 to gbScanOptions.ControlCount - 1 do
@@ -2374,10 +2348,15 @@ end;
 
 
 procedure TMainForm.miDefineNewCustomTypeLuaClick(Sender: TObject);
-var n: string;
+var fbn,n: string;
 begin
-  n:='';
-
+  n:='Custom LUA type';
+  fbn:='customvaluetype';
+  if customTypes.count>0 then
+  begin
+    n:=n+' '+inttostr(customtypes.count+1);
+    fbn:=fbn+' '+inttostr(customtypes.count+1);
+  end;
 
   with TfrmAutoInject.create(self) do
   begin
@@ -2389,21 +2368,18 @@ begin
 
     with assemblescreen.Lines do
     begin
-      Add('--Note: this is juat a proof of concept. It is slow and limits the scan');
-      add('--to only one thread. But it can be used for other parts in ce that ');
-      Add('--make use of the custom type');
-      Add('');
-      Add('typename="Custom LUA type" --shown as the type in ce');
+      Add('Note: keep the function base name unique.');
+      Add('typename="'+n+'" --shown as the typename in ce');
       Add('bytecount=4  --number of bytes of this type');
-      Add('functionbasename="customvaluetype" --basename of the functiontypes used KEEP THIS UNIQUE');
+      Add('functionbasename="'+fbn+'"');
       Add('');
-      Add('function customvaluetype_bytestovalue(b1,b2,b3,b4)');
+      Add('function '+fbn+'_bytestovalue(b1,b2,b3,b4)');
       Add('--Add extra byte parameters as required');
       Add('return 123');
       Add('');
       Add('end');
       Add('');
-      Add('function customvaluetype_valuetobytes(i)');
+      Add('function '+fbn+'_valuetobytes(i)');
       Add('');
       Add('--return the bytes to write (usually only used when you change the value)');
       Add('return 0,0,0,0');
@@ -2631,7 +2607,6 @@ end;
 
 procedure TMainForm.ScanTabListTabChange(sender: TObject; oldselection: integer);
 var oldstate,newstate: PScanState;
-i: integer;
 begin
   oldstate:=scantablist.TabData[oldselection];
   newstate:=scantablist.TabData[scantablist.SelectedTab];
@@ -2755,7 +2730,6 @@ var
   i: integer;
   c: array of tcontrol;
   foundlistheightdiff: integer;
-  r: trect;
   newstate: PScanState;
 begin
   if scantablist=nil then
@@ -2968,8 +2942,6 @@ begin
 end;
 
 procedure TMainform.donewscan;
-var
-  i: integer;
 begin
   if SaveFirstScanThread<>nil then //stop saving the results of the fist scan
   begin
@@ -3040,7 +3012,6 @@ var
 
   ReturnLength: Dword;
 
-  reg: tregistry;
   differentWidth: integer;
   x: array of integer;
 
@@ -3284,7 +3255,7 @@ end;
 
 procedure TMainForm.Browsethismemoryarrea1Click(Sender: TObject);
 var
-  a, b: dword;
+  b: dword;
   s: string;
 begin
   if (foundlist3.ItemIndex<>-1) then
@@ -3308,16 +3279,11 @@ begin
 end;
 
 procedure TMainForm.FreezeTimerTimer(Sender: TObject);
-var x: double;
 begin
   freezetimer.enabled:=false;
   if addresslist<>nil then
     addresslist.ApplyFreeze;
   freezetimer.enabled:=true;
-
-  AvailMem;
-  x:=SysGetHeapStatus.TotalFree;
-
 end;
 
 resourcestring
@@ -3361,13 +3327,8 @@ begin
 end;
 
 procedure TMainForm.ScanvalueoldKeyPress(Sender: TObject; var Key: char);
-var
-  correct: boolean;
-  becomes: string;
-  i, j: integer;
 begin
   checkpaste;
-  correct := False;
 
   if key = chr(13) then
   begin
@@ -3395,7 +3356,7 @@ var
   i, j, err: integer;
   selectedi: integer;
 
-  firstispointer, dontdopointers: boolean;
+  firstispointer: boolean;
   re: string;
   ok: boolean;
 
@@ -3418,8 +3379,6 @@ begin
     inc(i);
   end;
 
-
-  dontdopointers:=false;
   firstispointer:=false;
 
   sel:=addresslist.selectedRecord;
@@ -3442,7 +3401,6 @@ begin
         else
           re:=strMorePointers2;
 
-        if messagedlg(re,mtConfirmation,[mbyes,mbno],0)=mrno then dontdopointers:=true;
         break;
       end;
   end else
@@ -3456,7 +3414,6 @@ begin
         else
           re:=strMorePointers2;
 
-        if messagedlg(re,mtConfirmation,[mbyes,mbno],0)=mrno then dontdopointers:=true;
         break;
       end;
   end;
@@ -3545,18 +3502,15 @@ var
   pa: ^int64;
   pb: ^dword;
   b: double;
-  c: integer;
   d: single;
   i: integer;
   hexvis: boolean;
   decbitvis: boolean;
-  hexleft: integer;
   hextext: string;
   hexwidth: integer;
   casevis: boolean;
 
   oldscantype: integer;
-  error: integer;
   temp: string;
 
   newvartype: integer;
@@ -3573,7 +3527,6 @@ begin
 
   hexvis:=true;
   unicodevis:=false;
-  hexleft:=rbbit.Left;
   hexwidth:=50;
 
   hextext:='Hex';
@@ -3901,7 +3854,6 @@ begin
        hexadecimalcheckbox.checked:=cbCaseSensitive.checked;
        hexvis:=false;
        hextext:='Unicode';
-       hexleft:=170;
        hexwidth:=61;
      end;
 
@@ -4075,12 +4027,6 @@ resourcestring
   strForceRecheck='Force recheck symbols';
 procedure TMainForm.PopupMenu2Popup(Sender: TObject);
 var i: Integer;
-    selectedi: Integer;
-    number: Integer;
-    clip: TClipboard;
-    inclipboard: boolean;
-    temp: pchar;
-    s: string;
 
     //6.0
     selectionCount: integer;
@@ -4213,7 +4159,6 @@ end;
 
 procedure TMainForm.Removeselectedaddresses1Click(Sender: TObject);
 var
-  address: Dword;
   e, i, j: integer;
   bit: byte;
   selected: array of integer;
@@ -5023,7 +4968,7 @@ begin
 
         progressbar.parent:=self;
         cbunrandomizer.enabled:=false;
-        resume;
+        start;
       end;
     end else cbUnrandomizer.Checked:=false;
   end

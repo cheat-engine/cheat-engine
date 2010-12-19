@@ -13,8 +13,8 @@ type
   TSaveDisassemblyThread=class(TThread)
   public
     progressbar: tprogressbar;
-    start: ptrUint;
-    stop: ptrUint;
+    startaddress: ptrUint;
+    stopaddress: ptrUint;
     address: boolean;
     bytes: boolean;
     opcode: boolean;
@@ -64,7 +64,7 @@ var oldaddress, currentaddress: ptrUint;
     y,z:string;
     mi: TModuleInfo;
 begin
-  currentaddress:=start;
+  currentaddress:=startaddress;
 
   if copymode then
   begin
@@ -80,7 +80,7 @@ begin
 
   i:=0;
 
-  while (not terminated) and (currentaddress<=stop) do
+  while (not terminated) and (currentaddress<=stopaddress) do
   begin
     oldaddress:=currentaddress;
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
@@ -174,7 +174,7 @@ begin
 end;
 
 procedure TfrmSavedisassembly.Button1Click(Sender: TObject);
-var start,stop: ptrUint;
+var startaddress,stopaddress: ptrUint;
 begin
   if SaveDisassemblyThread<>nil then
   begin
@@ -189,8 +189,8 @@ begin
   end;
 
 
-  start:=symhandler.getAddressFromName(edit1.Text);
-  stop:=symhandler.getAddressFromName(edit2.text);
+  startaddress:=symhandler.getAddressFromName(edit1.Text);
+  stopaddress:=symhandler.getAddressFromName(edit2.text);
 
 
   if (FCopyMode) or savedialog1.Execute then
@@ -199,17 +199,17 @@ begin
     SaveDisassemblyThread.address:=checkbox1.checked;
     SaveDisassemblyThread.bytes:=checkbox2.Checked;
     SaveDisassemblyThread.opcode:=checkbox3.Checked;
-    SaveDisassemblyThread.start:=start;
-    SaveDisassemblyThread.stop:=stop;
+    SaveDisassemblyThread.startaddress:=startaddress;
+    SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;
     SaveDisassemblyThread.copymode:=fcopymode;
     SaveDisassemblyThread.form:=self;
 
-    if (start<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) and (stop<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
+    if (startaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) and (stopaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
     begin
-      progressbar1.Max:=stop;
-      progressbar1.Min:=start;
-      progressbar1.Position:=start;
+      progressbar1.Max:=stopaddress;
+      progressbar1.Min:=startaddress;
+      progressbar1.Position:=startaddress;
       if not progressbar1.Visible then progressbar1.Visible:=true;
     end
     else
@@ -222,7 +222,7 @@ begin
     else
       button1.caption:='Stop saving';
       
-    SaveDisassemblyThread.resume;
+    SaveDisassemblyThread.start;
 
   end;
 end;

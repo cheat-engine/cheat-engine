@@ -194,7 +194,7 @@ begin
 
   stringfiller:=tdelayedstringfiller.create(true);
   stringfiller.s:=stringlist;
-  stringfiller.Resume;
+  stringfiller.start;
 
   lvStringlist.Items.Count:=stringlist.Count;
 end;

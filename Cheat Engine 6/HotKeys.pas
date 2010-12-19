@@ -194,7 +194,7 @@ end;
 
 procedure THotKeyForm.btnCancelClick(Sender: TObject);
 begin
-  if (listview1.Selected<>nil) and (ptrint(listview1.selected.data)=-1) then //created hotkey
+  if (listview1.Selected<>nil) and (ptrint(ptruint(listview1.selected.data))=-1) then //created hotkey
     listview1.selected.delete;
 
   pagecontrol1.ActivePage:=tabsheet1;

@@ -191,9 +191,7 @@ var tempnode: TDOMNode;
     i: integer;
     currentOffset: dword;
     findoffset: boolean;
-    doc: TDOMDocument;
 begin
-  doc:=Structure.OwnerDocument;
 
   currentoffset:=0;
 
@@ -255,16 +253,15 @@ end;
 
 
 procedure LoadXML(doc: TXMLDocument; merge: boolean);
-var newrec: MemoryRecordV6;
+var
     CheatTable: TDOMNode;
     Entries, Codes, Symbols, Comments, luascript: TDOMNode;
-    CheatEntry, CodeEntry, SymbolEntry: TDOMNode;
+    CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
-    Offsets: TDOMNode;
 
-    tempnode, tempnode2: TDOMNode;
+    tempnode: TDOMNode;
     i,j: integer;
-    addrecord: boolean;
+    s: string;
 
     tempbefore: array of byte;
     tempactual: array of byte;
@@ -274,15 +271,23 @@ var newrec: MemoryRecordV6;
     tempoffset: dword;
 
     symbolname: string;
-    address: ptrUint;
     li: tlistitem;
 
     r: integer;
     reg: Tregistry;
+    version: integer;
 begin
 
   try
 
+    tempnode:=doc.FindNode('CheatEngineTableVersion');
+    if tempnode<>nil then
+    try
+      version:=strtoint(tempnode.TextContent);
+      if version>CurrentTableVersion then
+        showmessage('There is a newer version of Cheat Engine out. It''s recomended to use that version instead');
+    except
+    end;
 
 
     CheatTable:=doc.FindNode('CheatTable');
@@ -432,7 +437,7 @@ begin
           else
             symbolname:='...';
 
-          address:=0;
+
           tempnode:=SymbolEntry.FindNode('Address');
           if tempnode<>nil then
           begin
@@ -464,15 +469,53 @@ begin
     else
       setlength(definedstructures,0);
 
-    if comments<>nil then
-      Commentsunit.Comments.Memo1.text:=comments.TextContent
-    else
-      Commentsunit.Comments.Memo1.Clear;
 
+
+    Commentsunit.Comments.Memo1.clear;
+    if comments<>nil then
+    begin
+      s:='';
+      for i:=1 to length(comments.textcontent) do
+      begin
+        if not (comments.textcontent[i] in [#13,#10]) then
+          s:=s+comments.textcontent[i]
+        else
+        begin
+          if s<>'' then
+          begin
+            //new line
+            Commentsunit.Comments.Memo1.Lines.add(s);
+            s:='';
+          end;
+        end;
+      end;
+      if s<>'' then
+        Commentsunit.Comments.Memo1.Lines.add(s);
+    end;
+
+    Commentsunit.Comments.mLuaScript.clear;
     if luaScript<>nil then
-      Commentsunit.Comments.mLuaScript.text:=luaScript.TextContent
-    else
-      Commentsunit.Comments.mLuaScript.clear;
+    begin
+      s:='';
+      for i:=1 to length(luaScript.textcontent) do
+      begin
+        if not (luaScript.textcontent[i] in [#13,#10]) then
+          s:=s+luaScript.textcontent[i]
+        else
+        begin
+          if s<>'' then
+          begin
+            //new line
+            Commentsunit.Comments.mLuaScript.Lines.add(s);
+            s:='';
+          end;
+        end;
+      end;
+      if s<>'' then
+        Commentsunit.Comments.mLuaScript.Lines.add(s);
+    end;
+
+
 
     if Commentsunit.Comments.mLuaScript.text<>'' then
     begin
@@ -572,8 +615,7 @@ procedure LoadCEM(filename:string);
 var memfile: TFilestream;
     check: pchar;
     mem: pointer;
-    temp,ar:dword;
-    a:dword;
+    temp:dword;
 begin
   check:=nil;
   try
@@ -604,10 +646,7 @@ end;
 
 procedure LoadCT(filename: string; merge: boolean);
 var ctfile: TFilestream;
-    version: dword;
     x: pchar;
-    f: TSearchRec;
-
     doc: TXMLDocument;
 begin
   ctfile:=nil;
@@ -651,21 +690,8 @@ end;
 
 procedure LoadTable(Filename: string;merge: boolean);
 var
-    actualread: Integer;
-    i,j: Integer;
-
-    oldrec: MemoryrecordOld;
-    ct3rec: MemoryRecordCET3;
-
-    NewRec: MemoryRecordV2;
-    NewRec2: array [0..255] of MemoryrecordV2;
+    i: Integer;
     Extension: String;
-    Str: String;
-    records: Dword;
-    x: Pchar;
-    charstoread: byte;
-
-    nrofbytes:  byte;
     doc: TXMLDocument;
 begin
 
@@ -758,19 +784,14 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: TDOMNode;
-    Entries,Codes,Symbols, Structures, Comment,luascript: TDOMNode;
-    CheatRecord, CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
+    Entries,Symbols, Structures, Comment,luascript: TDOMNode;
+    CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
-    Offsets: TDOMNode;
 
-    CodeList: TDOMNode;
-    Pointers: TDOMNode;
     i,j: integer;
 
     sl: tstringlist;
     extradata: ^TUDSEnum;
-    x: dword;
-
 begin
   doc:=TXMLDocument.Create;
   CheatTable:=doc.AppendChild(doc.CreateElement('CheatTable'));

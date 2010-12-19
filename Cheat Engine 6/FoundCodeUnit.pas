@@ -520,9 +520,10 @@ begin
 
           zeromemory(@mbi,sizeof(mbi));
 
-          if debuggerthread<>nil then debuggerthread.Suspend;
+
           RewriteCode(processhandle,coderecord.address,@nops[0],codelength);
-          if debuggerthread<>nil then debuggerthread.Resume;
+
+
         end;
       end;
     end;

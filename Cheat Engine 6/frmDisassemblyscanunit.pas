@@ -183,7 +183,7 @@ begin
     setlength(disassemblerthread.strings,c);
     disassemblerthread.startaddress:=memorybrowser.disassemblerview.TopAddress;
     disassemblerthread.ownerform:=self;
-    disassemblerthread.Resume;
+    disassemblerthread.start;
   end;
 end;
 

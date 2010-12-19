@@ -54,7 +54,7 @@ type
     function AddBreakpoint(owner: PBreakpoint; address: uint_ptr; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; debugregistersize: integer=0; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil): PBreakpoint;
 
 
-    procedure Execute; override;
+
 
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
@@ -109,6 +109,7 @@ type
     property running: boolean read fRunning;
 
     procedure Terminate;
+    procedure Execute; override;
   end;
 
 var
@@ -1611,7 +1612,7 @@ begin
   begin
     MessageDlg('This debugger interface :'''+CurrentDebuggerInterface.name+''' doesn''t support Break On Entry yet', mtError, [mbok],0);
     terminate;
-    resume;
+    start;
     exit;
   end;
 
@@ -1622,7 +1623,7 @@ begin
   self.filename:=filename;
   self.parameters:=parameters;
 
-  resume;
+  start;
   WaitTillAttachedOrError;
 end;
 

@@ -17,8 +17,8 @@ type TCodeCaveScanner=class(tthread)
     procedure done;
     procedure foundone;
   public
-    start:ptrUint;
-    stop:ptrUint;
+    startaddress:ptrUint;
+    stopaddress:ptrUint;
     size:dword;
     alsonx:boolean;
     procedure execute; override;
@@ -101,13 +101,13 @@ begin
 
   try
 
-  currentpos:=start;
+  currentpos:=startaddress;
   setlength(buf,buffersize);
 
 
-  while (not terminated) and (currentpos<stop) do
+  while (not terminated) and (currentpos<stopaddress) do
   begin
-    progress:=currentpos-start;
+    progress:=currentpos-startaddress;
     synchronize(updateprogressbar);
 
     //find the memoryranges to scan
@@ -152,7 +152,7 @@ begin
 
     while (not terminated) and (i<length(memoryregion)) do
     begin
-      progress:=memoryregion[i].BaseAddress-start;
+      progress:=memoryregion[i].BaseAddress-startaddress;
       synchronize(updateprogressbar);
 
       //read the mem
@@ -191,7 +191,7 @@ begin
 end;
 
 procedure TfrmCodecaveScanner.btnStartClick(Sender: TObject);
-var start,stop:ptrUint;
+var startaddress,stopaddress:ptrUint;
     bytelength: dword;
 begin
 {
@@ -201,13 +201,13 @@ only memory
   if codecavescanner=nil then
   begin
     try
-      start:=StrToInt64('$'+editstart.text);
+      startaddress:=StrToInt64('$'+editstart.text);
     except
       raise exception.Create('Please provide a valid start address');
     end;
 
     try
-      stop:=StrToint64('$'+editStop.text);
+      stopaddress:=StrToint64('$'+editStop.text);
     except
       raise exception.Create('Please provide a valid stop address');
     end;
@@ -219,16 +219,16 @@ only memory
       raise exception.Create('Please provide a valid size for the wanted code cave');
     end;
     codecavescanner:=TCodecavescanner.create(true);
-    codecavescanner.start:=start;
-    codecavescanner.stop:=stop;
+    codecavescanner.startaddress:=startaddress;
+    codecavescanner.stopaddress:=stopaddress;
     codecavescanner.size:=bytelength;
     codecavescanner.AlsoNX:=cbnoexecute.checked;
 
     progressbar1.Position:=0;
-    progressbar1.Max:=stop-start;
+    progressbar1.Max:=stopaddress-startaddress;
     btnStart.caption:=strStop;
     lbCodecaveList.Clear;
-    codecavescanner.Resume;
+    codecavescanner.start;
   end else
   begin
     codecavescanner.terminate;

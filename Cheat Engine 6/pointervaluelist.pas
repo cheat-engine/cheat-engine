@@ -184,10 +184,7 @@ var
   temp, currentarray: PReversePointerListArray;
   mi: Tmoduleinfo;
 
-  templist: PPointerDataArray;
-
   plist: PPointerList;
-  stage: integer;
 
   size: integer;
 
@@ -447,13 +444,11 @@ end;
 
 function TReversePointerListHandler.findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
 var
-  a: TMemrectablearraylist;
   _maxlevel: ValSInt;
   level: ValSInt;
   currentarray: PReversePointerListArray;
   entrynr: ValSInt;
 
-  _startvalue: ptrUint;
   _stopvalue: ptrUint;
 begin
   result:=nil;
@@ -603,7 +598,7 @@ var bytepointer: PByte;
 
     memoryregion2: array of TMemoryRegion2;
     lastaddress: ptrUint;
-    pointermask: integer;
+
 begin
   OutputDebugString('TReversePointerListHandler.create');
   try
@@ -616,12 +611,12 @@ begin
   if processhandler.is64Bit then
   begin
     maxlevel:=15;
-    pointermask:=7; //AND the value/address with this value. If the result=0 it's aligned
+   // pointermask:=7; //AND the value/address with this value. If the result=0 it's aligned
   end
   else
   begin
     maxlevel:=7;
-    pointermask:=3;
+   // pointermask:=3;
   end;
 
   count:=0;

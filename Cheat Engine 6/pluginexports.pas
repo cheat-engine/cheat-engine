@@ -138,7 +138,7 @@ type
     procedure OnTimer(Sender: TObject);
   public
     function inputComponent(c: TComponent): integer;
-    function removeComponent(c: TComponent): integer;
+    procedure removeComponent(c: TComponent);
     procedure DefaultOnClose(Sender: TObject; var Action: TCloseAction);
 
     procedure setOnClick(control: Tcontrol; functiontocall: pointer; luafunction: integer);
@@ -158,12 +158,16 @@ begin
     components[i].component:=nil;
 end;
 
-function TComponentFunctionHandlerClass.removeComponent(c: TComponent): integer;
+procedure TComponentFunctionHandlerClass.removeComponent(c: TComponent);
 begin
-  if lowestfreetag>c.tag then
-    lowestfreetag:=c.tag;
+  if c<>nil then
+  begin
+    if lowestfreetag>c.tag then
+      lowestfreetag:=c.tag;
 
-  components[c.Tag].Component:=nil;
+    components[c.Tag].Component:=nil;
+  end
+
 end;
 
 function TComponentFunctionHandlerClass.inputComponent(c: TComponent): integer;
@@ -313,7 +317,14 @@ var FreezeMem: TFreezeMem;
 
 function ce_showmessage2(params: pointer): pointer;
 begin
-  showmessage(pchar(params));
+
+  if params<>nil then
+  begin
+    showmessage(pchar(params));
+    result:=pointer(1);
+  end
+  else
+    result:=pointer(0);
 end;
 
 procedure ce_showmessage(s: pchar); stdcall;
@@ -469,7 +480,7 @@ begin
   begin
     freezemem:=tfreezemem.Create(true);
     freezemem.interval:=mainform.FreezeTimer.Interval;
-    freezemem.Resume;
+    freezemem.start;
   end;
 
   setlength(b,size);
@@ -1364,16 +1375,15 @@ begin
 end;
 
 function ce_openProcess(pid: dword): BOOL; stdcall;
-var p: pointer;
 begin
   result:=pluginsync(ce_openProcess2, pointer(pid))<>nil;
-
 end;
 
 function ce_pause2(params: pointer): pointer;
 begin
   AdvancedOptions.Pausebutton.Down:=true;
   AdvancedOptions.Pausebutton.Click;
+  result:=nil;
 end;
 
 procedure ce_pause; stdcall;
@@ -1385,6 +1395,7 @@ function ce_unpause2(params: pointer): pointer;
 begin
   AdvancedOptions.Pausebutton.Down:=false;
   AdvancedOptions.Pausebutton.Click;
+  result:=nil;
 end;
 
 procedure ce_unpause; stdcall;
@@ -1402,7 +1413,10 @@ begin
     3: formSettings.cbKDebug.checked:=true;
   end;
 
-  startdebuggerifneeded(false);
+  if startdebuggerifneeded(false) then
+    result:=pointer(1)
+  else
+    result:=nil;
 end;
 
 function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
@@ -1438,7 +1452,7 @@ begin
 end;
 
 function ce_debug_setBreakpoint(address: ptruint; size: integer; trigger: TBreakpointTrigger): BOOL; stdcall;
-var p: PsetBreakpointParams;
+var p: TsetBreakpointParams;
 begin
   p.address:=address;
   p.size:=size;
@@ -1471,7 +1485,7 @@ var ContinueOption: TContinueOption;
 begin
   if debuggerthread<>nil then
   begin
-    ContinueOption:=TContinueOption(integer(params));
+    ContinueOption:=TContinueOption(ptruint(params));
     debuggerthread.ContinueDebugging(continueoption);
     result:=pointer(1);
   end
@@ -1487,6 +1501,7 @@ end;
 function ce_closeCE2(params: pointer):pointer;
 begin
   mainform.Close;
+  result:=nil;
 end;
 
 procedure ce_closeCE; stdcall;
@@ -1507,7 +1522,7 @@ begin
 
   mainform.visible:=false;
   MemoryBrowser.visible:=false;
-
+  result:=nil;
 end;
 
 procedure ce_hideAllCEWindows; stdcall;
@@ -1519,7 +1534,7 @@ end;
 function ce_unhideMainCEwindow2(params: pointer):pointer;
 begin
   Mainform.show;
-
+  result:=nil;
 end;
 
 procedure ce_unhideMainCEwindow; stdcall;
@@ -1561,6 +1576,7 @@ begin
 
   except
   end;
+  result:=nil;
 end;
 
 procedure ce_form_centerScreen(f: pointer); stdcall;
@@ -1571,6 +1587,7 @@ end;
 function ce_form_hide2(params: pointer): pointer;
 begin
   TForm(params).Hide;
+  result:=nil;
 end;
 
 procedure ce_form_hide(f: pointer); stdcall;
@@ -1581,6 +1598,7 @@ end;
 function ce_form_show2(params: pointer): pointer;
 begin
   TForm(params).show;
+  result:=nil;
 end;
 
 procedure ce_form_show(f: pointer); stdcall;
@@ -1824,6 +1842,7 @@ begin
   begin
     ComponentFunctionHandlerClass.setOnTimer(tTimer(p.t), p.f, p.luafunction);
   end;
+  result:=nil;
 end;
 
 
@@ -1859,6 +1878,7 @@ begin
     p.control.Caption:=p.caption;
   except
   end;
+  result:=nil;
 end;
 
 procedure ce_control_setCaption(control: pointer; caption: pchar); stdcall;
@@ -2051,6 +2071,8 @@ begin
     TForm(params).close
   else
     TComponent(params).Free;
+
+  result:=nil;
 end;
 
 procedure ce_object_destroy(o: pointer); stdcall;
@@ -2124,15 +2146,19 @@ end;
 function ce_speedhack2_setSpeed(params: pointer): pointer;
 var speed: psingle;
 begin
-  speed:=params;
-  if not MainForm.cbSpeedhack.checked then
-    MainForm.cbSpeedhack.Checked:=true;
+  result:=nil;
+  try
+    speed:=params;
+    if not MainForm.cbSpeedhack.checked then
+      MainForm.cbSpeedhack.Checked:=true;
 
-  if mainform.cbspeedhack.checked then
-  begin
-    mainform.editsh2.Text:=format('%.2f', [speed^]);
-    mainform.btnSetSpeedhack2.Click;
-
+    if mainform.cbspeedhack.checked then
+    begin
+      mainform.editsh2.Text:=format('%.2f', [speed^]);
+      mainform.btnSetSpeedhack2.Click;
+    end;
+    result:=pointer(1);
+  except
   end;
 end;
 
@@ -2157,6 +2183,8 @@ begin
     TControl(p.c).OnClick:=nil
   else
     ComponentFunctionHandlerClass.setOnClick(tcontrol(p.c), p.f, p.luafunction);
+
+  result:=nil;
 end;
 
 
@@ -2196,6 +2224,8 @@ begin
     TForm(p.frm).OnClose:=nil
   else
     ComponentFunctionHandlerClass.setOnClose(tform(p.frm), p.f, p.luafunction);
+
+  result:=nil;
 end;
 
 
@@ -2218,7 +2248,6 @@ begin
   pluginsync(ce_form_onClose2, @p)
 end;
 
-var index: integer;
 initialization
   plugindisassembler:=TDisassembler.create;
   plugindisassembler.showsymbols:=false;

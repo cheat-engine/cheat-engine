@@ -398,7 +398,7 @@ begin
         end;
       end
       else
-        ListContainsEntries.WaitFor(1000);
+        ListContainsEntries.WaitFor(1000); //nothing to add to the list, wait a second and check again
 
     except
       inc(errorcount);

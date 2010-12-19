@@ -56,7 +56,6 @@ end;
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
 var pc: pchar;
   i,j: integer;
-  n: double;
 begin
   luacs.Enter;
   try

@@ -168,7 +168,6 @@ end;
 function TCustomType.ConvertDataToIntegerLua(data: pbytearray): integer; //split up for speed
 var
   L: PLua_State;
-  t: integer;
   i: integer;
 begin
   l:=LuaVM;
@@ -239,134 +238,138 @@ var i: integer;
   oldfunctiontypename: string;
   newroutine, oldroutine: TConversionRoutine;
   newreverseroutine, oldreverseroutine: TReverseConversionRoutine;
-  oldbytesize: integer;
+  newbytesize, oldbytesize: integer;
   oldallocarray: TCEAllocArray;
 begin
   oldname:=fname;
   oldfunctiontypename:=ffunctiontypename;
   oldroutine:=routine;
   oldreverseroutine:=reverseroutine;
-  oldbytesize:=oldbytesize;
+  oldbytesize:=bytesize;
   setlength(oldallocarray, length(c));
   for i:=0 to length(c)-1 do
     oldallocarray[i]:=c[i];
 
   try
+    //if anything goes wrong the old values get set back
 
-  if not luascript then
-  begin
-    setlength(c,0);
-    s:=tstringlist.create;
-    try
-      s.text:=script;
+    if not luascript then
+    begin
+      setlength(c,0);
+      s:=tstringlist.create;
+      try
+        s.text:=script;
 
-      if autoassemble(s,false, true, false, true, c) then
-      begin
-        //find alloc "ConvertRoutine"
-        for i:=0 to length(c)-1 do
+        if autoassemble(s,false, true, false, true, c) then
         begin
-          if uppercase(c[i].varname)='TYPENAME' then
-            name:=pchar(c[i].address);
+          //find alloc "ConvertRoutine"
+          for i:=0 to length(c)-1 do
+          begin
+            if uppercase(c[i].varname)='TYPENAME' then
+              name:=pchar(c[i].address);
 
-          if uppercase(c[i].varname)='CONVERTROUTINE' then
-            newroutine:=pointer(c[i].address);
+            if uppercase(c[i].varname)='CONVERTROUTINE' then
+              newroutine:=pointer(c[i].address);
 
-          if uppercase(c[i].varname)='BYTESIZE' then
-            bytesize:=pinteger(c[i].address)^;
+            if uppercase(c[i].varname)='BYTESIZE' then
+              newbytesize:=pinteger(c[i].address)^;
 
-          if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
-            newreverseroutine:=pointer(c[i].address);
+            if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
+              newreverseroutine:=pointer(c[i].address);
+          end;
+
+          //still here
+          unloadscript; //unmload the old script
+
+          //and now set the new values
+          bytesize:=newbytesize;
+          routine:=newroutine;
+          reverseroutine:=newreverseroutine;
+
+          fCustomTypeType:=cttAutoAssembler;
+          if currentscript<>nil then
+            freeandnil(currentscript);
+
+          currentscript:=tstringlist.create;
+          currentscript.text:=script;
+
+
+
         end;
 
-        //still here
-        unloadscript; //unmload the old script
-
-        //and now set the new values
-        routine:=newroutine;
-        reverseroutine:=newreverseroutine;
-
-        fCustomTypeType:=cttAutoAssembler;
-        if currentscript<>nil then
-          freeandnil(currentscript);
-
-        currentscript:=tstringlist.create;
-        currentscript.text:=script;
-
+      finally
+        s.free;
       end;
 
-    finally
-      s.free;
-    end;
+    end
+    else
+    begin
+      //create a new lua state and load this script
+      templua:=luaL_newstate;
+      if templua=nil then
+        raise exception.create('Failure creating lua object');
 
-  end
-  else
-  begin
-    //create a new lua state and load this script
-    templua:=luaL_newstate;
-    if templua=nil then
-      raise exception.create('Failure creating lua object');
-
-    try
-      if lua_dostring(templua, pchar(script))=0 then //success
-      begin
-        returncount:=lua_gettop(templua);
-        if returncount<>3 then
-          raise exception.create('Only return typename, bytecount and functiontypename');
-
-        //-1=functiontypename
-        //-2=bytecount
-        //-3=typename
-        ftn:=lua_tostring(templua,-1);
-        bytesize:=lua_tointeger(templua,-2);
-        tn:=lua_tostring(templua,-3);
-
-        if bytesize=0 then raise exception.create('bytesize is 0');
-        if ftn=nil then raise exception.create('invalid functiontypename');
-        if tn=nil then raise exception.create('invalid typename');
-
-        name:=tn;
-        functiontypename:=ftn;
-
-      end
-      else
-      begin
-        //something went wrong
-        if lua_gettop(templua)>0 then
+      try
+        if lua_dostring(templua, pchar(script))=0 then //success
         begin
-          error:=lua_tostring(templua,-1);
+          returncount:=lua_gettop(templua);
+          if returncount<>3 then
+            raise exception.create('Only return typename, bytecount and functiontypename');
+
+          //-1=functiontypename
+          //-2=bytecount
+          //-3=typename
+          ftn:=lua_tostring(templua,-1);
+          bytesize:=lua_tointeger(templua,-2);
+          tn:=lua_tostring(templua,-3);
+
+          if bytesize=0 then raise exception.create('bytesize is 0');
+          if ftn=nil then raise exception.create('invalid functiontypename');
+          if tn=nil then raise exception.create('invalid typename');
+
+          name:=tn;
+          functiontypename:=ftn;
+
+        end
+        else
+        begin
+          //something went wrong
+          if lua_gettop(templua)>0 then
+          begin
+            error:=lua_tostring(templua,-1);
+            raise exception.create(error);
+          end else raise exception.create('Undefined error');
+        end;
+
+      finally
+        lua_close(templua);
+      end;
+      //still here so the script got loaded and passed the tests
+
+      //now load the script into the actual vm
+      if lua_dostring(LuaVM, pchar(script))<>0 then
+      begin
+        if lua_gettop(LuaVM)>0 then
+        begin
+          error:=lua_tostring(LuaVM,-1);
           raise exception.create(error);
         end else raise exception.create('Undefined error');
-      end;
+      end else lua_pop(LuaVM,3);
 
-    finally
-      lua_close(templua);
+
+      fCustomTypeType:=cttLuaScript;
+      if currentscript=nil then
+        currentscript:=tstringlist.create;
+
+      currentscript.text:=script;
+
+
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+
+      lua_pop(LuaVM,lua_getTop(luavm));
+
     end;
-    //still here so the script got loaded and passed the tests
-
-    //now load the script into the actual vm
-    if lua_dostring(LuaVM, pchar(script))<>0 then
-    begin
-      if lua_gettop(LuaVM)>0 then
-      begin
-        error:=lua_tostring(LuaVM,-1);
-        raise exception.create(error);
-      end else raise exception.create('Undefined error');
-    end else lua_pop(LuaVM,3);
-
-
-    fCustomTypeType:=cttLuaScript;
-    if currentscript=nil then
-      currentscript:=tstringlist.create;
-
-    currentscript.text:=script;
-
-
-    lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
-    lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
-
-    lua_pop(LuaVM,lua_getTop(luavm));
-
-  end;
 
   except
     on e: exception do

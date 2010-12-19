@@ -21,7 +21,7 @@ type
     function getFunction(index: integer): string;
   public
     { Public declarations }
-    constructor create(AOwner: TComponent; functionList: TStrings);
+    constructor create(AOwner: TComponent; functionList: TStrings);  overload;
     property itemindex: integer read getselectedindex;
     property functions[index: integer]: string read getFunction;
 

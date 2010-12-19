@@ -224,9 +224,7 @@ procedure TFormMemoryRegions.Setselectedregionstobewritable1Click(
   Sender: TObject);
 var res: word;
     copyonwrite: boolean;
-    i,j: integer;
-    currentaddress,x:ptrUint;
-    buf: dword;
+    i: integer;
 begin
   res:=MessageDlg('Do you want to use the COPY-ON-WRITE bit?',mtConfirmation,[mbyes,mbno,mbcancel],0);
   if res=mrcancel then exit;

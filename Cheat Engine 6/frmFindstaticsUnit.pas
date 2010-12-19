@@ -29,8 +29,8 @@ type TStaticscanner = class (TThread)
   public
     filterstart:ptrUint;
     filterstop:ptrUint;
-    start: ptrUint;
-    stop: ptrUint;
+    startaddress: ptrUint;
+    stopaddress: ptrUint;
     onlyexecutable: boolean;
     progressbar: TProgressbar;
     procedure execute; override;
@@ -154,7 +154,7 @@ var oldpos,currentpos: ptrUint;
 begin
   freeonterminate:=true;
 
-  currentpos:=start;
+  currentpos:=startaddress;
   i:=0;
 
   try
@@ -166,7 +166,7 @@ begin
     symhandler.showmodules:=false;
     symhandler.locked:=true;
 
-    while (not terminated) and (currentpos<=stop) do
+    while (not terminated) and (currentpos<=stopaddress) do
     begin
       virtualqueryEx(processhandle,pointer(currentpos),mbi,sizeof(mbi));
       if (mbi.State<>mem_commit) or ( (onlyexecutable and ((mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE	or PAGE_EXECUTE_WRITECOPY))=0))
@@ -177,7 +177,7 @@ begin
 
         inc(i);
         i:=i mod 40;
-        if i=0 then progressbar.position:=(currentpos-start);
+        if i=0 then progressbar.position:=(currentpos-startaddress);
         continue;
       end;
 
@@ -254,7 +254,7 @@ begin
 
       inc(i);
       i:=i mod 40;
-      if i=0 then progressbar.position:=(currentpos-start);
+      if i=0 then progressbar.position:=(currentpos-startaddress);
     end;
 
   finally
@@ -329,19 +329,19 @@ begin
     setlength(staticlist,0);
     
     staticscanner:=TStaticscanner.Create(true);
-    staticscanner.start:=StrToInt64('$'+edit1.Text);
-    staticscanner.stop:=StrToInt64('$'+edit2.Text);
+    staticscanner.startaddress:=StrToInt64('$'+edit1.Text);
+    staticscanner.stopaddress:=StrToInt64('$'+edit2.Text);
     staticscanner.filterstart:=StrToInt64('$'+edit3.Text);
     staticscanner.filterstop:=StrToInt64('$'+edit4.Text);
 
     staticscanner.progressbar:=progressbar1;
     button1.Caption:=strStop;
 
-    progressbar1.Max:=staticscanner.stop-staticscanner.start;
+    progressbar1.Max:=staticscanner.stopaddress-staticscanner.startaddress;
 
     staticscanner.onlyexecutable:=checkbox1.checked;
 
-    staticscanner.Resume;
+    staticscanner.start;
   end;
 
 end;

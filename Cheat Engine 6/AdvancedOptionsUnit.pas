@@ -799,6 +799,7 @@ begin
   savebutton.Visible:=false;
  // pausebutton.Left:=savebutton.Left;
 
+  setlength(x,0);
   loadformposition(self,x);
 end;
 

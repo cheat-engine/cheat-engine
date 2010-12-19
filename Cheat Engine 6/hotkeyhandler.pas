@@ -120,7 +120,6 @@ begin
 end;
 
 procedure ClearHotkeylist;
-var i:integer;
 begin
   CSKeys.Enter;
   //it's now safe to clear the list
@@ -133,7 +132,6 @@ end;
 
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
 var i: integer;
-    x: word;
 begin
   result:=false;
 
@@ -160,7 +158,6 @@ begin
 end;
 
 function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
-var i: integer;
 begin
   CSKeys.Enter;
   try
@@ -295,7 +292,6 @@ end;
 procedure THotkeyThread.execute;
 var i: integer;
     a,b,c: dword;
-    handledhotkey: boolean;
 begin
   while not terminated do
   begin
@@ -306,7 +302,6 @@ begin
         begin
           if ((hotkeylist[i].lastactivate+hotkeyIdletime)<GetTickCount) and checkkeycombo(hotkeylist[i].keys) then
           begin
-            handledhotkey:=true;
             //the hotkey got pressed
             a:=hotkeylist[i].windowtonotify;
             b:=hotkeylist[i].id;
@@ -342,8 +337,7 @@ end;
 initialization
   clearkeystate;
   CSKeys:=TCriticalSection.Create;
-  hotkeythread:=Thotkeythread.Create(true);
-  hotkeythread.Resume;
+  hotkeythread:=Thotkeythread.Create(false);
 
 finalization
   if hotkeythread<>nil then

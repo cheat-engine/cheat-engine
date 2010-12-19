@@ -486,7 +486,7 @@ begin
   symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
   symbolloaderthread.kernelsymbols:=kernelsymbols;
   symbolloaderthread.searchpath:=searchpath;
-  symbolloaderthread.Resume;
+  symbolloaderthread.start;
 
   symbolloadervalid.EndWrite;
 

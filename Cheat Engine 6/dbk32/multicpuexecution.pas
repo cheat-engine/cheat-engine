@@ -19,11 +19,12 @@ implementation
 
 type Tforeachcpu=class(tthread)
   private
-    procedure execute; override;
+
   public
     fp: TCpuSpecificFunction;
     parameter: pointer;
     r: boolean;
+    procedure execute; override;
   end;
 
 procedure Tforeachcpu.execute;
@@ -52,7 +53,7 @@ begin
   begin
     fp:=functionpointer;
     parameter:=parameters;
-    resume;
+    start;
     waitfor;
     if result then result:=r; //one false and it stays false
     free;

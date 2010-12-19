@@ -22,6 +22,9 @@ type
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
+    miAddEBP: TMenuItem;
+    miAddESP: TMenuItem;
+    miFindWhatWrites: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -29,6 +32,7 @@ type
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
+    miFindWhatAccesses: TMenuItem;
     miDeleteBP: TMenuItem;
     miLock: TMenuItem;
     miShowDifference: TMenuItem;
@@ -205,8 +209,11 @@ type
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
+    procedure miAddESPClick(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
     procedure miDeleteBPClick(Sender: TObject);
+    procedure miFindWhatAccessesClick(Sender: TObject);
+    procedure miFindWhatWritesClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
@@ -411,6 +418,7 @@ type
     hexview: THexview;
 
     lastdebugcontext: _Context;
+    laststack: pbytearray;
 
     disassembler: boolean;
     cancelsearch: boolean;
@@ -527,8 +535,16 @@ begin
 end;
 
 procedure TMemoryBrowser.SetStacktraceSize(size: integer);
+var x: dword;
 begin
   FStacktraceSize:=size;
+
+  if laststack<>nil then
+    freemem(laststack);
+
+  laststack:=getmem(size);
+  readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}), laststack, size, x);
+
   reloadStacktrace;
 end;
 
@@ -755,13 +771,11 @@ begin
     hexview.GetSelectionRange(a,a2);
 
     hasbp:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(a,a2)<>nil);
-    MenuItem4.visible:=not hasbp;
+    MenuItem4.visible:=(not ischild) and (not hasbp);
     MenuItem6.visible:=not hasbp;
     MenuItem5.visible:=not hasbp;
     MenuItem7.visible:=not hasbp;
     MenuItem8.visible:=not hasbp;
-
-
     miDeleteBP.visible:=hasbp;
   end
   else
@@ -956,6 +970,11 @@ begin
   TFrmTracer.create(self,true).show;
 end;
 
+procedure TMemoryBrowser.miAddESPClick(Sender: TObject);
+begin
+  reloadStacktrace;
+end;
+
 
 
 procedure TMemoryBrowser.miConditionalBreakClick(Sender: TObject);
@@ -1022,6 +1041,33 @@ begin
     end;
     hexview.update;
   end;
+end;
+
+procedure TMemoryBrowser.miFindWhatAccessesClick(Sender: TObject);
+var
+  a,a2: ptruint;
+begin
+  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+
+    DebuggerThread.FindWhatAccesses(a,1+(a2-a));
+    hexview.Update;
+  end;
+end;
+
+procedure TMemoryBrowser.miFindWhatWritesClick(Sender: TObject);
+var
+  a,a2: ptruint;
+begin
+  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+  begin
+    hexview.GetSelectionRange(a,a2);
+
+    DebuggerThread.FindWhatWrites(a,1+(a2-a));
+    hexview.Update;
+  end;
+
 end;
 
 procedure TMemoryBrowser.miSepClick(Sender: TObject);
@@ -2235,7 +2281,7 @@ begin
     with tfrmstructures.create(self) do
     begin
       edtAddress.Text:=inttohex(memoryaddress,8);
-      update(false);
+      applychanges(false);
       show;
     end;
   end;
@@ -2442,6 +2488,8 @@ begin
   miConditionalBreak.enabled:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil);
 
 
+  ogglebreakpoint1.visible:=not ischild;
+
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);
@@ -2510,9 +2558,12 @@ begin
     inc(mbchildcount);
     name:='MemoryBrowser'+inttostr(mbchildcount);
     debug1.Visible:=false;
+    debug1.enabled:=false;
     //registerview.Visible:=false;
     //splitter2.Visible:=false;
     sbShowFloats.Visible:=false;
+    Setbreakpoint1.visible:=false;
+
     caption:=caption+'* ('+inttostr(mbchildcount)+')';
 
     Kerneltools1.enabled:=memorybrowser.Kerneltools1.enabled;
@@ -2798,8 +2849,17 @@ begin
           c.Caption:='Address';
           c.Width:=80;
           c:=lvstacktracedata.Columns.Add;
-          c.Caption:='DWORD';
-          c.Width:=80;
+          if processhandler.is64bit then
+          begin
+            c.Caption:='QWORD';
+            c.width:=160;
+          end
+          else
+          begin
+            c.Caption:='DWORD';
+            c.Width:=80;
+          end;
+
           c:=lvstacktracedata.Columns.Add;
           c.Caption:='Value';
           c.Width:=100;
@@ -2817,7 +2877,7 @@ begin
           readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}),s, FStacktraceSize,x);
           strace.Clear;
 
-          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, s,x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(s),x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
 
           lvstacktracedata.Items.Count:=strace.Count;
         finally
@@ -2825,7 +2885,7 @@ begin
         end;
       end else
       begin
-        lvstacktracedata.Items.Count:=4096 div 4;
+        lvstacktracedata.Items.Count:=(FStacktraceSize div processhandler.pointersize)-1;
       end;
 
     end;
@@ -2961,6 +3021,10 @@ var
   a: ptrUint;
   address,bytes,details: string;
   v: TVariableType;
+  pref: string;
+
+  offset: ptrint;
+  offsetstring: string;
 begin
 
   if stacktrace2.checked then
@@ -2985,27 +3049,52 @@ begin
 
 
     a:=lastdebugcontext.{$ifdef cpu64}rsp{$else}Esp{$endif}+item.Index*processhandler.pointersize;
-    item.Caption:=inttohex(a,8);
-    if readprocessmemory(processhandle, pointer(a), @value, sizeof(value),x) then
+
+    if laststack<>nil then
     begin
-      item.SubItems.Add(inttohex(value,8));
-      v:=FindTypeOfData(a,@value,sizeof(value));
-      case v of
-        vtSingle:
-          item.SubItems.Add(format('%.4f',[psingle(@value)^]));
-
-        vtDouble:
-          item.SubItems.Add(format('%.4f',[pdouble(@value)^]));
-
-        vtPointer:
-        begin
-          item.SubItems.Add(symhandler.getNameFromAddress(value));
-        end;
-
-        else
-          item.SubItems.Add(inttostr(value));
-
+      if processhandler.is64bit then
+      begin
+        pref:='R';
+        value:=ptruint(pqword(ptruint(laststack)+item.Index*processhandler.pointersize)^);
+        item.SubItems.Add(inttohex(value,16));
+      end
+      else
+      begin
+        pref:='E';
+        value:=ptruint(pdword(ptruint(laststack)+item.Index*processhandler.pointersize)^);
+        item.SubItems.Add(inttohex(value,8));
       end;
+
+      if miAddESP.checked then
+        offsetstring:='('+pref+'sp+'+inttohex(item.Index*processhandler.pointersize,1)+')'
+      else
+      begin
+        offset:=a-lastdebugcontext.{$ifdef cpu64}rbp{$else}Ebp{$endif};
+
+        if offset<0 then
+          offsetstring:='('+pref+'bp-'+inttohex(-offset,1)+')'
+        else
+          offsetstring:='('+pref+'bp+'+inttohex(offset,1)+')';
+      end;
+
+
+      item.Caption:=inttohex(a,8)+offsetstring;
+
+
+
+
+
+      v:=FindTypeOfData(a,pointer(ptruint(laststack)+item.Index*processhandler.pointersize),StacktraceSize-item.Index*processhandler.pointersize);
+      if v in [vtbyte..vtQword] then
+      begin
+        //override into pointersize type
+        if processhandler.is64bit then
+          v:=vtQword
+        else
+          v:=vtDword;
+      end;
+
+      item.SubItems.Add(DataToString(pbytearray(ptruint(laststack)+item.Index*processhandler.pointersize),processhandler.pointersize, v));
     end;
   end else
   begin
@@ -3069,11 +3158,17 @@ begin
 
 
     if column=0 then
-      s:=lvStacktraceData.Selected.Caption
+    begin
+      s:=lvStacktraceData.Selected.Caption;
+      i:=pos('(', s);
+      if i>0 then
+        s:=copy(s,1,i-1);
+
+    end
     else
       s:=lvStacktraceData.Selected.SubItems[column-1];
 
-    x:=symhandler.getAddressFromName(lvStacktraceData.Selected.Caption,false,haserror);
+    x:=symhandler.getAddressFromName(s,false,haserror);
     if not haserror then
     begin
       if isExecutableAddress(x) then
@@ -3103,6 +3198,7 @@ procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dwo
 var temp: string;
     Regstart: string;
     charcount: integer;
+    x: dword;
 begin
   if processhandler.is64Bit then
   begin
@@ -3517,8 +3613,16 @@ begin
 
   end;
 
+  if laststack=nil then
+    getmem(laststack,stacktraceSize);
+
+
+  readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}), laststack, stacktracesize, x);
+
+
   reloadStacktrace;
 
+  memorybrowser.show;
 end;
 
 initialization

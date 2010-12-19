@@ -5316,7 +5316,7 @@ var
     zSign : flag;
     absA : uint64;
     shiftCount: int8;
-    zSig : bits32;
+    //zSig : bits32;
     intval : int64rec;
 Begin
     if ( a = 0 ) then
@@ -5366,7 +5366,7 @@ function int64_to_float64( a: int64 ): float64;
 var
  zSign : flag;
  float_result : float64;
- intval : int64rec;
+ //intval : int64rec;
  AbsA : bits64;
  shiftcount : int8;
  zSig0, zSig1 : bits32;
@@ -8010,7 +8010,7 @@ end;
 
 function float128_rem(a: float128; b: float128): float128;
 var
-    aSign, bSign, zSign: flag;
+    aSign, {bSign,} zSign: flag;
     aExp, bExp, expDiff: int32;
     aSig0, aSig1, bSig0, bSig1, q, term0, term1, term2: bits64;
     allZero, alternateASig0, alternateASig1, sigMean1: bits64;
@@ -8026,7 +8026,7 @@ begin
     bSig1 := extractFloat128Frac1( b );
     bSig0 := extractFloat128Frac0( b );
     bExp := extractFloat128Exp( b );
-    bSign := extractFloat128Sign( b );
+   { bSign := extractFloat128Sign( b );  }
     if ( aExp = $7FFF ) then begin
         if (    (( aSig0 or aSig1 )<>0)
              or ( ( bExp = $7FFF ) and (( bSig0 or bSig1 )<>0) ) ) then begin

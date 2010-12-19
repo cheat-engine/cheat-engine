@@ -127,7 +127,7 @@ type
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     property savestack: boolean read fsavestack write setSavestack;
-    constructor create(Owner: TComponent; DataTrace: boolean=false);
+    constructor create(Owner: TComponent; DataTrace: boolean=false); overload;
   end;
 
 implementation

@@ -176,7 +176,6 @@ end;
 
 procedure TTablist.Paint;
 var i,j: integer;
-selectedoffset: integer;
 gradientColor: Tcolor;
 oldstyle: TBrushStyle;
 
@@ -192,12 +191,10 @@ begin
 
     if j=fselectedTab then
     begin
-      selectedoffset:=1;
       gradientColor:=color;
     end
     else
     begin
-      selectedoffset:=0;
       gradientColor:=$d0d0d0;
     end;
 

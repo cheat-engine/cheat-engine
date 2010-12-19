@@ -263,11 +263,7 @@ end;
 
 procedure LoadSettingsFromRegistry;
 var reg : TRegistry;
-    modifier: dword;
-    key: dword;
-    hotkey: string;
     i,j: integer;
-    go: boolean;
     temphotkeylist: array [0..30] of cefuncproc.tkeycombo;
     found:boolean;
     names: TStringList;
@@ -554,16 +550,6 @@ begin
 
             checkkeycombo(temphotkeylist[i]);
           end;
-
-
-
-
-          if temphotkeylist[0][0]<>0 then
-            hotkey:=ConvertKeyComboToString(temphotkeylist[0])
-          else
-            hotkey:='no';
-
-
 
           if temphotkeylist[1][0]<>0 then
             advancedoptions.pausehotkeystring:='('+ConvertKeyComboToString(temphotkeylist[1])+')'

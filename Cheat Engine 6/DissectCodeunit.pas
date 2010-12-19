@@ -139,7 +139,7 @@ begin
 
   starttime:=gettickcount;
 
-  dissectcode.Resume;
+  dissectcode.start;
 end;
 
 procedure TfrmDissectCode.Timer1Timer(Sender: TObject);

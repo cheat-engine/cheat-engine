@@ -71,10 +71,6 @@ implementation
 function peinfo_getcodesize(header: pointer): dword;
 var
     ImageNTHeader: PImageNtHeaders;
-    ImageSectionHeader: PImageSectionHeader;
-    ImageBaseRelocation: PIMAGE_BASE_RELOCATION;
-    ImageExportDirectory: PImageExportDirectory;
-    ImageImportDirectory: PImageImportDirectory;
 begin
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.SizeOfCode;
@@ -83,10 +79,6 @@ end;
 function peinfo_getdatabase(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
-    ImageSectionHeader: PImageSectionHeader;
-    ImageBaseRelocation: PIMAGE_BASE_RELOCATION;
-    ImageExportDirectory: PImageExportDirectory;
-    ImageImportDirectory: PImageImportDirectory;
 begin
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.BaseOfData;
@@ -95,10 +87,6 @@ end;
 function peinfo_getcodebase(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
-    ImageSectionHeader: PImageSectionHeader;
-    ImageBaseRelocation: PIMAGE_BASE_RELOCATION;
-    ImageExportDirectory: PImageExportDirectory;
-    ImageImportDirectory: PImageImportDirectory;
 begin
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.BaseOfCode;
@@ -107,10 +95,6 @@ end;
 function peinfo_getEntryPoint(header: pointer): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
-    ImageSectionHeader: PImageSectionHeader;
-    ImageBaseRelocation: PIMAGE_BASE_RELOCATION;
-    ImageExportDirectory: PImageExportDirectory;
-    ImageImportDirectory: PImageImportDirectory;
 begin
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.AddressOfEntryPoint;
@@ -157,9 +141,6 @@ var MZheader: ttreenode;
     section: Ttreenode;
     va: ttreenode;
 
-    wa: Pwordarray;
-    ba: PByteArray;
-
     tempnode,tempnode2,tempnode3: ttreenode;
 
 
@@ -189,9 +170,6 @@ var MZheader: ttreenode;
     is64bit: boolean;
 
     tempaddress,tempaddress2: ptrUint;
-    temps: string;
-
-
 begin
 
   PEItv.Items.BeginUpdate;

@@ -20,7 +20,7 @@ uses
   memscan, formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
   formAddressChangeUnit, Changeoffsetunit, speedhack2, formPointerOrPointeeUnit,
   AccessCheck, formmemoryregionsunit, OpenSave, formProcessInfo,
-  frmautoinjectunit, underc, MenuItemExtra, MemoryBrowserFormUnit,
+  frmautoinjectunit, MenuItemExtra, MemoryBrowserFormUnit,
   disassemblerviewlinesunit, disassemblerviewunit, PasteTableentryFRM,
   frmBreakpointlistunit, DissectCodeThread, DissectCodeunit, Valuechange,
   FindWindowUnit, stacktrace2, frmstacktraceunit, frmBreakThreadUnit,

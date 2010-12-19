@@ -128,10 +128,6 @@ type
 
   TStaticscanner = class(TThread)
   private
-    updateline: integer; //not used for addentry
-
-    memoryregion: array of tmemoryregion;
-
     reversescanners: array of treversescanworker;
     pointersize: integer;
 
@@ -157,8 +153,8 @@ type
     automatic: boolean;
     automaticaddress: ptrUint;
 
-    start: ptrUint;
-    stop: ptrUint;
+    startaddress: ptrUint;
+    stopaddress: ptrUint;
     progressbar: TProgressbar;
     sz,sz0: integer;
     maxlevel: integer;
@@ -260,7 +256,6 @@ type
     start:tdatetime;
 
     rescan: trescanpointers;
-    cewindowhandle: thandle;
     pointerlisthandler: TReversePointerListHandler;   //handled by the form for easy reuse
 
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
@@ -326,7 +321,7 @@ begin
   if staticscanner=nil then exit;
 
   if staticscanner.useHeapData then
-    frmMemoryAllocHandler.displaythread.Resume; //continue adding new entries
+    frmMemoryAllocHandler.memrecCS.leave;  //continue adding new entries
 
   //update the treeview
   if message.WParam<>0 then
@@ -445,21 +440,17 @@ scan through the memory for a address that points in the region of address, if f
 var p: ^byte;
     pd: ^dword absolute p;
     pq: ^qword absolute p;
-    maxaddress: ptrUint;
-    AddressMinusMaxStructSize: ptrUint;
-    found: boolean;
-    i,j,k: valSint;
+
+
+    i,j: valSint;
     createdworker: boolean;
 
-    mi: tmoduleinfo;
-    mbi: _MEMORY_BASIC_INFORMATION;
 
     ExactOffset: boolean;
     mae: TMemoryAllocEvent;
 
   startvalue: ptrUint;
   stopvalue: ptrUint;
-  _pointersize: valSint;
   plist: PPointerlist;
 
   nostatic: TStaticData;
@@ -468,7 +459,6 @@ var p: ^byte;
 begin
   if (level>=maxlevel) or self.staticscanner.Terminated then exit;
 
-  _pointersize:=pointersize;
   currentlevel:=level;
 
 
@@ -505,8 +495,6 @@ begin
   LookingForMin:=startvalue;
   LookingForMax:=stopvalue;
 
-
-  found:=false;
   dontGoDeeper:=false;
   plist:=nil;
   while stopvalue>=startvalue do
@@ -516,7 +504,6 @@ begin
 
     if plist<>nil then
     begin
-      found:=true;
       for j:=0 to plist.pos-1 do
       begin
         {$ifdef benchmarkps}
@@ -658,7 +645,7 @@ begin
     if Self.findValueInsteadOfAddress then
     begin
       //scan the memory for the value
-      ValueFinder:=TValueFinder.create(start,stop);
+      ValueFinder:=TValueFinder.create(startaddress,stopaddress);
       ValueFinder.alligned:=not unalligned;
       ValueFinder.valuetype:=valuetype;
       ValueFinder.valuescandword:=valuescandword;
@@ -667,7 +654,7 @@ begin
       ValueFinder.valuescansinglemax:=valuescansinglemax;
       ValueFinder.valuescandoublemax:=valuescandoublemax;
 
-      currentaddress:=ptrUint(ValueFinder.FindValue(start));
+      currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
       while currentaddress>0 do
       begin
         //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
@@ -788,7 +775,7 @@ begin
       phase:=1;
       progressbar.Position:=0;
       try
-        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(start,stop,not unalligned,progressbar, noreadonly);
+        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly);
 
         postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
@@ -830,7 +817,7 @@ begin
           reversescanners[i].alligned:=not self.unalligned;
           reversescanners[i].filename:=self.filename+'.'+inttostr(i);
 
-          reversescanners[i].Resume;
+          reversescanners[i].start;
         end;
 
         //create the headerfile
@@ -952,8 +939,8 @@ begin
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
 
-      staticscanner.start:=frmpointerscannersettings.start;
-      staticscanner.stop:=frmpointerscannersettings.Stop;
+      staticscanner.startaddress:=frmpointerscannersettings.start;
+      staticscanner.stopaddress:=frmpointerscannersettings.Stop;
 
       staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
       pgcPScandata.ActivePage:=tsPSReverse;
@@ -990,7 +977,7 @@ begin
 
 
       if staticscanner.useHeapData then
-        frmMemoryAllocHandler.displaythread.Suspend; //stop adding entries to the list
+        frmMemoryAllocHandler.memrecCS.enter; //stop adding entries to the list
 {$endif}        
 
       //check if the user choose to scan for addresses or for values
@@ -1029,12 +1016,12 @@ begin
       end;
 
 
-      progressbar1.Max:=staticscanner.stop-staticscanner.start;
+      progressbar1.Max:=staticscanner.stopaddress-staticscanner.startaddress;
 
 
       open1.Enabled:=false;
       staticscanner.starttime:=gettickcount;
-      staticscanner.Resume;
+      staticscanner.start;
 
 
       pgcPScandata.Visible:=true;
@@ -1076,17 +1063,10 @@ begin
 end;
 
 procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);
-var i,j,l: integer;
+var i,j: integer;
     s: string;
-    a: string;
-    done: dword;
-    donetime,todotime: integer;
-    oneaddresstime: double;
-    _h,_m,_s: integer;
+
     tn,tn2: TTreenode;
-    {$ifdef benchmarkps}
-    totaltime: integer;
-    {$endif}
 begin
   if listview1.Visible then
     listview1.repaint;
@@ -1413,9 +1393,8 @@ var
   blocksize: qword;
 
   threadhandles: array of Thandle;
-  result,x: tfilestream;
+  result: tfilestream;
 
-  modulecount: dword;
   rescanhelper: TRescanHelper;
   temp: dword;
 begin
@@ -1423,7 +1402,7 @@ begin
   progressbar.Max:=100;
   progressbar.Position:=0;
   result:=nil;
-  x:=nil;
+
 
   sleep(delay*1000);
 
@@ -1483,7 +1462,7 @@ begin
         rescanworkers[i].entriestocheck:=TotalPointersToEvaluate-rescanworkers[i].startEntry; //to the end
 
       threadhandles[i]:=rescanworkers[i].Handle;
-      rescanworkers[i].Resume;
+      rescanworkers[i].start;
     end;
 
 
@@ -1562,14 +1541,12 @@ end;
 
 procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
 var address: ptrUint;
-    saddress: string;
     FloatSettings: TFormatSettings;
     floataccuracy: integer;
     i: integer;
 begin
   floatsettings:=DefaultFormatSettings;
 
-  saddress:='';
 
   if rescan<>nil then
     freeandnil(rescan);
@@ -1652,7 +1629,7 @@ begin
               rescan.forvalue:=true;
 
             end;
-            rescan.resume;
+            rescan.start;
           end;
         end;
 
@@ -1738,7 +1715,6 @@ end;
 
 
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
-var i: integer;
 begin
   btnStopScan.click;
   if staticscanner<>nil then
@@ -1860,9 +1836,7 @@ end;
 procedure Tfrmpointerscanner.ListView1DblClick(Sender: TObject);
 var
   li: tlistitem;
-  err: boolean;
   i: integer;
-  baseaddress: dword;
   offsets: array of dword;
   t: string;
   c: integer;
@@ -1871,12 +1845,8 @@ var
 begin
   if listview1.ItemIndex<>-1 then
   begin
-    err:=false;
     li:=listview1.Items.Item[listview1.ItemIndex];
     t:=li.caption;
-    baseaddress:=symhandler.getAddressFromName(t,false,err);
-    if err then baseaddress:=0;
-
 
     try
       setlength(offsets,li.SubItems.Count);

@@ -4,7 +4,7 @@ unit byteinterpreter;
 
 interface
 
-uses LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, CustomTypeHandler;
+uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, CustomTypeHandler;
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
@@ -16,7 +16,6 @@ function readAndParseAddress(address: ptrUint; variableType: TVariableType; cust
 var buf: array [0..7] of byte;
     buf2: pbytearray;
     x: dword;
-    check: boolean;
 begin
   result:='???';
   case variableType of
@@ -94,28 +93,59 @@ function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): s
 {note: If type is of stringo unicode, the last 2 bytes will get set to 0, so watch what you're calling}
 var tr: Widestring;
     i: integer;
+    a: ptruint;
+
+    tempbuf: pbytearray;
 begin
   case vartype of
     vtByte: result:='(byte)'+inttohex(buf[0],2) + '('+inttostr(buf[0])+')';
     vtWord: result:='(word)'+inttohex(pword(buf)^,4) + '('+inttostr(pword(buf)^)+')';
     vtDword: result:='(dword)'+inttohex(pdword(buf)^,8) + '('+inttostr(pdword(buf)^)+')';
+    vtQword: result:='(qword)'+inttohex(pqword(buf)^,16) + '('+inttostr(pqword(buf)^)+')';
     vtSingle: result:='(float)'+format('%.2f',[psingle(buf)^]);
     vtDouble: result:='(double)'+format('%.2f',[pdouble(buf)^]);
     vtString:
     begin
-      buf[size-1]:=0;
-      result:=pchar(buf);
+      getmem(tempbuf,size+1);
+      copymemory(tempbuf,buf,size);
+
+      try
+        tempbuf[size]:=0;
+        result:=pchar(tempbuf);
+      finally
+        freemem(tempbuf);
+      end;
     end;
 
     vtUnicodeString:
     begin
-      buf[size-1]:=0;
-      buf[size-2]:=0;
-      tr:=PWideChar(buf);
-      result:=tr;
+      getmem(tempbuf,size+2);
+      copymemory(tempbuf,buf,size);
+
+      try
+        tempbuf[size]:=0;
+        tempbuf[size+1]:=0;
+        tr:=PWideChar(tempbuf);
+        result:=tr;
+
+      finally
+        freemem(tempbuf);
+      end;
     end;
 
-    vtPointer: if processhandler.is64bit then result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
+    vtPointer:
+    begin
+      if processhandler.is64bit then
+        a:=ptruint(pqword(buf)^)
+      else
+        a:=ptruint(pdword(buf)^);
+
+      result:='(pointer)'+symhandler.getNameFromAddress(a);
+
+
+//      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
+    end;
+
     else
     begin
       result:='(...)';

@@ -26,7 +26,7 @@ procedure TSaveFirstScanThread.execute;
 var //addressfile,memoryfile,newaddressfile,newmermoryfile: file;
     datatype: string[6];
     i: integer;
-    x: dword;
+
     p: ^byte;
     regioncount: integer;
 

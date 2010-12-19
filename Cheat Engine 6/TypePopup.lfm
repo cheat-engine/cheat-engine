@@ -31,7 +31,7 @@ object TypeForm: TTypeForm
   end
   object VarType: TComboBox
     Left = 10
-    Height = 24
+    Height = 21
     Top = 20
     Width = 198
     DropDownCount = 9
@@ -90,9 +90,9 @@ object TypeForm: TTypeForm
     end
     object cbunicode: TCheckBox
       Left = 59
-      Height = 17
+      Height = 19
       Top = 6
-      Width = 58
+      Width = 60
       Caption = 'Unicode'
       TabOrder = 1
     end
@@ -181,60 +181,60 @@ object TypeForm: TTypeForm
     end
     object RadioButton1: TRadioButton
       Left = 0
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 20
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 1
     end
     object RadioButton3: TRadioButton
       Left = 39
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 2
     end
     object RadioButton4: TRadioButton
       Left = 59
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 3
     end
     object RadioButton5: TRadioButton
       Left = 79
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 4
     end
     object RadioButton6: TRadioButton
       Left = 98
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 5
     end
     object RadioButton7: TRadioButton
       Left = 118
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 6
     end
     object RadioButton8: TRadioButton
       Left = 138
-      Height = 17
+      Height = 19
       Top = 15
-      Width = 18
+      Width = 20
       TabOrder = 7
     end
     object Edit2: TEdit

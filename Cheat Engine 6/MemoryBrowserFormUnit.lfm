@@ -518,6 +518,7 @@ object MemoryBrowser: TMemoryBrowser
             Caption = 'Value'
             Width = 42
           end>
+        HideSelection = False
         OwnerData = True
         ReadOnly = True
         RowSelect = True
@@ -698,6 +699,14 @@ object MemoryBrowser: TMemoryBrowser
       object MenuItem8: TMenuItem
         Caption = 'Break and trace'
         OnClick = MenuItem8Click
+      end
+      object miFindWhatAccesses: TMenuItem
+        Caption = 'Find out what accesses this address'
+        OnClick = miFindWhatAccessesClick
+      end
+      object miFindWhatWrites: TMenuItem
+        Caption = 'Find out what writes this address'
+        OnClick = miFindWhatWritesClick
       end
     end
     object miDeleteBP: TMenuItem
@@ -1172,6 +1181,20 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Max stack: 4096'
       GroupIndex = 1
       OnClick = Maxstacktracesize1Click
+    end
+    object miAddESP: TMenuItem
+      AutoCheck = True
+      Caption = '(esp+*)'
+      GroupIndex = 2
+      RadioItem = True
+      OnClick = miAddESPClick
+    end
+    object miAddEBP: TMenuItem
+      AutoCheck = True
+      Caption = '(ebp+*)'
+      GroupIndex = 2
+      RadioItem = True
+      OnClick = miAddESPClick
     end
   end
 end

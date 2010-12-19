@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
-  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,underc,
+  MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
   MemoryRecordUnit, tablist, customtypehandler, registry;
 
 
@@ -90,9 +90,6 @@ type
     CPPHighlighter: TSynCppSyn;
     assembleSearch: TSynEditSearch;
 
-
-    updating: boolean;
-    pagecontrol: tpagecontrol;
     oldtabindex: integer;
     scripts: array of record
                script: string;
@@ -109,7 +106,6 @@ type
     fluamode: boolean;
     fCustomTypeScript: boolean;
 
-    undolist: array [0..5] of string;
     procedure setluamode(state: boolean);
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
@@ -130,7 +126,6 @@ type
     callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
     CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
     injectintomyself: boolean;
-
     property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
 end;
@@ -194,16 +189,13 @@ end;
 
 
 procedure TfrmAutoInject.Button1Click(Sender: TObject);
-var enable,disable: integer;
+var
     a,b: integer;
 
     aa: TCEAllocArray;
-    i: integer;
 
     //variables for injectintomyself:
     check: boolean;
-    oldProcessID: dword;
-    oldProcessHandle: thandle;
     registeredsymbols: TStringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
@@ -349,7 +341,6 @@ begin
 end;
 
 var address: string;
-    addressdw: ptrUint;
     originalcode: array of string;
     originalbytes: array of byte;
     codesize: integer;
@@ -358,7 +349,6 @@ var address: string;
     c: ptrUint;
     x: string;
     i,j,k: integer;
-    prev_usesymbols: boolean;
     injectnr: integer;
 
     enablepos: integer;
@@ -934,13 +924,11 @@ begin
 end;
 
 var address: string;
-    addressdw: ptrUint;
-    originalcode: array of string;
-    codesize: integer;
-    a,b,c: ptrUint;
+
+    a: ptrUint;
     x: string;
     i,j,k: integer;
-    prev_usesymbols: boolean;
+
     injectnr: integer;
 
 begin
@@ -1262,7 +1250,6 @@ begin
 end;
 
 procedure TfrmAutoInject.Syntaxhighlighting1Click(Sender: TObject);
-var s: string;
 begin
 {$ifndef standalonetrainerwithassembler}
 
@@ -1480,29 +1467,17 @@ end;
 
 procedure TfrmAutoInject.Cut1Click(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
-
   assemblescreen.CutToClipboard;
-
-{$endif}
 end;
 
 procedure TfrmAutoInject.Copy1Click(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
-
   assemblescreen.CopyToClipboard;
-
-{$endif}
 end;
 
 procedure TfrmAutoInject.Paste1Click(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
-
   assemblescreen.PasteFromClipboard;
-
-{$endif}
 end;
 
 procedure TfrmAutoInject.Find1Click(Sender: TObject);
@@ -1512,27 +1487,15 @@ begin
 end;
 
 procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
-var start,l: integer;
-    p: integer;
 begin
-{$ifndef standalonetrainerwithassembler}
-
   //scan the text for the given text
-  start:=assemblescreen.selstart;
-  l:=length(assemblescreen.text)-start;
-
-
   assemblescreen.SearchReplace(finddialog1.FindText,'',[]);
-
-{$endif}
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing
 procedure TfrmAutoInject.AAPref1Click(Sender: TObject);
 var reg: tregistry;
 begin
-{$ifndef standalonetrainerwithassembler}
-
   with TfrmAAEditPrefs.create(self) do
   begin
     try
@@ -1562,7 +1525,6 @@ begin
       free;
     end;
   end;
-{$endif}
 end;
 
 procedure TfrmAutoInject.FormDestroy(Sender: TObject);

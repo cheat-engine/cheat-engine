@@ -66,7 +66,7 @@ type
     address:ptrUint;
   public
     { Public declarations }
-    constructor create(AOwner:tcomponent;address:ptrUint);
+    constructor create(AOwner:tcomponent;address:ptrUint); overload;
   end;
 
 var
@@ -77,7 +77,6 @@ implementation
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions;
 
 constructor TfrmModifyRegisters.create(AOwner:tcomponent;address:ptrUint);
-var i: integer;
 var x: pbreakpoint;
 begin
 
@@ -182,9 +181,7 @@ end;
 
 
 procedure TfrmModifyRegisters.Button1Click(Sender: TObject);
-var itsin:boolean;
-    foundit: boolean;
-    i,drnr:integer;
+var
     tempregedit:tregistermodificationBP;
 begin
   tempregedit.address:=address;

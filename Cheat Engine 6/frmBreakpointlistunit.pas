@@ -30,7 +30,7 @@ type
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
-    procedure update(var m: tmessage); message WM_BPUPDATE;
+    procedure update(var m: tmessage); message WM_BPUPDATE; overload;
     procedure updatebplist;
   public
     { Public declarations }

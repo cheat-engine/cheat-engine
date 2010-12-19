@@ -101,10 +101,6 @@ var i: dword;
     me32:MODULEENTRY32;
     x: pchar;
     modulename:string;
-    pno: integer;
-    j: integer;
-    pe: dword;
-
 begin
   i:=0;
 
@@ -266,7 +262,7 @@ end;
 procedure TProcessWindow.Button1Click(Sender: TObject);
 var oldselection: string;
     oldselectionIndex: integer;
-    i,j: integer;
+    i: integer;
     found: boolean;
 begin
 
@@ -451,8 +447,6 @@ begin
 end;
 
 procedure TProcessWindow.btnProcessListLongClick(Sender: TObject);
-var i:dword;
-    h: thandle;
 begin
   if processlistlong=nil then
   begin
@@ -460,7 +454,7 @@ begin
     btnprocesslistlong.Caption:='Scanning (Click to stop)';
     processlistlong:=tprocesslistlong.create(true);
     processlistlong.processlist:=processlist;
-    processlistlong.Resume;
+    processlistlong.start;
   end
   else
   begin
@@ -487,9 +481,6 @@ end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var x: TIcon;
-    b: TBitmap;
-    r,r2: trect;
 begin
 
   processlist.Canvas.FillRect(rect);

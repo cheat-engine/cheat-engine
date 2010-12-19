@@ -12,10 +12,8 @@ interface
 
 uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
-{$ifndef standalonetrainerwithassemblerandaobscanner}
      , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,
      CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib, LuaHandler
-{$endif}
 ;
 
 
@@ -78,9 +76,7 @@ type
     StoreResultRoutine: TStoreResultRoutine;
     FlushRoutine: TFlushRoutine; //pointer to routine used to flush the buffer, generic, string, etc...
     scanWriter: Tscanfilewriter;
-    {$ifndef standalonetrainerwithassemblerandaobscanner} 
     firstscanhandler: TFirstscanhandler;
-    {$endif}
     scandir: string;
 
     found :dword;
@@ -400,9 +396,7 @@ type
   private
     previousMemoryBuffer: pointer;
     scanController: TScanController; //thread that configures the scanner threads and wait till they are done
-    {$ifndef standalonetrainerwithassemblerandaobscanner}
     SaveFirstScanThread: TSaveFirstScanThread; //thread that will save the results of the first scan that can be used for "same as first scan" scans
-    {$endif}
     memRegion: TMemoryRegions;  //after a scan the contents of controller gets copied to here
     memRegionPos: integer;
 
@@ -468,10 +462,6 @@ type
 implementation
 
 uses StrUtils;
-
-var foundaddress: byte;
-    foundaddressb: byte;
-
 
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
@@ -782,13 +772,9 @@ end;
 
 function TScanner.CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
-    scanvaluellength: integer;
-    pwidescanvalue: pchar;
 begin
   result:=false;
   i:=0;
-  scanvaluellength:=length(scanvalue1)*sizeof(widechar);
-  pwidescanvalue:=@widescanvalue1[1];
 
   for i:=1 to length(scanvalue1) do
   begin
@@ -1140,7 +1126,6 @@ end;
 //single:
 
 function TScanner.SingleExact(newvalue,oldvalue: pointer): boolean;
-var min,max: single;
 begin
   result:=false;
   case roundingtype of
@@ -1716,7 +1701,6 @@ begin
 
 
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if scanOption=soSameAsFirst then //stupid, but ok...
   begin
     case self.variableType of
@@ -1765,7 +1749,6 @@ begin
     end;
   end
   else
-  {$endif}
   begin
     if variableType=vtall then
     begin
@@ -1807,8 +1790,7 @@ begin
 end;
 
 procedure TScanner.nextnextscanmemAll(addresslist: pointer; oldmemory: pointer; chunksize: integer);
-var stepsize: dword;
-    i,j,k: dword;
+var i,j,k: dword;
     l: TVariableType;
     maxindex: dword;
     vsize: dword;
@@ -1828,9 +1810,7 @@ begin
   vsize:=variablesize; //=8
   oldmem:=oldmemory;
   alist:=addresslist;
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   valuetype:=vt_all;
-{$endif}
 
   while i<maxindex do
   begin
@@ -1853,7 +1833,6 @@ begin
     currentbase:=alist[i].address;
     if readprocessmemory(processhandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
-{$ifndef standalonetrainerwithassemblerandaobscanner}
       if so=soSameAsFirst then
       begin
         //clear typesmatch and set current address
@@ -1888,7 +1867,6 @@ begin
 
       end
       else
-{$endif}      
       begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
@@ -1932,13 +1910,13 @@ end;
 
 
 procedure TScanner.nextnextscanmembinary(addresslist: pointer; chunksize: integer);
-var stepsize: dword;
+var
     i,j,k,l: dword;
     maxindex: dword;
     vsize: dword;
     currentbase: ptruint;
     newmemory: array [0..4095] of byte;
-    oldmem: pbytearray;
+
     alist: PBitAddressArray;
     actualread: dword;
     lastaddress: ptruint;
@@ -2014,7 +1992,7 @@ conclusion: only when there is 1 address in the list, scan 1 address, else scan 
 
 }
 
-var stepsize: dword;
+var
     i,j,k: dword;
     maxindex: dword;
     vsize: dword;
@@ -2025,10 +2003,7 @@ var stepsize: dword;
     actualread: dword;
 
     so: Tscanoption;
-{$ifndef standalonetrainerwithassemblerandaobscanner}
     valuetype: TValuetype;
-{$endif}
-    currentaddress: ptruint;
 begin
   i:=0;
   so:=scanoption;
@@ -2037,7 +2012,6 @@ begin
   oldmem:=oldmemory;
   alist:=addresslist;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   case variableType of
     vtByte:   valuetype:=vt_byte;
     vtWord:   valuetype:=vt_word;
@@ -2058,7 +2032,7 @@ begin
 
     end;
   end;
-{$endif}
+
 
   while i<maxindex do
   begin
@@ -2079,7 +2053,6 @@ begin
     currentbase:=alist[i];
     if readprocessmemory(processhandle,pointer(currentbase),@newmemory[0],(alist[j]-currentbase)+vsize,actualread) then
     begin
-{$ifndef standalonetrainerwithassemblerandaobscanner}
       if so=soSameAsFirst then
       begin
         for k:=i to j do
@@ -2087,7 +2060,6 @@ begin
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
       end
       else
-{$endif}
       begin
         for k:=i to j do
           if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) then
@@ -2107,9 +2079,7 @@ and fill in class variables that will be used for the scans
 var FloatSettings: TFormatSettings;
     BinaryString,andmask,bitmask: string;
     i: integer;
-    b: Tbytes;
     foundbuffersize: integer;
-    p: pointer;
     td: double;
 begin
   OutputDebugString('configurescanroutine');
@@ -2336,10 +2306,8 @@ begin
     getmem(SecondaryAddressBuffer,buffersize*sizeof(ptruint));
   end;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if scanOption=soSameAsFirst then //create a first scan handler
     FirstScanHandler:=TFirstscanhandler.create(scandir);
-{$endif}
 
   case variableType of
     vtByte:
@@ -2612,7 +2580,7 @@ end;
 procedure TScanner.nextNextscan;
 var oldAddressfile: TFileStream;
     oldMemoryfile: TFileStream;
-    i,j: integer;
+    i: integer;
     stopindex: integer;
     chunksize: integer;
 
@@ -2620,7 +2588,6 @@ var oldAddressfile: TFileStream;
     oldaddressesb: array of tbitaddress;
     oldmemory: pointer;
 
-    part: integer;
 begin
   configurescanroutine;
   oldAddressFile:=nil;
@@ -2724,9 +2691,8 @@ var
   oldbuffer: ^byte;
   toread: integer;
   actualread: dword;
-  hasleft: boolean;
+
 begin
-  hasleft:=false;
   startregion:=_startregion; //using a variable so stack can be used, with possibility of register
   stopregion:=_stopregion;
 
@@ -2796,7 +2762,7 @@ begin
 end;
 
 procedure TScanner.firstscan;
-var i,j: integer;
+var i: integer;
 
     currentbase: ptruint;
     size: dword;
@@ -2901,13 +2867,9 @@ begin
 end;
 
 procedure TScanner.execute;
-var i: integer;
 begin
-
-
   Set8087CW($133f); //disable floating point exceptions in this thread
   SetSSECSR($1f80);
-
 
   try
     scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
@@ -2944,7 +2906,6 @@ begin
 end;
 
 destructor TScanner.destroy;
-var i: integer;
 begin
 
   outputdebugstring('Destroying a scanner');
@@ -2970,9 +2931,7 @@ begin
   if CurrentAddressBuffer<>nil then freemem(CurrentAddressBuffer);
   if SecondaryAddressBuffer<>nil then freemem(SecondaryAddressBuffer);
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if firstscanhandler<>nil then firstscanhandler.free;
-{$endif}
 
   outputdebugstring('Destroyed a scanner');
 
@@ -2994,7 +2953,7 @@ begin
 
 
 
-  if not suspended then resume;   //would be stupid, but ok...
+  if not suspended then start;   //would be stupid, but ok...
 end;
 
 //===============TScanController===============//
@@ -3006,9 +2965,7 @@ begin
   if OwningMemScan.progressbar<>nil then
   begin
     OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
-{$ifndef standalonetrainerwithassemblerandaobscanner}
     SetProgressValue(OwningMemScan.progressbar.Position, OwningMemScan.progressbar.Max);
-{$endif}    
   end;
 end;
 
@@ -3139,7 +3096,7 @@ procedure TScanController.NextNextScan;
 NextNextScan will read results of the previous scan, and pass it off to scanner threads
 }
 var 
-    AddressFile,MemoryFile: TFileStream;
+    AddressFile: TFileStream;
     blocksize: integer;
     i: integer;
 
@@ -3226,7 +3183,7 @@ begin
 
 
       for i:=0 to length(scanners)-1 do
-        scanners[i].Resume;
+        scanners[i].start;
 
 
       OwningMemScan.found:=0;
@@ -3290,7 +3247,6 @@ var
   offsetincurrentregion: PtrUint;
   
   currentblocksize: qword;
-  memoryfile,addressfile: tfilestream;
   datatype: string[6];
 begin
   threadcount:=GetCPUCount;
@@ -3435,7 +3391,7 @@ begin
 
   //all threads are created, so start them
   for i:=0 to length(scanners)-1 do
-    scanners[i].Resume;
+    scanners[i].start;
 
 
   savescannerresults:=true;
@@ -3817,7 +3773,7 @@ begin
 
   //all threads are created, so start them
   for i:=0 to length(scanners)-1 do
-    scanners[i].Resume;
+    scanners[i].start;
 
   //prepare the result files
   try
@@ -4107,10 +4063,8 @@ end;
 
 constructor TScanController.create(suspended: boolean);
 begin
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   SetProgressstate(tbpsNormal);
-{$endif}
-  
+
   isdoneevent:=TEvent.create(nil,true,false,'');
   scannersCS:=TCriticalSection.Create;
   resultsaveCS:=TCriticalsection.create;
@@ -4289,14 +4243,12 @@ begin
     FreeAndNil(scanController);
   end;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate;
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;
-{$endif}  
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   fLastscantype:=stNewScan;
@@ -4311,13 +4263,11 @@ begin
     freeandnil(scanController);
   end;
 
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;
-{$endif}  
 
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
@@ -4348,7 +4298,7 @@ begin
 
   fLastscantype:=stNextScan;
 
-  scanController.Resume;
+  scanController.start;
 
 end;
 
@@ -4359,14 +4309,13 @@ Popup the wait window, or not ?
 }
 begin
   if scanController<>nil then freeandnil(scanController);
-{$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate; //it should quit, saving took to long and the user already started a new one
     SaveFirstScanThread.WaitFor; //wait till it has fully terminated
     freeandnil(SaveFirstScanThread);
   end;
-{$endif}  
+
 
   currentVariableType:=VariableType;
   currentCustomType:=customtype;
@@ -4409,7 +4358,7 @@ begin
 
   flastscantype:=stFirstScan;
 
-  scanController.Resume;
+  scanController.start;
 
 
 end;
@@ -4471,17 +4420,9 @@ begin
 end;
 
 destructor TMemScan.destroy;
-var fos: TSHFileOpStruct;
-    dir: pchar;
-    i: integer;
-
-    empty: array [0..8] of byte;
-
 begin
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
-  {$ifndef standalonetrainerwithassemblerandaobscanner}
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
-  {$endif}
 
   try
     if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');

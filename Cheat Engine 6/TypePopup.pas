@@ -174,6 +174,7 @@ begin
     end;
   end;
 
+  err:=0;
   if Vartype.ItemIndex<7 then
   begin
     if RadioButton1.checked then bit:=0 else
@@ -190,6 +191,10 @@ begin
 
   if vartype.ItemIndex=0 then
     val(edit2.Text,bitl,err);
+
+  if err>0 then
+    raise exception.create('Invalid length');
+
 
 
   if memoryrecord.vartype=vtBinary then

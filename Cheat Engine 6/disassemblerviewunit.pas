@@ -55,7 +55,8 @@ type TDisassemblerview=class(TPanel)
     fShowJumplines: boolean; //defines if it should draw jumplines or not
     fShowjumplineState: TShowjumplineState;
 
-    fdissectCode: TDissectCodeThread;
+
+   // fdissectCode: TDissectCodeThread;
 
     lastupdate: dword;
     destroyed: boolean;
@@ -256,15 +257,15 @@ end;
 procedure TDisassemblerview.HandleSpecialKey(key: word);
 var i: integer;
     shiftispressed: boolean;
-    ctrlispressed: boolean;
-    altispressed: boolean;
+  //  ctrlispressed: boolean;
+  //  altispressed: boolean;
 begin
  // messagebox(0,'secial key','',0);
   beginupdate;
 
   shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
-  ctrlispressed:=GetBit(15, GetKeyState(VK_CONTROL))=1;
-  altispressed:=GetBit(15, GetKeyState(VK_MENU))=1;
+ // ctrlispressed:=GetBit(15, GetKeyState(VK_CONTROL))=1;
+ // altispressed:=GetBit(15, GetKeyState(VK_MENU))=1;
 
   case key of
     VK_UP:
@@ -343,11 +344,11 @@ type
     KeyData: Longint;
     Result: LRESULT;
   end;
-var Shift: TShiftState;
+var
     y: ^TWMKey2;
     x: TWMKey2;
 {$else}
-var Shift: TShiftState;
+var
     y: ^TWMKey;
     x: TWMKey;
 {$endif}
@@ -403,9 +404,7 @@ begin
 end;
 
 procedure TDisassemblerview.DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var i,j: integer;
-    rct: trect;
-    disassembled: string;
+var i: integer;
     found: boolean;
     line: TDisassemblerLine;
 begin
@@ -803,7 +802,6 @@ begin
 end;
 
 constructor TDisassemblerview.create(AOwner: TComponent);
-var i: integer;
 begin
   inherited create(AOwner);
 

@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls,
   Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
-  symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, underc, dom, xmlread, xmlwrite,
+  symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, dom, xmlread, xmlwrite,
   LResources, registry;
 
 const structureversion=1;
@@ -286,7 +286,7 @@ type TbaseStructure=record
   public
     { Public declarations }
     procedure setaddress(i: integer; x:ptrUint);
-    procedure update(doOthers: boolean);
+    procedure applyChanges(doOthers: boolean);
   end;
 
 var
@@ -298,7 +298,8 @@ procedure sortStructure(struct: TbaseStructure);
 implementation
 
 
-uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave, frmStructuresConfigUnit;
+uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave,
+  frmStructuresConfigUnit, MemoryRecordUnit;
 
 destructor TStructure.destroy;
 var i: integer;
@@ -310,9 +311,7 @@ begin
 end;
 
 constructor TStructure.create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of ptrUint; basestructure: integer);
-var elementnr: integer;
-    s: tstructure;
-    i: integer;
+var i: integer;
 begin
 
   setlength(self.addresses,length(addresses));
@@ -365,8 +364,6 @@ var c,i,j,k: integer;
     elementoffset: dword;
     buf: array of byte;
     x: dword;
-
-    defaultwidth: integer;
 
     ws: widestring;
     pc: pchar;
@@ -734,14 +731,14 @@ begin
 
 end;
 
-procedure TfrmStructures.update(doOthers: boolean);
+procedure TfrmStructures.applyChanges(doOthers: boolean);
 {Called twice, first time true, 2nd time false. Only on false actually update}
 var i: integer;
 begin
   if DoOthers then
   begin
     for i:=0 to length(frmStructures)-1 do
-      frmStructures[i].update(false);
+      frmStructures[i].applyChanges(false);
   end
   else
   begin
@@ -824,7 +821,7 @@ begin
 
     automaticallyGuessOffsets(0, structsize);
   end;
-  update(true);
+  applyChanges(true);
 end;
 
 procedure TfrmStructures.Button1Click(Sender: TObject);
@@ -833,7 +830,6 @@ begin
 end;
 
 procedure TfrmStructures.definedstructureselect(sender:tobject);
-var name: string;
 begin
   caption:='Memory dissect - '+((sender as tmenuitem).Caption);
   if currentstructure<>nil then
@@ -842,7 +838,7 @@ begin
   tvStructureView.Items.Clear;
 
   currentstructure:=tstructure.create(tvStructureView,tvStructureView.Items.Add(nil,definedstructures[(sender as tmenuitem).Tag].name+#13),addresses,(sender as tmenuitem).Tag);
-  update(false);
+  applyChanges(false);
 
   commands1.enabled:=true; 
 end;
@@ -885,9 +881,8 @@ end;
 
 
 procedure TfrmStructures.Addelement1Click(Sender: TObject);
-var d,i,j,k,l:integer;
+var d,i,j,k:integer;
     size: dword;
-    structtype: string;
     selectedstructure: tstructure;
     selectedelement: integer;
     selectednode: ttreenode;
@@ -1031,7 +1026,7 @@ begin
       end;
 
       sortStructure(definedstructures[selectedstructure.basestructure]);
-      self.update(true);
+      self.applyChanges(true);
       mainform.itemshavechanged:=true;
 
       if not tvStructureView.Items.GetFirstNode.Expanded then
@@ -1051,7 +1046,6 @@ procedure TfrmStructures.HeaderControl1SectionTrack(
   HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer;
   State: TSectionTrackState);
 var x: integer;
-    i: integer;
     s: string;
 begin
 
@@ -1453,7 +1447,7 @@ begin
     mainform.itemshavechanged:=true;
   end;
 
-  update(true);
+  applyChanges(true);
 end;
 
 procedure TfrmStructures.Save1Click(Sender: TObject);
@@ -1465,8 +1459,6 @@ var f: tfilestream;
     doc: TXMLDocument;
     CheatTable: TDOMNode;
     Structures: TDOMNode;
-
-    s: tstringstream;
 begin
   if savedialog1.Execute then
   begin
@@ -1573,7 +1565,7 @@ begin
             end;
           end;
         end;
-        update(true);
+        applyChanges(true);
       finally
         doc.free;
       end;
@@ -1646,7 +1638,7 @@ begin
       TMenuItem.Create(self);
 
 
-      update(true);
+      applyChanges(true);
     end else raise exception.create('Unkown file extension');
   end;
 end;
@@ -1668,8 +1660,7 @@ end;
 procedure TfrmStructures.ChangeElement1Click(Sender: TObject);
 var i,j: integer;
     size: dword;
-    structtype: string;
-    ts,selectedstructure: tstructure;
+    selectedstructure: tstructure;
     selectedelement: integer;
     selectednode: ttreenode;
 begin
@@ -1773,7 +1764,7 @@ begin
 
       sortstructure(definedstructures[selectedstructure.basestructure]);
 
-      self.update(true);
+      self.applyChanges(true);
       mainform.itemshavechanged:=true;
 
 
@@ -1861,7 +1852,7 @@ begin
 
 
         ShowModal;
-        self.update(true);
+        self.applyChanges(true);
       end;
     end;
   end;
@@ -1871,15 +1862,13 @@ procedure TfrmStructures.Addtoaddresslist1Click(Sender: TObject);
 var
   selectedstructure,ts: tstructure;
   selectednode,tn: ttreenode;
-  selectedelement: integer;
   offsets: array of dword;
 
   objectname: string;
 
-  snr: integer;
   vtype: integer;
   vlength: integer;
-  unicode,ispointer,showashex: boolean;
+  unicode,showashex: boolean;
 
   i: integer;
 
@@ -1889,6 +1878,8 @@ var
 
   address: string;
   a: ptruint;
+
+  m: tmemoryrecord;
 begin
   if currentstructure=nil then exit;
   objectname:='';
@@ -2078,7 +2069,12 @@ begin
 
     // Tstructure(selectednode.Parent.Data)
 
-    mainform.addresslist.addaddress(objectname, address, offsets, length(offsets), OldVarTypeToNewVarType(vtype), '', vlength);
+    m:=mainform.addresslist.addaddress(objectname, address, offsets, length(offsets), OldVarTypeToNewVarType(vtype), '', vlength);
+    if unicode then
+      m.Extra.stringData.unicode:=true;
+
+    if showashex then
+      m.showAsHex:=showashex;
 
     mainform.itemshavechanged:=true;
   end;
@@ -2145,7 +2141,7 @@ begin
       delta:=newaddress-oldaddress;
       addresses[section]:=addresses[section]+delta;
       edits[section].text:=inttohex(addresses[section],8);
-      update(true);
+      applyChanges(true);
 
       mainform.itemshavechanged:=true;
     end;
@@ -2306,7 +2302,7 @@ If all entries of the same group are the same, mark them green, otherwhise red
 If the value of another group does not match the value of the first group, mark it red
 }
 var  
-  i,j: integer;
+  i: integer;
   laststart: integer;
   textrect: trect;
   linerect: trect;
@@ -2316,7 +2312,6 @@ var
   sections: array of string;
   sections2: array of string;
   currentsection: integer;
-  oldcolor: tcolor;
 
   clip: trect;
 
@@ -2325,8 +2320,7 @@ var
   groupcolors: array of tcolor;
   groupvalues: array of string;
 
-  s: Tstructure;
-  description: string;
+
 begin
   //looks like it's even called before create is done...
   if stage=cdPostPaint then
@@ -2337,7 +2331,7 @@ begin
     fulltextline:=linerect;
     fulltextline.Left:=textrect.Left;
     fulltextline.Right:=tvStructureView.ClientWidth;
-    oldcolor:=sender.Canvas.Brush.Color;
+
     sender.Canvas.Brush.color:=tvStructureView.color;
     sender.Canvas.FillRect(fulltextline); //whipe the original text
 
@@ -2500,7 +2494,7 @@ begin
   if currentstructure<>nil then
   begin
     inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
-    update(true);
+    applyChanges(true);
   end;
 end;
 
@@ -2530,7 +2524,7 @@ begin
     setlength(definedstructures,length(definedstructures)-1);
     freeandnil(currentstructure);
 
-    update(true);
+    applyChanges(true);
   end;
 end;
 
@@ -2539,7 +2533,7 @@ begin
   with tfrmstructures.create(application) do
   begin
     edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
-    update(false);
+    applyChanges(false);
     show;
   end;
 end;
@@ -2608,8 +2602,6 @@ var
   tvrect: trect;
   clickpos: tpoint;
   section: integer;
-  address: dword;
-  x: dword;
 begin
   if (tvStructureView.selected<>nil) then
   begin
@@ -2661,7 +2653,7 @@ procedure TfrmStructures.automaticallyGuessOffsets(baseOffset: ptrUint; structsi
 var
   buf: array of byte;
   buf2: array of byte;
-  i,j,t: integer;
+  i,t: integer;
   t2: TVariableType;
   x,y: dword;
   a: qword;

@@ -1249,10 +1249,9 @@ end;
 function GetKProcAddress64(s: pwidechar):uint64; stdcall;
 var cc: dword;
     output: uint64;
-    d: dword;
-    err: integer;
     st: string;
     sp: uint64;
+    d: uint64;
 begin
   result:=0;
 
@@ -1260,8 +1259,7 @@ begin
 
   if length(st)<4 then exit;
 
-  val('$'+st,d,err);
-  if err=0 then exit; //windows BSOD's if it's a hexadecimal value
+  if TryStrToInt64('$'+st, d) then exit; //windows BSOD's if it's a hexadecimal value
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
@@ -1543,6 +1541,7 @@ function GetWin32KAddress(var address:ptrUint;var size:dworD):boolean;
     }
 begin
 
+
   result:=false;
 {
   copymemory(@oldx,@x,4);
@@ -1600,8 +1599,8 @@ var sav: pchar;
 
 
 
-    win32kaddress: ptrUint;
-    win32size:dword;
+ //   win32kaddress: ptrUint;
+ //   win32size:dword;
     servicename,sysfile: string;
     vmx_p1_txt,vmx_p2_txt: string;
 

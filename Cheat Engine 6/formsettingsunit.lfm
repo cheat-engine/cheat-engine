@@ -1218,7 +1218,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 171
+                Width = 74
               end>
             HideSelection = False
             ReadOnly = True

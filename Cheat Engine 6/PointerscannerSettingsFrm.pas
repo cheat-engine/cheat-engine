@@ -167,31 +167,15 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);
-var ths: thandle;
-    me32: MODULEENTRY32;
-    x: pchar;
-    moduledata: tmoduledata;
-    first:boolean;
-    bitcount: integer;
-    PA,SA: dword;
+var
+  bitcount: integer;
+
 begin
-  {$ifdef injectedpscan}
-  //get the cpu and system affinity mask, only processmask is used
-  GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-  bitcount:=0;
-  while pa>0 do
-  begin
-    if (pa mod 2)=1 then inc(bitcount);
-    pa:=pa div 2;
-  end;
-
-  {$else}
   bitcount:=GetCPUCount;
 
   if HasHyperthreading then
     bitcount:=1+(bitcount div 2);
-  {$endif}
+
 
   rbFindValueClick(rbFindAddress);
 

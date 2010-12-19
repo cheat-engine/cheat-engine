@@ -601,6 +601,7 @@ end;
 
 function LuaPanic(L: Plua_State): Integer; cdecl;
 begin
+  result:=0;
   raise exception.create('LUA panic!');
 end;
 
@@ -628,6 +629,7 @@ begin
   if frmLuaEngine.cbShowOnPrint.checked then
     frmLuaEngine.show;
 
+  result:=nil;
 end;
 
 function print_fromlua(L: PLua_State): integer; cdecl;
@@ -1826,6 +1828,7 @@ end;
 function closeCE_fromLua(L: Plua_state): integer; cdecl;
 begin
   ce_closeCE;
+  result:=0;
 end;
 
 function hideAllCEWindows_fromLua(L: Plua_State): integer; cdecl;

@@ -60,10 +60,6 @@ type
   TDissectCodeThread = class(TThread)
   private
     { Private declarations }
-    unconditionaljump: tjumparray;
-    conditionaljump: tjumparray;
-    calls: tjumparray;
-
     calllist: PDissectDataArray;
     unconditionaljumplist: PDissectDataArray;
     conditionaljumplist: PDissectDataArray;
@@ -130,7 +126,6 @@ var
   level: integer;
   entrynr: integer;
   currentArray: PDissectDataArray;
-  i: integer;
 begin
   result:=nil;
   level:=0;
@@ -149,9 +144,7 @@ begin
 end;
 
 function TDissectCodeThread.CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
-var a,b,c: integer;
-    fa,fb,fc: boolean;
-    i,j: integer;
+var i,j: integer;
     totalsize: integer;
 
     unclist, condlist, clist: PAddresslist;

@@ -510,7 +510,13 @@ end;
 
 function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 var dwordptr: ^dword;
+    regprefix: char;
 begin
+  if processhandler.is64Bit then
+    regprefix:='R'
+  else
+    regprefix:='E';
+
   LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=modrmbyte;
   inc(LastDisassembleData.SeperatorCount);
 
@@ -533,25 +539,10 @@ begin
       0:
       begin
         case getrm(memory[modrmbyte]) of
-            0:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rax'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'eax'+endcolor+'],';
-
-            1:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rcx'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ecx'+endcolor+'],';
-
-            2:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdx'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edx'+endcolor+'],';
-
-            3:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbx'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'],';
+            0:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'],';
+            1:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'],';
+            2:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'],';
+            3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'],';
             4:
             begin
               result:=sib(memory,modrmbyte+1,last);
@@ -563,19 +554,19 @@ begin
                 LastdisassembleData.modrmValue:=dwordptr^;
               end;
 
-              if dwordptr^ <=$7FFFFFFF then
+              if integer(dwordptr^)<0 then
               begin
                 if result<>'' then
-                  result:=result+'+'+inttohexs(dwordptr^,8)+'],'
+                  result:=result+'+'+inttohexs(integer(dwordptr^),8)+'],'
                 else
-                  result:=inttohexs(dwordptr^,8)+'],';
+                  result:=inttohexs(integer(dwordptr^),8)+'],';
               end
               else
               begin
                 if result<>'' then
-                  result:=result+'-'+inttohexs($100000000-dwordptr^,8)+'],'
+                  result:=result+'-'+inttohexs(-integer(dwordptr^),8)+'],'
                 else
-                  result:=inttohexs($100000000-dwordptr^,8)+'],';
+                  result:=inttohexs(-integer(dwordptr^),8)+'],';
               end;
 
               result:=getsegmentoverride(prefix)+'['+result;
@@ -604,16 +595,8 @@ begin
               last:=last+4;
             end;
 
-            6:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rsi'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'esi'+endcolor+'],';
-
-            7:  if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdi'+endcolor+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edi'+endcolor+'],';
-
+            6:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'],';
+            7:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'],';
             8:  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'],';
             9:  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'],';
            10:  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'],';
@@ -628,221 +611,125 @@ begin
       1:  begin
             case getrm(memory[modrmbyte]) of
               0:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'eax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rax'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'eax'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
 
               1:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rcx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ecx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rcx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ecx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
 
               2:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
 
               3:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
 
-              4:  begin
-                    result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
-                    if memory[last]<=$7F then
-                      result:=result+'+'+inttohexs(memory[last],2)+'],'
-                    else
-                      result:=result+'-'+inttohexs($100-memory[last],2)+'],';
-                  end;
+
+              4:
+              begin
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
+                if shortint(memory[last])>0 then
+                  result:=result+'+'+inttohexs(memory[last],2)+'],'
+                else
+                  result:=result+'-'+inttohexs(-shortint(memory[last]),2)+'],';
+              end;
 
               5:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbp'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebp'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
 
               6:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rsi'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'esi'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rsi'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'esi'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
 
               7:
-              if memory[modrmbyte+1]<=$7F then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdi'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edi'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],'
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdi'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edi'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              end;
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
 
-              8:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-              9:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             10:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             11:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             12:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             13:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             14:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
-             15:  if memory[modrmbyte+1]<=$7F then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs($100-memory[modrmbyte+1],2)+'],';
+
+              8:
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+
+              9:
+              if shortint(memory[modrmbyte+1])>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+             10:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+
+             11:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+             12:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+             13:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+             14:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
+             15:
+             if shortint(memory[modrmbyte+1])>0 then
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+
             end;
 
             inc(last);
           end;
 
       2:  begin
-
-
             case getrm(memory[modrmbyte]) of
               0:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rax'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'eax'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rax'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'eax'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
               1:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rcx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ecx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rcx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ecx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
               2:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
+
 
               3:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebx'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
+
 
               4:  begin
                     result:=sib(memory,modrmbyte+1,last);
@@ -854,7 +741,7 @@ begin
                       LastdisassembleData.modrmValue:=dwordptr^;
                     end;
 
-                    if dwordptr^ <=$7FFFFFFF then
+                    if integer(dwordptr^)>0 then
                     begin
                       if result<>'' then
                         result:=result+'+'+inttohexs(dwordptr^,8)+'],'
@@ -864,92 +751,70 @@ begin
                     else
                     begin
                       if result<>'' then
-                        result:=result+'-'+inttohexs($100000000-dwordptr^,8)+'],'
+                        result:=result+'-'+inttohexs(-integer(dwordptr^),8)+'],'
                       else
-                        result:=inttohexs($100000000-dwordptr^,8)+'],';
+                        result:=inttohexs(-integer(dwordptr^),8)+'],';
                     end;
 
                     result:=getsegmentoverride(prefix)+'['+result;
                   end;
               5:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rbp'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'ebp'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
+
 
               6:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rsi'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'esi'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rsi'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'esi'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
+
 
               7:
-              if dwordptr^ <=$7FFFFFFF then
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdi'+endcolor+'+'+inttohexs(dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edi'+endcolor+'+'+inttohexs(dwordptr^,8)+'],';
-              end
-              else
-              begin
-                if processhandler.is64Bit then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'rdi'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],'
-                else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'edi'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
-              end;
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-              8:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
 
-              9:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+              8:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r8'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             10:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+              9:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r9'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             11:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+             10:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r10'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             12:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+             11:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r11'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             13:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+             12:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r12'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             14:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+             13:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r13'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
-             15:  if dwordptr^ <=$7FFFFFFF then
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs($100000000-dwordptr^,8)+'],';
+             14:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r14'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
+
+             15:
+              if integer(dwordptr^)>0 then
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r15'+endcolor+'+'+inttohexs(-integer(dwordptr^),8)+'],';
 
             end;
             inc(last,4);
@@ -1777,7 +1642,7 @@ begin
                         inc(offset);
                       end;
 
-                //$0d : begin
+                // $0d : begin
 
                   //    end;
 

@@ -11,6 +11,7 @@ object Comments: TComments
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '0.9.29'
   object Panel1: TPanel
@@ -53,7 +54,7 @@ object Comments: TComments
         Top = 0
         Width = 406
         Align = alClient
-        ScrollBars = ssVertical
+        ScrollBars = ssBoth
         TabOrder = 0
       end
     end
@@ -107,6 +108,7 @@ object Comments: TComments
           Width = 404
           Align = alClient
           OnChange = mLuaScriptChange
+          ScrollBars = ssAutoBoth
           TabOrder = 0
         end
       end

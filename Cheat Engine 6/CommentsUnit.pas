@@ -26,6 +26,7 @@ type
     tsLuaScript: TTabSheet;
     procedure btnExecuteScriptClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure mLuaScriptChange(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -55,6 +56,11 @@ end;
 procedure TComments.Button1Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TComments.FormCreate(Sender: TObject);
+begin
+  pagecontrol1.ActivePage:=tsComment;
 end;
 
 procedure TComments.mLuaScriptChange(Sender: TObject);
