@@ -1,40 +1,40 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TForm6','FORMDATA',[
-  'TPF0'#6'TForm6'#5'Form6'#4'Left'#3#156#1#6'Height'#3#249#0#3'Top'#3#209#0#5
-  +'Width'#3';'#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 5'#12'Clien'
-  +'tHeight'#3#249#0#11'ClientWidth'#3';'#2#5'Color'#7#9'clBtnFace'#10'Font.Col'
-  +'or'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Seri'
-  +'f'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCrea'
-  +'te'#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6#6
-  +'0.9.29'#7'Visible'#9#0#6'TLabel'#6'Label1'#4'Left'#2#8#6'Height'#2#14#3'Top'
-  +#3#216#0#5'Width'#2#19#7'Caption'#6#3'100'#11'ParentColor'#8#0#0#12'TSpeedBu'
-  +'tton'#12'SpeedButton1'#4'Left'#3' '#2#6'Height'#2#17#3'Top'#3#231#0#5'Width'
-  +#2#25#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'#2#0#7'OnClick'#7#17'SpeedB'
-  +'utton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3#185#0#3'Top'#2#0
-  +#5'Width'#3';'#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13'Lines.String'
-  +'s'#1#6'sSometimes the location something is stored at changes when you rest'
-  +'art the game, or even while you''re playing.. In '#6'@that case you can use'
-  +' 2 things to still make a table that works.'#6'FIn this step I''ll try to d'
-  +'escribe how to use the Code Finder function.'#6#0#6'wThe value down here wi'
-  +'ll be at a different location each time you start the tutorial, so a normal'
-  +' entry in the address '#6#19'list wouldn''t work.'#6'UFirst try to find the'
-  +' address. (you''ve got to this point so I assume you know how to)'#6'pWhen '
-  +'you''ve found the address, right-click the address in Cheat Engine and choo'
-  +'se "Find out what writes to this '#6'2address". A window will pop up with a'
-  +'n empty list.'#6'tThen click on the Change value button in this tutorial, a'
-  +'nd go back to Cheat Engine. If everything went right there '#6'3should be a'
-  +'n address with assembler code there now.'#6'vClick it and choose the replac'
-  +'e option to replace it with code that does nothing. That will also add the '
-  +'code address '#6'Zto the code list in the advanced options window. (Which g'
-  +'ets saved if you save your table)'#6#0#6'ZClick on stop, so the game will s'
-  +'tart running normal again, and close to close the window.'#6'_Now, click on'
-  +' Change value, and if everything went right the Next button should become e'
-  +'nabled.'#6#0#6'nNote: When you''re freezing the address with a high enough '
-  +'speed it may happen that next becomes visible anyhow'#0#8'ReadOnly'#9#10'Sc'
-  +'rollBars'#7#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button2'#4'Left'
-  +#3#248#0#6'Height'#2#25#3'Top'#3#192#0#5'Width'#2'K'#7'Caption'#6#4'Next'#7
-  +'Enabled'#8#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'B'
-  +'utton1'#4'Left'#2#8#6'Height'#2#19#3'Top'#3#228#0#5'Width'#2'Q'#7'Caption'#6
+  'TPF0'#6'TForm6'#5'Form6'#4'Left'#3#183#2#6'Height'#3#249#0#3'Top'#3'['#1#5'W'
+  +'idth'#3';'#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 5'#12'Client'
+  +'Height'#3#249#0#11'ClientWidth'#3';'#2#5'Color'#7#9'clBtnFace'#10'Font.Colo'
+  +'r'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'
+  +#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'
+  +#7#10'FormCreate'#8'Position'#7#17'poOwnerFormCenter'#10'LCLVersion'#6#6'0.9'
+  +'.29'#7'Visible'#9#0#6'TLabel'#6'Label1'#4'Left'#2#8#6'Height'#2#14#3'Top'#3
+  +#216#0#5'Width'#2#19#7'Caption'#6#3'100'#11'ParentColor'#8#0#0#12'TSpeedButt'
+  +'on'#12'SpeedButton1'#4'Left'#3' '#2#6'Height'#2#17#3'Top'#3#231#0#5'Width'#2
+  +#25#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'#2#0#7'OnClick'#7#17'SpeedBut'
+  +'ton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3#185#0#3'Top'#2#0#5
+  +'Width'#3';'#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13'Lines.Strings'
+  +#1#6'sSometimes the location something is stored at changes when you restart'
+  +' the game, or even while you''re playing.. In '#6'@that case you can use 2 '
+  +'things to still make a table that works.'#6'FIn this step I''ll try to desc'
+  +'ribe how to use the Code Finder function.'#6#0#6'wThe value down here will '
+  +'be at a different location each time you start the tutorial, so a normal en'
+  +'try in the address '#6#19'list wouldn''t work.'#6'UFirst try to find the ad'
+  +'dress. (you''ve got to this point so I assume you know how to)'#6'pWhen you'
+  +'''ve found the address, right-click the address in Cheat Engine and choose '
+  +'"Find out what writes to this '#6'2address". A window will pop up with an e'
+  +'mpty list.'#6'tThen click on the Change value button in this tutorial, and '
+  +'go back to Cheat Engine. If everything went right there '#6'3should be an a'
+  +'ddress with assembler code there now.'#6'vClick it and choose the replace o'
+  +'ption to replace it with code that does nothing. That will also add the cod'
+  +'e address '#6'Zto the code list in the advanced options window. (Which gets'
+  +' saved if you save your table)'#6#0#6'ZClick on stop, so the game will star'
+  +'t running normal again, and close to close the window.'#6'_Now, click on Ch'
+  +'ange value, and if everything went right the Next button should become enab'
+  +'led.'#6#0#6'nNote: When you''re freezing the address with a high enough spe'
+  +'ed it may happen that next becomes visible anyhow'#0#8'ReadOnly'#9#10'Scrol'
+  +'lBars'#7#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button2'#4'Left'#3
+  +#248#0#6'Height'#2#25#3'Top'#3#192#0#5'Width'#2'K'#7'Caption'#6#4'Next'#7'En'
+  +'abled'#8#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'But'
+  +'ton1'#4'Left'#2#8#6'Height'#2#19#3'Top'#3#228#0#5'Width'#2'Q'#7'Caption'#6
   +#12'Change value'#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#2#0#0#0
 ]);

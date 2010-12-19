@@ -1,12 +1,12 @@
 object Form9: TForm9
-  Left = 471
+  Left = 277
   Height = 250
-  Top = 160
-  Width = 703
+  Top = 555
+  Width = 571
   BorderStyle = bsDialog
   Caption = 'Step 8'
   ClientHeight = 250
-  ClientWidth = 703
+  ClientWidth = 571
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -33,9 +33,9 @@ object Form9: TForm9
     Visible = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 668
+    Left = 541
     Height = 20
-    Top = 229
+    Top = 230
     Width = 30
     Caption = 'Skip'
     Flat = True
@@ -46,7 +46,7 @@ object Form9: TForm9
     Left = 0
     Height = 185
     Top = 0
-    Width = 703
+    Width = 571
     Align = alTop
     Color = clBtnFace
     Lines.Strings = (

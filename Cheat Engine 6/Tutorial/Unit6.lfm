@@ -1,7 +1,7 @@
 object Form6: TForm6
-  Left = 412
+  Left = 695
   Height = 249
-  Top = 209
+  Top = 347
   Width = 571
   BorderStyle = bsDialog
   Caption = 'Step 5'

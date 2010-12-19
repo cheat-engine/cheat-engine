@@ -60,10 +60,6 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CompilerMessages>
-              <IgnoredMessages idx3175="True" idx3177="True" idx3190="True" idx4056="True"/>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
             <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNOVMX"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
@@ -99,7 +95,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="43"/>
+        <TopLine Value="42"/>
         <CursorPos X="12" Y="63"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
@@ -2295,9 +2291,6 @@
         <ShowNothing Value="True"/>
       </Verbosity>
       <WriteFPCLogo Value="False"/>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNOVMX"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
