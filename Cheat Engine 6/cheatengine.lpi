@@ -13,12 +13,12 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="983"/>
+      <BuildNr Value="984"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
     </VersionInfo>
-    <BuildModes Count="2" Active="debug">
+    <BuildModes Count="2" Active="release">
       <Item1 Name="release" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -96,10 +96,13 @@
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="7"/>
-        <CursorPos X="22" Y="23"/>
+        <TopLine Value="43"/>
+        <CursorPos X="12" Y="63"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -122,8 +125,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4955"/>
-        <CursorPos X="14" Y="4971"/>
+        <TopLine Value="4971"/>
+        <CursorPos X="76" Y="4981"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1675" ID="2"/>
@@ -146,7 +149,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2454"/>
         <CursorPos X="22" Y="2471"/>
@@ -306,7 +309,7 @@
         <ComponentName Value="formSettings"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formsettingsunit"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="343"/>
         <CursorPos X="5" Y="359"/>
@@ -355,7 +358,7 @@
         <ComponentName Value="AdvancedOptions"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="AdvancedOptionsUnit"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="787"/>
         <CursorPos X="18" Y="802"/>
@@ -523,7 +526,7 @@
         <ComponentName Value="FoundCodeDialog"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FoundCodeUnit"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="510"/>
         <CursorPos X="60" Y="526"/>
@@ -535,7 +538,7 @@
         <Filename Value="foundlisthelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="foundlisthelper"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="348"/>
         <CursorPos X="30" Y="364"/>
@@ -775,7 +778,7 @@
         <Filename Value="disassemblerviewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassemblerviewunit"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="65"/>
         <CursorPos X="14" Y="81"/>
@@ -800,7 +803,7 @@
         <ComponentName Value="frmBreakpointlist"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmBreakpointlistunit"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="17"/>
         <CursorPos X="15" Y="33"/>
@@ -824,7 +827,7 @@
         <ComponentName Value="frmDissectCode"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="DissectCodeunit"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="126"/>
         <CursorPos X="20" Y="142"/>
@@ -859,10 +862,12 @@
         <Filename Value="stacktrace2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacktrace2"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="36"/>
-        <CursorPos X="1" Y="53"/>
+        <TopLine Value="32"/>
+        <CursorPos X="31" Y="46"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit66>
       <Unit67>
@@ -1017,7 +1022,7 @@
         <ComponentName Value="frmFindStatics"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFindstaticsUnit"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="324"/>
         <CursorPos X="48" Y="340"/>
@@ -1043,7 +1048,7 @@
         <ComponentName Value="frmSavedisassembly"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="savedisassemblyfrm"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="192"/>
         <CursorPos X="21" Y="208"/>
@@ -1104,7 +1109,7 @@
         <ComponentName Value="frmCodecaveScanner"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmCodecaveScannerUnit"/>
-        <EditorIndex Value="19"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="228"/>
         <CursorPos X="61" Y="254"/>
@@ -1118,7 +1123,7 @@
         <ComponentName Value="frmFunctionList"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFunctionlistUnit"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
         <TopLine Value="8"/>
         <CursorPos X="79" Y="24"/>
@@ -1227,7 +1232,7 @@
         <ComponentName Value="frmDisassemblyscan"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmDisassemblyscanunit"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="170"/>
         <CursorPos X="29" Y="186"/>
@@ -1241,7 +1246,7 @@
         <ComponentName Value="frmReferencedStrings"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmReferencedStringsUnit"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="181"/>
         <CursorPos X="21" Y="197"/>
@@ -1458,7 +1463,7 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1610"/>
         <CursorPos X="8" Y="1626"/>
@@ -1502,7 +1507,7 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="37"/>
         <CursorPos X="14" Y="53"/>
@@ -1745,8 +1750,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="22"/>
+        <EditorIndex Value="24"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1815"/>
         <CursorPos X="12" Y="1831"/>
@@ -2074,7 +2078,7 @@
       </Unit183>
       <Unit184>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\sysstrh.inc"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="23"/>
         <WindowIndex Value="0"/>
         <TopLine Value="90"/>
         <CursorPos X="10" Y="106"/>

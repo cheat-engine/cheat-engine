@@ -7,7 +7,6 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  windows,
   Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc,
   ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode, byteinterpreter,
   addressparser, autoassembler, ProcessWindowUnit, MainUnit2, Filehandler,
@@ -54,7 +53,6 @@ uses
 
 {$ifdef cpu32}
 {$SetPEFlags $20}
-var dbghelphandle: thandle;
 {$endif}
 
 
@@ -64,20 +62,6 @@ begin
   Application.Initialize;
   getcedir;
   symhandlerInitialize;
-  {$ifdef cpu32}
-  (*
-  repeat
-    dbghelphandle:=GetModuleHandle('dbghelp.dll');
-    if dbghelphandle<>0 then
-      FreeLibrary(dbghelphandle);
-
-  until dbghelphandle=0;
-
-  dbghelphandle:=LoadLibrary(pchar(CheatEngineDir+'\win32\dbghelp.dll'));
-  if dbghelphandle=0 then exit;   *)
-  {$endif}
-
-
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);
   Application.CreateForm(TformSettings, formSettings);
