@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="984"/>
+      <BuildNr Value="986"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -25,7 +25,7 @@
           <Version Value="9"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="bin\cheatengine60-$(TargetCPU)"/>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -2256,7 +2256,7 @@
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="bin\cheatengine60-$(TargetCPU)"/>
+      <Filename Value="bin\cheatengine-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -2295,6 +2295,9 @@
         <ShowNothing Value="True"/>
       </Verbosity>
       <WriteFPCLogo Value="False"/>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNOVMX"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
