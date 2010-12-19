@@ -295,7 +295,7 @@ begin
 
 
     case continueoption of
-      co_run:
+      co_run, co_runtill:
       begin
         //just continue
         singlestepping:=false;

@@ -5,8 +5,9 @@ unit FoundCodeUnit;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,disassembler,ExtCtrls, Menus, NewKernelHandler, clipbrd;
+  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, disassembler, ExtCtrls, Menus,
+  NewKernelHandler, clipbrd, ComCtrls;
 
 type Tcoderecord = class
   public
@@ -30,7 +31,7 @@ type
   { TFoundCodeDialog }
 
   TFoundCodeDialog = class(TForm)
-    FoundcodeList: TListBox;
+    FoundCodeList: TListView;
     Panel1: TPanel;
     Description: TLabel;
     pmOptions: TPopupMenu;
@@ -50,6 +51,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FoundCodeListChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
     procedure FoundcodeListClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -59,8 +63,8 @@ type
     procedure FoundcodeListDblClick(Sender: TObject);
     procedure btnExtraInfoClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FoundcodeListContextPopup(Sender: TObject; MousePos: TPoint;
-      var Handled: Boolean);
+    procedure FoundCodeListSelectItem(Sender: TObject; Item: TListItem;
+      Selected: Boolean);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
   private
@@ -78,8 +82,8 @@ type
 resourcestring
   strClose='Close';
 
-var
-  FoundCodeDialog: TFoundCodeDialog;
+//var
+//  FoundCodeDialog: TFoundCodeDialog;
 
 implementation
 
@@ -114,6 +118,8 @@ var currentthread: TDebugThreadHandler;
 
   coderecord: TCodeRecord;
   i: integer;
+
+  li: tlistitem;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
@@ -123,20 +129,17 @@ begin
     if usesdebugregs then //find out the previous opcode
       address:=previousopcode(address);
 
-    address2:=address;
-    opcode:=disassemble(address2,desc);
-
     //disassemble to get the opcode and size
     address2:=address;
     opcode:=disassemble(address2,desc);
 
     //check if address is inside the list
     for i:=0 to foundcodelist.Items.Count-1 do
-      if TCodeRecord(foundcodelist.Items.Objects[i]).address=address then
+      if TCodeRecord(foundcodelist.Items[i].data).address=address then
       begin
         //it's already in the list
-        inc(TCodeRecord(foundcodelist.Items.Objects[i]).hitcount);
-        FoundcodeList.items[i]:=opcode+'  ('+inttostr(TCodeRecord(foundcodelist.Items.Objects[i]).hitcount)+')';
+        inc(TCodeRecord(foundcodelist.Items[i].data).hitcount);
+        FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount);
         exit;
       end;
 
@@ -151,7 +154,10 @@ begin
     coderecord.savestack;
     coderecord.hitcount:=1;
 
-    FoundcodeList.Items.AddObject(opcode, tobject(coderecord));
+    li:=FoundCodeList.Items.Add;
+    li.caption:='1';
+    li.SubItems.add(opcode);
+    li.data:=coderecord;
   end;
 end;
 
@@ -186,7 +192,7 @@ begin
     else
       FormFoundCodeListExtra.Label18.Visible:=true;
 
-    coderecord:=TCodeRecord(foundcodelist.items.objects[itemindex]);
+    coderecord:=TCodeRecord(foundcodelist.items[itemindex].data);
 
     address:=coderecord.address;
     address:=previousopcode(address);
@@ -392,6 +398,7 @@ begin
       formfoundcodelistextra.Width:=w+5;
 
 
+    //copy the context and the stack to the more info window. the foundcode unit might get destroyed
     formfoundcodelistextra.context:=coderecord.context;
     if coderecord.stack.stack<>nil then
     begin
@@ -406,45 +413,7 @@ begin
 end;
 
 procedure TFoundCodeDialog.FoundcodeListClick(Sender: TObject);
-var coderecord: TCodeRecord;
-    selectedRecord: integer;
-    i: integer;
 begin
-  if foundcodelist.SelCount>0 then
-  begin
-    btnReplacewithnops.enabled:=true;
-    btnOpenDisassembler.enabled:=true;
-    btnAddToCodeList.enabled:=true;
-    btnExtraInfo.Enabled:=true;
-
-    selectedRecord:=foundcodelist.itemindex;
-    if selectedRecord<>-1 then
-      if foundcodelist.Selected[selectedrecord]=false then
-      begin
-        for i:=foundcodelist.Count-1 downto 0 do
-          if foundcodelist.Selected[i] then
-          begin
-            selectedRecord:=i;
-            break;
-          end;
-
-      end;
-
-
-    coderecord:=TCodeRecord(foundcodelist.Items.Objects[selectedrecord]);
-    description.Caption:=coderecord.description;
-  end
-  else
-  begin
-    btnReplacewithnops.enabled:=false;
-    btnOpenDisassembler.enabled:=false;
-    btnAddToCodeList.enabled:=false;
-    btnExtraInfo.Enabled:=false;
-    if foundcodelist.Items.Count=0 then
-      description.caption:='Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code that change the watched address.'
-    else
-      description.caption:='Select a item from the list for a small description';
-  end;
 end;
 
 procedure TFoundCodeDialog.FormCreate(Sender: TObject);
@@ -462,8 +431,29 @@ begin
 end;
 
 procedure TFoundCodeDialog.FormDestroy(Sender: TObject);
+var i: integer;
+    cr: Tcoderecord;
 begin
+  for i:=0 to FoundCodeList.Items.count-1 do
+  begin
+    cr:=Tcoderecord(FoundCodeList.Items[i].data);
+    cr.free;
+  end;
+
+
   saveformposition(self,[]);
+end;
+
+procedure TFoundCodeDialog.FormResize(Sender: TObject);
+begin
+  FoundCodeList.Column[1].AutoSize:=false;
+  FoundCodeList.Column[1].AutoSize:=true;
+end;
+
+procedure TFoundCodeDialog.FoundCodeListChange(Sender: TObject;
+  Item: TListItem; Change: TItemChange);
+begin
+
 end;
 
 procedure TFoundCodeDialog.btnOKClick(Sender: TObject);
@@ -485,8 +475,11 @@ end;
 procedure TFoundCodeDialog.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
+  if btnOK.caption=strStop then
+    if debuggerthread<>nil then
+      debuggerthread.CodeFinderStop(self);
+
   action:=caFree;
-  foundcodedialog:=nil;
 end;
 
 procedure TFoundCodeDialog.btnReplacewithnopsClick(Sender: TObject);
@@ -504,11 +497,11 @@ begin
 
   with foundcodelist do
   begin
-    for j:=0 to foundcodelist.Count-1 do
+    for j:=0 to foundcodelist.items.Count-1 do
     begin
-      if foundcodelist.Selected[j] then
+      if foundcodelist.items[j].Selected then
       begin
-        coderecord:=TcodeRecord(foundcodelist.items.objects[j]);
+        coderecord:=TcodeRecord(foundcodelist.items[j].data);
         codelength:=coderecord.size;
         //add it to the codelist
         if advancedoptions.AddToCodeList(coderecord.address,coderecord.size,true, foundcodelist.SelCount>1) then
@@ -537,7 +530,7 @@ var coderecord: TCodeRecord;
 begin
   if foundcodelist.itemindex<>-1 then
   begin
-    coderecord:=TcodeRecord(foundcodelist.items.objects[foundcodelist.itemindex]);
+    coderecord:=TcodeRecord(foundcodelist.items[foundcodelist.itemindex].data);
     memorybrowser.disassemblerview.SelectedAddress:=coderecord.address;
     memorybrowser.panel1.visible:=true;
     memorybrowser.show;
@@ -549,11 +542,11 @@ var i: integer;
     coderecord: TCodeRecord;
 begin
 
-  for i:=0 to foundcodelist.count-1 do
+  for i:=0 to foundcodelist.items.count-1 do
   begin
-    if foundcodelist.Selected[i] then
+    if foundcodelist.items[i].Selected then
     begin
-      coderecord:=TcodeRecord(foundcodelist.items.objects[i]);
+      coderecord:=TcodeRecord(foundcodelist.items[i].data);
       advancedoptions.AddToCodeList(coderecord.address,coderecord.size,false, foundcodelist.SelCount>1);
     end;
   end;
@@ -577,23 +570,44 @@ begin
   CanClose:=true;
 end;
 
-procedure TFoundCodeDialog.FoundcodeListContextPopup(Sender: TObject;
-  MousePos: TPoint; var Handled: Boolean);
-var selected: boolean;
-begin
-  foundcodelist.ItemIndex:=foundcodelist.ItemAtPos(mousepos,true);
 
-  selected:=foundcodelist.itemindex<>-1;
-  ReplacewithcodethatdoesnothingNOP1.Enabled:=selected;
-  Showthisaddressinthedisassembler1.enabled:=selected;
-  Addtothecodelist1.enabled:=selected;
-  MoreInfo1.Enabled:=selected;
+procedure TFoundCodeDialog.FoundCodeListSelectItem(Sender: TObject;
+  Item: TListItem; Selected: Boolean);
+var coderecord: TCodeRecord;
+  selectedRecord: integer;
+  i: integer;
+begin
+  if foundcodelist.Selected<>nil then
+  begin
+    btnReplacewithnops.enabled:=true;
+    btnOpenDisassembler.enabled:=true;
+    btnAddToCodeList.enabled:=true;
+    btnExtraInfo.Enabled:=true;
+
+    coderecord:=TCodeRecord(foundcodelist.Selected.data);
+    description.Caption:=coderecord.description;
+  end
+  else
+  begin
+    btnReplacewithnops.enabled:=false;
+    btnOpenDisassembler.enabled:=false;
+    btnAddToCodeList.enabled:=false;
+    btnExtraInfo.Enabled:=false;
+    if foundcodelist.Items.Count=0 then
+      description.caption:='Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code that change the watched address.'
+    else
+      description.caption:='Select an item from the list for a small description';
+  end;
 end;
 
 procedure TFoundCodeDialog.pmOptionsPopup(Sender: TObject);
 begin
-  n1.visible:=foundcodelist.ItemIndex<>-1;
-  Copyselectiontoclipboard1.visible:=foundcodelist.ItemIndex<>-1;
+  ReplacewithcodethatdoesnothingNOP1.Enabled:=foundcodelist.selcount>0;
+  Showthisaddressinthedisassembler1.enabled:=foundcodelist.itemindex<>-1;
+  Addtothecodelist1.enabled:=foundcodelist.selcount>0;
+  MoreInfo1.Enabled:=foundcodelist.itemindex<>-1;
+
+  Copyselectiontoclipboard1.enabled:=foundcodelist.selcount>0;
 end;
 
 procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);
@@ -603,8 +617,8 @@ var
 begin
   s:='';
   for i:=0 to FoundcodeList.Items.count-1 do
-    if FoundcodeList.Selected[i] then
-      s:=s+FoundcodeList.Items[i]+#13#10;
+    if FoundcodeList.items[i].selected then
+      s:=s+FoundcodeList.Items[i].subitems[1]+#13#10;
 
   clipboard.AsText:=s;
 end;

@@ -15,6 +15,27 @@ object frmStackView: TfrmStackView
     Width = 320
     Align = alClient
     ItemHeight = 0
+    PopupMenu = PopupMenu1
     TabOrder = 0
+  end
+  object PopupMenu1: TPopupMenu
+    left = 108
+    top = 84
+    object miAddESP: TMenuItem
+      AutoCheck = True
+      Caption = '(esp+*)'
+      Checked = True
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miAddESPClick
+    end
+    object miAddEBP: TMenuItem
+      AutoCheck = True
+      Caption = '(ebp+*)'
+      Checked = True
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miAddESPClick
+    end
   end
 end

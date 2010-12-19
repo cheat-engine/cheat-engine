@@ -1140,7 +1140,7 @@ begin
   begin
     bp:=PBreakpoint(BreakpointList[i]);
 
-    if i<lv.Items.Count-1 then
+    if i<lv.Items.Count then
       li:=lv.items[i]
     else
       li:=lv.items.add;

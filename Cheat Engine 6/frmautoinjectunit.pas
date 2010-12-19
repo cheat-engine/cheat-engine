@@ -12,6 +12,19 @@ uses
   MemoryRecordUnit, tablist, customtypehandler, registry;
 
 
+type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
+type TCustomCallbackRoutine=procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
+
+type TScripts=array of record
+                script: string;
+                filename: string;
+                undoscripts: array [0..4] of record
+                               oldscript: string;
+                               startpos: integer;
+                             end;
+                currentundo: integer;
+              end;
+
 type
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
@@ -91,15 +104,7 @@ type
     assembleSearch: TSynEditSearch;
 
     oldtabindex: integer;
-    scripts: array of record
-               script: string;
-               filename: string;
-               undoscripts: array [0..4] of record
-                              oldscript: string;
-                              startpos: integer;
-                            end;
-               currentundo: integer;
-             end;
+    scripts: TScripts;
              
     selectedtab: integer;
 
@@ -123,12 +128,12 @@ type
 
     customtype: TCustomType;
 
-    callbackroutine: procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
-    CustomTypeCallback: procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
+    callbackroutine: TCallbackroutine;
+    CustomTypeCallback: TCustomCallbackroutine;
     injectintomyself: boolean;
     property luamode: boolean read fluamode write setluamode;
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
-end;
+  end;
 
 
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);

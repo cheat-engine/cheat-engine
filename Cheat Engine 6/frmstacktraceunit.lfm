@@ -43,6 +43,7 @@ object frmStacktrace: TfrmStacktrace
       end>
     PopupMenu = PopupMenu1
     ReadOnly = True
+    RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
   end

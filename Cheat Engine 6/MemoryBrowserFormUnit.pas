@@ -1571,6 +1571,7 @@ begin
     debuggerthread.ContinueDebugging(co_run);
 
   caption:='Memory Viewer - Running';
+  reloadstacktrace;
 end;
 
 procedure TMemoryBrowser.Step1Click(Sender: TObject);
@@ -1579,6 +1580,7 @@ begin
     debuggerthread.ContinueDebugging(co_stepinto);
 
   caption:='Memory Viewer - Running';
+  reloadstacktrace;
 end;
 
 procedure TMemoryBrowser.StepOver1Click(Sender: TObject);
@@ -1611,6 +1613,8 @@ begin
   begin
     if debuggerthread<>nil then
       debuggerthread.continueDebugging(co_runtill, x);
+
+    reloadstacktrace;
   end;
 
   caption:='Memory Viewer - Running';
@@ -1624,7 +1628,7 @@ var x: ptrUint;
     original,a,written:dword;
 begin
   if debuggerthread<>nil then
-    debuggerthread.ContinueDebugging(co_run, disassemblerview.SelectedAddress);
+    debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
   caption:='Memory Viewer - Running';
 end;
@@ -2877,7 +2881,7 @@ begin
           readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}),s, FStacktraceSize,x);
           strace.Clear;
 
-          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(s),x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0);
+          ce_stacktrace(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}, lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif}, lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(s),x, strace,false,Nonsystemmodulesonly1.checked or modulesonly1.Checked,Nonsystemmodulesonly1.checked,0,miAddEBP.checked);
 
           lvstacktracedata.Items.Count:=strace.Count;
         finally
@@ -3054,13 +3058,13 @@ begin
     begin
       if processhandler.is64bit then
       begin
-        pref:='R';
+        pref:='r';
         value:=ptruint(pqword(ptruint(laststack)+item.Index*processhandler.pointersize)^);
         item.SubItems.Add(inttohex(value,16));
       end
       else
       begin
-        pref:='E';
+        pref:='e';
         value:=ptruint(pdword(ptruint(laststack)+item.Index*processhandler.pointersize)^);
         item.SubItems.Add(inttohex(value,8));
       end;

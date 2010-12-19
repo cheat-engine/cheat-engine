@@ -513,9 +513,9 @@ var dwordptr: ^dword;
     regprefix: char;
 begin
   if processhandler.is64Bit then
-    regprefix:='R'
+    regprefix:='r'
   else
-    regprefix:='E';
+    regprefix:='e';
 
   LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=modrmbyte;
   inc(LastDisassembleData.SeperatorCount);

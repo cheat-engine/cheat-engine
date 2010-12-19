@@ -18,6 +18,7 @@ type
       stack: pbyte;
       savedsize: dword;
     end;
+    count: integer;
 
     procedure savestack;
     destructor destroy; override;
@@ -104,18 +105,29 @@ begin
       //check if this address is already in the list
       s:=inttohex(address,8);
       for i:=0 to changedlist.Items.Count-1 do
-        if changedlist.items[i].caption=s then exit;
+        if changedlist.items[i].caption=s then
+        begin
+          //it's in the list
+          //update the count
+          x:=TAddressEntry(changedlist.items[i].data);
+          inc(x.count);
+          changedlist.items[i].SubItems[1]:=inttostr(x.count);
+          exit;
+        end;
 
       //and if not, add it
       li:=changedlist.Items.add;
       li.caption:=s;
       li.SubItems.Add('');
+      li.subitems.add('1');
 
 
       x:=TAddressEntry.create;
       x.context:=currentthread.context^;
       x.address:=address;
+      x.count:=1;
       x.savestack;
+
 
       li.Data:=x;
 

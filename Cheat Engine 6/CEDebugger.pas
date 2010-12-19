@@ -140,8 +140,6 @@ begin
 
     if res then
     begin
-      if not advancedoptions.Pausebutton.Down then
-        @ntsuspendprocess:=nil; //lets use the debugger for this
 
       //start the debugger on the current process
       //check for a debugger

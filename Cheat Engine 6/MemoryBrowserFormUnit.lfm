@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 707
+  Left = 848
   Height = 587
-  Top = 225
+  Top = 222
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1185,6 +1185,7 @@ object MemoryBrowser: TMemoryBrowser
     object miAddESP: TMenuItem
       AutoCheck = True
       Caption = '(esp+*)'
+      Checked = True
       GroupIndex = 2
       RadioItem = True
       OnClick = miAddESPClick

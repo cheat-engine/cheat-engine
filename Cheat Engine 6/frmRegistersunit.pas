@@ -239,6 +239,9 @@ begin
 
   if _stack<>nil then
   begin
+    if stack.stack<>nil then //free old stack copy
+      freemem(stack.stack);
+
     getmem(stack.stack, stacksize);
     stack.savedsize:=stacksize;
 
@@ -280,7 +283,22 @@ end;
 
 procedure TRegisters.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  fpp.free;
+  if fpp<>nil then
+  begin
+    fpp.close;
+    fpp.free;
+  end;
+
+
+  if stackview<>nil then
+  begin
+    stackview.close;
+    stackview.close;
+  end;
+
+  if stack.stack<>nil then
+    freemem(stack.stack);
+
   action:=cafree;
 end;
 

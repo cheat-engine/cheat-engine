@@ -1,11 +1,11 @@
 object frmChangedAddresses: TfrmChangedAddresses
   Left = 695
-  Height = 298
+  Height = 289
   Top = 212
-  Width = 334
+  Width = 378
   Caption = 'Changed Addresses'
-  ClientHeight = 298
-  ClientWidth = 334
+  ClientHeight = 289
+  ClientWidth = 378
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,7 +18,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 33
     Top = 0
-    Width = 334
+    Width = 378
     Align = alTop
     Caption = 'The following addresses have been changed by the code you selected'
     ParentColor = False
@@ -27,11 +27,12 @@ object frmChangedAddresses: TfrmChangedAddresses
   object Panel1: TPanel
     Left = 0
     Height = 42
-    Top = 256
-    Width = 334
+    Top = 247
+    Width = 378
     Align = alBottom
+    Anchors = [akRight, akBottom]
     ClientHeight = 42
-    ClientWidth = 334
+    ClientWidth = 378
     TabOrder = 0
     object OKButton: TButton
       Left = 10
@@ -44,10 +45,11 @@ object frmChangedAddresses: TfrmChangedAddresses
       TabOrder = 0
     end
     object cbDisplayType: TComboBox
-      Left = 118
+      Left = 191
       Height = 24
       Top = 8
       Width = 179
+      Anchors = [akTop, akRight]
       ItemHeight = 16
       ItemIndex = 2
       Items.Strings = (
@@ -64,9 +66,9 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 223
+    Height = 214
     Top = 33
-    Width = 334
+    Width = 378
     Align = alClient
     Columns = <    
       item
@@ -76,8 +78,10 @@ object frmChangedAddresses: TfrmChangedAddresses
       item
         Caption = 'Value'
         Width = 200
+      end    
+      item
+        Caption = 'Count'
       end>
-    ItemIndex = -1
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True

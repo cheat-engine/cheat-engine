@@ -187,7 +187,6 @@ object Registers: TRegisters
       Top = 72
       Width = 21
       Caption = 'F'
-      Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowFloatsClick
       ShowHint = True
@@ -200,7 +199,6 @@ object Registers: TRegisters
       Top = 100
       Width = 21
       Caption = 'S'
-      Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowStackClick
       ShowHint = True

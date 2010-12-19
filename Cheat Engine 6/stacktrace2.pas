@@ -7,7 +7,7 @@ interface
 uses LCLIntf, sysutils, classes, symbolhandler, CEFuncProc, NewKernelHandler, byteinterpreter;
 
 procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
-procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0);
+procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; ShowEBPinsteadOfESP: boolean=false);
 
 implementation
 
@@ -26,7 +26,7 @@ begin
   details:=copy(s,j+3,length(s)); //leftover
 end;
 
-procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0);
+procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytearray; sizeinbytes: integer; trace: tstrings; force4byteblocks: boolean=true; showmodulesonly: boolean=false; nosystemmodules:boolean=false; maxdepth:integer=0; ShowEBPinsteadOfESP: boolean=false);
 {
 ce_stacktrace will walk the provided stack trying to figure out functionnames ,passed strings and optional other data
 esp must be aligned on a 4 byte boundary the first entry alignment but other entries will try to be forced to 4 byte alignment unless otherwise needed (double, string,...)
@@ -53,7 +53,17 @@ var
   v: TVariableType;
   oldi: integer;
 
+  originalesp: ptruint;
+  offset: ptrint;
+  offsetstring: string;
+  pref: char;
 begin
+  if processhandler.is64bit then
+    pref:='r'
+  else
+    pref:='e';
+
+  originalesp:=esp;
   i:=esp mod processhandler.pointersize;
   if i>0 then
   begin
@@ -71,9 +81,19 @@ begin
   while i<entries do
   begin
     oldi:=i;
-    inc(i);
 
-    address:=inttohex(esp,8);
+    if not ShowEBPinsteadOfESP then
+      offsetstring:='('+pref+'sp+'+inttohex(esp-originalesp,1)+')'
+    else
+    begin
+      offset:=esp-ebp;
+      if offset<0 then
+        offsetstring:='('+pref+'bp-'+inttohex(-offset,1)+')'
+      else
+        offsetstring:='('+pref+'bp+'+inttohex(offset,1)+')';
+    end;
+
+    address:=inttohex(esp,8)+offsetstring;
 
 
     if processhandler.is64bit then
@@ -88,6 +108,8 @@ begin
       value:=inttohex(alignedstack32[i],8);
       currentStackValue:=ptruint(alignedstack32[i]);
     end;
+
+
 
 
 

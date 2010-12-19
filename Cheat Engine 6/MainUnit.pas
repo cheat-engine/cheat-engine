@@ -4221,15 +4221,6 @@ var
 
   h: thandle;
 begin
-
-  //close codefinder
-  if foundcodedialog<>nil then
-  begin
-    foundcodedialog.btnOK.Click;  //first or 2nd click
-    if foundcodedialog<>nil then
-      foundcodedialog.btnOK.Click; //2nd click
-  end;
-
   //undo unrandomize
   if unrandomize<>nil then
     freeandnil(unrandomize);

@@ -1,50 +1,36 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 617
+  Left = 595
   Height = 445
-  Top = 231
-  Width = 383
+  Top = 218
+  Width = 386
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
   ClientHeight = 445
-  ClientWidth = 383
-  Font.Height = -14
+  ClientWidth = 386
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   Position = poOwnerFormCenter
   LCLVersion = '0.9.29'
-  object FoundcodeList: TListBox
-    Left = 0
-    Height = 445
-    Top = 0
-    Width = 253
-    Align = alClient
-    ItemHeight = 0
-    MultiSelect = True
-    OnClick = FoundcodeListClick
-    OnContextPopup = FoundcodeListContextPopup
-    OnDblClick = FoundcodeListDblClick
-    PopupMenu = pmOptions
-    TabOrder = 0
-  end
   object Panel1: TPanel
-    Left = 253
+    Left = 264
     Height = 445
     Top = 0
-    Width = 130
+    Width = 122
     Align = alRight
     BevelOuter = bvNone
     ClientHeight = 445
-    ClientWidth = 130
-    TabOrder = 1
+    ClientWidth = 122
+    TabOrder = 0
     object Description: TLabel
       Left = 0
       Height = 235
       Top = 169
-      Width = 130
+      Width = 122
       Align = alClient
       Alignment = taCenter
       AutoSize = False
@@ -55,17 +41,17 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 41
       Top = 404
-      Width = 130
+      Width = 122
       Align = alBottom
       BevelOuter = bvNone
       ClientHeight = 41
-      ClientWidth = 130
+      ClientWidth = 122
       TabOrder = 0
       object btnOK: TButton
-        Left = 21
+        Left = 24
         Height = 30
         Top = 3
-        Width = 90
+        Width = 75
         Cancel = True
         Caption = 'OK'
         Default = True
@@ -77,18 +63,18 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 169
       Top = 0
-      Width = 130
+      Width = 122
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 169
-      ClientWidth = 130
+      ClientWidth = 122
       TabOrder = 1
       object btnExtraInfo: TButton
-        Left = 4
+        Left = 7
         Height = 31
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
         Top = 128
-        Width = 124
+        Width = 109
         Anchors = [akTop, akRight]
         Caption = 'More information'
         Enabled = False
@@ -98,11 +84,11 @@ object FoundCodeDialog: TFoundCodeDialog
         TabOrder = 0
       end
       object btnAddToCodeList: TButton
-        Left = 4
+        Left = 7
         Height = 30
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
         Top = 89
-        Width = 124
+        Width = 109
         Caption = 'Add to the codelist'
         Enabled = False
         OnClick = btnAddToCodeListClick
@@ -111,11 +97,11 @@ object FoundCodeDialog: TFoundCodeDialog
         TabOrder = 1
       end
       object btnOpenDisassembler: TButton
-        Left = 4
+        Left = 7
         Height = 31
         Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
         Top = 49
-        Width = 123
+        Width = 109
         Caption = 'Show disassembler'
         Enabled = False
         OnClick = btnOpenDisassemblerClick
@@ -124,11 +110,11 @@ object FoundCodeDialog: TFoundCodeDialog
         TabOrder = 2
       end
       object btnReplacewithnops: TButton
-        Left = 4
+        Left = 7
         Height = 31
         Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
         Top = 10
-        Width = 124
+        Width = 109
         Caption = 'Replace'
         Enabled = False
         OnClick = btnReplacewithnopsClick
@@ -137,6 +123,34 @@ object FoundCodeDialog: TFoundCodeDialog
         TabOrder = 3
       end
     end
+  end
+  object FoundCodeList: TListView
+    Left = 0
+    Height = 445
+    Top = 0
+    Width = 264
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Count'
+        Width = 30
+      end    
+      item
+        AutoSize = True
+        Caption = 'Instruction'
+        Width = 222
+      end>
+    ColumnClick = False
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = pmOptions
+    ReadOnly = True
+    RowSelect = True
+    ScrollBars = ssVertical
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnDblClick = FoundcodeListDblClick
+    OnSelectItem = FoundCodeListSelectItem
   end
   object pmOptions: TPopupMenu
     OnPopup = pmOptionsPopup

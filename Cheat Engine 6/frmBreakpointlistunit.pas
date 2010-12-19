@@ -24,6 +24,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
+    procedure ListView1DblClick(Sender: TObject);
     procedure miDelBreakpointClick(Sender: TObject);
     procedure miSetConditionClick(Sender: TObject);
     procedure pmBreakpointPopup(Sender: TObject);
@@ -91,6 +92,38 @@ procedure TfrmBreakpointlist.ListBox1DblClick(Sender: TObject);
 begin
   if listview1.ItemIndex>=0 then
     memorybrowser.disassemblerview.SelectedAddress:=StrToInt('$'+listview1.Items[listview1.itemindex].Caption);
+end;
+
+procedure TfrmBreakpointlist.ListView1DblClick(Sender: TObject);
+var bp: pbreakpoint;
+ address: ptruint;
+begin
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.lockbplist;
+    try
+      updatebplist;
+
+      if listview1.Selected<>nil then
+      begin
+        bp:=listview1.selected.data;
+        address:=bp.address;
+        if bp.breakpointTrigger=bptExecute then
+        begin
+          //show in disassembler
+          memorybrowser.disassemblerview.SelectedAddress:=address;
+        end
+        else
+        begin
+          //show in hexview
+          memorybrowser.hexview.address:=address;
+        end;
+
+      end;
+    finally
+      debuggerthread.unlockbplist;
+    end;
+  end;
 end;
 
 procedure TfrmBreakpointlist.miDelBreakpointClick(Sender: TObject);
