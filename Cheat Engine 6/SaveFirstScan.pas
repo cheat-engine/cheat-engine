@@ -59,8 +59,8 @@ begin
     begin
       //the scan was a unknown initial value scan, so the memory is stored in memory and not on the disk
       //save the memoryregions and memory to disk
-      NewAddressFile:=TFileStream.Create(folder+'ADDRESSESFIRST.TMP', fmCreate);
-      NewMemoryFile:=TFileStream.Create(folder+'MEMORYFIRST.TMP', fmCreate);
+      NewAddressFile:=TFileStream.Create(folder+'ADDRESSES.FIRST', fmCreate);
+      NewMemoryFile:=TFileStream.Create(folder+'MEMORY.FIRST', fmCreate);
 
       newAddressfile.WriteBuffer(datatype,sizeof(datatype));
 
@@ -78,9 +78,9 @@ begin
     begin
       //exact value scan or other scan that gives addresses
       //copy the results to addressesfirst.tmp and memoryfirst.tmp
-      copyfile(pchar(folder+'ADDRESSES.TMP'),pchar(folder+'ADDRESSESFIRST.TMP'),false);
+      copyfile(pchar(folder+'ADDRESSES.TMP'),pchar(folder+'ADDRESSES.FIRST'),false);
       if terminated then exit;
-      copyfile(pchar(folder+'MEMORY.TMP'),pchar(folder+'MEMORYFIRST.TMP'),false);
+      copyfile(pchar(folder+'MEMORY.TMP'),pchar(folder+'MEMORY.FIRST'),false);
     end;
 
   finally

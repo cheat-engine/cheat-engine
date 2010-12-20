@@ -60,6 +60,7 @@ resourcestring
   strUnknownInitialValue='Unknown initial value';
   strCompareToFirstScan='Compare to first scan';
   strCompareToLastScan='Compare to last scan';
+  strCompareToSavedScan='Compare to saved scan';
 
   strFailedToInitialize='Failed to initialize the debugger';
   strtoolong='Too long';

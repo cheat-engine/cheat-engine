@@ -1319,15 +1319,15 @@ object MainForm: TMainForm
         TabOrder = 2
       end
     end
-    object lblCompareToFirstScan: TLabel
+    object lblcompareToSavedScan: TLabel
       Left = 224
       Height = 14
       Top = 32
-      Width = 108
-      Caption = 'Comparing to first scan'
+      Width = 201
+      Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
-      OnClick = lblCompareToFirstScanClick
+      OnClick = lblcompareToSavedScanClick
     end
   end
   object UpdateTimer: TTimer
@@ -1743,6 +1743,21 @@ object MainForm: TMainForm
         Action = actOpen
         Caption = 'Load'
         OnClick = actOpenExecute
+      end
+      object MenuItem3: TMenuItem
+        Caption = '-'
+      end
+      object miSaveScanresults: TMenuItem
+        Caption = 'Save current scanresults'
+        ShortCut = 49235
+        OnClick = miSaveScanresultsClick
+      end
+      object MenuItem6: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem7: TMenuItem
+        Caption = 'Quit'
+        OnClick = MenuItem7Click
       end
     end
     object Edit3: TMenuItem

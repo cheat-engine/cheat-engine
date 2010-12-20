@@ -15,7 +15,7 @@ uses
   simpleaobscanner, pointervaluelist, ManualModuleLoader, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
-  customtypehandler, lua,luahandler, lauxlib, lualib;
+  customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit;
 
 //the following are just for compatibility
 
@@ -34,6 +34,16 @@ const
 //scantabs
 type
   TScanState=record
+    compareToSavedScan: boolean;
+    currentlySelectedSavedResultname: string; //I love long variable names
+
+    lblcompareToSavedScan:record
+      caption: string;
+      visible: boolean;
+      left: integer;
+    end;
+
+
     FromAddress: record
       text: string;
     end;
@@ -91,6 +101,7 @@ type
       options: string;
       itemindex: integer;
       enabled: boolean;
+      dropdowncount: integer;
     end;
 
     vartype: record
@@ -165,10 +176,14 @@ type
     FromAddress: TMemo;
     Label1: TLabel;
     Label2: TLabel;
-    lblCompareToFirstScan: TLabel;
+    lblcompareToSavedScan: TLabel;
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miSaveScanresults: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
     miShowAsBinary: TMenuItem;
     miZeroTerminate: TMenuItem;
     miResetRange: TMenuItem;
@@ -336,9 +351,10 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
-    procedure lblCompareToFirstScanClick(Sender: TObject);
+    procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem7Click(Sender: TObject);
     procedure miResetRangeClick(Sender: TObject);
     procedure miChangeColorClick(Sender: TObject);
     procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
@@ -353,6 +369,7 @@ type
     procedure miCloseTabClick(Sender: TObject);
     procedure miFreezeNegativeClick(Sender: TObject);
     procedure miFreezePositiveClick(Sender: TObject);
+    procedure miSaveScanresultsClick(Sender: TObject);
     procedure miShowAsBinaryClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
@@ -509,7 +526,8 @@ type
     oldhandle: thandle;
 
     hexstateForIntTypes: boolean;
-    compareToFirstScan: boolean;
+    compareToSavedScan: boolean;
+    currentlySelectedSavedResultname: string; //I love long variable names
 
     procedure doNewScan;
     procedure SetExpectedTableName;
@@ -1590,6 +1608,7 @@ var
   OldIndex: integer;
   hexvis: boolean;
   floatvis: boolean;
+  t: tstringlist;
 begin
 
 
@@ -1627,10 +1646,22 @@ begin
       ScanType.Items.Add(strDecreasedValueBy);
       ScanType.Items.add(strChangedValue);
       ScanType.Items.Add(strUnchangedValue);
-      if compareToFirstScan then
+
+      if compareToSavedScan then
         ScanType.Items.Add(strCompareToLastScan)
       else
-        ScanType.Items.Add(strCompareToFirstScan);
+      begin
+        t:=tstringlist.create;
+        if memscan.getsavedresults(t)>1 then
+          ScanType.Items.Add(strcompareToSavedScan)
+        else
+          ScanType.Items.Add(strCompareToFirstScan);
+
+        t.free;
+
+
+
+      end;
 
       Scantype.DropDownCount:=11;
 
@@ -1712,7 +1743,7 @@ begin
   //save the last scantype (if it wasn't the option to change between first/last)
   if (scantype.ItemIndex<>-1) and (scantype.ItemIndex<scantype.Items.Count) then
   begin
-    if not ((scantype.items[scantype.ItemIndex]=strCompareToFirstScan) or (scantype.items[scantype.ItemIndex]=strCompareToLastScan)) then
+    if not ((scantype.items[scantype.ItemIndex]=strcompareToSavedScan) or (scantype.items[scantype.ItemIndex]=strCompareToLastScan)) then
       lastscantype:=scantype.ItemIndex;
   end;
 end;
@@ -2102,6 +2133,11 @@ end;
 procedure TMainForm.MenuItem1Click(Sender: TObject);
 begin
   addresslist.SelectAll;
+end;
+
+procedure TMainForm.MenuItem7Click(Sender: TObject);
+begin
+  close;
 end;
 
 procedure TMainForm.miResetRangeClick(Sender: TObject);
@@ -2533,6 +2569,14 @@ end;
 procedure TMainForm.SaveCurrentState(scanstate: PScanState);
 begin
   //save the current state
+  scanstate.compareToSavedScan:=comparetosavedscan;
+  scanstate.currentlySelectedSavedResultname:=currentlySelectedSavedResultname; //I love long variable names
+
+  scanstate.lblcompareToSavedScan.caption:=lblcompareToSavedScan.caption;
+  scanstate.lblcompareToSavedScan.visible:=lblcompareToSavedScan.visible;
+  scanstate.lblcompareToSavedScan.left:=lblcompareToSavedScan.left;
+
+
   scanstate.FromAddress.text:=fromaddress.text;
   scanstate.ToAddress.text:=toaddress.text;
   scanstate.ReadOnly.checked:=readonly.checked;
@@ -2552,6 +2596,7 @@ begin
   scanstate.scantype.options:=scantype.Items.Text;
   scanstate.scantype.enabled:=scantype.enabled;
   scanstate.scantype.itemindex:=scantype.ItemIndex;
+  scanstate.scantype.dropdowncount:=scantype.DropDownCount;
 
   scanstate.vartype.options:=vartype.Items.Text;
   scanstate.vartype.enabled:=vartype.enabled;
@@ -2618,6 +2663,11 @@ begin
 
   savecurrentstate(scanstate);
 
+  //initial scans don't have a previous scan
+  scanstate.lblcompareToSavedScan.visible:=false;
+  scanstate.compareToSavedScan:=false;
+
+
 
 end;
 
@@ -2655,11 +2705,19 @@ begin
       DestroyScanValue2;
     end;
 
+    comparetosavedscan:=newstate.compareToSavedScan;
+    currentlySelectedSavedResultname:=newstate.currentlySelectedSavedResultname; //I love long variable names
+
+    lblcompareToSavedScan.caption:=newstate.lblcompareToSavedScan.caption;
+    lblcompareToSavedScan.visible:=newstate.lblcompareToSavedScan.visible;
+    lblcompareToSavedScan.left:=newstate.lblcompareToSavedScan.left;
+
 
 
     scantype.items.text:=newstate.scantype.options;
     scantype.enabled:=newstate.scantype.enabled;
     scantype.ItemIndex:=newstate.scantype.itemindex;
+    scantype.DropDownCount:=newstate.scantype.dropdowncount;
 
     vartype.items.text:=newstate.vartype.options;
     vartype.enabled:=newstate.vartype.enabled;
@@ -2721,7 +2779,7 @@ begin
     foundlist:=newstate.foundlist;
 
 
-
+    UpdateScanType;
 
 
     foundcount:=foundlist.Initialize(getvartype,memscan.customtype);
@@ -2883,6 +2941,20 @@ begin
   end;
 end;
 
+procedure TMainForm.miSaveScanresultsClick(Sender: TObject);
+var n: string;
+begin
+  if memscan.nextscanCount>0 then
+  begin
+    n:='Scanresult '+inttostr(memscan.nextscanCount+1);
+    if inputquery('Save scan results', 'What name do you want to give to these scanresults?', n) then
+    begin
+      memscan.saveresults(n);
+      UpdateScanType;
+    end;
+  end;
+end;
+
 procedure TMainForm.miShowAsBinaryClick(Sender: TObject);
 begin
   if (addresslist.selectedrecord<>nil) and (addresslist.selectedrecord.vartype=vtbinary) then
@@ -2913,6 +2985,8 @@ begin
   if andlabel<>nil then
     andlabel.Left:=scanvalue2.Left-20;
 
+
+  lblcompareToSavedScan.left:=newscan.left + ((((nextscanbutton.left+nextscanbutton.width) - newscan.left) div 2) - (lblcompareToSavedScan.width div 2));
  // if cbpercentage<>nil then
  //   cbpercentage.left:=scantype.left+scantype.width+3;
 end;
@@ -3503,30 +3577,70 @@ end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
 var old: TNotifyevent;
+  s: tstringlist;
+  l: TfrmSelectionList;
 begin
   old:=scantype.OnChange;
-  if (scantype.ItemIndex<>-1) then
-  begin
-    if scantype.Items[scantype.itemindex]=strCompareToFirstScan then
+  try
+    if (scantype.ItemIndex<>-1) then
     begin
-      scantype.Items[scantype.itemindex]:=strCompareToLastScan;
-      scantype.itemindex:=lastscantype;
-      compareToFirstScan:=true;
-      lblCompareToFirstScan.left:=newscan.left + ((((nextscanbutton.left+nextscanbutton.width) - newscan.left) div 2) - (lblCompareToFirstScan.width div 2));
-      lblCompareToFirstScan.visible:=true;
-    end
-    else
-    if scantype.Items[scantype.itemindex]=strCompareToLastScan then
-    begin
-      scantype.Items[scantype.itemindex]:=strCompareToFirstScan;
-      scantype.itemindex:=lastscantype;
-      compareToFirstScan:=false;
-      lblCompareToFirstScan.visible:=false;
-    end;
-  end;
+      //currentlySelectedSavedResultname
+      if (scantype.Items[scantype.itemindex]=strcompareToSavedScan) or (scantype.Items[scantype.itemindex]=strCompareToFirstScan) then
+      begin
+        s:=tstringlist.Create;
+        try
+          if memscan.getsavedresults(s)>1 then
+          begin
+            //popup a window where the user can select the scanresults
+            //currentlySelectedSavedResultname
+            l:=TfrmSelectionList.create(self,s);
+            l.itemindex:=0;
 
-  updatescantype;
-  scantype.OnChange:=old;
+            if (l.showmodal=mrok) and (l.itemindex<>-1) then
+            begin
+              currentlySelectedSavedResultname:=l.selected;
+              if l.itemindex=0 then
+                lblcompareToSavedScan.caption:='Comparing to first scan results'
+              else
+                lblcompareToSavedScan.caption:='Comparing to '+currentlySelectedSavedResultname;
+            end
+            else
+            begin
+              scantype.itemindex:=lastscantype;
+              exit;
+            end;
+          end
+          else
+          begin
+            currentlySelectedSavedResultname:='FIRST';
+            lblcompareToSavedScan.caption:='Comparing to first scan results';
+          end;
+        finally
+          s.free;
+        end;
+
+        scantype.Items[scantype.itemindex]:=strCompareToLastScan;
+        scantype.itemindex:=lastscantype;
+        compareToSavedScan:=true;
+
+        lblcompareToSavedScan.visible:=true;
+        lblcompareToSavedScan.left:=newscan.left + ((((nextscanbutton.left+nextscanbutton.width) - newscan.left) div 2) - (lblcompareToSavedScan.width div 2));
+
+      end
+      else
+      if scantype.Items[scantype.itemindex]=strCompareToLastScan then
+      begin
+        scantype.Items[scantype.itemindex]:=strcompareToSavedScan;
+        scantype.itemindex:=lastscantype;
+        compareToSavedScan:=false;
+        lblcompareToSavedScan.visible:=false;
+      end;
+    end;
+
+    updatescantype;
+  finally
+    scantype.OnChange:=old;
+  end;
 end;
 
 procedure TMainForm.Value1Click(Sender: TObject);
@@ -4258,7 +4372,10 @@ var
   crashcounter: integer;
 
   h: thandle;
+
 begin
+
+
   //undo unrandomize
   if unrandomize<>nil then
     freeandnil(unrandomize);
@@ -5458,7 +5575,7 @@ begin
 end;
 
 
-procedure TMainForm.lblCompareToFirstScanClick(Sender: TObject);
+procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
 begin
 
 end;
@@ -5574,6 +5691,8 @@ begin
 
   foundlist.Deinitialize; //unlock file handles
 
+
+
   if cbpercentage<>nil then
     percentage:=cbpercentage.checked
   else
@@ -5622,6 +5741,7 @@ begin
     //newscan
     button2.Tag:=0;
     donewscan;
+
     memscan.newscan; //cleanup memory and terminate all background threads
   end;
 end;
@@ -5765,7 +5885,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToFirstScan);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
   DisableGui;
   SpawnCancelButton;
 end;
@@ -5836,6 +5956,8 @@ begin
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
+var i: integer;
+    oldscanstate: PScanState;
 begin
 
   saveformposition(self,[
@@ -5858,6 +5980,22 @@ begin
   if scantablist=nil then
     if memscan<>nil then
       freeandnil(memscan);
+
+  if scantablist<>nil then
+  begin
+    for i:=0 to scantablist.Count-1 do
+    begin
+      if scantablist.SelectedTab<>i then
+      begin
+        oldscanstate:=scantablist.TabData[i];
+        oldscanstate.foundlist.free;
+        oldscanstate.memscan.free;
+        freemem(oldscanstate);
+      end;
+    end;
+    freeandnil(scantablist);
+  end;
+
 end;
 
 procedure TMainForm.tbSpeedChange(Sender: TObject);
@@ -6100,6 +6238,8 @@ end;
 procedure TMainForm.File1Click(Sender: TObject);
 begin
   menu.Images := imagelist1;
+
+  miSaveScanresults.Enabled:=memscan.nextscanCount>0;
 end;
 
 procedure TMainForm.Label61Click(Sender: TObject);

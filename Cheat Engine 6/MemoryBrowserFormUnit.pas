@@ -487,7 +487,7 @@ uses Valuechange,
   frmFillMemoryUnit,
   frmCodecaveScannerUnit,
   FoundCodeUnit,
-  frmFunctionListUnit,
+  frmSelectionlistunit,
   symbolconfigunit,
   frmFloatingPointPanelUnit,
   frmTracerUnit,
@@ -2150,11 +2150,11 @@ begin
 
       try
         peinfo_getExportList(opendlldialog.filename, dllList);
-        with TfrmFunctionList.create(self,dllList) do
+        with TfrmSelectionList.create(self,dllList) do
         begin
           if showmodal=mrok then
             if itemindex<>-1 then
-              functionname:=functions[itemindex];
+              functionname:=selected;
 
           free;
         end;

@@ -12,7 +12,7 @@ interface
 
 uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
-     , windows7taskbar,SaveFirstScan, firstscanhandler, autoassembler, symbolhandler,
+     , windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler, symbolhandler,
      CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib, LuaHandler
 ;
 
@@ -76,7 +76,7 @@ type
     StoreResultRoutine: TStoreResultRoutine;
     FlushRoutine: TFlushRoutine; //pointer to routine used to flush the buffer, generic, string, etc...
     scanWriter: Tscanfilewriter;
-    firstscanhandler: TFirstscanhandler;
+    savedscanhandler: Tsavedscanhandler;
     scandir: string;
 
     found :dword;
@@ -275,7 +275,9 @@ type
     scanvalue1,scanvalue2: string;
     widescanvalue1: widestring;
 
-    compareToFirstScan: boolean;
+    compareToSavedScan: boolean;
+    savedscanname: string;
+
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -362,7 +364,9 @@ type
     startaddress: ptruint; //start for the whole scan
     stopaddress: ptruint; //stop of the whole scan
 
-    compareToFirstScan: boolean;
+    compareToSavedScan: boolean;
+    savedscanname: string;
+
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -431,6 +435,15 @@ type
     FLastScanType: TScanType;
     fscanresultfolder: string; //the location where all the scanfiles will be stored
 
+    fnextscanCount: integer;
+
+
+    savedresults: tstringlist;
+
+
+    procedure DeleteScanfolder;
+    procedure createScanfolder;
+    function DeleteFolder(dir: string) : boolean;
   public
     onlyOne: boolean;
     Alignment: integer;
@@ -442,7 +455,7 @@ type
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToFirstScan: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -453,12 +466,13 @@ type
     constructor create(progressbar: TProgressbar);
     destructor destroy; override;
 
-    function DeleteFolder(dir: string) : boolean;
+    procedure saveresults(resultname: string);
+    function getsavedresults(r: tstrings): integer;
 
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property CustomType: TCustomType read currentCustomType;
-
+    property nextscanCount: integer read fnextscanCount;
   end;
 
 
@@ -1705,7 +1719,7 @@ begin
 
 
 
-  if compareToFirstScan then //stupid, but ok...
+  if compareToSavedScan then //stupid, but ok...
   begin
     case self.variableType of
       vtByte:   valuetype:=vt_byte;
@@ -1735,7 +1749,7 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
-        if checkroutine(p,firstscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -1745,7 +1759,7 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,firstscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -1839,7 +1853,7 @@ begin
     currentbase:=alist[i].address;
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
-      if compareToFirstScan then
+      if compareToSavedScan then
       begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
@@ -1855,7 +1869,7 @@ begin
           end
           else
           begin
-            if checkroutine(@newmemory[currentaddress-currentbase],firstscanhandler.getpointertoaddress(currentaddress,valuetype )) then
+            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype )) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -1868,7 +1882,7 @@ begin
 
         end;
 
-        if checkroutine(@newmemory[currentaddress-currentbase],firstscanhandler.getpointertoaddress(currentaddress,valuetype )) then
+        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype )) then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
       end
@@ -2063,10 +2077,10 @@ begin
     currentbase:=alist[i];
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j]-currentbase)+vsize,actualread) then
     begin
-      if compareToFirstScan then
+      if compareToSavedScan then
       begin
         for k:=i to j do
-          if checkroutine(@newmemory[alist[k]-currentbase],firstscanhandler.getpointertoaddress(alist[k],valuetype )) then
+          if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype )) then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
       end
       else
@@ -2316,8 +2330,8 @@ begin
     getmem(SecondaryAddressBuffer,buffersize*sizeof(ptruint));
   end;
 
-  if compareToFirstScan then //create a first scan handler
-    FirstScanHandler:=TFirstscanhandler.create(scandir);
+  if compareToSavedScan then //create a first scan handler
+    savedscanhandler:=Tsavedscanhandler.create(scandir,savedscanname);
 
   case variableType of
     vtByte:
@@ -2646,7 +2660,7 @@ begin
         vtAll:
         begin
           oldAddressFile.ReadBuffer(oldaddressesb[0],chunksize*sizeof(tbitaddress));
-          if not compareToFirstScan then
+          if not compareToSavedScan then
             oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
             
           nextnextscanmemall(@oldaddressesb[0],oldmemory,chunksize);
@@ -2657,7 +2671,7 @@ begin
 
           oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
 
-          if not compareToFirstScan then
+          if not compareToSavedScan then
           begin
             if not (self.variableType in [vtString,vtByteArray]) then //skip the types with no previous result stored
               oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
@@ -2937,7 +2951,7 @@ begin
   if CurrentAddressBuffer<>nil then freemem(CurrentAddressBuffer);
   if SecondaryAddressBuffer<>nil then freemem(SecondaryAddressBuffer);
 
-  if firstscanhandler<>nil then firstscanhandler.free;
+  if savedscanhandler<>nil then savedscanhandler.free;
 
   outputdebugstring('Destroyed a scanner');
 
@@ -3154,7 +3168,8 @@ begin
 
           currententry:=scanners[i].stopentry+1; //next thread will start at the next one
 
-          scanners[i].compareToFirstScan:=compareTofirstScan;
+          scanners[i].compareToSavedScan:=compareToSavedScan;
+          scanners[i].savedscanname:=savedscanname;
           scanners[i].scanType:=scanType; //stNextScan obviously
           scanners[i].scanoption:=scanoption;
           scanners[i].variableType:=VariableType;
@@ -3364,7 +3379,8 @@ begin
 
       //now configure the scanner thread with the same info this thread got, with some extra info
 
-      scanners[i].compareToFirstScan:=compareToFirstScan;
+      scanners[i].compareToSavedScan:=compareToSavedScan;
+      scanners[i].savedscanname:=savedscanname;
       scanners[i].scanType:=scanType; //stNextScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -3743,7 +3759,8 @@ begin
               
 
       //now configure the scanner thread with the same info this thread got, with some extra info
-      scanners[i].compareToFirstScan:=compareToFirstScan;
+      scanners[i].compareToSavedScan:=compareToSavedScan;
+      scanners[i].savedscanname:=savedscanname;
       scanners[i].scanType:=scanType; //stFirstScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -4060,7 +4077,6 @@ begin
   except
     on e: exception do
     begin
-      outputdebugstring('bla fuck');
       OutputDebugString(pchar('controller exception happened:Unknown!'+e.message));
       haserror:=true;
       errorstring:='controller:Unknown!'+e.message;
@@ -4164,6 +4180,52 @@ begin
 //  LastScanType;
 end;
 
+function TMemscan.getsavedresults(r: tstrings): integer;
+begin
+  r.clear;
+  if savedresults=nil then
+  begin
+    r.add('FIRST');
+    result:=1;
+  end
+  else
+    r.AddStrings(savedresults);
+
+  result:=r.count;
+end;
+
+procedure TMemscan.saveresults(resultname: string);
+var fname: string;
+begin
+  //check if it already exists or if it's a 'special' name
+
+  fname:=uppercase(resultname);
+  if (fname='TMP') or (fname='UNDO') then
+    raise exception.create('TMP and UNDO are names that may not be used. Try another name');
+
+  if savedresults=nil then
+  begin
+    savedresults:=tstringlist.create;
+    savedresults.CaseSensitive:=false;
+    savedresults.Duplicates:=dupError;
+    savedresults.Add('First');
+  end;
+
+  if savedresults.IndexOf(resultname)<>-1 then
+    raise exception.create('A result set with this name('+resultname+') already exists');
+
+
+  //everything looks ok
+  waittilldone;
+
+  //copy the current scanresults to memory.savedscan and addresses.savedscan
+  CopyFile(pchar(fScanResultFolder+'Memory.tmp'), pchar(fScanResultFolder+'Memory.'+resultname), false);
+  CopyFile(pchar(fScanResultFolder+'Addresses.tmp'), pchar(fScanResultFolder+'Addresses.'+resultname), false);
+
+  savedresults.Add(resultname);
+
+end;
+
 procedure TMemscan.undoLastScan;
 begin
   if canUndo then
@@ -4245,6 +4307,7 @@ end;
 
 procedure TMemscan.newscan;
 begin
+
   if scanController<>nil then
   begin
     scanController.terminate;
@@ -4261,10 +4324,16 @@ begin
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   fLastscantype:=stNewScan;
+
+  deletescanfolder;
+  createscanfolder;
+
+  fnextscanCount:=0;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToFirstScan: boolean);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 begin
+  inc(fnextscanCount);
 
   if scanController<>nil then
   begin
@@ -4282,7 +4351,8 @@ begin
   scanController.OwningMemScan:=self;
   scanController.scantype:=stNextScan;
   scanController.scanOption:=scanOption;
-  scanController.compareToFirstScan:=comparetofirstscan;
+  scanController.compareToSavedScan:=compareToSavedScan;
+  scanController.savedscanname:=savedscanname;
   scanController.variableType:=CurrentVariableType;
   scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;
@@ -4380,14 +4450,20 @@ begin
 end;
 
 constructor TMemScan.create(progressbar: TProgressbar);
-var guid: TGUID;
+
 begin
   self.progressbar:=progressbar;
 
   //setyp the location of the scan results
+
+
+  CreateScanfolder;
+end;
+
+procedure TMemscan.CreateScanfolder;
+var guid: TGUID;
+begin
   CreateGUID(guid);
-
-
   if dontusetempdir then
     fScanResultFolder:=tempdiralternative+'Cheat Engine\'
   else
@@ -4396,7 +4472,18 @@ begin
 
   fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+'\';
   CreateDir(fScanResultFolder);
+end;
 
+procedure TMemscan.DeleteScanfolder;
+begin
+  if fScanResultFolder<>'' then
+  begin
+    try
+      if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');
+    except
+      outputdebugstring('Fatal error while trying to delete the scanresults');
+    end;
+  end;
 end;
 
 function TMemScan.DeleteFolder(dir: string) : boolean;
@@ -4434,11 +4521,7 @@ begin
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
 
-  try
-    if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');
-  except
-    outputdebugstring('Fatal error while trying to delete the scanresults');
-  end;
+  DeleteScanfolder;
 
   inherited Destroy;
 end;

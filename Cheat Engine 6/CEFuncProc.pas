@@ -22,7 +22,7 @@ NewKernelHandler,
 {$ifndef standalonetrainer}
 {$ifndef netserver}
 hypermode,
-firstscanhandler,
+savedscanhandler,
 {$endif}
 {$endif}
 {$endif}
