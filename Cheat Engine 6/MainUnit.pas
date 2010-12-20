@@ -165,7 +165,7 @@ type
     FromAddress: TMemo;
     Label1: TLabel;
     Label2: TLabel;
-    Label3: TLabel;
+    lblCompareToFirstScan: TLabel;
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -336,7 +336,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
-    procedure Label3Click(Sender: TObject);
+    procedure lblCompareToFirstScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure miResetRangeClick(Sender: TObject);
@@ -359,6 +359,7 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
+    procedure ScanTypeSelect(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
     procedure NextScanButtonClick(Sender: TObject);
@@ -508,6 +509,7 @@ type
     oldhandle: thandle;
 
     hexstateForIntTypes: boolean;
+    compareToFirstScan: boolean;
 
     procedure doNewScan;
     procedure SetExpectedTableName;
@@ -1061,7 +1063,7 @@ begin
 
     27: //next scan same as first
     begin
-
+    {
       if not newscan.Enabled then exit;
       if (formscanning<>nil) and (formscanning.Visible) then exit; //it's scanning
 
@@ -1072,7 +1074,7 @@ begin
 
         nextscanbutton.click;
       end
-      else Errorbeep;
+      else} Errorbeep;
     end;
 
     28: //undo lastscan
@@ -1625,7 +1627,11 @@ begin
       ScanType.Items.Add(strDecreasedValueBy);
       ScanType.Items.add(strChangedValue);
       ScanType.Items.Add(strUnchangedValue);
-      ScanType.Items.Add(strSameAsFirstScan);
+      if compareToFirstScan then
+        ScanType.Items.Add(strCompareToLastScan)
+      else
+        ScanType.Items.Add(strCompareToFirstScan);
+
       Scantype.DropDownCount:=11;
 
     end else
@@ -1685,8 +1691,7 @@ begin
      (scantype.text=strDecreasedValue) or
      (scantype.Text=strChangedValue) or
      (scantype.Text=strUnchangedValue) or
-     (scantype.Text=strUnknownInitialValue) or
-     (scantype.Text=strSameAsFirstScan)
+     (scantype.Text=strUnknownInitialValue)
      then
      begin
        Scantext.Visible:=false;
@@ -1704,6 +1709,12 @@ begin
   if rbBit.visible then
     HexadecimalCheckbox.visible:=false;
 
+  //save the last scantype (if it wasn't the option to change between first/last)
+  if (scantype.ItemIndex<>-1) and (scantype.ItemIndex<scantype.Items.Count) then
+  begin
+    if not ((scantype.items[scantype.ItemIndex]=strCompareToFirstScan) or (scantype.items[scantype.ItemIndex]=strCompareToLastScan)) then
+      lastscantype:=scantype.ItemIndex;
+  end;
 end;
 
 
@@ -2027,6 +2038,11 @@ begin
 end;
 
 procedure TMainForm.rbAllMemoryChange(Sender: TObject);
+begin
+
+end;
+
+procedure TMainForm.ScanTypeSelect(Sender: TObject);
 begin
 
 end;
@@ -3486,9 +3502,31 @@ begin
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
+var old: TNotifyevent;
 begin
-  updatescantype;
+  old:=scantype.OnChange;
+  if (scantype.ItemIndex<>-1) then
+  begin
+    if scantype.Items[scantype.itemindex]=strCompareToFirstScan then
+    begin
+      scantype.Items[scantype.itemindex]:=strCompareToLastScan;
+      scantype.itemindex:=lastscantype;
+      compareToFirstScan:=true;
+      lblCompareToFirstScan.left:=newscan.left + ((((nextscanbutton.left+nextscanbutton.width) - newscan.left) div 2) - (lblCompareToFirstScan.width div 2));
+      lblCompareToFirstScan.visible:=true;
+    end
+    else
+    if scantype.Items[scantype.itemindex]=strCompareToLastScan then
+    begin
+      scantype.Items[scantype.itemindex]:=strCompareToFirstScan;
+      scantype.itemindex:=lastscantype;
+      compareToFirstScan:=false;
+      lblCompareToFirstScan.visible:=false;
+    end;
+  end;
 
+  updatescantype;
+  scantype.OnChange:=old;
 end;
 
 procedure TMainForm.Value1Click(Sender: TObject);
@@ -5420,7 +5458,7 @@ begin
 end;
 
 
-procedure TMainForm.Label3Click(Sender: TObject);
+procedure TMainForm.lblCompareToFirstScanClick(Sender: TObject);
 begin
 
 end;
@@ -5727,7 +5765,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToFirstScan);
   DisableGui;
   SpawnCancelButton;
 end;

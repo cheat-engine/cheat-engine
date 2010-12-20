@@ -590,6 +590,7 @@ object MainForm: TMainForm
       )
       OnChange = ScanTypeChange
       OnKeyDown = ScanTypeKeyDown
+      OnSelect = ScanTypeSelect
       Style = csDropDownList
       TabOrder = 5
     end
@@ -1318,15 +1319,15 @@ object MainForm: TMainForm
         TabOrder = 2
       end
     end
-    object Label3: TLabel
-      Left = 390
+    object lblCompareToFirstScan: TLabel
+      Left = 224
       Height = 14
       Top = 32
-      Width = 33
-      Caption = 'Label3'
+      Width = 108
+      Caption = 'Comparing to first scan'
       ParentColor = False
       Visible = False
-      OnClick = Label3Click
+      OnClick = lblCompareToFirstScanClick
     end
   end
   object UpdateTimer: TTimer

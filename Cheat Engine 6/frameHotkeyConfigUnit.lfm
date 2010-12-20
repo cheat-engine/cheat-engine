@@ -20,7 +20,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 0
     object Label1: TLabel
       Left = 0
-      Height = 21
+      Height = 16
       Top = 0
       Width = 305
       Align = alTop
@@ -29,8 +29,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object ListBox1: TListBox
       Left = 0
-      Height = 343
-      Top = 21
+      Height = 348
+      Top = 16
       Width = 305
       Align = alClient
       ExtendedSelect = False
@@ -62,12 +62,12 @@ object frameHotkeyConfig: TframeHotkeyConfig
         'Next Scan-Decreased Value'
         'Next Scan-Changed Value'
         'Next Scan-Unchanged Value'
-        'Next Scan-Same as first scan'
+        'Toggle beteeen first/last scan compare'
         'Undo last scan'
         'Cancel the current scan'
         'Debug->Run'
       )
-      ItemHeight = 20
+      ItemHeight = 15
       OnClick = ListBox1Click
       TabOrder = 0
     end
@@ -84,15 +84,15 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 1
     object Label2: TLabel
       Left = 6
-      Height = 21
+      Height = 16
       Top = 0
-      Width = 48
+      Width = 39
       Caption = 'Hotkey'
       ParentColor = False
     end
     object Edit1: TEdit
       Left = 5
-      Height = 28
+      Height = 23
       Top = 21
       Width = 172
       OnKeyDown = Edit1KeyDown
@@ -120,17 +120,17 @@ object frameHotkeyConfig: TframeHotkeyConfig
       TabOrder = 2
       Visible = False
       object Label52: TLabel
-        Left = -1
-        Height = 21
+        Left = 9
+        Height = 16
         Top = 2
-        Width = 43
+        Width = 33
         Anchors = [akTop, akRight]
         Caption = 'Speed'
         ParentColor = False
       end
       object edtSHSpeed: TEdit
         Left = 4
-        Height = 28
+        Height = 23
         Top = 18
         Width = 46
         Anchors = [akTop, akRight]
@@ -150,15 +150,15 @@ object frameHotkeyConfig: TframeHotkeyConfig
       Visible = False
       object Label3: TLabel
         Left = 3
-        Height = 21
+        Height = 16
         Top = 1
-        Width = 81
+        Width = 62
         Caption = 'Speed delta'
         ParentColor = False
       end
       object Edit4: TEdit
         Left = 4
-        Height = 28
+        Height = 23
         Top = 19
         Width = 166
         TabOrder = 0
@@ -178,23 +178,23 @@ object frameHotkeyConfig: TframeHotkeyConfig
     TabOrder = 2
     object Label4: TLabel
       Left = 104
-      Height = 21
+      Height = 16
       Top = 6
-      Width = 200
+      Width = 159
       Caption = 'Keypoll interval (milliseconds)'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 104
-      Height = 21
+      Height = 16
       Top = 32
-      Width = 236
+      Width = 187
       Caption = 'Delay between reactivating hotkeys'
       ParentColor = False
     end
     object edtKeypollInterval: TEdit
       Left = 2
-      Height = 28
+      Height = 23
       Hint = 'Determines how quickly a hotkey keypress is detected'
       Top = 2
       Width = 95
@@ -205,7 +205,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object edtHotkeyDelay: TEdit
       Left = 2
-      Height = 28
+      Height = 23
       Hint = 'Lets you specify how quickly a hotkey is repeated'
       Top = 26
       Width = 95

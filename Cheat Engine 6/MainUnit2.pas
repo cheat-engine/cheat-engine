@@ -58,7 +58,8 @@ resourcestring
   strChangedValue='Changed value';
   strUnchangedValue='Unchanged value';
   strUnknownInitialValue='Unknown initial value';
-  strSameAsFirstScan='Same as first scan';
+  strCompareToFirstScan='Compare to first scan';
+  strCompareToLastScan='Compare to last scan';
 
   strFailedToInitialize='Failed to initialize the debugger';
   strtoolong='Too long';
@@ -100,7 +101,6 @@ begin
     Decreased_value_by:result:=soDecreasedValueBy;
     Changed_value:     result:=soChanged;
     Unchanged_value:   result:=soUnchanged;
-    SameAsFirst:       result:=soSameAsFirst;
     else result:=soExactValue;
   end;
 

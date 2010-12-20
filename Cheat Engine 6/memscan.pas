@@ -274,6 +274,8 @@ type
     variablesize: integer;
     scanvalue1,scanvalue2: string;
     widescanvalue1: widestring;
+
+    compareToFirstScan: boolean;
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -359,6 +361,8 @@ type
     scanvalue1,scanvalue2: string;
     startaddress: ptruint; //start for the whole scan
     stopaddress: ptruint; //stop of the whole scan
+
+    compareToFirstScan: boolean;
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -438,7 +442,7 @@ type
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToFirstScan: boolean); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -1701,7 +1705,7 @@ begin
 
 
 
-  if scanOption=soSameAsFirst then //stupid, but ok...
+  if compareToFirstScan then //stupid, but ok...
   begin
     case self.variableType of
       vtByte:   valuetype:=vt_byte;
@@ -1803,8 +1807,10 @@ var i,j,k: dword;
     so: Tscanoption;
     valuetype: TValuetype;
     currentaddress: ptruint;
+    phandle: thandle;
 begin
   i:=0;
+  phandle:=processhandle;
   so:=scanoption;
   maxindex:=chunksize;
   vsize:=variablesize; //=8
@@ -1831,9 +1837,9 @@ begin
     end;
 
     currentbase:=alist[i].address;
-    if readprocessmemory(processhandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
+    if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
-      if so=soSameAsFirst then
+      if compareToFirstScan then
       begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
@@ -1921,12 +1927,14 @@ var
     actualread: dword;
     lastaddress: ptruint;
     scannedbitlist: array [0..7] of boolean;
+    phandle: thandle;
 begin
   i:=0;
   maxindex:=chunksize;
   vsize:=variablesize;
   alist:=addresslist;
   currentbase:=0;
+  phandle:=processhandle;
 
   while i<maxindex do
   begin
@@ -1947,7 +1955,7 @@ begin
 
 
     currentbase:=alist[i].address;
-    if readprocessmemory(processhandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
+    if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
       k:=i;
       while k<=j do
@@ -2004,6 +2012,7 @@ var
 
     so: Tscanoption;
     valuetype: TValuetype;
+    phandle: thandle;
 begin
   i:=0;
   so:=scanoption;
@@ -2011,6 +2020,7 @@ begin
   vsize:=variablesize;
   oldmem:=oldmemory;
   alist:=addresslist;
+  phandle:=processhandle;
 
   case variableType of
     vtByte:   valuetype:=vt_byte;
@@ -2051,9 +2061,9 @@ begin
 
 
     currentbase:=alist[i];
-    if readprocessmemory(processhandle,pointer(currentbase),@newmemory[0],(alist[j]-currentbase)+vsize,actualread) then
+    if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j]-currentbase)+vsize,actualread) then
     begin
-      if so=soSameAsFirst then
+      if compareToFirstScan then
       begin
         for k:=i to j do
           if checkroutine(@newmemory[alist[k]-currentbase],firstscanhandler.getpointertoaddress(alist[k],valuetype )) then
@@ -2306,7 +2316,7 @@ begin
     getmem(SecondaryAddressBuffer,buffersize*sizeof(ptruint));
   end;
 
-  if scanOption=soSameAsFirst then //create a first scan handler
+  if compareToFirstScan then //create a first scan handler
     FirstScanHandler:=TFirstscanhandler.create(scandir);
 
   case variableType of
@@ -2333,7 +2343,6 @@ begin
                               checkroutine:=byteDecreasedValueBy;
         soChanged:          checkroutine:=byteChanged;
         soUnChanged:        checkroutine:=byteUnchanged;
-        soSameAsFirst:      checkroutine:=byteUnchanged;
       end;
     end;
 
@@ -2360,7 +2369,6 @@ begin
                               checkroutine:=wordDecreasedValueBy;
         soChanged:          checkroutine:=wordChanged;
         soUnChanged:        checkroutine:=wordUnchanged;
-        soSameAsFirst:      checkroutine:=wordUnchanged;
       end;
     end;
 
@@ -2387,7 +2395,6 @@ begin
                               checkroutine:=dwordDecreasedValueBy;
         soChanged:          checkroutine:=dwordChanged;
         soUnChanged:        checkroutine:=dwordUnchanged;
-        soSameAsFirst:      checkroutine:=dwordUnchanged;
       end;
     end;
 
@@ -2414,7 +2421,6 @@ begin
                               checkroutine:=qwordDecreasedValueBy;
         soChanged:          checkroutine:=qwordChanged;
         soUnChanged:        checkroutine:=qwordUnchanged;
-        soSameAsFirst:      checkroutine:=qwordUnchanged;
       end;
     end;
 
@@ -2439,7 +2445,6 @@ begin
         soDecreasedValueBy: checkroutine:=singleDecreasedValueBy;
         soChanged:          checkroutine:=singleChanged;
         soUnChanged:        checkroutine:=singleUnchanged;
-        soSameAsFirst:      checkroutine:=singleUnchanged;
       end;
     end;
 
@@ -2466,7 +2471,6 @@ begin
                                checkroutine:=doubleDecreasedValueBy;
         soChanged:          checkroutine:=doubleChanged;
         soUnChanged:        checkroutine:=doubleUnchanged;
-        soSameAsFirst:      checkroutine:=doubleUnchanged;
       end;
     end;
       
@@ -2537,7 +2541,6 @@ begin
         soDecreasedValueBy: checkroutine:=allDecreasedValueBy;
         soChanged:          checkroutine:=allChanged;
         soUnChanged:        checkroutine:=allUnchanged;
-        soSameAsFirst:      checkroutine:=allUnchanged;
       end;
       //the other types have to be filled in by the nextscan routines
     end;
@@ -2565,7 +2568,6 @@ begin
                               checkroutine:=customDecreasedValueBy;
         soChanged:          checkroutine:=customChanged;
         soUnChanged:        checkroutine:=customUnchanged;
-        soSameAsFirst:      checkroutine:=customUnchanged;
       end;
     end;
 
@@ -2644,7 +2646,7 @@ begin
         vtAll:
         begin
           oldAddressFile.ReadBuffer(oldaddressesb[0],chunksize*sizeof(tbitaddress));
-          if scanoption<>soSameAsFirst then
+          if not compareToFirstScan then
             oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
             
           nextnextscanmemall(@oldaddressesb[0],oldmemory,chunksize);
@@ -2655,7 +2657,7 @@ begin
 
           oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
 
-          if scanoption<>soSameAsFirst then
+          if not compareToFirstScan then
           begin
             if not (self.variableType in [vtString,vtByteArray]) then //skip the types with no previous result stored
               oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
@@ -2691,8 +2693,9 @@ var
   oldbuffer: ^byte;
   toread: integer;
   actualread: dword;
-
+  phandle: thandle;
 begin
+  phandle:=processhandle;
   startregion:=_startregion; //using a variable so stack can be used, with possibility of register
   stopregion:=_stopregion;
 
@@ -2739,9 +2742,9 @@ begin
         actualread:=0;
 
         if size<toread then //there's something left to scan, so I can add the variablesize to it
-          ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
         else
-          ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size,actualread);
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size,actualread);
 
 
 
@@ -2770,8 +2773,11 @@ var i: integer;
     memorybuffer: ^byte;
     toread: dword;
     startregion: integer;
-    stopregion: integer;    
+    stopregion: integer;
+    phandle: thandle;
 begin
+  phandle:=processhandle;
+
   //first find out where in the previousmemory of this thread starts
   try
 
@@ -2822,9 +2828,9 @@ begin
         actualread:=0;
         //variablesize:=0;
         if size<toread then
-          ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
         else
-          ReadProcessMemory(processhandle,pointer(currentbase),memorybuffer,size,actualread);
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size,actualread);
 
         //+variablesize for overlap, only when not unknown var
 
@@ -3148,6 +3154,7 @@ begin
 
           currententry:=scanners[i].stopentry+1; //next thread will start at the next one
 
+          scanners[i].compareToFirstScan:=compareTofirstScan;
           scanners[i].scanType:=scanType; //stNextScan obviously
           scanners[i].scanoption:=scanoption;
           scanners[i].variableType:=VariableType;
@@ -3357,6 +3364,7 @@ begin
 
       //now configure the scanner thread with the same info this thread got, with some extra info
 
+      scanners[i].compareToFirstScan:=compareToFirstScan;
       scanners[i].scanType:=scanType; //stNextScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -3735,6 +3743,7 @@ begin
               
 
       //now configure the scanner thread with the same info this thread got, with some extra info
+      scanners[i].compareToFirstScan:=compareToFirstScan;
       scanners[i].scanType:=scanType; //stFirstScan obviously
       scanners[i].scanoption:=scanoption;
       scanners[i].variableType:=VariableType;
@@ -4254,7 +4263,7 @@ begin
   fLastscantype:=stNewScan;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage: boolean);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToFirstScan: boolean);
 begin
 
   if scanController<>nil then
@@ -4273,6 +4282,7 @@ begin
   scanController.OwningMemScan:=self;
   scanController.scantype:=stNextScan;
   scanController.scanOption:=scanOption;
+  scanController.compareToFirstScan:=comparetofirstscan;
   scanController.variableType:=CurrentVariableType;
   scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;

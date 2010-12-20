@@ -71,13 +71,13 @@ type TFirstScanHandler = class
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
   public
-    function getfirstscanbyte(address: dword): byte;
-    function getfirstscanword(address: dword): word;
-    function getfirstscandword(address: dword): dword;
-    function getfirstscansingle(address: dword): single;
-    function getfirstscandouble(address: dword): double;
-    function getfirstscanint64(address: dword): int64;
-    function getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
+    function getfirstscanbyte(address: ptruint): byte;
+    function getfirstscanword(address: ptruint): word;
+    function getfirstscandword(address: ptruint): dword;
+    function getfirstscansingle(address: ptruint): single;
+    function getfirstscandouble(address: ptruint): double;
+    function getfirstscanint64(address: ptruint): int64;
+    function getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
 
     constructor create(scandir: string);
     destructor destroy; override;
@@ -128,18 +128,18 @@ begin
   end;
 end;
 
-function TFirstScanHandler.getpointertoaddress(address:dword;valuetype:tvaluetype): pointer;
+function TFirstScanHandler.getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
 var j: integer;
     pm: ^TArrMemoryRegion;
-    pa: PDwordArray;
+    pa: PptruintArray;
     pab: PBitAddressArray;
     p: pbyte;
     p1: PByteArray;
-    p2: PWordArray;
-    p3: PDwordArray;
-    p4: PSingleArray;
-    p5: PDoubleArray;
-    p6: PInt64Array;
+    p2: PWordArray absolute p1;
+    p3: PDwordArray absolute p1;
+    p4: PSingleArray absolute p1;
+    p5: PDoubleArray absolute p1;
+    p6: PInt64Array absolute p1;
 
     first,last: integer;
 
@@ -192,17 +192,17 @@ begin
     pa:=pointer(p);
     pab:=pointer(p);
     p1:=firstscanmemory;
-    p2:=firstscanmemory;
+   { p2:=firstscanmemory;
     p3:=firstscanmemory;
     p4:=firstscanmemory;
     p5:=firstscanmemory;
-    p6:=firstscanmemory;
+    p6:=firstscanmemory; }
 
     if (valuetype <> vt_all) then
     begin
       //addresslist is a list of dword
 
-      j:=(firstscanaddress.Size-7) div sizeof(dword); //max number of addresses , no same as first for binary
+      j:=(firstscanaddress.Size-7) div sizeof(ptruint); //max number of addresses , no same as first for binary
 
       //the list is sorted so do a quickscan
       first:=0;
@@ -237,7 +237,8 @@ begin
       end;
 
 
-      exit; //not found
+      //not found
+      raise exception.create('Failure in finding '+inttohex(address,8)+' in the first scan results');
     end
     else
     begin
@@ -276,32 +277,32 @@ begin
   raise exception.create('Failure in finding '+inttohex(address,8)+' in the first scan results');
 end;
 
-function TFirstScanHandler.getfirstscanbyte(address: dword): byte;
+function TFirstScanHandler.getfirstscanbyte(address: ptruint): byte;
 begin
   result:=pbyte(getpointertoaddress(address,vt_byte))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
 
-function TFirstScanHandler.getfirstscanword(address: dword): word;
+function TFirstScanHandler.getfirstscanword(address: ptruint): word;
 begin
   result:=pword(getpointertoaddress(address,vt_word))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
 
-function TFirstScanHandler.getfirstscandword(address: dword): dword;
+function TFirstScanHandler.getfirstscandword(address: ptruint): dword;
 begin
   result:=pdword(getpointertoaddress(address,vt_dword))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
 
-function TFirstScanHandler.getfirstscansingle(address: dword): single;
+function TFirstScanHandler.getfirstscansingle(address: ptruint): single;
 begin
   result:=psingle(getpointertoaddress(address,vt_single))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
 
-function TFirstScanHandler.getfirstscandouble(address: dword): double;
+function TFirstScanHandler.getfirstscandouble(address: ptruint): double;
 begin
   result:=pdouble(getpointertoaddress(address,vt_double))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
 
-function TFirstScanHandler.getfirstscanint64(address: dword): int64;
+function TFirstScanHandler.getfirstscanint64(address: ptruint): int64;
 begin
   result:=pint64(getpointertoaddress(address,vt_int64))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
 end;
