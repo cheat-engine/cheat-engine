@@ -2152,6 +2152,8 @@ begin
         peinfo_getExportList(opendlldialog.filename, dllList);
         with TfrmSelectionList.create(self,dllList) do
         begin
+          caption:='Inject dll';
+          label1.caption:='Select the function you want to execute';
           if showmodal=mrok then
             if itemindex<>-1 then
               functionname:=selected;

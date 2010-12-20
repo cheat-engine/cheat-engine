@@ -3594,6 +3594,8 @@ begin
             //popup a window where the user can select the scanresults
             //currentlySelectedSavedResultname
             l:=TfrmSelectionList.create(self,s);
+            l.Caption:='Saved scan results';
+            l.label1.caption:='Select the saved scan result from the list below';
             l.itemindex:=0;
 
             if (l.showmodal=mrok) and (l.itemindex<>-1) then
