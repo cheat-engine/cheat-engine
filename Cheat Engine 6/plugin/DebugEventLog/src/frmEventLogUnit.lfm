@@ -1,0 +1,86 @@
+object frmEventLog: TfrmEventLog
+  Left = 511
+  Height = 289
+  Top = 111
+  Width = 561
+  Caption = 'Debug event log'
+  ClientHeight = 289
+  ClientWidth = 561
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  LCLVersion = '0.9.29'
+  object ListView1: TListView
+    Left = 0
+    Height = 248
+    Top = 0
+    Width = 561
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Timestamp'
+        Width = 80
+      end    
+      item
+        Caption = 'PID'
+      end    
+      item
+        Caption = 'TID'
+      end    
+      item
+        Caption = 'Event'
+        Width = 200
+      end    
+      item
+        AutoSize = True
+        Caption = 'Details'
+        Width = 177
+      end>
+    PopupMenu = PopupMenu1
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 41
+    Top = 248
+    Width = 561
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 561
+    TabOrder = 1
+    object Button2: TButton
+      Left = 86
+      Height = 25
+      Top = 6
+      Width = 75
+      Cancel = True
+      Caption = 'Stop logging'
+      Enabled = False
+      OnClick = Button2Click
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 6
+      Height = 25
+      Top = 6
+      Width = 75
+      Caption = 'Start logging'
+      Default = True
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 80
+    top = 64
+    object Clear1: TMenuItem
+      Caption = 'Clear'
+      OnClick = Clear1Click
+    end
+  end
+end

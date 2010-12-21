@@ -19,7 +19,7 @@ typedef struct _PluginVersion
 typedef struct _PLUGINTYPE0_RECORD
 {
   char *interpretedaddress; //pointer to a 255 bytes long string (0 terminated)
-  ULONG address;//this is a read-only representaion of the address. Change interpretedaddress if you want to change this
+  UINT_PTR address;//this is a read-only representaion of the address. Change interpretedaddress if you want to change this
   BOOL ispointer; //readonly
   int countoffsets; //readonly
   ULONG *offsets; //array of dwords ranging from 0 to countoffsets-1 (readonly)
@@ -97,7 +97,7 @@ typedef struct _PLUGINTYPE8_INIT
 
 typedef struct _REGISTERMODIFICATIONINFO
 {
-  ULONG address; //addres to break on
+  UINT_PTR address; //addres to break on
   BOOL change_eax;
   BOOL change_ebx;
   BOOL change_ecx;
@@ -107,21 +107,43 @@ typedef struct _REGISTERMODIFICATIONINFO
   BOOL change_ebp;
   BOOL change_esp;
   BOOL change_eip;
+#ifdef _AMD64_
+  BOOL change_r8;
+  BOOL change_r9;
+  BOOL change_r10;
+  BOOL change_r11;
+  BOOL change_r12;
+  BOOL change_r13;
+  BOOL change_r14;
+  BOOL change_r15;
+#endif
   BOOL change_cf;
   BOOL change_pf;
   BOOL change_af;
   BOOL change_zf;
   BOOL change_sf;
   BOOL change_of;
-  ULONG new_eax;
-  ULONG new_ebx;
-  ULONG new_ecx;
-  ULONG new_edx;
-  ULONG new_esi;
-  ULONG new_edi;
-  ULONG new_ebp;
-  ULONG new_esp;
-  ULONG new_eip;
+  UINT_PTR new_eax;
+  UINT_PTR new_ebx;
+  UINT_PTR new_ecx;
+  UINT_PTR new_edx;
+  UINT_PTR new_esi;
+  UINT_PTR new_edi;
+  UINT_PTR new_ebp;
+  UINT_PTR new_esp;
+  UINT_PTR new_eip;
+#ifdef _AMD64_
+  UINT_PTR new_r8;
+  UINT_PTR new_r9;
+  UINT_PTR new_r10;
+  UINT_PTR new_r11;
+  UINT_PTR new_r12;
+  UINT_PTR new_r13;
+  UINT_PTR new_r14;
+  UINT_PTR new_r15;
+#endif
+	 
+
   BOOL new_cf;
   BOOL new_pf;
   BOOL new_af;
@@ -136,19 +158,19 @@ typedef int (__stdcall *CEP_REGISTERFUNCTION) (int pluginid, PluginType function
 typedef BOOL (__stdcall *CEP_UNREGISTERFUNCTION) (int pluginid, int functionid);
 typedef HANDLE (__stdcall *CEP_GETMAINWINDOWHANDLE) (void);
 typedef BOOL (__stdcall *CEP_AUTOASSEMBLE) (char *script);
-typedef BOOL (__stdcall *CEP_ASSEMBLER) (ULONG address, char* instruction, BYTE *output, int maxlength, int *returnedsize);
-typedef BOOL (__stdcall *CEP_DISASSEMBLER) (ULONG address, char* output, int maxsize);
-typedef BOOL (__stdcall *CEP_CHANGEREGATADDRESS) (ULONG address,PREGISTERMODIFICATIONINFO changereg);
+typedef BOOL (__stdcall *CEP_ASSEMBLER) (UINT_PTR address, char* instruction, BYTE *output, int maxlength, int *returnedsize);
+typedef BOOL (__stdcall *CEP_DISASSEMBLER) (UINT_PTR address, char* output, int maxsize);
+typedef BOOL (__stdcall *CEP_CHANGEREGATADDRESS) (UINT_PTR address,PREGISTERMODIFICATIONINFO changereg);
 typedef BOOL (__stdcall *CEP_INJECTDLL) (char *dllname, char *functiontocall);
-typedef int (__stdcall *CEP_FREEZEMEM) (ULONG address, int size);
+typedef int (__stdcall *CEP_FREEZEMEM) (UINT_PTR address, int size);
 typedef BOOL (__stdcall *CEP_UNFREEZEMEM) (int freezeID);
 typedef BOOL (__stdcall *CEP_FIXMEM) (void);
 typedef BOOL (__stdcall *CEP_PROCESSLIST) (char *listbuffer, int listsize);
 typedef BOOL (__stdcall *CEP_RELOADSETTINGS) (void);
-typedef DWORD (__stdcall *CEP_GETADDRESSFROMPOINTER) (ULONG baseaddress, int offsetcount, int* offsets);  
+typedef DWORD (__stdcall *CEP_GETADDRESSFROMPOINTER) (UINT_PTR baseaddress, int offsetcount, int* offsets);  
 typedef BOOL (__stdcall *CEP_GENERATEAPIHOOKSCRIPT) (char *address, char *addresstojumpto, char *addresstogetnewcalladdress, char *script, int maxscriptsize);
-typedef BOOL (__stdcall *CEP_ADDRESSTONAME) (DWORD address, char *name, int maxnamesize);
-typedef BOOL (__stdcall *CEP_NAMETOADDRESS) (char *name, DWORD *address);
+typedef BOOL (__stdcall *CEP_ADDRESSTONAME) (UINT_PTR address, char *name, int maxnamesize);
+typedef BOOL (__stdcall *CEP_NAMETOADDRESS) (char *name, UINT_PTR *address);
 
 typedef VOID (__stdcall *CEP_LOADDBK32)(void);
 typedef BOOL (__stdcall *CEP_LOADDBVMIFNEEDED)(void);
