@@ -376,11 +376,11 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 432
-      Height = 17
+      Left = 430
+      Height = 19
       Hint = 'Enable speedhack'
       Top = 194
-      Width = 109
+      Width = 111
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
       Enabled = False
@@ -402,10 +402,10 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 435
-      Height = 17
+      Left = 433
+      Height = 19
       Top = 128
-      Width = 58
+      Width = 60
       Anchors = [akTop, akRight]
       Caption = 'Unicode'
       TabOrder = 17
@@ -426,9 +426,9 @@ object MainForm: TMainForm
       TabOrder = 0
       object Readonly: TCheckBox
         Left = 3
-        Height = 17
+        Height = 19
         Top = 45
-        Width = 149
+        Width = 151
         Caption = 'Also scan read-only memory'
         Enabled = False
         Font.Height = -11
@@ -438,9 +438,9 @@ object MainForm: TMainForm
       end
       object cbFastScan: TCheckBox
         Left = 3
-        Height = 17
+        Height = 19
         Top = 68
-        Width = 64
+        Width = 66
         Caption = 'Fast scan'
         Checked = True
         Enabled = False
@@ -453,9 +453,9 @@ object MainForm: TMainForm
       end
       object cbPauseWhileScanning: TCheckBox
         Left = 3
-        Height = 17
+        Height = 19
         Top = 91
-        Width = 168
+        Width = 170
         Caption = 'Pause the game while scanning'
         Enabled = False
         OnClick = cbPauseWhileScanningClick
@@ -536,9 +536,9 @@ object MainForm: TMainForm
       end
       object rbFsmAligned: TRadioButton
         Left = 127
-        Height = 17
+        Height = 19
         Top = 60
-        Width = 64
+        Width = 66
         Caption = 'Alignment'
         Checked = True
         TabOrder = 7
@@ -546,9 +546,9 @@ object MainForm: TMainForm
       end
       object rbfsmLastDigts: TRadioButton
         Left = 127
-        Height = 17
+        Height = 19
         Top = 76
-        Width = 65
+        Width = 67
         Caption = 'Last digits'
         TabOrder = 6
       end
@@ -654,11 +654,11 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object HexadecimalCheckbox: TCheckBox
-      Left = 209
-      Height = 17
+      Left = 207
+      Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
-      Width = 37
+      Width = 39
       HelpContext = 7
       Anchors = [akTop, akRight]
       Caption = 'Hex'
@@ -717,10 +717,10 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 435
-      Height = 17
+      Left = 433
+      Height = 19
       Top = 146
-      Width = 86
+      Width = 88
       Anchors = [akTop, akRight]
       Caption = 'Case sensitive'
       Checked = True
@@ -879,10 +879,10 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 432
-      Height = 17
+      Left = 430
+      Height = 19
       Top = 174
-      Width = 83
+      Width = 85
       Anchors = [akTop, akRight]
       Caption = 'Unrandomizer'
       Enabled = False

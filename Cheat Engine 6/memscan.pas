@@ -108,6 +108,7 @@ type
     //check routines:
     function ByteExact(newvalue,oldvalue: pointer): boolean;
     function ByteBetween(newvalue,oldvalue: pointer): boolean;
+    function ByteBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function ByteBiggerThan(newvalue,oldvalue: pointer): boolean;
     function ByteSmallerThan(newvalue,oldvalue: pointer): boolean;
     function ByteIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -121,6 +122,7 @@ type
 
     function WordExact(newvalue,oldvalue: pointer): boolean;
     function WordBetween(newvalue,oldvalue: pointer): boolean;
+    function WordBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function WordBiggerThan(newvalue,oldvalue: pointer): boolean;
     function WordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function WordIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -134,6 +136,7 @@ type
 
     function DWordExact(newvalue,oldvalue: pointer): boolean;
     function DWordBetween(newvalue,oldvalue: pointer): boolean;
+    function DWordBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function DWordBiggerThan(newvalue,oldvalue: pointer): boolean;
     function DWordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function DWordIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -148,6 +151,7 @@ type
 
     function QWordExact(newvalue,oldvalue: pointer): boolean;
     function QWordBetween(newvalue,oldvalue: pointer): boolean;
+    function QWordBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function QWordBiggerThan(newvalue,oldvalue: pointer): boolean;
     function QWordSmallerThan(newvalue,oldvalue: pointer): boolean;
     function QWordIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -161,6 +165,7 @@ type
 
     function SingleExact(newvalue,oldvalue: pointer): boolean;
     function SingleBetween(newvalue,oldvalue: pointer): boolean;
+    function SingleBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function SingleBiggerThan(newvalue,oldvalue: pointer): boolean;
     function SingleSmallerThan(newvalue,oldvalue: pointer): boolean;
     function SingleIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -174,6 +179,7 @@ type
 
     function DoubleExact(newvalue,oldvalue: pointer): boolean;
     function DoubleBetween(newvalue,oldvalue: pointer): boolean;
+    function DoubleBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function DoubleBiggerThan(newvalue,oldvalue: pointer): boolean;
     function DoubleSmallerThan(newvalue,oldvalue: pointer): boolean;
     function DoubleIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -187,6 +193,7 @@ type
 
     function AllExact(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
     function AllBetween(newvalue,oldvalue: pointer): boolean;
+    function AllBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function AllBiggerThan(newvalue,oldvalue: pointer): boolean;
     function AllSmallerThan(newvalue,oldvalue: pointer): boolean;
     function AllIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -200,6 +207,7 @@ type
 
     function CustomExact(newvalue,oldvalue: pointer): boolean;
     function CustomBetween(newvalue,oldvalue: pointer): boolean;
+    function CustomBetweenPercentage(newvalue,oldvalue: pointer): boolean;
     function CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
     function CustomSmallerThan(newvalue,oldvalue: pointer): boolean;
     function CustomIncreasedValue(newvalue,oldvalue: pointer): boolean;
@@ -532,6 +540,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleExact(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
 
+ { //nah, nevermind
+ if allincludescustomtypes then
+  begin
+    for i:=0 to customtypecount-1 do
+    begin
+      customtype:=customtypelist[i]
+      customtypesmatch[i]:=customtypesmatch[i] and CustomExact(newvalue,oldvalue)
+    end;
+  end;  }
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -550,6 +568,25 @@ begin
   typesmatch[vtQword]:=typesmatch[vtQword] and qwordBetween(newvalue,oldvalue);
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetween(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
+
+  result:=false;
+  for i:=vtbyte to vtdouble do
+    if typesmatch[i] then
+    begin
+      result:=true;
+      exit;
+    end;
+end;
+
+function TScanner.AllBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+var i: TVariableType;
+begin
+  typesmatch[vtByte]:=typesmatch[vtByte] and ByteBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtWord]:=typesmatch[vtWord] and WordBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtDword]:=typesmatch[vtDword] and DwordBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtQword]:=typesmatch[vtQword] and qwordBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetweenPercentage(newvalue,oldvalue);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -840,6 +877,11 @@ begin
   result:=(pbyte(newvalue)^>=byte(value)) and (pbyte(newvalue)^<=byte(value2));
 end;
 
+function TScanner.ByteBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=(pbyte(newvalue)^>trunc(pbyte(oldvalue)^*svalue)) and (pbyte(newvalue)^<=trunc(pbyte(oldvalue)^*svalue2));
+end;
+
 function TScanner.ByteBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pbyte(newvalue)^>byte(value);
@@ -904,6 +946,11 @@ begin
   result:=(pword(newvalue)^>=word(value)) and (pword(newvalue)^<=word(value2));
 end;
 
+function TScanner.WordBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=(pword(newvalue)^>trunc(pword(oldvalue)^*svalue)) and (pword(newvalue)^<=trunc(pword(oldvalue)^*svalue2));
+end;
+
 function TScanner.WordBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pword(newvalue)^>word(value);
@@ -964,6 +1011,11 @@ end;
 function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
 begin
   result:=(customType.ConvertDataToInteger(newvalue)>=integer(value)) and (customType.ConvertDataToInteger(newvalue)<=integer(value2));
+end;
+
+function TScanner.CustomBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=(customType.ConvertDataToInteger(newvalue)>trunc(customType.ConvertDataToInteger(oldvalue)*svalue)) and (customType.ConvertDataToInteger(newvalue)<=trunc(customType.ConvertDataToInteger(oldvalue)*svalue2));
 end;
 
 function TScanner.CustomBiggerThan(newvalue,oldvalue: pointer): boolean;
@@ -1028,6 +1080,11 @@ begin
   result:=(pdword(newvalue)^>=dword(value)) and (pdword(newvalue)^<=dword(value2));
 end;
 
+function TScanner.DwordBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=(pdword(newvalue)^>trunc(pdword(oldvalue)^*svalue)) and (pdword(newvalue)^<=trunc(pdword(oldvalue)^*svalue2));
+end;
+
 function TScanner.DWordBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   result:=pdword(newvalue)^>dword(value);
@@ -1088,6 +1145,11 @@ end;
 function TScanner.QWordBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(PQWORD(newvalue)^>=uint64(value)) and (PQWORD(newvalue)^<=uint64(value2));
+end;
+
+function TScanner.QwordBetweenPercentage(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=(PQWORD(newvalue)^>trunc(PQWORD(oldvalue)^*svalue)) and (PQWORD(newvalue)^<=trunc(PQWORD(oldvalue)^*svalue2));
 end;
 
 function TScanner.QWordBiggerThan(newvalue,oldvalue: pointer):boolean;
@@ -1164,6 +1226,11 @@ begin
   result:=(psingle(newvalue)^>=svalue) and (psingle(newvalue)^<=svalue2);
 end;
 
+function TScanner.SingleBetweenPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(psingle(newvalue)^>psingle(oldvalue)^*svalue) and (psingle(newvalue)^<=psingle(oldvalue)^*svalue2);
+end;
+
 function TScanner.SingleBiggerThan(newvalue,oldvalue: pointer):boolean;
 begin
   result:=psingle(newvalue)^>svalue;
@@ -1233,6 +1300,11 @@ end;
 function TScanner.DoubleBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(pdouble(newvalue)^>=dvalue) and (pdouble(newvalue)^<=dvalue2);
+end;
+
+function TScanner.DoubleBetweenPercentage(newvalue,oldvalue: pointer): boolean;
+begin
+  result:=(pdouble(newvalue)^>pdouble(oldvalue)^*dvalue) and (pdouble(newvalue)^<=pdouble(oldvalue)^*dvalue2);
 end;
 
 function TScanner.DoubleBiggerThan(newvalue,oldvalue: pointer):boolean;
@@ -1501,15 +1573,6 @@ begin
 
         scancontroller.resultsaveCS.Enter;
         try
-
-          //note: Compressing before writing using TCompressStream=failure
-          //on fast compression speed it still took longer to compess and write
-          //than to only write the uncompressed buffer (no compress=2.8 secs,
-          //compressed=7.1 sec)
-
-  //        cAddressFile.WriteBuffer(addressbuffer^,addressSize);
-  //        cMemoryFile.WriteBuffer(memorybuffer^,memorySize);
-
           part:=1;
           AddressFile.WriteBuffer(addressbuffer^,addressSize);
 
@@ -2128,7 +2191,7 @@ begin
         else
           value:=strtoint64(scanvalue1);
       except
-        if variableType=vtAll then
+        if (variableType=vtAll) or (percentage) then
         begin
           try
             dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -2161,7 +2224,7 @@ begin
             value2:=strtoint64(scanvalue2);
 
         except
-          if variableType=vtAll then
+          if (variableType=vtAll) or (percentage) then
           begin
             try
               dvalue:=strtofloat(scanvalue2,FloatSettings);
@@ -2228,6 +2291,7 @@ begin
       begin
         if dvalue>dvalue2 then
         begin
+
           td:=dvalue;
           dvalue:=dvalue2;
           dvalue2:=td;
@@ -2342,7 +2406,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=byteExact;
-        soValueBetween:     checkroutine:=byteBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=byteBetweenPercentage
+                            else
+                              checkroutine:=byteBetween;
         soBiggerThan:       checkroutine:=byteBiggerThan;
         soSmallerThan:      checkroutine:=byteSmallerThan;
         soIncreasedValue:   checkroutine:=byteIncreasedValue;
@@ -2368,7 +2435,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=wordExact;
-        soValueBetween:     checkroutine:=wordBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=wordBetweenPercentage
+                            else
+                              checkroutine:=wordBetween;
         soBiggerThan:       checkroutine:=wordBiggerThan;
         soSmallerThan:      checkroutine:=wordSmallerThan;
         soIncreasedValue:   checkroutine:=wordIncreasedValue;
@@ -2394,7 +2464,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=dwordExact;
-        soValueBetween:     checkroutine:=dwordBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=dwordBetweenPercentage
+                            else
+                              checkroutine:=dwordBetween;
         soBiggerThan:       checkroutine:=dwordBiggerThan;
         soSmallerThan:      checkroutine:=dwordSmallerThan;
         soIncreasedValue:   checkroutine:=dwordIncreasedValue;
@@ -2420,7 +2493,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=qwordExact;
-        soValueBetween:     checkroutine:=qwordBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=qwordBetweenPercentage
+                            else
+                              checkroutine:=qwordBetween;
         soBiggerThan:       checkroutine:=qwordBiggerThan;
         soSmallerThan:      checkroutine:=qwordSmallerThan;
         soIncreasedValue:   checkroutine:=qwordIncreasedValue;
@@ -2446,7 +2522,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=singleExact;
-        soValueBetween:     checkroutine:=singleBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=singleBetweenPercentage
+                            else
+                              checkroutine:=singleBetween;
         soBiggerThan:       checkroutine:=singleBiggerThan;
         soSmallerThan:      checkroutine:=singleSmallerThan;
         soIncreasedValue:   checkroutine:=singleIncreasedValue;
@@ -2456,7 +2535,10 @@ begin
                               checkroutine:=singleIncreasedValueBy;
 
         soDecreasedValue:   checkroutine:=singleDecreasedValue;
-        soDecreasedValueBy: checkroutine:=singleDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=singleDecreasedValueByPercentage
+                            else
+                              checkroutine:=singleDecreasedValueBy;
         soChanged:          checkroutine:=singleChanged;
         soUnChanged:        checkroutine:=singleUnchanged;
       end;
@@ -2470,7 +2552,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=doubleExact;
-        soValueBetween:     checkroutine:=doubleBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=DoubleBetweenPercentage
+                            else
+                              checkroutine:=doubleBetween;
         soBiggerThan:       checkroutine:=doubleBiggerThan;
         soSmallerThan:      checkroutine:=doubleSmallerThan;
         soIncreasedValue:   checkroutine:=doubleIncreasedValue;
@@ -2543,7 +2628,10 @@ begin
       FlushRoutine:=allFlush;
       case scanOption of
         soExactValue:       checkRoutine:=allExact;
-        soValueBetween:     checkroutine:=allBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=allBetweenPercentage
+                            else
+                              checkroutine:=allBetween;
         soBiggerThan:       checkroutine:=allBiggerThan;
         soSmallerThan:      checkroutine:=allSmallerThan;
         soIncreasedValue:   checkroutine:=allIncreasedValue;
@@ -2552,7 +2640,10 @@ begin
                             else
                               checkroutine:=allIncreasedValueBy;
         soDecreasedValue:   checkroutine:=allDecreasedValue;
-        soDecreasedValueBy: checkroutine:=allDecreasedValueBy;
+        soDecreasedValueBy: if percentage then
+                              checkroutine:=allDecreasedValueByPercentage
+                            else
+                              checkroutine:=allDecreasedValueBy;
         soChanged:          checkroutine:=allChanged;
         soUnChanged:        checkroutine:=allUnchanged;
       end;
@@ -2567,7 +2658,10 @@ begin
 
       case scanOption of
         soExactValue:       checkRoutine:=customExact;
-        soValueBetween:     checkroutine:=customBetween;
+        soValueBetween:     if percentage then
+                              checkroutine:=customBetweenPercentage
+                            else
+                              checkroutine:=customBetween;
         soBiggerThan:       checkroutine:=customBiggerThan;
         soSmallerThan:      checkroutine:=customSmallerThan;
         soIncreasedValue:   checkroutine:=customIncreasedValue;
@@ -4083,7 +4177,7 @@ begin
     end;
   end;
 
-  outputdebugstring('bla3');
+  outputdebugstring('end of scancontroller reached');
 end;
 
 constructor TScanController.create(suspended: boolean);

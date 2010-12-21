@@ -134,6 +134,7 @@ type TExportedFunctions4 = record
   memrec_setValue: pointer;
   memrec_getScript: pointer;
   memrec_setScript: pointer;
+  memrec_isfrozen: pointer;
   memrec_freeze: pointer;
   memrec_unfreeze: pointer;
   memrec_setColor: pointer;
@@ -528,7 +529,7 @@ end;
 
 //plugin type 1:
 //where: menu bar under plugins in memory view, user activated
-type TPluginfunction1=function(disassembleraddress: pdword; selected_disassembler_address: pdword; hexviewaddress:pdword ):bool; stdcall;
+type TPluginfunction1=function(disassembleraddress: pptruint; selected_disassembler_address: pptruint; hexviewaddress:pptruint ):bool; stdcall;
 
 //private plugin data
 type TPluginfunctionType1=class
@@ -553,8 +554,8 @@ end;
 
 //plugin type 3:
 //where: a new process created according to the processwatcher
-type TPluginFunction3=function(processid: dword; peprocess:dword; created: BOOL):integer; stdcall;
-type TPluginFunction3Version1=function(processid: dword; peprocess:dword):integer; stdcall;
+type TPluginFunction3=function(processid: dword; peprocess:ptruint; created: BOOL):integer; stdcall;
+type TPluginFunction3Version1=function(processid: dword; peprocess:ptruint):integer; stdcall;
 type TPluginfunctionType3=class
   public
     pluginid: integer;
@@ -589,8 +590,8 @@ end;
 
 //plugin type 6:
 //where: rightclick context of the disassembler
-type TPluginfunction6=function(selectedAddress: pdword):bool; stdcall;
-type Tpluginfuntion6OnContext=function(selectedAddress: dword; addressofname: pointer):bool; stdcall;
+type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
+type Tpluginfuntion6OnContext=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
 
 //private plugin data
 type TPluginfunctionType6=class
@@ -605,7 +606,7 @@ end;
 
 //plugin type 7:
 //where: when a disassembler line is being rendered
-type TPluginFunction7=procedure(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
+type TPluginFunction7=procedure(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
 type TPluginfunctionType7=class
   public
     pluginid: integer;
@@ -1255,9 +1256,13 @@ begin
   end;
 
   hmodule:=loadlibrary(pchar(dllname));
-  GetVersion:=getprocaddress(hmodule,'GetVersion');
 
-  if @GetVersion=nil then raise exception.Create('Error loading '+dllname+'. The dll is missing the GetVersion function');
+  GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
+  if not assigned(GetVersion) then
+    GetVersion:=getprocaddress(hmodule,'GetVersion');
+
+
+  if not assigned(GetVersion) then raise exception.Create('Error loading '+dllname+'. The dll is missing the CEPlugin_GetVersion export');
   if GetVersion(PluginVersion,sizeof(TPluginVersion)) then
   begin
     if PluginVersion.version>currentpluginversion then
@@ -1272,13 +1277,25 @@ begin
         plugins[length(plugins)-1].filepath:=GetRelativeFilePath(dllname);
         plugins[length(plugins)-1].hmodule:=hmodule;
         plugins[length(plugins)-1].name:=PluginVersion.pluginname;
-        plugins[length(plugins)-1].GetVersion:=getprocaddress(hmodule,'GetVersion');
-        plugins[length(plugins)-1].EnablePlugin:=getprocaddress(hmodule,'InitializePlugin');
-        plugins[length(plugins)-1].DisablePlugin:=getprocaddress(hmodule,'DisablePlugin');
+
+        plugins[length(plugins)-1].GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
+        if not assigned(plugins[length(plugins)-1].GetVersion) then
+          plugins[length(plugins)-1].GetVersion:=GetProcAddress(hmodule, 'GetVersion');
+
+
+        plugins[length(plugins)-1].EnablePlugin:=getprocaddress(hmodule,'CEPlugin_InitializePlugin');
+        if not assigned(plugins[length(plugins)-1].EnablePlugin) then
+          plugins[length(plugins)-1].EnablePlugin:=GetProcAddress(hmodule, 'InitializePlugin');
+
+        plugins[length(plugins)-1].DisablePlugin:=getprocaddress(hmodule,'CEPlugin_DisablePlugin');
+        if not assigned(plugins[length(plugins)-1].DisablePlugin) then
+          plugins[length(plugins)-1].DisablePlugin:=GetProcAddress(hmodule, 'DisablePlugin');
+
+
         plugins[length(plugins)-1].nextid:=1;
 
-        if @plugins[length(plugins)-1].EnablePlugin=nil then raise exception.Create(dllname+' is missing the InitializePlugin export');
-        if @plugins[length(plugins)-1].DisablePlugin=nil then raise exception.Create(dllname+' is missing the DisablePlugin export');
+        if not assigned(plugins[length(plugins)-1].EnablePlugin) then raise exception.Create(dllname+' is missing the CEPlugin_InitializePlugin export');
+        if not assigned(plugins[length(plugins)-1].DisablePlugin) then raise exception.Create(dllname+' is missing the CEPlugin_DisablePlugin export');
         result:=length(plugins)-1;
       except
         on e: exception do
@@ -1536,6 +1553,7 @@ begin
   exportedfunctions.memrec_setValue:=@ce_memrec_setValue;
   exportedfunctions.memrec_getScript:=@ce_memrec_getScript;
   exportedfunctions.memrec_setScript:=@ce_memrec_setScript;
+  exportedfunctions.memrec_isfrozen:=@ce_memrec_isfrozen;
   exportedfunctions.memrec_freeze:=@ce_memrec_freeze;
   exportedfunctions.memrec_unfreeze:=@ce_memrec_unfreeze;
   exportedfunctions.memrec_setColor:=@ce_memrec_setColor;

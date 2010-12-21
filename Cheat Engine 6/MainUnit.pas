@@ -1511,14 +1511,22 @@ begin
   begin
     //turn this into a double value scan like "value between"
     CreateScanValue2;
-    ScanText.caption:='Between %';
-    ScanText2.caption:=scantext2.caption+' %';
+    ScanText.caption:='Value %';
+    ScanText2.caption:='Value %';
   end
   else
   begin
-    //single value scan
-    ScanText.caption:='Exact Value';
-    DestroyScanValue2;
+    if ScanType.text<>strValueBetween then
+    begin
+      //single value scan
+      ScanText.caption:=strScantextcaptiontoValue;
+      DestroyScanValue2;
+    end
+    else
+    begin
+      ScanText.caption:=strScantextcaptiontoValue;
+      ScanText2.caption:=strScantextcaptiontoValue;
+    end;
   end;
 end;
 
@@ -1527,20 +1535,28 @@ begin
   if cbpercentage=nil then
   begin
     cbpercentage:=tcheckbox.create(self);
+    cbpercentage.AutoSize:=true;
     cbpercentage.Left:=scantype.Left+scantype.Width+5;
     cbpercentage.Top:=scantype.Top+2;
-    cbpercentage.Caption:='at least xx%';
-    cbpercentage.Anchors:=[akTop,akRight];
-    cbpercentage.Width:=80;
+
     cbpercentage.Parent:=scantype.Parent;
     cbpercentage.OnChange:=cbPercentageOnChange;
   end;
+
+  if ScanType.text=strValueBetween then
+    cbpercentage.Caption:='between %'
+  else
+    cbpercentage.Caption:='at least xx%';
+
 end;
 
 procedure TMainForm.DestroyCbPercentage;
 begin
   if cbpercentage<>nil then
+  begin
+    cbpercentage.Checked:=false;
     freeandnil(cbpercentage);
+  end;
 end;
 //------------------
 
@@ -1700,9 +1716,10 @@ begin
 
   if (oldtext=strUnknownInitialValue) and (NextScanButton.enabled) then scantype.itemindex:=0 else scantype.itemindex:=oldindex;
 
-  if (scantype.text=strIncreasedValueBy) or (scantype.text=strDecreasedValueBy) then
+  if (scantype.text=strIncreasedValueBy) or (scantype.text=strDecreasedValueBy) or (scantype.text=strValueBetween) then
   begin
-    createCbPercentage;
+    if NextScanButton.enabled then
+      createCbPercentage;
 
   end
   else
@@ -2987,8 +3004,9 @@ begin
 
 
   lblcompareToSavedScan.left:=newscan.left + ((((nextscanbutton.left+nextscanbutton.width) - newscan.left) div 2) - (lblcompareToSavedScan.width div 2));
- // if cbpercentage<>nil then
- //   cbpercentage.left:=scantype.left+scantype.width+3;
+
+  if cbpercentage<>nil then
+    cbpercentage.left:=scantype.left+scantype.width+5;
 end;
 
 procedure TMainForm.pmTablistPopup(Sender: TObject);
@@ -3072,7 +3090,11 @@ begin
   begin
     scanvalue.SetFocus;
     scanvalue.SelectAll;
-  end
+  end;
+
+  compareToSavedScan:=false;
+  lblcompareToSavedScan.visible:=false;
+
 end;
 
 procedure TMainForm.NewScanClick(Sender: TObject);
@@ -4985,6 +5007,16 @@ begin
   if formsettings.cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
 
   adjustbringtofronttext;
+
+  if not NextScanButton.Enabled then
+  begin
+    //memscan can be reset
+    if memscan<>nil then
+      memscan.free;
+
+    memscan:=tmemscan.create(progressbar1);
+    memscan.setScanDoneCallback(mainform.handle,wm_scandone);
+  end;
 end;
 
 procedure TMainForm.cbCaseSensitiveClick(Sender: TObject);

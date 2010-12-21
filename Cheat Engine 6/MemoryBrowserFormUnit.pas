@@ -1548,8 +1548,6 @@ end;
 procedure TMemoryBrowser.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-  if (debuggerthread<>nil) and (run1.enabled) then run1.click; //run if it was paused
-
   if ischild then
   begin
     //do stuff particulary for the children
@@ -1558,6 +1556,8 @@ begin
   else
   begin
     //do stuff for the main debugger
+    if (debuggerthread<>nil) and (run1.enabled) then run1.click; //run if it was paused
+
 
     if frmFloatingPointPanel<>nil then
       frmFloatingPointPanel.Visible:=false;
@@ -2403,15 +2403,20 @@ procedure TMemoryBrowser.plugintype1click(sender:tobject);
 var x: TPluginfunctionType1;
 address: ptrUint;
 hexviewaddress: ptrUint;
+seladdress: ptruint;
 begin
   x:=TPluginfunctionType1(tmenuitem(sender).Tag);
   if x<>nil then
   begin
     address:=disassemblerview.TopAddress;
     hexviewaddress:=memoryaddress;
-    x.callback(@address,@disassemblerview.SelectedAddress,@hexviewaddress);
-    disassemblerview.TopAddress:=address;
-    memoryaddress:=hexviewaddress;
+    seladdress:=disassemblerview.SelectedAddress;
+    if x.callback(@address,@seladdress,@hexviewaddress) then
+    begin
+      disassemblerview.TopAddress:=address;
+      disassemblerview.selectedaddress:=seladdress;
+      memoryaddress:=hexviewaddress;
+    end;
   end;
 end;
 
@@ -3628,7 +3633,8 @@ begin
 
   reloadStacktrace;
 
-  memorybrowser.show;
+  if not memorybrowser.Visible then
+    memorybrowser.show;
 end;
 
 initialization

@@ -169,6 +169,9 @@ var x: string;
     floathasseperator: boolean;
     couldbestringcounter: boolean;
 begin
+  Set8087CW($133f); //disable floating point exceptions (multithreaded)
+  SetSSECSR($1f80);
+
   //check if it matches a string
   result:=vtDword;
   floathasseperator:=false;

@@ -73,6 +73,8 @@ type
 
     fVarType : TVariableType;
 
+    couldnotinterpretaddress: boolean; //set when the address interpetation has failed since last eval
+
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
@@ -963,11 +965,11 @@ begin
 end;
 
 procedure TMemoryRecord.ReinterpretAddress;
-var he: boolean;
-a: ptrUint;
+var
+  a: ptrUint;
 begin
-  a:=symhandler.getAddressFromName(interpretableaddress,false,he);
-  if not he then
+  a:=symhandler.getAddressFromName(interpretableaddress,false,couldnotinterpretaddress);
+  if not couldnotinterpretaddress then
     baseaddress:=a;
 
 
@@ -996,7 +998,13 @@ begin
       result:='P->????????'
     else
       result:='P->'+inttohex(realaddress,8);
-  end else result:=inttohex(realaddress,8);
+  end else
+  begin
+    if (realaddress=0) and (couldnotinterpretaddress) then
+      result:='('+interpretableaddress+')'
+    else
+      result:=inttohex(realaddress,8);
+  end;
 end;
 
 function TMemoryRecord.BinaryToString(b: pbytearray; bufsize: integer): string;

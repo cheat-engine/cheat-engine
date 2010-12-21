@@ -6,6 +6,12 @@ interface
 
 uses windows, sysutils, graphics;
 
+{$ifndef fpc}
+//if old delphi then define the ptruint type
+type ptruint=dword;
+type pptruint=^ptruint'
+{$endif}
+
 const PluginVersionSDK=4;
 
 type TAutoAssemblerPhase=(aaInitialize=0, aaPhase1=1, aaPhase2=2, aaFinalize=3);

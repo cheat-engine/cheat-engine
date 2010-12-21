@@ -45,6 +45,7 @@ begin
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);
+
 begin
   health:=health-(1+random(5));
   label1.Caption:=inttostr(health);

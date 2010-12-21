@@ -360,12 +360,20 @@ var address: string;
     disablepos: integer;
     enablecode: tstringlist;
     disablecode: tstringlist;
+
+    mi: TModuleInfo;
 begin
 {$ifndef standalonetrainerwithassembler}
 
   a:=memorybrowser.disassemblerview.SelectedAddress;
 
-  address:=inttohex(a,8);
+  if symhandler.getmodulebyaddress(a,mi) then
+  begin
+    address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1);
+  end
+  else
+    address:=inttohex(a,8);
+
   if inputquery('Code inject template','On what address do you want the jump?',address) then
   begin
     try

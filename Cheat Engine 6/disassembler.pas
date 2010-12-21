@@ -511,6 +511,9 @@ end;
 function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 var dwordptr: ^dword;
     regprefix: char;
+    i: integer;
+
+
 begin
   if processhandler.is64Bit then
     regprefix:='r'
@@ -545,8 +548,11 @@ begin
             3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'],';
             4:
             begin
-              result:=sib(memory,modrmbyte+1,last);
-              dwordptr:=@memory[last];
+              result:='['+sib(memory,modrmbyte+1,last)+']';
+              //no displacement unless it's 64-bit and that is already handled in sib()
+
+              {dwordptr:=@memory[last];
+
 
               if result='' then
               begin
@@ -554,7 +560,7 @@ begin
                 LastdisassembleData.modrmValue:=dwordptr^;
               end;
 
-              if integer(dwordptr^)<0 then
+              if integer(dwordptr^)>0 then
               begin
                 if result<>'' then
                   result:=result+'+'+inttohexs(integer(dwordptr^),8)+'],'
@@ -571,7 +577,7 @@ begin
 
               result:=getsegmentoverride(prefix)+'['+result;
 
-              inc(last,4);
+              inc(last,4);}
             end;
 
             5:
@@ -10189,6 +10195,19 @@ begin
 end;
 
 
+function previousOpcodeHelp(address: ptruint; distance:integer; var result2: ptruint): ptruint;
+var x,y: ptruint;
+    s: string;
+begin
+  x:=address-distance;
+  while x<address do
+  begin
+    y:=x;
+    disassemble(x,s);
+  end;
+  result:=x;
+  result2:=y;
+end;
 
 
 function previousopcode(address: ptrUint):ptrUint;
@@ -10196,53 +10215,38 @@ var x,y: ptrUint;
     s: string;
     found: boolean;
     i: ptrUint;
+
+    best: integer;
 begin
-  y:=address-40;
-
-  while y<address do
+  x:=previousOpcodeHelp(address,80, result);
+  if x<>address then
   begin
-    x:=y;
-    disassemble(y,s);
-  end;
+    //no match found 80 bytes from the start
+    //try 40
+    x:=previousOpcodeHelp(address,40, result);
 
-  if y=address then //next disassembly results in the exact address
-  begin
-    if defaultDisassembler.LastDisassembleData.parameters <> '[eax],al' then
+    if x<>address then
     begin
-      result:=x;
-      exit;
-    end
-    else y:=address-15;
-  end;
+      //nothing with 40, try 20
+      x:=previousOpcodeHelp(address,20,result);
+      if x<>address then
+      begin
+        //and if all else fails try to find the closest one
+        result:=address-1;
+        for i:=1 to 20 do
+        begin
+          x:=address-i;
+          disassemble(x,s);
+          if x=address then
+          begin
+            result:=address-i;
+            exit;
+          end;
+        end;
 
-  i:=address-15;
-  while (i<address) and (y<>address) do
-  begin
-    y:=i;
-    while y<address do
-    begin
-      x:=y;
-      disassemble(y,s);
+      end;
     end;
-
-    if defaultDisassembler.LastDisassembleData.parameters = '[eax],al' then
-      y:=i;
-
-    inc(i);
   end;
-
-  if i=address then result:=address-1 else result:=x;
-
-{   perhaps someday...
-  y:=result;
-  disassemble(y,s);
-
-  begin
-    //override this decision
-  end;
-  }
-
- // if x<>address then result:=address-1 else result:=y;
 end;
 
 

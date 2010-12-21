@@ -1150,7 +1150,10 @@ begin
       //or if it is and either CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter is set then draw the rest
       if not ((node=CurrentlyDraggedOverNode) and (not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter))) then //don't draw the rest on insert drag/drop
       begin
+        //address
         sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
+
+        //type
         case memrec.vartype of
           vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName);
           vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
@@ -1165,6 +1168,7 @@ begin
         end;
 
 
+        //value
         sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
       end;
     end
