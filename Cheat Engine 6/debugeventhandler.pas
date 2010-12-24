@@ -83,6 +83,7 @@ type
     procedure fillContext;
     procedure setContext;
     procedure breakThread;
+    procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption);
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
     destructor destroy; override;
@@ -181,6 +182,22 @@ begin
   suspend;
   fillContext;
   context.eflags:=eflags_setTF(context.eflags,1);
+  SingleStepping:=true;
+
+  setContext;
+  resume;
+end;
+
+procedure TDebugThreadHandler.clearDebugRegisters;
+begin
+  suspend;
+  fillContext;
+  context.dr0:=0;
+  context.dr1:=0;
+  context.dr2:=0;
+  context.dr3:=0;
+  context.dr6:=0;
+  context.dr7:=0;
   SingleStepping:=true;
 
   setContext;

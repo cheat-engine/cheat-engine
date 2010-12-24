@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 795
+  Left = 807
   Height = 187
-  Top = 582
+  Top = 451
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'
@@ -33,6 +33,10 @@ object frmThreadlist: TfrmThreadlist
     object Break1: TMenuItem
       Caption = 'Break'
       OnClick = Break1Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Clear debug registers'
+      OnClick = MenuItem1Click
     end
   end
 end

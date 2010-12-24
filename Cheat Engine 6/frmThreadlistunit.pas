@@ -13,12 +13,14 @@ type
   { TfrmThreadlist }
 
   TfrmThreadlist = class(TForm)
+    MenuItem1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Break1: TMenuItem;
     threadTreeview: TTreeView;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Break1Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure threadTreeviewExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
   private
@@ -124,6 +126,32 @@ begin
 
   end;
 
+end;
+
+procedure TfrmThreadlist.MenuItem1Click(Sender: TObject);
+var threadlist: tlist;
+i: integer;
+begin
+  if debuggerthread<>nil then
+  begin
+    if (threadTreeview.Selected<>nil) and (threadTreeview.selected.Level=0) then
+    begin
+      threadlist:=debuggerthread.lockThreadlist;
+      try
+        for i:=0 to threadlist.Count-1 do
+        begin
+          if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+threadTreeview.selected.Text) then
+          begin
+            TDebugThreadHandler(threadlist[i]).clearDebugRegisters;
+            break;
+          end;
+        end;
+      finally
+        debuggerthread.unlockThreadlist;
+      end;
+    end;
+
+  end;
 end;
 
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
