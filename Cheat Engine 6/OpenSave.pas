@@ -693,7 +693,9 @@ var
     i: Integer;
     Extension: String;
     doc: TXMLDocument;
+    workdir: string;
 begin
+  SetCurrentDir(ExtractFilePath(filename)); //in case it's a table with 'external' files
 
   Extension:=uppercase(extractfileext(filename));
 

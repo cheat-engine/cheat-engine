@@ -108,6 +108,10 @@ function ce_messageDialog(message: pchar; messagetype: integer; buttoncombinatio
 function ce_messageDialog_Lua(message: pchar; messagetype: integer; buttoncombination: TMsgDlgButtons): integer;
 function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;
 
+function ce_getAutoAttachList: pointer; stdcall;
+procedure ce_stringlist_add(c: pointer; s: pchar); stdcall;
+procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
+
 implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
@@ -2246,6 +2250,63 @@ begin
   p.f:=nil;
 
   pluginsync(ce_form_onClose2, @p)
+end;
+
+
+function ce_getAutoAttachList2(params: pointer): pointer;
+begin
+  result:=mainform.extraautoattachlist;
+end;
+
+function ce_getAutoAttachList: pointer; stdcall;
+begin
+  result:=pluginsync(ce_getAutoAttachList2, nil);
+end;
+
+function ce_stringlist_add2(params: pointer): pointer;
+type TP=record
+  c: tstringlist;
+  s: pchar;
+end;
+var p: ^TP;
+begin
+  p:=params;
+  p.c.Add(p.s);
+  result:=nil;
+end;
+
+procedure ce_stringlist_add(c: pointer; s: pchar); stdcall;
+var p: record
+  c: tstringlist;
+  s: pchar;
+end;
+begin
+  pluginsync(ce_stringlist_add2, @p);
+end;
+
+function ce_stringlist_remove2(params: pointer): pointer;
+type TP=record
+  c: tstringlist;
+  s: pchar;
+end;
+var p: ^TP;
+  i: integer;
+begin
+  p:=params;
+  i:=p.c.IndexOf(p.s);
+  if i<>-1 then
+    p.c.Delete(i);
+
+  result:=nil;
+end;
+
+procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
+var p: record
+  c: tstringlist;
+  s: pchar;
+end;
+begin
+  pluginsync(ce_stringlist_remove2, @p);
 end;
 
 initialization

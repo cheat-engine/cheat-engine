@@ -23,6 +23,7 @@ require("defines")
 --showMessage(text) : shows a messagebox with the given text
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
+
 --getProcessIDFromProcessName(name) : returns a processid
 --openProcess(processid) : causes cheat engine to open the given processid
 --openProcess(processname): causes cheat engine to find and open the given process
@@ -38,6 +39,12 @@ require("defines")
 --keyDown(key) : causes the key to go into down state
 --keyUp(key) :causes the key to go up
 --doKeyPress(key) : simmulates a key press
+
+
+--messageDialog(text, type, buttons...) : pops up a message with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
+
+--speedhack_setSpeed(speed)
+--injectDll(filename): Injects a dll, and returns true on success
 
 
 
@@ -102,7 +109,7 @@ require("defines")
 --hideAllCEWindows() : makes all normal ce windows invisible (e.g trainer table)
 --unhideMainCEwindow() : shows the main cheat engine window
 
-------gui-objects-----
+------class-objects-----
 --The following objects are descendent from the object named "control", therefore the returned pointer when they are created can also be used for functions that start with control_
 
 --createForm(visible OPT): creates a form (window) and returns the pointer for it. Visible is default true but can be changed
@@ -141,17 +148,13 @@ require("defines")
 --timer_setInterval(timer, interval)
 --timer_onInterval(timer, function)
 
+--getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
+--stringlist_add(list, string);
+--stringlist_remove(list, string);
+
+
 
 --object_destroy(object) : Destroys the object (basically everything inherits from this class)
-
-
-
-
---messageDialog(text, type, buttons...) : pops up a message with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
-
---speedhack_setSpeed(speed)
---injectDll(filename): Injects a dll, and returns true on success
-
 
 
 

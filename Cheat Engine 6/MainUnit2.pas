@@ -12,7 +12,6 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
 
 
 procedure UpdateToolsMenu;
-procedure HandleautoAttachString;
 procedure LoadSettingsFromRegistry;
 procedure initcetitle;
 function GetScanType: Integer;
@@ -205,36 +204,6 @@ Text = 7
 
     end;
   end;
-end;
-
-procedure HandleautoAttachString;
-var s: string;
-    s2: string;
-    i: integer;
-begin
-
-  mainform.autoattachlist.clear;
-  s:=formsettings.EditAutoAttach.Text;
-  s2:='';
-  for i:=1 to length(s) do
-  begin
-    if s[i]=';' then
-    begin
-      s2:=trim(s2);
-      if s2<>'' then
-        mainform.autoattachlist.Add(s2);
-
-      s2:='';
-      continue;
-    end;
-    s2:=s2+s[i];
-  end;
-
-  s2:=trim(s2);
-  if s2<>'' then
-    mainform.autoattachlist.Add(s2);
-
-  mainform.AutoAttachTimer.Enabled:=mainform.autoattachlist.Count>0;
 end;
 
 procedure UpdateToolsMenu;
@@ -852,7 +821,10 @@ begin
   MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
   {$endif}
 
-  HandleAutoAttachString;
+
+  mainform.autoattachlist.Delimiter:=';';
+  mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
+
 
   if formsettings.cbShowMainMenu.Checked then
     mainform.Menu:=mainform.MainMenu1

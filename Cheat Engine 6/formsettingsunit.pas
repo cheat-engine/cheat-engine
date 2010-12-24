@@ -655,7 +655,7 @@ begin
   laststateSpeedhack:=tempstatespeedhack;
   lastSpeedhackmodifier:=tempspeedhackmodifier;
 
-  handleautoattachstring;
+  mainform.autoattachlist.DelimitedText:=formsettings.EditAutoAttach.Text;
 
   if cbShowMainMenu.Checked then
     mainform.Menu:=mainform.MainMenu1

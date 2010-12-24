@@ -2446,6 +2446,56 @@ begin
 end;
 
 
+
+
+function getAutoAttachList_fromLua(L: Plua_State): integer; cdecl;
+var f: pointer;
+  parameters: integer;
+  visible: boolean;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(L));
+
+  f:=ce_getAutoAttachList();
+  lua_pushlightuserdata(L, f);
+  result:=1;
+end;
+
+function stringlist_add_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  s: pchar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    s:=lua_tostring(L, -1);
+    ce_stringlist_add(c,s);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function stringlist_remove_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  s: pchar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    s:=lua_tostring(L, -1);
+    ce_stringlist_remove(c,s);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -2536,6 +2586,9 @@ initialization
     lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
     lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
+    lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
+    lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
+    lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
 
 
   end;

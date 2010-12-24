@@ -616,6 +616,7 @@ type
     editedsincelastsave: boolean;
 
     autoattachlist: TStringList;
+    extraautoattachlist: TStringList; //modifed by plugins and scripts, not affected by settings changes
     oldcodelistcount: integer;
 
     memscan: tmemscan;
@@ -3300,10 +3301,14 @@ begin
   //create object for the auto attach list
   autoattachlist := TStringList.Create;
   autoattachlist.CaseSensitive := False; //set it up as not case sensitive
+  autoattachlist.Delimiter:=';';
+
+  extraautoattachlist := TStringlist.create;
+  extraautoattachlist.CaseSensitive := False; //set it up as not case sensitive
+  extraautoattachlist.Delimiter:=';';
 
   randomize;
 
-  pluginhandler := TPluginhandler.Create;
 
 
 {$ifdef ceasinjectabledll}
@@ -3348,8 +3353,11 @@ begin
     foundlist3.columns[0].Width := x[6];
   end;
 
+  pluginhandler := TPluginhandler.Create;
+
   //custom types
   LoadCustomTypesFromRegistry;
+
 
 end;
 
@@ -5662,58 +5670,76 @@ var pl: TStringlist;
     a: string;
     p: string;
 
+
+    attachlist: tstringlist;
 begin
-  //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
   if (not formsettings.cbAlwaysAutoAttach.checked) and ((processhandle<>0) or (processid<>0)) then
     exit;
 
-  pl:=tstringlist.Create;
-  getprocesslist(pl);
-
+  attachlist:=tstringlist.create;
   try
+    attachlist.AddStrings(autoattachlist);
+    attachlist.AddStrings(extraautoattachlist);
 
-    for i:=0 to autoattachlist.Count-1 do
+    if attachlist.Count>0 then
     begin
-      a:=uppercase(autoattachlist.Strings[i]);
-      for j:=pl.Count-1 downto 0 do //can't do indexof
-      begin
-        p:=uppercase(pl.strings[j]);
-        if pos(a,p)=10 then
+      //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
+
+
+      pl:=tstringlist.Create;
+      getprocesslist(pl);
+
+      try
+
+        for i:=0 to attachlist.Count-1 do
         begin
-          //the process is found
-          p:='$'+copy(p,1,8);
-          val(p,newPID,k);
-          if processid=newPID then exit; //already attached to this one
+          a:=uppercase(trim(attachlist.Strings[i]));
+          for j:=pl.Count-1 downto 0 do //can't do indexof
+          begin
+            p:=uppercase(pl.strings[j]);
+            if pos(a,p)=10 then
+            begin
+              //the process is found
+              p:='$'+copy(p,1,8);
+              val(p,newPID,k);
+              if processid=newPID then exit; //already attached to this one
 
-          ProcessHandler.processid:=newPID;
-          unpause;
-          DetachIfPossible;
+              ProcessHandler.processid:=newPID;
+              unpause;
+              DetachIfPossible;
 
-          MainForm.ProcessLabel.caption:=pl.strings[j];
-          Open_Process;
-          enablegui(false);
+              MainForm.ProcessLabel.caption:=pl.strings[j];
+              Open_Process;
+              enablegui(false);
 
-          openProcessEpilogue('',0,0,true);
+              openProcessEpilogue('',0,0,true);
 
-          symhandler.reinitialize;
-          reinterpretaddresses;
+              symhandler.reinitialize;
+              reinterpretaddresses;
+            end;
+          end;
+
         end;
+      //  pl.IndexOf(autoattachlist.items[i]);
+
+      finally
+        for i:=0 to pl.count-1 do
+          if pl.Objects[i]<>nil then
+          begin
+            pli:=pointer(pl.Objects[i]);
+            if pli.processIcon>0 then
+              DestroyIcon(pli.processIcon);
+            freemem(pli);
+          end;
+
+        pl.free;
       end;
 
     end;
-  //  pl.IndexOf(autoattachlist.items[i]);
+
 
   finally
-    for i:=0 to pl.count-1 do
-      if pl.Objects[i]<>nil then
-      begin
-        pli:=pointer(pl.Objects[i]);
-        if pli.processIcon>0 then
-          DestroyIcon(pli.processIcon);
-        freemem(pli);
-      end;
-
-    pl.free;
+    attachlist.free;
   end;
 end;
 

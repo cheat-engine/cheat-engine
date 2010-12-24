@@ -1710,7 +1710,6 @@ object MainForm: TMainForm
     top = 488
   end
   object AutoAttachTimer: TTimer
-    Enabled = False
     Interval = 2000
     OnTimer = AutoAttachTimerTimer
     left = 440
