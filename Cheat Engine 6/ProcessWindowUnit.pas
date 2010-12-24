@@ -241,7 +241,7 @@ end;
 procedure TProcessWindow.OKButtonClick(Sender: TObject);
 var ProcessIDString: String; 
 begin
-
+  Outputdebugstring('OK button click');
   if Processlist.ItemIndex>-1 then
   begin
     unpause;
@@ -254,6 +254,8 @@ begin
     Modalresult:=MROK;
     //ProcessWindow.close;
   end;
+
+  outputdebugstring('After ok click handler');
 end;
 
 

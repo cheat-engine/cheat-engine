@@ -57,10 +57,10 @@ type
     { Public declarations }
   end;
 
-function peinfo_getcodesize(header: pointer): dword;
-function peinfo_getentryPoint(header: pointer): ptrUint;
-function peinfo_getcodebase(header: pointer): ptrUint;
-function peinfo_getdatabase(header: pointer): ptrUint;
+function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
+function peinfo_getentryPoint(header: pointer; headersize: integer=0): ptrUint;
+function peinfo_getcodebase(header: pointer; headersize: integer=0): ptrUint;
+function peinfo_getdatabase(header: pointer; headersize: integer=0): ptrUint;
 function peinfo_getheadersize(header: pointer): dword;
 
 
@@ -68,36 +68,54 @@ implementation
 
 
 
-function peinfo_getcodesize(header: pointer): dword;
+function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
-  result:=ImageNTHeader.OptionalHeader.SizeOfCode;
+  result:=0;
+
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader.OptionalHeader.SizeOfCode;
+  end;
 end;
 
-function peinfo_getdatabase(header: pointer): ptrUint;
+function peinfo_getdatabase(header: pointer; headersize: integer=0): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
-  result:=ImageNTHeader.OptionalHeader.BaseOfData;
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader.OptionalHeader.BaseOfData;
+  end;
 end;
 
-function peinfo_getcodebase(header: pointer): ptrUint;
+function peinfo_getcodebase(header: pointer; headersize: integer=0): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
-  result:=ImageNTHeader.OptionalHeader.BaseOfCode;
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader.OptionalHeader.BaseOfCode;
+  end;
 end;
 
-function peinfo_getEntryPoint(header: pointer): ptrUint;
+function peinfo_getEntryPoint(header: pointer; headersize: integer=0): ptrUint;
 var
     ImageNTHeader: PImageNtHeaders;
 begin
-  ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
-  result:=ImageNTHeader.OptionalHeader.AddressOfEntryPoint;
+  result:=0;
+  if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
+  begin
+    ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    result:=ImageNTHeader.OptionalHeader.AddressOfEntryPoint;
+  end;
+
 end;
 
 function peinfo_getheadersize(header: pointer): dword;

@@ -1899,15 +1899,21 @@ var
 
   wasActive: boolean; //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  outputdebugstring('openProcessEpilogue called');
   symhandler.reinitialize;
+  symhandler.waitforsymbolsloaded;
   reinterpretaddresses;
 
   if oldprocess=0 then //set disassembler and hexview of membrowser to what the main header says
     memorybrowser.setcodeanddatabase;
 
+  outputdebugstring('After setcodeanddatabase');
+
 
   if (processhandle = 0) then
   begin
+    outputdebugstring('processhandle is 0, so disabling gui');
+
     if newscan.Caption = strNewScan then
       newscan.click;
 
@@ -1967,7 +1973,7 @@ begin
   if (processID = oldProcess) then
     exit;
 
-
+  outputdebugstring('oldprocessid != processid');
 
   //a new process has been selected
   cbspeedhack.Enabled := True;
@@ -2056,6 +2062,8 @@ begin
     for i:=0 to scantablist.Count-1 do
       SaveCurrentState(PScanState(scantablist.TabData[i]));
 
+
+  outputdebugstring('openProcessEpilogue exit');
 end;
 
 procedure TMainForm.ShowProcessListButtonClick(Sender: TObject);

@@ -2650,10 +2650,13 @@ begin
 
   modulelist:=tstringlist.Create;
   symhandler.getModuleList(modulelist);
+  outputdebugstring('Retrieved the module list');
 
   if modulelist.Count>0 then
   begin
     base:=ptrUint(modulelist.Objects[0]);
+
+    outputdebugstring('Base='+inttohex(base,8));
 
 
     getmem(header,4096);
@@ -2664,15 +2667,18 @@ begin
 
         if headersize>0 then
         begin
+          OutputDebugString('headersize='+inttostr(headersize));
           if headersize>1024*512 then exit;
 
           freemem(header);
           getmem(header,headersize);
           if not readprocessmemory(processhandle,pointer(base),header,headersize,br) then exit;
 
+          Outputdebugstring('calling peinfo_getEntryPoint');
+          code:=base+peinfo_getEntryPoint(header, headersize);
 
-          code:=base+peinfo_getEntryPoint(header);
-          data:=base+peinfo_getdatabase(header);
+          OutputDebugString('calling peinfo_getdatabase');
+          data:=base+peinfo_getdatabase(header, headersize);
         end;
 
 
@@ -2687,7 +2693,9 @@ end;
 procedure TMemoryBrowser.SetCodeAndDataBase;
 var code,data: ptrUint;
 begin
+  outputdebugstring('calling GetEntryPointAndDataBase');
   GetEntryPointAndDataBase(code,data);
+  outputdebugstring('returned from GetEntryPointAndDataBase');
 
   disassemblerview.SelectedAddress:=code;
   memoryaddress:=data;
