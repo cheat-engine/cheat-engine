@@ -9,9 +9,16 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources,shellapi, NewKernelHandler;
 
 type
+
+  { TAbout }
+
   TAbout = class(TForm)
     GroupBox1: TGroupBox;
     Label1: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;

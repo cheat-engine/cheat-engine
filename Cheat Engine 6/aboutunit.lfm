@@ -21,54 +21,57 @@ object About: TAbout
     Top = 0
     Width = 320
     Align = alClient
-    Caption = 'Cheat Engine 5.6'
+    Caption = 'Cheat Engine 6.0'
     ClientHeight = 227
     ClientWidth = 316
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
     TabOrder = 0
     object Label1: TLabel
-      Left = 89
-      Height = 17
-      Top = 20
-      Width = 119
+      Left = 118
+      Height = 14
+      Top = 0
+      Width = 95
       Caption = 'Made by: Dark Byte'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 10
-      Height = 17
-      Top = 138
-      Width = 63
+      Height = 14
+      Top = 128
+      Width = 52
       Caption = 'Thanks to:'
       ParentColor = False
     end
     object Label3: TLabel
       Left = 10
-      Height = 17
-      Top = 158
-      Width = 42
+      Height = 14
+      Top = 152
+      Width = 33
       Caption = 'Metael'
       ParentColor = False
     end
     object Label4: TLabel
       Left = 110
-      Height = 17
-      Top = 158
-      Width = 73
+      Height = 14
+      Top = 152
+      Width = 58
       Caption = 'A. Wiseman'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 10
-      Height = 17
-      Top = 177
-      Width = 254
+      Height = 14
+      Top = 192
+      Width = 204
       Caption = 'And all the other people that helped me out'
       ParentColor = False
     end
     object Image1: TImage
-      Left = 10
+      Left = 6
       Height = 90
-      Top = 20
+      Top = 0
       Width = 70
       OnMouseDown = Image1MouseDown
       Picture.Data = {
@@ -382,29 +385,30 @@ object About: TAbout
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00
         0000
       }
+      Stretch = True
       Transparent = True
     end
     object Label6: TLabel
       Left = 61
-      Height = 17
-      Top = 158
-      Width = 41
+      Height = 14
+      Top = 152
+      Width = 35
       Caption = 'wh1t3y'
       ParentColor = False
     end
     object Label7: TLabel
       Left = 193
-      Height = 17
-      Top = 158
-      Width = 85
+      Height = 14
+      Top = 152
+      Width = 67
       Caption = 'SWAT-Squad'
       ParentColor = False
     end
     object Label8: TLabel
       Cursor = crHandPoint
-      Left = 108
+      Left = 102
       Height = 17
-      Top = 59
+      Top = 24
       Width = 51
       Caption = 'Website'
       Font.Color = clBlue
@@ -417,9 +421,9 @@ object About: TAbout
     end
     object Label9: TLabel
       Cursor = crHandPoint
-      Left = 108
+      Left = 102
       Height = 17
-      Top = 79
+      Top = 48
       Width = 98
       Caption = 'Message Board'
       Font.Color = clBlue
@@ -432,9 +436,9 @@ object About: TAbout
     end
     object Label10: TLabel
       Left = 10
-      Height = 17
-      Top = 116
-      Width = 182
+      Height = 14
+      Top = 104
+      Width = 145
       Caption = 'Script engine powered by LUA'
       ParentColor = False
     end
@@ -447,17 +451,17 @@ object About: TAbout
       OnClick = lblDBVMClick
     end
     object Label11: TLabel
-      Left = 288
-      Height = 17
-      Top = 158
-      Width = 24
+      Left = 294
+      Height = 14
+      Top = 152
+      Width = 18
       Caption = 'Psy'
       ParentColor = False
     end
     object Button1: TButton
       Left = 276
       Height = 21
-      Top = 201
+      Top = 207
       Width = 40
       Caption = 'OK'
       OnClick = Button1Click
@@ -466,7 +470,7 @@ object About: TAbout
     object Panel1: TPanel
       Left = 236
       Height = 40
-      Top = 10
+      Top = -6
       Width = 80
       ClientHeight = 40
       ClientWidth = 80
@@ -492,6 +496,38 @@ object About: TAbout
           TabOrder = 0
         end
       end
+    end
+    object Label12: TLabel
+      Left = 102
+      Height = 14
+      Top = 168
+      Width = 20
+      Caption = 'Geri'
+      ParentColor = False
+    end
+    object Label13: TLabel
+      Left = 158
+      Height = 14
+      Top = 168
+      Width = 48
+      Caption = 'Kickclock'
+      ParentColor = False
+    end
+    object Label14: TLabel
+      Left = 254
+      Height = 14
+      Top = 168
+      Width = 44
+      Caption = 'Wiccaan'
+      ParentColor = False
+    end
+    object Label15: TLabel
+      Left = 30
+      Height = 14
+      Top = 168
+      Width = 40
+      Caption = 'Emperor'
+      ParentColor = False
     end
   end
 end

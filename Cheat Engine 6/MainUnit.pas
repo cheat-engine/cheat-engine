@@ -2253,19 +2253,6 @@ begin
             if reg.ValueExists('lua') then
               islua:=reg.ReadBool('lua');
 
-            if not isLua then
-            begin
-              if reg.ValueExists('64bit') then
-              begin
-                {$ifdef cpu64}
-                if reg.ReadBool('64bit')=false then continue;
-                {$else}
-                if reg.ReadBool('64bit')=true then continue;
-                {$endif}
-              end;
-
-            end;
-
             CreateCustomType(nil, reg.ReadString('Script'),true, islua);
           except
             outputdebugstring('The custom type script '''+CustomTypes[i]+''' could not be loaded');
@@ -2370,11 +2357,6 @@ begin
       if lua then
         reg.WriteBool('lua',true);
 
-      {$ifdef cpu64}
-      reg.writebool('64bit',true);
-      {$else}
-      reg.writebool('64bit',false);
-      {$endif}
     end;
 
     reg.free;
@@ -2499,7 +2481,8 @@ begin
       Add('//function declared as: stdcall int ConvertRoutine(unsigned char *input);');
       Add('//Note: Keep in mind that this routine can be called by multiple threads at the same time.');
       Add('ConvertRoutine:');
-      {$ifdef cpu64}
+
+      add('[64-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
       Add('//parameters: (64-bit)');
@@ -2507,8 +2490,8 @@ begin
       Add('mov eax,[rcx] //eax now contains the bytes ''input'' pointed to');
       Add('');
       Add('ret');
-
-      {$else}
+      add('[/64-bit]');
+      add('[32-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
       Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
@@ -2521,13 +2504,13 @@ begin
       Add('');
       Add('pop ebp');
       Add('ret 4');
-      {$endif}
+      add('[/32-bit]');
 
       Add('');
       Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes (e.g when the user wats to write a new value)');
       Add('//function declared as: stdcall void ConvertBackRoutine(int i, unsigned char *output);');
       Add('ConvertBackRoutine:');
-      {$ifdef cpu64}
+      Add('[64-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
       Add('//parameters: (64-bit)');
@@ -2537,7 +2520,8 @@ begin
       Add('mov [rdx],ecx //place the integer the 4 bytes pointed to by rdx');
       Add('');
       Add('ret');
-      {$else}
+      Add('[/64-bit]');
+      Add('[32-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
       Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
@@ -2557,7 +2541,7 @@ begin
       Add('');
       Add('pop ebp');
       Add('ret 8');
-      {$endif}
+      add('[/32-bit]');
       Add('');
     end;
 
@@ -5579,20 +5563,25 @@ begin
     else
     if foundlist.vartype = 9 then //all
     begin
-      valuetype:=TVariableType(extra);
+      if extra>=$1000 then
+      begin
+        address:=address+':'+TCustomType(customTypes[extra-$1000]).name;
+      end
+      else
+      begin
+        valuetype:=TVariableType(extra);
 
-      //here valuetype is stored using the new method
-      case valuetype of
-        vtByte: address:=address+':1';
-        vtWord: address:=address+':2';
-        vtDword: address:=address+':4';
-        vtQword: address:=address+':8';
-        vtSingle: address:=address+':s';
-        vtDouble: address:=address+':d';
+        //here valuetype is stored using the new method
+        case valuetype of
+          vtByte: address:=address+':1';
+          vtWord: address:=address+':2';
+          vtDword: address:=address+':4';
+          vtQword: address:=address+':8';
+          vtSingle: address:=address+':s';
+          vtDouble: address:=address+':d';
+        end;
       end;
-    end
-    else //normal
-      address:=inttohex(foundlist.GetAddress(item.Index,extra,value),8);
+    end;
 
     item.Caption:=address;
     item.subitems.add(value);

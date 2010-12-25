@@ -32,6 +32,7 @@ type
     c: TCEAllocArray;
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
+
     procedure unloadscript;
     procedure setName(n: string);
     procedure setfunctiontypename(n: string);
@@ -409,7 +410,6 @@ begin
 
   //still here so everything ok
   customtypes.Add(self);
-
 end;
 
 procedure TCustomType.remove;

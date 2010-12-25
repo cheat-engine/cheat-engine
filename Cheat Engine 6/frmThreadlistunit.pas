@@ -108,23 +108,29 @@ procedure TfrmThreadlist.Break1Click(Sender: TObject);
 var threadlist: tlist;
 i: integer;
 begin
-  if (threadTreeview.Selected<>nil) and (threadTreeview.selected.Level=0) then
+  if debuggerthread<>nil then
   begin
-    threadlist:=debuggerthread.lockThreadlist;
-    try
-      for i:=0 to threadlist.Count-1 do
-      begin
-        if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+threadTreeview.selected.Text) then
+    if (threadTreeview.Selected<>nil) and (threadTreeview.selected.Level=0) then
+    begin
+      threadlist:=debuggerthread.lockThreadlist;
+      try
+        for i:=0 to threadlist.Count-1 do
         begin
-          TDebugThreadHandler(threadlist[i]).breakThread;
-          break;
+          if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+threadTreeview.selected.Text) then
+          begin
+            TDebugThreadHandler(threadlist[i]).breakThread;
+            break;
+          end;
         end;
+      finally
+        debuggerthread.unlockThreadlist;
       end;
-    finally
-      debuggerthread.unlockThreadlist;
+
     end;
 
-  end;
+  end
+  else
+    raise exception.create('Please first attach the debugger to this process');
 
 end;
 
@@ -151,7 +157,9 @@ begin
       end;
     end;
 
-  end;
+  end
+  else
+    raise exception.create('Please first attach the debugger to this process');
 end;
 
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;

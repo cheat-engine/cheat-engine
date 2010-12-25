@@ -33,6 +33,7 @@ type
     cbUseWindowsDebugger: TRadioButton;
     CheckBox1: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
+    cbAllIncludesCustomType: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -348,6 +349,7 @@ begin
       else
         Application.TaskBarBehavior:=tbSingleButton;
 
+      reg.writebool('All includes custom types', cbAllIncludesCustomType.checked);
 
       reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
 

@@ -414,13 +414,21 @@ begin
     if vartype=9 then
     begin
       //override vtype with the type it scanned
-      case TVariableType(extra) of
-        vtByte:   vtype:=0;
-        vtWord:   vtype:=1;
-        vtDword:  vtype:=2;
-        vtQword:  vtype:=6;
-        vtSingle: vtype:=3;
-        vtDouble: vtype:=4;
+      if extra >=$1000 then
+      begin
+        customtype:=tcustomtype(customTypes[extra-$1000]);
+        vtype:=10;
+      end
+      else
+      begin
+        case TVariableType(extra) of
+          vtByte:   vtype:=0;
+          vtWord:   vtype:=1;
+          vtDword:  vtype:=2;
+          vtQword:  vtype:=6;
+          vtSingle: vtype:=3;
+          vtDouble: vtype:=4;
+        end;
       end;
     end else vtype:=vartype;
 
@@ -546,7 +554,7 @@ begin
         if unicode then
         begin
           getmem(read72,varlength*2+2);
-          if readprocessmemory(processhandle,pointer(addresslist[j]),read72,varlength*2,count) then          
+          if readprocessmemory(processhandle,pointer(currentaddress),read72,varlength*2,count) then
           begin
             read72[varlength]:=chr(0);
             valuelist[j]:=read72;
@@ -557,7 +565,7 @@ begin
         else
         begin
           getmem(read7,varlength+1);
-          if readprocessmemory(processhandle,pointer(addresslist[j]),read7,varlength,count) then
+          if readprocessmemory(processhandle,pointer(currentaddress),read7,varlength,count) then
           begin
             read7[varlength]:=chr(0);
             valuelist[j]:=read7;
@@ -571,7 +579,7 @@ begin
       begin //array of byte
         setlength(read8,varlength);
 
-        if readprocessmemory(processhandle,pointer(addresslist[j]),read8,varlength,count) then
+        if readprocessmemory(processhandle,pointer(currentaddress),read8,varlength,count) then
         begin
           temp:='';
           for j:=0 to varlength-1 do
@@ -588,7 +596,7 @@ begin
         try
           getmem(tempbuf,customType.bytesize);
           try
-            if readprocessmemory(processhandle,pointer(addresslist[j]),tempbuf,customType.bytesize,count) then
+            if readprocessmemory(processhandle,pointer(currentaddress),tempbuf,customType.bytesize,count) then
             begin
               if customType<>nil then
               begin

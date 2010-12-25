@@ -323,6 +323,8 @@ var i,j,k,l,e: integer;
 
     symhandler: TSymhandler;
     prefered: ptrUint;
+
+    oldhandle: thandle;
 begin
   setlength(allocs,0);
   setlength(kallocs,0);
@@ -350,9 +352,11 @@ begin
   if targetself then
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
+    oldhandle:=cefuncproc.ProcessHandle;
     processhandle:=getcurrentprocess;
     processid:=getcurrentprocessid;
     symhandler:=symbolhandler.selfsymhandler;
+    processhandler.processhandle:=processhandle;
   end
   else
   begin
@@ -1722,7 +1726,10 @@ begin
 
 {$ifndef standalonetrainer}
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
-{$endif}    
+{$endif}
+
+    if targetself then
+      processhandler.processhandle:=oldhandle;
   end;
 end;
 
@@ -1814,6 +1821,56 @@ begin
 
 end;
 
+procedure stripCPUspecificCode(code: tstrings);
+var i: integer;
+  s: string;
+  inexcludedbitblock: boolean;
+
+begin
+  inexcludedbitblock:=false;
+  for i:=0 to code.Count-1 do
+  begin
+    s:=uppercase(Trim(code[i]));
+
+    if s='[32-BIT]' then
+    begin
+      {$ifdef cpu64}
+      inexcludedbitblock:=true;
+      {$endif}
+      code[i]:=' ';
+    end;
+
+    if s='[/32-BIT]' then
+    begin
+      {$ifdef cpu64}
+      inexcludedbitblock:=false;
+      {$endif}
+      code[i]:=' ';
+    end;
+
+    if s='[64-BIT]' then
+    begin
+      {$ifdef cpu32}
+      inexcludedbitblock:=true;
+      {$endif}
+      code[i]:=' ';
+    end;
+
+    if s='[/64-BIT]' then
+    begin
+      {$ifdef cpu32}
+      inexcludedbitblock:=false;
+      {$endif}
+      code[i]:=' ';
+    end;
+
+    if inexcludedbitblock then
+      code[i]:=' ';
+
+
+
+  end;
+end;
 
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 {
@@ -1824,6 +1881,7 @@ var tempstrings: tstringlist;
     currentline: string;
     enablepos,disablepos: integer;
 begin
+  //add line numbers to the code
   for i:=0 to code.Count-1 do
     code.Objects[i]:=pointer(i+1);
 
@@ -1875,6 +1933,9 @@ begin
         getscript(code, tempstrings,false);
       end;
     end;
+
+    if targetself then
+      Stripcpuspecificcode(tempstrings);
 
     result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, registeredsymbols);
   finally

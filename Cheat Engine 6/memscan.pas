@@ -70,8 +70,6 @@ type
     The scanner class will scan a specified range of memory
   }
   private
-
-
     CheckRoutine: TCheckRoutine;
     StoreResultRoutine: TStoreResultRoutine;
     FlushRoutine: TFlushRoutine; //pointer to routine used to flush the buffer, generic, string, etc...
@@ -104,6 +102,8 @@ type
 
     //all
     typesmatch: array [vtByte..vtDouble] of boolean;  //will get set depending if that type matches the current address or not
+    customtypesmatch: array of boolean;
+    customtypecount: integer;
 
     //check routines:
     function ByteExact(newvalue,oldvalue: pointer): boolean;
@@ -292,6 +292,8 @@ type
     scanType: TScanType; //defines if it's a firstscan or next scan. (newscan is ignored)
     useNextNextscan: boolean; //determines to use the nextNextScan or firstNextScan
 
+    allincludescustomtypes: boolean;
+
 
     //thread controlling variables:
     isdone: boolean; //will get set to true when the thread finishes normally
@@ -375,6 +377,7 @@ type
     compareToSavedScan: boolean;
     savedscanname: string;
 
+    allincludescustomtypes: boolean;
     scanOption: TScanOption;
     variableType: TVariableType;
     customType: TCustomType;
@@ -487,7 +490,7 @@ type
 
 implementation
 
-uses StrUtils;
+uses formsettingsunit, StrUtils;
 
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
@@ -532,6 +535,7 @@ end;
 
 function TScanner.AllExact(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteExact(newvalue,oldvalue); //oldvalue=nil, but give it anyhow
   typesmatch[vtWord]:=typesmatch[vtWord] and WordExact(newvalue,oldvalue);
@@ -540,15 +544,15 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleExact(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleExact(newvalue,oldvalue);
 
- { //nah, nevermind
- if allincludescustomtypes then
+  if allincludescustomtypes then
   begin
-    for i:=0 to customtypecount-1 do
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
     begin
-      customtype:=customtypelist[i]
-      customtypesmatch[i]:=customtypesmatch[i] and CustomExact(newvalue,oldvalue)
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomExact(newvalue,oldvalue)
     end;
-  end;  }
+  end;
 
   result:=false;
   for i:=vtbyte to vtdouble do
@@ -557,10 +561,20 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
+
 end;
 
 function TScanner.AllBetween(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteBetween(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordBetween(newvalue,oldvalue);
@@ -569,6 +583,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetween(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetween(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomBetween(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -576,10 +600,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllBetweenPercentage(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+    j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteBetweenPercentage(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordBetweenPercentage(newvalue,oldvalue);
@@ -588,6 +621,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBetweenPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBetweenPercentage(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomBetweenPercentage(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -595,10 +638,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllBiggerThan(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+      j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteBiggerThan(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordBiggerThan(newvalue,oldvalue);
@@ -607,6 +659,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleBiggerThan(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleBiggerThan(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomBiggerThan(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -614,10 +676,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllSmallerThan(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+        j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteSmallerThan(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordSmallerThan(newvalue,oldvalue);
@@ -626,6 +697,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleSmallerThan(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleSmallerThan(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomSmallerThan(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -633,10 +714,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllIncreasedValue(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValue(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValue(newvalue,oldvalue);
@@ -645,6 +735,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValue(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValue(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValue(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -652,10 +752,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValueBy(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValueBy(newvalue,oldvalue);
@@ -664,6 +773,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueBy(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueBy(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueBy(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -671,10 +790,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllIncreasedValueByPercentage(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteIncreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordIncreasedValueByPercentage(newvalue,oldvalue);
@@ -683,6 +811,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleIncreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleIncreasedValueByPercentage(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueByPercentage(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -690,11 +828,20 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 
 function TScanner.AllDecreasedValue(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValue(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValue(newvalue,oldvalue);
@@ -703,6 +850,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValue(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValue(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValue(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -710,10 +867,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValueBy(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValueBy(newvalue,oldvalue);
@@ -722,6 +888,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueBy(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueBy(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueBy(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -729,10 +905,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllDecreasedValueByPercentage(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteDecreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordDecreasedValueByPercentage(newvalue,oldvalue);
@@ -741,6 +926,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleDecreasedValueByPercentage(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleDecreasedValueByPercentage(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueByPercentage(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -748,10 +943,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.Allchanged(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteChanged(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordChanged(newvalue,oldvalue);
@@ -760,6 +964,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleChanged(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleChanged(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomChanged(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -767,10 +981,19 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.AllUnchanged(newvalue,oldvalue: pointer):boolean;
 var i: TVariableType;
+  j: integer;
 begin
   typesmatch[vtByte]:=typesmatch[vtByte] and ByteUnchanged(newvalue,oldvalue);
   typesmatch[vtWord]:=typesmatch[vtWord] and WordUnchanged(newvalue,oldvalue);
@@ -779,6 +1002,16 @@ begin
   typesmatch[vtSingle]:=typesmatch[vtSingle] and singleUnchanged(newvalue,oldvalue);
   typesmatch[vtDouble]:=typesmatch[vtDouble] and doubleUnchanged(newvalue,oldvalue);
 
+  if allincludescustomtypes then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+      customtypesmatch[j]:=customtypesmatch[j] and CustomUnchanged(newvalue,oldvalue)
+    end;
+  end;
+
   result:=false;
   for i:=vtbyte to vtdouble do
     if typesmatch[i] then
@@ -786,6 +1019,14 @@ begin
       result:=true;
       exit;
     end;
+
+  if allincludescustomtypes then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
 end;
 
 function TScanner.CaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
@@ -1475,6 +1716,7 @@ BUT, don't forget to change the foundlisthelper to handle this (since it'd be
 multiple addresses in one entry, which isn't handled right now... 
 }
 var i: TVariabletype;
+  j: integer;
 begin
   for i:=vtByte to vtDouble do
   begin
@@ -1497,12 +1739,30 @@ begin
       PBitAddressArray(CurrentAddressBuffer)[found].address:=address;
       PBitAddressArray(CurrentAddressBuffer)[found].bit:=integer(i);
 
-      //save the current address, max variablesize is 8 bytes, so just store that
-      puint64array(CurrentFoundBuffer)[found]:=PQWORD(oldvalue)^;
+      //save the current address, max variablesize is x bytes, so just store that
+      copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
       inc(found);
       if found>=buffersize then
         flushroutine;
+    end;
+  end;
+
+  if allincludescustomtypes then
+  begin
+    for j:=0 to customtypecount-1 do
+    begin
+      if customtypesmatch[j] then
+      begin
+        PBitAddressArray(CurrentAddressBuffer)[found].address:=address;
+        PBitAddressArray(CurrentAddressBuffer)[found].bit:=j+$1000; //+$1000 to distinguish between custom and default types. When I add more than 4095 default types I'll have to change this.
+
+        copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
+
+        inc(found);
+        if found>=buffersize then
+          flushroutine;
+      end;
     end;
   end;
 end;
@@ -1541,7 +1801,7 @@ end;
 procedure TScanner.allFlush;
 var tempaddress,tempfound: pointer;
 begin
-  scanwriter.writeresults(CurrentAddressBuffer,currentfoundbuffer,sizeof(tbitaddress)*found,found*8);
+  scanwriter.writeresults(CurrentAddressBuffer,currentfoundbuffer,sizeof(tbitaddress)*found,found*variablesize);
   tempaddress:=CurrentAddressBuffer;
   tempfound:=CurrentFoundBuffer;
   CurrentAddressBuffer:=SecondaryAddressBuffer;
@@ -1676,6 +1936,7 @@ var stepsize: integer;
     lastmem: ptruint;
     p: pbyte;
     i: TVariableType;
+    j: integer;
     _fastscan: boolean;
     dividableby2: boolean;
     dividableby4: boolean;
@@ -1719,7 +1980,12 @@ begin
         typesmatch[vtDouble]:=dividableby4;
       end
       else
+      begin
         for i:=vtByte to vtDouble do typesmatch[i]:=true;
+      end;
+
+      if allincludescustomtypes then
+        for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
       if checkroutine(p,nil) then //found one
         StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
@@ -1757,7 +2023,8 @@ var stepsize:  integer;
     _fastscan: boolean;
     dividableby2: boolean;
     dividableby4: boolean;
-    i:         TVariableType;   
+    i:         TVariableType;
+    j:         integer;
 begin
   p:=buffer;
   oldp:=oldbuffer;
@@ -1798,6 +2065,7 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
+
         if _fastscan then
         begin
           dividableby2:=ptrUint(p) mod 2=0;
@@ -1811,6 +2079,10 @@ begin
         end
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
+
+        if allincludescustomtypes then
+          for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+
 
         if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
@@ -1849,6 +2121,10 @@ begin
         else
           for i:=vtByte to vtDouble do typesmatch[i]:=true;
 
+        if allincludescustomtypes then
+          for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
+
+
         if checkroutine(p,oldp) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
@@ -1873,6 +2149,7 @@ end;
 procedure TScanner.nextnextscanmemAll(addresslist: pointer; oldmemory: pointer; chunksize: integer);
 var i,j,k: dword;
     l: TVariableType;
+    m: integer;
     maxindex: dword;
     vsize: dword;
     currentbase: ptruint;
@@ -1921,6 +2198,11 @@ begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
+
+        if allincludescustomtypes then
+          for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
+
+
           
         currentaddress:=currentbase;
 
@@ -1928,10 +2210,14 @@ begin
         begin
           if alist[k].address=currentaddress then
           begin
-            typesmatch[tvariabletype(alist[k].bit)]:=true;
+            if alist[k].bit>=$1000 then
+              customtypesmatch[alist[k].bit-$1000]:=false
+            else
+              typesmatch[tvariabletype(alist[k].bit)]:=true;
           end
           else
           begin
+            //new address reached
             if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype )) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
@@ -1939,8 +2225,15 @@ begin
             for l:=vtByte to vtDouble do
               typesmatch[l]:=false;
 
+            for m:=0 to customtypecount-1 do
+              customtypesmatch[m]:=false;
+
+
             currentaddress:=alist[k].address;
-            typesmatch[tvariabletype(alist[k].bit)]:=true;
+            if alist[k].bit>=$1000 then
+              customtypesmatch[alist[k].bit-$1000]:=true
+            else
+              typesmatch[tvariabletype(alist[k].bit)]:=true;
           end;
 
         end;
@@ -1954,7 +2247,10 @@ begin
         //clear typesmatch and set current address
         for l:=vtByte to vtDouble do
           typesmatch[l]:=false;
-          
+
+        if allincludescustomtypes then
+           for m:=0 to customtypecount-1 do customtypesmatch[m]:=false;
+
         currentaddress:=currentbase;
 
         for k:=i to j do
@@ -1962,11 +2258,16 @@ begin
           if alist[k].address=currentaddress then
           begin
             //add this one to the list
-            typesmatch[tvariabletype(alist[k].bit)]:=true;
+            if alist[k].bit>=$1000 then
+              customtypesmatch[alist[k].bit-$1000]:=true
+            else
+              typesmatch[tvariabletype(alist[k].bit)]:=true;
+
             continue;
           end
           else
           begin
+            //new address
             //we now have a list of entries with all the same address, k-1 points to the last one
             if CheckRoutine(@newmemory[currentaddress-currentbase],@oldmem[(k-1)*vsize]) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
@@ -1975,9 +2276,15 @@ begin
             for l:=vtByte to vtDouble do
               typesmatch[l]:=false;
 
+            for m:=0 to customtypecount-1 do
+              customtypesmatch[m]:=false;
+
             currentaddress:=alist[k].address;
 
-            typesmatch[tvariabletype(alist[k].bit)]:=true;
+            if alist[k].bit>=$1000 then
+              customtypesmatch[alist[k].bit-$1000]:=true
+            else
+              typesmatch[tvariabletype(alist[k].bit)]:=true;
           end;
 
         end;
@@ -2620,10 +2927,20 @@ begin
     vtAll:
     begin
       //almost like binary
-      variablesize:=8; //override these variables
+
+      variablesize:=8; //override these variables (8 is big enough for even the double type)
+      if allincludescustomtypes then  //find out the biggest customtype size
+      begin
+        customtypecount:=customtypes.count;
+        setlength(customtypesmatch, customtypecount);
+        for i:=0 to customTypes.count-1 do
+          variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
+      end;
+
+
       fastscanalignsize:=1;
 
-      FoundBufferSize:=buffersize*8;
+      FoundBufferSize:=buffersize*variablesize;
       StoreResultRoutine:=allSaveResult;
       FlushRoutine:=allFlush;
       case scanOption of
@@ -3284,6 +3601,7 @@ begin
           scanners[i].fastscandigitcount:=fastscandigitcount;
           scanners[i].variablesize:=variablesize;
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
+          scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
           if i=0 then //first thread gets the header part
           begin
@@ -3495,6 +3813,7 @@ begin
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
+      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -3875,6 +4194,7 @@ begin
       scanners[i].fastscanmethod:=fastscanmethod;
       scanners[i].fastscandigitcount:=fastscandigitcount;
       scanners[i].variablesize:=variablesize;
+      scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
       if i=0 then //first thread gets the header part
       begin
@@ -4470,6 +4790,8 @@ begin
   scancontroller.notifywindow:=notifywindow;
   scancontroller.notifymessage:=notifymessage;
 
+  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
+
   fLastscantype:=stNextScan;
 
   scanController.start;
@@ -4529,6 +4851,8 @@ begin
   scancontroller.notifymessage:=notifymessage;
 
   scanController.OnlyOne:=onlyone;
+
+  scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
 
   flastscantype:=stFirstScan;
 
