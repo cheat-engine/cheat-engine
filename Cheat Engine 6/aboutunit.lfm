@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 610
+  Left = 1051
   Height = 245
-  Top = 322
+  Top = 555
   Width = 320
   HelpContext = 2
   BorderIcons = [biSystemMenu]

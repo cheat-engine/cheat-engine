@@ -2590,6 +2590,7 @@ initialization
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
 
+    LUA_DoScript('os=nil');
 
   end;
 

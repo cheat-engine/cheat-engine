@@ -3426,6 +3426,7 @@ begin
                         lastdisassembledata.opcode:='jo';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3437,7 +3438,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3446,6 +3447,7 @@ begin
                         lastdisassembledata.opcode:='jno';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3457,7 +3459,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
                       end;
@@ -3468,6 +3470,7 @@ begin
                         lastdisassembledata.opcode:='jb';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3479,7 +3482,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
                       end;
@@ -3489,6 +3492,7 @@ begin
                         lastdisassembledata.opcode:='jae';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3500,15 +3504,17 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
                 $84 : begin
                         description:='jump near if equal';
+
                         lastdisassembledata.opcode:='je';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3520,7 +3526,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3530,6 +3536,7 @@ begin
                         lastdisassembledata.opcode:='jne';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3541,7 +3548,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
                       end;
@@ -3551,6 +3558,7 @@ begin
                         lastdisassembledata.opcode:='jbe';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
@@ -3563,7 +3571,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3572,6 +3580,7 @@ begin
                         lastdisassembledata.opcode:='ja';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3583,7 +3592,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3592,6 +3601,7 @@ begin
                         lastdisassembledata.opcode:='js';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3603,7 +3613,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3612,6 +3622,7 @@ begin
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3623,7 +3634,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3632,6 +3643,7 @@ begin
                         lastdisassembledata.opcode:='jp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3643,7 +3655,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3652,6 +3664,7 @@ begin
                         lastdisassembledata.opcode:='jnp';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3663,7 +3676,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3672,6 +3685,7 @@ begin
                         lastdisassembledata.opcode:='jl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3683,7 +3697,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3692,6 +3706,7 @@ begin
                         lastdisassembledata.opcode:='jnl';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3703,7 +3718,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3712,6 +3727,7 @@ begin
                         lastdisassembledata.opcode:='jng';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3723,7 +3739,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 
@@ -3732,6 +3748,7 @@ begin
                         lastdisassembledata.opcode:='jg';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
+                        inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
                         if processhandler.is64bit then
@@ -3743,7 +3760,7 @@ begin
                         inc(lastdisassembledata.seperatorcount);
 
 
-                        inc(offset,1+4);
+
                         lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
                       end;
 

@@ -1,7 +1,7 @@
 object frmTracer: TfrmTracer
-  Left = 793
+  Left = 1041
   Height = 407
-  Top = 303
+  Top = 398
   Width = 410
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'

@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 807
+  Left = 1351
   Height = 187
-  Top = 451
+  Top = 743
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'

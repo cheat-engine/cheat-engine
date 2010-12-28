@@ -179,7 +179,7 @@ var s,s2: string;
     a,address: ptrUint;
     referencedAddress: ptrUint;
     haserror: boolean;
-    thisnode, thatnode: TTreenode;
+    thisnode, thatnode,x: TTreenode;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
@@ -227,7 +227,33 @@ begin
   if defaultDisassembler.LastDisassembleData.isret then
   begin
     if currentAppendage<>nil then
-      currentAppendage:=currentAppendage.Parent
+    begin
+      currentAppendage:=currentAppendage.Parent;
+
+      if currentAppendage<>nil then
+      begin
+        //check if the return is valid, could be it's a parent jump
+        d:=TTraceDebugInfo(currentAppendage.Data);
+        if (d.c.{$ifdef cpu64}Rip+5{$else}eip+5{$endif}<>a) then
+        begin
+          //see if a parent can be found that does match
+          x:=currentappendage.Parent;
+          while x<>nil do
+          begin
+            d:=TTraceDebugInfo(x.Data);
+            if (d.c.{$ifdef cpu64}Rip+5{$else}eip+5{$endif}=a) then
+            begin
+              //match found
+              currentAppendage:=x;
+              exit;
+            end;
+
+            x:=x.parent;
+          end;
+        end;
+
+      end;
+    end
     else
     begin
       //create a node at the top and append the current top node to it
