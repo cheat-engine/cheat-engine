@@ -2121,6 +2121,7 @@ begin
                 $34: begin
                         description:='fast transistion to system call entry point';
                         lastdisassembledata.opcode:='sysenter';
+                        lastdisassembledata.isret:=true;
                         inc(offset);
                       end;
 

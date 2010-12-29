@@ -14,6 +14,7 @@ type TTraceDebugInfo=class
   private
   public
     instruction: string;
+    instructionsize: integer;
     referencedAddress: ptrUint;
     c: _CONTEXT;
     bytes: pbytearray;
@@ -206,6 +207,7 @@ begin
 
 
   d:=TTraceDebugInfo.Create;
+  d.instructionsize:=a-address;
   d.c:=debuggerthread.CurrentThread.context^;
   d.instruction:=s;
   d.referencedAddress:=referencedAddress;
@@ -234,14 +236,14 @@ begin
       begin
         //check if the return is valid, could be it's a parent jump
         d:=TTraceDebugInfo(currentAppendage.Data);
-        if (d.c.{$ifdef cpu64}Rip+5{$else}eip+5{$endif}<>a) then
+        if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
         begin
           //see if a parent can be found that does match
           x:=currentappendage.Parent;
           while x<>nil do
           begin
             d:=TTraceDebugInfo(x.Data);
-            if (d.c.{$ifdef cpu64}Rip+5{$else}eip+5{$endif}=a) then
+            if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
             begin
               //match found
               currentAppendage:=x;

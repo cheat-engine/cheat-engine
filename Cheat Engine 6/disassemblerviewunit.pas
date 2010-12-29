@@ -976,7 +976,7 @@ begin
   self.colors[csNormal].backgroundcolor:=clBtnFace;
   self.colors[csNormal].normalcolor:=clWindowText;
   self.colors[csNormal].registercolor:=clRed;
-  self.colors[csNormal].symbolcolor:=clLime;
+  self.colors[csNormal].symbolcolor:=clGreen;
   self.colors[csNormal].hexcolor:=clBlue;
 
   self.colors[csHighlighted].backgroundcolor:=clHighlight;

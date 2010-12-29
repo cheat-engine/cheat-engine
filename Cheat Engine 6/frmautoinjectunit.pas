@@ -9,7 +9,7 @@ uses
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
-  MemoryRecordUnit, tablist, customtypehandler, registry;
+  MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks;
 
 
 type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
@@ -115,6 +115,7 @@ type
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
     procedure setCustomTypeScript(x: boolean);
+    procedure gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
 
   public
     { Public declarations }
@@ -1178,6 +1179,16 @@ begin
 {$endif}
 end;
 
+procedure tfrmAutoInject.gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
+begin
+  if assemblescreen.Lines.Count>line then
+  begin
+    assemblescreen.CaretY:=line;
+    assemblescreen.CaretX:=0;
+    assemblescreen.SelectLine(true);
+  end;
+end;
+
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
 var x: array of integer;
     reg: tregistry;
@@ -1220,6 +1231,8 @@ begin
   assemblescreen.Align:=alClient;
   assemblescreen.PopupMenu:=PopupMenu1;
   assemblescreen.Parent:=panel2;
+
+  assemblescreen.Gutter.OnGutterClick:=gutterclick;
 
   setlength(x,0);
   loadformposition(self,x);

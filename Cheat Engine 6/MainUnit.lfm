@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1680
+  Left = 715
   Height = 570
   Hint = ' '
-  Top = 256
+  Top = 213
   Width = 538
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -81,7 +81,6 @@ object MainForm: TMainForm
       Hint = 'Some extra functions like pause and trainer maker. And some saved instruction locations'
       Top = 1
       Width = 96
-      Anchors = [akLeft, akBottom]
       Caption = 'Advanced options'
       Flat = True
       NumGlyphs = 0
@@ -90,12 +89,12 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 465
+      Left = 441
       Height = 15
       Hint = 'abcdefg'
       Top = 1
-      Width = 72
-      Anchors = [akRight, akBottom]
+      Width = 96
+      Align = alRight
       Caption = 'Table Extras'
       Flat = True
       Font.Height = -12

@@ -319,20 +319,20 @@ var offset: ptrUint;
 begin
   if (codelist2.Items.Count=0) or (codelist2.ItemIndex=-1) then
   begin
-    cc1.visible:=false;
-    cc2.visible:=false;
-    rename1.visible:=false;
-    remove1.Visible:=false;
-    Openthedisassemblerhere1.Visible:=false;
-    Findoutwhatthiscodechanges1.visible:=false;
-    Replaceall1.Visible:=false;
+    cc1.enabled:=false;
+    cc2.enabled:=false;
+    rename1.enabled:=false;
+    remove1.enabled:=false;
+    Openthedisassemblerhere1.enabled:=false;
+    Findoutwhatthiscodechanges1.enabled:=false;
+    Replaceall1.enabled:=false;
   end else
   begin
-    rename1.visible:=true;
-    remove1.visible:=true;
+    rename1.enabled:=true;
+    remove1.enabled:=true;
 
-    Replaceall1.Visible:=true;
-    Openthedisassemblerhere1.visible:=true;
+    Replaceall1.enabled:=true;
+    Openthedisassemblerhere1.enabled:=true;
 
     if code[codelist2.itemindex].modulename<>'' then
     begin
@@ -342,13 +342,13 @@ begin
 
     if code[codelist2.itemindex].changed then
     begin
-      cc1.visible:=false;
-      cc2.visible:=true;
-      Findoutwhatthiscodechanges1.visible:=false;
+      cc1.enabled:=false;
+      cc2.enabled:=true;
+      Findoutwhatthiscodechanges1.enabled:=false;
     end else
     begin
-      cc1.visible:=true;
-      cc2.visible:=false;
+      cc1.enabled:=true;
+      cc2.enabled:=false;
 
       //disassemble this address, and see if it a writer or reader
       //if neither grey it out
@@ -384,15 +384,9 @@ begin
       end;
 
 
-      Findoutwhatthiscodechanges1.visible:=true;
+      Findoutwhatthiscodechanges1.enabled:=true;
     end;
   end;
-
-  {$ifdef net}
-  Findoutwhatthiscodechanges1.Visible:=false;
-
-
-  {$endif}
 
 end;
 

@@ -211,7 +211,7 @@ end;
 procedure TMemoryRecord.SetVisibleChildrenState;
 {Called when options change and when children are assigned}
 begin
-  if moHideChildren in foptions then
+  if (not factive) and (moHideChildren in foptions) then
     treenode.Collapse(true)
   else
     treenode.Expand(true);
@@ -917,9 +917,7 @@ begin
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
 
-
-  if (active) then
-    SetVisibleChildrenState;
+  SetVisibleChildrenState;
 
 
 

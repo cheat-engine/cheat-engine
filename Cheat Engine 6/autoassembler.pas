@@ -440,7 +440,7 @@ begin
               c:=pos(')',currentline);
               if (a>0) and (b>0) and (c>0) then
               begin
-                s1:=copy(currentline,a+1,b-a-1);
+                s1:=trim(copy(currentline,a+1,b-a-1));
                 s2:=trim(copy(currentline,b+1,c-b-1));
 
                 testPtr:= symhandler.getAddressFromName(s1,false);
@@ -491,8 +491,8 @@ begin
             c:=pos(')',currentline);
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               try
                 x:=strtoint(s2);
@@ -522,7 +522,7 @@ begin
 
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
               if ExtractFileExt(uppercase(s1))='.' then
                 s1:=s1+'CEA';
@@ -556,7 +556,7 @@ begin
             b:=pos(')',currentline);
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
             
               setlength(createthread,length(createthread)+1);
               createthread[length(createthread)-1]:=s1;
@@ -574,7 +574,7 @@ begin
 
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
               if pos(':',s1)=0 then
               begin
@@ -608,8 +608,8 @@ begin
             c:=pos(')',currentline);
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               //read memory and replace with lines of DB xx xx xx xx xx xx xx xx
               try
@@ -675,8 +675,8 @@ begin
             c:=pos(')',currentline);
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               if not fileexists(s2) then raise exception.Create('The file '+s2+' does not exist');
 
@@ -697,7 +697,7 @@ begin
 
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
               setlength(addsymbollist,length(addsymbollist)+1);
               addsymbollist[length(addsymbollist)-1]:=s1;
@@ -719,7 +719,7 @@ begin
 
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
               setlength(deletesymbollist,length(deletesymbollist)+1);
               deletesymbollist[length(deletesymbollist)-1]:=s1;
@@ -741,7 +741,7 @@ begin
 
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
               s2:=trim(copy(currentline,b+1,c-b-1));
 
 
@@ -770,7 +770,7 @@ begin
             c:=pos(')',currentline);
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
               s2:=copy(currentline,b+1,c-b-1);
 
               for j:=0 to length(defines)-1 do
@@ -794,8 +794,8 @@ begin
 
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               setlength(fullaccess,length(fullaccess)+1);
               fullaccess[length(fullaccess)-1].address:=symhandler.getAddressFromName(s1);
@@ -816,7 +816,7 @@ begin
 
             if (a>0) and (b>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
 
               val('$'+s1,j,a);
@@ -876,7 +876,7 @@ begin
 
               if (a>0) and (b>0) then
               begin
-                s1:=copy(currentline,a+1,b-a-1);
+                s1:=trim(copy(currentline,a+1,b-a-1));
 
                 //find s1 in the ceallocarray
                 for j:=0 to length(ceallocarray)-1 do
@@ -909,16 +909,16 @@ begin
 
             if (a>0) and (b>0) and (d>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
               if c>0 then
               begin
-                s2:=copy(currentline,b+1,c-b-1);
-                s3:=copy(currentline,c+1,d-c-1);
+                s2:=trim(copy(currentline,b+1,c-b-1));
+                s3:=trim(copy(currentline,c+1,d-c-1));
               end
               else
               begin
-                s2:=copy(currentline,b+1,d-b-1);
+                s2:=trim(copy(currentline,b+1,d-b-1));
                 s3:='';
               end;
 
@@ -992,8 +992,8 @@ begin
 
             if (a>0) and (b>0) and (c>0) then
             begin
-              s1:=copy(currentline,a+1,b-a-1);
-              s2:=copy(currentline,b+1,c-b-1);
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
               val('$'+s1,j,a);
               if a=0 then raise exception.Create(s1+' is not a valid identifier');
