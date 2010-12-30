@@ -1,4 +1,5 @@
 unit AccessCheck;
+{obsolete, all files are now in the user or temp folder}
 
 {$MODE Delphi}
 

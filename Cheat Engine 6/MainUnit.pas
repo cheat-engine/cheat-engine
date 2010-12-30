@@ -15,7 +15,7 @@ uses
   simpleaobscanner, pointervaluelist, ManualModuleLoader, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
-  customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit;
+  customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,   htmlhelp, win32int;
 
 //the following are just for compatibility
 
@@ -596,7 +596,7 @@ type
     procedure setGbScanOptionsEnabled(state: boolean);
 
 
-
+    function onhelp(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -2049,12 +2049,15 @@ begin
 
   if not autoattachopen then
   begin
-    if fileexists(expectedfilename) or fileexists(cheatenginedir + expectedfilename) then
+    if fileexists(TablesDir+'\'+expectedfilename) or fileexists(expectedfilename) or fileexists(cheatenginedir + expectedfilename) then
     begin
       if messagedlg('Load the associated table? (' + expectedFilename + ')', mtConfirmation,
         [mbYes, mbNo], 0) = mrYes then
       begin
         autoopen := True;
+        if fileexists(TablesDir+'\'+expectedfilename) then
+          opendialog1.FileName:= TablesDir+'\'+expectedfilename
+        else
         if fileexists(expectedfilename) then
           opendialog1.FileName := expectedfilename
         else
@@ -3147,6 +3150,16 @@ end;
 resourcestring
   strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
 
+function TMainform.onhelp(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
+begin
+  callhelp:=false;
+  result:=true;
+
+  if command=HELP_CONTEXT then
+    HtmlHelpA(Win32WidgetSet.AppHandle,pchar(cheatenginedir+'cheatengine.chm'),HH_HELP_CONTEXT,data);
+end;
+
+
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   pid: dword;
@@ -3162,7 +3175,10 @@ var
   errormode: dword;
   minworkingsize, maxworkingsize: size_t;
 begin
+  application.OnHelp:=onhelp;
 
+  SaveDialog1.InitialDir:=tablesdir;
+  opendialog1.InitialDir:=tablesdir;
 
 
   forms.Application.ShowButtonGlyphs:=sbgNever;
@@ -4916,8 +4932,6 @@ begin
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
   InitializeLuaScripts;
-  FileAccessTest;
-
 end;
 
 
@@ -5231,7 +5245,7 @@ begin
   if not autoopen then
     if CheckIfSaved=false then exit;
 
-  OpenDialog1.InitialDir:=cheatenginedir;
+
 
   if autoopen or Opendialog1.Execute then
   begin
@@ -5285,7 +5299,6 @@ begin
     savedialog1.FileName:=ChangeFileExt(opendialog1.FileName,'');
   end;
 
-  SaveDialog1.InitialDir:=cheatenginedir;
   if Savedialog1.Execute then
     savetable(savedialog1.FileName);
 
@@ -6295,6 +6308,7 @@ end;
 
 procedure TMainForm.Helpindex1Click(Sender: TObject);
 begin
+
   Application.HelpContext(1);
 end;
 

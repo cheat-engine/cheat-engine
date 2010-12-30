@@ -26,7 +26,7 @@ savedscanhandler,
 {$endif}
 {$endif}
 {$endif}
- math,syncobjs, shellapi, ProcessHandlerUnit, controls;
+ math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX;
 
 
 
@@ -510,6 +510,7 @@ var
   Scan_MEM_IMAGE: boolean=true;
   Scan_MEM_MAPPED: boolean=false;
 
+  TablesDir: string;
   CheatEngineDir: String;
   WindowsDir: string;
   GetProcessIcons: Boolean;
@@ -2357,9 +2358,27 @@ begin
 end;
 
 function GetCEdir:string;
+var
+  PIDL: PItemIDList;
+  Path: LPSTR;
+  AMalloc: IMalloc;
 begin
   CheatEngineDir:=ExtractFilePath(application.ExeName);
   result:=CheatEngineDir;
+
+  //blatantly stolen from http://www.scalabium.com/faq/dct0106.htm
+  Path := StrAlloc(MAX_PATH);
+  SHGetSpecialFolderLocation(0, CSIDL_PERSONAL, PIDL);
+  if SHGetPathFromIDList(PIDL, Path) then
+    tablesdir := Path+'\My Cheat Tables';
+  SHGetMalloc(AMalloc);
+  AMalloc.Free(PIDL);
+  StrDispose(Path);
+
+
+  if DirectoryExists(tablesdir)=false then
+    CreateDir(tablesdir);
+
 end;
 
 function GetWinDir:string;

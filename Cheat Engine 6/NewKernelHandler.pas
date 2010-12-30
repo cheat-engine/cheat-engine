@@ -577,35 +577,40 @@ end;
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
 begin
-  result:=false;
-  if Is64bitOS and (not isRunningDBVM) then
+  loaddbk32;
+  if assigned(isDriverLoaded) then
   begin
-    if isDBVMCapable then
+    result:=false;
+    if Is64bitOS and (not isRunningDBVM) then
     begin
-      signed:=false;
-      if isDriverLoaded(@signed) then
+      if isDBVMCapable then
       begin
-        if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data(So don''t forget to save first). Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+        signed:=false;
+        if isDriverLoaded(@signed) then
         begin
-          LaunchDBVM;
-          if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
-          result:=true;
+          if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data(So don''t forget to save first). Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+          begin
+            LaunchDBVM;
+            if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
+            result:=true;
+          end;
+        end else
+        begin
+          //the driver isn't loaded
+          if signed then
+          begin
+            raise exception.Create('Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business class certificicate and sign the driver yourself (or try debug signing)');
+          end
+          else
+          begin
+            raise exception.Create('The driver needs to be loaded to be able to use this function.');
+          end;
         end;
-      end else
-      begin
-        //the driver isn't loaded
-        if signed then
-        begin
-          raise exception.Create('Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business class certificicate and sign the driver yourself (or try debug signing)');
-        end
-        else
-        begin
-          raise exception.Create('The driver needs to be loaded to be able to use this function.');
-        end;
-      end;
-    end else raise exception.Create('Your cpu must be able to run dbvm to use this function in 64-bit');
-  end
-  else result:=true;
+      end else raise exception.Create('Your cpu must be able to run dbvm to use this function in 64-bit');
+    end
+    else result:=true;
+
+  end;
 end;
 
 function isRunningDBVM: boolean;

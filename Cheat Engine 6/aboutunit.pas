@@ -98,7 +98,9 @@ begin
   end
   else
   begin
+{$ifdef cpu32}
     Loaddbk32;
+{$endif}
     if (assigned(dbvm_version)) and (dbvm_version>0) then
     begin
       lblDBVM.Font.Color:=clLime;
