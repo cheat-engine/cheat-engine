@@ -445,6 +445,7 @@ object MainForm: TMainForm
         Enabled = False
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
+        OnChange = cbFastScanChange
         OnClick = cbFastScanClick
         ParentFont = False
         State = cbChecked
@@ -466,6 +467,7 @@ object MainForm: TMainForm
         Top = 68
         Width = 48
         Enabled = False
+        OnKeyPress = edtAlignmentKeyPress
         TabOrder = 3
         Text = '4'
       end
@@ -540,6 +542,7 @@ object MainForm: TMainForm
         Width = 66
         Caption = 'Alignment'
         Checked = True
+        OnChange = rbFsmAlignedChange
         TabOrder = 7
         TabStop = True
       end
@@ -549,6 +552,7 @@ object MainForm: TMainForm
         Top = 76
         Width = 67
         Caption = 'Last digits'
+        OnChange = rbFsmAlignedChange
         TabOrder = 6
       end
     end
@@ -1835,6 +1839,7 @@ object MainForm: TMainForm
     end
   end
   object pmValueType: TPopupMenu
+    OnPopup = pmValueTypePopup
     left = 104
     top = 240
     object miDefineNewCustomType: TMenuItem

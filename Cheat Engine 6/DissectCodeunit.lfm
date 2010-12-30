@@ -70,9 +70,9 @@ object frmDissectCode: TfrmDissectCode
       end
       object cbIncludesystemModules: TCheckBox
         Left = 0
-        Height = 23
+        Height = 20
         Top = 40
-        Width = 168
+        Width = 164
         Caption = 'Include system modules'
         OnClick = cbIncludesystemModulesClick
         TabOrder = 0

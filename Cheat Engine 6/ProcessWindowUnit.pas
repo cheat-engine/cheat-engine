@@ -380,6 +380,7 @@ begin
         ProcessHandler.ProcessHandle:=0;
       end;
 
+      if processid=GetCurrentProcessId then raise exception.create('Please select another process');
 
       Debuggerthread:=TDebuggerThread.MyCreate2(processid);
 

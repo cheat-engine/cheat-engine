@@ -226,6 +226,8 @@ var ths: thandle;
     me32: MODULEENTRY32;
     x: pchar;
     moduledata: tmoduledata;
+    i: integer;
+    alreadyInTheList: boolean;
 begin
   cleanModuleList;
 
@@ -242,11 +244,25 @@ begin
 
         if (withSystemModules) or (not symhandler.inSystemModule(ptrUint(me32.modBaseAddr))) then
         begin
-          moduledata:=tmoduledata.Create;
-          moduledata.moduleaddress:=ptrUint(me32.modBaseAddr);
-          moduledata.modulesize:=me32.modBaseSize;
-          
-          lbModuleList.Items.AddObject(x,moduledata);
+          alreadyInTheList:=false;
+          for i:=0 to lbModuleList.Items.count-1 do
+          begin
+            moduledata:=tmoduledata(lbModuleList.items.objects[i]);
+            if moduledata.moduleaddress=ptrUint(me32.modBaseAddr) then
+            begin
+              alreadyInTheList:=true;
+              break;
+            end;
+          end;
+
+          if not alreadyInTheList then
+          begin
+            moduledata:=tmoduledata.Create;
+            moduledata.moduleaddress:=ptrUint(me32.modBaseAddr);
+            moduledata.modulesize:=me32.modBaseSize;
+
+            lbModuleList.Items.AddObject(x,moduledata);
+          end;
         end;
       until module32next(ths,me32)=false;
 

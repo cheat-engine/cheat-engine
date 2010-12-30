@@ -1636,7 +1636,7 @@ end;
 procedure TMemoryBrowser.Stacktrace1Click(Sender: TObject);
 begin
   if frmstacktrace=nil then
-    frmstacktrace:=tfrmstacktrace.create(self);
+    frmstacktrace:=tfrmstacktrace.create(nil);
 
   frmstacktrace.Show;
 end;
@@ -2119,17 +2119,13 @@ end;
 
 procedure TMemoryBrowser.EnumeratedllsandSymbols1Click(Sender: TObject);
 begin
-  {$ifndef net}
-
   symhandler.reinitialize;
   
   if frmEnumerateDLLs=nil then
-  begin
-    frmEnumerateDLLs:=tfrmEnumerateDLLs.create(self);
-    frmEnumerateDLLs.Show;
-  end
-  else frmEnumerateDLLs.enumerate;
-  {$endif}
+    frmEnumerateDLLs:=tfrmEnumerateDLLs.create(nil);
+
+  frmEnumerateDLLs.Show;
+  frmEnumerateDLLs.enumerate;
 end;
 
 procedure TMemoryBrowser.InjectDLL1Click(Sender: TObject);

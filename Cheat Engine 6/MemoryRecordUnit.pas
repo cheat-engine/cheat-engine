@@ -11,7 +11,7 @@ uses
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
-type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
+//type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue);
 type TMemrecOptions=set of TMemrecOption;
@@ -127,7 +127,8 @@ type
     function isPointer: boolean;
     procedure ApplyFreeze;
     function GetValue: string;
-    procedure SetValue(v: string);
+    procedure SetValue(v: string); overload;
+    procedure SetValue(v: string; isFreezer: boolean); overload;
     procedure increaseValue(value: string);
     procedure decreaseValue(value: string);
     function GetRealAddress: PtrUInt;
@@ -790,6 +791,7 @@ end;
 procedure TMemoryRecord.disablewithoutexecute;
 begin
   factive:=false;
+  SetVisibleChildrenState;
   treenode.Update;
 end;
 
@@ -864,7 +866,11 @@ begin
           autoassemblerdata.registeredsymbols:=tstringlist.create;
 
         if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.registeredsymbols) then
+        begin
           fActive:=state;
+          if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
+            TAddresslist(fOwner).ReinterpretAddresses;
+        end;
       except
         //running the script failed, state unchanged
       end;
@@ -974,13 +980,64 @@ begin
 end;
 
 procedure TMemoryRecord.ApplyFreeze;
+var oldvalue, newvalue: string;
+  olddecimalvalue, newdecimalvalue: qword;
+  oldfloatvalue, newfloatvalue: double;
 begin
-  //debug
-
   if (not isgroupheader) and active and (VarType<>vtAutoAssembler) then
   begin
     try
-      setValue(frozenValue);
+
+      if allowIncrease or allowDecrease then
+      begin
+        //get the new value
+        oldvalue:=frozenValue;
+        newvalue:=GetValue;
+        if showashex or (VarType in [vtByte..vtDouble, vtCustom]) then
+        begin
+          //handle as a decimal
+
+
+          if showAsHex then
+          begin
+            newdecimalvalue:=StrToInt('$'+newvalue);
+            olddecimalvalue:=StrToInt('$'+oldvalue);
+          end
+          else
+          begin
+            newdecimalvalue:=StrToInt(newvalue);
+            olddecimalvalue:=StrToInt(oldvalue);
+          end;
+
+          if (allowIncrease and (newdecimalvalue>olddecimalvalue)) or
+             (allowDecrease and (newdecimalvalue<olddecimalvalue))
+          then
+            frozenvalue:=newvalue;
+
+        end
+        else
+        if Vartype in [vtSingle, vtdouble] then
+        begin
+          //handle as floating point value
+          oldfloatvalue:=strtofloat(oldvalue);
+          newfloatvalue:=strtofloat(newvalue);
+
+          if (allowIncrease and (newfloatvalue>oldfloatvalue)) or
+             (allowDecrease and (newfloatvalue<oldfloatvalue))
+          then
+            frozenvalue:=newvalue;
+
+        end;
+
+        try
+          setValue(frozenValue, true);
+        except
+          //new value gives an error, use the old one
+          frozenvalue:=oldvalue;
+        end;
+      end
+      else
+        setValue(frozenValue, true);
     except
     end;
   end;
@@ -1118,6 +1175,11 @@ begin
 end;
 
 procedure TMemoryRecord.SetValue(v: string);
+begin
+  SetValue(v,false);
+end;
+
+procedure TMemoryRecord.SetValue(v: string; isFreezer: boolean);
 {
 Changes this address to the value V
 }
@@ -1171,7 +1233,7 @@ begin
   end;
 
 
-  if moRecursiveSetValue in options then //do this for all it's children
+  if (not isfreezer) and (moRecursiveSetValue in options) then //do this for all it's children
   begin
     for i:=0 to treenode.Count-1 do
     begin

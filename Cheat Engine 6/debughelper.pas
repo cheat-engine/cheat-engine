@@ -1629,6 +1629,7 @@ end;
 
 constructor TDebuggerthread.MyCreate2(processID: THandle);
 begin
+
   defaultconstructorcode;
 
   createProcess:=false;

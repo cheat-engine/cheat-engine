@@ -53,13 +53,14 @@ object frmStructures: TfrmStructures
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
+    ShowRoot = False
     TabOrder = 1
     OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsing = tvStructureViewCollapsing
     OnDblClick = tvStructureViewDblClick
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
-    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
   object HeaderControl1: THeaderControl
     Left = 0

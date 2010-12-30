@@ -47,7 +47,7 @@ object frmdissectWindow: TfrmdissectWindow
     TabOrder = 2
     object Button2: TButton
       Left = 8
-      Height = 17
+      Height = 19
       Top = 8
       Width = 89
       Caption = 'Toggle visible'
@@ -56,7 +56,7 @@ object frmdissectWindow: TfrmdissectWindow
     end
     object Button3: TButton
       Left = 104
-      Height = 17
+      Height = 19
       Top = 8
       Width = 89
       Caption = 'Close window'
@@ -75,7 +75,7 @@ object frmdissectWindow: TfrmdissectWindow
     end
     object Button4: TButton
       Left = 90
-      Height = 17
+      Height = 19
       Top = 32
       Width = 129
       Anchors = [akTop]
@@ -86,7 +86,7 @@ object frmdissectWindow: TfrmdissectWindow
     end
     object Button6: TButton
       Left = 200
-      Height = 17
+      Height = 19
       Top = 8
       Width = 89
       Caption = 'Change text'

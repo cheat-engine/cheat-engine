@@ -609,6 +609,7 @@ var
   newtype,oldType: TVariableType;
   memrec: TMemoryRecord;
   extra:  TMemRecExtraData;
+  CustomTypeName: string;
 begin
   TypeForm.RefreshCustomTypes;
 
@@ -660,6 +661,7 @@ begin
 
   newtype:=memrec.VarType;
   extra:=memrec.Extra;
+  CustomTypeName:=memrec.customtypename;
 
   for i:=0 to count-1 do
   begin
@@ -669,6 +671,7 @@ begin
 
       MemRecItems[i].VarType:=newtype;
       MemRecItems[i].Extra:=extra;
+      MemRecItems[i].CustomTypeName:=customtypename;
 
       MemRecItems[i].treenode.update;
     end;

@@ -70,6 +70,8 @@ var title:pchar;
     winprocess:dword;
     i,err: integer;
  //   processid: dword;
+
+
 begin
   //fill the treeview with stuff
   //find the windows that have this processid as owner
@@ -102,26 +104,35 @@ begin
   i:=0;
   while i<treeview1.Items.Count-1 do
   begin
-    val('$'+treeview1.items[i].Text,h,err);
-    winhandle:=getwindow(h,GW_CHILD);
+    err:=pos('-',treeview1.items[i].Text);
 
-    while winhandle<>0 do
-    begin
-      GetWindowThreadProcessId(winhandle,addr(winprocess));
-      title[0]:=#0;
-      classname[0]:=#0;
-      getwindowtext(winhandle,title,100);
-      GetClassName(winhandle,classname,100);
-      classname[100]:=#0;
-      title[100]:=#0;
+    try
+      h:=StrToInt64('$'+copy(treeview1.items[i].Text, 1, err-1));
 
-      if iswindowvisible(winhandle) then
-        treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
-      else
-        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+') (Invis)');
+      winhandle:=getwindow(h,GW_CHILD);
+
+      while winhandle<>0 do
+      begin
+        GetWindowThreadProcessId(winhandle,addr(winprocess));
+        title[0]:=#0;
+        classname[0]:=#0;
+        getwindowtext(winhandle,title,100);
+        GetClassName(winhandle,classname,100);
+        classname[100]:=#0;
+        title[100]:=#0;
+
+        if iswindowvisible(winhandle) then
+          treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
+        else
+          treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+') (Invis)');
 
 
-      winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+        winhandle:=getwindow(winhandle,GW_HWNDNEXT);
+      end;
+
+
+    except
+      continue;
     end;
     inc(i);
   end;
@@ -142,23 +153,30 @@ begin
 
   if treeview1.Selected<>nil then
   begin
-    val('$'+treeview1.Selected.Text,h,err);
-    title[0]:=#0;
-    classname[0]:=#0;
-    getwindowtext(h,title,100);
-    GetClassName(h,classname,100);
-    classname[100]:=#0;
-    title[100]:=#0;
+    err:=pos('-',treeview1.selected.Text);
 
-    if iswindowvisible(h) then
-      showwindow(h,sw_hide)
-    else
-      showwindow(h,sw_show);
+    try
+      h:=StrToInt64('$'+copy(treeview1.selected.Text, 1, err-1));
 
-    if iswindowvisible(h) then
-      treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
-    else
-      treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
+      title[0]:=#0;
+      classname[0]:=#0;
+      getwindowtext(h,title,100);
+      GetClassName(h,classname,100);
+      classname[100]:=#0;
+      title[100]:=#0;
+
+      if iswindowvisible(h) then
+        showwindow(h,sw_hide)
+      else
+        showwindow(h,sw_show);
+
+      if iswindowvisible(h) then
+        treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
+      else
+        treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
+
+    except
+    end;
   end;
 
   freemem(classname);
@@ -270,8 +288,13 @@ var h: thandle;
 begin
   if treeview1.Selected<>nil then
   begin
-    val('$'+treeview1.Selected.Text,h,err);
-    closewindow(h);
+    err:=pos('-',treeview1.selected.Text);
+    try
+      h:=strtoint64('$'+copy(treeview1.selected.Text, 1, err-1));
+      closewindow(h);
+    except
+
+    end;
   end;
 end;
 
@@ -285,39 +308,47 @@ var oldname:pchar;
 begin
   if treeview1.Selected=nil then exit;
 
-  val('$'+treeview1.Selected.Text,h,err);
-
-  getmem(oldname,255);
+  err:=pos('-',treeview1.selected.Text);
   try
-    GetWindowText(h,oldname,254);
-    oldname[254]:=#0; //make sure
-    name:=oldname;
+    h:=strtoint64('$'+copy(treeview1.selected.Text, 1, err-1));
 
-    if inputquery('Dissect Windows','Give the new text for this window',name) then
-    begin
-      SetWindowText(h,pchar(name));
 
-      getmem(title,101);
-      getmem(classname,101);
-      try
-        title[0]:=#0;
-        classname[0]:=#0;
-        getwindowtext(h,title,100);
-        GetClassName(h,classname,100);
-        classname[100]:=#0;
-        title[100]:=#0;
 
-        if iswindowvisible(h) then
-          treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
-        else
-          treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
-      finally
-        freemem(title);
-        freemem(classname);
+    getmem(oldname,255);
+    try
+      GetWindowText(h,oldname,254);
+      oldname[254]:=#0; //make sure
+      name:=oldname;
+
+      if inputquery('Dissect Windows','Give the new text for this window',name) then
+      begin
+        SetWindowText(h,pchar(name));
+
+        getmem(title,101);
+        getmem(classname,101);
+        try
+          title[0]:=#0;
+          classname[0]:=#0;
+          getwindowtext(h,title,100);
+          GetClassName(h,classname,100);
+          classname[100]:=#0;
+          title[100]:=#0;
+
+          if iswindowvisible(h) then
+            treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
+          else
+            treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
+        finally
+          freemem(title);
+          freemem(classname);
+        end;
       end;
+
+    finally
+      freemem(oldname);
     end;
-  finally
-    freemem(oldname);
+  except
+
   end;
 end;
 

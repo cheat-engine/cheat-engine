@@ -34,6 +34,7 @@ const
 //scantabs
 type
   TScanState=record
+    alignsizechangedbyuser: boolean;
     compareToSavedScan: boolean;
     currentlySelectedSavedResultname: string; //I love long variable names
 
@@ -345,7 +346,9 @@ type
     Label61: TLabel;
     actOpenProcesslist: TAction;
     procedure Address1Click(Sender: TObject);
+    procedure cbFastScanChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
+    procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Foundlist3Resize(Sender: TObject);
     procedure CreateGroupClick(Sender: TObject);
@@ -375,7 +378,9 @@ type
     procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
+    procedure pmValueTypePopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
+    procedure rbFsmAlignedChange(Sender: TObject);
     procedure ScanTypeSelect(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
@@ -528,6 +533,8 @@ type
     hexstateForIntTypes: boolean;
     compareToSavedScan: boolean;
     currentlySelectedSavedResultname: string; //I love long variable names
+
+    alignsizechangedbyuser: boolean;
 
     procedure doNewScan;
     procedure SetExpectedTableName;
@@ -2099,6 +2106,14 @@ begin
 
 end;
 
+procedure TMainForm.rbFsmAlignedChange(Sender: TObject);
+begin
+  if rbfsmLastDigts.checked then
+    alignsizechangedbyuser:=false;
+
+  VarType.OnChange(vartype);
+end;
+
 procedure TMainForm.ScanTypeSelect(Sender: TObject);
 begin
 
@@ -2114,6 +2129,12 @@ begin
   addresslist.doDescriptionChange;
 end;
 
+procedure TMainForm.edtAlignmentKeyPress(Sender: TObject; var Key: char);
+begin
+  if rbFsmAligned.checked then
+    alignsizechangedbyuser:=true;
+end;
+
 procedure TMainForm.FormDropFiles(Sender: TObject;
   const FileNames: array of String);
 begin
@@ -2127,6 +2148,16 @@ end;
 procedure TMainForm.Address1Click(Sender: TObject);
 begin
   addresslist.doAddressChange;
+end;
+
+procedure TMainForm.cbFastScanChange(Sender: TObject);
+begin
+  edtAlignment.enabled:=cbFastScan.checked and cbfastscan.enabled;
+  rbFsmAligned.enabled:=edtAlignment.enabled;
+  rbfsmLastDigts.enabled:=edtAlignment.enabled;
+
+  alignsizechangedbyuser:=false;
+  VarType.OnChange(vartype);
 end;
 
 
@@ -2481,9 +2512,8 @@ begin
       Add('//function declared as: stdcall int ConvertRoutine(unsigned char *input);');
       Add('//Note: Keep in mind that this routine can be called by multiple threads at the same time.');
       Add('ConvertRoutine:');
-
-      add('[64-bit]');
       Add('//jmp dllname.functionname');
+      add('[64-bit]');
       Add('//or manual:');
       Add('//parameters: (64-bit)');
       Add('//rcx=address of input');
@@ -2491,6 +2521,7 @@ begin
       Add('');
       Add('ret');
       add('[/64-bit]');
+      add('');
       add('[32-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
@@ -2510,9 +2541,9 @@ begin
       Add('//The convert back routine should hold a routine that converts the given integer back to a row of bytes (e.g when the user wats to write a new value)');
       Add('//function declared as: stdcall void ConvertBackRoutine(int i, unsigned char *output);');
       Add('ConvertBackRoutine:');
-      Add('[64-bit]');
       Add('//jmp dllname.functionname');
       Add('//or manual:');
+      Add('[64-bit]');
       Add('//parameters: (64-bit)');
       Add('//ecx=input');
       Add('//rdx=address of output');
@@ -2521,9 +2552,8 @@ begin
       Add('');
       Add('ret');
       Add('[/64-bit]');
+      add('');
       Add('[32-bit]');
-      Add('//jmp dllname.functionname');
-      Add('//or manual:');
       Add('//parameters: (32-bit)'); //[esp]=return [esp+4]=input
       Add('push ebp');  //[esp]=ebp , [esp+4]=return [esp+8]=input
       Add('mov ebp,esp');  //[ebp]=ebp , [esp+4]=return [esp+8]=input
@@ -2579,6 +2609,8 @@ end;
 procedure TMainForm.SaveCurrentState(scanstate: PScanState);
 begin
   //save the current state
+  scanstate.alignsizechangedbyuser:=alignsizechangedbyuser;
+
   scanstate.compareToSavedScan:=comparetosavedscan;
   scanstate.currentlySelectedSavedResultname:=currentlySelectedSavedResultname; //I love long variable names
 
@@ -2715,6 +2747,7 @@ begin
       DestroyScanValue2;
     end;
 
+    alignsizechangedbyuser:=newstate.alignsizechangedbyuser;
     comparetosavedscan:=newstate.compareToSavedScan;
     currentlySelectedSavedResultname:=newstate.currentlySelectedSavedResultname; //I love long variable names
 
@@ -3013,6 +3046,12 @@ begin
     miTablistSeperator.Visible:=miCloseTab.visible;
     miRenameTab.Visible:=miCloseTab.visible;
   end;
+end;
+
+procedure TMainForm.pmValueTypePopup(Sender: TObject);
+begin
+  miEditCustomType.visible:=(vartype.itemindex<>-1) and (vartype.items.objects[vartype.itemindex]<>nil);
+  miDeleteCustomType.visible:=miEditCustomType.visible;
 end;
 
 procedure TMainform.aprilfoolsscan;
@@ -3693,7 +3732,7 @@ var
   unicodevis: boolean;
   tc: tbitmap;
 
-  oldalignsize, alignsize: integer;
+  alignsize: integer;
 begin
   //todo: rewrite this
   oldscantype:=scantype.ItemIndex;
@@ -3710,37 +3749,30 @@ begin
 
   decbitvis:=false;
 
-
-  //alignsize
-  case newvartype of
-    0,1,7,8,9: alignsize:=1;
-    2: alignsize:=2;
-
-    else alignsize:=4;
-  end;
-
-  if vartype.Items.Objects[vartype.ItemIndex]<>nil then
+  if rbFsmAligned.checked and (not alignsizechangedbyuser) then
   begin
-    //custom type is ALWAYS the decider
-    if rbFsmAligned.checked then
-      edtAlignment.text:=inttohex(TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize,1);
-  end
-  else
-  begin
-    try
-      oldalignsize:=strtoint('$'+edtAlignment.text);
-      //still here
-
-      case oldvartype of
-        1: if oldalignsize<>1 then alignsize:=oldalignsize; //non standard alignment for this type
-        2: if oldalignsize<>2 then alignsize:=oldalignsize; //non standard alignment for this type
-        else if oldalignsize<>4 then alignsize:=oldalignsize; //non standard alignment for this type
-      end;
-
+    if vartype.Items.Objects[vartype.ItemIndex]<>nil then
+    begin
+      //custom type is ALWAYS the decider
       if rbFsmAligned.checked then
-        edtAlignment.text:=inttohex(alignsize,1);
-    except
+        edtAlignment.text:=inttohex(TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize,1);
+    end
+    else
+    begin
+      try
+        case newvartype of
+          0,1,7,8,9: alignsize:=1; //byte, aob, string
+          2: alignsize:=2; //word
+          else
+            alignsize:=4; //dword, float, single, etc...
+        end;
+
+        if rbFsmAligned.checked then
+          edtAlignment.text:=inttohex(alignsize,1);
+      except
+      end;
     end;
+
   end;
 
 
@@ -4038,7 +4070,7 @@ begin
        scanvalue.MaxLength:=0;
        hexadecimalcheckbox.enableD:=newscan.enabled;
        hexadecimalcheckbox.Checked:=true;
-       cbfastscan.checked:=false;
+
      end;
 
   end;
@@ -4061,7 +4093,7 @@ begin
 
   cbCaseSensitive.visible:=casevis;
 
-  cbfastscan.Enabled:=(vartype.ItemIndex in [2..6]) and newscan.enabled;
+  cbfastscan.Enabled:=NewScan.enabled and (not nextscanbutton.enabled);   //only enabled when newscan is enabled and nextscan not
 
 
 
@@ -5071,7 +5103,6 @@ end;
 
 procedure TMainForm.cbFastScanClick(Sender: TObject);
 begin
-  edtAlignment.enabled:=cbFastScan.checked and cbfastscan.enabled;
 
 
 

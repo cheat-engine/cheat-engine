@@ -548,7 +548,7 @@ begin
             3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'],';
             4:
             begin
-              result:='['+sib(memory,modrmbyte+1,last)+']';
+              result:='['+sib(memory,modrmbyte+1,last)+'],';
               //no displacement unless it's 64-bit and that is already handled in sib()
 
               {dwordptr:=@memory[last];

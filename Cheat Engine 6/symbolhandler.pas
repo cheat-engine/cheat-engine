@@ -1299,7 +1299,12 @@ var
   me32:MODULEENTRY32;
   x: pchar;
 
+  i: integer;
+
   processid: dword;
+  modulename: string;
+
+  alreadyInTheList: boolean;
 begin
   try
 {$ifdef autoassemblerdll}
@@ -1326,22 +1331,39 @@ begin
         try
           if module32first(ths,me32) then
           repeat
-            if modulelistpos+1>=length(modulelist) then
-              setlength(modulelist,length(modulelist)*2);
-
             x:=me32.szExePath;
-            modulelist[modulelistpos].modulename:=extractfilename(x);
-            modulelist[modulelistpos].modulepath:=x;
+            modulename:=extractfilename(x);
 
-            //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
-            modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
+            alreadyInTheList:=false;
+            //check if this modulename is already in the list, and if so check if it's the same base, else add it
+            for i:=0 to modulelistpos-1 do
+            begin
+              if (modulelist[i].baseaddress=ptrUint(me32.modBaseAddr)) then
+              begin
+                alreadyInTheList:=true;
+                break; //it's in the list, no need to continue looking, break out of the for loop
+              end;
+            end;
 
-            if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
-              modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+            if not alreadyInTheList then
+            begin
+              if modulelistpos+1>=length(modulelist) then
+                setlength(modulelist,length(modulelist)*2);
 
-            modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
-            modulelist[modulelistpos].basesize:=me32.modBaseSize;
-            inc(modulelistpos);
+
+              modulelist[modulelistpos].modulename:=modulename;
+              modulelist[modulelistpos].modulepath:=x;
+
+              //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
+              modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
+
+              if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
+                modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+
+              modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
+              modulelist[modulelistpos].basesize:=me32.modBaseSize;
+              inc(modulelistpos);
+            end;
 
           until not module32next(ths,me32);
         finally

@@ -123,6 +123,8 @@ var mes: string;
     reS:boolean;
     i: integer;
 begin
+  if processid=GetCurrentProcessId then raise exception.create('Please target another process');
+
   result:=false;
   if processhandle=0 then raise exception.create('You must first open a process');
 

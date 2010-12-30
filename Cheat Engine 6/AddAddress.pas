@@ -341,7 +341,7 @@ begin
     begin
       if vartype.Items.Objects[vartype.Itemindex]<>nil then
       begin
-        vartype2:=9;
+        vartype2:=10;
         customtypename:=TCustomType(vartype.Items.Objects[vartype.Itemindex]).name;
       end;
     end;

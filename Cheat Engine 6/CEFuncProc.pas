@@ -177,9 +177,7 @@ procedure SetLanguage;
 
 {$endif}
 
-{$ifndef standalonetrainer}
 procedure DetachIfPossible;
-{$endif}
 
 procedure getexecutablememoryregionsfromregion(start: ptrUint; stop:ptrUint; var memoryregions: TMemoryRegions);
 
@@ -641,19 +639,11 @@ var
 
 implementation
 
-{$ifdef net}
-uses disassembler,debugger,debughelper;
-{$endif}
 
-{$ifndef net}
 
-{$ifndef standalonetrainer}
-uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,kerneldebugger, formsettingsunit;
-{$else}
-uses symbolhandler;
-{$endif}
+uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
+     kerneldebugger, formsettingsunit, MemoryBrowserFormUnit;
 
-{$endif}
 
 function ProcessID: dword;
 begin
@@ -875,7 +865,6 @@ begin
 end;
 {$endif}
 
-{$ifndef standalonetrainer}
 //Returns a random threadid owned by the target process
 function getathreadid(processid:dword):dword;
 var i: integer;
@@ -934,8 +923,10 @@ begin
     debuggerthread.WaitFor;
     freeandnil(debuggerthread);
   end;
+
+  memorybrowser.showDebugPanels:=false;
 end;
-{$endif}
+
 
 
 Procedure InjectDll(dllname: string; functiontocall: string='');

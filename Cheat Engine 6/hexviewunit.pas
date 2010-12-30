@@ -678,7 +678,7 @@ begin
     if selectionType=hrChar then
     begin
       if (isEditing) or ((toAddress-FromAddress)>length(s)) then
-        ToAddress:=FromAddress+length(s);
+        ToAddress:=FromAddress+length(s)-1;
 
       i:=1;
       while fromaddress<=ToAddress do
@@ -692,7 +692,7 @@ begin
     else
     begin
       if (isEditing) or ((toAddress-FromAddress)>length(b)) then
-        ToAddress:=FromAddress+length(b);
+        ToAddress:=FromAddress+length(b)-1;
 
       i:=0;
       while fromaddress<=ToAddress do
