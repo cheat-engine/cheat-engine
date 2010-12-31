@@ -55,9 +55,6 @@
             </Options>
           </Linking>
           <Other>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -73,7 +70,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="4">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -81,87 +78,161 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="19"/>
-        <CursorPos X="41" Y="48"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="46"/>
+        <CursorPos X="100" Y="75"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-base\src\shellapi.pp"/>
         <UnitName Value="ShellApi"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1060"/>
         <CursorPos X="1" Y="1075"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\finah.inc"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="12"/>
+        <CursorPos X="17" Y="28"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\fina.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="34"/>
+        <CursorPos X="3" Y="57"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="38" Column="14" TopLine="17"/>
+        <Caret Line="30" Column="1" TopLine="15"/>
       </Position1>
       <Position2>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="14" Column="14" TopLine="1"/>
+        <Caret Line="15" Column="2" TopLine="1"/>
       </Position2>
       <Position3>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2" TopLine="1"/>
+        <Caret Line="3" Column="15" TopLine="1"/>
       </Position3>
       <Position4>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="30" Column="1" TopLine="15"/>
+        <Caret Line="15" Column="2" TopLine="1"/>
       </Position4>
       <Position5>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2" TopLine="1"/>
+        <Caret Line="27" Column="16" TopLine="17"/>
       </Position5>
       <Position6>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="3" Column="15" TopLine="1"/>
+        <Caret Line="29" Column="16" TopLine="13"/>
       </Position6>
       <Position7>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2" TopLine="1"/>
+        <Caret Line="34" Column="1" TopLine="13"/>
       </Position7>
       <Position8>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="27" Column="16" TopLine="17"/>
+        <Caret Line="35" Column="1" TopLine="13"/>
       </Position8>
       <Position9>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="29" Column="16" TopLine="13"/>
+        <Caret Line="37" Column="1" TopLine="22"/>
       </Position9>
       <Position10>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="34" Column="1" TopLine="13"/>
+        <Caret Line="38" Column="1" TopLine="22"/>
       </Position10>
       <Position11>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="35" Column="1" TopLine="13"/>
+        <Caret Line="40" Column="1" TopLine="22"/>
       </Position11>
       <Position12>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="37" Column="1" TopLine="22"/>
+        <Caret Line="41" Column="1" TopLine="22"/>
       </Position12>
       <Position13>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="38" Column="1" TopLine="22"/>
+        <Caret Line="42" Column="1" TopLine="22"/>
       </Position13>
       <Position14>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="40" Column="1" TopLine="22"/>
+        <Caret Line="56" Column="15" TopLine="28"/>
       </Position14>
       <Position15>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="41" Column="1" TopLine="22"/>
+        <Caret Line="57" Column="13" TopLine="28"/>
       </Position15>
       <Position16>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="42" Column="1" TopLine="22"/>
+        <Caret Line="55" Column="40" TopLine="34"/>
       </Position16>
+      <Position17>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="51" Column="26" TopLine="35"/>
+      </Position17>
+      <Position18>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="54" Column="46" TopLine="35"/>
+      </Position18>
+      <Position19>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="51" Column="1" TopLine="35"/>
+      </Position19>
+      <Position20>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="53" Column="1" TopLine="35"/>
+      </Position20>
+      <Position21>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="54" Column="1" TopLine="35"/>
+      </Position21>
+      <Position22>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="55" Column="29" TopLine="35"/>
+      </Position22>
+      <Position23>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="51" Column="1" TopLine="35"/>
+      </Position23>
+      <Position24>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="53" Column="1" TopLine="35"/>
+      </Position24>
+      <Position25>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="54" Column="1" TopLine="35"/>
+      </Position25>
+      <Position26>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="55" Column="1" TopLine="35"/>
+      </Position26>
+      <Position27>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="66" Column="1" TopLine="41"/>
+      </Position27>
+      <Position28>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="62" Column="12" TopLine="41"/>
+      </Position28>
+      <Position29>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="64" Column="1" TopLine="41"/>
+      </Position29>
+      <Position30>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="67" Column="22" TopLine="41"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -191,9 +262,6 @@
       </Options>
     </Linking>
     <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
