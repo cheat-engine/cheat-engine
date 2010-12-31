@@ -67,8 +67,6 @@ begin
       param:=param+' "'+paramstr(i)+'"';
   end;
 
-  messagebox(0,pchar(param),pchar(inttostr(Paramcount)),0);
-
   if launch32bit then
     ShellExecute(0, 'open', pchar(selfpath+'cheatengine-i386.exe'), pchar(param), pchar(selfpath), sw_show)
   else
