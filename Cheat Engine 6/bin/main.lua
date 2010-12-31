@@ -19,6 +19,7 @@ require("defines")
 --writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 --writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
 --writeString(address,string) : Write a string to the specified address. Returns true on success
+--generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)

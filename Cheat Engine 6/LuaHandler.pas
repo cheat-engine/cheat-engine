@@ -23,7 +23,8 @@ procedure InitializeLuaScripts;
 
 implementation
 
-uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions, symbolhandler;
+uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
+  symbolhandler, frmautoinjectunit;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -2495,6 +2496,39 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function generateAPIHookScript_fromLua(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  address: string;
+  addressTo: string;
+  addresstogetnewcalladdress: string;
+  script: tstringlist;
+begin
+  address:=nil;
+  addressTo:=nil;
+  addresstogetnewcalladdress:=nil;
+
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=2 then
+  begin
+    address:=lua_tostring(L, -parameters);
+    addressTo:=lua_tostring(L, (-parameters)+1);
+
+    if parameters=3 then
+      addresstogetnewcalladdress:=lua_tostring(L, (-parameters)+2);
+
+    script:=tstringlist.create;
+    try
+      generateAPIHookScript(script, address, addressto, addresstogetnewcalladdress);
+      lua_pushstring(L, pchar(script.text));
+      result:=1;
+    finally
+      script.free;
+    end;
+  end;
+
+end;
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -2589,6 +2623,7 @@ initialization
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
+    lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua;
 
     LUA_DoScript('os=nil');
 
