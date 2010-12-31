@@ -13,12 +13,12 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1005"/>
+      <BuildNr Value="1008"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
     </VersionInfo>
-    <BuildModes Count="3" Active="debug-nomt">
+    <BuildModes Count="3" Active="release">
       <Item1 Name="release" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -1772,8 +1772,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2508"/>
-        <CursorPos X="17" Y="2525"/>
+        <TopLine Value="2608"/>
+        <CursorPos X="80" Y="2626"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
           <Item0 X="7" Y="2523" ID="8"/>
@@ -2123,124 +2123,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6299" Column="3" TopLine="6288"/>
+        <Filename Value="C:\lazarus\lcl\forms.pp"/>
+        <Caret Line="1438" Column="27" TopLine="1422"/>
       </Position1>
       <Position2>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3168" Column="17" TopLine="3153"/>
+        <Caret Line="3156" Column="19" TopLine="3144"/>
       </Position2>
       <Position3>
-        <Filename Value="C:\lazarus\lcl\forms.pp"/>
-        <Caret Line="1438" Column="27" TopLine="1422"/>
-      </Position3>
-      <Position4>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3156" Column="19" TopLine="3144"/>
-      </Position4>
-      <Position5>
         <Filename Value="C:\lazarus\lcl\include\application.inc"/>
         <Caret Line="1241" Column="16" TopLine="1233"/>
-      </Position5>
-      <Position6>
+      </Position3>
+      <Position4>
         <Filename Value="C:\lazarus\lcl\include\application.inc"/>
         <Caret Line="705" Column="29" TopLine="697"/>
-      </Position6>
-      <Position7>
+      </Position4>
+      <Position5>
         <Filename Value="C:\lazarus\lcl\forms.pp"/>
         <Caret Line="441" Column="18" TopLine="425"/>
+      </Position5>
+      <Position6>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3160" Column="23" TopLine="3137"/>
+      </Position6>
+      <Position7>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3161" Column="23" TopLine="3137"/>
       </Position7>
       <Position8>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3160" Column="23" TopLine="3137"/>
+        <Caret Line="599" Column="13" TopLine="583"/>
       </Position8>
       <Position9>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3161" Column="23" TopLine="3137"/>
+        <Caret Line="3134" Column="16" TopLine="3122"/>
       </Position9>
       <Position10>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="599" Column="13" TopLine="583"/>
+        <Caret Line="3157" Column="6" TopLine="3136"/>
       </Position10>
       <Position11>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3134" Column="16" TopLine="3122"/>
+        <Caret Line="3159" Column="39" TopLine="3143"/>
       </Position11>
       <Position12>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3157" Column="6" TopLine="3136"/>
+        <Caret Line="599" Column="14" TopLine="436"/>
       </Position12>
       <Position13>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="3159" Column="39" TopLine="3143"/>
+        <Caret Line="4" Column="11" TopLine="1"/>
       </Position13>
       <Position14>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="599" Column="14" TopLine="436"/>
+        <Caret Line="3155" Column="1" TopLine="3149"/>
       </Position14>
       <Position15>
         <Filename Value="MainUnit.pas"/>
-        <Caret Line="4" Column="11" TopLine="1"/>
+        <Caret Line="3163" Column="1" TopLine="3149"/>
       </Position15>
       <Position16>
         <Filename Value="MainUnit.pas"/>
         <Caret Line="3155" Column="1" TopLine="3149"/>
       </Position16>
       <Position17>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3163" Column="1" TopLine="3149"/>
-      </Position17>
-      <Position18>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3155" Column="1" TopLine="3149"/>
-      </Position18>
-      <Position19>
         <Filename Value="pluginexports.pas"/>
         <Caret Line="1065" Column="37" TopLine="1041"/>
-      </Position19>
-      <Position20>
+      </Position17>
+      <Position18>
         <Filename Value="pluginexports.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
+      </Position18>
+      <Position19>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="2512" Column="5" TopLine="2487"/>
+      </Position19>
+      <Position20>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="1951" Column="65" TopLine="1936"/>
       </Position20>
       <Position21>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2512" Column="5" TopLine="2487"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position21>
       <Position22>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1951" Column="65" TopLine="1936"/>
+        <Caret Line="648" Column="16" TopLine="628"/>
       </Position22>
       <Position23>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="793" Column="32" TopLine="767"/>
       </Position23>
       <Position24>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="648" Column="16" TopLine="628"/>
+        <Caret Line="796" Column="40" TopLine="770"/>
       </Position24>
       <Position25>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="793" Column="32" TopLine="767"/>
+        <Caret Line="960" Column="40" TopLine="934"/>
       </Position25>
       <Position26>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="796" Column="40" TopLine="770"/>
+        <Caret Line="963" Column="40" TopLine="937"/>
       </Position26>
       <Position27>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="960" Column="40" TopLine="934"/>
+        <Caret Line="993" Column="35" TopLine="967"/>
       </Position27>
       <Position28>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="963" Column="40" TopLine="937"/>
+        <Caret Line="996" Column="16" TopLine="970"/>
       </Position28>
       <Position29>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="993" Column="35" TopLine="967"/>
+        <Caret Line="2525" Column="17" TopLine="2508"/>
       </Position29>
       <Position30>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="996" Column="16" TopLine="970"/>
+        <Caret Line="2509" Column="33" TopLine="2491"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

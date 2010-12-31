@@ -2504,9 +2504,9 @@ var
   addresstogetnewcalladdress: string;
   script: tstringlist;
 begin
-  address:=nil;
-  addressTo:=nil;
-  addresstogetnewcalladdress:=nil;
+  address:='';
+  addressTo:='';
+  addresstogetnewcalladdress:='';
 
   result:=0;
   parameters:=lua_gettop(L);
@@ -2623,7 +2623,7 @@ initialization
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
-    lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua;
+    lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
 
     LUA_DoScript('os=nil');
 
