@@ -13,14 +13,14 @@ type
     TabControl1: TTabControl;
     Change: TButton;
     Button2: TButton;
-    CheckBox1: TCheckBox;
+    cbHexadecimal: TCheckBox;
     Edit1: TEdit;
     procedure ChangeClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TabControl1Changing(Sender: TObject;
       var AllowChange: Boolean);
     procedure TabControl1Change(Sender: TObject);
-    procedure CheckBox1Click(Sender: TObject);
+    procedure cbHexadecimalClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -39,12 +39,31 @@ implementation
 
 
 procedure TChangeOffset.ChangeClick(Sender: TObject);
-var temp: dword;
+var temp: ptruint;
+  s: string;
 begin
   if tabcontrol1.TabIndex=0 then
   begin
-    if checkbox1.checked then val('$'+edit1.Text,offset,error) else
-                              val(edit1.Text,offset,error);
+    if cbHexadecimal.checked then
+    begin
+      s:=trim(edit1.text);
+
+      if length(s)>1 then
+      begin
+        if s[1]='-' then
+        begin
+          val('-$'+copy(s,2,length(s)),offset,error);
+        end
+        else
+          val('$'+s,offset,error);
+      end
+      else
+        val('$'+s,offset,error);
+
+
+    end
+    else
+      val(edit1.Text,offset,error);
   end
   else
   begin
@@ -61,7 +80,7 @@ procedure TChangeOffset.FormShow(Sender: TObject);
 begin
   if tabcontrol1.TabIndex=0 then
   begin
-    if checkbox1.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
+    if cbHexadecimal.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
                               edit1.Text:=IntToStr(integer(toaddress-fromaddress));
   end
   else
@@ -76,7 +95,7 @@ var controle: integer;
 begin
   if tabcontrol1.TabIndex=0 then
   begin
-    if checkbox1.checked then val('$'+edit1.Text,offset,controle) else
+    if cbHexadecimal.checked then val('$'+edit1.Text,offset,controle) else
                               val(edit1.text,offset,controle);
   end else
   begin
@@ -95,22 +114,22 @@ procedure TChangeOffset.TabControl1Change(Sender: TObject);
 begin
   if tabcontrol1.TabIndex=0 then
   begin
-    checkbox1.Visible:=true;
-    if checkbox1.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
+    cbHexadecimal.Visible:=true;
+    if cbHexadecimal.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
                               edit1.Text:=IntToStr(integer(toaddress-fromaddress));
   end
   else
   begin
-    checkbox1.visible:=false;
+    cbHexadecimal.visible:=false;
     edit1.Text:=IntToHex(toaddress,8);
   end;
 end;
 
-procedure TChangeOffset.CheckBox1Click(Sender: TObject);
+procedure TChangeOffset.cbHexadecimalClick(Sender: TObject);
 begin
   if tabcontrol1.TabIndex=0 then
   begin
-    if checkbox1.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
+    if cbHexadecimal.Checked then edit1.Text:=IntToHex(toaddress-fromaddress,8) else
                               edit1.Text:=IntToStr(integer(toaddress-fromaddress));
   end;
 end;                        

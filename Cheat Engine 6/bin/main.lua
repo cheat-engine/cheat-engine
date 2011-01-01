@@ -62,7 +62,7 @@ require("defines")
 --memrec_setValue(te, value): sets the value of a cheat table entry
 --memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
 --memrec_setScript(te, script)
---memrec_isFrozen(te)
+--memrec_isActive(te)
 --memrec_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
 --memrec_unfreeze(te) :unfreezes an entry
 --memrec_setColor(te, colorrgb): Sets the color of the entry
@@ -75,24 +75,29 @@ require("defines")
 --If a cheat entry is enabled or disabled it will check if a lua function named "_memrec_description_activated" or "_memrec_description_deactivated" is available, and if so call it.
 --It passes the tableEntry pointer as parameter
 --Example:
---If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated (check with isFrozen to see if it actually did get activated in case of errors in a script or unreadable memory)
+--If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated (check with isActive to see if it actually did get activated in case of errors in a script or unreadable memory)
 --If the cheat entry table with description "xxx" gets disabled it will call "_memrec_xxx_deactivating(te)" before it is activated and "_memrec_xxx_deactivated(te)" after it has been deactivated
 
 -----debugging------
 
 --debug variables
+--EFLAGS
 --EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
 --RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
 
 --Debug related routines:
---When a breaking breakpoint hits and the lua function debugger_onBreakpoint() is defined it will be called and the global variables EAX, EBX, .... will be filled in
---Return 0 if you want the userinterface toi be updated and enything else if not (e.g: You continued from the breakpoint in your script)
+--function debugger_onBreakpoint():
+--When a breaking breakpoint hits (that includes single stepping) and the lua function debugger_onBreakpoint() is defined it will be called and the global variables EAX, EBX, .... will be filled in
+--Return 0 if you want the userinterface to be updated and anything else if not (e.g: You continued from the breakpoint in your script)
 
+
+
+--createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIONAL) : Creates a process. If debug is true it will be created using the windows debugger and if breakonentry is true it will cause a breakpoint to occur on entrypoint
 
 --debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 --debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
 --debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
---debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), c_stepover (when on top of a call run till after the call)
+--debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
 
 
 

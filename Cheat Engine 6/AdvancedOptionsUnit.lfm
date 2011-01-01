@@ -184,7 +184,6 @@ object AdvancedOptions: TAdvancedOptions
     end
     object Findoutwhatthiscodechanges1: TMenuItem
       Caption = 'Find out what addresses this code writes to'
-      Visible = False
       OnClick = Findoutwhatthiscodechanges1Click
     end
     object N1: TMenuItem

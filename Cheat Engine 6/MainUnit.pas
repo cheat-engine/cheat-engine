@@ -535,6 +535,7 @@ type
     currentlySelectedSavedResultname: string; //I love long variable names
 
     alignsizechangedbyuser: boolean;
+    scantypechangedbyhotkey: boolean;
 
     procedure doNewScan;
     procedure SetExpectedTableName;
@@ -1089,18 +1090,17 @@ begin
 
     27: //next scan same as first
     begin
-    {
       if not newscan.Enabled then exit;
       if (formscanning<>nil) and (formscanning.Visible) then exit; //it's scanning
 
       if nextscanbutton.Enabled then
       begin
-        scantype.ItemIndex:=scantype.Items.IndexOf(strSameAsFirstScan);
+        scantypechangedbyhotkey:=true;
+        scantype.ItemIndex:=scantype.Items.Count-1;
         scantype.OnChange(scantype);
-
-        nextscanbutton.click;
+        scantypechangedbyhotkey:=false;
       end
-      else} Errorbeep;
+      else Errorbeep;
     end;
 
     28: //undo lastscan
@@ -2321,6 +2321,8 @@ begin
     //set to default (4 bytes) if not selected anything anymore
     if (vartype.ItemIndex=-1) or (vartype.ItemIndex>=VarType.Items.Count) then
       vartype.itemindex:=3;
+
+    vartype.DropDownCount:=vartype.items.count;
   finally
     vartype.items.EndUpdate;
   end;
@@ -3145,6 +3147,7 @@ end;
 procedure TMainForm.btnMemoryViewClick(Sender: TObject);
 begin
    memorybrowser.show;
+//   ExtractFilePath();
 end;
 
 resourcestring
@@ -3666,7 +3669,7 @@ begin
       begin
         s:=tstringlist.Create;
         try
-          if memscan.getsavedresults(s)>1 then
+          if (not scantypechangedbyhotkey) or (memscan.getsavedresults(s)>1) then
           begin
             //popup a window where the user can select the scanresults
             //currentlySelectedSavedResultname
@@ -5135,9 +5138,6 @@ begin
     cbPauseWhileScanning.Checked:=false;
     messagedlg(strdontbother,mtError,[mbok],0);
   end;
-
-  if (cbPauseWhileScanning.checked) and (not startdebuggerifneeded) then
-    cbPauseWhileScanning.Checked:=false;
 end;
 
 procedure TMainForm.ProcessLabelDblClick(Sender: TObject);

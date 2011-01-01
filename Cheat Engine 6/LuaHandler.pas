@@ -1407,7 +1407,7 @@ begin
 end;
 
 
-function memrec_isFrozen_fromlua(L: PLua_State): integer; cdecl;
+function memrec_isActive_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
   direction: integer;
@@ -2530,6 +2530,36 @@ begin
 
 end;
 
+function createProcess_fromLua(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  path,params: string;
+  debug: boolean;
+  breakonentrypoint: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  path:='';
+  params:='';
+  debug:=false;
+  breakonentrypoint:=false;
+
+  if parameters>0 then
+    path:=lua_tostring(L, -parameters);
+
+  if parameters>1 then
+    params:=lua_tostring(L, (-parameters)+1);
+
+  if parameters>2 then
+    debug:=lua_toboolean(L, (-parameters)+2);
+
+  if parameters>3 then
+    breakonentrypoint:=lua_toboolean(L, (-parameters)+3);
+
+  if path<>'' then
+    ce_createProcess(pchar(path), pchar(params), debug, breakonentrypoint);
+
+end;
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -2571,7 +2601,7 @@ initialization
     lua_register(LuaVM, 'memrec_getValue', memrec_getValue_fromlua);
     lua_register(LuaVM, 'memrec_setValue', memrec_setValue_fromlua);
     lua_register(LuaVM, 'memrec_getScript', memrec_getScript_fromlua);
-    lua_register(LuaVM, 'memrec_isFrozen', memrec_isFrozen_fromlua);
+    lua_register(LuaVM, 'memrec_isActive', memrec_isActive_fromlua);
     lua_register(LuaVM, 'memrec_freeze', memrec_freeze_fromlua);
     lua_register(LuaVM, 'memrec_unfreeze', memrec_unfreeze_fromlua);
     lua_register(LuaVM, 'memrec_setColor', memrec_setColor_fromlua);
@@ -2624,6 +2654,7 @@ initialization
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
+    lua_register(LuaVM, 'createProcess', createProcess_fromLua);
 
     LUA_DoScript('os=nil');
 

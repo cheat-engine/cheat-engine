@@ -69,7 +69,7 @@ type
     plabel:string;
 
     red: boolean;
-
+    oldpausestate: boolean;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY;
   public
     { Public declarations }
@@ -589,54 +589,61 @@ end;
 procedure TAdvancedOptions.PausebuttonClick(Sender: TObject);
 var i: integer;
     ct: _Context;
+
+    down: boolean;
 begin
-  if processhandle=0 then
-  begin
-    pausebutton.down:=false;
-    exit;
-  end;
+  down:=pausebutton.down;
+  if down=oldpausestate then exit;
 
-
-  if pausebutton.down then
-  begin
-    if processid=getcurrentprocessid then
+  try
+    if processhandle=0 then
     begin
       pausebutton.down:=false;
       exit;
     end;
 
-    if (assigned(ntsuspendprocess)) then
+
+    if down then
     begin
-      OutputDebugString('Calling ntsuspendProcess');
-      i:=ntsuspendProcess(processhandle);
-      OutputDebugString('r='+inttostr(i));
+      if processid=getcurrentprocessid then
+      begin
+        pausebutton.down:=false;
+        exit;
+      end;
+
+      if (assigned(ntsuspendprocess)) then
+      begin
+        OutputDebugString('Calling ntsuspendProcess');
+        ntsuspendProcess(processhandle);
+      end;
+
+      pausebutton.Hint:='Resume the game'+pausehotkeystring;
+
+      red:=false;
+      mainform.ProcessLabel.font.Color:=clred;
+
+      plabel:=mainform.ProcessLabel.Caption;
+      mainform.ProcessLabel.Caption:=mainform.ProcessLabel.Caption+' (paused)';
+      timer1.Enabled:=true;
+    end
+    else
+    if (not down) then
+    begin
+      //resume
+      if assigned(ntresumeprocess) then
+        ntresumeprocess(processhandle);
+
+      pausebutton.Hint:='Pause the game'+pausehotkeystring;
+
+      timer1.Enabled:=false;
+      mainform.ProcessLabel.Font.Color:=clMenuText;
+      mainform.ProcessLabel.Caption:=plabel;
     end;
 
-    pausebutton.Hint:='Resume the game'+pausehotkeystring;
-    pausebutton.down:=true;
-
-    red:=false;
-    mainform.ProcessLabel.font.Color:=clred;
-
-    plabel:=mainform.ProcessLabel.Caption;
-    mainform.ProcessLabel.Caption:=mainform.ProcessLabel.Caption+' (paused)';
-    timer1.Enabled:=true;
-  end
-  else
-  begin
-    //resume
-    if assigned(ntresumeprocess) then
-      ntresumeprocess(processhandle);
-
-    pausebutton.Hint:='Pause the game'+pausehotkeystring;
-
-    timer1.Enabled:=false;
-    mainform.ProcessLabel.Font.Color:=clMenuText;
-    mainform.ProcessLabel.Caption:=plabel;
-
-
-    pausebutton.Down:=false;
+  finally
+    oldpausestate:=pausebutton.down;
   end;
+
 end;
 
 procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;

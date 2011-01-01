@@ -17,6 +17,7 @@ type
   TDebuggerInterface=class
   protected
     fDebuggerCapabilities: TDebuggerCapabilitiesSet;
+    fErrorString: string;
   public
     name: string;
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
@@ -26,6 +27,7 @@ type
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; virtual; abstract;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
+    property errorstring: string read ferrorstring;
 
 end;
 

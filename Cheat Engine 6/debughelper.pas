@@ -29,6 +29,7 @@ type
     canusedebugregs: boolean;
 
     createProcess: boolean;
+
     fNeedsToSetEntryPointBreakpoint: boolean;
     filename,parameters: string;
 
@@ -96,7 +97,7 @@ type
     procedure SetEntryPointBreakpoint;
 
 
-    constructor MyCreate2(filename: string; parameters: string); overload;
+    constructor MyCreate2(filename: string; parameters: string; breakonentry: boolean=false); overload;
     constructor MyCreate2(processID: THandle); overload;
     destructor Destroy; override;
 
@@ -187,11 +188,9 @@ begin
         symhandler.reinitialize;
 
         closehandle(processinfo.hProcess);
-
-        fNeedsToSetEntryPointBreakpoint:=true;
       end else
       begin
-        fNeedsToSetEntryPointBreakpoint:=false;
+        fNeedsToSetEntryPointBreakpoint:=false; //just be sure
         if not DebugActiveProcess(processid) then
           exit;
       end;
@@ -206,9 +205,6 @@ begin
       begin
         if WaitForDebugEvent(debugEvent, 100) then
         begin
-
-          if pluginhandler.handledebuggerplugins(@debugEvent) = 1 then continue; //plugin doesn't want ce to handle the event
-
           ContinueStatus:=DBG_CONTINUE;
           debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
@@ -1536,10 +1532,10 @@ begin
     while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long
 
     Result := OnAttachEvent.WaitFor(50); //wait for 50 milliseconds for the OnAttachEvent
-    if result=wrSignaled then exit;
+    if result=wrSignaled then break;
   end;
 
-  //wait just a little and wait for some threads
+  {//wait just a little and wait for some threads
   sleep(100);
   i:=0;
   while (ThreadList.Count=0) and (i<10) do
@@ -1548,11 +1544,19 @@ begin
     sleep(100);
 
     inc(i);
+  end; }
+
+
+  if terminated then
+  begin
+
+    if CurrentDebuggerInterface.errorstring='' then
+      raise exception.create('Debugger failed to attach')
+    else
+      raise exception.create(CurrentDebuggerInterface.errorstring);
+
+
   end;
-
-
-  if not terminated then
-    raise Exception.Create('Debugger failed to attach');
 end;
 
 procedure TDebuggerThread.lockSettings;
@@ -1602,7 +1606,7 @@ begin
 end;
 
 
-constructor TDebuggerthread.MyCreate2(filename: string; parameters: string); overload;
+constructor TDebuggerthread.MyCreate2(filename: string; parameters: string; breakonentry: boolean=false); overload;
 begin
   inherited Create(true);
   defaultconstructorcode;
@@ -1622,6 +1626,7 @@ begin
   createProcess:=true;
   self.filename:=filename;
   self.parameters:=parameters;
+  self.fNeedsToSetEntryPointBreakpoint:=breakonentry;
 
   start;
   WaitTillAttachedOrError;

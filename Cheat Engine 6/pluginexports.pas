@@ -112,6 +112,8 @@ function ce_getAutoAttachList: pointer; stdcall;
 procedure ce_stringlist_add(c: pointer; s: pchar); stdcall;
 procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
 
+function ce_createProcess(path,params: pchar; debug, breakonentry: BOOL): BOOL; stdcall;
+
 implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
@@ -2307,6 +2309,75 @@ var p: record
 end;
 begin
   pluginsync(ce_stringlist_remove2, @p);
+end;
+
+function ce_createProcess2(params: pointer): pointer;
+type Tp= record
+  path,params: pchar;
+  debug: boolean;
+  breakonentry: boolean;
+end;
+var p: ^tp;
+
+  startupinfo: windows.STARTUPINFO;
+  processinfo: windows.PROCESS_INFORMATION;
+begin
+  p:=params;
+
+  try
+    if p.debug then
+    begin
+      DetachIfPossible;
+      formsettings.cbUseWindowsDebugger.checked:=true;
+      debuggerthread:=TDebuggerthread.MyCreate2(p.path, p.params, p.breakonentry);
+    end
+    else
+    begin
+      zeromemory(@startupinfo,sizeof(startupinfo));
+      zeromemory(@processinfo,sizeof(processinfo));
+
+      GetStartupInfo(@startupinfo);
+
+      if windows.CreateProcess(
+        pchar(p.path),
+        pchar('"'+p.path+'" '+p.params),
+        nil,
+        nil,
+        false,
+        0,
+        nil,
+        pchar(extractfilepath(p.path)), //lpCurrentDirectory
+        @startupinfo, //lpStartupInfo
+        @processinfo //lpProcessInformation
+      )=false then exit;
+
+      processhandler.processid:=processinfo.dwProcessId;
+      Open_Process;
+    end;
+
+
+    mainform.openProcessEpilogue('',0,0,false);
+    mainform.ProcessLabel.caption:=inttohex(processid,8)+'-'+p.path;
+    result:=pointer(1);
+  except
+    result:=nil;
+
+  end;
+end;
+
+function ce_createProcess(path,params: pchar; debug, breakonentry: BOOL): BOOL; stdcall;
+var p: record
+  path,params: pchar;
+  debug: boolean;
+  breakonentry: boolean;
+end;
+
+begin
+  p.path:=path;
+  p.params:=params;
+  p.debug:=debug;
+  p.breakonentry:=breakonentry;
+  result:=pluginsync(ce_createProcess2, @p)<>nil;
 end;
 
 initialization

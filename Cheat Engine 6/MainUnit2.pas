@@ -260,6 +260,9 @@ begin
           if reg.ValueExists('Always run script') then
             cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script');
 
+          if reg.ValueExists('All includes custom types') then
+            cbAllIncludesCustomType.checked:=reg.readbool('All includes custom types');
+
 
           if reg.ValueExists('Show all windows on taskbar') then
           begin

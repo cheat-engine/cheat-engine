@@ -9,7 +9,8 @@ It's basically just a forward for everything
 interface
 
 uses
-  Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler,symbolhandler;
+  Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler,
+  symbolhandler, dialogs;
 
 type TWindowsDebuggerInterface=class(TDebuggerInterface)
   public
@@ -25,7 +26,7 @@ end;
 
 implementation
 
-uses autoassembler;
+uses autoassembler, pluginexports;
 
 constructor TWindowsDebuggerInterface.create;
 begin
@@ -80,9 +81,14 @@ begin
   end;
 
   result:=newkernelhandler.DebugActiveProcess(dwProcessId);
+
+  if result=false then
+    ferrorstring:='Error attaching the windows debugger: '+inttostr(getlasterror)
+  else
+    symhandler.reinitialize;
   //processhandler.processid:=dwProcessID;
   //Open_Process;
-  symhandler.reinitialize;
+
 end;
 
 
