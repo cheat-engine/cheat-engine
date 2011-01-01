@@ -109,6 +109,7 @@ function ce_messageDialog_Lua(message: pchar; messagetype: integer; buttoncombin
 function ce_speedhack_setSpeed(speed: single): BOOL; stdcall;
 
 function ce_getAutoAttachList: pointer; stdcall;
+function ce_stringlist_getCount(c: pointer): integer; stdcall;
 procedure ce_stringlist_add(c: pointer; s: pchar); stdcall;
 procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
 
@@ -2264,6 +2265,12 @@ function ce_getAutoAttachList: pointer; stdcall;
 begin
   result:=pluginsync(ce_getAutoAttachList2, nil);
 end;
+
+function ce_stringlist_getCount(c: pointer): integer; stdcall;
+begin
+  result:=tstringlist(c).Count;
+end;
+
 
 function ce_stringlist_add2(params: pointer): pointer;
 type TP=record

@@ -2705,7 +2705,7 @@ begin
   else
   begin
     scanstate.memscan:=tmemscan.create(progressbar1);
-    scanstate.foundlist:=TFoundList.create(foundlist3, foundcountlabel, scanstate.memscan);
+    scanstate.foundlist:=TFoundList.create(foundlist3, scanstate.memscan);
     scanstate.memscan.setScanDoneCallback(mainform.handle,wm_scandone);
   end;
 
@@ -4951,7 +4951,7 @@ begin
   if memscan=nil then
     memscan:=tmemscan.create(progressbar1);
 
-  foundlist:=tfoundlist.create(foundlist3,foundcountlabel,memscan);
+  foundlist:=tfoundlist.create(foundlist3,memscan);
 
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
@@ -5713,8 +5713,13 @@ begin
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
+var l: tstringlist;
 begin
-  setGbScanOptionsEnabled(true);
+  l:=tstringlist.create;
+  getaoblist('11 22 33', l);
+
+  showmessage(l.text);
+
 
 end;
 

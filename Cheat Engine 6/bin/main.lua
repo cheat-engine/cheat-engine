@@ -9,9 +9,9 @@ require("defines")
 --List of CE specific functions:
 --note: addresses can be strings, they will get interpreted by ce's symbolhandler
 --readBytes(address,bytecount) : Reads the bytes at the given address and returns it
---writeBytes(address, x,x,x,x) : Write the given bytes to the given address
+--writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address
 --readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
---writeBytesLocal(address, x,x,x,x) : See writeBytes but then it's for Cheat Engine's memory
+--writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
 --readInteger(address) : Reads a integer from the specified address
 --readFloat(address) : Reads a single precision floating point value from the specified address
 --readDouble(address) : Reads a double precision floating point value from the specified address
@@ -155,8 +155,19 @@ require("defines")
 --timer_onInterval(timer, function)
 
 --getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
+
+--AOBScan(x,x,x,x,...):
+--scans the currently opened process and returns a stringlist containing all the results. don't forget to free this list when done
+--Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
+
+
+
+--stringlist:
+--stringlist_getCount(list)
 --stringlist_add(list, string);
 --stringlist_remove(list, string);
+--stringlist_getString(list,index)
+
 
 
 

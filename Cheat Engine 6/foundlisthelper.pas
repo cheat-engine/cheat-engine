@@ -17,7 +17,7 @@ type
   private
     procedure rerebase;
   public
-    foundlist: TFoundList;
+    foundlistClass: TFoundList;
     procedure execute; override;
   end;
 
@@ -25,7 +25,7 @@ type
   private
     memscan: TMemscan;
     foundlist: TListView;
-    foundcountlabel: tlabel;
+    //foundcountlabel: tlabel;
 
     addressfile: tfilestream;
     scantype: TScanType;
@@ -44,6 +44,7 @@ type
 
     valuelist: array [0..1023] of string;
     RebaseAgainThread: TRebaseAgain;
+    createdFoundlist: boolean;
   public
     function GetVarLength: integer;
     procedure DeleteResults;
@@ -62,7 +63,8 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: integer read fvartype;
-    constructor create(foundlist: tlistview; foundcountlabel: tlabel; memscan: TMemScan);
+    constructor create(foundlist: tlistview; memscan: TMemScan);
+    destructor destroy; override;
 end;
 
 type Tscandisplayroutine=procedure(value: pointer; output: pchar);
@@ -74,10 +76,10 @@ uses mainunit;
 
 procedure TRebaseAgain.rerebase;
 begin
-  foundlist.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
-  foundlist.RebaseAddresslistAgain;
-  foundlist.foundlist.Refresh;
-  foundlist.foundlist.Refresh; (* lazarus bug bypass *)
+  foundlistClass.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
+  foundlistClass.RebaseAddresslistAgain;
+  foundlistClass.foundlist.Refresh;
+  foundlistClass.foundlist.Refresh; (* lazarus bug bypass *)
 end;
 
 procedure TRebaseAgain.execute;
@@ -92,8 +94,11 @@ end;
 
 procedure TFoundList.clear;
 begin
-  self.foundlist.items.count:=0;
-  self.foundlist.clear;
+  if foundlist<>nil then
+  begin
+    self.foundlist.items.count:=0;
+    self.foundlist.clear;
+  end;
 end;
 
 function TFoundList.InModule(i: integer):boolean;
@@ -128,10 +133,10 @@ end;
 procedure TFoundList.deleteaddress(i:integer);
 var memoryfile: tfilestream;
     outaddress: tfilestream;
-		outmemory: tfilestream;
+    outmemory: tfilestream;
 
-		addresspos: int64;
-		memorypos: int64;
+    addresspos: int64;
+    memorypos: int64;
 
     j,k: integer;
     buf: pointer;
@@ -152,9 +157,9 @@ begin
     //memoryfile is initialized
 
     if vartype in [5,9] then
-			addresspos:=7+sizeof(sizeof(TBitAddress))*i
-		else
-			addresspos:=7+sizeof(sizeof(ptruint))*i;
+      addresspos:=7+sizeof(sizeof(TBitAddress))*i
+    else
+      addresspos:=7+sizeof(sizeof(ptruint))*i;
 
 		case vartype of
 			0: memorypos:=sizeof(byte)*i;
@@ -252,7 +257,7 @@ begin
       if RebaseAgainThread=nil then
       begin
         RebaseAgainThread:=TRebaseAgain.Create(true);
-        RebaseAgainThread.foundlist:=self;
+        RebaseAgainThread.foundlistClass:=self;
         RebaseAgainThread.start;
       end;
     end;
@@ -360,7 +365,7 @@ begin
     if RebaseAgainThread=nil then
     begin
       RebaseAgainThread:=TRebaseAgain.Create(true);
-      RebaseAgainThread.foundlist:=self;
+      RebaseAgainThread.foundlistClass:=self;
       RebaseAgainThread.start;
     end;
   end;
@@ -695,7 +700,7 @@ begin
     scantype:=fs_advanced;
   end;
 
-  if result>0 then
+  if (not createdfoundlist) and (result>0) then
     foundlist.Items[0].MakeVisible(false);
 
 
@@ -731,12 +736,31 @@ begin
   deletefile(pchar(memscan.ScanresultFolder+'Memory.TMP'));
 end;
 
-constructor TFoundlist.create(foundlist: tlistview; foundcountlabel: tlabel; memscan: TMemScan);
+destructor TFoundlist.destroy;
 begin
-  self.foundlist:=foundlist;
-  self.foundcountlabel:=foundcountlabel;
-  self.memscan:=memscan;
+  if RebaseAgainThread<>nil then
+    RebaseAgainThread.WaitFor;
+
   deleteresults;
+
+  if createdfoundlist then
+    foundlist.free;
+end;
+
+constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan);
+begin
+  if foundlist=nil then
+  begin
+    createdFoundlist:=true;
+    self.foundlist:=Tlistview.create(nil);
+    self.foundlist.OwnerData:=true;
+  end
+  else
+    self.foundlist:=foundlist;
+
+  //self.foundcountlabel:=foundcountlabel;
+  self.memscan:=memscan;
+  deleteresults; //cleanup just to be sure
 end;
 
 end.

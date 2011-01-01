@@ -27,7 +27,7 @@ procedure InitializeLuaScripts;
 implementation
 
 uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
-  symbolhandler, frmautoinjectunit;
+  symbolhandler, frmautoinjectunit, simpleaobscanner;
 
 function Lua_ToString(L: Plua_State; i: Integer): string;
 var r: pchar;
@@ -2584,6 +2584,44 @@ begin
   result:=1;
 end;
 
+function stringlist_getCount_fromLua(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushinteger(L, ce_stringlist_getCount(c));
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function stringlist_getString_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+  index: integer;
+  r: pchar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    index:=lua.lua_tointeger(L, -1);
+
+    lua_pop(L, lua_gettop(L));
+
+
+    lua_pushstring(L, tstringlist(c)[index]);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+
+end;
+
 function stringlist_add_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   c: pointer;
@@ -2640,6 +2678,8 @@ begin
     if parameters=3 then
       addresstogetnewcalladdress:=lua_tostring(L, (-parameters)+2);
 
+    lua_pop(L, lua_gettop(L));
+
     script:=tstringlist.create;
     try
       generateAPIHookScript(script, address, addressto, addresstogetnewcalladdress);
@@ -2679,6 +2719,49 @@ begin
 
   if path<>'' then
     ce_createProcess(pchar(path), pchar(params), debug, breakonentrypoint);
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function AOBScan_fromLua(L: PLua_state): integer; cdecl;
+var
+  paramcount: integer;
+  i,b: integer;
+  scanstring: string;
+  list: tstringlist;
+begin
+  result:=0;
+
+  paramcount:=lua_gettop(L);
+  if paramcount=0 then exit;
+
+  scanstring:='';
+  for i:=-paramcount to -1 do
+  begin
+    b:=lua_tointeger(L,i);
+
+    if (b>255) then scanstring:=scanstring+'* '
+    else
+    if b=0 then
+    begin
+      if not lua_isnumber(L,i) then
+        scanstring:=scanstring+'* '
+      else
+        scanstring:=scanstring+'00 '
+    end
+    else scanstring:=scanstring+inttohex(b,2)+' ';
+  end;
+  lua_pop(L, lua_gettop(L));
+
+
+  list:=tstringlist.create;
+  if getaoblist(scanstring, list) then
+  begin
+    result:=1;
+    lua_pushlightuserdata(L, list);
+  end
+  else
+    list.free;
 
 end;
 
@@ -2773,10 +2856,13 @@ initialization
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
     lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
+    lua_register(LuaVM, 'stringlist_getCount', stringlist_getCount_fromLua);
+    lua_register(LuaVM, 'stringlist_getString', stringlist_getString_fromLua);
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
+    lua_register(LuaVM, 'AOBScan', AOBScan_fromLua);
 
     LUA_DoScript('os=nil');
 
