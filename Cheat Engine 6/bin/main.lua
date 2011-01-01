@@ -7,6 +7,7 @@ require("defines")
 
 --
 --List of CE specific functions:
+--note: addresses can be strings, they will get interpreted by ce's symbolhandler
 --readBytes(address,bytecount) : Reads the bytes at the given address and returns it
 --writeBytes(address, x,x,x,x) : Write the given bytes to the given address
 --readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
@@ -22,6 +23,7 @@ require("defines")
 --generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
+--messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 
@@ -41,8 +43,6 @@ require("defines")
 --keyUp(key) :causes the key to go up
 --doKeyPress(key) : simmulates a key press
 
-
---messageDialog(text, type, buttons...) : pops up a message with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 
 --speedhack_setSpeed(speed)
 --injectDll(filename): Injects a dll, and returns true on success
@@ -163,4 +163,4 @@ require("defines")
 --object_destroy(object) : Destroys the object (basically everything inherits from this class)
 
 
-
+--function onOpenProcess(processid) : When this function is defined it will be called each time a process has been opened (note that a process can be opened multiple times in a row, e.g when attaching the debugger it might first open it and then attach the debugger which opens it again...)

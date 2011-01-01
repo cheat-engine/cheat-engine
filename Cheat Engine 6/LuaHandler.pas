@@ -15,16 +15,34 @@ var
 
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
+function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
 procedure LUA_memrec_callback(memrec: pointer; routine: string);
 procedure LUA_SetCurrentContextState(context: PContext);
 function LUA_onBreakpoint(context: PContext): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
+function Lua_ToString(L: Plua_State; i: Integer): string;
 procedure InitializeLuaScripts;
+
 
 implementation
 
 uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit;
+
+function Lua_ToString(L: Plua_State; i: Integer): string;
+var r: pchar;
+begin
+  if lua_islightuserdata(L, i) then
+    Result := inttohex(ptruint(lua_touserdata(L, i)),1)
+  else
+  begin
+    r := lua.lua_tostring(l,i);
+    if r<>nil then
+      result:=r
+    else
+      result:='';
+  end;
+end;
 
 procedure InitializeLuaScripts;
 var f: string;
@@ -523,7 +541,7 @@ begin
     i:=lua_dostring(luavm, pchar(s));
     if i<>0 then
     begin
-      pc:=lua_tostring(luavm, -1);
+      pc:=lua.lua_tostring(luavm, -1);
       if pc<>nil then
         raise Exception.Create(pc)
       else
@@ -576,6 +594,104 @@ begin
     luacs.Leave;
   end;
 end;
+
+function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
+var i: integer;
+  c: string;
+  p: integer;
+begin
+  result:=-1;
+  LuaCS.Enter;
+  try
+    //check if the routine exists
+    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routinetocall));
+
+    p:=lua_gettop(luavm);
+    if p<>0 then
+    begin
+      if lua_isfunction(luavm, -1) then
+      begin
+        //routine exists, fill in the parameters
+        for i:=0 to length(parameters)-1 do
+        begin
+          case parameters[i].VType of
+            system.vtInteger : lua_pushinteger(LUAVM, parameters[i].VInteger);
+            system.vtBoolean: lua_pushboolean(LUAVM, parameters[i].VBoolean);
+            system.vtChar:
+            begin
+              c:=parameters[i].VChar;
+              lua_pushstring(LUAVM, c);
+            end;
+            system.vtExtended: lua_pushnumber(LUAVM, parameters[i].VExtended^);
+            system.vtString: lua_pushstring(LUAVM, pchar(parameters[i].VString));
+            system.vtPointer: lua_pushlightuserdata(LUAVM, parameters[i].VPointer);
+            system.vtPChar: lua_pushstring(LUAVM, parameters[i].VPChar);
+            system.vtObject: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VObject));
+            system.vtClass: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VClass));
+            system.vtWideChar, vtPWideChar, vtVariant, vtInterface, vtWideString: lua_pushstring(LUAVM, 'Cheatengine is being a fag');
+            system.vtAnsiString: lua_pushstring(LUAVM, pchar(parameters[i].VAnsiString));
+            system.vtCurrency: lua_pushnumber(LUAVM, parameters[i].VCurrency^);
+            system.vtInt64:
+            begin
+              if (parameters[i].VInt64^<=$ffffffff) then
+                lua_pushinteger(LUAVM, parameters[i].VInt64^)
+              else
+                lua_pushlightuserdata(LUAVM, pointer(parameters[i].VInt64^));
+            end;
+            system.vtQWord:
+            begin
+              if (parameters[i].VQWord^<=$ffffffff) then
+                lua_pushinteger(LUAVM, parameters[i].VQWord^)
+              else
+                lua_pushlightuserdata(LUAVM, pointer(parameters[i].VQWord^));
+            end;
+          end;
+
+        end;
+
+        lua_pcall(luavm, length(parameters), 1, 0);
+        i:=lua_gettop(luavm);
+        if i>0 then //it has a parameter
+          result:=lua_tointeger(luavm, -1);
+      end;
+
+
+    end;
+
+
+  finally
+    lua_pop(luavm,lua_gettop(luavm));
+    luacs.leave;
+  end;
+end;
+
+ {
+procedure LUA_callback(routine: string; parameters: tvararray);
+var m: TMemoryrecord;
+  p: integer;
+begin
+  LuaCS.Enter;
+  try
+    m:=memrec;
+
+    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routine));
+
+    p:=lua_gettop(luavm);
+    if p<>0 then
+    begin
+      if lua_isfunction(luavm, -1) then
+      begin
+        lua_pushlightuserdata(luavm, memrec);
+        lua_pcall(luavm, 1, 0, 0);
+      end;
+
+
+    end;
+  finally
+    lua_pop(luavm,lua_gettop(luavm));
+    luacs.Leave;
+  end;
+end; }
 
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 {
@@ -636,7 +752,7 @@ end;
 function print_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  s: pchar;
+  s: string;
 
   str: string;
   i: integer;
@@ -647,7 +763,11 @@ begin
   str:='';
   for i:=-paramcount to -1 do
   begin
-    s:=lua_tostring(L, i);
+    if lua_islightuserdata(L,i) then
+      s:=inttohex(ptruint(lua_touserdata(L, i)),8)
+    else
+      s:=lua_tostring(L, i);
+
     str:=str+s+' ';
   end;
 
@@ -662,13 +782,17 @@ end;
 function showMessage_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  s: pchar;
+  s: string;
 begin
   paramcount:=lua_gettop(L);
   if paramcount=0 then exit;
 
-  s:=lua_tostring(L, -1);
-  ce_showmessage(s);
+  if lua_islightuserdata(l,-1) then
+    s:=inttohex(ptruint(lua_touserdata(L, -1)),8)
+  else
+    s:=lua_tostring(L, -1);
+
+  ce_showmessage(pchar(s));
 
   lua_pop(L, paramcount);
   result:=0;
@@ -934,7 +1058,7 @@ begin
       else
         address:=lua_tointeger(L,-2);
 
-      v:=lua_tostring(L, -2);
+      v:=lua.lua_tostring(L, -2);
 
       lua_pop(L, paramcount);
 
@@ -1031,7 +1155,6 @@ end;
 function autoAssemble_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  s: pchar;
   code: TStringlist;
   r: boolean;
 begin
@@ -1040,8 +1163,7 @@ begin
 
   code:=tstringlist.create;
   try
-    s:=lua_tostring(L, -1);
-    code.text:=s;
+    code.text:=lua_tostring(L, -1);
 
     try
       r:=autoassemble(code, false);
@@ -1143,7 +1265,7 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    description:=lua_tostring(L,-1); //description
+    description:=lua.lua_tostring(L,-1); //description
 
     lua_pop(L, paramcount);  //clear stack
 
@@ -1167,7 +1289,7 @@ begin
   if paramcount=2 then
   begin
     memrec:=lua_touserdata(L,-2); //memrec
-    description:=lua_tostring(L,-1); //description
+    description:=lua.lua_tostring(L,-1); //description
 
     lua_pop(L, paramcount);  //clear stack
 
@@ -1252,7 +1374,7 @@ begin
   if paramcount>=2 then
   begin
     memrec:=lua_touserdata(L, (-paramcount));
-    address:=lua_tostring(L, (-paramcount)+1);
+    address:=lua.lua_tostring(L, (-paramcount)+1);
 
     setlength(offsets,paramcount-2);
     j:=0;
@@ -1350,7 +1472,7 @@ begin
   if paramcount=2 then
   begin
     memrec:=lua_touserdata(L, -2);
-    v:=lua_tostring(L, -1);
+    v:=lua.lua_tostring(L, -1);
 
 
     ce_memrec_setValue(memrec, v);
@@ -1397,7 +1519,7 @@ begin
   if paramcount=2 then
   begin
     memrec:=lua_touserdata(L, -2);
-    v:=lua_tostring(L, -1);
+    v:=lua.lua_tostring(L, -1);
 
     ce_memrec_setScript(memrec, v);
   end;
@@ -1531,9 +1653,9 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    if lua_isstring(L,-1) then  //char given isntead of keycode
+    if lua_isstring(L,-1) then  //char given instead of keycode
     begin
-      keyinput:=lua_tostring(L,-1);
+      keyinput:=lua.lua_tostring(L,-1);
       if keyinput<>nil then
         key:=ord(keyinput[0]);
     end
@@ -1575,7 +1697,7 @@ begin
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
-      keyinput:=lua_tostring(L,-1);
+      keyinput:=lua.lua_tostring(L,-1);
       if keyinput<>nil then
         key:=ord(keyinput[0]);
     end
@@ -1606,7 +1728,7 @@ begin
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
-      keyinput:=lua_tostring(L,-1);
+      keyinput:=lua.lua_tostring(L,-1);
       if keyinput<>nil then
         key:=ord(keyinput[0]);
     end
@@ -1636,7 +1758,7 @@ begin
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
-      keyinput:=lua_tostring(L,-1);
+      keyinput:=lua.lua_tostring(L,-1);
       if keyinput<>nil then
         key:=ord(keyinput[0]);
     end
@@ -1665,7 +1787,7 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    pname:=lua_tostring(L, -1);
+    pname:=lua.lua_tostring(L, -1);
     lua_pop(L, paramcount);
 
     pid:=ce_getProcessIDFromProcessName(pname);
@@ -1690,7 +1812,7 @@ begin
   begin
     if lua_isstring(L,-1) then
     begin
-      pname:=lua_tostring(L,-1);
+      pname:=lua.lua_tostring(L,-1);
       pid:=ce_getProcessIDFromProcessName(pname);
     end
     else
@@ -1993,7 +2115,7 @@ begin
   if parameters=2 then
   begin
     i:=lua_touserdata(L, -2);
-    filename:=lua_tostring(L, -1);
+    filename:=lua.lua_tostring(L, -1);
     ce_image_loadImageFromFile(i,filename);
   end;
 
@@ -2157,7 +2279,7 @@ begin
   if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
-    caption:=lua_tostring(L, -1);
+    caption:=lua.lua_tostring(L, -1);
     ce_control_setCaption(c,caption);
   end;
 
@@ -2377,7 +2499,7 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount>=3 then
   begin
-    message:=lua_tostring(L,-paramcount);
+    message:=lua.lua_tostring(L,-paramcount);
     dialogtype:=lua_tointeger(L,-paramcount+1);
     b:=[];
     for i:=-paramcount+2 to -1 do
@@ -2433,7 +2555,7 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=1 then
   begin
-    filename:=lua_tostring(L,-1);
+    filename:=lua.lua_tostring(L,-1);
     r:=false;
     try
       r:=ce_InjectDLL(filename,pchar(''));
@@ -2472,7 +2594,7 @@ begin
   if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
-    s:=lua_tostring(L, -1);
+    s:=lua.lua_tostring(L, -1);
     ce_stringlist_add(c,s);
   end;
 
@@ -2489,7 +2611,7 @@ begin
   if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
-    s:=lua_tostring(L, -1);
+    s:=lua.lua_tostring(L, -1);
     ce_stringlist_remove(c,s);
   end;
 

@@ -320,9 +320,9 @@ begin
           //-1=functiontypename
           //-2=bytecount
           //-3=typename
-          ftn:=lua_tostring(templua,-1);
+          ftn:=lua.lua_tostring(templua,-1);
           bytesize:=lua_tointeger(templua,-2);
-          tn:=lua_tostring(templua,-3);
+          tn:=lua.lua_tostring(templua,-3);
 
           if bytesize=0 then raise exception.create('bytesize is 0');
           if ftn=nil then raise exception.create('invalid functiontypename');
@@ -337,7 +337,7 @@ begin
           //something went wrong
           if lua_gettop(templua)>0 then
           begin
-            error:=lua_tostring(templua,-1);
+            error:=lua.lua_tostring(templua,-1);
             raise exception.create(error);
           end else raise exception.create('Undefined error');
         end;
@@ -352,7 +352,7 @@ begin
       begin
         if lua_gettop(LuaVM)>0 then
         begin
-          error:=lua_tostring(LuaVM,-1);
+          error:=lua.lua_tostring(LuaVM,-1);
           raise exception.create(error);
         end else raise exception.create('Undefined error');
       end else lua_pop(LuaVM,3);

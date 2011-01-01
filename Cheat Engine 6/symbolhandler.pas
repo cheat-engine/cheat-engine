@@ -1062,6 +1062,13 @@ begin
   val('$'+name,result,i);
   if i=0 then exit; //it's a valid hexadecimal string
 
+  if copy(name,1,2)='0x' then
+  begin
+    val(name,result,i);
+    if i=0 then exit;
+  end;
+
+
   //not a hexadecimal string
   tokenize(name, tokens);
 

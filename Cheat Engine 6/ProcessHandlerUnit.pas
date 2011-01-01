@@ -30,6 +30,8 @@ end;
 
 implementation
 
+uses LuaHandler;
+
 procedure TProcessHandler.setIs64bit(state: boolean);
 begin
   fis64bit:=state;
@@ -47,6 +49,9 @@ procedure TProcessHandler.setProcessHandle(processhandle: THandle);
 begin
   fprocesshandle:=processhandle;
   setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
+
+  if processhandle<>0 then
+    LUA_functioncall('onOpenProcess', [ptruint(processid)]);
 end;
 
 procedure TProcessHandler.Open;

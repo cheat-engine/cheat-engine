@@ -353,6 +353,8 @@ function lua_gethookcount(L: Plua_State): Integer; cdecl;
 
 implementation
 
+uses sysutils;
+
 function lua_upvalueindex(I: Integer): Integer;
 begin
   Result := LUA_GLOBALSINDEX - i;

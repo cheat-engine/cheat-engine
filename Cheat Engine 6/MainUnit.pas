@@ -598,6 +598,7 @@ type
 
 
     function onhelp(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
+    procedure SaveIntialTablesDir(dir: string);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -3177,11 +3178,32 @@ var
 
   errormode: dword;
   minworkingsize, maxworkingsize: size_t;
+  reg: tregistry;
 begin
+
+  reg:=Tregistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.ValueExists('Initial tables dir') then
+      begin
+        SaveDialog1.InitialDir:=reg.Readstring('Initial tables dir');
+        opendialog1.InitialDir:=SaveDialog1.initialdir;
+      end
+      else
+      begin
+        SaveDialog1.InitialDir:=tablesdir;
+        opendialog1.InitialDir:=tablesdir;
+      end;
+    end;
+
+  finally
+    reg.free;
+  end;
+
   application.OnHelp:=onhelp;
 
-  SaveDialog1.InitialDir:=tablesdir;
-  opendialog1.InitialDir:=tablesdir;
 
 
   forms.Application.ShowButtonGlyphs:=sbgNever;
@@ -5234,6 +5256,20 @@ end;
 resourcestring
   strUnknownExtension = 'Unknown extension';
 
+procedure TMainForm.SaveIntialTablesDir(dir: string);
+var reg: tregistry;
+begin
+  reg:=Tregistry.Create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',true) then
+      reg.WriteString('Initial tables dir', dir);
+
+  finally
+    reg.free;
+  end;
+end;
+
 procedure TMainForm.actOpenExecute(Sender: TObject);
 var
   merge: boolean;
@@ -5249,6 +5285,8 @@ begin
 
   if autoopen or Opendialog1.Execute then
   begin
+    SaveIntialTablesDir(extractfilepath(Opendialog1.filename));
+
     autoopen:=false;
     Extension:=uppercase(extractfileext(opendialog1.filename));
     if (Extension<>'.XML') and
@@ -5290,6 +5328,8 @@ begin
   end;
 end;
 
+
+
 procedure TMainForm.actSaveExecute(Sender: TObject);
 begin
   if (savedialog1.FileName='') and (opendialog1.filename<>'') then
@@ -5299,9 +5339,13 @@ begin
     savedialog1.FileName:=ChangeFileExt(opendialog1.FileName,'');
   end;
 
+
   if Savedialog1.Execute then
     savetable(savedialog1.FileName);
 
+  opendialog1.FileName:=savedialog1.filename;
+
+  SaveIntialTablesDir(extractfilepath(savedialog1.filename));
 
 end;
 
