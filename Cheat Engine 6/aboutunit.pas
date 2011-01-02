@@ -74,7 +74,8 @@ end;
 
 procedure TAbout.Button2Click(Sender: TObject);
 begin
-  shellexecute(0,'open','https://www.paypal.com/xclick/business=dark_byte%40hotmail.com&no_note=1&tax=0',nil,nil,sw_maximize);
+
+  shellexecute(0,'open','https://www.paypal.com/xclick/business=dark_byte%40hotmail.com&no_note=1&tax=0&lc=US',nil,nil,sw_maximize);
 end;
 
 procedure TAbout.FormShow(Sender: TObject);
@@ -93,7 +94,7 @@ begin
   begin
     lblDBVM.Font.Color:=clRed;
     lbldbvm.caption:='Your system DOES NOT support DBVM';
-    lbldbvm.Hint:='This means that you will need a new cpu (intel) to be abnle to use the advanced dbvm options';
+    lbldbvm.Hint:='This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
     lbldbvm.ShowHint:=true;
   end
   else
@@ -112,7 +113,7 @@ begin
     begin
       lblDBVM.Font.Color:=clGreen;
       lbldbvm.caption:='Your system supports DBVM';
-      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it';
+      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is capable of running it';
       lbldbvm.ShowHint:=true;
     end;
   end;

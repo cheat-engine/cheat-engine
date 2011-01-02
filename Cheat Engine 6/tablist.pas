@@ -204,7 +204,8 @@ begin
 
     oldstyle:=canvas.Brush.Style;
     canvas.Brush.Style:=bsClear;
-    Canvas.TextOut(i*ftabWidth+((ftabwidth div 2)-(canvas.TextWidth(ftabs[j]) div 2)) ,(height div 2)-(canvas.TextHeight(ftabs[j]) div 2),fTabs[j]);
+
+    Canvas.TextRect(rect(i*ftabWidth,0,ftabWidth+i*ftabWidth,height),i*ftabWidth+((ftabwidth div 2)-(canvas.TextWidth(ftabs[j]) div 2)) ,(height div 2)-(canvas.TextHeight(ftabs[j]) div 2),fTabs[j]);
     canvas.Brush.Style:=OldStyle;
   end;
 

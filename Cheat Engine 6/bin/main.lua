@@ -175,3 +175,7 @@ require("defines")
 
 
 --function onOpenProcess(processid) : When this function is defined it will be called each time a process has been opened (note that a process can be opened multiple times in a row, e.g when attaching the debugger it might first open it and then attach the debugger which opens it again...)
+
+--function debugger_onModuleLoad(modulename, baseaddress) : 
+--his routine is called when a module is loaded. Only works for the windows debugger
+--return 1 if you want to cause the debugger to break

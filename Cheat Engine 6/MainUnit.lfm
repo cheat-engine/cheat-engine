@@ -78,7 +78,7 @@ object MainForm: TMainForm
     object advancedbutton: TSpeedButton
       Left = 1
       Height = 15
-      Hint = 'Some extra functions like pause and trainer maker. And some saved instruction locations'
+      Hint = 'Codelist and pause'
       Top = 1
       Width = 96
       Caption = 'Advanced options'
@@ -91,7 +91,6 @@ object MainForm: TMainForm
     object CommentButton: TSpeedButton
       Left = 441
       Height = 15
-      Hint = 'abcdefg'
       Top = 1
       Width = 96
       Align = alRight
@@ -101,8 +100,6 @@ object MainForm: TMainForm
       Font.Name = 'MS Sans Serif'
       NumGlyphs = 0
       OnClick = CommentButtonClick
-      OnMouseMove = CommentButtonMouseMove
-      ShowHint = True
       ParentFont = False
       ParentShowHint = False
     end

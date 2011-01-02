@@ -62,7 +62,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
         'Next Scan-Decreased Value'
         'Next Scan-Changed Value'
         'Next Scan-Unchanged Value'
-        'Toggle beteeen first/last scan compare'
+        'Toggle between first/last scan compare'
         'Undo last scan'
         'Cancel the current scan'
         'Debug->Run'

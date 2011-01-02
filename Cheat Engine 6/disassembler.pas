@@ -158,13 +158,7 @@ var defaultDisassembler: TDisassembler;
 
 implementation
 
-//dont use it by otherunits
-{$ifndef net}
-{$ifndef standalonetrainer}
-uses Assemblerunit,CEDebugger, debughelper, StrUtils;
-{$endif}
-{$endif}
-
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions;
 
 
 
@@ -1116,6 +1110,21 @@ begin
 
 end;
 
+procedure repairbreakbyte(address: ptruint; var b: byte);
+{changes the given byte to the original byte if it is in fact a int3 breakpoint}
+//pre: debuggerthread is valid
+var bp: pbreakpoint;
+begin
+  debuggerthread.lockbplist;
+  bp:=debuggerthread.isBreakpoint(address);
+  if bp<>nil then
+  begin
+    if bp.breakpointMethod=bpmInt3 then
+      b:=bp.originalbyte;
+  end;
+  debuggerthread.unlockbplist;
+end;
+
 function disassemble(var offset: ptrUint; var description: string): string; overload;
 begin
   result:=defaultDisassembler.disassemble(offset,description);
@@ -1249,6 +1258,10 @@ begin
         MoveMemory(@memory[0], @memory[1], 23);
       end;
     end;
+
+    if (memory[0]=$cc) and (debuggerthread<>nil) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp
+      repairbreakbyte(startoffset, memory[0]);
+
 
     prefixsize:=length(LastDisassembleData.bytes);
     LastDisassembleData.prefixsize:=prefixsize;

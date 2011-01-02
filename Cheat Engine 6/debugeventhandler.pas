@@ -521,10 +521,9 @@ begin
     if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
       dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
 
-    OutputDebugString('Checking if condition is set');
-    if not CheckIfConditionIsMet(bpp) then
+    if (not bpp.active) or (not CheckIfConditionIsMet(bpp)) then
     begin
-      OutputDebugString('Condition was not met');
+      OutputDebugString('bp was disabled or Condition was not met');
 
       continueFromBreakpoint(bpp, co_run);
       dwContinueStatus:=DBG_CONTINUE;
@@ -651,7 +650,8 @@ begin
 
 
 
-      Result := DispatchBreakpoint(exceptionAddress, dwContinueStatus);
+
+      Result := DispatchBreakpoint(context.{$ifdef cpu64}Rip-1{$else}eip-1{$endif}, dwContinueStatus);
       context.dr6:=0;
       setContext;
     end;
@@ -754,8 +754,49 @@ begin
 end;
 
 function TDebugThreadHandler.LoadDLLDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
+var m: string;
+    mw: widestring;
+    x: pchar;
+    xw: pwidechar absolute x;
+    br: dword;
+
+    p: pointer;
 begin
   outputdebugstring('LoadDLLDebugEvent');
+
+  getmem(x,512);
+  br:=0;
+
+  m:='';
+  p:=nil;
+  readprocessmemory(processhandle, debugEvent.LoadDll.lpImageName, @p, processhandler.pointersize, br);
+  if br>0 then
+  begin
+    br:=0;
+    readprocessmemory(processhandle, p, x, 512, br);
+    if br>0 then
+    begin
+      x[511]:=#0;
+      x[510]:=#0;
+
+      if debugEvent.LoadDll.fUnicode<>0 then
+      begin
+        mw:=xw;
+        m:=mw;
+      end
+      else
+        m:=x;
+
+      if LUA_functioncall('debugger_onModuleLoad',[m, ptruint(debugevent.LoadDll.lpBaseOfDll)])=1 then
+      begin
+        //do a break
+        HandleBreak(nil);
+
+      end;
+
+    end;
+  end;
+
   Result := true;
   dwContinueStatus:=DBG_CONTINUE;
 end;

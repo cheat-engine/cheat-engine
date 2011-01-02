@@ -74,7 +74,7 @@ type
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
 
-    function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0): PBreakpoint;
+    function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
     procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string='');
@@ -526,13 +526,10 @@ begin
   else
   begin
     //int3 bp
-
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1,
-      PAGE_EXECUTE_READWRITE,
-      oldprotect);
+    breakpoint^.active := True;
+    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @int3byte, 1, bw);
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect,
-      oldprotect);
+    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
   end;
 
 end;
@@ -1430,7 +1427,7 @@ begin
   end;
 end;
 
-function TDebuggerthread.isBreakpoint(address: uint_ptr; address2: uint_ptr=0): PBreakpoint;
+function TDebuggerthread.isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
   {Checks if the given address has a breakpoint, and if so, return the breakpoint. Else return nil}
 var
   i,j,k: integer;
@@ -1449,7 +1446,7 @@ begin
       for k:=0 to j do
       begin
         if (InRangeX(address+k, PBreakpoint(BreakpointList[i])^.address, PBreakpoint(BreakpointList[i])^.address + PBreakpoint(BreakpointList[i])^.size-1)) and
-           (PBreakpoint(BreakpointList[i])^.active) then
+           (includeinactive or (PBreakpoint(BreakpointList[i])^.active)) then
         begin
           Result := PBreakpoint(BreakpointList[i]);
           exit;

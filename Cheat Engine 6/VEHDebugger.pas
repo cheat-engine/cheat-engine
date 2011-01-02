@@ -169,6 +169,10 @@ end;
 
 function TVEHDebugInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 var i: integer;
+    c: PContext;
+{$ifdef cpu64}
+    c32: PContext32 absolute c;
+{$endif}
 begin
 
 
@@ -256,6 +260,19 @@ begin
           for i:=0 to VEHDebugView.Exception32.NumberParameters-1 do
             lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[i]:=VEHDebugView.Exception32.ExceptionInformation[i];
         end;
+
+        if lpdebugEvent.Exception.ExceptionRecord.ExceptionCode=EXCEPTION_BREAKPOINT then
+        begin
+          c:=@VEHDebugView.CurrentContext[0];
+          {$ifdef cpu64}
+          if is64bit then
+            c.Rip:=c.rip+1
+          else
+          {$endif}
+            c32.Eip:=c32.eip+1;
+
+        end;
+
       end;
     end;
 

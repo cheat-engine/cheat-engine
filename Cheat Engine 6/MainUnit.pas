@@ -2465,7 +2465,7 @@ begin
 
     with assemblescreen.Lines do
     begin
-      Add('Note: keep the function base name unique.');
+      Add('--Note: keep the function base name unique.');
       Add('typename="'+n+'" --shown as the typename in ce');
       Add('bytecount=4  --number of bytes of this type');
       Add('functionbasename="'+fbn+'"');
@@ -2491,8 +2491,11 @@ end;
 
 
 procedure TMainForm.miDefineNewCustomTypeClick(Sender: TObject);
+var fbn,n: string;
 begin
-
+  n:='Custom Type Name';
+  if customTypes.count>0 then
+    n:=n+' '+inttostr(customtypes.count+1);
 
   with TfrmAutoInject.create(self) do
   begin
@@ -2509,7 +2512,7 @@ begin
       Add('alloc(ConvertBackRoutine,1024)');
       Add('');
       Add('TypeName:');
-      Add('db ''Custom Type Name'',0');
+      Add('db '''+n+''',0');
       Add('');
       Add('ByteSize:');
       Add('dd 4');
@@ -4558,14 +4561,7 @@ end;
 procedure TMainForm.CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: integer);
 begin
-  if comments.Memo1.Lines.Count=0 then
-  begin
-    Commentbutton.Hint:='No Comments';
-    exit;
-  end;
 
-  Commentbutton.Hint:=copy(comments.Memo1.Text,1,20);
-  if length(comments.Memo1.Text)>20 then Commentbutton.Hint:=Commentbutton.Hint+'...';
 end;
 
 procedure TMainForm.copySelectedRecords;
