@@ -10262,16 +10262,21 @@ begin
       x:=previousOpcodeHelp(address,20,result);
       if x<>address then
       begin
-        //and if all else fails try to find the closest one
-        result:=address-1;
-        for i:=1 to 20 do
+        //no 20, try 10
+        x:=previousOpcodeHelp(address,10,result);
+        if x<>address then
         begin
-          x:=address-i;
-          disassemble(x,s);
-          if x=address then
+          //and if all else fails try to find the closest one
+          result:=address-1;
+          for i:=1 to 20 do
           begin
-            result:=address-i;
-            exit;
+            x:=address-i;
+            disassemble(x,s);
+            if x=address then
+            begin
+              result:=address-i;
+              exit;
+            end;
           end;
         end;
 

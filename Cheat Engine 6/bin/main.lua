@@ -156,9 +156,11 @@ require("defines")
 
 --getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
 
+
 --AOBScan(x,x,x,x,...):
 --scans the currently opened process and returns a stringlist containing all the results. don't forget to free this list when done
 --Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
+--AOBScan(aobstring): see above but here you just input one string
 
 
 
@@ -177,5 +179,5 @@ require("defines")
 --function onOpenProcess(processid) : When this function is defined it will be called each time a process has been opened (note that a process can be opened multiple times in a row, e.g when attaching the debugger it might first open it and then attach the debugger which opens it again...)
 
 --function debugger_onModuleLoad(modulename, baseaddress) : 
---his routine is called when a module is loaded. Only works for the windows debugger
+--this routine is called when a module is loaded. Only works for the windows debugger
 --return 1 if you want to cause the debugger to break

@@ -511,7 +511,7 @@ object formSettings: TformSettings
           Height = 14
           Top = 7
           Width = 137
-          Caption = '(Can effect scan speed a lot)'
+          Caption = '(Can affect scan speed a lot)'
           ParentColor = False
         end
         object Label21: TLabel

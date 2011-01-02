@@ -2735,21 +2735,27 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=0 then exit;
 
-  scanstring:='';
-  for i:=-paramcount to -1 do
+  if (paramcount=1) and (lua_isstring(L,-1)) then
+    scanstring:=Lua_ToString(L, -1)
+  else
   begin
-    b:=lua_tointeger(L,i);
-
-    if (b>255) then scanstring:=scanstring+'* '
-    else
-    if b=0 then
+    //buildup the scanstring
+    scanstring:='';
+    for i:=-paramcount to -1 do
     begin
-      if not lua_isnumber(L,i) then
-        scanstring:=scanstring+'* '
+      b:=lua_tointeger(L,i);
+
+      if (b>255) then scanstring:=scanstring+'* '
       else
-        scanstring:=scanstring+'00 '
-    end
-    else scanstring:=scanstring+inttohex(b,2)+' ';
+      if b=0 then
+      begin
+        if not lua_isnumber(L,i) then
+          scanstring:=scanstring+'* '
+        else
+          scanstring:=scanstring+'00 '
+      end
+      else scanstring:=scanstring+inttohex(b,2)+' ';
+    end;
   end;
   lua_pop(L, lua_gettop(L));
 
