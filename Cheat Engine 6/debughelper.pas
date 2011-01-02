@@ -97,7 +97,7 @@ type
     procedure SetEntryPointBreakpoint;
 
 
-    constructor MyCreate2(filename: string; parameters: string; breakonentry: boolean=false); overload;
+    constructor MyCreate2(filename: string; parameters: string; breakonentry: boolean=true); overload;
     constructor MyCreate2(processID: THandle); overload;
     destructor Destroy; override;
 
@@ -106,7 +106,7 @@ type
     function getrealbyte(address: ptrUint): byte;
 
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
-    property NeedsToSetEntryPointBreakpoint: boolean read createProcess;
+    property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
     property running: boolean read fRunning;
 
     procedure Terminate;
@@ -154,7 +154,7 @@ begin
 
       if createprocess then
       begin
-        dwCreationFlags:=DEBUG_PROCESS;
+        dwCreationFlags:=DEBUG_PROCESS or DEBUG_ONLY_THIS_PROCESS;
 
         zeromemory(@startupinfo,sizeof(startupinfo));
         zeromemory(@processinfo,sizeof(processinfo));
@@ -1610,7 +1610,7 @@ begin
 end;
 
 
-constructor TDebuggerthread.MyCreate2(filename: string; parameters: string; breakonentry: boolean=false); overload;
+constructor TDebuggerthread.MyCreate2(filename: string; parameters: string; breakonentry: boolean=true); overload;
 begin
   inherited Create(true);
   defaultconstructorcode;

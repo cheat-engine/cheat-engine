@@ -44,6 +44,7 @@ type
     WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
 
     DebugEventString: string; //for outputdebugstring event
+    secondcreateprocessdebugevent: boolean;
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 
@@ -495,7 +496,8 @@ var
   c: PContext;
 
   bpp,bpp2: PBreakpoint;
- // bp: TBreakpoint;
+
+  active: boolean;
 begin
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
   found := False;
@@ -511,8 +513,8 @@ begin
       if (bpp.address = address) then
       begin
         found:=true;
-       // bp:=bpp^; //copy all the data of this breakpoint into a local copy (so when the lock is gone the user can fuck it up as much as he wants to, it won't affect the current handled bp
-       //saving is not needed anymore as breakpoints won't get deleted at once, they just get set to inactive
+
+        active:=bpp^.active;
 
         if bpp^.OneTimeOnly then //delete it
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
@@ -532,7 +534,7 @@ begin
     if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
       dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
 
-    if (not bpp.active) or (not CheckIfConditionIsMet(bpp)) then
+    if (not active) or (not CheckIfConditionIsMet(bpp)) then
     begin
       OutputDebugString('bp was disabled or Condition was not met');
 
@@ -724,25 +726,30 @@ var
 begin
   OutputDebugString('CreateProcessDebugEvent');
 
-  handle    := debugevent.CreateProcessInfo.hThread;
-
-  processid := debugevent.dwProcessId;
-  threadid  := debugevent.dwThreadId;
-
-
-
-  if ProcessHandler.processid<>debugevent.dwProcessId then
+  if not secondcreateprocessdebugevent then
   begin
-    ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
-    ProcessHandler.processid     := debugEvent.dwProcessId;
 
-    Open_Process;
-    symhandler.reinitialize;
+    handle    := debugevent.CreateProcessInfo.hThread;
+
+    processid := debugevent.dwProcessId;
+    threadid  := debugevent.dwThreadId;
+
+
+
+    if ProcessHandler.processid<>debugevent.dwProcessId then
+    begin
+      ProcessHandler.ProcessHandle := debugEvent.CreateProcessInfo.hProcess;
+      ProcessHandler.processid     := debugEvent.dwProcessId;
+
+      Open_Process;
+      symhandler.reinitialize;
+    end;
+
+    if (CurrentDebuggerInterface.name<>'Windows Debugger') then
+      onAttachEvent.SetEvent;
+
+    secondcreateprocessdebugevent:=true;
   end;
-
-  if (CurrentDebuggerInterface.name<>'Windows Debugger') then
-    onAttachEvent.SetEvent;
-
   Result := true;
   dwContinueStatus:=DBG_CONTINUE;
 end;
@@ -1023,6 +1030,8 @@ begin
     end;
     eventtext:=format('pid:%x tid:%x - %s',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext]);
     frmDebugEvents.lbDebugEvents.Items.Add(eventtext);
+
+    frmDebugEvents.lbDebugEvents.TopIndex:=frmDebugEvents.lbDebugEvents.items.count-1
   end;
 
 

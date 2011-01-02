@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="192">
+    <Units Count="193">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -185,7 +185,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="989"/>
         <CursorPos X="1" Y="1009"/>
@@ -249,7 +249,7 @@
         <Filename Value="disassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassembler"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1097"/>
         <CursorPos X="23" Y="1111"/>
@@ -791,10 +791,10 @@
         <ComponentName Value="MemoryBrowser"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1577"/>
-        <CursorPos X="1" Y="1584"/>
+        <TopLine Value="1933"/>
+        <CursorPos X="50" Y="1958"/>
         <UsageCount Value="220"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1454,14 +1454,15 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="962"/>
-        <CursorPos X="48" Y="953"/>
+        <TopLine Value="1018"/>
+        <CursorPos X="59" Y="1034"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="2">
-          <Item0 X="1" Y="246" ID="8"/>
-          <Item1 X="12" Y="405" ID="7"/>
+          <Item0 X="12" Y="406" ID="7"/>
+          <Item1 X="11" Y="185" ID="8"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1470,7 +1471,7 @@
         <Filename Value="guisafecriticalsection.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="guisafecriticalsection"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="48"/>
         <CursorPos X="1" Y="64"/>
@@ -1482,11 +1483,10 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1481"/>
-        <CursorPos X="28" Y="1508"/>
+        <TopLine Value="150"/>
+        <CursorPos X="66" Y="157"/>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1507,7 +1507,7 @@
         <Filename Value="debuggertypedefinitions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debuggertypedefinitions"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="126"/>
         <CursorPos X="3" Y="142"/>
@@ -1659,10 +1659,13 @@
         <ComponentName Value="frmDebugEvents"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmDebugEventsUnit"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="17"/>
+        <TopLine Value="12"/>
         <CursorPos X="17" Y="26"/>
         <UsageCount Value="206"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
       <Unit135>
@@ -1873,10 +1876,12 @@
       <Unit155>
         <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1171"/>
-        <CursorPos X="5" Y="1187"/>
+        <TopLine Value="539"/>
+        <CursorPos X="29" Y="558"/>
         <UsageCount Value="110"/>
+        <Loaded Value="True"/>
       </Unit155>
       <Unit156>
         <Filename Value="C:\lazarus\lcl\extctrls.pp"/>
@@ -2081,11 +2086,11 @@
       </Unit181>
       <Unit182>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2769"/>
         <CursorPos X="1" Y="2790"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit182>
       <Unit183>
@@ -2132,10 +2137,12 @@
       </Unit188>
       <Unit189>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="3055"/>
-        <CursorPos X="6" Y="3071"/>
-        <UsageCount Value="26"/>
+        <TopLine Value="3052"/>
+        <CursorPos X="6" Y="3068"/>
+        <UsageCount Value="27"/>
+        <Loaded Value="True"/>
       </Unit189>
       <Unit190>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\func.inc"/>
@@ -2153,124 +2160,137 @@
         <UsageCount Value="11"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit191>
+      <Unit192>
+        <Filename Value="C:\lazarus\lcl\include\customlistbox.inc"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="729"/>
+        <CursorPos X="3" Y="750"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit192>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1587" Column="1" TopLine="1577"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="518" Column="1" TopLine="499"/>
       </Position1>
       <Position2>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <Caret Line="4169" Column="1" TopLine="4153"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="521" Column="1" TopLine="499"/>
       </Position2>
       <Position3>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <Caret Line="4171" Column="1" TopLine="4153"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="525" Column="1" TopLine="505"/>
       </Position3>
       <Position4>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <Caret Line="2785" Column="1" TopLine="2769"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="528" Column="1" TopLine="511"/>
       </Position4>
       <Position5>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <Caret Line="2788" Column="1" TopLine="2769"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="530" Column="1" TopLine="511"/>
       </Position5>
       <Position6>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <Caret Line="2790" Column="1" TopLine="2769"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="532" Column="1" TopLine="514"/>
       </Position6>
       <Position7>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1587" Column="1" TopLine="1577"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="533" Column="1" TopLine="514"/>
       </Position7>
       <Position8>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1583" Column="18" TopLine="1577"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="528" Column="19" TopLine="520"/>
       </Position8>
       <Position9>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1584" Column="1" TopLine="1577"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="653" Column="1" TopLine="637"/>
       </Position9>
       <Position10>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1468" Column="1" TopLine="1452"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="659" Column="1" TopLine="637"/>
       </Position10>
       <Position11>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="245" Column="22" TopLine="238"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1172" Column="1" TopLine="1165"/>
       </Position11>
       <Position12>
         <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="500" Column="1" TopLine="484"/>
       </Position12>
       <Position13>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="755" Column="48" TopLine="728"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="1583" Column="1" TopLine="1577"/>
       </Position13>
       <Position14>
         <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="907" Column="16" TopLine="880"/>
+        <Caret Line="659" Column="1" TopLine="643"/>
       </Position14>
       <Position15>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="913" Column="16" TopLine="886"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="1583" Column="1" TopLine="1577"/>
       </Position15>
       <Position16>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="922" Column="22" TopLine="895"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="1958" Column="50" TopLine="1936"/>
       </Position16>
       <Position17>
         <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="930" Column="19" TopLine="903"/>
+        <Caret Line="184" Column="11" TopLine="180"/>
       </Position17>
       <Position18>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="933" Column="18" TopLine="906"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1177" Column="76" TopLine="1165"/>
       </Position18>
       <Position19>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="934" Column="18" TopLine="907"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1630" Column="13" TopLine="1604"/>
       </Position19>
       <Position20>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="935" Column="18" TopLine="908"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1644" Column="13" TopLine="1618"/>
       </Position20>
       <Position21>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="939" Column="35" TopLine="912"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position21>
       <Position22>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="951" Column="16" TopLine="924"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="31" Column="15" TopLine="5"/>
       </Position22>
       <Position23>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="952" Column="16" TopLine="925"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="155" Column="20" TopLine="129"/>
       </Position23>
       <Position24>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1469" Column="36" TopLine="1459"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="646" Column="33" TopLine="634"/>
       </Position24>
       <Position25>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1470" Column="21" TopLine="1459"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="643" Column="18" TopLine="679"/>
       </Position25>
       <Position26>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1473" Column="44" TopLine="1459"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="965" Column="99" TopLine="942"/>
       </Position26>
       <Position27>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1484" Column="69" TopLine="1459"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1034" Column="46" TopLine="1013"/>
       </Position27>
       <Position28>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1493" Column="74" TopLine="1466"/>
+        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
+        <Caret Line="487" Column="30" TopLine="476"/>
       </Position28>
       <Position29>
-        <Filename Value="debughelper.pas"/>
-        <Caret Line="1505" Column="25" TopLine="1478"/>
+        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
+        <Caret Line="555" Column="24" TopLine="539"/>
       </Position29>
+      <Position30>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1034" Column="71" TopLine="1013"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -2324,7 +2344,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="3">
+    <BreakPoints Count="2">
       <Item1>
         <Source Value="pluginexports.pas"/>
         <Line Value="2332"/>
@@ -2333,10 +2353,6 @@
         <Source Value="AdvancedOptionsUnit.pas"/>
         <Line Value="595"/>
       </Item2>
-      <Item3>
-        <Source Value="MemoryBrowserFormUnit.pas"/>
-        <Line Value="1583"/>
-      </Item3>
     </BreakPoints>
     <Watches Count="5">
       <Item1>
