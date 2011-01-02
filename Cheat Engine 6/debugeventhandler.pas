@@ -241,8 +241,12 @@ end;
 
 procedure TDebugThreadHandler.continueDebugging(continueOption: TContinueOption);
 begin
-  self.continueOption:=continueOption;
-  onContinueEvent.SetEvent;
+  if WaitingToContinue then
+  begin
+    self.continueOption:=continueOption;
+    onContinueEvent.SetEvent;
+  end;
+
 end;
 
 procedure TDebugThreadHandler.ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
@@ -372,6 +376,7 @@ begin
       if CheckIfConditionIsMet(nil, 'return '+traceQuitCondition) then
       begin
         //quit condition is met
+        OutputDebugString('CheckIfConditionIsMet=true');
         ContinueFromBreakpoint(nil, co_run);
         isTracing:=false;
         exit;
@@ -383,6 +388,8 @@ begin
   end
   else
   begin
+    outputdebugstring('tracecount=0');
+
     ContinueFromBreakpoint(nil, co_run);
     isTracing:=false;
   end;
@@ -390,13 +397,17 @@ end;
 
 procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint);
 begin
+  Outputdebugstring('HandleBreak()');
   //go to sleep and wait for an event that wakes it up. No need to worry about deleted breakpoints, since the cleanup will not be called untill this routine exits
   onContinueEvent.ResetEvent;
-  WaitingToContinue:=true;
+
 
   TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
 
+  WaitingToContinue:=true;
+  Outputdebugstring('updated gui');
   onContinueEvent.WaitFor(infinite);
+  Outputdebugstring('returned from gui');
   WaitingToContinue:=false;
 
   continueFromBreakpoint(bp, continueOption);

@@ -1467,42 +1467,49 @@ var bp: PBreakpoint;
 begin
   if fcurrentThread<>nil then
   begin
-    case continueOption of
-      co_run, co_stepinto: fcurrentThread.continueDebugging(continueOption);
-      co_runtill:
-      begin
-        //set a 1 time breakpoint for this thread at the runtilladdress
-        breakpointcs.enter;
-        bp:=isBreakpoint(runtilladdress);
-        if bp<>nil then
+    if currentthread.isWaitingToContinue then
+    begin
+      case continueOption of
+        co_run, co_stepinto: fcurrentThread.continueDebugging(continueOption);
+        co_runtill:
         begin
-          if bp.breakpointTrigger=bptExecute then
-          begin
-            if (bp.ThreadID<>0) and (bp.ThreadID<>fcurrentThread.ThreadId) then //it's a thread specific breakpoint, but not for this thread
-              bp.ThreadId:=0; //break on all, the user will have to change this himself
-          end
-          else
-            bp:=nil; //a useless breakpoint
+          //set a 1 time breakpoint for this thread at the runtilladdress
+          breakpointcs.enter;
+          try
+            bp:=isBreakpoint(runtilladdress);
+            if bp<>nil then
+            begin
+              if bp.breakpointTrigger=bptExecute then
+              begin
+                if (bp.ThreadID<>0) and (bp.ThreadID<>fcurrentThread.ThreadId) then //it's a thread specific breakpoint, but not for this thread
+                  bp.ThreadId:=0; //break on all, the user will have to change this himself
+              end
+              else
+                bp:=nil; //a useless breakpoint
+            end;
+
+            if bp=nil then
+            begin
+              bp:=ToggleOnExecuteBreakpoint(runTillAddress,fcurrentThread.threadid);
+              if bp=nil then
+                exit; //error,failure setting the breakpoint so exit. don't continue
+
+              bp.OneTimeOnly:=true;
+              bp.StepOverBp:=true;
+            end;
+
+          finally
+            breakpointcs.leave;
+
+          end;
+          fcurrentThread.continueDebugging(co_run);
         end;
 
-        if bp=nil then
-        begin
-          bp:=ToggleOnExecuteBreakpoint(runTillAddress,fcurrentThread.threadid);
-          if bp=nil then
-            exit; //error,failure setting the breakpoint so exit. don't continue
-
-          bp.OneTimeOnly:=true;
-          bp.StepOverBp:=true;
-        end;
-
-
-        breakpointcs.leave;
-        fcurrentThread.continueDebugging(co_run);
+        else fcurrentThread.continueDebugging(continueOption);
       end;
-    end;
 
-    fcurrentThread.continueDebugging(continueOption);
-    fcurrentThread:=nil;
+
+    end;
   end;
 end;
 
@@ -1569,7 +1576,7 @@ begin
   breakpointCS := TGuiSafeCriticalSection.Create;
   threadlistCS := TGuiSafeCriticalSection.Create;
   OnAttachEvent := TEvent.Create(nil, True, False, '');
-  OnContinueEvent := Tevent.Create(nil, True, False, '');
+  OnContinueEvent := Tevent.Create(nil, true, False, '');
   threadlist := TList.Create;
   BreakpointList := TList.Create;
   eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, breakpointCS, threadlistCS);

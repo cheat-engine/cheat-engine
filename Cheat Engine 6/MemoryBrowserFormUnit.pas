@@ -1570,7 +1570,11 @@ begin
   if debuggerthread<>nil then
     debuggerthread.ContinueDebugging(co_run);
 
-  caption:='Memory Viewer - Running';
+
+  if not debuggerthread.isWaitingToContinue then
+    caption:='Memory Viewer - Running';
+
+
   reloadstacktrace;
 end;
 
@@ -1579,7 +1583,9 @@ begin
   if debuggerthread<>nil then
     debuggerthread.ContinueDebugging(co_stepinto);
 
-  caption:='Memory Viewer - Running';
+  if not debuggerthread.isWaitingToContinue then
+    caption:='Memory Viewer - Running';
+
   reloadstacktrace;
 end;
 
@@ -1617,7 +1623,9 @@ begin
     reloadstacktrace;
   end;
 
-  caption:='Memory Viewer - Running';
+  if not debuggerthread.isWaitingToContinue then
+    caption:='Memory Viewer - Running';
+
 end;
 
 procedure TMemoryBrowser.Runtill1Click(Sender: TObject);
@@ -1630,7 +1638,9 @@ begin
   if debuggerthread<>nil then
     debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
-  caption:='Memory Viewer - Running';
+  if not debuggerthread.isWaitingToContinue then
+    caption:='Memory Viewer - Running';
+
 end;
 
 procedure TMemoryBrowser.Stacktrace1Click(Sender: TObject);

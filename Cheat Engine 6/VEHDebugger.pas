@@ -268,8 +268,12 @@ begin
           if is64bit then
             c.Rip:=c.rip+1
           else
-          {$endif}
             c32.Eip:=c32.eip+1;
+          {$else}
+            c.eip:=c.eip+1
+          {$endif}
+
+
 
         end;
 
