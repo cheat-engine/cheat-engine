@@ -9,7 +9,7 @@ Fixed simple paste
 
 Changes:
 Added a 64-bit version
-Different compiler
+Different compiler (uses fpc/lazarus now instead of delphi)
 Addresslist has been reimplemented from scratch
 Debugger has been reimplemented from scratch
 Hexview has been redesigned
