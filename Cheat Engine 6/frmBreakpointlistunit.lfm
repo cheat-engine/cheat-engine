@@ -75,5 +75,13 @@ object frmBreakpointlist: TfrmBreakpointlist
       Caption = 'Set/change condition'
       OnClick = miSetConditionClick
     end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miShowShadow: TMenuItem
+      AutoCheck = True
+      Caption = 'Show shadow breakpoints'
+      OnClick = miShowShadowClick
+    end
   end
 end

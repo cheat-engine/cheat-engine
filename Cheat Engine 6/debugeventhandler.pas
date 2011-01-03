@@ -263,7 +263,7 @@ begin
   try
     if (bp<>nil) then
     begin
-      if (bp.breakpointMethod=bpmInt3) then
+      if (bp.breakpointMethod=bpmInt3) and (not bp.markedfordeletion) then
       begin
         //bp is set and it's an int3 breakpoint
         VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);

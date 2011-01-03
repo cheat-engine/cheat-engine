@@ -17,6 +17,8 @@ type
 
   TfrmBreakpointlist = class(TForm)
     ListView1: TListView;
+    MenuItem1: TMenuItem;
+    miShowShadow: TMenuItem;
     miDelBreakpoint: TMenuItem;
     miSetCondition: TMenuItem;
     pmBreakpoint: TPopupMenu;
@@ -25,6 +27,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
+    procedure miShowShadowClick(Sender: TObject);
     procedure miDelBreakpointClick(Sender: TObject);
     procedure miSetConditionClick(Sender: TObject);
     procedure pmBreakpointPopup(Sender: TObject);
@@ -62,7 +65,7 @@ begin
     s:=nil;
 
   if debuggerthread<>nil then
-    debuggerthread.updatebplist(ListView1);
+    debuggerthread.updatebplist(ListView1, miShowShadow.checked);
 
   if s<>nil then //if something was selected then try to find it back
   begin
@@ -86,6 +89,7 @@ end;
 procedure TfrmBreakpointlist.FormCreate(Sender: TObject);
 begin
   updatebplist;
+  miShowShadowClick(miShowShadow);
 end;
 
 procedure TfrmBreakpointlist.ListBox1DblClick(Sender: TObject);
@@ -124,6 +128,15 @@ begin
       debuggerthread.unlockbplist;
     end;
   end;
+end;
+
+procedure TfrmBreakpointlist.miShowShadowClick(Sender: TObject);
+var i: integer;
+begin
+  for i:=ListView1.Columns.count-1 downto 5 do
+    listview1.Column[i].Visible:=miShowShadow.checked;
+
+  updatebplist;
 end;
 
 procedure TfrmBreakpointlist.miDelBreakpointClick(Sender: TObject);

@@ -70,7 +70,7 @@ type
     procedure lockbplist;
     procedure unlockbplist;
 
-    procedure updatebplist(lv: TListview);
+    procedure updatebplist(lv: TListview; showshadow: boolean);
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
 
@@ -1117,7 +1117,7 @@ begin
   breakpointCS.leave;
 end;
 
-procedure TDebuggerthread.updatebplist(lv: TListview);
+procedure TDebuggerthread.updatebplist(lv: TListview; showshadow: boolean);
 {
 Only called by the breakpointlist form running in the main thread. It's called after the WM_BPUPDATE is sent to the breakpointlist window
 }
@@ -1126,38 +1126,48 @@ var
   li: TListitem;
   bp: PBreakpoint;
   s: string;
+
+  showcount: integer;
 begin
+
+
   breakpointCS.enter;
 
+
+  showcount:=0;
   for i := 0 to BreakpointList.Count - 1 do
   begin
     bp:=PBreakpoint(BreakpointList[i]);
 
-    if i<lv.Items.Count then
-      li:=lv.items[i]
-    else
-      li:=lv.items.add;
+    if bp.active or showshadow then
+    begin
+      inc(showcount);
 
-    li.data:=bp;
-    li.Caption:=inttohex(bp.address,8);
-    li.SubItems.Clear;
+      if i<lv.Items.Count then
+        li:=lv.items[i]
+      else
+        li:=lv.items.add;
 
-    li.SubItems.add(inttostr(bp.size));
-    li.SubItems.Add(breakpointTriggerToString(bp.breakpointTrigger));
-    s:=breakpointMethodToString(bp.breakpointMethod);
-    if bp.breakpointMethod=bpmDebugRegister then
-      s:=s+' ('+inttostr(bp.debugRegister)+')';
+      li.data:=bp;
+      li.Caption:=inttohex(bp.address,8);
+      li.SubItems.Clear;
 
-    li.SubItems.Add(s);
+      li.SubItems.add(inttostr(bp.size));
+      li.SubItems.Add(breakpointTriggerToString(bp.breakpointTrigger));
+      s:=breakpointMethodToString(bp.breakpointMethod);
+      if bp.breakpointMethod=bpmDebugRegister then
+        s:=s+' ('+inttostr(bp.debugRegister)+')';
 
-    li.SubItems.Add(breakpointActionToString(bp.breakpointAction));
-    li.SubItems.Add(BoolToStr(bp.active,'Yes','No'));
-    if bp.markedfordeletion then
-      li.SubItems.Add('Yes');
+      li.SubItems.Add(s);
 
+      li.SubItems.Add(breakpointActionToString(bp.breakpointAction));
+      li.SubItems.Add(BoolToStr(bp.active,'Yes','No'));
+      if bp.markedfordeletion then
+        li.SubItems.Add('Yes');
+    end;
   end;
 
-  for i:=lv.items.count-1 downto BreakpointList.Count do
+  for i:=lv.items.count-1 downto showcount do
     lv.items[i].Delete;
 
   breakpointCS.leave;
