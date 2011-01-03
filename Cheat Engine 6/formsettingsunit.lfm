@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = ScanSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 3
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -478,9 +478,9 @@ object formSettings: TformSettings
         end
         object cbIncremental: TCheckBox
           Left = 11
-          Height = 19
+          Height = 17
           Top = 39
-          Width = 104
+          Width = 102
           Caption = 'Incremental value'
           TabOrder = 1
         end
@@ -544,9 +544,9 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 39
-          Width = 130
+          Width = 128
           Caption = 'Fast scan on by default'
           Checked = True
           State = cbChecked
@@ -554,10 +554,10 @@ object formSettings: TformSettings
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
           Top = 56
-          Width = 312
+          Width = 310
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
           ShowHint = True
@@ -565,9 +565,9 @@ object formSettings: TformSettings
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 224
-          Width = 355
+          Width = 353
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
@@ -575,17 +575,17 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 244
-          Width = 531
+          Width = 529
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 204
-          Width = 206
+          Width = 204
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -601,9 +601,9 @@ object formSettings: TformSettings
         end
         object cbDontusetempdir: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 90
-          Width = 292
+          Width = 290
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
           TabOrder = 7
@@ -663,9 +663,9 @@ object formSettings: TformSettings
         end
         object cbAllIncludesCustomType: TCheckBox
           Left = 0
-          Height = 19
+          Height = 17
           Top = 73
-          Width = 292
+          Width = 290
           Caption = 'Custom types are included with the ALL scan variabletype'
           Checked = True
           State = cbChecked
@@ -743,10 +743,10 @@ object formSettings: TformSettings
         ImageIndex = 5
         object replacewithnops: TCheckBox
           Left = 15
-          Height = 19
+          Height = 17
           Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
           Top = 73
-          Width = 206
+          Width = 204
           Caption = 'Replace incomplete opcodes with nops'
           Checked = True
           OnClick = replacewithnopsClick
@@ -757,9 +757,9 @@ object formSettings: TformSettings
         end
         object askforreplacewithnops: TCheckBox
           Left = 31
-          Height = 19
+          Height = 17
           Top = 92
-          Width = 134
+          Width = 132
           Caption = 'Ask for replace with nop'
           Checked = True
           State = cbChecked
@@ -767,9 +767,9 @@ object formSettings: TformSettings
         end
         object rbDebugAsBreakpoint: TRadioButton
           Left = 15
-          Height = 19
+          Height = 17
           Top = 9
-          Width = 144
+          Width = 142
           Caption = 'Use hardware breakpoints'
           Checked = True
           OnChange = rbInt3AsBreakpointChange
@@ -778,9 +778,9 @@ object formSettings: TformSettings
         end
         object rbInt3AsBreakpoint: TRadioButton
           Left = 15
-          Height = 19
+          Height = 17
           Top = 29
-          Width = 240
+          Width = 238
           Caption = 'Use int3 instructions for breakpoints (Unlimited)'
           OnChange = rbInt3AsBreakpointChange
           TabOrder = 2
@@ -864,17 +864,17 @@ object formSettings: TformSettings
               ClientWidth = 404
               object cbGlobalDebug: TCheckBox
                 Left = 4
-                Height = 19
+                Height = 17
                 Top = 5
-                Width = 147
+                Width = 145
                 Caption = 'Use Global Debug routines'
                 TabOrder = 0
               end
               object cbCanStepKernelcode: TCheckBox
                 Left = 4
-                Height = 19
+                Height = 17
                 Top = 26
-                Width = 180
+                Width = 178
                 Caption = 'Ability to step through kernel code'
                 TabOrder = 1
               end

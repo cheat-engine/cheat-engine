@@ -1474,13 +1474,20 @@ procedure TDebuggerthread.ContinueDebugging(continueOption: TContinueOption; run
 Sets the way the debugger should continue, and triggers the sleeping thread to wait up and handle this changed event
 }
 var bp: PBreakpoint;
+ ct: TDebugThreadHandler;
 begin
-  if fcurrentThread<>nil then
+  ct:=fcurrentThread;
+  if ct<>nil then
   begin
-    if currentthread.isWaitingToContinue then
+
+
+
+    if ct.isWaitingToContinue then
     begin
+      fcurrentThread:=nil;
+
       case continueOption of
-        co_run, co_stepinto: fcurrentThread.continueDebugging(continueOption);
+        co_run, co_stepinto: ct.continueDebugging(continueOption);
         co_runtill:
         begin
           //set a 1 time breakpoint for this thread at the runtilladdress
@@ -1491,7 +1498,7 @@ begin
             begin
               if bp.breakpointTrigger=bptExecute then
               begin
-                if (bp.ThreadID<>0) and (bp.ThreadID<>fcurrentThread.ThreadId) then //it's a thread specific breakpoint, but not for this thread
+                if (bp.ThreadID<>0) and (bp.ThreadID<>ct.ThreadId) then //it's a thread specific breakpoint, but not for this thread
                   bp.ThreadId:=0; //break on all, the user will have to change this himself
               end
               else
@@ -1500,7 +1507,8 @@ begin
 
             if bp=nil then
             begin
-              bp:=ToggleOnExecuteBreakpoint(runTillAddress,fcurrentThread.threadid);
+              bp:=SetOnExecuteBreakpoint(runTillAddress, false, ct.threadid);
+//              bp:=ToggleOnExecuteBreakpoint(runTillAddress,fcurrentThread.threadid);
               if bp=nil then
                 exit; //error,failure setting the breakpoint so exit. don't continue
 
@@ -1512,10 +1520,10 @@ begin
             breakpointcs.leave;
 
           end;
-          fcurrentThread.continueDebugging(co_run);
+          ct.continueDebugging(co_run);
         end;
 
-        else fcurrentThread.continueDebugging(continueOption);
+        else ct.continueDebugging(continueOption);
       end;
 
 

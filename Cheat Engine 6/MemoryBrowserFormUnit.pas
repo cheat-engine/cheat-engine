@@ -336,6 +336,7 @@ type
     procedure lvStacktraceDataDblClick(Sender: TObject);
   private
     { Private declarations }
+
     R8Label: TLabel;
     R9Label: TLabel;
     R10Label: TLabel;
@@ -1567,24 +1568,28 @@ end;
 
 procedure TMemoryBrowser.Run1Click(Sender: TObject);
 begin
-  if debuggerthread<>nil then
-    debuggerthread.ContinueDebugging(co_run);
+  begin
+    if debuggerthread<>nil then
+      debuggerthread.ContinueDebugging(co_run);
 
 
-  caption:='Memory Viewer - Running';
+    caption:='Memory Viewer - Running';
 
 
-  reloadstacktrace;
+    reloadstacktrace;
+  end;
 end;
 
 procedure TMemoryBrowser.Step1Click(Sender: TObject);
 begin
-  if debuggerthread<>nil then
-    debuggerthread.ContinueDebugging(co_stepinto);
+  begin
+    if debuggerthread<>nil then
+      debuggerthread.ContinueDebugging(co_stepinto);
 
-  caption:='Memory Viewer - Running';
+    caption:='Memory Viewer - Running';
 
-  reloadstacktrace;
+    reloadstacktrace;
+  end;
 end;
 
 procedure TMemoryBrowser.StepOver1Click(Sender: TObject);
@@ -1594,35 +1599,36 @@ var x: ptrUint;
     int3: byte;
     original,a,written:dword;
 begin
-  int3:=$cc;
-  //place a invisble for the user breakpoint on the following upcode
-
-  x:=lastdebugcontext.{$ifdef cpu64}Rip{$else}Eip{$endif};
-  s:=disassemble(x,temp);
-  i:=posex('-',s);
-  i:=posex('-',s,i+1);
-  s:=copy(s,i+2,length(s));
-
-  i:=pos(' ',s);
-  s1:=copy(s,1,i-1);
-  s2:=copy(s,i+1,length(s));
-
-  if not ((s1='call') or (s1='loop')) then //not a call or loop
   begin
-    //then do a step
-    Step1.Click;
-    exit;
-  end
-  else
-  begin
-    if debuggerthread<>nil then
-      debuggerthread.continueDebugging(co_runtill, x);
 
-    reloadstacktrace;
+    int3:=$cc;
+    //place a invisble for the user breakpoint on the following upcode
+
+    x:=lastdebugcontext.{$ifdef cpu64}Rip{$else}Eip{$endif};
+    s:=disassemble(x,temp);
+    i:=posex('-',s);
+    i:=posex('-',s,i+1);
+    s:=copy(s,i+2,length(s));
+
+    i:=pos(' ',s);
+    s1:=copy(s,1,i-1);
+    s2:=copy(s,i+1,length(s));
+
+    if not ((s1='call') or (s1='loop')) then //not a call or loop
+    begin
+      //then do a step
+      Step1.Click;
+      exit;
+    end
+    else
+    begin
+      if debuggerthread<>nil then
+        debuggerthread.continueDebugging(co_runtill, x);
+
+      reloadstacktrace;
+    end;
+    caption:='Memory Viewer - Running';
   end;
-
-  caption:='Memory Viewer - Running';
-
 end;
 
 procedure TMemoryBrowser.Runtill1Click(Sender: TObject);
@@ -1632,10 +1638,12 @@ var x: ptrUint;
     int3: byte;
     original,a,written:dword;
 begin
-  if debuggerthread<>nil then
-    debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
+  begin
+    if debuggerthread<>nil then
+      debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
-  caption:='Memory Viewer - Running';
+    caption:='Memory Viewer - Running';
+  end;
 
 end;
 
@@ -3027,12 +3035,14 @@ end;
 procedure TMemoryBrowser.Executetillreturn1Click(Sender: TObject);
 var x: ptrUint;
 begin
-  x:=getreturnaddress;
-  if x>0 then
   begin
-    disassemblerview.SelectedAddress:=x;
-    Runtill1.Click;
-  end else beep; //not possible
+    x:=getreturnaddress;
+    if x>0 then
+    begin
+      disassemblerview.SelectedAddress:=x;
+      Runtill1.Click;
+    end else beep; //not possible
+  end;
 end;
 
 procedure TMemoryBrowser.lvStacktraceDataData(Sender: TObject; Item: TListItem);

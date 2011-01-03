@@ -773,19 +773,6 @@ begin
   {$endif net}
 
 
-  {$ifndef net}
-  if debuggerthread<>nil then
-  begin
-    rbDebugAsBreakpoint.Enabled:=false;
-    rbInt3AsBreakpoint.Enabled:=false;
-  end
-  else
-  begin
-    rbDebugAsBreakpoint.Enabled:=true;
-    rbInt3AsBreakpoint.Enabled:=true;
-  end;
-  {$endif}
-
   label1.Enabled:=not mainform.nextscanbutton.enabled;
   editbufsize.enabled:=not mainform.nextscanbutton.enabled;
 

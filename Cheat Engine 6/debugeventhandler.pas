@@ -505,6 +505,7 @@ begin
   //check if it's an expected breakpoint
   //if not, DBG_EXCEPTION_NOT_HANDLED
 
+  bpp2:=nil;
   breakpointCS.enter;
   try
     for i := 0 to breakpointlist.Count - 1 do
@@ -513,14 +514,15 @@ begin
       if (bpp.address = address) then
       begin
         found:=true;
-
+        bpp2:=bpp;
         active:=bpp^.active;
 
         if bpp^.OneTimeOnly then //delete it
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
 
-
-        break;
+        if active then
+          break;
+        //else continue looking for one that IS active
       end;
     end;
   finally
@@ -529,6 +531,7 @@ begin
 
   if found then
   begin
+    bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
 
     if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
