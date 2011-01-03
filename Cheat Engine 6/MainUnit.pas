@@ -3373,6 +3373,7 @@ begin
   extraautoattachlist := TStringlist.create;
   extraautoattachlist.CaseSensitive := False; //set it up as not case sensitive
   extraautoattachlist.Delimiter:=';';
+  extraautoattachlist.Duplicates:=dupIgnore;
 
   randomize;
 
