@@ -382,6 +382,7 @@ object MainForm: TMainForm
       Enabled = False
       OnClick = cbSpeedhackClick
       ParentShowHint = False
+      ParentBidiMode = False
       ShowHint = True
       TabOrder = 23
     end

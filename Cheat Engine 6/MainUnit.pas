@@ -3026,6 +3026,10 @@ end;
 
 procedure TMainForm.Panel5Resize(Sender: TObject);
 begin
+  cbSpeedhack.left:=panel5.clientwidth-cbspeedhack.width;
+  cbUnrandomizer.left:=cbspeedhack.left;
+  gbScanOptions.Left:=cbUnrandomizer.left-gbScanOptions.width-3;
+
   speedbutton3.top:=foundlist3.top+foundlist3.height-speedbutton3.Height;
   speedbutton3.left:=foundlist3.left+foundlist3.width+2;
   foundlist3.Columns[1].width:=foundlist3.ClientWidth-foundlist3.Columns[0].Width;
@@ -3042,6 +3046,8 @@ begin
 
   if cbpercentage<>nil then
     cbpercentage.left:=scantype.left+scantype.width+5;
+
+
 end;
 
 procedure TMainForm.pmTablistPopup(Sender: TObject);
@@ -4954,6 +4960,9 @@ begin
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
   InitializeLuaScripts;
+
+
+  panel5resize(panel5);
 end;
 
 
