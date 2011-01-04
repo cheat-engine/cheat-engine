@@ -618,6 +618,7 @@ object MainForm: TMainForm
         'All (Byte to Double)'
       )
       OnChange = VarTypeChange
+      OnDropDown = VarTypeDropDown
       PopupMenu = pmValueType
       Style = csDropDownList
       TabOrder = 6

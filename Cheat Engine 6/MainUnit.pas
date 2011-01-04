@@ -401,6 +401,7 @@ type
     procedure Value1Click(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
     procedure LogoClick(Sender: TObject);
+    procedure VarTypeDropDown(Sender: TObject);
     procedure WindowsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure SpeedButton2Click(Sender: TObject);
@@ -1688,12 +1689,12 @@ begin
 
       end;
 
-      Scantype.DropDownCount:=11;
+
 
     end else
     begin
       ScanType.Items.Add(strUnknownInitialValue);
-      ScanType.DropDownCount:=5;
+
     end;
 
   end
@@ -1701,7 +1702,7 @@ begin
   case varType.ItemIndex of
     0   :     begin
                 ScanType.Items.Add(strExact);
-                ScanType.DropDownCount:=1;
+
               end;
 
 
@@ -1710,17 +1711,19 @@ begin
                 ScanText.caption:=strScanTextCaptionToText;
                 ScanType.Items.Add(strSearchForText);
                 //perhaps also a changed value and unchanged value scan
-                ScanType.DropDownCount:=1;
+
                 hexvis:=false;
               end;
 
   8:          begin  //array of bytes
                 ScanText.caption:=vartype.Items[8];
                 ScanType.Items.Add(strSearchforarray);
-                ScanType.DropDownCount:=1;
+
               end;
 
   end;
+  Scantype.DropDownCount:=Scantype.items.count;
+
 
 
   if (oldtext=strUnknownInitialValue) and (NextScanButton.enabled) then scantype.itemindex:=0 else scantype.itemindex:=oldindex;
@@ -2323,10 +2326,12 @@ begin
     if (vartype.ItemIndex=-1) or (vartype.ItemIndex>=VarType.Items.Count) then
       vartype.itemindex:=3;
 
-    vartype.DropDownCount:=vartype.items.count;
+
   finally
     vartype.items.EndUpdate;
   end;
+
+  vartype.DropDownCount:=vartype.items.count;
 
   addresslist.refreshcustomtypes;
 end;
@@ -4176,6 +4181,11 @@ begin
     ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE60'),
       PChar(''), PChar(''), SW_MAXIMIZE);
 
+end;
+
+procedure TMainForm.VarTypeDropDown(Sender: TObject);
+begin
+  vartype.DropDownCount:=vartype.items.count;
 end;
 
 procedure TMainForm.WindowsClick(Sender: TObject);
