@@ -3706,7 +3706,7 @@ begin
       begin
         s:=tstringlist.Create;
         try
-          if (not scantypechangedbyhotkey) or (memscan.getsavedresults(s)>1) then
+          if (not scantypechangedbyhotkey) and (memscan.getsavedresults(s)>1) then
           begin
             //popup a window where the user can select the scanresults
             //currentlySelectedSavedResultname

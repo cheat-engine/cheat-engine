@@ -54,9 +54,9 @@ object frmSavedisassembly: TfrmSavedisassembly
   end
   object CheckBox1: TCheckBox
     Left = 10
-    Height = 23
+    Height = 20
     Top = 10
-    Width = 75
+    Width = 71
     Caption = 'Address'
     Checked = True
     State = cbChecked
@@ -64,9 +64,9 @@ object frmSavedisassembly: TfrmSavedisassembly
   end
   object CheckBox2: TCheckBox
     Left = 118
-    Height = 23
+    Height = 20
     Top = 10
-    Width = 57
+    Width = 53
     Caption = 'bytes'
     Checked = True
     State = cbChecked
@@ -74,9 +74,9 @@ object frmSavedisassembly: TfrmSavedisassembly
   end
   object CheckBox3: TCheckBox
     Left = 217
-    Height = 23
+    Height = 20
     Top = 10
-    Width = 71
+    Width = 67
     Caption = 'opcode'
     Checked = True
     State = cbChecked

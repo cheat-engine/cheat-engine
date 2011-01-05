@@ -2628,6 +2628,7 @@ begin
     edit2.Text:=inttohex(b-1,8);
     copymode:=true;
 
+
     checkbox1.checked:=true;
     checkbox2.checked:=(_tag=0) or (_tag=1);
     checkbox3.checked:=(_tag=0) or (_tag=2);

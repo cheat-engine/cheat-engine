@@ -735,7 +735,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object Foundlist3: TListView
-      Left = -8
+      Left = 0
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48

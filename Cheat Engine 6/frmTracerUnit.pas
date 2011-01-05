@@ -127,6 +127,7 @@ type
     { Public declarations }
     procedure setDataTrace(state: boolean);
     procedure addRecord;
+    procedure finish;
     property savestack: boolean read fsavestack write setSavestack;
     constructor create(Owner: TComponent; DataTrace: boolean=false); overload;
   end;
@@ -170,6 +171,12 @@ constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false);
 begin
   inherited create(owner);
   fDataTrace:=Datatrace;
+end;
+
+procedure TfrmTracer.finish;
+begin
+  //for whatever I could use it...
+
 end;
 
 procedure TfrmTracer.addRecord;
@@ -267,9 +274,6 @@ begin
         thatnode.MoveTo(thisnode, naAddChild);
         thatnode:=thisnode.GetNextSibling;
       end;
-
-//      thisnode.Items.
-//      lvTracer.Items.GetFirstNode);
     end;
   end;
 

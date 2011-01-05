@@ -364,6 +364,7 @@ begin
   tracewindow:=nil;
 end;
 
+
 procedure TDebugThreadHandler.handleTrace;
 begin
   if tracewindow<>nil then
@@ -380,6 +381,8 @@ begin
         OutputDebugString('CheckIfConditionIsMet=true');
         ContinueFromBreakpoint(nil, co_run);
         isTracing:=false;
+        if tracewindow<>nil then
+          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
         exit;
       end;
     end;
@@ -393,6 +396,8 @@ begin
 
     ContinueFromBreakpoint(nil, co_run);
     isTracing:=false;
+    if tracewindow<>nil then
+      TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
   end;
 end;
 

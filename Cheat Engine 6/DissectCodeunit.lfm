@@ -74,7 +74,7 @@ object frmDissectCode: TfrmDissectCode
         Top = 40
         Width = 164
         Caption = 'Include system modules'
-        OnClick = cbIncludesystemModulesClick
+        OnChange = cbIncludesystemModulesClick
         TabOrder = 0
       end
     end

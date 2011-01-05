@@ -18,6 +18,9 @@ end;
 type TOnDoneDissect=(odDoNothing, odOpenReferedStringList);
 
 type
+
+  { TfrmDissectCode }
+
   TfrmDissectCode = class(TForm)
     ProgressBar1: TProgressBar;
     Timer1: TTimer;
@@ -274,7 +277,7 @@ end;
 
 procedure TfrmDissectCode.FormShow(Sender: TObject);
 begin
-  fillModuleList(false);
+  fillModuleList(cbIncludesystemModules.checked);
   if lbModuleList.Count>0 then
   begin
     lbModuleList.ItemIndex:=0;

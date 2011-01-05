@@ -51,6 +51,7 @@ type
 
 implementation
 
+uses MemoryBrowserFormUnit;
 
 procedure TSaveDisassemblyThread.execute;
 var oldaddress, currentaddress: ptrUint;
@@ -63,7 +64,13 @@ var oldaddress, currentaddress: ptrUint;
     cpbuf: tstringlist;
     y,z:string;
     mi: TModuleInfo;
+
+    disassembler: TDisassembler;
 begin
+  disassembler:=TDisassembler.Create;
+  disassembler.showmodules:=memorybrowser.Showmoduleaddresses1.checked;
+  disassembler.showsymbols:=memorybrowser.Showsymbols1.Checked;
+
   currentaddress:=startaddress;
 
   if copymode then
@@ -86,7 +93,12 @@ begin
     temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
     splitDisassembledString(temps,true,addresspart,bytepart,opcodepart,specialpart);
 
-    if symhandler.showmodules then
+    if disassembler.showsymbols then
+    begin
+      addresspart:=symhandler.getNameFromAddress(oldaddress);
+    end
+    else
+    if disassembler.showmodules then
     begin
       //replace the address part with a modulename+offset when possible
       if symhandler.getmodulebyaddress(oldaddress,mi) then
@@ -151,6 +163,8 @@ begin
     closefile(f);
   end;
 
+  disassembler.free;
+
   if not terminated then postmessage(form.handle,wm_close,0,0);
 
 end;
@@ -203,6 +217,9 @@ begin
     SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;
     SaveDisassemblyThread.copymode:=fcopymode;
+
+
+
     SaveDisassemblyThread.form:=self;
 
     if (startaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) and (stopaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
