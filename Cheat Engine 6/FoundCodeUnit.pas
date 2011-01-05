@@ -618,7 +618,7 @@ begin
   s:='';
   for i:=0 to FoundcodeList.Items.count-1 do
     if FoundcodeList.items[i].selected then
-      s:=s+FoundcodeList.Items[i].subitems[1]+#13#10;
+      s:=s+FoundcodeList.Items[i].subitems[0]+#13#10;
 
   clipboard.AsText:=s;
 end;

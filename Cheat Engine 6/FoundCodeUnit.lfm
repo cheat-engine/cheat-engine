@@ -138,7 +138,7 @@ object FoundCodeDialog: TFoundCodeDialog
       item
         AutoSize = True
         Caption = 'Instruction'
-        Width = 222
+        Width = 230
       end>
     ColumnClick = False
     HideSelection = False
