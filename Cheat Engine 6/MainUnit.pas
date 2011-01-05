@@ -734,6 +734,7 @@ end;
 
 constructor TToggleWindows.Create(CreateSuspended: boolean);
 begin
+  freeonterminate := True;
   inherited Create(CreateSuspended);
 end;
 
