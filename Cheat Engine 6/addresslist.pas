@@ -9,6 +9,11 @@ uses
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler;
 
+type TTreeviewWithScroll=class(TTreeview)
+  published
+    property ScrolledTop;
+end;
+
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
   TAutoAssemblerEditEvent=procedure(sender: TObject; memrec: TMemoryRecord) of object;
@@ -18,7 +23,7 @@ type
     lastSelected: integer;
 
     header: THeaderControl;
-    Treeview: TTreeview;
+    Treeview: TTreeviewWithScroll; //TTreeview;//WithScroll;
     CurrentlyDraggedOverNode: TTreenode;
     CurrentlyDraggedOverBefore: boolean; //set to true if inserting before
     CurrentlyDraggedOverAfter: boolean; //set to true if inserting after
@@ -874,7 +879,8 @@ begin
 
   if (CurrentlyDraggedOverNode<>nil) and (TMemoryRecord(CurrentlyDraggedOverNode.data).isGroupHeader=false) then //if something focused AND not a groupheader
   begin
-    t:=GetScrollPos(treeview.handle, SB_VERT)+y;
+
+    t:=treeview.ScrolledTop+y;
 
     outputdebugstring(inttostr(t-(CurrentlyDraggedOverNode.top)));
     CurrentlyDraggedOverBefore:=(t-CurrentlyDraggedOverNode.top)<(CurrentlyDraggedOverNode.height div 3); //it's before if the offset into the node is smaller than half the height - 2
@@ -1208,7 +1214,7 @@ constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  treeview:=TTreeview.create(self);
+  treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
 
   treeview.RowSelect:=true;
   treeview.ReadOnly:=true;
