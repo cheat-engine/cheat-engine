@@ -263,7 +263,7 @@ begin
         if (address>=ptrUint(me32.modBaseAddr)) and (address<ptrUint(me32.modBaseAddr)+me32.modBaseSize) then
         begin
           x:=me32.szExePath;
-          code[numberofcodes-1].modulename:=extractfilename(x);
+          code[numberofcodes-1].modulename:='"'+extractfilename(x)+'"';
           code[numberofcodes-1].offset:=address-ptrUint(me32.modBaseAddr);
           break;
         end;
