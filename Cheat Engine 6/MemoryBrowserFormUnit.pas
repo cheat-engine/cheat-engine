@@ -2138,7 +2138,7 @@ begin
   if frmEnumerateDLLs=nil then
     frmEnumerateDLLs:=tfrmEnumerateDLLs.create(nil);
 
-  frmEnumerateDLLs.Show;
+  frmEnumerateDLLs.show;
   frmEnumerateDLLs.enumerate;
 end;
 

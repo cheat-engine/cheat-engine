@@ -43,6 +43,7 @@ type
   private
     { Private declarations }
     enumthread: tenumthread;
+
   public
     { Public declarations }
 
@@ -164,7 +165,7 @@ end;
 
 procedure TfrmEnumerateDLLs.FormShow(Sender: TObject);
 begin
-  enumerate;
+
 end;
 
 procedure TfrmEnumerateDLLs.TreeView1DblClick(Sender: TObject);
