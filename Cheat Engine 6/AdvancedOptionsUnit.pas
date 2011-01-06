@@ -263,7 +263,7 @@ begin
         if (address>=ptrUint(me32.modBaseAddr)) and (address<ptrUint(me32.modBaseAddr)+me32.modBaseSize) then
         begin
           x:=me32.szExePath;
-          code[numberofcodes-1].modulename:='"'+extractfilename(x)+'"';
+          code[numberofcodes-1].modulename:=extractfilename(x);
           code[numberofcodes-1].offset:=address-ptrUint(me32.modBaseAddr);
           break;
         end;
@@ -276,7 +276,9 @@ begin
   li:=self.Codelist2.Items.Add;
 
   if code[numberofcodes-1].modulename<>'' then
-    li.Caption:=code[numberofcodes-1].modulename+'+'+inttohex(code[numberofcodes-1].offset,1)
+  begin
+    li.Caption:='"'+code[numberofcodes-1].modulename+'"+'+inttohex(code[numberofcodes-1].offset,1)
+  end
   else
     li.Caption:=inttohex(address,8);
 
