@@ -757,15 +757,13 @@ end;
 procedure TAddresslist.TreeviewDblClick(Sender: TObject);
 var
   tvRect: TRect;
-  x,y: integer;
   node: TTreenode;
   i: integer;
+  p: tpoint;
 begin
-  GetWindowRect(treeview.Handle, tvrect);
-  x:=mouse.CursorPos.x-tvrect.left;
-  y:=mouse.CursorPos.y-tvrect.top;
+  p:=treeview.ScreenToClient(mouse.cursorpos);
 
-  node:=treeview.GetNodeAt(x,y);
+  node:=treeview.GetNodeAt(p.x,p.y);
   if node<>nil then
   begin
     //at least something was clicked
@@ -778,7 +776,7 @@ begin
     end;
 
     for i:=0 to header.Sections.count-1 do
-      if inrange(x,header.Sections[i].Left,header.Sections[i].right) then
+      if inrange(p.x,header.Sections[i].Left,header.Sections[i].right) then
       begin
         //if it's a auto assemble script only do the description and value
         if (TMemoryRecord(node.data).VarType=vtAutoAssembler) then
