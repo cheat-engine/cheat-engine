@@ -42,14 +42,160 @@ located at http://SynEdit.SourceForge.net
 
 unit SynHighlighterAA;
 
-{
-edit this
-}
-{$I c:\lazarus\components\synedit\synedit.inc}
+{$IFDEF FPC}
+  {$MODE OBJFPC}
+{$ENDIF}
 
-//{$MODE OBJFPC}
+{$DEFINE SYNEDIT_INCLUDE}
 
-//{$DEFINE SYNEDIT_INCLUDE}
+{$IFdef MSWindows}
+  {$DEFINE SYN_WIN32}
+{$ENDIF}
+
+{$IFDEF VER130}
+  {$DEFINE SYN_COMPILER_5}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_5}
+{$ENDIF}
+
+{$IFDEF VER125}
+  {$DEFINE SYN_COMPILER_4}
+  {$DEFINE SYN_CPPB}
+  {$DEFINE SYN_CPPB_4}
+{$ENDIF}
+
+{$IFDEF VER120}
+  {$DEFINE SYN_COMPILER_4}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_4}
+{$ENDIF}
+
+{$IFDEF VER110}
+  {$DEFINE SYN_COMPILER_3}
+  {$DEFINE SYN_CPPB}
+  {$DEFINE SYN_CPPB_3}
+{$ENDIF}
+
+{$IFDEF VER100}
+  {$DEFINE SYN_COMPILER_3}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_3}
+{$ENDIF}
+
+{$IFDEF VER93}
+  {$DEFINE SYN_COMPILER_2}  { C++B v1 compiler is really v2 }
+  {$DEFINE SYN_CPPB}
+  {$DEFINE SYN_CPPB_1}
+{$ENDIF}
+
+{$IFDEF VER90}
+  {$DEFINE SYN_COMPILER_2}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_2}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_2}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_3}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_4}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_5}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_2}
+  {$DEFINE SYN_DELPHI_2_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_3}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_4}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_5}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+{$ENDIF}
+
+{$IFDEF SYN_CPPB_3}
+  {$DEFINE SYN_CPPB_3_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_3_UP}
+  {$DEFINE SYN_NO_COM_CLEANUP}
+{$ENDIF}
+
+{$IFDEF SYN_CPPB_3_UP}
+  // C++Builder requires this if you use Delphi components in run-time packages.
+  {$ObjExportAll On}
+{$ENDIF}
+
+{$IFDEF FPC}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_LAZARUS}
+{$ENDIF}
+
+{------------------------------------------------------------------------------}
+{ Common compiler defines                                                      }
+{------------------------------------------------------------------------------}
+
+// defaults are short evaluation of boolean values and long strings
+
+// lazarus change   no $B-
+{$H+}
+
+{------------------------------------------------------------------------------}
+{ Please change this to suit your needs                                        }
+{------------------------------------------------------------------------------}
+
+// support for multibyte character sets
+{$IFDEF SYN_COMPILER_3_UP}
+{$IFNDEF SYN_LAZARUS}
+{$DEFINE SYN_MBCSSUPPORT}
+{$ENDIF}
+{$ENDIF}
+
+// additional tests for debugging
+
+{.$DEFINE SYN_DEVELOPMENT_CHECKS}
+
+{$IFDEF SYN_DEVELOPMENT_CHECKS}
+
+{$R+,Q+,S+,T+}
+
+{$ENDIF}
 
 
 interface
