@@ -4833,6 +4833,7 @@ resourcestring
   strNewyear = 'And what are your good intentions for this year? ;-)';
   strfuture = 'Wow,I never imagined people would use Cheat Engine up to today';
 
+var onetimeonly: boolean=false; //to protect against make mainform visible (.show)
 procedure TMainForm.FormShow(Sender: TObject);
 var
   reg: tregistry;
@@ -4850,6 +4851,9 @@ var
   firsttime: boolean;
   x: array of integer;
 begin
+  if onetimeonly then exit;
+
+  onetimeonly:=true;
   Set8087CW($133f);
   SetSSECSR($1f80);
 
@@ -4964,7 +4968,8 @@ begin
   if memscan=nil then
     memscan:=tmemscan.create(progressbar1);
 
-  foundlist:=tfoundlist.create(foundlist3,memscan);
+  if foundlist=nil then
+    foundlist:=tfoundlist.create(foundlist3,memscan);
 
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);

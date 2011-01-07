@@ -4364,7 +4364,7 @@ begin
       end;
     end;
 
-    if haserror then err:=1;
+
 
 
     if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
@@ -4389,10 +4389,7 @@ begin
           AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
           MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Memory.TMP',fmOpenWrite or fmsharedenynone);
         except
-          outputdebugstring('Scancontroller: Error when while loading result');
-          haserror:=true;
-          errorstring:='Error while loading results';
-          exit;
+          raise exception.create('Error when while loading result');
         end;
 
 
@@ -4434,11 +4431,16 @@ begin
 
 
     //send message saying it's done
+
+    if haserror then err:=1;
+
     isdone:=true;
     if notifywindow<>0 then
       postMessage(notifywindow,notifymessage,err,0);
 
     isdoneevent.setevent;
+
+    haserror:=false;
 
 
     try
@@ -4518,6 +4520,9 @@ begin
       errorstring:='controller:Unknown!'+e.message;
     end;
   end;
+
+  if haserror then
+    MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
 
   outputdebugstring('end of scancontroller reached');
 end;
@@ -4905,12 +4910,12 @@ var guid: TGUID;
 begin
   CreateGUID(guid);
   if dontusetempdir then
-    fScanResultFolder:=tempdiralternative+'Cheat Engine\'
+    fScanResultFolder:=tempdiralternative+'Cheat Engine'+pathdelim
   else
-    fScanResultFolder:=GetTempDir+'Cheat Engine\';
+    fScanResultFolder:=GetTempDir+'Cheat Engine'+pathdelim;
   CreateDir(fScanResultFolder);
 
-  fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+'\';
+  fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+pathdelim;
   CreateDir(fScanResultFolder);
 end;
 
@@ -4934,19 +4939,19 @@ begin
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   result := true;
 
-  while dir[length(dir)]='\' do //cut of \
+  while dir[length(dir)]=pathdelim do //cut of \
     dir:=copy(dir,1,length(dir)-1);
 
   outputdebugstring('Deleting '+dir);
 
 
-  r := FindFirst(dir + '\*.*', FaAnyfile, DirInfo);
+  r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
   while (r = 0) and result do
   begin
     if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
     begin
       if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
-        result := DeleteFile(dir + '\' + DirInfo.Name);
+        result := DeleteFile(dir + pathdelim + DirInfo.Name);
     end;
     r := FindNext(DirInfo);
   end;
