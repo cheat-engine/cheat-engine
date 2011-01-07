@@ -45,6 +45,7 @@ type
     valuelist: array [0..1023] of string;
     RebaseAgainThread: TRebaseAgain;
     createdFoundlist: boolean;
+    fisUnknownInitialValue: boolean;
   public
     function GetVarLength: integer;
     procedure DeleteResults;
@@ -63,6 +64,7 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: integer read fvartype;
+    property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     constructor create(foundlist: tlistview; memscan: TMemScan);
     destructor destroy; override;
 end;
@@ -665,24 +667,30 @@ begin
       begin
         foundlist.Items.Count:=0;
         scantype:=fs_advanced;
+        fisUnknownInitialValue:=true;
       end
       else
       begin
+        fisUnknownInitialValue:=false;
         scantype:=fs_addresslist;
 
         if vartype in [5,9] then //bit, or all (address+bit)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(TBitAddress);
 
+          foundlist.Items.Count:=min(result, 50000000);
 
-          foundlist.Items.Count:=result;
+          //foundlist.Items.Count:=min(result, 100000000);
+          if foundlist.Items.Count=0 then
+            foundlist.Items.Count:=min(result, 100000);
         end
         else //normal (address)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(ptruint);
 
-
-          foundlist.Items.Count:=result;
+          foundlist.Items.Count:=min(result, 50000000);
+          if foundlist.Items.Count=0 then
+            foundlist.Items.Count:=min(result, 100000);
         end;
 
         rebaseaddresslist(0);
@@ -700,7 +708,7 @@ begin
     scantype:=fs_advanced;
   end;
 
-  if (not createdfoundlist) and (result>0) then
+  if (not createdfoundlist) and (result>0) and (foundlist.Items.Count>0) then
     foundlist.Items[0].MakeVisible(false);
 
 

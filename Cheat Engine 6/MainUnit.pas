@@ -5916,6 +5916,7 @@ procedure TMainForm.ScanDone(var message: TMessage);
 var
   i: integer;
   canceled: boolean;
+  actuallyshown: double;
 begin
   if ScanTabList<>nil then
     ScanTabList.enabled:=true;
@@ -5932,7 +5933,7 @@ begin
   SetProgressState(tbpsNone);
 
 
-  foundcount:=memscan.GetFoundCount;
+
 
 
 
@@ -5951,6 +5952,15 @@ begin
 
 
   foundlist.Initialize(getvartype,memscan.Getbinarysize,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
+
+  foundcount:=memscan.GetFoundCount;
+
+
+  if (foundlist3.items.count<>foundcount) and (not foundlist.isUnknownInitialValue) then
+  begin
+    actuallyshown:=foundlist3.items.count;
+    foundcountlabel.Caption:=foundcountlabel.caption+' (shown: '+Format('%.0n', [actuallyshown])+')' ;
+  end;
 
   if memscan.lastscantype=stFirstScan then
   begin

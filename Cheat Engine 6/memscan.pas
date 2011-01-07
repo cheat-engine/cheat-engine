@@ -4337,7 +4337,9 @@ end;
 procedure TScanController.execute;
 var err: dword;
     i: integer;
-    oldpos,oldmempos: integer;
+    oldpos,oldmempos: qword;
+
+    wantsize: qword;
 begin
   OutputDebugString('TScanController.execute');
   try
@@ -4393,13 +4395,33 @@ begin
           exit;
         end;
 
+
         oldpos:=addressfile.Size;
         oldmempos:=memoryfile.size;
 
+        wantsize:=AddressFile.size;
         for i:=1 to threadcount-1 do
-          AddressFile.size:=AddressFile.size+scanners[i].Addressfile.Size;
+          wantsize:=wantsize+scanners[i].Addressfile.Size;
+
+        addressfile.size:=wantsize;
+
+        if addressfile.size<>wantsize then
+          raise exception.create('Not enough diskspace for the address file');
+
+
+        wantsize:=memoryfile.size;
+        for i:=1 to threadcount-1 do
+          wantsize:=wantsize+scanners[i].MemoryFile.size;
+
+        memoryfile.size:=wantsize;
+
+        if memoryfile.size<>wantsize then
+          raise exception.create('Not enough diskspace for the memory file');
+
+
 
         outputdebugstring(format('ScanController: Have set AddressFile.size to %d',[AddressFile.size]));
+        outputdebugstring(format('ScanController: Have set MemoryFile.size to %d',[AddressFile.size]));
       except
         on e: exception do
         begin
