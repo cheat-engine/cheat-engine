@@ -3016,6 +3016,9 @@ var oldAddressfile: TFileStream;
     oldmemory: pointer;
 
 begin
+  if startentry>stopentry then //don't bother
+    exit;
+
   configurescanroutine;
   oldAddressFile:=nil;
   oldMemoryFile:=nil;
@@ -3026,6 +3029,8 @@ begin
     oldMemoryFile:=TFileStream.Create(scandir+'Memory.TMP',fmOpenRead or fmShareDenyNone);
 
     //set the current index to startentry
+
+
     stopindex:=stopentry-startentry;  //going from 0 to stopindex
 
     if self.variableType in [vtBinary,vtall] then
