@@ -314,8 +314,8 @@ type
     stopaddress: PtrUint; //specific stop for this thread, if not fastscan and another thread continue from here, may add some overlopping bytes
 
     //exact address scans:
-    startentry: integer; //index in the address list
-    stopentry: integer; //"   "
+    startentry: qword; //index in the address list
+    stopentry: qword; //"   "
 
     //general:
     scanned: qword; //total memory/addresses scanned by this routine
@@ -3007,8 +3007,8 @@ end;
 procedure TScanner.nextNextscan;
 var oldAddressfile: TFileStream;
     oldMemoryfile: TFileStream;
-    i: integer;
-    stopindex: integer;
+    i: qword;
+    stopindex: qword;
     chunksize: integer;
 
     oldaddresses: array of PtrUint;
@@ -3528,10 +3528,10 @@ NextNextScan will read results of the previous scan, and pass it off to scanner 
 }
 var 
     AddressFile: TFileStream;
-    blocksize: integer;
+    blocksize: qword;
     i: integer;
 
-    currententry: integer;
+    currententry: qword;
     datatype: string[6];
 begin
   threadcount:=getcpucount;
