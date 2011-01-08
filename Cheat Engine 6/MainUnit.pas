@@ -91,7 +91,7 @@ type
       checked: boolean;
     end;
 
-    hexadecimalcheckbox: record
+    cbHexadecimal: record
       visible: boolean;
       checked: boolean;
     end;
@@ -251,7 +251,7 @@ type
     btnMemoryView: TButton;
     Button1: TButton;
     ProgressBar1: TProgressBar;
-    HexadecimalCheckbox: TCheckBox;
+    cbHexadecimal: TCheckBox;
     UndoScan: TButton;
     rbBit: TRadioButton;
     rbDec: TRadioButton;
@@ -423,7 +423,7 @@ type
     procedure Setbreakpoint1Click(Sender: TObject);
     procedure TopDisablerTimer(Sender: TObject);
     procedure advancedbuttonClick(Sender: TObject);
-    procedure HexadecimalCheckboxClick(Sender: TObject);
+    procedure cbHexadecimalClick(Sender: TObject);
     procedure SetHotkey1Click(Sender: TObject);
     procedure UndoScanClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -600,6 +600,9 @@ type
 
     function onhelp(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
     procedure SaveIntialTablesDir(dir: string);
+
+    function convertvalue(ovartype, nvartype: integer; oldvalue: string; washexadecimal, ishexadecimal:boolean): string;
+
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -1380,7 +1383,7 @@ begin
   scantext.Enabled := False;
   label4.Enabled := False;
   label8.Enabled := False;
-  HexadecimalCheckbox.Enabled := False;
+  cbHexadecimal.Enabled := False;
   cbCaseSensitive.Enabled := False;
 
   newscan.Enabled := False;
@@ -1422,7 +1425,7 @@ begin
   scantext.enabled:=true;
   label4.enabled:=true;
   label8.Enabled:=true;
-  HexadecimalCheckbox.Enabled:=true;
+  cbHexadecimal.Enabled:=true;
   cbCaseSensitive.Enabled:=true;
 
   scanvalue.visible:=true;
@@ -1756,18 +1759,18 @@ begin
      begin
        Scantext.Visible:=false;
        Scanvalue.visible:=false;
-       HexadecimalCheckbox.visible:=false;
+       cbHexadecimal.visible:=false;
      end else
      begin
        Scantext.Visible:=true;
        Scanvalue.visible:=true;
-       HexadecimalCheckbox.visible:=hexvis;
+       cbHexadecimal.visible:=hexvis;
      end;
 
   pnlfloat.Visible:=floatvis;
 
   if rbBit.visible then
-    HexadecimalCheckbox.visible:=false;
+    cbHexadecimal.visible:=false;
 
   //save the last scantype (if it wasn't the option to change between first/last)
   if (scantype.ItemIndex<>-1) and (scantype.ItemIndex<scantype.Items.Count) then
@@ -1951,7 +1954,7 @@ begin
     scanvalue.Visible := False;
     scantext.Visible := False;
     scanvalue.Text := '';
-    HexadecimalCheckbox.Enabled := False;
+    cbHexadecimal.Enabled := False;
     cbCaseSensitive.Enabled := False;
 
     Updatescantype;
@@ -2680,8 +2683,8 @@ begin
   scanstate.rbdec.enabled:=rbdec.enabled;
   scanstate.rbdec.checked:=rbdec.checked;
 
-  scanstate.HexadecimalCheckbox.visible:=HexadecimalCheckbox.visible;
-  scanstate.HexadecimalCheckbox.checked:=HexadecimalCheckbox.checked;
+  scanstate.cbHexadecimal.visible:=cbHexadecimal.visible;
+  scanstate.cbHexadecimal.checked:=cbHexadecimal.checked;
 
   if cbpercentage<>nil then
   begin
@@ -2745,7 +2748,7 @@ begin
     vartype.onchange:=nil;
     rbbit.OnClick:=nil;
     rbdec.Onclick:=nil;
-    HexadecimalCheckbox.OnClick:=nil;
+    cbHexadecimal.OnClick:=nil;
 
     scanvalue.text:=newstate.scanvalue.text;
     scanvalue.visible:=newstate.scanvalue.visible;
@@ -2806,8 +2809,8 @@ begin
     rbdec.enabled:=newstate.rbdec.enabled;
     rbdec.checked:=newstate.rbdec.checked;
 
-    HexadecimalCheckbox.visible:=newstate.HexadecimalCheckbox.visible;
-    HexadecimalCheckbox.checked:=newstate.HexadecimalCheckbox.checked;
+    cbHexadecimal.visible:=newstate.cbHexadecimal.visible;
+    cbHexadecimal.checked:=newstate.cbHexadecimal.checked;
 
     if newstate.cbpercentage.exists then
     begin
@@ -2823,7 +2826,7 @@ begin
     VarType.OnChange:=VarTypeChange;
     rbbit.OnClick:=rbBitClick;
     rbdec.Onclick:=rbDecClick;
-    HexadecimalCheckbox.OnClick:=HexadecimalCheckboxClick;
+    cbHexadecimal.OnClick:=cbHexadecimalClick;
 
     mainform.EndFormUpdate;
 
@@ -3767,6 +3770,228 @@ begin
   addresslist.doValueChange;
 end;
 
+function TMainForm.convertvalue(ovartype, nvartype: integer; oldvalue: string; washexadecimal, ishexadecimal:boolean): string;
+var
+    s: string;
+    oldvaluei: qword;
+    oldvaluef: double absolute oldvaluei;
+    oldvalueba: pbytearray;
+
+    newvaluei: qword;
+    newvaluef: double absolute newvaluei;
+    newvalueba: pbytearray;
+
+    i: integer;
+
+    ba: TBytes;
+
+    wasfloat: boolean;
+    wasaob: boolean;
+
+    hasbytes: boolean;
+    puretext: boolean;
+begin
+  result:='';
+  oldvalueba:=@oldvaluei;
+  newvalueba:=@newvaluei;
+
+  try
+    puretext:=false;
+    wasfloat:=false;
+    wasaob:=false;
+    oldvaluei:=0;
+
+    try
+      case ovartype of
+        0:
+        begin
+          //binary
+          if rbdec.checked then
+            oldvaluei:=strtoint64(scanvalue.text)
+          else
+          begin
+            s:=trim(oldvalue);
+            for i:=1 to length(s) do
+              if not (s[i] in ['0','1']) then
+                s[i]:='0';
+
+            oldvaluei:=cefuncproc.BinToInt(s);
+          end;
+        end;
+
+        1..4,10:
+        begin
+          if washexadecimal then
+          begin
+            oldvaluei:=strtoint64('$'+oldvalue);
+          end
+          else
+            oldvaluei:=strtoint64(oldvalue);
+        end;
+
+        5,6,9:
+        begin
+          try
+            oldvaluei:=strtoint(oldvalue);
+          except
+            oldvaluef:=strtofloat(oldvalue);
+            wasfloat:=true;
+          end;
+        end;
+
+        7: //generic type,  text or all
+        begin
+          try
+            oldvaluei:=StrToInt64(oldvalue);
+          except
+            oldvaluef:=StrToFloat(oldvalue);
+            wasfloat:=true;
+          end;
+
+        end;
+
+        8:
+        begin //convert the aob to an integer if possible (max 8 bytes)
+          //aob
+          setlength(ba,0);
+          ConvertStringToBytes(oldvalue, washexadecimal, ba);
+
+          oldvaluei:=0;
+          for i:=0 to min(7, length(ba)-1) do
+          begin
+            if ba[i]<0 then
+              ba[i]:=0;
+
+            oldvalueba[i]:=ba[i];
+          end;
+
+          wasaob:=true;
+        end;
+      end;
+    except
+      //could not get parsed, if the target is aob then convert the text to an aob, else give up
+      if nvartype=8 then
+        puretext:=true
+      else
+      begin
+        result:='';
+        exit;
+      end;
+    end;
+
+
+    case nvartype of
+      0: //binary
+      begin
+        if wasfloat then
+          oldvaluei:=trunc(oldvaluef); //convert the float to an integer
+
+        if rbdec.checked then
+          result:=inttostr(oldvaluei)
+        else
+          result:=IntToBin(oldvaluei);
+
+      end;
+
+      1..4,10: //integer or custom
+      begin
+        if wasfloat then
+          oldvaluei:=trunc(oldvaluef); //convert the float to an integer
+
+        if ishexadecimal then
+          result:=inttohex(oldvaluei,1)
+        else
+          result:=inttostr(oldvaluei);
+      end;
+
+      5..6,9: //float
+      begin
+        if wasfloat then
+          result:=oldvalue
+        else
+        begin
+          if wasaob then
+          begin
+            try
+              result:=floattostr(oldvaluef);
+            except
+
+            end;
+          end
+          else
+            result:=inttostr(oldvaluei);
+        end;
+      end;
+
+      7:
+      begin
+        //text
+        if wasaob then
+        begin
+          //convert the aob to text
+          s:='';
+          //ba should still be intact:
+          for i:=0 to length(ba)-1 do
+          begin
+            if ba[i]<0 then ba[i]:=0;
+
+            if ba[i]>=32 then
+              s:=s+chr(ba[i]) else s:=s+'.';
+
+            result:=s;
+          end;
+        end
+        else
+          result:=oldvalue;
+      end;
+
+
+
+      8:
+      begin
+        s:='';
+
+        if (puretext) then
+        begin
+          for i:=1 to length(oldvalue) do
+          begin
+            if ishexadecimal then
+              s:=s+inttohex(pbyte(@oldvalue[i])^,2)+' '
+            else
+              s:=s+inttostr(pbyte(@oldvalue[i])^)+' ';
+          end;
+        end
+        else
+        begin
+
+          hasbytes:=false;
+          for i:=7 downto 0 do
+          begin
+            if hasbytes or (oldvalueba[i]<>0) then
+            begin
+              hasBytes:=true;
+              if ishexadecimal then
+                s:=inttohex(oldvalueba[i],2)+' '+s
+              else
+                s:=inttostr(oldvalueba[i])+' '+s
+            end;
+          end;
+
+          trim(s);
+        end;
+
+
+
+        result:=s;
+      end;
+
+    end;
+
+
+  except
+  end;
+end;
+
 procedure TMainForm.VarTypeChange(Sender: TObject);
 var
   a: int64;
@@ -3789,10 +4014,22 @@ var
   tc: tbitmap;
 
   alignsize: integer;
+
+  //----new convertor:
+  _oldvartype,_newvartype: integer;
+
+  washex: boolean;
+  oldvalue: string;
 begin
   //todo: rewrite this
   oldscantype:=scantype.ItemIndex;
   newvartype:=vartype.ItemIndex;
+
+  _oldvartype:=oldvartype;
+  _newvartype:=newvartype;
+  washex:=cbHexadecimal.checked;
+  oldvalue:=scanvalue.text;
+
 
   dontconvert:=true;
 
@@ -3833,236 +4070,6 @@ begin
 
 
 
-  //convertroutine:
-  if (oldvartype in [1,2,3,4,5,6,9]) or (oldvartype>10) then
-  begin
-    //it was one of the normal values
-    hexstateForIntTypes:=hexadecimalcheckbox.Checked;
-
-    if (newvartype in [1,2,3,4]) or (oldvartype>10) then
-    begin
-      //converted to a normal type
-      if oldvartype in [5,6] then
-      begin
-        try
-          scanvalue.text:=inttostr(trunc(strtofloat(scanvalue.text)));
-        except
-          scanvalue.Text:='';
-        end;
-
-      end;
-
-    end
-    else
-    case newvartype of
-      0: //it gets converted to a binary
-      begin
-        //set
-
-        if oldvartype in [1,2,3,4] then
-        begin
-          try
-            if hexadecimalcheckbox.Checked then
-              a:=strtoint('$'+scanvalue.text)
-            else
-              a:=strtoint(scanvalue.text);
-            scanvalue.Text:=inttostr(a);
-          except
-            scanvalue.text:='';
-          end;
-        end
-        else
-        if oldvartype=5 then
-        begin
-          try
-            d:=strtofloat(scanvalue.Text);
-            pb:=@d;
-            scanvalue.Text:=inttostr(pb^);
-          except
-            scanvalue.text:='';
-          end;
-        end else
-        if oldvartype=6 then
-        begin
-          try
-            b:=strtofloat(scanvalue.Text);
-            pa:=@b;
-            scanvalue.Text:=inttostr(pa^);
-          except
-            scanvalue.text:='';
-          end;
-        end;
-
-        isbit:=false;
-        rbdec.checked:=true;
-        rbdec.OnClick(rbdec);
-      end;
-
-      5,6: ; //converted to a float, leave it the same
-
-      7: ;//converted to a string , leave it
-
-      8: //converted to a array of byte
-      begin
-        if oldvartype in [1,2,3,4] then
-        begin
-          //now convert it to a array of byte
-          if oldvartype in [1,2,3,4] then
-          begin
-            try
-              a:=strtoint(scanvalue.text);
-              scanvalue.text:=vartobytes(@a,8);
-            except
-              scanvalue.text:='';
-            end;
-          end
-          else
-          if oldvartype=5 then
-          begin
-            try
-              d:=strtofloat(scanvalue.Text);
-              scanvalue.Text:=vartobytes(@d,4);
-            except
-              scanvalue.text:='';
-            end;
-          end else
-          if oldvartype=6 then
-          begin
-            try
-              b:=strtofloat(scanvalue.Text);
-              scanvalue.Text:=vartobytes(@b,8);
-            except
-              scanvalue.text:='';
-            end;
-          end;
-
-        end;
-      end;
-
-
-    end;
-  end;
-
-  case oldvartype of
-    0:  //it was a bit
-    begin
-      case newvartype of
-        1,2,3,4,5,6:
-        begin
-          //convert it to a normal value
-          if rbbit.checked then
-          begin
-            //convert it to a decimal value
-            rbdec.Checked:=true;
-            rbdec.OnClick(rbdec);
-          end;
-        end;
-
-        7: ; //just leave it
-
-        8:  //array of byte
-        begin
-          //first convert it to a array of byte
-          if rbbit.checked then
-          begin
-            //convert it to a decimal value
-            rbdec.Checked:=true;
-            rbdec.OnClick(rbdec);
-          end;
-
-          //now convert it to a array of byte
-          try
-            a:=strtoint(scanvalue.text);
-            scanvalue.text:=vartobytes(@a,8);
-          except
-            scanvalue.text:='';
-          end;
-
-        end;
-      end;
-    end;
-
-    7: //it was text
-    begin
-      case newvartype of
-        0: //it becomes a binary
-        begin
-          //convert the text to to a decimal value if possible
-          try
-            a:=strtoint(scanvalue.text);
-            scanvalue.Text:=inttostr(a);
-          except
-            scanvalue.text:='';
-          end;
-        end;
-
-        1,2,3,4:
-        begin
-          //convert it to a decimal value
-          //allow all characters from '0' to '9' and break if it doesn't
-          val(scanvalue.text,a,i);
-          scanvalue.Text:=inttostr(a);
-        end;
-
-        5,6:
-        begin
-          //convert the string to a float
-          //same as dec, but allow . and , and E and -
-          val(scanvalue.text,b,i);
-          scanvalue.Text:=format('%.2f',[b]);
-        end;
-
-        8:
-        begin
-          //convert the string to a array of bytes
-          temp:='';
-          for i:=1 to length(scanvalue.text) do
-            temp:=temp+inttohex(ord(scanvalue.Text[i]),2)+' ';
-
-          scanvalue.text:=copy(temp,1,length(temp)-1);
-
-
-        end;
-
-      end;
-    end;
-
-
-    8: //it was a array of bytes
-    begin
-      case newvartype of
-        0: //it becomes a binary
-        begin
-          //convert it to a decimal value
-          rbdec.checked:=true;
-          isbit:=false;
-          scanvalue.text:=IntToStr(ByteStringToInt(scanvalue.Text,HexadecimalCheckbox.checked));
-        end;
-
-        1,2,3,4: //it becomes a normal decimal value
-        begin
-          scanvalue.text:=IntToStr(ByteStringToInt(scanvalue.Text,HexadecimalCheckbox.checked));
-        end;
-
-        5: //it becomes a float/single
-        begin
-          scanvalue.Text:=floattostr(bytestringtosingle(scanvalue.text,hexadecimalcheckbox.checked));
-        end;
-
-        6: //it becomes a double
-        begin
-          scanvalue.Text:=floattostr(bytestringtodouble(scanvalue.text,hexadecimalcheckbox.checked));
-        end;
-
-        7: //convert it to a string
-        begin
-          scanvalue.text:=bytestringtotext(scanvalue.text,hexadecimalcheckbox.checked);
-        end;
-
-      end;
-
-    end;
-  end;
 
   oldvartype:=vartype.itemindex;
 
@@ -4074,15 +4081,15 @@ begin
     casevis:=false;
     hexvis:=true;
     scanvalue.MaxLength:=0;
-    hexadecimalcheckbox.enabled:=newscan.enabled;
-    hexadecimalcheckbox.Checked:=hexstateForIntTypes;
+    cbHexadecimal.enabled:=newscan.enabled;
+    cbHexadecimal.Checked:=hexstateForIntTypes;
   end
   else
   case newvartype of
   0: begin //binary
        rbdec.checked:=true;
-       hexadecimalcheckbox.Checked:=false;
-       HexadecimalCheckbox.visible:=false;
+       cbHexadecimal.Checked:=false;
+       cbHexadecimal.visible:=false;
        decbitvis:=true;
        Scantype.itemindex:=0;
      end;
@@ -4090,8 +4097,8 @@ begin
   5: begin //float;
        casevis:=false;
 
-       hexadecimalcheckbox.Checked:=false;
-       HexadecimalCheckbox.enabled:=false;
+       cbHexadecimal.Checked:=false;
+       cbHexadecimal.enabled:=false;
        scanvalue.MaxLength:=0;
      end;
 
@@ -4100,8 +4107,8 @@ begin
        temp:=scanvalue.text;
 
 
-       hexadecimalcheckbox.Checked:=false;
-       HexadecimalCheckbox.enabled:=false;
+       cbHexadecimal.Checked:=false;
+       cbHexadecimal.enabled:=false;
        scanvalue.MaxLength:=0;
      end;
 
@@ -4114,32 +4121,32 @@ begin
 
 
 
-       hexadecimalcheckbox.enabled:=newscan.enabled;
-       hexadecimalcheckbox.checked:=cbCaseSensitive.checked;
+       cbHexadecimal.enabled:=newscan.enabled;
+       cbHexadecimal.checked:=cbCaseSensitive.checked;
        hexvis:=false;
-       hextext:='Unicode';
+       //hextext:='Unicode';
        hexwidth:=61;
      end;
 
   8: begin  //array of byte
        scantype.itemindex:=0;
        scanvalue.MaxLength:=0;
-       hexadecimalcheckbox.enableD:=newscan.enabled;
-       hexadecimalcheckbox.Checked:=true;
+       cbHexadecimal.enableD:=newscan.enabled;
+       cbHexadecimal.Checked:=true;
 
      end;
 
   end;
 
-  hexadecimalcheckbox.Caption:=hextext;
+  cbHexadecimal.Caption:=hextext;
 
-  tc:=tbitmap.Create;
-  tc.canvas.Font:=hexadecimalcheckbox.Font;
+ { tc:=tbitmap.Create;
+  tc.canvas.Font:=cbHexadecimal.Font;
   hexwidth:=tc.canvas.TextWidth(hextext)+22;
   tc.free;
-  hexadecimalcheckbox.width:=hexwidth;
-  hexadecimalcheckbox.left:=scanvalue.Left-hexwidth;
-  HexadecimalCheckbox.visible:=hexvis;
+  cbHexadecimal.width:=hexwidth;
+  cbHexadecimal.left:=scanvalue.Left-cbHexadecimal.width; }
+  cbHexadecimal.visible:=hexvis;
   rbdec.visible:=decbitvis;
   rbbit.Visible:=decbitvis;
 
@@ -4168,7 +4175,10 @@ begin
 
 
   if decbitvis then
-    HexadecimalCheckbox.visible:=false;
+    cbHexadecimal.visible:=false;
+
+  scanvalue.text:=convertvalue(_oldvartype, _newvartype, oldvalue, washex, cbhexadecimal.checked);
+
 
   panel5.OnResize(panel5); //lazarus, force the scantext left
 
@@ -4695,7 +4705,7 @@ begin
   advancedoptions.Show;
 end;
 
-procedure TMainForm.HexadecimalCheckboxClick(Sender: TObject);
+procedure TMainForm.cbHexadecimalClick(Sender: TObject);
 var
   x: int64;
   i: integer;
@@ -4712,7 +4722,7 @@ begin
   if vartype.Text='Text'then     getVarType:=7 else
   if vartype.Text='Array of Bytes' then getVarType:=8 else}
 
-  if HexadecimalCheckbox.Checked then
+  if cbHexadecimal.Checked then
   begin
     //convert what is in scanvalue to hexadecimal notation
     val(scanvalue.Text,x,i);
@@ -5113,7 +5123,7 @@ end;
 
 procedure TMainForm.cbCaseSensitiveClick(Sender: TObject);
 begin
-  HexadecimalCheckbox.Checked := cbcasesensitive.Checked;
+  cbHexadecimal.Checked := cbcasesensitive.Checked;
 end;
 
 procedure TMainForm.LogoMouseDown(Sender: TObject; Button: TMouseButton;
@@ -5900,7 +5910,7 @@ begin
     else
       fastscanmethod:=fsmLastDigits;
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 
@@ -5956,7 +5966,7 @@ begin
 
 
 
-  foundlist.Initialize(getvartype,memscan.Getbinarysize,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
+  foundlist.Initialize(getvartype,memscan.Getbinarysize,cbHexadecimal.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked, TCustomType(VarType.items.objects[vartype.ItemIndex]));
 
   foundcount:=memscan.GetFoundCount;
 
@@ -6066,7 +6076,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, HexadecimalCheckbox.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
   DisableGui;
   SpawnCancelButton;
 end;
@@ -6089,7 +6099,7 @@ begin
       begin
         setlength(bytes,0);
         try
-          ConvertStringToBytes(scanvalue.Text,hexadecimalcheckbox.checked,bytes );
+          ConvertStringToBytes(scanvalue.Text,cbHexadecimal.checked,bytes );
           i:=length(bytes);
         except
           i:=1;
@@ -6097,7 +6107,7 @@ begin
         setlength(bytes,0);
       end;
     end;
-    foundlist.Initialize(vtype,i,hexadecimalcheckbox.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked,memscan.CustomType);
+    foundlist.Initialize(vtype,i,cbHexadecimal.checked,formsettings.cbShowAsSigned.Checked,not rbBit.checked,cbunicode.checked,memscan.CustomType);
   end
   else foundlist.Initialize(vtype,memscan.CustomType); //failed scan, just reopen the addressfile
 

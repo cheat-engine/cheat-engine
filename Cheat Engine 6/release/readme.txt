@@ -5,6 +5,7 @@ several disassembler fixes
 change by offset supports negative hexadecimal offsets
 several fixes to the data dissector
 Fixed simple paste
+Hextype won't change pos
 
 
 Changes:
@@ -38,6 +39,7 @@ Hexview can now show seperators any way you like
 You can compare two hexviews with eachother to show the differences
 Added the 7 byte hexadecimal display type
 Added some extra plugin apis
+Improved the change register on breakpoint gui
 And lots of other stuff...
 
 How to use:

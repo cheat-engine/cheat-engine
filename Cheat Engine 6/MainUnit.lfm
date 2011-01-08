@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 715
+  Left = 744
   Height = 570
   Hint = ' '
-  Top = 213
+  Top = 209
   Width = 538
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -655,8 +655,8 @@ object MainForm: TMainForm
       Step = 1
       TabOrder = 9
     end
-    object HexadecimalCheckbox: TCheckBox
-      Left = 207
+    object cbHexadecimal: TCheckBox
+      Left = 213
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -665,7 +665,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       Caption = 'Hex'
       Enabled = False
-      OnClick = HexadecimalCheckboxClick
+      OnClick = cbHexadecimalClick
       ParentShowHint = False
       ShowHint = True
       TabOrder = 10
@@ -708,10 +708,10 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 254
+      Left = 255
       Height = 21
       Top = 96
-      Width = 283
+      Width = 280
       Anchors = [akTop, akRight]
       Enabled = False
       OnKeyPress = ScanvalueoldKeyPress
