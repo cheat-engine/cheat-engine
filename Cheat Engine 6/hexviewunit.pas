@@ -350,16 +350,11 @@ end;
 
 function THexView.getAddressFromCurrentMousePosition(var region: THexRegion): ptrUint;
 var
-  r: trect;
-  cursorpos: TPoint;
-  x,y: integer;
+  p: tpoint;
 begin
-  GetWindowRect(Handle, r);
+  p:=screentoclient(mouse.cursorpos);
 
-  X:=mouse.CursorPos.X-r.Left;
-  Y:=mouse.CursorPos.Y-r.Top;
-
-  result:=getAddressFromPosition(x,y,region);
+  result:=getAddressFromPosition(p.x,p.y,region);
 end;
 
 function THexView.getAddressFromPosition(x, y: integer; var region: THexRegion): ptrUint;

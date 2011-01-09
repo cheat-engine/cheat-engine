@@ -1638,145 +1638,155 @@ var
   hexvis: boolean;
   floatvis: boolean;
   t: tstringlist;
+  old,old2: Tnotifyevent;
 begin
+  old:=scantype.OnChange;
+  old2:=scantype.OnSelect;
+  scantype.OnChange:=nil;
+  scantype.OnSelect:=nil;
 
+  try
+    OldIndex:=Scantype.itemindex;
+    OldText:=Scantype.text;
+    hexvis:=true;
+    floatvis:=false;
 
-  OldIndex:=Scantype.itemindex;
-  OldText:=Scantype.text;
-  hexvis:=true;
-  floatvis:=false;
+    ScanType.Items.Clear;
 
-  ScanType.Items.Clear;
+    ScanText.Caption:=strScantextcaptiontoValue;
 
-  ScanText.Caption:=strScantextcaptiontoValue;
-
-  if (varType.ItemIndex in [1,2,3,4,5,6,9]) or (vartype.itemindex>=10) then  //byte-word-dword--8bytes-float-double-all   - custom
-  begin
-
-    if vartype.itemindex in [5,6,9] then //float/all
+    if (varType.ItemIndex in [1,2,3,4,5,6,9]) or (vartype.itemindex>=10) then  //byte-word-dword--8bytes-float-double-all   - custom
     begin
-      if oldindex=0 then
-        floatvis:=true;
 
-      if vartype.itemindex<>9 then
-        hexvis:=false;
-    end;
-
-    ScanType.Items.Add(strExactValue);
-    ScanType.Items.Add(strBiggerThan);
-    ScanType.Items.Add(strsmallerThan);
-    ScanType.Items.Add(strValueBetween);
-
-    if NextScanbutton.Enabled then
-    begin
-      scantype.Items.Add(strIncreasedValue);
-      Scantype.Items.Add(strIncreasedValueBy);
-      ScanType.Items.Add(strDecreasedValue);
-      ScanType.Items.Add(strDecreasedValueBy);
-      ScanType.Items.add(strChangedValue);
-      ScanType.Items.Add(strUnchangedValue);
-
-      if compareToSavedScan then
-        ScanType.Items.Add(strCompareToLastScan)
-      else
+      if vartype.itemindex in [5,6,9] then //float/all
       begin
-        t:=tstringlist.create;
-        if memscan.getsavedresults(t)>1 then
-          ScanType.Items.Add(strcompareToSavedScan)
+        if oldindex=0 then
+          floatvis:=true;
+
+        if vartype.itemindex<>9 then
+          hexvis:=false;
+      end;
+
+      ScanType.Items.Add(strExactValue);
+      ScanType.Items.Add(strBiggerThan);
+      ScanType.Items.Add(strsmallerThan);
+      ScanType.Items.Add(strValueBetween);
+
+      if NextScanbutton.Enabled then
+      begin
+        scantype.Items.Add(strIncreasedValue);
+        Scantype.Items.Add(strIncreasedValueBy);
+        ScanType.Items.Add(strDecreasedValue);
+        ScanType.Items.Add(strDecreasedValueBy);
+        ScanType.Items.add(strChangedValue);
+        ScanType.Items.Add(strUnchangedValue);
+
+        if compareToSavedScan then
+          ScanType.Items.Add(strCompareToLastScan)
         else
-          ScanType.Items.Add(strCompareToFirstScan);
+        begin
+          t:=tstringlist.create;
+          if memscan.getsavedresults(t)>1 then
+            ScanType.Items.Add(strcompareToSavedScan)
+          else
+            ScanType.Items.Add(strCompareToFirstScan);
 
-        t.free;
+          t.free;
 
 
+
+        end;
+
+
+
+      end else
+      begin
+        ScanType.Items.Add(strUnknownInitialValue);
 
       end;
 
+    end
+    else
+    case varType.ItemIndex of
+      0   :     begin
+                  ScanType.Items.Add(strExact);
+
+                end;
 
 
-    end else
+
+    7:          begin  //text
+                  ScanText.caption:=strScanTextCaptionToText;
+                  ScanType.Items.Add(strSearchForText);
+                  //perhaps also a changed value and unchanged value scan
+
+                  hexvis:=false;
+                end;
+
+    8:          begin  //array of bytes
+                  ScanText.caption:=vartype.Items[8];
+                  ScanType.Items.Add(strSearchforarray);
+
+                end;
+
+    end;
+    Scantype.DropDownCount:=Scantype.items.count;
+
+
+
+    if (oldtext=strUnknownInitialValue) and (NextScanButton.enabled) then scantype.itemindex:=0 else scantype.itemindex:=oldindex;
+
+    if (scantype.text=strIncreasedValueBy) or (scantype.text=strDecreasedValueBy) or (scantype.text=strValueBetween) then
     begin
-      ScanType.Items.Add(strUnknownInitialValue);
+      if NextScanButton.enabled then
+        createCbPercentage;
+
+    end
+    else
+    begin
+      destroyCbPercentage;
+
 
     end;
 
-  end
-  else
-  case varType.ItemIndex of
-    0   :     begin
-                ScanType.Items.Add(strExact);
-
-              end;
+    if scantype.Text=strValueBetween then
+      CreateScanValue2
+    else
+      DestroyScanValue2;
 
 
+    if (scantype.Text=strIncreasedValue) or
+       (scantype.text=strDecreasedValue) or
+       (scantype.Text=strChangedValue) or
+       (scantype.Text=strUnchangedValue) or
+       (scantype.Text=strUnknownInitialValue)
+       then
+       begin
+         Scantext.Visible:=false;
+         Scanvalue.visible:=false;
+         cbHexadecimal.visible:=false;
+       end else
+       begin
+         Scantext.Visible:=true;
+         Scanvalue.visible:=true;
+         cbHexadecimal.visible:=hexvis;
+       end;
 
-  7:          begin  //text
-                ScanText.caption:=strScanTextCaptionToText;
-                ScanType.Items.Add(strSearchForText);
-                //perhaps also a changed value and unchanged value scan
+    pnlfloat.Visible:=floatvis;
 
-                hexvis:=false;
-              end;
+    if rbBit.visible then
+      cbHexadecimal.visible:=false;
 
-  8:          begin  //array of bytes
-                ScanText.caption:=vartype.Items[8];
-                ScanType.Items.Add(strSearchforarray);
+    //save the last scantype (if it wasn't the option to change between first/last)
+    if (scantype.ItemIndex<>-1) and (scantype.ItemIndex<scantype.Items.Count) then
+    begin
+      if not ((scantype.items[scantype.ItemIndex]=strcompareToSavedScan) or (scantype.items[scantype.ItemIndex]=strCompareToLastScan)) then
+        lastscantype:=scantype.ItemIndex;
+    end;
 
-              end;
-
-  end;
-  Scantype.DropDownCount:=Scantype.items.count;
-
-
-
-  if (oldtext=strUnknownInitialValue) and (NextScanButton.enabled) then scantype.itemindex:=0 else scantype.itemindex:=oldindex;
-
-  if (scantype.text=strIncreasedValueBy) or (scantype.text=strDecreasedValueBy) or (scantype.text=strValueBetween) then
-  begin
-    if NextScanButton.enabled then
-      createCbPercentage;
-
-  end
-  else
-  begin
-    destroyCbPercentage;
-
-
-  end;
-
-  if scantype.Text=strValueBetween then
-    CreateScanValue2
-  else
-    DestroyScanValue2;
-
-
-  if (scantype.Text=strIncreasedValue) or
-     (scantype.text=strDecreasedValue) or
-     (scantype.Text=strChangedValue) or
-     (scantype.Text=strUnchangedValue) or
-     (scantype.Text=strUnknownInitialValue)
-     then
-     begin
-       Scantext.Visible:=false;
-       Scanvalue.visible:=false;
-       cbHexadecimal.visible:=false;
-     end else
-     begin
-       Scantext.Visible:=true;
-       Scanvalue.visible:=true;
-       cbHexadecimal.visible:=hexvis;
-     end;
-
-  pnlfloat.Visible:=floatvis;
-
-  if rbBit.visible then
-    cbHexadecimal.visible:=false;
-
-  //save the last scantype (if it wasn't the option to change between first/last)
-  if (scantype.ItemIndex<>-1) and (scantype.ItemIndex<scantype.Items.Count) then
-  begin
-    if not ((scantype.items[scantype.ItemIndex]=strcompareToSavedScan) or (scantype.items[scantype.ItemIndex]=strCompareToLastScan)) then
-      lastscantype:=scantype.ItemIndex;
+  finally
+    scantype.OnChange:=old;
+    scantype.OnSelect:=old2;
   end;
 end;
 
@@ -3696,11 +3706,15 @@ begin
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
-var old: TNotifyevent;
+var old,old2: TNotifyevent;
   s: tstringlist;
   l: TfrmSelectionList;
 begin
   old:=scantype.OnChange;
+  old2:=scantype.OnSelect;
+  scantype.OnChange:=nil;
+  scantype.OnSelect:=nil;
+
   try
     if (scantype.ItemIndex<>-1) then
     begin
@@ -3761,6 +3775,7 @@ begin
 
     updatescantype;
   finally
+    scantype.OnSelect:=old2;
     scantype.OnChange:=old;
   end;
 end;
@@ -3791,6 +3806,12 @@ var
     hasbytes: boolean;
     puretext: boolean;
 begin
+  if ovartype=nvartype then
+  begin
+    result:=oldvalue;
+    exit;
+  end;
+
   result:='';
   oldvalueba:=@oldvaluei;
   newvalueba:=@newvaluei;
@@ -3990,6 +4011,7 @@ begin
 
   except
   end;
+
 end;
 
 procedure TMainForm.VarTypeChange(Sender: TObject);

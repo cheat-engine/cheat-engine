@@ -149,6 +149,9 @@ begin
       if listview1.Selected<>nil then
       begin
         bp:=listview1.Selected.Data;
+
+        //bp.active:=false;
+
         if not bp.markedfordeletion then
           debuggerthread.RemoveBreakpoint(bp);
       end;

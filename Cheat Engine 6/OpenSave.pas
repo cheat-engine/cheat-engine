@@ -888,6 +888,7 @@ begin
     else
     begin
 //trainer maker
+      raise exception.create('Cheat Engine 6.0 does not support trainer creating yet (Just share your cheat tables for now)');
     end;
     mainform.editedsincelastsave:=false;
   finally

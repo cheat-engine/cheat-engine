@@ -1194,6 +1194,7 @@ begin
   prefix2:=[];
 
   startoffset:=offset;
+  actualread:=0;
   readprocessmemory(processhandle,pointer(offset),@memory,24,actualread);
 
 

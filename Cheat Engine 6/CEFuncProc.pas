@@ -2416,8 +2416,10 @@ begin
   setlength(bytes,0);
   if length(scanvalue)=0 then exit;
 
-  while scanvalue[length(scanvalue)]=' ' do
-    scanvalue:=copy(scanvalue,1,length(scanvalue)-1);
+  scanvalue:=trim(scanvalue);
+
+ { while scanvalue[length(scanvalue)]=' ' do
+    scanvalue:=copy(scanvalue,1,length(scanvalue)-1); }
 
   if (pos('-',scanvalue)>0) or (pos(' ',scanvalue)>0) or (pos(',',scanvalue)>0) then
   begin

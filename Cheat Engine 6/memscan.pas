@@ -4010,6 +4010,14 @@ begin
         continue;
       end;
 
+     (*
+     todo: 6.1: Add a option to exluce write_copy regions
+     if (mbi.Protect and PAGE_WRITECOPY) > 0 then
+      begin
+        messagebox(0,'write copy memory included','scanner',0);
+      end;
+      *)
+
       //still here, so valid
       try
         if memRegionPos>0 then

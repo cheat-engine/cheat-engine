@@ -1562,7 +1562,7 @@ object MainForm: TMainForm
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CT'
-    Filter = 'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.EXE)|*.EXE|Cheat Table XML (*.XML)|*.XML'
+    Filter = 'Cheat Engine Tables (*.CT)|*.CT'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     left = 16
     top = 104
