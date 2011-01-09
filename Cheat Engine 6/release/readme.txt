@@ -22,6 +22,7 @@ custom types changes from scantype to valuetypes that can be used in multiple lo
 disassembler shows colors and can be configured
 improvements to the stackview
 added tabbed scans
+standalone Trainermaker is currently not implemented
 added the option to save scanresults
 You can now compare the current addresslist to the values of a saved scan (first scan included)
 The above also makes the percentage scans more useful, so a between % scan has been added as well
