@@ -2290,6 +2290,8 @@ var p: record
   s: pchar;
 end;
 begin
+  p.c:=c;
+  p.s:=s;
   pluginsync(ce_stringlist_add2, @p);
 end;
 
@@ -2315,6 +2317,8 @@ var p: record
   s: pchar;
 end;
 begin
+  p.c:=c;
+  p.s:=s;
   pluginsync(ce_stringlist_remove2, @p);
 end;
 
