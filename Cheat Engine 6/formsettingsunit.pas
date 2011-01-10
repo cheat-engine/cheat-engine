@@ -456,15 +456,10 @@ begin
 
 
         reg.WriteFloat('Speedhack 1 speed',frameHotkeyConfig.newspeedhackspeed1.speed);
-        reg.WriteInteger('Speedhack 1 sleeptime',frameHotkeyConfig.newspeedhackspeed1.sleeptime);
         reg.WriteFloat('Speedhack 2 speed',frameHotkeyConfig.newspeedhackspeed2.speed);
-        reg.WriteInteger('Speedhack 2 sleeptime',frameHotkeyConfig.newspeedhackspeed2.sleeptime);
         reg.WriteFloat('Speedhack 3 speed',frameHotkeyConfig.newspeedhackspeed3.speed);
-        reg.WriteInteger('Speedhack 3 sleeptime',frameHotkeyConfig.newspeedhackspeed3.sleeptime);
         reg.WriteFloat('Speedhack 4 speed',frameHotkeyConfig.newspeedhackspeed4.speed);
-        reg.WriteInteger('Speedhack 4 sleeptime',frameHotkeyConfig.newspeedhackspeed4.sleeptime);
         reg.WriteFloat('Speedhack 5 speed',frameHotkeyConfig.newspeedhackspeed5.speed);
-        reg.WriteInteger('Speedhack 5 sleeptime',frameHotkeyConfig.newspeedhackspeed5.sleeptime);
 
         mainunit2.speedhackspeed1:=frameHotkeyConfig.newspeedhackspeed1;
         mainunit2.speedhackspeed2:=frameHotkeyConfig.newspeedhackspeed2;

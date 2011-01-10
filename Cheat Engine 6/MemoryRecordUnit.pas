@@ -624,18 +624,22 @@ begin
       hks:=cheatentry.AppendChild(doc.CreateElement('Hotkeys'));
       for i:=0 to length(Hotkeys)-1 do
       begin
-        hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
-        hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkeys[i].action);
-        hkkc:=hk.AppendChild(doc.createElement('Keys'));
-        j:=0;
-        while (j<5) and (hotkeys[i].keys[j]<>0) do
+        if hotkeys[i].active then
         begin
-          hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkeys[i].keys[j]);
-          inc(j);
-        end;
+          hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
+          hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkeys[i].action);
+          hkkc:=hk.AppendChild(doc.createElement('Keys'));
+          j:=0;
+          while (j<5) and (hotkeys[i].keys[j]<>0) do
+          begin
+            hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkeys[i].keys[j]);
+            inc(j);
+          end;
 
-        if hotkeys[i].value<>'' then
-          hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkeys[i].value;
+          if hotkeys[i].value<>'' then
+            hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkeys[i].value;
+
+        end;
       end;
 
     end;
@@ -711,7 +715,7 @@ begin
   //convert the string to keys
   j:=-1;
   for i:=0 to length(Hotkeys)-1 do
-    if hotkeys[i].active then
+    if not hotkeys[i].active then
     begin
       j:=i;
       break;
@@ -825,6 +829,8 @@ begin
       //don't complain about incorrect values
     end;
   end;
+
+  treenode.update;
 end;
 
 procedure TMemoryRecord.setAllowDecrease(state: boolean);

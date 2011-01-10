@@ -132,7 +132,11 @@ end;
 
 procedure THotKeyForm.btnCreateHotkeyClick(Sender: TObject);
 var li: TListitem;
+i: integer;
 begin
+  for i:=0 to length(keys)-1 do
+    keys[i]:=0;
+
   pagecontrol1.ActivePage:=tabsheet2;
   li:=listview1.items.add;
   li.SubItems.add('');

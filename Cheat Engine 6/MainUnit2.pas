@@ -320,50 +320,33 @@ begin
           else
             speedhackspeed1.speed:=1;
 
-          if reg.ValueExists('Speedhack 1 sleeptime') then
-            speedhackspeed1.sleeptime:=reg.ReadInteger('Speedhack 1 sleeptime')
-          else
-            speedhackspeed1.sleeptime:=3;
 
           if reg.ValueExists('Speedhack 2 speed') then
             speedhackspeed2.speed:=reg.ReadFloat('Speedhack 2 speed')
           else
             speedhackspeed2.speed:=1;
 
-          if reg.ValueExists('Speedhack 2 sleeptime') then
-            speedhackspeed2.sleeptime:=reg.ReadInteger('Speedhack 2 sleeptime')
-          else
-            speedhackspeed2.sleeptime:=3;
+
 
           if reg.ValueExists('Speedhack 3 speed') then
             speedhackspeed3.speed:=reg.ReadFloat('Speedhack 3 speed')
           else
             speedhackspeed3.speed:=1;
 
-          if reg.ValueExists('Speedhack 3 sleeptime') then
-            speedhackspeed3.sleeptime:=reg.ReadInteger('Speedhack 3 sleeptime')
-          else
-            speedhackspeed3.sleeptime:=3;
 
           if reg.ValueExists('Speedhack 4 speed') then
             speedhackspeed4.speed:=reg.ReadFloat('Speedhack 4 speed')
           else
             speedhackspeed4.speed:=1;
 
-          if reg.ValueExists('Speedhack 4 sleeptime') then
-            speedhackspeed4.sleeptime:=reg.ReadInteger('Speedhack 4 sleeptime')
-          else
-            speedhackspeed4.sleeptime:=3;
+
 
           if reg.ValueExists('Speedhack 5 speed') then
             speedhackspeed5.speed:=reg.ReadFloat('Speedhack 5 speed')
           else
             speedhackspeed5.speed:=1;
 
-          if reg.ValueExists('Speedhack 5 sleeptime') then
-            speedhackspeed5.sleeptime:=reg.ReadInteger('Speedhack 5 sleeptime')
-          else
-            speedhackspeed5.sleeptime:=3;
+
 
           if reg.ValueExists('Increase Speedhack delta') then
             speedupdelta:=reg.ReadFloat('Increase Speedhack delta')
@@ -469,31 +452,7 @@ begin
           if reg.ValueExists('Debug->Run Hotkey') then
             reg.ReadBinaryData('Debug->Run Hotkey',temphotkeylist[30][0],10);
 
-          if reg.ValueExists('Speedhack speed 1') then
-            reg.ReadBinaryData('Speedhack speed 1',Speedhackspeed1,sizeof(tspeedhackspeed))
-          else
-            speedhackspeed1.speed:=2;
 
-          if reg.ValueExists('Speedhack speed 2') then
-              reg.ReadBinaryData('Speedhack speed 2',Speedhackspeed2,sizeof(tspeedhackspeed))
-            else
-              speedhackspeed2.speed:=2;
-
-          if reg.ValueExists('Speedhack speed 3') then
-              reg.ReadBinaryData('Speedhack speed 3',Speedhackspeed3,sizeof(tspeedhackspeed))
-            else
-              speedhackspeed3.speed:=2;
-
-          if reg.ValueExists('Speedhack speed 4') then
-              reg.ReadBinaryData('Speedhack speed 4',Speedhackspeed4,sizeof(tspeedhackspeed))
-            else
-              speedhackspeed4.speed:=2;
-
-
-          if reg.ValueExists('Speedhack speed 5') then
-              reg.ReadBinaryData('Speedhack speed 5',Speedhackspeed5,sizeof(tspeedhackspeed))
-            else
-              speedhackspeed5.speed:=2;
 
           //fill the hotkeylist
           for i:=0 to 30 do

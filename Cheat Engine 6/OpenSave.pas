@@ -796,6 +796,8 @@ var doc: TXMLDocument;
     extradata: ^TUDSEnum;
 begin
   doc:=TXMLDocument.Create;
+  //doc.Encoding:=;
+
   CheatTable:=doc.AppendChild(doc.CreateElement('CheatTable'));
   TDOMElement(CheatTable).SetAttribute('CheatEngineTableVersion',IntToStr(CurrentTableVersion));
 
