@@ -10,7 +10,7 @@ interface
 uses windows, forms, MainUnit,LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls, tableconverter,
-     ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, comctrls,dom, xmlread,xmlwrite;
+     ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, comctrls,dom, xmlread,xmlwrite, FileUtil;
 
 
 var CurrentTableVersion: dword=10;
@@ -695,6 +695,8 @@ var
     doc: TXMLDocument;
     workdir: string;
 begin
+  filename:=UTF8ToSys(filename); //fix chinese problems I hope
+
   SetCurrentDir(ExtractFilePath(filename)); //in case it's a table with 'external' files
 
   Extension:=uppercase(extractfileext(filename));
@@ -759,7 +761,7 @@ var structure: TDOMnode;
 begin
   doc:=Structures.OwnerDocument;
   structure:=structures.AppendChild(doc.CreateElement('Structure'));
-  structure.AppendChild(doc.CreateElement('Name')).TextContent:=struct.name;
+  structure.AppendChild(doc.CreateElement('Name')).TextContent:=AnsiToUtf8(struct.name);
   elements:=structure.AppendChild(doc.CreateElement('Elements'));
 
 
@@ -768,7 +770,7 @@ begin
   begin
     element:=elements.AppendChild(doc.CreateElement('Element'));
     element.AppendChild(doc.CreateElement('Offset')).TextContent:=inttostr(struct.structelement[i].offset);
-    element.AppendChild(doc.CreateElement('Description')).TextContent:=struct.structelement[i].description;
+    element.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(struct.structelement[i].description);
 
     if struct.structelement[i].pointerto then
     begin
@@ -813,9 +815,9 @@ begin
     for i:=0 to AdvancedOptions.numberofcodes-1 do
     begin
       CodeRecord:=CodeRecords.AppendChild(doc.CreateElement('CodeEntry'));
-      CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=advancedoptions.codelist2.Items[i].SubItems[0];
+      CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(advancedoptions.codelist2.Items[i].SubItems[0]);
       CodeRecord.AppendChild(doc.CreateElement('Address')).TextContent:=inttohex(advancedoptions.code[i].address,8);
-      CodeRecord.AppendChild(doc.CreateElement('ModuleName')).TextContent:=advancedoptions.code[i].modulename;
+      CodeRecord.AppendChild(doc.CreateElement('ModuleName')).TextContent:=AnsiToUtf8(advancedoptions.code[i].modulename);
       CodeRecord.AppendChild(doc.CreateElement('ModuleNameOffset')).TextContent:=inttohex(advancedoptions.code[i].offset,1);
 
       //before
@@ -846,9 +848,9 @@ begin
       begin
         extradata:=pointer(sl.Objects[i]);
         SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
-        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=sl[i];
+        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=AnsiToUtf8(sl[i]);
 
-        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
+        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=AnsiToUtf8(extradata.addressstring);
       end;
     end;
   finally
@@ -865,13 +867,13 @@ begin
   if comments.memo1.Lines.Count>0 then
   begin
     comment:=CheatTable.AppendChild(doc.CreateElement('Comments'));
-    comment.TextContent:=comments.Memo1.text;
+    comment.TextContent:=AnsiToUtf8(comments.Memo1.text);
   end;
 
   if comments.mLuaScript.lines.count>0 then
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
-    luascript.TextContent:=comments.mLuaScript.text;
+    luascript.TextContent:=AnsiToUtf8(comments.mLuaScript.text);
   end;
   WriteXMLFile(doc, filename);
 
@@ -881,11 +883,10 @@ end;
 
 procedure SaveTable(Filename: string);
 begin
-
   try
-    if Uppercase(extractfileext(filename))<>'.EXE' then
+    if Uppercase(utf8tosys(extractfileext(filename)))<>'.EXE' then
     begin
-      SaveXML(filename);
+      SaveXML(utf8tosys(filename));
     end
     else
     begin
