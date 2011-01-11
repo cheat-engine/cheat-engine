@@ -8,7 +8,7 @@ Converts Cheat engine 5.6 tables to xmlformat tables
 interface
 
 uses
-  Classes, SysUtils, dom, xmlread, xmlwrite, cefuncproc;
+  Classes, SysUtils, dom, xmlread, xmlwrite, cefuncproc, dialogs;
 
 
 function ConvertCheatTableToXML(filename: string): TXMLDocument;
@@ -35,6 +35,8 @@ var
   Address: TDOMNode;
   offsets: TDOMNode;
   CodeBytes: TDOMNode;
+
+  t: TDOMNode;
 
   nrofbytes: integer;
   tempaddress: dword;
@@ -117,7 +119,13 @@ begin
         getmem(x,j+1);
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
-        cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(x);
+
+
+
+        t:=cheatEntry.AppendChild(doc.CreateElement('Description'));
+        t.TextContent:=ansitoutf8(x);
+
+        showmessage(x+' = '+t.textcontent);
         freemem(x);
 
         ctfile.ReadBuffer(tempdword,4);
@@ -130,7 +138,7 @@ begin
         getmem(x,j+1);
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
-        if x<>'' then Address.TextContent:=AnsiToUtf8(x);
+        if x<>'' then Address.TextContent:=Utf8ToAnsi(x);
         freemem(x);
         //if it's not a pointer this will be the address
 
