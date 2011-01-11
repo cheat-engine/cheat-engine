@@ -529,7 +529,7 @@ begin
 
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
-  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUTF8('"'+description+'"');
+  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+description+'"';
 
   //save options
   //(moHideChildren, moBindActivation, moRecursiveSetValue);
@@ -575,7 +575,7 @@ begin
     case VarType of
       vtCustom:
       begin
-        cheatentry.AppendChild(doc.CreateElement('CustomType')).TextContent:=AnsiToUTF8(CustomTypeName);
+        cheatentry.AppendChild(doc.CreateElement('CustomType')).TextContent:=CustomTypeName;
       end;
 
       vtBinary:
@@ -600,13 +600,13 @@ begin
 
       vtAutoAssembler:
       begin
-        cheatEntry.AppendChild(doc.CreateElement('AssemblerScript')).TextContent:=AnsiToUTF8(AutoAssemblerData.script.Text);
+        cheatEntry.AppendChild(doc.CreateElement('AssemblerScript')).TextContent:=AutoAssemblerData.script.Text;
       end;
     end;
 
     if VarType<>vtAutoAssembler then
     begin
-      cheatEntry.AppendChild(doc.CreateElement('Address')).TextContent:=AnsiToUTF8(interpretableaddress);
+      cheatEntry.AppendChild(doc.CreateElement('Address')).TextContent:=interpretableaddress;
 
       if isPointer then
       begin

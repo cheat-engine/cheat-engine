@@ -27,6 +27,7 @@ require("defines")
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 
+--getOpenedProcessI() : Returns the currently opened process. If none is open, returns 0
 --getProcessIDFromProcessName(name) : returns a processid
 --openProcess(processid) : causes cheat engine to open the given processid
 --openProcess(processname): causes cheat engine to find and open the given process

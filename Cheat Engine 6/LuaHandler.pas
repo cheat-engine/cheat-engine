@@ -2631,6 +2631,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
+
     c:=lua_touserdata(L, -2);
     s:=lua.lua_tostring(L, -1);
     ce_stringlist_add(c,s);
@@ -2771,6 +2772,13 @@ begin
 
 end;
 
+function getOpenedProcessID(L: PLua_state): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  result:=1;
+  lua_pushinteger(L, processid);
+end;
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -2869,6 +2877,7 @@ initialization
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
     lua_register(LuaVM, 'AOBScan', AOBScan_fromLua);
+    lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID);
 
     LUA_DoScript('os=nil');
 

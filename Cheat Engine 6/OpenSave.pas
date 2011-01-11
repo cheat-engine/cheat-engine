@@ -761,7 +761,7 @@ var structure: TDOMnode;
 begin
   doc:=Structures.OwnerDocument;
   structure:=structures.AppendChild(doc.CreateElement('Structure'));
-  structure.AppendChild(doc.CreateElement('Name')).TextContent:=AnsiToUtf8(struct.name);
+  structure.AppendChild(doc.CreateElement('Name')).TextContent:=struct.name;
   elements:=structure.AppendChild(doc.CreateElement('Elements'));
 
 
@@ -770,7 +770,7 @@ begin
   begin
     element:=elements.AppendChild(doc.CreateElement('Element'));
     element.AppendChild(doc.CreateElement('Offset')).TextContent:=inttostr(struct.structelement[i].offset);
-    element.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(struct.structelement[i].description);
+    element.AppendChild(doc.CreateElement('Description')).TextContent:=struct.structelement[i].description;
 
     if struct.structelement[i].pointerto then
     begin
@@ -815,9 +815,9 @@ begin
     for i:=0 to AdvancedOptions.numberofcodes-1 do
     begin
       CodeRecord:=CodeRecords.AppendChild(doc.CreateElement('CodeEntry'));
-      CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(advancedoptions.codelist2.Items[i].SubItems[0]);
+      CodeRecord.AppendChild(doc.CreateElement('Description')).TextContent:=advancedoptions.codelist2.Items[i].SubItems[0];
       CodeRecord.AppendChild(doc.CreateElement('Address')).TextContent:=inttohex(advancedoptions.code[i].address,8);
-      CodeRecord.AppendChild(doc.CreateElement('ModuleName')).TextContent:=AnsiToUtf8(advancedoptions.code[i].modulename);
+      CodeRecord.AppendChild(doc.CreateElement('ModuleName')).TextContent:=advancedoptions.code[i].modulename;
       CodeRecord.AppendChild(doc.CreateElement('ModuleNameOffset')).TextContent:=inttohex(advancedoptions.code[i].offset,1);
 
       //before
@@ -848,9 +848,9 @@ begin
       begin
         extradata:=pointer(sl.Objects[i]);
         SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
-        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=AnsiToUtf8(sl[i]);
+        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=sl[i];
 
-        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=AnsiToUtf8(extradata.addressstring);
+        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
       end;
     end;
   finally
@@ -867,13 +867,13 @@ begin
   if comments.memo1.Lines.Count>0 then
   begin
     comment:=CheatTable.AppendChild(doc.CreateElement('Comments'));
-    comment.TextContent:=AnsiToUtf8(comments.Memo1.text);
+    comment.TextContent:=comments.Memo1.text;
   end;
 
   if comments.mLuaScript.lines.count>0 then
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
-    luascript.TextContent:=AnsiToUtf8(comments.mLuaScript.text);
+    luascript.TextContent:=comments.mLuaScript.text;
   end;
   WriteXMLFile(doc, filename);
 

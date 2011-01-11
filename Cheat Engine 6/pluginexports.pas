@@ -1374,7 +1374,11 @@ begin
     processhandler.processid:=p;
     Open_Process;
 
-    mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
+    if processhandle<>0 then
+    begin
+      MainForm.ProcessLabel.caption:=inttohex(ptruint(pid),8) + '-'+inttohex(ptruint(pid),8);
+      mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
+    end;
 
     result:=pointer(1); //made it till here, so no exception
   except

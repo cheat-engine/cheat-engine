@@ -117,7 +117,7 @@ begin
         getmem(x,j+1);
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
-        cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=x;
+        cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiToUtf8(x);
         freemem(x);
 
         ctfile.ReadBuffer(tempdword,4);
@@ -130,7 +130,7 @@ begin
         getmem(x,j+1);
         ctfile.readbuffer(x^,j);
         x[j]:=#0;
-        if x<>'' then Address.TextContent:=x;
+        if x<>'' then Address.TextContent:=AnsiToUtf8(x);
         freemem(x);
         //if it's not a pointer this will be the address
 
