@@ -2004,51 +2004,54 @@ begin
   cbspeedhack.Enabled := True;
   cbunrandomizer.Enabled := True;
 
-
-  if (addresslist.count > 0) or (advancedoptions.codelist2.items.Count > 0) then
+  if not autoattachopen then
   begin
-    if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
+    if (addresslist.count > 0) or (advancedoptions.codelist2.items.Count > 0) then
     begin
-
-      ClearList;
-    end
-    else
-    begin
-      //yes, so keep the list
-      //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
-      wasActive:=false;
-      for i := 0 to addresslist.count - 1 do
-        if (addresslist[i].VarType = vtAutoAssembler) and (addresslist[i].active) then
-        begin
-          wasActive:=true;
-          break;
-        end;
-
-      if not wasActive then
+      if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
       begin
-        for i:=0 to length(AdvancedOptions.code)-1 do
-          if AdvancedOptions.code[i].changed then
+
+        ClearList;
+      end
+      else
+      begin
+        //yes, so keep the list
+        //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
+        wasActive:=false;
+        for i := 0 to addresslist.count - 1 do
+          if (addresslist[i].VarType = vtAutoAssembler) and (addresslist[i].active) then
           begin
             wasActive:=true;
             break;
           end;
-      end;
 
-      if wasactive then
-      begin
-        if (messagedlg(
-          'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without executing the disable part)',
-          mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+        if not wasActive then
         begin
-          for j := 0 to addresslist.count - 1 do
-            if (addresslist[j].VarType = vtAutoAssembler) and (addresslist[j].active) then
-              addresslist[j].disablewithoutexecute;
-
           for i:=0 to length(AdvancedOptions.code)-1 do
-            AdvancedOptions.code[i].changed:=false;
+            if AdvancedOptions.code[i].changed then
+            begin
+              wasActive:=true;
+              break;
+            end;
         end;
 
+        if wasactive then
+        begin
+          if (messagedlg(
+            'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without executing the disable part)',
+            mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+          begin
+            for j := 0 to addresslist.count - 1 do
+              if (addresslist[j].VarType = vtAutoAssembler) and (addresslist[j].active) then
+                addresslist[j].disablewithoutexecute;
+
+            for i:=0 to length(AdvancedOptions.code)-1 do
+              AdvancedOptions.code[i].changed:=false;
+          end;
+
+        end;
       end;
+
     end;
 
   end;

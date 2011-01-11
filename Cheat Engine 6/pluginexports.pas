@@ -1374,7 +1374,7 @@ begin
     processhandler.processid:=p;
     Open_Process;
 
-    mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+    mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
 
     result:=pointer(1); //made it till here, so no exception
   except
