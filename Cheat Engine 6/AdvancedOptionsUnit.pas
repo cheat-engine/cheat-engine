@@ -253,7 +253,7 @@ begin
   code[numberofcodes-1].offset:=0;
 
   //get the module this code is in
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
   me32.dwSize:=sizeof(MODULEENTRY32);
   if ths<>0 then
   begin

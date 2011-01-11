@@ -8,7 +8,7 @@ Converts Cheat engine 5.6 tables to xmlformat tables
 interface
 
 uses
-  Classes, SysUtils, dom, xmlread, xmlwrite, cefuncproc, dialogs;
+  Classes, SysUtils, dom, xmlread, xmlwrite, cefuncproc;
 
 
 function ConvertCheatTableToXML(filename: string): TXMLDocument;
@@ -125,7 +125,7 @@ begin
         t:=cheatEntry.AppendChild(doc.CreateElement('Description'));
         t.TextContent:=ansitoutf8(x);
 
-        showmessage(x+' = '+t.textcontent);
+       // showmessage(x+' = '+t.textcontent);
         freemem(x);
 
         ctfile.ReadBuffer(tempdword,4);

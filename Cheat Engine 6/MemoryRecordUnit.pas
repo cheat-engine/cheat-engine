@@ -1218,6 +1218,7 @@ var
   mr: TMemoryRecord;
 
   unparsedvalue: string;
+  check: boolean;
 begin
   //check if it is a '(description)' notation
   unparsedvalue:=v;
@@ -1285,9 +1286,9 @@ begin
 
   VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
   try
-
+    check:=ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x);
     if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
-      if not ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,x) then exit;
+      if not check then exit;
 
     case VarType of
       vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
