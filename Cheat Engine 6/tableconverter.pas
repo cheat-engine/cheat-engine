@@ -59,7 +59,7 @@ var
   tempdescription: string;
 
   s: TFileStream;
-
+  vtype: TVariableType;
 begin
   result:=nil;
   doc:=nil;
@@ -143,7 +143,8 @@ begin
         //if it's not a pointer this will be the address
 
         ctfile.ReadBuffer(tempbyte,1);
-        cheatEntry.AppendChild(doc.CreateElement('VariableType')).TextContent:=VariableTypeToString(OldVarTypeToNewVarType(tempbyte));
+        vtype:=OldVarTypeToNewVarType(tempbyte);
+        cheatEntry.AppendChild(doc.CreateElement('VariableType')).TextContent:=VariableTypeToString(vtype);
 
         ctfile.ReadBuffer(tempbyte,1);
         if tempbyte=0 then
@@ -153,6 +154,9 @@ begin
 
         ctfile.ReadBuffer(tempbyte,1); //bit, could be used for bitstart or stringlength, glad that is seperated now
         cheatEntry.AppendChild(doc.CreateElement('Length')).TextContent:=inttostr(tempbyte);
+        cheatEntry.AppendChild(doc.CreateElement('ByteLength')).TextContent:=inttostr(tempbyte);
+
+
         cheatEntry.AppendChild(doc.CreateElement('BitStart')).TextContent:=inttostr(tempbyte);
 
         ctfile.ReadBuffer(tempdword,4); //bitlength
@@ -162,8 +166,8 @@ begin
 
         if (tempbyte<>0) and (tempbyte<=6) then
         begin
-          groups[i].used:=true;
-          groups[i].AppendNode.AppendChild(cheatEntry); //append this entry to the group
+          groups[tempbyte].used:=true;
+          groups[tempbyte].AppendNode.AppendChild(cheatEntry); //append this entry to the group
         end
         else
           entries.AppendChild(cheatEntry); //append this entry to the main table

@@ -788,7 +788,7 @@ object formSettings: TformSettings
         object GroupBox2: TGroupBox
           Left = 7
           Height = 153
-          Top = 233
+          Top = 209
           Width = 416
           Caption = 'Debugger interface config'
           ClientHeight = 135
@@ -881,12 +881,13 @@ object formSettings: TformSettings
             end
           end
         end
-        object RadioGroup1: TRadioGroup
+        object rbgDebuggerInterface: TRadioGroup
           Left = 7
-          Height = 105
+          Height = 87
           Top = 121
-          Width = 185
+          Width = 161
           AutoFill = True
+          AutoSize = True
           Caption = 'Debugger method'
           ChildSizing.LeftRightSpacing = 6
           ChildSizing.TopBottomSpacing = 6
@@ -896,14 +897,14 @@ object formSettings: TformSettings
           ChildSizing.ShrinkVertical = crsScaleChilds
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 87
-          ClientWidth = 181
+          ClientHeight = 69
+          ClientWidth = 157
           TabOrder = 5
           object cbUseVEHDebugger: TRadioButton
             Left = 6
-            Height = 25
+            Height = 19
             Top = 6
-            Width = 169
+            Width = 145
             Caption = 'Use VEH Debugger'
             OnChange = cbDebuggerInterfaceChange
             OnClick = cbDebuggerInterfaceChange
@@ -912,9 +913,9 @@ object formSettings: TformSettings
           object cbUseWindowsDebugger: TRadioButton
             Tag = 1
             Left = 6
-            Height = 25
-            Top = 31
-            Width = 169
+            Height = 19
+            Top = 25
+            Width = 145
             Caption = 'Use windows debugger'
             Checked = True
             OnChange = cbDebuggerInterfaceChange
@@ -925,9 +926,9 @@ object formSettings: TformSettings
           object cbKDebug: TRadioButton
             Tag = 2
             Left = 6
-            Height = 25
-            Top = 56
-            Width = 169
+            Height = 19
+            Top = 44
+            Width = 145
             Caption = 'Use kernelmode debugger'
             OnChange = cbDebuggerInterfaceChange
             OnClick = cbDebuggerInterfaceChange

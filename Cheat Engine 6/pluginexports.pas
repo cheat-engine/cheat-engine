@@ -1376,7 +1376,7 @@ begin
 
     if processhandle<>0 then
     begin
-      MainForm.ProcessLabel.caption:=inttohex(ptruint(pid),8) + '-'+getProcessnameFromProcessID(pid);
+      MainForm.ProcessLabel.caption:=inttohex(ptruint(pid),8) + '-'+getProcessnameFromProcessID(ptruint(pid));
       mainform.openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle,true);
     end;
 

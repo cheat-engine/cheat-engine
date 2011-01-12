@@ -48,7 +48,7 @@ type
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
-    RadioGroup1: TRadioGroup;
+    rbgDebuggerInterface: TRadioGroup;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
@@ -790,6 +790,10 @@ begin
 
 
   cbDebuggerInterfaceChange(nil);
+
+
+
+ // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
 end;
 
 procedure TformSettings.cbShowDisassemblerClick(Sender: TObject);
@@ -903,6 +907,8 @@ begin
     cbKdebug.Caption:=cbKdebug.Caption+' (Requires DBVM)';
     if not cbKdebug.Enabled then
       cbKdebug.checked:=false;
+
+
   end;
 
 
