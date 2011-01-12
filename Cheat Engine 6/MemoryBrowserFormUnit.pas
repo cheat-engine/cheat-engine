@@ -3654,6 +3654,9 @@ begin
 
   reloadStacktrace;
 
+  if frmFloatingPointPanel<>nil then
+    frmFloatingPointPanel.SetContextPointer(@lastdebugcontext);
+
   if not memorybrowser.Visible then
     memorybrowser.show;
 end;
