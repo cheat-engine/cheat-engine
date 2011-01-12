@@ -19,7 +19,19 @@ BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 
 	//return TRUE;
 #ifdef AMD64
-    UINT_PTR kernelbase=0x7fffffffffffffffULL;
+	UINT_PTR kernelbase=0x7fffffffffffffffULL;
+
+	if (StartAddress<kernelbase)
+		return TRUE;
+	else
+	{
+		PHYSICAL_ADDRESS physical;
+		physical.QuadPart=0;
+		physical=MmGetPhysicalAddress((PVOID)StartAddress);
+		return (physical.QuadPart!=0);
+	}
+
+    
 
 	return TRUE; //for now untill I ave figure out the win 4 paging scheme
 #else
