@@ -97,8 +97,7 @@ end;
 procedure TProcessListLong.execute;
 var i: dword;
     h: thandle;
-    ths: thandle;
-    me32:MODULEENTRY32;
+
     x: pchar;
     modulename:string;
 begin
@@ -106,7 +105,7 @@ begin
 
 
 
-  me32.dwSize:=sizeof(MODULEENTRY32);
+
 
 
   while not terminated and (i<$FFFFFFFF) do
@@ -114,23 +113,13 @@ begin
     h:=windows.OpenProcess(PROCESS_ALL_ACCESS,false,i);
     if h<>0 then
     begin
-      modulename:='???';
-      ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,i);
-      if ths<>0 then
-      begin
-        if Module32First(ths,me32) then
-        begin
-          x:=me32.szModule;
-          modulename:=x;
-        end;
+      modulename:=getProcessnameFromProcessID(i);
+      process[processcount]:=inttohex(i,8)+'-'+modulename;
 
-        process[processcount]:=inttohex(i,8)+'-'+modulename;
-        inc(processcount);
-        if processcount>=10 then
-          synchronize(drawprocesses);
+      inc(processcount);
+      if processcount>=10 then
+        synchronize(drawprocesses);
 
-        closehandle(ths);
-      end;
       closehandle(h);
     end;
 

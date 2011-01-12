@@ -166,6 +166,7 @@ function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
 
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
+function getProcessnameFromProcessID(pid: dword): string;
 
 
 procedure errorbeep;
@@ -3166,6 +3167,21 @@ begin
 
 end;
 
+function getProcessnameFromProcessID(pid: dword): string;
+var ths: thandle;
+    me32:MODULEENTRY32;
+begin
+  result:='???';
+  me32.dwSize:=sizeof(MODULEENTRY32);
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,pid);
+  if ths<>0 then
+  begin
+    if Module32First(ths,me32) then
+      result:=me32.szModule;
+
+    closehandle(ths);
+  end;
+end;
 
 initialization
   getmem(tempdir,256);

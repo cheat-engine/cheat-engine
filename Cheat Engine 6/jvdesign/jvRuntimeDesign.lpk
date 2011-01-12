@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="3">
+    <PathDelim Value="\"/>
+    <Name Value="jvRuntimeDesign"/>
+    <CompilerOptions>
+      <Version Value="9"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Files Count="8">
+      <Item1>
+        <Filename Value="tp_register.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="tp_register"/>
+      </Item1>
+      <Item2>
+        <Filename Value="jvdesignsurface.pas"/>
+        <UnitName Value="JvDesignSurface"/>
+      </Item2>
+      <Item3>
+        <Filename Value="test.lrs"/>
+        <Type Value="LRS"/>
+      </Item3>
+      <Item4>
+        <Filename Value="jvconsts.pas"/>
+        <UnitName Value="JvConsts"/>
+      </Item4>
+      <Item5>
+        <Filename Value="jvdesignclip.pas"/>
+        <UnitName Value="JvDesignClip"/>
+      </Item5>
+      <Item6>
+        <Filename Value="jvdesignutils.pas"/>
+        <UnitName Value="JvDesignUtils"/>
+      </Item6>
+      <Item7>
+        <Filename Value="jvresources.pas"/>
+        <UnitName Value="JvResources"/>
+      </Item7>
+      <Item8>
+        <Filename Value="jvdesignimp.pas"/>
+        <UnitName Value="JvDesignImp"/>
+      </Item8>
+    </Files>
+    <Type Value="RunAndDesignTime"/>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
