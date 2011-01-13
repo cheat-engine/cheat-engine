@@ -20,6 +20,9 @@ require("defines")
 --writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 --writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
 --writeString(address,string) : Write a string to the specified address. Returns true on success
+--getAddress(string): returns the address of a symbol. Can be a modulename or an export
+--reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
+
 --generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 --autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 --showMessage(text) : shows a messagebox with the given text
@@ -27,7 +30,7 @@ require("defines")
 --sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 
---getOpenedProcessI() : Returns the currently opened process. If none is open, returns 0
+--getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
 --getProcessIDFromProcessName(name) : returns a processid
 --openProcess(processid) : causes cheat engine to open the given processid
 --openProcess(processname): causes cheat engine to find and open the given process

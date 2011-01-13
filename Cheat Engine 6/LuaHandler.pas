@@ -188,10 +188,14 @@ begin
         {$endif}
 
 
+       // lua_pop(LuaVM, lua_gettop(luavm));
+        p:=lua_gettop(luavm);
 
         if lua_pcall(LuaVM, 0, 1, 0)=0 then
         begin
-          if (lua_gettop(luavm)=1) then //only 1 parameter returned
+          p:=lua_gettop(luavm);
+
+          if (p=1) then //only 1 parameter returned
             result:=lua_tointeger(luavm, -1)<>0;  //return the result is not 0
 
 
@@ -521,10 +525,6 @@ begin
     lua_setglobal(luavm, 'R15');
     {$endif}
 
-
-
-
-    lua_pop(LuaVM, lua_gettop(luavm));
   finally
     LuaCS.Leave;
   end;
@@ -599,69 +599,75 @@ function LUA_functioncall(routinetocall: string; parameters: array of const): in
 var i: integer;
   c: string;
   p: integer;
+  oldstack: integer;
 begin
   result:=-1;
-  LuaCS.Enter;
-  try
-    //check if the routine exists
-    lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routinetocall));
+  oldstack:=lua_gettop(luavm);
 
-    p:=lua_gettop(luavm);
-    if p<>0 then
-    begin
-      if lua_isfunction(luavm, -1) then
+ // if luacs.TryEnter then
+  begin
+    try
+      //check if the routine exists
+      lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routinetocall));
+
+      p:=lua_gettop(luavm);
+      if p<>0 then
       begin
-        //routine exists, fill in the parameters
-        for i:=0 to length(parameters)-1 do
+        if lua_isfunction(luavm, -1) then
         begin
-          case parameters[i].VType of
-            system.vtInteger : lua_pushinteger(LUAVM, parameters[i].VInteger);
-            system.vtBoolean: lua_pushboolean(LUAVM, parameters[i].VBoolean);
-            system.vtChar:
-            begin
-              c:=parameters[i].VChar;
-              lua_pushstring(LUAVM, c);
+          //routine exists, fill in the parameters
+          for i:=0 to length(parameters)-1 do
+          begin
+            case parameters[i].VType of
+              system.vtInteger : lua_pushinteger(LUAVM, parameters[i].VInteger);
+              system.vtBoolean: lua_pushboolean(LUAVM, parameters[i].VBoolean);
+              system.vtChar:
+              begin
+                c:=parameters[i].VChar;
+                lua_pushstring(LUAVM, c);
+              end;
+              system.vtExtended: lua_pushnumber(LUAVM, parameters[i].VExtended^);
+              system.vtString: lua_pushstring(LUAVM, pchar(parameters[i].VString));
+              system.vtPointer: lua_pushlightuserdata(LUAVM, parameters[i].VPointer);
+              system.vtPChar: lua_pushstring(LUAVM, parameters[i].VPChar);
+              system.vtObject: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VObject));
+              system.vtClass: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VClass));
+              system.vtWideChar, vtPWideChar, vtVariant, vtInterface, vtWideString: lua_pushstring(LUAVM, 'Cheatengine is being a fag');
+              system.vtAnsiString: lua_pushstring(LUAVM, pchar(parameters[i].VAnsiString));
+              system.vtCurrency: lua_pushnumber(LUAVM, parameters[i].VCurrency^);
+              system.vtInt64:
+              begin
+                if (parameters[i].VInt64^<=$ffffffff) then
+                  lua_pushinteger(LUAVM, parameters[i].VInt64^)
+                else
+                  lua_pushlightuserdata(LUAVM, pointer(parameters[i].VInt64^));
+              end;
+              system.vtQWord:
+              begin
+                if (parameters[i].VQWord^<=$ffffffff) then
+                  lua_pushinteger(LUAVM, parameters[i].VQWord^)
+                else
+                  lua_pushlightuserdata(LUAVM, pointer(parameters[i].VQWord^));
+              end;
             end;
-            system.vtExtended: lua_pushnumber(LUAVM, parameters[i].VExtended^);
-            system.vtString: lua_pushstring(LUAVM, pchar(parameters[i].VString));
-            system.vtPointer: lua_pushlightuserdata(LUAVM, parameters[i].VPointer);
-            system.vtPChar: lua_pushstring(LUAVM, parameters[i].VPChar);
-            system.vtObject: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VObject));
-            system.vtClass: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VClass));
-            system.vtWideChar, vtPWideChar, vtVariant, vtInterface, vtWideString: lua_pushstring(LUAVM, 'Cheatengine is being a fag');
-            system.vtAnsiString: lua_pushstring(LUAVM, pchar(parameters[i].VAnsiString));
-            system.vtCurrency: lua_pushnumber(LUAVM, parameters[i].VCurrency^);
-            system.vtInt64:
-            begin
-              if (parameters[i].VInt64^<=$ffffffff) then
-                lua_pushinteger(LUAVM, parameters[i].VInt64^)
-              else
-                lua_pushlightuserdata(LUAVM, pointer(parameters[i].VInt64^));
-            end;
-            system.vtQWord:
-            begin
-              if (parameters[i].VQWord^<=$ffffffff) then
-                lua_pushinteger(LUAVM, parameters[i].VQWord^)
-              else
-                lua_pushlightuserdata(LUAVM, pointer(parameters[i].VQWord^));
-            end;
+
           end;
 
+          lua_pcall(luavm, length(parameters), 1, 0);
+          i:=lua_gettop(luavm);
+          if i>0 then //it has a parameter
+            result:=lua_tointeger(luavm, -1);
         end;
 
-        lua_pcall(luavm, length(parameters), 1, 0);
-        i:=lua_gettop(luavm);
-        if i>0 then //it has a parameter
-          result:=lua_tointeger(luavm, -1);
+
       end;
 
 
+    finally
+      lua_pop(luavm,oldstack-lua_gettop(luavm));
+ //     luacs.leave;
     end;
 
-
-  finally
-    lua_pop(luavm,lua_gettop(luavm));
-    luacs.leave;
   end;
 end;
 
@@ -1081,7 +1087,10 @@ var paramcount: integer;
 begin
   paramcount:=lua_gettop(L);
 
-  addresstoread:=lua_tointeger(L,-paramcount);
+  if lua_isstring(L, -paramcount) then
+    addresstoread:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+  else
+    addresstoread:=lua_tointeger(L,-paramcount);
 
   if paramcount>1 then
     bytestoread:=lua_tointeger(L,-paramcount+1)
@@ -1114,7 +1123,10 @@ begin
 
   setlength(bytes,paramcount-1);
 
-  address:=lua_tointeger(L, -paramcount);
+  if lua_isstring(L, -paramcount) then
+    address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+  else
+    address:=lua_tointeger(L,-paramcount);
 
 
   for i:=-paramcount+1 to -1 do
@@ -1899,7 +1911,10 @@ begin
       inc(j);
     end;
 
-    ce_debug_setBreakpoint(address,size,TBreakpointTrigger(trigger));
+    try
+      ce_debug_setBreakpoint(address,size,TBreakpointTrigger(trigger));
+    except
+    end;
   end;
 
   lua_pop(L, lua_gettop(L)); //clear the stack
@@ -2772,12 +2787,41 @@ begin
 
 end;
 
-function getOpenedProcessID(L: PLua_state): integer; cdecl;
+
+
+
+function getOpenedProcessID_fromLua(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   result:=1;
   lua_pushinteger(L, processid);
 end;
+
+function getAddress_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  s: string;
+
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    s:=Lua_ToString(L, -1);
+
+    lua_pushnumber(L,symhandler.getAddressFromName(s));
+    result:=1;
+  end;
+
+end;
+
+function reinitializeSymbolhandler_fromLua(L: PLua_state): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  result:=0;
+  symhandler.reinitialize;
+  symhandler.waitforsymbolsloaded;
+end;
+
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -2877,8 +2921,9 @@ initialization
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
     lua_register(LuaVM, 'AOBScan', AOBScan_fromLua);
-    lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID);
-
+    lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID_fromLua);
+    lua_register(LuaVM, 'getAddress', getAddress_fromLua);
+    lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
     LUA_DoScript('os=nil');
 
   end;

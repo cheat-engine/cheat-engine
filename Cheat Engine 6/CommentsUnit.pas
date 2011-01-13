@@ -71,7 +71,6 @@ end;
 procedure TComments.btnExecuteScriptClick(Sender: TObject);
 begin
   LUA_DoScript(mLuaScript.text);
-  showmessage('Successfully executed');
 end;
 
 procedure TComments.Panel1Resize(Sender: TObject);

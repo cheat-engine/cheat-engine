@@ -46,6 +46,8 @@ type
     DebugEventString: string; //for outputdebugstring event
     secondcreateprocessdebugevent: boolean;
 
+    luaOverride: boolean; //set when the lua sript has decided not to cause a break
+
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 
 
@@ -126,7 +128,8 @@ procedure TDebugThreadHandler.VisualizeBreak;
 begin
   MemoryBrowser.lastdebugcontext:=context^;
 
-  if lua_onBreakpoint(context)=false then //no lua script or it returned 0
+  luaOverride:=lua_onBreakpoint(context);
+  if luaoverride=false then //no lua script or it returned 0
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
 end;
 
@@ -410,11 +413,14 @@ begin
 
   TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
 
-  WaitingToContinue:=true;
-  Outputdebugstring('updated gui');
-  onContinueEvent.WaitFor(infinite);
-  Outputdebugstring('returned from gui');
-  WaitingToContinue:=false;
+  if not luaoverride then
+  begin
+    WaitingToContinue:=true;
+    Outputdebugstring('updated gui');
+    onContinueEvent.WaitFor(infinite);
+    Outputdebugstring('returned from gui');
+    WaitingToContinue:=false;
+  end;
 
   continueFromBreakpoint(bp, continueOption);
 end;

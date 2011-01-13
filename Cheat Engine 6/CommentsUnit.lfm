@@ -40,9 +40,9 @@ object Comments: TComments
     Height = 333
     Top = 0
     Width = 414
-    ActivePage = tsComment
+    ActivePage = tsLuaScript
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     object tsComment: TTabSheet
       Caption = 'Comments'
