@@ -29,6 +29,11 @@ implementation
 uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner;
 
+function lua_isstring(L: PLua_state; i: integer): boolean;
+begin
+  result := lua_type(L,i)=LUA_TSTRING;
+end;
+
 function Lua_ToString(L: Plua_State; i: Integer): string;
 var r: pchar;
 begin
@@ -817,10 +822,13 @@ begin
     paramcount:=lua_gettop(L);
     if paramcount=1 then
     begin
+      //ShowMessage(inttostr(lua_type(L, -1)));
+
       if lua_isstring(L, -1) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
+
 
       lua_pop(L, paramcount);
 

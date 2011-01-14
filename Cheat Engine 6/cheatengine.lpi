@@ -13,7 +13,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1047"/>
+      <BuildNr Value="1051"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -140,7 +140,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="179">
+    <Units Count="180">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -195,7 +195,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2059"/>
         <CursorPos X="25" Y="2062"/>
@@ -207,7 +207,7 @@
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ProcessHandlerUnit"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
@@ -222,7 +222,7 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="484"/>
         <CursorPos X="69" Y="489"/>
@@ -429,10 +429,10 @@
         <Filename Value="pluginexports.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pluginexports"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2324"/>
-        <CursorPos X="1" Y="2340"/>
+        <TopLine Value="2340"/>
+        <CursorPos X="44" Y="2347"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -558,7 +558,7 @@
         <ComponentName Value="Comments"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="CommentsUnit"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="62"/>
         <CursorPos X="7" Y="73"/>
@@ -803,7 +803,7 @@
         <ComponentName Value="MemoryBrowser"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3640"/>
         <CursorPos X="3" Y="3235"/>
@@ -1466,10 +1466,10 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="116"/>
-        <CursorPos X="20" Y="127"/>
+        <TopLine Value="535"/>
+        <CursorPos X="50" Y="553"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="1">
           <Item0 X="12" Y="414" ID="7"/>
@@ -1491,10 +1491,10 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
+        <TopLine Value="135"/>
+        <CursorPos X="1" Y="151"/>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1683,7 +1683,7 @@
         <Filename Value="tableconverter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tableconverter"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="66"/>
         <CursorPos X="18" Y="78"/>
@@ -1780,8 +1780,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2798"/>
-        <CursorPos X="62" Y="2816"/>
+        <TopLine Value="814"/>
+        <CursorPos X="37" Y="830"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1964,10 +1964,12 @@
       </Unit165>
       <Unit166>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2176"/>
         <CursorPos X="18" Y="2189"/>
         <UsageCount Value="85"/>
+        <Loaded Value="True"/>
       </Unit166>
       <Unit167>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\func.inc"/>
@@ -2057,128 +2059,135 @@
         <CursorPos X="67" Y="134"/>
         <UsageCount Value="43"/>
       </Unit178>
+      <Unit179>
+        <Filename Value="lua\lua.pas"/>
+        <UnitName Value="lua"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="542"/>
+        <CursorPos X="5" Y="582"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit179>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="111" Column="1" TopLine="85"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="49" Column="50" TopLine="23"/>
       </Position1>
       <Position2>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="113" Column="1" TopLine="87"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="51" Column="58" TopLine="25"/>
       </Position2>
       <Position3>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="192" Column="1" TopLine="176"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="63" Column="17" TopLine="37"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="194" Column="1" TopLine="176"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="132" Column="43" TopLine="106"/>
       </Position4>
       <Position5>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="196" Column="1" TopLine="176"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="232" Column="60" TopLine="206"/>
       </Position5>
       <Position6>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="198" Column="1" TopLine="176"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="481" Column="74" TopLine="455"/>
       </Position6>
       <Position7>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="199" Column="1" TopLine="185"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="486" Column="12" TopLine="460"/>
       </Position7>
       <Position8>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="202" Column="1" TopLine="101"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="488" Column="54" TopLine="462"/>
       </Position8>
       <Position9>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="206" Column="1" TopLine="190"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="490" Column="15" TopLine="464"/>
       </Position9>
       <Position10>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="207" Column="1" TopLine="190"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="492" Column="46" TopLine="466"/>
       </Position10>
       <Position11>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="208" Column="1" TopLine="190"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="493" Column="74" TopLine="467"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="210" Column="1" TopLine="190"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="497" Column="58" TopLine="471"/>
       </Position12>
       <Position13>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="419" Column="1" TopLine="403"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="551" Column="9" TopLine="532"/>
       </Position13>
       <Position14>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="420" Column="1" TopLine="403"/>
+        <Caret Line="823" Column="68" TopLine="801"/>
       </Position14>
       <Position15>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="422" Column="1" TopLine="403"/>
+        <Caret Line="821" Column="44" TopLine="804"/>
       </Position15>
       <Position16>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="130" Column="26" TopLine="108"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="819" Column="116" TopLine="806"/>
       </Position16>
       <Position17>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="129" Column="1" TopLine="108"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="820" Column="1" TopLine="806"/>
       </Position17>
       <Position18>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="131" Column="1" TopLine="108"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="821" Column="1" TopLine="806"/>
       </Position18>
       <Position19>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="126" Column="50" TopLine="108"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="820" Column="1" TopLine="806"/>
       </Position19>
       <Position20>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="821" Column="7" TopLine="806"/>
       </Position20>
       <Position21>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="72" Column="28" TopLine="46"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="823" Column="51" TopLine="806"/>
       </Position21>
       <Position22>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="125" Column="45" TopLine="99"/>
+        <Filename Value="lua\lua.pas"/>
+        <Caret Line="134" Column="57" TopLine="120"/>
       </Position22>
       <Position23>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="411" Column="86" TopLine="391"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="29" Column="28" TopLine="16"/>
       </Position23>
       <Position24>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="422" Column="30" TopLine="394"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="812" Column="21" TopLine="798"/>
       </Position24>
       <Position25>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="411" Column="41" TopLine="403"/>
+        <Caret Line="825" Column="9" TopLine="814"/>
       </Position25>
       <Position26>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="827" Column="1" TopLine="814"/>
       </Position26>
       <Position27>
-        <Filename Value="CommentsUnit.pas"/>
-        <Caret Line="76" Column="67" TopLine="57"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="828" Column="1" TopLine="814"/>
       </Position27>
       <Position28>
-        <Filename Value="CommentsUnit.pas"/>
-        <Caret Line="73" Column="7" TopLine="62"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="827" Column="1" TopLine="814"/>
       </Position28>
       <Position29>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="553" Column="51" TopLine="533"/>
+        <Caret Line="830" Column="32" TopLine="814"/>
       </Position29>
-      <Position30>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2913" Column="53" TopLine="2897"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

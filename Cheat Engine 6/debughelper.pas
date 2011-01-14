@@ -178,7 +178,7 @@ begin
         ) =false then
         begin
           error:=getlasterror;
-          ce_showmessage(pchar('CreateProcess failed:'+inttostr(error)));
+          MessageBox(0, pchar('CreateProcess failed:'+inttostr(error)),'Debugger crash', MB_ICONERROR or mb_ok);
           exit;
         end;
 

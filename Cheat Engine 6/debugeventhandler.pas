@@ -546,7 +546,10 @@ begin
     outputdebugstring('Handling breakpoint');
 
     if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
+    begin
       dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
+      setContext; //just to be sure
+    end;
 
     if (not active) or (not CheckIfConditionIsMet(bpp)) then
     begin
