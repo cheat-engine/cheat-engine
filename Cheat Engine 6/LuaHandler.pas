@@ -979,7 +979,7 @@ begin
       else
         address:=lua_tointeger(L,-2);
 
-      v:=lua_tointeger(L, -2);
+      v:=lua_tointeger(L, -1);
 
       lua_pop(L, paramcount);
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
@@ -1009,7 +1009,7 @@ begin
       else
         address:=lua_tointeger(L,-2);
 
-      v:=lua_tonumber(L, -2);
+      v:=lua_tonumber(L, -1);
 
       lua_pop(L, paramcount);
 
@@ -1041,7 +1041,7 @@ begin
       else
         address:=lua_tointeger(L,-2);
 
-      v:=lua_tonumber(L, -2);
+      v:=lua_tonumber(L, -1);
 
       lua_pop(L, paramcount);
 
@@ -1072,7 +1072,7 @@ begin
       else
         address:=lua_tointeger(L,-2);
 
-      v:=lua.lua_tostring(L, -2);
+      v:=lua.lua_tostring(L, -1);
 
       lua_pop(L, paramcount);
 
@@ -1121,10 +1121,11 @@ function writeBytes(processhandle: dword; L: PLua_State): integer;
 var
   paramcount: integer;
   bytes: array of byte;
-  i: integer;
+  i,j: integer;
   address: ptruint;
   x: dword;
   oldprotect: dword;
+  b: byte;
 begin
   paramcount:=lua_gettop(L);
   if paramcount=0 then exit;
@@ -1137,8 +1138,13 @@ begin
     address:=lua_tointeger(L,-paramcount);
 
 
-  for i:=-paramcount+1 to -1 do
-   bytes[i]:=lua_tointeger(L,i);
+  j:=0;
+  for i:=(-paramcount)+1 to -1 do
+  begin
+    b:=lua_tointeger(L,i);
+    bytes[j]:=b;
+    inc(j);
+  end;
 
   x:=0;
   VirtualProtectEx(processhandle, pointer(address), paramcount-1, PAGE_EXECUTE_READWRITE, oldprotect);
