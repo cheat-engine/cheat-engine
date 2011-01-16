@@ -124,6 +124,8 @@ begin
       li.caption:=ConvertKeyComboToString(memrec.hotkeys[i].keys);
       li.SubItems.Add(HotkeyActionToText(memrec.hotkeys[i].action));
       li.SubItems.Add(memrec.hotkeys[i].value);
+
+      li.Data:=pointer(i);
     end;
   end;
 

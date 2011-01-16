@@ -3158,6 +3158,8 @@ var
   currentleft: integer;
   s: string;
 begin
+  if lvStacktraceData.Selected=nil then exit;
+
   if stacktrace2.checked then
   begin
     //go to the selected address

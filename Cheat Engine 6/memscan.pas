@@ -4922,8 +4922,14 @@ procedure TMemscan.CreateScanfolder;
 var guid: TGUID;
 begin
   CreateGUID(guid);
-  if dontusetempdir then
+  if (length(tempdiralternative)>2) and dontusetempdir then
+  begin
+    tempdiralternative:=trim(tempdiralternative);
+    if tempdiralternative[length(tempdiralternative)]<>pathdelim then
+      tempdiralternative:=tempdiralternative+pathdelim;
+
     fScanResultFolder:=tempdiralternative+'Cheat Engine'+pathdelim
+  end
   else
     fScanResultFolder:=GetTempDir+'Cheat Engine'+pathdelim;
   CreateDir(fScanResultFolder);

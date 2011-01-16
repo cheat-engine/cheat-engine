@@ -5167,9 +5167,10 @@ begin
 
     if (opcodes[j].paramtype1=par_st) and (paramtype1=ttRegisterst) then
     begin
-      //st(0),
+      //st(x),
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
+        //st(x)
         addopcode(bytes,j);
         k:=getreg(parameter1);
         if k>7 then
@@ -5184,7 +5185,7 @@ begin
 
       if (opcodes[j].paramtype2=par_st0) and ((parameter2='ST(0)') or (parameter2='ST')) then
       begin
-        //st(0),st(x),
+        //st(x),st(0)
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           if (opcodes[j].opcode1=eo_pi) then
@@ -5197,7 +5198,7 @@ begin
               rex_b:=true;
               k:=k and 7;
             end;
-            inc(bytes[length(bytes)-1],l);
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
