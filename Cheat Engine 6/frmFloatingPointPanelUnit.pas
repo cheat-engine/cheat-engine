@@ -78,6 +78,8 @@ var i,j: integer;
 
     f32: float32 absolute s;
 
+    lw: longword;
+    z: floatx80;
 
 begin
   if context=nil then exit;
@@ -118,8 +120,9 @@ begin
             5:  memo1.Lines.Add(format('%f - %f', [pssa[0], pssa[1]]));  //double
             6:
             begin
-              //d:=pea^;
-              f32:=floatx80_to_float32(f80^);
+              z:=f80^;
+              lw:=floatx80_to_float32(z);
+              s:=psingle(@lw)^;
 
               memo1.Lines.Add(format('%f', [s])); //extended
 
