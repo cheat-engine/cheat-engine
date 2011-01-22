@@ -9,7 +9,7 @@ The other debugger interfaces are inherited from this
 interface
 
 uses
-  Classes, SysUtils,windows,newkernelhandler;
+  Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler{$ifdef darwin}, macport{$endif};
 
 type
   TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcBreakOnEntry);
@@ -24,7 +24,7 @@ type
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
-    function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; virtual; abstract;
+    function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
@@ -34,4 +34,4 @@ end;
 implementation
 
 end.
-
+
