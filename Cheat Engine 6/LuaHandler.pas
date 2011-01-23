@@ -1482,7 +1482,7 @@ begin
     finally
       freemem(v);
     end;
-  end;
+  end else lua_pop(L, paramcount);
 end;
 
 
@@ -1566,13 +1566,12 @@ begin
   if paramcount=1 then
   begin
     memrec:=lua_touserdata(L, -paramcount);
-
+    lua_pop(L, paramcount);
 
     lua_pushboolean(L, ce_memrec_isFrozen(memrec));
     result:=1;
-  end;
-
-  lua_pop(L, paramcount);
+  end
+  else lua_pop(L, paramcount);
 end;
 
 function memrec_freeze_fromlua(L: PLua_State): integer; cdecl;
