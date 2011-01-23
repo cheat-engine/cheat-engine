@@ -4612,8 +4612,7 @@ begin
   if scancontroller<>nil then
   begin
     scancontroller.WaitFor;
-    if scancontroller.haserror then
-      result:=scancontroller.errorstring;
+    result:=scancontroller.errorstring;
   end;
 
 end;
