@@ -80,6 +80,7 @@ procedure TRebaseAgain.rerebase;
 begin
   foundlistClass.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
   foundlistClass.RebaseAddresslistAgain;
+  foundlistClass.foundlist.items[-1];
   foundlistClass.foundlist.Refresh;
   foundlistClass.foundlist.Refresh; (* lazarus bug bypass *)
 end;
@@ -317,6 +318,7 @@ begin
       getaddress(i,x,temp);
       if temp<>oldvalues[j] then
       begin
+        foundlist.items[-1];
         foundlist.Refresh;
         foundlist.Refresh; (* lazarus bug bypass *)
         exit;
@@ -678,7 +680,7 @@ begin
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(TBitAddress);
 
-          foundlist.Items.Count:=min(result, 50000000);
+          foundlist.Items.Count:=min(result, 1000000);
 
           //foundlist.Items.Count:=min(result, 100000000);
           if foundlist.Items.Count=0 then
@@ -688,7 +690,7 @@ begin
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(ptruint);
 
-          foundlist.Items.Count:=min(result, 50000000);
+          foundlist.Items.Count:=min(result, 1000000);
           if foundlist.Items.Count=0 then
             foundlist.Items.Count:=min(result, 100000);
         end;
