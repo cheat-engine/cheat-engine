@@ -62,25 +62,37 @@ type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_
 
 type TSavedScanHandler = class
   private
-    SavedScanmemoryfile: TFileStream;
-    SavedScanaddress: tmemorystream;
+    SavedScanmemoryFS: TFileStream;
+    SavedScanaddressFS: TFileStream;
     SavedScantype: tSavedScantype;
 
+    maxaddresslistcount: integer;
+    addresslistmemory: pointer;  //can be an array of regions, an array of pointers or an array of tbitaddress definitions
+    addresslistoffset: qword; //offset into the savedscanaddressFS file
     SavedScanmemory: pointer;
-    LoadedFromList: array of boolean;
-    LoadedFromListMREW: TMultiReadExclusiveWriteSynchronizer;
+    SavedScanMemoryOffset: qword; //the offset in the SavedScanmemoryFS file
+
     maxnumberofregions: integer;
     scandir: string;
 
+    SavedScanaddressSizeWithoutHeader: qword;
+    SavedScanaddressCountAll, SavedScanaddressCountNormal: qword; //saves on a div each time
+
+
+    LastAddressAccessed: record
+      address: ptruint; //holds the last address that was read
+      index: integer; //holds the index in the addresslist array
+    end;
+
+    currentRegion: integer;
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
+
+    procedure LoadNextChunk(valuetype: TValuetype);
+    procedure LoadMemoryForCurrentChunk(valuetype: TValueType);
+    procedure loadCurrentRegionMemory;
+
   public
-    function getSavedScanbyte(address: ptruint): byte;
-    function getSavedScanword(address: ptruint): word;
-    function getSavedScandword(address: ptruint): dword;
-    function getSavedScansingle(address: ptruint): single;
-    function getSavedScandouble(address: ptruint): double;
-    function getSavedScanint64(address: ptruint): int64;
     function getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
 
     constructor create(scandir: string; savedresultsname: string);
@@ -114,6 +126,7 @@ begin
   decision: no need to block other threads. Besides, the way threadjobs are made
   all have a seperate region to scan, so usually shouldn't have much overlap
   }
+  (*
   if not LoadedFromList[(ptrUint(p)-ptrUint(SavedScanmemory)) shr 12] then
   begin
     //not loaded yet, load this section
@@ -129,11 +142,83 @@ begin
     LoadedFromList[index]:=true;
     LoadedFromList[index+1]:=true;
     loadedfromlistMREW.EndWrite;
+  end; *)
+end;
+
+procedure TSavedScanHandler.loadCurrentRegionMemory;
+{Loads the memory region designated by the current region}
+var pm: ^TArrMemoryRegion;
+begin
+  pm:=addresslistmemory;
+  SavedScanmemoryfs.position:=ptruint(pm[currentRegion].startaddress);
+
+  savedscanmemoryfs.readbuffer(SavedScanmemory^, pm[currentRegion].memorysize);
+
+end;
+
+procedure TSavedScanHandler.LoadMemoryForCurrentChunk(valuetype: TValueType);
+{
+Loads the savedscanmemory block for the current adddresslist block
+}
+var addressliststart: qword;
+    index: qword;
+    varsize: integer;
+begin
+  if valuetype<>vt_all then
+  begin
+    //find the start of this region
+    addressliststart:=(savedscanaddressfs.Position)-maxaddresslistcount*sizeof(ptruint);
+    index:=(addressliststart-7) div sizeof(ptruint);
+  end
+  else
+  begin
+    addressliststart:=(savedscanaddressfs.Position)-maxaddresslistcount*sizeof(TBitAddress);
+    index:=(addressliststart-7) div sizeof(TBitAddress);
   end;
+
+  case valuetype of
+    vt_byte: varsize:= 1;
+    vt_word: varsize:= 2;
+    vt_dword, vt_single: varsize:= 4;
+    vt_double, vt_int64, vt_all: varsize:= 8;
+  end;
+
+
+  SavedScanmemoryFS.Position:=index * varsize;
+  SavedScanmemoryFS.ReadBuffer(SavedScanmemory^, maxaddresslistcount*varsize);
+end;
+
+procedure TSavedScanHandler.LoadNextChunk(valuetype: TValuetype);
+{
+For the addresslist specific type: Loads in the next region based on the addresslist
+}
+begin
+//savedscanaddressfs.ReadBuffer(addresslistmemory, maxaddresslistcount*sizeof(ptruint));
+
+  if valuetype<>vt_all then
+  begin
+    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-7) div sizeof(ptruint)); //limit to the addresslist file size
+
+    if addresslistmemory=nil then
+      getmem(addresslistmemory, maxaddresslistcount*sizeof(ptruint));
+
+    //load the results
+    savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(ptruint));
+  end
+  else
+  begin
+    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-7) div sizeof(TBitAddress)); //limit to the addresslist file size
+
+    getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
+    savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
+  end;
+  if maxaddresslistcount=0 then raise exception.create('maxaddresslistcount is 0 (Means: the addresslist is bad)');
+
+  LastAddressAccessed.index:=0; //reset the index
 end;
 
 function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
-var j: integer;
+var i,j: integer;
     pm: ^TArrMemoryRegion;
     pa: PptruintArray;
     pab: PBitAddressArray;
@@ -151,65 +236,81 @@ var j: integer;
 begin
   result:=nil;
 
-  //5.4: change routine to only read in pages of 4KB if it wasn't paged in yet (does require a page table like list of course)
-
-  p:=pointer(ptrUint(SavedScanaddress.Memory)+7);
-  
-
+  //6.1 Only part of the addresslist and memory results are loaded
   if SavedScantype=fs_advanced then
   begin
     {the addressfile exists out of a list of memoryregions started with the text
      REGION or NORMAL, so skip the first 7 bytes
     }
-    pm:=pointer(ptrUint(SavedScanaddress.Memory)+7);
-
-    //find the region this address belongs to
-    //the region list should be sorted
 
 
-    first:=0;
-    last:=maxnumberofregions-1;
+    pm:=addresslistmemory;
 
-    while (First <= Last) do
+
+    //if no region is set or the current region does not fall in the current list
+    if (currentRegion=-1) or (address>pm[currentregion].baseaddress+pm[currentregion].memorysize) then
     begin
+      //find the startregion, becaue it's a sequential read just go through it in order
+      inc(currentRegion);
+      while (address>pm[currentregion].baseaddress+pm[currentregion].memorysize) and (currentregion<maxnumberofregions) do
+        inc(currentRegion);
 
-      //Gets the middle of the selected range
-      Pivot := (First + Last) div 2;
-      //Compares the String in the middle with the searched one
-      if InRange(address, pm[pivot].BaseAddress, pm[pivot].BaseAddress + pm[pivot].MemorySize) then
-      begin
-        //found it
-        result:=loadifnotloadedRegion(pointer(ptrUint(pm[pivot].startaddress)+(address-pm[pivot].baseaddress)));
-        exit;
-      end
-      //If the Item in the middle has a bigger value than
-      //the searched item, then select the first half
-      else if pm[pivot].baseaddress > address then
-        Last := Pivot - 1
-          //else select the second half
-      else
-        First := Pivot + 1;
+      if currentregion>=maxnumberofregions then
+        raise exception.create('Failure in finding '+inttohex(address,8)+' in the previous scan results');
+
+      loadCurrentRegionMemory;
     end;
+
+
+    result:=pointer(ptruint(savedscanmemory)+(address-pm[currentregion].baseaddress));
+    exit;
+
   end
   else
   begin
-    pa:=pointer(p);
-    pab:=pointer(p);
+
+    if addresslistmemory=nil then
+    begin
+      //the memoryblock is only 20*4096=81920 bytes big set the addresslist size to be able to address that
+      case valuetype of
+        //(vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);
+        vt_byte: maxaddresslistcount:= 20*4096 div 1;
+        vt_word: maxaddresslistcount:= 20*4096 div 2;
+        vt_dword, vt_single: maxaddresslistcount:= 20*4096 div 4;
+        vt_double, vt_int64, vt_all: maxaddresslistcount:= 20*4096 div 8;
+      end;
+
+      loadnextchunk(valuetype); //will load the initial addresslist
+      LoadMemoryForCurrentChunk(valuetype);
+    end;
+
+
+    pa:=addresslistmemory;
+    pab:=addresslistmemory;
     p1:=SavedScanmemory;
-   { p2:=SavedScanmemory;
-    p3:=SavedScanmemory;
-    p4:=SavedScanmemory;
-    p5:=SavedScanmemory;
-    p6:=SavedScanmemory; }
 
     if (valuetype <> vt_all) then
     begin
-      //addresslist is a list of dword
+      //addresslist is a list of pointers
 
-      j:=(SavedScanaddress.Size-7) div sizeof(ptruint); //max number of addresses , no same as first for binary
+      if pa[0]>address then raise exception.create('Invalid order of calling getpointertoaddress');
+
+      if pa[maxaddresslistcount-1]<address then
+      begin
+        while pa[maxaddresslistcount-1]<address do //load in the next chunk
+          LoadNextChunk(valuetype);
+
+        LoadMemoryForCurrentChunk(valuetype);
+      end;
+
+      //we now have an addresslist and memory region and we know that the address we need is in here
+      j:=maxaddresslistcount;
 
       //the list is sorted so do a quickscan
-      first:=0;
+
+
+      first:=LastAddressAccessed.index;
+
       last:=j-1;
 
       while (First <= Last) do
@@ -222,13 +323,15 @@ begin
         begin
           //found it
           case valuetype of
-            vt_byte : result:=loadifnotloadedregion(@p1[pivot]);
-            vt_word : result:=loadifnotloadedregion(@p2[pivot]);
-            vt_dword : result:=loadifnotloadedregion(@p3[pivot]);
-            vt_single: result:=loadifnotloadedregion(@p4[pivot]);
-            vt_double: result:=loadifnotloadedregion(@p5[pivot]);
-            vt_int64: result:=loadifnotloadedregion(@p6[pivot]);
+            vt_byte : result:=@p1[pivot];
+            vt_word : result:=@p2[pivot];
+            vt_dword : result:=@p3[pivot];
+            vt_single: result:=@p4[pivot];
+            vt_double: result:=@p5[pivot];
+            vt_int64: result:=@p6[pivot];
           end;
+          LastAddressAccessed.address:=address;
+          LastAddressAccessed.index:=pivot;
           exit;
         end
         //If the Item in the middle has a bigger value than
@@ -246,12 +349,24 @@ begin
     end
     else
     begin
-      //addresslist is a list of 2 dwords, address and vartype, what kind of vartype is not important
+      //addresslist is a list of 2 items, address and vartype, what kind of vartype is not important because each type stores it's full max variablecount
 
-      j:=(SavedScanaddress.Size-7) div sizeof(tbitaddress); //max number of addresses , no same as first for binary
+      if pab[0].address>address then raise exception.create('Invalid order of calling getpointertoaddress');
+
+      if pab[maxaddresslistcount-1].address<address then
+      begin
+        while pab[maxaddresslistcount-1].address<address do //load in the next chunk
+          LoadNextChunk(valuetype);
+
+        LoadMemoryForCurrentChunk(valuetype);
+      end;
+
+      //we now have an addresslist and memory region and we know that the address we need is in here
+      j:=maxaddresslistcount;
+
 
       //the list is sorted so do a quickscan
-      first:=0;
+      first:=LastAddressAccessed.index;
       last:=j-1;
 
       while (First <= Last) do
@@ -263,7 +378,9 @@ begin
         if address=pab[pivot].address then
         begin
           //found it
-          result:=loadifnotloadedregion(@p6[pivot]); //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+          result:=@p6[pivot]; //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+          LastAddressAccessed.address:=address;
+          LastAddressAccessed.index:=pivot;
           exit;
         end
         //If the Item in the middle has a bigger value than
@@ -276,91 +393,73 @@ begin
       end;
 
     end;
+
   end;
 
   raise exception.create('Failure in finding '+inttohex(address,8)+' in the previous scan results');
 end;
-
-function TSavedScanHandler.getSavedScanbyte(address: ptruint): byte;
-begin
-  result:=pbyte(getpointertoaddress(address,vt_byte))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
-function TSavedScanHandler.getSavedScanword(address: ptruint): word;
-begin
-  result:=pword(getpointertoaddress(address,vt_word))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
-function TSavedScanHandler.getSavedScandword(address: ptruint): dword;
-begin
-  result:=pdword(getpointertoaddress(address,vt_dword))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
-function TSavedScanHandler.getSavedScansingle(address: ptruint): single;
-begin
-  result:=psingle(getpointertoaddress(address,vt_single))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
-function TSavedScanHandler.getSavedScandouble(address: ptruint): double;
-begin
-  result:=pdouble(getpointertoaddress(address,vt_double))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
-function TSavedScanHandler.getSavedScanint64(address: ptruint): int64;
-begin
-  result:=pint64(getpointertoaddress(address,vt_int64))^; //tries to read nil is not found, which should never happen, so I should get a bug report if it does
-end;
-
 
 constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
 var datatype: string[6];
     pm: ^TArrMemoryRegion;
     i: integer;
     p: ptrUint;
+
+    maxregionsize: integer;
 begin
   self.scandir:=scandir;
+  maxregionsize:=20*4096;
   try
     try
-
-      SavedScanmemoryfile:=Tfilestream.Create(scandir+'MEMORY.'+savedresultsname,fmOpenRead or fmsharedenynone);
-      SavedScanmemory:=virtualalloc(nil, SavedScanmemoryfile.Size+$2000, mem_commit, page_readwrite);
-
-      //make an array to store the previous memory in blocks of 4KB
-      setlength(loadedfromlist, 2+(SavedScanmemoryfile.Size shr 12)); //+2 to keep some extra room, so less checking
-      zeromemory(@loadedfromlist[0], length(loadedfromlist));
-
-      loadedfromlistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
+      SavedScanaddressFS:=tfilestream.Create(scandir+'ADDRESSES.'+savedresultsname, fmopenread or fmsharedenynone);
     except
       raise exception.Create('No first scan data files found');
     end;
+    SavedScanaddressFS.ReadBuffer(datatype,7);
 
-    SavedScanaddress:=tmemorystream.Create;
-    try
-      SavedScanaddress.LoadFromFile(scandir+'ADDRESSES.'+savedresultsname);
-    except
-      raise exception.Create('No first scan data files found');
-    end;
-
-    SavedScanaddress.ReadBuffer(datatype,7);
     if datatype='REGION' then
     begin
       SavedScantype:=fs_advanced;
-      maxnumberofregions:=(SavedScanaddress.Size-7) div sizeof(TMemoryRegion); //max number of regions
+      maxnumberofregions:=(SavedScanaddressFS.Size-7) div sizeof(TMemoryRegion); //max number of regions
 
-      //fill in startaddress elements
-      pm:=pointer(ptrUint(SavedScanaddress.Memory)+7);
-      p:=ptrUint(SavedScanmemory);
+      //fill the addresslist with the regions
+      getmem(addresslistmemory, (SavedScanaddressFS.Size-7));
+      SavedScanaddressFS.ReadBuffer(addresslistmemory^, (SavedScanaddressFS.Size-7));
+
+
+      //find the max region
+      pm:=addresslistmemory;
+
+      p:=0;
       for i:=0 to maxnumberofregions-1 do
       begin
-        pm[i].startaddress:=pointer(p);
+        maxregionsize:=max(maxregionsize, pm[i].memorysize);
+        pm[i].startaddress:=pointer(p); //set the offset in the file (if it wasn't set already)
         inc(p, pm[i].MemorySize);
       end;
-      
+
+
+      currentRegion:=-1;
     end
     else
     begin
       SavedScantype:=fs_addresslist;
+      SavedScanaddressSizeWithoutHeader:=(SavedScanaddressFS.Size-7);
+      SavedScanaddressCountNormal:=SavedScanaddressSizeWithoutHeader div sizeof(ptruint);
+      SavedScanaddressCountAll:=SavedScanaddressSizeWithoutHeader div sizeof(tbitaddress);
+
+      //allocate addresslistmemory on first access
     end;
+
+
+    try
+      SavedScanmemoryFS:=Tfilestream.Create(scandir+'MEMORY.'+savedresultsname,fmOpenRead or fmsharedenynone);
+      getmem(SavedScanmemory, maxregionsize);
+    except
+      raise exception.Create('No first scan data files found');
+    end;
+
+
   except
     on e: exception do
     begin
@@ -383,13 +482,18 @@ procedure TSavedScanHandler.cleanup;
 begin
   if SavedScanmemory<>nil then
   begin
-    virtualfree(SavedScanmemory,0,MEM_RELEASE);
+    freemem(SavedScanmemory);
     SavedScanmemory:=nil;
   end;
 
-  freeandnil(loadedfromlistMREW);
-  freeandnil(SavedScanaddress);
-  freeandnil(SavedScanmemoryfile);
+  if addresslistmemory<>nil then
+  begin
+    freemem(addresslistmemory);
+    addresslistmemory:=nil;
+  end;
+
+  freeandnil(SavedScanaddressFS);
+  freeandnil(SavedScanmemoryFS);
 end;
 
 end.
