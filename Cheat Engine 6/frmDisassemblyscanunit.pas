@@ -221,10 +221,13 @@ end;
 procedure TfrmDisassemblyscan.ListBox1DblClick(Sender: TObject);
 var x: ptrUint;
    err: integer;
+   s:string;
 begin
   if listbox1.itemindex<>-1 then
   begin
-    val('$'+listbox1.Items[listbox1.itemindex],x,err);
+    s:=listbox1.Items[listbox1.itemindex];
+    s:=copy(s,1,pos('-',s)-2);
+    val('$'+s,x,err);
     memorybrowser.disassemblerview.SelectedAddress:=x;
   end;
 end;
