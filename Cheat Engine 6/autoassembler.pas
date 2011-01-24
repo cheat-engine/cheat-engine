@@ -537,6 +537,9 @@ begin
               include:=tstringlist.Create;
               try
                 include.LoadFromFile(s1);
+                removecomments(include);
+                unlabeledlabels(include);
+
                 for j:=i+1 to (i+1)+(include.Count-1) do
                   code.Insert(j,include[j-(i+1)]);
               finally
