@@ -13,7 +13,7 @@ interface
 uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs,
      NewKernelHandler, math, SyncObjs
      , windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler, symbolhandler,
-     CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib, LuaHandler
+     CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib, LuaHandler, fileaccess
 ;
 
 
@@ -444,7 +444,7 @@ type
     arrayLength:   integer;
 
     FLastScanType: TScanType;
-    fscanresultfolder: string; //the location where all the scanfiles will be stored
+    fscanresultfolder: widestring; //the location where all the scanfiles will be stored
 
     fnextscanCount: integer;
 
@@ -481,7 +481,7 @@ type
     function getsavedresults(r: tstrings): integer;
 
     property LastScanType: TScanType read FLastScanType;
-    property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
+    property ScanresultFolder: widestring read fScanResultFolder; //read only, it's configured during creation
     property CustomType: TCustomType read currentCustomType;
     property nextscanCount: integer read fnextscanCount;
   end;
@@ -4919,19 +4919,40 @@ end;
 
 procedure TMemscan.CreateScanfolder;
 var guid: TGUID;
+    usedtempdir: widestring;
 begin
   CreateGUID(guid);
   if (length(tempdiralternative)>2) and dontusetempdir then
   begin
+    usedtempdir:=tempdiralternative;
+
     tempdiralternative:=trim(tempdiralternative);
     if tempdiralternative[length(tempdiralternative)]<>pathdelim then
       tempdiralternative:=tempdiralternative+pathdelim;
-
-    fScanResultFolder:=tempdiralternative+'Cheat Engine'+pathdelim
   end
   else
-    fScanResultFolder:=GetTempDir+'Cheat Engine'+pathdelim;
-  CreateDir(fScanResultFolder);
+    usedtempdir:=GetTempDir;
+
+  fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
+
+  if not DirectoryExists(usedtempdir) then
+    raise exception.create('The temporary scan directory '+usedtempdir+' does not exist. Check your scan settings');
+
+
+  if not DirectoryExists(fScanResultFolder) then
+  begin
+    if not CreateDir(fScanResultFolder) then
+    begin
+      //failure in creating the dir
+      MakePathAccessible(fScanResultFolder);
+      if not CreateDir(fScanResultFolder) then
+        raise exception.create('Failure creating the scan directory');
+    end;
+  end;
+
+  MakePathAccessible(fScanResultFolder);
+
+
 
   fScanResultFolder:=fScanResultFolder+GUIDToString(guid)+pathdelim;
   CreateDir(fScanResultFolder);
