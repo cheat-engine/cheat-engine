@@ -78,6 +78,9 @@ type
     showmodules: boolean;
     dataOnly: boolean;
 
+    is64bit: boolean;
+    is64bitOverride: boolean;
+    is64BitOverrideState: boolean;
 
     LastDisassembleData: record
       address: PtrUint;
@@ -509,7 +512,7 @@ var dwordptr: ^dword;
 
 
 begin
-  if processhandler.is64Bit then
+  if is64bit then
     regprefix:='r'
   else
     regprefix:='e';
@@ -576,7 +579,7 @@ begin
 
             5:
             begin
-              if processhandler.is64Bit then
+              if is64bit then
               begin
                 riprelative:=true;
                 result:=getsegmentoverride(prefix)+'['+inttohexs_withoutsymbols(dwordptr^,8)+'],';
@@ -1038,7 +1041,7 @@ begin
    14: result:='r14';
    15: result:='r15';
   end;
-  if processhandler.is64Bit then
+  if is64bit then
   begin
     if result<>'' then result[1]:='r'; //quick replace
 
@@ -1068,7 +1071,7 @@ begin
    15: indexstring:='r15';
   end;
 
-  if processhandler.is64Bit then
+  if is64bit then
   begin
     if indexstring<>'' then indexstring[1]:='r'; //quick replace
 
@@ -1089,7 +1092,7 @@ begin
       result:=result+'+'+indexstring;
   end else
   begin
-    if processhandler.is64bit then
+    if is64bit then
     begin
       if _mod=0 then //special case
       begin
@@ -1156,6 +1159,19 @@ var memory: TMemory;
     tempaddress: ptrUint;
     prefixsize: integer;
 begin
+  if is64bitOverride then
+    is64bit:=is64BitOverrideState
+  else
+  begin
+    is64bit:=processhandler.is64bit;
+    {$ifdef cpu64}
+    if offset>=QWORD($100000000) then
+      is64bit:=true;
+    {$endif}
+  end;
+
+
+
   last:=0;
   tempresult:='';
   setlength(LastDisassembleData.bytes,0);
@@ -1241,7 +1257,7 @@ begin
 
 
     RexPrefix:=0;
-    if processhandler.is64Bit then
+    if is64bit then
     begin
       if memory[0] in [$40..$4f] then //does it start with a rex prefix ?
       begin
@@ -3444,7 +3460,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3465,7 +3481,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3488,7 +3504,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3510,7 +3526,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3532,7 +3548,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3554,7 +3570,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3577,7 +3593,7 @@ begin
 
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3598,7 +3614,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3619,7 +3635,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3640,7 +3656,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3661,7 +3677,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3682,7 +3698,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3703,7 +3719,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3724,7 +3740,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3745,7 +3761,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -3766,7 +3782,7 @@ begin
                         inc(offset,1+4);
 
                         lastdisassembledata.parametervaluetype:=dvtaddress;
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parametervalue:=qword(offset+pint(@memory[2])^)
                         else
                           lastdisassembledata.parametervalue:=dword(offset+pint(@memory[2])^);
@@ -5862,7 +5878,7 @@ begin
       $50..$57 :
             begin
               description:='push word or doubleword onto the stack';
-              if processhandler.is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
+              if is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
 
               lastdisassembledata.opcode:='push';
               if $66 in prefix2 then
@@ -5873,7 +5889,7 @@ begin
       $58..$5f :
             begin
               description:='pop a value from the stack';
-              if processhandler.is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
+              if is64bit then rexprefix:=rexprefix or bit_rex_w; //so rd will pick the 64-bit version
               lastdisassembledata.opcode:='pop';
               if $66 in prefix2 then
                 lastdisassembledata.parameters:=rd16(memory[0]-$58) else
@@ -5882,11 +5898,11 @@ begin
 
       $60 : begin
               description:='push all general-purpose registers';
-              if processhandler.is64bit then description:=description+' (invalid)';
+              if is64bit then description:=description+' (invalid)';
               if $66 in prefix2 then lastdisassembledata.opcode:='pusha' else
                                      lastdisassembledata.opcode:='pushad';
 
-              if processhandler.is64bit then
+              if is64bit then
               begin
                 description:=description+' (invalid)';
                 lastdisassembledata.opcode:='pushad (invalid)';
@@ -5898,7 +5914,7 @@ begin
               if $66 in prefix2 then lastdisassembledata.opcode:='popa' else
                                      lastdisassembledata.opcode:='popad';
 
-              if processhandler.is64bit then
+              if is64bit then
               begin
                 description:=description+' (invalid)';
                 lastdisassembledata.opcode:='popad (invalid)';
@@ -6042,7 +6058,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6065,7 +6081,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6086,7 +6102,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6107,7 +6123,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6128,7 +6144,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6151,7 +6167,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6172,7 +6188,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6193,7 +6209,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6214,7 +6230,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6235,7 +6251,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6256,7 +6272,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6277,7 +6293,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6298,7 +6314,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6319,7 +6335,7 @@ begin
 
               lastdisassembledata.parametervaluetype:=dvtAddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6338,7 +6354,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -6357,7 +6373,7 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+shortint(memory[1]))
               else
                 lastdisassembledata.parametervalue:=dword(offset+shortint(memory[1]));
@@ -7164,7 +7180,7 @@ begin
 
 
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.opcode:='call (invalid)'
               else
                 lastdisassembledata.opcode:='call';
@@ -7282,7 +7298,7 @@ begin
               description:='push eflags register onto the stack';
               if $66 in prefix2 then lastdisassembledata.opcode:='pushf' else
               begin
-                if processhandler.is64bit then
+                if is64bit then
                   lastdisassembledata.opcode:='pushfq'
                 else
                   lastdisassembledata.opcode:='pushfd';
@@ -9505,7 +9521,7 @@ begin
               lastdisassembledata.isconditionaljump:=true;
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
@@ -9539,7 +9555,7 @@ begin
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
@@ -9557,7 +9573,7 @@ begin
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
@@ -9583,7 +9599,7 @@ begin
 
 
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
@@ -9661,7 +9677,7 @@ begin
               inc(offset,4);
               lastdisassembledata.parametervaluetype:=dvtaddress;
 
-              if processhandler.is64bit then
+              if is64bit then
                   lastdisassembledata.parametervalue:=qword(offset+pinteger(@memory[1])^)
                 else
                   lastdisassembledata.parametervalue:=dword(offset+pinteger(@memory[1])^);
@@ -9692,7 +9708,7 @@ begin
                 inc(offset,4);
                 lastdisassembledata.parametervaluetype:=dvtaddress;
 
-                if processhandler.is64bit then
+                if is64bit then
                   lastdisassembledata.parametervalue:=qword(offset+pinteger(@memory[1])^)
                 else
                   lastdisassembledata.parametervalue:=dword(offset+pinteger(@memory[1])^);
@@ -9735,7 +9751,7 @@ begin
 
               inc(offset);
 
-              if processhandler.is64bit then
+              if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
@@ -10052,7 +10068,7 @@ begin
                       if memory[1]>=$c0 then
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
                         else
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
@@ -10082,7 +10098,7 @@ begin
                       if memory[1]>=$c0 then
                         lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
                       begin
-                        if processhandler.is64bit then
+                        if is64bit then
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
                         else
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
@@ -10485,7 +10501,7 @@ begin
         result:=result+'->';  //double, so ->->
 
 
-        if processhandler.is64Bit then
+        if is64bit then
           jumpAddress:=jumpaddress+6+pinteger(@buffer[2])^ //jumpaddress+6 because of relative addressing
         else
           jumpAddress:=pdword(@buffer[2])^;
@@ -10723,7 +10739,7 @@ begin
               value:=0;
               if readprocessmemory(processhandle,pointer(tempaddress+2),@value,4,actualread) then
               begin
-                if processhandler.is64Bit then
+                if is64bit then
                   value:=tempaddress+6+value;
 
                 if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,actualread) then
@@ -10859,6 +10875,8 @@ begin
     colorsymbol:='';
   end;
 end;
+
+
 
 initialization
   defaultDisassembler:=TDisassembler.create;
