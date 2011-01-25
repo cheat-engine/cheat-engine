@@ -530,18 +530,30 @@ begin
               if ExtractFileExt(uppercase(s1))='' then
                 s1:=s1+'.CEA';
 
-              s2:=cheatenginedir+'includes'+pathdelim+'s1';
-              if fileexists(s2) then s1:=s2 else
+              if not fileexists(s1) then //check if it's inside the current location
               begin
-                s2:=cheatenginedir+s1;
-                if fileexists(s2) then s1:=s2;
+                //if not, check the default paths
+                s2:=cheatenginedir+'includes'+pathdelim+'s1';
+                if fileexists(s2) then s1:=s2 else
+                begin
+                  s2:=cheatenginedir+s1;
+                  if fileexists(s2) then s1:=s2
+                  else
+                  begin
+                    s2:=tablesdir+s1;
+                    if fileexists(s2) then s1:=s2;
+                  end;
+                end;
+
+                if not fileexists(s1) then
+                  raise exception.Create(s1+' could not be found');
               end;
 
 
 
 
-              if not fileexists(s1) then
-                raise exception.Create(s1+' could not be found');
+
+
 
               include:=tstringlist.Create;
               try
