@@ -17,6 +17,8 @@ end;
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
   TAutoAssemblerEditEvent=procedure(sender: TObject; memrec: TMemoryRecord) of object;
+  TCompareRoutine=function(a: tmemoryrecord; b: tmemoryrecord): integer of object;
+
 
   TAddresslist=class(TPanel)
   private
@@ -30,12 +32,18 @@ type
     fOnDropByListview: TDropByListviewEvent;
     fOnAutoAssemblerEdit: TAutoAssemblerEditEvent;
 
+    activesortdirection: boolean;
+    descriptionsortdirection: boolean;
+    addresssortdirection: boolean;
+    valuetypesortdirection: boolean;
+    valuesortdirection: boolean;
 
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
     procedure SelectionUpdate(sender: TObject);
     procedure sectiontrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+    procedure sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
     procedure FocusChange(sender: TObject);
     procedure DragOver(Sender, Source: TObject; X,Y: Integer; State: TDragState; var Accept: Boolean);
     procedure DragDrop(Sender, Source: TObject; X,Y: Integer);
@@ -59,7 +67,20 @@ type
     function getSelectedRecord: TMemoryRecord;
 
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
+
+    function activecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+    function descriptioncompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+    function addresscompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+    function valuetypecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+    function valuecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+    procedure sort(firstnode: ttreenode; compareRoutine: TCompareRoutine; direction: boolean);
   public
+    procedure sortByActive;
+    procedure sortByDescription;
+    procedure sortByAddress;
+    procedure sortByValueType;
+    procedure sortByValue;
+
     procedure RefreshCustomTypes;
     procedure ReinterpretAddresses;
     procedure ApplyFreeze;
@@ -854,6 +875,173 @@ begin
     deleteSelected;
 end;   }
 
+
+
+procedure TAddresslist.sort(firstnode: ttreenode; compareRoutine: TCompareRoutine; direction: boolean );
+{
+  sort from the first node till there is no more sibling
+}
+var
+  swapped: boolean;
+  lastnode: ttreenode;
+  currentnode: ttreenode;
+  i,d: integer;
+
+  firstnodeindex: integer;
+
+  currentindex: integer;
+begin
+  treeview.BeginUpdate;
+  try
+    //first sort all the children
+    currentnode:=firstnode;
+    while currentnode<>nil do
+    begin
+      if currentnode.HasChildren then
+        sort(currentnode.GetFirstChild, compareRoutine, direction);
+
+      currentnode:=currentnode.GetNextSibling;
+    end;
+
+    //all the children have been sorted, so now sort myself
+
+
+    if direction then
+      d:=1
+    else
+      d:=-1;
+
+
+    firstnodeindex:=firstnode.absoluteindex;
+
+    swapped:=true;
+    while swapped do
+    begin
+      firstnode:=treeview.items[firstnodeindex];
+
+      swapped:=false;
+      lastnode:=firstnode;
+      currentnode:=lastnode.GetNextSibling;
+      while currentnode<>nil do
+      begin
+        currentindex:=currentnode.AbsoluteIndex;
+        lastnode:=currentnode.GetPrevSibling;
+
+        if (compareRoutine(tmemoryrecord(lastnode.data), tmemoryrecord(currentnode.data))*d)<0 then
+        begin
+          currentnode.MoveTo(lastnode, naInsert); //move the current node in front of the previous node
+          swapped:=true;
+        end;
+
+        currentnode:=treeview.Items[currentindex];
+        currentnode:=currentnode.GetNextSibling;
+      end;
+
+
+
+    end;
+
+  finally
+    treeview.EndUpdate;
+  end;
+end;
+
+function Taddresslist.activecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+var ra, rb: integer;
+begin
+  if not a.active then ra:=0 else
+    if a.allowdecrease then ra:=1 else
+      if a.allowincrease then ra:=2 else
+        ra:=3;
+
+  if not b.active then rb:=0 else
+    if b.allowdecrease then rb:=1 else
+      if b.allowincrease then rb:=2 else
+        rb:=3;
+
+
+
+  result:=rb-ra;
+end;
+
+procedure TAddresslist.sortByActive;
+type TCompareState=(inactive, allowincrease, allowdecrease, active);
+begin
+  if count=0 then exit;
+  sort(treeview.items[0], activecompare, activesortdirection);
+  activesortdirection:=not activesortdirection;
+end;
+
+function Taddresslist.descriptioncompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+begin
+  if b.description>a.description then
+    result:=1;
+  if b.description=a.description then
+    result:=0;
+  if b.description<a.description then
+    result:=-1;
+end;
+
+procedure TAddresslist.sortByDescription;
+begin
+  if count=0 then exit;
+  sort(treeview.items[0], descriptioncompare, descriptionsortdirection);
+  descriptionsortdirection:=not descriptionsortdirection;
+end;
+
+function Taddresslist.addresscompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+begin
+  result:=b.getRealAddress-a.GetRealAddress;
+end;
+
+procedure TAddresslist.sortByAddress;
+begin
+  if count=0 then exit;
+  sort(treeview.items[0], addresscompare, addresssortdirection);
+  addresssortdirection:=not addresssortdirection;
+end;
+
+function Taddresslist.valuetypecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+begin
+  result:=integer(b.VarType)-integer(a.VarType);
+end;
+
+procedure TAddresslist.sortByValueType;
+begin
+  if count=0 then exit;
+  sort(treeview.items[0], valuetypecompare, valuetypesortdirection );
+  valuetypesortdirection:=not valuetypesortdirection;
+end;
+
+function Taddresslist.valuecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+var va, vb: double;
+  oka,okb: boolean;
+begin
+  if not TryStrToFloat(a.value, va) then va:=0;
+  if not TryStrToFloat(b.value, vb) then vb:=0;
+  result:=trunc(vb-va);
+end;
+
+
+procedure TAddresslist.sortByValue;
+begin
+  if count=0 then exit;
+  sort(treeview.items[0], valuecompare, valuesortdirection);
+  valuesortdirection:=not valuesortdirection;
+end;
+
+procedure TAddresslist.sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
+begin
+  //sort the addresslist based on the clicked section
+  case section.Index of
+    0: sortByActive;
+    1: sortByDescription;
+    2: sortByAddress;
+    3: sortByValueType;
+    4: sortByValue;
+  end;
+end;
+
 procedure TAddresslist.sectiontrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
 begin
   treeview.Refresh;
@@ -1259,7 +1447,6 @@ begin
   header.parent:=self;
   header.Align:=alTop;
   header.height:=20;
-
   with header.Sections.Add do
   begin
     Text:='Active';
@@ -1291,6 +1478,8 @@ begin
   end;
 
   header.OnSectionTrack:=SectionTrack;
+
+  header.OnSectionClick:=SectionClick;
 
   treeview.ScrollBars:=ssVertical;
   treeview.Align:=alClient;
