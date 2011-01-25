@@ -530,8 +530,15 @@ begin
               if ExtractFileExt(uppercase(s1))='' then
                 s1:=s1+'.CEA';
 
-              s2:=cheatenginedir+s1;
-              if fileexists(s2) then s1:=s2;
+              s2:=cheatenginedir+'includes'+pathdelim+'s1';
+              if fileexists(s2) then s1:=s2 else
+              begin
+                s2:=cheatenginedir+s1;
+                if fileexists(s2) then s1:=s2;
+              end;
+
+
+
 
               if not fileexists(s1) then
                 raise exception.Create(s1+' could not be found');
