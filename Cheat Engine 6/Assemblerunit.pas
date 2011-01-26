@@ -2432,7 +2432,7 @@ var regs: string;
 begin
   //first split the address string up
   setlength(splitup,0);
-
+  found:=false;
   go:=false;
   start:=1;
   for i:=1 to length(address) do
