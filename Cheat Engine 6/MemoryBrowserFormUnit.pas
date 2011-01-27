@@ -22,6 +22,10 @@ type
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
+    miDisassembly32: TMenuItem;
+    miDisassembly64: TMenuItem;
+    miDisassemblyAutodetect: TMenuItem;
+    miDisassemblerType: TMenuItem;
     miAddEBP: TMenuItem;
     miAddESP: TMenuItem;
     miFindWhatWrites: TMenuItem;
@@ -212,6 +216,7 @@ type
     procedure miAddESPClick(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
     procedure miDeleteBPClick(Sender: TObject);
+    procedure miDisassemblyAutodetectClick(Sender: TObject);
     procedure miFindWhatAccessesClick(Sender: TObject);
     procedure miFindWhatWritesClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
@@ -219,6 +224,7 @@ type
     procedure miDebugEventsClick(Sender: TObject);
     procedure miLuaEngineClick(Sender: TObject);
     procedure miPagingClick(Sender: TObject);
+    procedure Panel5Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
@@ -680,6 +686,11 @@ begin
   TfrmPaging.create(nil).show;
 end;
 
+procedure TMemoryBrowser.Panel5Click(Sender: TObject);
+begin
+
+end;
+
 procedure TMemoryBrowser.miLockOnClick(Sender: TObject);
 begin
   hexview.unlock;
@@ -1042,6 +1053,29 @@ begin
     end;
     hexview.update;
   end;
+end;
+
+procedure TMemoryBrowser.miDisassemblyAutodetectClick(Sender: TObject);
+begin
+  if miDisassemblyAutodetect.checked then
+    visibleDisassembler.is64bitOverride:=false
+  else
+  if miDisassembly32.checked then
+  begin
+    visibleDisassembler.is64bitOverride:=true;
+    visibleDisassembler.is64bitOverridestate:=false
+  end
+  else
+  begin
+    visibleDisassembler.is64bitOverride:=true;
+    visibleDisassembler.is64bitOverridestate:=true;
+  end;
+
+  defaultDisassembler.is64bitOverride:=visibleDisassembler.is64bitoverride;
+  defaultDisassembler.is64bitOverridestate:=visibleDisassembler.is64bitOverridestate;
+
+  disassemblerview.update;
+
 end;
 
 procedure TMemoryBrowser.miFindWhatAccessesClick(Sender: TObject);

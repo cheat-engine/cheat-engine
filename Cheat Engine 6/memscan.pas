@@ -3572,15 +3572,26 @@ begin
           scanners[i].scannernr:=i;
           scanners[i].OwningScanController:=self;
 
-          scanners[i].startentry:=currententry;
 
-          if i=threadcount-1 then
-            scanners[i].stopentry:=totalAddresses-1
+          if totalAddresses>0 then
+          begin
+            scanners[i].startentry:=currententry;
+
+
+            if i=threadcount-1 then
+              scanners[i].stopentry:=totalAddresses-1
+            else
+              scanners[i].stopentry:=currententry+blocksize;
+
+            if scanners[i].stopentry>=totaladdresses then
+              scanners[i].stopentry:=totalAddresses-1;
+          end
           else
-            scanners[i].stopentry:=currententry+blocksize;
+          begin
+            scanners[i].startentry:=1;
+            scanners[i].stopEntry:=0; //signals the scanner thread to quit
 
-          if scanners[i].stopentry>=totaladdresses then
-            scanners[i].stopentry:=totalAddresses-1;
+          end;
 
           currententry:=scanners[i].stopentry+1; //next thread will start at the next one
 
@@ -4790,12 +4801,14 @@ begin
 
   if scanController<>nil then
   begin
+
     scancontroller.WaitFor; //could be it's still saving the results of the previous scan
     freeandnil(scanController);
   end;
 
   if SaveFirstScanThread<>nil then
   begin
+
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
   end;

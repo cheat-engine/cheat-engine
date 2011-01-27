@@ -61,6 +61,7 @@ object MemoryBrowser: TMemoryBrowser
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
+      OnClick = Panel5Click
     end
     object RegisterView: TPanel
       Left = 512
@@ -945,6 +946,32 @@ object MemoryBrowser: TMemoryBrowser
           Caption = 'Only show jumplines within range'
           Checked = True
           OnClick = Onlyshowjumplineswithinrange1Click
+        end
+      end
+      object miDisassemblerType: TMenuItem
+        Caption = 'Disassembly output'
+        object miDisassemblyAutodetect: TMenuItem
+          AutoCheck = True
+          Caption = 'Autodetect'
+          Checked = True
+          Default = True
+          GroupIndex = 1
+          RadioItem = True
+          OnClick = miDisassemblyAutodetectClick
+        end
+        object miDisassembly32: TMenuItem
+          AutoCheck = True
+          Caption = '32-bit'
+          GroupIndex = 1
+          RadioItem = True
+          OnClick = miDisassemblyAutodetectClick
+        end
+        object miDisassembly64: TMenuItem
+          AutoCheck = True
+          Caption = '64-bit'
+          GroupIndex = 1
+          RadioItem = True
+          OnClick = miDisassemblyAutodetectClick
         end
       end
       object miTextPreferences: TMenuItem
