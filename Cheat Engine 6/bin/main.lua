@@ -172,7 +172,8 @@ require("defines")
 --stringlist_getCount(list)
 --stringlist_add(list, string);
 --stringlist_remove(list, string);
---stringlist_getString(list,index)
+--stringlist_getString(list,index);
+--stringlist_getFullText(list); //CE 6.1: Get the stringlist as one big string
 
 
 
@@ -185,3 +186,8 @@ require("defines")
 --function debugger_onModuleLoad(modulename, baseaddress) : 
 --this routine is called when a module is loaded. Only works for the windows debugger
 --return 1 if you want to cause the debugger to break
+
+--ce 6.1:
+--getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
+--setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class
+--getProperty(class, propertyname) : Gets the value of a published property of a class

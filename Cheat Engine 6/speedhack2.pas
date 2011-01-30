@@ -163,7 +163,7 @@ begin
     try
 
 //      showmessage(script.Text);
-      Clipboard.AsText:=script.text;
+     // Clipboard.AsText:=script.text;
       autoassemble(script,false);
     except
       raise exception.Create('Failure setting speed');

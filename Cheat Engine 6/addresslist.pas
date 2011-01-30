@@ -1451,30 +1451,35 @@ begin
   begin
     Text:='Active';
     Width:=40;
+    MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
     Text:='Description';
     Width:=160;
+    MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
     Text:='Address';
     Width:=85;
+    MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
     Text:='Type';
     Width:=60;
+    MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
     Text:='Value';
     Width:=9000000;
+    MinWidth:=5;
   end;
 
   header.OnSectionTrack:=SectionTrack;

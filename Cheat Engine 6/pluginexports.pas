@@ -7,7 +7,7 @@ interface
 uses jwawindows, windows, ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
      SyncObjs,dialogs,LCLIntf,classes,autoassembler,
      CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
-     debugHelper, debuggertypedefinitions;
+     debugHelper, debuggertypedefinitions, typinfo;
 
 type TPluginFunc=function(parameters: pointer): pointer;
 function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;
@@ -114,6 +114,12 @@ procedure ce_stringlist_add(c: pointer; s: pchar); stdcall;
 procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
 
 function ce_createProcess(path,params: pchar; debug, breakonentry: BOOL): BOOL; stdcall;
+
+//ce6.1
+function ce_getPropertylist(c: tobject): pointer; stdcall;
+function ce_setProperty(c: tobject; propertyname: pchar; value: pchar): BOOL; stdcall;
+function ce_getProperty(c: tobject; propertyname: pchar; value: pchar; maxsize: integer): integer; stdcall;
+
 
 implementation
 
@@ -2394,6 +2400,151 @@ begin
   p.breakonentry:=breakonentry;
   result:=pluginsync(ce_createProcess2, @p)<>nil;
 end;
+
+
+function ce_getPropertylist(c: tobject): pointer; stdcall;
+var sl: tstringlist;
+  s: string;
+  i,j: integer;
+  PP : PPropList;
+begin
+  result:=nil;
+  sl:=nil;
+  try
+    pp:=nil;
+    i:=GetPropList(c, pp);
+    if i>0 then
+    begin
+      sl:=tstringlist.create;
+
+      for j:=0 to i-1 do
+      begin
+        if pp^[j].PropType^.Kind<>tkMethod then
+          sl.add(pp^[j].Name);
+      end;
+
+
+      result:=sl;
+    end;
+    if pp<>nil then
+      freemem(pp);
+{
+var
+  PT : PTypeData;
+  PI : PTypeInfo;
+  I,J : Longint;
+  PP : PPropList;
+  prI : PPropInfo;
+  s: string;
+begin
+  memo1.clear;
+
+  s:='alBottom';
+
+
+  pp:=nil;
+  j:=GetPropList(button2, pp);
+
+
+  //memo1.lines.add(format('Ordinal property Count : %d',[j]));
+
+  For I:=0 to J-1 do
+    begin
+      memo1.lines.add(pp^[i].Name);
+
+
+      if pp^[i].name='Top' then
+      begin
+      if pp^[i].PropType^.Kind<>tkMethod then
+
+       SetPropValue(button2,'Align',2);
+       //TSetPropValue(pp^[i].SetProc)(button2, 'Top', 500);
+
+     // memo1.lines.add(format('Property %d : name=%s',[i, ]));
+
+      //Write('Property ',i+1:3,': ',name:30);
+     // writeln('  Type: ',TypeNames[typinfo.PropType(O,Name)]);
+      end;
+
+    end;
+  FreeMem(PP);
+
+}
+  except
+  end;
+end;
+
+function ce_setProperty2(params: pointer): pointer;
+type tp= record
+  c: tobject;
+  propertyname: pchar;
+  value: pchar;
+end;
+var p: ^tp;
+begin
+  result:=nil;
+  p:=params;
+  try
+    SetPropValue(p.c, p.propertyname, p.value);
+    result:=pointer(1);
+  except
+  end;
+end;
+
+function ce_setProperty(c: TObject; propertyname: pchar; value: pchar): BOOL; stdcall;
+var p: record
+  c: tobject;
+  propertyname: pchar;
+  value: pchar;
+end;
+begin
+  p.c:=c;
+  p.propertyname:=propertyname;
+  p.value:=value;
+  result:=pluginsync(ce_setProperty2, @p)<>nil;
+end;
+
+function ce_getProperty2(params: pointer): pointer;
+type tp= record
+  c: tobject;
+  propertyname: pchar;
+  value: pchar;
+  maxsize: integer;
+end;
+var p: ^tp;
+  s: string;
+begin
+  result:=nil;
+
+  p:=params;
+  //try
+    s:=GetPropValue(p.c, p.propertyname, true);
+    CopyMemory(p.value, pchar(s), min(length(s)+1, p.maxsize));
+
+    result:=pointer(length(s)+1);
+    if p.maxsize>0 then
+      p.value[p.maxsize-1]:=#0;
+  //except
+  //  if p.maxsize>0 then
+ //     p.value[0]:=#0;
+ // end;
+end;
+
+function ce_getProperty(c: tobject; propertyname: pchar; value: pchar; maxsize: integer): integer; stdcall;
+var p: record
+  c: tobject;
+  propertyname: pchar;
+  value: pchar;
+  maxsize: integer;
+end;
+begin
+  p.c:=c;
+  p.propertyname:=propertyname;
+  p.value:=value;
+  p.maxsize:=maxsize;
+  result:=integer(pluginsync(ce_getProperty2, @p));
+end;
+
 
 initialization
   plugindisassembler:=TDisassembler.create;

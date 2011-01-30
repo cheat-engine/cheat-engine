@@ -2628,6 +2628,23 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
+function stringlist_getFullText_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  c: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    lua_pushstring(L, tstringlist(c).Text);
+    result:=1;
+
+  end else lua_pop(L, lua_gettop(L));
+end;
+
 function stringlist_getString_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   c: pointer;
@@ -2817,9 +2834,10 @@ var paramcount: integer;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  if paramcount>=1 then
   begin
     s:=Lua_ToString(L, -1);
+    lua_pop(L, lua_gettop(l));
 
     lua_pushnumber(L,symhandler.getAddressFromName(s));
     result:=1;
@@ -2833,6 +2851,74 @@ begin
   result:=0;
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded;
+end;
+
+function getPropertyList_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  c: tobject;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, ce_getPropertylist(c));
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function getProperty_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  c: tobject;
+  p: string;
+  buf: pchar;
+
+  size: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    p:=Lua_ToString(L, -1);
+
+    lua_pop(L, lua_gettop(l));
+
+    size:=ce_getProperty(c,pchar(p),buf,0);
+
+    if size=0 then exit; //invalid property
+
+    getmem(buf,size);
+    if ce_getProperty(c,pchar(p),buf,size)<=size then
+    begin
+      lua_pushstring(L, buf);
+      result:=1;
+    end;
+    freemem(buf);
+
+
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function setProperty_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  c: tobject;
+  p,v: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=3 then
+  begin
+    c:=lua_touserdata(L, -3);
+    p:=Lua_ToString(L, -2);
+    v:=Lua_ToString(L, -1);
+
+    ce_setProperty(c,pchar(p),pchar(v));
+  end;
+
+  lua_pop(L, lua_gettop(l));
 end;
 
 
@@ -2929,14 +3015,20 @@ initialization
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
     lua_register(LuaVM, 'stringlist_getCount', stringlist_getCount_fromLua);
     lua_register(LuaVM, 'stringlist_getString', stringlist_getString_fromLua);
+    lua_register(LuaVM, 'stringlist_getFullText', stringlist_getFullText_fromLua);  //6.1
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
     lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
+
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
     lua_register(LuaVM, 'AOBScan', AOBScan_fromLua);
     lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID_fromLua);
     lua_register(LuaVM, 'getAddress', getAddress_fromLua);
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
+    //ce6.1
+    lua_register(LuaVM, 'getPropertyList', getPropertyList_fromLua);
+    lua_register(LuaVM, 'setProperty', setProperty_fromLua);
+    lua_register(LuaVM, 'getProperty', getProperty_fromLua);
     LUA_DoScript('os=nil');
 
   end;
