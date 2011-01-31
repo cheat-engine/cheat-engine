@@ -1746,7 +1746,7 @@ begin
                         if $f3 in prefix2 then
                         begin
                           description:='move scalar single-fp';
-                          lastdisassembledata.opcode:='movsd';
+                          lastdisassembledata.opcode:='movss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
