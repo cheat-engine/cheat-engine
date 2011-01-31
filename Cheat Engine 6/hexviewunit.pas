@@ -7,22 +7,25 @@ interface
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions;
+  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps;
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
   TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
 
   TPageinfo=record
+    baseaddress: ptruint;
     readable: boolean;
     inModule: boolean;
+    data: array [0..4095] of byte;
   end;
+
+  PPageinfo=^TPageInfo;
 
   THexView=class(TCustomPanel)
   private
-    buffer: pbytearray;
-    buffersize: integer;
-    pageinfo: array of TPageinfo;
+    MemoryMap: TMap;
+    MemoryMapItterator: TMapIterator;
 
     verticalscrollbar: TScrollbar;
     mbCanvas: TPaintbox;
@@ -68,6 +71,8 @@ type
     fShowDiffHv: THexview;
 
     procedure LoadMemoryRegion;
+    function GetPageInfo(a: ptruint): PPageInfo;
+
     procedure UpdateMemoryInfo;
     procedure OnLostFocus(sender: TObject);
     procedure mbPaint(sender: TObject);
@@ -918,68 +923,41 @@ begin
 end;
 
 procedure THexView.LoadMemoryRegion;
-var memorysize: integer;
-    pages: integer;
-    startpage: ptrUint;
-    endpage: ptrUint;
-    currentaddress: ptrUint;
-    i: integer;
-    bufferpos: ptrUint;
-    blocksize: integer;
-    actualread: dword;
 begin
-  memorysize:=bytesPerLine*totallines;
-
-  if fShowDiffHv<>nil then //if the difference is shown read more memory
-    memorysize:=max(memorysize, fShowDiffHv.bytesPerLine*fShowDiffHv.totallines);
+  MemoryMap.clear; //erase the old data, memory access will fill it when needed
+end;
 
 
-  if self.buffersize<memorysize then //make sure the buffer is big enough
+function THexView.GetPageInfo(a: ptruint): PPageInfo;
+var
+    p: TPageInfo;
+    x: dword;
+begin
+  a:=a and (not $fff);
+  if MemoryMapItterator.Locate(a) then
+    result:=MemoryMapItterator.DataPtr
+  else
   begin
-    ReAllocMem(buffer,memorysize*2);
-    self.buffersize:=memorysize*2;
+    //get memory page info
+    p.baseaddress:=a;
+    p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
+    if p.readable then
+      p.inModule:=symhandler.inModule(a)
+    else
+      p.inModule:=false;
+
+    memorymap.Add(a, p);
+    MemoryMapItterator.Locate(a);
+    result:=MemoryMapItterator.DataPtr;
   end;
-
-  startpage:=fAddress;
-  endpage:=fAddress+memorysize;
-
-  startpage:=startpage shr 12;
-  endpage:=endpage shr 12;
-
-  pages:=endpage-startpage+1;
-  setlength(pageinfo,pages);
-
-  currentaddress:=fAddress;
-
-  bufferpos:=ptrUint(buffer);
-  for i:=0 to pages-1 do
-  begin
-    blocksize:=4096-(currentaddress and $fff);
-    blocksize:=min(memorysize,blocksize);
-
-    pageinfo[i].readable:=readprocessmemory(processhandle,pointer(currentaddress),pointer(bufferpos), blocksize, actualread);
-    pageinfo[i].inModule:=symhandler.inModule(currentaddress);
-
-    inc(bufferpos,blocksize);
-    inc(currentaddress,blocksize);
-
-    dec(memorysize,blocksize);
-  end;
-
 end;
 
 function THexView.inModule(a: ptrUint): boolean;
-var i: integer;
-    page: word;
+var
+    pi: PPageInfo;
 begin
-  result:=false;
-  i:=a-fAddress;
-  if i>self.buffersize then
-    exit;
-
-  page:=((fAddress and $fff)+i) shr 12;
-  result:=(page<length(pageinfo)) and (pageinfo[page].readable) and (pageinfo[page].inModule);
-
+  pi:=GetPageInfo(a);
+  result:=pi.readable and pi.inModule;
 end;
 
 procedure THexView.setByte(a: ptrUint;value: byte);
@@ -989,25 +967,17 @@ begin
 end;
 
 function THexView.getByte(a: ptrUint; var unreadable: boolean): byte; overload;
-var i: integer;
-    page: word;
+var
+  pi: PPageinfo;
+  offset: word;
 begin
-  unreadable:=true;
-  result:=0;
+  pi:=getPageInfo(a);
 
-  i:=a-fAddress;
-  if i>self.buffersize then
-    exit;
+  offset:=a-pi.baseaddress;
 
-  page:=((fAddress and $fff)+i) shr 12;
-
-
-  if page<length(pageinfo) then
-  begin
-    unreadable:=not pageinfo[page].readable;
-    if not unreadable then
-      result:=buffer[i];
-  end;// else messagebox(0,pchar('fAddress='+inttohex(fAddress,8)+' a='+inttohex(a,8)+' i='+inttohex(i,2)+' page='+inttohex(page,8)+' page2='+inttohex(page2,8)+' length(readable)='+inttostr(length(readable))),'aaa',0);
+  unreadable:=not pi.readable;
+  if pi.readable then
+    result:=pi.data[offset];
 end;
 
 function THexView.getByte(a: ptrUint): string; overload;
@@ -1525,14 +1495,17 @@ begin
   if verticalscrollbar<>nil then
     freeandnil(verticalscrollbar);
 
-  if buffer<>nil then
-    freemem(buffer);
-
   if mbCanvas<>nil then
     freeandnil(mbCanvas);
 
   if offscreenbitmap<>nil then
     freeandnil(offscreenbitmap);
+
+  if MemoryMapItterator<>nil then
+    freeandnil(memorymapitterator);
+
+  if MemoryMap<>nil then
+    freeandnil(memorymap);
 
 
   inherited destroy;
@@ -1543,12 +1516,12 @@ constructor THexView.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
 
+  MemoryMap:=TMap.create(ituPtrSize, sizeof(TPageinfo));
+  MemoryMapItterator:=TMapIterator.create(MemoryMap);
+
   changelist:=TChangelist.create;
 
   bytesPerSeperator:=8;
-
-  getmem(buffer,8192);
-  self.buffersize:=8192;
 
   width:=200;
   height:=200;
