@@ -428,7 +428,10 @@ begin
     try
       with enablecode do
       begin
-        add('alloc(newmem'+inttostr(injectnr)+',2048) //2kb should be enough');
+        if processhandler.is64bit then
+          add('alloc(newmem'+inttostr(injectnr)+',2048,'+address+') //2kb should be enough')
+        else
+          add('alloc(newmem'+inttostr(injectnr)+',2048) //2kb should be enough');
         add('label(returnhere'+inttostr(injectnr)+')');
         add('label(originalcode'+inttostr(injectnr)+')');
         add('label(exit'+inttostr(injectnr)+')');
