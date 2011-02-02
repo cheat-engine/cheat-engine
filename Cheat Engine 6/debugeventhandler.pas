@@ -128,7 +128,10 @@ procedure TDebugThreadHandler.VisualizeBreak;
 begin
   MemoryBrowser.lastdebugcontext:=context^;
 
+  WaitingToContinue:=true;
   luaOverride:=lua_onBreakpoint(context);
+  WaitingToContinue:=false;
+
   if luaoverride=false then //no lua script or it returned 0
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
 end;
