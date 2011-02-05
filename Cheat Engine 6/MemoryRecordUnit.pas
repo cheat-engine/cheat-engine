@@ -1215,6 +1215,8 @@ var
   temp: qword;
   temps: string;
 
+  tempsw: widestring;
+
   mr: TMemoryRecord;
 
   unparsedvalue: string;
@@ -1344,13 +1346,14 @@ begin
           x:=min(length(currentValue),x);
 
 
+        tempsw:=currentvalue;
 
         //copy the string to the buffer
         for i:=0 to x-1 do
         begin
           if extra.stringData.unicode then
           begin
-            wc[i]:=pwidechar(currentValue)[i];
+            wc[i]:=pwidechar(tempsw)[i];
           end
           else
           begin
