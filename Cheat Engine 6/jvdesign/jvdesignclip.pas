@@ -193,6 +193,7 @@ procedure TJvDesignComponentClipboard.OpenRead;
 begin
   Open;
   DesignCopyStreamFromClipboard(CF_COMPONENTSTREAM, Stream);
+  stream.Position:=0;
 end;
 
 procedure TJvDesignComponentClipboard.OpenWrite;
@@ -223,4 +224,4 @@ finalization
   UnregisterUnitVersion(HInstance);
   {$ENDIF UNITVERSIONING}
 
-end.
+end.

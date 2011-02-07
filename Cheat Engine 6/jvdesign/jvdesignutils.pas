@@ -9,6 +9,9 @@ uses
   {$IFDEF UNITVERSIONING}
   JclUnitVersioning,
   {$ENDIF UNITVERSIONING}
+  {$ifdef windows}
+  windows,
+  {$endif}
   SysUtils, LCLProc, LCLType, LResources, LCLIntf, LMessages,    Classes, Controls, Graphics, Forms, dialogs;
 
 type
@@ -190,32 +193,62 @@ var
   DC: HDC;
   C: TCanvas;
 begin
-  if AContainer = nil then
-    DesktopWindow := 0 //CV GetDesktopWindow
-  else
+  //AContainer:=nil;
+  //if (AContainer=nil) or not (AContainer is TCustomForm) then
   begin
-    DesktopWindow := AContainer.Handle;
+    if AContainer = nil then
+      DesktopWindow := 0 //CV GetDesktopWindow
+    else
+    begin
+      DesktopWindow := AContainer.Handle;
+      ARect.TopLeft := AContainer.ScreenToClient(ARect.TopLeft);
+      ARect.BottomRight := AContainer.ScreenToClient(ARect.BottomRight);
+    end;
+    //CV DC := GetDCEx(DesktopWindow, 0, DCX_CACHE or DCX_LOCKWINDOWUPDATE);
+
+    {$ifdef windows}
+    DC:=GetDCEx(DesktopWindow,0,DCX_CACHE or DCX_CLIPSIBLINGS);
+    {$else}
+    DC := GetDC(DesktopWindow);
+    {$endif}
+
+    try
+      C := TCanvas.Create;
+      with C do
+      try
+        Handle := DC;
+        Pen.Style := APenStyle;
+        Pen.Color := clWhite;
+        Pen.Mode := pmXor;
+
+        Brush.Style := bsClear;
+        Rectangle(ARect);
+      finally
+        C.Free;
+      end;
+    finally
+      ReleaseDC(DesktopWindow, DC);
+    end;
+
+  end
+ { else
+  begin
     ARect.TopLeft := AContainer.ScreenToClient(ARect.TopLeft);
     ARect.BottomRight := AContainer.ScreenToClient(ARect.BottomRight);
-  end;
-  //CV DC := GetDCEx(DesktopWindow, 0, DCX_CACHE or DCX_LOCKWINDOWUPDATE);
-  DC := GetDC(DesktopWindow);
-  try
-    C := TCanvas.Create;
-    with C do
-    try
-      Handle := DC;
-      Pen.Style := APenStyle;
-      Pen.Color := clWhite;
-      Pen.Mode := pmXor;
-      Brush.Style := bsClear;
-      Rectangle(ARect);
-    finally
-      C.Free;
-    end;
-  finally
-    ReleaseDC(DesktopWindow, DC);
-  end;
+
+    GetDCEx(Handle,0,DCX_CACHE or
+    DCX_CLIPSIBLINGS);
+
+
+    c:=tcustomform(AContainer).canvas;
+    c.Pen.Style := APenStyle;
+    c.Pen.Color := clWhite;
+    c.Pen.Mode := pmXor;
+
+    c.Brush.Style := bsClear;
+    c.Rectangle(ARect);
+
+  end;}
 end;
 
 procedure DesignPaintRules(ACanvas: TCanvas; const ARect: TRect;

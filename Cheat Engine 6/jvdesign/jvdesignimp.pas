@@ -10,7 +10,7 @@ uses
   {$ENDIF UNITVERSIONING}
   LCLProc, LCLType, LResources, LCLIntf, LMessages, SysUtils, Classes, Controls, Graphics,
   Forms, ExtCtrls, Contnrs, JvDesignUtils,
-  JvDesignSurface;
+  JvDesignSurface, componenteditors, propedits;
 
 const
   cJvDesignDefaultHandleWidth = 8;
@@ -178,7 +178,7 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   end;
 
-    TJvDesignDesigner = class( TIDesigner)// TComponent, IDesignerHook)
+  TJvDesignDesigner = class( TComponentEditorDesigner)// TComponent, IDesignerHook)
   private
     FMessenger: TJvDesignCustomMessenger;
   public
@@ -186,7 +186,10 @@ type
     constructor Create(AMessenger: TJvDesignCustomMessenger); reintroduce;
     // IDesignerNotify interface
     procedure Modified;
-    procedure Notification(AnObject: TPersistent; Operation: TOperation); reintroduce;
+    //
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+    function DeleteSelection: boolean; override;
 
     // IDesigner, IDesignerHook interface
     function GetCustomForm: TCustomForm;
@@ -517,8 +520,11 @@ begin
   C := Selected.Parent;
   while (C <> Container) and (C <> nil) do
   begin
-    Inc(Result.X, C.Left);
-    Inc(Result.Y, C.Top);
+    if (c is TControl) then
+    begin
+      Inc(Result.X, C.Left);
+      Inc(Result.Y, C.Top);
+    end;
     C := C.Parent;
   end;
 end;
@@ -650,23 +656,28 @@ procedure TJvDesignSelector.AddToSelection(AValue: TControl);
 var
   H: TJvDesignHandles;
 begin
-  if AValue = nil then
-    raise EJVCLException.CreateRes(@RsEDesignCannotSelect);
-  if not IsSelected(AValue) then
+  if (AValue is TControl) then
   begin
-    H := TJvDesignHandles.Create(Self);
-    H.Container := Surface.Container;
-    H.Resizeable := Count = 0;
-    FHandles.Add(H);
-    H.Selected := AValue;
-    if Count = 2 then
-      ShowHideResizeHandles
-    else
-      H.UpdateHandles;
-    Surface.Messenger.DesignComponent(H.Handles[0], True);
-    Surface.Messenger.DesignComponent(H.Handles[1], True);
-    Surface.Messenger.DesignComponent(H.Handles[2], True);
-    Surface.Messenger.DesignComponent(H.Handles[3], True);
+
+    if AValue = nil then
+      raise EJVCLException.CreateRes(@RsEDesignCannotSelect);
+    if not IsSelected(AValue) then
+    begin
+      H := TJvDesignHandles.Create(Self);
+      H.Container := Surface.Container;
+      H.Resizeable := Count = 0;
+      FHandles.Add(H);
+      H.Selected := AValue;
+      if Count = 2 then
+        ShowHideResizeHandles
+      else
+        H.UpdateHandles;
+      Surface.Messenger.DesignComponent(H.Handles[0], True);
+      Surface.Messenger.DesignComponent(H.Handles[1], True);
+      Surface.Messenger.DesignComponent(H.Handles[2], True);
+      Surface.Messenger.DesignComponent(H.Handles[3], True);
+    end;
+
   end;
 end;
 
@@ -790,7 +801,8 @@ function TJvDesignController.KeyDown(AKeyCode: Cardinal): Boolean;
   end;
 
 begin
-  FKeyDownShift := Shift666;
+
+  FKeyDownShift := GetKeyShiftState;
   if ssCtrl in FKeyDownShift then
     Result := CtrlKeys
   else
@@ -836,7 +848,7 @@ function TJvDesignController.KeyUp(AKeyCode: Cardinal): Boolean;
   end;
 
 begin
-  FKeyDownShift := FKeyDownShift + Shift666;
+  FKeyDownShift := FKeyDownShift + GetKeyShiftState;
   if ssCtrl in FKeyDownShift then
     Result := CtrlKeys
   else
@@ -867,21 +879,21 @@ var
       // This bug apparently only happens under certain rare conditions
       // under windows but its fix does not seem to have any negative impact
       // on systems where it does not happen.
-      WasActive := TJvDesignPanel(Surface.Container).Active;
-      if WasActive then
-        TJvDesignPanel(Surface.Container).Active := False;
+   //   WasActive := TJvDesignPanel(Surface.Container).Active;
+   //   if WasActive then
+   //     TJvDesignPanel(Surface.Container).Active := False;
 
       Surface.Container.SetFocus;
 
-      if WasActive then
-        TJvDesignPanel(Surface.Container).Active := True;
+   //   if WasActive then
+   //     TJvDesignPanel(Surface.Container).Active := True;
     end;
   end;
 
   procedure SelectDragMode;
   begin
     HandleId := dhNone;
-    if ssCtrl in Shift666 then
+    if ssCtrl in GetKeyShiftState then
       // Ctrl-drag selection has highest priority
       FDragMode := dmSelect
     else
@@ -912,7 +924,9 @@ var
     end;
     if FClicked = nil then
       FClicked := Surface.Container;
-    FClicked.Parent.DisableAlign;
+
+    if fclicked.parent<>nil then
+      FClicked.Parent.DisableAlign;
   end;
 
   procedure CreateMouseTool;
@@ -925,7 +939,7 @@ var
         end;
       dmMove:
         begin
-          if ssShift in Shift666 then
+          if ssShift in GetKeyShiftState then
             Surface.Selector.AddToSelection(FClicked)
           else
           if not Surface.Selector.IsSelected(FClicked) then
@@ -940,15 +954,17 @@ var
         end;
     end;
     if FMouseTool <> nil then
-      FMouseTool.MouseDown(Button, Shift666, X, Y);
+      FMouseTool.MouseDown(Button, GetKeyShiftState, X, Y);
   end;
 
 begin
-  Shift666 := [];
+  {GetKeyShiftState := [];
   if (TheMessage.Keys and MK_Shift) = MK_Shift then
     Shift666 := Shift666 + [ssShift];
   if (TheMessage.Keys and MK_Control) = MK_Control then
-    Shift666 := Shift666 + [ssCtrl];
+    Shift666 := Shift666 + [ssCtrl];   }
+ // shift666:=GetKeyShiftState;
+
   FocusSurface;
   CaptureMouse;
   SelectDragMode;
@@ -958,18 +974,18 @@ end;
 
 function TJvDesignController.MouseMove(X, Y: Integer; TheMessage: TLMMouse): Boolean;
 begin
-  Shift666 := [];
+ { Shift666 := [];
   if (TheMessage.Keys and MK_Shift) = MK_Shift then
     Shift666 := Shift666 + [ssShift];
   if (TheMessage.Keys and MK_Control) = MK_Control then
-    Shift666 := Shift666 + [ssCtrl];
+    Shift666 := Shift666 + [ssCtrl];}
 
   if not FMouseIsDown then
     SetCursor(Screen.Cursors[Surface.GetCursor(X, Y)])
   else
   begin
     if FMouseTool <> nil then
-      FMouseTool.MouseMove(Shift666, X, Y);
+      FMouseTool.MouseMove(GetKeyShiftState, X, Y);
   end;
   Result := True;
 end;
@@ -987,7 +1003,7 @@ function TJvDesignController.MouseUp(Button: TMouseButton; X, Y: Integer; TheMes
     // If the debugger breaks in during a mouse operation,
     // AlignDisabled can become stuck.
     // This routine is to aid debugging only.
-    if FClicked <> nil then
+    if (FClicked <> nil) and (FClicked.parent<>nil) then
       //cv while FClicked.Parent.AlignDisabled do
         FClicked.Parent.EnableAlign;
   end;
@@ -996,7 +1012,7 @@ function TJvDesignController.MouseUp(Button: TMouseButton; X, Y: Integer; TheMes
   begin
     if FMouseTool <> nil then
     try
-      FMouseTool.MouseUp(Button, Shift666, X, Y);
+      FMouseTool.MouseUp(Button, GetKeyShiftState, X, Y);
       FDragRect := DesignValidateRect(FMouseTool.DragRect);
       case FDragMode of
         dmCreate:
@@ -1014,11 +1030,11 @@ function TJvDesignController.MouseUp(Button: TMouseButton; X, Y: Integer; TheMes
   end;
 
 begin
-  Shift666 := [];
+  {Shift666 := [];
   if (TheMessage.Keys and MK_Shift) = MK_Shift then
     Shift666 := Shift666 + [ssShift];
   if (TheMessage.Keys and MK_Control) = MK_Control then
-    Shift666 := Shift666 + [ssCtrl];
+    Shift666 := Shift666 + [ssCtrl];      }
 
   if FMouseIsDown then
   begin
@@ -1273,15 +1289,36 @@ begin
   //
 end;
 
-procedure TJvDesignDesigner.Notification(AnObject: TPersistent;
-  Operation: TOperation);
+procedure TJvDesignDesigner.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  //
+  //messagebox(0,'a','a',0);
+//  showmessage('n'); //
+end;
+
+function TJvDesignDesigner.DeleteSelection: boolean;
+var a: TPersistentSelectionList;
+  i: integer;
+begin
+
+  a:=TPersistentSelectionList.Create;
+  GlobalDesignHook.GetSelection(a);
+
+
+
+  for i:=0 to a.Count-1 do
+    TPersistent(a.items[i]).free;
+
+
+  a.free;
+
+  FMessenger.Container.Update;
+
 end;
 
 procedure TJvDesignDesigner.PaintGrid;
 begin
-  //
+
+  DesignPaintGrid(tform(FMessenger.Container).Canvas, tform(FMessenger.Container).ClientRect);
 end;
 
 procedure TJvDesignDesigner.SetCustomForm(Value: TCustomForm);

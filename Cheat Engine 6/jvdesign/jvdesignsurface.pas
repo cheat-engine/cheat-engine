@@ -40,12 +40,12 @@ interface
 
 uses
   Classes, SysUtils,
-  LCLProc, LCLType, LResources, LCLIntf, LMessages,
+  LCLProc, LCLType, LResources, LCLIntf,
   //Messages,
   Forms, Controls, Graphics,
   Dialogs,
   //Windows,
-  ExtCtrls, Contnrs;
+  ExtCtrls, Contnrs,LMessages;
 
 type
   TJvDesignSurface = class;
@@ -89,7 +89,7 @@ type
   TJvDesignCustomController = class(TObject)
   private
     FSurface: TJvDesignSurface;
-    FShift: TShiftState; //CV
+
   protected
     function GetDragRect: TRect; virtual; abstract;
     //CV function GetShift: TShiftState;
@@ -101,7 +101,6 @@ type
   public
     constructor Create(ASurface: TJvDesignSurface); virtual;
     property DragRect: TRect read GetDragRect;
-    property Shift666: TShiftState read FShift write FShift; //CV
     property Surface: TJvDesignSurface read FSurface;
   end;
 
@@ -233,7 +232,7 @@ type
     procedure AutoScrollInView(AControl: TControl); //CV override;
   end;
 
-  TJvDesignPanel = class(TPanel)
+  TJvDesignPanel = class(TCustomPanel)
   private
     FSurface: TJvDesignSurface;
     FOnPaint: TNotifyEvent;
@@ -264,6 +263,10 @@ type
     property OnChange: TNotifyEvent read GetOnChange write SetOnChange;
     property OnGetAddClass: TJvDesignGetAddClassEvent read GetOnGetAddClass write SetOnGetAddClass;
     property OnSelectionChange: TNotifyEvent read GetOnSelectionChange write SetOnSelectionChange;
+    property align;
+    property BevelInner;
+    property BevelOuter;
+    property caption;
   end;
 
 {$IFDEF UNITVERSIONING}
@@ -334,6 +337,30 @@ begin
     Result := False
   else
     case AMessage.Msg of
+      LM_LCL..LM_INTERFACELAST : result:=true;
+      CM_BASE..CM_APPSHOWMENUGLYPHCHANGED:
+      begin
+        result:=true;
+        case AMessage.Msg of
+          CM_SHOWINGCHANGED,CM_HITTEST: result:=false;
+        end;
+//      45082: result:=true;
+//      $10407: result:=true;
+      end;
+
+      $bd11: result:=true;
+
+      LM_MOVE: result:=false;
+      LM_NOTIFY: result:=true; //?
+      LM_DESTROY: result:=false;
+
+      LM_CAPTURECHANGED,LM_SYSCOMMAND: result:=false;
+     // LM_CONTEXTMENU: result:=true;
+
+      LM_SETFOCUS,LM_SIZE: result:=false;
+      LM_ACTIVATE,LM_SHOWWINDOW,LM_KILLFOCUS,LM_SETCURSOR: result:=false;
+      LM_NCMOUSEMOVE..LM_NCLBUTTONDBLCLK: result:=true;
+
       LM_MOUSEFIRST..LM_MOUSELAST:
         Result := FOnDesignMessage(ASender, AMessage, MousePoint);
       LM_KEYDOWN..LM_KEYUP, LM_PAINT, LM_ERASEBKGND, LM_WINDOWPOSCHANGED, CN_KEYDOWN..CN_KEYUP:
@@ -341,6 +368,7 @@ begin
       else
         Result := False;
     end;
+
 end;
 
 //=== { TJvDesignMessageHook } ===============================================
@@ -503,7 +531,8 @@ procedure TJvDesignSurface.SetActive(AValue: Boolean);
   procedure Deactivate;
   begin
     FreeAndNil(FContainerHook);
-    Selector.ClearSelection;
+    if selector<>nil then
+      Selector.ClearSelection;
     FreeAndNil(FMessenger);
   end;
 
@@ -668,6 +697,8 @@ begin
       CO := TControl(C);
       CO.Parent := SelectedContainer;
       CO.BoundsRect := GetBounds;
+      CO.PopupMenu:= container.PopupMenu;
+
       Select(CO);
     end;
     Messenger.DesignComponent(C, Active);
@@ -703,18 +734,55 @@ begin
   Change;
 end;
 
+procedure DeleteComponent(c: TObject);
+var i: integer;
+begin
+  if (c is TWinControl) then
+  begin
+    while TWinControl(c).ControlCount>0 do
+      deleteComponent((c as TWinControl).controls[0]);
+  end;
+
+  if (c is TComponent) then
+  begin
+    //delete the possible children it might have
+    while (c as tcomponent).ComponentCount>0 do
+      deleteComponent((c as tcomponent).Components[0]);
+  end;
+
+  c.Free;
+end;
+
 procedure TJvDesignSurface.DeleteComponents;
 var
   I: Integer;
+  z: array of tobject;
 begin
-  if Count > 0 then
+  setlength(z,count);
+  for i:=0 to count-1 do
+    z[i]:=selection[i];
+
+  ClearSelection;
+  SelectionChange;
+
+  for i:=0 to length(z)-1 do
+  begin
+    deleteComponent(z[i]); //.free;
+  end;
+
+{  if Count > 0 then
   begin
     for I := 0 to Count - 1 do
-      Selection[I].Free;
-    ClearSelection;
-    SelectionChange;
-    Change;
-  end;
+    begin
+      z:=selection[i];
+      z.free;
+//      selection[i].Caption:='del me';
+      //Selection[I].Free;
+    end;}
+
+
+  Change;
+
 end;
 
 procedure TJvDesignSurface.CopyComponents;
@@ -761,7 +829,8 @@ var
   procedure PasteComponent;
   begin
     C.Name := DesignUniqueName(Owner, C.ClassName);
-    Owner.InsertComponent(C);
+
+    p.InsertComponent(C);
     if C is TControl then
     begin
       CO := TControl(C);
@@ -769,6 +838,7 @@ var
       CO.Parent := P;
       Selector.AddToSelection(CO);
     end;
+
   end;
 
 begin
@@ -794,6 +864,10 @@ begin
   finally
     Free;
   end;
+
+  active:=false;
+  active:=true;
+
 end;
 
 procedure TJvDesignSurface.SelectParent;
@@ -833,11 +907,11 @@ type
   TAccessWinControl = class(TWinControl);
 
 function TJvDesignSurface.IsDesignMessage(ASender: TControl;
-  var AMsg: TLMessage; const APt: TPoint): Boolean;
+  var AMsg: lmessages.TLMessage; const APt: TPoint): Boolean;
 
   function VirtKey: Cardinal;
   begin
-    Result := AMsg.WParam;
+    Result := AMsg.WParam and $ffff;
   end;
 
 {
@@ -872,18 +946,42 @@ begin
       WM_PAINT:
         Result := HandlePaint;
 }
+      $bd01:
+      //, LM_LBUTTONDBLCLK:
+        result:=true;
+
+      LM_MOUSEENTER: result:=true;
+      LM_LBUTTONDBLCLK: result:=true;
+
       LM_LBUTTONDOWN:
+      begin
         Result := Controller.MouseDown(mbLeft, APt.X, APt.Y, TLMMOUSE(AMsg));
+        result:=true;
+      end;
       LM_LBUTTONUP:
+      begin
         Result := Controller.MouseUp(mbLeft, APt.X, APt.Y, TLMMouse( aMsg));
+        result:=true;
+      end;
+
       LM_MOUSEMOVE:
       begin
         Result := Controller.MouseMove(APt.X, APt.Y, TLMMouse( aMsg));
+        result:=true;
       end;
-      LM_KEYDOWN, CN_KEYDOWN:
+
+      LM_KEYDOWN{, CN_KEYDOWN}:
+      begin
         Result := Controller.KeyDown(VirtKey);
-      LM_KEYUP, CN_KEYUP:
+        result:=true;
+      end;
+
+      LM_KEYUP:
+      begin
         Result := Controller.KeyUp(VirtKey);
+        result:=true;
+      end;
+
      {LM_WINDOWPOSCHANGED:
         begin
           if AMsg.lParam <> 0 then
@@ -927,9 +1025,18 @@ begin
           // Must return False to let the VCL do its own work of placing the window
           Result := False;
         end;   }
+
+        LM_WINDOWPOSCHANGED,LM_ERASEBKGND: result:=false;
+        LM_PAINT: result:=false;
+        LM_RBUTTONDOWN,LM_MBUTTONDOWN,LM_RBUTTONUP: result:=true;
+
+        CN_KEYDOWN,CN_CHAR,CN_SYSKEYUP,CN_SYSKEYDOWN,CN_SYSCHAR : result:=true;
+
       else
         Result := False;
     end;
+
+
 end;
 
 function TJvDesignSurface.GetCursor(AX, AY: Integer): TCursor;

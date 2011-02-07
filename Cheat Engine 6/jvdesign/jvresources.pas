@@ -161,8 +161,7 @@ resourcestring
   SChainError =
    'Message from %0:s.%1:s:' + sLineBreak + sLineBreak +
    'Oops... Messing up %2:s''s window procedure chain.%3:s';
-  SWorkaround = sLineBreak + sLineBreak +
-    'To avoid this, $DEFINE the NO_DESIGNHOOK conditional compilation symbol and rebuild.';
+  SWorkaround = ''; //sLineBreak + sLineBreak + 'To avoid this, $DEFINE the NO_DESIGNHOOK conditional compilation symbol and rebuild.';
 
 //=== JvBalloonHint.pas ======================================================
 resourcestring
