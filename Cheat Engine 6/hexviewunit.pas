@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps;
+  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs;
 
 type
   THexRegion=(hrInvalid, hrByte, hrChar);
@@ -69,6 +69,8 @@ type
     fLockedToBaseAddress: ptruint;
 
     fShowDiffHv: THexview;
+
+    backlist: TStack;
 
     procedure LoadMemoryRegion;
     function GetPageInfo(a: ptruint): PPageInfo;
@@ -415,11 +417,51 @@ end;
 procedure THexView.KeyDown(var Key: Word; Shift: TShiftState);
 var b: byte;
 x: dword;
+
+start, stop: ptruint;
+
+gotoaddress: qword;
 begin
 
   if shift=[] then
   begin
     case key of
+      VK_BACK:
+      begin
+        if (not isEditing) and (backlist.Count>0) then
+          address:=qword(backlist.Pop);
+      end;
+
+      VK_SPACE:
+      begin
+        //check if the currently selected bytes are the size of a pointer
+        if hasSelection then
+        begin
+          start:=minx(selected,selected2);
+          stop:=maxx(selected,selected2);
+          if (stop-start)+1=processhandler.pointersize then
+          begin
+            //go to this selected address
+            if ReadProcessMemory(processhandle, pointer(start), @gotoaddress, processhandler.pointersize,x) then
+            begin
+              //save the current address in the history
+              backlist.push(pointer(address));
+
+              //and go to this new address
+              address:=gotoaddress;
+              fhasSelection:=false;
+              isEditing:=false;
+            end;
+
+            //gotoaddress
+
+          //  address:=;
+          end;
+        end;
+
+        //processhandler.pointersize
+      end;
+
       VK_ESCAPE:
       begin
         isEditing:=false;
@@ -1175,6 +1217,7 @@ begin
   end;
   seperatormask:=bps-1;
 
+
   setlength(seperators, bytesperline shr seperatorshift);
   seperatorindex:=0;
 
@@ -1515,6 +1558,8 @@ end;
 constructor THexView.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
+
+  backlist:=TStack.create;
 
   MemoryMap:=TMap.create(ituPtrSize, sizeof(TPageinfo));
   MemoryMapItterator:=TMapIterator.create(MemoryMap);
