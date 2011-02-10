@@ -45,6 +45,9 @@ uses
   Forms, Controls, Graphics,
   Dialogs,
   //Windows,
+  {$ifdef windows}
+  win32proc,
+  {$endif}
   ExtCtrls, Contnrs,LMessages;
 
 type
@@ -326,10 +329,15 @@ function TJvDesignCustomMessenger.IsDesignMessage(ASender: TControl;
   var AMessage: TLMessage): Boolean;
 
   function MousePoint: TPoint;
+  var r: trect;
   begin
     with TLMMouse(AMessage) do
       MousePoint := Point(XPos, YPos);
+
     Result := DesignClientToParent(Result, ASender, Container);
+
+
+
   end;
 
 begin
@@ -611,14 +619,25 @@ function TJvDesignSurface.FindControl(AX, AY: Integer): TControl;
 var
   C, C0: TControl;
   P: TPoint;
+  r: trect;
 begin
   P := Point(AX, AY);
-  C := Container.ControlAtPos(P, True, True);
+  //C := Container.ControlAtPos(P, True, True);
+  c:=Container.ControlAtPos(p, [capfAllowDisabled, capfAllowWinControls]);
+
   while (C <> nil) and (C is TWinControl) do
   begin
+    {$ifdef windows}
+    if GetLCLClientBoundsOffset(c, R) then
+    begin
+      dec(p.x, R.Left);
+      dec(p.Y, R.Top);
+    end;
+    {$endif}
+
     Dec(P.X, C.Left);
     Dec(P.Y, C.Top);
-    C0 := TWinControl(C).ControlAtPos(P, True, True);
+    C0 := TWinControl(C).ControlAtPos(P, [capfAllowDisabled, capfAllowWinControls]);
     if (C0 = nil) or (C0.Owner <> C.Owner) then
       Break;
     C := C0;
@@ -643,11 +662,22 @@ end;
 function TJvDesignSurface.ContainerToSelectedContainer(const APt: TPoint): TPoint;
 var
   C: TControl;
+  r: trect;
 begin
   Result := APt;
   C := SelectedContainer;
   while (C <> Container) and (C <> nil) do
   begin
+    {$ifdef windows}
+    if (c is Twincontrol) then
+    begin
+      if GetLCLClientBoundsOffset(C, R) then
+      begin
+        Dec(result.x, R.Left);
+        Dec(result.Y, R.Top);
+      end;
+    end;
+    {$endif}
     Dec(Result.X, C.Left);
     Dec(Result.Y, C.Top);
     C := C.Parent;

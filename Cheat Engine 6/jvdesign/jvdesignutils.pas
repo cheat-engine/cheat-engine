@@ -11,6 +11,7 @@ uses
   {$ENDIF UNITVERSIONING}
   {$ifdef windows}
   windows,
+  win32proc,
   {$endif}
   SysUtils, LCLProc, LCLType, LResources, LCLIntf, LMessages,    Classes, Controls, Graphics, Forms, dialogs;
 
@@ -101,10 +102,24 @@ const
 implementation
 
 function DesignClientToParent(const APt: TPoint; AControl, AParent: TControl): TPoint;
+var r: trect;
 begin
   Result := APt;
   while (AControl <> AParent) and (AControl <> nil) do
   begin
+    {$ifdef windows}
+    //undo lcl hack
+    if (AControl is TWinControl) then
+    begin
+      if GetLCLClientBoundsOffset(AControl, R) then
+      begin
+        Inc(result.x, R.Left);
+        Inc(result.Y, R.Top);
+      end;
+    end;
+    {$endif}
+
+
     Inc(Result.X, AControl.Left);
     Inc(Result.Y, AControl.Top);
     AControl := AControl.Parent;

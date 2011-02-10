@@ -8,6 +8,9 @@ uses
   {$IFDEF UNITVERSIONING}
   JclUnitVersioning,
   {$ENDIF UNITVERSIONING}
+  {$ifdef windows}
+  win32proc,
+  {$endif}
   LCLProc, LCLType, LResources, LCLIntf, LMessages, SysUtils, Classes, Controls, Graphics,
   Forms, ExtCtrls, Contnrs, JvDesignUtils,
   JvDesignSurface, componenteditors, propedits;
@@ -515,11 +518,25 @@ end;
 function TJvDesignHandles.SelectedToContainer(const APt: TPoint): TPoint;
 var
   C: TControl;
+  r: trect;
 begin
   Result := APt;
   C := Selected.Parent;
   while (C <> Container) and (C <> nil) do
   begin
+    {$ifdef windows}
+    {LCL hack}
+    if (c is Twincontrol) then
+    begin
+      if GetLCLClientBoundsOffset(c, R) then
+      begin
+        Inc(result.x, R.Left);
+        Inc(result.Y, R.Top);
+      end;
+    end;
+    {$endif}
+
+
     if (c is TControl) then
     begin
       Inc(Result.X, C.Left);
@@ -545,6 +562,7 @@ function TJvDesignHandles.GetSelectionRect: TRect;
 var
   P: TPoint;
 begin
+  //selected.BoundsRect;
   if Selected = Container then
     P := Point(0, 0)
   else
@@ -1098,11 +1116,16 @@ var
   I: Integer;
   ScreenPoint: TPoint;
 begin
+
+
   CalcDragRects;
   for I := 0 to Surface.Count - 1 do
   begin
     with Surface.Selection[I] do
-      ScreenPoint := Parent.ClientToScreen(Point(0, 0));
+    begin
+      if parent<>nil then
+        ScreenPoint := Parent.ClientToScreen(Point(0, 0));
+    end;
     OffsetRect(FDragRects[I], ScreenPoint.X, ScreenPoint.Y);
   end;
 end;
