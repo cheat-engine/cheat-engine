@@ -421,16 +421,39 @@ function TFormDesigner.ocm(const Name: ShortString; ATypeInfo: PTypeInfo; APersi
 var f: TLuaCaller;
   z: procedure of object;
     td: PTypeData;
+
+  old: TMethod;
+
+  pn: string;
+  i: integer;
 begin
   f:=TLuaCaller.create;
   f.luaroutine:=name;
   f.owner:=APersistent;
 
-  if ATypeInfo.Name='TNotifyEvent' then
-  begin
-    result:=TMethod(TNotifyEvent(f.NotifyEvent));
+  try
+    pn:=APropertyPath;
+    i:=pos('.',pn);
+    while i>0 do
+    begin
+      pn:=copy(pn,i+1, length(pn));
+      i:=pos('.',pn)
+    end;
+
+
+    old:=GetMethodProp(APersistent, pn);
+    if (old.code<>nil) and (tobject(old.Data) is TLuaCaller) then
+      TLuaCaller(old.data).free;
+
+  except
+    //failed to get the propertyname
   end;
 
+  if ATypeInfo.Name ='TNotifyEvent' then
+    result:=TMethod(TNotifyEvent(f.NotifyEvent))
+  else
+  if ATypeInfo.Name ='TCloseEvent' then
+    result:=TMethod(TCloseEvent(f.CloseEvent))
 end;
 
 function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject): String;
