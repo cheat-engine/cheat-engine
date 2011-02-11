@@ -22,7 +22,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0

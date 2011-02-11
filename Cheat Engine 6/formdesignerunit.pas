@@ -512,6 +512,7 @@ end;
 
 procedure TFormDesigner.designForm(f: tceform);
 var x: array of integer;
+  r: trect;
 begin
   GlobalDesignHook.LookupRoot:=f;
 
@@ -538,7 +539,8 @@ begin
     if not loadedfromsave then
     begin
       //first time show or the user isn't saving form positions
-      left:=oid.width+25;
+      LCLIntf.GetWindowRect(oid.handle, r);
+      left:=r.Right+5;
       top:=0;
     end;
   end;

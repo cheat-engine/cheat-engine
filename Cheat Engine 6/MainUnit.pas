@@ -2371,6 +2371,8 @@ var f: tceform;
   i,j,k: integer;
 
   s: string;
+
+  br: TRect;
 begin
   f:=tceform.CreateNew(nil);
   f.autosize:=false;
@@ -2413,8 +2415,9 @@ begin
   f.show;
 
   f.left:=formdesigner.left;
-  f.top:=formdesigner.height+50;
 
+  LCLIntf.GetWindowRect(formdesigner.handle, br);
+  f.top:=br.Bottom+5;
 
   updatemenu;
 end;
@@ -6067,7 +6070,7 @@ var _us: string;
 var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-
+  //GetWindowRect()
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
