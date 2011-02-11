@@ -120,7 +120,7 @@ type
     fOnClose2: TCloseEvent;
     loadedfromsave: boolean;
     procedure OIDDestroy(sender: Tobject);
-
+    function MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
   public
     { public declarations }
     oid:TObjectInspectorDlg;
@@ -256,6 +256,14 @@ begin
     result:=TCustomForm(GlobalDesignHook.LookupRoot);
 end;
 
+function TFormDesigner.MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
+begin
+  MethodIsCompatible:=true;
+  MethodIsPublished:=true;
+  IdentIsMethod:=true;
+  result:=true;
+end;
+
 procedure TFormDesigner.FormCreate(Sender: TObject);
 var h: TPropertyEditorHook;
   gc: TOICustomPropertyGrid;
@@ -277,6 +285,8 @@ begin
   GlobalDesignHook.AddHandlerGetMethodName(ogm);
   GlobalDesignHook.AddHandlerGetMethods(onGetMethods);
   GlobalDesignHook.AddHandlerModified(Modified);
+
+  GlobalDesignHook.AddHandlerMethodExists(MethodExists);
 
   loadedfromsave:=loadformposition(self, x);
 end;
