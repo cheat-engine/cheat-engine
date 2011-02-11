@@ -835,7 +835,10 @@ var
   node: TTreenode;
 
   checkboxstart, checkboxend: integer;
+
+  oldstate: boolean;
 begin
+//  self.Parent;
   node:=treeview.GetNodeAt(x,y);
   if node<>nil then
   begin
@@ -848,7 +851,17 @@ begin
     if inrange(x, checkboxstart, checkboxend ) then
     begin
       //checkbox click
+      //oldstate:=TMemoryRecord(node.data).Active;
+
+     // SelectionUpdate(nil);
+
       TMemoryRecord(node.data).Active:=not TMemoryRecord(node.data).Active;
+     {
+      if oldstate then
+        DeActivateSelected
+      else
+        ActivateSelected;}
+
     end;
 
     if TMemoryRecord(node.data).Active then

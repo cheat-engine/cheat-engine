@@ -34,6 +34,7 @@ type
     CheckBox1: TCheckBox;
     cbCanStepKernelcode: TCheckBox;
     cbAllIncludesCustomType: TCheckBox;
+    cbShowProcesslist: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtTempScanFolder: TEdit;
@@ -329,6 +330,10 @@ begin
     if Reg.OpenKey('\Software\Cheat Engine',true) then
     begin
       //write the settings
+      reg.writebool('Show processlist in mainmenu', cbShowProcesslist.checked);
+      mainform.Process1.Visible:=cbShowProcesslist.checked;
+
+
       reg.WriteBool('Undo',cbshowundo.checked);
       reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
       case combothreadpriority.itemindex of

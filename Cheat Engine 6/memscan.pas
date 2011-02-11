@@ -4364,6 +4364,8 @@ var err: dword;
     oldpos,oldmempos: qword;
 
     wantsize: qword;
+
+    haserror2: boolean;
 begin
   OutputDebugString('TScanController.execute');
   try
@@ -4462,9 +4464,11 @@ begin
     if notifywindow<>0 then
       postMessage(notifywindow,notifymessage,err,0);
 
+
     isdoneevent.setevent;
 
-    haserror:=false;
+    haserror2:=false;
+
 
 
     try
@@ -4486,7 +4490,7 @@ begin
       on e: exception do
       begin
         OutputDebugString(pchar('Disk Write Error:'+e.message));
-        haserror:=true;
+        haserror2:=true;
         errorstring:='controller:Cleanup:ResultsWrite:'+e.message;
       end;
     end;
@@ -4532,7 +4536,7 @@ begin
       on e: exception do
       begin
         OutputDebugString(pchar('First Scan Create:'+e.message));
-        haserror:=true;
+        haserror2:=true;
         errorstring:='controller:Cleanup:Failed spawning the Save First Scan thread:'+e.message;
       end;
     end;
@@ -4540,12 +4544,12 @@ begin
     on e: exception do
     begin
       OutputDebugString(pchar('controller exception happened:Unknown!'+e.message));
-      haserror:=true;
+      haserror2:=true;
       errorstring:='controller:Unknown!'+e.message;
     end;
   end;
 
-  if haserror then
+  if haserror2 then
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
 
   outputdebugstring('end of scancontroller reached');

@@ -8,7 +8,7 @@ interface
 
 uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
-     memscan,plugin, mainunit,hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
+     memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
 
 
 procedure UpdateToolsMenu;
@@ -19,8 +19,8 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
-const beta=''; //empty this for a release
-const cename='Cheat Engine 6.0';
+const beta=' Alpha'; //empty this for a release
+const cename='Cheat Engine 6.1';
 
 var
   CEnorm:string = cename+beta;
@@ -78,7 +78,8 @@ resourcestring
 
 implementation
 
-uses KernelDebugger;
+
+uses KernelDebugger,mainunit;
 
 function GetScanType2: TScanOption;
 {
@@ -253,6 +254,11 @@ begin
         with formsettings do
         begin
           LoadingSettingsFromRegistry:=true;
+
+          if reg.valueexists('Show processlist in mainmenu') then
+            cbShowProcesslist.checked:=reg.readbool('Show processlist in mainmenu');
+
+          mainform.Process1.visible:=cbShowProcesslist.checked;
 
           if reg.ValueExists('Ask if table has lua script') then
             cbAskIfTableHasLuascript.Checked:=reg.ReadBool('Ask if table has lua script');

@@ -6,13 +6,15 @@ interface
 
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
-  newkernelhandler, autoassembler, Graphics, controls;
+  newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
+  StdCtrls, comctrls, ceguicomponents;
 
 var
   LuaVM: Plua_State;
   LuaCS: Tcriticalsection;
 
 
+procedure Lua_RegisterObject(name: string; o: TObject);
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
 function LUA_functioncall(routinetocall: string; parameters: array of const): integer;
@@ -26,7 +28,7 @@ procedure InitializeLuaScripts;
 
 implementation
 
-uses frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
+uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner;
 
 function lua_isstring(L: PLua_state; i: integer): boolean;
@@ -86,6 +88,18 @@ begin
     LuaCS.Leave;
   end;
 
+end;
+
+procedure Lua_RegisterObject(name: string; o: TObject);
+begin
+  LuaCS.enter;
+  try
+    lua_pop(LuaVM, lua_gettop(luavm));
+    lua_pushlightuserdata(LuaVM, o);
+    lua_setglobal(LuaVM, pchar(name));
+  finally
+    LuaCS.Leave;
+  end;
 end;
 
 function LUA_onBreakpoint(context: PContext): boolean;
@@ -730,6 +744,7 @@ end;
 function LuaPanic(L: Plua_State): Integer; cdecl;
 begin
   result:=0;
+  lua_pop(LuaVM, lua_gettop(luavm));
   raise exception.create('LUA panic!');
 end;
 
@@ -2047,6 +2062,24 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function form_showModal_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: tcustomform;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+    lua_pushinteger(L, f.ShowModal);
+  end
+  else
+   lua_pop(L, lua_gettop(L));
+
+end;
+
+
 function form_show_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
@@ -2278,19 +2311,37 @@ end;
 function timer_onTimer_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  control: pointer;
+  timer: TTimer;
   f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
   if paramcount=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    timer:=lua_touserdata(L,-2);
+
+
     if lua_isfunction(L,-1) then
     begin
+      routine:=Lua_ToString(L,-1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
-      ce_timer_onTimerLua(control, f);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      timer.OnTimer:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      timer.OnTimer:=lc.NotifyEvent;
     end;
+
   end;
 
   lua_pop(L, paramcount);
@@ -2429,6 +2480,7 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
+
 function control_setAlign_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
@@ -2447,34 +2499,651 @@ begin
   lua_pop(L, paramcount);
 end;
 
-
-function form_onClose_fromLua(L: PLua_State): integer; cdecl;
+function control_getAlign_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  control: pointer;
-  f: integer;
+  control: TControl;
+  align: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(control.Align));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function control_setVisible_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+  visible: boolean;
 begin
   result:=0;
   paramcount:=lua_gettop(L);
   if paramcount=2 then
   begin
     control:=lua_touserdata(L,-2);
-    if lua_isfunction(L,-1) then
-    begin
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-      ce_form_onCloseLua(control, f);
-    end;
+    control.visible:=lua_toboolean(L,-1);
   end;
 
   lua_pop(L, paramcount);
 end;
 
-function control_onClick_fromLua(L: PLua_State): integer; cdecl;
+function control_getVisible_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  control: pointer;
-  f: integer;
+  control: TControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
 
+    lua_pushboolean(L, control.Visible);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function control_setColor_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+  Color: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    control.Color:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_getColor_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, control.color);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function control_setParent_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+  Parent: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    control.Parent:=TWinControl(lua_touserdata(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_getParent_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, control.Parent);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function wincontrol_getControlCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    wincontrol:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, wincontrol.ControlCount);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function wincontrol_getControl_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    wincontrol:=lua_touserdata(L,-2);
+    index:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, wincontrol.Controls[index]);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function wincontrol_onEnter_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    wincontrol:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      wincontrol.OnEnter:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      wincontrol.OnEnter:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function wincontrol_onExit_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    wincontrol:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      wincontrol.OnExit:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      wincontrol.OnExit:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function wincontrol_canFocus_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    wincontrol:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, wincontrol.CanFocus);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function wincontrol_focused_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    wincontrol:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, wincontrol.Focused);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function wincontrol_setFocus_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  wincontrol: TWinControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    wincontrol:=lua_touserdata(L,-1);
+    wincontrol.SetFocus;
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function strings_add_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    strings.Add(lua_tostring(L, -1));
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    strings:=lua_touserdata(L, -1);
+    strings.Clear;
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_remove_fromLua(L: Plua_State): integer; cdecl;  //compat with ce 6
+var parameters: integer;
+  strings: TStrings;
+  s: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    s:=lua_tostring(L, -1);
+    ce_stringlist_remove(strings,pchar(s));
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_getString_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    strings:=lua_touserdata(L,-2);
+    index:=lua_toInteger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, strings[index]);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function strings_setString_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+  index: integer;
+  s: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=3 then
+  begin
+    strings:=lua_touserdata(L,-3);
+    index:=lua_toInteger(L,-2);
+    s:=lua_tostring(l,-1);
+
+    strings[index]:=s;
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function strings_delete_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+  index: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    index:=lua_tointeger(L,-1);
+    strings.Delete(index);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_append_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    strings.Append(lua_tostring(L, -1));
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_getText_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    strings:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, strings.Text);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function strings_indexOf_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+  s: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    strings:=lua_touserdata(L,-2);
+    s:=Lua_ToString(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, strings.IndexOf(s));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function strings_insert_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+  index: integer;
+  s: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=3 then
+  begin
+    strings:=lua_touserdata(L,-3);
+    index:=lua_tointeger(L,-2);
+    s:=Lua_ToString(L,-1);
+
+    strings.Insert(index,s);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+
+function strings_getCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    strings:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, strings.Count);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function strings_loadFromFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    try
+      strings.LoadFromFile(lua_tostring(L, -1));
+    except
+    end;
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function strings_saveToFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  strings: TStrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L, -2);
+    try
+      strings.SaveToFile(lua_tostring(L, -1));
+    except
+    end;
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+
+function stringlist_getDuplicates_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  align: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    stringlist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(stringlist.Duplicates));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function stringlist_setDuplicates_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    stringlist:=lua_touserdata(L,-2);
+    stringlist.Duplicates:=TDuplicates(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function stringlist_getSorted_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  align: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    stringlist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, stringlist.Sorted);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function stringlist_setSorted_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    stringlist:=lua_touserdata(L,-2);
+    stringlist.Sorted:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function stringlist_getCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  align: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    stringlist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, stringlist.CaseSensitive);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function stringlist_setCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  stringlist: TStringlist;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    stringlist:=lua_touserdata(L,-2);
+    stringlist.CaseSensitive:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function form_onClose_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TCustomForm;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
 
 //  clickroutine: integer;
 begin
@@ -2483,11 +3152,67 @@ begin
   if paramcount=2 then
   begin
     control:=lua_touserdata(L,-2);
+
+
     if lua_isfunction(L,-1) then
     begin
+      routine:=Lua_ToString(L,-1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
-      ce_control_onClickLua(control, f);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnClose:=lc.CloseEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnClose:=lc.CloseEvent;
     end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_onClick_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnClick:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnClick:=lc.NotifyEvent;
+    end;
+
   end;
 
   lua_pop(L, paramcount);
@@ -2612,95 +3337,7 @@ begin
   result:=1;
 end;
 
-function stringlist_getCount_fromLua(L: PLua_state): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L, -1);
-    lua_pop(L, lua_gettop(L));
 
-    lua_pushinteger(L, ce_stringlist_getCount(c));
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function stringlist_getFullText_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L, -1);
-    lua_pop(L, lua_gettop(L));
-
-    lua_pushstring(L, tstringlist(c).Text);
-    result:=1;
-
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function stringlist_getString_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  index: integer;
-  r: pchar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L, -2);
-    index:=lua.lua_tointeger(L, -1);
-
-    lua_pop(L, lua_gettop(L));
-
-
-    lua_pushstring(L, tstringlist(c)[index]);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-
-end;
-
-function stringlist_add_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  s: pchar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-
-    c:=lua_touserdata(L, -2);
-    s:=lua.lua_tostring(L, -1);
-    ce_stringlist_add(c,s);
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function stringlist_remove_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  s: pchar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L, -2);
-    s:=lua.lua_tostring(L, -1);
-    ce_stringlist_remove(c,s);
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
 
 function generateAPIHookScript_fromLua(L: PLua_state): integer; cdecl;
 var
@@ -2921,6 +3558,1842 @@ begin
   lua_pop(L, lua_gettop(l));
 end;
 
+function object_getClassName_fromLua(L: PLua_state): integer; cdecl;
+var c: TObject;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushstring(L, c.ClassName);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+
+
+
+function getMainForm_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  lua_pushlightuserdata(l, mainform);
+end;
+
+
+function inheritsFromObject_fromLua(L: PLua_state): integer; cdecl;
+var x: TObject;
+begin
+  result:=0;
+  if lua_gettop(L)>1 then
+  begin
+    x:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    if x<>nil then
+    begin
+      result:=1;
+      lua_pushboolean(l, (x is TObject));
+    end;
+
+  end;
+end;
+
+function inheritsFromComponent_fromLua(L: PLua_state): integer; cdecl;
+var x: TObject;
+begin
+  result:=0;
+  if lua_gettop(L)>1 then
+  begin
+    x:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    if x<>nil then
+    begin
+      result:=1;
+      lua_pushboolean(l, (x is TComponent));
+    end;
+
+  end;
+end;
+
+function inheritsFromControl_fromLua(L: PLua_state): integer; cdecl;
+var x: TObject;
+begin
+  result:=0;
+  if lua_gettop(L)>1 then
+  begin
+    x:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    if x<>nil then
+    begin
+      result:=1;
+      lua_pushboolean(l, (x is TControl));
+    end;
+
+  end;
+end;
+
+function inheritsFromWinControl_fromLua(L: PLua_state): integer; cdecl;
+var x: TObject;
+begin
+  result:=0;
+  if lua_gettop(L)>1 then
+  begin
+    x:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    if x<>nil then
+    begin
+      result:=1;
+      lua_pushboolean(l, (x is TWinControl));
+    end;
+
+  end;
+end;
+
+function component_getComponentCount_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushinteger(L, c.ComponentCount);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function component_getComponent_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  i: integer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    i:=lua_tointeger(L,-1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, c.Components[i]);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function component_getName_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushstring(L, c.Name);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function component_setName_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    c.Name:=lua_tostring(L,-1);
+  end;
+  lua_pop(L, lua_gettop(l));
+end;
+
+function component_getTag_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushinteger(L, c.Tag);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function component_setTag_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  t: integer;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    c.Tag:=lua_tointeger(L, -1);
+  end;
+  lua_pop(L, lua_gettop(l));
+end;
+
+
+function component_getOwner_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  paramcount: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    c:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, c.Owner);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function panel_getAlignment_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    panel:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(panel.Alignment));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function panel_setAlignment_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    panel:=lua_touserdata(L,-2);
+    panel.Alignment:=TAlignment(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function panel_getBevelInner_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    panel:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(panel.BevelInner));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function panel_setBevelInner_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    panel:=lua_touserdata(L,-2);
+    panel.BevelInner:=TPanelBevel(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function panel_getBevelOuter_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    panel:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(panel.BevelOuter));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function panel_setBevelOuter_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    panel:=lua_touserdata(L,-2);
+    panel.BevelOuter:=TPanelBevel(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function panel_getBevelWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    panel:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, panel.BevelWidth);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function panel_setBevelWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    panel:=lua_touserdata(L,-2);
+    panel.BevelWidth:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function panel_getFullRepaint_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    panel:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, panel.FullRepaint);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function panel_setFullRepaint_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  panel: Tcustompanel;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    panel:=lua_touserdata(L,-2);
+    panel.FullRepaint:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function edit_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_selectAll_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.SelectAll;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_clearSelection_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.ClearSelection;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_copyToClipboard_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.CopyToClipboard;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_cutToClipboard_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.CutToClipboard;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_pasteFromClipboard_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  e: tcustomedit;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    e:=lua_touserdata(L, -1);
+    e.PasteFromClipboard;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function edit_onChange_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TCustomEdit;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnChange:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnChange:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memo_append_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: TCustomMemo;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memo:=lua_touserdata(L,-2);
+    memo.Append(Lua_ToString(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memo_getLines_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: TCustomMemo;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memo:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, memo.Lines);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memo_getWordWrap_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memo:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, memo.WordWrap);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memo_setWordWrap_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memo:=lua_touserdata(L,-2);
+    memo.WordWrap:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memo_getWantTabs_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memo:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, memo.WantTabs);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memo_setWantTabs_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memo:=lua_touserdata(L,-2);
+    memo.WantTabs:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memo_getWantReturns_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memo:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, memo.WantReturns);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memo_setWantReturns_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memo:=lua_touserdata(L,-2);
+    memo.WantReturns:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memo_getScrollbars_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memo:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(memo.Scrollbars));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memo_setScrollbars_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memo: Tcustommemo;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memo:=lua_touserdata(L,-2);
+    memo.Scrollbars:=TScrollStyle(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function button_getModalResult_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  button: Tcustombutton;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    button:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(button.ModalResult));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function button_setModalResult_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  button: Tcustombutton;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    button:=lua_touserdata(L,-2);
+    button.ModalResult:=TModalResult(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function checkbox_getAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  checkbox: Tcustomcheckbox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    checkbox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, checkbox.AllowGrayed);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function checkbox_setAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  checkbox: Tcustomcheckbox;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    checkbox:=lua_touserdata(L,-2);
+    checkbox.AllowGrayed:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function checkbox_getState_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  checkbox: Tcustomcheckbox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    checkbox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, integer(checkbox.State));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function checkbox_setState_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  checkbox: Tcustomcheckbox;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    checkbox:=lua_touserdata(L,-2);
+    checkbox.State:=TCheckBoxState(lua_tointeger(L,-1));
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function checkbox_onChange_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TCustomCheckBox;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnChange:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnChange:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function radiogroup_getRows_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  radiogroup: TCustomRadioGroup;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    radiogroup:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, radiogroup.Rows);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function radiogroup_getItems_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  radiogroup: TCustomRadioGroup;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    radiogroup:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, radiogroup.items);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function radiogroup_getColumns_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  radiogroup: Tcustomradiogroup;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    radiogroup:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, radiogroup.Columns);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function radiogroup_setColumns_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  radiogroup: Tcustomradiogroup;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    radiogroup:=lua_touserdata(L,-2);
+    radiogroup.Columns:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function radiogroup_onClick_fromLua(L: PLua_State): integer; cdecl; //for some reason the radiogroup has it's own fonclick variable
+var
+  paramcount: integer;
+  control: TCustomRadioGroup;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnClick:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnClick:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listbox_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  listbox: tcustomlistbox;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    listbox:=lua_touserdata(L, -1);
+    listbox.clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+function listbox_getItems_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listbox: TCustomlistbox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listbox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listbox.items);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listbox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listbox: Tcustomlistbox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listbox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listbox.ItemIndex);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listbox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listbox: Tcustomlistbox;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listbox:=lua_touserdata(L,-2);
+    listbox.itemindex:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+//combobox
+function combobox_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  combobox: tcustomcombobox;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    combobox:=lua_touserdata(L, -1);
+    combobox.clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+function combobox_getItems_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  combobox: TCustomcombobox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    combobox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, combobox.items);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function combobox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  combobox: Tcustomcombobox;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    combobox:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, combobox.ItemIndex);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function combobox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  combobox: Tcustomcombobox;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    combobox:=lua_touserdata(L,-2);
+    combobox.itemindex:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function progressbar_stepIt_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+    progressbar: TCustomProgressBar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    progressbar:=lua_touserdata(L, -1);
+    progressbar.StepIt;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function progressbar_stepBy_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+    progressbar: TCustomProgressBar;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    progressbar:=lua_touserdata(L, -2);
+    progressbar.StepBy(lua_tointeger(L, -1));
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+
+function progressbar_getMax_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    progressbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, progressbar.max);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function progressbar_setMax_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    progressbar:=lua_touserdata(L,-2);
+    progressbar.max:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function progressbar_getMin_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    progressbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, progressbar.Min);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function progressbar_setMin_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    progressbar:=lua_touserdata(L,-2);
+    progressbar.Min:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function progressbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    progressbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, progressbar.Position);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function progressbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  progressbar: Tcustomprogressbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    progressbar:=lua_touserdata(L,-2);
+    progressbar.Position:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+//trackbar
+function trackbar_getMax_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    trackbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, trackbar.max);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function trackbar_setMax_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    trackbar:=lua_touserdata(L,-2);
+    trackbar.max:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function trackbar_getMin_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    trackbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, trackbar.Min);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function trackbar_setMin_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    trackbar:=lua_touserdata(L,-2);
+    trackbar.Min:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function trackbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    trackbar:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, trackbar.Position);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function trackbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  trackbar: Tcustomtrackbar;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    trackbar:=lua_touserdata(L,-2);
+    trackbar.Position:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function trackbar_onChange_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TCustomTrackBar;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnChange:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnChange:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listcolumn_setAutosize_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumns: TListColumn;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumns:=lua_touserdata(L,-2);
+    listcolumns.AutoSize:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function listcolumn_getCaption_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listcolumn:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, listcolumn.caption);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listcolumn_setCaption_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumn:=lua_touserdata(L,-2);
+    listcolumn.caption:=Lua_ToString(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listcolumn_getMaxWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listcolumn:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listcolumn.maxwidth);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listcolumn_setMaxWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumn:=lua_touserdata(L,-2);
+    listcolumn.maxwidth:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listcolumn_getMinWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listcolumn:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listcolumn.Minwidth);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listcolumn_setMinWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumn:=lua_touserdata(L,-2);
+    listcolumn.Minwidth:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listcolumn_getWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listcolumn:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listcolumn.width);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listcolumn_setWidth_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumn: Tlistcolumn;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumn:=lua_touserdata(L,-2);
+    listcolumn.width:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function collection_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  collection: TCollection;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    collection:=lua_touserdata(L, -1);
+    collection.clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function collection_getCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  collection: Tcollection;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    collection:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, collection.Count);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function collection_delete_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  collection: Tcollection;
+  index: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    collection:=lua_touserdata(L, -2);
+    index:=lua_tointeger(L,-1);
+    collection.Delete(index);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function listcolumns_add_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumns: TListColumns;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listcolumns:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listcolumns.Add);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listcolumns_getColumn_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listcolumns: TListcolumns;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listcolumns:=lua_touserdata(L,-2);
+    index:=lua_toInteger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listcolumns[index]);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listitem_delete_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  listitem: Tlistitem;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    listitem:=lua_touserdata(L, -1);
+    listitem.Delete;
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function listitem_getCaption_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listitem: Tlistitem;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listitem:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, listitem.caption);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listitem_setCaption_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listitem: Tlistitem;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listitem:=lua_touserdata(L,-2);
+    listitem.Caption:=Lua_ToString(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function listitem_getSubItems_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listitem: Tlistitem;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listitem:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listitem.SubItems);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listitems_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  listitems: Tlistitems;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    listitems:=lua_touserdata(L, -1);
+    listitems.clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function listitems_getCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listitems: Tlistitems;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listitems:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listitems.Count);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listitems_add_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listitems: Tlistitems;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listitems:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listitems.Add);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function listview_clear_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  listview: Tcustomlistview;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    listview:=lua_touserdata(L, -1);
+    listview.Clear;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
+function listview_getColumns_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listview: TCEListView;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listview:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listview.Columns);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listview_getItems_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listview: TCustomListView;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listview:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, listview.Items);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listview_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listview: Tcustomlistview;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    listview:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, listview.ItemIndex);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function listview_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  listview: Tcustomlistview;
+  a: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    listview:=lua_touserdata(L,-2);
+    listview.itemindex:=lua_tointeger(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function opendialog_execute_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  opendialog: TOpenDialog;
+  r: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    opendialog:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    if opendialog.Execute then
+      r:=opendialog.filename
+    else
+      r:='';
+
+    lua_pushstring(L, r);
+    result:=1;
+
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 
 initialization
   LuaCS:=TCriticalSection.create;
@@ -2983,10 +5456,6 @@ initialization
     lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows_fromLua);
     lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow_fromLua);
     lua_register(LuaVM, 'createForm', createForm_fromLua);
-    lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
-    lua_register(LuaVM, 'form_onClose', form_onClose_fromLua);
-    lua_register(LuaVM, 'form_show', form_show_fromLua);
-    lua_register(LuaVM, 'form_hide', form_hide_fromLua);
     lua_register(LuaVM, 'createPanel', createPanel_fromLua);
     lua_register(LuaVM, 'createGroupBox', createPanel_fromLua);
     lua_register(LuaVM, 'createButton', createButton_fromLua);
@@ -2998,26 +5467,18 @@ initialization
     lua_register(LuaVM, 'createEdit', createEdit_fromLua);
     lua_register(LuaVM, 'createMemo', createMemo_fromLua);
     lua_register(LuaVM, 'createTimer', createTimer_fromLua);
-    lua_register(LuaVM, 'timer_setInterval', timer_setInterval_fromLua);
-    lua_register(LuaVM, 'timer_onTimer', timer_onTimer_fromLua);
-    lua_register(LuaVM, 'control_setCaption', control_setCaption_fromLua);
-    lua_register(LuaVM, 'control_getCaption', control_getCaption_fromLua);
-    lua_register(LuaVM, 'control_setPosition', control_setPosition_fromLua);
-    lua_register(LuaVM, 'control_getPosition', control_getPosition_fromLua);
-    lua_register(LuaVM, 'control_setSize', control_setSize_fromLua);
-    lua_register(LuaVM, 'control_getSize', control_getSize_fromLua);
-    lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
-    lua_register(LuaVM, 'control_onClick', control_onClick_fromLua);
-    lua_register(LuaVM, 'object_destroy', object_destroy_fromLua);
+
+
     lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
     lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
+    {
     lua_register(LuaVM, 'stringlist_getCount', stringlist_getCount_fromLua);
     lua_register(LuaVM, 'stringlist_getString', stringlist_getString_fromLua);
     lua_register(LuaVM, 'stringlist_getFullText', stringlist_getFullText_fromLua);  //6.1
     lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
-    lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);
+    lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);   }
 
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
@@ -3025,13 +5486,205 @@ initialization
     lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID_fromLua);
     lua_register(LuaVM, 'getAddress', getAddress_fromLua);
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
+
     //ce6.1
     lua_register(LuaVM, 'getPropertyList', getPropertyList_fromLua);
     lua_register(LuaVM, 'setProperty', setProperty_fromLua);
     lua_register(LuaVM, 'getProperty', getProperty_fromLua);
+
+    lua_register(LuaVM, 'object_getClassName', object_getClassName_fromLua);
+    lua_register(LuaVM, 'object_destroy', object_destroy_fromLua);
+
+    lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount_fromLua);
+    lua_register(LuaVM, 'component_getComponent', component_getComponent_fromLua);
+    lua_register(LuaVM, 'component_getName', component_getName_fromLua);
+    lua_register(LuaVM, 'component_setName', component_setName_fromLua);
+    lua_register(LuaVM, 'component_getTag', component_getTag_fromLua);
+    lua_register(LuaVM, 'component_setTag', component_setTag_fromLua);
+    lua_register(LuaVM, 'component_getOwner', component_getOwner_fromLua);
+
+    lua_register(LuaVM, 'control_setCaption', control_setCaption_fromLua);
+    lua_register(LuaVM, 'control_getCaption', control_getCaption_fromLua);
+    lua_register(LuaVM, 'control_setPosition', control_setPosition_fromLua);
+    lua_register(LuaVM, 'control_getPosition', control_getPosition_fromLua);
+    lua_register(LuaVM, 'control_setSize', control_setSize_fromLua);
+    lua_register(LuaVM, 'control_getSize', control_getSize_fromLua);
+    lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
+    lua_register(LuaVM, 'control_getAlign', control_getAlign_fromLua);
+    lua_register(LuaVM, 'control_onClick', control_onClick_fromLua);
+    lua_register(LuaVM, 'control_setVisible', control_setVisible_fromLua);
+    lua_register(LuaVM, 'control_getVisible', control_getVisible_fromLua);
+    lua_register(LuaVM, 'control_setColor', control_setColor_fromLua);
+    lua_register(LuaVM, 'control_getColor', control_getColor_fromLua);
+    lua_register(LuaVM, 'control_setParent', control_setParent_fromLua);
+    lua_register(LuaVM, 'control_getParent', control_getParent_fromLua);
+
+    lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount_fromLua);
+    lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl_fromLua);
+    lua_register(LuaVM, 'wincontrol_OnEnter', wincontrol_OnEnter_fromLua);
+    lua_register(LuaVM, 'wincontrol_OnExit', wincontrol_OnExit_fromLua);
+    lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus_fromLua);
+    lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused_fromLua);
+    lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus_fromLua);
+
+    lua_register(LuaVM, 'strings_add', strings_add_fromLua);
+    lua_register(LuaVM, 'strings_clear', strings_clear_fromLua);
+    lua_register(LuaVM, 'strings_delete', strings_delete_fromLua);
+    lua_register(LuaVM, 'strings_append', strings_append_fromLua);
+    lua_register(LuaVM, 'strings_getText', strings_getText_fromLua);
+    lua_register(LuaVM, 'strings_indexOf', strings_indexOf_fromLua);
+    lua_register(LuaVM, 'strings_insert', strings_insert_fromLua);
+    lua_register(LuaVM, 'strings_getCount', strings_getCount_fromLua);
+    lua_register(LuaVM, 'strings_remove', strings_remove_fromLua);
+    lua_register(LuaVM, 'strings_getString', strings_getString_fromLua);
+    lua_register(LuaVM, 'strings_setString', strings_setString_fromLua);
+
+    lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates_fromLua);
+    lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates_fromLua);
+    lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted_fromLua);
+    lua_register(LuaVM, 'stringlist_getSorted', stringlist_setSorted_fromLua);
+    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive_fromLua);
+    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_setCaseSensitive_fromLua);
+
+    lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
+    lua_register(LuaVM, 'form_onClose', form_onClose_fromLua);
+    lua_register(LuaVM, 'form_show', form_show_fromLua);
+    lua_register(LuaVM, 'form_hide', form_hide_fromLua);
+    lua_register(LuaVM, 'form_showModal', form_showModal_fromLua);
+
+
+    lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment_fromLua);
+    lua_register(LuaVM, 'panel_setAlignment', panel_setAlignment_fromLua);
+    lua_register(LuaVM, 'panel_getBevelInner', panel_getBevelInner_fromLua);
+    lua_register(LuaVM, 'panel_setBevelInner', panel_setBevelInner_fromLua);
+    lua_register(LuaVM, 'panel_getBevelOuter', panel_getBevelOuter_fromLua);
+    lua_register(LuaVM, 'panel_setBevelOuter', panel_setBevelOuter_fromLua);
+    lua_register(LuaVM, 'panel_getBevelWidth', panel_getBevelWidth_fromLua);
+    lua_register(LuaVM, 'panel_setBevelWidth', panel_setBevelWidth_fromLua);
+    lua_register(LuaVM, 'panel_getFullRepaint', panel_getFullRepaint_fromLua);
+    lua_register(LuaVM, 'panel_setFullRepaint', panel_setFullRepaint_fromLua);
+
+    lua_register(LuaVM, 'edit_clear', edit_clear_fromLua);
+    lua_register(LuaVM, 'edit_selectAll', edit_selectAll_fromLua);
+    lua_register(LuaVM, 'edit_clearSelection', edit_clearSelection_fromLua);
+    lua_register(LuaVM, 'edit_copyToClipboard', edit_copyToClipboard_fromLua);
+    lua_register(LuaVM, 'edit_cutToClipboard', edit_cutToClipboard_fromLua);
+    lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard_fromLua);
+    lua_register(LuaVM, 'edit_onChange', edit_onChange_fromLua);
+
+    lua_register(LuaVM, 'memo_append', memo_append_fromLua);
+    lua_register(LuaVM, 'memo_getLines', memo_getLines_fromLua);
+    lua_register(LuaVM, 'memo_getWordWrap', memo_getWordWrap_fromLua);
+    lua_register(LuaVM, 'memo_setWordWrap', memo_setWordWrap_fromLua);
+    lua_register(LuaVM, 'memo_getWantTabs', memo_getWantTabs_fromLua);
+    lua_register(LuaVM, 'memo_setWantTabs', memo_setWantTabs_fromLua);
+    lua_register(LuaVM, 'memo_getWantReturns', memo_getWantReturns_fromLua);
+    lua_register(LuaVM, 'memo_setWantReturns', memo_setWantReturns_fromLua);
+    lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars_fromLua);
+    lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars_fromLua);
+
+    lua_register(LuaVM, 'button_getModalResult', button_getModalResult_fromLua);
+    lua_register(LuaVM, 'button_setModalResult', button_setModalResult_fromLua);
+
+
+    lua_register(LuaVM, 'checkbox_getAllowGrayed', checkbox_getAllowGrayed_fromLua);
+    lua_register(LuaVM, 'checkbox_setAllowGrayed', checkbox_setAllowGrayed_fromLua);
+    lua_register(LuaVM, 'checkbox_getState', checkbox_getState_fromLua);
+    lua_register(LuaVM, 'checkbox_setState', checkbox_setState_fromLua);
+    lua_register(LuaVM, 'checkbox_onChange', checkbox_onChange_fromLua);
+
+    lua_register(LuaVM, 'radiogroup_getRows', radiogroup_getRows_fromLua);
+    lua_register(LuaVM, 'radiogroup_getItems', radioGroup_getItems_fromLua);
+    lua_register(LuaVM, 'radiogroup_getColumns', radiogroup_getColumns_fromLua);
+    lua_register(LuaVM, 'radiogroup_setColumns', radiogroup_setColumns_fromLua);
+    lua_register(LuaVM,' radiogroup_onClick', radiogroup_onClick_fromLua);
+
+    lua_register(LuaVM, 'listbox_clear', listbox_clear_fromLua);
+    lua_register(LuaVM, 'listbox_getItems', listbox_getItems_fromLua);
+    lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex_fromLua);
+    lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex_fromLua);
+
+    lua_register(LuaVM, 'combobox_clear', combobox_clear_fromLua);
+    lua_register(LuaVM, 'combobox_getItems', combobox_getItems_fromLua);
+    lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex_fromLua);
+    lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex_fromLua);
+
+    lua_register(LuaVM, 'progressbar_stepIt', progressbar_stepIt_fromLua);
+    lua_register(LuaVM, 'progressbar_stepBy', progressbar_stepBy_fromLua);
+    lua_register(LuaVM, 'progressbar_getMax', progressbar_getMax_fromLua);
+    lua_register(LuaVM, 'progressbar_setMax', progressbar_setMax_fromLua);
+    lua_register(LuaVM, 'progressbar_getMin', progressbar_getMin_fromLua);
+    lua_register(LuaVM, 'progressbar_setMin', progressbar_setMin_fromLua);
+    lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition_fromLua);
+    lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition_fromLua);
+
+    lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax_fromLua);
+    lua_register(LuaVM, 'trackbar_setMax', trackbar_setMax_fromLua);
+    lua_register(LuaVM, 'trackbar_getMin', trackbar_getMin_fromLua);
+    lua_register(LuaVM, 'trackbar_setMin', trackbar_setMin_fromLua);
+    lua_register(LuaVM, 'trackbar_getPosition', trackbar_getPosition_fromLua);
+    lua_register(LuaVM, 'trackbar_setPosition', trackbar_setPosition_fromLua);
+    lua_register(LuaVM, 'trackbar_onChange', trackbar_onChange_fromLua);
+
+
+    lua_register(LuaVM, 'listcolumn_setAutosize', listcolumn_setAutosize_fromLua);
+    lua_register(LuaVM, 'listcolumn_getCaption', listcolumn_getCaption_fromLua);
+    lua_register(LuaVM, 'listcolumn_setCaption', listcolumn_setCaption_fromLua);
+    lua_register(LuaVM, 'listcolumn_getMaxWidth', listcolumn_getMaxWidth_fromLua);
+    lua_register(LuaVM, 'listcolumn_setMaxWidth', listcolumn_setMaxWidth_fromLua);
+    lua_register(LuaVM, 'listcolumn_getMinWidth', listcolumn_getMinWidth_fromLua);
+    lua_register(LuaVM, 'listcolumn_setMinWidth', listcolumn_setMinWidth_fromLua);
+    lua_register(LuaVM, 'listcolumn_getWidth', listcolumn_getWidth_fromLua);
+    lua_register(LuaVM, 'listcolumn_setWidth', listcolumn_setWidth_fromLua);
+
+
+    lua_register(LuaVM, 'collection_clear', collection_clear_fromLua);
+    lua_register(LuaVM, 'collection_getCount', collection_getCount_fromLua);
+    lua_register(LuaVM, 'collection_delete', collection_delete_fromLua);
+
+    lua_register(LuaVM, 'listcolumns_add', listcolumns_add_fromLua);
+    lua_register(LuaVM, 'listcolumns_getColumn', listcolumns_getColumn_fromLua);
+
+    lua_register(LuaVM, 'listitem_delete', listitem_delete_fromLua);
+    lua_register(LuaVM, 'listitem_getCaption', listitem_getCaption_fromLua);
+    lua_register(LuaVM, 'listitem_setCaption', listitem_setCaption_fromLua);
+    lua_register(LuaVM, 'listitem_getSubItems', listitem_getSubItems_fromLua);
+
+    lua_register(LuaVM, 'listitems_clear', listitems_clear_fromLua);
+    lua_register(LuaVM, 'listitems_getCount', listitems_getCount_fromLua);
+    lua_register(LuaVM, 'listitems_add', listitems_add_fromLua);
+
+    lua_register(LuaVM, 'listview_clear', listview_clear_fromLua);
+    lua_register(LuaVM, 'listview_getColumns', listview_getColumns_fromLua);
+    lua_register(LuaVM, 'listview_getItems', listview_getItems_fromLua);
+    lua_register(LuaVM, 'listview_getItemIndex', listview_getItemIndex_fromLua);
+    lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex_fromLua);
+
+
+    lua_register(LuaVM, 'timer_setInterval', timer_setInterval_fromLua);
+    lua_register(LuaVM, 'timer_onTimer', timer_onTimer_fromLua);
+
+    lua_register(LuaVM, 'openDialog_execute', openDialog_execute_fromLua);
+
+
+
+
+    Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);
+    lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);
+    lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent_fromLua);
+    lua_register(LuaVM, 'inheritsFromControl', inheritsFromControl_fromLua);
+    lua_register(LuaVM, 'inheritsFromWinControl', inheritsFromWinControl_fromLua);
     LUA_DoScript('os=nil');
 
+
+    //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
+    LUA_DoScript('stringlist_getCount=strings_getCount');
+    LUA_DoScript('stringlist_getString=strings_getString');
+    LUA_DoScript('stringlist_add=strings_add');
+    LUA_DoScript('stringlist_remove=strings_remove');
   end;
+
+
 
 finalization
   if LuaCS<>nil then

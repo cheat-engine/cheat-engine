@@ -33,7 +33,7 @@ begin
 end;
 
 function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
-var PA,SA:Dword;
+var PA,SA:DWORD_PTR;
 begin
   result:=true;
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
@@ -63,7 +63,7 @@ end;
 
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 var
-  cpunr,PA,SA:Dword;
+  cpunr,PA,SA:DWORD_PTR;
   r: bool;
 begin
   result:=true;

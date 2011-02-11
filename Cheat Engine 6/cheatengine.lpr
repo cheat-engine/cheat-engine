@@ -15,8 +15,7 @@ uses
   pluginexports, tlgUnit, aboutunit, frmProcesswatcherExtraUnit,
   frmProcessWatcherUnit, ModuleSafetyUnit, frmExcludeHideUnit,
   ConfigUnrandomizerFrm, AddAddress, HotKeys, TypePopup, CommentsUnit,
-  FoundCodeUnit, foundlisthelper, unrandomizer, SaveFirstScan, 
-savedscanhandler,
+  FoundCodeUnit, foundlisthelper, unrandomizer, SaveFirstScan, savedscanhandler,
   memscan, formScanningUnit, KernelDebugger, formDifferentBitSizeUnit,
   formAddressChangeUnit, Changeoffsetunit, speedhack2, formPointerOrPointeeUnit,
   AccessCheck, formmemoryregionsunit, OpenSave, formProcessInfo,
@@ -39,15 +38,16 @@ savedscanhandler,
   ManualModuleLoader, SynHighlighterAA, APIhooktemplatesettingsfrm,
   frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
   DebugHelper, debugeventhandler, formFoundcodeListExtraUnit,
-  debuggertypedefinitions, sfloat, addresslist, addresslisthandlerunit,
-  MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
-  frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
-  WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
-  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
-  frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler,
-  LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit,
-  frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit,
-  ScrollBoxEx;
+  debuggertypedefinitions, sfloat, addresslist, MemoryRecordUnit,
+  ThreadlistExFRM, windows7taskbar, tablist, frmStructuresConfigUnit,
+  VEHDebugger, VEHDebugSharedMem, DebuggerInterface, WindowsDebugger,
+  DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist, tableconverter,
+  DBK32functions, debug, multicpuexecution, vmxfunctions, frmPagingUnit,
+  bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler, LuaHandler,
+  frmLuaEngineUnit, frmMemviewPreferencesUnit, frmBreakpointConditionUnit,
+  frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
+  ceguicomponents, formdesignerunit, LuaCaller, 
+LuaSyntax;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -59,10 +59,14 @@ savedscanhandler,
 
 
 begin
-  Application.Title:='Cheat Engine 6.0';
+  Application.Title:='Cheat Engine 6.1';
   Application.Initialize;
   getcedir;
   symhandlerInitialize;
+
+ // LRSTranslator := TPoTranslator.Create(FindLocaleFileName('.po'));
+  //TranslateUnitResourceStrings('MainUnit',
+
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);
   Application.CreateForm(TformSettings, formSettings);

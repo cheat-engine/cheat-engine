@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 744
+  Left = 616
   Height = 570
   Hint = ' '
-  Top = 209
+  Top = 156
   Width = 538
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -355,8 +355,8 @@ object MainForm: TMainForm
       Left = 376
       Height = 14
       Top = 59
-      Width = 25
-      Caption = 'Testr'
+      Width = 43
+      Caption = 'Test cap'
       ParentColor = False
       Visible = False
       OnClick = Label59Click
@@ -444,7 +444,6 @@ object MainForm: TMainForm
         Font.Height = -11
         Font.Name = 'MS Sans Serif'
         OnChange = cbFastScanChange
-        OnClick = cbFastScanClick
         ParentFont = False
         State = cbChecked
         TabOrder = 1
@@ -1620,9 +1619,9 @@ object MainForm: TMainForm
       OnExecute = actAutoAssembleExecute
       ShortCut = 49217
     end
-    object actScriptEngine: TAction
-      Caption = 'Script Engine'
-      OnExecute = actScriptEngineExecute
+    object actLuaScript: TAction
+      Caption = 'Show Lua Table Script'
+      OnExecute = actLuaScriptExecute
     end
     object actMemoryView: TAction
       Caption = 'actMemoryView'
@@ -1771,6 +1770,7 @@ object MainForm: TMainForm
     end
     object Process1: TMenuItem
       Caption = '&Process'
+      Visible = False
       OnClick = Process1Click
       object OpenProcess1: TMenuItem
         Caption = 'Open Process window'
@@ -1797,6 +1797,29 @@ object MainForm: TMainForm
       end
       object e1: TMenuItem
         Caption = 'e'
+      end
+    end
+    object miForms: TMenuItem
+      Caption = 'Lua'
+      OnClick = miFormsClick
+      object MenuItem4: TMenuItem
+        Action = actLuaScript
+        Caption = 'Show Cheat Table Lua Script'
+        ShortCut = 49228
+      end
+      object MenuItem8: TMenuItem
+        Caption = '-'
+      end
+      object miCreateLuaForm: TMenuItem
+        Caption = 'Create form'
+        OnClick = miCreateLuaFormClick
+      end
+      object miResyncFormsWithLua: TMenuItem
+        Caption = 'Resynchronize forms with Lua'
+        OnClick = miResyncFormsWithLuaClick
+      end
+      object miLuaFormsSeperator: TMenuItem
+        Caption = '-'
       end
     end
     object ools1: TMenuItem

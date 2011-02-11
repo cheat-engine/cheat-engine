@@ -4,6 +4,7 @@ package.path = package.path .. ";?.lua";
 --You can use this to define some often used functions and libraries you'd like to use
 
 require("defines")
+require("class");
 
 --
 --List of CE specific functions:
@@ -123,10 +124,7 @@ require("defines")
 --The following objects are descendent from the object named "control", therefore the returned pointer when they are created can also be used for functions that start with control_
 
 --createForm(visible OPT): creates a form (window) and returns the pointer for it. Visible is default true but can be changed
---form_centerScreen(form);
---form_onClose(form, function)
---form_hide(form)
---form_show(form)
+
 
 --The following create routines take an owner as parameter. Owner can be a Form, Panel or Groupbox
 --The x,y position will be based on the client array of the owner
@@ -134,29 +132,17 @@ require("defines")
 --createGroupBox(owner)
 --createButton(owner)
 --createImage(owner)
---image_loadImageFromFile(filename)
---image_stretch(boolean)
---image_transparent(boolean)
 --createLabel(owner)
 --createEdit(owner)
 --createMemo(owner)
 
 
---control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
---control_getCaption(control)
---control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
---control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
---control_setSize(control, width,height) :
---control_getSize(control)
---control_align(control, alignmentoption): 
---control_onClick(control, function) : 
 
 
 
 
 --createTimer(owner)
---timer_setInterval(timer, interval)
---timer_onInterval(timer, function)
+
 
 --getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
 
@@ -168,17 +154,12 @@ require("defines")
 
 
 
---stringlist:
---stringlist_getCount(list)
---stringlist_add(list, string);
---stringlist_remove(list, string);
---stringlist_getString(list,index);
---stringlist_getFullText(list); //CE 6.1: Get the stringlist as one big string
 
 
 
 
---object_destroy(object) : Destroys the object (basically everything inherits from this class)
+
+
 
 
 --function onOpenProcess(processid) : When this function is defined it will be called each time a process has been opened (note that a process can be opened multiple times in a row, e.g when attaching the debugger it might first open it and then attach the debugger which opens it again...)
@@ -187,7 +168,280 @@ require("defines")
 --this routine is called when a module is loaded. Only works for the windows debugger
 --return 1 if you want to cause the debugger to break
 
---ce 6.1:
+
+
+------------------------------CE 6.1------------------------------
+--Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
+--If initialized using a function itself it won't be able to get saved in the table
+
+
+--undefined property functions
 --getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
---setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class
---getProperty(class, propertyname) : Gets the value of a published property of a class
+--setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
+--getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
+
+--getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
+
+
+
+--class helper functions
+--inheritsFromObject(class): Returns true if given any class
+--inheritsFromComponent(class): Returns true if the given object inherits from the Component class
+--inheritsFromControl(class): Returns true if the given object inherits from the Control class
+--inheritsFromWinControl(class): Returns true if the given object inherits from the WinControl class
+
+
+----Class definitions----
+--Object class: (Inheritance: )
+--object_getClassName(object): Returns the classname of the given object
+--object_destroy(object) : Destroys the object (basically everything inherits from this class)
+
+
+--Component Class: (Inheritance: Object)
+--component_getComponentCount(Component)
+--component_getComponent(Component, index)
+--component_getName(Component)
+--component_setName(Component, newname)
+--component_getTag(Component)
+--component_setTag(Component, tagvalue)
+--component_getOwner(Component)
+
+
+
+--Control Class: (Inheritance: Component->Object)
+--control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
+--control_getCaption(control)
+--control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
+--control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
+--control_setSize(control, width,height) :
+--control_getSize(control)
+--control_setalign(control, alignmentoption): 
+--control_getalign(control, alignmentoption):
+--control_onClick(control, functionnameorstring) : 
+--control_getVisible(control)
+--control_setVisible(control, boolean)
+--control_getColor(control)
+--control_setColor(control, rgb)
+--control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
+--control_setParent(control)
+
+
+--WinControl Class: (Inheritance: Control->Component->Object)
+--wincontrol_getControlCount(control)
+--wincontrol_getControl(control,index) : Returns a Control class object
+--wincontrol_OnEnter(control, function)
+--wincontrol_onExit(control, function)
+--wincontrol_canFocus(control): returns true if the object can be focused
+--wincontrol_focused(control): returns boolean true when focused
+--wincontrol_setFocus(control): tries to set keyboard focus the object
+
+
+--Strings Class: (Inheritance : Object) (Mostly an abstract class)
+--strings_add(list, string)
+--strings_clear(list)
+--strings_delete(list, index)
+--strings_append(strings, string)
+--strings_getText(strings)
+--strings_indexOf(list, string): Returns the index of the specified string. Returns -1 if not found
+--strings_insert(list, index, string)
+
+--strings_getCount(list)
+--strings_remove(list, string);
+--strings_loadFromFile(list, filename)
+--strings_saveToFile(list, filename)
+
+--strings_getString(list, index)
+--strings_setString(list, index, string)
+
+
+
+--Stringlist Class: (Inheritance : Strings->Object)
+--stringlist_getDuplicates(list)
+--stringlist_setDuplicates(list, Duplicates)
+--stringlist_getSorted(list)
+--stringlist_setSorted(list, boolean)
+--stringlist_getCaseSensitive(list)
+--stringlist_setCaseSensitive(list, boolean)
+
+
+--Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+--form_centerScreen(form);
+--form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
+--form_hide(form)
+--form_show(form)
+--form_showModal(form)
+
+
+--GraphicControl Class: (Inheritance: Control->Component->Object)
+--Nothing for now, perhaps in the future the Canvas
+
+
+--Label Class: (Inheritance: GraphicControl->Control->Component->Object)
+
+
+--Panel Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
+--panel_getAlignment(panel)
+--panel_setAlignment(panel, alignment)
+--panel_getBevelInner(panel)
+--panel_setBevelInner(panel, PanelBevel)
+--panel_getBevelOuter(panel)
+--panel_setBevelOuter(panel, PanelBevel) 
+--panel_getBevelWidth(panel)
+--panel_setBevelWidth(panel, BevelWidth)
+--panel_getFullRepaint(panel)
+--panel_setFullRepaint(panel, boolean)
+
+
+
+--Image Class: (Inheritance: GraphicControl->Control->Component->Object)
+--image_loadImageFromFile(filename)
+--image_stretch(boolean)
+--image_transparent(boolean)
+
+--Edit Class: (Inheritance: WinControl->Control->Component->Object)
+--edit_clear(edit)
+--edit_selectAll(edit)
+--edit_clearSelection(edit)
+--edit_copyToClipboard(edit)
+--edit_cutToClipboard(edit)
+--edit_pasteFromClipboard(edit)
+--edit_onChange(edit, function)
+
+
+--Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
+--memo_append(memo,string)
+--memo_getLines(memo) : returns a Strings class
+--memo_getWordWrap(memo)
+--memo_setWordWrap(memo, boolean)
+--memo_getWantTabs(memo)
+--memo_setWantTabs(memo, boolean)
+--memo_getWantReturns(memo)
+--memo_setWantReturns(memo, boolean)
+--memo_getScrollbars(memo)
+--memo_setScrollbars(memo, boolean)
+
+
+
+
+--ButtonControl Class: (Inheritance: WinControl->Control->Component->Object)
+
+
+--Button Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
+--button_getModalResult(button)
+--button_setModalResult(button, mr)
+
+--CheckBox Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
+--checkbox_getAllowGrayed(CheckBox)
+--checkbox_setAllowGrayed(CheckBox, boolean)
+--checkbox_getState(checkbox)
+--checkbox_setState(checkbox, boolean)
+--checkbox_onChange(checkbox, function)
+
+--ToggleBox Class: (Inheritance: CheckBox->ButtonControl->WinControl->Control->Component->Object)
+
+--GroupBox Class: (Inheritance: WinControl->Control->Component->Object)
+
+--RadioGroup class: (Inheritance: GroupBox->WinControl->Control->Component->Object)
+--radiogroup_getRows(radiogroup): Returns the number of rows
+--radiogroup_getItems(radiogroup): Returns a Strings object
+--radiogroup_getColumns(radiogroup): Returns the nuber of columns
+--radiogroup_setColumns(radiogroup, count)
+--radiogroup_onClick(radiogroup, function)
+
+
+--ListBox Class: (Inheritance: WinControl->Control->Component->Object) 
+--listbox_clear(listbox)
+--listbox_getItems(listbox): Returns a strings object
+--listbox_getItemIndex(listbox)
+--listbox_setItemIndex(listbox,index)
+
+
+--ComboBox Class: (Inheritance: WinControl->Control->Component->Object)
+--combobox_clear(combobox)
+--combobox_getItems(combobox)
+--combobox_getItemIndex(combobox)
+--combobox_setItemIndex(combobox)
+
+
+
+--ProgressBar Class: (Inheritance: WinControl->Control->Component->Object)
+--progressbar_stepIt(progressbar)
+--progressbar_stepBy(progressbar, delta)
+--progressbar_getMax(progressbar)
+--progressbar_setMax(progressbar, integer)
+--progressbar_getMin(progressbar)
+--progressbar_setMin(progressbar, integer)
+--progressbar_getPosition(progressbar)
+--progressbar_setPosition(progressbar, integer)
+
+
+
+--TrackBar Class : (Inheritance: WinControl->Control->Component->Object)
+--trackbar_getMax(trackbar)
+--trackbar_setMax(trackbar, integer)
+--trackbar_getMin(trackbar)
+--trackbar_setMin(trackbar, integer)
+--trackbar_getPosition(progressbar)
+--trackbar_setPosition(progressbar, integer)
+--trackbar_onChange(trackbar, function)
+
+
+--CollectionItem Class: (Inheritance: Object)
+--usually not used by lua users but just defining it here for future usage
+
+
+
+--ListColumn class: (Inheritance: CollectionItem->Object)
+--listcolumn_setAutosize(listcolumns, boolean)
+--listcolumn_getCaption(listcolumns)
+--listcolumn_setCaption(listcolumns, caption)
+--listcolumn_getMaxWidth(listcolumns)
+--listcolumn_setMaxWidth(listcolumns, width)
+--listcolumn_getMinWidth(listcolumns)
+--listcolumn_setMinWidth(listcolumns, width)
+--listcolumn_getWidth(listcolumns)
+--listcolumn_setWidth(listcolumns, width)
+
+
+
+
+--Collection Class: (Inheritance: TObject)
+--collection_clear(collection)
+--collection_getCount(collection)
+--collection_delete(collection, index)
+
+
+--ListColumns class : (Inheritance: Collection->Object)
+--listcolumns_add(listcolumns): Returns a new ListColumn object
+--listcolumns_getColumn(listcolumns, index): Returns a ListColum object;
+
+--ListItem Class : (Inheritance: TObject)
+--listitem_delete(listitem)
+--listitem_getCaption(listitem)
+--listitem_setCaption(listitem)
+--listitem_getSubItems(listitem): Returns a Strings object
+
+
+--ListItems class : (Inheritance: TObject)
+--listitems_clear(listitems)
+--listitems_getCount(listitems)
+--listitems_add(listitems): Returns a new ListItem object
+
+
+
+--Listview Class : (Inheritance: WinControl->Control->Component->Object)
+--listview_clear(listview)
+--listview_getColumns(listview): Returns a ListColumns object
+--listview_getItems(listview) : Returns a ListItems object
+--listview_getItemIndex(listview)
+--listview_setItemIndex(listview)
+
+
+--Timer Class : (Inheritance: Component->object)
+--timer_setInterval(timer, interval)
+--timer_onInterval(timer, function)
+
+--OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
+--opendialog_execute(openDialog): Shows the dialog and returns the string to the selected file
+
+--SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)

@@ -51,9 +51,13 @@ object frmAutoInject: TfrmAutoInject
     top = 72
     object File1: TMenuItem
       Caption = 'File'
-      object New1: TMenuItem
-        Caption = 'New tab'
+      object miNewWindow: TMenuItem
+        Caption = 'New Window'
         ShortCut = 16462
+        OnClick = miNewWindowClick
+      end
+      object New1: TMenuItem
+        Caption = 'New Tab'
         Visible = False
         OnClick = New1Click
       end

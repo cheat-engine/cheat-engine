@@ -15,7 +15,9 @@ uses
   simpleaobscanner, pointervaluelist, ManualModuleLoader, debughelper,
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
-  customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,   htmlhelp, win32int;
+  customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
+  htmlhelp, win32int, defaulttranslator, fileaccess, translations, formdesignerunit,
+  ceguicomponents, frmautoinjectunit;
 
 //the following are just for compatibility
 
@@ -166,6 +168,7 @@ type
 type
   grouptype = array[1..6] of boolean;
 
+
 type
 
   { TMainForm }
@@ -182,6 +185,12 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem8: TMenuItem;
+    miResyncFormsWithLua: TMenuItem;
+    miCreateLuaForm: TMenuItem;
+    miLuaFormsSeperator: TMenuItem;
+    miForms: TMenuItem;
     miSaveScanresults: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
@@ -340,7 +349,7 @@ type
     ools1: TMenuItem;
     N8: TMenuItem;
     Helpindex1: TMenuItem;
-    actScriptEngine: TAction;
+    actLuaScript: TAction;
     Plugins2: TMenuItem;
     actMemoryView: TAction;
     Label61: TLabel;
@@ -357,7 +366,10 @@ type
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miResyncFormsWithLuaClick(Sender: TObject);
+    procedure miCreateLuaFormClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
+    procedure miFormsClick(Sender: TObject);
     procedure miResetRangeClick(Sender: TObject);
     procedure miChangeColorClick(Sender: TObject);
     procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
@@ -483,7 +495,7 @@ type
     procedure CreateProcess1Click(Sender: TObject);
     procedure Helpindex1Click(Sender: TObject);
     procedure New1Click(Sender: TObject);
-    procedure actScriptEngineExecute(Sender: TObject);
+    procedure actLuaScriptExecute(Sender: TObject);
     procedure File1Click(Sender: TObject);
     procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
@@ -531,7 +543,6 @@ type
 
     oldhandle: thandle;
 
-    hexstateForIntTypes: boolean;
     compareToSavedScan: boolean;
     currentlySelectedSavedResultname: string; //I love long variable names
 
@@ -603,11 +614,17 @@ type
 
     function convertvalue(ovartype, nvartype: integer; oldvalue: string; washexadecimal, ishexadecimal:boolean): string;
 
+    //designer functions
+    procedure EditFormClick(sender: tobject);
+    procedure RestoreAndShowFormClick(sender: tobject);
+    procedure DeleteFormClick(sender: tobject);
+    procedure FormDesignerClose(Sender: TObject; var CloseAction: TCloseAction);
+
   public
     { Public declarations }
     addresslist: TAddresslist;
 
-    test: single;
+    //test: single;
     itemshavechanged: boolean;
 
     debugproc: boolean;
@@ -633,6 +650,8 @@ type
     oldcodelistcount: integer;
 
     memscan: tmemscan;
+    LuaForms: Tlist;
+    frmLuaTableScript: Tfrmautoinject;
 
     function openprocessPrologue: boolean;
     procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
@@ -663,6 +682,8 @@ type
     procedure DestroyCancelButton;
 
     procedure AddressListAutoAssemblerEdit(sender: TObject; memrec: TMemoryRecord);
+    procedure createFormdesigner;
+    procedure UpdateMenu;
 
     property foundcount: int64 read ffoundcount write setfoundcount;
     property RoundingType: TRoundingType read GetRoundingType write SetRoundingType;
@@ -685,7 +706,7 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , HotKeys{, standaloneunit}, aboutunit,  formScanningUnit,  formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit, FoundCodeUnit, advancedoptionsunit,
   frmProcessWatcherUnit,formPointerOrPointeeUnit,OpenSave, formmemoryregionsunit, formProcessInfo
-  , frmautoinjectunit,PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
+  , PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
   pluginexports;
 
 var
@@ -2215,9 +2236,197 @@ begin
   addresslist.SelectAll;
 end;
 
+procedure TMainForm.miResyncFormsWithLuaClick(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to LuaForms.count-1 do
+    TCEForm(LuaForms[i]).ResyncWithLua;
+
+end;
+
+procedure TMainForm.DeleteFormClick(sender: tobject);
+var f: tceform;
+begin
+  if messagedlg('Are you sure you want to delete this form?', mtConfirmation, [mbyes,mbno],0)=mryes then
+  begin
+    if LuaForms.count=1 then //close the designerform when it's the last object
+      if FormDesigner<>nil then
+        FormDesigner.close;
+
+
+    f:=TCEForm(LuaForms[TMenuItem(sender).Tag]);
+    f.free;
+
+    LuaForms.Delete(TMenuItem(sender).Tag);
+
+    UpdateMenu;
+
+  end;
+end;
+
+procedure TMainForm.EditFormClick(sender: tobject);
+var f: tceform;
+begin
+  f:=TCEForm(LuaForms[TMenuItem(sender).Tag]);
+
+
+  if formdesigner=nil then
+    createFormdesigner;
+
+  formdesigner.designForm(f);
+
+  formdesigner.show;
+
+  f.show;
+end;
+
+procedure TMainForm.RestoreAndShowFormClick(sender: tobject);
+var f: tceform;
+begin
+  f:=TCEForm(LuaForms[TMenuItem(sender).Tag]);
+  if f.designsurface<>nil then
+    f.designsurface.Active:=false;
+
+  f.RestoreToDesignState;
+  f.show;
+end;
+
+procedure TMainForm.FormDesignerClose(Sender: TObject; var CloseAction: TCloseAction);
+var i: integer;
+  f: TCEForm;
+begin
+  for i:=0 to LuaForms.count-1 do
+  begin
+    f:=TCEForm(LuaForms[i]);
+    f.Active:=false;
+    if f.designsurface<>nil then
+      freeandnil(f.designsurface);
+  end;
+
+  closeAction:=caFree;
+  FormDesigner:=nil;
+end;
+
+
+
+procedure TMainForm.UpdateMenu;
+var i: integer;
+  mi: tmenuitem;
+  f: tceform;
+
+  submenu: TMenuItem;
+begin
+  miLuaFormsSeperator.visible:=LuaForms.Count>0;
+
+
+  while miForms.Count>5 do
+    miForms.Delete(5);
+
+  for i:=0 to LuaForms.Count-1 do
+  begin
+    mi:=tmenuitem.Create(miForms);
+
+    f:=LuaForms[i];
+    mi.Caption:=f.name;
+    miforms.Add(mi);
+
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Restore and show';
+    submenu.OnClick:=RestoreAndShowFormClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Edit';
+    submenu.OnClick:=EditFormClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='-';
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Delete';
+    submenu.OnClick:=DeleteFormClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+  end;
+end;
+
+procedure TMainForm.createFormdesigner;
+begin
+  if FormDesigner=nil then
+  begin
+    FormDesigner:=TFormDesigner.create(self);
+    formdesigner.autosize:=false;
+    FormDesigner.OnClose2:=FormDesignerClose;
+  end;
+end;
+
+procedure TMainForm.miCreateLuaFormClick(Sender: TObject);
+var f: tceform;
+  i,j,k: integer;
+
+  s: string;
+begin
+  f:=tceform.CreateNew(nil);
+  f.autosize:=false;
+
+ { f.Position:=poScreenCenter;
+  f.show;
+  f.position:=poDesigned; }
+
+  j:=1;
+  //found out a unique name for this form
+  for i:=0 to LuaForms.Count-1 do
+  begin
+    s:=copy(tceform(LuaForms[i]).name, 1, 3);
+    if s='UDF' then
+    begin
+      s:=tceform(LuaForms[i]).name;
+      s:=copy(s, 16, length(s));
+      if TryStrToInt(s, k) then
+      begin
+        if k>=j then
+          j:=k+1;
+      end;
+    end;
+  end;
+
+
+  f.name:='UDF'+inttostr(j);
+  luaforms.add(f);
+
+
+
+
+  if formdesigner=nil then
+    createFormdesigner;
+
+  formdesigner.designForm(f);
+
+  formdesigner.show;
+
+  f.show;
+
+  f.left:=formdesigner.left;
+  f.top:=formdesigner.height+50;
+
+
+  updatemenu;
+end;
+
 procedure TMainForm.MenuItem7Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TMainForm.miFormsClick(Sender: TObject);
+begin
+  UpdateMenu;
 end;
 
 procedure TMainForm.miResetRangeClick(Sender: TObject);
@@ -3209,7 +3418,15 @@ var
   errormode: dword;
   minworkingsize, maxworkingsize: size_t;
   reg: tregistry;
+
+  PODirectory, Lang, FallbackLang: String;
 begin
+  LuaForms:=TList.create;
+  try
+    LUA_DoScript('package.path = package.path .. [[;'+tablesdir+'\?.lua]]');
+  except
+  end;
+
 
   reg:=Tregistry.Create;
   try
@@ -3244,7 +3461,7 @@ begin
 
 
 
-  actScriptEngine.ShortCut := TextToShortCut('Ctrl+Shift+C');
+  actLuaScript.ShortCut := TextToShortCut('Ctrl+Shift+C');
 
 
   hotkeypressed := -1;
@@ -3263,6 +3480,7 @@ begin
     if OpenProcessToken(ownprocesshandle, TOKEN_QUERY or TOKEN_ADJUST_PRIVILEGES, tokenhandle) then
     begin
       ZeroMemory(@tp,sizeof(tp));
+
       if lookupPrivilegeValue(nil, 'SeDebugPrivilege', tp.Privileges[0].Luid) then
       begin
         tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
@@ -3326,6 +3544,71 @@ begin
 
 
     end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeSecurityPrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeTakeOwnershipPrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeManageVolumePrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeBackupPrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeCreatePagefilePrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeShutdownPrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
+    ZeroMemory(@tp,sizeof(tp));
+    ZeroMemory(@prev, sizeof(prev));
+    if lookupPrivilegeValue(nil, 'SeRestorePrivilege', tp.Privileges[0].Luid) then
+    begin
+      tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+      tp.PrivilegeCount := 1; // One privilege to set
+      AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp), prev, returnlength);
+    end;
+
 
     if GetProcessWorkingSetSize(ownprocesshandle, minworkingsize, maxworkingsize) then
       SetProcessWorkingSetSize(ownprocesshandle, 16*1024*1024, 64*1024*1024);
@@ -3571,6 +3854,7 @@ resourcestring
   strMorePointers = 'There are more pointers selected. Do you want to change them as well?';
   strMorePointers2 = 'You have selected one or more pointers. Do you want to change them as well?';
   strNotAValidValue = 'This is not an valid value';
+  rsComparingToF = 'Comparing to first scan results';
 
 procedure TMainForm.Calculatenewvaluepart21Click(Sender: TObject);
 var
@@ -3739,7 +4023,7 @@ begin
             begin
               currentlySelectedSavedResultname:=l.selected;
               if l.itemindex=0 then
-                lblcompareToSavedScan.caption:='Comparing to first scan results'
+                lblcompareToSavedScan.caption:=rsComparingToF
               else
                 lblcompareToSavedScan.caption:='Comparing to '+currentlySelectedSavedResultname;
             end
@@ -4107,7 +4391,7 @@ begin
     hexvis:=true;
     scanvalue.MaxLength:=0;
     cbHexadecimal.enabled:=newscan.enabled;
-    cbHexadecimal.Checked:=hexstateForIntTypes;
+    //cbHexadecimal.Checked:=hexstateForIntTypes;
   end
   else
   case newvartype of
@@ -4147,7 +4431,7 @@ begin
 
 
        cbHexadecimal.enabled:=newscan.enabled;
-       cbHexadecimal.checked:=cbCaseSensitive.checked;
+       //cbHexadecimal.checked:=cbCaseSensitive.checked;
        hexvis:=false;
        //hextext:='Unicode';
        hexwidth:=61;
@@ -4526,6 +4810,14 @@ var
   h: thandle;
 
 begin
+  //cleanup the user forms
+  if formdesigner<>nil then
+    formdesigner.close;
+
+  for i:=0 to LuaForms.count-1 do
+    tceform(LuaForms[i]).free;
+
+  LuaForms.Clear;
 
 
   //undo unrandomize
@@ -5768,17 +6060,15 @@ begin
 
 end;
 
+var _us: string;
+
+
+
+var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
-var l: tstringlist;
 begin
-  l:=tstringlist.create;
-  getaoblist('11 22 33', l);
-
-  showmessage(l.text);
-
 
 end;
-
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
   lparam: thandle); stdcall;
@@ -6303,7 +6593,6 @@ var sl: tstringlist;
     tempicon: graphics.TIcon;
 
 begin
-
   //fill with processlist
   if il=nil then
     il:=TImageList.Create(self);
@@ -6447,9 +6736,19 @@ begin
   addresslist.clear;
 end;
 
-procedure TMainForm.actScriptEngineExecute(Sender: TObject);
+procedure TMainForm.actLuaScriptExecute(Sender: TObject);
 begin
+  if frmLuaTableScript=nil then
+  begin
+    frmLuaTableScript:=TfrmAutoInject.create(self);
+    frmLuaTableScript.luamode:=true;
 
+    frmLuaTableScript.Caption:='Lua script: Cheat Table';
+    frmLuaTableScript.New1.visible:=false;
+    frmLuaTableScript.save1.OnClick:=savebutton.onclick;
+  end;
+
+  frmLuaTableScript.show;
 end;
 
 procedure TMainForm.File1Click(Sender: TObject);

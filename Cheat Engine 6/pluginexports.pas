@@ -7,7 +7,7 @@ interface
 uses jwawindows, windows, ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
      SyncObjs,dialogs,LCLIntf,classes,autoassembler,
      CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
-     debugHelper, debuggertypedefinitions, typinfo;
+     debugHelper, debuggertypedefinitions, typinfo, ceguicomponents;
 
 type TPluginFunc=function(parameters: pointer): pointer;
 function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;
@@ -1561,11 +1561,12 @@ begin
 end;
 
 function ce_createForm2(params: pointer):pointer;
-var f: tform;
+var f: tceform;
   visible: ^boolean;
 begin
   visible:=params;
-  f:=Tform.Create(nil);
+
+  f:=Tceform.CreateNew(nil);
   f.borderstyle:=bsSingle;
 
   if visible^ then f.show;
@@ -2307,7 +2308,7 @@ end;
 
 function ce_stringlist_remove2(params: pointer): pointer;
 type TP=record
-  c: tstringlist;
+  c: tstrings;
   s: pchar;
 end;
 var p: ^TP;
@@ -2323,7 +2324,7 @@ end;
 
 procedure ce_stringlist_remove(c: pointer; s: pchar); stdcall;
 var p: record
-  c: tstringlist;
+  c: tstrings;
   s: pchar;
 end;
 begin

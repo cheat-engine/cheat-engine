@@ -7,9 +7,10 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, CEFuncProc, StrUtils, types, ComCtrls, LResources,
-  NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, disassembler,
+  NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
-  MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks;
+  MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
+  luahandler;
 
 
 type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
@@ -26,9 +27,13 @@ type TScripts=array of record
               end;
 
 type
+
+  { TfrmAutoInject }
+
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
+    miNewWindow: TMenuItem;
     Panel1: TPanel;
     Button1: TButton;
     Load1: TMenuItem;
@@ -65,6 +70,7 @@ type
     AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
+    procedure miNewWindowClick(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -101,6 +107,8 @@ type
 
     AAHighlighter: TSynAASyn;
     CPPHighlighter: TSynCppSyn;
+    LuaHighlighter: TSynLuaSyn;
+
     assembleSearch: TSynEditSearch;
 
     oldtabindex: integer;
@@ -159,9 +167,9 @@ begin
   fluamode:=state;
   if state then
   begin
-    assemblescreen.Highlighter:=nil;
+    assemblescreen.Highlighter:=LuaHighlighter;
 
-    //change gui to c++ style
+    //change gui to lua style
     button1.Caption:='Execute script';
     opendialog1.DefaultExt:='LUA';
     opendialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
@@ -169,8 +177,8 @@ begin
     savedialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
     Assigntocurrentcheattable1.visible:=false;
     emplate1.Visible:=false;
-    caption:='LUA Script engine';
-    inject1.Visible:=true;
+    caption:='LUA Script';
+   // inject1.Visible:=true;
     helpcontext:=19; //c-script help
   end
   else
@@ -211,12 +219,8 @@ begin
 
   if luamode then
   begin
-    //no implementation
-    if editscript then
-    begin
-      modalresult:=mrok; //not modal anymore, but can still be used to pass info
-      if editscript2 or CustomTypeScript then close;
-    end;
+    //execute
+    LUA_DoScript(assemblescreen.Text);
   end
   else
   begin
@@ -268,6 +272,15 @@ begin
 {$endif}
 end;
 
+procedure TfrmAutoInject.miNewWindowClick(Sender: TObject);
+var f: TfrmAutoInject;
+begin
+  f:=TfrmAutoInject.Create(nil);
+  f.luamode:=luamode;
+
+  f.show;
+end;
+
 procedure TfrmAutoInject.Save1Click(Sender: TObject);
 var f: tfilestream;
     s: string;
@@ -301,7 +314,8 @@ begin
 
   if not editscript then
   begin
-    action:=cafree;
+    if self<>MainForm.frmLuaTableScript then //don't free the lua table script
+      action:=cafree;
   end
   else
   begin
@@ -1207,6 +1221,8 @@ begin
 
   AAHighlighter:=TSynAASyn.Create(self);
   CPPHighlighter:=TSynCppSyn.create(self);
+  LuaHighlighter:=TSynLuaSyn.Create(self);
+
   assembleSearch:=TSyneditSearch.Create;
 
   tlist:=TTablist.Create(self);

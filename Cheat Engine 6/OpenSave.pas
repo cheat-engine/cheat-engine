@@ -9,8 +9,9 @@ interface
 
 uses windows, forms, MainUnit,LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
-     {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls, tableconverter,
-     ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, comctrls,dom, xmlread,xmlwrite, FileUtil;
+     {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
+     tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
+     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents;
 
 
 var CurrentTableVersion: dword=10;
@@ -255,9 +256,12 @@ end;
 procedure LoadXML(doc: TXMLDocument; merge: boolean);
 var
     CheatTable: TDOMNode;
-    Entries, Codes, Symbols, Comments, luascript: TDOMNode;
+    Forms, Entries, Codes, Symbols, Comments, luascript: TDOMNode;
     CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
+
+    form: TDOmNode;
+    f: TCEForm;
 
     tempnode: TDOMNode;
     i,j: integer;
@@ -277,8 +281,22 @@ var
     reg: Tregistry;
     version: integer;
 begin
-
+  LUA_DoScript('tableIsLoading=true');
   try
+    Forms:=nil;
+    Entries:=nil;
+    Codes:=nil;
+    Symbols:=nil;
+    Structures:=nil;
+    Comments:=nil;
+    LuaScript:=nil;
+
+
+    for i:=0 to mainform.LuaForms.count-1 do
+      TCEForm(mainform.Luaforms[i]).free;
+
+    mainform.LuaForms.clear;
+
 
     tempnode:=doc.FindNode('CheatEngineTableVersion');
     if tempnode<>nil then
@@ -290,9 +308,16 @@ begin
     end;
 
 
+    //first load the form. If the lua functions are not loaded it's no biggy, the events just don't do anything then
+    //and just assume that the loading of the lua script initializes the objects accordingly
+
+
+
+
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
     begin
+      Forms:=CheatTable.FindNode('Forms');
       Entries:=CheatTable.FindNode('CheatEntries');
       Codes:=CheatTable.FindNode('CheatCodes');
       Symbols:=CheatTable.FindNode('UserdefinedSymbols');
@@ -300,6 +325,22 @@ begin
       Comments:=CheatTable.FindNode('Comments');
       LuaScript:=CheatTable.FindNode('LuaScript');
     end;
+
+
+    if Forms<>nil then
+    begin
+      for i:=0 to forms.ChildNodes.Count-1 do
+      begin
+        form:=forms.ChildNodes.Item[i];
+        f:=TCEform.create(nil);
+        f.LoadFromXML(form);
+
+        mainform.LuaForms.Add(f);
+      end;
+    end;
+
+    mainform.miResyncFormsWithLua.click;
+
 
     if entries<>nil then
       mainform.addresslist.loadTableXMLFromNode(entries);
@@ -580,7 +621,7 @@ begin
     end;
 
   finally
-
+    LUA_DoScript('tableIsLoading=false');
   end;
 
 end;
@@ -788,7 +829,7 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: TDOMNode;
-    Entries,Symbols, Structures, Comment,luascript: TDOMNode;
+    Forms,Entries,Symbols, Structures, Comment,luascript: TDOMNode;
     CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
 
@@ -802,6 +843,13 @@ begin
 
   CheatTable:=doc.AppendChild(doc.CreateElement('CheatTable'));
   TDOMElement(CheatTable).SetAttribute('CheatEngineTableVersion',IntToStr(CurrentTableVersion));
+
+  if mainform.LuaForms.count>0 then
+  begin
+    Forms:=CheatTable.AppendChild(doc.CreateElement('Forms'));
+    for i:=0 to mainform.LuaForms.count-1 do
+      TCEForm(mainform.LuaForms[i]).savetoxml(forms);
+  end;
 
   entries:=CheatTable.AppendChild(doc.CreateElement('CheatEntries'));
 

@@ -11,6 +11,12 @@ co_run=0
 co_stepinto=1
 co_stepover=2
 
+--CloseAction types
+caNone=0;
+caHide=1;
+caFree=2;
+caMinimize=3;
+
 --alignment types
 alNone=0
 alTop=1

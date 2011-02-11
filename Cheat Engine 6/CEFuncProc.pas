@@ -149,8 +149,8 @@ Function GetRelativeFilePath(filename: string):string;
 
 function GetCPUCount: integer;
 function HasHyperthreading: boolean;
-procedure SaveFormPosition(form: Tform; extra: array of integer);
-function LoadFormPosition(form: Tform; var x: array of integer):boolean; 
+procedure SaveFormPosition(form: TCustomform; extra: array of integer);
+function LoadFormPosition(form: TCustomform; var x: array of integer):boolean;
 
 function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
@@ -2566,7 +2566,7 @@ function GetCPUCount: integer;
 this function will return how many active cpu cores there are at your disposal
 }
 var cpucount: integer;
-    PA,SA: dword;
+    PA,SA: DWORD_PTR;
 begin
 {$ifdef NOTMULTITHREADED}
   result:=1;
@@ -2588,7 +2588,7 @@ begin
   if result=0 then result:=1;
 end;
 
-function LoadFormPosition(form: Tform; var x: array of integer):boolean;
+function LoadFormPosition(form: Tcustomform; var x: array of integer):boolean;
 var reg: tregistry;
     s: string;
     buf: array of integer;
@@ -2641,7 +2641,7 @@ begin
   end;
 end;
 
-procedure SaveFormPosition(form: Tform; extra: array of integer);
+procedure SaveFormPosition(form: Tcustomform; extra: array of integer);
 {
 This function will save the position and the optional data in extra to an array element in the registry
 }
