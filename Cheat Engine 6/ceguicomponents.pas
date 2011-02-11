@@ -1146,7 +1146,13 @@ procedure TCEForm.SaveToXML(Node: TDOMNode);
 var doc: TXMLDocument;
   outputastext: pchar;
   g: TGuid;
+  wasactive: boolean;
 begin
+  wasactive:=active;
+  if active then active:=false;
+
+  if saveddesign=nil then exit; //nothing to save
+
   //for now use a binarystream instead of xml. the xmlwriter/reader does not support stringlists
   //create a stream for storage
   outputastext:=nil;
@@ -1158,7 +1164,7 @@ begin
     doc:=TXMLDocument(node.OwnerDocument);
 
     getmem(outputastext, saveddesign.size*2+1);
-    BinToHex(pchar(saveddesign.Memory), outputastext, saveddesign.Size*2);
+    BinToHex(pchar(saveddesign.Memory), outputastext, saveddesign.Size);
 
     outputastext[saveddesign.size*2]:=#0; //add a 0 terminator
 
@@ -1168,6 +1174,8 @@ begin
     if outputastext<>nil then
       freemem(outputastext);
   end;
+
+  active:=wasactive;
 end;
 
 procedure TCEForm.LoadFromXML(Node: TDOMNode);
@@ -1181,10 +1189,10 @@ begin
 
   s:=node.TextContent;
 
-  getmem(b,length(s)*2);
+  getmem(b,length(s) div 2);
   try
-    HexToBin(pchar(s), b, length(s)*2);
-    saveddesign.WriteBuffer(b^, length(s)*2);
+    HexToBin(pchar(s), b, length(s) div 2);
+    saveddesign.WriteBuffer(b^, length(s) div 2);
   finally
     freemem(b);
   end;
