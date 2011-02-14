@@ -49,6 +49,7 @@ type TMemRecExtraData=record
 
 
 type
+  TMemoryRecordHotkey=class;
   TMemoryRecord=class
   private
     FrozenValue : string;
@@ -75,9 +76,14 @@ type
 
     couldnotinterpretaddress: boolean; //set when the address interpetation has failed since last eval
 
+    hknameindex: integer;
+
+    Hotkeylist: tlist;
+
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
+    function getuniquehotkeyid: integer;
     procedure setActive(state: boolean);
     procedure setAllowDecrease(state: boolean);
     procedure setAllowIncrease(state: boolean);
@@ -86,6 +92,8 @@ type
     procedure setCustomTypeName(name: string);
     procedure setColor(c: TColor);
     procedure setVarType(v:  TVariableType);
+    function getHotkeyCount: integer;
+    function getHotkey(index: integer): TMemoryRecordHotkey;
   public
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
@@ -101,12 +109,7 @@ type
     Extra: TMemRecExtraData;
     AutoAssemblerData: TMemRecAutoAssemblerData;
 
-    Hotkeys: array of record
-      active: boolean; //seperate active boolean so the index doesn't shift when it's disabled
-      keys: Tkeycombo;
-      action: TMemrecHotkeyAction;
-      value: string;
-    end;
+
 
     treenode: TTreenode;
 
@@ -138,10 +141,11 @@ type
     property Value: string read GetValue write SetValue;
     property bytesize: integer read getByteSize;
 
-    function Addhotkey(windowhandle: THandle; keys: tkeycombo; action: TMemrecHotkeyAction; value: string): integer;
-    function removeHotkey(i: integer): boolean;
+    function hasHotkeys: boolean;
+    function Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value: string): TMemoryRecordHotkey;
+    function removeHotkey(hk: TMemoryRecordHotkey): boolean;
 
-    procedure DoHotkey(i: integer); //execute the specific hotkey action
+    procedure DoHotkey(hk :TMemoryRecordHotkey); //execute the specific hotkey action
 
     procedure disablewithoutexecute;
     procedure refresh;
@@ -167,6 +171,24 @@ type
     property Color: TColor read fColor write setColor;
     property VarType: TVariableType read fVarType write setVarType;
     property Value: string read GetValue write SetValue;
+    property HotkeyCount: integer read getHotkeyCount;
+    property Hotkey[index: integer]: TMemoryRecordHotkey read getHotkey;
+  end;
+
+  TMemoryRecordHotkey=class
+  private
+    fOnHotkey: TNotifyevent;
+  public
+    id: integer;
+    description: string;
+    keys: Tkeycombo;
+    action: TMemrecHotkeyAction;
+    value: string;
+    owner: TMemoryRecord;
+    procedure doHotkey;
+    constructor create(AnOwner: TMemoryRecord);
+    destructor destroy;
+    property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
   end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
@@ -176,10 +198,59 @@ implementation
 
 uses mainunit, addresslist, formsettingsunit, LuaHandler;
 
+{-----------------------------TMemoryRecordHotkey------------------------------}
+constructor TMemoryRecordHotkey.create(AnOwner: TMemoryRecord);
+begin
+  //add to the hotkeylist
+  id:=-1;
+  owner:=AnOwner;
+  owner.hotkeylist.Add(self);
+
+  keys[0]:=0;
+
+  RegisterHotKey2(mainform.handle, 0, keys, self);
+end;
+
+destructor TMemoryRecordHotkey.destroy;
+begin
+  UnregisterAddressHotkey(self);
+
+  //remove this hotkey from the memoryrecord
+  if owner<>nil then
+    owner.hotkeylist.Remove(self);
+end;
+
+procedure TMemoryRecordHotkey.doHotkey;
+begin
+  if assigned(fonhotkey) then
+    fOnHotkey(self);
+
+  if owner<>nil then //just be safe (e.g other app sending message)
+    owner.DoHotkey(self);
+end;
+
+{---------------------------------MemoryRecord---------------------------------}
+
+function TMemoryRecord.getHotkeyCount: integer;
+begin
+  result:=hotkeylist.count;
+end;
+
+function TMemoryRecord.getHotkey(index: integer): TMemoryRecordHotkey;
+begin
+  result:=nil;
+
+  if index<hotkeylist.count then
+    result:=TMemoryRecordHotkey(hotkeylist[index]);
+end;
+
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
   fOwner:=AOwner;
   fColor:=clWindowText;
+
+  hotkeylist:=tlist.create;
+
   inherited create;
 end;
 
@@ -187,8 +258,13 @@ destructor TMemoryRecord.destroy;
 var i: integer;
 begin
   //unregister hotkeys
-  for i:=0 to length(hotkeys)-1 do
-    removehotkey(i);
+  if hotkeylist<>nil then
+  begin
+    for i:=0 to hotkeylist.count-1 do
+      TMemoryRecordHotkey(hotkeylist[i]).free;
+
+    hotkeylist.free;
+  end;
 
   //free script space
   if autoassemblerdata.script<>nil then
@@ -205,6 +281,8 @@ begin
 
   if treenode<>nil then
     treenode.free;
+
+
 end;
 
 
@@ -257,6 +335,7 @@ var
 
   currentEntry: TDOMNode;
 
+  hk: TMemoryRecordHotkey;
   memrec: TMemoryRecord;
   a:TDOMNode;
 begin
@@ -432,22 +511,36 @@ begin
 
     if tempnode<>nil then
     begin
-      j:=0;
-      setlength(hotkeys, tempnode.ChildNodes.Count);
+      while hotkeycount>0 do //erase the old hotkey list
+        hotkey[0].free;
+
+
       for i:=0 to tempnode.ChildNodes.count-1 do
       begin
+        hk:=TMemoryRecordHotkey.Create(self);
+
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
-          Hotkeys[j].value:='';
-          ZeroMemory(@Hotkeys[j].keys,sizeof(TKeyCombo));
+          hk.value:='';
+          ZeroMemory(@hk.keys,sizeof(TKeyCombo));
+
+          tempnode2:=tempnode.childnodes[i].FindNode('Description');
+          if tempnode2<>nil then
+            hk.description:=tempnode2.textcontent;
+
+          tempnode2:=tempnode.childnodes[i].FindNode('ID');
+
+          if tempnode2<>nil then
+            hk.id:=strtoint(tempnode2.textcontent);
+
 
           tempnode2:=tempnode.childnodes[i].FindNode('Action');
           if tempnode2<>nil then
-            hotkeys[j].action:=TextToMemRecHotkeyAction(tempnode2.TextContent);
+            hk.action:=TextToMemRecHotkeyAction(tempnode2.TextContent);
 
           tempnode2:=tempnode.childnodes[i].findnode('Value');
           if tempnode2<>nil then
-            hotkeys[j].value:=tempnode2.TextContent;
+            hk.value:=tempnode2.TextContent;
 
           tempnode2:=tempnode.ChildNodes[i].FindNode('Keys');
           if tempnode2<>nil then
@@ -458,7 +551,7 @@ begin
               if tempnode2.ChildNodes[k].NodeName='Key' then
               begin
                 try
-                  hotkeys[j].keys[l]:=StrToInt(tempnode2.ChildNodes[k].TextContent);
+                  hk.keys[l]:=StrToInt(tempnode2.ChildNodes[k].TextContent);
                   inc(l);
                 except
                 end;
@@ -466,17 +559,13 @@ begin
             end;
 
           end;
-
-          hotkeys[j].active:=true;
-
-          RegisterHotKey2(mainform.handle, 0, hotkeys[j].keys, self, j);
-
-
-          inc(j);
         end;
       end;
 
-      setlength(hotkeys,j);
+      //check if a hotkey has an id, and if not create one for it
+      for i:=0 to HotkeyCount-1 do
+        if hotkey[i].id=-1 then
+          hotkey[i].id:=getuniquehotkeyid;
     end;
     ReinterpretAddress;
     refresh;
@@ -620,27 +709,30 @@ begin
     end;
 
     //hotkeys
-    if length(hotkeys)>0 then
+
+    if HotkeyCount>0 then
     begin
       hks:=cheatentry.AppendChild(doc.CreateElement('Hotkeys'));
-      for i:=0 to length(Hotkeys)-1 do
+      for i:=0 to HotkeyCount-1 do
       begin
-        if hotkeys[i].active then
+        hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
+        hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkey[i].action);
+        hkkc:=hk.AppendChild(doc.createElement('Keys'));
+        j:=0;
+        while (j<5) and (hotkey[i].keys[j]<>0) do
         begin
-          hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
-          hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkeys[i].action);
-          hkkc:=hk.AppendChild(doc.createElement('Keys'));
-          j:=0;
-          while (j<5) and (hotkeys[i].keys[j]<>0) do
-          begin
-            hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkeys[i].keys[j]);
-            inc(j);
-          end;
-
-          if hotkeys[i].value<>'' then
-            hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkeys[i].value;
-
+          hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkey[i].keys[j]);
+          inc(j);
         end;
+
+        if hotkey[i].value<>'' then
+          hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkey[i].value;
+
+        if hotkey[i].description<>'' then
+          hk.AppendChild(doc.CreateElement('Description')).TextContent:=hotkey[i].description;
+
+        if hotkey[i].id>=0 then
+          hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
       end;
 
     end;
@@ -694,47 +786,53 @@ begin
   result:=length(pointeroffsets)>0;
 end;
 
-function TMemoryRecord.removeHotkey(i: integer): boolean;
+function TMemoryRecord.hasHotkeys: boolean;
 begin
-  result:=false;
+  result:=HotkeyCount>0;
+end;
 
-  if i>=length(hotkeys) then exit;
-  if not hotkeys[i].active then exit;
-
-  UnregisterAddressHotkey(self,i);
-  hotkeys[i].active:=false;
+function TMemoryRecord.removeHotkey(hk: TMemoryRecordHotkey): boolean;
+begin
+  hk.free;
   result:=true;
 end;
 
-function TMemoryRecord.Addhotkey(windowhandle: THandle; keys: tkeycombo; action: TMemrecHotkeyAction; value: string): integer;
+function TMemoryRecord.getuniquehotkeyid: integer;
+//goes through the hotkeylist and returns an unused id
+var i: integer;
+  isunique: boolean;
+begin
+  result:=0;
+  for result:=0 to maxint-1 do
+  begin
+    isunique:=true;
+    for i:=0 to hotkeycount-1 do
+      if hotkey[i].id=result then
+      begin
+        isunique:=false;
+        break;
+      end;
+
+    if isunique then break;
+  end;
+end;
+
+function TMemoryRecord.Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value: string): TMemoryRecordHotkey;
 {
 adds and registers a hotkey and returns the hotkey index for this hotkey
 return -1 if failure
 }
-var i,j: integer;
+var
+  hk: TMemoryRecordHotkey;
 begin
-  //convert the string to keys
-  j:=-1;
-  for i:=0 to length(Hotkeys)-1 do
-    if not hotkeys[i].active then
-    begin
-      j:=i;
-      break;
-    end;
+  hk:=TMemoryRecordHotkey.create(self);
 
-  if j=-1 then
-  begin
-    setlength(hotkeys,length(hotkeys)+1);
-    j:=length(hotkeys)-1;
-  end;
+  hk.id:=getuniquehotkeyid;
+  hk.keys:=keys;
+  hk.action:=action;
+  hk.value:=value;
 
-  hotkeys[j].keys:=keys;
-  hotkeys[j].action:=action;
-  hotkeys[j].value:=value;
-  hotkeys[j].active:=true;
-
-  RegisterHotKey2(windowhandle, 0, keys, self, j);
-  result:=j;
+  result:=hk;
 end;
 
 procedure TMemoryRecord.increaseValue(value: string);
@@ -800,16 +898,16 @@ begin
   treenode.Update;
 end;
 
-procedure TMemoryRecord.DoHotkey(i: integer);
+procedure TMemoryRecord.DoHotkey(hk: TMemoryRecordhotkey);
 begin
-  if i<length(Hotkeys) then
+  if (hk<>nil) and (hk.owner=self) then
   begin
     try
-      case hotkeys[i].action of
+      case hk.action of
         mrhToggleActivation: active:=not active;
-        mrhSetValue:         SetValue(hotkeys[i].value);
-        mrhIncreaseValue:    increaseValue(hotkeys[i].value);
-        mrhDecreaseValue:    decreaseValue(hotkeys[i].value);
+        mrhSetValue:         SetValue(hk.value);
+        mrhIncreaseValue:    increaseValue(hk.value);
+        mrhDecreaseValue:    decreaseValue(hk.value);
 
 
         mrhToggleActivationAllowDecrease:
@@ -1443,6 +1541,7 @@ begin
 
   self.RealAddress:=result;
 end;
+
 
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;

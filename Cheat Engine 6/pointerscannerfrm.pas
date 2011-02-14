@@ -1202,7 +1202,7 @@ begin
   if (Pointerscanresults.count>10000000) then
   begin
     listview1.Items.Count:=10000000;
-    showmessage('Only the first 10000000 entries will be displayed. Rescan will still work with all results');
+    showmessage('Only the first 10000000 entries will be displayed. Rescan will still work with all results.  (This is completly normal for a pointerscan, you MUST do a few rescans)');
   end else listview1.Items.Count:=Pointerscanresults.count;
 
   listview1.Align:=alClient;

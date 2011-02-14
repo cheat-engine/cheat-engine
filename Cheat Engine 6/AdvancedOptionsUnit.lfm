@@ -13,7 +13,7 @@ object AdvancedOptions: TAdvancedOptions
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 42
@@ -88,7 +88,7 @@ object AdvancedOptions: TAdvancedOptions
       ParentShowHint = False
     end
     object SaveButton: TSpeedButton
-      Left = 144
+      Left = 40
       Height = 30
       Hint = 'Create a standalone trainer'
       Top = 4

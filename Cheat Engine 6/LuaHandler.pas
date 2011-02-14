@@ -3584,6 +3584,13 @@ begin
   lua_pushlightuserdata(l, mainform);
 end;
 
+function getAddressList_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  lua_pushlightuserdata(l, mainform.addresslist);
+end;
+
 
 function inheritsFromObject_fromLua(L: PLua_state): integer; cdecl;
 var x: TObject;
@@ -5670,6 +5677,7 @@ initialization
 
 
     Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);
+    Lua_register(LuaVM, 'getAddressList', getAddressList_fromLua);
     lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);
     lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent_fromLua);
     lua_register(LuaVM, 'inheritsFromControl', inheritsFromControl_fromLua);

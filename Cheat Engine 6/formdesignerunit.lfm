@@ -11,7 +11,7 @@ object FormDesigner: TFormDesigner
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ToolBar1: TToolBar
     Left = 0
     Height = 35

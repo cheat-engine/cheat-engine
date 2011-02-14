@@ -1,37 +1,45 @@
 object HotKeyForm: THotKeyForm
   Left = 839
-  Height = 331
+  Height = 344
   Top = 222
-  Width = 454
+  Width = 478
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Set/Change hotkey'
-  ClientHeight = 331
-  ClientWidth = 454
+  ClientHeight = 344
+  ClientWidth = 478
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListView1: TListView
     Left = 0
-    Height = 147
+    Height = 136
     Top = 0
-    Width = 454
+    Width = 478
     Align = alClient
     Columns = <    
       item
         Caption = 'Hotkey'
+        MinWidth = 1
         Width = 120
       end    
       item
         Caption = 'On Hotkey'
-        Width = 200
+        MinWidth = 1
+        Width = 150
       end    
       item
         Caption = 'Value'
+        MinWidth = 1
         Width = 80
+      end    
+      item
+        Caption = 'Description'
+        MinWidth = 1
+        Width = 90
       end>
     HideSelection = False
     PopupMenu = pmHotkeylist
@@ -42,18 +50,18 @@ object HotKeyForm: THotKeyForm
   end
   object Panel1: TPanel
     Left = 0
-    Height = 184
-    Top = 147
-    Width = 454
+    Height = 208
+    Top = 136
+    Width = 478
     Align = alBottom
-    ClientHeight = 184
-    ClientWidth = 454
+    ClientHeight = 208
+    ClientWidth = 478
     TabOrder = 1
     object PageControl1: TPageControl
       Left = 1
-      Height = 142
+      Height = 166
       Top = 1
-      Width = 452
+      Width = 476
       ActivePage = TabSheet2
       Align = alClient
       Anchors = [akTop, akLeft, akRight]
@@ -62,8 +70,8 @@ object HotKeyForm: THotKeyForm
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'TabSheet1'
-        ClientHeight = 134
-        ClientWidth = 444
+        ClientHeight = 158
+        ClientWidth = 468
         object btnCreateHotkey: TButton
           Left = 11
           Height = 25
@@ -86,8 +94,8 @@ object HotKeyForm: THotKeyForm
       end
       object TabSheet2: TTabSheet
         Caption = 'TabSheet2'
-        ClientHeight = 134
-        ClientWidth = 444
+        ClientHeight = 158
+        ClientWidth = 468
         object Label1: TLabel
           Left = 5
           Height = 14
@@ -99,7 +107,7 @@ object HotKeyForm: THotKeyForm
         object edtHotkey: TEdit
           Left = 5
           Height = 21
-          Top = 17
+          Top = 16
           Width = 257
           OnKeyDown = edtHotkeyKeyDown
           ReadOnly = True
@@ -117,7 +125,7 @@ object HotKeyForm: THotKeyForm
         object btnApply: TButton
           Left = 5
           Height = 25
-          Top = 96
+          Top = 131
           Width = 75
           Caption = 'Apply'
           OnClick = btnApplyClick
@@ -147,29 +155,45 @@ object HotKeyForm: THotKeyForm
           Left = 4
           Height = 21
           Top = 66
-          Width = 257
+          Width = 258
           Enabled = False
           TabOrder = 4
         end
         object btnCancel: TButton
           Left = 83
           Height = 25
-          Top = 96
+          Top = 131
           Width = 75
           Caption = 'Cancel'
           OnClick = btnCancelClick
           TabOrder = 5
+        end
+        object Label2: TLabel
+          Left = 4
+          Height = 14
+          Top = 91
+          Width = 102
+          Caption = 'Description (Optional)'
+          ParentColor = False
+        end
+        object Edit1: TEdit
+          Left = 5
+          Height = 21
+          Hint = 'When autogenerating a trainer this field will be used as description'
+          Top = 107
+          Width = 257
+          TabOrder = 6
         end
       end
     end
     object Panel2: TPanel
       Left = 1
       Height = 40
-      Top = 143
-      Width = 452
+      Top = 167
+      Width = 476
       Align = alBottom
       ClientHeight = 40
-      ClientWidth = 452
+      ClientWidth = 476
       TabOrder = 1
       OnResize = Panel2Resize
       object BitBtn1: TBitBtn
@@ -180,6 +204,15 @@ object HotKeyForm: THotKeyForm
         Caption = 'OK'
         OnClick = BitBtn1Click
         TabOrder = 0
+      end
+      object lblID: TLabel
+        Left = 471
+        Height = 1
+        Top = 25
+        Width = 1
+        Alignment = taRightJustify
+        Anchors = [akTop, akRight]
+        ParentColor = False
       end
     end
   end

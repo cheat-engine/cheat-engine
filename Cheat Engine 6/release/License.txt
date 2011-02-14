@@ -10,7 +10,7 @@ A. Cheat Engine Licence
 6) You may not use this program in actions, which infringe the rights of any person or entity.
 7) You may not use this program in a game, in which you win (earn) real money or things.
 8) You may install and use an unlimited number of copies of this edition of the program on your computers.
-9) You may give this program to your friends and other people, but only in the original archive.
+9) You may give this program to your friends and other people, but only in the original archive. Original Archive is defined as this installer. Which means it is allowed to be redistributed inside another installer, as long as it goes through the original installer.
 10) You may release this edition of the program on CD (or other media), but only in the original archive and if this CD is the programs collection.
 11) You may upload this edition of the program to your internet website, but only in the original archive and this website must be with free access for users.
 12) You may disassemble and reverse engineer any part of this program, although just looking at the sourcecode is easier 

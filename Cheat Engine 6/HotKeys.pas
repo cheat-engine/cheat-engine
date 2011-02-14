@@ -21,9 +21,12 @@ type
     btnEditHotkey: TButton;
     btnCancel: TButton;
     cbFreezedirection: TComboBox;
+    Edit1: TEdit;
     edtFreezeValue: TEdit;
     edtHotkey: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
+    lblID: TLabel;
     ListView1: TListView;
     miDelete: TMenuItem;
     PageControl1: TPageControl;
@@ -104,6 +107,7 @@ end;
 procedure THotkeyform.SetMemrec(x: TMemoryRecord);
 var i: integer;
 li: TListItem;
+hk: TMemoryRecordHotkey;
 begin
   if x.VarType=vtAutoAssembler then
   begin
@@ -115,17 +119,25 @@ begin
 
   listview1.clear;
   fmemrec:=x;
-  for i:=0 to length(memrec.Hotkeys)-1 do
+
+
+
+  for i:=0 to memrec.HotkeyCount-1 do
   begin
-    if memrec.hotkeys[i].active then
+    hk:=memrec.Hotkey[i];
+
     begin
       li:=listview1.Items.Add;
 
-      li.caption:=ConvertKeyComboToString(memrec.hotkeys[i].keys);
-      li.SubItems.Add(HotkeyActionToText(memrec.hotkeys[i].action));
-      li.SubItems.Add(memrec.hotkeys[i].value);
 
-      li.Data:=pointer(i);
+      li.caption:=ConvertKeyComboToString(hk.keys);
+      li.SubItems.Add(HotkeyActionToText(hk.action));
+      li.SubItems.Add(hk.value);
+      li.SubItems.Add(hk.description);
+
+      lblid.caption:=inttostr(hk.id);
+
+      li.Data:=hk;
     end;
   end;
 
@@ -143,7 +155,7 @@ begin
   li:=listview1.items.add;
   li.SubItems.add('');
   li.SubItems.add('');
-  li.Data:=pointer(-1);
+  li.Data:=nil;
   li.selected:=true;
 
   edtHotkey.text:='';
@@ -166,7 +178,7 @@ begin
   pagecontrol1.ActivePage:=tabsheet2;
   listview1.Enabled:=false;
 
-  keys:=memrec.Hotkeys[ptruInt(listview1.selected.data)].keys;
+  keys:=memrec.Hotkey[ptruInt(listview1.selected.data)].keys;
   edtHotkey.text:=ConvertKeyComboToString(keys);
 
   cbFreezedirection.ItemIndex:=cbFreezedirection.Items.IndexOf(listview1.selected.SubItems[0]);
@@ -177,21 +189,22 @@ begin
 end;
 
 procedure THotKeyForm.btnApplyClick(Sender: TObject);
-var hotkeytag: integer;
+var hk: TMemoryRecordHotkey;
 begin
-  if editHotkey then
+  if editHotkey and (listview1.Selected.data<>nil) then
   begin
-    //delete the old hotkey
-    hotkeytag:=ptrInt(listview1.Selected.data);
-    UnregisterAddressHotkey(memrec, hotkeytag);
-  end;
-
-  hotkeytag:=memrec.Addhotkey(mainform.handle, keys, getHotkeyAction, edtFreezeValue.text );
+    hk:=TMemoryRecordHotkey(listview1.Selected.data);
+    hk.keys:=keys;
+    hk.action:=getHotkeyAction;
+    hk.value:=edtFreezeValue.text;
+  end
+  else
+    hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text );
 
   listview1.selected.Caption:=edtHotkey.Text;
   listview1.Selected.SubItems[0]:=cbFreezedirection.Text;
   listview1.selected.subitems[1]:=edtFreezeValue.text;
-  listview1.Selected.data:=pointer(ptrInt(hotkeytag));
+  listview1.Selected.data:=hk;
 
 
   pagecontrol1.ActivePage:=tabsheet1;
@@ -200,7 +213,7 @@ end;
 
 procedure THotKeyForm.btnCancelClick(Sender: TObject);
 begin
-  if (listview1.Selected<>nil) and (ptrint(ptruint(listview1.selected.data))=-1) then //created hotkey
+  if (listview1.Selected<>nil) and (listview1.selected.data=nil) then //created hotkey
     listview1.selected.delete;
 
   pagecontrol1.ActivePage:=tabsheet1;
@@ -259,13 +272,12 @@ begin
 end;
 
 procedure THotKeyForm.miDeleteClick(Sender: TObject);
-var hkt: integer;
+var hk: TMemoryRecordHotkey;
 begin
   if listview1.enabled and (listview1.Selected<>nil) then
   begin
-    hkt:=ptrint(listview1.selected.data);
-    if hkt>=0 then
-      memrec.removeHotkey(hkt);
+    hk:=TMemoryRecordHotkey(listview1.selected.data);
+    hk.free;
 
     listview1.selected.delete;
   end;

@@ -17,7 +17,7 @@ uses
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, defaulttranslator, fileaccess, translations, formdesignerunit,
-  ceguicomponents, frmautoinjectunit;
+  ceguicomponents, frmautoinjectunit, cesupport, trainergenerator;
 
 //the following are just for compatibility
 
@@ -183,10 +183,13 @@ type
     lblcompareToSavedScan: TLabel;
     Label53: TLabel;
     MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
     MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     miResyncFormsWithLua: TMenuItem;
     miCreateLuaForm: TMenuItem;
     miLuaFormsSeperator: TMenuItem;
@@ -366,6 +369,8 @@ type
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
+    procedure MenuItem9Click(Sender: TObject);
     procedure miResyncFormsWithLuaClick(Sender: TObject);
     procedure miCreateLuaFormClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
@@ -788,15 +793,12 @@ var
   a, b: single;
   s: string;
 
-  memrec: TMemoryRecord;
+  hk: TMemoryRecordHotkey;
 begin
   if message.LParam <>0 then
   begin
-    memrec:=TMemoryRecord(message.LParam);
-    if memrec<>nil then //just be safe (e.g other app sending message)
-      memrec.DoHotkey(message.WParam);
-
-    //param contains the hotkey number
+    hk:=TMemoryRecordHotkey(message.LParam);
+    hk.DoHotkey;
   end
   else
   case message.WParam of
@@ -2236,6 +2238,36 @@ begin
   addresslist.SelectAll;
 end;
 
+procedure TMainForm.MenuItem4Click(Sender: TObject);
+begin
+
+end;
+
+procedure TMainForm.MenuItem9Click(Sender: TObject);
+var
+  br: trect;
+begin
+  if frmTrainerGenerator=nil then
+    frmTrainerGenerator:=tfrmTrainerGenerator.create(self);
+
+  if frmTrainerGenerator.canceled then
+  begin
+    frmTrainerGenerator.close;
+    exit;
+  end;
+
+
+
+  frmTrainerGenerator.show;
+
+  frmTrainerGenerator.trainerform.show;
+  if LCLIntf.GetWindowRect(frmTrainerGenerator.handle, br)>0 then
+  begin
+    frmTrainerGenerator.trainerform.left:=br.Right+5;
+    frmTrainerGenerator.trainerform.top:=br.top;
+  end;
+end;
+
 procedure TMainForm.miResyncFormsWithLuaClick(Sender: TObject);
 var i: integer;
 begin
@@ -2376,10 +2408,6 @@ var f: tceform;
 begin
   f:=tceform.CreateNew(nil);
   f.autosize:=false;
-
- { f.Position:=poScreenCenter;
-  f.show;
-  f.position:=poDesigned; }
 
   j:=1;
   //found out a unique name for this form
@@ -6071,6 +6099,10 @@ var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
   //GetWindowRect()
+  if adwindow=nil then
+    adwindow:=TADWindow.createNew(self);
+
+  adwindow.show;
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

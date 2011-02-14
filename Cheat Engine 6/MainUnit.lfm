@@ -358,7 +358,6 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1756,6 +1755,13 @@ object MainForm: TMainForm
       object MenuItem6: TMenuItem
         Caption = '-'
       end
+      object MenuItem9: TMenuItem
+        Caption = 'Generate trainer from table'
+        OnClick = MenuItem9Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = '-'
+      end
       object MenuItem7: TMenuItem
         Caption = 'Quit'
         OnClick = MenuItem7Click
@@ -1800,14 +1806,14 @@ object MainForm: TMainForm
       end
     end
     object miForms: TMenuItem
-      Caption = 'Lua'
+      Caption = 'Table'
       OnClick = miFormsClick
       object MenuItem4: TMenuItem
         Action = actLuaScript
         Caption = 'Show Cheat Table Lua Script'
         ShortCut = 49228
       end
-      object MenuItem8: TMenuItem
+      object MenuItem10: TMenuItem
         Caption = '-'
       end
       object miCreateLuaForm: TMenuItem
@@ -1820,6 +1826,9 @@ object MainForm: TMainForm
       end
       object miLuaFormsSeperator: TMenuItem
         Caption = '-'
+      end
+      object MenuItem8: TMenuItem
+        Caption = 'Add file'
       end
     end
     object ools1: TMenuItem

@@ -55,25 +55,6 @@ require("class");
 
 
 --Cheat table functions:
---createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
---getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
---memrec_setDescription(te, description): sets the specified description for this entry
---memrec_getDescription(te): gets the current description of this entry
---memrec_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
---memrec_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
---memrec_getType(te) : returns the Variable type. (vtByte to vtCustom)
---memrec_setType(te, vartype) : sets the type of the entry
---memrec_getValue(te): returns the current value of the cheat table entry as a string
---memrec_setValue(te, value): sets the value of a cheat table entry
---memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
---memrec_setScript(te, script)
---memrec_isActive(te)
---memrec_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
---memrec_unfreeze(te) :unfreezes an entry
---memrec_setColor(te, colorrgb): Sets the color of the entry
---memrec_appendToEntry(te,te) : Adds the entry to another entry
---memrec_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
-
 
 --Table related routines:
 --If a cheat entry is about to get enabled or disabled it will check if a lua function named "_memrec_description_activating" or "_memrec_description_deactivating" is available, and if so call it.
@@ -181,7 +162,7 @@ require("class");
 --getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
 
 --getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
-
+--getAddressList() : Returns the cheat table addresslist object
 
 
 --class helper functions
@@ -445,3 +426,59 @@ require("class");
 --opendialog_execute(openDialog): Shows the dialog and returns the string to the selected file
 
 --SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
+
+--[[
+components I like to see:
+TSplitter
+
+registersymbol(symbolname, address)
+unregistersymbol(symbolname)
+resetLuaState()
+
+ 
+MemoryRecordHotkey Class: (Inheritance: object)
+memoryrecordhotkey_getDescription(hotkey)
+memoryrecordhotkey_getHotkeyString(hotkey)
+memoryrecordhotkey_getID(hotkey)
+memoryrecordhotkey_onHotkey(hotkey, hotkeyfunction): function (hotkey)
+memoryrecordhotkey_getOwner(hotkey): Returns the MemoryRecord this hotkey belongs to
+
+
+MemoryRecord Class:
+memoryrecord_getHotkeyCount(memoryrecord)
+memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
+memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
+memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the activation to stop
+memoryrecord_onDeactive(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the deactivation to stop
+
+--memrec_setDescription(te, description): sets the specified description for this entry
+--memrec_getDescription(te): gets the current description of this entry
+--memrec_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
+--memrec_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
+--memrec_getType(te) : returns the Variable type. (vtByte to vtCustom)
+--memrec_setType(te, vartype) : sets the type of the entry
+--memrec_getValue(te): returns the current value of the cheat table entry as a string
+--memrec_setValue(te, value): sets the value of a cheat table entry
+--memrec_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
+--memrec_setScript(te, script)
+--memrec_isActive(te)
+--memrec_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
+--memrec_unfreeze(te) :unfreezes an entry
+--memrec_setColor(te, colorrgb): Sets the color of the entry
+--memrec_appendToEntry(te,te) : Adds the entry to another entry
+--memrec_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
+
+
+
+
+
+Addresslist Class:
+addresslist_getCount(addresslist)
+addresslist_getMemoryRecord(addresslist, index)
+addresslist_findMemoryRecord(addresslist, description): --getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+
+addresslist_createMemoryRecord(addresslist) : --createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+
+--]]
+
+

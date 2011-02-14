@@ -575,8 +575,6 @@ begin
 
   f.show;
   f.BringToFront;
-
-
 end;
 
 

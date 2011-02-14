@@ -47,7 +47,7 @@ uses
   frmLuaEngineUnit, frmMemviewPreferencesUnit, frmBreakpointConditionUnit,
   frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, 
-LuaSyntax;
+LuaSyntax, cesupport, trainergenerator;
 
 {$R cheatengine.res}
 {$R manifest.res}
