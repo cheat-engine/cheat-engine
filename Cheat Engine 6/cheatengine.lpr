@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc,
+  sysutils, Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc,
   ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode, byteinterpreter,
   addressparser, autoassembler, ProcessWindowUnit, MainUnit2, Filehandler,
   dbvmPhysicalMemoryHandler, frameHotkeyConfigUnit, formsettingsunit,
@@ -47,7 +47,8 @@ uses
   frmLuaEngineUnit, frmMemviewPreferencesUnit, frmBreakpointConditionUnit,
   frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, 
-LuaSyntax, cesupport, trainergenerator;
+LuaSyntax, cesupport, trainergenerator, genericHotkey,
+frmExeTrainerGeneratorUnit, luafile;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -66,6 +67,7 @@ begin
 
  // LRSTranslator := TPoTranslator.Create(FindLocaleFileName('.po'));
   //TranslateUnitResourceStrings('MainUnit',
+  Application.ShowMainForm:=false;
 
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);
@@ -74,6 +76,19 @@ begin
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
+
+  if paramcount >= 1 then
+  begin
+    try
+      mainform.visible:=uppercase(ExtractFileExt(paramstr(1)))<>'.CETRAINER';
+      LoadTable(paramstr(1),false);
+    except
+    end;
+  end
+  else
+    mainform.visible:=true;
+
+  Application.CreateForm(TfrmExeTrainerGenerator, frmExeTrainerGenerator);
   Application.Run;
 end.
 

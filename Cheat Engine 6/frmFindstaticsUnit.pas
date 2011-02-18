@@ -10,7 +10,7 @@ uses
   {tlhelp32,}symbolhandler, LResources;
 
 type TStaticlist=record
-  static: ptrUint;
+  s: ptrUint;
   isstruct: boolean;
   referencecount: dword;
   //referals: array of dword;
@@ -101,13 +101,13 @@ begin
     i:=length(staticlist)-1;
     //add latest line to the list
     x:=frmfindstatics.ListView1.Items.Add;
-    x.Caption:=IntToHex(staticlist[i].static,8);
+    x.Caption:=IntToHex(staticlist[i].s,8);
     if staticlist[i].isstruct then
       x.SubItems.Add('struct or array')
     else
     begin
       point:=0;
-      if ReadProcessMemory(processhandle,pointer(staticlist[i].static),@point,processhandler.pointersize,ar) then
+      if ReadProcessMemory(processhandle,pointer(staticlist[i].s),@point,processhandler.pointersize,ar) then
       begin
         x.SubItems.add(IntToHex(point,8));
       end
@@ -222,7 +222,7 @@ begin
       begin
         found:=false;
         for j:=0 to length(staticlist)-1 do
-          if staticlist[j].static=static then
+          if staticlist[j].s=static then
           begin
             inc(staticlist[j].referencecount);
             updatetype:=updateEntry;
@@ -238,7 +238,7 @@ begin
           //add it to the list.
           k:=length(staticlist);
           setlength(staticlist,k+1);
-          staticlist[k].static:=static;
+          staticlist[k].s:=static;
           staticlist[k].isstruct:=isstruct;
           staticlist[k].referencecount:=1;
 

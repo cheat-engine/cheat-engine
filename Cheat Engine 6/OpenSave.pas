@@ -7,15 +7,17 @@ unit OpenSave;
 interface
 
 
-uses windows, forms, MainUnit,LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
+uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
      tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
-     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents;
+     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile;
 
 
 var CurrentTableVersion: dword=10;
-procedure SaveTable(Filename: string);
+procedure protecttrainer(filename: string);
+procedure unprotecttrainer(filename: string; stream: TStream);
+procedure SaveTable(Filename: string; protect: boolean=false);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 
@@ -174,7 +176,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses mainunit2, symbolhandler, LuaHandler, formsettingsunit;
+uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit;
 
 
 
@@ -253,15 +255,17 @@ begin
 end;
 
 
-procedure LoadXML(doc: TXMLDocument; merge: boolean);
+procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 var
     CheatTable: TDOMNode;
-    Forms, Entries, Codes, Symbols, Comments, luascript: TDOMNode;
+    Files, Forms, Entries, Codes, Symbols, Comments, luascript: TDOMNode;
     CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
 
+    filenode: TDOMNode;
     form: TDOmNode;
     f: TCEForm;
+    lf: TLUAFile;
 
     tempnode: TDOMNode;
     i,j: integer;
@@ -292,17 +296,26 @@ begin
     LuaScript:=nil;
 
 
-    for i:=0 to mainform.LuaForms.count-1 do
-      TCEForm(mainform.Luaforms[i]).free;
+    if not merge then
+    begin
+      for i:=0 to mainform.LuaForms.count-1 do
+        TCEForm(mainform.Luaforms[i]).free;
 
-    mainform.LuaForms.clear;
+      mainform.LuaForms.clear;
 
+      for i:=0 to mainform.LuaForms.count-1 do
+        TLUAFile(mainform.Luaforms[i]).free;
+
+      mainform.LuaFiles.clear;
+
+
+    end;
 
     tempnode:=doc.FindNode('CheatEngineTableVersion');
     if tempnode<>nil then
     try
       version:=strtoint(tempnode.TextContent);
-      if version>CurrentTableVersion then
+      if (version>CurrentTableVersion) then
         showmessage('There is a newer version of Cheat Engine out. It''s recomended to use that version instead');
     except
     end;
@@ -317,6 +330,7 @@ begin
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
     begin
+      Files:=CheatTable.FindNode('Files');
       Forms:=CheatTable.FindNode('Forms');
       Entries:=CheatTable.FindNode('CheatEntries');
       Codes:=CheatTable.FindNode('CheatCodes');
@@ -324,6 +338,16 @@ begin
       Structures:=CheatTable.FindNode('Structures');
       Comments:=CheatTable.FindNode('Comments');
       LuaScript:=CheatTable.FindNode('LuaScript');
+    end;
+
+    if Files<>nil then
+    begin
+      for i:=0 to files.Childnodes.count-1 do
+      begin
+        filenode:=files.ChildNodes.item[i];
+        lf:=TLuafile.createFromXML(filenode);
+        mainform.LuaFiles.add(lf);
+      end;
     end;
 
 
@@ -560,52 +584,58 @@ begin
 
     if Commentsunit.Comments.mLuaScript.text<>'' then
     begin
-      if formSettings.cbAskIfTableHasLuascript.checked then
+      if not isTrainer then
       begin
-        r:=MessageDlg('This table contains a lua script. Do you want to run it?', mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll],0);
-
-        if r in [mrYesToAll, mrNoToAll] then
+        if formSettings.cbAskIfTableHasLuascript.checked then
         begin
-          case r of
+          r:=MessageDlg('This table contains a lua script. Do you want to run it?', mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll],0);
 
-            mrYesToAll:
-            begin
-              r:=mryes;
-              formsettings.cbAskIfTableHasLuascript.Checked:=false;
-              formsettings.cbAlwaysRunScript.checked:=true;
+          if r in [mrYesToAll, mrNoToAll] then
+          begin
+            case r of
+
+              mrYesToAll:
+              begin
+                r:=mryes;
+                formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                formsettings.cbAlwaysRunScript.checked:=true;
+              end;
+
+              mrNoToAll:
+              begin
+                r:=mrNo;
+                formsettings.cbAskIfTableHasLuascript.Checked:=false;
+                formsettings.cbAlwaysRunScript.checked:=false;
+              end;
             end;
 
-            mrNoToAll:
-            begin
-              r:=mrNo;
-              formsettings.cbAskIfTableHasLuascript.Checked:=false;
-              formsettings.cbAlwaysRunScript.checked:=false;
+            reg:=TRegistry.Create;
+            try
+              Reg.RootKey := HKEY_CURRENT_USER;
+              if Reg.OpenKey('\Software\Cheat Engine',true) then
+              begin
+                reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
+                reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
+              end;
+            finally
+              reg.free;
             end;
           end;
 
-          reg:=TRegistry.Create;
-          try
-            Reg.RootKey := HKEY_CURRENT_USER;
-            if Reg.OpenKey('\Software\Cheat Engine',true) then
-            begin
-              reg.WriteBool('Ask if table has lua script',formsettings.cbAskIfTableHasLuascript.Checked);
-              reg.WriteBool('Always run script',formsettings.cbAlwaysRunScript.Checked);
-            end;
-          finally
-            reg.free;
-          end;
+
+
+        end
+        else
+        begin
+          if formSettings.cbAlwaysRunScript.checked then
+            r:=mrYes
+          else
+            r:=mrNo;
         end;
-
-
 
       end
       else
-      begin
-        if formSettings.cbAlwaysRunScript.checked then
-          r:=mrYes
-        else
-          r:=mrNo;
-      end;
+        r:=mryes; //cetrainers always execute the script
 
       if r=mryes then
       begin
@@ -689,7 +719,12 @@ procedure LoadCT(filename: string; merge: boolean);
 var ctfile: TFilestream;
     x: pchar;
     doc: TXMLDocument;
+    unprotectedstream: TMemorystream;
+
+    isProtected: boolean;
 begin
+  isProtected:=false;
+  unprotectedstream:=nil;
   ctfile:=nil;
   doc:=nil;
   ctfile:=Tfilestream.Create(filename,fmopenread or fmsharedenynone);
@@ -701,15 +736,39 @@ begin
     freeandnil(ctfile);
 
 
+    if uppercase(copy(x, 1,5))<>'<?XML' then
+    begin
+      //not xml
 
-    if x[0]<>'<' then //not xml
-      doc:=ConvertCheatTableToXML(filename);
+      if X='CHEATENGINE' then
+      begin
+         doc:=ConvertCheatTableToXML(filename)
+      end
+      else
+      begin
+        //protected
+        isProtected:=true;
+        unprotectedstream:=tmemorystream.create;
+
+        unprotecttrainer(filename, unprotectedstream);
+        unprotectedstream.Position:=0;
+
+        ReadXMLFile(doc, unprotectedstream);
+      end;
+    end;
+
+
+
+
+
 
     try
       if doc=nil then
         ReadXMLFile(doc, filename);
 
-      LoadXML(doc, merge);
+      LoadXML(doc, merge, uppercase(extractfileext(filename))='.CETRAINER');
+      if isProtected then //I know, this protection is pathetic for anyone that can compile ce. But as I said, this is just to stop the ultimate lazy guy from just editing the .CETRAINER file and changing the name
+        mainform.isProtected:=true;
     except
       raise exception.Create('This is not a valid cheat table');
     end;
@@ -723,9 +782,10 @@ begin
 
     if doc<>nil then
       doc.free;
+
+    if unprotectedstream<>nil then
+      unprotectedstream.free;
   end;
-
-
 end;
 
 
@@ -770,6 +830,7 @@ begin
   if Extension='.CET' then LoadCET(filename,merge) else
   if Extension='.CT2' then LoadCT2(filename,merge) else
   if Extension='.CT3' then LoadCT3(filename,merge) else}
+  if Extension='.CETRAINER' then LoadCT(filename, false) else
   if Extension='.CT' then LoadCT(filename,merge) else
   if Extension='.XML' then
   begin
@@ -829,7 +890,7 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: TDOMNode;
-    Forms,Entries,Symbols, Structures, Comment,luascript: TDOMNode;
+    Files, Forms,Entries,Symbols, Structures, Comment,luascript: TDOMNode;
     CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
 
@@ -849,6 +910,13 @@ begin
     Forms:=CheatTable.AppendChild(doc.CreateElement('Forms'));
     for i:=0 to mainform.LuaForms.count-1 do
       TCEForm(mainform.LuaForms[i]).savetoxml(forms);
+  end;
+
+  if mainform.LuaFiles.count>0 then
+  begin
+    Files:=CheatTable.AppendChild(doc.CreateElement('Files'));
+    for i:=0 to mainform.Luafiles.count-1 do
+      TLuaFile(mainform.LuaFiles[i]).savetoxml(files);
   end;
 
   entries:=CheatTable.AppendChild(doc.CreateElement('CheatEntries'));
@@ -929,16 +997,23 @@ begin
 
 end;
 
-procedure SaveTable(Filename: string);
+procedure SaveTable(Filename: string; protect: boolean=false);
 begin
   try
     if Uppercase(utf8tosys(extractfileext(filename)))<>'.EXE' then
     begin
+      if protect and (Uppercase(utf8tosys(extractfileext(filename)))<>'.CETRAINER') then raise exception.create('You can only protect a file if it has an .CETRAINER extension');
+
+
       SaveXML(utf8tosys(filename));
+      if protect then
+        protecttrainer(utf8tosys(filename));
     end
     else
     begin
-//trainer maker
+      //trainer maker
+      //show the trainer exegenerator form
+      //frmExeTrainerGeneratorUnit
       raise exception.create('Cheat Engine 6.0 does not support trainer creating yet (Just share your cheat tables for now)');
     end;
     mainform.editedsincelastsave:=false;
@@ -946,6 +1021,103 @@ begin
 
   end;
 
+end;
+
+procedure unprotecttrainer(filename: string; stream: TStream);
+var f: TMemorystream;
+ m: pbytearray;
+ i: integer;
+ k: byte;
+
+ d: Tdecompressionstream;
+
+ b: pointer;
+ size: integer;
+
+ ActuallyRead: integer;
+begin
+  f:=tmemorystream.create;
+  f.loadfromfile(filename);
+
+  m:=f.Memory;
+
+  for i:=2 to f.size-1 do
+    m[i]:=m[i] xor m[i-2];
+
+  for i:=f.Size-2 downto 0 do
+    m[i]:=m[i] xor m[i+1];
+
+  k:=$ce;
+  for i:=0 to f.size-1 do
+  begin
+    m[i]:=m[i] xor k;
+    inc(k);
+  end;
+
+
+  d:=Tdecompressionstream.create(f,true);
+
+
+
+  size:=1024;
+  getmem(b, size);
+  ActuallyRead:=1024;
+  while ActuallyRead>0 do
+  begin
+    ActuallyRead:=d.read(b^, size);
+    if ActuallyRead>0 then
+      stream.Write(b^, ActuallyRead);
+  end;
+
+  d.free;
+  f.free;
+end;
+
+procedure protecttrainer(filename: string);
+{
+this is the super mega protector routine for the trainer
+Yeah, it's pathetic, but it keeps the retarded noobs out that don't know how to
+read code and only know how to copy/paste
+}
+var f,f2: tmemorystream;
+  m: PByteArray;
+  i: integer;
+  k: byte;
+  c: Tcompressionstream;
+
+begin
+  if Uppercase(extractfileext(filename))<>'.CETRAINER' then raise exception.create('Error saving...');
+
+  f:=tmemorystream.create;
+  f.LoadFromFile(filename);
+  f2:=tmemorystream.create;
+
+  c:=Tcompressionstream.create(clmax, f2,true);
+
+  c.write(f.Memory^, f.size);
+  c.free;
+  f.free;
+
+
+  k:=$ce;
+  m:=f2.Memory;
+
+  for i:=0 to f2.Size-1 do
+  begin
+    m[i]:=(m[i] xor k);
+    inc(k);
+  end;
+
+  for i:=0 to f2.Size-2 do
+    m[i]:=m[i] xor m[i+1];
+
+  for i:=f2.Size-1 downto 2 do
+    m[i]:=m[i] xor m[i-2];
+
+
+  f2.SaveToFile(filename);
+
+  f2.free;
 end;
 
 

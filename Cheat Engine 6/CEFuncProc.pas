@@ -7,7 +7,7 @@ unit CEFuncProc;
 
 interface
 
-uses jwawindows, windows, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
+uses jwawindows, zstream, windows, LCLIntf,StdCtrls,Classes,SysUtils,dialogs,{tlhelp32,}forms,messages,
 Graphics,
 ComCtrls,
 {reinit, }
@@ -84,8 +84,8 @@ procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
 procedure rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
 procedure rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
 
-procedure GetProcessList(ProcessList: TListBox); overload;
-procedure GetProcessList(ProcessList: TStrings); overload;
+procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
+procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false); overload;
 procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 function AvailMem:SIZE_T;
@@ -170,8 +170,6 @@ function getProcessnameFromProcessID(pid: dword): string;
 
 
 procedure errorbeep;
-
-
 
 {$ifndef net}
 procedure SetLanguage;
@@ -2138,7 +2136,7 @@ begin
 end;   }
 
 
-procedure GetProcessList(ProcessList: TListBox);
+procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
 var sl: tstringlist;
     i: integer;
     pli: PProcessListInfo;
@@ -2158,7 +2156,7 @@ begin
     processlist.Items.Clear;
 
     
-    GetProcessList(sl);
+    GetProcessList(sl, NoPID);
     processlist.Items.AddStrings(sl);
   finally
     sl.free;
@@ -2202,7 +2200,7 @@ begin
   processlist.clear;
 end;
 
-procedure GetProcessList(ProcessList: TStrings);
+procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false);
 Var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
     Check: Boolean;
@@ -2258,7 +2256,13 @@ begin
           ProcessListInfo.processID:=processentry.th32ProcessID;
           ProcessListInfo.processIcon:=HI;
 
-          ProcessList.AddObject(IntTohex(processentry.th32ProcessID,8)+'-'+ExtractFilename(processentry.szExeFile), TObject(ProcessListInfo));
+          if noPID then
+            s:=''
+          else
+            s:=IntTohex(processentry.th32ProcessID,8)+'-';
+          s:=s+ExtractFilename(processentry.szExeFile);
+
+          ProcessList.AddObject(s, TObject(ProcessListInfo));
         end;
       end;
 
@@ -3182,6 +3186,7 @@ begin
     closehandle(ths);
   end;
 end;
+
 
 initialization
   getmem(tempdir,256);

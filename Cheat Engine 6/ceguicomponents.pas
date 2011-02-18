@@ -8,9 +8,32 @@ unit ceguicomponents;
 interface
 
 uses
-  Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
+  zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics;
+  graphics, math;
+
+type TCESplitter=class(TCustomSplitter)
+  property Align;
+  property Anchors;
+  property AutoSnap;
+  property Beveled;
+  property Color;
+  property Constraints;
+  property Cursor;
+  property Height;
+  property MinSize;
+ // property OnCanResize;
+  property OnChangeBounds;
+  property OnMoved;
+  property ParentColor;
+  property ParentShowHint;
+ // property PopupMenu;
+  property ResizeAnchor;
+  property ResizeStyle;
+  property ShowHint;
+  property Visible;
+  property Width;
+end;
 
 type TCETimer=class(Ttimer);
 
@@ -1147,6 +1170,9 @@ var doc: TXMLDocument;
   outputastext: pchar;
   g: TGuid;
   wasactive: boolean;
+
+  m: TMemorystream;
+  c: Tcompressionstream;
 begin
   wasactive:=active;
   if active then active:=false;
@@ -1160,13 +1186,23 @@ begin
 {
     WriteComponentAsBinaryToStreamWithMethods(m);}
 
+    //compress the design
+    m:=tmemorystream.create;
+    c:=Tcompressionstream.create(clmax, m, true);
+    c.write(saveddesign.Memory^, saveddesign.size);
+    c.free;
+
     //and now save the stream as text to the xml file
     doc:=TXMLDocument(node.OwnerDocument);
 
-    getmem(outputastext, saveddesign.size*2+1);
-    BinToHex(pchar(saveddesign.Memory), outputastext, saveddesign.Size);
 
-    outputastext[saveddesign.size*2]:=#0; //add a 0 terminator
+
+    getmem(outputastext, m.size*2+1);
+    BinToHex(pchar(m.Memory), outputastext, m.Size);
+
+    outputastext[m.size*2]:=#0; //add a 0 terminator
+
+    m.free;
 
 
     Node.AppendChild(doc.CreateElement(name)).TextContent:=outputastext;
@@ -1181,6 +1217,11 @@ end;
 procedure TCEForm.LoadFromXML(Node: TDOMNode);
 var s: string;
   b: pchar;
+  m: TMemorystream;
+  dc: Tdecompressionstream;
+  maxsize, size: integer;
+  read: integer;
+
 begin
   if saveddesign=nil then
     saveddesign:=TMemorystream.create;
@@ -1189,10 +1230,23 @@ begin
 
   s:=node.TextContent;
 
-  getmem(b,length(s) div 2);
+  size:=length(s) div 2;
+  maxsize:=max(65536,size); //64KB or the required size if that's bigger
+  getmem(b, maxsize);
   try
-    HexToBin(pchar(s), b, length(s) div 2);
-    saveddesign.WriteBuffer(b^, length(s) div 2);
+    HexToBin(pchar(s), b, size);
+
+    m:=tmemorystream.create;
+    m.WriteBuffer(b^, size);
+    m.position:=0;
+    dc:=Tdecompressionstream.create(m, true);
+
+    //reuse the b buffer
+    repeat
+      read:=dc.read(b^, maxsize);
+      saveddesign.WriteBuffer(b^, read);
+    until read=0;
+
   finally
     freemem(b);
   end;
@@ -1261,6 +1315,7 @@ initialization
   RegisterClass(TCEProgressBar);
   RegisterClass(TCETrackbar);
   RegisterClass(TCEListView);
+  RegisterClass(TCESplitter);
 
   RegisterClass(tceform);
 

@@ -12,7 +12,7 @@ object TypeForm: TTypeForm
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 10
     Height = 14

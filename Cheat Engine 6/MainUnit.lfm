@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.0'
+  Caption = 'Cheat Engine 6.1'
   ClientHeight = 550
   ClientWidth = 538
   Font.Height = -11
@@ -1384,6 +1384,7 @@ object MainForm: TMainForm
     object Browsethismemoryregion1: TMenuItem
       Caption = 'Browse this memory region'
       GroupIndex = 2
+      ShortCut = 16450
       OnClick = Browsethismemoryregion1Click
     end
     object Showashexadecimal1: TMenuItem
@@ -1408,6 +1409,7 @@ object MainForm: TMainForm
     object SetHotkey1: TMenuItem
       Caption = 'Assign Hotkey'
       GroupIndex = 2
+      ShortCut = 16456
       OnClick = SetHotkey1Click
     end
     object Freezealladdresses2: TMenuItem
@@ -1552,15 +1554,15 @@ object MainForm: TMainForm
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CT'
-    Filter = 'Cheat Engine Tables (*.CET;*.CT2,*.CT3;*.CT)|*.CT;*.CT3;*.CT2;*.CET|Cheat Table XML|*.XML|Gamehack tables (*.GH)|*.GH|ArtMoney Tables (*.AMT)|*.AMT|All files (*.*)|*.*|All supported cheat tables|*.CT;*.CT3;*.CT2;*.CET;*.GH;*.AMT;*.XML'
-    FilterIndex = 6
+    Filter = 'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|All files (*.*)|*.*|All supported cheat tables|*.CT;*.CETRAINER'
+    FilterIndex = 3
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     left = 48
     top = 104
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CT'
-    Filter = 'Cheat Engine Tables (*.CT)|*.CT'
+    Filter = 'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|Cheat Engine Trainer Standalone (*.EXE)|*.EXE'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     left = 16
     top = 104
@@ -1805,9 +1807,9 @@ object MainForm: TMainForm
         Caption = 'e'
       end
     end
-    object miForms: TMenuItem
+    object miTable: TMenuItem
       Caption = 'Table'
-      OnClick = miFormsClick
+      OnClick = miTableClick
       object MenuItem4: TMenuItem
         Action = actLuaScript
         Caption = 'Show Cheat Table Lua Script'
@@ -1827,8 +1829,9 @@ object MainForm: TMainForm
       object miLuaFormsSeperator: TMenuItem
         Caption = '-'
       end
-      object MenuItem8: TMenuItem
+      object miAddFile: TMenuItem
         Caption = 'Add file'
+        OnClick = miAddFileClick
       end
     end
     object ools1: TMenuItem

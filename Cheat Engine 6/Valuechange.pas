@@ -226,7 +226,7 @@ end;
 
 procedure TValueChangeForm.FormShow(Sender: TObject);
 begin
-  vartype.ItemIndex:=0;
+  //vartype.ItemIndex:=0;
 
   valuetext.SetFocus;
   valuetext.SelectAll;

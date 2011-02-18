@@ -52,6 +52,7 @@ type
   TMemoryRecordHotkey=class;
   TMemoryRecord=class
   private
+    fID: integer;
     FrozenValue : string;
     CurrentValue: string;
     UnreadablePointer: boolean;
@@ -94,7 +95,10 @@ type
     procedure setVarType(v:  TVariableType);
     function getHotkeyCount: integer;
     function getHotkey(index: integer): TMemoryRecordHotkey;
+    procedure setID(i: integer);
   public
+
+
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
 
@@ -142,7 +146,7 @@ type
     property bytesize: integer read getByteSize;
 
     function hasHotkeys: boolean;
-    function Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value: string): TMemoryRecordHotkey;
+    function Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string): TMemoryRecordHotkey;
     function removeHotkey(hk: TMemoryRecordHotkey): boolean;
 
     procedure DoHotkey(hk :TMemoryRecordHotkey); //execute the specific hotkey action
@@ -158,8 +162,7 @@ type
     constructor Create(AOwner: TObject);
     destructor destroy; override;
 
-
-
+    property ID: integer read fID write setID;
     property addressString: string read getAddressString;
     property active: boolean read fActive write setActive;
 
@@ -187,7 +190,7 @@ type
     owner: TMemoryRecord;
     procedure doHotkey;
     constructor create(AnOwner: TMemoryRecord);
-    destructor destroy;
+    destructor destroy; override;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
   end;
 
@@ -246,6 +249,7 @@ end;
 
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
+  fid:=-1;
   fOwner:=AOwner;
   fColor:=clWindowText;
 
@@ -340,6 +344,10 @@ var
   a:TDOMNode;
 begin
   if TDOMElement(CheatEntry).TagName<>'CheatEntry' then exit; //invalid node type
+
+  tempnode:=Cheatentry.FindNode('ID');
+  if tempnode<>nil then
+    id:=strtoint(tempnode.textcontent);
 
   tempnode:=CheatEntry.FindNode('Description');
   if tempnode<>nil then
@@ -618,6 +626,7 @@ begin
 
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
+  cheatEntry.AppendChild(doc.CreateElement('ID')).TextContent:=IntToStr(ID);
   cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+description+'"';
 
   //save options
@@ -797,6 +806,22 @@ begin
   result:=true;
 end;
 
+procedure TMemoryRecord.setID(i: integer);
+var a: TAddresslist;
+
+begin
+  if i<>fid then
+  begin
+    //new id, check fo duplicates (e.g copy/paste)
+    a:=TAddresslist(fOwner);
+
+    if a.getRecordWithID(i)<>nil then
+      fid:=a.GetUniqueMemrecId
+    else
+      fid:=i;
+  end;
+end;
+
 function TMemoryRecord.getuniquehotkeyid: integer;
 //goes through the hotkeylist and returns an unused id
 var i: integer;
@@ -817,7 +842,7 @@ begin
   end;
 end;
 
-function TMemoryRecord.Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value: string): TMemoryRecordHotkey;
+function TMemoryRecord.Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string): TMemoryRecordHotkey;
 {
 adds and registers a hotkey and returns the hotkey index for this hotkey
 return -1 if failure
@@ -831,6 +856,7 @@ begin
   hk.keys:=keys;
   hk.action:=action;
   hk.value:=value;
+  hk.description:=description;
 
   result:=hk;
 end;
@@ -1333,7 +1359,7 @@ begin
       temps:=copy(v, 2,length(v)-2);
       //search the addresslist for a entry with name (temps)
 
-      mr:=TAddresslist(fOwner).findRecordWithDescription(temps);
+      mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
       if mr<>nil then
         v:=mr.GetValue;
 

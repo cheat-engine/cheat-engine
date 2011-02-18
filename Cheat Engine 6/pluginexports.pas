@@ -855,7 +855,7 @@ end;
 
 function ce_getTableEntry2(description: pointer): pointer;
 begin
-  result:=mainform.addresslist.findRecordWithDescription(pchar(description));
+  result:=mainform.addresslist.getRecordWithDescription(pchar(description));
 end;
 
 function ce_getTableEntry(description: pchar): pointer; stdcall;
@@ -1517,6 +1517,7 @@ end;
 
 function ce_closeCE2(params: pointer):pointer;
 begin
+  mainform.mustClose:=true;
   mainform.Close;
   result:=nil;
 end;

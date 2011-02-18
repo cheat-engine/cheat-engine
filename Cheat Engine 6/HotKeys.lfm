@@ -176,7 +176,7 @@ object HotKeyForm: THotKeyForm
           Caption = 'Description (Optional)'
           ParentColor = False
         end
-        object Edit1: TEdit
+        object edtDescription: TEdit
           Left = 5
           Height = 21
           Hint = 'When autogenerating a trainer this field will be used as description'

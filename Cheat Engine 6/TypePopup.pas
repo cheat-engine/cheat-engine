@@ -204,7 +204,10 @@ begin
   end;
 
   if memoryrecord.vartype=vtString then
+  begin
     MemoryRecord.Extra.stringData.length:=bit;
+    MemoryRecord.Extra.stringData.unicode:=cbunicode.checked;
+  end;
 
   if memoryrecord.vartype=vtByteArray then
   begin

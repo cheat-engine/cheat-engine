@@ -96,7 +96,10 @@ type
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
     function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
-    function findRecordWithDescription(description: string): TMemoryRecord;
+    function getRecordWithDescription(description: string): TMemoryRecord;
+    function getRecordWithID(id: integer): TMemoryRecord;
+
+    function GetUniqueMemrecId: integer;
 
     procedure doDescriptionChange;
     procedure doAddressChange;
@@ -292,6 +295,7 @@ end;
 procedure TAddresslist.loadTableXMLFromNode(CheatEntries: TDOMNode);
 var currentEntry: TDOMNode;
 memrec: TMemoryRecord;
+i: integer;
 begin
   currentEntry:=CheatEntries.FirstChild;
   while currententry<>nil do
@@ -308,6 +312,9 @@ begin
     currentEntry:=currentEntry.NextSibling;
   end;
 
+  for i:=0 to count-1 do
+    if MemRecItems[i].ID=-1 then
+      MemRecItems[i].ID:=GetUniqueMemrecId;
 end;
 
 function TAddresslist.GetTableXMLAsText(selectedonly: boolean): string;
@@ -383,7 +390,7 @@ var doc: TXMLDocument;
     changeoffsetstring: string;
     changeoffset: ptrUint;
     x: ptrUint;
-
+    i: integer;
 begin
   doc:=nil;
   s:=nil;
@@ -445,6 +452,7 @@ begin
               //fill the entry with the node info
               memrec.setXMLnode(currentEntry);
 
+
               if replace_find<>'' then
                 memrec.Description:=stringreplace(memrec.Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
 
@@ -478,6 +486,12 @@ begin
   except
     //don't complain
   end;
+
+  //update id's if necesary
+  for i:=0 to count-1 do
+    if MemRecItems[i].ID=-1 then
+      MemRecItems[i].ID:=GetUniqueMemrecId;
+
 end;
 
 procedure TAddresslist.CreateGroup(groupname: string);
@@ -485,6 +499,7 @@ var
   memrec: TMemoryRecord;
 begin
   memrec:=TMemoryrecord.Create(self);
+  memrec.id:=GetUniqueMemrecId;
   memrec.isGroupHeader:=true;
   memrec.Description:=groupname;
   memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
@@ -496,6 +511,7 @@ var
   memrec: TMemoryRecord;
 begin
   memrec:=TMemoryrecord.Create(self);
+  memrec.id:=GetUniqueMemrecId;
   memrec.isGroupHeader:=false;
   memrec.Description:='Auto Assemble script';
   memrec.AutoAssemblerData.script:=tstringlist.create;
@@ -507,7 +523,30 @@ begin
   memrec.treenode.DropTarget:=true;
 end;
 
-function TAddresslist.findRecordWithDescription(description: string): TMemoryRecord;
+function TAddresslist.GetUniqueMemrecId: integer;
+var i: integer;
+begin
+  result:=-1;
+  for i:=0 to count-1 do
+    result:=max(result, memrecitems[i].id);
+
+  inc(result);
+end;
+
+function TAddresslist.getRecordWithID(id: integer): TMemoryRecord;
+var i: integer;
+begin
+  result:=nil;
+  for i:=0 to count-1 do
+    if MemRecItems[i].id=id then
+    begin
+      result:=MemRecItems[i];
+      exit;
+    end;
+
+end;
+
+function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
 var i: integer;
 begin
   result:=nil;
@@ -527,6 +566,8 @@ var
   t: TTreenode;
 begin
   memrec:=TMemoryRecord.create(self);
+
+  memrec.id:=GetUniqueMemrecId;
 
   memrec.Description:=description;
   memrec.interpretableaddress:=address;

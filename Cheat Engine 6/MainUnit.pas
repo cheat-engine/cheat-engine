@@ -17,7 +17,8 @@ uses
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, defaulttranslator, fileaccess, translations, formdesignerunit,
-  ceguicomponents, frmautoinjectunit, cesupport, trainergenerator;
+  ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
+  luafile;
 
 //the following are just for compatibility
 
@@ -165,6 +166,8 @@ type
   end;
 
 
+
+
 type
   grouptype = array[1..6] of boolean;
 
@@ -188,12 +191,12 @@ type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
-    MenuItem8: TMenuItem;
+    miAddFile: TMenuItem;
     MenuItem9: TMenuItem;
     miResyncFormsWithLua: TMenuItem;
     miCreateLuaForm: TMenuItem;
     miLuaFormsSeperator: TMenuItem;
-    miForms: TMenuItem;
+    miTable: TMenuItem;
     miSaveScanresults: TMenuItem;
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
@@ -370,11 +373,12 @@ type
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miAddFileClick(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
     procedure miResyncFormsWithLuaClick(Sender: TObject);
     procedure miCreateLuaFormClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
-    procedure miFormsClick(Sender: TObject);
+    procedure miTableClick(Sender: TObject);
     procedure miResetRangeClick(Sender: TObject);
     procedure miChangeColorClick(Sender: TObject);
     procedure miDefineNewCustomTypeLuaClick(Sender: TObject);
@@ -554,6 +558,7 @@ type
     alignsizechangedbyuser: boolean;
     scantypechangedbyhotkey: boolean;
 
+    fIsProtected: boolean;
     procedure doNewScan;
     procedure SetExpectedTableName;
     procedure autoattachcheck;
@@ -620,11 +625,16 @@ type
     function convertvalue(ovartype, nvartype: integer; oldvalue: string; washexadecimal, ishexadecimal:boolean): string;
 
     //designer functions
+    procedure RenameFileClick(sender: tobject);
+    procedure SaveFileClick(sender: tobject);
+    procedure DeleteFileClick(sender: tobject);
+
     procedure EditFormClick(sender: tobject);
     procedure RestoreAndShowFormClick(sender: tobject);
     procedure DeleteFormClick(sender: tobject);
     procedure FormDesignerClose(Sender: TObject; var CloseAction: TCloseAction);
 
+    procedure setIsProtected(p: boolean);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -656,7 +666,10 @@ type
 
     memscan: tmemscan;
     LuaForms: Tlist;
+    LuaFiles: TList;
     frmLuaTableScript: Tfrmautoinject;
+
+    mustClose: boolean;
 
     function openprocessPrologue: boolean;
     procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
@@ -698,6 +711,7 @@ type
     property ScanReadOnly: boolean read getScanReadonly write setScanReadonly;
 
     property SelectedVariableType: TVariableType read getSelectedVariableType;
+    property isProtected: boolean read fIsProtected write setIsProtected;
   end;
 
 var
@@ -773,6 +787,38 @@ begin
   togglewindows:=nil;
 end;
 
+procedure TMainForm.setIsProtected(p: boolean); //super unhackable protection yeeeeeh
+//I'll sue you for DMCA violations if you edit this code!!!! Really! I mean it! I do!!!!
+var i: integer;
+begin
+  if p then
+  begin
+    //It's fucking time!!!!
+    advancedoptions.free;
+    actionlist1.free;
+
+    for i:=0 to ControlCount-1 do
+      Controls[i].Visible:=false;
+
+    mainform.menu:=nil;
+
+    addresslist.PopupMenu:=nil;
+    addresslist.Enabled:=false;
+
+    visible:=false;
+
+    miTable.Enabled:=false;
+    while miTable.Count>0 do
+      miTable.Delete(0);
+
+    changescript1.free;
+
+    frmLuaTableScript.assemblescreen.ClearAll;
+
+    frmLuaTableScript.free;
+  end;
+end;
+
 procedure TMainForm.WMGetMinMaxInfo(var Message: TMessage);
 var MMInfo: ^MINMAXINFO;
 begin //the constraint function of the form behaves weird when draging from the top or left side, so I have to do this myself.
@@ -788,17 +834,30 @@ end;
 
 
 procedure TMainform.Hotkey2(var Message: TMessage);
+type PNotifyEvent=^TNotifyEvent;
 var
   i: integer;
   a, b: single;
   s: string;
 
   hk: TMemoryRecordHotkey;
+  gh: TGenericHotkey;
 begin
   if message.LParam <>0 then
   begin
-    hk:=TMemoryRecordHotkey(message.LParam);
-    hk.DoHotkey;
+    case message.wparam of
+      0: //memoryrecord hotkey
+      begin
+        hk:=TMemoryRecordHotkey(message.LParam);
+        hk.DoHotkey;
+      end;
+
+      1: //OnNotify hotkey
+      begin
+        gh:=TGenericHotkey(message.LParam);
+        gh.onNotify(nil);
+      end
+    end;
   end
   else
   case message.WParam of
@@ -2243,6 +2302,29 @@ begin
 
 end;
 
+procedure TMainForm.miAddFileClick(Sender: TObject);
+var f: TOpendialog;
+
+  lf: TLuafile;
+  s: TMemorystream;
+begin
+  f:=TOpendialog.Create(self);
+  try
+    if f.execute then
+    begin
+      s:=TMemorystream.create;
+      s.LoadFromFile(f.filename);
+      lf:=TLuaFile.create(extractfilename(f.filename), s);
+      LuaFiles.add(lf);
+
+      s.free;
+    end;
+
+  finally
+    f.free;
+  end;
+end;
+
 procedure TMainForm.MenuItem9Click(Sender: TObject);
 var
   br: trect;
@@ -2275,7 +2357,6 @@ begin
     TCEForm(LuaForms[i]).ResyncWithLua;
 
 end;
-
 procedure TMainForm.DeleteFormClick(sender: tobject);
 var f: tceform;
 begin
@@ -2340,33 +2421,72 @@ begin
 end;
 
 
+procedure TMainForm.RenameFileClick(sender: tobject);
+var lf: TLuafile;
+begin
+  lf:=TLuafile(LuaFiles[TMenuItem(sender).Tag]);
+  InputQuery('Rename file','Give the new filename',lf.name);
+end;
+
+procedure TMainForm.SaveFileClick(sender: tobject);
+var lf: TLuafile;
+  f: TSavedialog;
+begin
+  lf:=TLuafile(LuaFiles[TMenuItem(sender).Tag]);
+
+  f:=tsavedialog.create(self);
+  try
+    f.filename:=lf.name;
+    if f.execute then
+      lf.stream.SaveToFile(f.filename);
+  finally
+    f.free;
+  end;
+end;
+
+procedure TMainForm.DeleteFileClick(sender: tobject);
+var lf: TLuafile;
+begin
+  lf:=TLuafile(TMenuItem(sender).Tag);
+  lf.free;
+
+  LuaFiles.Delete(TMenuItem(sender).Tag);
+end;
 
 procedure TMainForm.UpdateMenu;
 var i: integer;
   mi: tmenuitem;
   f: tceform;
+  lf: TLuafile;
 
   submenu: TMenuItem;
 begin
-  miLuaFormsSeperator.visible:=LuaForms.Count>0;
+  miLuaFormsSeperator.visible:=true; //LuaForms.Count>0;
 
 
-  while miForms.Count>5 do
-    miForms.Delete(5);
+  while miTable.Count>5 do
+  begin
+    if miTable.Items[4]<>miLuaFormsSeperator then
+      miTable.Delete(4)
+    else
+      break;
+  end;
 
   for i:=0 to LuaForms.Count-1 do
   begin
-    mi:=tmenuitem.Create(miForms);
+    mi:=tmenuitem.Create(miTable);
 
     f:=LuaForms[i];
     mi.Caption:=f.name;
-    miforms.Add(mi);
+
+    miTable.Insert(4, mi);
 
 
     submenu:=tmenuitem.create(mi);
     submenu.Caption:='Restore and show';
     submenu.OnClick:=RestoreAndShowFormClick;
     submenu.Tag:=i;
+    submenu.Default:=true;
     mi.Add(submenu);
 
     submenu:=tmenuitem.create(mi);
@@ -2386,6 +2506,44 @@ begin
     submenu.Tag:=i;
     mi.Add(submenu);
   end;
+
+
+  //and now the files
+  while miTable.Count>miTable.indexOf(miAddFile)+1 do
+    miTable.Delete(miTable.indexOf(miAddFile)+1);
+
+  for i:=0 to luafiles.count-1 do
+  begin
+    mi:=tmenuitem.Create(miTable);
+    lf:=TLuafile(luafiles[i]);
+    mi.caption:=lf.name;
+
+    miTable.add(mi);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Rename';
+    submenu.OnClick:=RenameFileClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Save to disk';
+    submenu.OnClick:=SaveFileClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='-';
+    mi.Add(submenu);
+
+    submenu:=tmenuitem.create(mi);
+    submenu.Caption:='Delete';
+    submenu.OnClick:=DeleteFileClick;
+    submenu.Tag:=i;
+    mi.Add(submenu);
+
+  end;
+
 end;
 
 procedure TMainForm.createFormdesigner;
@@ -2455,7 +2613,7 @@ begin
   close;
 end;
 
-procedure TMainForm.miFormsClick(Sender: TObject);
+procedure TMainForm.miTableClick(Sender: TObject);
 begin
   UpdateMenu;
 end;
@@ -3452,6 +3610,7 @@ var
 
   PODirectory, Lang, FallbackLang: String;
 begin
+  LuaFiles:=TList.create;
   LuaForms:=TList.create;
   try
     LUA_DoScript('package.path = package.path .. [[;'+tablesdir+'\?.lua]]');
@@ -3490,6 +3649,12 @@ begin
   setErrorMode(errormode or SEM_FAILCRITICALERRORS or SEM_NOOPENFILEERRORBOX);
 
 
+  frmLuaTableScript:=TfrmAutoInject.create(self);
+  frmLuaTableScript.luamode:=true;
+
+  frmLuaTableScript.Caption:='Lua script: Cheat Table';
+  frmLuaTableScript.New1.visible:=false;
+  frmLuaTableScript.save1.OnClick:=savebutton.onclick;
 
 
   actLuaScript.ShortCut := TextToShortCut('Ctrl+Shift+C');
@@ -3762,10 +3927,13 @@ begin
     foundlist3.columns[0].Width := x[6];
   end;
 
+
   pluginhandler := TPluginhandler.Create;
 
   //custom types
   LoadCustomTypesFromRegistry;
+
+
 
 
 end;
@@ -4550,7 +4718,7 @@ end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-  CanClose := CheckIfSaved;
+  CanClose := mustclose or CheckIfSaved;
 end;
 
 resourcestring
@@ -5286,8 +5454,7 @@ begin
 
   //Load the table if one was suplied
   overridedebug := False;
-  if paramcount >= 1 then
-    LoadTable(paramstr(1),false);
+
 
   if (GetSystemType < 4) {or (is64bitos)} then  //not nt or later
   begin
@@ -5710,6 +5877,7 @@ end;
 
 
 procedure TMainForm.actSaveExecute(Sender: TObject);
+var protect: boolean;
 begin
   if (savedialog1.FileName='') and (opendialog1.filename<>'') then
   begin
@@ -5718,9 +5886,11 @@ begin
     savedialog1.FileName:=ChangeFileExt(opendialog1.FileName,'');
   end;
 
+  if ExtractFileExt(savedialog1.FileName)='.CETRAINER' then
+    protect:=MessageDlg('Do you want to protect this trainer file from editing?', mtConfirmation, [mbyes, mbno], 0)=mryes;
 
   if Savedialog1.Execute then
-    savetable(savedialog1.FileName);
+    savetable(savedialog1.FileName, protect);
 
   opendialog1.FileName:=savedialog1.filename;
 
@@ -5773,7 +5943,11 @@ begin
 
       setlength(y,0);
       loadformposition(x,y);
+
+      caption:='Auto Assemble edit: '+memrec.Description;
       show;
+
+
     end;
 
   end;
@@ -6099,10 +6273,13 @@ var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
   //GetWindowRect()
+  {
   if adwindow=nil then
     adwindow:=TADWindow.createNew(self);
 
   adwindow.show;
+                    }
+  isprotected:=true;
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
@@ -6773,15 +6950,7 @@ end;
 
 procedure TMainForm.actLuaScriptExecute(Sender: TObject);
 begin
-  if frmLuaTableScript=nil then
-  begin
-    frmLuaTableScript:=TfrmAutoInject.create(self);
-    frmLuaTableScript.luamode:=true;
 
-    frmLuaTableScript.Caption:='Lua script: Cheat Table';
-    frmLuaTableScript.New1.visible:=false;
-    frmLuaTableScript.save1.OnClick:=savebutton.onclick;
-  end;
 
   frmLuaTableScript.show;
 end;

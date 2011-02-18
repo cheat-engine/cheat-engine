@@ -1,7 +1,7 @@
 object ValueChangeForm: TValueChangeForm
-  Left = 1264
+  Left = 1271
   Height = 106
-  Top = 590
+  Top = 584
   Width = 273
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -14,7 +14,7 @@ object ValueChangeForm: TValueChangeForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object VarType: TComboBox
     Left = 20
     Height = 24
@@ -69,7 +69,7 @@ object ValueChangeForm: TValueChangeForm
     Left = 177
     Height = 20
     Top = 33
-    Width = 69
+    Width = 71
     Caption = 'Unicode'
     TabOrder = 4
     Visible = False

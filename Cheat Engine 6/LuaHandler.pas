@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
-  StdCtrls, comctrls, ceguicomponents;
+  StdCtrls, comctrls, ceguicomponents, generichotkey;
 
 var
   LuaVM: Plua_State;
@@ -1866,6 +1866,13 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
+function beep_fromLua(L: PLua_state): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L)); //clear the stack
+  beep;
+  result:=0;
+end;
+
 function pause_fromLua(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L)); //clear the stack
@@ -2217,6 +2224,38 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function createHotkey_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  h: TGenericHotkey;
+  routine: string;
+
+  lc: TLuaCaller;
+
+  i: integer;
+  keys: TKeycombo;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=2 then //(function, key, ...)
+  begin
+    lc:=TLuaCaller.create;
+
+    if lua_isfunction(L, -parameters) then
+      lc.luaroutineindex:=luaL_ref(L,LUA_REGISTRYINDEX)
+    else
+      lc.luaroutine:=lua_tostring(L,-parameters);
+
+    zeromemory(@keys,sizeof(keys));
+    for i:=-parameters+1 to -1 do
+      keys[i+parameters-1]:=lua_tointeger(L, i);
+
+    h:=TGenericHotkey.create(lc.NotifyEvent, keys);
+
+
+    lua_pushlightuserdata(L, h);
+    result:=1;
+  end else lua_pop(L, lua_gettop(L));
+end;
 
 
 function createLabel_fromLua(L: Plua_State): integer; cdecl;
@@ -2517,6 +2556,42 @@ begin
 
   end else lua_pop(L, paramcount);
 end;
+
+function control_setEnabled_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+  Enabled: boolean;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    control.Enabled:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function control_getEnabled_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  control: TControl;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, control.Enabled);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
 
 function control_setVisible_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -3590,6 +3665,21 @@ begin
   lua_pop(L, lua_gettop(l));
   lua_pushlightuserdata(l, mainform.addresslist);
 end;
+
+function getFreezeTimer_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  lua_pushlightuserdata(l, mainform.FreezeTimer);
+end;
+
+function getUpdateTimer_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  lua_pushlightuserdata(l, mainform.UpdateTimer);
+end;
+
 
 
 function inheritsFromObject_fromLua(L: PLua_state): integer; cdecl;
@@ -5438,6 +5528,7 @@ initialization
     lua_register(LuaVM, 'memrec_setDescription', memrec_setDescription_fromlua);
     lua_register(LuaVM, 'memrec_getDescription', memrec_getDescription_fromlua);
     lua_register(LuaVM, 'memrec_getAddress', memrec_getAddress_fromlua);
+    lua_register(LuaVM, 'memrec_setAddress', memrec_setAddress_fromlua);
     lua_register(LuaVM, 'memrec_getType', memrec_getType_fromlua);
     lua_register(LuaVM, 'memrec_setType', memrec_setType_fromlua);
     lua_register(LuaVM, 'memrec_getValue', memrec_getValue_fromlua);
@@ -5495,6 +5586,8 @@ initialization
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
 
     //ce6.1
+    lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
+
     lua_register(LuaVM, 'getPropertyList', getPropertyList_fromLua);
     lua_register(LuaVM, 'setProperty', setProperty_fromLua);
     lua_register(LuaVM, 'getProperty', getProperty_fromLua);
@@ -5519,6 +5612,8 @@ initialization
     lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
     lua_register(LuaVM, 'control_getAlign', control_getAlign_fromLua);
     lua_register(LuaVM, 'control_onClick', control_onClick_fromLua);
+    lua_register(LuaVM, 'control_setEnabled', control_setEnabled_fromLua);
+    lua_register(LuaVM, 'control_getEnabled', control_getEnabled_fromLua);
     lua_register(LuaVM, 'control_setVisible', control_setVisible_fromLua);
     lua_register(LuaVM, 'control_getVisible', control_getVisible_fromLua);
     lua_register(LuaVM, 'control_setColor', control_setColor_fromLua);
@@ -5678,10 +5773,17 @@ initialization
 
     Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);
     Lua_register(LuaVM, 'getAddressList', getAddressList_fromLua);
+    Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer_fromLua);
+    Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer_fromLua);
+
+
     lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);
     lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent_fromLua);
     lua_register(LuaVM, 'inheritsFromControl', inheritsFromControl_fromLua);
     lua_register(LuaVM, 'inheritsFromWinControl', inheritsFromWinControl_fromLua);
+
+    Lua_register(LuaVM, 'beep', beep_fromLua);
+
     LUA_DoScript('os=nil');
 
 

@@ -91,6 +91,7 @@ type
     CEProgressbar: TToolButton;
     CETrackBar: TToolButton;
     CEListView: TToolButton;
+    CESplitter: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);

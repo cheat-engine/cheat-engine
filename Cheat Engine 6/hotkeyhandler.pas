@@ -4,13 +4,14 @@ unit HotkeyHandler;
 
 interface
 
-uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages;
+uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey;
 
 type thotkeyitem=record
   keys: TKeyCombo;
   windowtonotify: thandle;
   id: integer;
   memrechotkey: pointer; //if set this gets passed down to the hotkey handler in the message
+  genericHotkey: TGenericHotkey;
 
   //extra
   fuModifiers: word;
@@ -31,9 +32,10 @@ end;
 
 
 function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
-function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey: pointer=nil): boolean;
+function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey: pointer=nil; genericHotkey: TGenericHotkey=nil): boolean;
 function UnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function UnregisterAddressHotkey(memrechotkey: pointer): boolean;
+function UnregisterGenericHotkey(generichotkey: TGenericHotkey): boolean;
 
 //function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
@@ -178,7 +180,7 @@ begin
 end;
 
 
-function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey: pointer=nil): boolean;
+function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey: pointer=nil; genericHotkey: TGenericHotkey=nil): boolean;
 begin
   CSKeys.Enter;
   try
@@ -190,6 +192,7 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].id:=id;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=true;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].memrechotkey:=memrechotkey;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].generichotkey:=genericHotkey;
 
     result:=true;
   finally
@@ -226,6 +229,32 @@ begin
   end;
 
   k[i]:=0;
+end;
+
+function UnregisterGenericHotkey(generichotkey: TGenericHotkey): boolean;
+var i,j: integer;
+begin
+  result:=false;
+
+  CSKeys.enter;
+  try
+    for i:=0 to length(hotkeythread.hotkeylist)-1 do
+    begin
+      if hotkeythread.hotkeylist[i].genericHotkey=genericHotkey then
+      begin
+        //found, so delete it
+        for j:=i to length(hotkeythread.hotkeylist)-2 do
+          hotkeythread.hotkeylist[j]:=hotkeythread.hotkeylist[j+1];
+
+
+        setlength(hotkeythread.hotkeylist,length(hotkeythread.hotkeylist)-1);
+        result:=true;
+        exit;
+      end;
+    end;
+  finally
+    CSKeys.Leave;
+  end;
 end;
 
 function UnregisterAddressHotkey(memrechotkey: pointer): boolean;
@@ -306,8 +335,10 @@ begin
           if ((hotkeylist[i].lastactivate+hotkeyIdletime)<GetTickCount) then
           begin
             if
-              ((hotkeylist[i].memrechotkey=nil) and checkkeycombo(hotkeylist[i].keys)) or
-              ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys)))
+              ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
+              ((hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
+              (((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
+
             then
             begin
               //the hotkey got pressed
@@ -319,10 +350,14 @@ begin
               hotkeylist[i].lastactivate:=gettickcount;
               if hotkeylist[i].handler2 then
               begin
-                if hotkeylist[i].memrechotkey=nil then
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0)
+                if hotkeylist[i].memrechotkey<>nil then
+                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(hotkeylist[i].memrechotkey))
                 else
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(hotkeylist[i].memrechotkey));
+                if hotkeylist[i].generichotkey<>nil then
+                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),1,ptrUint(hotkeylist[i].genericHotkey))
+                else
+                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0)
+
 
               end
               else

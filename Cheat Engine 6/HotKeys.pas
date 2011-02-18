@@ -21,7 +21,7 @@ type
     btnEditHotkey: TButton;
     btnCancel: TButton;
     cbFreezedirection: TComboBox;
-    Edit1: TEdit;
+    edtDescription: TEdit;
     edtFreezeValue: TEdit;
     edtHotkey: TEdit;
     Label1: TLabel;
@@ -153,8 +153,9 @@ begin
 
   pagecontrol1.ActivePage:=tabsheet2;
   li:=listview1.items.add;
-  li.SubItems.add('');
-  li.SubItems.add('');
+  li.SubItems.add(''); //on hotkey
+  li.SubItems.add(''); //value
+  li.SubItems.add(''); //description
   li.Data:=nil;
   li.selected:=true;
 
@@ -178,14 +179,15 @@ begin
   pagecontrol1.ActivePage:=tabsheet2;
   listview1.Enabled:=false;
 
-  keys:=memrec.Hotkey[ptruInt(listview1.selected.data)].keys;
+  keys:=TMemoryRecordHotkey(listview1.selected.data).keys;
   edtHotkey.text:=ConvertKeyComboToString(keys);
 
   cbFreezedirection.ItemIndex:=cbFreezedirection.Items.IndexOf(listview1.selected.SubItems[0]);
   edtFreezeValue.text:=listview1.selected.subitems[1];
+  edtDescription.text:=listview1.selected.subitems[2];
 
 
-  editHotkey:=false;
+  editHotkey:=true;
 end;
 
 procedure THotKeyForm.btnApplyClick(Sender: TObject);
@@ -197,13 +199,15 @@ begin
     hk.keys:=keys;
     hk.action:=getHotkeyAction;
     hk.value:=edtFreezeValue.text;
+    hk.description:=edtDescription.text;
   end
   else
-    hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text );
+    hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text );
 
   listview1.selected.Caption:=edtHotkey.Text;
   listview1.Selected.SubItems[0]:=cbFreezedirection.Text;
   listview1.selected.subitems[1]:=edtFreezeValue.text;
+  listview1.selected.subitems[2]:=edtDescription.text;
   listview1.Selected.data:=hk;
 
 
