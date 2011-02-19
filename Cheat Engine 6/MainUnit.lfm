@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 616
+  Left = 853
   Height = 570
   Hint = ' '
-  Top = 156
+  Top = 241
   Width = 538
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -15,9 +15,11 @@ object MainForm: TMainForm
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
+  OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
   OnDropFiles = FormDropFiles
   OnShow = FormShow

@@ -259,6 +259,7 @@ require("class");
 --form_hide(form)
 --form_show(form)
 --form_showModal(form)
+--form_isForegroundWindow(form): retrns true if the specified form has focus
 
 
 --GraphicControl Class: (Inheritance: Control->Component->Object)
@@ -439,24 +440,34 @@ require("class");
 --SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
 
  
+--MemoryStream Class (Inheritance: Stream->Object)
+--FileStream Class (Inheritance: HandleStream->Stream->Object)
 
+
+--TableFile class (Inheritance: Object)
+--tablefile_saveToFile(tablefile, filename)
+--tablefile_getData(tablefile, filename) : Gets a MemoryStream object 
+
+
+--findTableFile(filename): Returns the TableFile class object for the saved file
 
 --[[
-components I like to see:
+
+
 
 functions:
 
-findTableFile(filename): Returns the TableFile class object for the saved file
 
-TableFile class
-tablefile_saveToFile(tablefile, filename)
-tablefile_getData(tablefile, filename) : Gets a MemoryStream object 
+
 
 
 xmplayer_initialize()
 xmplayer_playXM(filename)
 xmplayer_playXM(Stream)
+xmplayer_pause()
+xmplayer_resume()
 xmplayer_stop()
+xmplayer_isPlaying()
 
 supportCheatEngine(format, position, attachwindow HALFOPTIONAL,yoururl OPTIONAL, extraparameters OPTIONAL): Will show an advertising window. If you provide your own url it will be shown 75% of the time. Extraparameters are url request parameters you can add to the default parameters (e.g trainername for tracking purposes)  Tip: You can also use it for updates on your trainers
 fuckCheatEngine() : Removes the ad window if it was showing

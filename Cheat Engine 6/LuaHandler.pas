@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
-  StdCtrls, comctrls, ceguicomponents, generichotkey;
+  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile;
 
 var
   LuaVM: Plua_State;
@@ -2080,6 +2080,24 @@ begin
     f:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, f.ShowModal);
+  end
+  else
+   lua_pop(L, lua_gettop(L));
+
+end;
+
+
+function form_isForegroundWindow_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: tcustomform;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+    lua_pushboolean(L, GetForegroundWindow()=f.Handle);
   end
   else
    lua_pop(L, lua_gettop(L));
@@ -5492,6 +5510,65 @@ begin
 end;
 
 
+function findTableFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: string;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=Lua_ToString(L, -1);
+    lua_pop(L, lua_gettop(L));
+    for i:=0 to mainform.LuaFiles.count-1 do
+      if TLuafile(mainform.Luafiles[i]).name=f then
+      begin
+        lua_pushlightuserdata(L, TLuafile(mainform.Luafiles[i]));
+        result:=1;
+      end;
+
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+
+function tablefile_saveToFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  lf: TLuaFile;
+  f: string;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    lf:=lua_touserdata(L, -2);
+    f:=Lua_ToString(L, -1);
+    lf.stream.SaveToFile(f);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function tablefile_getData_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  lf: TLuaFile;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    lf:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(L));
+    lua_pushlightuserdata(L, lf.stream);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+
 initialization
   LuaCS:=TCriticalSection.create;
   LuaVM:=lua_open();
@@ -5653,6 +5730,7 @@ initialization
     lua_register(LuaVM, 'form_show', form_show_fromLua);
     lua_register(LuaVM, 'form_hide', form_hide_fromLua);
     lua_register(LuaVM, 'form_showModal', form_showModal_fromLua);
+    lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow_fromLua);
 
 
     lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment_fromLua);
@@ -5775,6 +5853,12 @@ initialization
     Lua_register(LuaVM, 'getAddressList', getAddressList_fromLua);
     Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer_fromLua);
     Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer_fromLua);
+
+    Lua_register(LuaVM, 'findTableFile', findTableFile_fromLua);
+    Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile_fromLua);
+    Lua_register(LuaVM, 'tablefile_getData', tablefile_getData_fromLua);
+
+
 
 
     lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);

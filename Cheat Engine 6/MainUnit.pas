@@ -18,7 +18,7 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, defaulttranslator, fileaccess, translations, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile;
+  luafile, xmplayer_server;
 
 //the following are just for compatibility
 
@@ -364,6 +364,8 @@ type
     procedure cbFastScanChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
+    procedure FormActivate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Foundlist3Resize(Sender: TObject);
     procedure CreateGroupClick(Sender: TObject);
@@ -2238,6 +2240,16 @@ procedure TMainForm.edtAlignmentKeyPress(Sender: TObject; var Key: char);
 begin
   if rbFsmAligned.checked then
     alignsizechangedbyuser:=true;
+end;
+
+procedure TMainForm.FormActivate(Sender: TObject);
+begin
+
+end;
+
+procedure TMainForm.FormDeactivate(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.FormDropFiles(Sender: TObject;
@@ -6270,16 +6282,15 @@ var _us: string;
 
 
 var advapi: thandle;
+    tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-  //GetWindowRect()
-  {
-  if adwindow=nil then
-    adwindow:=TADWindow.createNew(self);
+  if xmplayer=nil then
+    xmplayer:=TXMplayer.create;
 
-  adwindow.show;
-                    }
-  isprotected:=true;
+  xmplayer.playXM('C:\temp2\robric514.xm');
+
+ // if GetForegroundWindow=mainform.handle then showmessage('yes');
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

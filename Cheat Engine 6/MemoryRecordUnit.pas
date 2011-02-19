@@ -102,8 +102,8 @@ type
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
 
-    Description : string;
-    interpretableaddress: string;
+    Description : unicodestring;
+    interpretableaddress: unicodestring;
 
 
     pointeroffsets: array of dword; //if set this is an pointer
@@ -353,8 +353,9 @@ begin
   if tempnode<>nil then
     Description:=tempnode.TextContent;
 
-  if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
-    description:=copy(description,2,length(description)-2);
+  description:=AnsiDequotedStr(description,'"');
+{  if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
+    description:=copy(description,2,length(description)-2);}
 
 
   tempnode:=CheatEntry.FindNode('Options');
@@ -627,7 +628,7 @@ begin
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
   cheatEntry.AppendChild(doc.CreateElement('ID')).TextContent:=IntToStr(ID);
-  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+description+'"';
+  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiQuotedStr(description,'"');
 
   //save options
   //(moHideChildren, moBindActivation, moRecursiveSetValue);

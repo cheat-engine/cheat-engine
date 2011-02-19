@@ -48,7 +48,7 @@ uses
   frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, 
 LuaSyntax, cesupport, trainergenerator, genericHotkey,
-frmExeTrainerGeneratorUnit, luafile;
+frmExeTrainerGeneratorUnit, luafile, xmplayer_server, xmplayer_defines;
 
 {$R cheatengine.res}
 {$R manifest.res}
