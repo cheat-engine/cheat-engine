@@ -34,15 +34,16 @@
         <CommandLineParams Value="CEAFUCKER"/>
       </local>
     </RunParams>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="xmplayer.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xmplayer"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="35" Y="5"/>
+        <CursorPos X="79" Y="15"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -50,11 +51,10 @@
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="3" Y="8"/>
+        <TopLine Value="39"/>
+        <CursorPos X="100" Y="93"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit1>
@@ -62,15 +62,24 @@
         <Filename Value="..\xmplayer_defines.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xmplayer_defines"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="14"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2176"/>
+        <CursorPos X="18" Y="2189"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="10" HistoryIndex="9">
+    <JumpHistory Count="11" HistoryIndex="10">
       <Position1>
         <Filename Value="main.pas"/>
         <Caret Line="8" Column="37" TopLine="1"/>
@@ -111,6 +120,10 @@
         <Filename Value="main.pas"/>
         <Caret Line="8" Column="49" TopLine="1"/>
       </Position10>
+      <Position11>
+        <Filename Value="main.pas"/>
+        <Caret Line="93" Column="79" TopLine="66"/>
+      </Position11>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -150,6 +163,12 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Source Value="main.pas"/>
+        <Line Value="62"/>
+      </Item1>
+    </BreakPoints>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>

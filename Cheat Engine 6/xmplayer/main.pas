@@ -27,7 +27,7 @@ begin
     getmem(f, size);
     if readfile(pipe, f^, size, x,nil) then
     begin
-      writeln('Read file! size='+inttostr(size)+' x='+inttostr(x));
+      //writeln('Read file! size='+inttostr(size)+' x='+inttostr(x));
 
     end;
   end;
@@ -35,18 +35,18 @@ end;
 
 procedure HandlePause;
 begin
-  writeln('pausing xm');
+ // writeln('pausing xm');
 end;
 
 procedure HandleResume;
 begin
-  writeln('resuming xm');
+ // writeln('resuming xm');
 
 end;
 
 procedure HandleStop;
 begin
-  writeln('stop');
+  //writeln('stop');
 
 end;
 
@@ -64,20 +64,18 @@ begin
     pipename:=ParamStr(1) ;
 
     pipe:=CreateFile(pchar('\\.\pipe\'+pipename) , GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
-    if pipe=INVALID_HANDLE_VALUE then
-      WriteLn('fuck')
-    else
+    if pipe<>INVALID_HANDLE_VALUE then
     begin
       loadedevent:=OpenEvent(EVENT_MODIFY_STATE , false, pchar(pipename));
       if loadedevent<>0 then
         SetEvent(loadedevent);
 
 
-      writeln('weee');
+      //writeln('weee');
       actualread:=0;
       while ReadFile(pipe, command, 1, actualread, nil) do
       begin
-        writeln('command='+inttostr(command));
+        //writeln('command='+inttostr(command));
 
         case command of
           XMPLAYER_PLAYXM: HandleLoadFileCommand;
@@ -92,13 +90,7 @@ begin
 
 
 
-  end
-  else
-    writeln('RAAAAGE!');
-
-  writeln('the end');
-
-  while true do sleep(1000);
+  end else messagebox(0,'Please give a unique audio pipe id', 'Param error',MB_OK or MB_ICONERROR);
 end;
 
 end.
