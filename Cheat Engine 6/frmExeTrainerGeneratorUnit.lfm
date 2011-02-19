@@ -1,0 +1,100 @@
+object frmExeTrainerGenerator: TfrmExeTrainerGenerator
+  Left = 414
+  Height = 307
+  Top = 212
+  Width = 320
+  Caption = 'Exe Trainer Generator'
+  ClientHeight = 307
+  ClientWidth = 320
+  OnActivate = FormActivate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 54
+    Top = 0
+    Width = 320
+    Align = alTop
+    Caption = 'Process'
+    ClientHeight = 36
+    ClientWidth = 316
+    TabOrder = 0
+    object RadioButton1: TRadioButton
+      Left = 10
+      Height = 19
+      Top = -4
+      Width = 142
+      Caption = 'Target process is 32-bit'
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioButton2: TRadioButton
+      Left = 10
+      Height = 19
+      Top = 12
+      Width = 142
+      Caption = 'Target process is 64-bit'
+      TabOrder = 1
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 0
+    Height = 106
+    Top = 54
+    Width = 320
+    Align = alTop
+    Caption = 'Features used'
+    ClientHeight = 88
+    ClientWidth = 316
+    TabOrder = 1
+    object CheckBox1: TCheckBox
+      Left = 10
+      Height = 19
+      Top = 2
+      Width = 97
+      Caption = 'VEH Debugger'
+      TabOrder = 0
+    end
+    object CheckBox2: TCheckBox
+      Left = 10
+      Height = 19
+      Top = 26
+      Width = 108
+      Caption = 'Kernel Debugger'
+      TabOrder = 1
+    end
+    object CheckBox3: TCheckBox
+      Left = 10
+      Height = 19
+      Top = 50
+      Width = 70
+      Caption = 'XMPlayer'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+    end
+  end
+  object Image1: TImage
+    Left = 8
+    Height = 40
+    Top = 168
+    Width = 40
+  end
+  object Button1: TButton
+    Left = 63
+    Height = 25
+    Top = 176
+    Width = 99
+    Caption = 'Change EXE Icon'
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 134
+    Height = 25
+    Top = 272
+    Width = 75
+    Caption = 'Generate'
+    TabOrder = 3
+  end
+end

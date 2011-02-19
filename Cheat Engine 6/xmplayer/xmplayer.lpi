@@ -50,7 +50,6 @@
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
@@ -62,15 +61,14 @@
         <Filename Value="xmplayer_defines.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xmplayer_defines"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="20" Y="14"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2176"/>
@@ -145,7 +143,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\bin\xmplayer"/>
