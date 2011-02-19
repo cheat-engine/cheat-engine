@@ -5,13 +5,15 @@ unit main;
 interface
 
 {$ifndef cpu32}
-//{$error The xmplayer can ONLY be used in 32-bit}
+{$error The xmplayer can ONLY be used in 32-bit}
 {$endif}
 
 uses
-  windows, Classes, SysUtils,dialogs, xmplayer_defines;
+  windows, Classes, SysUtils,dialogs, xmplayer_defines, uFMOD;
 
 var pipe: THandle;
+
+  currentsong: pointer;
 
 procedure StartListening;
 
@@ -19,36 +21,21 @@ implementation
 
 procedure HandleLoadFileCommand;
 var size: integer;
-  f: pointer;
   x: dword;
 begin
   if readfile(pipe, size, 4, x,nil) then
   begin
-    getmem(f, size);
-    if readfile(pipe, f^, size, x,nil) then
-    begin
-      //writeln('Read file! size='+inttostr(size)+' x='+inttostr(x));
+    uFMOD_StopSong;
 
-    end;
+    if currentsong<>nil then
+      freemem(currentsong);
+
+    getmem(currentsong, size);
+    if readfile(pipe, currentsong^, size, x,nil) then
+      uFMOD_PlaySong(currentsong, size, XM_MEMORY);
   end;
 end;
 
-procedure HandlePause;
-begin
- // writeln('pausing xm');
-end;
-
-procedure HandleResume;
-begin
- // writeln('resuming xm');
-
-end;
-
-procedure HandleStop;
-begin
-  //writeln('stop');
-
-end;
 
 procedure StartListening;
 var command: byte;
@@ -79,9 +66,9 @@ begin
 
         case command of
           XMPLAYER_PLAYXM: HandleLoadFileCommand;
-          XMPLAYER_PAUSE: HandlePause;
-          XMPLAYER_RESUME: HandleResume;
-          XMPLAYER_STOP: HandleStop;
+          XMPLAYER_PAUSE: uFMOD_Pause;
+          XMPLAYER_RESUME: uFMOD_Resume;
+          XMPLAYER_STOP: uFMOD_StopSong;
         end;
 
       end;
