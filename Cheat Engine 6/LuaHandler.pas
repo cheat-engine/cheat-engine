@@ -7,7 +7,8 @@ interface
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
-  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server;
+  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
+  ExtraTrainerComponents;
 
 var
   LuaVM: Plua_State;
@@ -1322,7 +1323,7 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
-function memrec_setDescription_fromlua(L: PLUA_State): integer; cdecl;
+function memoryrecord_setDescription_fromlua(L: PLUA_State): integer; cdecl;
 var
   paramcount: integer;
   description: pchar;
@@ -1344,7 +1345,7 @@ begin
 
 end;
 
-function memrec_getDescription_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getDescription_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
   d: pchar;
@@ -1364,7 +1365,7 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
-function memrec_getAddress_fromlua(L: PLua_state): integer; cdecl;
+function memoryrecord_getAddress_fromlua(L: PLua_state): integer; cdecl;
 var
   paramcount: integer;
   memrec: pointer;
@@ -1405,7 +1406,7 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
-function memrec_setAddress_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setAddress_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1435,7 +1436,7 @@ begin
     lua_pop(L, paramcount);
 end;
 
-function memrec_getType_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getType_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1453,7 +1454,7 @@ begin
   end;
 end;
 
-function memrec_setType_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setType_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   vtype: integer;
@@ -1474,7 +1475,7 @@ begin
 
 end;
 
-function memrec_getValue_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getValue_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1504,7 +1505,7 @@ begin
 end;
 
 
-function memrec_setValue_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setValue_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1524,7 +1525,7 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function memrec_getScript_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getScript_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1551,7 +1552,7 @@ begin
 end;
 
 
-function memrec_setScript_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setScript_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1573,7 +1574,7 @@ begin
 end;
 
 
-function memrec_isActive_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_isActive_fromlua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
   direction: integer;
@@ -1592,7 +1593,7 @@ begin
   else lua_pop(L, paramcount);
 end;
 
-function memrec_freeze_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_freeze_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1616,7 +1617,7 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function memrec_unfreeze_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_unfreeze_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1633,7 +1634,7 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function memrec_setColor_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setColor_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -1651,7 +1652,7 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function memrec_appendToEntry_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_appendToEntry_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec1,memrec2: pointer;
   paramcount: integer;
@@ -1668,7 +1669,7 @@ begin
   lua_pop(L, paramcount);
 end;
 
-function memrec_delete_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_delete_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   paramcount: integer;
@@ -5835,7 +5836,373 @@ begin
 
 end;
 
+function cheatcomponent_getActive_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, cheatcomponent.activated);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setActive_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-paramcount);
+    cheatcomponent.activated:=lua_toboolean(L,-paramcount+1);
+
+    if paramcount=3 then
+    begin
+      deactivatetime:=lua_tointeger(L,-paramcount+2);
+      if cheatcomponent.activated then
+        cheatcomponent.setDeactivateTimer(deactivatetime);
+
+    end;
+  end;
+
+
+  lua_pop(L, paramcount);
+end;
+
+function cheatcomponent_getDescription_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, cheatcomponent.Description);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setDescription_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent.Description:=Lua_ToString(L,-1);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function cheatcomponent_getHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, cheatcomponent.Hotkey);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent.Hotkey:=Lua_ToString(L,-1);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function cheatcomponent_getDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, cheatcomponent.DescriptionLeft);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent.DescriptionLeft:=lua_tointeger(L,-1);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+function cheatcomponent_getHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, cheatcomponent.HotkeyLeft);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent.HotkeyLeft:=lua_tointeger(L,-1);
+  end;
+  lua_pop(L, paramcount);
+end;
+
+
+function memoryrecordhotkey_getDescription_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: TMemoryRecordHotkey;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, memoryrecordhotkey.description);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecordhotkey_getHotkeyString_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: TMemoryRecordHotkey;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+
+    lua_pushstring(L, ConvertKeyComboToString(memoryrecordhotkey.keys));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecordhotkey_getID_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: TMemoryRecordHotkey;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, memoryrecordhotkey.id);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecordhotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: Tmemoryrecordhotkey;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      memoryrecordhotkey.onHotkey:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      memoryrecordhotkey.onHotkey:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+
+function memoryrecordhotkey_onAfterHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: Tmemoryrecordhotkey;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      memoryrecordhotkey.onAfterHotkey:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      memoryrecordhotkey.onAfterHotkey:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memoryrecordhotkey_getOwner_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: TMemoryRecordHotkey;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, memoryrecordhotkey.owner);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecordhotkey_doHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecordhotkey: TMemoryRecordHotkey;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey.doHotkey;
+  end;
+  lua_pop(L, paramcount);
+end;
+
 procedure InitializeLua;
+var s: tstringlist;
 begin
   LuaVM:=lua_open();
   if LuaVM<>nil then
@@ -5867,21 +6234,21 @@ begin
     lua_register(LuaVM, 'setMousePos', setMousePos_fromlua);
     lua_register(LuaVM, 'createTableEntry', createTableEntry_fromlua);
     lua_register(LuaVM, 'getTableEntry', getTableEntry_fromlua);
-    lua_register(LuaVM, 'memrec_setDescription', memrec_setDescription_fromlua);
-    lua_register(LuaVM, 'memrec_getDescription', memrec_getDescription_fromlua);
-    lua_register(LuaVM, 'memrec_getAddress', memrec_getAddress_fromlua);
-    lua_register(LuaVM, 'memrec_setAddress', memrec_setAddress_fromlua);
-    lua_register(LuaVM, 'memrec_getType', memrec_getType_fromlua);
-    lua_register(LuaVM, 'memrec_setType', memrec_setType_fromlua);
-    lua_register(LuaVM, 'memrec_getValue', memrec_getValue_fromlua);
-    lua_register(LuaVM, 'memrec_setValue', memrec_setValue_fromlua);
-    lua_register(LuaVM, 'memrec_getScript', memrec_getScript_fromlua);
-    lua_register(LuaVM, 'memrec_isActive', memrec_isActive_fromlua);
-    lua_register(LuaVM, 'memrec_freeze', memrec_freeze_fromlua);
-    lua_register(LuaVM, 'memrec_unfreeze', memrec_unfreeze_fromlua);
-    lua_register(LuaVM, 'memrec_setColor', memrec_setColor_fromlua);
-    lua_register(LuaVM, 'memrec_appendToEntry', memrec_appendToEntry_fromlua);
-    lua_register(LuaVM, 'memrec_delete', memrec_delete_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setDescription', memoryrecord_setDescription_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getDescription', memoryrecord_getDescription_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getAddress', memoryrecord_getAddress_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setAddress', memoryrecord_setAddress_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getType', memoryrecord_getType_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setType', memoryrecord_setType_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getValue', memoryrecord_getValue_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setValue', memoryrecord_setValue_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript_fromlua);
+    lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive_fromlua);
+    lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze_fromlua);
+    lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor_fromlua);
+    lua_register(LuaVM, 'memoryrecord_appendToEntry', memoryrecord_appendToEntry_fromlua);
+    lua_register(LuaVM, 'memoryrecord_delete', memoryrecord_delete_fromlua);
     lua_register(LuaVM, 'isKeyPressed', isKeyPressed_fromlua);
     lua_register(LuaVM, 'keyDown', keyDown_fromLua);
     lua_register(LuaVM, 'keyUp', keyUp_fromLua);
@@ -6140,6 +6507,25 @@ begin
 
     Lua_register(LuaVM, 'resetLuaState', resetLuaState_fromLua);
 
+    Lua_register(LuaVM, 'cheatcomponent_setActive', cheatcomponent_setActive_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getActive', cheatcomponent_getActive_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_setDescription', cheatcomponent_setDescription_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getDescription', cheatcomponent_getDescription_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_setHotkey', cheatcomponent_setHotkey_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getHotkey', cheatcomponent_getHotkey_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_setDescriptionLeft', cheatcomponent_setDescriptionLeft_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getDescriptionLeft', cheatcomponent_getDescriptionLeft_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_setHotkeyLeft', cheatcomponent_setHotkeyLeft_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getHotkeyLeft', cheatcomponent_getHotkeyLeft_fromLua);
+
+    Lua_register(LuaVM, 'memoryrecordhotkey_getDescription', memoryrecordhotkey_getDescription_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getID', memoryrecordhotkey_getID_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_onHotkey', memoryrecordhotkey_onHotkey_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_onAfterHotkey', memoryrecordhotkey_onAfterHotkey_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey_fromLua);
+
 
 
 
@@ -6150,14 +6536,41 @@ begin
 
     Lua_register(LuaVM, 'beep', beep_fromLua);
 
-    LUA_DoScript('os=nil');
+    s:=tstringlist.create;
+    try
+      s.add('os=nil');
 
 
-    //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
-    LUA_DoScript('stringlist_getCount=strings_getCount');
-    LUA_DoScript('stringlist_getString=strings_getString');
-    LUA_DoScript('stringlist_add=strings_add');
-    LUA_DoScript('stringlist_remove=strings_remove');
+      //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
+
+      s.add('stringlist_getCount=strings_getCount');
+      s.add('stringlist_getString=strings_getString');
+      s.add('stringlist_add=strings_add');
+      s.add('stringlist_remove=strings_remove');
+
+      //same for the rename of memrec to memoryrecord
+
+      s.add('memrec_setDescription = memoryrecord_setDescription_fromlua');
+      s.add('memrec_getDescription = memoryrecord_getDescription_fromlua');
+      s.add('memrec_getAddress = memoryrecord_getAddress_fromlua');
+      s.add('memrec_setAddress = memoryrecord_setAddress_fromlua');
+      s.add('memrec_getType = memoryrecord_getType_fromlua');
+      s.add('memrec_setType = memoryrecord_setType_fromlua');
+      s.add('memrec_getValue = memoryrecord_getValue_fromlua');
+      s.add('memrec_setValue = memoryrecord_setValue_fromlua');
+      s.add('memrec_getScript = memoryrecord_getScript_fromlua');
+      s.add('memrec_isActive = memoryrecord_isActive_fromlua');
+      s.add('memrec_freeze = memoryrecord_freeze_fromlua');
+      s.add('memrec_unfreeze = memoryrecord_unfreeze_fromlua');
+      s.add('memrec_setColor = memoryrecord_setColor_fromlua');
+      s.add('memrec_appendToEntry = memoryrecord_appendToEntry_fromlua');
+      s.add('memrec_delete = memoryrecord_delete_fromlua');
+
+      lua_doscript(s.text);
+
+    finally
+      s.free;
+    end;
   end;
 end;
 

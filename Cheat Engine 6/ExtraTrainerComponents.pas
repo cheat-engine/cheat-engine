@@ -36,6 +36,8 @@ type tcheat = class (twincontrol)
     fhascheckbox: boolean;
     fshowhotkey: boolean;
     factivationcolor: tcolor;
+
+    deactivatetimer: TTimer;
     procedure resetwidth;
     procedure setactivated(x:boolean);
     procedure SetHotkey(newhotkey:string);
@@ -63,10 +65,12 @@ type tcheat = class (twincontrol)
 
     beeponactivate: boolean;
 
+    procedure setDeactivateTimer(interval: integer);
+    procedure timerdeactivate(sender: tobject);
+
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-
 
     property showhotkey: boolean read fshowhotkey write SetShowHotkey;
     constructor create(AOwner:Tcomponent); override;
@@ -299,9 +303,25 @@ begin
   result:=descriptionlabel.Caption;
 end;
 
+procedure TCheat.setDeactivateTimer(interval: integer);
+begin
+  deactivatetimer.Interval:=interval;
+  deactivatetimer.enabled:=true;
+end;
+
+procedure TCheat.timerdeactivate(sender: tobject);
+begin
+  activated:=false;
+  deactivatetimer.enabled:=false;
+end;
+
 constructor tcheat.create(AOwner:tcomponent);
 begin
   inherited create(AOwner);
+
+  deactivatetimer:=TTimer.create(self);
+  deactivatetimer.enabled:=false;
+  deactivatetimer.OnTimer:=timerdeactivate;
 
   activationcolor:=clred;
   edit:=tedit.Create(self);

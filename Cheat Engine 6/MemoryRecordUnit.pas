@@ -181,6 +181,7 @@ type
   TMemoryRecordHotkey=class
   private
     fOnHotkey: TNotifyevent;
+    fOnAfterHotkey: TNotifyevent;
   public
     id: integer;
     description: string;
@@ -192,6 +193,7 @@ type
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
+    property OnAfterHotkey: TNotifyEvent read fOnAfterHotkey write fOnAfterHotkey;
   end;
 
 function MemRecHotkeyActionToText(action: TMemrecHotkeyAction): string;
@@ -230,6 +232,9 @@ begin
 
   if owner<>nil then //just be safe (e.g other app sending message)
     owner.DoHotkey(self);
+
+  if assigned(fonAfterHotkey) then
+    fOnAfterHotkey(self);
 end;
 
 {---------------------------------MemoryRecord---------------------------------}
