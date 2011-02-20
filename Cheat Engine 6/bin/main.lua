@@ -497,6 +497,32 @@ require("class");
 --memoryrecordhotkey_doHotkey(hotkey): Executes the hotkey as if it got triggered by the keyboard
 
 
+--MemoryRecord Class:
+--memoryrecord_getID(memoryrecord)
+--memoryrecord_getHotkeyCount(memoryrecord)
+--memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
+--memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
+--memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the activation to stop
+--memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the deactivation to stop
+--memoryrecord_setDescription(te, description): sets the specified description for this entry
+--memoryrecord_getDescription(te): gets the current description of this entry
+--memoryrecord_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
+--memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
+--memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
+--memoryrecord_setType(te, vartype) : sets the type of the entry
+--memoryrecord_getValue(te): returns the current value of the cheat table entry as a string
+--memoryrecord_setValue(te, value): sets the value of a cheat table entry
+--memoryrecord_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
+--memoryrecord_setScript(te, script)
+--memoryrecord_isActive(te)
+--memoryrecord_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
+--memoryrecord_unfreeze(te) :unfreezes an entry
+--memoryrecord_setColor(te, colorrgb): Sets the color of the entry
+--memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
+--memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
+
+
+
 
 
 --[[
@@ -518,32 +544,6 @@ fuckCheatEngine() : Removes the ad window if it was showing
 
 
  
-
-
-MemoryRecord Class:
-memoryrecord_getID(memoryrecord)
-memoryrecord_getHotkeyCount(memoryrecord)
-memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
-memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
-memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the activation to stop
-memoryrecord_onDeactive(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the deactivation to stop
-
---memoryrecord_setDescription(te, description): sets the specified description for this entry
---memoryrecord_getDescription(te): gets the current description of this entry
---memoryrecord_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
---memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
---memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
---memoryrecord_setType(te, vartype) : sets the type of the entry
---memoryrecord_getValue(te): returns the current value of the cheat table entry as a string
---memoryrecord_setValue(te, value): sets the value of a cheat table entry
---memoryrecord_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
---memoryrecord_setScript(te, script)
---memoryrecord_isActive(te)
---memoryrecord_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
---memoryrecord_unfreeze(te) :unfreezes an entry
---memoryrecord_setColor(te, colorrgb): Sets the color of the entry
---memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
---memoryrecordc_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
 
 
 

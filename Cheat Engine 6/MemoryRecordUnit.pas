@@ -13,6 +13,8 @@ type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease,
 
 //type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
+
+
 type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue);
 type TMemrecOptions=set of TMemrecOption;
 
@@ -49,6 +51,7 @@ type TMemRecExtraData=record
 
 
 type
+  TActivateEvent=function (sender: TObject; before: boolean): boolean of object;
   TMemoryRecordHotkey=class;
   TMemoryRecord=class
   private
@@ -80,6 +83,8 @@ type
     hknameindex: integer;
 
     Hotkeylist: tlist;
+
+    fonactivate, fondeactivate: TActivateEvent;
 
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
@@ -176,6 +181,9 @@ type
     property Value: string read GetValue write SetValue;
     property HotkeyCount: integer read getHotkeyCount;
     property Hotkey[index: integer]: TMemoryRecordHotkey read getHotkey;
+
+    property onActivate: TActivateEvent read fOnActivate write fOnActivate;
+    property onDeactivate: TActivateEvent read fOnDeActivate write fOndeactivate;
   end;
 
   TMemoryRecordHotkey=class

@@ -23,6 +23,7 @@ type
       owner: TPersistent;
       procedure NotifyEvent(sender: TObject);
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
+      function ActivateEvent(sender: TObject; before: boolean): boolean;
       constructor create;
   end;
 
@@ -89,6 +90,31 @@ begin
 
       if lua_gettop(Luavm)>0 then
         CloseAction:=TCloseAction(lua_tointeger(LuaVM,-1));
+
+      lua_pop(Luavm, lua_gettop(Luavm));
+    end;
+  finally
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.ActivateEvent(sender: tobject; before: boolean): boolean;
+begin
+  result:=true;
+  Luacs.Enter;
+  try
+
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushlightuserdata(Luavm, sender);
+      lua_pushboolean(luavm, before);
+
+
+      lua_pcall(Luavm, 2,1,0); //procedure(sender, before)
+
+      if lua_gettop(Luavm)>0 then
+        result:=lua_toboolean(LuaVM,-1);
 
       lua_pop(Luavm, lua_gettop(Luavm));
     end;

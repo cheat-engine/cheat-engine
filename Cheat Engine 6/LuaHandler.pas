@@ -1685,6 +1685,170 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function memoryrecord_getID_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, memoryrecord.id);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecord_getHotkeyCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, memoryrecord.HotkeyCount);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecord_getHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-2);
+    index:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, memoryrecord.Hotkey[index]);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function memoryrecord_getHotkeyByID_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+  id: integer;
+  i: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-2);
+    id:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    for i:=0 to memoryrecord.Hotkeycount-1 do
+      if memoryrecord.Hotkey[i].id=id then
+      begin
+        lua_pushlightuserdata(L, memoryrecord.Hotkey[i]);
+        result:=1;
+      end;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function memoryrecord_onActivate_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      memoryrecord.onActivate:=lc.ActivateEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      memoryrecord.onActivate:=lc.ActivateEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function memoryrecord_onDeactivate_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  memoryrecord: Tmemoryrecord;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      memoryrecord.onDeactivate:=lc.ActivateEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      memoryrecord.onDeactivate:=lc.ActivateEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
 function isKeyPressed_fromLua(L: PLua_State): integer; cdecl;
 var paramcount: integer;
   keyinput: pchar;
@@ -6249,6 +6413,16 @@ begin
     lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor_fromlua);
     lua_register(LuaVM, 'memoryrecord_appendToEntry', memoryrecord_appendToEntry_fromlua);
     lua_register(LuaVM, 'memoryrecord_delete', memoryrecord_delete_fromlua);
+
+    lua_register(LuaVM, 'memoryrecord_getID', memoryrecord_getID_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getHotkeyCount', memoryrecord_getHotkeyCount_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getHotkey', memoryrecord_getHotkey_fromlua);
+    lua_register(LuaVM, 'memoryrecord_getHotkeyByID', memoryrecord_getHotkeyByID_fromlua);
+    lua_register(LuaVM, 'memoryrecord_onActivate', memoryrecord_onActivate_fromlua);
+    lua_register(LuaVM, 'memoryrecord_onDeactivate', memoryrecord_onDeactivate_fromlua);
+
+
+
     lua_register(LuaVM, 'isKeyPressed', isKeyPressed_fromlua);
     lua_register(LuaVM, 'keyDown', keyDown_fromLua);
     lua_register(LuaVM, 'keyUp', keyUp_fromLua);
