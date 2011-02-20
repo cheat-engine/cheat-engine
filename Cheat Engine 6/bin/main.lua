@@ -547,7 +547,25 @@ fuckCheatEngine() : Removes the ad window if it was showing
 
 
 
-aobScan("aobstring", pageprotection,...)
+aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam OPTIONAL):
+protectionflags is a string. E=Executable R=Readable memory W=Writable memory C=Copy On Write
+alignmenttype is an integer: 
+  0=No alignment check
+  1=Address must be dividable by alignmentparam 
+  2=Address must end with alignmentparam
+alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
+
+
+
+createMemScan()
+memscan_firstScan(memscan,....);
+memscan_nextScan(memscan,....);
+memscan_getResultCount(memscan);
+memscan_getResults(memscan)
+
+
+
+
 --]]
 
 

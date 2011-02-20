@@ -35,7 +35,14 @@ begin
 
   {$ifdef cpu64}
   if processhandler.is64Bit then
-    max:=qword($7fffffffffffffff)
+  begin
+    {$ifdef darwin}
+      max:=qword($ffffffffffffffff)
+    {$else}
+      max:=qword($7fffffffffffffff)
+    {$endif}
+
+  end
   else
   {$endif}
   begin
