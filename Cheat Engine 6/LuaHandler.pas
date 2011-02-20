@@ -31,7 +31,7 @@ procedure InitializeLua;
 implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
-  symbolhandler, frmautoinjectunit, simpleaobscanner;
+  symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist;
 
 
 
@@ -6365,6 +6365,103 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function addresslist_getCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  addresslist: TAddresslist;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    addresslist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, addresslist.Count);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function addresslist_getMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  addresslist: TAddresslist;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    addresslist:=lua_touserdata(L,-2);
+    index:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, addresslist.MemRecItems[index]);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function addresslist_getMemoryRecordByDescription_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  addresslist: TAddresslist;
+  description: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    addresslist:=lua_touserdata(L,-2);
+    description:=Lua_ToString(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, addresslist.getRecordWithDescription(description));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function addresslist_getMemoryRecordByID_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  addresslist: TAddresslist;
+  id: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    addresslist:=lua_touserdata(L,-2);
+    id:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L, addresslist.getRecordWithID(id));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+function addresslist_createMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  addresslist: TAddresslist;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    addresslist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushlightuserdata(L,  MainForm.addresslist.addaddress('Plugin Address', '0',[],0,vtDword));
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
 begin
@@ -6700,7 +6797,11 @@ begin
     Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey_fromLua);
 
-
+    Lua_register(LuaVM, 'addresslist_getCount', addresslist_getCount_fromLua);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecord', addresslist_getMemoryRecord_fromLua);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription_fromLua);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID_fromLua);
+    Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord_fromLua);
 
 
     lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);

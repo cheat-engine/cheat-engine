@@ -522,6 +522,13 @@ require("class");
 --memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
 
 
+--Addresslist Class:
+--addresslist_getCount(addresslist)
+--addresslist_getMemoryRecord(addresslist, index)
+--addresslist_getMemoryRecordByDescription(addresslist, description): --getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+--addresslist_getMemoryRecordByID(addresslist, ID)
+
+--addresslist_createMemoryRecord(addresslist) : --createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
 
 
@@ -538,24 +545,6 @@ fuckCheatEngine() : Removes the ad window if it was showing
 
 
 
-
-
-
-
-
- 
-
-
-
-
-
-Addresslist Class:
-addresslist_getCount(addresslist)
-addresslist_getMemoryRecord(addresslist, index)
-addresslist_getMemoryRecordByDescription(addresslist, description): --getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
-addresslist_getMemoryRecordByID(addresslist, ID)
-
-addresslist_createMemoryRecord(addresslist) : --createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
 
 aobScan("aobstring", pageprotection,...)
