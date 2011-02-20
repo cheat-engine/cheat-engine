@@ -166,7 +166,10 @@ require("class");
 --getFreezeTimer()
 --getUpdateTimer()
 
+--GenericHotkey Class : (Inheritance:  Object)
 --createHotkey(function, key, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
+--generichotkey_setKeys(hotkey, key, ....)
+--generichotkey_onHotkey(hotkey, function)
 
 --beep() : Plays the fabulous beep/ping sound!
 
@@ -451,6 +454,26 @@ require("class");
 
 --findTableFile(filename): Returns the TableFile class object for the saved file
 
+--xmplayer_initialize()
+--xmplayer_playXM(filename)
+--xmplayer_playXM(Stream)
+--xmplayer_pause()
+--xmplayer_resume()
+--xmplayer_stop()
+--xmplayer_isPlaying()
+
+--writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
+--readRegionFromFile(filename, destinationaddress)
+
+--registerSymbol(symbolname, address)
+--unregisterSymbol(symbolname)
+
+--resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+
+
+
+
+
 --[[
 
 
@@ -459,31 +482,14 @@ functions:
 
 
 
-
-
-xmplayer_initialize()
-xmplayer_playXM(filename)
-xmplayer_playXM(Stream)
-xmplayer_pause()
-xmplayer_resume()
-xmplayer_stop()
-xmplayer_isPlaying()
-
 supportCheatEngine(format, position, attachwindow HALFOPTIONAL,yoururl OPTIONAL, extraparameters OPTIONAL): Will show an advertising window. If you provide your own url it will be shown 75% of the time. Extraparameters are url request parameters you can add to the default parameters (e.g trainername for tracking purposes)  Tip: You can also use it for updates on your trainers
 fuckCheatEngine() : Removes the ad window if it was showing
 
 
-writeRegionToFile(filename, sourceaddress,size)
-readRegionFromFile(filename, destinationaddress)
 
 
-registersymbol(symbolname, address)
-unregistersymbol(symbolname)
-resetLuaState(): This will restart the Lua engine and reload the main script.
 
-GenericHotkey Class
-generichotkey_setKeys(hotkey, key, ....)
-generichotkey_setFunction(hotkey, function)
+
 
 
 

@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
-  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile;
+  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server;
 
 var
   LuaVM: Plua_State;
@@ -24,12 +24,15 @@ function LUA_onBreakpoint(context: PContext): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
 function Lua_ToString(L: Plua_State; i: Integer): string;
 procedure InitializeLuaScripts;
+procedure InitializeLua;
 
 
 implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner;
+
+
 
 function lua_isstring(L: PLua_state; i: integer): boolean;
 begin
@@ -2273,6 +2276,65 @@ begin
     lua_pushlightuserdata(L, h);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
+end;
+
+function GenericHotkey_setKeys_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  GenericHotkey: TGenericHotkey;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=2 then
+  begin
+    Generichotkey:=lua_touserdata(L,-parameters);
+
+    zeromemory(@GenericHotkey.keys,sizeof(GenericHotkey.keys));
+    for i:=-parameters+1 to -1 do
+      GenericHotkey.keys[i+parameters-1]:=lua_tointeger(L, i);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function generichotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  GenericHotkey: TGenericHotkey;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    GenericHotkey:=lua_touserdata(L,-2);
+
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      GenericHotkey.onNotify:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      GenericHotkey.onNotify:=lc.NotifyEvent;
+    end;
+
+  end;
+
+  lua_pop(L, paramcount);
 end;
 
 
@@ -5568,11 +5630,214 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function xmplayer_initialize_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
 
-initialization
-  LuaCS:=TCriticalSection.create;
+  if xmplayer=nil then
+     xmplayer:=TXMPlayer.create; //launches the xmplayer exe if available
+end;
+
+function xmplayer_playXM_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  lf: TLuaFile;
+  f: string;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if (xmplayer<>nil) and (parameters=1) then
+  begin
+    if lua_islightuserdata(L,-1) then //stream
+      xmplayer.playXM(tstream(lua_touserdata(L,-1)))
+    else
+      xmplayer.playXM(Lua_ToString(L,-1))
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function xmplayer_pause_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+
+  if xmplayer<>nil then
+     xmplayer.pause;
+end;
+
+function xmplayer_resume_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+
+  if xmplayer<>nil then
+     xmplayer.resume;
+end;
+
+function xmplayer_stop_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+
+  if xmplayer<>nil then
+     xmplayer.stop;
+end;
+
+function xmplayer_isPlaying_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+
+  if xmplayer<>nil then
+  begin
+    result:=1;
+    lua_pushboolean(L, xmplayer.isPlaying);
+  end;
+end;
+
+function readRegionFromFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  filename: string;
+  address: ptruint;
+  size: integer;
+  x: dword;
+  buf: pointer;
+  f: tmemorystream;
+begin
+  result:=0;
+  x:=0;
+  f:=nil;
+
+  parameters:=lua_gettop(L);
+  if (parameters=2) then
+  begin
+    filename:=Lua_ToString(L, -2);
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+    else
+      address:=lua_tointeger(L,-1);
+
+    lua_pop(L, lua_gettop(L));
+
+    f:=tmemorystream.create;
+    try
+      f.LoadFromFile(filename);
+      writeprocessmemory(processhandle, pointer(address), f.memory, f.size, x);
+
+    finally
+      freemem(f);
+    end;
+
+
+    result:=1;
+    lua_pushinteger(L,x);
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+
+function writeRegionToFile_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  filename: string;
+  address: ptruint;
+  size: integer;
+  x: dword;
+  buf: pointer;
+  f: tfilestream;
+begin
+  result:=0;
+  x:=0;
+  f:=nil;
+
+  parameters:=lua_gettop(L);
+  if (parameters=3) then
+  begin
+    filename:=Lua_ToString(L, -3);
+    if lua_isstring(L, -2) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+    else
+      address:=lua_tointeger(L,-2);
+
+    size:=lua_tointeger(L,-1);
+    lua_pop(L, lua_gettop(L));
+
+    getmem(buf,size);
+    try
+
+      readprocessmemory(processhandle, pointer(address), buf, size, x);
+
+      f:=tfilestream.create(filename, fmCreate);
+      f.WriteBuffer(buf^, x);
+
+    finally
+      if f<>nil then
+        freemem(f);
+
+      freemem(buf);
+    end;
+
+
+    result:=1;
+    lua_pushinteger(L,x);
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+
+function registerSymbol_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  symbolname: string;
+  address: string;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if (parameters=2) then
+  begin
+    symbolname:=Lua_ToString(L, -2);
+    if lua_isstring(L, -1) then
+      address:=lua_tostring(L,-1)
+    else
+      address:=IntToHex(lua_tointeger(L,-1),1);
+
+    symhandler.AddUserdefinedSymbol(address, symbolname);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function unregisterSymbol_fromLua(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  symbolname: string;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if (parameters=1) then
+  begin
+    symbolname:=Lua_ToString(L, -1);
+    symhandler.DeleteUserdefinedSymbol(symbolname);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function resetLuaState_fromLua(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+  InitializeLua; //this creates a NEW lua state (cut doesn't destroy the current one)
+
+end;
+
+procedure InitializeLua;
+begin
   LuaVM:=lua_open();
-
   if LuaVM<>nil then
   begin
     luaL_openlibs(LuaVM);
@@ -5664,6 +5929,8 @@ initialization
 
     //ce6.1
     lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
+    lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys_fromLua);
+    lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey_fromLua);
 
     lua_register(LuaVM, 'getPropertyList', getPropertyList_fromLua);
     lua_register(LuaVM, 'setProperty', setProperty_fromLua);
@@ -5858,6 +6125,21 @@ initialization
     Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile_fromLua);
     Lua_register(LuaVM, 'tablefile_getData', tablefile_getData_fromLua);
 
+    Lua_register(LuaVM, 'xmplayer_initialize', xmplayer_initialize_fromLua);
+    Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM_fromLua);
+    Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause_fromLua);
+    Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume_fromLua);
+    Lua_register(LuaVM, 'xmplayer_stop', xmplayer_stop_fromLua);
+    Lua_register(LuaVM, 'xmplayer_isPlaying', xmplayer_isPlaying_fromLua);
+
+    Lua_register(LuaVM, 'writeRegionToFile', writeRegionToFile_fromLua);
+    Lua_register(LuaVM, 'readRegionFromFile', readRegionFromFile_fromLua);
+
+    Lua_register(LuaVM, 'registerSymbol', registersymbol_fromLua);
+    Lua_register(LuaVM, 'unregisterSymbol', unregistersymbol_fromLua);
+
+    Lua_register(LuaVM, 'resetLuaState', resetLuaState_fromLua);
+
 
 
 
@@ -5877,6 +6159,13 @@ initialization
     LUA_DoScript('stringlist_add=strings_add');
     LUA_DoScript('stringlist_remove=strings_remove');
   end;
+end;
+
+initialization
+  LuaCS:=TCriticalSection.create;
+
+
+  InitializeLua;
 
 
 
