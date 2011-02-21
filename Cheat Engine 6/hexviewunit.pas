@@ -939,16 +939,16 @@ begin
     Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
     memoryInfo:='Protect:';
 
-    if (mbi.AllocationProtect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+'No Access ';
-    if (mbi.AllocationProtect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+'Read Only ';
-    if (mbi.AllocationProtect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+'Read/Write ';
-    if (mbi.AllocationProtect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Write Copy ';
-    if (mbi.AllocationProtect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+'Execute ';
-    if (mbi.AllocationProtect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+'Execute/Read only ';
-    if (mbi.AllocationProtect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+'Execute/Read/Write ';
-    if (mbi.AllocationProtect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Execute/Write Copy ';
-    if (mbi.AllocationProtect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+'Guarded ';
-    if (mbi.AllocationProtect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+'Not Cached';
+    if (mbi.Protect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+'No Access ';
+    if (mbi.Protect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+'Read Only ';
+    if (mbi.Protect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+'Read/Write ';
+    if (mbi.Protect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Write Copy ';
+    if (mbi.Protect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+'Execute ';
+    if (mbi.Protect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+'Execute/Read only ';
+    if (mbi.Protect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+'Execute/Read/Write ';
+    if (mbi.Protect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Execute/Write Copy ';
+    if (mbi.Protect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+'Guarded ';
+    if (mbi.Protect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+'Not Cached';
 
 
     memoryInfo:=memoryInfo+' Base='+IntToHex(ptrUint(mbi.BaseAddress),8)+' Size='+IntTohex(mbi.RegionSize,1);

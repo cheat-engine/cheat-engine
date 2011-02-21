@@ -19,7 +19,7 @@ implementation
 uses NewKernelHandler;
 
 
-function getaoblist(aobstring: string; list: tstrings):boolean;
+function getaoblist(aobstring: string; list: tstrings{; protectionflags: TProtectionflags; alignmenttype: TFastScanMethod; alignmentparam: string }):boolean;
 var
   ms: tmemscan;
   x: ptruint;
@@ -52,7 +52,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false, fsmAligned);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true,  false, false, false,false, fsmAligned);
 
   ms.waittilldone; //wait till it's finished scanning
 
@@ -95,7 +95,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, true, false, false, false,false, fsmAligned);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, false, false, false,false, fsmAligned);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then

@@ -909,7 +909,7 @@ begin
     selectedelement:=length(definedstructures[selectedstructure.basestructure].structelement)-1
   else
   begin
-    selectedelement:=selectednode.index-1;
+    selectedelement:=selectednode.index;
   end;
 
 
@@ -950,6 +950,7 @@ begin
     end;
 
 
+    //find the offset to insert at
     if selectedstructure.basestructure>=0 then
     begin
       if selectedelement>=0 then

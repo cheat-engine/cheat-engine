@@ -46,6 +46,8 @@ type
     RebaseAgainThread: TRebaseAgain;
     createdFoundlist: boolean;
     fisUnknownInitialValue: boolean;
+
+    fCount: UInt64;
   public
     function GetVarLength: integer;
     procedure DeleteResults;
@@ -65,6 +67,7 @@ type
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: integer read fvartype;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
+    property count: uint64 read fCount;
     constructor create(foundlist: tlistview; memscan: TMemScan);
     destructor destroy; override;
 end;
@@ -634,6 +637,7 @@ begin
   value:=valuelist[j];
 end;
 
+
 function TFoundList.Initialize(vartype: integer; customtype: TCustomType=nil):int64;
 var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
 begin
@@ -714,6 +718,7 @@ begin
     foundlist.Items[0].MakeVisible(false);
 
 
+  fCount:=result;
 end;
 
 
@@ -770,6 +775,8 @@ begin
 
   //self.foundcountlabel:=foundcountlabel;
   self.memscan:=memscan;
+  memscan.attachedFoundlist:=self;
+
   deleteresults; //cleanup just to be sure
 end;
 

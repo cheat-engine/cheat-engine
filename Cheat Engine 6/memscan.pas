@@ -21,6 +21,7 @@ type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
 type TStoreResultRoutine=procedure(address: ptruint; oldvalue: pointer) of object;
 type TFlushRoutine=procedure of object;
 
+type Tscanregionpreference=(scanDontCare, scanExclude, scanInclude);
 
 
 type
@@ -357,10 +358,14 @@ type
 
     totalAddresses: qword; //how many addresses it will have to scan
 
+    scanWritable: Tscanregionpreference;
+    scanExecutable: Tscanregionpreference;
+    scanCopyOnWrite: Tscanregionpreference;
+
     roundingtype: TRoundingType;
     hexadecimal: boolean;
     binaryStringAsDecimal: boolean;
-    readonly: boolean;
+
     fastscan: boolean;
     fastscanalignment: integer;
     fastscanmethod: TFastscanmethod;
@@ -371,6 +376,7 @@ type
     fastscanalignsize: integer;
     variablesize: integer;
     scanvalue1,scanvalue2: string;
+
     startaddress: ptruint; //start for the whole scan
     stopaddress: ptruint; //stop of the whole scan
 
@@ -427,6 +433,10 @@ type
     currentCustomType: TCustomType;
     found: uint64;
 
+    //first scan init variables
+    startaddress: ptruint; //start for the whole scan
+    stopaddress: ptruint; //stop of the whole scan
+
     //fastscan options (only set by firstscan)
     fastscan: boolean;
     fastscanalignment: integer;
@@ -458,6 +468,12 @@ type
   public
     onlyOne: boolean;
     Alignment: integer;
+
+    scanWritable: Tscanregionpreference;
+    scanExecutable: Tscanregionpreference;
+    scanCopyOnWrite: Tscanregionpreference;
+
+    attachedFoundlist: TObject;
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
     function GetErrorString: string;
     function GetFoundCount: uint64;
@@ -465,8 +481,8 @@ type
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
+    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
@@ -490,7 +506,7 @@ type
 
 implementation
 
-uses formsettingsunit, StrUtils;
+uses formsettingsunit, StrUtils, foundlisthelper;
 
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
@@ -3605,7 +3621,6 @@ begin
           scanners[i].fastscan:=fastscan;
           scanners[i].scanValue1:=scanvalue1; //usual scanvalue
           scanners[i].scanValue2:=scanValue2; //2nd value for between scan
-          scanners[i].readonly:=readonly;
           scanners[i].unicode:=unicode;
           scanners[i].caseSensitive:=caseSensitive;
           scanners[i].percentage:=percentage;
@@ -3817,7 +3832,6 @@ begin
       scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
-      scanners[i].readonly:=readonly;
       scanners[i].unicode:=unicode;
       scanners[i].caseSensitive:=caseSensitive;
       scanners[i].percentage:=percentage;
@@ -4008,6 +4022,7 @@ begin
       if PtrUint(mbi.BaseAddress)+mbi.RegionSize>=stopaddress then
         mbi.RegionSize:=stopaddress-PtrUint(mbi.BaseAddress);
 
+      {
       if //no cache check
          (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE))
          or
@@ -4019,7 +4034,9 @@ begin
         //skip it
         currentBaseAddress:=PtrUint(mbi.BaseAddress)+mbi.RegionSize;
         continue;
-      end;
+      end; }
+
+      //replace with new check method
 
      (*
      todo: 6.1: Add a option to exluce write_copy regions
@@ -4206,7 +4223,6 @@ begin
       scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
-      scanners[i].readonly:=readonly;
       scanners[i].unicode:=unicode;
       scanners[i].OnlyOne:=OnlyOne;
       scanners[i].caseSensitive:=caseSensitive;
@@ -4696,6 +4712,10 @@ end;
 
 procedure TMemscan.undoLastScan;
 begin
+  if attachedFoundlist<>nil then
+    TFoundList(Attachedfoundlist).Deinitialize;
+
+
   if canUndo then
   begin
     deletefile(fScanResultFolder+'Memory.tmp');
@@ -4775,6 +4795,8 @@ end;
 
 procedure TMemscan.newscan;
 begin
+  if attachedFoundlist<>nil then
+    TFoundList(Attachedfoundlist).Deinitialize;
 
   if scanController<>nil then
   begin
@@ -4799,8 +4821,12 @@ begin
   fnextscanCount:=0;
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; readonly,hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
+procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 begin
+  if attachedFoundlist<>nil then
+    TFoundList(Attachedfoundlist).Deinitialize;
+
+
   inc(fnextscanCount);
 
   if scanController<>nil then
@@ -4834,9 +4860,8 @@ begin
 
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
-  scanController.readonly:=readonly;
-  scanController.startaddress:=startaddress;
-  scanController.stopaddress:=stopaddress;
+  scanController.startaddress:=self.startaddress;
+  scanController.stopaddress:=self.stopaddress;
 
   scancontroller.hexadecimal:=hexadecimal;
   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
@@ -4854,12 +4879,16 @@ begin
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,readonly,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
 }
 begin
+  if attachedFoundlist<>nil then
+    TFoundList(Attachedfoundlist).Deinitialize;
+
+
   if scanController<>nil then freeandnil(scanController);
   if SaveFirstScanThread<>nil then
   begin
@@ -4879,6 +4908,9 @@ begin
   scanController.variableType:=VariableType;
   scancontroller.customType:=customtype;
 
+  scancontroller.scanWritable:=scanWritable;
+  scancontroller.scanExecutable:=scanExecutable;
+  scancontroller.scanCopyOnWrite:=scanCopyOnWrite;
 
   scanController.roundingtype:=roundingtype;
 
@@ -4894,7 +4926,10 @@ begin
 
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
-  scanController.readonly:=readonly;
+
+  self.startaddress:=startaddress;
+  self.stopaddress:=stopaddress;
+
   scanController.startaddress:=startaddress;
   scanController.stopaddress:=stopaddress;
 

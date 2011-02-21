@@ -6038,6 +6038,7 @@ begin
                 lastdisassembledata.opcode:='imul';
                 lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
                 dwordptr:=@memory[last];
+                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(dwordptr^,8);
 
                 lastdisassembledata.parametervaluetype:=dvtvalue;
                 lastdisassembledata.parametervalue:=dwordptr^;

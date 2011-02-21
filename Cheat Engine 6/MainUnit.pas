@@ -56,7 +56,7 @@ type
       text: string;
     end;
 
-    ReadOnly: record
+    cbReadOnly: record
       checked: boolean;
     end;
 
@@ -177,6 +177,9 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
+    cbWritable: TCheckBox;
+    cbExecutable: TCheckBox;
+    cbCopyOnWrite: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
@@ -258,7 +261,6 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     gbScanOptions: TGroupBox;
-    ReadOnly: TCheckBox;
     NewScan: TButton;
     NextScanButton: TButton;
     ScanType: TComboBox;
@@ -599,8 +601,6 @@ type
     procedure setScanStop(newscanstop: ptruint);
     function getFastscan: boolean;
     procedure setFastScan(state: boolean);
-    function getScanReadonly: boolean;
-    procedure setScanReadOnly(state: boolean);
 
     function getSelectedVariableType: TVariableType;
     procedure setfoundcount(x: int64);
@@ -710,7 +710,7 @@ type
     property ScanStart: ptruint read getScanStart write setScanStart;
     property ScanStop: ptruint read getScanStop write setScanStop;
     property FastScan: boolean read getFastscan write setFastscan;
-    property ScanReadOnly: boolean read getScanReadonly write setScanReadonly;
+
 
     property SelectedVariableType: TVariableType read getSelectedVariableType;
     property isProtected: boolean read fIsProtected write setIsProtected;
@@ -1360,15 +1360,7 @@ begin
   cbFastscan.Checked := state;
 end;
 
-function TMainform.getScanReadonly: boolean;
-begin
-  Result := ReadOnly.Checked;
-end;
 
-procedure TMainform.setScanReadOnly(state: boolean);
-begin
-  ReadOnly.Checked := state;
-end;
 
 
 
@@ -3061,7 +3053,7 @@ begin
 
   scanstate.FromAddress.text:=fromaddress.text;
   scanstate.ToAddress.text:=toaddress.text;
-  scanstate.ReadOnly.checked:=readonly.checked;
+
 
   scanstate.cbfastscan.checked:=cbFastScan.checked;
   scanstate.edtAlignment.text:=edtAlignment.Text;
@@ -6440,6 +6432,25 @@ begin
       advancedoptions.Pausebutton.Click;
     end;
 
+    case cbWritable.State of
+      cbUnchecked: memscan.scanWritable:=scanExclude;
+      cbChecked: memscan.scanWritable:=scanInclude;
+      cbGrayed: memscan.scanWritable:=scanDontCare;
+    end;
+
+    case cbExecutable.State of
+      cbUnchecked: memscan.scanExecutable:=scanExclude;
+      cbChecked: memscan.scanExecutable:=scanInclude;
+      cbGrayed: memscan.scanExecutable:=scanDontCare;
+    end;
+
+    case cbCopyOnWrite.State of
+      cbUnchecked: memscan.scanCopyOnWrite:=scanExclude;
+      cbChecked: memscan.scanCopyOnWrite:=scanInclude;
+      cbGrayed: memscan.scanCopyOnWrite:=scanDontCare;
+    end;
+
+
 
 
     memscan.alignment:=strtoint('$'+edtAlignment.text);
@@ -6448,7 +6459,7 @@ begin
     else
       fastscanmethod:=fsmLastDigits;
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, scanreadonly, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 
@@ -6614,7 +6625,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, scanreadonly, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
+  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2,  cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
   DisableGui;
   SpawnCancelButton;
 end;

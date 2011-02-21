@@ -548,7 +548,13 @@ fuckCheatEngine() : Removes the ad window if it was showing
 
 
 aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam OPTIONAL):
-protectionflags is a string. E=Executable R=Readable memory W=Writable memory C=Copy On Write
+protectionflags is a string. 
+  E=Executable W=Writable memory C=Copy On Write   Add a + to INCLUDE it to the scan and a - to exclude.
+  Examples: 
+    +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
+    +E-C-W = Find readonly executable memory
+
+
 alignmenttype is an integer: 
   0=No alignment check
   1=Address must be dividable by alignmentparam 
@@ -557,11 +563,18 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 
 
-createMemScan()
+createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
+MemScan Class (Inheritance: Object)
 memscan_firstScan(memscan,....);
 memscan_nextScan(memscan,....);
-memscan_getResultCount(memscan);
-memscan_getResults(memscan)
+memscan_newscan(memscan,...);
+memscan_waitTillDone(memscan)
+
+
+createFoundList(memscan)
+foundlist_initialize(foundlist)
+foundlist_deinitialize(foundlist)
+foundlist_getCount(foundlist)
 
 
 
