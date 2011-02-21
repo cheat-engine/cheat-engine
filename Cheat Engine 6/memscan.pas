@@ -3950,7 +3950,9 @@ var
   leftfromprevious: dword;
   offsetincurrentregion: qword;
 
+  isWritable, isExecutable, isCopyOnWrite: boolean;
 
+  validRegion: boolean;
 
   datatype: string[6];
 begin
@@ -4022,29 +4024,47 @@ begin
       if PtrUint(mbi.BaseAddress)+mbi.RegionSize>=stopaddress then
         mbi.RegionSize:=stopaddress-PtrUint(mbi.BaseAddress);
 
-      {
-      if //no cache check
-         (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE))
-         or
-         //no readonly check
-         ((not readonly) and (not ((((mbi.AllocationProtect) and (page_readonly or page_execute_read))=0) and
-           (((mbi.Protect) and (page_readonly or PAGE_EXECUTE_READ))=0))))
-       then
+
+      //initial check passed, check the other protection flags to see if it should be scanned
+
+      //fill in isWritable, isExecutable, isCopyOnWrite: boolean;
+      isWritable:=((mbi.protect and PAGE_READWRITE)>0) or
+                  ((mbi.protect and PAGE_WRITECOPY)>0) or //writecopy IS writable
+                  ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
+                  ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+      isExecutable:=((mbi.protect and PAGE_EXECUTE)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_READ)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+      isCopyOnWrite:=((mbi.protect and PAGE_WRITECOPY)>0) or
+                     ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+
+      validRegion:=true;
+      case scanWritable of
+        scanInclude: validregion:=validregion and isWritable;
+        scanExclude: validregion:=validregion and (not isWritable);
+      end;
+
+      case scanExecutable of
+        scanInclude: validregion:=validregion and isExecutable;
+        scanExclude: validregion:=validregion and (not isExecutable);
+      end;
+
+      case scanCopyOnWrite of
+        scanInclude: validregion:=validregion and isCopyOnWrite;
+        scanExclude: validregion:=validregion and (not isCopyOnWrite);
+      end;
+
+      if not validregion then
       begin
-        //skip it
+        //next
         currentBaseAddress:=PtrUint(mbi.BaseAddress)+mbi.RegionSize;
         continue;
-      end; }
-
-      //replace with new check method
-
-     (*
-     todo: 6.1: Add a option to exluce write_copy regions
-     if (mbi.Protect and PAGE_WRITECOPY) > 0 then
-      begin
-        messagebox(0,'write copy memory included','scanner',0);
       end;
-      *)
+
 
       //still here, so valid
       try
