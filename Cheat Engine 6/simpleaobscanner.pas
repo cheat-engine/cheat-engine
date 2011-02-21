@@ -11,15 +11,15 @@ interface
 uses LCLIntf, memscan, sysutils, CEFuncProc, classes, foundlisthelper;
 
 
-function findaob(aobstring: string): ptruint;
-function getaoblist(aobstring: string; list: tstrings):boolean;
+function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
+function getaoblist(aobstring: string; list: tstrings; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''):boolean;
 
 implementation
 
 uses NewKernelHandler;
 
 
-function getaoblist(aobstring: string; list: tstrings{; protectionflags: TProtectionflags; alignmenttype: TFastScanMethod; alignmentparam: string }):boolean;
+function getaoblist(aobstring: string; list: tstrings; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''):boolean;
 var
   ms: tmemscan;
   x: ptruint;
@@ -31,6 +31,8 @@ var
 begin
   list.clear;
   ms:=tmemscan.create(nil);
+  ms.parseProtectionflags(protectionflags);
+
   foundlist:=tfoundlist.create(nil, ms);
 
   {$ifdef cpu64}
@@ -52,7 +54,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true,  false, false, false,false, fsmAligned);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true,  false, false, false,false, alignmenttype, alignmentparam);
 
   ms.waittilldone; //wait till it's finished scanning
 
@@ -74,7 +76,7 @@ begin
 end;
 
 
-function findaob(aobstring: string): ptruint;
+function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
 {scans the game's memory for aobstring and returns the pointer if found. returns 0 if not found}
 var
   ms: tmemscan;
@@ -82,6 +84,7 @@ var
   max: ptrUint;
 begin
   ms:=tmemscan.create(nil);
+  ms.parseProtectionflags(protectionflags);
   ms.onlyone:=true;
   {$ifdef cpu64}
   if processhandler.is64Bit then
@@ -95,7 +98,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, false, true, false, false, false,false, fsmAligned);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true, false, false, false,false, fsmNotAligned);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then

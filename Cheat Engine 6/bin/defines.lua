@@ -1,5 +1,12 @@
 --Defines:
 
+--scan types: (fast scan methods)
+fsmNotAligned=0
+fsmAligned=1
+fsmLastDigits=2
+
+
+
 --debug variables
 --Breakpoint triggers:
 bptExecute=0

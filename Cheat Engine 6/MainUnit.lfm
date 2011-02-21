@@ -1556,15 +1556,18 @@ object MainForm: TMainForm
     top = 184
     object Browsethismemoryarrea1: TMenuItem
       Caption = 'Browse this memory region'
+      ShortCut = 16450
       OnClick = Browsethismemoryarrea1Click
     end
     object Browsethismemoryregioninthedisassembler1: TMenuItem
       Caption = 'Disassemble this memory region'
       Enabled = False
+      ShortCut = 16452
       OnClick = Browsethismemoryregioninthedisassembler1Click
     end
     object Removeselectedaddresses1: TMenuItem
       Caption = 'Remove selected addresses'
+      ShortCut = 16430
       Visible = False
       OnClick = Removeselectedaddresses1Click
     end

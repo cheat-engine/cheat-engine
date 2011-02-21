@@ -272,8 +272,8 @@ type
     roundingtype: TRoundingtype;
     hexadecimal: boolean;
     binaryStringAsDecimal: boolean;
-    readonly: boolean;
-    fastscan: boolean;
+
+
     unicode: boolean;
     caseSensitive: boolean;
     percentage: boolean;
@@ -425,7 +425,7 @@ type
     memRegion: TMemoryRegions;  //after a scan the contents of controller gets copied to here
     memRegionPos: integer;
 
-    progressbar: TProgressBar;
+    progressbar: TCustomProgressBar;
     notifywindow: thandle;
     notifymessage: integer;
 
@@ -438,7 +438,7 @@ type
     stopaddress: ptruint; //stop of the whole scan
 
     //fastscan options (only set by firstscan)
-    fastscan: boolean;
+    Alignment: integer;
     fastscanalignment: integer;
     fastscanmethod: TFastscanmethod;
     fastscandigitcount: integer;
@@ -467,13 +467,14 @@ type
     function DeleteFolder(dir: string) : boolean;
   public
     onlyOne: boolean;
-    Alignment: integer;
+
 
     scanWritable: Tscanregionpreference;
     scanExecutable: Tscanregionpreference;
     scanCopyOnWrite: Tscanregionpreference;
 
     attachedFoundlist: TObject;
+    procedure parseProtectionflags(protectionflags: string);
     function GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;
     function GetErrorString: string;
     function GetFoundCount: uint64;
@@ -481,7 +482,7 @@ type
     function GetOnlyOneResult(var address: ptruint):boolean;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
+    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
 
@@ -490,7 +491,7 @@ type
     function canUndo: boolean;
     procedure undoLastScan;
 
-    constructor create(progressbar: TProgressbar);
+    constructor create(progressbar: TCustomProgressbar);
     destructor destroy; override;
 
     procedure saveresults(resultname: string);
@@ -1957,7 +1958,7 @@ var stepsize: integer;
     dividableby2: boolean;
     dividableby4: boolean;
 begin
-  _fastscan:=fastscan;
+  _fastscan:=fastscanmethod<>fsmNotAligned;
   p:=buffer;
   lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
 
@@ -2047,7 +2048,7 @@ begin
   lastmem:=ptruint(p)+(size-variablesize); //optimizes compile to use reg if possible
 
 
-  _fastscan:=fastscan;
+  _fastscan:=fastscanmethod<>fsmNotAligned;
   if _fastscan then
   begin
     if fastscanmethod=fsmAligned then
@@ -3618,7 +3619,6 @@ begin
           scanners[i].variableType:=VariableType;
           scanners[i].customType:=CustomType;
           scanners[i].roundingtype:=roundingtype;
-          scanners[i].fastscan:=fastscan;
           scanners[i].scanValue1:=scanvalue1; //usual scanvalue
           scanners[i].scanValue2:=scanValue2; //2nd value for between scan
           scanners[i].unicode:=unicode;
@@ -3829,7 +3829,6 @@ begin
       scanners[i].variableType:=VariableType;
       scanners[i].customType:=CustomType;
       scanners[i].roundingtype:=roundingtype;
-      scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
       scanners[i].unicode:=unicode;
@@ -4240,7 +4239,6 @@ begin
       scanners[i].variableType:=VariableType;
       scanners[i].customType:=CustomType;
       scanners[i].roundingtype:=roundingtype;
-      scanners[i].fastscan:=fastscan;
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
       scanners[i].unicode:=unicode;
@@ -4873,7 +4871,6 @@ begin
   scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;
 
-  scanController.fastscan:=fastscan; //memrec stored
   scanController.fastscanalignment:=alignment;
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
@@ -4899,7 +4896,7 @@ begin
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; fastscan,hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmaligned; fastscandigitcount: integer=0; customtype: TCustomType=nil);
+procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive,percentage: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
 {
 Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
@@ -4934,12 +4931,10 @@ begin
 
   scanController.roundingtype:=roundingtype;
 
-  self.fastscan:=fastscan;
-  self.fastscanalignment:=alignment;
+  self.fastscanalignment:=strtoint('$'+fastscanparameter);
   self.fastscanmethod:=fastscanmethod;
-  self.fastscandigitcount:=fastscandigitcount;
+  self.fastscandigitcount:=length(fastscanparameter);
 
-  scanController.fastscan:=fastscan;
   scanController.fastscanalignment:=alignment;
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
@@ -4978,12 +4973,31 @@ begin
   self.notifymessage:=notifymessage;
 end;
 
-constructor TMemScan.create(progressbar: TProgressbar);
+procedure TMemScan.parseProtectionflags(protectionflags: string);
+var i: integer;
+    currentstate: Tscanregionpreference;
+begin
+  //parse the protectionflags string and set scanWritable, scanExecutable and scanCopyOnWrite;
+  protectionflags:=uppercase(protectionflags);
 
+  currentstate:=scanDontCare;
+  for i:=0 to length(protectionflags) do
+  begin
+    case protectionflags[i] of
+      '-': currentState:=scanInclude;
+      '+': currentState:=scanExclude;
+      '*': currentstate:=scanDontCare;
+      'W': scanWritable:=currentState;
+      'C': scanCopyOnWrite:=currentState;
+      'X': scanExecutable:=currentState;
+    end;
+  end;
+end;
+
+constructor TMemScan.create(progressbar: TCustomProgressbar);
 begin
   self.progressbar:=progressbar;
-
-  //setyp the location of the scan results
+  //setup the location of the scan results
 
 
   CreateScanfolder;

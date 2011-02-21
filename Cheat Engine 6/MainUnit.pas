@@ -6450,16 +6450,17 @@ begin
       cbGrayed: memscan.scanCopyOnWrite:=scanDontCare;
     end;
 
-
-
-
-    memscan.alignment:=strtoint('$'+edtAlignment.text);
-    if rbFsmAligned.checked then
-      fastscanmethod:=fsmAligned
+    if cbfastscan.checked then
+    begin
+      if rbFsmAligned.checked then
+        fastscanmethod:=fsmAligned
+      else
+        fastscanmethod:=fsmLastDigits;
+    end
     else
-      fastscanmethod:=fsmLastDigits;
+      fastscanmethod:=fsmNotAligned;
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, fastscan, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, length(edtAlignment.text), TCustomType(vartype.items.objects[vartype.itemindex]));
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, edtAlignment.text, TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 

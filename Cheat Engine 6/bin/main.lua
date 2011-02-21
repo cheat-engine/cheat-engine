@@ -465,9 +465,6 @@ require("class");
 --writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
 --readRegionFromFile(filename, destinationaddress)
 
---registerSymbol(symbolname, address)
---unregisterSymbol(symbolname)
-
 --resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
 
 
@@ -533,11 +530,18 @@ require("class");
 
 
 --[[
-
-
+not yet implemented
 
 functions:
 
+
+symhandler_registerSymbol(symbolname, address)
+symhandler_unregisterSymbol(symbolname)
+symhandler_getAddressFromString(string)
+symhandler_getStringFromAddress(address)
+symhandler_inModule(address) : returns true if the given address is inside a module
+symhandler_inSystemModule(address) : returns true if the given address is inside a system module
+symhandler_getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
 
 
 supportCheatEngine(format, position, attachwindow HALFOPTIONAL,yoururl OPTIONAL, extraparameters OPTIONAL): Will show an advertising window. If you provide your own url it will be shown 75% of the time. Extraparameters are url request parameters you can add to the default parameters (e.g trainername for tracking purposes)  Tip: You can also use it for updates on your trainers
@@ -547,12 +551,14 @@ fuckCheatEngine() : Removes the ad window if it was showing
 
 
 
-aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam OPTIONAL):
+aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
 protectionflags is a string. 
-  E=Executable W=Writable memory C=Copy On Write   Add a + to INCLUDE it to the scan and a - to exclude.
+  X=Executable W=Writable memory C=Copy On Write   Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
   Examples: 
     +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
-    +E-C-W = Find readonly executable memory
+    +X-C-W = Find readonly executable memory
+    +W = Finds all writable memory and don't care about copy on write or execute
+
 
 
 alignmenttype is an integer: 
@@ -565,17 +571,18 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 MemScan Class (Inheritance: Object)
-memscan_firstScan(memscan,....);
-memscan_nextScan(memscan,....);
-memscan_newscan(memscan,...);
+memscan_firstScan(memscan, scantype, vartype, roundingtype, input1, input2, startAddress, stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
+memscan_nextScan(memscan, scantype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
+memscan_newscan(memscan);
 memscan_waitTillDone(memscan)
+memscan_saveCurrentResults(memscan, name)
 
 
 createFoundList(memscan)
 foundlist_initialize(foundlist)
 foundlist_deinitialize(foundlist)
 foundlist_getCount(foundlist)
-
+foundlist_getAddress(foundlist, index)
 
 
 
