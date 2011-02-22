@@ -2106,7 +2106,7 @@ var i,j,k,err,err2: integer;
     temp: string;
     haserror: boolean;
 begin
-  ShowMessage(token);
+
 
   setlength(tokens,0);
   result:=false;
@@ -3047,11 +3047,6 @@ begin
 
   nroftokens:=length(tokens);
 
-  tempstring:='';
-  for i:=0 to nroftokens-1 do
-    tempstring:=tempstring+tokens[i]+#13#10;
-
-  showmessage(tempstring);
 
   if nroftokens=0 then exit;
 

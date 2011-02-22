@@ -6287,22 +6287,16 @@ var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-  if adwindow=nil then
-  begin
-    adwindow:=TADWindow.createnew(self, true);
-    adwindow.clientWidth:=120;
-    adwindow.clientheight:=600;
-    adwindow.show;
+  asm
+  nop
+  nop
+  nop
+    fstp [rsp+10]
+    nop
+    nop
+    nop
 
-    adwindow.AttachToForm(self);
-    adwindow.setPosition(akLeft);
-
-   // adwindow.LoadAd;
-
-  end
-  else
-    freeandnil(adwindow);
-
+  end;
 
 end;
 

@@ -998,7 +998,7 @@ function TDisassembler.SIB(memory:TMemory; sibbyte: integer; var last: dword): s
 var
   dwordptr: ^dword;
   byteptr: ^byte absolute dwordptr;
-  ss,index,base, _mod: integer;
+  ss,index,base, _mod,_rm: integer;
   offset: string;
 
   indexstring: string;
@@ -1021,6 +1021,7 @@ begin
   if Rex_X then index:=index or 8;
 
   _mod:=getmod(memory[sibbyte-1]);
+  _rm:=getrm(memory[sibbyte-1]);
 
   base:=memory[sibbyte] and 7;
   if Rex_B and (_mod<>0) then base:=base or 8;
@@ -1126,12 +1127,15 @@ begin
     case _mod of
       0,2,3: //32-displacement
       begin
-        if pinteger(dwordptr)^<0 then
-          displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
-        else
-          displacementstring:=inttohexs(pinteger(dwordptr)^,8);
+        if (_mod<>0) or (_rm=5) then
+        begin
+          if pinteger(dwordptr)^<0 then
+            displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
+          else
+            displacementstring:=inttohexs(pinteger(dwordptr)^,8);
 
-        last:=last+4;
+          last:=last+4;
+        end;
       end;
       1:
       begin
@@ -1148,10 +1152,13 @@ begin
       result:=displacementstring
     else
     begin
-      if (displacementstring<>'') and (displacementstring[1] in ['+','-']) then
-        result:=result+displacementstring //already starts with a + or -
-      else
-        result:=result+'+'+displacementstring;
+      if (displacementstring<>'') then
+      begin
+        if (displacementstring[1] in ['+','-']) then
+          result:=result+displacementstring //already starts with a + or -
+        else
+          result:=result+'+'+displacementstring;
+      end;
     end;
 
 

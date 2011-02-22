@@ -587,7 +587,7 @@ require("class");
 --  Position: Type=integer/enum: The place of the window
 --    0=Top, 1=Right, 2=Bottom, 3=left
 --
---  Yoururl: Type=string: The url you want to show. When given instead of 100% CE's ads it will show your url up yo 75%.
+--  Yoururl: Type=string: The url you want to show. When given instead of showing CE's ads 100% it will show your url up to 75%.
 --    You can use it for your own income, or for updating users about new versions of your trainer or whatever you feel like
 --
 --  Extraparameters: Type=String :  are url request parameters you can add to the default parameters (e.g trainername=mytrainer for tracking purposes)  
