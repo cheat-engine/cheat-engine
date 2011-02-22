@@ -6,11 +6,11 @@ interface
 
 uses
   lclintf, Classes, SysUtils,forms, controls, windows, activex, comobj, LMessages,
-  ExtCtrls;
+  ExtCtrls, Graphics;
 
 type TADWindow=class(TCustomForm)
   private
-    browserisvalid: boolean;
+    browserisvalid,browserisvalid2: boolean;
     browser: Olevariant;
 
 
@@ -32,6 +32,7 @@ type TADWindow=class(TCustomForm)
     optional: string;
     procedure handleMove;
     procedure AttachToForm(form: TCustomForm);
+    procedure setCanClose(state: boolean);
     procedure setPosition(side: TAnchorKind);
     procedure setUserUrl(url: string);
     procedure setUserPercentage(percentage: integer);
@@ -74,13 +75,13 @@ begin
   case attachside of
     akBottom:
     begin
-      top:=wr.Bottom;
+      top:=wr.Bottom+2;
       left:=attachedform.left+(attachedform.width div 2) - (width div 2);
     end;
 
     akTop:
     begin
-      top:=wr.top-(ar.bottom-ar.Top);
+      top:=wr.top-(ar.bottom-ar.Top)-2;
       left:=attachedform.left+(attachedform.width div 2) - (width div 2);
     end;
 
@@ -92,7 +93,7 @@ begin
 
     akRight:
     begin
-      left:=wr.right;
+      left:=wr.right+2;
       top:=attachedform.top+(attachedform.height div 2) - (height div 2);
     end;
 
@@ -101,8 +102,11 @@ end;
 
 procedure TADWindow.hook(var TheMessage: TLMessage);
 begin
-  if TheMessage.msg=LM_MOVE then
-    handleMove;
+  case TheMessage.msg of
+    LM_MOVE: handleMove;
+    LM_SIZE: handleMove;
+    LM_CLOSEQUERY: hide;
+  end;
 
   attachedwindowproc(TheMessage);
 end;
@@ -175,11 +179,9 @@ begin
 
 end;
 
-constructor TADWindow.createNew(AOwner: TComponent; canclose: boolean);
+procedure TADWindow.setCanClose(state: boolean);
 begin
-  inherited createnew(AOwner);
-
-  if canClose then
+  if state then
   begin
     BorderStyle:=bsToolWindow;
     bordericons:=[biSystemMenu];
@@ -189,6 +191,16 @@ begin
     BorderStyle:=bsNone;
   end;
 
+  browserisvalid:=false;
+end;
+
+constructor TADWindow.createNew(AOwner: TComponent; canclose: boolean);
+begin
+  inherited createnew(AOwner);
+
+  setCanClose(canclose);
+
+  color:=clGreen;
 
   {$ifdef windows}
   try
@@ -199,6 +211,7 @@ begin
     browser.Resizable:=false;
     browser.visible:=true;
     browserisvalid:=true; //we got to this point without a horrible crash, so I guess it's ok
+    browserisvalid2:=true;
   except
 
   end;

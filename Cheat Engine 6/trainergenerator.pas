@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, ceguicomponents, lclintf, StdCtrls, EditBtn, ExtCtrls, ExtDlgs,
   ExtraTrainerComponents, cefuncproc, HotkeyHandler, HotKeys, symbolhandler,
-  luacaller, formdesignerunit, opensave, luafile;
+  luacaller, formdesignerunit, opensave, luafile, frmAdConfigUnit, cesupport;
 
 type
   TTrainerForm=class(TCEForm)
@@ -67,6 +67,7 @@ type
     popupkeys: TKeycombo;
     functions, init: TStringlist;
     restoretimer: ttimer;
+    adconfig: TfrmAdConfig;
     procedure generateScript;
      procedure RestoreSupportCE(sender: tobject);
   public
@@ -597,7 +598,14 @@ begin
 
     end;
 
-
+    if cbSupportCheatEngine.checked then
+    begin
+      if adconfig<>nil then
+      begin
+        l.add('supportCheatEngine('+trainerform.name+','+BoolToStr(adconfig.cbCanClose.checked,'true','false')+','+adconfig.edtWidth.text+','+adconfig.edtHeight.text+','+inttostr(adconfig.adposition)+', '+adconfig.ownurl+','+adconfig.extraparam+','+inttostr(adconfig.percentage)+')');
+        l.add('--Thank you from Dark Byte--');
+      end;
+    end;
 
   finally
     l.add('--TRAINERGENERATORSTOP--');
@@ -658,6 +666,32 @@ begin
   begin
     cbSupportCheatEngine.caption:='Thank you! :)';
     //show the ad config window
+
+    if adwindow=nil then
+       adwindow:=TADWindow.CreateNew(trainerform, true);
+
+    adwindow.Width:=468;
+    adwindow.height:=60;
+    adwindow.show;
+    adwindow.AttachToForm(trainerform);
+    adwindow.setPosition(akBottom);
+
+
+
+
+    if adconfig=nil then
+      adconfig:=TfrmAdConfig.create(self);
+
+    if left>adconfig.width then
+      adconfig.left:=left-adconfig.width-20
+    else
+      adconfig.top:=top+height;
+
+    adconfig.show;
+
+    adwindow.optional:='designer=1';
+    adwindow.LoadAd;
+
   end
   else
     cbSupportCheatEngine.caption:='aaaaw :(';

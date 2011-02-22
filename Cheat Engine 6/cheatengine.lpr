@@ -48,7 +48,7 @@ uses
   frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
   trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
-  xmplayer_server, xmplayer_defines, ExtraTrainerComponents;
+  xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -89,6 +89,7 @@ begin
     mainform.visible:=true;
 
   Application.CreateForm(TfrmExeTrainerGenerator, frmExeTrainerGenerator);
+  Application.CreateForm(TfrmAdConfig, frmAdConfig);
   Application.Run;
 end.
 
