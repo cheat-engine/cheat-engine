@@ -4215,7 +4215,7 @@ begin
 
                 $ba : begin
                         lastdisassembledata.parametervaluetype:=dvtvalue;
-                        lastdisassembledata.parametervalue:=memory[3];
+
 
                         case getreg(memory[2]) of
                           4:  begin
@@ -4223,8 +4223,11 @@ begin
                                 description:='bit test';
                                 lastdisassembledata.opcode:='bt';
                                 if $66 in prefix2 then
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last) else
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);     //notice the difference in the modrm 4th parameter
+
+                                lastdisassembledata.parametervalue:=memory[last];
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
 
                                 inc(offset,last-1+1);
                               end;
@@ -4234,8 +4237,11 @@ begin
                                 description:='bit test and set';
                                 lastdisassembledata.opcode:='bts';
                                 if $66 in prefix2 then
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last) else
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);     //notice the difference in the modrm 4th parameter
+
+                                lastdisassembledata.parametervalue:=memory[last];
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                 inc(offset,last-1+1);
                               end;
 
@@ -4244,8 +4250,12 @@ begin
                                 description:='bit test and reset';
                                 lastdisassembledata.opcode:='btr';
                                 if $66 in prefix2 then
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last) else
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);     //notice the difference in the modrm 4th parameter
+
+                                lastdisassembledata.parametervalue:=memory[last];
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+
                                 inc(offset,last-1+1);
                               end;
 
@@ -4254,8 +4264,12 @@ begin
                                 description:='bit test and complement';
                                 lastdisassembledata.opcode:='btc';
                                 if $66 in prefix2 then
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+inttohexs(memory[3],2) else
-                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+inttohexs(memory[3],2);     //notice the difference in the modrm 4th parameter
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last) else
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);     //notice the difference in the modrm 4th parameter
+
+                                lastdisassembledata.parametervalue:=memory[last];
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+
                                 inc(offset,last-1+1);
                               end;
 
@@ -6073,8 +6087,11 @@ begin
               description:='signed multiply';
               lastdisassembledata.opcode:='imul';
               if $66 in prefix2 then
-                lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last)+inttohexs(memory[last],2) else
-                lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last)+inttohexs(memory[last],2);
+                lastdisassembledata.parameters:=r16(memory[1])+','+modrm(memory,prefix2,1,1,last) else
+                lastdisassembledata.parameters:=r32(memory[1])+','+modrm(memory,prefix2,1,0,last);
+
+              lastdisassembledata.parametervalue:=memory[last];
+              lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
               inc(offset,last-1+1);
             end;
 
@@ -9869,10 +9886,12 @@ begin
                 0:  begin
                       description:='logical compare';
                       lastdisassembledata.opcode:='test';
-                      lastdisassembledata.parametervaluetype:=dvtaddress;
+                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8);
+                      lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+                      lastdisassembledata.parametervaluetype:=dvtValue;
                       lastdisassembledata.parametervalue:=memory[last];
 
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+inttohexs(memory[last],2);
+
                       inc(offset,last);
                     end;
 
