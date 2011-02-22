@@ -31,7 +31,8 @@ procedure InitializeLua;
 implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
-  symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist;
+  symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
+  cesupport;
 
 
 
@@ -3731,6 +3732,9 @@ var
   paramcount: integer;
   i,b: integer;
   scanstring: string;
+  protectionflags: string;
+  alignmentparam: string;
+  alignmenttype: TFastScanMethod;
   list: tstringlist;
 begin
   result:=0;
@@ -3738,8 +3742,26 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=0 then exit;
 
-  if (paramcount=1) and (lua_isstring(L,-1)) then
-    scanstring:=Lua_ToString(L, -1)
+  protectionflags:='';
+  alignmenttype:=fsmNotAligned;
+  alignmentparam:='1';
+
+  if (paramcount>=1) and (lua_isstring(L,-paramcount)) then
+  begin
+    //it's a scanstring, optional call
+    scanstring:=Lua_ToString(L, -paramcount);
+    if paramcount>=2 then
+      protectionflags:=Lua_ToString(L, -paramcount+1);
+
+    if paramcount>=3 then
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, -paramcount+2));
+
+
+    if paramcount>=4 then
+      alignmentparam:=Lua_ToString(L, -paramcount+3);
+
+
+  end
   else
   begin
     //buildup the scanstring
@@ -3764,7 +3786,7 @@ begin
 
 
   list:=tstringlist.create;
-  if getaoblist(scanstring, list) then
+  if getaoblist(scanstring, list, protectionflags, alignmenttype, alignmentparam) then
   begin
     result:=1;
     lua_pushlightuserdata(L, list);
@@ -3798,8 +3820,84 @@ begin
 
     lua_pushnumber(L,symhandler.getAddressFromName(s));
     result:=1;
-  end;
+  end
+  else
+  lua_pop(L, lua_gettop(l));
 
+end;
+
+function getNameFromAddress_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  s: string;
+  address: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+    else
+      address:=lua_tointeger(L,-1);
+
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushstring(L,symhandler.getNameFromAddress(address));
+    result:=1;
+  end
+  else lua_pop(L, lua_gettop(l));
+end;
+
+function inModule_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  s: string;
+  address: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+    else
+      address:=lua_tointeger(L,-1);
+
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushboolean(L,symhandler.inModule(address));
+    result:=1;
+  end
+  else lua_pop(L, lua_gettop(l));
+end;
+
+function inSystemModule_fromLua(L: PLua_state): integer; cdecl;
+var paramcount: integer;
+  s: string;
+  address: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+    else
+      address:=lua_tointeger(L,-1);
+
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushboolean(L,symhandler.inSystemModule(address));
+    result:=1;
+  end;
+end;
+
+function getCommonModuleList_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(l));
+
+  lua_pushlightuserdata(L,symhandler.getCommonModuleList);
+  result:=1;
 end;
 
 function reinitializeSymbolhandler_fromLua(L: PLua_state): integer; cdecl;
@@ -6462,6 +6560,340 @@ begin
 end;
 
 
+function createMemScan_fromLua(L: Plua_State): integer; cdecl;
+var
+  progressbar: TCustomProgressbar;
+  memscan: TMemScan;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    progressbar:=lua_touserdata(L, -1);
+
+  lua_pop(L, lua_gettop(L));
+
+  memscan:=TMemscan.create(progressbar);
+
+  lua_pushlightuserdata(L, memscan);
+  result:=1;
+end;
+
+//memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
+//                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
+//                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
+function memscan_firstScan_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  memscan: Tmemscan;
+  scanOption: TScanOption;
+  vartype: TVariableType;
+  roundingtype: TRoundingType;
+  input1: string;
+  input2: string;
+  startaddress: ptruint;
+  stopaddress: ptruint;
+  protectionflags: string;
+  alignmenttype: TFastScanMethod;
+  alignmentparam: String;
+  isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=16 then
+  begin
+    memscan:=lua_touserdata(L, -parameters);
+    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
+    vartype:=TVariableType(lua_tointeger(L, -parameters+2));
+    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+3));
+    input1:=Lua_ToString(L, -parameters+4);
+    input2:=Lua_ToString(L, -parameters+5);
+
+    if lua_isstring(L, -parameters+6) then
+      startaddress:=symhandler.getAddressFromName(Lua_ToString(L, -parameters+6))
+    else
+      startaddress:=lua_tointeger(L, -parameters+6);
+
+    if lua_isstring(L, -parameters+7) then
+      stopaddress:=symhandler.getAddressFromName(Lua_ToString(L, -parameters+7))
+    else
+      stopaddress:=lua_tointeger(L, -parameters+7);
+
+    protectionflags:=Lua_ToString(L, -parameters+8);
+    alignmenttype:=TFastScanMethod(lua_tointeger(L, -parameters+9));
+    alignmentparam:=lua_tostring(L, -parameters+10);
+
+    isHexadecimalInput:=lua_toboolean(L, -parameters+11);
+    isNotABinaryString:=lua_toboolean(L, -parameters+12);
+    isunicodescan:=lua_toboolean(L, -parameters+13);
+    iscasesensitive:=lua_toboolean(L, -parameters+14);
+    ispercentagescan:=lua_toboolean(L, -parameters+15);
+
+    lua_pop(L, lua_gettop(L));
+    memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, alignmenttype, alignmentparam, nil );
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+
+end;
+
+function memscan_nextScan_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  memscan: Tmemscan;
+  scanOption: TScanOption;
+  roundingtype: TRoundingType;
+  input1: string;
+  input2: string;
+  isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan: boolean;
+  savedscanname: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=10 then
+  begin
+    memscan:=lua_touserdata(L, -parameters);
+    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
+    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+2));
+    input1:=Lua_ToString(L, -parameters+3);
+    input2:=Lua_ToString(L, -parameters+4);
+
+    isHexadecimalInput:=lua_toboolean(L, -parameters+5);
+    isNotABinaryString:=lua_toboolean(L, -parameters+6);
+    isunicodescan:=lua_toboolean(L, -parameters+7);
+    iscasesensitive:=lua_toboolean(L, -parameters+8);
+    ispercentagescan:=lua_toboolean(L, -parameters+9);
+
+    if parameters=11 then
+      savedscanname:=Lua_ToString(L, -parameters+10)
+    else
+      savedscanname:='';
+
+    lua_pop(L, lua_gettop(L));
+
+    memscan.nextscan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedscanname<>'', savedscanname );
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function memscan_waitTillDone_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  memscan: Tmemscan;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memscan:=lua_touserdata(L, -parameters);
+    lua_pop(L, lua_gettop(L));
+
+    memscan.waittilldone;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function memscan_saveCurrentResults_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  memscan: Tmemscan;
+  name: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memscan:=lua_touserdata(L, -parameters);
+    name:=Lua_ToString(L, -parameters+1);
+    lua_pop(L, lua_gettop(L));
+
+    memscan.saveresults(name);
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function createFoundList_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  foundlist: TFoundlist;
+  memscan: TMemScan;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    memscan:=lua_touserdata(L, -1);
+
+  lua_pop(L, lua_gettop(L));
+
+  foundlist:=TFoundList.create(nil, memscan);
+
+  lua_pushlightuserdata(L, foundlist);
+  result:=1;
+end;
+
+function foundlist_initialize_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  foundlist: Tfoundlist;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    foundlist:=lua_touserdata(L, -parameters);
+    lua_pop(L, lua_gettop(L));
+
+    foundlist.Initialize;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function foundlist_deinitialize_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  foundlist: Tfoundlist;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    foundlist:=lua_touserdata(L, -parameters);
+    lua_pop(L, lua_gettop(L));
+
+    foundlist.deinitialize;
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function foundlist_getCount_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  foundlist: Tfoundlist;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    foundlist:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushinteger(L, foundlist.Count);
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+function foundlist_getAddress_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  foundlist: Tfoundlist;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    foundlist:=lua_touserdata(L,-2);
+    index:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+
+    lua_pushstring(L, inttohex(foundlist.GetAddress(index),8));
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+function foundlist_getValue_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  foundlist: Tfoundlist;
+  b: dword;
+  value: string;
+  index: integer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    foundlist:=lua_touserdata(L,-2);
+    index:=lua_tointeger(L,-1);
+    lua_pop(L, paramcount);
+
+    foundlist.GetAddress(index, b, value);
+
+    lua_pushstring(L, value);
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+function supportCheatEngine_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  //attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL
+  attachwindow: TCustomForm;
+  hasCloseButton: boolean;
+  width: integer;
+  height: integer;
+  position: integer;
+  yoururl: string;
+  extraparameters: string;
+  percentageshown: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=5 then
+  begin
+    attachwindow:=lua_touserdata(L, -parameters);
+    hasCloseButton:=lua_toboolean(L, -parameters+1);
+    width:=lua_tointeger(L, -parameters+2);
+    height:=lua_tointeger(L, -parameters+3);
+    position:=lua_tointeger(L, -parameters+4);
+
+    if parameters>=6 then
+      yoururl:=Lua_ToString(L, -parameters+5)
+    else
+      yoururl:='';
+
+    if parameters>=7 then
+      extraparameters:=Lua_ToString(L, -parameters+6)
+    else
+      extraparameters:='';
+
+    if parameters>=8 then
+      percentageshown:=lua_tointeger(L, -parameters+7)
+    else
+      percentageshown:=0;
+
+    lua_pop(L, lua_gettop(L));
+
+    if adwindow=nil then
+      adwindow:=TADWindow.CreateNew(nil, hasclosebutton);
+
+    adwindow.clientWidth:=width;
+    adwindow.clientheight:=height;
+    adwindow.show;
+    adwindow.AttachToForm(attachwindow);
+    case position of
+      0: adwindow.setPosition(akTop);
+      1: adwindow.setPosition(akRight);
+      2: adwindow.setPosition(akBottom);
+      3: adwindow.setPosition(akLeft);
+    end;
+
+    adwindow.setUserUrl(yoururl);
+    adwindow.setUserPercentage(percentageshown);
+    adwindow.optional:=extraparameters;
+
+    adwindow.LoadAd;
+
+
+  end else lua_pop(L, lua_gettop(L));
+end;
+
+function fuckCheatEngine_fromLua(L: Plua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  if adwindow<>nil then
+    adWindow.visible:=false;
+
+  result:=0;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
 begin
@@ -6566,6 +6998,14 @@ begin
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
 
     //ce6.1
+    lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress_fromLua);
+    lua_register(LuaVM, 'inModule', inModule_fromLua);
+    lua_register(LuaVM, 'inSystemModule', inSystemModule_fromLua);
+    lua_register(LuaVM, 'getCommonModuleList', getCommonModuleList_fromLua);
+
+
+
+
     lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys_fromLua);
     lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey_fromLua);
@@ -6803,6 +7243,23 @@ begin
     Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID_fromLua);
     Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord_fromLua);
 
+    Lua_register(LuaVM, 'createMemScan', createMemScan_fromLua);
+    Lua_register(LuaVM, 'memscan_firstScan', memscan_firstScan_fromLua);
+    Lua_register(LuaVM, 'memscan_nextScan', memscan_nextScan_fromLua);
+    Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone_fromLua);
+    Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults_fromLua);
+
+    Lua_register(LuaVM, 'createFoundList', createFoundList_fromLua);
+    Lua_register(LuaVM, 'foundlist_initialize', foundlist_initialize_fromLua);
+    Lua_register(LuaVM, 'foundlist_deinitialize', foundlist_deinitialize_fromLua);
+    Lua_register(LuaVM, 'foundlist_getCount', foundlist_getCount_fromLua);
+    Lua_register(LuaVM, 'foundlist_getAddress', foundlist_getAddress_fromLua);
+    Lua_register(LuaVM, 'foundlist_getValue', foundlist_getValue_fromLua);
+
+    Lua_register(LuaVM, 'supportCheatEngine', supportCheatEngine_fromLua);
+    Lua_register(LuaVM, 'fuckCheatEngine', fuckCheatEngine_fromLua);
+
+
 
     lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);
     lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent_fromLua);
@@ -6840,6 +7297,7 @@ begin
       s.add('memrec_setColor = memoryrecord_setColor_fromlua');
       s.add('memrec_appendToEntry = memoryrecord_appendToEntry_fromlua');
       s.add('memrec_delete = memoryrecord_delete_fromlua');
+      s.add('getAddressFromName = getAddress');
 
       lua_doscript(s.text);
 

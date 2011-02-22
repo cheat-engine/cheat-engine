@@ -1352,6 +1352,15 @@ object MainForm: TMainForm
       Visible = False
       OnClick = lblcompareToSavedScanClick
     end
+    object Label3: TLabel
+      Left = 376
+      Height = 14
+      Top = 72
+      Width = 33
+      Caption = 'Label3'
+      ParentColor = False
+      OnClick = Label3Click
+    end
   end
   object UpdateTimer: TTimer
     Interval = 500

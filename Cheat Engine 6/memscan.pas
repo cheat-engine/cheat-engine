@@ -499,8 +499,11 @@ type
 
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: widestring read fScanResultFolder; //read only, it's configured during creation
+    property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property nextscanCount: integer read fnextscanCount;
+
+
   end;
 
 

@@ -158,6 +158,7 @@ type
     function GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 
     procedure loadCommonModuleList;
+    function getCommonModuleList: Tstringlist;
     procedure RegisterUserdefinedSymbolCallback(callback: TUserdefinedSymbolCallback);
     constructor create;
     destructor destroy; override;
@@ -1509,6 +1510,11 @@ begin
   if currentlevel>0 then exit;
 
   result:=ispointer;
+end;
+
+function TSymhandler.getCommonModuleList;
+begin
+  result:=commonModuleList;
 end;
 
 procedure TSymhandler.loadCommonModuleList;

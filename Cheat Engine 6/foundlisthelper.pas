@@ -1,7 +1,7 @@
 unit foundlisthelper;
 
 {$MODE Delphi}
-//todo: Change to the 'new' type
+//todo: Change to the 'new' vartype
 
 interface
 
@@ -54,6 +54,7 @@ type
     procedure deleteaddress(i:integer);
     procedure clear;
     procedure RefetchValueList;
+    function Initialize: int64; overload;
     function Initialize(vartype: integer; customtype: TCustomType):int64; overload;
     function Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
@@ -735,6 +736,11 @@ begin
     self.binaryasdecimal:=binaryasdecimal;
     self.unicode:=unicode;
   end;
+end;
+
+function TFoundList.Initialize: int64;
+begin
+  result:=Initialize(NewVarTypeToOldVarType(memscan.vartype),memscan.CustomType);
 end;
 
 procedure TFoundlist.Deinitialize;

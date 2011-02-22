@@ -32,9 +32,9 @@ savedscanhandler,
 
 
 //memscan
-type TScanOption=(soUnknownValue,soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soIncreasedValue, soIncreasedValueBy, soDecreasedValue, soDecreasedValueBy, soChanged, soUnchanged, soCustom);
+type TScanOption=(soUnknownValue=0,soExactValue=1,soValueBetween=2,soBiggerThan=3,soSmallerThan=4, soIncreasedValue=5, soIncreasedValueBy=6, soDecreasedValue=7, soDecreasedValueBy=8, soChanged=9, soUnchanged=10, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
-type TRoundingType=(rtRounded,rtExtremerounded,rtTruncated);
+type TRoundingType=(rtRounded=0,rtExtremerounded=1,rtTruncated=2);
 type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDouble=5, vtString=6, vtUnicodeString=7, vtByteArray=8, vtBinary=9, vtAll=10, vtAutoAssembler=11, vtPointer=12, vtCustom=13);
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
@@ -71,6 +71,7 @@ function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
 
+function NewVarTypeToOldVarType(i: TVariableType):integer;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
@@ -2902,6 +2903,24 @@ begin
   end;
 {$endif}
 
+end;
+
+function NewVarTypeToOldVarType(i: TVariableType):integer;
+begin
+  result:=2;
+  case i of
+    vtByte: result:=0;
+    vtWord: result:=1;
+    vtDword: result:=2;
+    vtSingle: result:=3;
+    vtDouble: result:=4;
+    vtBinary: result:=5;
+    vtQword: result:=6;
+    vtString: result:=7;
+    vtByteArray: result:=8;
+    vtCustom: result:=10;
+    vtAutoAssembler: result:=255;
+  end;
 end;
 
 function OldVarTypeToNewVarType(i: integer):TVariableType;

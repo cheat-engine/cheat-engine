@@ -186,6 +186,7 @@ type
     FromAddress: TMemo;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     lblcompareToSavedScan: TLabel;
     Label53: TLabel;
     MenuItem1: TMenuItem;
@@ -373,6 +374,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure Label3Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -2292,6 +2294,11 @@ procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
 
+end;
+
+procedure TMainForm.Label3Click(Sender: TObject);
+begin
+  adwindow.loadad;
 end;
 
 
@@ -5013,6 +5020,9 @@ var
   h: thandle;
 
 begin
+  if adwindow<>nil then
+    freeandnil(adwindow);
+
   //cleanup the user forms
   if formdesigner<>nil then
     formdesigner.close;
@@ -6277,12 +6287,23 @@ var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-  if xmplayer=nil then
-    xmplayer:=TXMplayer.create;
+  if adwindow=nil then
+  begin
+    adwindow:=TADWindow.createnew(self, true);
+    adwindow.clientWidth:=120;
+    adwindow.clientheight:=600;
+    adwindow.show;
 
-  xmplayer.playXM('C:\temp2\robric514.xm');
+    adwindow.AttachToForm(self);
+    adwindow.setPosition(akLeft);
 
- // if GetForegroundWindow=mainform.handle then showmessage('yes');
+   // adwindow.LoadAd;
+
+  end
+  else
+    freeandnil(adwindow);
+
+
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

@@ -528,64 +528,79 @@ require("class");
 --addresslist_createMemoryRecord(addresslist) : --createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
 
+--registerSymbol(symbolname, address)
+--unregisterSymbol(symbolname)
 
---[[
-not yet implemented
-
-functions:
-
-
-symhandler_registerSymbol(symbolname, address)
-symhandler_unregisterSymbol(symbolname)
-symhandler_getAddressFromString(string)
-symhandler_getStringFromAddress(address)
-symhandler_inModule(address) : returns true if the given address is inside a module
-symhandler_inSystemModule(address) : returns true if the given address is inside a system module
-symhandler_getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
-
-
-supportCheatEngine(format, position, attachwindow HALFOPTIONAL,yoururl OPTIONAL, extraparameters OPTIONAL): Will show an advertising window. If you provide your own url it will be shown 75% of the time. Extraparameters are url request parameters you can add to the default parameters (e.g trainername for tracking purposes)  Tip: You can also use it for updates on your trainers
-fuckCheatEngine() : Removes the ad window if it was showing
+--getNameFromAddress(address)
+--inModule(address) : returns true if the given address is inside a module
+--inSystemModule(address) : returns true if the given address is inside a system module
+--getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
 
 
 
-
-
-aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
-protectionflags is a string. 
-  X=Executable W=Writable memory C=Copy On Write   Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
-  Examples: 
-    +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
-    +X-C-W = Find readonly executable memory
-    +W = Finds all writable memory and don't care about copy on write or execute
-
-
-
-alignmenttype is an integer: 
-  0=No alignment check
-  1=Address must be dividable by alignmentparam 
-  2=Address must end with alignmentparam
-alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
-
-
-
-createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
-MemScan Class (Inheritance: Object)
-memscan_firstScan(memscan, scantype, vartype, roundingtype, input1, input2, startAddress, stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
-memscan_nextScan(memscan, scantype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
-memscan_newscan(memscan);
-memscan_waitTillDone(memscan)
-memscan_saveCurrentResults(memscan, name)
-
-
-createFoundList(memscan)
-foundlist_initialize(foundlist)
-foundlist_deinitialize(foundlist)
-foundlist_getCount(foundlist)
-foundlist_getAddress(foundlist, index)
+--aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
+--protectionflags is a string. 
+--  X=Executable W=Writable memory C=Copy On Write. Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
+--  Examples: 
+--    +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
+--    +X-C-W = Find readonly executable memory
+--    +W = Finds all writable memory and don't care about copy on write or execute
+--    "" = Find everything (is the same as "*X*C*W" )
+--
+--
+--alignmenttype is an integer: 
+--  0=No alignment check
+--  1=Address must be dividable by alignmentparam 
+--  2=Address must end with alignmentparam
+--alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
 
 
 
---]]
+--createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
+--MemScan Class (Inheritance: Object)
+--memscan_firstScan(memscan, scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
+--memscan_nextScan(memscan, scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
+--memscan_newscan(memscan);
+--memscan_waitTillDone(memscan)
+--memscan_saveCurrentResults(memscan, name)
+
+
+--createFoundList(memscan)
+--foundlist_initialize(foundlist)
+--foundlist_deinitialize(foundlist)
+--foundlist_getCount(foundlist)
+--foundlist_getAddress(foundlist, index) : Returns the address as a string
+--foundlist_getValue(foundlist, index)
+
+
+
+--supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL): 
+--  Will show an advertising window which will help keep the development of Cheat Engine going.
+--  If you provide your own url it will be shown Up to 75% of the time. 
+--
+--  attachwindow: Type=Form : The form that the ad is attached to
+--  hasclosebutton: Type=boolean : If true the window will have a border an a close button at top
+--  width, height: Type=integer : 
+--    The client width and height of the window.
+--    Prefered formats are : 120x600 , 160x600, 300x250, 468x60, 728x90  ,But you are free to use different formats
+--
+--  Position: Type=integer/enum: The place of the window
+--    0=Top, 1=Right, 2=Bottom, 3=left
+--
+--  Yoururl: Type=string: The url you want to show. When given instead of 100% CE's ads it will show your url up yo 75%.
+--    You can use it for your own income, or for updating users about new versions of your trainer or whatever you feel like
+--
+--  Extraparameters: Type=String :  are url request parameters you can add to the default parameters (e.g trainername=mytrainer for tracking purposes)  
+--
+--  PercentageShown: You can change the default of 75% to a smaller value like 50%
+--
+--
+--fuckCheatEngine() : Removes the ad window if it was showing
+
+
+
+
+
+
 
 

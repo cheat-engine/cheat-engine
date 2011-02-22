@@ -2106,6 +2106,8 @@ var i,j,k,err,err2: integer;
     temp: string;
     haserror: boolean;
 begin
+  ShowMessage(token);
+
   setlength(tokens,0);
   result:=false;
   last:=-1;
@@ -2244,7 +2246,7 @@ begin
   firstquote:=false;
   for i:=1 to length(opcode) do
   begin
-    if (i=length(opcode)) or (opcode[i]=' ') or (opcode[i]=',') or (opcode[i]='''') then
+    if (i=length(opcode)) or (opcode[i]=' ') or (opcode[i]=',') or (opcode[i]='''') or (opcode[i]='"') then
     begin
       if not firstquote then
       begin
@@ -2291,19 +2293,24 @@ begin
           end;
         end;
                   
-        if opcode[i]='''' then firstquote:=true;
+        if opcode[i] in ['''','"'] then
+        begin
+          firstquote:=true;
+          dec(last); //include the quotechar
+        end;
       end
       else
       begin
         //inside a quote and a token seperator was encountered
-        if opcode[i]='''' then //check if it is the string terminator
+        if opcode[i] in ['''','"'] then //check if it is the string terminator
         begin
           firstquote:=false;
           if i=length(opcode) then
-            tokens[length(tokens)-1]:=copy(opcode,last-1,i-last+2)
-          else
-            tokens[length(tokens)-1]:=copy(opcode,last-1,i-last+2);
-          last:=i+1;
+          begin
+            //it's the last character, let's handle it here
+            tokens[length(tokens)-1]:=copy(opcode,last,i-last+1);
+            rewrite(tokens[length(tokens)-1]);
+          end
         end;
         
       end;
@@ -3039,6 +3046,12 @@ begin
   tokenize(opcode,tokens);
 
   nroftokens:=length(tokens);
+
+  tempstring:='';
+  for i:=0 to nroftokens-1 do
+    tempstring:=tempstring+tokens[i]+#13#10;
+
+  showmessage(tempstring);
 
   if nroftokens=0 then exit;
 
