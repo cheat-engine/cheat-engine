@@ -1,0 +1,2 @@
+create a language folder for your country
+copy the .po files to the appropriate folder and then start editing
