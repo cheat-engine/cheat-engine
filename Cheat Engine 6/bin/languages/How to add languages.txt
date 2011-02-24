@@ -1,2 +1,5 @@
 create a language folder for your country
 copy the .po files to the appropriate folder and then start editing
+
+
+By default it picks the system language, but you can overide this by adding --LANG langstr or -l langstr to the parameters of Cheat Engine
