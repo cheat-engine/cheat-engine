@@ -6313,13 +6313,7 @@ var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
   asm
-  nop
-  nop
-  nop
-    fstp [rsp+10]
-    nop
-    nop
-    nop
+
 
   end;
 
