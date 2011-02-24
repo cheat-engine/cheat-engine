@@ -163,6 +163,8 @@ begin
         addfile(CETRAINER);
         deletefile(cetrainer);
 
+        addfile(cheatenginedir+'defines.lua');
+
         if rb32.checked then
         begin
           addfile(cheatenginedir+'cheatengine-i386.exe');

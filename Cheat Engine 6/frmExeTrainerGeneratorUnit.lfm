@@ -25,9 +25,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     TabOrder = 0
     object rb32: TRadioButton
       Left = 10
-      Height = 19
+      Height = 17
       Top = -4
-      Width = 142
+      Width = 131
       Caption = 'Target process is 32-bit'
       Checked = True
       TabOrder = 0
@@ -35,9 +35,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object rb64: TRadioButton
       Left = 10
-      Height = 19
+      Height = 17
       Top = 16
-      Width = 142
+      Width = 131
       Caption = 'Target process is 64-bit'
       TabOrder = 1
     end
@@ -54,33 +54,33 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     TabOrder = 1
     object cbVEHDebug: TCheckBox
       Left = 10
-      Height = 19
+      Height = 17
       Top = 26
-      Width = 97
+      Width = 87
       Caption = 'VEH Debugger'
       TabOrder = 0
     end
     object cbKernelDebug: TCheckBox
       Left = 150
-      Height = 19
+      Height = 17
       Top = 26
-      Width = 108
+      Width = 98
       Caption = 'Kernel Debugger'
       TabOrder = 1
     end
     object cbXMPlayer: TCheckBox
       Left = 150
-      Height = 19
+      Height = 17
       Top = 2
-      Width = 70
+      Width = 62
       Caption = 'XMPlayer'
       TabOrder = 2
     end
     object cbSpeedhack: TCheckBox
       Left = 10
-      Height = 19
+      Height = 17
       Top = 2
-      Width = 77
+      Width = 70
       Caption = 'Speedhack'
       TabOrder = 3
     end
@@ -112,10 +112,10 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   end
   object comboCompression: TComboBox
     Left = 232
-    Height = 23
+    Height = 21
     Top = 153
     Width = 80
-    ItemHeight = 15
+    ItemHeight = 13
     ItemIndex = 3
     Items.Strings = (
       'None'
@@ -129,9 +129,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   end
   object Label1: TLabel
     Left = 232
-    Height = 16
+    Height = 14
     Top = 137
-    Width = 71
+    Width = 62
     Caption = 'Compression'
     ParentColor = False
   end

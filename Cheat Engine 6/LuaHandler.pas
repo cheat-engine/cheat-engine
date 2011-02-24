@@ -66,7 +66,16 @@ begin
   begin
     f:=CheatEngineDir+'main.lua';
     if not FileExists(f) then
-      exit;
+    begin
+      //try the defines only then
+      f:='defines.lua';
+      if not FileExists(f) then
+      begin
+        f:=CheatEngineDir+'defines.lua';
+        if not FileExists(f) then
+          exit;
+      end;
+    end;
   end;
 
   //file exists
