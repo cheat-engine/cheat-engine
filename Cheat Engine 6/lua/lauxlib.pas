@@ -66,7 +66,7 @@ function luaL_newmetatable(L: Plua_State; const tname: PChar): Integer; cdecl;
 function luaL_checkudata(L: Plua_State; ud: Integer; const tname: PChar): Pointer; cdecl;
 
 procedure luaL_where(L: Plua_State; lvl: Integer); cdecl;
-function luaL_error(L: Plua_State; const fmt: PChar; args: array of const): Integer; cdecl; // note: C's ... to array of const conversion is not portable to Delphi
+//function luaL_error(L: Plua_State; const fmt: PChar; args: array of const): Integer; CDecl; // note: C's ... to array of const conversion is not portable to Delphi
 
 function luaL_checkoption(L: Plua_State; narg: Integer; def: PChar; lst: PPChar): Integer; cdecl;
 

@@ -149,6 +149,7 @@ procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,origin
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
 
 
+
 implementation
 
 

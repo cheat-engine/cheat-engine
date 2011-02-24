@@ -176,7 +176,7 @@ resourcestring strunknowncomponent='There is a unknown component in the trainer!
 
 implementation
 
-uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit;
+uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit, frmExeTrainerGeneratorUnit;
 
 
 
@@ -558,31 +558,12 @@ begin
         Commentsunit.Comments.Memo1.Lines.add(s);
     end;
 
-    Commentsunit.Comments.mLuaScript.clear;
+    mainform.frmLuaTableScript.assemblescreen.ClearAll;
     if luaScript<>nil then
-    begin
-      s:='';
-      for i:=1 to length(luaScript.textcontent) do
-      begin
-        if not (luaScript.textcontent[i] in [#13,#10]) then
-          s:=s+luaScript.textcontent[i]
-        else
-        begin
-          if s<>'' then
-          begin
-            //new line
-            Commentsunit.Comments.mLuaScript.Lines.add(s);
-            s:='';
-          end;
-        end;
-      end;
-      if s<>'' then
-        Commentsunit.Comments.mLuaScript.Lines.add(s);
-    end;
+      mainform.frmLuaTableScript.assemblescreen.Text:=luascript.TextContent;
 
 
-
-    if Commentsunit.Comments.mLuaScript.text<>'' then
+    if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
     begin
       if not isTrainer then
       begin
@@ -640,7 +621,7 @@ begin
       if r=mryes then
       begin
         try
-          LUA_DoScript(Commentsunit.Comments.mLuaScript.text);
+          LUA_DoScript(mainform.frmLuaTableScript.assemblescreen.Text);
         except
           on e: exception do
           begin
@@ -846,7 +827,7 @@ begin
 
   mainform.editedsincelastsave:=false;
 
-  if (comments.memo1.Lines.Count>0) or (comments.mLuaScript.lines.count>0) then
+  if (comments.memo1.Lines.Count>0) then
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];
@@ -986,10 +967,11 @@ begin
     comment.TextContent:=comments.Memo1.text;
   end;
 
-  if comments.mLuaScript.lines.count>0 then
+
+  if mainform.frmLuaTableScript.assemblescreen.lines.count>0 then
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
-    luascript.TextContent:=comments.mLuaScript.text;
+    luascript.TextContent:=mainform.frmLuaTableScript.assemblescreen.text;
   end;
   WriteXMLFile(doc, filename);
 
@@ -1013,8 +995,11 @@ begin
     begin
       //trainer maker
       //show the trainer exegenerator form
-      //frmExeTrainerGeneratorUnit
-      raise exception.create('Cheat Engine 6.0 does not support trainer creating yet (Just share your cheat tables for now)');
+      if frmExeTrainerGenerator=nil then
+        frmExeTrainerGenerator:=TfrmExeTrainerGenerator.create(nil);
+
+      frmExeTrainerGenerator.filename:=filename;
+      frmExeTrainerGenerator.showmodal;
     end;
     mainform.editedsincelastsave:=false;
   finally

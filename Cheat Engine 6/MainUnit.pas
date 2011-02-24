@@ -184,6 +184,7 @@ type
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
     FromAddress: TMemo;
+    ImageList2: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -358,7 +359,6 @@ type
     ools1: TMenuItem;
     N8: TMenuItem;
     Helpindex1: TMenuItem;
-    actLuaScript: TAction;
     Plugins2: TMenuItem;
     actMemoryView: TAction;
     Label61: TLabel;
@@ -2310,7 +2310,7 @@ end;
 
 procedure TMainForm.MenuItem4Click(Sender: TObject);
 begin
-
+  frmLuaTableScript.show;
 end;
 
 procedure TMainForm.miAddFileClick(Sender: TObject);
@@ -2471,6 +2471,9 @@ var i: integer;
   lf: TLuafile;
 
   submenu: TMenuItem;
+
+  m: tmemorystream;
+  b: tbitmap;
 begin
   miLuaFormsSeperator.visible:=true; //LuaForms.Count>0;
 
@@ -2488,8 +2491,25 @@ begin
     mi:=tmenuitem.Create(miTable);
 
     f:=LuaForms[i];
-    mi.Caption:=f.name;
+    {
+    //this currently won't work
+    if f.icon<>nil then
+    begin
+      b:=tbitmap.create;
+      b.Width := f.Icon.Width;
+      b.Height := f.Icon.Height;
+      b.Canvas.Draw(0, 0, f.Icon ) ;
 
+      m:=tmemorystream.create;
+      b.SaveToStream(m);
+      m.position:=0;
+      mi.Bitmap.LoadFromStream(m);
+      m.free;
+      b.free;
+    end;}
+
+
+    mi.Caption:=f.name;
     miTable.Insert(4, mi);
 
 
@@ -3666,9 +3686,6 @@ begin
   frmLuaTableScript.Caption:='Lua script: Cheat Table';
   frmLuaTableScript.New1.visible:=false;
   frmLuaTableScript.save1.OnClick:=savebutton.onclick;
-
-
-  actLuaScript.ShortCut := TextToShortCut('Ctrl+Shift+C');
 
 
   hotkeypressed := -1;
@@ -6990,7 +7007,7 @@ procedure TMainForm.actLuaScriptExecute(Sender: TObject);
 begin
 
 
-  frmLuaTableScript.show;
+
 end;
 
 procedure TMainForm.File1Click(Sender: TObject);

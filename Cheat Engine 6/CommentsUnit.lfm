@@ -13,7 +13,7 @@ object Comments: TComments
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 36
@@ -40,9 +40,9 @@ object Comments: TComments
     Height = 333
     Top = 0
     Width = 414
-    ActivePage = tsLuaScript
+    ActivePage = tsComment
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     object tsComment: TTabSheet
       Caption = 'Comments'
@@ -56,61 +56,6 @@ object Comments: TComments
         Align = alClient
         ScrollBars = ssBoth
         TabOrder = 0
-      end
-    end
-    object tsLuaScript: TTabSheet
-      Caption = 'LUA script'
-      ClientHeight = 304
-      ClientWidth = 406
-      object Panel2: TPanel
-        Left = 0
-        Height = 28
-        Top = 276
-        Width = 406
-        Align = alBottom
-        BevelOuter = bvNone
-        ClientHeight = 28
-        ClientWidth = 406
-        TabOrder = 0
-        object btnExecuteScript: TButton
-          Left = 156
-          Height = 25
-          Top = 1
-          Width = 99
-          Caption = 'Execute now'
-          OnClick = btnExecuteScriptClick
-          TabOrder = 0
-        end
-      end
-      object Panel3: TPanel
-        Left = 0
-        Height = 276
-        Top = 0
-        Width = 406
-        Align = alClient
-        ClientHeight = 276
-        ClientWidth = 406
-        TabOrder = 1
-        object Label1: TLabel
-          Left = 1
-          Height = 33
-          Top = 1
-          Width = 404
-          Align = alTop
-          Caption = 'The following script will get run when the table is loaded or manually executed'
-          ParentColor = False
-          WordWrap = True
-        end
-        object mLuaScript: TMemo
-          Left = 1
-          Height = 241
-          Top = 34
-          Width = 404
-          Align = alClient
-          OnChange = mLuaScriptChange
-          ScrollBars = ssAutoBoth
-          TabOrder = 0
-        end
       end
     end
   end

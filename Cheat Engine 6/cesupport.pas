@@ -6,7 +6,7 @@ interface
 
 uses
   lclintf, Classes, SysUtils,forms, controls, windows, activex, comobj, LMessages,
-  ExtCtrls, Graphics;
+  ExtCtrls, Graphics, FileUtil;
 
 type TADWindow=class(TCustomForm)
   private
@@ -168,7 +168,9 @@ begin
       begin
        // BringToFront;
         inc(counter);
-        url:=getbase+'?cewidth='+inttostr(clientwidth)+'&ceheight='+inttostr(clientheight)+'&counter='+inttostr(counter)+getoptionalstring;
+
+
+        url:=getbase+'?cewidth='+inttostr(clientwidth)+'&ceheight='+inttostr(clientheight)+'&fn='+extractfilename(ExtractFileNameWithoutExt(application.ExeName))+'&counter='+inttostr(counter)+getoptionalstring;
         browser.Navigate(url);
       end;
 

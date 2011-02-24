@@ -48,7 +48,8 @@ uses
   frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
   trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
-  xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit;
+  xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
+  IconStuff;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -68,13 +69,12 @@ begin
  // LRSTranslator := TPoTranslator.Create(FindLocaleFileName('.po'));
   //TranslateUnitResourceStrings('MainUnit',
   Application.ShowMainForm:=false;
-
-  Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TMemoryBrowser, MemoryBrowser);
-  Application.CreateForm(TformSettings, formSettings);
-  Application.CreateForm(TAdvancedOptions, AdvancedOptions);
-  Application.CreateForm(TComments, Comments);
-  Application.CreateForm(TTypeForm, TypeForm);
+Application.CreateForm(TMainForm, MainForm);
+Application.CreateForm(TMemoryBrowser, MemoryBrowser);
+Application.CreateForm(TformSettings, formSettings);
+Application.CreateForm(TAdvancedOptions, AdvancedOptions);
+Application.CreateForm(TComments, Comments);
+Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
 
   if paramcount >= 1 then
@@ -88,8 +88,6 @@ begin
   else
     mainform.visible:=true;
 
-  Application.CreateForm(TfrmExeTrainerGenerator, frmExeTrainerGenerator);
-  Application.CreateForm(TfrmAdConfig, frmAdConfig);
   Application.Run;
 end.
 

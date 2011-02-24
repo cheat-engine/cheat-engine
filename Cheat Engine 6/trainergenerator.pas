@@ -8,7 +8,8 @@ uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, ceguicomponents, lclintf, StdCtrls, EditBtn, ExtCtrls, ExtDlgs,
   ExtraTrainerComponents, cefuncproc, HotkeyHandler, HotKeys, symbolhandler,
-  luacaller, formdesignerunit, opensave, luafile, frmAdConfigUnit, cesupport;
+  luacaller, formdesignerunit, opensave, luafile, frmAdConfigUnit, cesupport,
+  IconStuff;
 
 type
   TTrainerForm=class(TCEForm)
@@ -41,6 +42,7 @@ type
     Label3: TLabel;
     mAbout: TMemo;
     OpenDialog1: TOpenDialog;
+    OpenDialog2: TOpenDialog;
     OpenPictureDialog1: TOpenPictureDialog;
     rbStopWhenAttached: TRadioButton;
     rbStopWhenFocusLost: TRadioButton;
@@ -68,8 +70,9 @@ type
     functions, init: TStringlist;
     restoretimer: ttimer;
     adconfig: TfrmAdConfig;
+
     procedure generateScript;
-     procedure RestoreSupportCE(sender: tobject);
+    procedure RestoreSupportCE(sender: tobject);
   public
     trainerform: TTrainerForm;
     extrapanel: TCEPanel;
@@ -429,24 +432,41 @@ begin
   edtPopupHotkey.SetFocus;
 end;
 
+
+
+
+
 procedure TfrmTrainerGenerator.Button1Click(Sender: TObject);
 var hi: HICON;
-  i: TIcon;
+  i: integer;
+
+
+  nextpos: integer;
+  maxheight: integer;
+  p: TImage;
+
+//  iconlist: array of Hicon;
+
+  z: Ticon;
+
+  e: THandle;
+  hr: THandle;
+
+  r: pointer;
+  aaa: TFPResourceHMODULE;
+  wee: HGlobal;
+
+  rs: TResourceStream;
+
+  size: integer;
+
+  modulehandle: THandle;
+
+  m: tmemorystream;
 begin
-  if opendialog1.execute then
-  begin
-    hi:=ExtractIcon(hinstance, pchar(openpicturedialog1.filename),0);
+  trainerform.icon:=pickIcon;
 
-    if hi=1 then
-      raise exception.Create('This file type is not supported');
 
-    if hi=0 then
-      raise exception.Create('No icon found in this file');
-
-    trainerform.Icon.Handle:=hi;
-    trainerform.Icon.TransparentMode:=tmAuto;
-    trainerform.Icon.Transparent:=true;
-  end;
 end;
 
 procedure TfrmTrainerGenerator.Button2Click(Sender: TObject);

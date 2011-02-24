@@ -513,14 +513,21 @@ begin
 
 
 
+
           try EditBufSize.text:=IntToStr(buffersize) except EditBufSize.Text:='512'; end;
           buffersize:=buffersize*1024;
           {$ifdef net} mainform.buffersize:=buffersize; {$endif}
 
 
-          try formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup'); except end;
-          try mainform.updatetimer.Interval:=reg.readInteger('Update interval'); except end;
-          try mainform.freezetimer.Interval:=reg.readInteger('Freeze interval'); except end;
+          if reg.ValueExists('Center on popup') then
+            formsettings.cbCenterOnPopup.checked:=reg.readbool('Center on popup');
+
+          if reg.ValueExists('Update interval') then
+            mainform.updatetimer.Interval:=reg.readInteger('Update interval');
+
+          if reg.ValueExists('Freeze interval') then
+            mainform.freezetimer.Interval:=reg.readInteger('Freeze interval');
+
           formsettings.EditUpdateInterval.text:=IntToStr(mainform.updatetimer.Interval);
           formsettings.EditFreezeInterval.text:=IntToStr(mainform.freezetimer.Interval);
 

@@ -240,12 +240,14 @@ var i: integer;
 multi: string;
 oldindex: integer;
 begin
-  oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
   if count=0 then exit;
 
   if selcount=0 then exit;
   if selcount=1 then multi:='' else multi:='es';
+
+  oldindex:=selectedRecord.treenode.AbsoluteIndex;
+
 
   if (not ask) or (messagedlg('Do you want to delete the selected address'+multi+'?',mtConfirmation, [mbyes,mbno],0) = mryes) then
   begin

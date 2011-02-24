@@ -1,7 +1,7 @@
 object frmAdConfig: TfrmAdConfig
-  Left = 299
+  Left = 697
   Height = 266
-  Top = 422
+  Top = 476
   Width = 350
   Caption = 'Support Cheat Engine'
   ClientHeight = 266

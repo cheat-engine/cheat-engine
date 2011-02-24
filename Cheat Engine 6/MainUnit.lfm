@@ -1655,10 +1655,6 @@ object MainForm: TMainForm
       OnExecute = actAutoAssembleExecute
       ShortCut = 49217
     end
-    object actLuaScript: TAction
-      Caption = 'Show Lua Table Script'
-      OnExecute = actLuaScriptExecute
-    end
     object actMemoryView: TAction
       Caption = 'actMemoryView'
       OnExecute = btnMemoryViewClick
@@ -1846,9 +1842,9 @@ object MainForm: TMainForm
       Caption = 'Table'
       OnClick = miTableClick
       object MenuItem4: TMenuItem
-        Action = actLuaScript
         Caption = 'Show Cheat Table Lua Script'
         ShortCut = 49228
+        OnClick = MenuItem4Click
       end
       object MenuItem10: TMenuItem
         Caption = '-'

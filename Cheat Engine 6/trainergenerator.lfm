@@ -263,4 +263,10 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     left = 304
     top = 184
   end
+  object OpenDialog2: TOpenDialog
+    Title = 'Open icon file'
+    Filter = 'Icon files (.exe; *.dll; *.ico)|*.exe;*.dll;*.ico'
+    left = 208
+    top = 112
+  end
 end

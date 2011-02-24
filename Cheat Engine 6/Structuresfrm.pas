@@ -123,6 +123,8 @@ type TbaseStructure=record
   structelement: array of TStructElement;
   end;
 
+  Tstructure=class; //fpc 2.5.1: Without this the child: TStructure would not compile
+
   //TfrmStructures = class;
   Tstructure=class
   private
@@ -133,7 +135,7 @@ type TbaseStructure=record
     parentnode: ttreenode; //owner of this object
     objects: array of record //same size as the structelement of the base object
                         nodetoupdate: ttreenode; //same size as the structelement of the base object
-                        child: tstructure; //if it is a pointer then this points to the structure that defines it
+                        child: Tstructure; //if it is a pointer then this points to the structure that defines it
                         //currentvalue: string; //obsolete, just get it on request
                       end;
   public

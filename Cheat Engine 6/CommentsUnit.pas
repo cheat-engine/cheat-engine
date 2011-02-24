@@ -13,17 +13,11 @@ type
   { TComments }
 
   TComments = class(TForm)
-    btnExecuteScript: TButton;
-    Label1: TLabel;
     Memo1: TMemo;
-    mLuaScript: TMemo;
     PageControl1: TPageControl;
     Panel1: TPanel;
     Button1: TButton;
-    Panel2: TPanel;
-    Panel3: TPanel;
     tsComment: TTabSheet;
-    tsLuaScript: TTabSheet;
     procedure btnExecuteScriptClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -70,18 +64,17 @@ end;
 
 procedure TComments.btnExecuteScriptClick(Sender: TObject);
 begin
-  LUA_DoScript(mLuaScript.text);
+
 end;
 
 procedure TComments.Panel1Resize(Sender: TObject);
 begin
   button1.Left:=(panel1.ClientWidth div 2) - (button1.Width div 2);
-  btnExecuteScript.left:=(panel2.clientwidth div 2) - (btnExecuteScript.width div 2);
 end;
 
 procedure TComments.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if (memo1.Lines.Count>0) or (mLuaScript.lines.count>0) then
+  if (memo1.Lines.Count>0) then
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold]  
