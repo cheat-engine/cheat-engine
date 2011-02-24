@@ -204,7 +204,7 @@ begin
     if b>a then a:=b;
   end;
 
-  width:=a;
+  //width:=a;
 end;
 
 

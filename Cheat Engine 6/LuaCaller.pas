@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses luahandler;
+uses luahandler, MainUnit;
 
 constructor TLuaCaller.create;
 begin
@@ -86,13 +86,20 @@ begin
       lua_pushlightuserdata(Luavm, sender);
 
 
-      lua_pcall(Luavm, 1,1,0); //procedure(sender)
+      if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)
+      begin
+        if lua_gettop(Luavm)>0 then
+          CloseAction:=TCloseAction(lua_tointeger(LuaVM,-1));
+      end
+      else
+        closeAction:=caHide; //not implemented by the user
 
-      if lua_gettop(Luavm)>0 then
-        CloseAction:=TCloseAction(lua_tointeger(LuaVM,-1));
+      if mainform.mustclose then
+        closeaction:=cahide;
 
       lua_pop(Luavm, lua_gettop(Luavm));
-    end;
+    end
+    else closeaction:=caHide;
   finally
     luacs.leave;
   end;

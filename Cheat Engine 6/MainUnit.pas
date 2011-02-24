@@ -311,7 +311,6 @@ type
     ActionList1: TActionList;
     actSave: TAction;
     actOpen: TAction;
-    ImageList1: TImageList;
     actAutoAssemble: TAction;
     Forcerechecksymbols1: TMenuItem;
     Label5: TLabel;
@@ -567,7 +566,7 @@ type
     fIsProtected: boolean;
     procedure doNewScan;
     procedure SetExpectedTableName;
-    procedure autoattachcheck;
+
     procedure aprilfoolsscan;
     function CheckIfSaved: boolean;
     procedure checkpaste;
@@ -675,6 +674,7 @@ type
 
     mustClose: boolean;
 
+    procedure autoattachcheck;
     function openprocessPrologue: boolean;
     procedure openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword;autoattachopen: boolean=false);
 
@@ -5045,11 +5045,11 @@ begin
   //cleanup the user forms
   if formdesigner<>nil then
     formdesigner.close;
-
+ {
   for i:=0 to LuaForms.count-1 do
     tceform(LuaForms[i]).free;
 
-  LuaForms.Clear;
+  LuaForms.Clear;   }
 
 
   //undo unrandomize
@@ -7020,7 +7020,7 @@ end;
 
 procedure TMainForm.File1Click(Sender: TObject);
 begin
-  menu.Images := imagelist1;
+
 
   miSaveScanresults.Enabled:=memscan.nextscanCount>0;
 end;

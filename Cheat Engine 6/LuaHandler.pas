@@ -6391,7 +6391,7 @@ begin
 end;
 
 
-function memoryrecordhotkey_onAfterHotkey_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_onPostHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
   memoryrecordhotkey: Tmemoryrecordhotkey;
@@ -6414,7 +6414,7 @@ begin
 
       lc:=TLuaCaller.create;
       lc.luaroutineIndex:=f;
-      memoryrecordhotkey.onAfterHotkey:=lc.NotifyEvent;
+      memoryrecordhotkey.onPostHotkey:=lc.NotifyEvent;
     end
     else
     if lua_isstring(L,-1) then
@@ -6422,7 +6422,7 @@ begin
       routine:=lua_tostring(L,-1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
-      memoryrecordhotkey.onAfterHotkey:=lc.NotifyEvent;
+      memoryrecordhotkey.onPostHotkey:=lc.NotifyEvent;
     end;
 
   end;
@@ -7233,7 +7233,7 @@ begin
     Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_getID', memoryrecordhotkey_getID_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_onHotkey', memoryrecordhotkey_onHotkey_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_onAfterHotkey', memoryrecordhotkey_onAfterHotkey_fromLua);
+    Lua_register(LuaVM, 'memoryrecordhotkey_onPostHotkey', memoryrecordhotkey_onPostHotkey_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey_fromLua);
 

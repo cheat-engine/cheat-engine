@@ -311,14 +311,7 @@ begin
 
     end;
 
-    tempnode:=doc.FindNode('CheatEngineTableVersion');
-    if tempnode<>nil then
-    try
-      version:=strtoint(tempnode.TextContent);
-      if (version>CurrentTableVersion) then
-        showmessage('There is a newer version of Cheat Engine out. It''s recomended to use that version instead');
-    except
-    end;
+
 
 
     //first load the form. If the lua functions are not loaded it's no biggy, the events just don't do anything then
@@ -330,6 +323,24 @@ begin
     CheatTable:=doc.FindNode('CheatTable');
     if CheatTable<>nil then
     begin
+      try
+        tempnode:=CheatTable.Attributes.GetNamedItem('CheatEngineTableVersion');
+      except
+        tempnode:=nil;
+      end;
+
+      if tempnode<>nil then
+      begin
+        try
+          version:=strtoint(tempnode.TextContent);
+          if (version>CurrentTableVersion) then
+            showmessage('There is a newer version of Cheat Engine out. It''s recommended to use that version instead');
+        except
+          showmessage('This cheat table is corrupt');
+        end;
+      end;
+
+
       Files:=CheatTable.FindNode('Files');
       Forms:=CheatTable.FindNode('Forms');
       Entries:=CheatTable.FindNode('CheatEntries');
@@ -831,6 +842,8 @@ begin
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style+[fsBold]
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];
+
+  mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
 end;
 
 

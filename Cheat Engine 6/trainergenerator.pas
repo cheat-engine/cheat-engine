@@ -33,6 +33,7 @@ type
     cbPlayXM: TCheckBox;
     cbStopPlaying: TCheckBox;
     comboProcesslist: TComboBox;
+    edtCaption: TEdit;
     edtPopupHotkey: TEdit;
     edtFreezeInterval: TEdit;
     fnXM: TFileNameEdit;
@@ -40,6 +41,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     mAbout: TMemo;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
@@ -58,6 +60,7 @@ type
     procedure cbPlayXMChange(Sender: TObject);
     procedure cbStopPlayingChange(Sender: TObject);
     procedure cbSupportCheatEngineChange(Sender: TObject);
+    procedure edtCaptionChange(Sender: TObject);
     procedure edtPopupHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FileNameEdit1Change(Sender: TObject);
@@ -264,8 +267,11 @@ begin
     begin
       luaroutine:='CloseClick';
       closebutton.onclick:=NotifyEvent;
+      trainerform.OnClose:=CloseEvent; //same routine
     end;
   end;
+
+
 
 
   if seperator<>nil then
@@ -347,7 +353,7 @@ begin
           mrhToggleActivationAllowDecrease:
           begin
             //constantly enabled
-            fname:='afterHotkey'+inttostr(cheatnr);
+            fname:='onPostHotkey'+inttostr(cheatnr);
             functions.Add('function '+fname+'(Hotkey)');
             functions.add('--executed after the "toggle*" cheat got executed so');
             functions.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
@@ -360,7 +366,7 @@ begin
             functions.add('');
 
 
-            init.add('memoryrecordhotkey_afterHotkey('+hotkeynamename+','+fname+')');
+            init.add('memoryrecordhotkey_onPostHotkey('+hotkeynamename+','+fname+')');
           end;
 
           else
@@ -391,6 +397,9 @@ begin
       showmessage('The current cheat table has no hotkeys assigned. Only cheat entries with hotkeys assigned will be used');
   end;
 
+  edtCaptionChange(edtCaption);
+  trainerform.SaveCurrentStateasDesign;
+
 end;
 
 procedure TfrmTrainerGenerator.RadioButton2Change(Sender: TObject);
@@ -418,7 +427,7 @@ begin
 
 
   if SaveDialog2.Execute then
-    savetable(savedialog2.FileName, true);
+    savetable(savedialog2.FileName, true);  //always protect
 
 
 
@@ -464,6 +473,7 @@ var hi: HICON;
 
   m: tmemorystream;
 begin
+
   trainerform.icon:=pickIcon;
 
 
@@ -471,6 +481,7 @@ end;
 
 procedure TfrmTrainerGenerator.Button2Click(Sender: TObject);
 begin
+  image:=TCEImage(trainerform.FindComponent('IMAGE'));//in case the image object got replaced
   if openpicturedialog1.execute then
     image.Picture.LoadFromFile(openpicturedialog1.FileName);
 end;
@@ -536,13 +547,12 @@ begin
 
       l.add('registerHotkey(popupTrainerHotkeyFunction, '+keyparams+')');
       l.add('timer_setInterval(getFreezeTimer(),'+edtFreezeInterval.text+')');
-
-      if cbBeepOnAction.checked then
-        l.add('gBeepOnAction=true')
-      else
-        l.add('gBeepOnAction=false');
     end;
 
+    if cbBeepOnAction.checked then
+      l.add('gBeepOnAction=true')
+    else
+      l.add('gBeepOnAction=false');
 
     l.add('form_show('+trainerform.Name+')');
 
@@ -573,8 +583,12 @@ begin
 
     l.add('function CloseClick()');
     l.add('  closeCE()');
+    l.add('  return caFree --onClick doesn''t care, but onClose would like a result');
     l.add('end');
+
     l.add('');
+
+
 
 
     if cbPlayXM.checked then
@@ -624,6 +638,7 @@ begin
         l.add('focusTimer=createTimer()');
         l.add('timer_onTimer(focuscheck)');
         l.add('timer_setInterval(focustimer, 250)');
+        l.add('control_setEnabled(focustimer, true)');
       end;
 
 
@@ -647,7 +662,7 @@ procedure TfrmTrainerGenerator.Button5Click(Sender: TObject);
 begin
   generateScript;
   if SaveDialog1.Execute then
-    savetable(savedialog1.FileName, true);
+    savetable(savedialog1.FileName, cbProtect.checked);
 end;
 
 procedure TfrmTrainerGenerator.btnDesignFormClick(Sender: TObject);
@@ -658,6 +673,9 @@ begin
   formdesigner.show;
 
   trainerform.show;
+
+  edtCaption.enabled:=false;
+
 end;
 
 procedure TfrmTrainerGenerator.cbCanResizeChange(Sender: TObject);
@@ -685,7 +703,7 @@ end;
 
 procedure TfrmTrainerGenerator.RestoreSupportCE(sender: tobject);
 begin
-  cbSupportCheatEngine.caption:='Don''t support Cheat Engine';
+  cbSupportCheatEngine.caption:='Don''t support Cheat Engine (or yourself)';
   if restoretimer<>nil then
     restoretimer.enabled:=false;
 end;
@@ -736,6 +754,11 @@ begin
   end;
 
   restoretimer.enabled:=true;
+end;
+
+procedure TfrmTrainerGenerator.edtCaptionChange(Sender: TObject);
+begin
+  trainerform.caption:=edtcaption.text;
 end;
 
 procedure TfrmTrainerGenerator.edtPopupHotkeyKeyDown(Sender: TObject;

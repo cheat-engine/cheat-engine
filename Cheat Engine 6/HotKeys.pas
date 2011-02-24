@@ -169,6 +169,9 @@ end;
 
 procedure THotKeyForm.BitBtn1Click(Sender: TObject);
 begin
+  if edithotkey then
+    btnApply.click;
+
   close;
 end;
 
@@ -213,10 +216,13 @@ begin
 
   pagecontrol1.ActivePage:=tabsheet1;
   listview1.Enabled:=true;
+
+  edithotkey:=false;
 end;
 
 procedure THotKeyForm.btnCancelClick(Sender: TObject);
 begin
+  editHotkey:=false;
   if (listview1.Selected<>nil) and (listview1.selected.data=nil) then //created hotkey
     listview1.selected.delete;
 
