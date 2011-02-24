@@ -795,11 +795,13 @@ procedure TMainForm.setIsProtected(p: boolean); //super unhackable protection ye
 //I'll sue you for DMCA violations if you edit this code!!!! Really! I mean it! I do!!!!
 var i: integer;
 begin
+  fIsProtected:=p;
   if p then
   begin
+
     //It's fucking time!!!!
-    advancedoptions.free;
-    actionlist1.free;
+    freeandnil(advancedoptions);
+    freeandnil(actionlist1);
 
     for i:=0 to ControlCount-1 do
       Controls[i].Visible:=false;
@@ -815,7 +817,7 @@ begin
     while miTable.Count>0 do
       miTable.Delete(0);
 
-    changescript1.free;
+    freeandnil(changescript1);
 
     frmLuaTableScript.assemblescreen.ClearAll;
 
@@ -5069,10 +5071,13 @@ begin
       //detach the debugger
       hide;
       crashcounter:=0;
-      if advancedoptions.Pausebutton.Down then
+      if advancedoptions<>nil then
       begin
-        advancedoptions.Pausebutton.Down:=false;
-        advancedoptions.Pausebutton.Click;
+        if advancedoptions.Pausebutton.Down then
+        begin
+          advancedoptions.Pausebutton.Down:=false;
+          advancedoptions.Pausebutton.Click;
+        end;
       end;
 
 
@@ -5867,14 +5872,14 @@ begin
     autoopen:=false;
     Extension:=uppercase(extractfileext(opendialog1.filename));
     if (Extension<>'.XML') and
-       (Extension<>'.PTR') and
+       {(Extension<>'.PTR') and
        (Extension<>'.AMT') and
        (Extension<>'.GH') and
        (Extension<>'.CET') and
        (Extension<>'.CT2') and
-       (Extension<>'.CT3') and
+       (Extension<>'.CT3') and    }
        (Extension<>'.CT') and
-       (Extension<>'.EXE') then raise exception.create(strUnknownExtension);
+       (Extension<>'.CETRAINER') then raise exception.create(strUnknownExtension);
 
 
     if ((addresslist.count>0) or (advancedoptions.numberofcodes>0)) and (Extension<>'.EXE') then app:=messagedlg('Do you wish to merge the current table with this table?',mtConfirmation,mbYesNoCancel,0);
@@ -5889,19 +5894,22 @@ begin
 
   end;
 
-  if advancedoptions.codelist2.items.Count>0 then
+  if advancedoptions<>nil then
   begin
-    advancedoptions.Position:=podesigned;
-    advancedoptions.Left:=mainform.left-advancedoptions.Width;
-    advancedoptions.Top:=mainform.Top+mainform.Height-advancedoptions.Height;
-
-    if (advancedoptions.Left<0) or (advancedoptions.Top+advancedoptions.Height>screen.height) then
+    if advancedoptions.codelist2.items.Count>0 then
     begin
-      advancedoptions.left:=0;
-      advancedoptions.Top:=screen.Height-advancedoptions.Height;
+      advancedoptions.Position:=podesigned;
+      advancedoptions.Left:=mainform.left-advancedoptions.Width;
+      advancedoptions.Top:=mainform.Top+mainform.Height-advancedoptions.Height;
 
+      if (advancedoptions.Left<0) or (advancedoptions.Top+advancedoptions.Height>screen.height) then
+      begin
+        advancedoptions.left:=0;
+        advancedoptions.Top:=screen.Height-advancedoptions.Height;
+
+      end;
+      advancedoptions.show;
     end;
-    advancedoptions.show;
   end;
 end;
 

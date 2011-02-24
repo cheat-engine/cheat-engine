@@ -484,6 +484,7 @@ var generated: tstringlist;
   keyparams: string;
 
   f: TMemorystream;
+  s: string;
 begin
   trainerform.active:=false;
   trainerform.SaveCurrentStateasDesign;
@@ -543,25 +544,35 @@ begin
     end;
 
 
-    l.add('function popupTrainerHotkeyFunction()');
-    l.add('  form_show('+trainerform.Name+')');
-    l.add('end');
-    l.add('');
-
-
+    l.add('form_show('+trainerform.Name+')');
 
     if mAbout.lines.count>0 then
     begin
       l.add('function AboutClick()');
       l.add('  showMessage(gAboutText)');
       l.add('end');
-      l.add('gAboutText=[['+mAbout.text+']]');
+
+      if mabout.lines.Count>0 then
+        s:=mAbout.lines[0]
+      else
+        s:='';
+
+      l.add('gAboutText=[['+s);
+
+      for i:=1 to mabout.lines.Count-1 do
+      begin
+        if i<mabout.lines.Count-1 then
+          l.add(mAbout.lines[i])
+        else
+          l.add(mAbout.lines[i]+']]');
+      end;
+
       l.add('');
     end;
 
 
     l.add('function CloseClick()');
-    l.add('closeCE()');
+    l.add('  closeCE()');
     l.add('end');
     l.add('');
 
@@ -618,7 +629,7 @@ begin
 
     end;
 
-    if cbSupportCheatEngine.checked then
+    if not cbSupportCheatEngine.checked then
     begin
       if adconfig<>nil then
       begin

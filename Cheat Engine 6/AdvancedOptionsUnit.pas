@@ -120,10 +120,14 @@ uses MainUnit, MemoryBrowserFormUnit,
 
 procedure unpause;
 begin
-  if advancedoptions.Pausebutton.Down then
+  if advancedoptions<>nil then
   begin
-    advancedoptions.Pausebutton.Down:=false;
-    advancedoptions.Pausebutton.Click;
+    if advancedoptions.Pausebutton.Down then
+    begin
+      advancedoptions.Pausebutton.Down:=false;
+      advancedoptions.Pausebutton.Click;
+    end;
+
   end;
 end;
 

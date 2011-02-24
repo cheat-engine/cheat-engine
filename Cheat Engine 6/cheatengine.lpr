@@ -82,6 +82,9 @@ Application.CreateForm(TTypeForm, TypeForm);
     try
       mainform.visible:=uppercase(ExtractFileExt(paramstr(1)))<>'.CETRAINER';
       LoadTable(paramstr(1),false);
+
+      if extractfilename(paramstr(1))='CET_TRAINER.CETRAINER' then
+        deletefile(paramstr(1));
     except
     end;
   end

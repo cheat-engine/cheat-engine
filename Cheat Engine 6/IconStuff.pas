@@ -154,6 +154,7 @@ var opendialog: Topendialog;
 
   p: timage;
 begin
+  result:=nil;
   iconlist:=tlist.Create;
   opendialog:=TOpenDialog.Create(nil);
 
@@ -188,7 +189,7 @@ begin
     if iconlist.count>=1 then
     begin
       maxheight:=10;
-      if iconlist.count>1 then
+      //if iconlist.count>1 then
       begin
         iconpicker:=TIconPicker.CreateNew(nil);
         iconpicker.AutoScroll:=false;
@@ -238,7 +239,8 @@ begin
 
         iconpicker.Position:=poScreenCenter;
 
-        iconpicker.showmodal;
+        if iconlist.count>1 then
+          iconpicker.showmodal;
 
         result:=ticon(iconlist[iconpicker.usedicon]);
         //small memleak here

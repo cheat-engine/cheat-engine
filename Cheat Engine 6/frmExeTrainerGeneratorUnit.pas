@@ -100,6 +100,7 @@ begin
     archive.write(currentfile[1], size);
 
     //write the size, and the file itself
+    size:=f.size;
     archive.Write(size, sizeof(size));
 
     i:=f.size;
@@ -130,7 +131,7 @@ var DECOMPRESSOR: TMemorystream;
 
   compression: Tcompressionlevel;
 begin
-  CETRAINER:=ExtractFileNameWithoutExt(filename)+'.CETRAINER';
+  CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
   SaveTable(CETRAINER, true);
 
   button2.caption:='Saving...'+rot;
