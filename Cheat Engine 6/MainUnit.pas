@@ -5925,11 +5925,14 @@ begin
     savedialog1.FileName:=ChangeFileExt(opendialog1.FileName,'');
   end;
 
-  if ExtractFileExt(savedialog1.FileName)='.CETRAINER' then
-    protect:=MessageDlg('Do you want to protect this trainer file from editing?', mtConfirmation, [mbyes, mbno], 0)=mryes;
 
   if Savedialog1.Execute then
+  begin
+    if ExtractFileExt(savedialog1.FileName)='.CETRAINER' then
+      protect:=MessageDlg('Do you want to protect this trainer file from editing?', mtConfirmation, [mbyes, mbno], 0)=mryes;
+
     savetable(savedialog1.FileName, protect);
+  end;
 
   opendialog1.FileName:=savedialog1.filename;
 
