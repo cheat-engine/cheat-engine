@@ -200,7 +200,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); compilerproc;
+Procedure float64_sqrt( a: float64; var o: float64 ); compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the double-precision floating-point value `a'
@@ -4332,7 +4332,7 @@ The addition is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure addFloat64Sigs( a:float64 ; b: float64 ; zSign:flag; Var out: float64 );
+Procedure addFloat64Sigs( a:float64 ; b: float64 ; zSign:flag; Var o: float64 );
 Var
     aExp, bExp, zExp: int16;
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2: bits32;
@@ -4353,10 +4353,10 @@ Begin
         Begin
             if ( aSig0 OR  aSig1 ) <> 0 then
             Begin
-              propagateFloat64NaN( a, b, out );
+              propagateFloat64NaN( a, b, o );
               exit;
             end;
-            out := a;
+            o := a;
             exit;
         End;
         if ( bExp = 0 ) then
@@ -4377,10 +4377,10 @@ Begin
         Begin
             if ( bSig0 OR  bSig1 ) <> 0 then
             Begin
-               propagateFloat64NaN( a, b, out );
+               propagateFloat64NaN( a, b, o );
                exit;
             End;
-            packFloat64( zSign, $7FF, 0, 0, out );
+            packFloat64( zSign, $7FF, 0, 0, o );
         End;
         if ( aExp = 0 ) then
         Begin
@@ -4400,16 +4400,16 @@ Begin
         Begin
             if ( aSig0 OR  aSig1 OR  bSig0 OR  bSig1 ) <> 0 then
             Begin
-                propagateFloat64NaN( a, b, out );
+                propagateFloat64NaN( a, b, o );
                 exit;
             End;
-            out := a;
+            o := a;
             exit;
         End;
         add64( aSig0, aSig1, bSig0, bSig1, zSig0, zSig1 );
         if ( aExp = 0 ) then
         Begin
-           packFloat64( zSign, 0, zSig0, zSig1, out );
+           packFloat64( zSign, 0, zSig0, zSig1, o );
            exit;
         End;
         zSig2 := 0;
@@ -4426,7 +4426,7 @@ Begin
  shiftRight1:
     shift64ExtraRightJamming( zSig0, zSig1, zSig2, 1, zSig0, zSig1, zSig2 );
  roundAndPack:
-    roundAndPackFloat64( zSign, zExp, zSig0, zSig1, zSig2, out );
+    roundAndPackFloat64( zSign, zExp, zSig0, zSig1, zSig2, o );
 
 End;
 
@@ -4439,7 +4439,7 @@ result is a NaN.  The subtraction is performed according to the IEC/IEEE
 Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure subFloat64Sigs( a:float64; b: float64 ; zSign:flag; Var out: float64 );
+Procedure subFloat64Sigs( a:float64; b: float64 ; zSign:flag; Var o: float64 );
 Var
     aExp, bExp, zExp: int16;
     aSig0, aSig1, bSig0, bSig1, zSig0, zSig1: bits32;
@@ -4466,13 +4466,13 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 OR  bSig0 OR  bSig1 ) <> 0 then
         Begin
-            propagateFloat64NaN( a, b, out );
+            propagateFloat64NaN( a, b, o );
             exit;
         End;
         float_raise( float_flag_invalid );
         z.low := float64_default_nan_low;
         z.high := float64_default_nan_high;
-        out := z;
+        o := z;
         exit;
     End;
     if ( aExp = 0 ) then
@@ -4484,17 +4484,17 @@ Begin
     if ( aSig0 < bSig0 ) then goto bBigger;
     if ( bSig1 < aSig1 ) then goto aBigger;
     if ( aSig1 < bSig1 ) then goto bBigger;
-    packFloat64( flag(softfloat_rounding_mode = float_round_down), 0, 0, 0 , out);
+    packFloat64( flag(softfloat_rounding_mode = float_round_down), 0, 0, 0 , o);
     exit;
  bExpBigger:
     if ( bExp = $7FF ) then
     Begin
         if ( bSig0 OR  bSig1 ) <> 0 then
         Begin
-           propagateFloat64NaN( a, b, out );
+           propagateFloat64NaN( a, b, o );
            exit;
         End;
-        packFloat64( zSign xor 1, $7FF, 0, 0, out );
+        packFloat64( zSign xor 1, $7FF, 0, 0, o );
         exit;
     End;
     if ( aExp = 0 ) then
@@ -4517,10 +4517,10 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 ) <> 0 then
         Begin
-           propagateFloat64NaN( a, b, out );
+           propagateFloat64NaN( a, b, o );
            exit;
         End;
-        out :=  a;
+        o :=  a;
         exit;
     End;
     if ( bExp = 0 ) then
@@ -4538,7 +4538,7 @@ Begin
     zExp := aExp;
  normalizeRoundAndPack:
     Dec(zExp);
-    normalizeRoundAndPackFloat64( zSign, zExp - 10, zSig0, zSig1, out );
+    normalizeRoundAndPackFloat64( zSign, zExp - 10, zSig0, zSig1, o );
 
 End;
 
@@ -4942,7 +4942,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 );
+Procedure float64_sqrt( a: float64; var o: float64 );
 {$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];compilerproc;{$endif}
 Var
     aSign: flag;
@@ -4960,12 +4960,12 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 ) <> 0 then
         Begin
-           propagateFloat64NaN( a, a, out );
+           propagateFloat64NaN( a, a, o );
            exit;
         End;
         if ( aSign = 0) then
         Begin
-          out := a;
+          o := a;
           exit;
         End;
         goto invalid;
@@ -4974,21 +4974,21 @@ Begin
     Begin
         if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           out := a;
+           o := a;
            exit;
         End;
  invalid:
         float_raise( float_flag_invalid );
         z.low := float64_default_nan_low;
         z.high := float64_default_nan_high;
-        out := z;
+        o := z;
         exit;
     End;
     if ( aExp = 0 ) then
     Begin
         if ( ( aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           packFloat64( 0, 0, 0, 0, out );
+           packFloat64( 0, 0, 0, 0, o );
            exit;
         End;
         normalizeFloat64Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
@@ -5029,7 +5029,7 @@ Begin
         zSig1 := zSig1 or bits32( ( rem1 OR  rem2 OR  rem3 ) <> 0 );
     End;
     shift64ExtraRightJamming( zSig0, zSig1, 0, 10, zSig0, zSig1, zSig2 );
-    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, out );
+    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, o );
 End;
 
 {*

@@ -16,7 +16,7 @@ uses
   frmRegistersunit,ctypes, addresslist,addresslisthandlerunit, memoryrecordunit,
   windows7taskbar,tablist,DebuggerInterface,vehdebugger, tableconverter,
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
-  htmlhelp, win32int, defaulttranslator, fileaccess, translations, formdesignerunit,
+  htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server;
 
@@ -7037,7 +7037,6 @@ end;
 initialization
   DecimalSeparator:='.';
   ThousandSeparator:=',';
-
 
   {$i MainUnit.lrs}
 

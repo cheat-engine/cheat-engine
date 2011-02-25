@@ -49,7 +49,7 @@ uses
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
   trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
   xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
-  IconStuff;
+  IconStuff, cetranslator;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -58,36 +58,50 @@ uses
 {$SetPEFlags $20}
 {$endif}
 
+procedure HandleParameters;
+{Keep in mind: Responsible for not making the mainfor visible}
+var i: integer;
+begin
+  try
+    for i:=0 to Paramcount do
+    begin
+      if (pos('.CETRAINER', paramstr(i))>0) or (pos('.CT', paramstr(i))>0) then
+      begin
+        mainform.visible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
+        LoadTable(paramstr(i),false);
 
+        if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then
+          deletefile(paramstr(i));
+
+        break;
+      end;
+
+    end;
+  except
+  end;
+end;
 
 begin
   Application.Title:='Cheat Engine 6.1';
   Application.Initialize;
   getcedir;
+  doTranslation;
+
   symhandlerInitialize;
 
  // LRSTranslator := TPoTranslator.Create(FindLocaleFileName('.po'));
   //TranslateUnitResourceStrings('MainUnit',
   Application.ShowMainForm:=false;
-Application.CreateForm(TMainForm, MainForm);
-Application.CreateForm(TMemoryBrowser, MemoryBrowser);
-Application.CreateForm(TformSettings, formSettings);
-Application.CreateForm(TAdvancedOptions, AdvancedOptions);
-Application.CreateForm(TComments, Comments);
-Application.CreateForm(TTypeForm, TypeForm);
+  Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TMemoryBrowser, MemoryBrowser);
+  Application.CreateForm(TformSettings, formSettings);
+  Application.CreateForm(TAdvancedOptions, AdvancedOptions);
+  Application.CreateForm(TComments, Comments);
+  Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
 
   if paramcount >= 1 then
-  begin
-    try
-      mainform.visible:=uppercase(ExtractFileExt(paramstr(1)))<>'.CETRAINER';
-      LoadTable(paramstr(1),false);
-
-      if extractfilename(paramstr(1))='CET_TRAINER.CETRAINER' then
-        deletefile(paramstr(1));
-    except
-    end;
-  end
+    handleparameters
   else
     mainform.visible:=true;
 
