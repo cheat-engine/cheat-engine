@@ -1,5 +1,5 @@
 object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
-  Left = 752
+  Left = 759
   Height = 191
   Top = 287
   Width = 266
@@ -11,7 +11,7 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 8
     Height = 14
@@ -46,7 +46,7 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   end
   object Label6: TLabel
     Left = 136
-    Height = 14
+    Height = 1
     Top = 16
     Width = 1
     ParentColor = False

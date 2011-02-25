@@ -1,5 +1,5 @@
 object frmDriverlist: TfrmDriverlist
-  Left = 711
+  Left = 717
   Height = 229
   Top = 356
   Width = 326
@@ -12,7 +12,7 @@ object frmDriverlist: TfrmDriverlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListBox1: TListBox
     Left = 0
     Height = 193

@@ -1,5 +1,5 @@
 object frmStackView: TfrmStackView
-  Left = 872
+  Left = 887
   Height = 240
   Top = 415
   Width = 320
@@ -7,7 +7,7 @@ object frmStackView: TfrmStackView
   Caption = 'Stack View'
   ClientHeight = 240
   ClientWidth = 320
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListBox1: TListBox
     Left = 0
     Height = 240
@@ -24,7 +24,6 @@ object frmStackView: TfrmStackView
     object miAddESP: TMenuItem
       AutoCheck = True
       Caption = '(esp+*)'
-      Checked = True
       GroupIndex = 1
       RadioItem = True
       OnClick = miAddESPClick

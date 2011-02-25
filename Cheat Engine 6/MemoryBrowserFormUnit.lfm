@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 793
+  Left = 750
   Height = 587
-  Top = 254
+  Top = 258
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -16,7 +16,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0

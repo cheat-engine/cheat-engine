@@ -1,13 +1,13 @@
 object frmDebugEvents: TfrmDebugEvents
-  Left = 368
+  Left = 426
   Height = 301
-  Top = 175
+  Top = 189
   Width = 641
   Caption = 'Debug Events'
   ClientHeight = 301
   ClientWidth = 641
   OnClose = FormClose
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object lbDebugEvents: TListBox
     Left = 0
     Height = 251

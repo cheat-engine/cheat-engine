@@ -1,5 +1,5 @@
 object frmThreadlistEx: TfrmThreadlistEx
-  Left = 819
+  Left = 832
   Height = 220
   Top = 251
   Width = 272
@@ -9,7 +9,7 @@ object frmThreadlistEx: TfrmThreadlistEx
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object TreeView1: TTreeView
     Left = 0
     Height = 179

@@ -1,7 +1,7 @@
 object frmPEInfo: TfrmPEInfo
-  Left = 266
+  Left = 643
   Height = 318
-  Top = 612
+  Top = 380
   Width = 485
   Caption = 'Portable Executable (PE) Info'
   ClientHeight = 318
@@ -13,7 +13,7 @@ object frmPEInfo: TfrmPEInfo
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object GroupBox2: TGroupBox
     Left = 177
     Height = 318
@@ -110,7 +110,6 @@ object frmPEInfo: TfrmPEInfo
       Height = 30
       Top = 201
       Width = 31
-      Color = clBtnFace
       Glyph.Data = {
         D6020000424DD6020000000000003600000028000000100000000E0000000100
         180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
@@ -199,7 +198,6 @@ object frmPEInfo: TfrmPEInfo
       Width = 42
       Caption = 'File'
       TabOrder = 1
-      TabStop = False
     end
     object RadioButton2: TRadioButton
       Left = 10
@@ -208,8 +206,8 @@ object frmPEInfo: TfrmPEInfo
       Width = 69
       Caption = 'Memory'
       Checked = True
-      State = cbChecked
       TabOrder = 2
+      TabStop = True
     end
   end
   object OpenDialog1: TOpenDialog

@@ -1,5 +1,5 @@
 object frmModifyRegisters: TfrmModifyRegisters
-  Left = 729
+  Left = 801
   Height = 462
   Top = 262
   Width = 274
@@ -12,7 +12,7 @@ object frmModifyRegisters: TfrmModifyRegisters
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 6
     Height = 14

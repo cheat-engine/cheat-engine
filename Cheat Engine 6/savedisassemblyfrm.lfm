@@ -1,7 +1,7 @@
 object frmSavedisassembly: TfrmSavedisassembly
-  Left = 769
+  Left = 802
   Height = 167
-  Top = 391
+  Top = 381
   Width = 303
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'
@@ -11,7 +11,7 @@ object frmSavedisassembly: TfrmSavedisassembly
   Font.Name = 'MS Sans Serif'
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 49
     Height = 17

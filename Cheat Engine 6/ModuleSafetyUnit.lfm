@@ -1,7 +1,7 @@
 object frmModuleSafety: TfrmModuleSafety
-  Left = 192
+  Left = 216
   Height = 263
-  Top = 114
+  Top = 122
   Width = 298
   BorderStyle = bsSingle
   Caption = 'Module safety'
@@ -10,7 +10,7 @@ object frmModuleSafety: TfrmModuleSafety
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListBox1: TListBox
     Left = 8
     Height = 153
@@ -39,30 +39,29 @@ object frmModuleSafety: TfrmModuleSafety
   end
   object rbAllowList: TRadioButton
     Left = 8
-    Height = 23
+    Height = 19
     Top = 8
-    Width = 247
+    Width = 243
     Caption = 'Prevent all modules from getting loaded except:'
     OnClick = rbAllowListClick
     TabOrder = 3
-    TabStop = False
   end
   object rbDenyList: TRadioButton
     Left = 8
-    Height = 23
+    Height = 19
     Top = 26
-    Width = 204
+    Width = 200
     Caption = 'Allow all modules to be loaded except:'
     Checked = True
     OnClick = rbAllowListClick
-    State = cbChecked
     TabOrder = 4
+    TabStop = True
   end
   object cbGlobalDeny: TCheckBox
     Left = 208
-    Height = 23
+    Height = 19
     Top = 26
-    Width = 54
+    Width = 50
     Caption = 'Global'
     TabOrder = 5
   end

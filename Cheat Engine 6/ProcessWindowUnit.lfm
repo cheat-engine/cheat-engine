@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 696
+  Left = 703
   Height = 355
-  Top = 325
+  Top = 324
   Width = 254
   HelpContext = 4
   BorderIcons = [biSystemMenu]
@@ -14,7 +14,7 @@ object ProcessWindow: TProcessWindow
   OnResize = FormResize
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ProcessList: TListBox
     Left = 0
     Height = 186

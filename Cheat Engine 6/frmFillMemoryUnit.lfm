@@ -1,7 +1,7 @@
 object frmFillMemory: TfrmFillMemory
-  Left = 815
+  Left = 830
   Height = 111
-  Top = 407
+  Top = 408
   Width = 168
   BorderIcons = []
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object frmFillMemory: TfrmFillMemory
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 16
     Height = 14

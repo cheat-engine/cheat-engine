@@ -1,7 +1,7 @@
 object frmFloatingPointPanel: TfrmFloatingPointPanel
-  Left = 1123
+  Left = 1078
   Height = 322
-  Top = 250
+  Top = 254
   Width = 353
   BorderStyle = bsSizeToolWin
   Caption = 'FPU'
@@ -11,7 +11,7 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object PageControl1: TPageControl
     Left = 0
     Height = 322

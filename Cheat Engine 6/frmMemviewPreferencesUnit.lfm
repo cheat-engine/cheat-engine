@@ -1,5 +1,5 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 534
+  Left = 561
   Height = 256
   Top = 380
   Width = 193
@@ -9,7 +9,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object btnFont: TButton
     Left = 8
     Height = 25

@@ -1,5 +1,5 @@
 object frmTracer: TfrmTracer
-  Left = 1041
+  Left = 1024
   Height = 407
   Top = 398
   Width = 410
@@ -15,7 +15,7 @@ object frmTracer: TfrmTracer
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Splitter1: TSplitter
     Left = 188
     Height = 387

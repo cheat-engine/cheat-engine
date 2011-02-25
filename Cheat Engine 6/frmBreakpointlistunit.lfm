@@ -1,5 +1,5 @@
 object frmBreakpointlist: TfrmBreakpointlist
-  Left = 844
+  Left = 797
   Height = 292
   Top = 260
   Width = 670
@@ -11,7 +11,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListView1: TListView
     Left = 0
     Height = 292

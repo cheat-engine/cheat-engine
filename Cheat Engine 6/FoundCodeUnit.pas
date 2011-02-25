@@ -32,8 +32,10 @@ type
 
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
+    mInfo: TMemo;
     Panel1: TPanel;
     Description: TLabel;
+    Panel4: TPanel;
     pmOptions: TPopupMenu;
     ReplacewithcodethatdoesnothingNOP1: TMenuItem;
     Showthisaddressinthedisassembler1: TMenuItem;
@@ -48,6 +50,7 @@ type
     btnReplacewithnops: TButton;
     N1: TMenuItem;
     Copyselectiontoclipboard1: TMenuItem;
+    Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -69,6 +72,7 @@ type
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
+    procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
   public
     { Public declarations }
@@ -159,6 +163,78 @@ begin
     li.SubItems.add(opcode);
     li.data:=coderecord;
   end;
+end;
+
+procedure TFoundCodedialog.addInfo(Coderecord: TCoderecord);
+var
+  address: ptruint;
+  disassembled: array[1..5] of string;
+  firstchar: char;
+  hexcount: integer;
+  temp: string;
+begin
+  if processhandler.is64Bit then
+    hexcount:=16
+  else
+    hexcount:=8;
+
+  address:=Coderecord.address;
+  address:=previousopcode(address);
+  address:=previousopcode(address);
+
+  disassembled[1]:=disassemble(address,temp);
+  disassembled[2]:=disassemble(address,temp);
+
+  if address<>coderecord.address then
+  begin
+    disassembled[1]:='';
+    disassembled[2]:='';
+    disassembled[3]:=coderecord.opcode;
+    disassembled[4]:='';
+    disassembled[5]:='';
+  end
+  else
+  begin
+    disassembled[3]:=disassemble(address,temp);
+    disassembled[4]:=disassemble(address,temp);
+    disassembled[5]:=disassemble(address,temp);
+  end;
+
+  minfo.Lines.Add(disassembled[1]);
+  minfo.Lines.Add(disassembled[2]);
+  minfo.Lines.Add(disassembled[3]+' <<');
+  minfo.Lines.Add(disassembled[4]);
+  minfo.Lines.Add(disassembled[5]);
+  minfo.Lines.Add('');
+
+  if processhandler.is64bit then
+    firstchar:='R' else firstchar:='E';
+
+  minfo.Lines.Add(firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
+  minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
+
+  if processhandler.is64bit then
+  begin
+    minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
+    minfo.Lines.Add('R9='+IntToHex(coderecord.context.r9,16));
+    minfo.Lines.Add('R10='+IntToHex(coderecord.context.r10,16));
+    minfo.Lines.Add('R11='+IntToHex(coderecord.context.r11,16));
+    minfo.Lines.Add('R12='+IntToHex(coderecord.context.r12,16));
+    minfo.Lines.Add('R13='+IntToHex(coderecord.context.r13,16));
+    minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
+    minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
+  end;
+
+  minfo.lines.add('');
+  minfo.lines.add('');
+
 end;
 
 procedure TFoundCodedialog.moreinfo;
@@ -577,6 +653,8 @@ var coderecord: TCodeRecord;
   selectedRecord: integer;
   i: integer;
 begin
+  minfo.clear;
+
   if foundcodelist.Selected<>nil then
   begin
     btnReplacewithnops.enabled:=true;
@@ -586,6 +664,19 @@ begin
 
     coderecord:=TCodeRecord(foundcodelist.Selected.data);
     description.Caption:=coderecord.description;
+
+    for i:=0 to FoundCodeList.Items.Count-1 do
+    begin
+      if foundcodelist.items[i].Selected then
+      begin
+        coderecord:=TCodeRecord(foundcodelist.items[i].data);
+        addinfo(coderecord);
+      end;
+    end;
+
+    //minfo.VertScrollBar.Position:=0;
+    minfo.SelStart:=0;
+    minfo.SelLength:=0;
   end
   else
   begin
@@ -597,6 +688,8 @@ begin
       description.caption:='Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code that change the watched address.'
     else
       description.caption:='Select an item from the list for a small description';
+
+
   end;
 end;
 

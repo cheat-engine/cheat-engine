@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 351
+  Left = 372
   Height = 269
-  Top = 225
+  Top = 226
   Width = 605
   HelpContext = 19
   Caption = 'Lua Engine'
@@ -9,7 +9,7 @@ object frmLuaEngine: TfrmLuaEngine
   ClientWidth = 605
   Menu = MainMenu1
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 138

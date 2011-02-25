@@ -1,7 +1,7 @@
 object FormDebugStrings: TFormDebugStrings
-  Left = 636
+  Left = 654
   Height = 221
-  Top = 317
+  Top = 320
   Width = 321
   Caption = 'Debug strings'
   ClientHeight = 221
@@ -9,7 +9,7 @@ object FormDebugStrings: TFormDebugStrings
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ListBox1: TListBox
     Left = 0
     Height = 180

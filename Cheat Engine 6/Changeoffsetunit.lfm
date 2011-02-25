@@ -1,7 +1,7 @@
 object ChangeOffset: TChangeOffset
-  Left = 933
+  Left = 940
   Height = 113
-  Top = 423
+  Top = 421
   Width = 200
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object ChangeOffset: TChangeOffset
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object TabControl1: TTabControl
     Left = 0
     Height = 113

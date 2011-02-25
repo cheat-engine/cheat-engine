@@ -1,14 +1,14 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 600
+  Left = 636
   Height = 155
-  Top = 281
+  Top = 284
   Width = 391
   Caption = 'Dissect Data Config'
   ClientHeight = 155
   ClientWidth = 391
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Button1: TButton
     Left = 118
     Height = 25

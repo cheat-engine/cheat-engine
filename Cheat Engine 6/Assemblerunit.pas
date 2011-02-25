@@ -1586,7 +1586,7 @@ var parameter1,parameter2,parameter3: integer;
 
 implementation
 
-uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler;
+uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler, lualib;
 
 
 
@@ -2105,12 +2105,14 @@ var i,j,k,err,err2: integer;
 
     temp: string;
     haserror: boolean;
+    f: double;
+
 begin
-
-
   setlength(tokens,0);
   result:=false;
   last:=-1;
+
+
 
   { 5.4: special pointer notation case }
   if (length(token)>4) and (token[1]+token[2]='[[') and (token[length(token)]=']') then
@@ -2236,6 +2238,8 @@ var i,j,last: integer;
 
     firstquote: boolean;
 
+    t: string;
+    ispartial: boolean;
 begin
   setlength(tokens,0);
 
@@ -2257,11 +2261,96 @@ begin
           tokens[length(tokens)-1]:=copy(opcode,last,i-last);
 
 
-        if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then
+        if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then //only uppercase if it's not kernel_
           tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
-          
 
-        if (tokens[length(tokens)-1]='DQWORD')
+
+        //6.1: Uptimized this lookup. Instead of a 18 compares a full string lookup on each token it now only compares up to 4 times
+        t:=uppercase(tokens[length(tokens)-1]);
+
+
+        isPartial:=false;
+        if length(t)>=3 then //3 characters is good enough to get the general idea, then do a string compare to verify
+        begin
+          case t[1] of
+            'B' : //Byte, BYTE PTR
+            begin
+              if (t[2]='Y') and (t[3]='T') then //could be BYTE
+                isPartial:=(t='BYTE') or (t='BYTE PTR');
+
+            end;
+
+            'D': //DQWORD, DWORD, DQWORD PTR, DWORD PTR
+            begin
+              case t[2] of
+                'Q' : //DQWORD or DQWORD PTR
+                begin
+                  if t[3]='W' then
+                    isPartial:=(t='DQWORD') or (t='DQWORD PTR');
+                end;
+
+                'W' : //DWORD or DWORD PTR
+                begin
+                  if t[3]='O' then
+                    isPartial:=(t='DWORD') or (t='DWORD PTR');
+                end;
+              end;
+            end;
+
+            'F' : //FAR
+            begin
+              if (t[2]='A') and (t[3]='R') then
+                isPartial:=(t='FAR');
+            end;
+
+            'L' : //LONG
+            begin
+              if (t[2]='O') and (t[3]='N') then
+                isPartial:=(t='LONG');
+            end;
+
+            'Q': //QWORD, QWORD PTR
+            begin
+              if (t[2]='W') and (t[3]='O') then //could be QWORD
+                isPartial:=(t='QWORD') or (t='QWORD PTR');
+            end;
+
+            'S' : //SHORT
+            begin
+              if (t[2]='H') and (t[3]='O') then
+                isPartial:=(t='SHORT');
+            end;
+
+            'T': //TBYTE, TWORD, TBYTE PTR, TWORD PTR,
+            begin
+              case t[2] of
+                'B' : //TBYTE or TBYTE PTR
+                begin
+                  if t[3]='Y' then
+                    isPartial:=(t='TBYTE') or (t='TBYTE PTR');
+                end;
+
+                'W' : //TWORD or TWORD PTR
+                begin
+                  if t[3]='O' then
+                    isPartial:=(t='TWORD') or (t='TWORD PTR');
+                end;
+              end;
+
+            end;
+
+            'W' : //WORD, WORD PTR
+            begin
+              if (t[2]='W') and (t[3]='O') then //could be WORD
+                isPartial:=(t='QWORD') or (t='QWORD PTR');
+            end;
+
+          end;
+        end;
+
+
+
+        {if (tokens[length(tokens)-1]='DQWORD')
         or (tokens[length(tokens)-1]='TBYTE')
         or (tokens[length(tokens)-1]='TWORD')
         or (tokens[length(tokens)-1]='QWORD')
@@ -2277,8 +2366,8 @@ begin
         or (tokens[length(tokens)-1]='BYTE PTR')
         or (tokens[length(tokens)-1]='SHORT')
         or (tokens[length(tokens)-1]='LONG')
-        or (tokens[length(tokens)-1]='FAR')         
-        then
+        or (tokens[length(tokens)-1]='FAR')  }
+        if ispartial then
         begin
           setlength(tokens,length(tokens)-1)
         end

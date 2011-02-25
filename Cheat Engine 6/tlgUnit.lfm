@@ -1,7 +1,7 @@
 object tlg: Ttlg
-  Left = 198
+  Left = 214
   Height = 348
-  Top = 114
+  Top = 122
   Width = 483
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object tlg: Ttlg
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poMainFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Image1: TImage
     Left = 8
     Height = 41

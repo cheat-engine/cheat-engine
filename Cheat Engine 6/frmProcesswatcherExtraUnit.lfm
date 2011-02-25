@@ -1,14 +1,14 @@
 object frmProcessWatcherExtra: TfrmProcessWatcherExtra
-  Left = 219
+  Left = 589
   Height = 165
-  Top = 116
+  Top = 176
   Width = 245
   Caption = 'Processwatcher Extra'
   ClientHeight = 165
   ClientWidth = 245
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object data: TMemo
     Left = 0
     Height = 165

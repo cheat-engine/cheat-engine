@@ -1,7 +1,7 @@
 object Registers: TRegisters
-  Left = 1087
+  Left = 1062
   Height = 198
-  Top = 197
+  Top = 206
   Width = 154
   Caption = 'Registers'
   ClientHeight = 198
@@ -11,7 +11,7 @@ object Registers: TRegisters
   OnClose = FormClose
   OnResize = FormResize
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 198

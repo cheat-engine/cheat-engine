@@ -1,7 +1,7 @@
 object TypeForm: TTypeForm
-  Left = 822
+  Left = 837
   Height = 98
-  Top = 303
+  Top = 304
   Width = 489
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

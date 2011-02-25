@@ -1,5 +1,5 @@
 object formScanning: TformScanning
-  Left = 846
+  Left = 850
   Height = 75
   Top = 232
   Width = 140
@@ -9,5 +9,5 @@ object formScanning: TformScanning
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
 end

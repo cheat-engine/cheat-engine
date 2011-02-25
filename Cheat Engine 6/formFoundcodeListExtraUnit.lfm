@@ -1,7 +1,7 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 679
+  Left = 684
   Height = 314
-  Top = 374
+  Top = 375
   Width = 472
   Caption = 'Extra info'
   ClientHeight = 314
@@ -13,7 +13,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   OnDestroy = FormDestroy
   PopupMenu = pmCopy
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 101
@@ -334,7 +334,6 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Top = 12
       Width = 21
       Caption = 'F'
-      Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowFloatsClick
       ShowHint = True
@@ -347,7 +346,6 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Top = 40
       Width = 21
       Caption = 'S'
-      Color = clBtnFace
       NumGlyphs = 0
       OnClick = sbShowStackClick
       ShowHint = True

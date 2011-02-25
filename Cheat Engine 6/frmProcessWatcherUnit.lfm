@@ -1,7 +1,7 @@
 object frmProcessWatcher: TfrmProcessWatcher
-  Left = 839
+  Left = 901
   Height = 296
-  Top = 265
+  Top = 263
   Width = 205
   BorderIcons = [biSystemMenu]
   Caption = 'Process watcher'
@@ -12,7 +12,7 @@ object frmProcessWatcher: TfrmProcessWatcher
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object tvProcesslist: TTreeView
     Left = 0
     Height = 228

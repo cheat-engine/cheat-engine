@@ -1,5 +1,5 @@
 object frmbreakthread: Tfrmbreakthread
-  Left = 458
+  Left = 466
   Height = 204
   Top = 226
   Width = 439
@@ -12,7 +12,7 @@ object frmbreakthread: Tfrmbreakthread
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 6
     Height = 17

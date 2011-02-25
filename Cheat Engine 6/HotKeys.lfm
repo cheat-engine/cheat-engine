@@ -1,7 +1,7 @@
 object HotKeyForm: THotKeyForm
-  Left = 839
+  Left = 850
   Height = 344
-  Top = 222
+  Top = 223
   Width = 478
   BorderIcons = []
   BorderStyle = bsSingle

@@ -1,7 +1,7 @@
 object frmdissectWindow: TfrmdissectWindow
-  Left = 350
+  Left = 372
   Height = 296
-  Top = 361
+  Top = 359
   Width = 303
   Caption = 'Dissect Windows'
   ClientHeight = 296
@@ -11,7 +11,7 @@ object frmdissectWindow: TfrmdissectWindow
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object TreeView1: TTreeView
     Left = 0
     Height = 211

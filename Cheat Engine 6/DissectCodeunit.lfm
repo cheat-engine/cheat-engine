@@ -1,5 +1,5 @@
 object frmDissectCode: TfrmDissectCode
-  Left = 793
+  Left = 808
   Height = 369
   Top = 276
   Width = 379
@@ -11,7 +11,7 @@ object frmDissectCode: TfrmDissectCode
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21

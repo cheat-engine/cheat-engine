@@ -1,7 +1,7 @@
 object frmGDTinfo: TfrmGDTinfo
-  Left = 985
+  Left = 997
   Height = 325
-  Top = 442
+  Top = 439
   Width = 299
   Caption = 'GDT'
   ClientHeight = 325
@@ -11,7 +11,7 @@ object frmGDTinfo: TfrmGDTinfo
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object TreeView1: TTreeView
     Left = 0
     Height = 325

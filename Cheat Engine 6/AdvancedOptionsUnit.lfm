@@ -1,7 +1,7 @@
 object AdvancedOptions: TAdvancedOptions
-  Left = 499
+  Left = 511
   Height = 297
-  Top = 383
+  Top = 382
   Width = 628
   Caption = 'Advanced Options'
   ClientHeight = 297

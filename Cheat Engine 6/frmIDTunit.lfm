@@ -1,7 +1,7 @@
 object frmIDT: TfrmIDT
-  Left = 936
+  Left = 928
   Height = 321
-  Top = 338
+  Top = 337
   Width = 299
   Caption = 'IDT'
   ClientHeight = 321
@@ -11,7 +11,7 @@ object frmIDT: TfrmIDT
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object tvIDT: TTreeView
     Left = 0
     Height = 321

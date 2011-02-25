@@ -1,7 +1,7 @@
 object formAddressChange: TformAddressChange
-  Left = 884
+  Left = 842
   Height = 155
-  Top = 351
+  Top = 352
   Width = 349
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object formAddressChange: TformAddressChange
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 10
     Height = 14

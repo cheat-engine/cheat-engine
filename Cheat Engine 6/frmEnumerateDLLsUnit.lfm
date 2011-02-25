@@ -1,7 +1,7 @@
 object frmEnumerateDLLs: TfrmEnumerateDLLs
-  Left = 709
+  Left = 735
   Height = 303
-  Top = 294
+  Top = 298
   Width = 369
   BorderIcons = [biSystemMenu, biMaximize]
   Caption = 'Enumerate DLL''s'
@@ -12,7 +12,7 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label2: TLabel
     Left = 0
     Height = 17

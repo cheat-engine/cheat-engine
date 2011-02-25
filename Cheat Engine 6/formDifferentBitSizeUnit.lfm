@@ -1,7 +1,7 @@
 object formDifferentBitSize: TformDifferentBitSize
-  Left = 1137
+  Left = 1115
   Height = 163
-  Top = 147
+  Top = 157
   Width = 329
   VertScrollBar.Visible = False
   BorderIcons = [biSystemMenu]
@@ -13,7 +13,7 @@ object formDifferentBitSize: TformDifferentBitSize
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Labelold: TLabel
     Left = 120
     Height = 17

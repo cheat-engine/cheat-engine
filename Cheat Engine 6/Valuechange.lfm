@@ -1,7 +1,7 @@
 object ValueChangeForm: TValueChangeForm
-  Left = 1271
+  Left = 1245
   Height = 106
-  Top = 584
+  Top = 568
   Width = 273
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog

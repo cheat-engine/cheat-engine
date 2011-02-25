@@ -1,5 +1,5 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 578
+  Left = 603
   Height = 430
   Top = 211
   Width = 408
@@ -12,7 +12,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object edtAddress: TEdit
     Left = 10
     Height = 21

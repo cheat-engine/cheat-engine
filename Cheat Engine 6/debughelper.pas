@@ -890,6 +890,10 @@ begin
   //still here
   //create a foundcodedialog and add the breakpoint
   foundcodedialog := Tfoundcodedialog.Create(nil);
+  case bpt of
+    bptAccess : foundcodedialog.Caption:='The following opcodes accessed '+inttohex(address,8);
+    bptWrite : foundcodedialog.Caption:='The following opcodes write to '+inttohex(address,8);
+  end;
   foundcodedialog.Show;
 
   newbp := AddBreakpoint(nil, bplist[0].address, bpt, bpmDebugRegister,

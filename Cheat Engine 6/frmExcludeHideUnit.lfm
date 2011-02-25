@@ -1,7 +1,7 @@
 object frmExcludeHide: TfrmExcludeHide
-  Left = 893
+  Left = 903
   Height = 359
-  Top = 158
+  Top = 176
   Width = 453
   Caption = 'Show/Hide settings'
   ClientHeight = 359
@@ -10,7 +10,7 @@ object frmExcludeHide: TfrmExcludeHide
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label4: TLabel
     Left = 0
     Height = 41
@@ -47,24 +47,23 @@ object frmExcludeHide: TfrmExcludeHide
     end
     object RadioButton1: TRadioButton
       Left = 0
-      Height = 23
+      Height = 20
       Top = -1
-      Width = 251
+      Width = 247
       Caption = 'Only hide/show the foreground window'
       Checked = True
       OnClick = RadioButton1Click
-      State = cbChecked
       TabOrder = 0
+      TabStop = True
     end
     object RadioButton2: TRadioButton
       Left = 0
-      Height = 23
+      Height = 20
       Top = 19
-      Width = 168
+      Width = 164
       Caption = 'Hide/show ALL windows'
       OnClick = RadioButton1Click
       TabOrder = 1
-      TabStop = False
     end
     object Panel2: TPanel
       Left = 0

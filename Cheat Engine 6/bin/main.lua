@@ -489,7 +489,7 @@ require("class");
 --memoryrecordhotkey_getHotkeyString(hotkey)
 --memoryrecordhotkey_getID(hotkey)
 --memoryrecordhotkey_onHotkey(hotkey, hotkeyfunction): function (hotkey)
---memoryrecordhotkey_onAfterHotkey(hotkey, hotkeyfunction): function (hotkey)
+--memoryrecordhotkey_onPostHotkey(hotkey, hotkeyfunction): function (hotkey)
 --memoryrecordhotkey_getOwner(hotkey): Returns the MemoryRecord this hotkey belongs to
 --memoryrecordhotkey_doHotkey(hotkey): Executes the hotkey as if it got triggered by the keyboard
 

@@ -78,7 +78,13 @@ begin
             begin
               moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1));
 
-            end else moutput.lines.add(':'+'nil');
+            end else
+            if lua_isboolean(luavm,i) then
+            begin
+              moutput.lines.add(':(boolean)'+BoolToStr(lua_toboolean(Luavm, i),'true','false'))
+            end
+            else
+              moutput.lines.add(':'+'nil');
 
           end;
         end;

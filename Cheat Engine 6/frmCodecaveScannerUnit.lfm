@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 512
+  Left = 528
   Height = 324
-  Top = 210
+  Top = 213
   Width = 353
   Caption = 'Scan for codecaves'
   ClientHeight = 324
@@ -11,7 +11,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object lbCodecaveList: TListBox
     Left = 0
     Height = 290
@@ -127,9 +127,9 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     TabOrder = 2
     object cbNoExecute: TCheckBox
       Left = 0
-      Height = 23
+      Height = 19
       Top = 1
-      Width = 231
+      Width = 227
       Caption = 'Also scan non-executable read-only memory'
       Checked = True
       State = cbChecked

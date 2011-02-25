@@ -1,7 +1,7 @@
 object frmStructuresAddElement: TfrmStructuresAddElement
-  Left = 740
+  Left = 782
   Height = 186
-  Top = 347
+  Top = 342
   Width = 300
   BorderStyle = bsDialog
   Caption = 'Add Element'
@@ -46,7 +46,7 @@ object frmStructuresAddElement: TfrmStructuresAddElement
   end
   object cbType: TComboBox
     Left = 20
-    Height = 24
+    Height = 21
     Top = 104
     Width = 208
     Font.Height = -11

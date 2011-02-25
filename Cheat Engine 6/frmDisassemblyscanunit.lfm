@@ -1,7 +1,7 @@
 object frmDisassemblyscan: TfrmDisassemblyscan
-  Left = 472
+  Left = 503
   Height = 170
-  Top = 371
+  Top = 372
   Width = 447
   Caption = 'Assemblyscan'
   ClientHeight = 170
@@ -12,7 +12,7 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14

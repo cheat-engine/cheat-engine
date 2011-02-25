@@ -199,7 +199,7 @@ procedure symhandlerInitialize;
 
 implementation
 
-uses assemblerunit, driverlist;
+uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib;
 
 
 const
@@ -1027,6 +1027,7 @@ var mi: tmoduleinfo;
     offset: dword;
     i,j: integer;
 
+    p: pchar;
     ws: widestring;
     pws: pwidechar;
     error: boolean;
@@ -1041,10 +1042,54 @@ var mi: tmoduleinfo;
     regnr: integer;
 
     symbol: PSYMBOL_INFO;
+    s: string;
 begin
   hasPointer:=false;
   haserror:=false;
   offset:=0;
+
+
+  //check if it's a lua symbol notation ('$')
+  if length(name)>2 then
+  begin
+    if name[1]='$' then
+    begin
+      //check if lua thingy
+      i:=lua_gettop(luavm); //make sure the stack ends here when done
+
+      s:=copy(name, 2, length(name));
+      lua_getglobal(LuaVM,pchar(s));
+
+      if i<>lua_gettop(luavm) then
+      begin
+        if lua_islightuserdata(LuaVM, -1) then
+        begin
+          result:=ptruint(lua_touserdata(Luavm, -1));
+          lua_settop(luavm, i);
+          exit;
+        end
+        else
+        if lua_isnumber(LuaVM, -1) then
+        begin
+          result:=lua_tointeger(LuaVM, -1);
+          lua_settop(luavm, i);
+          exit;
+        end
+        else
+        if lua_isstring(LuaVM, -1) then
+        begin
+          p:=lua_tostring(LuaVM, -1);
+          if (p<>nil) then name:=p;
+        end;
+
+        lua_settop(luavm, i);
+      end;
+
+
+
+
+    end;
+  end;
 
 
 {$ifdef autoassemblerdll}

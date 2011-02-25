@@ -1,7 +1,7 @@
 object frmAddToCodeList: TfrmAddToCodeList
-  Left = 941
+  Left = 919
   Height = 85
-  Top = 298
+  Top = 300
   Width = 169
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -13,7 +13,7 @@ object frmAddToCodeList: TfrmAddToCodeList
   OnClose = FormClose
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 30
     Height = 14

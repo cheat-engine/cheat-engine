@@ -1,5 +1,5 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 414
+  Left = 432
   Height = 214
   Top = 212
   Width = 320

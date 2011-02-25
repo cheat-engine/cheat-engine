@@ -1,7 +1,7 @@
 object frmFindStatics: TfrmFindStatics
-  Left = 841
+  Left = 813
   Height = 320
-  Top = 414
+  Top = 411
   Width = 351
   BorderStyle = bsToolWindow
   Caption = 'Find static addresses'
@@ -13,7 +13,7 @@ object frmFindStatics: TfrmFindStatics
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 17
@@ -134,7 +134,7 @@ object frmFindStatics: TfrmFindStatics
     TabOrder = 2
     object CheckBox1: TCheckBox
       Left = 0
-      Height = 23
+      Height = 19
       Top = 0
       Width = 351
       Anchors = [akTop, akLeft, akRight]
@@ -174,7 +174,6 @@ object frmFindStatics: TfrmFindStatics
           Caption = 'Reference count'
           Width = 100
         end>
-      ItemIndex = -1
       ReadOnly = True
       RowSelect = True
       SortType = stText

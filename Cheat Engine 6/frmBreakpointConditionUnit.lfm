@@ -1,14 +1,14 @@
 object frmBreakpointCondition: TfrmBreakpointCondition
-  Left = 657
+  Left = 666
   Height = 226
-  Top = 335
+  Top = 334
   Width = 510
   Caption = 'Breakpoint condition'
   ClientHeight = 226
   ClientWidth = 510
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Button1: TButton
     Left = 8
     Height = 27
@@ -100,8 +100,8 @@ object frmBreakpointCondition: TfrmBreakpointCondition
     Checked = True
     OnChange = rbEasyChange
     OnClick = rbEasyChange
-    State = cbChecked
     TabOrder = 3
+    TabStop = True
   end
   object rbComplex: TRadioButton
     Left = 64
@@ -112,6 +112,5 @@ object frmBreakpointCondition: TfrmBreakpointCondition
     OnChange = rbEasyChange
     OnClick = rbEasyChange
     TabOrder = 4
-    TabStop = False
   end
 end

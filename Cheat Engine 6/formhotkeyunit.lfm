@@ -1,5 +1,5 @@
 object FormHotkey: TFormHotkey
-  Left = 639
+  Left = 644
   Height = 69
   Top = 286
   Width = 217
@@ -11,7 +11,7 @@ object FormHotkey: TFormHotkey
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14

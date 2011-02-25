@@ -1,7 +1,7 @@
 object frmLoadMemory: TfrmLoadMemory
-  Left = 649
+  Left = 659
   Height = 153
-  Top = 359
+  Top = 358
   Width = 211
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object frmLoadMemory: TfrmLoadMemory
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14

@@ -1,5 +1,5 @@
 object FindWindow: TFindWindow
-  Left = 715
+  Left = 727
   Height = 186
   Top = 389
   Width = 286
@@ -12,7 +12,7 @@ object FindWindow: TFindWindow
   Font.Name = 'MS Sans Serif'
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object ProgressBar: TProgressBar
     Left = 0
     Height = 20
@@ -84,28 +84,27 @@ object FindWindow: TFindWindow
     end
     object rbText: TRadioButton
       Left = 0
-      Height = 23
+      Height = 20
       Top = 22
-      Width = 50
+      Width = 46
       Caption = 'Text'
       Checked = True
-      State = cbChecked
       TabOrder = 2
+      TabStop = True
     end
     object rbArByte: TRadioButton
       Left = 0
-      Height = 23
+      Height = 20
       Top = 42
-      Width = 107
+      Width = 103
       Caption = '(Array of) byte'
       TabOrder = 3
-      TabStop = False
     end
     object cbUnicode: TCheckBox
       Left = 69
-      Height = 23
+      Height = 20
       Top = 20
-      Width = 75
+      Width = 71
       Caption = 'Unicode'
       TabOrder = 4
     end

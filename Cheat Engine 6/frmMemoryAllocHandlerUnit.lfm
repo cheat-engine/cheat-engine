@@ -1,7 +1,7 @@
 object frmMemoryAllocHandler: TfrmMemoryAllocHandler
-  Left = 604
+  Left = 631
   Height = 279
-  Top = 373
+  Top = 372
   Width = 525
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
@@ -13,7 +13,7 @@ object frmMemoryAllocHandler: TfrmMemoryAllocHandler
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 238

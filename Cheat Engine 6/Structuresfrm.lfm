@@ -1,5 +1,5 @@
 object frmStructures: TfrmStructures
-  Left = 632
+  Left = 656
   Height = 348
   Top = 305
   Width = 653

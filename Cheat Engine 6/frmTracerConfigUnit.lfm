@@ -1,7 +1,7 @@
 object frmTracerConfig: TfrmTracerConfig
-  Left = 540
+  Left = 555
   Height = 206
-  Top = 111
+  Top = 113
   Width = 231
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
@@ -9,7 +9,7 @@ object frmTracerConfig: TfrmTracerConfig
   ClientWidth = 231
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object edtMaxTrace: TEdit
     Left = 16
     Height = 23

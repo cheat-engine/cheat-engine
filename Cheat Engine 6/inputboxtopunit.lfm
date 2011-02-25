@@ -1,7 +1,7 @@
 object InputboxTop: TInputboxTop
-  Left = 903
+  Left = 918
   Height = 66
-  Top = 418
+  Top = 419
   Width = 283
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -12,7 +12,7 @@ object InputboxTop: TInputboxTop
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14

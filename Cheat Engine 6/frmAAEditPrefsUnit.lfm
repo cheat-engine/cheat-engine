@@ -1,7 +1,7 @@
 object frmAAEditPrefs: TfrmAAEditPrefs
-  Left = 795
+  Left = 782
   Height = 173
-  Top = 297
+  Top = 296
   Width = 189
   BorderStyle = bsDialog
   Caption = 'Editor preferences'
@@ -12,7 +12,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel2: TPanel
     Left = 0
     Height = 41

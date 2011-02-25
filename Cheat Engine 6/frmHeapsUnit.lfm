@@ -1,7 +1,7 @@
 object frmHeaps: TfrmHeaps
-  Left = 491
+  Left = 513
   Height = 316
-  Top = 199
+  Top = 198
   Width = 253
   BorderIcons = [biSystemMenu]
   Caption = 'Current Heaplist'
@@ -12,7 +12,7 @@ object frmHeaps: TfrmHeaps
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 50
@@ -49,8 +49,8 @@ object frmHeaps: TfrmHeaps
       item
         AutoSize = True
         Caption = 'Size'
+        Width = 129
       end>
-    ItemIndex = -1
     ReadOnly = True
     RowSelect = True
     TabOrder = 1

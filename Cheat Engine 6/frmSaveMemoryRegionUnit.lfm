@@ -1,7 +1,7 @@
 object frmSaveMemoryRegion: TfrmSaveMemoryRegion
-  Left = 817
+  Left = 846
   Height = 278
-  Top = 351
+  Top = 349
   Width = 270
   BorderIcons = [biSystemMenu]
   Caption = 'Save memoryregion'
@@ -11,7 +11,7 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
     Height = 230
@@ -107,9 +107,9 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     TabOrder = 1
     object DontInclude: TCheckBox
       Left = 3
-      Height = 23
+      Height = 19
       Top = 31
-      Width = 216
+      Width = 212
       Caption = 'Don''t include Cheat Engine header in file'
       OnClick = DontIncludeClick
       TabOrder = 0

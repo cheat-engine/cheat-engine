@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 1051
+  Left = 1052
   Height = 245
-  Top = 555
+  Top = 535
   Width = 320
   HelpContext = 2
   BorderIcons = [biSystemMenu]
@@ -14,7 +14,7 @@ object About: TAbout
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 245

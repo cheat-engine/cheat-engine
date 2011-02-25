@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 651
+  Left = 640
   Height = 517
-  Top = 291
+  Top = 296
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object pnlConfig: TPanel
     Left = 0
     Height = 470
@@ -354,6 +354,8 @@ object formSettings: TformSettings
           Align = alClient
           ClientHeight = 442
           ClientWidth = 614
+          DesignLeft = 737
+          DesignTop = 306
           inherited Panel1: TPanel
             Height = 380
             Top = 62

@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 740
+  Left = 830
   Height = 121
-  Top = 318
+  Top = 323
   Width = 267
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
@@ -11,7 +11,7 @@ object frmRescanPointer: TfrmRescanPointer
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object edtAddress: TEdit
     Left = 10
     Height = 24
@@ -48,24 +48,23 @@ object frmRescanPointer: TfrmRescanPointer
     TabOrder = 2
     object rbFindAddress: TRadioButton
       Left = 0
-      Height = 23
+      Height = 20
       Top = 4
-      Width = 116
+      Width = 112
       Caption = 'Address to find:'
       Checked = True
       OnClick = rbFindAddressClick
-      State = cbChecked
       TabOrder = 0
+      TabStop = True
     end
     object rbFindValue: TRadioButton
       Left = 120
-      Height = 23
+      Height = 20
       Top = 4
-      Width = 100
+      Width = 96
       Caption = 'Value to find:'
       OnClick = rbFindAddressClick
       TabOrder = 1
-      TabStop = False
     end
   end
   object Button1: TButton
@@ -90,9 +89,9 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object cbDelay: TCheckBox
     Left = 8
-    Height = 23
+    Height = 20
     Top = 62
-    Width = 122
+    Width = 118
     Caption = 'Delay rescan for'
     TabOrder = 5
   end

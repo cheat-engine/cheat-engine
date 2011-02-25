@@ -1,7 +1,7 @@
 object AddForm: TAddForm
-  Left = 517
+  Left = 532
   Height = 232
-  Top = 456
+  Top = 455
   Width = 545
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -13,7 +13,7 @@ object AddForm: TAddForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 27
     Height = 14

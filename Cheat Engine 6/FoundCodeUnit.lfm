@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 595
+  Left = 838
   Height = 445
-  Top = 218
+  Top = 235
   Width = 386
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
@@ -15,7 +15,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 264
     Height = 445
@@ -124,33 +124,64 @@ object FoundCodeDialog: TFoundCodeDialog
       end
     end
   end
-  object FoundCodeList: TListView
+  object Panel4: TPanel
     Left = 0
     Height = 445
     Top = 0
     Width = 264
     Align = alClient
-    Columns = <    
-      item
-        Caption = 'Count'
-        Width = 30
-      end    
-      item
-        AutoSize = True
-        Caption = 'Instruction'
-        Width = 230
-      end>
-    ColumnClick = False
-    HideSelection = False
-    MultiSelect = True
-    PopupMenu = pmOptions
-    ReadOnly = True
-    RowSelect = True
-    ScrollBars = ssVertical
+    BevelOuter = bvNone
+    ClientHeight = 445
+    ClientWidth = 264
     TabOrder = 1
-    ViewStyle = vsReport
-    OnDblClick = FoundcodeListDblClick
-    OnSelectItem = FoundCodeListSelectItem
+    object FoundCodeList: TListView
+      Left = 0
+      Height = 283
+      Top = 0
+      Width = 264
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'Count'
+          Width = 30
+        end      
+        item
+          AutoSize = True
+          Caption = 'Instruction'
+          Width = 230
+        end>
+      ColumnClick = False
+      HideSelection = False
+      MultiSelect = True
+      PopupMenu = pmOptions
+      ReadOnly = True
+      RowSelect = True
+      ScrollBars = ssVertical
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnDblClick = FoundcodeListDblClick
+      OnSelectItem = FoundCodeListSelectItem
+    end
+    object mInfo: TMemo
+      Left = 0
+      Height = 157
+      Top = 288
+      Width = 264
+      Align = alBottom
+      ReadOnly = True
+      ScrollBars = ssBoth
+      TabOrder = 1
+      WordWrap = False
+    end
+    object Splitter1: TSplitter
+      Cursor = crVSplit
+      Left = 0
+      Height = 5
+      Top = 283
+      Width = 264
+      Align = alBottom
+      ResizeAnchor = akBottom
+    end
   end
   object pmOptions: TPopupMenu
     OnPopup = pmOptionsPopup

@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 1351
+  Left = 1342
   Height = 187
-  Top = 743
+  Top = 741
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'
@@ -12,7 +12,7 @@ object frmThreadlist: TfrmThreadlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object threadTreeview: TTreeView
     Left = 0
     Height = 187

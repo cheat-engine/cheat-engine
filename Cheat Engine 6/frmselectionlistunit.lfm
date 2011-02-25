@@ -1,16 +1,16 @@
 object frmSelectionList: TfrmSelectionList
-  Left = 677
-  Height = 228
-  Top = 244
+  Left = 791
+  Height = 232
+  Top = 326
   Width = 313
   BorderIcons = [biSystemMenu]
   Caption = 'title'
-  ClientHeight = 228
+  ClientHeight = 232
   ClientWidth = 313
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14
@@ -22,7 +22,7 @@ object frmSelectionList: TfrmSelectionList
   end
   object ListBox1: TListBox
     Left = 0
-    Height = 183
+    Height = 187
     Top = 14
     Width = 313
     Align = alClient
@@ -33,7 +33,7 @@ object frmSelectionList: TfrmSelectionList
   object Panel1: TPanel
     Left = 0
     Height = 31
-    Top = 197
+    Top = 201
     Width = 313
     Align = alBottom
     ClientHeight = 31

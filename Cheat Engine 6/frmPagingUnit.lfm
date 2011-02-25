@@ -1,14 +1,14 @@
 object frmPaging: TfrmPaging
-  Left = 650
+  Left = 678
   Height = 240
-  Top = 257
+  Top = 262
   Width = 404
   Caption = 'Paging'
   ClientHeight = 240
   ClientWidth = 404
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object tvPage: TTreeView
     Left = 0
     Height = 182

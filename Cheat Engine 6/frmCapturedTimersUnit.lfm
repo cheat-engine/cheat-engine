@@ -1,7 +1,7 @@
 object frmCapturedTimers: TfrmCapturedTimers
-  Left = 489
+  Left = 502
   Height = 179
-  Top = 140
+  Top = 144
   Width = 507
   Caption = 'frmCapturedTimers'
   ClientHeight = 179
@@ -10,7 +10,7 @@ object frmCapturedTimers: TfrmCapturedTimers
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
     Height = 14
@@ -62,7 +62,6 @@ object frmCapturedTimers: TfrmCapturedTimers
         Caption = 'Count'
       end>
     HideSelection = False
-    ItemIndex = -1
     MultiSelect = True
     ReadOnly = True
     RowSelect = True

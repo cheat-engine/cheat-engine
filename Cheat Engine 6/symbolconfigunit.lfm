@@ -1,5 +1,5 @@
 object frmSymbolhandler: TfrmSymbolhandler
-  Left = 869
+  Left = 855
   Height = 338
   Top = 258
   Width = 489
@@ -11,7 +11,7 @@ object frmSymbolhandler: TfrmSymbolhandler
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 320
     Height = 338
@@ -100,7 +100,6 @@ object frmSymbolhandler: TfrmSymbolhandler
           Caption = 'AllocSize'
           Width = 74
         end>
-      ItemIndex = -1
       PopupMenu = PopupMenu1
       ReadOnly = True
       RowSelect = True

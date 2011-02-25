@@ -1,7 +1,7 @@
 object frmProcessInfo: TfrmProcessInfo
-  Left = 435
+  Left = 441
   Height = 259
-  Top = 107
+  Top = 112
   Width = 211
   BorderIcons = []
   Caption = 'Process/System Info'
@@ -12,7 +12,7 @@ object frmProcessInfo: TfrmProcessInfo
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 63
     Height = 14

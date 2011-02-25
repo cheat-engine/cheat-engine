@@ -1,7 +1,7 @@
 object frmPasteTableentry: TfrmPasteTableentry
-  Left = 721
+  Left = 730
   Height = 139
-  Top = 435
+  Top = 406
   Width = 294
   BorderStyle = bsSingle
   Caption = 'Paste table entries'
@@ -10,14 +10,14 @@ object frmPasteTableentry: TfrmPasteTableentry
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object GroupBox1: TGroupBox
     Left = 7
     Height = 105
     Top = 1
     Width = 137
     Caption = 'Description'
-    ClientHeight = 83
+    ClientHeight = 87
     ClientWidth = 133
     TabOrder = 0
     object Label1: TLabel
@@ -57,7 +57,7 @@ object frmPasteTableentry: TfrmPasteTableentry
     Top = 1
     Width = 137
     Caption = 'Address'
-    ClientHeight = 83
+    ClientHeight = 87
     ClientWidth = 133
     TabOrder = 1
     object Label3: TLabel
