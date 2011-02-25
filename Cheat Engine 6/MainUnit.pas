@@ -5109,12 +5109,15 @@ begin
     //
   end;
 
-  if advancedoptions.Pausebutton.Down then
+  if advancedoptions<>nil then
   begin
-    with advancedoptions do
+    if advancedoptions.Pausebutton.Down then
     begin
-      pausebutton.down:=not pausebutton.down;
-      pausebutton.Click;
+      with advancedoptions do
+      begin
+        pausebutton.down:=not pausebutton.down;
+        pausebutton.Click;
+      end;
     end;
   end;
 

@@ -83,6 +83,14 @@ begin
   except
   end;
 
+  for i:=0 to mainform.LuaForms.count-1 do
+    if tceform(mainform.luaforms[i]).visible then
+    begin
+      //first visible window in the formlist becomes the new taskbar window
+      tceform(mainform.luaforms[i]).ShowInTaskBar:=stAlways;
+      break;
+    end;
+
   mainform.visible:=mainformvisible;
 end;
 
