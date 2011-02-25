@@ -17,7 +17,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1174"/>
+      <BuildNr Value="1181"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -132,7 +132,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="&quot;C:\Users\DB\Documents\My Cheat Tables\Tutorial-i386.CETRAINER&quot;"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -160,11 +159,10 @@
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="73"/>
-        <CursorPos X="90" Y="88"/>
+        <TopLine Value="1"/>
+        <CursorPos X="8" Y="10"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -214,10 +212,11 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="629"/>
-        <CursorPos X="43" Y="645"/>
+        <TopLine Value="618"/>
+        <CursorPos X="1" Y="640"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -422,7 +421,7 @@
         <ComponentName Value="AdvancedOptions"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="AdvancedOptionsUnit"/>
-        <EditorIndex Value="24"/>
+        <EditorIndex Value="23"/>
         <WindowIndex Value="0"/>
         <TopLine Value="290"/>
         <CursorPos X="33" Y="123"/>
@@ -446,7 +445,7 @@
         <Filename Value="pluginexports.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pluginexports"/>
-        <EditorIndex Value="22"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1514"/>
         <CursorPos X="1" Y="1530"/>
@@ -575,7 +574,7 @@
         <ComponentName Value="Comments"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="CommentsUnit"/>
-        <EditorIndex Value="26"/>
+        <EditorIndex Value="25"/>
         <WindowIndex Value="0"/>
         <TopLine Value="55"/>
         <CursorPos X="28" Y="77"/>
@@ -712,12 +711,10 @@
         <Filename Value="speedhack2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhack2"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="50"/>
         <CursorPos X="32" Y="58"/>
         <UsageCount Value="202"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit48>
       <Unit49>
@@ -1780,7 +1777,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="23"/>
+        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
         <TopLine Value="56"/>
         <CursorPos X="31" Y="59"/>
@@ -1857,10 +1854,12 @@
       <Unit150>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="44"/>
-        <CursorPos X="3" Y="60"/>
+        <TopLine Value="118"/>
+        <CursorPos X="50" Y="132"/>
         <UsageCount Value="96"/>
+        <Loaded Value="True"/>
       </Unit150>
       <Unit151>
         <Filename Value="luaJit.pas"/>
@@ -1899,8 +1898,8 @@
       <Unit155>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1682"/>
-        <CursorPos X="3" Y="1587"/>
+        <TopLine Value="235"/>
+        <CursorPos X="1" Y="249"/>
         <UsageCount Value="48"/>
       </Unit155>
       <Unit156>
@@ -1961,12 +1960,10 @@
       </Unit162>
       <Unit163>
         <Filename Value="C:\lazarus\lcl\include\application.inc"/>
-        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2133"/>
-        <CursorPos X="14" Y="2158"/>
+        <TopLine Value="216"/>
+        <CursorPos X="3" Y="221"/>
         <UsageCount Value="12"/>
-        <Loaded Value="True"/>
       </Unit163>
       <Unit164>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
@@ -1999,8 +1996,8 @@
         <UnitName Value="Forms"/>
         <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1239"/>
-        <CursorPos X="27" Y="1256"/>
+        <TopLine Value="640"/>
+        <CursorPos X="29" Y="654"/>
         <UsageCount Value="85"/>
         <Loaded Value="True"/>
       </Unit167>
@@ -2068,7 +2065,7 @@
       </Unit173>
       <Unit174>
         <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="901"/>
         <CursorPos X="47" Y="916"/>
@@ -2080,8 +2077,8 @@
         <UnitName Value="ExtCtrls"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="356"/>
-        <CursorPos X="16" Y="376"/>
+        <TopLine Value="358"/>
+        <CursorPos X="21" Y="376"/>
         <UsageCount Value="57"/>
         <Loaded Value="True"/>
       </Unit175>
@@ -2122,7 +2119,7 @@
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="345"/>
+        <TopLine Value="347"/>
         <CursorPos X="3" Y="363"/>
         <UsageCount Value="66"/>
       </Unit180>
@@ -2150,7 +2147,7 @@
         <ComponentName Value="frmTrainerGenerator"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="trainergenerator"/>
-        <EditorIndex Value="27"/>
+        <EditorIndex Value="26"/>
         <WindowIndex Value="0"/>
         <TopLine Value="668"/>
         <CursorPos X="28" Y="677"/>
@@ -2251,10 +2248,10 @@
         <Filename Value="luafile.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="luafile"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="29"/>
-        <CursorPos X="54" Y="40"/>
+        <CursorPos X="31" Y="33"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2352,7 +2349,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="135"/>
         <CursorPos X="35" Y="150"/>
-        <UsageCount Value="165"/>
+        <UsageCount Value="166"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit205>
       <Unit206>
@@ -2479,7 +2476,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="185"/>
         <CursorPos X="3" Y="243"/>
-        <UsageCount Value="89"/>
+        <UsageCount Value="90"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit221>
       <Unit222>
@@ -2515,7 +2512,7 @@
       </Unit225>
       <Unit226>
         <Filename Value="C:\lazarus\lcl\include\listitems.inc"/>
-        <EditorIndex Value="25"/>
+        <EditorIndex Value="24"/>
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="1" Y="34"/>
@@ -2540,7 +2537,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="197"/>
         <CursorPos X="1" Y="84"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="31"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit228>
@@ -2549,132 +2546,132 @@
         <UnitName Value="CustomTimer"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="41"/>
-        <CursorPos X="5" Y="48"/>
+        <TopLine Value="62"/>
+        <CursorPos X="1" Y="81"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit229>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5536" Column="1" TopLine="5523"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="666" Column="33" TopLine="644"/>
       </Position1>
       <Position2>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3972" Column="52" TopLine="3964"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="92" Column="1" TopLine="73"/>
       </Position2>
       <Position3>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5541" Column="1" TopLine="5523"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="667" Column="1" TopLine="647"/>
       </Position3>
       <Position4>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3974" Column="27" TopLine="3946"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="668" Column="1" TopLine="647"/>
       </Position4>
       <Position5>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="731" Column="1" TopLine="715"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="76" Column="1" TopLine="62"/>
       </Position5>
       <Position6>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="735" Column="1" TopLine="715"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="77" Column="1" TopLine="62"/>
       </Position6>
       <Position7>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="742" Column="1" TopLine="716"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="78" Column="1" TopLine="62"/>
       </Position7>
       <Position8>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="743" Column="1" TopLine="729"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="79" Column="1" TopLine="62"/>
       </Position8>
       <Position9>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="745" Column="1" TopLine="729"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="80" Column="1" TopLine="62"/>
       </Position9>
       <Position10>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="746" Column="1" TopLine="729"/>
+        <Filename Value="C:\lazarus\lcl\customtimer.pas"/>
+        <Caret Line="81" Column="1" TopLine="62"/>
       </Position10>
       <Position11>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="748" Column="1" TopLine="729"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="669" Column="1" TopLine="647"/>
       </Position11>
       <Position12>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="757" Column="1" TopLine="731"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="660" Column="1" TopLine="644"/>
       </Position12>
       <Position13>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="758" Column="1" TopLine="732"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="92" Column="1" TopLine="73"/>
       </Position13>
       <Position14>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="761" Column="1" TopLine="741"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="669" Column="5" TopLine="644"/>
       </Position14>
       <Position15>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3974" Column="27" TopLine="3757"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="640" Column="27" TopLine="632"/>
       </Position15>
       <Position16>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="761" Column="11" TopLine="741"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="669" Column="14" TopLine="647"/>
       </Position16>
       <Position17>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="288" Column="14" TopLine="269"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="92" Column="1" TopLine="73"/>
       </Position17>
       <Position18>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5425" Column="30" TopLine="5414"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="660" Column="1" TopLine="647"/>
       </Position18>
       <Position19>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="667" Column="11" TopLine="647"/>
       </Position19>
       <Position20>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="566" Column="15" TopLine="540"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="660" Column="1" TopLine="647"/>
       </Position20>
       <Position21>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="640" Column="27" TopLine="614"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="663" Column="27" TopLine="647"/>
       </Position21>
       <Position22>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="718" Column="66" TopLine="692"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="660" Column="1" TopLine="647"/>
       </Position22>
       <Position23>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="806" Column="92" TopLine="794"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="661" Column="1" TopLine="647"/>
       </Position23>
       <Position24>
         <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="650" Column="26" TopLine="632"/>
+        <Caret Line="662" Column="1" TopLine="647"/>
       </Position24>
       <Position25>
-        <Filename Value="C:\lazarus\lcl\extctrls.pp"/>
-        <Caret Line="376" Column="16" TopLine="356"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="663" Column="1" TopLine="647"/>
       </Position25>
       <Position26>
         <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="659" Column="1" TopLine="635"/>
+        <Caret Line="665" Column="1" TopLine="647"/>
       </Position26>
       <Position27>
         <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="642" Column="35" TopLine="626"/>
+        <Caret Line="660" Column="21" TopLine="649"/>
       </Position27>
       <Position28>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="638" Column="38" TopLine="617"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="96" Column="8" TopLine="73"/>
       </Position28>
       <Position29>
         <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="666" Column="33" TopLine="644"/>
+        <Caret Line="660" Column="20" TopLine="655"/>
       </Position29>
       <Position30>
-        <Filename Value="speedhack2.pas"/>
-        <Caret Line="59" Column="19" TopLine="50"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="86" Column="25" TopLine="78"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

@@ -13,31 +13,31 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   LCLVersion = '0.9.31'
   object comboProcesslist: TComboBox
     Left = 4
-    Height = 23
+    Height = 21
     Top = 32
     Width = 252
-    ItemHeight = 15
+    ItemHeight = 13
     TabOrder = 0
   end
   object Label2: TLabel
     Left = 4
-    Height = 16
+    Height = 14
     Top = 16
-    Width = 71
+    Width = 64
     Caption = 'Processname'
     ParentColor = False
   end
   object cbPopupOnKeypress: TCheckBox
     Left = 4
-    Height = 19
+    Height = 17
     Top = 56
-    Width = 157
+    Width = 144
     Caption = 'Popup trainer on keypress'
     TabOrder = 1
   end
   object edtPopupHotkey: TEdit
     Left = 4
-    Height = 23
+    Height = 21
     Top = 80
     Width = 175
     OnKeyDown = edtPopupHotkeyKeyDown
@@ -55,15 +55,15 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object Label1: TLabel
     Left = 272
-    Height = 16
+    Height = 14
     Top = 176
-    Width = 166
+    Width = 150
     Caption = 'Freeze interval (in milliseconds)'
     ParentColor = False
   end
   object edtFreezeInterval: TEdit
     Left = 272
-    Height = 23
+    Height = 21
     Top = 192
     Width = 220
     TabOrder = 4
@@ -80,9 +80,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object cbBeepOnAction: TCheckBox
     Left = 272
-    Height = 19
+    Height = 17
     Top = 120
-    Width = 99
+    Width = 89
     Caption = 'Beep on action'
     TabOrder = 6
   end
@@ -98,9 +98,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object cbSupportCheatEngine: TCheckBox
     Left = 4
-    Height = 19
+    Height = 17
     Top = 0
-    Width = 233
+    Width = 213
     Caption = 'Don''t support Cheat Engine (or yourself)'
     Checked = True
     OnChange = cbSupportCheatEngineChange
@@ -118,9 +118,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     TabOrder = 9
     object cbCanResize: TCheckBox
       Left = 2
-      Height = 19
+      Height = 17
       Top = 136
-      Width = 142
+      Width = 130
       Caption = 'User can resize window'
       Checked = True
       OnChange = cbCanResizeChange
@@ -141,9 +141,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label3: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 40
-      Width = 59
+      Width = 57
       Caption = 'About text:'
       ParentColor = False
     end
@@ -167,7 +167,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object edtCaption: TEdit
       Left = 6
-      Height = 23
+      Height = 21
       Top = 16
       Width = 241
       OnChange = edtCaptionChange
@@ -176,9 +176,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label4: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 0
-      Width = 24
+      Width = 21
       Caption = 'Title'
       ParentColor = False
     end
@@ -194,10 +194,10 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object cbProtect: TCheckBox
     Left = 272
-    Height = 19
+    Height = 17
     Hint = 'Will encrypt the generated cetrainer file and when Cheat Engine loads this file back it will destroy the main form preventing the user from doing anything with it.'#13#10'Does not affect the standalone trainer because that one is protected by default'
     Top = 144
-    Width = 209
+    Width = 188
     Caption = 'Protect trainer from editing/reading'
     ParentShowHint = False
     ShowHint = True
@@ -205,16 +205,16 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object cbPlayXM: TCheckBox
     Left = 272
-    Height = 19
+    Height = 17
     Top = 13
-    Width = 117
+    Width = 101
     Caption = 'Play XM music file'
     OnChange = cbPlayXMChange
     TabOrder = 12
   end
   object fnXM: TFileNameEdit
     Left = 272
-    Height = 23
+    Height = 21
     Top = 32
     Width = 200
     DialogOptions = []
@@ -229,9 +229,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object cbStopPlaying: TCheckBox
     Left = 272
-    Height = 19
+    Height = 17
     Top = 56
-    Width = 118
+    Width = 106
     Caption = 'Stop playing when'
     Checked = True
     Enabled = False
@@ -241,9 +241,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object rbStopWhenAttached: TRadioButton
     Left = 288
-    Height = 19
+    Height = 17
     Top = 74
-    Width = 150
+    Width = 138
     Caption = 'Game has been attached'
     Checked = True
     Enabled = False
@@ -252,9 +252,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   end
   object rbStopWhenFocusLost: TRadioButton
     Left = 288
-    Height = 19
+    Height = 17
     Top = 92
-    Width = 118
+    Width = 108
     Caption = 'Trainer loses focus'
     Enabled = False
     TabOrder = 15

@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  sysutils, Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc,
+  controls, sysutils, Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc,
   ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode, byteinterpreter,
   addressparser, autoassembler, ProcessWindowUnit, MainUnit2, Filehandler,
   dbvmPhysicalMemoryHandler, frameHotkeyConfigUnit, formsettingsunit,
@@ -89,7 +89,11 @@ begin
       //first visible window in the formlist becomes the new taskbar window
       tceform(mainform.luaforms[i]).ShowInTaskBar:=stAlways;
 
-      TPopupwindow.create(tceform(mainform.luaforms[i]));
+      tceform(mainform.luaforms[i]).formstyle:=fsStayOnTop;
+
+      tceform(mainform.luaforms[i]).formstyle:=fsNormal;
+
+     // TPopupwindow.create(tceform(mainform.luaforms[i]));
 
       break;
     end;
