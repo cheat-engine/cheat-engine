@@ -30,7 +30,7 @@ var launchdir: string;
 
   startupinfo: TSTARTUPINFO;
   ProcessInformation: TPROCESSINFORMATION;
-
+  is32bit: boolean;
 begin
   size:=0;
   launchdir:=ExtractFilePath(GetModuleName(0)){$ifndef release}+'testtrainer\'{$endif};
@@ -71,12 +71,15 @@ begin
     ceexe:=launchdir+'cheatengine-x86_64.exe';
     if not FileExists(ceexe) then
     begin
+      is32bit:=true;
       ceexe:=launchdir+'cheatengine-i386.exe';
 
       //dbghelp32.dll needs to be in win32
       CreateDir(launchdir+'win32');
       MoveFile(pchar(launchdir+'dbghelp.dll'), pchar(launchdir+'win32\dbghelp.dll'));
-    end;
+    end
+    else
+      is32bit:=false;
 
 
     if FileExists(launchdir+'CET_TRAINER.CETRAINER') then
@@ -93,6 +96,13 @@ begin
 
   end;
 
+
+  if is32bit then
+  begin
+    //cleanup the win32 folder
+    deletefile(launchdir+'win32\dbghelp.dll');
+    RemoveDir(launchdir+'win32');
+  end;
 
   if filelist<>nil then
   begin
