@@ -117,6 +117,11 @@ type TStructElement=record
                       bytesize: dword; //size in bytes of how big this element is. (also for base elements)
                     end;
 
+type TAddressData=record
+  address: ptrUint;
+  lockedMemory: pbytearray;
+  lockedsize: integer;
+end;
 
 type TbaseStructure=record
   name: string;
@@ -126,11 +131,14 @@ type TbaseStructure=record
   Tstructure=class; //fpc 2.5.1: Without this the child: TStructure would not compile
 
   //TfrmStructures = class;
+
+
+
   Tstructure=class
   private
     //frmStructures: TfrmStructures; //obsolete
     treeviewused: ttreeview;
-    addresses: array of ptrUint;
+    addresses: array of Taddressdata;
     basestructure: integer;
     parentnode: ttreenode; //owner of this object
     objects: array of record //same size as the structelement of the base object
@@ -138,10 +146,20 @@ type TbaseStructure=record
                         child: Tstructure; //if it is a pointer then this points to the structure that defines it
                         //currentvalue: string; //obsolete, just get it on request
                       end;
+
+     //  lockedmemory: array of pbyte;
+
+     overrideReadWith: pByteArray;
+     overrideReadSize: integer;
+     overrideReadBase: ptruint;
   public
+    function readProcessMemoryS(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+
     procedure refresh;
     procedure removeAddress(i: integer);
     procedure setaddress(i: integer; x:ptrUint);
+    function  lockaddressmemory(i: integer): boolean;
+    procedure unlockaddressmemory(i: integer);
     constructor create(treeviewused: ttreeview;parentnode: ttreenode; addresses: array of ptrUint; basestructure: integer);
     destructor destroy; override;
   end;
@@ -153,6 +171,7 @@ type TbaseStructure=record
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miLockMem: TMenuItem;
     miUpdateInterval: TMenuItem;
     miUpdateOffsets: TMenuItem;
     miChangeColors: TMenuItem;
@@ -205,6 +224,7 @@ type TbaseStructure=record
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
 
     procedure MenuItem3Click(Sender: TObject);
+    procedure miLockMemClick(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
@@ -288,6 +308,7 @@ type TbaseStructure=record
   public
     { Public declarations }
     procedure setaddress(i: integer; x:ptrUint);
+    function getaddress(i: integer): ptruint;
     procedure applyChanges(doOthers: boolean);
   end;
 
@@ -318,8 +339,11 @@ begin
 
   setlength(self.addresses,length(addresses));
   for i:=0 to length(addresses)-1 do
-    self.addresses[i]:=addresses[i];
-    
+  begin
+    self.addresses[i].address:=addresses[i];
+    self.addresses[i].lockedMemory:=nil;
+  end;
+
   self.basestructure:=basestructure;
   self.treeviewused:=treeviewused;
   self.parentnode:=parentnode;
@@ -329,6 +353,9 @@ end;
 procedure TStructure.removeAddress(i: integer);
 var j: integer;
 begin
+  if addresses[i].lockedMemory<>nil then
+    freemem(addresses[i].lockedMemory);
+
   for j:=i to length(addresses)-2 do
     addresses[j]:=addresses[j+1];
 
@@ -355,8 +382,75 @@ begin
       objects[j].child.setaddress(i,x);
   end;
 
-  addresses[i]:=x;
+  addresses[i].address:=x;
+  if addresses[i].lockedmemory<>nil then
+  begin
+    freemem(addresses[i].lockedmemory);
+    addresses[i].lockedmemory:=nil;
+  end;
   refresh;
+end;
+
+procedure TStructure.unlockaddressmemory(i: integer);
+begin
+  //unlock
+  if addresses[i].lockedMemory<>nil then
+  begin
+    freemem(addresses[i].lockedMemory);
+    addresses[i].lockedMemory:=nil;
+  end;
+
+end;
+
+function TStructure.lockaddressmemory(i: integer): boolean;
+var
+  lastentry: integer;
+  offsetsize: integer;
+  soffsetsize: string;
+  x: dword;
+begin
+  result:=false;
+  lastentry:=length(definedstructures[basestructure].structelement)-1;
+
+
+  offsetsize:=definedstructures[basestructure].structelement[lastentry].offset+definedstructures[basestructure].structelement[lastentry].bytesize;
+
+  if offsetsize>65536 then
+  begin
+    soffsetsize:=inttostr(offsetsize);
+    if InputQuery('This is quite a big structure. How many bytes do you want to save?', 'Structure view lock', soffsetsize)=false then exit;
+    offsetsize:=strtoint(soffsetsize);
+  end;
+
+  //alloate the locked buffer
+  addresses[i].lockedsize:=offsetsize;
+  getmem(addresses[i].lockedMemory, offsetsize);
+  if addresses[i].lockedMemory<>nil then
+  begin
+    //fill it
+    result:=ReadProcessMemory(processhandle, pointer(addresses[i].address), addresses[i].lockedmemory, addresses[i].lockedsize, x);
+    if result then
+      addresses[i].lockedsize:=x
+    else
+    begin
+      //on fail, free
+      freemem(addresses[i].lockedMemory);
+      addresses[i].lockedMemory:=nil;
+    end;
+  end;
+end;
+
+function TStructure.readProcessMemoryS(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+begin
+  if (overrideReadWith=nil) or (ptruint(lpBaseAddress)>=(overrideReadBase+overrideReadSize)) then
+    result:=ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead)
+  else
+  begin
+    //read from the override
+    CopyMemory(lpBuffer, pointer(ptruint(overrideReadWith)+(ptrUint(lpBaseAddress)-overrideReadBase)), nsize);
+    lpNumberOfBytesRead:=nSize;
+  end;
+
 end;
 
 procedure TStructure.refresh;
@@ -447,6 +541,10 @@ begin
 
     for c:=0 to length(addresses)-1 do
     begin
+      overrideReadWith:=addresses[c].lockedMemory;
+      overrideReadSize:=addresses[c].lockedsize;
+      overrideReadBase:=addresses[c].address;
+
       if snr<0 then
       begin
         if basestructure>=0 then
@@ -455,7 +553,7 @@ begin
           begin
             currentvalues[c]:='->';
 
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],4,x) then
               currentvalues[c]:=currentvalues[c]+inttohex(PDWORD(@buf[0])^,8)
             else
               currentvalues[c]:=currentvalues[c]+'???';
@@ -470,7 +568,7 @@ begin
             if c=0 then typename:=typename+'Byte';
 
             //read the value
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],1,x) then
               currentvalues[c]:=inttostr(byte(buf[0]))
             else
               currentvalues[c]:='???';
@@ -480,7 +578,7 @@ begin
             if c=0 then typename:=typename+'Byte Signed';
 
             //read the value
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],1,x) then
               currentvalues[c]:=inttostr(Shortint(buf[0]))
             else
               currentvalues[c]:='???';
@@ -488,7 +586,7 @@ begin
           -3:
           begin
             if c=0 then typename:=typename+'Byte Hexadecimal';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],1,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],1,x) then
               currentvalues[c]:=inttohex(buf[0],2)
             else
               currentvalues[c]:='???';
@@ -496,7 +594,7 @@ begin
           -4:
           begin
             if c=0 then typename:=typename+'2 Bytes';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],2,x) then
               currentvalues[c]:=inttostr(PWORD(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -504,7 +602,7 @@ begin
           -5:
           begin
             if c=0 then typename:=typename+'2 Bytes Signed';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],2,x) then
               currentvalues[c]:=inttostr(PSmallint(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -512,7 +610,7 @@ begin
           -6:
           begin
             if c=0 then typename:=typename+'2 Bytes Hexadecimal';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],2,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],2,x) then
               currentvalues[c]:=inttohex(PWORD(@buf[0])^,4)
             else
               currentvalues[c]:='???';
@@ -520,7 +618,7 @@ begin
           -7:
           begin
             if c=0 then typename:=typename+'4 Bytes';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],4,x) then
               currentvalues[c]:=inttostr(PDWORD(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -529,7 +627,7 @@ begin
           -8:
           begin
             if c=0 then typename:=typename+'4 Bytes Signed';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],4,x) then
               currentvalues[c]:=inttostr(pinteger(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -538,7 +636,7 @@ begin
           -9:
           begin
             if c=0 then typename:=typename+'4 Bytes Hexadecimal';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],4,x) then
               currentvalues[c]:=inttohex(PDWORD(@buf[0])^,8)
             else
               currentvalues[c]:='???';
@@ -546,7 +644,7 @@ begin
           -10:
           begin
             if c=0 then typename:=typename+'8 Bytes';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],8,x) then
               currentvalues[c]:=inttostr(pint64(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -554,7 +652,7 @@ begin
           -11:
           begin
             if c=0 then typename:=typename+'8 Bytes Hexadecimal';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],8,x) then
               currentvalues[c]:=inttohex(pint64(@buf[0])^,16)
             else
               currentvalues[c]:='???';
@@ -562,7 +660,7 @@ begin
           -12:
           begin
             if c=0 then typename:=typename+'Float';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],4,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],4,x) then
               currentvalues[c]:=floattostr(psingle(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -570,7 +668,7 @@ begin
           -13:
           begin
             if c=0 then typename:=typename+'Double';
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],8,x) then
               currentvalues[c]:=floattostr(pdouble(@buf[0])^)
             else
               currentvalues[c]:='???';
@@ -591,7 +689,7 @@ begin
             if length(buf)<=k then
               setlength(buf,k+1);
 
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],k,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],k,x) then
             begin
               buf[k]:=0;
               for j:=0 to k-1 do
@@ -618,7 +716,7 @@ begin
               setlength(buf,k+1);
 
 
-            if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],k,x) then
+            if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],k,x) then
             begin
               buf[k]:=0;
               buf[k-1]:=0;
@@ -637,7 +735,7 @@ begin
         //it's a defined structure (has to be a pointer)
         if c=0 then typename:=definedstructures[snr].name;
 
-        if readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@buf[0],8,x) then
+        if ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@buf[0],8,x) then
           currentvalues[c]:='->'+inttohex(pdword(@buf[0])^,8)
         else
           currentvalues[c]:='->???';
@@ -683,9 +781,14 @@ begin
         for c:=0 to length(addresses)-1 do
         begin
           newaddress:=0;
-          readprocessmemory(processhandle,pointer(addresses[c]+elementoffset),@newaddress,4,x);
+          ReadProcessMemoryS(processhandle,pointer(addresses[c].address+elementoffset),@newaddress,4,x);
 
-          objects[i].child.addresses[c]:=newaddress;
+          objects[i].child.addresses[c].address:=newaddress;
+          if objects[i].child.addresses[c].lockedMemory<>nil then //should never happen, but...
+          begin
+            freemem(objects[i].child.addresses[c].lockedmemory);
+            objects[i].child.addresses[c].lockedMemory:=nil;
+          end;
         end;
         objects[i].child.refresh;
       end;
@@ -757,6 +860,11 @@ begin
 
   if currentstructure=nil then
     tvStructureView.Items.Clear;
+end;
+
+function TfrmStructures.getAddress(i: integer): ptruint;
+begin
+  result:=addresses[i];
 end;
 
 procedure TfrmStructures.setaddress(i: integer; x: ptrUint);
@@ -1136,6 +1244,7 @@ begin
     f.free;
   end;
 end;
+
 
 procedure TfrmStructures.miChangeColorsClick(Sender: TObject);
 var c: TfrmStructuresConfig;
@@ -1822,7 +1931,7 @@ begin
     if (selectedstructure<>nil) and (selectedstructure.basestructure>=0) then
     begin
       selectedelement:=selectednode.Index;
-      a:=selectedstructure.addresses[selectedsection-1];
+      a:=selectedstructure.addresses[selectedsection-1].address;
       inc(a, definedstructures[selectedstructure.basestructure].structelement[selectedelement].offset);
 
       with Tvaluechangeform.Create(application) do
@@ -1944,13 +2053,13 @@ begin
         ts:=tn.data;
         if ts<>nil then
         begin
-          a:=ts.addresses[section];
+          a:=ts.addresses[section].address;
           if ts.basestructure>=0 then
             a:=a+definedstructures[ts.basestructure].structelement[tn.index].offset;
         end;
       end
       else
-        a:=selectedstructure.addresses[section];
+        a:=selectedstructure.addresses[section].address;
 
 
       if selectedstructure.basestructure>=0 then
@@ -2490,6 +2599,14 @@ begin
   n6.Visible:=remove1.Visible;
 
   setgroup1.Caption:='Change group ('+inttostr(groups[x.tag])+')';
+
+  if currentstructure<>nil then
+  begin
+    if currentstructure.addresses[x.tag].lockedMemory=nil then
+      miLockMem.caption:='Lock memory'
+    else
+      miLockMem.caption:='Unlock memory';
+  end;
 end;
 
 procedure TfrmStructures.Renamestructure1Click(Sender: TObject);
@@ -2584,7 +2701,7 @@ begin
       if section>0 then
         section:=section-1; //count starts from 1, so decrease
 
-      if readprocessmemory(processhandle, pointer(s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset), @address,4,x) then
+      if readprocessmemory(processhandle, pointer(s.addresses[section].address+definedstructures[s.basestructure].structelement[elementnr].offset), @address,4,x) then
       begin
         if not MemoryBrowser.visible then
           MemoryBrowser.Show;
@@ -2642,7 +2759,7 @@ begin
         if not MemoryBrowser.visible then
           MemoryBrowser.Show;
 
-        memorybrowser.memoryaddress:=s.addresses[section]+definedstructures[s.basestructure].structelement[elementnr].offset;
+        memorybrowser.memoryaddress:=s.addresses[section].address+definedstructures[s.basestructure].structelement[elementnr].offset;
       end;
 
     end;
@@ -2869,6 +2986,38 @@ begin
   frmStructures[0].HeaderControl1.Width:=clientwidth+self.GetMaxScrollLeft+100;
 
 end;
+
+procedure TfrmStructures.miLockMemClick(Sender: TObject);
+var
+  x: tedit;
+  sid: integer;
+
+begin
+  //save the current memory values of the selected row (first level only)
+  if currentstructure<>nil then
+  begin
+    x:=TEdit(popupmenu2.PopupComponent);
+    sid:=x.tag;
+
+    if x.readonly=false then
+    begin
+      if currentstructure.lockaddressmemory(sid) then
+      begin
+        x.Color:=clGray;
+        x.readonly:=true;
+      end;
+    end
+    else
+    begin
+      currentstructure.unlockaddressmemory(sid);
+      x.color:=clDefault;
+      x.readonly:=false;
+    end;
+  end;
+
+end;
+
+
 
 initialization
   {$i Structuresfrm.lrs}

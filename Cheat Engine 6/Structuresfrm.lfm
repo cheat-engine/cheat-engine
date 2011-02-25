@@ -282,6 +282,10 @@ object frmStructures: TfrmStructures
       Caption = 'Set group'
       OnClick = Setgroup1Click
     end
+    object miLockMem: TMenuItem
+      Caption = 'Lock memory'
+      OnClick = miLockMemClick
+    end
   end
   object saveValues: TSaveDialog
     DefaultExt = '.txt'
