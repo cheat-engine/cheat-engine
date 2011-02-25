@@ -3643,6 +3643,10 @@ var
 
   PODirectory, Lang, FallbackLang: String;
 begin
+  Set8087CW($133f);
+  SetSSECSR($1f80);
+
+
   LuaFiles:=TList.create;
   LuaForms:=TList.create;
   try
@@ -3964,8 +3968,10 @@ begin
   LoadCustomTypesFromRegistry;
 
 
+  memscan:=tmemscan.create(progressbar1);
+  foundlist:=tfoundlist.create(foundlist3,memscan);
 
-
+  InitializeLuaScripts;
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
@@ -5529,16 +5535,12 @@ begin
 
 
 
-  if memscan=nil then
-    memscan:=tmemscan.create(progressbar1);
 
-  if foundlist=nil then
-    foundlist:=tfoundlist.create(foundlist3,memscan);
 
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle,wm_scandone);
 
-  InitializeLuaScripts;
+
 
 
   panel5resize(panel5);
@@ -5832,10 +5834,11 @@ begin
 //  s:=item.SubItems[0];
 
 
-
-
-  if foundlist.inmodule(item.index) then
-    foundlist3.Canvas.Font.Color:=clgreen;
+  if foundlist<>nil then
+  begin
+    if foundlist.inmodule(item.index) then
+      foundlist3.Canvas.Font.Color:=clgreen;
+  end;
 end;
 
 resourcestring

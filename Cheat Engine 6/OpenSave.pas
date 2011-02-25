@@ -1067,6 +1067,8 @@ begin
       stream.Write(b^, ActuallyRead);
   end;
 
+  freemem(b);
+
   d.free;
   f.free;
 end;
