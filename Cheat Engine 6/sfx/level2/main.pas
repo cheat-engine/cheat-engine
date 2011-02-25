@@ -67,9 +67,16 @@ begin
     z.free;
     s.free;
 
+
     ceexe:=launchdir+'cheatengine-x86_64.exe';
     if not FileExists(ceexe) then
+    begin
       ceexe:=launchdir+'cheatengine-i386.exe';
+
+      //dbghelp32.dll needs to be in win32
+      CreateDir(launchdir+'win32');
+      MoveFile(pchar(launchdir+'dbghelp.dll'), pchar(launchdir+'win32\dbghelp.dll'));
+    end;
 
 
     if FileExists(launchdir+'CET_TRAINER.CETRAINER') then
