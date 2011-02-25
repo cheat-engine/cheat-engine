@@ -169,6 +169,7 @@ begin
         begin
           addfile(cheatenginedir+'cheatengine-i386.exe');
           addfile(cheatenginedir+'lua5.1-32.dll');
+          addfile(cheatenginedir+'win32\dbghelp32.dll');
 
           if cbSpeedhack.checked then
             addfile(cheatenginedir+'speedhack-i386.dll');
