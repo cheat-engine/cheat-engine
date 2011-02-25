@@ -61,13 +61,16 @@ uses
 procedure HandleParameters;
 {Keep in mind: Responsible for not making the mainfor visible}
 var i: integer;
+  mainformvisible: boolean;
 begin
+  mainformvisible:=true;
   try
+
     for i:=0 to Paramcount do
     begin
       if (pos('.CETRAINER', paramstr(i))>0) or (pos('.CT', paramstr(i))>0) then
       begin
-        mainform.visible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
+        mainformvisible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
         LoadTable(paramstr(i),false);
 
         if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then
@@ -79,6 +82,8 @@ begin
     end;
   except
   end;
+
+  mainform.visible:=mainformvisible;
 end;
 
 begin
@@ -100,10 +105,7 @@ begin
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
 
-  if paramcount >= 1 then
-    handleparameters
-  else
-    mainform.visible:=true;
+  handleparameters;
 
   Application.Run;
 end.
