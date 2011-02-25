@@ -667,6 +667,10 @@ object MemoryBrowser: TMemoryBrowser
     object MenuItem3: TMenuItem
       Caption = '-'
     end
+    object MenuItem9: TMenuItem
+      Caption = 'Change fade timer'
+      OnClick = MenuItem9Click
+    end
     object miLock: TMenuItem
       Caption = 'Link with other hexview'
     end

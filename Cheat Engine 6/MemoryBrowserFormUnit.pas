@@ -22,6 +22,7 @@ type
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
     miDisassembly64: TMenuItem;
     miDisassemblyAutodetect: TMenuItem;
@@ -213,6 +214,7 @@ type
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
+    procedure MenuItem9Click(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miConditionalBreakClick(Sender: TObject);
     procedure miDeleteBPClick(Sender: TObject);
@@ -418,6 +420,8 @@ type
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
+
+
 
     thhandle: Thandle;
 
@@ -980,6 +984,14 @@ end;
 procedure TMemoryBrowser.MenuItem8Click(Sender: TObject);
 begin
   TFrmTracer.create(self,true).show;
+end;
+
+procedure TMemoryBrowser.MenuItem9Click(Sender: TObject);
+var stime: string;
+begin
+  stime:=inttostr(hexview.fadetimer);
+  if InputQuery('How long should a change be shown?','Change display fader', stime) then
+    hexview.fadeTimer:=strtoint(stime);
 end;
 
 procedure TMemoryBrowser.miAddESPClick(Sender: TObject);

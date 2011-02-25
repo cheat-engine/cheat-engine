@@ -110,6 +110,7 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
   public
+    fadetimer: integer;
     procedure LockRowsize;
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
@@ -1336,9 +1337,10 @@ begin
       end;
 
 
-      if gettickcount-changelist.LastChange[itemnr]<1000 then
+      if gettickcount-changelist.LastChange[itemnr]<fadetimer then
       begin
-        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((1000-(gettickcount-changelist.LastChange[itemnr]))/10, clRed, offscreenbitmap.canvas.Brush.Color);
+//        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/10, clRed, offscreenbitmap.canvas.Brush.Color);
+        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/(fadetimer div 100), clRed, offscreenbitmap.canvas.Brush.Color);
         if offscreenbitmap.canvas.Font.Color=clred then
           offscreenbitmap.canvas.Font.Color:=clBlue;
       end;
@@ -1558,7 +1560,7 @@ end;
 constructor THexView.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
-
+  fadetimer:=1000;
   backlist:=TStack.create;
 
   MemoryMap:=TMap.create(ituPtrSize, sizeof(TPageinfo));

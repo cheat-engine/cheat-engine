@@ -442,7 +442,7 @@ end;
 
 function TStructure.readProcessMemoryS(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 begin
-  if (overrideReadWith=nil) or (ptruint(lpBaseAddress)>=(overrideReadBase+overrideReadSize)) then
+  if (overrideReadWith=nil) or (ptruint(lpBaseAddress)<overrideReadBase) or ((ptrUint(lpBaseAddress)-overrideReadBase)+nSize > overrideReadSize) then
     result:=ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead)
   else
   begin
