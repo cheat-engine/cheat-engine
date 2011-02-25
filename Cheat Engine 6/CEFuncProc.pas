@@ -14,6 +14,7 @@ ComCtrls,
 assemblerunit,
 imagehlp,
 registry,
+ExtCtrls,
 
 {$ifdef netclient}
 netapis,
@@ -180,6 +181,7 @@ procedure SetLanguage;
 procedure DetachIfPossible;
 
 procedure getexecutablememoryregionsfromregion(start: ptrUint; stop:ptrUint; var memoryregions: TMemoryRegions);
+
 
 const
   Exact_value = 0;
@@ -635,6 +637,15 @@ type
                       );
          end;
 
+type TPopupwindow=class(ttimer)
+    f: tcustomform;
+  public
+
+    procedure DoOnTimer; override;
+    constructor create(form: Tcustomform);
+end;
+
+
 var
   systeminfo: SYSTEM_INFO;
 
@@ -645,6 +656,19 @@ implementation
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit;
 
+procedure TPopupwindow.DoOnTimer;
+begin
+  inherited doontimer;
+  f.BringToFront;
+  enabled:=false;
+end;
+
+constructor TPopupwindow.create(form: Tcustomform);
+begin
+  inherited create(nil);
+  interval:=500;
+  enabled:=true;
+end;
 
 function ProcessID: dword;
 begin

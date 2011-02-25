@@ -796,6 +796,7 @@ procedure TMainForm.setIsProtected(p: boolean); //super unhackable protection ye
 var i: integer;
 begin
   fIsProtected:=p;
+
   if p then
   begin
 
@@ -5924,6 +5925,7 @@ end;
 procedure TMainForm.actSaveExecute(Sender: TObject);
 var protect: boolean;
 begin
+  protect:=false;
   if (savedialog1.FileName='') and (opendialog1.filename<>'') then
   begin
     //set the filename the table was opened with to the filename you save as default to

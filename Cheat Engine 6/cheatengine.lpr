@@ -88,6 +88,9 @@ begin
     begin
       //first visible window in the formlist becomes the new taskbar window
       tceform(mainform.luaforms[i]).ShowInTaskBar:=stAlways;
+
+      TPopupwindow.create(tceform(mainform.luaforms[i]));
+
       break;
     end;
 

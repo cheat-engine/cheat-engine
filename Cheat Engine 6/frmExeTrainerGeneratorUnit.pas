@@ -169,7 +169,7 @@ begin
         begin
           addfile(cheatenginedir+'cheatengine-i386.exe');
           addfile(cheatenginedir+'lua5.1-32.dll');
-          addfile(cheatenginedir+'win32\dbghelp32.dll');
+          addfile(cheatenginedir+'win32\dbghelp.dll');
 
           if cbSpeedhack.checked then
             addfile(cheatenginedir+'speedhack-i386.dll');
@@ -251,7 +251,7 @@ begin
         EndUpdateResource(updatehandle, false);
       end else raise exception.create('Failure opening the trainer for resource updates');
     end;
-
+    showmessage('The trainer has been successfully generated');
   finally
     if _archive<>nil then
       freeandnil(_archive);
@@ -259,7 +259,7 @@ begin
     saving:=false;
     button2.enabled:=true;
 
-    showmessage('The trainer has been successfully generated');
+
   end;
 end;
 
