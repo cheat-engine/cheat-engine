@@ -220,6 +220,7 @@ begin
   minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
   minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
 
+  {$ifdef cpu64}
   if processhandler.is64bit then
   begin
     minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
@@ -231,6 +232,7 @@ begin
     minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
     minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
   end;
+  {$endif}
 
   minfo.lines.add('');
   minfo.lines.add('');
