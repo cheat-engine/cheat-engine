@@ -32,14 +32,17 @@ var launchdir: string;
   ProcessInformation: TPROCESSINFORMATION;
   is32bit: boolean;
   filename: string;
+  selfpath: string;
 begin
+  selfpath:=ExtractFilePath(GetModuleName(0));
   size:=0;
-  launchdir:=ExtractFilePath(GetModuleName(0))+'extracted\';
+  launchdir:=selfpath+'extracted\';
   CreateDir(launchdir);
-  archivename:=launchdir+'CET_Archive.dat';
+  archivename:=selfpath+'CET_Archive.dat';
 
   filelist:=TStringList.create;
   is32bit:=false;
+
 
   if FileExists(archivename) then
   begin
@@ -88,6 +91,7 @@ begin
 
 
     ceexe:=launchdir+ExtractFileName(GetModuleName(0));
+
 
     if is32bit then
     begin
