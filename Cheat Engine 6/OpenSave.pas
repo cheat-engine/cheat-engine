@@ -985,6 +985,7 @@ begin
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
     luascript.TextContent:=mainform.frmLuaTableScript.assemblescreen.text;
+    mainform.frmLuaTableScript.assemblescreen.MarkTextAsSaved;
   end;
   WriteXMLFile(doc, filename);
 

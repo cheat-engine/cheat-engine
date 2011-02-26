@@ -287,6 +287,7 @@ begin
   GlobalDesignHook.AddHandlerGetMethods(onGetMethods);
   GlobalDesignHook.AddHandlerModified(Modified);
 
+
   GlobalDesignHook.AddHandlerMethodExists(MethodExists);
 
   loadedfromsave:=loadformposition(self, x);
@@ -472,7 +473,12 @@ end;
 
 procedure TFormDesigner.OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
 begin
+  //TypeData.ParamCount
 
+  //get the function list (look for "function","functionname", "("   )
+  proc('bla1');
+  proc('bla2');
+  proc('bla3');
 end;
 
 procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction);

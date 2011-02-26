@@ -1,4 +1,4 @@
-package.path = package.path .. ";?.lua";
+
 
 --This lua script gets loaded when Cheat Engine loads
 --You can use this to define some often used functions and libraries you'd like to use
@@ -188,81 +188,80 @@ require("class");
 
 
 --Component Class: (Inheritance: Object)
---component_getComponentCount(Component)
---component_getComponent(Component, index)
---component_getName(Component)
---component_setName(Component, newname)
---component_getTag(Component)
---component_setTag(Component, tagvalue)
---component_getOwner(Component)
+--component_getComponentCount(Component) : Returns the number of components attached to his component
+--component_getComponent(Component, index) : Returns the specific component
+--component_getName(Component) : Return the name
+--component_setName(Component, newname) : Changes the name
+--component_getTag(Component) : Sets an integer value. You can use this for ID's
+--component_setTag(Component, tagvalue) : Get the tag value
+--component_getOwner(Component) : Returns the owner of this component
 
 
 
 --Control Class: (Inheritance: Component->Object)
 --control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
---control_getCaption(control)
+--control_getCaption(control) : Returns the text of the control
 --control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
 --control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
---control_setSize(control, width,height) :
---control_getSize(control)
---control_setalign(control, alignmentoption): 
---control_getalign(control, alignmentoption):
---control_onClick(control, functionnameorstring) : 
---control_getEnabled(control)
---control_setEnabled(control, boolean)
---control_getVisible(control)
---control_setVisible(control, boolean)
---control_getColor(control)
---control_setColor(control, rgb)
+--control_setSize(control, width,height) : Sets the width and height of the control
+--control_getSize(control) : Sets the size of the control
+--control_setAlign(control, alignmentoption): sets the alignment of the control
+--control_getAlign(control, alignmentoption): gets the alignment of the control
+--control_getEnabled(control) : gets the enabled state of the control
+--control_setEnabled(control, boolean) : Sets the enabled state of the control
+--control_getVisible(control) : Sets the visible state of the control
+--control_setVisible(control, boolean) : Gets the visible state of the control
+--control_getColor(control) : gets the color
+--control_setColor(control, rgb) : Sets the color
 --control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
---control_setParent(control)
+--control_setParent(control) : Sets the parent for this control
+--control_onClick(control, functionnameorstring) : Sets the onclick routine
 
 
 --WinControl Class: (Inheritance: Control->Component->Object)
---wincontrol_getControlCount(control)
---wincontrol_getControl(control,index) : Returns a Control class object
---wincontrol_OnEnter(control, function)
---wincontrol_onExit(control, function)
+--wincontrol_getControlCount(control)  Returns the number of Controls attached to this class
+--wincontrol_getControl(control,index) : Returns a WinControl class object
 --wincontrol_canFocus(control): returns true if the object can be focused
 --wincontrol_focused(control): returns boolean true when focused
 --wincontrol_setFocus(control): tries to set keyboard focus the object
+--wincontrol_OnEnter(control, function) : Sets an onEnter event. (Triggered on focus enter)
+--wincontrol_onExit(control, function) : Sets an onExit event. (Triggered on lost focus)
 
 
 --Strings Class: (Inheritance : Object) (Mostly an abstract class)
---strings_add(list, string)
---strings_clear(list)
---strings_delete(list, index)
---strings_append(strings, string)
---strings_getText(strings)
+--strings_clear(list) : Deletes all strings in the list
+--strings_add(list, string) : adds a string to the list
+--strings_delete(list, index) : Deletes a string from the list
+--strings_getText(strings) : Returns all the strings as one big string
 --strings_indexOf(list, string): Returns the index of the specified string. Returns -1 if not found
---strings_insert(list, index, string)
+--strings_insert(list, index, string): Inserts a string at a specific spot moving the items after it
 
---strings_getCount(list)
---strings_remove(list, string);
---strings_loadFromFile(list, filename)
---strings_saveToFile(list, filename)
+--strings_getCount(list): Returns the number is strings in the list
+--strings_remove(list, string); Removes the given string from the list
+--strings_loadFromFile(list, filename) : Load the strings from a textfile
+--strings_saveToFile(list, filename) : Save the strings to a textfile
 
---strings_getString(list, index)
---strings_setString(list, index, string)
+--strings_getString(list, index) : gets the string at the given index
+--strings_setString(list, index, string) : Replaces the string at the given index
 
 
 
 --Stringlist Class: (Inheritance : Strings->Object)
---stringlist_getDuplicates(list)
---stringlist_setDuplicates(list, Duplicates)
---stringlist_getSorted(list)
---stringlist_setSorted(list, boolean)
---stringlist_getCaseSensitive(list)
---stringlist_setCaseSensitive(list, boolean)
+--stringlist_getDuplicates(list) : returns the duplicates property
+--stringlist_setDuplicates(list, Duplicates) : Sets the duplicates property
+--stringlist_getSorted(list) : returns true if the list has the sorted property
+--stringlist_setSorted(list, boolean) : Sets the sorted property
+--stringlist_getCaseSensitive(list) : Returns true if the case sensitive property is set
+--stringlist_setCaseSensitive(list, boolean): Sets the case sensitive property
 
 
 --Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
---form_centerScreen(form);
+--form_centerScreen(form); : Places the form at the center of the screen
+--form_hide(form) : Hide the form
+--form_show(form) : show the form
+--form_showModal(form) : show the form and wait for it to close and get the close result
+--form_isForegroundWindow(form): returns true if the specified form has focus
 --form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
---form_hide(form)
---form_show(form)
---form_showModal(form)
---form_isForegroundWindow(form): retrns true if the specified form has focus
 
 
 --GraphicControl Class: (Inheritance: Control->Component->Object)

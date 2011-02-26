@@ -93,6 +93,7 @@ begin
 
       tceform(mainform.luaforms[i]).formstyle:=fsNormal;
 
+      application.title:=tceform(mainform.luaforms[i]).Caption;
      // TPopupwindow.create(tceform(mainform.luaforms[i]));
 
       break;

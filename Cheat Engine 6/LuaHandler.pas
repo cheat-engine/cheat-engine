@@ -3226,20 +3226,6 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function strings_append_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  strings: TStrings;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    strings:=lua_touserdata(L, -2);
-    strings.Append(lua_tostring(L, -1));
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
 
 function strings_getText_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -5848,6 +5834,8 @@ function findTableFile_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: string;
   i: integer;
+
+  s: tmemorystream;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -5858,7 +5846,8 @@ begin
     for i:=0 to mainform.LuaFiles.count-1 do
       if TLuafile(mainform.Luafiles[i]).name=f then
       begin
-        lua_pushlightuserdata(L, TLuafile(mainform.Luafiles[i]));
+        s:=TLuafile(mainform.Luafiles[i]).stream;
+        lua_pushlightuserdata(L, TLuafile(s));
         result:=1;
       end;
 
@@ -7063,7 +7052,6 @@ begin
     lua_register(LuaVM, 'strings_add', strings_add_fromLua);
     lua_register(LuaVM, 'strings_clear', strings_clear_fromLua);
     lua_register(LuaVM, 'strings_delete', strings_delete_fromLua);
-    lua_register(LuaVM, 'strings_append', strings_append_fromLua);
     lua_register(LuaVM, 'strings_getText', strings_getText_fromLua);
     lua_register(LuaVM, 'strings_indexOf', strings_indexOf_fromLua);
     lua_register(LuaVM, 'strings_insert', strings_insert_fromLua);
@@ -7283,7 +7271,7 @@ begin
 
 
       //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
-
+      s.add('package.path = package.path .. ";?.lua";');
       s.add('stringlist_getCount=strings_getCount');
       s.add('stringlist_getString=strings_getString');
       s.add('stringlist_add=strings_add');
