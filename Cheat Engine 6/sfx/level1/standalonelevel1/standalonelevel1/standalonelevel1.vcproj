@@ -60,7 +60,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\..\..\bin\$(ProjectName).exe"
+				AdditionalDependencies="shlwapi.lib"
+				OutputFile="..\..\..\..\bin\standalonephase1.dat"
 				LinkIncremental="2"
 				UACExecutionLevel="2"
 				GenerateDebugInformation="true"
@@ -134,6 +135,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="..\..\..\..\bin\standalonephase1.dat"
 				LinkIncremental="1"
 				UACExecutionLevel="2"

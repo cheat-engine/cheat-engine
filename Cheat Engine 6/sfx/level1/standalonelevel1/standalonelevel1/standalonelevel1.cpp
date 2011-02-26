@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <AccCtrl.h>
 #include <Sddl.h>
+#include <shlwapi.h>
 
 BOOL CreateMyDACL(SECURITY_ATTRIBUTES *);
 
@@ -21,11 +22,17 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	char tempdir[MAX_PATH];
 	char Decompressor[MAX_PATH];
 	char Archive[MAX_PATH];
+	char SelfName[MAX_PATH];
 	SECURITY_ATTRIBUTES  sa;
+
+
       
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.bInheritHandle = FALSE; 
     CreateMyDACL(&sa);
+
+	GetModuleFileNameA(NULL, SelfName, MAX_PATH);
+	PathStripPath(SelfName);
 
 
 	char tempfolder[MAX_PATH];
@@ -83,7 +90,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 			  strcpy(Decompressor, tempdir);
 			  strcat(Decompressor, "\\");
-			  strcat(Decompressor, "CET_Decompressor.exe");
+			  strcat(Decompressor, SelfName);
 			
 			  h=CreateFile(Decompressor, GENERIC_WRITE,FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			  if (h)

@@ -20,7 +20,7 @@ var launchdir: string;
   z: Tdecompressionstream;
   size: dword;
 
-  filename: pchar;
+  temp: pchar;
   outfile: Tfilestream;
 
   filelist: TStringList;
@@ -31,23 +31,42 @@ var launchdir: string;
   startupinfo: TSTARTUPINFO;
   ProcessInformation: TPROCESSINFORMATION;
   is32bit: boolean;
+  filename: string;
 begin
   size:=0;
-  launchdir:=ExtractFilePath(GetModuleName(0)){$ifndef release}+'testtrainer\'{$endif};
+  launchdir:=ExtractFilePath(GetModuleName(0))+'extracted\';
+  CreateDir(launchdir);
   archivename:=launchdir+'CET_Archive.dat';
 
   filelist:=TStringList.create;
+  is32bit:=false;
 
   if FileExists(archivename) then
   begin
+
+
     s:=TFileStream.Create(archivename, fmOpenRead);
     z:=Tdecompressionstream.create(s, true);
 
     while z.read(size, sizeof(size))>0 do //still has a file
     begin
-      getmem(filename, size+1);
-      z.read(filename^, size);
-      filename[size]:=#0;
+      getmem(temp, size+1);
+      z.read(temp^, size);
+      temp[size]:=#0;
+
+      filename:=temp;
+      if filename='cheatengine-i386.exe' then
+      begin
+        is32bit:=true;
+        filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
+      end;
+
+      if filename='cheatengine-x86_64.exe' then
+      begin
+        is32bit:=false;
+        filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
+      end;
+
 
       filelist.add(launchdir+filename);
       {$ifndef release}
@@ -61,25 +80,21 @@ begin
       outfile.CopyFrom(z, size);
       outfile.free;
 
-      freemem(filename);
+      freemem(temp);
     end;
 
     z.free;
     s.free;
 
 
-    ceexe:=launchdir+'cheatengine-x86_64.exe';
-    if not FileExists(ceexe) then
-    begin
-      is32bit:=true;
-      ceexe:=launchdir+'cheatengine-i386.exe';
+    ceexe:=launchdir+ExtractFileName(GetModuleName(0));
 
+    if is32bit then
+    begin
       //dbghelp32.dll needs to be in win32
       CreateDir(launchdir+'win32');
       MoveFile(pchar(launchdir+'dbghelp.dll'), pchar(launchdir+'win32\dbghelp.dll'));
-    end
-    else
-      is32bit:=false;
+    end;
 
 
     if FileExists(launchdir+'CET_TRAINER.CETRAINER') then
@@ -96,11 +111,9 @@ begin
 
   end;
 
-
   if is32bit then
   begin
-    //cleanup the win32 folder
-    deletefile(launchdir+'win32\dbghelp.dll');
+    DeleteFile(launchdir+'win32\dbghelp.dll');
     RemoveDir(launchdir+'win32');
   end;
 
@@ -110,7 +123,7 @@ begin
       deletefile(filelist[i]);
   end;
 
-
+  removedir(launchdir);
 end;
 
 

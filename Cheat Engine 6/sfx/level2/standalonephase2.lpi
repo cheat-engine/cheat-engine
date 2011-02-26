@@ -69,7 +69,7 @@
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="11" Y="18"/>
+        <CursorPos X="6" Y="14"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -81,8 +81,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="64"/>
-        <CursorPos X="1" Y="75"/>
+        <TopLine Value="97"/>
+        <CursorPos X="127" Y="92"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -115,7 +115,7 @@
         <Loaded Value="True"/>
       </Unit4>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="main.pas"/>
         <Caret Line="46" Column="1" TopLine="24"/>
@@ -228,6 +228,10 @@
         <Filename Value="main.pas"/>
         <Caret Line="75" Column="16" TopLine="64"/>
       </Position28>
+      <Position29>
+        <Filename Value="standalonephase2.lpr"/>
+        <Caret Line="18" Column="11" TopLine="1"/>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
