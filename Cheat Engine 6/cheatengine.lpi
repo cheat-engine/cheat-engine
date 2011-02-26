@@ -1777,8 +1777,8 @@
         <UnitName Value="LuaHandler"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="5831"/>
-        <CursorPos X="1" Y="5850"/>
+        <TopLine Value="7182"/>
+        <CursorPos X="1" Y="7208"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1855,7 +1855,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1993"/>
         <CursorPos X="53" Y="2011"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="92"/>
       </Unit150>
       <Unit151>
         <Filename Value="luaJit.pas"/>
@@ -1886,11 +1886,11 @@
       </Unit153>
       <Unit154>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="107"/>
         <CursorPos X="3" Y="123"/>
-        <UsageCount Value="87"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
       </Unit154>
       <Unit155>
@@ -2057,7 +2057,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1092"/>
         <CursorPos X="31" Y="1108"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="53"/>
       </Unit174>
       <Unit175>
         <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
@@ -2090,7 +2090,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="124"/>
         <CursorPos X="10" Y="140"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="38"/>
       </Unit178>
       <Unit179>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -2209,10 +2209,14 @@
         <ComponentName Value="frmExeTrainerGenerator"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmExeTrainerGeneratorUnit"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="158"/>
-        <CursorPos X="20" Y="164"/>
+        <TopLine Value="119"/>
+        <CursorPos X="3" Y="134"/>
         <UsageCount Value="212"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit192>
       <Unit193>
@@ -2229,7 +2233,6 @@
         <Filename Value="xmplayer_server.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xmplayer_server"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="62"/>
@@ -2389,7 +2392,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="185"/>
         <CursorPos X="3" Y="243"/>
-        <UsageCount Value="150"/>
+        <UsageCount Value="152"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit213>
       <Unit214>
@@ -2443,7 +2446,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="197"/>
         <CursorPos X="1" Y="84"/>
-        <UsageCount Value="91"/>
+        <UsageCount Value="93"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit220>
       <Unit221>
@@ -2483,129 +2486,129 @@
         <WindowIndex Value="0"/>
         <TopLine Value="566"/>
         <CursorPos X="3" Y="569"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit225>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5842" Column="1" TopLine="5831"/>
+        <Caret Line="5844" Column="1" TopLine="5831"/>
       </Position1>
       <Position2>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5844" Column="1" TopLine="5831"/>
+        <Caret Line="5845" Column="1" TopLine="5831"/>
       </Position2>
       <Position3>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5845" Column="1" TopLine="5831"/>
+        <Caret Line="5846" Column="1" TopLine="5831"/>
       </Position3>
       <Position4>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5846" Column="1" TopLine="5831"/>
+        <Caret Line="5847" Column="1" TopLine="5831"/>
       </Position4>
       <Position5>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5847" Column="1" TopLine="5831"/>
+        <Caret Line="5849" Column="39" TopLine="5831"/>
       </Position5>
       <Position6>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5849" Column="1" TopLine="5831"/>
+        <Caret Line="5850" Column="1" TopLine="5831"/>
       </Position6>
       <Position7>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5131" Column="40" TopLine="5124"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="74" Column="1" TopLine="62"/>
       </Position7>
       <Position8>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="75" Column="1" TopLine="62"/>
       </Position8>
       <Position9>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="2332" Column="11" TopLine="2319"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="78" Column="1" TopLine="62"/>
       </Position9>
       <Position10>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="664" Column="41" TopLine="656"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="79" Column="1" TopLine="62"/>
       </Position10>
       <Position11>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5849" Column="49" TopLine="5831"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="81" Column="1" TopLine="62"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5844" Column="1" TopLine="5831"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="82" Column="1" TopLine="62"/>
       </Position12>
       <Position13>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5845" Column="1" TopLine="5831"/>
+        <Filename Value="xmplayer_server.pas"/>
+        <Caret Line="84" Column="1" TopLine="62"/>
       </Position13>
       <Position14>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5846" Column="1" TopLine="5831"/>
+        <Caret Line="5841" Column="25" TopLine="5831"/>
       </Position14>
       <Position15>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5847" Column="1" TopLine="5831"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position15>
       <Position16>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5849" Column="1" TopLine="5831"/>
+        <Caret Line="10" Column="70" TopLine="1"/>
       </Position16>
       <Position17>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5850" Column="22" TopLine="5831"/>
+        <Caret Line="5894" Column="1" TopLine="5877"/>
       </Position17>
       <Position18>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5844" Column="1" TopLine="5831"/>
+        <Caret Line="6100" Column="13" TopLine="6074"/>
       </Position18>
       <Position19>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5845" Column="1" TopLine="5831"/>
+        <Caret Line="6735" Column="30" TopLine="6709"/>
       </Position19>
       <Position20>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5846" Column="1" TopLine="5831"/>
+        <Caret Line="6747" Column="25" TopLine="6721"/>
       </Position20>
       <Position21>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5847" Column="1" TopLine="5831"/>
+        <Caret Line="6751" Column="32" TopLine="6725"/>
       </Position21>
       <Position22>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5849" Column="39" TopLine="5831"/>
+        <Caret Line="6763" Column="27" TopLine="6737"/>
       </Position22>
       <Position23>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5850" Column="1" TopLine="5831"/>
+        <Caret Line="6900" Column="21" TopLine="6874"/>
       </Position23>
       <Position24>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="74" Column="1" TopLine="62"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="7001" Column="66" TopLine="6975"/>
       </Position24>
       <Position25>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="75" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="184" Column="109" TopLine="158"/>
       </Position25>
       <Position26>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="78" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position26>
       <Position27>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="79" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="20" Column="13" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="81" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="200" Column="20" TopLine="174"/>
       </Position28>
       <Position29>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="82" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="201" Column="41" TopLine="175"/>
       </Position29>
       <Position30>
-        <Filename Value="xmplayer_server.pas"/>
-        <Caret Line="84" Column="1" TopLine="62"/>
+        <Filename Value="frmExeTrainerGeneratorUnit.pas"/>
+        <Caret Line="287" Column="40" TopLine="275"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -2700,7 +2703,7 @@
       </Item9>
       <Item10>
         <Source Value="LuaHandler.pas"/>
-        <Line Value="6835"/>
+        <Line Value="6840"/>
       </Item10>
       <Item11>
         <Source Value="C:\lazarus\lcl\defaulttranslator.pas"/>

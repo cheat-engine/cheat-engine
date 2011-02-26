@@ -275,9 +275,9 @@ require("class");
 
 
 --Panel Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
---panel_getAlignment(panel)
---panel_setAlignment(panel, alignment)
---panel_getBevelInner(panel)
+--panel_getAlignment(panel) : gets the alignment property
+--panel_setAlignment(panel, alignment) : sets the alignment property
+--panel_getBevelInner(panel) 
 --panel_setBevelInner(panel, PanelBevel)
 --panel_getBevelOuter(panel)
 --panel_setBevelOuter(panel, PanelBevel) 
@@ -453,7 +453,6 @@ require("class");
 
 --findTableFile(filename): Returns the TableFile class object for the saved file
 
---xmplayer_initialize()
 --xmplayer_playXM(filename)
 --xmplayer_playXM(Stream)
 --xmplayer_pause()

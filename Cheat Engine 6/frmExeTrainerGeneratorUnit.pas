@@ -289,7 +289,7 @@ begin
   s:=lowercase(mainform.frmLuaTableScript.assemblescreen.Text);
 
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
-  cbXMPlayer.checked:=pos('xmplayer_initialize',s)>0;
+  cbXMPlayer.checked:=pos('xmplayer_',s)>0;
 
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default

@@ -5891,22 +5891,15 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
-function xmplayer_initialize_fromLua(L: Plua_State): integer; cdecl;
-var parameters: integer;
-begin
-  result:=0;
-  lua_pop(L, lua_gettop(L));
-
-  if xmplayer=nil then
-     xmplayer:=TXMPlayer.create; //launches the xmplayer exe if available
-end;
-
 function xmplayer_playXM_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
   f: string;
   i: integer;
 begin
+  if xmplayer=nil then
+    xmplayer:=TXMPlayer.create;
+
   result:=0;
   parameters:=lua_gettop(L);
   if (xmplayer<>nil) and (parameters=1) then
@@ -5923,6 +5916,9 @@ end;
 function xmplayer_pause_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
+  if xmplayer=nil then
+    xmplayer:=TXMPlayer.create;
+
   result:=0;
   lua_pop(L, lua_gettop(L));
 
@@ -5933,6 +5929,9 @@ end;
 function xmplayer_resume_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
+  if xmplayer=nil then
+    xmplayer:=TXMPlayer.create;
+
   result:=0;
   lua_pop(L, lua_gettop(L));
 
@@ -5943,6 +5942,9 @@ end;
 function xmplayer_stop_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
+  if xmplayer=nil then
+    xmplayer:=TXMPlayer.create;
+
   result:=0;
   lua_pop(L, lua_gettop(L));
 
@@ -5953,6 +5955,9 @@ end;
 function xmplayer_isPlaying_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
+  if xmplayer=nil then
+    xmplayer:=TXMPlayer.create;
+
   result:=0;
   lua_pop(L, lua_gettop(L));
 
@@ -7200,7 +7205,6 @@ begin
     Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile_fromLua);
     Lua_register(LuaVM, 'tablefile_getData', tablefile_getData_fromLua);
 
-    Lua_register(LuaVM, 'xmplayer_initialize', xmplayer_initialize_fromLua);
     Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM_fromLua);
     Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause_fromLua);
     Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume_fromLua);
