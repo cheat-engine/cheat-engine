@@ -6445,6 +6445,16 @@ begin
   result:=1;
 end;
 
+function getCurrentMemscan_fromLua(L: Plua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+
+  lua_pushlightuserdata(L, mainform.memscan);
+  result:=1;
+end;
+
+
+
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
@@ -6466,7 +6476,7 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=16 then
+  if parameters=15 then
   begin
     memscan:=lua_touserdata(L, -parameters);
     scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
@@ -6493,10 +6503,9 @@ begin
     isNotABinaryString:=lua_toboolean(L, -parameters+12);
     isunicodescan:=lua_toboolean(L, -parameters+13);
     iscasesensitive:=lua_toboolean(L, -parameters+14);
-    ispercentagescan:=lua_toboolean(L, -parameters+15);
 
     lua_pop(L, lua_gettop(L));
-    memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, alignmenttype, alignmentparam, nil );
+    memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, alignmenttype, alignmentparam, nil );
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -6557,6 +6566,24 @@ begin
     memscan.waittilldone;
   end else lua_pop(L, lua_gettop(L));
 end;
+
+function memscan_getAttachedFoundlist_fromLua(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+  memscan: Tmemscan;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memscan:=lua_touserdata(L, -parameters);
+    lua_pop(L, lua_gettop(L));
+
+    result:=1;
+    lua_pushlightuserdata(memscan.attachedFoundlist);
+  end else lua_pop(L, lua_gettop(L));
+end;
+
 
 function memscan_saveCurrentResults_fromLua(L: Plua_State): integer; cdecl;
 var
@@ -7200,10 +7227,13 @@ begin
     Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord_fromLua);
 
     Lua_register(LuaVM, 'createMemScan', createMemScan_fromLua);
+    Lua_register(LuaVM, 'getCurrentMemscan', getCurrentMemscan_fromLua);
     Lua_register(LuaVM, 'memscan_firstScan', memscan_firstScan_fromLua);
     Lua_register(LuaVM, 'memscan_nextScan', memscan_nextScan_fromLua);
     Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone_fromLua);
     Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults_fromLua);
+    Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist_fromLua);
+
 
     Lua_register(LuaVM, 'createFoundList', createFoundList_fromLua);
     Lua_register(LuaVM, 'foundlist_initialize', foundlist_initialize_fromLua);

@@ -546,13 +546,95 @@ require("class");
 
 
 --createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
+--getCurrentMemscan() : Returns the current memory scan object. If tabs are used the current tab's memscan object
 --MemScan Class (Inheritance: Object)
---memscan_firstScan(memscan, scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
+--memscan_firstScan(memscan, scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive);
+--  Does an initial scan.
+--  memscan: The MemScan object created with createMemScan
+--  scanOption: Defines what type of scan is done. Valid values for firstscan are:
+--    soUnknownValue: Unknown initial value scan
+--    soExactValue: Exact Value scan
+--    soValueBetween: Value between scan
+--    soBiggerThan: Bigger than ... scan
+--    soSmallerThan: smaller than ... scan
+--
+--  vartype: Defines the variable type. Valid variable types are:
+--    vtByte
+--    vtWord  --2 bytes
+--    vtDword --4 bytes
+--    vtQword --8 bytes
+--    vtSingle --float
+--    vtDouble
+--    vtString
+--    vtByteArray
+--    vtBinary
+--    vtAll
+--
+--  roundingtype: Defined the way scans for exact value floating points are handled
+--    rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
+--    rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+--    rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
+--
+--  input1: If required by the scanoption this is a string of the given variable type
+--  input2: If requires by the scanoption this is the secondary input
+--
+--  startAddress : The start address to scan from. You want to set this to 0
+--  stopAddress  : The address the scan should stop at. (You want to set this to 0xffffffffffffffff)
+-
+--  protectionflags : See aobscan about protectionflags
+--  alignmenttype : Scan alignment type. Valid options are:
+--    fsmNotAligned : No alignment check
+--    fsmAligned    : The address must be dividable by the value in alignmentparam
+--    fsmLastDigits : The last digits of the address must end with the digits provided by alignmentparam
+--
+--  alignmentparam : String that holds the alignment parameter.
+-- 
+--  isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
+--  isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
+--  isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
+--  iscasesensitive : When true and the vartype is vtString this check if the case matches
+
+    
+
+
 --memscan_nextScan(memscan, scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
---memscan_newscan(memscan);
+--  Does a next scan based on the current addresslist and values of the previous scan or values of a saved scan
+--  memscan: The MemScan object that has previously done a first scan
+--  scanoption:
+--    soExactValue: Exact Value scan
+--    soValueBetween: Value between scan
+--    soBiggerThan: Bigger than ... scan
+--    soSmallerThan: smaller than ... scan
+--    soIncreasedValue: Increased value scan
+--    soIncreasedValueBy: Increased value by scan
+--    soDecreasedValue: Decreased value scan
+--    soDecreasedValueBy: Decreased value by scan
+--    soChanged: Changed value scan
+--    soUnchanged: Unchanged value scan
+--  
+--  roundingtype: Defined the way scans for exact value floating points are handled
+--    rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
+--    rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+--    rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
+--  
+--  input1: If required by the scanoption this is a string of the given variable type
+--  input2: If requires by the scanoption this is the secondary input
+--
+--  isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
+--  isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
+--  isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
+--  iscasesensitive : When true and the vartype is vtString this check if the case matches
+--  ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
+--  savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
+
+
+--memscan_newscan(memscan) : Clears the current results
 --memscan_waitTillDone(memscan)
 --memscan_saveCurrentResults(memscan, name)
+--memscan_getAttachedFoundlist(memscan) : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
 
+--FoundList
+--The foundlist is an object that opens the current memscan's result file and provides an interface for reading out the addresses
 
 --createFoundList(memscan)
 --foundlist_initialize(foundlist)

@@ -1551,6 +1551,10 @@ end;
 procedure TMainform.exceptionhandler(Sender: TObject; E: Exception);
 begin
   screen.Cursor := crdefault;
+
+  //unhandled exeption. Also clean lua stack
+  lua_settop(luavm,0);
+
   MessageDlg(E.message, mtError, [mbOK], 0);
 end;
 
