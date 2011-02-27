@@ -6511,7 +6511,7 @@ begin
     else
       fastscanmethod:=fsmNotAligned;
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, fastscanmethod, edtAlignment.text, TCustomType(vartype.items.objects[vartype.itemindex]));
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, fastscanmethod, edtAlignment.text, TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 

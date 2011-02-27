@@ -6580,7 +6580,7 @@ begin
     lua_pop(L, lua_gettop(L));
 
     result:=1;
-    lua_pushlightuserdata(memscan.attachedFoundlist);
+    lua_pushlightuserdata(L,memscan.attachedFoundlist);
   end else lua_pop(L, lua_gettop(L));
 end;
 

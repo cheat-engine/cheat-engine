@@ -52,7 +52,7 @@ else if FElement.NodeName='binary' then
 interface
 
 uses
-  LCLIntf, LCLStrConsts, Classes, SysUtils, FileUtil, Forms, Controls, Graphics,
+  LCLIntf, LCLStrConsts,strutils, Classes, SysUtils, FileUtil, Forms, Controls, Graphics,
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
@@ -120,6 +120,11 @@ type
 
     fOnClose2: TCloseEvent;
     loadedfromsave: boolean;
+
+    methodlist: tstringlist;
+    lastupdate: uint64;
+    procedure UpdateMethodListIfNeeded;
+
     procedure OIDDestroy(sender: Tobject);
     function MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
   public
@@ -167,6 +172,8 @@ implementation
 
 { TFormDesigner }
 
+
+uses mainunit;
 
 
 procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
@@ -291,6 +298,9 @@ begin
   GlobalDesignHook.AddHandlerMethodExists(MethodExists);
 
   loadedfromsave:=loadformposition(self, x);
+
+  methodlist:=tstringlist.create;
+  UpdateMethodListIfNeeded;
 end;
 
 
@@ -302,6 +312,8 @@ end;
 procedure TFormDesigner.FormDestroy(Sender: TObject);
 begin
   saveformposition(self,[]);
+  if methodlist<>nil then
+    freeandnil(methodlist);
 end;
 
 procedure TFormDesigner.FormShow(Sender: TObject);
@@ -471,14 +483,61 @@ begin
   end;
 end;
 
+procedure TFormDesigner.UpdateMethodListIfNeeded;
+var s: string;
+  i: integer;
+  z: pchar;
+  sp: TStringSearchOptions;
+begin
+  if lastupdate<MainForm.frmLuaTableScript.assemblescreen.ChangeStamp then
+  begin
+    lastupdate:=MainForm.frmLuaTableScript.assemblescreen.ChangeStamp;
+
+    //get the list
+    methodlist.clear;
+
+    s:=MainForm.frmLuaTableScript.assemblescreen.Text;
+
+    z:=nil;
+    sp:=[soDown, soWholeWord];
+    z:=SearchBuf(pchar(s), length(s), 0,length(s), 'function', sp);
+    if z<>nil then
+    begin
+      showmessage(z);
+
+    end;
+
+   // s:=lowercase(s);
+ {
+    repeat
+      i:=pos('function',s);
+      if i>0 then
+      begin
+
+      end;
+    until i=0;
+   // i:=pos('function',s);
+   // while i>0 do
+                      }
+
+
+
+
+
+  end;
+end;
+
 procedure TFormDesigner.OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
 begin
   //TypeData.ParamCount
 
   //get the function list (look for "function","functionname", "("   )
+  UpdateMethodListIfNeeded;
+ {
   proc('bla1');
   proc('bla2');
-  proc('bla3');
+  proc('bla3'); }
+
 end;
 
 procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction);

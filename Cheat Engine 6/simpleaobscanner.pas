@@ -54,7 +54,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true,  false, false, false,false, alignmenttype, alignmentparam);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true,  false, false, false, alignmenttype, alignmentparam);
 
   ms.waittilldone; //wait till it's finished scanning
 
@@ -98,7 +98,7 @@ begin
       max:=$7fffffff;
   end;
 
-  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true, false, false, false,false, fsmNotAligned);
+  ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true, false, false, false, fsmNotAligned);
 
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then

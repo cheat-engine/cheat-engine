@@ -104,7 +104,7 @@ begin
     Controls[i].Enabled:=false;
 
 
-  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false,false, fsmNotAligned);
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
 
 
     {
