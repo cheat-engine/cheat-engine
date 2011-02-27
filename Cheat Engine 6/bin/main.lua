@@ -9,10 +9,16 @@ require("class");
 --
 --List of CE specific functions:
 --note: addresses can be strings, they will get interpreted by ce's symbolhandler
---readBytes(address,bytecount) : Reads the bytes at the given address and returns it
---writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address
---readBytesLocal(address,bytecount) : See readBytes but then it's for Cheat engine's memory
+--readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
+--  Reads the bytes at the given address and returns a table containing the read out bytes
+
+--writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address from a table
+--writeBytes(address, table, count) : Write the given bytes to the given address from a table 
+
+
+--readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
 --writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
+--writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 --readInteger(address) : Reads a integer from the specified address
 --readFloat(address) : Reads a single precision floating point value from the specified address
 --readDouble(address) : Reads a double precision floating point value from the specified address
@@ -68,8 +74,8 @@ require("class");
 
 --debug variables
 --EFLAGS
---EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
---RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
+--32-bit: EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP 
+--64-bit: RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
 
 --Debug related routines:
 --function debugger_onBreakpoint():
@@ -87,13 +93,10 @@ require("class");
 
 
 
-
 --Changing registers:
---This annoying method has been chosen because LUA only supports encoding up to 52-bits, after which rounding will happen
---So automatically setting the new value would surely cause unpredictable behaviour if the target app uses higher values
+--Different from ce 6.0
+--When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
---hasChangedARegister : Set this to true before continuing and the changedREG variables will be checked to see if the new value should be set (just an optimization so not every variable has to be checked each time even if you didn't change a thing)
---changedEAX, changedRAX, changedEBX, changedRBX, changed.....
 
 
 ------gui------
@@ -116,12 +119,6 @@ require("class");
 --createLabel(owner)
 --createEdit(owner)
 --createMemo(owner)
-
-
-
-
-
-
 --createTimer(owner)
 
 
@@ -132,12 +129,6 @@ require("class");
 --scans the currently opened process and returns a stringlist containing all the results. don't forget to free this list when done
 --Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
 --AOBScan(aobstring): see above but here you just input one string
-
-
-
-
-
-
 
 
 
@@ -598,7 +589,15 @@ require("class");
 
 
 
-
+--dbk_initialize() : Returns true if the dbk driver is loaded in memory. False if it failed for whatever reason (e.g 64-bit and not booted with unsigned driver support)
+--dbk_useKernelmodeOpenProcess() : Switches the internal pointer of the OpenProcess api to dbk_OpenProcess
+--dbk_useKernelmodeProcessMemoryAccess() : Switches the internal pointer to the ReadProcessMemory and WriteProcessMemory apis to dbk_ReadProcessMemory and dbk_WriteProcessMemory
+--dbk_useKernelmodeQueryMemoryRegions() : Switches the internal pointer to the QueryVirtualMemory api to dbk_QueryVirtualMemory
+--dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of the selected processid
+--dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
+--dbk_executeKernelMemory(address, parameter) : 
+  --Executes a routine from kernelmode (e.g a routine written there with auto assembler)
+  --parameter can be a value or an address. It's up to your code how it's handled
 
 
 

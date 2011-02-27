@@ -32,7 +32,7 @@ implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
-  cesupport;
+  cesupport, DBK32functions;
 
 
 
@@ -133,93 +133,6 @@ begin
       begin
         LUA_SetCurrentContextState(context);
 
-        //set the "changedREG" variables
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'hasChangedARegister');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEAX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEBX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedECX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEDX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedESI');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEDI');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEBP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedESP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEIP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedEFLAGS');
-
-        {$ifdef cpu64}
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRAX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRBX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRCX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRDX');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRSI');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRDI');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRBP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRSP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedRIP');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR8');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR9');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR10');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR11');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR12');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR13');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR14');
-
-        lua_pushboolean(luavm, false);
-        lua_setglobal(luavm, 'changedR15');
-        {$endif}
-
 
        // lua_pop(LuaVM, lua_gettop(luavm));
         p:=lua_gettop(luavm);
@@ -236,208 +149,110 @@ begin
 
           //set new state if changes where made
 
-          lua_getglobal(luavm, 'hasChangedARegister');
-          p:=lua_gettop(luavm);
-          if p<>0 then
+         //if p<>0 then
           begin
-            if lua_toboolean(luavm, -1) then
+          //  if lua_toboolean(luavm, -1) then
             begin
-              //hasChangedARegister is true, check which ones...
-              lua_settop(luavm, lua_gettop(luavm));
+              lua_getglobal(luavm, 'EFLAGS');
+              context.EFLAGS:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEAX');
-              if lua_toboolean(luavm, -1) then
+              if not processhandler.is64bit then
               begin
                 lua_getglobal(luavm, 'EAX');
-                context.{$ifdef cpu64}Rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEBX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'EBX');
-                context.{$ifdef cpu64}RBX{$else}EBX{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rbx{$else}ebx{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedECX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'ECX');
-                context.{$ifdef cpu64}RCX{$else}ECX{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rcx{$else}ecx{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEDX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'EDX');
-                context.{$ifdef cpu64}RDX{$else}EDX{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rdx{$else}edx{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedESI');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'ESI');
-                context.{$ifdef cpu64}RSI{$else}ESI{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rsi{$else}esi{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEDI');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'EDI');
-                context.{$ifdef cpu64}RDI{$else}EDI{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rdi{$else}edi{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEBP');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'EBP');
-                context.{$ifdef cpu64}RBP{$else}EBP{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rbp{$else}ebp{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEIP');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'EIP');
-                context.{$ifdef cpu64}RIP{$else}EIP{$endif}:=lua_tointeger(luavm, -1);
-              end;
+                context.{$ifdef cpu64}rip{$else}eip{$endif}:=lua_tointeger(luavm, -1);
 
-              lua_getglobal(luavm, 'changedEFLAGS');
-              if lua_toboolean(luavm, -1) then
+
+              end
+              else
               begin
-                lua_getglobal(luavm, 'EFLAGS');
-                context.EFLAGS:=lua_tointeger(luavm, -1);
-              end;
 
 
-              lua_pop(LuaVM, lua_gettop(luavm)); //clear stack (just to make sure no overflow happens, not even sure if it's needed)
 
               {$ifdef cpu64}
-              lua_getglobal(luavm, 'changedRAX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RAX');
                 context.RAX:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRBX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RBX');
                 context.RBX:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRCX');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RCX');
                 context.RCX:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRDX');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'RDX');
                 context.RDX:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRSI');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RSI');
                 context.RSI:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRDI');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'RDI');
                 context.RDI:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRBP');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RBP');
                 context.RBP:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRSP');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'RSP');
                 context.RSP:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedRIP');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'RIP');
                 context.RIP:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_pop(LuaVM, lua_gettop(luavm)); //clear stack (just to make sure no overflow happens, not even sure if it's needed)
 
-              lua_getglobal(luavm, 'changedR8');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'R8');
                 context.R8:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR9');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'R9');
                 context.R9:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR10');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'R10');
                 context.R10:=lua_tointeger(luavm, -1);
-              end;
 
-
-              lua_getglobal(luavm, 'changedR11');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'R11');
                 context.R11:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR12');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'R12');
                 context.R12:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR13');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'R13');
                 context.R13:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR14');
-              if lua_toboolean(luavm, -1) then
-              begin
+
                 lua_getglobal(luavm, 'R14');
                 context.R14:=lua_tointeger(luavm, -1);
-              end;
 
-              lua_getglobal(luavm, 'changedR15');
-              if lua_toboolean(luavm, -1) then
-              begin
                 lua_getglobal(luavm, 'R15');
                 context.R15:=lua_tointeger(luavm, -1);
-              end;
-
-
               {$endif}
 
-              lua_pop(luavm, lua_gettop(luavm));
+              end;
+
+              //lua_pop(luavm, lua_gettop(luavm));
 
             end;
           end;
@@ -1121,7 +936,10 @@ var paramcount: integer;
   i: integer;
   bytes: array of byte;
   x: dword;
+  tableversion: boolean;
 begin
+  tableversion:=false;
+  result:=0;
   paramcount:=lua_gettop(L);
 
   if lua_isstring(L, -paramcount) then
@@ -1130,7 +948,13 @@ begin
     addresstoread:=lua_tointeger(L,-paramcount);
 
   if paramcount>1 then
-    bytestoread:=lua_tointeger(L,-paramcount+1)
+  begin
+    bytestoread:=lua_tointeger(L,-paramcount+1);
+
+    if paramcount>2 then
+      tableversion:=lua_toboolean(L, -paramcount+2);
+
+  end
   else
     bytestoread:=1;
 
@@ -1139,10 +963,27 @@ begin
   setlength(bytes,bytestoread);
   ZeroMemory(@bytes[0], bytestoread);
   if ReadProcessMemory(processhandle, pointer(addresstoread), @bytes[0], bytestoread, x) then
-    for i:=0 to x-1 do
-      lua_pushinteger(L,bytes[i]);
+  begin
+    if tableversion then
+    begin
+      lua_newtable(L);
+      for i:=0 to x-1 do
+      begin
+        lua_pushinteger(L, i);
+        lua_pushinteger(L, bytes[i]);
+        lua_settable(L, -3);
+      end;
+      result:=1;
+    end
+    else
+    begin
+      for i:=0 to x-1 do
+        lua_pushinteger(L,bytes[i]);
+      result:=x;
+    end;
+  end;
 
-  result:=x;
+
 end;
 
 
@@ -1159,20 +1000,42 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount=0 then exit;
 
-  setlength(bytes,paramcount-1);
+
 
   if lua_isstring(L, -paramcount) then
     address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
   else
     address:=lua_tointeger(L,-paramcount);
 
-
-  j:=0;
-  for i:=(-paramcount)+1 to -1 do
+  if lua_istable(L, -paramcount+1) then
   begin
-    b:=lua_tointeger(L,i);
-    bytes[j]:=b;
-    inc(j);
+    paramcount:=lua_tointeger(L, -paramcount+2);
+
+
+    setlength(bytes,paramcount-1);
+
+    for i:=0 to paramcount-1 do
+    begin
+      lua_pushinteger(L,i);
+      lua_gettable(L, -3);
+
+      j:=lua_tointeger(L,-1);
+      showmessage(inttostr(i)+','+inttostr(j));
+      lua_pop(L,1);
+    end;
+  end
+  else
+  begin
+    setlength(bytes,paramcount-1);
+
+    j:=0;
+    for i:=(-paramcount)+1 to -1 do
+    begin
+      b:=lua_tointeger(L,i);
+      bytes[j]:=b;
+      inc(j);
+    end;
+
   end;
 
   x:=0;
@@ -3813,7 +3676,7 @@ begin
     s:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(l));
 
-    lua_pushnumber(L,symhandler.getAddressFromName(s));
+    lua_pushinteger(L,symhandler.getAddressFromName(s));
     result:=1;
   end
   else
@@ -6897,6 +6760,98 @@ begin
   result:=0;
 end;
 
+function dbk_initialize_fromLua(L: Plua_State): integer; cdecl;
+var x: bool;
+begin
+  LoadDBK32;
+  lua_pushboolean(L, isDriverLoaded(@x));
+  result:=1;
+end;
+
+function dbk_useKernelmodeOpenProcess_fromLua(L: Plua_State): integer; cdecl;
+begin
+  UseDBKOpenProcess;
+
+  result:=0;
+end;
+
+function dbk_useKernelmodeProcessMemoryAccess_fromLua(L: Plua_State): integer; cdecl;
+begin
+  UseDBKReadWriteMemory;
+  result:=0;
+end;
+
+function dbk_useKernelmodeQueryMemoryRegions_fromLua(L: Plua_State): integer; cdecl;
+begin
+  UseDBKQueryMemoryRegion;
+  result:=0;
+end;
+
+function dbk_getPEProcess_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  pid: dword;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    pid:=lua_tointeger(L,-1);
+
+    lua_pushinteger(L, GetPEProcess(pid));
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+function dbk_getPEThread_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  pid: dword;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    pid:=lua_tointeger(L,-1);
+
+    lua_pushinteger(L, GetPEThread(pid));
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+function dbk_executeKernelMemory_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  address: ptruint;
+  parameter: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+  begin
+    if lua_isstring(L, -paramcount) then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,-paramcount))
+    else
+      address:=lua_tointeger(L, -paramcount);
+
+    if paramcount>=2 then
+    begin
+      if lua_isstring(L, -paramcount+1) then
+        parameter:=symhandler.getAddressFromName(Lua_ToString(L,-paramcount+1))
+      else
+        parameter:=lua_tointeger(L, -paramcount+1);
+    end
+    else
+      parameter:=0;
+
+
+    executeKernelCode(address,parameter);
+
+    result:=1;
+  end else lua_pop(L, paramcount);
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
 begin
@@ -7268,6 +7223,15 @@ begin
     lua_register(LuaVM, 'inheritsFromWinControl', inheritsFromWinControl_fromLua);
 
     Lua_register(LuaVM, 'beep', beep_fromLua);
+
+
+    lua_register(LuaVM, 'dbk_initialize', dbk_initialize_fromLua);
+    lua_register(LuaVM, 'dbk_useKernelmodeOpenProcess', dbk_useKernelmodeOpenProcess_fromLua);
+    lua_register(LuaVM, 'dbk_useKernelmodeProcessMemoryAccess', dbk_useKernelmodeProcessMemoryAccess_fromLua);
+    lua_register(LuaVM, 'dbk_useKernelmodeQueryMemoryRegions', dbk_useKernelmodeQueryMemoryRegions_fromLua);
+    lua_register(LuaVM, 'dbk_getPEProcess', dbk_getPEProcess_fromLua);
+    lua_register(LuaVM, 'dbk_getPEThread', dbk_getPEThread_fromLua);
+    lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory_fromLua);
 
     s:=tstringlist.create;
     try

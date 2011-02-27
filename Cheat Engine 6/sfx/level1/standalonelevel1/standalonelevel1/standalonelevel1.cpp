@@ -34,6 +34,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	GetModuleFileNameA(NULL, SelfName, MAX_PATH);
 	PathStripPath(SelfName);
 
+	
+
 
 	char tempfolder[MAX_PATH];
 	HRSRC Decomp=FindResource(GetModuleHandle(0), "DECOMPRESSOR", RT_RCDATA);
@@ -42,6 +44,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if ((Decomp==0) || (Archive==0))
 	  return 0;
 
+	
 
 	int Decomp_size=SizeofResource(GetModuleHandle(0), Decomp);
 	int Arch_size=SizeofResource(GetModuleHandle(0), Arch);
@@ -113,10 +116,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				//  printf("LIFTOFF WEEEEEEEEE!\n");
 				  WaitForSingleObject(ProcessInformation.hProcess, INFINITE);
 			  }
-			  //else
+			  else
+				  MessageBox(0,"Failure loading the trainer. Your tempfolder must allow execution. (Check your anti virus)\n","Trainer failure", MB_OK | MB_ICONERROR);
 				//  printf("Failed to launch decompessor:%d\n", GetLastError());
 
-			 
+
 			  DeleteFileA(Archive);
 			  DeleteFileA(Decompressor);
 			  RemoveDirectoryA(tempdir);

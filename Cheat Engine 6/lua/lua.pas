@@ -126,7 +126,7 @@ const
 type
 (* Type of Numbers in Lua *)
   lua_Number = Double;
-  lua_Integer = PtrInt;
+  lua_Integer = Qword; //with the lnum patch
 
 (*
 ** state manipulation

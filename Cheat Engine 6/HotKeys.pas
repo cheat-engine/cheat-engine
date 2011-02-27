@@ -279,6 +279,11 @@ procedure THotKeyForm.ListView1SelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
   btnEditHotkey.enabled:=selected;
+
+  if listview1.selected.data<>nil then
+    lblid.caption:='Hotkey ID='+inttostr(TMemoryRecordHotkey(listview1.selected.data).id)
+  else
+    lblid.caption:='Hotkey ID=?';
 end;
 
 procedure THotKeyForm.miDeleteClick(Sender: TObject);

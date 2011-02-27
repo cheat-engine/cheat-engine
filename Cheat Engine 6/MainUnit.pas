@@ -6361,6 +6361,8 @@ var pl: TStringlist;
 
     attachlist: tstringlist;
 begin
+  if (autoattachlist=nil) or (formsettings=nil) or (extraautoattachlist=nil) then exit;
+
   if (not formsettings.cbAlwaysAutoAttach.checked) and ((processhandle<>0) or (processid<>0)) then
     exit;
 
