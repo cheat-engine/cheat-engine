@@ -146,7 +146,8 @@ type
 
 
 
-    function ocm(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
+    procedure onShowMethod(const Name: String);
+    function onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
     function ogm(const Method: TMethod; CheckOwner: TObject): String;
     procedure OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
 
@@ -289,10 +290,14 @@ begin
   SurfaceList:=tlist.create;
 
   GlobalDesignHook:=TPropertyEditorHook.Create;
-  GlobalDesignHook.AddHandlerCreateMethod(ocm);
+  GlobalDesignHook.AddHandlerCreateMethod(onCreateMethod);
   GlobalDesignHook.AddHandlerGetMethodName(ogm);
   GlobalDesignHook.AddHandlerGetMethods(onGetMethods);
+//  GlobalDesignHook.addhandler
   GlobalDesignHook.AddHandlerModified(Modified);
+
+  GlobalDesignHook.AddHandlerShowMethod(onShowMethod);
+
 
 
   GlobalDesignHook.AddHandlerMethodExists(MethodExists);
@@ -431,7 +436,7 @@ end;
 
 
 
-function TFormDesigner.ocm(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
+function TFormDesigner.onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
 var f: TLuaCaller;
   z: procedure of object;
     td: PTypeData;
@@ -440,6 +445,8 @@ var f: TLuaCaller;
 
   pn: string;
   i: integer;
+
+  NeedsToBeCreated: boolean;
 begin
   f:=TLuaCaller.create;
   f.luaroutine:=name;
@@ -463,11 +470,64 @@ begin
     //failed to get the propertyname
   end;
 
+  i:=methodlist.IndexOf(name);
+  NeedsToBeCreated:=i=-1;
+
   if ATypeInfo.Name ='TNotifyEvent' then
-    result:=TMethod(TNotifyEvent(f.NotifyEvent))
+  begin
+    result:=TMethod(TNotifyEvent(f.NotifyEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender)');
+        Add('');
+        Add('end');
+        Add('');
+      end;
+    end;
+  end
   else
   if ATypeInfo.Name ='TCloseEvent' then
-    result:=TMethod(TCloseEvent(f.CloseEvent))
+  begin
+    result:=TMethod(TCloseEvent(f.CloseEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender)');
+        Add('');
+        Add('  return caHide');
+        Add('end');
+        Add('');
+      end;
+    end;
+  end;
+
+
+
+
+end;
+
+procedure TFormDesigner.onShowMethod(const Name: String);
+var i: integer;
+begin
+  UpdateMethodListIfNeeded;
+
+  //check if this method exists
+  i:=methodlist.IndexOf(name);
+  if i<>-1 then
+  begin
+    //go there
+    mainform.frmLuaTableScript.Show;
+
+    mainform.frmLuaTableScript.assemblescreen.SelStart:=integer(methodlist.Objects[i])+1;
+    mainform.frmLuaTableScript.assemblescreen.SelEnd:=integer(methodlist.Objects[i])+1;
+    mainform.frmLuaTableScript.assemblescreen.CaretY:=mainform.frmLuaTableScript.assemblescreen.CaretY+1;
+  end;
+
 end;
 
 function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject): String;
@@ -488,7 +548,11 @@ var s: string;
   i: integer;
   z: pchar;
   sp: TStringSearchOptions;
+  sd: TSysCharSet;
+  fn: string;
 begin
+  sd:=WordDelimiters-['_'];
+
   if lastupdate<MainForm.frmLuaTableScript.assemblescreen.ChangeStamp then
   begin
     lastupdate:=MainForm.frmLuaTableScript.assemblescreen.ChangeStamp;
@@ -500,43 +564,30 @@ begin
 
     z:=nil;
     sp:=[soDown, soWholeWord];
-    z:=SearchBuf(pchar(s), length(s), 0,length(s), 'function', sp);
-    if z<>nil then
-    begin
-      showmessage(z);
-
-    end;
-
-   // s:=lowercase(s);
- {
+    z:=pchar(s);
     repeat
-      i:=pos('function',s);
-      if i>0 then
+      z:=SearchBuf(z, length(s), 0,0, 'function',sp);
+      if z<>nil then
       begin
-
+        fn:=ExtractWord(2,z,sd);
+        methodlist.AddObject(fn, tobject(z-pchar(s))); //save the name and the character this function starts at
+        inc(z,9); //next
       end;
-    until i=0;
-   // i:=pos('function',s);
-   // while i>0 do
-                      }
 
-
-
-
-
+    until z=nil;
   end;
 end;
 
 procedure TFormDesigner.OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
+var i: integer;
 begin
   //TypeData.ParamCount
 
   //get the function list (look for "function","functionname", "("   )
   UpdateMethodListIfNeeded;
- {
-  proc('bla1');
-  proc('bla2');
-  proc('bla3'); }
+
+  for i:=0 to methodlist.count-1 do
+    proc(methodlist[i]);
 
 end;
 

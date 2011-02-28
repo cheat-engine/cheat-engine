@@ -580,7 +580,7 @@ require("class");
 --
 --  startAddress : The start address to scan from. You want to set this to 0
 --  stopAddress  : The address the scan should stop at. (You want to set this to 0xffffffffffffffff)
--
+--
 --  protectionflags : See aobscan about protectionflags
 --  alignmenttype : Scan alignment type. Valid options are:
 --    fsmNotAligned : No alignment check
