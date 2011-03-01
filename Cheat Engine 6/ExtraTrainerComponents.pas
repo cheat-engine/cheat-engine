@@ -79,7 +79,6 @@ type tcheat = class (twincontrol)
 
     property showhotkey: boolean read fshowhotkey write SetShowHotkey;
     constructor create(AOwner:Tcomponent); override;
-    destructor destroy; override;
   published
 
     property Color;
@@ -357,14 +356,19 @@ end;
 
 procedure TCheat.setDeactivateTimer(interval: integer);
 begin
-  deactivatetimer.Interval:=interval;
-  deactivatetimer.enabled:=true;
+  if deactivatetimer<>nil then
+  begin
+    deactivatetimer.Interval:=interval;
+    deactivatetimer.enabled:=true;
+
+  end;
 end;
 
 procedure TCheat.timerdeactivate(sender: tobject);
 begin
   activated:=false;
-  deactivatetimer.enabled:=false;
+  if deactivatetimer<>nil then
+    deactivatetimer.enabled:=false;
 end;
 
 constructor tcheat.create(AOwner:tcomponent);
@@ -408,14 +412,6 @@ begin
 end;
 
 
-
-destructor tcheat.destroy;
-begin
-  hotkeylabel.Free;
-  descriptionlabel.Free;
-  edit.Free;
-  inherited destroy;
-end;
 
 //-------------------------------------------------------
 //Tcheatlist
