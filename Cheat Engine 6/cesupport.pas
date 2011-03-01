@@ -124,12 +124,15 @@ begin
   if assigned(attachedwindowproc) then
     attachedform.WindowProc:=attachedwindowproc;
 
- attachedform:=form;
- attachedwindowproc:=form.WindowProc;
+  attachedform:=form;
 
- form.WindowProc:=hook;
-
-
+  if form<>nil then
+  begin
+    attachedwindowproc:=form.WindowProc;
+    form.WindowProc:=hook;
+  end
+  else
+    attachedwindowproc:=nil;
 end;
 
 function TADWindow.getoptionalstring: string;

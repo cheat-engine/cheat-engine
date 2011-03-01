@@ -12,6 +12,7 @@ object HotKeyForm: THotKeyForm
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object ListView1: TListView
@@ -62,11 +63,11 @@ object HotKeyForm: THotKeyForm
       Height = 166
       Top = 1
       Width = 476
-      ActivePage = TabSheet2
+      ActivePage = TabSheet1
       Align = alClient
       Anchors = [akTop, akLeft, akRight]
       ShowTabs = False
-      TabIndex = 1
+      TabIndex = 0
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'TabSheet1'

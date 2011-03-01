@@ -97,6 +97,7 @@ end;
 
 procedure InitializeVEH;
 var k: THandle;
+    m: pchar;
 begin
   k:=LoadLibrary('kernel32.dll');
   AddVectoredExceptionHandler:=GetProcAddress(k,'AddVectoredExceptionHandler');
@@ -134,8 +135,36 @@ begin
 
 
   //get the shared memory object
-  fm:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),@ConfigName[0]);
-  VEHSharedMem:=MapViewOfFile(OpenFileMapping(FILE_MAP_ALL_ACCESS,false,@ConfigName[0]),FILE_MAP_ALL_ACCESS,0,0,0);
+  m:=pchar(@ConfigName[0]);
+  outputDebugstring(pchar('ConfigName='+m));
+
+//  fm:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),@ConfigName[0]);
+
+  fm:=OpenFileMapping(FILE_MAP_ALL_ACCESS,false,m);
+  OutputDebugString(pchar('fm='+inttohex(fm,8)));
+
+  if (fm=0) then
+  begin
+    OutputDebugString(pchar('GetLastError='+inttostr(getlasterror)));
+    exit;
+  end;
+
+
+  VEHSharedMem:=MapViewOfFile(fm,FILE_MAP_ALL_ACCESS,0,0,0);
+  OutputDebugString(pchar('VEHSharedMem='+inttohex(ptruint(VEHSharedMem),8)));
+
+  if VEHSharedMem=nil then
+  begin
+    OutputDebugString(pchar('GetLastError='+inttostr(getlasterror)));
+    exit;
+  end;
+
+
+  OutputDebugString(pchar('HasDebugEvent='+inttohex(VEHSharedMem.HasDebugEvent,8)));
+  OutputDebugString(pchar('HasHandledDebugEvent='+inttohex(VEHSharedMem.HasHandledDebugEvent,8)));
+
+  OutputDebugString(pchar('@HasDebugEvent='+inttohex(ptruint(@VEHSharedMem.HasDebugEvent),8)));
+  OutputDebugString(pchar('@HasHandledDebugEvent='+inttohex(ptruint(@VEHSharedMem.HasHandledDebugEvent),8)));
 
 
 

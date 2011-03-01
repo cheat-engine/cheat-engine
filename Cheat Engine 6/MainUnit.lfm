@@ -611,7 +611,6 @@ object MainForm: TMainForm
       )
       OnChange = ScanTypeChange
       OnKeyDown = ScanTypeKeyDown
-      OnSelect = ScanTypeSelect
       Style = csDropDownList
       TabOrder = 5
     end

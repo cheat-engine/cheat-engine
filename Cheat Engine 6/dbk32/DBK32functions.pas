@@ -395,7 +395,7 @@ begin
   begin
     cc:=IOCTL_CE_GETVERSION;
 
-    if deviceiocontrol(hdevice,cc,@res,4,@res,4,x,nil) then
+    if deviceiocontrol(hdevice,cc,nil,0,@res,4,x,nil) then
       result:=res;
 
   end;

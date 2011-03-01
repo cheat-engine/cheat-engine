@@ -63,29 +63,34 @@ begin
    VEHSharedMem.ProcessID:=GetCurrentProcessId;
    VEHSharedMem.ThreadID:=threadid;
 
-   SetEvent(VEHSharedMem.HasDebugEvent);
-
-   eventhandles[0]:=VEHSharedMem.HasHandledDebugEvent;
-   eventhandles[1]:=emergency;
-
-   wr:=WaitForMultipleObjects(2, @eventhandles, false, INFINITE);
-
-   i:=wr -WAIT_OBJECT_0;
-   if i=0 then //hashandleddebugevent has been set.  After ce is done with it use the new context
-     CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],sizeof(TCONTEXT))
-   else
+   if SetEvent(VEHSharedMem.HasDebugEvent) then
    begin
-     result:=EXCEPTION_CONTINUE_EXECUTION; //something went wrong VEHSharedmem might even be broken
-     HandlerCS.Leave;
-     exit;
+     eventhandles[0]:=VEHSharedMem.HasHandledDebugEvent;
+     eventhandles[1]:=emergency;
+
+     wr:=WaitForMultipleObjects(2, @eventhandles, false, INFINITE);
+
+     i:=wr -WAIT_OBJECT_0;
+     if i=0 then //hashandleddebugevent has been set.  After ce is done with it use the new context
+       CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],sizeof(TCONTEXT))
+     else
+     begin
+       //MessageBox(0,'WaitForMultipleObjects failed', 'VEH Debug Error', MB_OK);
+       result:=EXCEPTION_CONTINUE_EXECUTION; //something went wrong VEHSharedmem might even be broken
+       HandlerCS.Leave;
+       exit;
+     end;
+
+
+     //depending on user options either return EXCEPTION_CONTINUE_SEARCH or EXCEPTION_CONTINUE_EXECUTION
+     if VEHSharedMem.ContinueMethod=DBG_CONTINUE then
+       result:=EXCEPTION_CONTINUE_EXECUTION
+     else
+       result:=EXCEPTION_CONTINUE_SEARCH;
+
    end;
-
-
-   //depending on user options either return EXCEPTION_CONTINUE_SEARCH or EXCEPTION_CONTINUE_EXECUTION
-   if VEHSharedMem.ContinueMethod=DBG_CONTINUE then
-     result:=EXCEPTION_CONTINUE_EXECUTION
-   else
-     result:=EXCEPTION_CONTINUE_SEARCH;
+   //else
+    // MessageBox(0,'SetEvent failed', 'VEH Debug Error', MB_OK);
 
    HandlerCS.Leave;
 

@@ -145,7 +145,7 @@ type
     function GetDesignerForm(APersistent: TPersistent): TCustomForm;
 
 
-
+    procedure onRenameMethod(const CurName, NewName: String);
     procedure onShowMethod(const Name: String);
     function onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
     function ogm(const Method: TMethod; CheckOwner: TObject): String;
@@ -267,6 +267,9 @@ end;
 
 function TFormDesigner.MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
 begin
+  {
+  Just say it exists. If it doesn't now, it might exist later on
+  }
   MethodIsCompatible:=true;
   MethodIsPublished:=true;
   IdentIsMethod:=true;
@@ -297,8 +300,7 @@ begin
   GlobalDesignHook.AddHandlerModified(Modified);
 
   GlobalDesignHook.AddHandlerShowMethod(onShowMethod);
-
-
+  GlobalDesignHook.AddHandlerRenameMethod(onRenameMethod);
 
   GlobalDesignHook.AddHandlerMethodExists(MethodExists);
 
@@ -526,6 +528,32 @@ begin
     mainform.frmLuaTableScript.assemblescreen.SelStart:=integer(methodlist.Objects[i])+1;
     mainform.frmLuaTableScript.assemblescreen.SelEnd:=integer(methodlist.Objects[i])+1;
     mainform.frmLuaTableScript.assemblescreen.CaretY:=mainform.frmLuaTableScript.assemblescreen.CaretY+1;
+
+    mainform.frmLuaTableScript.assemblescreen.SetFocus;
+  end;
+
+end;
+
+
+procedure TFormDesigner.onRenameMethod(const CurName, NewName: String);
+var i: integer;
+  c: integer;
+  wp: tpoint;
+begin
+  UpdateMethodListIfNeeded;
+
+  //check if this method exists
+  i:=methodlist.IndexOf(name);
+  if i<>-1 then
+  begin
+    c:=integer(methodlist.objects[i]);
+
+    mainform.frmLuaTableScript.assemblescreen.SelStart:=c+2;
+    mainform.frmLuaTableScript.assemblescreen.SelEnd:=c+2;
+
+    wp:=mainform.frmLuaTableScript.assemblescreen.NextWordPos;
+    mainform.frmLuaTableScript.assemblescreen.CaretXY:=wp;
+    mainform.frmLuaTableScript.assemblescreen.SelectWord;
   end;
 
 end;
@@ -566,7 +594,7 @@ begin
     sp:=[soDown, soWholeWord];
     z:=pchar(s);
     repeat
-      z:=SearchBuf(z, length(s), 0,0, 'function',sp);
+      z:=SearchBuf(z, length(z), 0,0, 'function',sp);
       if z<>nil then
       begin
         fn:=ExtractWord(2,z,sd);

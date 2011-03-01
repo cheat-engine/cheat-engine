@@ -1655,8 +1655,6 @@ begin
       end;
 
       //still here, so create threads if needed
-
-      //load binaries
       if length(createthread)>0 then
         for i:=0 to length(createthread)-1 do
         begin
@@ -1709,11 +1707,9 @@ begin
 
           if ok1 then //address found
           begin
-            binaryfile:=tmemorystream.Create;
             try
               ok2:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw)>0;
             finally
-              binaryfile.free;
             end;
           end;
         end;

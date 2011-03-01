@@ -2344,8 +2344,7 @@ begin
 end;
 
 procedure TMainForm.MenuItem9Click(Sender: TObject);
-var
-  br: trect;
+
 begin
   if frmTrainerGenerator=nil then
     frmTrainerGenerator:=tfrmTrainerGenerator.create(self);
@@ -2360,12 +2359,7 @@ begin
 
   frmTrainerGenerator.show;
 
-  frmTrainerGenerator.trainerform.show;
-  if LCLIntf.GetWindowRect(frmTrainerGenerator.handle, br)>0 then
-  begin
-    frmTrainerGenerator.trainerform.left:=br.Right+5;
-    frmTrainerGenerator.trainerform.top:=br.top;
-  end;
+
 end;
 
 procedure TMainForm.miResyncFormsWithLuaClick(Sender: TObject);
@@ -4904,7 +4898,7 @@ begin
 
 
 
-  SetHotkey1.visible:=(addresslist.selectedRecord<>nil) and (not addresslist.selectedRecord.isGroupHeader);
+  SetHotkey1.visible:=(addresslist.selectedRecord<>nil); //6.1: Groupheaders can also have hotkeys (for toggle hotkeys)
 
   Freezealladdresses2.visible:=(addresslist.selectedRecord<>nil);
 

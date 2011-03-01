@@ -5,7 +5,8 @@ unit VEHDebugger;
 interface
 
 uses
-  jwaNtStatus, Windows, Classes, SysUtils,symbolhandler,VEHDebugSharedMem,cefuncproc,autoassembler,newkernelhandler,DebuggerInterface;
+  jwaNtStatus, Windows, Classes, SysUtils,symbolhandler,VEHDebugSharedMem,cefuncproc,
+  autoassembler,newkernelhandler,DebuggerInterface, Clipbrd;
 
 type
   TVEHDebugInterface=class(TDebuggerInterface)
@@ -310,20 +311,29 @@ begin
 
     CreateGUID(guid);
     guidstring:='"'+GUIDToString(guid)+'"';
+
+    //guidstring:='Global\'+GUIDToString(guid);
+    OutputDebugString('Creating filemap with name '+pchar(guidstring));
+
     ConfigFileMapping:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sizeof(TVEHDebugSharedMem),pchar(guidstring));
-    e:=getlasterror;
 
     if ConfigFileMapping=0 then
     begin
       e:=getlasterror;
+      OutPutDebugString('Failed:'+inttostr(e));
       raise exception.Create('Error while trying to create the configuration structure! (Which effectively renders this whole feature useless) Errorcode='+inttostr(e));
     end;
+
+    OutPutDebugString('Created the filemap');
 
     VEHDebugView:=MapViewOfFile(ConfigFileMapping,FILE_MAP_READ or FILE_MAP_WRITE,0,0,sizeof(TVEHDebugSharedMem));
     if (VEHDebugView=nil) then
     begin
       e:=GetLastError;
       closehandle(ConfigFileMapping);
+
+      OutputDebugString('MapViewOfFile failed: '+inttostr(e));
+
       raise exception.Create('Cheat Engine failed to get into the config of the selected program. (Error='+inttostr(e)+')');
     end;
 
@@ -358,14 +368,21 @@ begin
     try
       s.Clear;
       s.Add('"vehdebug'+prefix+'.ConfigName":');
-      s.add('db '''+guidstring+'''');
+      s.add('db '''+guidstring+''',0');
       s.Add('CreateThread("vehdebug'+prefix+'.InitializeVEH")');
+
+    //  Clipboard.SetTextBuf(pchar(s.text));
 
       if autoassemble(s,false) then
       begin
         //debugger is attached and ready to go
         active:=true;
 
+      end
+      else
+      begin
+
+//        showmessage(s.text);
       end;
 
       result:=true;
@@ -374,7 +391,11 @@ begin
     end;
 
   except
-    result:=false;
+    on e: exception do
+    begin
+      messagebox(0,pchar(e.message), 'VEH Debug error', MB_OK or MB_ICONERROR);
+      result:=false;
+    end;
   end;
 end;
 

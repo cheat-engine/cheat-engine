@@ -46,6 +46,7 @@ type
       Shift: TShiftState);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure miDeleteClick(Sender: TObject);
@@ -165,6 +166,9 @@ begin
 
   editHotkey:=true;
   listview1.Enabled:=false;
+
+  if visible then
+    edtHotkey.SetFocus;
 end;
 
 procedure THotKeyForm.BitBtn1Click(Sender: TObject);
@@ -176,8 +180,20 @@ begin
 end;
 
 procedure THotKeyForm.btnEditHotkeyClick(Sender: TObject);
+var s: TListitem;
+i: integer;
 begin
-  if listview1.selected=nil then exit;
+  s:=listview1.selected;
+
+  if s=nil then
+  begin
+    i:=listview1.itemindex;
+    if i=-1 then exit;
+
+    s:=listview1.items[i];
+  end;
+
+  if s=nil then exit;
 
   pagecontrol1.ActivePage:=tabsheet2;
   listview1.Enabled:=false;
@@ -189,6 +205,8 @@ begin
   edtFreezeValue.text:=listview1.selected.subitems[1];
   edtDescription.text:=listview1.selected.subitems[2];
 
+  if visible then
+    edtHotkey.SetFocus;
 
   editHotkey:=true;
 end;
@@ -275,15 +293,22 @@ begin
   pagecontrol1.ActivePage:=tabsheet1;
 end;
 
+procedure THotKeyForm.FormShow(Sender: TObject);
+begin
+  if editHotkey then
+    edtHotkey.SetFocus;
+end;
+
 procedure THotKeyForm.ListView1SelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
   btnEditHotkey.enabled:=selected;
 
-  if listview1.selected.data<>nil then
+
+  if (listview1.selected<>nil) and (listview1.selected.data<>nil) then
     lblid.caption:='Hotkey ID='+inttostr(TMemoryRecordHotkey(listview1.selected.data).id)
   else
-    lblid.caption:='Hotkey ID=?';
+    lblid.caption:='';
 end;
 
 procedure THotKeyForm.miDeleteClick(Sender: TObject);

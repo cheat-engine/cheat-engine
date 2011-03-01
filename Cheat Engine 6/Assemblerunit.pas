@@ -2108,6 +2108,9 @@ var i,j,k,err,err2: integer;
     f: double;
 
 begin
+  if length(token)=0 then exit; //empty string
+  if token[1] in ['''','"'] then exit; //don't rewrite quotes
+
   setlength(tokens,0);
   result:=false;
   last:=-1;
@@ -2237,6 +2240,7 @@ var i,j,last: integer;
     seperatorcount: integer;
 
     firstquote: boolean;
+    firstquotechar: char;
 
     t: string;
     ispartial: boolean;
@@ -2262,11 +2266,19 @@ begin
 
 
         if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then //only uppercase if it's not kernel_
-          tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+        begin
+          if length(tokens[length(tokens)-1])>2 then
+          begin
+            if not (tokens[length(tokens)-1][1] in ['''', '"']) then //if not a quoted string then make it uppercase
+              tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+          end
+          else
+            tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+        end;
 
 
         //6.1: Uptimized this lookup. Instead of a 18 compares a full string lookup on each token it now only compares up to 4 times
-        t:=uppercase(tokens[length(tokens)-1]);
+        t:=tokens[length(tokens)-1];
 
 
         isPartial:=false;
@@ -2385,13 +2397,14 @@ begin
         if opcode[i] in ['''','"'] then
         begin
           firstquote:=true;
+          firstquotechar:=opcode[i];
           dec(last); //include the quotechar
         end;
       end
       else
       begin
         //inside a quote and a token seperator was encountered
-        if opcode[i] in ['''','"'] then //check if it is the string terminator
+        if opcode[i] = firstquotechar then //check if it is the string terminator
         begin
           firstquote:=false;
           if i=length(opcode) then
