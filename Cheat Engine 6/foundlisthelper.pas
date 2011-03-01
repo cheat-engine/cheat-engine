@@ -641,6 +641,7 @@ end;
 
 function TFoundList.Initialize(vartype: integer; customtype: TCustomType=nil):int64;
 var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
+    i: uint64;
 begin
   result:=0;
   Deinitialize;
@@ -685,19 +686,24 @@ begin
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(TBitAddress);
 
-          foundlist.Items.Count:=min(result, 1000000);
 
-          //foundlist.Items.Count:=min(result, 100000000);
-          if foundlist.Items.Count=0 then
-            foundlist.Items.Count:=min(result, 100000);
+
         end
         else //normal (address)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(ptruint);
 
-          foundlist.Items.Count:=min(result, 1000000);
-          if foundlist.Items.Count=0 then
-            foundlist.Items.Count:=min(result, 100000);
+
+        end;
+
+        i:=min(result,100000000);
+        foundlist.Items.Count:=i;
+        while foundlist.Items.Count=0 do
+        begin
+          i:=i div 10;
+          foundlist.Items.Count:=i;
+
+          if i=0 then break;
         end;
 
         rebaseaddresslist(0);

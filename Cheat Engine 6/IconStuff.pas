@@ -7,6 +7,13 @@ interface
 uses
   windows, Classes, SysUtils,controls, dialogs, Graphics, forms, ExtCtrls, StdCtrls, CommCtrl;
 
+resourcestring
+  rsFailureOpen = 'Failure opening ';
+  rsUnhandledExt = 'Unhandled file extension';
+  rsIconPicker = 'Icon picker';
+  rsNoIconFound = 'No icon found in this file';
+
+
 type TICONDIRENTRY=packed record
   bWidth: byte;
   bHeight: byte;
@@ -173,7 +180,7 @@ begin
         FreeLibrary(modulehandle);
       end
       else
-        raise exception.create('Failure opening '+filename);
+        raise exception.create(rsFailureOpen+filename);
     end
     else
     if ext='.ico' then
@@ -184,7 +191,7 @@ begin
       m.free;
     end
     else
-      raise exception.create('Unhandled file extension');
+      raise exception.create(rsUnhandledExt);
 
     if iconlist.count>=1 then
     begin
@@ -229,7 +236,7 @@ begin
           iconpicker.HorzScrollBar.Range:=nextpos+5;
 
         iconpicker.HorzScrollBar.Tracking:=true;
-        iconpicker.Caption:='Icon picker';
+        iconpicker.Caption:=rsIconPicker;
         iconpicker.BorderStyle:=bsToolWindow;
 
         if nextpos>iconpicker.clientwidth then
@@ -257,7 +264,7 @@ begin
       end;
     end
     else
-      raise exception.Create('No icon found in this file');
+      raise exception.Create(rsNoIconFound);
   end;
 end;
 

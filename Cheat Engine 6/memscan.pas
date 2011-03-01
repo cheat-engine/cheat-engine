@@ -438,7 +438,7 @@ type
     stopaddress: ptruint; //stop of the whole scan
 
     //fastscan options (only set by firstscan)
-    Alignment: integer;
+    //Alignment: integer;
     fastscanalignment: integer;
     fastscanmethod: TFastscanmethod;
     fastscandigitcount: integer;
@@ -3433,6 +3433,8 @@ end;
 procedure TScanController.fillVariableAndFastScanAlignSize;
 var s: string;
 begin
+  fastscan:=fastscanmethod<>fsmNotAligned;
+
   case variableType of
     vtByte:
     begin
@@ -4415,6 +4417,7 @@ var err: dword;
     haserror2: boolean;
 begin
   OutputDebugString('TScanController.execute');
+
   try
 
 
@@ -4884,7 +4887,7 @@ begin
   scanController.customtype:=CurrentCustomType;
   scanController.roundingtype:=roundingtype;
 
-  scanController.fastscanalignment:=alignment;
+  scanController.fastscanalignment:=fastscanalignment;
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
 
@@ -4948,7 +4951,7 @@ begin
   self.fastscanmethod:=fastscanmethod;
   self.fastscandigitcount:=length(fastscanparameter);
 
-  scanController.fastscanalignment:=alignment;
+  scanController.fastscanalignment:=fastscanalignment;
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
 
@@ -4994,11 +4997,11 @@ begin
   protectionflags:=uppercase(protectionflags);
 
   currentstate:=scanDontCare;
-  for i:=0 to length(protectionflags) do
+  for i:=1 to length(protectionflags) do
   begin
     case protectionflags[i] of
-      '-': currentState:=scanInclude;
-      '+': currentState:=scanExclude;
+      '-': currentState:=scanExclude;
+      '+': currentState:=scanInclude;
       '*': currentstate:=scanDontCare;
       'W': scanWritable:=currentState;
       'C': scanCopyOnWrite:=currentState;

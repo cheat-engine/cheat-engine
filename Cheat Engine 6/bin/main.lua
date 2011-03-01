@@ -471,6 +471,8 @@ require("class");
 --cheatcomponent_getDescriptionLeft(cheatcomponent)
 --cheatcomponent_setHotkeyLeft(cheatcomponent, integer)
 --cheatcomponent_getHotkeyLeft(cheatcomponent)
+--cheatcomponent_getEditValue(cheatcomponent) : Returns the text from the editbox of this component
+--cheatcomponent_setEditValue(cheatcomponent, value): Sets the text on an editbox
 
 
 --MemoryRecordHotkey Class: (Inheritance: object)
