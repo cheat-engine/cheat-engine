@@ -1045,7 +1045,14 @@ begin
             begin
               //one time only
               fname:='onHotkey'+inttostr(currentcheat.cheatnr);
+
               l.Add('function '+fname+'(Hotkey)');
+              l.add('  --Called before the hotkey is handled');
+              if currentcheat.HasEditBox then
+              begin
+                l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
+                l.add('  memoryrecord_setValue(memrec, cheatcomponent_getEditValue('+trainerform.name+'_'+currentcheat.name+')) --this will also update the ''frozen'' value');
+              end;
               l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive, 1500)');
               l.add('  if gBeepOnAction then');
               l.add('    beep()');

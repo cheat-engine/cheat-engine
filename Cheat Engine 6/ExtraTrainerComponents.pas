@@ -4,7 +4,7 @@ interface
 
 {$mode DELPHI}
 
-uses controls,StdCtrls,classes,Graphics,ExtCtrls;
+uses controls,StdCtrls,classes,Graphics,ExtCtrls, sysutils;
 
 type TLabel2 = class (TLabel)
   public
@@ -30,12 +30,14 @@ type tcheat = class (twincontrol)
     descriptionlabel: tlabel;
     edit:tedit;
     checkbox: tcheckbox;
-    editPresent: boolean;
     ftextcolor: tcolor;
     factivated: boolean;
-    fhascheckbox: boolean;
+
     fshowhotkey: boolean;
     factivationcolor: tcolor;
+    feditleft: integer;
+    feditvalue: string;
+    fcheckboxstate: boolean;
 
     deactivatetimer: TTimer;
     procedure resetwidth;
@@ -60,6 +62,9 @@ type tcheat = class (twincontrol)
     procedure setshowHotkey(x: boolean);
 
     procedure md(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+    function getCheckboxVisible: boolean;
+    function editPresent: boolean;
   public
     cheatnr: integer;
 
@@ -78,18 +83,18 @@ type tcheat = class (twincontrol)
   published
 
     property Color;
-    property textcolor:tcolor read ftextcolor write SetTextcolor;
+    property Textcolor:tcolor read ftextcolor write SetTextcolor;
     property HasEditBox:boolean read EditPresent write ChangeEdit;
-    property HasCheckbox: boolean read fHasCheckbox write SetCheckbox;
-    property editleft:integer read geteditleft write seteditleft;
-    property editwidth: integer read geteditwidth write seteditwidth;
+    property HasCheckbox: boolean read getCheckboxVisible write SetCheckbox;
+    property Editleft:integer read geteditleft write seteditleft default 200;
+    property Editwidth: integer read geteditwidth write seteditwidth;
     property Editvalue:string read GetEditValue write SetEditValue;
     property Hotkey:string read GetHotkey write SetHotkey;
     property Description:string read GetDescription write SetDescription;
-    property hotkeyleft: integer read gethotkeyleft write sethotkeyleft;
-    property descriptionleft:integer read getdescriptionleft write setdescriptionleft;
-    property activated: boolean read factivated write SetActivated;
-    property activationcolor: TColor read factivationcolor write factivationcolor;
+    property Hotkeyleft: integer read gethotkeyleft write sethotkeyleft;
+    property Descriptionleft:integer read getdescriptionleft write setdescriptionleft;
+    property Activated: boolean read factivated write SetActivated;
+    property Activationcolor: TColor read factivationcolor write factivationcolor;
 
 end;
 
@@ -163,14 +168,37 @@ end;
 
 procedure tcheat.SetCheckbox(x:boolean);
 begin
-  fhascheckbox:=x;
+  if x then
+  begin
+    checkbox:=tcheckbox.Create(self);
+    checkbox.caption:='';
+    checkbox.Left:=0;
+    checkbox.top:=(clientheight div 2)-(checkbox.Height div 2);
+    checkbox.width:=16;
+    checkbox.Parent:=self;
+    checkbox.Visible:=true;
 
-  if fhascheckbox then
-    hotkeylabel.left:=checkbox.width+3
+    checkbox.OnMouseDown:=md;
+    checkbox.enabled:=false;
+
+    hotkeyleft:=checkbox.width+3;
+  end
   else
-    hotkeylabel.Left:=0;
+  begin
+    if checkbox<>nil then
+      freeandnil(checkbox);
+    hotkeyleft:=0;
+  end;
+end;
 
-  checkbox.Visible:=x;
+function tcheat.getCheckboxVisible: boolean;
+begin
+  result:=checkbox<>nil;
+end;
+
+function tcheat.editPresent: boolean;
+begin
+  result:=edit<>nil;
 end;
 
 procedure tcheat.setactivated(x:boolean);
@@ -187,7 +215,8 @@ begin
     hotkeylabel.Font.Color:=ftextcolor;
   end;
 
-  checkbox.Checked:=x;
+  if checkbox<>nil then
+    checkbox.Checked:=x;
 end;
 
 procedure tcheat.resetwidth;
@@ -232,23 +261,30 @@ end;
 
 function tcheat.geteditwidth:integer;
 begin
-  result:=edit.width;
+  if edit<>nil then
+    result:=edit.width;
 end;
 
 procedure tcheat.seteditwidth(x:integer);
 begin
-  edit.width:=x;
+  if edit<>nil then
+    edit.width:=x;
+
   resetwidth;
 end;
 
+
 function tcheat.geteditleft:integer;
 begin
-  result:=edit.left;
+  result:=feditleft;
 end;
 
 procedure tcheat.seteditleft(x:integer);
 begin
-  edit.left:=x;
+  feditleft:=x;
+  if edit<>nil then
+    edit.left:=x;
+
   resetwidth;
 end;
 
@@ -266,18 +302,34 @@ end;
 
 function tcheat.GetEditValue:string;
 begin
-  result:=edit.text;
+  result:=feditvalue;
+
+  if edit<>nil then
+    result:=edit.Text;
 end;
 
 procedure tcheat.SetEditValue(value:string);
 begin
-  edit.Text:=value;
+  feditvalue:=value;
+  if edit<>nil then
+    edit.Text:=value;
 end;
 
 procedure tcheat.ChangeEdit(present:boolean);
 begin
-  edit.Visible:=present;
-  EditPresent:=present;
+  if present then
+  begin
+    if edit=nil then
+      edit:=tedit.Create(self);
+
+
+    edit.Left:=Self.editleft;
+    edit.Parent:=self;
+    edit.Visible:=true;
+  end
+  else
+    freeandnil(present);
+
   resetwidth;
 end;
 
@@ -319,47 +371,38 @@ constructor tcheat.create(AOwner:tcomponent);
 begin
   inherited create(AOwner);
 
+  clientheight:=28;
+  feditleft:=200;
+
   deactivatetimer:=TTimer.create(self);
   deactivatetimer.enabled:=false;
   deactivatetimer.OnTimer:=timerdeactivate;
 
   activationcolor:=clred;
-  edit:=tedit.Create(self);
-  edit.Left:=200;
-  edit.Visible:=false;
-  edit.Parent:=self;
 
-  checkbox:=tcheckbox.Create(self);
-  checkbox.caption:='';
-  checkbox.Left:=0;
-  checkbox.top:=1+(edit.height div 2)-(checkbox.Height div 2);
-  checkbox.width:=16;
-  checkbox.Visible:=false;
-  checkbox.Parent:=self;
 
   hotkeylabel:=tlabel.Create(self);
   hotkeylabel.Caption:='undefined hotkey';
   hotkeylabel.Left:=0;
 
-  hotkeylabel.Top:=1+(edit.height div 2)-(hotkeylabel.Height div 2);
+  hotkeylabel.Top:=1+(clientheight div 2)-(hotkeylabel.Height div 2);
   hotkeylabel.Parent:=self;
 
   descriptionlabel:=tlabel.Create(self);
   descriptionlabel.Caption:='undefined description';
   descriptionlabel.left:=100;
-  descriptionlabel.Top:=1+(edit.height div 2)-(descriptionlabel.Height div 2);
+  descriptionlabel.Top:=1+(clientheight div 2)-(descriptionlabel.Height div 2);
   descriptionlabel.Parent:=self;
 
   ftextcolor:=hotkeylabel.Font.Color;
-  self.Width:=descriptionlabel.left+descriptionlabel.Width;
-  self.height:=edit.Height+2;
+  clientWidth:=descriptionlabel.left+descriptionlabel.Width;
 
   fshowhotkey:=true;
 
   descriptionlabel.OnMouseDown:=md;
   hotkeylabel.OnMouseDown:=md;
-  checkbox.OnMouseDown:=md;
-  checkbox.enabled:=false;
+
+
 
   beeponactivate:=true; //default
 end;

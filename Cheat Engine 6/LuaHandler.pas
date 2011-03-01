@@ -6159,6 +6159,43 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function cheatcomponent_getEditValue_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushstring(L, cheatcomponent.EditValue);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
+end;
+
+
+function cheatcomponent_setEditValue_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  cheatcomponent: TCheat;
+
+  deactivatetime: integer;
+  t: TTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent.EditValue:=Lua_ToString(L,-1);
+  end;
+  lua_pop(L, paramcount);
+end;
+
 
 function memoryrecordhotkey_getDescription_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -7211,6 +7248,9 @@ begin
     Lua_register(LuaVM, 'cheatcomponent_getDescriptionLeft', cheatcomponent_getDescriptionLeft_fromLua);
     Lua_register(LuaVM, 'cheatcomponent_setHotkeyLeft', cheatcomponent_setHotkeyLeft_fromLua);
     Lua_register(LuaVM, 'cheatcomponent_getHotkeyLeft', cheatcomponent_getHotkeyLeft_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_setEditValue', cheatcomponent_setEditValue_fromLua);
+    Lua_register(LuaVM, 'cheatcomponent_getEditValue', cheatcomponent_getEditValue_fromLua);
+
 
     Lua_register(LuaVM, 'memoryrecordhotkey_getDescription', memoryrecordhotkey_getDescription_fromLua);
     Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString_fromLua);
