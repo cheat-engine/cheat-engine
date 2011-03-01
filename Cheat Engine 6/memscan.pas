@@ -4015,7 +4015,7 @@ begin
 
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
-    if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+   // if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
       if PtrUint(mbi.BaseAddress)<startaddress then
       begin
@@ -4027,37 +4027,47 @@ begin
         mbi.RegionSize:=stopaddress-PtrUint(mbi.BaseAddress);
 
 
-      //initial check passed, check the other protection flags to see if it should be scanned
+      validRegion:=(mbi.State=mem_commit);
+      validregion:=validregion and ((mbi.Protect and page_guard)=0);
+      validregion:=validregion and ((mbi.protect and page_noaccess)=0);
+      validRegion:=validRegion and (not (not scan_mem_private and (mbi._type=mem_private)));
+      validRegion:=validregion and (not (not scan_mem_image and (mbi._type=mem_image)));
+      validRegion:=validregion and (not (not scan_mem_mapped and (mbi._type=mem_mapped)));
 
-      //fill in isWritable, isExecutable, isCopyOnWrite: boolean;
-      isWritable:=((mbi.protect and PAGE_READWRITE)>0) or
-                  ((mbi.protect and PAGE_WRITECOPY)>0) or //writecopy IS writable
-                  ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
-                  ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+      if validregion then
+      begin
+        //initial check passed, check the other protection flags to see if it should be scanned
 
-      isExecutable:=((mbi.protect and PAGE_EXECUTE)>0) or
-                    ((mbi.protect and PAGE_EXECUTE_READ)>0) or
+        //fill in isWritable, isExecutable, isCopyOnWrite: boolean;
+        isWritable:=((mbi.protect and PAGE_READWRITE)>0) or
+                    ((mbi.protect and PAGE_WRITECOPY)>0) or //writecopy IS writable
                     ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
                     ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
 
-      isCopyOnWrite:=((mbi.protect and PAGE_WRITECOPY)>0) or
-                     ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+        isExecutable:=((mbi.protect and PAGE_EXECUTE)>0) or
+                      ((mbi.protect and PAGE_EXECUTE_READ)>0) or
+                      ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
+                      ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+        isCopyOnWrite:=((mbi.protect and PAGE_WRITECOPY)>0) or
+                       ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
 
 
-      validRegion:=true;
-      case scanWritable of
-        scanInclude: validregion:=validregion and isWritable;
-        scanExclude: validregion:=validregion and (not isWritable);
-      end;
 
-      case scanExecutable of
-        scanInclude: validregion:=validregion and isExecutable;
-        scanExclude: validregion:=validregion and (not isExecutable);
-      end;
+        case scanWritable of
+          scanInclude: validregion:=validregion and isWritable;
+          scanExclude: validregion:=validregion and (not isWritable);
+        end;
 
-      case scanCopyOnWrite of
-        scanInclude: validregion:=validregion and isCopyOnWrite;
-        scanExclude: validregion:=validregion and (not isCopyOnWrite);
+        case scanExecutable of
+          scanInclude: validregion:=validregion and isExecutable;
+          scanExclude: validregion:=validregion and (not isExecutable);
+        end;
+
+        case scanCopyOnWrite of
+          scanInclude: validregion:=validregion and isCopyOnWrite;
+          scanExclude: validregion:=validregion and (not isCopyOnWrite);
+        end;
       end;
 
       if not validregion then

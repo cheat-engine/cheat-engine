@@ -75,6 +75,7 @@ type
     procedure btnAddHotkeyClick(Sender: TObject);
     procedure Button8Click(Sender: TObject);
     procedure cbCanResizeChange(Sender: TObject);
+    procedure cbOutputChange(Sender: TObject);
     procedure cbOutputSelect(Sender: TObject);
     procedure cbPlayXMChange(Sender: TObject);
     procedure cbStopPlayingChange(Sender: TObject);
@@ -98,7 +99,6 @@ type
   private
     { private declarations }
     popupkeys: TKeycombo;
-    functions, init: TStringlist;
     restoretimer: ttimer;
     adconfig: TfrmAdConfig;
 
@@ -199,6 +199,7 @@ begin
       currentcheat:=tcheat.create(trainerform);
       currentcheat.parent:=cheatpanel;
       currentcheat.name:='CHEAT'+inttostr(i);
+      currentcheat.cheatnr:=i;
 
       if lastcheat=nil then
       begin
@@ -225,95 +226,7 @@ begin
 
 
     end;
-    {
-    for j:=0 to mr.Hotkeycount-1 do
-          begin
-            //add it
-            hotkeynamename:=memrecname+'_hotkey'+inttostr(mr.hotkey[j].id);
-            init.add(hotkeynamename+'=memoryrecord_getHotkeyByID('+memrecname+','+inttostr(mr.hotkey[j].id)+')');
 
-            currentcheat:=tcheat.create(trainerform);
-            currentcheat.parent:=cheatpanel;
-            currentcheat.name:='CHEAT'+inttostr(cheatnr);
-
-            if lastcheat=nil then
-            begin
-              currentcheat.left:=10;
-              currentcheat.top:=40;
-            end
-            else
-            begin
-              currentcheat.top:=lastcheat.Top+lastcheat.height+10;
-              currentcheat.left:=lastcheat.left;
-            end;
-
-            currentcheat.hotkeyleft:=hotkeylabel.left-currentcheat.left;
-            currentcheat.descriptionleft:=descriptionlabel.left-currentcheat.left;
-
-            currentcheat.width:=cheatpanel.clientwidth-currentcheat.Left;
-            currentcheat.anchors:=currentcheat.anchors+[akRight];
-
-            currentcheat.Hotkey:=ConvertKeyComboToString(mr.hotkey[j].keys);
-            if mr.hotkey[j].description='' then
-            begin
-              //try to guess that it does
-              case mr.hotkey[j].action of
-                mrhToggleActivation: currentcheat.description:='(De)active '+mr.description;
-                mrhToggleActivationAllowIncrease: currentcheat.description:='(Un)Freeze '+mr.description+' but allow increase';
-                mrhToggleActivationAllowDecrease: currentcheat.description:='(Un)Freeze '+mr.description+' but allow decrease';
-                mrhSetValue: currentcheat.description:='Set '+mr.description+' to '+mr.hotkey[j].value;
-                mrhIncreaseValue: currentcheat.description:='Increase '+mr.description+' by '+mr.hotkey[j].value;
-                mrhDecreaseValue: currentcheat.description:='Decrease '+mr.description+' by '+mr.hotkey[j].value;
-                else
-                  currentcheat.description:='Do something with '+mr.description;
-              end;
-            end
-            else
-              currentcheat.Description:=mr.hotkey[j].description;
-
-
-
-
-            case mr.hotkey[j].action of
-              mrhToggleActivation,
-              mrhToggleActivationAllowIncrease,
-              mrhToggleActivationAllowDecrease:
-              begin
-                //constantly enabled
-                fname:='onPostHotkey'+inttostr(cheatnr);
-                functions.Add('function '+fname+'(Hotkey)');
-                functions.add('--executed after the "toggle*" cheat got executed so');
-                functions.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
-                functions.add('  local isActive=memoryrecord_isActive(memrec'+inttostr(mr.id)+') --get the state after the hotkey got triggered');
-                functions.add('  cheatcomponent_setActive('+trainerform.name+'_CHEAT'+inttostr(cheatnr)+', isActive)');
-                functions.add('  if gBeepOnAction then');
-                functions.add('    beep()');
-                functions.add('  end');
-                functions.add('end');
-                functions.add('');
-
-
-                init.add('memoryrecordhotkey_onPostHotkey('+hotkeynamename+','+fname+')');
-              end;
-
-              else
-              begin
-                //one time only
-                fname:='onHotkey'+inttostr(cheatnr);
-                functions.Add('function '+fname+'(Hotkey)');
-                functions.add('  cheatcomponent_setActive(CHEAT'+inttostr(cheatnr)+', isActive, 1500)');
-                functions.add('  if gBeepOnAction then');
-                functions.add('    beep()');
-                functions.add('  end');
-                functions.add('end');
-                functions.add('');
-
-                init.add('memoryrecordhotkey_afterHotkey('+hotkeynamename+','+fname+')');
-              end;
-
-
-            end;
-    }
 
 
   end;
@@ -394,14 +307,10 @@ begin
         if cheatpanel=nil then
         begin
           if messagedlg('The current trainer form does not have a panel named ''CHEATPANEL'' so can not be reused by the automated trainer generator.'+#13#10+'Do you want to start from scratch? (If you want to create a trainer from your current script you can just save your table as .EXE instead of using the automated trainer generator)', mtError, [mbyes, mbno], 0)=mryes then
-            trainerform:=nil
-          else
-          begin
-            canceled:=true;
-            exit;
-          end;
+            trainerform:=nil;
 
         end;
+
 
         reusedWindow:=true;
       end
@@ -501,9 +410,12 @@ begin
       closebutton.onclick:=NotifyEvent;
       trainerform.OnClose:=CloseEvent; //same routine
     end;
+
+
   end;
 
   fillHotkeyList;
+  buildcheatlist;
 
   {
   Complete rewrite to make it better understandable for the braindead zombies that are used to ce 5.6.1
@@ -936,8 +848,6 @@ begin
 
   cleanProcessList(comboProcesslist.items);
 
-  functions.free;
-  init.free;
   closeaction:=cafree;
   frmTrainerGenerator:=nil;
 
@@ -1032,6 +942,13 @@ var generated: tstringlist;
 
   f: TMemorystream;
   s: string;
+
+  currentcheat: TCheat;
+  currenthk: TMemoryRecordHotkey;
+  currentmr: TMemoryrecord;
+  fname: string;
+
+  memrecname,hotkeyname: string;
 begin
   trainerform.active:=false;
   trainerform.SaveCurrentStateasDesign;
@@ -1058,9 +975,102 @@ begin
   //now write
   l.add('--TRAINERGENERATORSTART--');
   try
-    l.AddStrings(functions);
+
+    cheatpanel:=TCEPanel(trainerform.FindComponent('CHEATPANEL'));
+    if cheatpanel<>nil then
+    begin
+      //create the routines for these cheats
+      l.add('addresslist=getAddressList()');
+
+      //fill the memrec list
+      for i:=0 to mainform.addresslist.count-1 do
+        if mainform.addresslist.MemRecItems[i].hasHotkeys then
+          l.add('memrec'+inttostr( mainform.addresslist.MemRecItems[i].id)+'=addresslist_getMemoryRecordByID(addresslist,'+inttostr(mainform.addresslist.MemRecItems[i].id)+')');
+
+      l.add('');
+
+      //fill the hotkey list
+      for i:=0 to lvCheats.Items.Count-1 do
+      begin
+        currenthk:=TMemoryRecordHotkey(lvcheats.Items[i].Data);
+        currentmr:=currenthk.owner;
+
+        memrecname:='memrec'+inttostr(currentmr.id);
+        hotkeyname:=memrecname+'_hotkey'+inttostr(currenthk.id);
+        l.add(hotkeyname+'=memoryrecord_getHotkeyByID('+memrecname+','+inttostr(currenthk.id)+')');
+      end;
+      l.add('');
+
+      //now go through the actual cheatlist on the form itself and give it it's functions
+      for i:=0 to cheatpanel.ControlCount-1 do
+      begin
+
+        if cheatpanel.Controls[i] is TCheat then
+        begin
+          currentcheat:=TCheat(cheatpanel.Controls[i]);
+          currenthk:=TMemoryRecordHotkey(lvcheats.Items[currentcheat.cheatnr].Data);
+          currentmr:=currenthk.owner;
+
+          //get the memrecname
+          memrecname:='memrec'+inttostr(currentmr.id);
+
+
+          //get the hotkey name
+          hotkeyname:=memrecname+'_hotkey'+inttostr(currenthk.id);
+
+
+          case currenthk.action of
+            mrhToggleActivation,
+            mrhToggleActivationAllowIncrease,
+            mrhToggleActivationAllowDecrease:
+            begin
+              //constantly enabled
+              fname:='onPostHotkey'+inttostr(currentcheat.cheatnr);
+              l.Add('function '+fname+'(Hotkey)');
+              l.add('--executed after the "toggle*" cheat got executed so');
+              l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
+              l.add('  local isActive=memoryrecord_isActive(memrec) --get the state after the hotkey got triggered');
+              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive)');
+              l.add('  if gBeepOnAction then');
+              l.add('    beep()');
+              l.add('  end');
+              l.add('end');
+              l.add('');
+
+
+              l.add('memoryrecordhotkey_onPostHotkey('+hotkeyname+','+fname+')');
+            end;
+
+            else
+            begin
+              //one time only
+              fname:='onHotkey'+inttostr(currentcheat.cheatnr);
+              l.Add('function '+fname+'(Hotkey)');
+              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive, 1500)');
+              l.add('  if gBeepOnAction then');
+              l.add('    beep()');
+              l.add('  end');
+              l.add('end');
+              l.add('');
+
+              l.add('memoryrecordhotkey_afterHotkey('+hotkeyname+','+fname+')');
+            end;
+
+
+
+          end;
+        end;
+      end;
+    end
+    else
+      showmessage('Tip: You don''t have to use the trainer generator if you don''t want to. You can just save your table as .EXE or CETRAINER');
+
+    seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
+    if seperator<>nil then
+      l.Add('control_setVisible('+trainerform.name+'_SEPERATOR, false)');
+
+
     l.add('');
-    l.AddStrings(init);
     l.add('strings_add(getAutoAttachList(), "'+comboProcesslist.text+'")');
 
 
@@ -1383,12 +1393,17 @@ begin
     trainerform.BorderStyle:=bsSingle;
 end;
 
+procedure TfrmTrainerGenerator.cbOutputChange(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmTrainerGenerator.cbOutputSelect(Sender: TObject);
 var oldprotect: boolean;
 begin
-  oldprotect:=cbProtect.enabled and cbProtect.checked;
+  oldprotect:=cbProtect.enabled and cbProtect.checked and (cbOutput.itemindex=1);
 
-  cbProtect.enabled:=cbOutput.itemindex<>0;
+  cbProtect.enabled:=cbOutput.itemindex=1;
   cbProtect.checked:=(cbOutput.itemindex=0) or oldprotect;
 end;
 

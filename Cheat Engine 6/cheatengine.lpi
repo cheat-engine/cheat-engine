@@ -17,7 +17,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1210"/>
+      <BuildNr Value="1211"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
@@ -242,12 +242,10 @@
         <Filename Value="Assemblerunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Assemblerunit"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3128"/>
         <CursorPos X="1" Y="3144"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -307,7 +305,6 @@
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
-        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1146"/>
         <CursorPos X="122" Y="1169"/>
@@ -315,7 +312,6 @@
         <Bookmarks Count="1">
           <Item0 X="18" Y="1127" ID="8"/>
         </Bookmarks>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -552,7 +548,7 @@
         <ComponentName Value="HotKeyForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="HotKeys"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="283"/>
         <CursorPos X="3" Y="285"/>
@@ -635,8 +631,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4944"/>
-        <CursorPos X="43" Y="4953"/>
+        <TopLine Value="3963"/>
+        <CursorPos X="98" Y="4037"/>
         <UsageCount Value="209"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
@@ -1509,12 +1505,10 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="182"/>
         <CursorPos X="1" Y="206"/>
         <UsageCount Value="209"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit117>
       <Unit118>
@@ -1572,12 +1566,10 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
-        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="40"/>
         <CursorPos X="45" Y="48"/>
         <UsageCount Value="215"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit123>
       <Unit124>
@@ -1628,13 +1620,10 @@
         <Filename Value="VEHDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugger"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="372"/>
-        <CursorPos X="7" Y="374"/>
+        <CursorPos X="131" Y="388"/>
         <UsageCount Value="205"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit128>
       <Unit129>
@@ -1671,12 +1660,10 @@
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="9"/>
         <CursorPos X="1" Y="26"/>
         <UsageCount Value="265"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit132>
       <Unit133>
@@ -2082,7 +2069,7 @@
         <Filename Value="cesupport.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cesupport"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="112"/>
         <CursorPos X="1" Y="136"/>
@@ -2098,9 +2085,12 @@
         <UnitName Value="trainergenerator"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1269"/>
-        <CursorPos X="36" Y="1285"/>
+        <TopLine Value="1054"/>
+        <CursorPos X="8" Y="1070"/>
         <UsageCount Value="209"/>
+        <Bookmarks Count="1">
+          <Item0 X="34" Y="1018" ID="8"/>
+        </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2109,10 +2099,10 @@
         <Filename Value="ExtraTrainerComponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ExtraTrainerComponents"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10"/>
-        <CursorPos X="6" Y="26"/>
+        <TopLine Value="60"/>
+        <CursorPos X="5" Y="64"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2179,10 +2169,14 @@
         <ComponentName Value="frmExeTrainerGenerator"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmExeTrainerGeneratorUnit"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="119"/>
         <CursorPos X="67" Y="123"/>
         <UsageCount Value="212"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit185>
       <Unit186>
@@ -2475,135 +2469,133 @@
       <Unit222>
         <Filename Value="VEHDebug\VEHDebugSharedMem.pas"/>
         <UnitName Value="VEHDebugSharedMem"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="11"/>
         <CursorPos X="120" Y="18"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit222>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2229" Column="1" TopLine="2209"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="301" Column="68" TopLine="275"/>
       </Position1>
       <Position2>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2230" Column="1" TopLine="2209"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="303" Column="21" TopLine="277"/>
       </Position2>
       <Position3>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2231" Column="1" TopLine="2209"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="304" Column="20" TopLine="278"/>
       </Position3>
       <Position4>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2394" Column="1" TopLine="2378"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="345" Column="14" TopLine="319"/>
       </Position4>
       <Position5>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2396" Column="1" TopLine="2378"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="346" Column="14" TopLine="320"/>
       </Position5>
       <Position6>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2397" Column="1" TopLine="2378"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="347" Column="31" TopLine="321"/>
       </Position6>
       <Position7>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2398" Column="1" TopLine="2378"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="348" Column="14" TopLine="322"/>
       </Position7>
       <Position8>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2254" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="475" Column="68" TopLine="449"/>
       </Position8>
       <Position9>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2256" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="477" Column="21" TopLine="451"/>
       </Position9>
       <Position10>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2404" Column="1" TopLine="2388"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="478" Column="20" TopLine="452"/>
       </Position10>
       <Position11>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2406" Column="1" TopLine="2388"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="507" Column="14" TopLine="490"/>
       </Position11>
       <Position12>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2407" Column="1" TopLine="2388"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="508" Column="14" TopLine="490"/>
       </Position12>
       <Position13>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2254" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="509" Column="31" TopLine="490"/>
       </Position13>
       <Position14>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2256" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="510" Column="14" TopLine="490"/>
       </Position14>
       <Position15>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2258" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="584" Column="15" TopLine="558"/>
       </Position15>
       <Position16>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2259" Column="1" TopLine="2238"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="578" Column="20" TopLine="559"/>
       </Position16>
       <Position17>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2262" Column="1" TopLine="2247"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1210" Column="12" TopLine="1197"/>
       </Position17>
       <Position18>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2265" Column="1" TopLine="2328"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1072" Column="6" TopLine="1061"/>
       </Position18>
       <Position19>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2267" Column="1" TopLine="2251"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="315" Column="20" TopLine="294"/>
       </Position19>
       <Position20>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2269" Column="1" TopLine="2251"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="108" Column="19" TopLine="92"/>
       </Position20>
       <Position21>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2278" Column="1" TopLine="2261"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="417" Column="9" TopLine="404"/>
       </Position21>
       <Position22>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2281" Column="1" TopLine="2261"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="418" Column="10" TopLine="413"/>
       </Position22>
       <Position23>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2282" Column="1" TopLine="2261"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="180" Column="3" TopLine="161"/>
       </Position23>
       <Position24>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2284" Column="1" TopLine="2261"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1071" Column="67" TopLine="1055"/>
       </Position24>
       <Position25>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2379" Column="1" TopLine="2363"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1401" Column="3" TopLine="1399"/>
       </Position25>
       <Position26>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2385" Column="1" TopLine="2363"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1407" Column="81" TopLine="1392"/>
       </Position26>
       <Position27>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2387" Column="1" TopLine="2363"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="991" Column="1" TopLine="975"/>
       </Position27>
       <Position28>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2390" Column="1" TopLine="2364"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="1073" Column="8" TopLine="1057"/>
       </Position28>
       <Position29>
-        <Filename Value="Assemblerunit.pas"/>
-        <Caret Line="2111" Column="40" TopLine="2095"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="102" Column="1" TopLine="86"/>
       </Position29>
       <Position30>
-        <Filename Value="VEHDebugger.pas"/>
-        <Caret Line="315" Column="1" TopLine="299"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="850" Column="1" TopLine="835"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
