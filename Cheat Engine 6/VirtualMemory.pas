@@ -34,7 +34,10 @@ end;
 
 implementation
 
-
+resourcestring
+  rsNoMemoryFoundInTheSpecifiedRegion = 'No memory found in the specified '
+    +'region';
+  rsNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
 
 function TVirtualMemory.GetBuffer:pointer;
 begin
@@ -211,7 +214,8 @@ begin
   end;
 
 
-  if length(memoryregion)=0 then raise exception.create('No memory found in the specified region');
+  if length(memoryregion)=0 then raise exception.create(
+    rsNoMemoryFoundInTheSpecifiedRegion);
 
   //lets search really at the start of the location the user specified
   if (memoryregion[0].BaseAddress<start) and (memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress)>0) then
@@ -265,7 +269,7 @@ begin
   try
     getmem(buffer,TotalToRead);
   except
-    raise exception.Create('Not enough memory free to scan');
+    raise exception.Create(rsNotEnoughMemoryFreeToScan);
   end;
 
   self.buffersize:=totaltoread;

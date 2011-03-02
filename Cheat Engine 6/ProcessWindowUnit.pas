@@ -81,6 +81,22 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,memorybrowserformunit;
 
+resourcestring
+  rsIsnTAValidProcessID = '%s isn''t a valid processID';
+  rsPhysicalMemory = 'Physical Memory';
+  rsYouCanOnlyLoadEXEFiles = 'You can only load EXE files';
+  rsCreateProcess = 'Create Process';
+  rsOptionalLaunchParameters = 'Optional launch parameters';
+  rsAttachdebuggerornot = 'Are you sure you want to attach the debugger and not just open this process? (You can later on always attach the debugger)';
+  rsPleaseSelectAnotherProcess = 'Please select another process';
+  rsFirstSelectAProcess = 'First select a process!';
+  rsManualPID = 'Manual PID';
+  rsEnterTheProcessID = 'Enter the ProcessID';
+  rsFilter = 'Filter';
+  rsWhatAreYouLookingFor = 'What are you looking for?';
+  rsScanningClickToStop = 'Scanning (Click to stop)';
+  rsProcessListLong = 'Process List(long)';
+
 procedure TProcessListLong.drawprocesses;
 var i: integer;
 begin
@@ -189,7 +205,7 @@ var i:integer;
 begin
 
   val('$'+ProcessIDString,ProcessHandler.processid,i);
-  if i<>0 then raise exception.Create(processidstring+' isn''t a valid processID');
+  if i<>0 then raise exception.Create(Format(rsIsnTAValidProcessID, [processidstring]));
   if Processhandle<>0 then
   begin
     CloseHandle(ProcessHandle);
@@ -270,7 +286,7 @@ begin
 
 
   if formsettings.cbKernelReadWriteProcessMemory.checked or (assigned(dbvm_version) and (dbvm_version>=$ce000004)) then //driver is active
-    processlist.Items.Insert(0,'00000000-[Physical Memory]');
+    processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
 
   Filterlist;
 
@@ -318,9 +334,9 @@ var parameters: string;
 begin
   if Opendialog1.Execute then
   begin
-    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create('You can only load EXE files');
+    if Uppercase(extractfileext(opendialog1.FileName))<>'.EXE' then raise Exception.Create(rsYouCanOnlyLoadEXEFiles);
     parameters:='';
-    if not InputQuery('Create Process', 'Optional launch parameters', parameters) then exit;
+    if not InputQuery(rsCreateProcess, rsOptionalLaunchParameters, parameters) then exit;
 
 
     unpause;
@@ -348,7 +364,7 @@ begin
 
   if Processlist.ItemIndex>-1 then
   begin
-    if MessageDlg('Are you sure you want to attach the debugger and not just open this process? (You can later on always attach the debugger)',mtConfirmation,[mbyes,mbno],0)=mryes then
+    if MessageDlg(rsAttachdebuggerornot, mtConfirmation, [mbyes, mbno], 0)=mryes then
     begin
       unpause;
       DetachIfPossible;
@@ -369,7 +385,7 @@ begin
         ProcessHandler.ProcessHandle:=0;
       end;
 
-      if processid=GetCurrentProcessId then raise exception.create('Please select another process');
+      if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
 
       Debuggerthread:=TDebuggerThread.MyCreate2(processid);
 
@@ -380,7 +396,7 @@ begin
 
       modalresult:=mrOK;
     end
-  end else showmessage('First select a process!');
+  end else showmessage(rsFirstSelectAProcess);
 
 end;
 
@@ -404,7 +420,7 @@ procedure TProcessWindow.InputPIDmanually1Click(Sender: TObject);
 var pid: string;
 begin
   pid:='0';
-  if InputQuery('Manual PID','Enter the ProcessID:',pid) then
+  if InputQuery(rsManualPID, rsEnterTheProcessID+':', pid) then
   begin
     unpause;
     DetachIfPossible;
@@ -419,7 +435,7 @@ end;
 procedure TProcessWindow.Filter1Click(Sender: TObject);
 var fltr: string;
 begin
-  if inputquery('Filter','What are you looking for?',fltr) then
+  if inputquery(rsFilter, rsWhatAreYouLookingFor, fltr) then
     filter:=fltr;
 end;
 
@@ -443,14 +459,14 @@ begin
   if processlistlong=nil then
   begin
     processlist.Clear;
-    btnprocesslistlong.Caption:='Scanning (Click to stop)';
+    btnprocesslistlong.Caption:=rsScanningClickToStop;
     processlistlong:=tprocesslistlong.create(true);
     processlistlong.processlist:=processlist;
     processlistlong.start;
   end
   else
   begin
-    btnprocesslistlong.Caption:='Process List(long)';
+    btnprocesslistlong.Caption:=rsProcessListLong;
     processlistlong.terminate;
     processlistlong.WaitFor;
     processlistlong.Free;
@@ -467,7 +483,7 @@ begin
     processlistlong.WaitFor;
     processlistlong.Free;
     processlistlong:=nil;
-    btnprocesslistlong.Caption:='Process List(long)';
+    btnprocesslistlong.Caption:=rsProcessListLong;
   end;
 end;
 

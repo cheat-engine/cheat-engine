@@ -66,6 +66,9 @@ function peinfo_getheadersize(header: pointer): dword;
 
 implementation
 
+resourcestring
+  rsThisIsNotAValidImage = 'This is not a valid image';
+
 
 
 function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
@@ -202,7 +205,7 @@ begin
     lbBaseReloc.clear;
 
     if PImageDosHeader(memorycopy)^.e_magic<>IMAGE_DOS_SIGNATURE then
-      raise exception.Create('This is not a valid image');
+      raise exception.Create(rsThisIsNotAValidImage);
 
 
 

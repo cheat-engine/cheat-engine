@@ -155,6 +155,23 @@ implementation
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm;
 
+resourcestring
+  rsExecuteScript = 'Execute script';
+  rsLuaFilter = 'LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
+  rsLUAScript = 'LUA Script';
+  rsWriteCode = 'Write code';
+  rsCEAFilter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
+  rsAutoAssembler = 'Auto assembler';
+  rsCodeNeedsEnableAndDisable = 'The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry';
+  rsNotAllCodeIsInjectable = 'Not all code is injectable. Are you sure you wan''t to edit it to this?';
+  rsCodeInjectTemplate = 'Code inject template';
+  rsOnWhatAddressDoYouWantTheJump = 'On what address do you want the jump?';
+  rsFailedToAddToTableNotAllCodeIsInjectable = 'Failed to add to table. Not all code is injectable';
+  rsStartAddress = 'Start address';
+  rsCodeRelocationTemplate = 'Code relocation template';
+  rsEndAddressLastBytesAreIncludedIfNecesary = 'End address (last bytes are included if necesary)';
+  rsAreYouSureYouWantToClose = 'Are you sure you want to close %s ?';
+
 procedure TfrmAutoInject.setCustomTypeScript(x: boolean);
 begin
   fCustomTypeScript:=x;
@@ -171,14 +188,14 @@ begin
     assemblescreen.Highlighter:=LuaHighlighter;
 
     //change gui to lua style
-    button1.Caption:='Execute script';
+    button1.Caption:=rsExecuteScript;
     opendialog1.DefaultExt:='LUA';
-    opendialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
+    opendialog1.Filter:=rsLuaFilter;
     savedialog1.DefaultExt:='LUA';
-    savedialog1.Filter:='LUA Script (*.LUA)|*.LUA|All Files ( *.* )|*.*';
+    savedialog1.Filter:=rsLuaFilter;
     Assigntocurrentcheattable1.visible:=false;
     emplate1.Visible:=false;
-    caption:='LUA Script';
+    caption:=rsLUAScript;
    // inject1.Visible:=true;
     helpcontext:=19; //c-script help
   end
@@ -188,14 +205,14 @@ begin
 
 
     //change gui to autoassembler style
-    button1.caption:='Write code';
+    button1.caption:=rsWriteCode;
     opendialog1.DefaultExt:='CEA';
-    opendialog1.Filter:='Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
-    savedialog1.DefaultExt:='CES';
-    savedialog1.Filter:='Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
+    opendialog1.Filter:=rsCEAFilter;
+    savedialog1.DefaultExt:='CEA';
+    savedialog1.Filter:=rsCEAFilter;
     Assigntocurrentcheattable1.Visible:=true;
     emplate1.Visible:=true;
-    caption:='Auto assembler';
+    caption:=rsAutoAssembler;
     inject1.Visible:=false;
     helpcontext:=18; //auto asm help
   end;
@@ -232,7 +249,7 @@ begin
       setlength(aa,1);
       getenableanddisablepos(assemblescreen.Lines,a,b);
       if not CustomTypeScript then
-        if (a=-1) and (b=-1) then raise exception.create('The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry');
+        if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
 
       check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
@@ -245,7 +262,7 @@ begin
       end
       else
       begin
-        if messagedlg('Not all code is injectable. Are you sure you wan''t to edit it to this?',mtWarning,[mbyes,mbno],0)=mryes then
+        if messagedlg(rsNotAllCodeIsInjectable, mtWarning, [mbyes, mbno], 0)=mryes then
         begin
           modalresult:=mrok; //not modal anymore, but can still be used to pass info
           if editscript2 or CustomTypeScript then close;
@@ -390,7 +407,7 @@ begin
   else
     address:=inttohex(a,8);
 
-  if inputquery('Code inject template','On what address do you want the jump?',address) then
+  if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
   begin
     try
       a:=strtoint64('$'+address);
@@ -653,7 +670,7 @@ begin
   try
     setlength(aa,0);
     getenableanddisablepos(assemblescreen.Lines,a,b);
-    if (a=-1) and (b=-1) then raise exception.create('The code needs a [ENABLE] and a [DISABLE] section if you want to add it to a table');
+    if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
     if autoassemble(assemblescreen.lines,false,true,true,false,aa,registeredsymbols) and
        autoassemble(assemblescreen.lines,false,false,true,false,aa,registeredsymbols) then
@@ -663,7 +680,7 @@ begin
 
 
     end
-    else showmessage('Failed to add to table. Not all code is injectable');
+    else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
   finally
     registeredsymbols.Free;
   end;
@@ -1055,10 +1072,10 @@ begin
   starts:=inttohex(memorybrowser.disassemblerview.SelectedAddress,8);
   stops:=inttohex(memorybrowser.disassemblerview.SelectedAddress+128,8);
 
-  if inputquery('Start address:','Code relocation template',starts) then
+  if inputquery(rsStartAddress+':', rsCodeRelocationTemplate, starts) then
   begin
     start:=strtoint64('$'+starts);
-    if inputquery('End address (last bytes are included if necesary)','Code relocation template',stops) then
+    if inputquery(rsEndAddressLastBytesAreIncludedIfNecesary, rsCodeRelocationTemplate, stops) then
     begin
       stop:=strtoint64('$'+stops);
 
@@ -1321,7 +1338,7 @@ begin
 {$ifndef standalonetrainerwithassembler}
 
 
-  if messagedlg('Are you sure you want to close '+tlist.TabText[selectedtab]+' ?',mtConfirmation,[mbyes,mbno],0)=mryes then
+  if messagedlg(Format(rsAreYouSureYouWantToClose, [tlist.TabText[selectedtab]]), mtConfirmation, [mbyes, mbno], 0)=mryes then
   begin
     scripts[oldtabindex].script:=assemblescreen.text; //save current script
     tlist.RemoveTab(selectedtab);
@@ -1371,7 +1388,8 @@ var i: integer;
     th: thandle;
 begin
 {$ifndef standalonetrainerwithassembler}
-
+ {
+ obsolete
   //this will inject the script dll and generate a assembler script the user can use to call the script
   //first set the environment var for uc_home
   s:=assemblescreen.text;
@@ -1492,7 +1510,7 @@ begin
       add('ret //interesing thing with createthread is that the return param points to exitthread');
   end;
   aawindowwithstub.show;
-
+     }
 {$endif}
 end;
 

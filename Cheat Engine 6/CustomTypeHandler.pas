@@ -66,6 +66,19 @@ var customTypes: TList; //list holding all the custom types
 
 implementation
 
+resourcestring
+  rsACustomTypeWithNameAlreadyExists = 'A custom type with name %s already '
+    +'exists';
+  rsACustomFunctionTypeWithNameAlreadyExists = 'A custom function type with '
+    +'name %s already exists';
+  rsFailureCreatingLuaObject = 'Failure creating lua object';
+  rsOnlyReturnTypenameBytecountAndFunctiontypename = 'Only return typename, '
+    +'bytecount and functiontypename';
+  rsBytesizeIs0 = 'bytesize is 0';
+  rsInvalidFunctiontypename = 'invalid functiontypename';
+  rsInvalidTypename = 'invalid typename';
+  rsUndefinedError = 'Undefined error';
+
 function GetCustomTypeFromName(name:string): TCustomType;
 var i: integer;
 begin
@@ -89,7 +102,7 @@ begin
     if uppercase(TCustomType(customtypes[i]).name)=uppercase(n) then
     begin
       if TCustomType(customtypes[i])<>self then
-        raise exception.create('A custom type with name '+n+' already exists');
+        raise exception.create(Format(rsACustomTypeWithNameAlreadyExists, [n]));
     end;
 
   fname:=n;
@@ -103,7 +116,8 @@ begin
     if uppercase(TCustomType(customtypes[i]).functiontypename)=uppercase(n) then
     begin
       if TCustomType(customtypes[i])<>self then
-        raise exception.create('A custom function type with name '+n+' already exists');
+        raise exception.create(Format(
+          rsACustomFunctionTypeWithNameAlreadyExists, [n]));
     end;
 
   ffunctiontypename:=n;
@@ -308,14 +322,15 @@ begin
       //create a new lua state and load this script
       templua:=luaL_newstate;
       if templua=nil then
-        raise exception.create('Failure creating lua object');
+        raise exception.create(rsFailureCreatingLuaObject);
 
       try
         if lua_dostring(templua, pchar(script))=0 then //success
         begin
           returncount:=lua_gettop(templua);
           if returncount<>3 then
-            raise exception.create('Only return typename, bytecount and functiontypename');
+            raise exception.create(
+              rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
           //-1=functiontypename
           //-2=bytecount
@@ -324,9 +339,9 @@ begin
           bytesize:=lua_tointeger(templua,-2);
           tn:=lua.lua_tostring(templua,-3);
 
-          if bytesize=0 then raise exception.create('bytesize is 0');
-          if ftn=nil then raise exception.create('invalid functiontypename');
-          if tn=nil then raise exception.create('invalid typename');
+          if bytesize=0 then raise exception.create(rsBytesizeIs0);
+          if ftn=nil then raise exception.create(rsInvalidFunctiontypename);
+          if tn=nil then raise exception.create(rsInvalidTypename);
 
           name:=tn;
           functiontypename:=ftn;
@@ -339,7 +354,7 @@ begin
           begin
             error:=lua.lua_tostring(templua,-1);
             raise exception.create(error);
-          end else raise exception.create('Undefined error');
+          end else raise exception.create(rsUndefinedError);
         end;
 
       finally
@@ -354,7 +369,7 @@ begin
         begin
           error:=lua.lua_tostring(LuaVM,-1);
           raise exception.create(error);
-        end else raise exception.create('Undefined error');
+        end else raise exception.create(rsUndefinedError);
       end else lua_pop(LuaVM,3);
 
 

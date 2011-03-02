@@ -324,6 +324,53 @@ implementation
 uses StructuresAddElementfrm,Valuechange,MainUnit, MemoryBrowserFormUnit, OpenSave,
   frmStructuresConfigUnit, MemoryRecordUnit;
 
+resourcestring
+  rsThisIsQuiteABigStructureHowManyBytesDoYouWantToSav = 'This is quite a big '
+    +'structure. How many bytes do you want to save?';
+  rsStructureViewLock = 'Structure view lock';
+  rsPointerTo = 'pointer to';
+  rsUnnamedStructure = 'unnamed structure';
+  rsStructureDefine = 'Structure define';
+  rsGiveTheNameForThisStructure = 'Give the name for this structure';
+  rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType = 'Do you want Cheat '
+    +'Engine to try and fill in the most basic types of the struct using the '
+    +'current address?';
+  rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis = 'Please give a '
+    +'starting size of the struct (You can change this later if needed)';
+
+  rsMemoryDissect = 'Memory dissect';
+  rsFirstSelectAStructureYouWantToModifyOrDefine = 'First select a structure '
+    +'you want to modify or define one first';
+  rsUpdateInterval = 'Update interval';
+  rsNewInterval = 'New interval';
+  rsDissectData = 'Dissect Data';
+  rsHowManyBytesDoYouWantToShiftThisAndFollowingOffset = 'How many bytes do '
+    +'you want to shift this and following offsets?';
+  rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
+  rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
+  rsWrongVersion = 'This structure fils was generated with a newer version of '
+    +'Cheat Engine. (That means there''s more than likely a new version so '
+    +'please update....)';
+  rsUnkownFileExtension = 'Unkown file extension';
+  rsAreYouSureYouWantToRemoveAllStructures = 'Are you sure you want to remove '
+    +'all structures?';
+  rsRecalculateBaseOfStructure = 'Recalculate base of structure';
+  rsGiveTheAddressOfThisElement = 'Give the address of this element';
+  rsIHaveNoIdeaWhatMeans = 'I have no idea what %s means';
+  rsChangeGroup = 'Change group';
+  rsLockMemory = 'Lock memory';
+  rsUnlockMemory = 'Unlock memory';
+  rsRenameStructure = 'Rename structure';
+  rsGiveTheNewNameOfThisStructure = 'Give the new name of this structure';
+  rsPleaseGiveAStartingOffsetToEvaluate = 'Please give a starting offset to '
+    +'evaluate';
+  rsPleaseGiveTheSizeOfTheBlockToEvaluate = 'Please give the size of the '
+    +'block to evaluate';
+  rsStructureDefiner = 'Structure definer';
+  rsWhichGroupDoYouWantToSetThisAddressTo = 'Which group do you want to set '
+    +'this address to?';
+
+
 destructor TStructure.destroy;
 var i: integer;
 begin
@@ -418,7 +465,8 @@ begin
   if offsetsize>65536 then
   begin
     soffsetsize:=inttostr(offsetsize);
-    if InputQuery('This is quite a big structure. How many bytes do you want to save?', 'Structure view lock', soffsetsize)=false then exit;
+    if InputQuery(rsThisIsQuiteABigStructureHowManyBytesDoYouWantToSav,
+      rsStructureViewLock, soffsetsize)=false then exit;
     offsetsize:=strtoint(soffsetsize);
   end;
 
@@ -532,7 +580,7 @@ begin
       elementoffset:=definedstructures[basestructure].structelement[i].offset;
       
       if definedstructures[basestructure].structelement[i].pointerto then
-        typename:='pointer to '
+        typename:=rsPointerTo+' '
       else
         typename:='';
 
@@ -910,10 +958,12 @@ var sstructsize:string;
     structname: string;
 
 begin
-  structname:='unnamed structure';
-  if not inputquery('Structure define','Give the name for this structure',structname) then exit;
+  structname:=rsUnnamedStructure;
+  if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure,
+    structname) then exit;
   
-  autofillin:=messagedlg('Do you want Cheat Engine to try and fill in the most basic types of the struct using the current address?',mtconfirmation,[mbyes,mbno,mbcancel],0);
+  autofillin:=messagedlg(rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType,
+    mtconfirmation, [mbyes, mbno, mbcancel], 0);
   if autofillin=mrcancel then exit;
 
   setlength(definedstructures,length(definedstructures)+1);
@@ -926,7 +976,7 @@ begin
   begin
 
     sstructsize:='4096';
-    if not inputquery('Structure define','Please give a starting size of the struct (You can change this later if needed)',Sstructsize) then exit;
+    if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
     structsize:=strtoint(sstructsize);
 
     automaticallyGuessOffsets(0, structsize);
@@ -941,7 +991,7 @@ end;
 
 procedure TfrmStructures.definedstructureselect(sender:tobject);
 begin
-  caption:='Memory dissect - '+((sender as tmenuitem).Caption);
+  caption:=rsMemoryDissect+' - '+((sender as tmenuitem).Caption);
   if currentstructure<>nil then
     freeandnil(currentstructure);
 
@@ -1023,7 +1073,9 @@ begin
   end;
 
 
-  if currentstructure=nil then raise exception.Create('First select a structure you want to modify or define one first');
+  if currentstructure=nil then raise exception.Create(
+    rsFirstSelectAStructureYouWantToModifyOrDefine);
+
   with tfrmstructuresaddelement.create(self) do
   begin
     //fill the combobox with possible types
@@ -1291,14 +1343,15 @@ procedure TfrmStructures.miUpdateIntervalClick(Sender: TObject);
 var interval: string;
 begin
   interval:=inttostr(updatetimer.interval);
-  if InputQuery('Update interval','New interval:',interval) then
+  if InputQuery(rsUpdateInterval, rsNewInterval+':', interval) then
   begin
     try
       updatetimer.interval:=strtoint(interval);
     except
     end;
 
-    miUpdateInterval.caption:='Update interval: '+inttostr(updatetimer.interval);
+    miUpdateInterval.caption:=rsUpdateInterval+': '+inttostr(
+      updatetimer.interval);
   end;
 end;
 
@@ -1313,7 +1366,8 @@ begin
   if currentstructure<>nil then
   begin
     offsetstring:='0';
-    if InputQuery('Dissect Data','How many bytes do you want to shift this and following offsets?',offsetstring) then
+    if InputQuery(rsDissectData,
+      rsHowManyBytesDoYouWantToShiftThisAndFollowingOffset, offsetstring) then
     begin
       offset:=strtoint(offsetstring);
 
@@ -1547,7 +1601,9 @@ begin
     if s=nil then exit;
     if s.basestructure<0 then exit;
 
-    if messagedlg('Are you sure you want to delete '+definedstructures[s.basestructure].structelement[elementnr].description+'?', mtconfirmation, [mbyes,mbno], 0) <>mryes then exit;
+    if messagedlg(Format(rsAreYouSureYouWantToDelete, [definedstructures[
+      s.basestructure].structelement[elementnr].description]), mtconfirmation, [
+      mbyes, mbno], 0) <>mryes then exit;
 
     if tvStructureView.Selected.HasChildren then
       tvStructureView.Selected.Collapse(true);
@@ -1699,10 +1755,11 @@ begin
           freemem(c);
         end;
 
-        if s<>cemarker then raise exception.Create('This is not a valid structure file');
+        if s<>cemarker then raise exception.Create(
+          rsThisIsNotAValidStructureFile);
 
         f.ReadBuffer(x,4);
-        if x<>structureversion then raise exception.Create('This structure fils was generated with a newer version of Cheat Engine. (That means there''s more than likely a new version so please update....)');
+        if x<>structureversion then raise exception.Create(rsWrongVersion);
 
         startindex:=length(definedstructures);
 
@@ -1751,13 +1808,15 @@ begin
 
 
       applyChanges(true);
-    end else raise exception.create('Unkown file extension');
+    end else raise exception.create(rsUnkownFileExtension);
   end;
 end;
 
 procedure TfrmStructures.New1Click(Sender: TObject);
 begin
-  if (length(definedstructures)>0) and (messagedlg('Are you sure you want to remove all structures?',mtconfirmation,[mbyes,mbno],0)=mryes) then
+  if (length(definedstructures)>0) and (messagedlg(
+    rsAreYouSureYouWantToRemoveAllStructures, mtconfirmation, [mbyes, mbno], 0)=
+    mryes) then
   begin
     currentstructure.Free;
     currentstructure:=nil;
@@ -2242,12 +2301,12 @@ begin
     inc(oldaddress,definedstructures[snr].structelement[selectedelement].offset);
 
     a:=inttohex(memorybrowser.memoryaddress,8);
-    if inputquery('Recalculate base of structure','Give the address of this element',a) then
+    if inputquery(rsRecalculateBaseOfStructure, rsGiveTheAddressOfThisElement, a) then
     begin
       try
         newaddress:=strtoint64('$'+a);
       except
-        raise exception.Create('I have no idea what '+a+' means');
+        raise exception.Create(Format(rsIHaveNoIdeaWhatMeans, [a]));
       end;
 
       delta:=newaddress-oldaddress;
@@ -2598,14 +2657,14 @@ begin
   Remove1.Visible:=(x<>nil) and (x.tag<>0);
   n6.Visible:=remove1.Visible;
 
-  setgroup1.Caption:='Change group ('+inttostr(groups[x.tag])+')';
+  setgroup1.Caption:=rsChangeGroup+' ('+inttostr(groups[x.tag])+')';
 
   if currentstructure<>nil then
   begin
     if currentstructure.addresses[x.tag].lockedMemory=nil then
-      miLockMem.caption:='Lock memory'
+      miLockMem.caption:=rsLockMemory
     else
-      miLockMem.caption:='Unlock memory';
+      miLockMem.caption:=rsUnlockMemory;
   end;
 end;
 
@@ -2613,7 +2672,7 @@ procedure TfrmStructures.Renamestructure1Click(Sender: TObject);
 begin
   if currentstructure<>nil then
   begin
-    inputquery('Rename structure','Give the new name of this structure',definedstructures[currentstructure.basestructure].name);
+    inputquery(rsRenameStructure, rsGiveTheNewNameOfThisStructure,  definedstructures[currentstructure.basestructure].name);
     applyChanges(true);
   end;
 end;
@@ -2621,7 +2680,7 @@ end;
 procedure TfrmStructures.Deletecurrentstructure1Click(Sender: TObject);
 var i,j: integer;
 begin
-  if MessageDlg('Are you sure you want to delete '+definedstructures[currentstructure.basestructure].name+'?',mtConfirmation, [mbyes,mbno],0)=mryes then
+  if MessageDlg(Format(rsAreYouSureYouWantToDelete, [definedstructures[currentstructure.basestructure].name]), mtConfirmation, [mbyes, mbno], 0)= mryes then
   begin
     //remove all children that make use of this structnr
     //and move all children that point to higher numbered ones
@@ -2802,7 +2861,7 @@ begin
           definedstructures[length(definedstructures)-1].structelement[i].pointerto:=true;
           definedstructures[length(definedstructures)-1].structelement[i].pointertoSize:=8;
           definedstructures[length(definedstructures)-1].structelement[i].bytesize:=processhandler.pointersize;
-          definedstructures[length(definedstructures)-1].structelement[i].description:='pointer to ';
+          definedstructures[length(definedstructures)-1].structelement[i].description:=rsPointerTo+' ';
 
           a:=0;
           if processhandler.is64bit then
@@ -2917,11 +2976,11 @@ begin
     else
       sStartOffset:='0';
 
-    if not inputquery('Structure define','Please give a starting offset to evaluate',sStartOffset) then exit;
+    if not inputquery(rsStructureDefine, rsPleaseGiveAStartingOffsetToEvaluate, sStartOffset) then exit;
     startOffset:=StrToInt('$'+sStartOffset);
 
     sStructSize:='4096';
-    if not inputquery('Structure define','Please give the size of the block to evaluate',sStructSize) then exit;
+    if not inputquery(rsStructureDefine, rsPleaseGiveTheSizeOfTheBlockToEvaluate, sStructSize) then exit;
     structSize:=StrToInt(sStructSize);
 
     automaticallyGuessOffsets(startOffset, structsize);
@@ -2968,7 +3027,7 @@ begin
 
   sgroup:=inttostr(groups[x.Tag]);
 
-  InputQuery('Structure definer', 'Which group do you want to set this address to?', sgroup);
+  InputQuery(rsStructureDefiner, rsWhichGroupDoYouWantToSetThisAddressTo, sgroup);
   groups[x.Tag]:=strtoint(sgroup);
 
   updategroupindex;

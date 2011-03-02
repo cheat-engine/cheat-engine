@@ -60,6 +60,13 @@ implementation
 
 uses MainUnit2, MemoryBrowserFormUnit;
 
+resourcestring
+  rsPleaseProvideAValidStartAddress = 'Please provide a valid start address';
+  rsPleaseProvideAValidStopAddress = 'Please provide a valid stop address';
+  rsPleaseTellMeYouDonTNeedACodeCaveThisSmall = 'Please tell me you don''t need a code cave this small!!!';
+  rsPleaseProvideAValidSizeForTheWantedCodeCave = 'Please provide a valid size for the wanted code cave';
+  rsClosingThisWindowWillAlsoStopTheScannerAreYouSure = 'Closing this window will also stop the scanner. Are you sure?';
+
 procedure TCodecavescanner.updateprogressbar;
 begin
   if frmcodecavescanner<>nil then
@@ -203,20 +210,20 @@ only memory
     try
       startaddress:=StrToInt64('$'+editstart.text);
     except
-      raise exception.Create('Please provide a valid start address');
+      raise exception.Create(rsPleaseProvideAValidStartAddress);
     end;
 
     try
       stopaddress:=StrToint64('$'+editStop.text);
     except
-      raise exception.Create('Please provide a valid stop address');
+      raise exception.Create(rsPleaseProvideAValidStopAddress);
     end;
 
     try
       bytelength:=StrToInt64('$'+editsize.Text);
-      if bytelength<3 then raise exception.Create('Please tell me you don''t need a code cave this small!!!');
+      if bytelength<3 then raise exception.Create(rsPleaseTellMeYouDonTNeedACodeCaveThisSmall);
     except
-      raise exception.Create('Please provide a valid size for the wanted code cave');
+      raise exception.Create(rsPleaseProvideAValidSizeForTheWantedCodeCave);
     end;
     codecavescanner:=TCodecavescanner.create(true);
     codecavescanner.startaddress:=startaddress;
@@ -251,7 +258,7 @@ procedure TfrmCodecaveScanner.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
   if codecavescanner<>nil then
-    canclose:=messagedlg('Closing this window will also stop the scanner. Are you sure?',mtconfirmation,[mbyes,mbno],0)=mryes;
+    canclose:=messagedlg(rsClosingThisWindowWillAlsoStopTheScannerAreYouSure, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);

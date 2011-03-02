@@ -29,6 +29,10 @@ implementation
 
 uses MainUnit;
 
+resourcestring
+  rsTheFollowingAddressesGotChanged = 'The following addresses got changed';
+  rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat = 'The unrandomizer will currently not work on 64-bit applications';
+
 destructor TUnrandomize.destroy;
 begin
   if (processid=cefuncproc.ProcessID) and (processhandle=cefuncproc.ProcessHandle) then restore;
@@ -56,7 +60,7 @@ var s: string;
 begin
   if threaddone then
   begin
-    s:='The following addresses got changed:';
+    s:=rsTheFollowingAddressesGotChanged+':';
     for i:=0 to length(originalcode)-1 do
       s:=s+#13#10+inttohex(originalcode[i].address,8);
 
@@ -112,7 +116,7 @@ var memoryregion: tmemoryregions;
     incremental: boolean;
     counter: pointer;
 begin
-  if processhandler.is64bit then raise exception.create('The unrandomizer will currently not work on 64-bit applications');
+  if processhandler.is64bit then raise exception.create(rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat);
 
   defaultreturn:=formsettings.unrandomizersettings.defaultreturn;
 

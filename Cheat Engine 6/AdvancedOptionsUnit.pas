@@ -100,6 +100,7 @@ resourcestring
   strnotreadable='This address is not readable';
   strNotWhatitshouldbe='The memory at this address is''nt what it should be! Continue?';
 
+
 implementation
 
 uses MainUnit, MemoryBrowserFormUnit,
@@ -468,6 +469,13 @@ begin
 end;
 
 resourcestring strcouldntwrite='The memory at this address couldn''t be written';
+rsDelete = 'Delete';
+rsNewName = 'New name';
+rsGiveTheNewNameOfThisEntry = 'Give the new name of this entry';
+rsResumeTheGame = 'Resume the game';
+rsPaused = 'paused';
+rsPauseTheGame = 'Pause the game';
+rsTheMemoryAtThisAddressCouldnTBeWritten = 'The memory at this address couldn''t be written';
 procedure TAdvancedOptions.CC1Click(Sender: TObject);
 var codelength: integer;
     written: dword;
@@ -534,7 +542,7 @@ begin
     if (index=-1) or (codelist2.Items.Count=0) then exit;
 
     if not multidelete then
-      if messagedlg('Delete '+codelist2.Items[index].SubItems[0]+' ?',mtConfirmation,[mbyes,mbno],0) = mrno then exit;
+      if messagedlg(rsDelete+' '+codelist2.Items[index].SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
 
 
     setlength(code[index].before,0);
@@ -572,7 +580,7 @@ procedure TAdvancedOptions.Rename1Click(Sender: TObject);
 var index: integer;
 begin
   index:=codelist2.ItemIndex;
-  codelist2.Items[index].SubItems[0]:=inputbox('New name','Give the new name of this entry',codelist2.Items[index].SubItems[0]);
+  codelist2.Items[index].SubItems[0]:=inputbox(rsNewName, rsGiveTheNewNameOfThisEntry, codelist2.Items[index].SubItems[0]);
 end;
 
 procedure TAdvancedOptions.Findthiscodeinsideabinaryfile1Click(
@@ -623,13 +631,13 @@ begin
         ntsuspendProcess(processhandle);
       end;
 
-      pausebutton.Hint:='Resume the game'+pausehotkeystring;
+      pausebutton.Hint:=rsResumeTheGame+pausehotkeystring;
 
       red:=false;
       mainform.ProcessLabel.font.Color:=clred;
 
       plabel:=mainform.ProcessLabel.Caption;
-      mainform.ProcessLabel.Caption:=mainform.ProcessLabel.Caption+' (paused)';
+      mainform.ProcessLabel.Caption:=mainform.ProcessLabel.Caption+' ('+rsPaused+')';
       timer1.Enabled:=true;
     end
     else
@@ -639,7 +647,7 @@ begin
       if assigned(ntresumeprocess) then
         ntresumeprocess(processhandle);
 
-      pausebutton.Hint:='Pause the game'+pausehotkeystring;
+      pausebutton.Hint:=rsPauseTheGame+pausehotkeystring;
 
       timer1.Enabled:=false;
       mainform.ProcessLabel.Font.Color:=clMenuText;
@@ -656,9 +664,9 @@ procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 begin
   if pausebutton.Down then
-    pausebutton.hint:='Resume the game'+pausehotkeystring
+    pausebutton.hint:=rsResumeTheGame+pausehotkeystring
   else
-    pausebutton.hint:='Pause the game'+pausehotkeystring;
+    pausebutton.hint:=rsPauseTheGame+pausehotkeystring;
 end;
 
 procedure TAdvancedOptions.Replaceall1Click(Sender: TObject);
@@ -710,7 +718,7 @@ begin
     writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
     if written<>dword(codelength) then
     begin
-      messagedlg('The memory at this address couldn''t be written',mtError,[mbok],0);
+      messagedlg(rsTheMemoryAtThisAddressCouldnTBeWritten, mtError, [mbok], 0);
       exit;
     end;
 

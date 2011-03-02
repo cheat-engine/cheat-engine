@@ -125,6 +125,34 @@ uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
 
 //-----------Inside thread code---------
 
+resourcestring
+  rsDebuggerCrash = 'Debugger Crash';
+  rsCreateProcessFailed = 'CreateProcess failed:%s';
+
+  rsOnlyTheDebuggerThreadIsAllowedToSetTheCurrentThread = 'Only the debugger '
+    +'thread is allowed to set the current thread';
+  rsUnreadableAddress = 'Unreadable address';
+  rsDebuggerInterfaceDoesNotSupportSoftwareBreakpoints = 'Debugger interface %'
+    +'s does not support software breakpoints';
+  rsAddBreakpointAnInvalidDebugRegisterIsUsed = 'AddBreakpoint: An invalid '
+    +'debug register is used';
+  rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA = 'All 4 debug '
+    +'registers are currently used up. Free one and try again';
+  rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
+  rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
+  rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP = 'All debug '
+    +'registers are used up. Do you want to use a software breakpoint?';
+  rsAllDebugRegistersAreUsedUp = 'All debug registers are used up';
+  rsYes = 'Yes';
+  rsNo = 'No';
+  rsOutOfHWBreakpoints = 'All debug registers are used up and this debugger '
+    +'interface does not support software Breakpoints. Remove some and try '
+    +'again';
+  rsUnreadableMemoryUnableToSetSoftwareBreakpoint = 'Unreadable memory. '
+    +'Unable to set software breakpoint';
+  rsDebuggerFailedToAttach = 'Debugger failed to attach';
+  rsThisDebuggerInterfaceDoesnTSupportBreakOnEntryYet = 'This debugger '
+    +'interface :''%s'' doesn''t support Break On Entry yet';
 
 
 procedure TDebuggerthread.Execute;
@@ -178,7 +206,8 @@ begin
         ) =false then
         begin
           error:=getlasterror;
-          MessageBox(0, pchar('CreateProcess failed:'+inttostr(error)),'Debugger crash', MB_ICONERROR or mb_ok);
+          MessageBox(0, pchar(Format(rsCreateProcessFailed, [inttostr(error)])
+            ), pchar(rsDebuggerCrash), MB_ICONERROR or mb_ok);
           exit;
         end;
 
@@ -231,7 +260,7 @@ begin
 
     except
       on e: exception do
-        messagebox(0, pchar('debuggercrash:'+e.message), '', 0);
+        messagebox(0, pchar(rsDebuggerCrash+':'+e.message), '', 0);
     end;
 
   finally
@@ -342,7 +371,7 @@ begin
   //routines that call this only call it when the debugger is already paused
   if GetCurrentThreadId <> self.ThreadID then
     raise Exception.Create(
-      'Only the debugger thread is allowed to set the current thread');
+      rsOnlyTheDebuggerThreadIsAllowedToSetTheCurrentThread);
 
   fCurrentthread := x;
 end;
@@ -662,14 +691,18 @@ begin
   begin
     if dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities then
     begin
-      if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,1,x) then raise exception.create('Unreadable address');
-    end else raise exception.create('Debugger interface '+CurrentDebuggerInterface.name+' does not support software breakpoints');
+      if not ReadProcessMemory(processhandle, pointer(address), @originalbyte,
+        1, x) then raise exception.create(rsUnreadableAddress);
+    end else raise exception.create(Format(
+      rsDebuggerInterfaceDoesNotSupportSoftwareBreakpoints, [
+      CurrentDebuggerInterface.name]));
 
   end
   else
   if bpm=bpmDebugRegister then
   begin
-    if (debugregister<0) or (debugregister>3) then raise exception.create('AddBreakpoint: An invalid debug register is used');
+    if (debugregister<0) or (debugregister>3) then raise exception.create(
+      rsAddBreakpointAnInvalidDebugRegisterIsUsed);
   end;
 
 
@@ -885,14 +918,16 @@ begin
   usedDebugRegister := GetUsableDebugRegister;
   if usedDebugRegister = -1 then
     raise Exception.Create(
-      'All 4 debug registers are currently used up. Free one and try again');
+      rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA);
 
   //still here
   //create a foundcodedialog and add the breakpoint
   foundcodedialog := Tfoundcodedialog.Create(nil);
   case bpt of
-    bptAccess : foundcodedialog.Caption:='The following opcodes accessed '+inttohex(address,8);
-    bptWrite : foundcodedialog.Caption:='The following opcodes write to '+inttohex(address,8);
+    bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [
+      inttohex(address, 8)]);
+    bptWrite : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesWriteTo, [
+      inttohex(address, 8)]);
   end;
   foundcodedialog.Show;
 
@@ -1013,7 +1048,8 @@ begin
   if usedDebugRegister = -1 then
   begin
     if MessageDlg(
-      'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+      rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
+        mbNo, mbYes], 0) = mrYes then
       method := bpmInt3
     else
       exit;
@@ -1047,13 +1083,14 @@ begin
       if (BreakpointTrigger=bptExecute) then
       begin
         if MessageDlg(
-          'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+          rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP,
+            mtConfirmation, [mbNo, mbYes], 0) = mrYes then
           method := bpmInt3
         else
           exit;
       end
       else
-        messagedlg('All debug registers are used up', mtError, [mbok],0);
+        messagedlg(rsAllDebugRegistersAreUsedUp, mtError, [mbok], 0);
 
     end;
 
@@ -1088,7 +1125,8 @@ begin
   if usedDebugRegister = -1 then
   begin
     if MessageDlg(
-      'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+      rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
+        mbNo, mbYes], 0) = mrYes then
       method := bpmInt3
     else
       exit;
@@ -1164,10 +1202,11 @@ begin
 
       li.SubItems.Add(s);
 
+
       li.SubItems.Add(breakpointActionToString(bp.breakpointAction));
-      li.SubItems.Add(BoolToStr(bp.active,'Yes','No'));
+      li.SubItems.Add(BoolToStr(bp.active, rsYes, rsNo));
       if bp.markedfordeletion then
-        li.SubItems.Add('Yes');
+        li.SubItems.Add(rsYes);
     end;
   end;
 
@@ -1241,18 +1280,20 @@ begin
         begin
           if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
           begin
-            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0);
+            MessageDlg(rsOutOfHWBreakpoints, mtError, [mbok], 0);
             exit;
           end
           else
           begin
             if MessageDlg(
-              'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+              rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP,
+                mtConfirmation, [mbNo, mbYes], 0) = mrYes then
             begin
               if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
                 method := bpmInt3
               else
-                raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+                raise Exception.Create(
+                  rsUnreadableMemoryUnableToSetSoftwareBreakpoint);
             end
             else
               exit;
@@ -1292,7 +1333,7 @@ begin
 
     usableDebugReg := GetUsableDebugRegister;
     if usableDebugReg = -1 then
-      raise Exception.Create('All debug registers are used up');
+      raise Exception.Create(rsAllDebugRegistersAreUsedUp);
 
     setlength(bplist,0);
     GetBreakpointList(address, size, bplist);
@@ -1331,7 +1372,7 @@ begin
 
     usableDebugReg := GetUsableDebugRegister;
     if usableDebugReg = -1 then
-      raise Exception.Create('All debug registers are used up');
+      raise Exception.Create(rsAllDebugRegistersAreUsedUp);
 
     setlength(bplist,0);
     GetBreakpointList(address, size, bplist);
@@ -1397,18 +1438,17 @@ begin
 
           if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then
           begin
-            MessageDlg('All debug registers are used up and this debugger interface does not support software Breakpoints. Remove some and try again', mtError, [mbok],0);
+            MessageDlg(rsOutOfHWBreakpoints, mtError, [mbok],0);
             exit;
           end
           else
           begin
-            if MessageDlg(
-              'All debug registers are used up. Do you want to use a software breakpoint?', mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+            if MessageDlg(rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [mbNo, mbYes], 0) = mrYes then
             begin
               if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
                 method := bpmInt3
               else
-                raise Exception.Create('Unreadable memory. Unable to set software breakpoint');
+                raise Exception.Create(rsUnreadableMemoryUnableToSetSoftwareBreakpoint);
             end
             else
               exit;
@@ -1577,7 +1617,7 @@ begin
   begin
 
     if CurrentDebuggerInterface.errorstring='' then
-      raise exception.create('Debugger failed to attach')
+      raise exception.create(rsDebuggerFailedToAttach)
     else
       raise exception.create(CurrentDebuggerInterface.errorstring);
 
@@ -1640,7 +1680,7 @@ begin
 
   if not (dbcBreakOnEntry in CurrentDebuggerInterface.DebuggerCapabilities) then
   begin
-    MessageDlg('This debugger interface :'''+CurrentDebuggerInterface.name+''' doesn''t support Break On Entry yet', mtError, [mbok],0);
+    MessageDlg(Format(rsThisDebuggerInterfaceDoesnTSupportBreakOnEntryYet, [CurrentDebuggerInterface.name]), mtError, [mbok], 0);
     terminate;
     start;
     exit;

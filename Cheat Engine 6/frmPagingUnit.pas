@@ -56,6 +56,10 @@ implementation
 
 { TfrmPaging }
 
+resourcestring
+  rsNotFound = 'Not found';
+  rsFailureReadingPhysicalMemory = 'failure reading physical memory';
+
 procedure TfrmPaging.cb64bitChange(Sender: TObject);
 begin
   if cb64bit.checked then
@@ -106,7 +110,7 @@ begin
       exit;
     end;
 
-  showmessage('Not found');
+  showmessage(rsNotFound);
 
 
 
@@ -513,7 +517,7 @@ begin
         FillNodeLevel3(nil);
     end
     else
-      raise exception.create('failure reading physical memory');
+      raise exception.create(rsFailureReadingPhysicalMemory);
   finally
     freemem(buf);
   end;

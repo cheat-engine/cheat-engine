@@ -37,6 +37,10 @@ var
 
 implementation
 
+resourcestring
+  strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';
+  rsLoadIntoMemory = 'Load %s into memory';
+
 
 type Tregion=class
   public
@@ -51,7 +55,7 @@ begin
   inherited create;
 end;
 
-resourcestring strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';
+
 procedure tfrmLoadMemory.Showmodal(filename:string);
 var check: pchar;
     temp: qword;
@@ -59,7 +63,7 @@ var check: pchar;
 
 begin
 
-  caption:='Load '+extractfilename(filename)+' into memory';
+  caption:=Format(rsLoadIntoMemory, [extractfilename(filename)]);
 
   try
     datafile:=tfilestream.Create(filename,fmopenread);

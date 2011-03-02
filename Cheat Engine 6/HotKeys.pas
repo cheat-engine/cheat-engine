@@ -71,6 +71,12 @@ implementation
 
 uses MainUnit;
 
+resourcestring
+  rsHotkeyID = 'Hotkey ID=%s';
+  rsToggleScript = 'Toggle script';
+
+
+
 function THotkeyform.getHotkeyAction: TMemrecHotkeyAction;
 begin
   case cbFreezedirection.ItemIndex of
@@ -113,7 +119,7 @@ begin
   if x.VarType=vtAutoAssembler then
   begin
     cbFreezedirection.Clear;
-    cbFreezedirection.Items.add('Toggle script');
+    cbFreezedirection.Items.add(rsToggleScript);
     cbFreezedirection.Enabled:=false;
     edtFreezeValue.visible:=false;
   end;
@@ -306,7 +312,7 @@ begin
 
 
   if (listview1.selected<>nil) and (listview1.selected.data<>nil) then
-    lblid.caption:='Hotkey ID='+inttostr(TMemoryRecordHotkey(listview1.selected.data).id)
+    lblid.caption:=Format(rsHotkeyID, [inttostr(TMemoryRecordHotkey(listview1.selected.data).id)])
   else
     lblid.caption:='';
 end;

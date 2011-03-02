@@ -46,6 +46,10 @@ implementation
 
 uses MemoryBrowserFormUnit;
 
+resourcestring
+  rsNothingFound = 'Nothing found';
+  rsTheSpecifiedRangeIsInvalid = 'The specified range is invalid';
+
 procedure TFindWindow.scandone(var m: TMessage);
 var x: ptruint;
     i: integer;
@@ -56,7 +60,7 @@ begin
     begin
       MemoryBrowser.memoryaddress:=x;
       modalresult:=mrok;
-    end else raise exception.Create('Nothing found');
+    end else raise exception.Create(rsNothingFound);
   finally
     for i:=0 to ControlCount-1 do
       Controls[i].Enabled:=true;
@@ -76,7 +80,7 @@ begin
     start:=StrToInt64('$'+editStart.text);
     stop:=strtoint64('$'+editstop.Text);
   except
-    raise exception.Create('The specified range is invalid');
+    raise exception.Create(rsTheSpecifiedRangeIsInvalid);
   end;
 
   if start>stop then

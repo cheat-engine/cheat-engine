@@ -30,6 +30,8 @@ var
 
 implementation
 
+resourcestring
+  rsYouWin = 'OMG, You must have cheated or don''t have a life. (Although some people claim that thats the same)';
 
 procedure Ttlg.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -54,7 +56,7 @@ begin
   timer1.Enabled:=false;
   timer1.Interval:=timer1.Interval-100;
 
-  if timer1.Interval<=0 then showmessage('OMG, You must have cheated or don''t have a life. (Although some people claim that thats the same)');
+  if timer1.Interval<=0 then showmessage(rsYouWin);
   timer1.Enabled:=true;
 end;
 

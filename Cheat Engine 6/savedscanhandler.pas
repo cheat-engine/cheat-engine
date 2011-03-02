@@ -104,8 +104,15 @@ implementation
 
 uses cefuncproc, Math;
 
-type TArrMemoryRegion= array [0..0] of TMemoryRegion;
+resourcestring
+  rsMaxaddresslistcountIs0MeansTheAddresslistIsBad = 'maxaddresslistcount is 0 (Means: the addresslist is bad)';
+  rsFailureInFindingInThePreviousScanResults = 'Failure in finding %s in the previous scan results';
+  rsInvalidOrderOfCallingGetpointertoaddress = 'Invalid order of calling getpointertoaddress';
+  rsFailureInFindingInTheFirstScanResults = 'Failure in finding %s in the first scan results';
+  rsNoFirstScanDataFilesFound = 'No first scan data files found';
 
+
+type TArrMemoryRegion= array [0..0] of TMemoryRegion;
 
 function TSavedScanHandler.loadIfNotLoadedRegion(p: pointer): pointer;
 {
@@ -212,7 +219,7 @@ begin
     getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
     savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
   end;
-  if maxaddresslistcount=0 then raise exception.create('maxaddresslistcount is 0 (Means: the addresslist is bad)');
+  if maxaddresslistcount=0 then raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
 
   LastAddressAccessed.index:=0; //reset the index
 end;
@@ -256,7 +263,7 @@ begin
         inc(currentRegion);
 
       if currentregion>=maxnumberofregions then
-        raise exception.create('Failure in finding '+inttohex(address,8)+' in the previous scan results');
+        raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
 
       loadCurrentRegionMemory;
     end;
@@ -293,7 +300,7 @@ begin
     begin
       //addresslist is a list of pointers
 
-      if pa[0]>address then raise exception.create('Invalid order of calling getpointertoaddress');
+      if pa[0]>address then raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
 
       if pa[maxaddresslistcount-1]<address then
       begin
@@ -345,13 +352,13 @@ begin
 
 
       //not found
-      raise exception.create('Failure in finding '+inttohex(address,8)+' in the first scan results');
+      raise exception.create(Format(rsFailureInFindingInTheFirstScanResults, [inttohex(address, 8)]));
     end
     else
     begin
       //addresslist is a list of 2 items, address and vartype, what kind of vartype is not important because each type stores it's full max variablecount
 
-      if pab[0].address>address then raise exception.create('Invalid order of calling getpointertoaddress');
+      if pab[0].address>address then raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
 
       if pab[maxaddresslistcount-1].address<address then
       begin
@@ -396,7 +403,7 @@ begin
 
   end;
 
-  raise exception.create('Failure in finding '+inttohex(address,8)+' in the previous scan results');
+  raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
 end;
 
 constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
@@ -413,7 +420,7 @@ begin
     try
       SavedScanaddressFS:=tfilestream.Create(scandir+'ADDRESSES.'+savedresultsname, fmopenread or fmsharedenynone);
     except
-      raise exception.Create('No first scan data files found');
+      raise exception.Create(rsNoFirstScanDataFilesFound);
     end;
     SavedScanaddressFS.ReadBuffer(datatype,7);
 
@@ -456,7 +463,7 @@ begin
       SavedScanmemoryFS:=Tfilestream.Create(scandir+'MEMORY.'+savedresultsname,fmOpenRead or fmsharedenynone);
       getmem(SavedScanmemory, maxregionsize);
     except
-      raise exception.Create('No first scan data files found');
+      raise exception.Create(rsNoFirstScanDataFilesFound);
     end;
 
 

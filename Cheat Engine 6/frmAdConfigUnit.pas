@@ -8,6 +8,9 @@ uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ExtCtrls, ComCtrls, cesupport;
 
+resourcestring
+  rsPercentageShown = 'Percentage shown';
+
 type
 
   { TfrmAdConfig }
@@ -166,7 +169,7 @@ end;
 
 procedure TfrmAdConfig.tbPercentageChange(Sender: TObject);
 begin
-  lblPercentage.Caption:='Percentage shown: '+inttostr(tbPercentage.position)+'%';
+  lblPercentage.Caption:=rsPercentageShown+': '+inttostr(tbPercentage.position)+ '%';
 end;
 
 initialization

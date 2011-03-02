@@ -40,6 +40,8 @@ var
 
 implementation
 
+resourcestring
+  rsAreYouSureYouWantToRemoveThisSymbolFromTheList = 'Are you sure you want to remove this symbol from the list?';
 
 procedure SymbolUpdate;
 begin
@@ -123,7 +125,7 @@ procedure TfrmSymbolhandler.Delete1Click(Sender: TObject);
 begin
   if listview1.ItemIndex<>-1 then
   begin
-    if messagedlg('Are you sure you want to remove this symbol from the list?',mtconfirmation,[mbyes,mbno],0)=mryes then
+    if messagedlg(rsAreYouSureYouWantToRemoveThisSymbolFromTheList, mtconfirmation, [mbyes, mbno], 0)=mryes then
     begin
       symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
       listview1.Items[listview1.ItemIndex].Delete;

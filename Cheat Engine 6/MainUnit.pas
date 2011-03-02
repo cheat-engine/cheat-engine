@@ -732,6 +732,12 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
   pluginexports;
 
+resourcestring
+  rsInvalidStartAddress = 'Invalid start address: %s';
+  rsInvalidStopAddress = 'Invalid stop address: %s';
+  rsThisButtonWillTryToCancelTheCurrentScanClickTwiceT = 'This button will try to cancel the current scan. Click twice to force an exit';
+  rsCancel = 'Cancel';
+
 var
   ncol: TColor;
 
@@ -1331,7 +1337,7 @@ begin
 
     Result := StrToInt64('$' + FromAddress.Text);
   except
-    raise Exception.Create('Invalid start address: ' + FromAddress.Text);
+    raise Exception.Create(Format(rsInvalidStartAddress, [FromAddress.Text]));
   end;
 end;
 
@@ -1345,7 +1351,7 @@ begin
   try
     Result := StrToInt64('$' + ToAddress.Text);
   except
-    raise Exception.Create('Invalid stop address: ' + ToAddress.Text);
+    raise Exception.Create(Format(rsInvalidStopAddress, [ToAddress.Text]));
   end;
 end;
 
@@ -1420,12 +1426,12 @@ begin
     left := newscan.left;
     Width := (nextscanbutton.left + nextscanbutton.Width) - left;
     Height := newscan.Height;
-    Caption := 'Cancel';
+    Caption := rsCancel;
     onclick := cancelbuttonclick;
     Enabled := False;
     tag := 0; //0=normal 1=force
 
-    Hint := 'This button will try to cancel the current scan. Click twice to force an exit';
+    Hint := rsThisButtonWillTryToCancelTheCurrentScanClickTwiceT;
     ParentShowHint := False;
     ShowHint := True;
 
@@ -1600,6 +1606,10 @@ resourcestring
   strScantextcaptiontoValue = 'Value:';
   strsearchForText = 'Search for text';
   strSearchForArray = 'Search for this array';
+  rsValue = 'Value %';
+  rsBetween = 'between %';
+  rsAtLeastXx = 'at least xx%';
+  rsAnd = 'and';
 
 
   //--------------------------cbpercentage--------------
@@ -1609,8 +1619,8 @@ begin
   begin
     //turn this into a double value scan like "value between"
     CreateScanValue2;
-    ScanText.caption:='Value %';
-    ScanText2.caption:='Value %';
+    ScanText.caption:=rsValue;
+    ScanText2.caption:=rsValue;
   end
   else
   begin
@@ -1642,9 +1652,9 @@ begin
   end;
 
   if ScanType.text=strValueBetween then
-    cbpercentage.Caption:='between %'
+    cbpercentage.Caption:=rsBetween
   else
-    cbpercentage.Caption:='at least xx%';
+    cbpercentage.Caption:=rsAtLeastXx;
 
 end;
 
@@ -1666,7 +1676,7 @@ begin
     //decrease the width of the scanvalue editbox
     andlabel:=tlabel.Create(self);
     andlabel.Parent:=scanvalue.Parent;
-    andlabel.Caption:='and';
+    andlabel.Caption:=rsAnd;
 
     oldwidth:=scanvalue.width;
     scanvalue.Width:=(scanvalue.Width div 2)-(andlabel.width div 2)-3;
@@ -1979,6 +1989,32 @@ resourcestring
   strKeepList = 'Keep the current address list/code list?';
   strInfoAboutTable = 'Info about this table:';
   strPhysicalMemory = 'Physical Memory';
+  rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges = 'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without '
+    +'executing the disable part)';
+  rsLoadTheAssociatedTable = 'Load the associated table? (%s)';
+  rsGroup = 'Group %s';
+  rsGroups = 'Groups';
+  rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
+  rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
+  rsRenameFile = 'Rename file';
+  rsGiveTheNewFilename = 'Give the new filename';
+  rsRestoreAndShow = 'Restore and show';
+  rsEdit = 'Edit';
+  rsDelete = 'Delete';
+  rsRename = 'Rename';
+  rsSaveToDisk = 'Save to disk';
+  rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
+  rsCheatEngine = 'Cheat Engine';
+  rsWhatWillBeTheNewNameForThisTab = 'What will be the new name for this tab?';
+  rsScan = 'Scan';
+  rsScanresult = 'Scanresult';
+  rsSaveScanResults = 'Save scan results';
+  rsWhatNameDoYouWantToGiveToTheseScanresults = 'What name do you want to give to these scanresults?';
+  rsThankYouForTryingOutCheatEngineBecauseItHasExpired = 'Thank you for trying out Cheat Engine. Because it has expired Cheat Engine will now close. Is that ok with you?';
+  rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL = 'WHAT!!! Are you saying you''re going to continue using CE ILLEGALLY??? If you say yes, i''m going to mail the cops to '
+    +'get you and send you to jail!!!';
+  rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon = 'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate';
+  rsAprilFools = 'April fools!!!!';
 
 function TMainform.openprocessPrologue: boolean;
 begin
@@ -2122,9 +2158,7 @@ begin
 
         if wasactive then
         begin
-          if (messagedlg(
-            'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without executing the disable part)',
-            mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+          if (messagedlg(rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
           begin
             for j := 0 to addresslist.count - 1 do
               if (addresslist[j].VarType = vtAutoAssembler) and (addresslist[j].active) then
@@ -2156,7 +2190,7 @@ begin
   begin
     if fileexists(TablesDir+'\'+expectedfilename) or fileexists(expectedfilename) or fileexists(cheatenginedir + expectedfilename) then
     begin
-      if messagedlg('Load the associated table? (' + expectedFilename + ')', mtConfirmation,
+      if messagedlg(Format(rsLoadTheAssociatedTable, [expectedFilename]), mtConfirmation,
         [mbYes, mbNo], 0) = mrYes then
       begin
         autoopen := True;
@@ -2291,9 +2325,9 @@ begin
   for i:=0 to addresslist.Items.count-1 do
     if TMemoryRecord(addresslist.Items[i].data).isGroupHeader then inc(count);
 
-  groupname:='Group '+inttostr(count+1);
+  groupname:=Format(rsGroup, [inttostr(count+1)]);
 
-  if InputQuery('Groups','What do you want the groupname to be?',groupname) then
+  if InputQuery(rsGroups, rsWhatDoYouWantTheGroupnameToBe, groupname) then
     addresslist.CreateGroup(groupname);
 end;
 
@@ -2372,7 +2406,7 @@ end;
 procedure TMainForm.DeleteFormClick(sender: tobject);
 var f: tceform;
 begin
-  if messagedlg('Are you sure you want to delete this form?', mtConfirmation, [mbyes,mbno],0)=mryes then
+  if messagedlg(rsAreYouSureYouWantToDeleteThisForm, mtConfirmation, [mbyes, mbno], 0)=mryes then
   begin
     if LuaForms.count=1 then //close the designerform when it's the last object
       if FormDesigner<>nil then
@@ -2437,7 +2471,7 @@ procedure TMainForm.RenameFileClick(sender: tobject);
 var lf: TLuafile;
 begin
   lf:=TLuafile(LuaFiles[TMenuItem(sender).Tag]);
-  InputQuery('Rename file','Give the new filename',lf.name);
+  InputQuery(rsRenameFile, rsGiveTheNewFilename, lf.name);
 end;
 
 procedure TMainForm.SaveFileClick(sender: tobject);
@@ -2515,14 +2549,14 @@ begin
 
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Restore and show';
+    submenu.Caption:=rsRestoreAndShow;
     submenu.OnClick:=RestoreAndShowFormClick;
     submenu.Tag:=i;
     submenu.Default:=true;
     mi.Add(submenu);
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Edit';
+    submenu.Caption:=rsEdit;
     submenu.OnClick:=EditFormClick;
     submenu.Tag:=i;
     mi.Add(submenu);
@@ -2533,7 +2567,7 @@ begin
     mi.Add(submenu);
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Delete';
+    submenu.Caption:=rsDelete;
     submenu.OnClick:=DeleteFormClick;
     submenu.Tag:=i;
     mi.Add(submenu);
@@ -2553,13 +2587,13 @@ begin
     miTable.add(mi);
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Rename';
+    submenu.Caption:=rsRename;
     submenu.OnClick:=RenameFileClick;
     submenu.Tag:=i;
     mi.Add(submenu);
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Save to disk';
+    submenu.Caption:=rsSaveToDisk;
     submenu.OnClick:=SaveFileClick;
     submenu.Tag:=i;
     mi.Add(submenu);
@@ -2569,7 +2603,7 @@ begin
     mi.Add(submenu);
 
     submenu:=tmenuitem.create(mi);
-    submenu.Caption:='Delete';
+    submenu.Caption:=rsDelete;
     submenu.OnClick:=DeleteFileClick;
     submenu.Tag:=i;
     mi.Add(submenu);
@@ -2789,7 +2823,7 @@ begin
   ct:=TCustomType(vartype.Items.Objects[vartype.ItemIndex]);
   if (ct<>nil) and ((ct.CustomTypeType=cttAutoAssembler) or (ct.CustomTypeType=cttLuaScript)) then
   begin
-    if messagedlg('Are you sure you want to delete '+ct.name+'?',mtconfirmation, [mbno,mbyes],0)=mryes then
+    if messagedlg(Format(rsAreYouSureYouWantToDelete, [ct.name]), mtconfirmation, [mbno, mbyes], 0)=mryes then
     begin
       reg:=tregistry.create;
       reg.DeleteKey('\Software\Cheat Engine\CustomTypes\'+ct.name);
@@ -3060,7 +3094,7 @@ procedure TMainForm.miRenameTabClick(Sender: TObject);
 var s: string;
 begin
   s:=scantablist.TabText[scantablist.SelectedTab];
-  if InputQuery('Cheat Engine','What will be the new name for this tab?',s) then
+  if InputQuery(rsCheatEngine, rsWhatWillBeTheNewNameForThisTab, s) then
     scantablist.TabText[scantablist.SelectedTab]:=s;
 end;
 
@@ -3329,13 +3363,13 @@ begin
 
     scantablist.Anchors:=scantablist.Anchors+[akRight];
 
-    i:=scantablist.AddTab('Scan 1'); //original scan
+    i:=scantablist.AddTab(rsScan+' 1'); //original scan
 
     getmem(newstate, sizeof(TScanState));
     SetupInitialScanTabState(newstate,true);
     scantablist.TabData[i]:=newstate;
 
-    i:=scantablist.AddTab('Scan 2'); //first new scan
+    i:=scantablist.AddTab(rsScan+' 2'); //first new scan
     getmem(newstate, sizeof(TScanState));
     SetupInitialScanTabState(newstate,false);
     scantablist.TabData[i]:=newstate;
@@ -3386,7 +3420,7 @@ begin
   end
   else
   begin
-    i:=scantablist.addtab('Scan '+inttostr(tabcounter));
+    i:=scantablist.addtab(rsScan+' '+inttostr(tabcounter));
     getmem(newstate, sizeof(TScanState));
     SetupInitialScanTabState(newstate,false);
     scantablist.TabData[i]:=newstate;
@@ -3449,8 +3483,8 @@ var n: string;
 begin
   if memscan.nextscanCount>0 then
   begin
-    n:='Scanresult '+inttostr(memscan.nextscanCount+1);
-    if inputquery('Save scan results', 'What name do you want to give to these scanresults?', n) then
+    n:=rsScanresult+' '+inttostr(memscan.nextscanCount+1);
+    if inputquery(rsSaveScanResults, rsWhatNameDoYouWantToGiveToTheseScanresults, n) then
     begin
       memscan.saveresults(n);
       UpdateScanType;
@@ -3526,20 +3560,20 @@ begin
   if aprilfools then
   begin
     if messagedlg(
-      'Thank you for trying out Cheat Engine. Because it has expired Cheat Engine will now close. Is that ok with you?',
+      rsThankYouForTryingOutCheatEngineBecauseItHasExpired,
       mtInformation, [mbYes, mbNo], 0) = mrYes then
     begin
-      ShowMessage('April fools!!!!');
+      ShowMessage(rsAprilFools);
 
     end
     else
     begin
       if messagedlg(
-        'WHAT!!! Are you saying you''re going to continue using CE ILLEGALLY??? If you say yes, i''m going to mail the cops to get you and send you to jail!!!', mtWarning, [mbYes, mbNo], 0) = mrYes then
+        rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL, mtWarning, [mbYes, mbNo], 0) = mrYes then
         ShowMessage(
-          'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate')
+          rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon)
       else
-        ShowMessage('April fools!!!!');
+        ShowMessage(rsAprilFools);
     end;
 
     Caption := cenorm;
@@ -3613,6 +3647,7 @@ end;
 
 resourcestring
   strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
+  rsLuaScriptCheatTable = 'Lua script: Cheat Table';
 
 function TMainform.onhelp(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
 begin
@@ -3688,7 +3723,7 @@ begin
   frmLuaTableScript:=TfrmAutoInject.create(self);
   frmLuaTableScript.luamode:=true;
 
-  frmLuaTableScript.Caption:='Lua script: Cheat Table';
+  frmLuaTableScript.Caption:=rsLuaScriptCheatTable;
   frmLuaTableScript.New1.visible:=false;
   frmLuaTableScript.save1.OnClick:=savebutton.onclick;
 
@@ -4089,6 +4124,13 @@ resourcestring
   strMorePointers2 = 'You have selected one or more pointers. Do you want to change them as well?';
   strNotAValidValue = 'This is not an valid value';
   rsComparingToF = 'Comparing to first scan results';
+  rsTheRecordWithDescriptionHasAsInterpretableAddressT = 'The record with description ''%s'' has as interpretable address ''%s''. The recalculation will change it to %s. Do you '
+    +'want to edit it to the new address?';
+  rsSavedScanResults = 'Saved scan results';
+  rsSelectTheSavedScanResultFromTheListBelow = 'Select the saved scan result from the list below';
+  rsComparingTo = 'Comparing to %s';
+  rsHex = 'Hex';
+  rsDoYouWantToGoToTheCheatEngineWebsite = 'Do you want to go to the Cheat Engine website?';
 
 procedure TMainForm.Calculatenewvaluepart21Click(Sender: TObject);
 var
@@ -4189,7 +4231,7 @@ begin
         begin
           if res=-1 then
           begin
-            res:=messagedlg('The record with description '''+addresslist[i].Description+''' has as interpretable address '''+addresslist[i].interpretableaddress+'''. The recalculation will change it to '+symhandler.getNameFromAddress(addresslist[i].getBaseAddress+calculate,true,true)+'. Do you want to edit it to the new address?',mtconfirmation,[mbyes,mbno,mbNoToAll,mbYesToAll,mbCancel],0);
+            res:=messagedlg(Format(rsTheRecordWithDescriptionHasAsInterpretableAddressT, [addresslist[i].Description, addresslist[i].interpretableaddress, symhandler.getNameFromAddress(addresslist[i].getBaseAddress+calculate, true, true)]), mtconfirmation, [mbyes, mbno, mbNoToAll, mbYesToAll, mbCancel], 0);
             if res=mrcancel then exit;
           end;
 
@@ -4249,8 +4291,8 @@ begin
             //popup a window where the user can select the scanresults
             //currentlySelectedSavedResultname
             l:=TfrmSelectionList.create(self,s);
-            l.Caption:='Saved scan results';
-            l.label1.caption:='Select the saved scan result from the list below';
+            l.Caption:=rsSavedScanResults;
+            l.label1.caption:=rsSelectTheSavedScanResultFromTheListBelow;
             l.itemindex:=0;
 
             if (l.showmodal=mrok) and (l.itemindex<>-1) then
@@ -4259,7 +4301,7 @@ begin
               if l.itemindex=0 then
                 lblcompareToSavedScan.caption:=rsComparingToF
               else
-                lblcompareToSavedScan.caption:='Comparing to '+currentlySelectedSavedResultname;
+                lblcompareToSavedScan.caption:=Format(rsComparingTo, [currentlySelectedSavedResultname]);
             end
             else
             begin
@@ -4270,7 +4312,7 @@ begin
           else
           begin
             currentlySelectedSavedResultname:='FIRST';
-            lblcompareToSavedScan.caption:='Comparing to first scan results';
+            lblcompareToSavedScan.caption:=rsComparingToF;
           end;
         finally
           s.free;
@@ -4580,7 +4622,7 @@ begin
   unicodevis:=false;
   hexwidth:=50;
 
-  hextext:='Hex';
+  hextext:=rsHex;
   casevis:=false;
 
   decbitvis:=false;
@@ -4729,7 +4771,7 @@ end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
 begin
-  if messagedlg('Do you want to go to the Cheat Engine website?',
+  if messagedlg(rsDoYouWantToGoToTheCheatEngineWebsite,
     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE60'),
       PChar(''), PChar(''), SW_MAXIMIZE);
@@ -4847,6 +4889,17 @@ resourcestring
   strDisableCheat='Disable cheat';
 
   strForceRecheck='Force recheck symbols';
+  rsSetChangeHotkeys = 'Set/Change hotkeys';
+  rsShowAsDecimal = 'Show as decimal';
+  rsShowAsBinary = 'Show as binary';
+  rsShowAsHexadecimal = 'Show as hexadecimal';
+  rsRemoveSelectedAddresses = 'Remove selected addresses';
+  rsRemoveSelectedAddress = 'Remove selected address';
+  rsThisListIsHuge = 'This list is huge and deleting multiple items will require CE to traverse the whole list and can take a while. Are you sure?';
+  rsFindOutWhatAccessesThisPointer = 'Find out what accesses this pointer';
+  rsFindWhatAccessesTheAddressPointedAtByThisPointer = 'Find what accesses the address pointed at by this pointer';
+  rsFindOutWhatWritesThisPointer = 'Find out what writes this pointer';
+  rsFindWhatWritesTheAddressPointedAtByThisPointer = 'Find what writes the address pointed at by this pointer';
 procedure TMainForm.PopupMenu2Popup(Sender: TObject);
 var i: Integer;
 
@@ -4854,7 +4907,7 @@ var i: Integer;
     selectionCount: integer;
     selectedrecord: TMemoryRecord;
 begin
-  sethotkey1.Caption:='Set/Change hotkeys';
+  sethotkey1.Caption:=rsSetChangeHotkeys;
 
   selectedrecord:=addresslist.selectedRecord;
   selectionCount:=0;
@@ -4879,9 +4932,9 @@ begin
   if (addresslist.selectedRecord<>nil) and (addresslist.selectedrecord.VarType = vtBinary) then
   begin
     if addresslist.selectedRecord.Extra.bitData.showasbinary then
-      miShowAsBinary.caption:='Show as decimal'
+      miShowAsBinary.caption:=rsShowAsDecimal
     else
-      miShowAsBinary.caption:='Show as binary';
+      miShowAsBinary.caption:=rsShowAsBinary;
 
     miShowAsBinary.visible:=true;
   end
@@ -4891,9 +4944,9 @@ begin
   if (addresslist.selectedRecord<>nil) then
   begin
     if not addresslist.selectedRecord.showAsHex then
-      ShowAsHexadecimal1.Caption:='Show as hexadecimal'
+      ShowAsHexadecimal1.Caption:=rsShowAsHexadecimal
     else
-      ShowAsHexadecimal1.Caption:='Show as decimal';
+      ShowAsHexadecimal1.Caption:=rsShowAsDecimal;
   end;
 
 
@@ -4961,9 +5014,9 @@ begin
   end;
 
   if Foundlist3.SelCount>1 then
-    Removeselectedaddresses1.caption:='Remove selected addresses'
+    Removeselectedaddresses1.caption:=rsRemoveSelectedAddresses
   else
-    Removeselectedaddresses1.caption:='Remove selected address';
+    Removeselectedaddresses1.caption:=rsRemoveSelectedAddress;
 
   if Foundlist3.selcount=0 then
   begin
@@ -4999,7 +5052,7 @@ begin
   else if foundlist3.selcount>1 then
   begin
     if foundlist3.items.count>100000 then
-      if messagedlg('This list is huge and deleting multiple items will require CE to traverse the whole list and can take a while. Are you sure?',mtconfirmation,[mbyes,mbno],0)<>mryes then exit;
+      if messagedlg(rsThisListIsHuge, mtconfirmation, [mbyes, mbno], 0)<>mryes then exit;
 
     screen.Cursor:=crhourglass;
 
@@ -5200,8 +5253,8 @@ begin
     begin
       with TformPointerOrPointee.create(self) do
       begin
-        button1.Caption:='Find out what accesses this pointer';
-        button2.Caption:='Find what accesses the address pointed at by this pointer';
+        button1.Caption:=rsFindOutWhatAccessesThisPointer;
+        button2.Caption:=rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res:=showmodal;
         if res=mrno then //find what writes to the address pointer at by this pointer
@@ -5235,8 +5288,8 @@ begin
     begin
       with TformPointerOrPointee.create(self) do
       begin
-        button1.Caption:='Find out what writes this pointer';
-        button2.Caption:='Find what writes the address pointed at by this pointer';
+        button1.Caption:=rsFindOutWhatWritesThisPointer;
+        button2.Caption:=rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res:=showmodal;
         if res=mrno then //find what writes to the address pointer at by this pointer
@@ -5349,6 +5402,7 @@ resourcestring
   strHideAll = 'will hide all windows';
   strUnHideForeground = 'will bring the foreground window back';
   strUnhideAll = 'will bring all windows back';
+  rsBringsCheatEngineToFront = 'brings Cheat Engine to front';
 
 procedure TMainform.adjustbringtofronttext;
 var
@@ -5375,7 +5429,7 @@ begin
 
   end
   else
-    fronttext := 'brings Cheat Engine to front';
+    fronttext := rsBringsCheatEngineToFront;
 
 
 
@@ -5402,6 +5456,9 @@ resourcestring
   strXMess = 'Merry christmas and happy new year';
   strNewyear = 'And what are your good intentions for this year? ;-)';
   strfuture = 'Wow,I never imagined people would use Cheat Engine up to today';
+  rsLicenseExpired = 'Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for '
+    +'only $1800. If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)';
+  rsEXPIRED = 'EXPIRED';
 
 var onetimeonly: boolean=false; //to protect against make mainform visible (.show)
 procedure TMainForm.FormShow(Sender: TObject);
@@ -5491,7 +5548,7 @@ begin
 
   if aprilfools = True then
     Messagedlg(
-      'Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for only $1800.' + ' If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)', mtWarning, [mbOK], 0);
+      rsLicenseExpired, mtWarning, [mbOK], 0);
 
 
   LoadSettingsFromRegistry;
@@ -5522,7 +5579,7 @@ begin
 
 
   if aprilfools then
-    Caption := cenorm + ' EXPIRED!';
+    Caption := cenorm + ' '+rsEXPIRED+'!';
 
   if autoattachtimer.Enabled then
     autoattachcheck;
@@ -5737,6 +5794,10 @@ end;
 
 resourcestring
   strdontbother = 'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
+  rsTheProcessIsnTFullyOpenedIndicatingAInvalidProcess = 'The process isn''t fully opened. Indicating a invalid ProcessID. You still want to find out the EPROCESS? (BSOD is '
+    +'possible)';
+  rsUnrandomizerInfo = 'This will scan for and change some routines that are commonly used to generate a random value so they always return the same. Please be aware that there '
+    +'is a chance it overwrites the wrong routines causing the program to crash, or that the program uses an unknown random generator. Continue?';
 
 procedure TMainForm.cbPauseWhileScanningClick(Sender: TObject);
 
@@ -5761,7 +5822,7 @@ begin
     if processid=0 then exit;
 
     if not IsValidHandle(processhandle) then
-      if messagedlg('The process isn''t fully opened. Indicating a invalid ProcessID. You still want to find out the EPROCESS? (BSOD is possible)',mtwarning,[mbyes,mbno],0)<>mryes then exit;
+      if messagedlg(rsTheProcessIsnTFullyOpenedIndicatingAInvalidProcess, mtwarning, [mbyes, mbno], 0)<>mryes then exit;
 
     peprocess:=GetPEProcess(processid);
     showmessage('PEProcess='+IntToHex(peprocess,8));
@@ -5787,7 +5848,7 @@ procedure TMainForm.cbUnrandomizerClick(Sender: TObject);
 begin
   if cbunrandomizer.checked then
   begin
-    if(messagedlg('This will scan for and change some routines that are commonly used to'+' generate a random value so they always return the same. Please be aware that there is a chance it overwrites the wrong routines causing the program to crash, or that the program uses an unknown random generator. Continue?',mtwarning,[mbyes,mbno],0)=mryes) then
+    if(messagedlg(rsUnrandomizerInfo, mtwarning, [mbyes, mbno], 0)=mryes) then
     begin
       unrandomize:=tunrandomize.create(true);
       with unrandomize do
@@ -5842,6 +5903,19 @@ end;
 
 resourcestring
   strUnknownExtension = 'Unknown extension';
+  rsDoYouWishToMergeTheCurrentTableWithThisTable = 'Do you wish to merge the current table with this table?';
+  rsDoYouWantToProtectThisTrainerFileFromEditing = 'Do you want to protect this trainer file from editing?';
+  rsAutoAssembleEdit = 'Auto Assemble edit: %s';
+  rsEditAddresses = 'Edit addresses';
+  rsScanError = 'Scan error:%s';
+  rsShown = 'shown';
+  rsTerminatingScan = 'Terminating scan...';
+  rsThisButtonWillForceCancelAScanExpectMemoryLeaks = 'This button will force cancel a scan. Expect memory leaks';
+  rsForceTermination = 'Force termination';
+  rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults = 'You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to '
+    +'continue?';
+  rsIsNotAValidSpeed = '%s is not a valid speed';
+  rsAreYouSureYouWantToEraseTheDataInTheCurrentTable = 'Are you sure you want to erase the data in the current table?';
 
 procedure TMainForm.SaveIntialTablesDir(dir: string);
 var reg: tregistry;
@@ -5887,7 +5961,7 @@ begin
        (Extension<>'.CETRAINER') then raise exception.create(strUnknownExtension);
 
 
-    if ((addresslist.count>0) or (advancedoptions.numberofcodes>0)) and (Extension<>'.EXE') then app:=messagedlg('Do you wish to merge the current table with this table?',mtConfirmation,mbYesNoCancel,0);
+    if ((addresslist.count>0) or (advancedoptions.numberofcodes>0)) and (Extension<>'.EXE') then app:=messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable, mtConfirmation, mbYesNoCancel, 0);
     case app of
       mrCancel: exit;
       mrYes: merge:=true;
@@ -5935,7 +6009,7 @@ begin
   if Savedialog1.Execute then
   begin
     if ExtractFileExt(savedialog1.FileName)='.CETRAINER' then
-      protect:=MessageDlg('Do you want to protect this trainer file from editing?', mtConfirmation, [mbyes, mbno], 0)=mryes;
+      protect:=MessageDlg(rsDoYouWantToProtectThisTrainerFileFromEditing, mtConfirmation, [mbyes, mbno], 0)=mryes;
 
     savetable(savedialog1.FileName, protect);
   end;
@@ -5992,7 +6066,7 @@ begin
       setlength(y,0);
       loadformposition(x,y);
 
-      caption:='Auto Assemble edit: '+memrec.Description;
+      caption:=Format(rsAutoAssembleEdit, [memrec.Description]);
       show;
 
 
@@ -6028,8 +6102,8 @@ begin
 
   frmPasteTableentry:=TfrmPasteTableentry.create(self);
   try
-    frmPasteTableentry.caption:='Edit addresses';
-    frmPasteTableentry.Button1.Caption:='Edit';
+    frmPasteTableentry.caption:=rsEditAddresses;
+    frmPasteTableentry.Button1.Caption:=rsEdit;
 
     if frmpastetableentry.showmodal=mrcancel then exit;
     replace_find:=frmpastetableentry.edtFind.text;
@@ -6535,7 +6609,7 @@ begin
   canceled:=false;
 
   button2.Tag:=2;
-  button2.Caption:='Scan';
+  button2.Caption:=rsScan;
   button4.tag:=0;
   progressbar1.Position:=0;
 
@@ -6549,7 +6623,7 @@ begin
 
   if message.wparam>0 then
   begin
-    messagedlg('Scan error:'+memscan.GetErrorString, mtError,[mbok],0);
+    messagedlg(Format(rsScanError, [memscan.GetErrorString]), mtError, [mbok], 0);
   end;
 
 {  else}
@@ -6569,7 +6643,7 @@ begin
   if (foundlist3.items.count<>foundcount) and (not foundlist.isUnknownInitialValue) then
   begin
     actuallyshown:=foundlist3.items.count;
-    foundcountlabel.Caption:=foundcountlabel.caption+' (shown: '+Format('%.0n', [actuallyshown])+')' ;
+    foundcountlabel.Caption:=foundcountlabel.caption+' ('+rsShown+': '+Format('%.0n', [actuallyshown])+')' ;
   end;
 
   if memscan.lastscantype=stFirstScan then
@@ -6601,10 +6675,10 @@ procedure Tmainform.CancelbuttonClick(Sender: TObject);
 begin
   if cancelbutton.tag=0 then
   begin
-    cancelbutton.Caption:='Terminating scan...';
+    cancelbutton.Caption:=rsTerminatingScan;
     cancelbutton.Enabled:=false;
     cancelbutton.Tag:=1; //force termination
-    cancelbutton.Hint:='This button will force cancel a scan. Expect memory leaks';
+    cancelbutton.Hint:=rsThisButtonWillForceCancelAScanExpectMemoryLeaks;
     cancelbutton.ParentShowHint:=false;
     cancelbutton.ShowHint:=true;
     memscan.terminatescan(false);
@@ -6627,7 +6701,7 @@ begin
     cancelbutton.Enabled := True;
 
   if cancelbutton.Tag = 1 then
-    cancelbutton.Caption := 'Force termination';
+    cancelbutton.Caption := rsForceTermination;
   TTimer(Sender).Enabled := False;
 end;
 
@@ -6643,7 +6717,7 @@ begin
   GetDiskFreeSpaceEx(pchar(memscan.ScanresultFolder), diskspacefree, totaldiskspace,@totaldiskspacefree);
 
   if estimateddiskspaceneeded>diskspacefree then
-    if MessageDlg('You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to continue?',mtwarning,[mbyes,mbno],0)<>mryes then exit;
+    if MessageDlg(rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults, mtwarning, [mbyes, mbno], 0)<>mryes then exit;
 
   if cbpercentage<>nil then
     percentage:=cbPercentage.checked
@@ -6827,7 +6901,7 @@ begin
   end;
 
   if error or IsInfinite(newspeed) or IsNan(newspeed) then
-    raise exception.Create(editSH2.text+' is not a valid speed');
+    raise exception.Create(Format(rsIsNotAValidSpeed, [editSH2.text]));
 
   if speedHack<>nil then
     speedhack.setSpeed(newspeed);
@@ -6998,7 +7072,7 @@ end;
 
 procedure TMainForm.New1Click(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you want to erase the data in the current table?',
+  if MessageDlg(rsAreYouSureYouWantToEraseTheDataInTheCurrentTable,
     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     clearlist;
 end;

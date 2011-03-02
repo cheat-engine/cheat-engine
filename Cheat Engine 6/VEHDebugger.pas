@@ -37,6 +37,16 @@ type
 
 implementation
 
+resourcestring
+  rsErrorWhileTryingToCreateTheConfigurationStructure = 'Error while trying '
+    +'to create the configuration structure! (Which effectively renders this '
+    +'whole feature useless) Errorcode=%s';
+  rsCheatEngineFailedToGetIntoTheConfig = 'Cheat Engine failed to get into '
+    +'the config of the selected program. (Error=%s)';
+  rsFailureDuplicatingTheEventHandlesToTheOtherProcess = 'Failure duplicating '
+    +'the event handles to the other process';
+  rsVEHDebugError = 'VEH Debug error';
+
 constructor TVEHDebugInterface.create;
 begin
   inherited create;
@@ -321,7 +331,8 @@ begin
     begin
       e:=getlasterror;
       OutPutDebugString('Failed:'+inttostr(e));
-      raise exception.Create('Error while trying to create the configuration structure! (Which effectively renders this whole feature useless) Errorcode='+inttostr(e));
+      raise exception.Create(Format(
+        rsErrorWhileTryingToCreateTheConfigurationStructure, [inttostr(e)]));
     end;
 
     OutPutDebugString('Created the filemap');
@@ -334,7 +345,8 @@ begin
 
       OutputDebugString('MapViewOfFile failed: '+inttostr(e));
 
-      raise exception.Create('Cheat Engine failed to get into the config of the selected program. (Error='+inttostr(e)+')');
+      raise exception.Create(Format(rsCheatEngineFailedToGetIntoTheConfig, [
+        inttostr(e)]));
     end;
 
     ZeroMemory(VEHDebugView,sizeof(TVEHDebugSharedMem));
@@ -347,10 +359,12 @@ begin
 
 
     if not DuplicateHandle(GetCurrentProcess, HasDebugEvent, processhandle, @VEHDebugView^.HasDebugEvent, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Failure duplicating the event handles to the other process');
+      raise exception.Create(
+        rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
     if not DuplicateHandle(GetCurrentProcess, HasHandledDebugEvent, processhandle, @VEHDebugView^.HasHandledDebugEvent, 0, false, DUPLICATE_SAME_ACCESS	) then
-      raise exception.Create('Failure duplicating the event handles to the other process');
+      raise exception.Create(
+        rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
     is64bit:=processhandler.is64Bit;
     if is64bit then
@@ -393,7 +407,7 @@ begin
   except
     on e: exception do
     begin
-      messagebox(0,pchar(e.message), 'VEH Debug error', MB_OK or MB_ICONERROR);
+      messagebox(0, pchar(e.message), pchar(rsVEHDebugError), MB_OK or MB_ICONERROR);
       result:=false;
     end;
   end;

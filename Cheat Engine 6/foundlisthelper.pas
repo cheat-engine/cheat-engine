@@ -80,6 +80,10 @@ implementation
 
 uses mainunit;
 
+resourcestring
+  rsUndefinedError = 'Undefined error';
+  rsError = 'Error';
+
 procedure TRebaseAgain.rerebase;
 begin
   foundlistClass.RebaseAgainThread:=nil; //so it will spawn a new one if still not done
@@ -620,7 +624,7 @@ begin
                   valuelist[j]:=IntToStr(Longint(read3))
                 else
                   valuelist[j]:=IntToStr(read3);
-              end else valuelist[j]:='Undefined error';
+              end else valuelist[j]:=rsUndefinedError;
 
             end
             else
@@ -629,7 +633,7 @@ begin
             freemem(tempbuf);
           end;
         except
-          valuelist[j]:='Error';
+          valuelist[j]:=rsError;
         end;
       end;
     end;

@@ -45,6 +45,7 @@ type
     Label1: TLabel;
     lblMaxOffset: TLabel;
     procedure btnStartClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -65,6 +66,12 @@ var
 
 implementation
 
+resourcestring
+  rsStop = 'Stop';
+  rsStart = 'Start';
+  rsPleaseSelectSomethingToScan = 'Please select something to scan';
+  rsDone = 'done';
+
 
 procedure TfrmDissectCode.btnStartClick(Sender: TObject);
 var start,stop:dword;
@@ -75,7 +82,7 @@ var start,stop:dword;
     n: integer;
     flipped: boolean;
 begin
-  if btnStart.caption='Stop' then
+  if btnStart.caption=rsStop then
   begin
     timer1.Enabled:=false;
     if dissectcode<>nil then
@@ -86,14 +93,14 @@ begin
     end;
     Timer1Timer(timer1);
 
-    btnStart.Caption:='Start';
+    btnStart.Caption:=rsStart;
     //showmessage('dissected till address '+inttohex(dissectcode.currentaddress,8));
     exit;
   end;
 
 
 
-  if lbModuleList.SelCount=0 then raise exception.Create('Please select something to scan');
+  if lbModuleList.SelCount=0 then raise exception.Create(rsPleaseSelectSomethingToScan);
 
   if dissectcode<>nil then
   begin
@@ -137,12 +144,17 @@ begin
     if not flipped then break;
   end;
 
-  btnStart.Caption:='Stop';
+  btnStart.Caption:=rsStop;
   timer1.Enabled:=true;
 
   starttime:=gettickcount;
 
   dissectcode.start;
+end;
+
+procedure TfrmDissectCode.FormCreate(Sender: TObject);
+begin
+  btnstart.caption:=rsStart;
 end;
 
 procedure TfrmDissectCode.Timer1Timer(Sender: TObject);
@@ -187,9 +199,9 @@ begin
   if dissectcode.done then
   begin
     timer1.Enabled:=false;
-    btnStart.Caption:='Start';
+    btnStart.Caption:=rsStart;
     ProgressBar1.Position:=0;
-    label7.Caption:='done';
+    label7.Caption:=rsDone;
 
 
 

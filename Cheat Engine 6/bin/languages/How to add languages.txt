@@ -7,3 +7,9 @@ Order of picking:
 
 
 By default it picks the system language, but you can overide this by adding --LANG langstr or -l langstr to the parameters of Cheat Engine
+
+
+editing po files.
+There are some po editing tools but you can also do it by hand
+msgid contains the original string and msgstr contains the translated string.
+If msgstr is empty the original string will be shown

@@ -11,6 +11,10 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
 
 
+resourcestring
+  cename = 'Cheat Engine 6.1';
+  rsPleaseWait = 'Please Wait!';
+
 procedure UpdateToolsMenu;
 procedure LoadSettingsFromRegistry;
 procedure initcetitle;
@@ -19,15 +23,16 @@ function getVarType: Integer;
 function GetScanType2: TScanOption;
 function getVarType2: TVariableType;
 
+
+
 const beta=' Alpha'; //empty this for a release
-const cename='Cheat Engine 6.1';
 
 var
-  CEnorm:string = cename+beta;
-  CERegion:string = cename+beta+' - Please Wait!';
-  CESearch:string = cename+beta+' - Please Wait!';
-  CERegionSearch:string = cename+beta+' - Please Wait!';
-  CEWait:string= cename+beta+' - Please Wait!';
+  CEnorm:string;
+  CERegion: string;
+  CESearch: string;
+  CERegionSearch: string;
+  CEWait: string;
 
 resourcestring
   strStart='Start';
@@ -63,6 +68,9 @@ resourcestring
 
   strFailedToInitialize='Failed to initialize the debugger';
   strtoolong='Too long';
+  rsUseTheGameApplicationForAWhile = 'Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code '
+    +'that change the watched address.';
+  rsSelectAnItemFromTheListForASmallDescription = 'Select an item from the list for a small description';
 
 
 
@@ -814,7 +822,7 @@ begin
   Application.Title:=CENorm;
 
 
-  CERegion:=cenorm+' - Please Wait!';
+  CERegion:=cenorm+' - '+rsPleaseWait;
   CESearch:=CERegion;
   CERegionSearch:= CERegion;
   CEWait:= ceregion;

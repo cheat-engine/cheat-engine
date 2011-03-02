@@ -19,6 +19,10 @@ procedure FileAccessTest;
 
 implementation
 
+resourcestring
+  rsNoFileCreationRightsOrNoFileOverwriteRights = 'No file creation rights or no file overwrite rights';
+  rsNoFileModificationRights = 'No file modification rights';
+  rsNoFileDeletionRights = 'No file deletion rights';
 
 
 procedure FileAccessTest;
@@ -32,7 +36,7 @@ begin
       f.Free;
     end;
   except
-    raise exception.Create('No file creation rights or no file overwrite rights');
+    raise exception.Create(rsNoFileCreationRightsOrNoFileOverwriteRights);
   end;
 
   try
@@ -44,11 +48,11 @@ begin
       f.free;
     end;
   except
-    raise exception.Create('No file modification rights');
+    raise exception.Create(rsNoFileModificationRights);
   end;
 
   if not deletefile(CheatEngineDir+'accesscheck.tmp') then
-    raise exception.Create('No file deletion rights');
+    raise exception.Create(rsNoFileDeletionRights);
   
 end;
 

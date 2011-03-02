@@ -84,6 +84,15 @@ implementation
 
 uses MainUnit, formsettingsunit;
 
+resourcestring
+  rsThisPointerPointsToAddress = 'This pointer points to address';
+  rsTheOffsetYouChoseBringsItTo = 'The offset you chose brings it to';
+  rsResultOfNextPointer = 'Result of next pointer';
+  rsAddressOfPointer = 'Address of pointer';
+  rsOffsetHex = 'Offset (Hex)';
+  rsFillInTheNrOfBytesAfterTheLocationThePointerPoints = 'Fill in the nr. of bytes after the location the pointer points to';
+  rsIsNotAValidOffset = '%s is not a valid offset';
+  rsNotAllOffsetsHaveBeenFilledIn = 'Not all offsets have been filled in';
 
 procedure Tformaddresschange.processaddress;
 var i,j,err,err2: integer;
@@ -108,14 +117,14 @@ begin
     begin
       //everything after this address is wrong
       editaddress.text:='????????';
-      pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address ????????';
-      pointerinfo[i].FinalDestination.Caption:='The offset you chose brings it to ????????';
+      pointerinfo[i].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' ????????';
+      pointerinfo[i].FinalDestination.Caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
 
       for j:=i-1 downto 0 do
       begin
-        pointerinfo[j].address.text:='Result of next pointer';
-        pointerinfo[j].ValueAtAddressText.Caption:='This pointer points to address ????????';
-        pointerinfo[j].FinalDestination.Caption:='The offset you chose brings it to ????????';
+        pointerinfo[j].address.text:=rsResultOfNextPointer;
+        pointerinfo[j].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' ????????';
+        pointerinfo[j].FinalDestination.Caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
       end;
       exit;
     end;
@@ -139,26 +148,26 @@ begin
     begin
       //everything after this address is wrong
       if (check) or (read=processhandler.pointersize) then
-        pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address '+IntToHex(currentaddress2,8)
+        pointerinfo[i].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' '+IntToHex(currentaddress2, 8)
       else
-        pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address ????????';
+        pointerinfo[i].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' ????????';
 
-      pointerinfo[i].FinalDestination.Caption:='The offset you chose brings it to ????????';
+      pointerinfo[i].FinalDestination.Caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
       editaddress.text:='????????';
 
       for j:=i-1 downto 0 do
       begin
-        pointerinfo[j].address.text:='Result of next pointer';
-        pointerinfo[j].ValueAtAddressText.Caption:='This pointer points to address ????????';
-        pointerinfo[j].FinalDestination.Caption:='The offset you chose brings it to ????????';
+        pointerinfo[j].address.text:=rsResultOfNextPointer;
+        pointerinfo[j].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' ????????';
+        pointerinfo[j].FinalDestination.Caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
       end;
       exit;
     end;
 
 
     //address+offset are correct AND the address is readable
-    pointerinfo[i].ValueAtAddressText.Caption:='This pointer points to address '+IntToHex(currentAddress2,8);
-    pointerinfo[i].FinalDestination.Caption:='The offset you chose brings it to '+IntToHex(currentAddress2+currentoffset,8);
+    pointerinfo[i].ValueAtAddressText.Caption:=rsThisPointerPointsToAddress+' '+IntToHex(currentAddress2, 8);
+    pointerinfo[i].FinalDestination.Caption:=rsTheOffsetYouChoseBringsItTo+' '+IntToHex(currentAddress2+currentoffset, 8);
 
     if i=0 then
       editaddress.text:=IntToHex(currentaddress2+currentoffset,8)
@@ -284,7 +293,7 @@ begin
       top:=startoffset;
       left:=4;
 
-      caption:='This pointer points to address ????????.';// The offset you chose brings it to ????????';
+      caption:=rsThisPointerPointsToAddress+' ????????.'; // The offset you chose brings it to ????????';
       showhint:=true;
       onkeypress:=offsetKeyPress;
       parent:=self;
@@ -298,7 +307,7 @@ begin
     begin
       top:=startoffset;
       left:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.left+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.width+20;
-      caption:='The offset you chose brings it to ????????';
+      caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
       showhint:=true;
       onkeypress:=offsetKeyPress;
       parent:=self;
@@ -311,7 +320,7 @@ begin
     begin
       top:=inputoffset+2;
       left:=4;
-      caption:='Address of pointer';
+      caption:=rsAddressOfPointer;
       parent:=self;
     end;  
 
@@ -330,7 +339,7 @@ begin
     begin
       top:=inputoffset+2;
       left:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
-      caption:='Offset (Hex)';
+      caption:=rsOffsetHex;
       parent:=self;
     end;
 
@@ -341,7 +350,7 @@ begin
       left:=pointerinfo[length(pointerinfo)-1].offsettext.left+pointerinfo[length(pointerinfo)-1].offsettext.width+5;
       width:=70;
       text:='0';
-      hint:='Fill in the nr. of bytes after the location the pointer points to';
+      hint:=rsFillInTheNrOfBytesAfterTheLocationThePointerPoints;
       showhint:=true;
       onkeypress:=offsetKeyPress;
       parent:=self;
@@ -446,7 +455,7 @@ begin
   inc(rowheight,2);
 
   oldaddress:=pointerinfo[length(pointerinfo)-1].address.text;
-  pointerinfo[length(pointerinfo)-1].address.text:='result of next pointer';
+  pointerinfo[length(pointerinfo)-1].address.text:=rsResultOfNextPointer;
   pointerinfo[length(pointerinfo)-1].address.enabled:=false;
 
   setlength(pointerinfo,length(pointerinfo)+1);
@@ -456,7 +465,7 @@ begin
   begin
     top:=pointerinfo[length(pointerinfo)-2].addresstext.top+rowheight;
     left:=4;
-    caption:='Address of pointer';
+    caption:=rsAddressOfPointer;
     parent:=self;
   end;
 
@@ -475,7 +484,7 @@ begin
   begin
     top:=pointerinfo[length(pointerinfo)-2].offsettext.top+rowheight;
     left:=pointerinfo[length(pointerinfo)-2].offsettext.left;
-    caption:='Offset (Hex)';
+    caption:=rsOffsetHex;
     parent:=self;
   end;
 
@@ -486,7 +495,7 @@ begin
     left:=pointerinfo[length(pointerinfo)-2].offset.left;
     width:=70;
     text:='0';
-    hint:='Fill in the nr. of bytes after the location the pointer points to';
+    hint:=rsFillInTheNrOfBytesAfterTheLocationThePointerPoints;
     showhint:=true;
     onkeypress:=offsetKeyPress;
     parent:=self;
@@ -497,7 +506,7 @@ begin
   begin
     top:=pointerinfo[length(pointerinfo)-2].ValueAtAddressText.top+rowheight;
     left:=pointerinfo[length(pointerinfo)-2].ValueAtAddressText.left;
-    caption:='This pointer points to address ????????.';// The offset you chose brings it to ????????';
+    caption:=rsThisPointerPointsToAddress+' ????????.'; // The offset you chose brings it to ????????';
     showhint:=true;
     onkeypress:=offsetKeyPress;
     parent:=self;
@@ -508,7 +517,7 @@ begin
   begin
     top:=pointerinfo[length(pointerinfo)-2].FinalDestination.top+rowheight;
     left:=pointerinfo[length(pointerinfo)-2].FinalDestination.left;
-    caption:='The offset you chose brings it to ????????';
+    caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
     showhint:=true;
     onkeypress:=offsetKeyPress;
     parent:=self;
@@ -577,8 +586,8 @@ begin
       else
         val('$'+pointerinfo[i].offset.Text,offsets[i],err);
 
-      if err<>0 then raise exception.Create(pointerinfo[i].offset.Text+' is not a valid offset');
-    end else raise exception.Create('Not all offsets have been filled in');
+      if err<>0 then raise exception.Create(Format(rsIsNotAValidOffset, [pointerinfo[i].offset.Text]));
+    end else raise exception.Create(rsNotAllOffsetsHaveBeenFilledIn);
   end;
 
   setlength(memoryrecord.pointeroffsets, length(offsets));

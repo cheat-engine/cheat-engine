@@ -37,6 +37,11 @@ implementation
 
 uses debugeventhandler;
 
+resourcestring
+  rsPleaseFirstAttachTheDebuggerToThisProcess = 'Please first attach the debugger to this process';
+  rsCouldnTObtainContext = 'Couldn''t obtain context';
+  rsCouldnTOpenHandle = 'Couldn''t open handle';
+
 procedure TfrmThreadlist.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
@@ -130,7 +135,7 @@ begin
 
   end
   else
-    raise exception.create('Please first attach the debugger to this process');
+    raise exception.create(rsPleaseFirstAttachTheDebuggerToThisProcess);
 
 end;
 
@@ -159,7 +164,7 @@ begin
 
   end
   else
-    raise exception.create('Please first attach the debugger to this process');
+    raise exception.create(rsPleaseFirstAttachTheDebuggerToThisProcess);
 end;
 
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
@@ -219,10 +224,10 @@ begin
         end;
         {$endif}
       end
-      else threadTreeview.items.AddChild(node, 'Couldn''t obtain context');
+      else threadTreeview.items.AddChild(node, rsCouldnTObtainContext);
       closehandle(th);
     end else
-      threadTreeview.items.AddChild(node, 'Couldn''t open handle');
+      threadTreeview.items.AddChild(node, rsCouldnTOpenHandle);
 
     AllowExpansion:=true;
   end

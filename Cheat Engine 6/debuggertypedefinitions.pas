@@ -211,6 +211,17 @@ var int3byte: byte = $cc;
 
 implementation
 
+resourcestring
+  rsOnExecute = 'On Execute';
+  rsOnWrite = 'On Write';
+  rsOnReadWrite = 'On Read/Write';
+  rsSoftwareBreakpoint = 'Software Breakpoint';
+  rsHardwareBreakpoint = 'Hardware Breakpoint';
+  rsBreak = 'Break';
+  rsChangeReg = 'Change reg';
+  rsFindCode = 'Find code';
+  rsFindCodeAccess = 'Find code access';
+  rsBreakAndTrace = 'Break and trace';
 
 function SizeToBreakLength(size: integer): TBreakLength;
 begin
@@ -239,28 +250,28 @@ end;
 function breakpointTriggerToString(bpt: TBreakpointTrigger): string;
 begin
   case bpt of
-    bptExecute: result:='On Execute';
-    bptWrite:   result:='On Write';
-    bptAccess:  result:='On Read/Write';
+    bptExecute: result:=rsOnExecute;
+    bptWrite:    result:=rsOnWrite;
+    bptAccess:   result:=rsOnReadWrite;
   end;
 end;
 
 function BreakpointMethodToString(bpm: TBreakpointMethod): string;
 begin
   case bpm of
-    bpmInt3:          result:='Software Breakpoint';
-    bpmDebugRegister: result:='Hardware Breakpoint';
+    bpmInt3:           result:=rsSoftwareBreakpoint;
+    bpmDebugRegister: result:=rsHardwareBreakpoint;
   end;
 end;
 
 function breakpointActionToString(bpa: TBreakpointAction): string;
 begin
   case bpa of
-    bo_Break: result:='Break';
-    bo_ChangeRegister: result:='Change reg';
-    bo_FindCode: result:='Find code';
-    bo_FindWhatCodeAccesses: result:='Find code access';
-    bo_BreakAndTrace: result:='Break and trace';
+    bo_Break: result:=rsBreak;
+    bo_ChangeRegister: result:=rsChangeReg;
+    bo_FindCode: result:=rsFindCode;
+    bo_FindWhatCodeAccesses: result:=rsFindCodeAccess;
+    bo_BreakAndTrace: result:=rsBreakAndTrace;
   end;
 end;
 

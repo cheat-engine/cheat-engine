@@ -649,6 +649,56 @@ uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit;
 
 
+resourcestring
+  rsNotSupportedInThisVersion = 'not supported in this version';
+  rsNotConvertable = 'Not convertable';
+  rsLeftMB = 'Left MB';
+  rsMiddleMB = 'Middle MB';
+  rsRightMB = 'Right MB';
+  rsBreak = 'Break';
+  rsBackspace = 'Backspace';
+  rsShift = 'Shift';
+  rsCtrl = 'Ctrl';
+  rsAlt = 'Alt';
+  rsTab = 'Tab';
+  rsClear = 'Clear';
+  rsEnter = 'Enter';
+  rsPause = 'Pause';
+  rsCapsLock = 'Caps Lock';
+  rsEsc = 'Esc';
+  rsSpaceBar = 'Space bar';
+  rsPageUp = 'Page Up';
+  rsPageDown = 'Page Down';
+  rsEnd = 'End';
+  rsHome = 'Home';
+  rsLeftArrow = 'Left Arrow';
+  rsUpArrow = 'Up Arrow';
+  rsRightArrow = 'Right Arrow';
+  rsDownArrow = 'Down Arrow';
+  rsSelect = 'Select';
+  rsPrint = 'Print';
+  rsExecute = 'Execute';
+  rsPrintScreen = 'Print Screen';
+  rsInsert = 'Insert';
+  rsDelete = 'Delete';
+  rsHelp = 'Help';
+  rsLeftWindowsKey = 'Left Windows key';
+  rsRightWindowsKey = 'Right Windows key';
+  rsApplicationsKey = 'Applications key';
+  rsNumeric = 'numeric';
+  rsNumLock = 'Num Lock';
+  rsScrollLock = 'Scroll Lock';
+  rsGetProcAddressNotFound = 'GetProcAddress not found';
+  rsLoadLibraryANotFound = 'LoadLibraryA not found';
+  rsFailedToAllocateMemory = 'Failed to allocate memory';
+  rsFailedToInjectTheDllLoader = 'Failed to inject the dll loader';
+  rsFailedToExecuteTheDllLoader = 'Failed to execute the dll loader';
+  rsTheInjectionThreadTookLongerThan10SecondsToExecute = 'The injection thread took longer than 10 seconds to execute. Injection routine not freed';
+  rsFailedInjectingTheDLL = 'Failed injecting the DLL';
+  rsFailedExecutingTheFunctionOfTheDll = 'Failed executing the function of the dll';
+  rsUnknownErrorDuringInjection = 'Unknown error during injection';
+  rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
+
 function ProcessID: dword;
 begin
   result:=ProcessHandler.Processid;
@@ -712,10 +762,10 @@ begin
         result:=result+'-'+inttohex(buf[bufsize],2);
     end;
 
-    else result:='not supported in this version';
+    else result:=rsNotSupportedInThisVersion;
   end;
   except
-    result:='Not convertable';
+    result:=rsNotConvertable;
   end;
 end;
 
@@ -731,55 +781,55 @@ begin
     begin
       newstr:='';
       case x[i] of
-        vk_lbutton: newstr:='Left MB';
-        vk_mbutton: newstr:='Middle MB';
-        vk_rbutton: newstr:='Right MB';
-        VK_CANCEL: newstr:='Break';
-        VK_BACK	: newstr:='Backspace';
-        VK_SHIFT: newstr:='Shift';
-        VK_CONTROL: newstr:='Ctrl';
-        VK_MENU: newstr:='Alt';
-        VK_TAB	: newstr:='Tab';
-        VK_CLEAR	: newstr:='Clear';
-        VK_RETURN	: newstr:='Enter';
-        VK_PAUSE	: newstr:='Pause';
-        VK_CAPITAL	: newstr:='Caps Lock';
-        VK_ESCAPE	: newstr:='Esc';
-        VK_SPACE	: newstr:='Space bar';
-        VK_PRIOR	: newstr:='Page Up';
-        VK_NEXT	: newstr:='Page Down';
-        VK_END	: newstr:='End';
-        VK_HOME	: newstr:='Home';
-        VK_LEFT	: newstr:='Left Arrow';
-        VK_UP	: newstr:='Up Arrow';
-        VK_RIGHT	: newstr:='Right Arrow';
-        VK_DOWN	: newstr:='Down Arrow';
-        VK_SELECT	: newstr:='Select';
-        VK_PRINT	: newstr:='Print';
-        VK_EXECUTE	: newstr:='Execute';
-        VK_SNAPSHOT	: newstr:='Print Screen';
-        VK_INSERT	: newstr:='Insert';
-        VK_DELETE	: newstr:='Delete';
-        VK_HELP	: newstr:='Help';
-        VK_LWIN	: newstr:='Left Windows key';
-        VK_RWIN	: newstr:='Right Windows key';
-        VK_APPS	: newstr:='Applications key';
-        VK_NUMPAD0	: newstr:='numeric 0';
-        VK_NUMPAD1	: newstr:='numeric 1';
-        VK_NUMPAD2	: newstr:='numeric 2';
-        VK_NUMPAD3	: newstr:='numeric 3';
-        VK_NUMPAD4	: newstr:='numeric 4';
-        VK_NUMPAD5	: newstr:='numeric 5';
-        VK_NUMPAD6	: newstr:='numeric 6';
-        VK_NUMPAD7	: newstr:='numeric 7';
-        VK_NUMPAD8	: newstr:='numeric 8';
-        VK_NUMPAD9	: newstr:='numeric 9';
-        VK_MULTIPLY	: newstr:='numeric *';
-        VK_ADD	: newstr:='numeric +';
-        VK_SEPARATOR : newstr:='numeric Separator';
-        VK_SUBTRACT	: newstr:='numeric -';
-        VK_DECIMAL	: newstr:='numeric .';
-        VK_DIVIDE	: newstr:='numeric /';
+        vk_lbutton: newstr:=rsLeftMB;
+        vk_mbutton: newstr:=rsMiddleMB;
+        vk_rbutton: newstr:=rsRightMB;
+        VK_CANCEL: newstr:=rsBreak;
+        VK_BACK	: newstr:=rsBackspace;
+        VK_SHIFT: newstr:=rsShift;
+        VK_CONTROL: newstr:=rsCtrl;
+        VK_MENU: newstr:=rsAlt;
+        VK_TAB	: newstr:=rsTab;
+        VK_CLEAR	: newstr:=rsClear;
+        VK_RETURN	: newstr:=rsEnter;
+        VK_PAUSE	: newstr:=rsPause;
+        VK_CAPITAL	: newstr:=rsCapsLock;
+        VK_ESCAPE	: newstr:=rsEsc;
+        VK_SPACE	: newstr:=rsSpaceBar;
+        VK_PRIOR	: newstr:=rsPageUp;
+        VK_NEXT	: newstr:=rsPageDown;
+        VK_END	: newstr:=rsEnd;
+        VK_HOME	: newstr:=rsHome;
+        VK_LEFT	: newstr:=rsLeftArrow;
+        VK_UP	: newstr:=rsUpArrow;
+        VK_RIGHT	: newstr:=rsRightArrow;
+        VK_DOWN	: newstr:=rsDownArrow;
+        VK_SELECT	: newstr:=rsSelect;
+        VK_PRINT	: newstr:=rsPrint;
+        VK_EXECUTE	: newstr:=rsExecute;
+        VK_SNAPSHOT	: newstr:=rsPrintScreen;
+        VK_INSERT	: newstr:=rsInsert;
+        VK_DELETE	: newstr:=rsDelete;
+        VK_HELP	: newstr:=rsHelp;
+        VK_LWIN	: newstr:=rsLeftWindowsKey;
+        VK_RWIN	: newstr:=rsRightWindowsKey;
+        VK_APPS	: newstr:=rsApplicationsKey;
+        VK_NUMPAD0	: newstr:=rsNumeric+' 0';
+        VK_NUMPAD1	: newstr:=rsNumeric+' 1';
+        VK_NUMPAD2	: newstr:=rsNumeric+' 2';
+        VK_NUMPAD3	: newstr:=rsNumeric+' 3';
+        VK_NUMPAD4	: newstr:=rsNumeric+' 4';
+        VK_NUMPAD5	: newstr:=rsNumeric+' 5';
+        VK_NUMPAD6	: newstr:=rsNumeric+' 6';
+        VK_NUMPAD7	: newstr:=rsNumeric+' 7';
+        VK_NUMPAD8	: newstr:=rsNumeric+' 8';
+        VK_NUMPAD9	: newstr:=rsNumeric+' 9';
+        VK_MULTIPLY	: newstr:=rsNumeric+' *';
+        VK_ADD	: newstr:=rsNumeric+' +';
+        VK_SEPARATOR : newstr:=rsNumeric+' Separator';
+        VK_SUBTRACT	: newstr:=rsNumeric+' -';
+        VK_DECIMAL	: newstr:=rsNumeric+' .';
+        VK_DIVIDE	: newstr:=rsNumeric+' /';
         VK_F1	: newstr:='F1';
         VK_F2	: newstr:='F2';
         VK_F3	: newstr:='F3';
@@ -804,8 +854,8 @@ begin
         VK_F22	: newstr:='F22';
         VK_F23	: newstr:='F23';
         VK_F24	: newstr:='F24';
-        VK_NUMLOCK	: newstr:='Num Lock';
-        VK_SCROLL	: newstr:='Scroll Lock';
+        VK_NUMLOCK	: newstr:=rsNumLock;
+        VK_SCROLL	: newstr:=rsScrollLock;
         48..57      : newstr:=chr(x[i]);
         65..90      : newstr:=chr(x[i]);
         else  newstr:='#'+inttostr(x[i]);
@@ -969,7 +1019,7 @@ begin
       GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
     end;
 
-    if getprocaddressptr=nil then raise exception.Create('GetProcAddress not found');
+    if getprocaddressptr=nil then raise exception.Create(rsGetProcAddressNotFound);
 
     try
       LoadLibraryPtr:=pointer(symhandler.getAddressFromName('Kernel32!LoadLibraryA',true));
@@ -979,11 +1029,11 @@ begin
     end;
 
 
-    if LoadLibraryptr=nil then raise exception.Create('LoadLibraryA not found');
+    if LoadLibraryptr=nil then raise exception.Create(rsLoadLibraryANotFound);
 
     injectionlocation:=VirtualAllocEx(processhandle,nil,4096,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 
-    if injectionlocation=nil then raise exception.Create('Failed to allocate memory');
+    if injectionlocation=nil then raise exception.Create(rsFailedToAllocateMemory);
 
     dlllocation:=dllname;
 
@@ -1170,7 +1220,7 @@ begin
 
     //call the routine
 
-    if not writeprocessmemory(processhandle,injectionlocation,@inject[0],position2,x) then raise exception.Create('Failed to inject the dll loader');
+    if not writeprocessmemory(processhandle, injectionlocation, @inject[0], position2, x) then raise exception.Create(rsFailedToInjectTheDllLoader);
     
     {$ifndef standalonetrainer}
     {$ifndef net}   
@@ -1199,7 +1249,7 @@ begin
 
     begin      
       threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,x);
-      if threadhandle=0 then raise exception.Create('Failed to execute the dll loader');
+      if threadhandle=0 then raise exception.Create(rsFailedToExecuteTheDllLoader);
 
       counter:=10000 div 10;
       while (waitforsingleobject(threadhandle,10)=WAIT_TIMEOUT) and (counter>0) do
@@ -1211,15 +1261,15 @@ begin
       end;
 
       if (counter=0) then
-        raise exception.Create('The injection thread took longer than 10 seconds to execute. Injection routine not freed');
+        raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
       if getexitcodethread(threadhandle,x) then
       begin
         case x of
           1: ;//success
-          2: raise exception.Create('Failed injecting the DLL');
-          3: raise exception.Create('Failed executing the function of the dll');
-          else raise exception.Create('Unknown error during injection');
+          2: raise exception.Create(rsFailedInjectingTheDLL);
+          3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
+          else raise exception.Create(rsUnknownErrorDuringInjection);
         end;
       end; //else unsure, did it work or not , or is it crashing?
 
@@ -1435,48 +1485,48 @@ end;
 function KeyToStr(key:word):string;
 begin
   case key of
-    VK_BACK	: result:='Backspace';
-    VK_TAB	: result:='Tab';
-    VK_CLEAR	: result:='Clear';
-    VK_RETURN	: result:='Enter';
-    VK_PAUSE	: result:='Pause';
-    VK_CAPITAL	: result:='Caps Lock';
-    VK_ESCAPE	: result:='Esc';
-    VK_SPACE	: result:='Space bar';
-    VK_PRIOR	: result:='Page Up';
-    VK_NEXT	: result:='Page Down';
-    VK_END	: result:='End';
-    VK_HOME	: result:='Home';
-    VK_LEFT	: result:='Left Arrow';
-    VK_UP	: result:='Up Arrow';
-    VK_RIGHT	: result:='Right Arrow';
-    VK_DOWN	: result:='Down Arrow';
-    VK_SELECT	: result:='Select';
-    VK_PRINT	: result:='Print';
-    VK_EXECUTE	: result:='Execute';
-    VK_SNAPSHOT	: result:='Print Screen';
-    VK_INSERT	: result:='Insert';
-    VK_DELETE	: result:='Delete';
-    VK_HELP	: result:='Help';
-    VK_LWIN	: result:='Left Windows key';
-    VK_RWIN	: result:='Right Windows key';
-    VK_APPS	: result:='Applications key';
-    VK_NUMPAD0	: result:='numeric 0';
-    VK_NUMPAD1	: result:='numeric 1';
-    VK_NUMPAD2	: result:='numeric 2';
-    VK_NUMPAD3	: result:='numeric 3';
-    VK_NUMPAD4	: result:='numeric 4';
-    VK_NUMPAD5	: result:='numeric 5';
-    VK_NUMPAD6	: result:='numeric 6';
-    VK_NUMPAD7	: result:='numeric 7';
-    VK_NUMPAD8	: result:='numeric 8';
-    VK_NUMPAD9	: result:='numeric 9';
-    VK_MULTIPLY	: result:='numeric *';
-    VK_ADD	: result:='numeric +';
-    VK_SEPARATOR : result:='numeric Separator';
-    VK_SUBTRACT	: result:='numeric -';
-    VK_DECIMAL	: result:='numeric .';
-    VK_DIVIDE	: result:='numeric /';
+    VK_BACK	: result:=rsBackspace;
+    VK_TAB	: result:=rsTab;
+    VK_CLEAR	: result:=rsClear;
+    VK_RETURN	: result:=rsEnter;
+    VK_PAUSE	: result:=rsPause;
+    VK_CAPITAL	: result:=rsCapsLock;
+    VK_ESCAPE	: result:=rsEsc;
+    VK_SPACE	: result:=rsSpaceBar;
+    VK_PRIOR	: result:=rsPageUp;
+    VK_NEXT	: result:=rsPageDown;
+    VK_END	: result:=rsEnd;
+    VK_HOME	: result:=rsHome;
+    VK_LEFT	: result:=rsLeftArrow;
+    VK_UP	: result:=rsUpArrow;
+    VK_RIGHT	: result:=rsRightArrow;
+    VK_DOWN	: result:=rsDownArrow;
+    VK_SELECT	: result:=rsSelect;
+    VK_PRINT	: result:=rsPrint;
+    VK_EXECUTE	: result:=rsExecute;
+    VK_SNAPSHOT	: result:=rsPrintScreen;
+    VK_INSERT	: result:=rsInsert;
+    VK_DELETE	: result:=rsDelete;
+    VK_HELP	: result:=rsHelp;
+    VK_LWIN	: result:=rsLeftWindowsKey;
+    VK_RWIN	: result:=rsRightWindowsKey;
+    VK_APPS	: result:=rsApplicationsKey;
+    VK_NUMPAD0	: result:=rsNumeric+' 0';
+    VK_NUMPAD1	: result:=rsNumeric+' 1';
+    VK_NUMPAD2	: result:=rsNumeric+' 2';
+    VK_NUMPAD3	: result:=rsNumeric+' 3';
+    VK_NUMPAD4	: result:=rsNumeric+' 4';
+    VK_NUMPAD5	: result:=rsNumeric+' 5';
+    VK_NUMPAD6	: result:=rsNumeric+' 6';
+    VK_NUMPAD7	: result:=rsNumeric+' 7';
+    VK_NUMPAD8	: result:=rsNumeric+' 8';
+    VK_NUMPAD9	: result:=rsNumeric+' 9';
+    VK_MULTIPLY	: result:=rsNumeric+' *';
+    VK_ADD	: result:=rsNumeric+' +';
+    VK_SEPARATOR : result:=rsNumeric+' Separator';
+    VK_SUBTRACT	: result:=rsNumeric+' -';
+    VK_DECIMAL	: result:=rsNumeric+' .';
+    VK_DIVIDE	: result:=rsNumeric+' /';
     VK_F1	: result:='F1';
     VK_F2	: result:='F2';
     VK_F3	: result:='F3';
@@ -1501,8 +1551,8 @@ begin
     VK_F22	: result:='F22';
     VK_F23	: result:='F23';
     VK_F24	: result:='F24';
-    VK_NUMLOCK	: result:='Num Lock';
-    VK_SCROLL	: result:='Scroll Lock';
+    VK_NUMLOCK	: result:=rsNumLock;
+    VK_SCROLL	: result:=rsScrollLock;
     48..57      : result:=chr(key);
     65..90      : result:=chr(key);
     else  result:='#'+IntToStr(key);
@@ -2274,7 +2324,7 @@ begin
     end;
 
     closehandle(snaphandle);
-  end else raise exception.Create('I can''t get the process list. You are propably using windows NT. Use the window list instead!');
+  end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
 end;
 
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);

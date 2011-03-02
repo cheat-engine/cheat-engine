@@ -62,6 +62,16 @@ unit2;
 MainUnit;
 {$endif}
 
+resourcestring
+  rsYourSystemDOESNOTSupportDBVM = 'Your system DOES NOT support DBVM';
+  rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT = 'This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
+  rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s';
+  rsThisMeansThatYourSystemIsRunningDbvm = 'This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
+  rsYourSystemSupportsDBVM = 'Your system supports DBVM';
+  rsThisMeansThatYouReCurrentlyNotRunningDbvm = 'This means that you''re currently not running dbvm, but that your system is capable of running it';
+  rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel = 'Did you really think you''d find an easter egg by doing this? Well, you know what? You where right!';
+  rsAreYouSureYouWantToLaunchDBVM = 'Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly';
+
 procedure TAbout.Button1Click(Sender: TObject);
 begin
   Close;
@@ -93,8 +103,8 @@ begin
   if not isDBVMCapable then
   begin
     lblDBVM.Font.Color:=clRed;
-    lbldbvm.caption:='Your system DOES NOT support DBVM';
-    lbldbvm.Hint:='This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
+    lbldbvm.caption:=rsYourSystemDOESNOTSupportDBVM;
+    lbldbvm.Hint:=rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT;
     lbldbvm.ShowHint:=true;
   end
   else
@@ -105,15 +115,15 @@ begin
     if (assigned(dbvm_version)) and (dbvm_version>0) then
     begin
       lblDBVM.Font.Color:=clLime;
-      lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
-      lbldbvm.Hint:='This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
+      lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff)]);
+      lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
       lbldbvm.ShowHint:=true;
     end
     else
     begin
       lblDBVM.Font.Color:=clGreen;
-      lbldbvm.caption:='Your system supports DBVM';
-      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is capable of running it';
+      lbldbvm.caption:=rsYourSystemSupportsDBVM;
+      lbldbvm.Hint:=rsThisMeansThatYouReCurrentlyNotRunningDbvm;
       lbldbvm.ShowHint:=true;
     end;
   end;
@@ -205,16 +215,16 @@ begin
     if supportsdbvm then
     begin
       lblDBVM.Font.Color:=clGreen;
-      lbldbvm.caption:='Your system supports DBVM';
-      lbldbvm.Hint:='This means that you''re currently not running dbvm, but that your system is cable of running it (click this to launch dbvm)';
+      lbldbvm.caption:=rsYourSystemSupportsDBVM;
+      lbldbvm.Hint:=rsThisMeansThatYouReCurrentlyNotRunningDbvm;
       lbldbvm.ShowHint:=true;
       lbldbvm.Cursor:=crHandPoint;
     end
     else
     begin
       lblDBVM.Font.Color:=clRed;
-      lbldbvm.caption:='Your system DOES NOT support DBVM';
-      lbldbvm.Hint:='This means that you will need a new cpu (intel) to be abnle to use the advanced dbvm options';
+      lbldbvm.caption:=rsYourSystemDOESNOTSupportDBVM;
+      lbldbvm.Hint:=rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT;
       lbldbvm.ShowHint:=true;
       lbldbvm.Cursor:=crNo;
     end;
@@ -222,8 +232,8 @@ begin
   else
   begin
     lblDBVM.Font.Color:=clLime;
-    lbldbvm.caption:='Your system is running DBVM version '+inttostr(dbvm_version and $00ffffff);
-    lbldbvm.Hint:='This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwhise unavailable';
+    lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff)]);
+    lbldbvm.Hint:=rsThisMeansThatYourSystemIsRunningDbvm;
     lbldbvm.ShowHint:=true;
     lbldbvm.Cursor:=crDefault;
   end;
@@ -244,7 +254,7 @@ procedure TAbout.Image1MouseDown(Sender: TObject; Button: TMouseButton;
 begin
   if (ssCtrl in Shift) and (ssAlt in Shift) and (ssShift in Shift) then
   begin
-    ShowMessage('Did you really think you''d find an easter egg by doing this? Well, you know what? You where right!');
+    ShowMessage(rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel);
     with TTlg.create(self) do show;
   end;
 end;
@@ -257,7 +267,7 @@ begin
     
     if not Is64bitOS then
     begin
-      if messagedlg('Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly',mtWarning,[mbno,mbyes],0)=mryes then
+      if messagedlg(rsAreYouSureYouWantToLaunchDBVM, mtWarning, [mbno, mbyes], 0)=mryes then
       begin
         launchdbvm;
         formshow(self);

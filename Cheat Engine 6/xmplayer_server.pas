@@ -7,6 +7,10 @@ interface
 uses
   windows, Classes, SysUtils, xmplayer_defines, cefuncproc;
 
+resourcestring
+  rsXmplayerExeIsMissing = 'xmplayer.exe is missing';
+  rsFailedCreatingTheAudioPipe = 'Failed creating the audio pipe';
+
 type TXMPlayer=class
   private
     fisPlaying: boolean;
@@ -35,7 +39,7 @@ var uid: string;
   z: dword;
 begin
   if not fileexists(cheatenginedir+'xmplayer.exe') then
-    raise exception.create('xmplayer.exe is missing');
+    raise exception.create(rsXmplayerExeIsMissing);
 
   //create an unique ID
   CreateGUID(g);
@@ -45,7 +49,8 @@ begin
 
   loadedevent:=CreateEvent(nil, false, false, pchar(uid));
   audiopipe:=CreateNamedPipe(pchar('\\.\pipe\'+uid), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 255, 128*1024, 8, INFINITE, nil);
-  if audiopipe=INVALID_HANDLE_VALUE then raise exception.create('Failed creating the audio pipe');
+  if audiopipe=INVALID_HANDLE_VALUE then raise exception.create(
+    rsFailedCreatingTheAudioPipe);
 
 
   //launches the xmplayer client

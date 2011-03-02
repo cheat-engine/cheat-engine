@@ -18,6 +18,10 @@ implementation
 
 uses opensave;
 
+resourcestring
+  rsTooOldTable = 'This table is too old to be used. Get Cheat engine 5.6 and '
+    +'open/resave this table';
+
 function ConvertCheatTableToXML(filename: string): TXMLDocument;
 var
   ctfile: TFileStream;
@@ -89,7 +93,7 @@ begin
 
     ctfile.ReadBuffer(version,4);
     if version<6 then
-      raise exception.Create('This table is too old to be used. Get Cheat engine 5.6 and open/resave this table');
+      raise exception.Create(rsTooOldTable);
 
     ctfile.ReadBuffer(records,4);
 

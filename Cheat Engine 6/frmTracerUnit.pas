@@ -137,6 +137,9 @@ implementation
 
 uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit, debuggertypedefinitions;
 
+resourcestring
+  rsSearch = 'Search';
+  rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1 = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)';
 
 destructor TTraceDebugInfo.destroy;
 begin
@@ -492,7 +495,7 @@ begin
     check:=true
   else
   begin
-    check:=InputQuery('Search','Type the (LUA) condition you want to search for (Example: EAX==0x1234)', lastsearchstring);
+    check:=InputQuery(rsSearch, rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1, lastsearchstring);
     lastsearchstring:='return '+lastsearchstring;
   end;
 

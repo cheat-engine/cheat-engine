@@ -201,6 +201,17 @@ implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib;
 
+resourcestring
+  rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
+  rsYouCanTChangeThisSettingAtTheMoment = 'You can''t change this setting at the moment';
+  rsPleaseProvideABiggerSize = 'Please provide a bigger size';
+  rsErrorAllocatingMemory = 'Error allocating memory';
+  rsTheSymbolNamedWasPreviouslyDeclared = 'The symbol named %s was previously declared with a size of %s instead of %s. all scripts that use this memory must give the same size. '
+    +'Adjust the size, or delete the old alloc from the userdefined symbol list';
+  rsAlreadyExists = 'already exists';
+  rsYouCanTAddASymbolWithAddress0 = 'You can''t add a symbol with address 0';
+  rsFailureDeterminingWhatMeans = 'Failure determining what %s means';
+
 
 const
   LIST_MODULES_DEFAULT=0;
@@ -308,7 +319,7 @@ begin
       isloading:=false;
     end;
   except
-    outputdebugstring('Symbolloaderthread has crashed');
+    outputdebugstring(rsSymbolloaderthreadHasCrashed);
   end;
 end;
 
@@ -438,13 +449,13 @@ end;
 
 procedure TSymhandler.setshowmodules(x: boolean);
 begin
-  if locked then raise symexception.Create('You can''t change this setting at the moment');
+  if locked then raise symexception.Create(rsYouCanTChangeThisSettingAtTheMoment);
   fshowmodules:=x;
 end;
 
 procedure TSymhandler.setshowsymbols(x: boolean);
 begin
-  if locked then raise symexception.Create('You can''t change this setting at the moment');
+  if locked then raise symexception.Create(rsYouCanTChangeThisSettingAtTheMoment);
   fshowsymbols:=x;
 end;
 
@@ -560,7 +571,7 @@ var i:integer;
     p: pointer;
 begin
   result:=false;
-  if size=0 then raise exception.Create('Please provide a bigger size');
+  if size=0 then raise exception.Create(rsPleaseProvideABiggerSize);
 
   userdefinedsymbolsMREW.beginread;
   try
@@ -569,7 +580,7 @@ begin
     begin
       p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
       if p=nil then
-        raise exception.Create('Error allocating memory');
+        raise exception.Create(rsErrorAllocatingMemory);
       AddUserdefinedSymbol(inttohex(ptrUint(p),8),symbolname);
       i:=GetUserdefinedSymbolByNameIndex(symbolname);
       userdefinedsymbols[i].allocsize:=size;
@@ -583,14 +594,14 @@ begin
       begin
         //already allocated and processid is the same
         if size<>userdefinedsymbols[i].allocsize then
-          raise exception.Create('The symbol named '+userdefinedsymbols[i].symbolname+' was previously declared with a size of '+inttostr(userdefinedsymbols[i].allocsize)+' instead of '+inttostr(size)+'. all scripts that use this memory must give the same size. Adjust the size, or delete the old alloc from the userdefined symbol list');
+          raise exception.Create(Format(rsTheSymbolNamedWasPreviouslyDeclared, [userdefinedsymbols[i].symbolname, inttostr(userdefinedsymbols[i].allocsize), inttostr(size)]));
       end;
 
       if userdefinedsymbols[i].processid<>processid then
       begin
         p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
         if p=nil then
-          raise exception.Create('Error allocating memory');
+          raise exception.Create(rsErrorAllocatingMemory);
 
         userdefinedsymbols[i].address:=ptrUint(p);
         userdefinedsymbols[i].addressstring:=inttohex(ptrUint(p),8);
@@ -678,10 +689,10 @@ This routine will add the symbolname+address combination to the symbollist
 var
   address: dword;
 begin
-  if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' already exists');
+  if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' '+rsAlreadyExists);
 
   address:=getAddressFromName(addressstring);
-  if address=0 then raise symexception.Create('You can''t add a symbol with address 0');
+  if address=0 then raise symexception.Create(rsYouCanTAddASymbolWithAddress0);
 
   userdefinedsymbolsMREW.beginwrite;
   try
@@ -1013,7 +1024,7 @@ begin
   }
 
   if x then
-    raise symexception.Create('Failure determining what '+name+' means');
+    raise symexception.Create(Format(rsFailureDeterminingWhatMeans, [name]));
 end;
 
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
@@ -1429,7 +1440,7 @@ begin
   end;
 
   except
-    MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
+    //MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
   end;
 end;
 

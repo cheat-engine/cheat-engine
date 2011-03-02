@@ -172,7 +172,9 @@ procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMNode);
 var processhandle: thandle;
 {$endif}
 
-resourcestring strunknowncomponent='There is a unknown component in the trainer! compnr=';
+resourcestring
+  strunknowncomponent='There is a unknown component in the trainer! compnr=';
+
 
 implementation
 
@@ -186,6 +188,16 @@ resourcestring
   strNotACETrainer='This is not a trainer made by Cheat Engine (If it is a trainer at all!)';
   strUnknownTrainerVersion='This version of Cheat Engine doesn''t know how to read this trainer! Trainerversion=';
   strCantLoadProtectedfile='This trainer is protected from being opened by CE. Now go away!!!';
+  rsThisTableContainsALuaScriptDoYouWantToRunIt = 'This table contains a lua script. Do you want to run it?';
+  rsErrorExecutingThisTableSLuaScript = 'Error executing this table''s lua script: %s';
+  rsTheRegionAtWasPartiallyOrCompletlyUnreadable = 'The region at %s was partially or completly unreadable';
+  rsTheVersionOfIsIncompatibleWithThisCEVersion = 'The version of %s is incompatible with this CE version';
+  rsDoesnTContainNeededInformationWhereToPlaceTheMemor = '%s doesn''t contain needed information where to place the memory';
+  rsThisIsNotAValidCheatTable = 'This is not a valid cheat table';
+  rsThisIsNotAValidXmlFile = 'This is not a valid xml file';
+  rsUnknownExtention = 'Unknown extention';
+  rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension = 'You can only protect a file if it has an .CETRAINER extension';
+  rsErrorSaving = 'Error saving...';
 
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 var tempnode: TDOMNode;
@@ -580,7 +592,7 @@ begin
       begin
         if formSettings.cbAskIfTableHasLuascript.checked then
         begin
-          r:=MessageDlg('This table contains a lua script. Do you want to run it?', mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll],0);
+          r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
 
           if r in [mrYesToAll, mrNoToAll] then
           begin
@@ -636,7 +648,7 @@ begin
         except
           on e: exception do
           begin
-            raise Exception.create('Error executing this table''s lua script: '+e.message);
+            raise Exception.create(Format(rsErrorExecutingThisTableSLuaScript, [e.message]));
           end;
         end;
       end;
@@ -667,7 +679,7 @@ begin
       a:=address;
       memfile.WriteBuffer(a,8);
       memfile.WriteBuffer(buf^,size);
-    end else messagedlg('The region at '+IntToHex(address,8)+' was partially or completly unreadable',mterror,[mbok],0);
+    end else messagedlg(Format(rsTheRegionAtWasPartiallyOrCompletlyUnreadable, [IntToHex(address, 8)]), mterror, [mbok], 0);
   finally
     memfile.free;
     freemem(buf);
@@ -689,7 +701,7 @@ begin
     if check='CHEATENGINE' then
     begin
       memfile.ReadBuffer(temp,4);
-      if temp<>1 then raise exception.Create('The version of '+filename+' is incompatible with this CE version');
+      if temp<>1 then raise exception.Create(Format(rsTheVersionOfIsIncompatibleWithThisCEVersion, [filename]));
       memfile.ReadBuffer(temp,4);
       //temp=startaddress
 
@@ -698,7 +710,7 @@ begin
 
 
       RewriteCode(processhandle,temp,mem,memfile.Size-memfile.Position);
-    end else raise exception.Create(filename+' doesn''t contain needed information where to place the memory');
+    end else raise exception.Create(Format(rsDoesnTContainNeededInformationWhereToPlaceTheMemor, [filename]));
   finally
     freemem(check);
     memfile.free;
@@ -762,7 +774,7 @@ begin
       if isProtected then //I know, this protection is pathetic for anyone that can compile ce. But as I said, this is just to stop the ultimate lazy guy from just editing the .CETRAINER file and changing the name
         mainform.isProtected:=true;
     except
-      raise exception.Create('This is not a valid cheat table');
+      raise exception.Create(rsThisIsNotAValidCheatTable);
     end;
 
   finally
@@ -829,12 +841,12 @@ begin
     try
       ReadXMLFile(doc, filename);
     except
-      raise exception.create('This is not a valid xml file');
+      raise exception.create(rsThisIsNotAValidXmlFile);
     end;
     LoadXML(doc,merge);
     doc.free;
   end else
-  raise exception.create('Unknown extention');
+  raise exception.create(rsUnknownExtention);
 
   mainform.editedsincelastsave:=false;
 
@@ -998,7 +1010,7 @@ begin
   try
     if Uppercase(utf8tosys(extractfileext(filename)))<>'.EXE' then
     begin
-      if protect and (Uppercase(utf8tosys(extractfileext(filename)))<>'.CETRAINER') then raise exception.create('You can only protect a file if it has an .CETRAINER extension');
+      if protect and (Uppercase(utf8tosys(extractfileext(filename)))<>'.CETRAINER') then raise exception.create(rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension);
 
 
       SaveXML(utf8tosys(filename));
@@ -1087,7 +1099,7 @@ var f,f2: tmemorystream;
   c: Tcompressionstream;
 
 begin
-  if Uppercase(extractfileext(filename))<>'.CETRAINER' then raise exception.create('Error saving...');
+  if Uppercase(extractfileext(filename))<>'.CETRAINER' then raise exception.create(rsErrorSaving);
 
   f:=tmemorystream.create;
   f.LoadFromFile(filename);

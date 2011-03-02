@@ -56,6 +56,32 @@ implementation
 uses formsettingsunit, MemoryBrowserFormUnit;
 
 
+resourcestring
+  rsRead = 'Read';
+  rsReadWrite = 'Read+Write';
+  rsWriteCopy = 'Write Copy';
+  rsExecute = 'Execute';
+  rsExecuteRead = 'Execute+Read';
+  rsExecuteReadWrite = 'Execute+Read+Write';
+  rsExecuteWriteCopy = 'Execute+Write Copy';
+  rsNoAccess = 'No Access';
+  rsGuard = 'Guard';
+  rsNoCache = 'No Cache';
+  rsCommit = 'Commit';
+  rsFree = 'Free';
+  rsReserve = 'Reserve';
+  rsImage = 'Image';
+  rsMapped = 'Mapped';
+  rsPrivate = 'Private';
+  rsThereAreAlreadyMemoryfilesWithThisNameDoYouWantToD = 'There are already memoryfiles with this name. Do you want to delete them? (choosing no will add the file(s) to empty '
+    +'slots)';
+  rsFailedToDelete = 'Failed to delete %s';
+  rsMemoryRegionsSaving = 'Memory regions - Saving(%s/%s)';
+  rsThereIsNoFreeSlot = 'There is no free slot';
+  rsDone = 'done';
+  rsMemoryRegions = 'Memory regions';
+  rsDoYouWantToUseTheCOPYONWRITEBit = 'Do you want to use the COPY-ON-WRITE bit?';
+
 procedure TFormMemoryRegions.FormShow(Sender: TObject);
 var address: PtrUInt;
     mbi : _MEMORY_BASIC_INFORMATION;
@@ -83,41 +109,41 @@ begin
       ListView1.Items.Add.Caption:=IntToHex(PtrUInt(mbi.BaseAddress),8);
 
       temp:='';
-      if (PAGE_READONLY and mbi.AllocationProtect)=PAGE_READONLY then temp:='Read';
-      if (PAGE_READWRITE and mbi.AllocationProtect)=PAGE_READWRITE then temp:='Read+Write';
-      if (PAGE_WRITECOPY and mbi.AllocationProtect)=PAGE_WRITECOPY then temp:='Write Copy';
-      if (PAGE_EXECUTE and mbi.AllocationProtect)=PAGE_EXECUTE then temp:='Execute';
-      if (PAGE_EXECUTE_READ and mbi.AllocationProtect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
-      if (PAGE_EXECUTE_READWRITE and mbi.AllocationProtect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
-      if (PAGE_EXECUTE_WRITECOPY and mbi.AllocationProtect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
-      if (PAGE_NOACCESS and mbi.AllocationProtect)=PAGE_NOACCESS then temp:='No Access';
-      if (PAGE_GUARD and mbi.AllocationProtect)=PAGE_GUARD then temp:=temp+'+Guard';
-      if (PAGE_NOCACHE	and mbi.AllocationProtect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
+      if (PAGE_READONLY and mbi.AllocationProtect)=PAGE_READONLY then temp:=rsRead;
+      if (PAGE_READWRITE and mbi.AllocationProtect)=PAGE_READWRITE then temp:=rsReadWrite;
+      if (PAGE_WRITECOPY and mbi.AllocationProtect)=PAGE_WRITECOPY then temp:=rsWriteCopy;
+      if (PAGE_EXECUTE and mbi.AllocationProtect)=PAGE_EXECUTE then temp:=rsExecute;
+      if (PAGE_EXECUTE_READ and mbi.AllocationProtect)=PAGE_EXECUTE_READ then temp:=rsExecuteRead;
+      if (PAGE_EXECUTE_READWRITE and mbi.AllocationProtect)=PAGE_EXECUTE_READWRITE then temp:=rsExecuteReadWrite;
+      if (PAGE_EXECUTE_WRITECOPY and mbi.AllocationProtect)=PAGE_EXECUTE_WRITECOPY then temp:=rsExecuteWriteCopy;
+      if (PAGE_NOACCESS and mbi.AllocationProtect)=PAGE_NOACCESS then temp:=rsNoAccess;
+      if (PAGE_GUARD and mbi.AllocationProtect)=PAGE_GUARD then temp:=temp+'+'+rsGuard;
+      if (PAGE_NOCACHE	and mbi.AllocationProtect)=PAGE_NOCACHE then temp:=temp+'+'+rsNoCache;
       listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
       case mbi.State of
-        MEM_COMMIT :temp:='Commit';
-        MEM_FREE : temp:='Free';
-        MEM_RESERVE	:temp:='Reserve';
+        MEM_COMMIT : temp:=rsCommit;
+        MEM_FREE : temp:=rsFree;
+        MEM_RESERVE	: temp:=rsReserve;
       end;
       listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
       temp:='';
-      if (PAGE_READONLY and mbi.Protect)=PAGE_READONLY then temp:='Read';
-      if (PAGE_READWRITE and mbi.Protect)=PAGE_READWRITE then temp:='Read+Write';
-      if (PAGE_WRITECOPY and mbi.Protect)=PAGE_WRITECOPY then temp:='Write Copy';
-      if (PAGE_EXECUTE and mbi.Protect)=PAGE_EXECUTE then temp:='Execute';
-      if (PAGE_EXECUTE_READ and mbi.Protect)=PAGE_EXECUTE_READ then temp:='Execute+Read';
-      if (PAGE_EXECUTE_READWRITE and mbi.Protect)=PAGE_EXECUTE_READWRITE then temp:='Execute+Read+Write';
-      if (PAGE_EXECUTE_WRITECOPY and mbi.Protect)=PAGE_EXECUTE_WRITECOPY then temp:='Execute+Write Copy';
-      if (PAGE_NOACCESS and mbi.Protect)=PAGE_NOACCESS then temp:='No Access';
-      if (PAGE_GUARD and mbi.Protect)=PAGE_GUARD then temp:=temp+'+Guard';
-      if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+No Cache';
+      if (PAGE_READONLY and mbi.Protect)=PAGE_READONLY then temp:=rsRead;
+      if (PAGE_READWRITE and mbi.Protect)=PAGE_READWRITE then temp:=rsReadWrite;
+      if (PAGE_WRITECOPY and mbi.Protect)=PAGE_WRITECOPY then temp:=rsWriteCopy;
+      if (PAGE_EXECUTE and mbi.Protect)=PAGE_EXECUTE then temp:=rsExecute;
+      if (PAGE_EXECUTE_READ and mbi.Protect)=PAGE_EXECUTE_READ then temp:=rsExecuteRead;
+      if (PAGE_EXECUTE_READWRITE and mbi.Protect)=PAGE_EXECUTE_READWRITE then temp:=rsExecuteReadWrite;
+      if (PAGE_EXECUTE_WRITECOPY and mbi.Protect)=PAGE_EXECUTE_WRITECOPY then temp:=rsExecuteWriteCopy;
+      if (PAGE_NOACCESS and mbi.Protect)=PAGE_NOACCESS then temp:=rsNoAccess;
+      if (PAGE_GUARD and mbi.Protect)=PAGE_GUARD then temp:=temp+'+'+rsGuard;
+      if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+'+rsNoCache;
       listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
-      if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Image') else
-      if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add('Mapped') else
-      if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add('Private') else
+      if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsImage) else
+      if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add(rsMapped) else
+      if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsPrivate) else
       listview1.Items[listview1.Items.Count-1].SubItems.add('-');
 
       // regionlist.Items.Add(str);
@@ -175,13 +201,13 @@ begin
     zeromemory(@f,sizeof(f));
     if findfirst(savedialog1.filename+'.m*',faAnyFile,f)=0 then
     begin
-      r:=messagedlg('There are already memoryfiles with this name. Do you want to delete them? (choosing no will add the file(s) to empty slots)',mtConfirmation,[mbyes,mbno,mbcancel],0);
+      r:=messagedlg(rsThereAreAlreadyMemoryfilesWithThisNameDoYouWantToD, mtConfirmation, [mbyes, mbno, mbcancel], 0);
       if r=mrcancel then exit;
 
       if r=mryes then
       begin
         deletefile(extractfilepath(savedialog1.filename)+f.Name);
-        while findnext(f)=0 do if not deletefile(extractfilepath(savedialog1.filename)+f.Name) then raise exception.Create('Failed to delete '+f.Name);
+        while findnext(f)=0 do if not deletefile(extractfilepath(savedialog1.filename)+f.Name) then raise exception.Create(Format(rsFailedToDelete, [f.Name]));
       end;
     end;
 
@@ -189,7 +215,7 @@ begin
     nr:=0;
     for i:=0 to listview1.Items.Count-1 do
     begin
-      caption:='Memory regions - Saving('+IntToStr(i)+'/'+IntToStr(listview1.Items.Count-1) + ')';
+      caption:=Format(rsMemoryRegionsSaving, [IntToStr(i), IntToStr(listview1.Items.Count-1)]);
       repaint;
 
       if listview1.Items[i].Selected then
@@ -197,13 +223,13 @@ begin
         //find a free slot
         while (nr<10000) and (fileexists(savedialog1.FileName+'.m'+format('%.4d',[nr]))) do inc(nr);
 
-        if nr=10000 then raise exception.Create('There is no free slot');
+        if nr=10000 then raise exception.Create(rsThereIsNoFreeSlot);
         savecem(savedialog1.FileName+'.m'+format('%.4d',[nr]),moreinfo[i].address,moreinfo[i].size);
       end;
     end
     finally
-      showmessage('done');
-      caption:='Memory regions';
+      showmessage(rsDone);
+      caption:=rsMemoryRegions;
     end;
   end;
 
@@ -226,7 +252,7 @@ var res: word;
     copyonwrite: boolean;
     i: integer;
 begin
-  res:=MessageDlg('Do you want to use the COPY-ON-WRITE bit?',mtConfirmation,[mbyes,mbno,mbcancel],0);
+  res:=MessageDlg(rsDoYouWantToUseTheCOPYONWRITEBit, mtConfirmation, [mbyes, mbno, mbcancel], 0);
   if res=mrcancel then exit;
   if res=mrNo then copyonwrite:=false else copyonwrite:=true;
 

@@ -54,6 +54,15 @@ implementation
 
 uses MainUnit,ceguicomponents, opensave;
 
+resourcestring
+  rsSaving = 'Saving...';
+  rsFailureOnWriting = 'failure on writing';
+  rsIconUpdateError = 'icon update error';
+  rsFailureOpeningTheTrainerForResourceUpdates = 'Failure opening the trainer '
+    +'for resource updates';
+  rsTheTrainerHasBeenSuccessfullyGenerated = 'The trainer has been '
+    +'successfully generated';
+
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
 
@@ -110,7 +119,7 @@ begin
       archive.CopyFrom(f, block);
       dec(i,block);
 
-      button2.caption:='Saving...'+rot;
+      button2.caption:=rsSaving+rot;
       application.ProcessMessages;
     end;
   finally
@@ -134,7 +143,7 @@ begin
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
   SaveTable(CETRAINER, true);
 
-  button2.caption:='Saving...'+rot;
+  button2.caption:=rsSaving+rot;
   button2.enabled:=false;
   saving:=true;
 
@@ -205,10 +214,12 @@ begin
 
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
-          raise exception.create('failure on writing ARCHIVE:'+inttostr(getlasterror()));
+          raise exception.create(rsFailureOnWriting+' ARCHIVE:'+inttostr(
+            getlasterror()));
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
-          raise exception.create('failure on writing DECOMPRESSOR:'+inttostr(getlasterror()));
+          raise exception.create(rsFailureOnWriting+' DECOMPRESSOR:'+inttostr(
+            getlasterror()));
 
         icon:=tmemorystream.create;
         try
@@ -229,13 +240,13 @@ begin
             begin
               //update the icon
               if not updateResourceA(updatehandle,pchar(RT_ICON),MAKEINTRESOURCE(1),1033, pointer(ptruint(icon.Memory)+ii.icondirentry[0].dwImageOffset), ii.icondirentry[0].dwBytesInRes) then
-                raise exception.create('icon update error2');
+                raise exception.create(rsIconUpdateError+' 2');
 
               //update the group
               gii.idCount:=1;
               gii.icondirentry[0].id:=1;
               if not updateResourceA(updatehandle,pchar(RT_GROUP_ICON),MAKEINTRESOURCE(101),1033, gii, sizeof(TGRPICONDIR)+sizeof(TGRPICONDIRENTRY)) then
-                raise exception.create('icon update error3');
+                raise exception.create(rsIconUpdateError+' 3');
 
 
             end;
@@ -249,9 +260,10 @@ begin
 
 
         EndUpdateResource(updatehandle, false);
-      end else raise exception.create('Failure opening the trainer for resource updates');
+      end else raise exception.create(
+        rsFailureOpeningTheTrainerForResourceUpdates);
     end;
-    showmessage('The trainer has been successfully generated');
+    showmessage(rsTheTrainerHasBeenSuccessfullyGenerated);
   finally
     if _archive<>nil then
       freeandnil(_archive);
@@ -290,6 +302,7 @@ begin
 
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
   cbXMPlayer.checked:=pos('xmplayer_',s)>0;
+  cbKernelDebug.checked:=pos('dbk_',s)>0;
 
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default

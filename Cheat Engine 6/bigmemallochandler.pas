@@ -31,6 +31,12 @@ end;
 
 implementation
 
+resourcestring
+  rsAllocError = 'VirtualAlloc failed. You probably don''t have enough system '
+    +'memory free. Either install more RAM, or increase the maximum allowed '
+    +'paging size';
+  rsCEPointerscanMemoryManager = 'CE Pointerscan memory manager';
+
 constructor TBigMemoryAllocHandler.create;
 begin
   currentbuffer:=0;
@@ -99,7 +105,7 @@ begin
       if currentbuffer=nil then
       begin
         {$ifdef cpu64}
-          raise exception.create('VirtualAlloc failed. You probably don''t have enough system memory free. Either install more RAM, or increase the maximum allowed paging size');
+          raise exception.create(rsAllocError);
         {$else}
           raise exception.create('VirtualAlloc failed. You probably don''t have enough virtual memory free. Use the 64-bit version instead');
         {$endif}
@@ -124,7 +130,7 @@ begin
   except
     on e: Exception do
     begin
-      messagebox(0,pchar(e.message),'CE Pointerscan memory manager',0);
+      messagebox(0, pchar(e.message), pchar(rsCEPointerscanMemoryManager), 0);
       raise exception.create(e.message);
     end;
   end;

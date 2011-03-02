@@ -53,6 +53,14 @@ implementation
 
 uses MemoryBrowserFormUnit;
 
+resourcestring
+  rsCopyDisassembledOutput = 'Copy disassembled output';
+  rsCopy = 'Copy';
+  rsSaveDisassembledOutput = 'Save disassembled output';
+  rsSave = 'Save';
+  rsStopCopying = 'Stop copying';
+  rsStopSaving = 'Stop saving';
+
 procedure TSaveDisassemblyThread.execute;
 var oldaddress, currentaddress: ptrUint;
     f: textfile;
@@ -176,14 +184,14 @@ begin
   if mode then
   begin
     //configure for copy mode, so instead of saving to file save to clipboard
-    caption:='Copy disassembled output';
-    button1.caption:='Copy';
+    caption:=rsCopyDisassembledOutput;
+    button1.caption:=rsCopy;
   end
   else
   begin
 
-    caption:='Save disassembled output';
-    button1.Caption:='Save';
+    caption:=rsSaveDisassembledOutput;
+    button1.Caption:=rsSave;
   end;
 end;
 
@@ -196,9 +204,9 @@ begin
     SaveDisassemblyThread.WaitFor;
     freeandnil(SaveDisassemblyThread);
     if FCopyMode then
-      button1.Caption:='Copy'
+      button1.Caption:=rsCopy
     else
-      button1.Caption:='Save';
+      button1.Caption:=rsSave;
     exit;
   end;
 
@@ -235,9 +243,9 @@ begin
     SaveDisassemblyThread.progressbar:=progressbar1;
 
     if fcopymode then
-      button1.caption:='Stop copying'
+      button1.caption:=rsStopCopying
     else
-      button1.caption:='Stop saving';
+      button1.caption:=rsStopSaving;
       
     SaveDisassemblyThread.start;
 

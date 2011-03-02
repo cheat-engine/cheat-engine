@@ -272,6 +272,14 @@ end;
 
 resourcestring
   strProcessWatcherWillPreventUnloader='Enabling the process watcher will prevent the unloader from working';
+  rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea = 'You haven''t selected any memory type. This will result in Cheat Engine finding NO memory! Are you stupid?';
+  rsIsNotAValidInterval = '%s is not a valid interval';
+  rsTheScanbufferSizeHasToBeGreaterThan0 = 'The scanbuffer size has to be greater than 0';
+  rsTheValueForTheKeypollIntervalIsInvalid = 'the value for the keypoll interval (%s is invalid';
+  rsTheValueForTheWaitBetweenHotkeyPressesIsInvalid = 'the value for the wait between hotkey presses (%s is invalid';
+  rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr = 'Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
+  rsRequiresDBVM = '(Requires DBVM)';
+  rsThisPluginIsAlreadyLoaded = 'This plugin is already loaded';
 procedure TformSettings.Button1Click(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -297,22 +305,22 @@ begin
 {$endif}
 
   if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
-    if messagedlg('You haven''t selected any memory type. This will result in Cheat Engine finding NO memory! Are you stupid?',mtWarning,[mbyes,mbno],0)<>mryes then exit;
+    if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
 
   val(editUpdatefoundInterval.Text,foundinterval,error);
-  if (error<>0) or (foundinterval<=0) then raise exception.Create(editUpdatefoundInterval.Text+' is not a valid interval');
+  if (error<>0) or (foundinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editUpdatefoundInterval.Text]));
 
   val(editupdateinterval.text,updateinterval,error);
-  if (error<>0) or (updateinterval<=0) then raise exception.Create(editupdateinterval.text+' is not a valid interval');
+  if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editupdateinterval.text]));
 
   val(editfreezeinterval.text,freezeinterval,error);
-  if (error<>0) or (updateinterval<=0) then raise exception.Create(editfreezeinterval.text+' is not a valid interval');
+  if (error<>0) or (updateinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editfreezeinterval.text]));
 
 
   try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
 
-  if bufsize=0 then raise exception.create('The scanbuffer size has to be greater than 0');
+  if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
 
   {$ifdef net}
   mainform.buffersize:=bufsize*1024;
@@ -441,14 +449,14 @@ begin
         reg.WriteInteger('hotkey poll interval',strtoint(frameHotkeyConfig.edtKeypollInterval.text));
         hotkeyPollInterval:=strtoint(frameHotkeyConfig.edtKeypollInterval.text);
       except
-        raise exception.Create('the value for the keypoll interval ('+frameHotkeyConfig.edtKeypollInterval.text+' is invalid');
+        raise exception.Create(Format(rsTheValueForTheKeypollIntervalIsInvalid, [frameHotkeyConfig.edtKeypollInterval.text]));
       end;
 
       try
         reg.WriteInteger('Time between hotkeypress',strtoint(frameHotkeyConfig.edtHotkeyDelay.text));
         hotkeyIdletime:=strtoint(frameHotkeyConfig.edtHotkeyDelay.text);
       except
-        raise exception.Create('the value for the wait between hotkey presses ('+frameHotkeyConfig.edtHotkeyDelay.text+' is invalid');
+        raise exception.Create(Format(rsTheValueForTheWaitBetweenHotkeyPressesIsInvalid, [frameHotkeyConfig.edtHotkeyDelay.text]));
       end;
 
 
@@ -906,10 +914,10 @@ begin
   if is64bitos then
   begin
     TauntOldOsUser.Visible:=true;
-    TauntOldOsUser.Caption:='Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
+    TauntOldOsUser.Caption:=rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr;
 
     cbKdebug.Enabled:=isDBVMCapable;
-    cbKdebug.Caption:=cbKdebug.Caption+' (Requires DBVM)';
+    cbKdebug.Caption:=cbKdebug.Caption+' '+rsRequiresDBVM;
     if not cbKdebug.Enabled then
       cbKdebug.checked:=false;
 
@@ -968,7 +976,7 @@ begin
     s:=uppercase(ExtractFileName(opendialog1.FileName));
     for i:=0 to clbplugins.count-1 do
       if uppercase(extractfilename(Tpathspecifier(clbplugins.Items.Objects[i]).path))=s then
-        raise exception.Create('This plugin is already loaded');
+        raise exception.Create(rsThisPluginIsAlreadyLoaded);
 
     pluginname:=pluginhandler.GetPluginName(opendialog1.FileName);
     fullpath:=Tpathspecifier.Create;

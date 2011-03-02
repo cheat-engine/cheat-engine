@@ -72,6 +72,11 @@ implementation
 
 uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit;
 
+resourcestring
+  rsUn = '(Un)';
+  rsCon = '(Con)';
+  rsCall = '(Call)';
+  rsInvalidDisassembly = 'Invalid disassembly';
 
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
@@ -149,13 +154,13 @@ begin
       begin
         case addresses[i].jumptype of
           jtUnconditional:
-            result:=result+' '+inttohex(addresses[i].address,8)+'(Un)';
+            result:=result+' '+inttohex(addresses[i].address, 8)+rsUn;
 
           jtConditional:
-            result:=result+' '+inttohex(addresses[i].address,8)+'(Con)';
+            result:=result+' '+inttohex(addresses[i].address, 8)+rsCon;
 
           jtCall:
-            result:=result+' '+inttohex(addresses[i].address,8)+'(Call)';
+            result:=result+' '+inttohex(addresses[i].address, 8)+rsCall;
         end;
       end;
     end;
@@ -487,7 +492,7 @@ begin
               break;
             end;
 
-            else raise exception.create('Invalid disassembly');
+            else raise exception.create(rsInvalidDisassembly);
           end;
           inc(i);
         end;

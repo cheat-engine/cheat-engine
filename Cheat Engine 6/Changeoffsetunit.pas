@@ -36,6 +36,8 @@ var
 
 implementation
 
+resourcestring
+  rsThisIsNotAnValidValue = 'This is not an valid value';
 
 
 procedure TChangeOffset.ChangeClick(Sender: TObject);
@@ -105,7 +107,7 @@ begin
   if controle=0 then allowchange:=true else
   begin
     allowchange:=false;
-    raise exception.Create('This is not an valid value');
+    raise exception.Create(rsThisIsNotAnValidValue);
   end;
 
 end;

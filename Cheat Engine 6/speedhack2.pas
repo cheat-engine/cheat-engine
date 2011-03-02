@@ -23,6 +23,11 @@ implementation
 
 uses frmAutoInjectUnit;
 
+resourcestring
+  rsFailureEnablingSpeedhackDLLInjectionFailed = 'Failure enabling speedhack. (DLL injection failed)';
+  rsFailureConfiguringSpeedhackPart = 'Failure configuring speedhack part';
+  rsFailureSettingSpeed = 'Failure setting speed';
+
 constructor TSpeedhack.create;
 var i: integer;
     script: tstringlist;
@@ -41,7 +46,7 @@ begin
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded;
   except
-    raise exception.Create('Failure enabling speedhack. (DLL injection failed)');
+    raise exception.Create(rsFailureEnablingSpeedhackDLLInjectionFailed);
   end;
 
        
@@ -75,7 +80,7 @@ begin
 
 
     except
-      raise exception.Create('Failure configuring speedhack part 1');
+      raise exception.Create(rsFailureConfiguringSpeedhackPart+' 1');
     end;
 
 
@@ -101,7 +106,7 @@ begin
     try
       autoassemble(script,false);
     except //do mind
-      raise exception.Create('Failure configuring speedhack part 2');
+      raise exception.Create(rsFailureConfiguringSpeedhackPart+' 2');
     end;
 
   finally
@@ -166,7 +171,7 @@ begin
      // Clipboard.AsText:=script.text;
       autoassemble(script,false);
     except
-      raise exception.Create('Failure setting speed');
+      raise exception.Create(rsFailureSettingSpeed);
     end;
   finally
     script.free;

@@ -681,6 +681,17 @@ implementation
 
 uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA;
 
+resourcestring
+  rsErrorEnabling = 'Error enabling %s';
+  rsErrorDisabling = 'Error disabling %s';
+  rsErrorLoadingOnlyDLLFilesAreAllowed = 'Error loading %s. Only DLL files are allowed';
+  rsErrorLoadingTheDllIsMissingTheCEPlugin_GetVersionF = 'Error loading %s. The dll is missing the CEPlugin_GetVersion function';
+  rsIsMissingTheCEPlugin_InitializePluginExport = '%s is missing the CEPlugin_InitializePlugin export';
+  rsIsMissingTheCEPlugin_DisablePluginExport = '%s is missing the CEPlugin_DisablePlugin export';
+  rsErrorLoadingTheDllIsMissingTheCEPlugin_GetVersionE = 'Error loading %s. The dll is missing the CEPlugin_GetVersion export';
+  rsErrorLoadingThisDllRequiresANewerVersionOfCeToFunc = 'Error loading %s. This dll requires a newer version of ce to function properly';
+  rsErrorLoadingTheGetVersionFunctionReturnedFALSE = 'Error loading %s. The GetVersion function returned FALSE';
+
 function TPluginHandler.GetDLLFilePath(pluginid: integer):string;
 begin
   pluginMREW.BeginRead;
@@ -1130,7 +1141,7 @@ begin
     if not plugins[pluginid].enabled then
     begin
       x:=plugins[pluginid].EnablePlugin(e,pluginid);
-      if not x then raise exception.Create('Error enabling '+plugins[pluginid].dllname);
+      if not x then raise exception.Create(Format(rsErrorEnabling, [plugins[pluginid].dllname]));
       plugins[pluginid].enabled:=true;
     end;
   finally
@@ -1145,7 +1156,7 @@ begin
   try
     if plugins[pluginid].enabled then
     begin
-      if not plugins[pluginid].DisablePlugin() then raise exception.Create('Error disabling '+plugins[pluginid].dllname);
+      if not plugins[pluginid].DisablePlugin() then raise exception.Create(Format(rsErrorDisabling, [plugins[pluginid].dllname]));
       plugins[pluginid].enabled:=false;
 
       //unregister all functions
@@ -1190,18 +1201,18 @@ var hmodule: thandle;
     PluginVersion: TPluginVersion;
 begin
   result:='';
-  if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create('Error loading '+dllname+'. Only DLL files are allowed');
+  if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
   hmodule:=loadlibrary(pchar(dllname));
   GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
   if not assigned(GetVersion) then
     getVersion:=getprocaddress(hmodule,'GetVersion');
 
   if not assigned(GetVersion) then
-    raise exception.Create('Error loading '+dllname+'. The dll is missing the CEPlugin_GetVersion function');
+    raise exception.Create(Format(rsErrorLoadingTheDllIsMissingTheCEPlugin_GetVersionF, [dllname]));
 
 
-  if (getprocaddress(hmodule,'CEPlugin_InitializePlugin')=nil) and (getprocaddress(hmodule,'InitializePlugin')=nil) then raise exception.Create(dllname+' is missing the CEPlugin_InitializePlugin export');
-  if (getprocaddress(hmodule,'CEPlugin_DisablePlugin')=nil) and (getprocaddress(hmodule,'DisablePlugin')=nil) then raise exception.Create(dllname+' is missing the CEPlugin_DisablePlugin export');
+  if (getprocaddress(hmodule, 'CEPlugin_InitializePlugin')=nil) and (getprocaddress(hmodule, 'InitializePlugin')=nil) then raise exception.Create(Format(rsIsMissingTheCEPlugin_InitializePluginExport, [dllname]));
+  if (getprocaddress(hmodule, 'CEPlugin_DisablePlugin')=nil) and (getprocaddress(hmodule, 'DisablePlugin')=nil) then raise exception.Create(Format(rsIsMissingTheCEPlugin_DisablePluginExport, [dllname]));
 
   if GetVersion(PluginVersion,sizeof(TPluginVersion)) then
     result:=PluginVersion.pluginname;
@@ -1237,7 +1248,7 @@ var hmodule: thandle;
     i: integer;
 begin
   result:=0;
-  if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create('Error loading '+dllname+'. Only DLL files are allowed');
+  if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
 
   s:=uppercase(extractfilename(dllname));
   pluginMREW.BeginRead;
@@ -1262,11 +1273,11 @@ begin
     GetVersion:=getprocaddress(hmodule,'GetVersion');
 
 
-  if not assigned(GetVersion) then raise exception.Create('Error loading '+dllname+'. The dll is missing the CEPlugin_GetVersion export');
+  if not assigned(GetVersion) then raise exception.Create(Format(rsErrorLoadingTheDllIsMissingTheCEPlugin_GetVersionE, [dllname]));
   if GetVersion(PluginVersion,sizeof(TPluginVersion)) then
   begin
     if PluginVersion.version>currentpluginversion then
-      raise exception.Create('Error loading '+dllname+'. This dll requires a newer version of ce to function properly');
+      raise exception.Create(Format(rsErrorLoadingThisDllRequiresANewerVersionOfCeToFunc, [dllname]));
 
     pluginMREW.BeginWrite;
     try
@@ -1294,8 +1305,8 @@ begin
 
         plugins[length(plugins)-1].nextid:=1;
 
-        if not assigned(plugins[length(plugins)-1].EnablePlugin) then raise exception.Create(dllname+' is missing the CEPlugin_InitializePlugin export');
-        if not assigned(plugins[length(plugins)-1].DisablePlugin) then raise exception.Create(dllname+' is missing the CEPlugin_DisablePlugin export');
+        if not assigned(plugins[length(plugins)-1].EnablePlugin) then raise exception.Create(Format(rsIsMissingTheCEPlugin_InitializePluginExport, [dllname]));
+        if not assigned(plugins[length(plugins)-1].DisablePlugin) then raise exception.Create(Format(rsIsMissingTheCEPlugin_DisablePluginExport, [dllname]));
         result:=length(plugins)-1;
       except
         on e: exception do
@@ -1308,7 +1319,7 @@ begin
       pluginMREW.EndWrite;
     end;
 
-  end else raise exception.Create('Error loading '+dllname+'. The GetVersion function returned FALSE');
+  end else raise exception.Create(Format(rsErrorLoadingTheGetVersionFunctionReturnedFALSE, [dllname]));
 end;
 
 

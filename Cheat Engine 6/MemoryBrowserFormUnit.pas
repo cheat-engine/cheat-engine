@@ -521,6 +521,60 @@ uses Valuechange,
   ;
 
 
+resourcestring
+  rsUnlinkFromOtherHexview = 'Unlink from other hexview';
+  rsLinkWithOtherHexview = 'Link with other hexview';
+  rsStopShowingTheDifference = 'Stop showing the difference';
+  rsShowDifference = 'Show difference';
+  rsBetween = 'Between %s';
+  rsHowLongShouldAChangeBeShown = 'How long should a change be shown?';
+  rsChangeDisplayFader = 'Change display fader';
+  rsGotoAddress = 'Goto Address';
+  rsFillInTheAddressYouWantToGoTo = 'Fill in the address you want to go to';
+  rsMemoryViewerRunning = 'Memory Viewer - Running';
+  rsCheatEngineSingleLingeAssembler = 'Cheat Engine single-linge assembler';
+  rsTypeYourAssemblerCodeHereAddress = 'Type your assembler code here: (address=%s)';
+  rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB = 'The generated code is %s byte(s) long, but the selected opcode is %s byte(s) long! Do you want to replace the '
+    +'incomplete opcode(s) with NOP''s?';
+  rsIDonTUnderstandWhatYouMeanWith = 'I don''t understand what you mean with %s';
+  rsChangeRegister = 'Change register';
+  rsWhatIsTheNewValueOf = 'What is the new value of %s?';
+  rs0Or1 = '(0 or 1)';
+  rsIsNotAValidValue = '%s is not a valid value';
+  rsAllocateMemory = 'Allocate memory';
+  rsHowMuchMemoryDoYouWantToAddToThisProcess = 'How much memory do you want to add to this process?';
+  rsHowMuchIs = 'How much is %s?';
+  rsErrorAllocatingMemory = 'Error allocating memory!';
+  rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN = 'At least %s bytes have been allocated at %s%sDo you want to go there now?';
+  rsCreateRemoteThread = 'Create remote thread';
+  rsWhatWillBeTheStartaddressOfThisThread = 'What will be the startaddress of this thread?';
+  rsPleaseEnterAValidHexadecimalAddres = 'Please enter a valid hexadecimal addres';
+  rsYouWantToGiveAnAdditional32BitParameterWillShowUpI = 'You want to give an additional 32-bit parameter? (Will show up in (R)/(E)BX)';
+  rsPleaseEnterAValidHexadecimalValue = 'Please enter a valid hexadecimal value';
+  rsPleaseTargetAProcessFirst = 'Please target a process first';
+  rsDoYouWantToExecuteAFunctionOfTheDll = 'Do you want to execute a function of the dll?';
+  rsInjectDll = 'Inject dll';
+  rsSelectTheFunctionYouWantToExecute = 'Select the function you want to execute';
+  rsDLLInjected = 'DLL Injected';
+  rsHowMuchMemoryDoYouWishToAllocate = 'How much memory do you wish to allocate?';
+  rsAtLeastBytesHaveBeenAllocatedAtGoThereNow = 'At least %s bytes have been allocated at %s. Go there now?';
+  rsGetKernelAddress = 'Get kernel address';
+  rsGiveTheNameOfTheFunctionYouWantToFindCaseSensitive = 'Give the name of the function you want to find (Case sensitive,certain words can cause blue screens)';
+  rsAssemblyScan = 'Assembly scan';
+  rsInputTheAssemblyCodeToFindWilcardsSupported = 'Input the assembly code to find. wilcards( * ) supported.';
+  rsSymbolHandler = 'Symbol handler';
+  rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths = 'Please specify the new symbol searchpath (; seperates paths)';
+  rsMemoryBrowser = 'MemoryBrowser';
+  rsReturnAddress = 'Return Address';
+  rsParameters = 'Parameters';
+  rsAddress = 'Address';
+  rsValue = 'Value';
+  rsStacktrace = 'Stacktrace';
+  rsNewSize = 'New size';
+  rsMaxStacktraceSize = 'Max stacktrace size';
+  rsNeedToRunDissectCode = 'You will need to run the dissect code routine first before this window is usable. Run it now?';
+  rsMemoryViewerCurrentlyDebuggingThread = 'Memory Viewer - Currently debugging thread %s';
+
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -734,22 +788,22 @@ begin
   if isLocked then
   begin
     miLock.OnClick:=miLockOnClick;
-    miLock.caption:='Unlink from other hexview';
+    miLock.caption:=rsUnlinkFromOtherHexview;
   end
   else
   begin
     miLock.OnClick:=nil;
-    miLock.caption:='Link with other hexview';
+    miLock.caption:=rsLinkWithOtherHexview;
   end;
 
   if hexview.isShowingDifference then
   begin
-    miShowDifference.caption:='Stop showing the difference';
+    miShowDifference.caption:=rsStopShowingTheDifference;
     miShowDifference.onclick:=miStopDifferenceClick;
   end
   else
   begin
-    miShowDifference.caption:='Show difference';
+    miShowDifference.caption:=rsShowDifference;
     miShowDifference.onclick:=nil;
   end;
 
@@ -763,7 +817,7 @@ begin
       if not hexview.isShowingDifference then
       begin
         mi:=TMenuItem.Create(miShowDifference);
-        mi.Caption:='Between '+m.Caption;
+        mi.Caption:=Format(rsBetween, [m.Caption]);
         mi.OnClick:=miDifferenceClick;
         mi.tag:=i;
         miShowDifference.Add(mi);
@@ -990,7 +1044,7 @@ procedure TMemoryBrowser.MenuItem9Click(Sender: TObject);
 var stime: string;
 begin
   stime:=inttostr(hexview.fadetimer);
-  if InputQuery('How long should a change be shown?','Change display fader', stime) then
+  if InputQuery(rsHowLongShouldAChangeBeShown, rsChangeDisplayFader, stime) then
     hexview.fadeTimer:=strtoint(stime);
 end;
 
@@ -1290,7 +1344,7 @@ var newaddress: string;
     canceled: boolean;
 begin
   panel4.setfocus;
-  newaddress:=inputboxtop('Goto Address','Fill in the address you want to go to',IntTohex(memoryaddress,8),true,canceled,memorybrowserHistory);
+  newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(memoryaddress, 8), true, canceled, memorybrowserHistory);
 
   memoryaddress:=getaddress(newaddress);
   hexview.address:=getaddress(newaddress);
@@ -1513,7 +1567,7 @@ var newaddress: string;
     canceled: boolean;
     oldAddress: ptrUint;
 begin
-  newaddress:=InputBoxTop('Goto Address','Fill in the address you want to go to',IntTohex(disassemblerview.SelectedAddress,8),true,canceled,memorybrowserHistory);
+  newaddress:=InputBoxTop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(disassemblerview.SelectedAddress, 8), true, canceled, memorybrowserHistory);
 
   oldAddress:=disassemblerview.SelectedAddress;
   try
@@ -1619,7 +1673,7 @@ begin
       debuggerthread.ContinueDebugging(co_run);
 
 
-    caption:='Memory Viewer - Running';
+    caption:=rsMemoryViewerRunning;
 
 
     reloadstacktrace;
@@ -1632,7 +1686,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_stepinto);
 
-    caption:='Memory Viewer - Running';
+    caption:=rsMemoryViewerRunning;
 
     reloadstacktrace;
   end;
@@ -1673,7 +1727,7 @@ begin
 
       reloadstacktrace;
     end;
-    caption:='Memory Viewer - Running';
+    caption:=rsMemoryViewerRunning;
   end;
 end;
 
@@ -1688,7 +1742,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
-    caption:='Memory Viewer - Running';
+    caption:=rsMemoryViewerRunning;
   end;
 
 end;
@@ -1754,7 +1808,7 @@ begin
 
 //  copy
 
-  assemblercode:=InputboxTop('Cheat Engine single-linge assembler','Type your assembler code here: (address='+inttohex(disassemblerview.SelectedAddress,8)+')',assemblercode,x='', canceled, assemblerHistory);
+  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(disassemblerview.SelectedAddress, 8)]), assemblercode, x='', canceled, assemblerHistory);
   if not canceled then
   begin
 
@@ -1767,7 +1821,7 @@ begin
           begin
             if formsettings.askforreplacewithnops.checked then
             begin
-              c:=messagedlg('The generated code is '+IntToStr(length(bytes))+' byte(s) long, but the selected opcode is '+IntToStr(originalsize)+' byte(s) long! Do you want to replace the incomplete opcode(s) with NOP''s?',mtConfirmation,mbYesNoCancel,0);
+              c:=messagedlg(Format(rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB, [IntToStr(length(bytes)), IntToStr(originalsize)]), mtConfirmation, mbYesNoCancel, 0);
               replace:=c=mryes;
               if c=mrCancel then exit;
             end else replace:=true;
@@ -1806,9 +1860,9 @@ begin
         RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],length(bytes));
         hexview.update;
         disassemblerview.Update;
-      end else raise exception.create('I don''t understand what you mean with '+assemblercode);
+      end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     except
-      raise exception.create('I don''t understand what you mean with '+assemblercode);
+      raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     end;
 
   end;
@@ -1891,14 +1945,14 @@ begin
       input:=copy(tlabel(sender).Caption,pos(' ',tlabel(sender).Caption)+1,8);
       if i<20 then
       begin
-        if not inputquery('Change register','What is the new value of '+regname+'?',input) then exit;
+        if not inputquery(rsChangeRegister, Format(rsWhatIsTheNewValueOf, [regname]), input) then exit;
       end
       else
       begin
-        if not inputquery('Change register','What is the new value of '+regname+'? (0 or 1)',input) then exit;
+        if not inputquery(rsChangeRegister, Format(rsWhatIsTheNewValueOf, [regname])+' '+rs0Or1, input) then exit;
         input:=trim(input);
         if (input<>'0') and (input<>'1') then
-          raise exception.create(input+' is not a valid value');
+          raise exception.create(Format(rsIsNotAValidValue, [input]));
 
       end;
 
@@ -2022,20 +2076,21 @@ var count: string;
     s: string;
 begin
   count:='4096';
-  if inputquery('Allocate memory','How much memory do you want to add to this process. ',count) then
+  if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWantToAddToThisProcess, count) then
   begin
     try
       memsize:=StrToInt(count);
     except
-      raise exception.Create('How much is '+count+'?');
+      raise exception.Create(Format(rsHowMuchIs, [count]));
     end;
 
     baseaddress:=nil;
     baseaddress:=VirtualAllocEx(processhandle,nil,memsize,MEM_COMMIT,PAGE_EXECUTE_READWRITE);
     if baseaddress=nil then
-      raise exception.Create('Error allocating memory!');
+      raise exception.Create(rsErrorAllocatingMemory);
 
-    if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8)+#13#10+'Do you want to go there now?',mtConfirmation,[mbyes,mbno],0)=mryes) then
+    if (disassemblerview.SelectedAddress<>0) and (memsize>7) and (messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtDoYouWantToGoThereN, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8), #13
+      +#10]), mtConfirmation, [mbyes, mbno], 0)=mryes) then
       disassemblerview.SelectedAddress:=ptrUint(baseaddress);
   end;
 end;
@@ -2090,18 +2145,18 @@ var startaddress: ptrUint;
 begin
   start:=IntToHex(disassemblerview.SelectedAddress,8);
   param:='0';
-  if not InputQuery('Create remote thread','What will be the startaddress of this thread?',start) then exit;
+  if not InputQuery(rsCreateRemoteThread, rsWhatWillBeTheStartaddressOfThisThread, start) then exit;
   try
     startaddress:=StrToInt64('$'+start);
   except
-    raise exception.Create('Please enter a valid hexadecimal addres');
+    raise exception.Create(rsPleaseEnterAValidHexadecimalAddres);
   end;
 
-  if not InputQuery('Create remote thread','You want to give an additional 32-bit parameter? (Will show up in (R)/(E)BX)',param) then exit;
+  if not InputQuery(rsCreateRemoteThread, rsYouWantToGiveAnAdditional32BitParameterWillShowUpI, param) then exit;
   try
     parameter:=StrToInt('$'+param);
   except
-    raise exception.Create('Please enter a valid hexadecimal value');
+    raise exception.Create(rsPleaseEnterAValidHexadecimalValue);
   end;
 
   if CreateRemoteThread(processhandle,nil,0,pointer(startaddress),pointer(parameter),0,threadid)=0 then raise exception.Create('Creation of the remote thread failed') else showmessage('Thread Created');
@@ -2163,7 +2218,7 @@ procedure TMemoryBrowser.Heaps1Click(Sender: TObject);
 begin
 
   {$ifndef net}
-  if processid=0 then raise exception.Create('Please target a process first');
+  if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 
@@ -2200,7 +2255,7 @@ begin
   if opendlldialog.Execute then
   begin
     dll:=opendlldialog.Filename;
-    if MessageDlg('Do you want to execute a function of the dll?',mtConfirmation	,[mbyes,mbno],0)=mryes then
+    if MessageDlg(rsDoYouWantToExecuteAFunctionOfTheDll, mtConfirmation	, [mbyes, mbno], 0)=mryes then
     begin
       dllList:=tstringlist.Create;
 
@@ -2208,8 +2263,8 @@ begin
         peinfo_getExportList(opendlldialog.filename, dllList);
         with TfrmSelectionList.create(self,dllList) do
         begin
-          caption:='Inject dll';
-          label1.caption:='Select the function you want to execute';
+          caption:=rsInjectDll;
+          label1.caption:=rsSelectTheFunctionYouWantToExecute;
           if showmodal=mrok then
             if itemindex<>-1 then
               functionname:=selected;
@@ -2223,7 +2278,7 @@ begin
 
     InjectDll(dll,functionname);
     symhandler.reinitialize;
-    showmessage('DLL Injected');
+    showmessage(rsDLLInjected);
   end;
 end;
 
@@ -2373,20 +2428,20 @@ var count: string;
 begin
 {$ifndef net}
   count:='4096';
-  if inputquery('Allocate memory','How much memory do you wish to allocate?. ',count) then
+  if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWishToAllocate, count) then
   begin
     try
       memsize:=StrToInt(count);
     except
-      raise exception.Create('How much is '+count+'?');
+      raise exception.Create(Format(rsHowMuchIs, [count]));
     end;
 
     baseaddress:=nil;
     baseaddress:=KernelAlloc(memsize);
     if baseaddress=nil then
-      raise exception.Create('Error allocating memory!');
+      raise exception.Create(rsErrorAllocatingMemory);
 
-    if messagedlg('At least '+IntToStr(memsize)+' bytes have been allocated at '+IntToHex(ptrUint(baseaddress),8)+'. Go there now?',mtinformation,[mbyes,mbno],0) = mryes then
+    if messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtGoThereNow, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8)]), mtinformation, [mbyes, mbno], 0) = mryes then
       disassemblerview.SelectedAddress:=ptrUint(baseaddress);
   end;
   {$endif}
@@ -2398,7 +2453,7 @@ var p: pointer;
     ws: widestring;
     pws: pwidechar;
 begin
-  if inputquery('Get kernel address','Give the name of the function you want to find (Case sensitive,certain words can cause blue screens)',s) then
+  if inputquery(rsGetKernelAddress, rsGiveTheNameOfTheFunctionYouWantToFindCaseSensitive, s) then
   begin
     ws:=s;
     pws:=@ws[1];
@@ -2419,7 +2474,7 @@ var s:string;
 begin
 
   s:='';
-  if inputquery('Assembly scan','Input the assembly code to find. wilcards( * ) supported.',s) then
+  if inputquery(rsAssemblyScan, rsInputTheAssemblyCodeToFindWilcardsSupported, s) then
   begin
     if s='' then exit;
     with TfrmDisassemblyscan.create(self) do
@@ -2509,7 +2564,7 @@ begin
   if symhandler.isloaded then
   begin
     searchpath:=symhandler.getsearchpath;
-    if inputquery('Symbol handler','Please specify the new symbol searchpath (; seperates paths)',searchpath) then
+    if inputquery(rsSymbolHandler, rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths, searchpath) then
     begin
       symhandler.setsearchpath(searchpath);
 
@@ -2623,7 +2678,7 @@ begin
   with tmemorybrowser.create(nil) do
   begin
     inc(mbchildcount);
-    name:='MemoryBrowser'+inttostr(mbchildcount);
+    name:=rsMemoryBrowser+inttostr(mbchildcount);
     debug1.Visible:=false;
     debug1.enabled:=false;
     //registerview.Visible:=false;
@@ -2846,7 +2901,7 @@ end;
 procedure TMemoryBrowser.Watchmemoryallocations1Click(Sender: TObject);
 begin
 
-  if processid=0 then raise exception.Create('Please target a process first');
+  if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 
@@ -2892,13 +2947,13 @@ begin
         try
           lvstacktracedata.Columns.Clear;
           c:=lvstacktracedata.Columns.Add;
-          c.Caption:='Return Address';
+          c.Caption:=rsReturnAddress;
           c.Width:=lvstacktracedata.Canvas.TextWidth('DDDDDDDD');
           c.AutoSize:=true;
 
 
           c:=lvstacktracedata.Columns.Add;
-          c.Caption:='Parameters';
+          c.Caption:=rsParameters;
           c.Width:=200;
           c.AutoSize:=true;
 
@@ -2922,7 +2977,7 @@ begin
         try
           lvstacktracedata.Columns.Clear;
           c:=lvstacktracedata.Columns.Add;
-          c.Caption:='Address';
+          c.Caption:=rsAddress;
           c.Width:=80;
           c:=lvstacktracedata.Columns.Add;
           if processhandler.is64bit then
@@ -2937,7 +2992,7 @@ begin
           end;
 
           c:=lvstacktracedata.Columns.Add;
-          c.Caption:='Value';
+          c.Caption:=rsValue;
           c.Width:=100;
           c.AutoSize:=true;
         finally
@@ -2977,10 +3032,10 @@ var
   s: string;
 begin
   s:=inttostr(stacktraceSize);
-  InputQuery('Stacktrace','New size:',s);
+  InputQuery(rsStacktrace, rsNewSize+':', s);
   try
     stacktraceSize:=strtoint(s);
-    Maxstacktracesize1.Caption:='Max stacktrace size: '+inttostr(stacktracesize);
+    Maxstacktracesize1.Caption:=rsMaxStacktraceSize+': '+inttostr(stacktracesize);
   except
   end;
 end;
@@ -3026,7 +3081,7 @@ begin
 
   if (frmDissectCode=nil) or (frmDissectCode.dissectcode=nil) then
   begin
-    if MessageDlg('You will need to run the dissect code routine first before this window is usable. Run it now?', mtConfirmation, [mbyes, mbno], 0)=mryes then
+    if MessageDlg(rsNeedToRunDissectCode, mtConfirmation, [mbyes, mbno], 0)=mryes then
     begin
       Dissectcode1Click(sender);
       frmDissectCode.ondone:=odOpenReferedStringList;
@@ -3434,7 +3489,7 @@ begin
   stacktrace1.Enabled:=true;
   Executetillreturn1.Enabled:=true;
 
-  caption:='Memory Viewer - Currently debugging thread '+inttohex(threadid,1);
+  caption:=Format(rsMemoryViewerCurrentlyDebuggingThread, [inttohex(threadid, 1)]);
 
   if frmstacktrace<>nil then
     frmstacktrace.stacktrace(threadhandle, lastdebugcontext);

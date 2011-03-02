@@ -2,52 +2,6 @@ unit formdesignerunit;
 
 {$mode DELPHI}
 
-{
-Note:
-I edited laz_xmlstreaming
-I changed TXMLObjectWriter.WriteBinary to
-procedure TXMLObjectWriter.WriteBinary(const Buffer; Count: Longint);
-var
-  s: string;
-  hex: pchar;
-begin
-  getmem(hex, count*2+1);
-  BinToHex(pchar(@buffer), hex, count);
-  hex[count*2]:=#0;
-  s:=hex;
-  freemem(hex);
-
-  GetPropertyElement('binary')['value'] := s;
-end;
-
-and
-procedure TXMLObjectReader.ReadBinary(const DestData: TMemoryStream);
-var
-  Value: String;
-  binarydata: pchar;
-  count: integer;
-begin
-  Value:=FElement['value'];
-  if Value<>'' then
-  begin
-    count:=length(value) div 2;
-    getmem(binarydata, count);
-    HexToBin(pchar(value), binarydata, count);
-
-    DestData.Write(binarydata[0],count);
-    DestData.Position:=0;
-  end;
-
-  ReadValue;
-  //writeln('TXMLObjectReader.ReadBinary ');
-end;
-
-also added the following line to the function TXMLObjectReader.ReadNextValue(Stay: Boolean): TValueType;
-else if FElement.NodeName='binary' then
-          result:=vaBinary
-
-
-}
 
 interface
 
@@ -176,6 +130,8 @@ implementation
 
 uses mainunit;
 
+resourcestring
+  rsInvalidObject = '{Invalid object}';
 
 procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
 begin
@@ -567,7 +523,7 @@ begin
     if tobject(method.data) is TLuaCaller then
       result:=TLuaCaller(method.Data).luaroutine
     else
-      result:='{Invalid object}';
+      result:=rsInvalidObject;
   end;
 end;
 
@@ -721,6 +677,7 @@ begin
   f.show;
   f.BringToFront;
 end;
+
 
 
 initialization

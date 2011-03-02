@@ -127,6 +127,22 @@ implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM;
 
+resourcestring
+  rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
+    +'address%s?';
+  rsChangeDescription = 'Change Description';
+  rsWhatWillBeTheNewDescription = 'What will be the new description?';
+  rsChangeValue = 'Change Value';
+  rsWhatValueToChangeThisTo = 'what value to change this to?';
+  rsTheValueCouldNotBeParsed = 'The value %s could not be parsed';
+  rsNotAllValueTypesCouldHandleTheValue = 'Not all value types could handle '
+    +'the value %s';
+  rsActive = 'Active';
+  rsDescription = 'Description';
+  rsAddress = 'Address';
+  rsType = 'Type';
+  rsValue = 'Value';
+
 procedure TAddresslist.refresh;
 begin
   if treeview<>nil then
@@ -249,7 +265,7 @@ begin
   oldindex:=selectedRecord.treenode.AbsoluteIndex;
 
 
-  if (not ask) or (messagedlg('Do you want to delete the selected address'+multi+'?',mtConfirmation, [mbyes,mbno],0) = mryes) then
+  if (not ask) or (messagedlg(Format(rsDoYouWantToDeleteTheSelectedAddress, [multi]), mtConfirmation, [mbyes, mbno], 0) = mryes) then
   begin
     i:=0;
     while i<count do
@@ -650,7 +666,7 @@ var i: integer;
 begin
   description:=tmemoryrecord(node.data).description;
 
-  if InputQuery('Change Description','What will be the new description?', description) then
+  if InputQuery(rsChangeDescription, rsWhatWillBeTheNewDescription, description) then
     tmemoryrecord(node.data).description:=description;
 
   node.update;
@@ -783,7 +799,7 @@ begin
 
 
 
-  if InputQuery('Change Value', 'what value to change this to?', value) then
+  if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
   begin
     allError:=true;
     someError:=false;
@@ -799,8 +815,8 @@ begin
         end;
       end;
 
-    if AllError then raise exception.create('The value '+value+' could not be parsed');
-    if SomeError then raise exception.create('Not all value types could handle the value '+value);
+    if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
+    if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
   end;
 end;
 
@@ -1505,35 +1521,35 @@ begin
   header.height:=20;
   with header.Sections.Add do
   begin
-    Text:='Active';
+    Text:=rsActive;
     Width:=40;
     MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
-    Text:='Description';
+    Text:=rsDescription;
     Width:=160;
     MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
-    Text:='Address';
+    Text:=rsAddress;
     Width:=85;
     MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
-    Text:='Type';
+    Text:=rsType;
     Width:=60;
     MinWidth:=5;
   end;
 
   with header.Sections.Add do
   begin
-    Text:='Value';
+    Text:=rsValue;
     Width:=9000000;
     MinWidth:=5;
   end;

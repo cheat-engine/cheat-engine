@@ -68,10 +68,15 @@ implementation
 uses formsettingsunit, MainUnit,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      frmProcesswatcherExtraUnit,plugin;
 
+resourcestring
+  rsProcesswatcherThreadError = 'processwatcher: thread error:%s';
+  rsFailedStartingTheProcessWatcher = 'Failed starting the process watcher';
+  rsIsnTAValidProcessID = '%s isn''t a valid processID';
+  rsFirstSelectAProcess = 'First select a process!';
 
 procedure tprocesswatchthread.crash;
 begin
-  showmessage('processwatcher: thread error:'+error);
+  showmessage(Format(rsProcesswatcherThreadError, [error]));
 
 end;
 
@@ -332,14 +337,14 @@ begin
     processesMREW:=TMultiReadExclusiveWriteSynchronizer.create;
     processwatchthread:=tprocesswatchthread.Create(false);
 
-  end else raise exception.Create('Failed starting the process watcher');
+  end else raise exception.Create(rsFailedStartingTheProcessWatcher);
 end;
 
 procedure TFrmProcessWatcher.PWOP(ProcessIDString:string);
 var i:integer;
 begin
   val('$'+ProcessIDString,ProcessHandler.processid,i);
-  if i<>0 then raise exception.Create(processidstring+' isn''t a valid processID');
+  if i<>0 then raise exception.Create(Format(rsIsnTAValidProcessID, [processidstring]));
   if Processhandle<>0 then
   begin
     CloseHandle(ProcessHandle);
@@ -440,7 +445,7 @@ begin
 
     mainform.enableGui(false);
     close;
-  end else showmessage('First select a process!');
+  end else showmessage(rsFirstSelectAProcess);
 end;
 
 procedure TfrmProcessWatcher.ShowThreadIDs1Click(Sender: TObject);

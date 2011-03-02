@@ -42,6 +42,12 @@ var
 
 implementation
 
+resourcestring
+  rsPleaseAddAtLeastOneAddressRegionToTheList = 'Please add at least one address region to the list';
+  rsNotAllTheMemoryWasReadableIn = 'Not all the memory was readable in';
+  rsNoStartAddress = 'If you don''t include the header data you''ll have to specify the startaddress yourself when loading the file(That means Cheat Engine wont fill in the '
+    +'startaddress text field when loaded for you)';
+  rsIsNotAValidAddress = '%s is not a valid address';
 
 type Tregion=class
   public
@@ -82,7 +88,7 @@ begin
     if (editfrom.Text<>'') and (editto.Text<>'') then
       button3.click
     else
-      raise exception.Create('Please add at least one address region to the list');
+      raise exception.Create(rsPleaseAddAtLeastOneAddressRegionToTheList);
   end;
 
 
@@ -109,7 +115,7 @@ begin
     for i:=0 to length(buf)-1 do
       freemem(buf[i]);
 
-    s:='Not all the memory was readable in';
+    s:=rsNotAllTheMemoryWasReadableIn;
     for i:=0 to length(unreadable)-1 do
       s:=s+' '+lbregions.items[unreadable[i]];
 
@@ -157,7 +163,7 @@ begin
   if DontInclude.Checked then
   begin
     alreadywarned:=true;
-    messagedlg('If you don''t include the header data you''ll have to specify the startaddress yourself when loading the file(That means Cheat Engine wont fill in the startaddress text field when loaded for you)',mtInformation,[mbok],0);
+    messagedlg(rsNoStartAddress, mtInformation, [mbok], 0);
   end;
 end;
 
@@ -168,13 +174,13 @@ begin
   try
     fromaddress:=StrToInt64('$'+editFrom.Text);
   except
-    raise exception.Create(editfrom.Text+' is not a valid address');
+    raise exception.Create(Format(rsIsNotAValidAddress, [editfrom.Text]));
   end;
 
   try
     toaddress:=StrToInt64('$'+editto.Text);
   except
-    raise exception.Create(editto.Text+' is not a valid address');
+    raise exception.Create(Format(rsIsNotAValidAddress, [editto.Text]));
   end;
 
 

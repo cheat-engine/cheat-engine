@@ -281,6 +281,32 @@ implementation
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit;
 
+resourcestring
+  rsErrorDuringScan = 'Error during scan';
+  rsGeneratingPointermap = 'Generating pointermap...';
+  rsIsNotAValid4ByteValue = '%s is not a valid 4 byte value';
+  rsIsNotAValidFloatingPointValue = '%s is not a valid floating point value';
+  rsIsNotAValidDoubleValue = '%s is not a valid double value';
+  rsAddressSpecifiersFoundInTheWholeProcess = 'Address specifiers found in '
+    +'the whole process';
+  rsPointerPathsFound = 'Pointer paths found';
+  rsThreads = 'Threads';
+  rsEvaluated = 'Evaluated';
+  rsTime = 'Time';
+  rsThread = 'Thread';
+  rsCurrentLevel = 'Current Level';
+  rsLookingFor = 'Looking for';
+  rsSleeping = 'Sleeping';
+  rsActive = 'Active';
+  rsBaseAddress = 'Base Address';
+  rsOffset = 'Offset';
+  rsPointsTo = 'Points to';
+  rsPointercount = 'pointercount';
+  rsOnlyTheFirst10000000EntriesWillBeDisplayed = 'Only the first 10000000 '
+    +'entries will be displayed. Rescan will still work with all results.  ('
+    +'This is completly normal for a pointerscan, you MUST do a few rescans)';
+  rsPointerScan = 'Pointer scan';
+  rsPointerscanResult = 'pointerscan result';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -325,7 +351,8 @@ begin
 
   //update the treeview
   if message.WParam<>0 then
-    messagedlg('Error during scan: '+pchar(message.LParam), mtError, [mbok] ,0);
+    messagedlg(rsErrorDuringScan+': '+pchar(message.LParam), mtError, [mbok] , 0
+      );
 
   doneui;
 end;
@@ -783,7 +810,7 @@ begin
       except
         on e: exception do
         begin
-          postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar('Failure copying target process memory ('+e.message+')'))); //I can just provide this string as it's static in the .code section
+          postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar('Failure copying target process memory'))); //I can just provide this string as it's static in the .code section
           terminate;
           exit;
         end;
@@ -929,7 +956,7 @@ begin
     //default scan
     staticscanner:=TStaticscanner.Create(true);
 
-    label5.caption:='Generating pointermap...';
+    label5.caption:=rsGeneratingPointermap;
     progressbar1.Visible:=true;
 
     try
@@ -994,14 +1021,14 @@ begin
           begin
             staticscanner.valuetype:=vtDword;
             val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandword, i);
-            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid 4 byte value');
+            if i>0 then raise exception.Create(Format(rsIsNotAValid4ByteValue, [frmpointerscannersettings.edtAddress.Text]));
           end;
 
           1:
           begin
             staticscanner.valuetype:=vtSingle;
             val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescansingle, i);
-            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid floating point value');
+            if i>0 then raise exception.Create(Format(rsIsNotAValidFloatingPointValue, [frmpointerscannersettings.edtAddress.Text]));
             staticscanner.valuescansingleMax:=staticscanner.valuescansingle+(1/(power(10,floataccuracy)));
           end;
 
@@ -1009,7 +1036,7 @@ begin
           begin
             staticscanner.valuetype:=vtDouble;
             val(frmpointerscannersettings.edtAddress.Text, staticscanner.valuescandouble, i);
-            if i>0 then raise exception.Create(frmpointerscannersettings.edtAddress.Text+' is not a valid double value');
+            if i>0 then raise exception.Create(Format(rsIsNotAValidDoubleValue, [frmpointerscannersettings.edtAddress.Text]));
             staticscanner.valuescandoubleMax:=staticscanner.valuescandouble+(1/(power(10,floataccuracy)));            
           end;
         end;
@@ -1072,7 +1099,7 @@ begin
     listview1.repaint;
 
   if pointerlisthandler<>nil then
-    label6.caption:='Address specifiers found in the whole process:'+inttostr(pointerlisthandler.count);
+    label6.caption:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(pointerlisthandler.count);
 
   if staticscanner<>nil then
   try
@@ -1086,7 +1113,8 @@ begin
 
     if staticscanner.reverse then
     begin
-      lblRSTotalStaticPaths.caption:=format('Pointer paths found: %d',[scount]);
+      lblRSTotalStaticPaths.caption:=format(rsPointerPathsFound+': %d', [scount]
+        );
 
 {$ifdef benchmarkps}
       if (starttime=0) and (totalpathsevaluated<>0) then
@@ -1095,8 +1123,8 @@ begin
         starttime:=gettickcount;
       end;
 
-      label5.caption:=format('Threads: Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/((gettickcount-starttime) / 1000))) ]);
-      label5.caption:=format('Threads: Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000) ]);
+      //label5.caption:=format('Threads: Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/((gettickcount-starttime) / 1000))) ]);
+      label5.caption:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %' +'d  (%d / ' +'s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)]);
       label5.Width:=label5.Canvas.TextWidth(label5.caption);
 {$endif}
 
@@ -1107,9 +1135,9 @@ begin
 
         for i:=0 to length(staticscanner.reversescanners)-1 do
         begin
-          tn:=tvRSThreads.Items.Add(nil,'Thread '+inttostr(i+1));
-          tvRSThreads.Items.AddChild(tn,'Current Level:0');
-          tvRSThreads.Items.AddChild(tn,'Looking for :0-0');
+          tn:=tvRSThreads.Items.Add(nil, rsThread+' '+inttostr(i+1));
+          tvRSThreads.Items.AddChild(tn, rsCurrentLevel+':0');
+          tvRSThreads.Items.AddChild(tn, rsLookingFor+' :0-0');
         end;
       end;
 
@@ -1119,15 +1147,15 @@ begin
       begin
         if staticscanner.reversescanners[i].isdone then
         begin
-          tn.Text:='Thread '+inttostr(i+1)+' (Sleeping)';
+          tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
           tn2:=tn.getFirstChild;
-          tn2.text:='Sleeping';
+          tn2.text:=rsSleeping;
           tn2:=tn2.getNextSibling;
-          tn2.text:='Sleeping';
+          tn2.text:=rsSleeping;
         end
         else
         begin
-          tn.text:='Thread '+inttostr(i+1)+' (Active)';
+          tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
           tn2:=tn.getFirstChild;
 
           begin
@@ -1136,9 +1164,12 @@ begin
               s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
 
 
-            tn2.text:='Current Level:'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
+            tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[
+              i].currentlevel)+' ('+s+')';
             tn2:=tn2.getNextSibling;
-            tn2.text:='Looking for :'+inttohex(staticscanner.reversescanners[i].lookingformin,8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax,8);;
+            tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i
+              ].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i
+              ].lookingformax, 8); ;
           end;
         end;
 
@@ -1175,7 +1206,7 @@ begin
   listview1.Columns.Clear;
 
   col_baseaddress:=listview1.Columns.Add;
-  col_baseaddress.Caption:='Base Address';
+  col_baseaddress.Caption:=rsBaseAddress;
   col_baseaddress.Width:=150;
   col_baseaddress.MinWidth:=20;
 
@@ -1183,13 +1214,13 @@ begin
   for i:=0 to Pointerscanresults.offsetCount-1 do
   begin
     col_offsets[i]:=listview1.Columns.Add;
-    col_offsets[i].Caption:='Offset '+inttostr(i);
+    col_offsets[i].Caption:=rsOffset+' '+inttostr(i);
     col_offsets[i].Width:=80;
     col_offsets[i].MinWidth:=10;
   end;
 
   col_pointsto:=listview1.Columns.Add;
-  col_pointsto.Caption:='Points to:';
+  col_pointsto.Caption:=rsPointsTo+':';
   col_pointsto.Width:=120;
   col_pointsto.MinWidth:=10;
   col_pointsto.AutoSize:=true;
@@ -1197,12 +1228,12 @@ begin
 
 
 
-  panel1.Caption:='pointercount:'+inttostr(Pointerscanresults.count);
+  panel1.Caption:=rsPointercount+':'+inttostr(Pointerscanresults.count);
 
   if (Pointerscanresults.count>10000000) then
   begin
     listview1.Items.Count:=10000000;
-    showmessage('Only the first 10000000 entries will be displayed. Rescan will still work with all results.  (This is completly normal for a pointerscan, you MUST do a few rescans)');
+    showmessage(rsOnlyTheFirst10000000EntriesWillBeDisplayed);
   end else listview1.Items.Count:=Pointerscanresults.count;
 
   listview1.Align:=alClient;
@@ -1218,7 +1249,7 @@ begin
   Rescanmemory1.Enabled:=true;
   new1.Enabled:=true;
 
-  caption:='Pointer scan : '+extractfilename(filename);
+  caption:=rsPointerScan+' : '+extractfilename(filename);
 end;
 
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
@@ -1604,14 +1635,16 @@ begin
                 begin
                   rescan.valuetype:=vtDword;
                   val(edtAddress.Text, rescan.valuescandword, i);
-                  if i>0 then raise exception.Create(edtAddress.Text+' is not a valid 4 byte value');
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValid4ByteValue, [edtAddress.Text]));
                 end;
 
                 1:
                 begin
                   rescan.valuetype:=vtSingle;
                   val(edtAddress.Text, rescan.valuescansingle, i);
-                  if i>0 then raise exception.Create(edtAddress.Text+' is not a valid floating point value');
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
                   rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
                 end;
 
@@ -1619,7 +1652,8 @@ begin
                 begin
                   rescan.valuetype:=vtDouble;
                   val(edtAddress.Text, rescan.valuescandouble, i);
-                  if i>0 then raise exception.Create(edtAddress.Text+' is not a valid double value');
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValidDoubleValue, [edtAddress.Text]));
                   rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
                 end;
               end;
@@ -1866,7 +1900,7 @@ begin
         else vtype:=vtDword;
       end;
 
-      mainform.addresslist.addaddress('pointerscan result', t, offsets, c, vtype);
+      mainform.addresslist.addaddress(rsPointerscanResult, t, offsets, c, vtype);
     except
 
     end;

@@ -6,6 +6,9 @@ interface
 
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,NewKernelHandler;
 
+//translation: There is no fucking way I change the descriptions to resource strings
+//if you're bored, go do this
+
 type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
@@ -1343,7 +1346,7 @@ begin
 
     case memory[0] of  //opcode
       $00 : begin
-              description:='add';
+              description:='Add';
 
               lastdisassembledata.opcode:='add';
               lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
@@ -1352,7 +1355,7 @@ begin
             end;
 
       $01 : begin
-              description:='add';
+              description:='Add';
 
               lastdisassembledata.opcode:='add';
               if $66 in prefix2 then lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]) else

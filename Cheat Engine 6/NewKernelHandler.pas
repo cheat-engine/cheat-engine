@@ -536,6 +536,16 @@ uses
 
 
 
+resourcestring
+  rsToUseThisFunctionIn64BitYouWillNeedToRunDBVM = 'To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make '
+    +'you lose your data(So don''t forget to save first). Do you want to run DBVM?';
+  rsDidNotLoadDBVM = 'I don''t know what you did, you didn''t crash, but you also didn''t load DBVM';
+  rsPleaseRebootAndPressF8BeforeWindowsBoots = 'Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business '
+    +'class certificicate and sign the driver yourself (or try debug signing)';
+  rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction = 'The driver needs to be loaded to be able to use this function.';
+  rsYourCpuMustBeAbleToRunDbvmToUseThisFunctionIn64Bit = 'Your cpu must be able to run dbvm to use this function in 64-bit';
+  rsCouldnTBeOpened = '%s couldn''t be opened';
+
 
 function Is64bitOS: boolean;
 var iswow64: BOOL;
@@ -588,10 +598,10 @@ begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg('To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make you lose your data(So don''t forget to save first). Do you want to run DBVM?', mtWarning, [mbyes,mbno],0)=mryes then
+          if MessageDlg(rsToUseThisFunctionIn64BitYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
           begin
             LaunchDBVM;
-            if not isRunningDBVM then raise exception.Create('I don''t know what you did, you didn''t crash, but you also didn''t load DBVM');
+            if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
             result:=true;
           end;
         end else
@@ -599,14 +609,14 @@ begin
           //the driver isn't loaded
           if signed then
           begin
-            raise exception.Create('Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business class certificicate and sign the driver yourself (or try debug signing)');
+            raise exception.Create(rsPleaseRebootAndPressF8BeforeWindowsBoots);
           end
           else
           begin
-            raise exception.Create('The driver needs to be loaded to be able to use this function.');
+            raise exception.Create(rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction);
           end;
         end;
-      end else raise exception.Create('Your cpu must be able to run dbvm to use this function in 64-bit');
+      end else raise exception.Create(rsYourCpuMustBeAbleToRunDbvmToUseThisFunctionIn64Bit);
     end
     else result:=true;
 
@@ -803,7 +813,7 @@ end;
 procedure DBKFileAsMemory(filename:string); overload;
 begin
   filehandle:=CreateFile(pchar(filename),GENERIC_READ	or GENERIC_WRITE,FILE_SHARE_READ or FILE_SHARE_WRITE,nil,OPEN_EXISTING,FILE_FLAG_RANDOM_ACCESS,0);
-  if filehandle=0 then raise exception.create(filename+' couldn''t be opened');
+  if filehandle=0 then raise exception.create(Format(rsCouldnTBeOpened, [filename]));
   DBKFileAsMemory;
 end;
 
@@ -1010,6 +1020,11 @@ end;
 
 var x: string;
   psa: thandle;
+
+
+resourcestring
+  rsfucked='Something is really messed up on your computer! You don''t seems to have a kernel!!!!';
+
 initialization
   DBKLoaded:=false;
 
@@ -1026,7 +1041,7 @@ initialization
   //globaldenylist:= false;
 
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
-  if WindowsKernel=0 then Raise Exception.create('Something is really messed up on your computer! You don''t seems to have a kernel!!!!');
+  if WindowsKernel=0 then Raise Exception.create(rsFucked);
 
   //by default point to these exports:
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');

@@ -133,6 +133,45 @@ implementation
 uses mainunit;
 
 { TfrmTrainerGenerator }
+resourcestring
+  rsDeActive = '(De)active';
+  rsUnFreeze = '(Un)Freeze';
+  rsSet = 'Set';
+  rsIncrease = 'Increase';
+  rsDecrease = 'Decrease';
+  rsDoSomethingWith = 'Do something with';
+  rsButAllowIncrease = 'but allow increase';
+  rsButAllowDecrease = 'but allow decrease';
+  rsTo = 'to';
+  rsBy = 'by';
+  rsAlreadyATrainerFormDefined =
+      'There is already a trainer form defined. '
+    +'Continuing will erase the current trainerscript and cheats in the '
+    +'trainer and replace them with the current hotkeys defined in your '
+    +'current cheat table (Layout and images will remain unchanged). Continue ?';
+  rsNoCheatPanel = 'The current trainer form does not have a panel '
+    +'named ''CHEATPANEL'' so can not be reused by the automated trainer '
+    +'generator.%sDo you want to start from scratch? (If you want to create a '
+    +'trainer from your current script you can just save your table as .EXE '
+    +'instead of using the automated trainer generator)';
+  rsAreYouSure = 'Are you sure?';
+  rsInvalidTrainerScript = 'The current lua script only has a half '
+    +'TRAINERGENERATORSTART/TRAINERGENERATORSTOP block. Please fix this '
+    +'first (Removing is the easiest option)';
+  rsTipYouDontHaveToUseTheTrainerGeneratorIfYouDontWantTo = 'Tip: You don''t '
+    +'have to use the trainer generator if you don''t want to. You can just '
+    +'save your table as .EXE or CETRAINER';
+  rsGoBackToGeneratedDesigner = 'Go back to generated designer';
+  rsCheatEntries = 'Cheat Entries';
+  rsSelectTheCheatEntryYouWantToSetTheHotkeyFor = 'Select the cheat entry you '
+    +'want to set the hotkey for';
+  rsYouNeedACheatTableWithCheatEntries = 'You need a cheat table with cheat '
+    +'entries';
+  rsDonTSupportCheatEngineOrYourself = 'Don''t support Cheat Engine (or '
+    +'yourself)';
+  rsThankYou = 'Thank you! :)';
+  rsAaaaw = 'aaaaw :(';
+
 
 procedure TfrmTrainerGenerator.RefreshHotkeyItem(li: TListitem);
 var hk: TMemoryrecordhotkey;
@@ -147,14 +186,14 @@ begin
   begin
     //try to guess that it does
     case hk.action of
-      mrhToggleActivation: li.SubItems.Add('(De)active '+mr.description);
-      mrhToggleActivationAllowIncrease: li.SubItems.Add('(Un)Freeze '+mr.description+' but allow increase');
-      mrhToggleActivationAllowDecrease: li.SubItems.Add('(Un)Freeze '+mr.description+' but allow decrease');
-      mrhSetValue: li.SubItems.Add('Set '+mr.description+' to '+hk.value);
-      mrhIncreaseValue: li.SubItems.Add('Increase '+mr.description+' by '+hk.value);
-      mrhDecreaseValue: li.SubItems.Add('Decrease '+mr.description+' by '+hk.value);
+      mrhToggleActivation: li.SubItems.Add(rsDeActive+' '+mr.description);
+      mrhToggleActivationAllowIncrease: li.SubItems.Add(rsUnFreeze+' '+ mr.description+' '+rsButAllowIncrease);
+      mrhToggleActivationAllowDecrease: li.SubItems.Add(rsUnFreeze+' '+ mr.description+' '+rsButAllowDecrease);
+      mrhSetValue: li.SubItems.Add(rsSet+' '+mr.description+' '+rsTo+' '+ hk.value);
+      mrhIncreaseValue: li.SubItems.Add(rsIncrease+' '+mr.description+' '+rsBy+ ' '+  hk.value);
+      mrhDecreaseValue: li.SubItems.Add(rsDecrease+' '+mr.description+' '+rsBy+ ' '+  hk.value);
       else
-        li.SubItems.Add('Do something with '+mr.description);
+        li.SubItems.Add(rsDoSomethingWith+' '+mr.description);
     end;
   end else
     li.SubItems.Add(hk.description);
@@ -287,7 +326,7 @@ begin
   begin
     if (TObject(mainform.luaforms[i]) is TTrainerform) then
     begin
-      r:=messagedlg('There is already a trainer form defined. Continuing will erase the current trainerscript and cheats in the trainer and replace them with the current hotkeys defined in your current cheat table (Layout and images will remain unchanged). Continue ?', mtConfirmation, [mbok, mbcancel],0);
+      r:=messagedlg(rsAlreadyATrainerFormDefined, mtConfirmation, [mbok, mbcancel], 0);
 
       if r=mrok then
       begin
@@ -306,7 +345,7 @@ begin
 
         if cheatpanel=nil then
         begin
-          if messagedlg('The current trainer form does not have a panel named ''CHEATPANEL'' so can not be reused by the automated trainer generator.'+#13#10+'Do you want to start from scratch? (If you want to create a trainer from your current script you can just save your table as .EXE instead of using the automated trainer generator)', mtError, [mbyes, mbno], 0)=mryes then
+          if messagedlg(Format(rsNoCheatPanel, [#13#10]), mtError, [mbyes, mbno], 0)=mryes then
             trainerform:=nil;
 
         end;
@@ -416,296 +455,6 @@ begin
 
   fillHotkeyList;
   buildcheatlist;
-
-  {
-  Complete rewrite to make it better understandable for the braindead zombies that are used to ce 5.6.1
-
-  code was:
-
-  //fill in the processlist and select the currently opened process
-
-  GetProcessList(comboProcesslist.Items, true);
-
-  //find the current process in the processlist
-  for i:=0 to comboProcesslist.Items.Count-1 do
-    if PProcessListInfo(comboProcesslist.Items.Objects[i]).processID=processid then
-    begin
-      //found it
-      comboProcesslist.ItemIndex:=i;
-      break;
-    end;
-
-
-  functions:=tstringlist.create;
-  init:=tstringlist.create;
-  init.add('--Please note that this is an autogenerated trainer');
-  init.add('--The reason the generated code is a bit bloated is because it doesn''t make');
-  init.add('--use of memrec_onActive/onDeactive so it doesn''t interfere with user scripts');
-  init.add('--And of course: It is autogenerated. Don''t expect too much of it');
-  init.add('');
-  init.add('--If you write your own script manually you can use as many shortcuts as you like');
-  init.add('');
-  init.add('addresslist=getAddressList()');
-
-
-  //first check if there is already a trainerform
-  reusedWindow:=false;
-  for i:=0 to mainform.LuaForms.count-1 do
-  begin
-    if (TObject(mainform.luaforms[i]) is TTrainerform) then
-    begin
-      r:=messagedlg('There is already a trainer form defined. Do you want to reuse this window?', mtConfirmation, [mbyes,mbno,mbcancel],0);
-
-      if r=mrCancel then
-      begin
-        canceled:=true;
-        exit;
-      end;
-
-      if r=mryes then
-      begin
-        trainerform:=TTrainerForm(mainform.luaforms[i]);
-
-        extrapanel:=TCEPanel(trainerform.FindComponent('EXTRAPANEL'));
-        cheatpanel:=TCEPanel(trainerform.FindComponent('CHEATPANEL'));
-        aboutbutton:=TCEButton(trainerform.FindComponent('ABOUTBUTTON'));
-        image:=TCEImage(trainerform.FindComponent('IMAGE'));
-        closebutton:=TCEButton(trainerform.FindComponent('CLOSEBUTTON'));
-        seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
-
-        if seperator<>nil then
-          seperator.Enabled:=true; //in case the script disabled it
-
-        reusedWindow:=true;
-      end
-      else
-      begin
-        TTrainerForm(mainform.luaforms[i]).free;
-        mainform.LuaForms.Delete(i);
-      end;
-
-      break;
-    end;
-  end;
-
-
-
-  if trainerform=nil then
-  begin
-    //create it
-    trainerform:=TTrainerForm.CreateNew(nil);
-    trainerform.AutoSize:=false;
-    trainerform.defaultTrainer:=true;
-
-    mainform.luaforms.add(trainerform);
-
-    //now initialize the form to it's default
-    trainerform.name:='CETrainer';
-    trainerform.Position:=poScreenCenter;
-
-    seperator:=TCESplitter.create(trainerform);
-    seperator.Align:=alLeft;
-    seperator.name:='SEPERATOR';
-    seperator.parent:=trainerform;
-
-    extrapanel:=Tcepanel.create(trainerform);
-    extrapanel.align:=alleft;
-    extrapanel.width:=100;
-    extrapanel.name:='EXTRAPANEL';
-    extrapanel.caption:='';
-    extrapanel.bevelinner:=bvLowered;
-    extrapanel.bevelouter:=bvLowered;
-    extrapanel.parent:=trainerform;
-
-
-    cheatpanel:=Tcepanel.create(trainerform);
-    cheatpanel.align:=alclient;
-    cheatpanel.name:='CHEATPANEL';
-    cheatpanel.caption:='';
-    cheatpanel.parent:=trainerform;
-
-
-
-
-    hotkeylabel:=Tcelabel.create(trainerform);
-    hotkeylabel.name:='HOTKEYLABEL';
-    hotkeylabel.caption:='Hotkey';
-    hotkeylabel.left:=10;
-    hotkeylabel.top:=10;
-    hotkeylabel.parent:=cheatpanel;
-
-    descriptionlabel:=Tcelabel.create(trainerform);
-    descriptionlabel.name:='DESCRIPTIONLABEL';
-    descriptionlabel.caption:='Effect';
-    descriptionlabel.left:=100;
-    descriptionlabel.top:=hotkeylabel.top;
-    descriptionlabel.parent:=cheatpanel;
-
-
-    aboutbutton:=TCEButton.create(trainerform);
-    aboutbutton.name:='ABOUTBUTTON';
-    aboutbutton.caption:='About';
-    aboutbutton.align:=albottom;
-    aboutbutton.Parent:=extrapanel;
-    with TLuaCaller.create do
-    begin
-      luaroutine:='AboutClick';
-      aboutbutton.onclick:=NotifyEvent;
-    end;
-
-
-    image:=TCEImage.create(trainerform);
-    image.name:='IMAGE';
-    image.align:=alclient;
-    image.stretch:=true;
-    image.parent:=extrapanel;
-
-    closebutton:=TCEButton.create(trainerform);
-    closebutton.name:='CLOSEBUTTON';
-    closebutton.caption:='Close';
-    closebutton.top:=cheatpanel.clientheight - closebutton.height-8;
-    closebutton.left:=cheatpanel.clientwidth div 2 - closebutton.width div 2;
-    closebutton.parent:=cheatpanel;
-
-    closebutton.anchors:=[akBottom];
-
-    with TLuaCaller.create do
-    begin
-      luaroutine:='CloseClick';
-      closebutton.onclick:=NotifyEvent;
-      trainerform.OnClose:=CloseEvent; //same routine
-    end;
-  end;
-
-
-
-
-  if seperator<>nil then
-    init.Add('control_setVisible('+trainerform.name+'_SEPERATOR, false)');
-
-
-  if (cheatpanel<>nil) and ((not reusedWindow) or (MessageDlg('Do you want to refill the cheat list?', mtconfirmation, [mbyes, mbno],0)=mryes)) then
-  begin
-    //whipe out the old cheats
-    while cheatpanel.ComponentCount>0 do
-      cheatpanel.Components[0].free;
-
-    //configure it based on the current addresslist
-    cheatnr:=0;
-    lastcheat:=nil;
-    for i:=0 to mainform.addresslist.Count-1 do
-    begin
-      mr:=mainform.addresslist.MemRecItems[i];
-
-      if mr.hasHotkeys then
-      begin
-        memrecname:='memrec'+inttostr(mr.id);
-        init.add(memrecname+'=addresslist_getMemoryRecordByID(addresslist,'+inttostr(mr.id)+')');
-      end;
-
-      //add the hotkeys (could be multiple)
-
-      for j:=0 to mr.Hotkeycount-1 do
-      begin
-        //add it
-        hotkeynamename:=memrecname+'_hotkey'+inttostr(mr.hotkey[j].id);
-        init.add(hotkeynamename+'=memoryrecord_getHotkeyByID('+memrecname+','+inttostr(mr.hotkey[j].id)+')');
-
-        currentcheat:=tcheat.create(trainerform);
-        currentcheat.parent:=cheatpanel;
-        currentcheat.name:='CHEAT'+inttostr(cheatnr);
-
-        if lastcheat=nil then
-        begin
-          currentcheat.left:=10;
-          currentcheat.top:=40;
-        end
-        else
-        begin
-          currentcheat.top:=lastcheat.Top+lastcheat.height+10;
-          currentcheat.left:=lastcheat.left;
-        end;
-
-        currentcheat.hotkeyleft:=hotkeylabel.left-currentcheat.left;
-        currentcheat.descriptionleft:=descriptionlabel.left-currentcheat.left;
-
-        currentcheat.width:=cheatpanel.clientwidth-currentcheat.Left;
-        currentcheat.anchors:=currentcheat.anchors+[akRight];
-
-        currentcheat.Hotkey:=ConvertKeyComboToString(mr.hotkey[j].keys);
-        if mr.hotkey[j].description='' then
-        begin
-          //try to guess that it does
-          case mr.hotkey[j].action of
-            mrhToggleActivation: currentcheat.description:='(De)active '+mr.description;
-            mrhToggleActivationAllowIncrease: currentcheat.description:='(Un)Freeze '+mr.description+' but allow increase';
-            mrhToggleActivationAllowDecrease: currentcheat.description:='(Un)Freeze '+mr.description+' but allow decrease';
-            mrhSetValue: currentcheat.description:='Set '+mr.description+' to '+mr.hotkey[j].value;
-            mrhIncreaseValue: currentcheat.description:='Increase '+mr.description+' by '+mr.hotkey[j].value;
-            mrhDecreaseValue: currentcheat.description:='Decrease '+mr.description+' by '+mr.hotkey[j].value;
-            else
-              currentcheat.description:='Do something with '+mr.description;
-          end;
-        end
-        else
-          currentcheat.Description:=mr.hotkey[j].description;
-
-
-
-
-        case mr.hotkey[j].action of
-          mrhToggleActivation,
-          mrhToggleActivationAllowIncrease,
-          mrhToggleActivationAllowDecrease:
-          begin
-            //constantly enabled
-            fname:='onPostHotkey'+inttostr(cheatnr);
-            functions.Add('function '+fname+'(Hotkey)');
-            functions.add('--executed after the "toggle*" cheat got executed so');
-            functions.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
-            functions.add('  local isActive=memoryrecord_isActive(memrec'+inttostr(mr.id)+') --get the state after the hotkey got triggered');
-            functions.add('  cheatcomponent_setActive('+trainerform.name+'_CHEAT'+inttostr(cheatnr)+', isActive)');
-            functions.add('  if gBeepOnAction then');
-            functions.add('    beep()');
-            functions.add('  end');
-            functions.add('end');
-            functions.add('');
-
-
-            init.add('memoryrecordhotkey_onPostHotkey('+hotkeynamename+','+fname+')');
-          end;
-
-          else
-          begin
-            //one time only
-            fname:='onHotkey'+inttostr(cheatnr);
-            functions.Add('function '+fname+'(Hotkey)');
-            functions.add('  cheatcomponent_setActive(CHEAT'+inttostr(cheatnr)+', isActive, 1500)');
-            functions.add('  if gBeepOnAction then');
-            functions.add('    beep()');
-            functions.add('  end');
-            functions.add('end');
-            functions.add('');
-
-            init.add('memoryrecordhotkey_afterHotkey('+hotkeynamename+','+fname+')');
-          end;
-
-
-        end;
-
-        lastcheat:=currentcheat;
-        inc(cheatnr);
-
-      end;
-    end;
-
-    if cheatnr=0 then
-      showmessage('The current cheat table has no hotkeys assigned. Only cheat entries with hotkeys assigned will be used');
-  end;
-
-  edtCaptionChange(edtCaption);
-  trainerform.SaveCurrentStateasDesign;
-  }
 end;
 
 procedure TfrmTrainerGenerator.FormShow(Sender: TObject);
@@ -913,7 +662,7 @@ var hk : TMemoryRecordHotkey;
 begin
   if lvCheats.Selected<>nil then
   begin
-    if messagedlg('Are you sure?', mtConfirmation, [mbyes,mbno],0)=mryes then
+    if messagedlg(rsAreYouSure, mtConfirmation, [mbyes, mbno], 0)=mryes then
     begin
       hk:=TMemoryRecordHotkey(lvCheats.selected.data);
       hk.Free;
@@ -966,7 +715,7 @@ begin
   stop:=l.IndexOf('--TRAINERGENERATORSTOP--');
 
   if ((start=-1) or (stop=-1)) and (start<>stop) then
-    raise exception.create('The current lua script only has a half TRAINERGENERATORSTART/TRAINERGENERATORSTOP block. Please fix this first (Removing is the easiest option)');
+    raise exception.create(rsInvalidTrainerScript);
 
   if start<>-1 then
     for i:=start to stop do
@@ -1070,7 +819,7 @@ begin
       end;
     end
     else
-      showmessage('Tip: You don''t have to use the trainer generator if you don''t want to. You can just save your table as .EXE or CETRAINER');
+      showmessage(rsTipYouDontHaveToUseTheTrainerGeneratorIfYouDontWantTo);
 
     seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
     if seperator<>nil then
@@ -1259,7 +1008,7 @@ begin
 
     edtCaption.enabled:=false;
 
-    btnDesignForm.caption:='Go back to generated designer';
+    btnDesignForm.caption:=rsGoBackToGeneratedDesigner;
   end
   else
   begin
@@ -1371,8 +1120,8 @@ begin
     l:=TfrmSelectionList.create(self,s);
 
 
-    l.Caption:='Cheat Entries';
-    l.label1.caption:='Select the cheat entry you want to set the hotkey for';
+    l.Caption:=rsCheatEntries;
+    l.label1.caption:=rsSelectTheCheatEntryYouWantToSetTheHotkeyFor;
     l.itemindex:=0;
 
     if (l.showmodal=mrok) and (l.itemindex<>-1) then
@@ -1384,7 +1133,7 @@ begin
 
   end
   else
-    raise exception.create('You need a cheat table with cheat entries');
+    raise exception.create(rsYouNeedACheatTableWithCheatEntries);
 end;
 
 procedure TfrmTrainerGenerator.Button8Click(Sender: TObject);
@@ -1431,7 +1180,7 @@ end;
 
 procedure TfrmTrainerGenerator.RestoreSupportCE(sender: tobject);
 begin
-  cbSupportCheatEngine.caption:='Don''t support Cheat Engine (or yourself)';
+  cbSupportCheatEngine.caption:=rsDonTSupportCheatEngineOrYourself;
   if restoretimer<>nil then
     restoretimer.enabled:=false;
 end;
@@ -1441,7 +1190,7 @@ begin
   //Guilt procedure
   if not cbSupportCheatEngine.checked then
   begin
-    cbSupportCheatEngine.caption:='Thank you! :)';
+    cbSupportCheatEngine.caption:=rsThankYou;
     //show the ad config window
 
     if adwindow=nil then
@@ -1478,7 +1227,7 @@ begin
   end
   else
   begin
-    cbSupportCheatEngine.caption:='aaaaw :(';
+    cbSupportCheatEngine.caption:=rsAaaaw;
     if adwindow<>nil then
     begin
       adwindow.AttachToForm(nil);

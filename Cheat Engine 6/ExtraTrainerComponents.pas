@@ -153,6 +153,10 @@ end;
 
 implementation
 
+resourcestring
+  rsUndefinedHotkey = 'undefined hotkey';
+  rsUndefinedDescription = 'undefined description';
+
 procedure TCheat.md(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if assigned(self.OnMouseDown) then
@@ -386,14 +390,14 @@ begin
 
 
   hotkeylabel:=tlabel.Create(self);
-  hotkeylabel.Caption:='undefined hotkey';
+  hotkeylabel.Caption:=rsUndefinedHotkey;
   hotkeylabel.Left:=0;
 
   hotkeylabel.Top:=1+(clientheight div 2)-(hotkeylabel.Height div 2);
   hotkeylabel.Parent:=self;
 
   descriptionlabel:=tlabel.Create(self);
-  descriptionlabel.Caption:='undefined description';
+  descriptionlabel.Caption:=rsUndefinedDescription;
   descriptionlabel.left:=100;
   descriptionlabel.Top:=1+(clientheight div 2)-(descriptionlabel.Height div 2);
   descriptionlabel.Parent:=self;

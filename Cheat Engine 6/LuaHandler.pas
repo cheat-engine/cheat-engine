@@ -34,6 +34,12 @@ uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypede
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions;
 
+resourcestring
+  rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
+    +'rom the main thread';
+  rsUndefinedLuaError = 'Undefined lua error';
+  rsCheatengineIsBeingAFag = 'Cheatengine is being a fag';
+  rsPluginAddress = 'Plugin Address';
 
 
 function lua_isstring(L: PLua_state; i: integer): boolean;
@@ -382,7 +388,7 @@ procedure LUA_DoScript(s: string);
 var i: integer;
   pc: pchar;
 begin
-  if GetCurrentThreadId<>MainThreadID then raise exception.create('LUA_DoScript was not called rom the main thread');
+  if GetCurrentThreadId<>MainThreadID then raise exception.create(rsLUA_DoScriptWasNotCalledRomTheMainThread);
 
   LUACS.Enter;
   try
@@ -393,7 +399,7 @@ begin
       if pc<>nil then
         raise Exception.Create(pc)
       else
-        raise exception.create('Undefined lua error');
+        raise exception.create(rsUndefinedLuaError);
 
     end;
   finally
@@ -480,7 +486,8 @@ begin
               system.vtPChar: lua_pushstring(LUAVM, parameters[i].VPChar);
               system.vtObject: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VObject));
               system.vtClass: lua_pushlightuserdata(LUAVM, pointer(parameters[i].VClass));
-              system.vtWideChar, vtPWideChar, vtVariant, vtInterface, vtWideString: lua_pushstring(LUAVM, 'Cheatengine is being a fag');
+              system.vtWideChar, vtPWideChar, vtVariant, vtInterface,
+                vtWideString: lua_pushstring(LUAVM, rsCheatengineIsBeingAFag);
               system.vtAnsiString: lua_pushstring(LUAVM, pchar(parameters[i].VAnsiString));
               system.vtCurrency: lua_pushnumber(LUAVM, parameters[i].VCurrency^);
               system.vtInt64:
@@ -6456,7 +6463,8 @@ begin
     addresslist:=lua_touserdata(L,-1);
     lua_pop(L, paramcount);
 
-    lua_pushlightuserdata(L,  MainForm.addresslist.addaddress('Plugin Address', '0',[],0,vtDword));
+    lua_pushlightuserdata(L,   MainForm.addresslist.addaddress(rsPluginAddress,
+      '0', [], 0, vtDword));
     result:=1;
 
   end else lua_pop(L, paramcount);

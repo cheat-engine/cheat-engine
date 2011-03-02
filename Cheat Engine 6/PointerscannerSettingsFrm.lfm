@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 603
-  Height = 430
+  Height = 431
   Top = 211
   Width = 408
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 430
+  ClientHeight = 431
   ClientWidth = 408
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -202,7 +202,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 107
-    Top = 323
+    Top = 324
     Width = 408
     Align = alBottom
     BevelOuter = bvNone
@@ -238,7 +238,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object Button1: TButton
       Left = 138
-      Height = 31
+      Height = 25
       Top = 68
       Width = 80
       Caption = 'OK'
@@ -264,8 +264,8 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object btnCancel: TButton
       Left = 226
-      Height = 31
-      Top = 69
+      Height = 25
+      Top = 68
       Width = 93
       Cancel = True
       Caption = 'Cancel'

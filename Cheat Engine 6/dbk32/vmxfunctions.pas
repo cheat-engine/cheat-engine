@@ -46,8 +46,6 @@ implementation
 
 uses DBK32functions;
 
-
-
 function vmcall(vmcallinfo:pointer; level1pass: dword): dword; stdcall;
 {$ifndef NOVMX}
 asm

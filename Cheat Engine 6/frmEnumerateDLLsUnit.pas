@@ -58,6 +58,8 @@ implementation
 
 uses MemoryBrowserFormUnit;
 
+resourcestring
+  rsNothingFound = 'nothing found';
 
 var canceled: boolean; //global var for only this unit
 
@@ -231,7 +233,7 @@ begin
       exit;
     end;
   end;
-  showmessage('nothing found');
+  showmessage(rsNothingFound);
 end;
 
 initialization

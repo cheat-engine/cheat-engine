@@ -65,6 +65,9 @@ uses Unit2;
 uses MainUnit;
 {$endif}
 
+resourcestring
+  rsInvalidLength = 'Invalid length';
+
 Procedure TTypeForm.RefreshCustomTypes;
 var old:  TNotifyEvent;
     i: integer;
@@ -193,7 +196,7 @@ begin
     val(edit2.Text,bitl,err);
 
   if err>0 then
-    raise exception.create('Invalid length');
+    raise exception.create(rsInvalidLength);
 
 
 

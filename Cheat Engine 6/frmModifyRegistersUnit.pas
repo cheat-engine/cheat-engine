@@ -76,6 +76,10 @@ implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions;
 
+resourcestring
+  rsModifyRegistersSAt = 'Modify registers(s) at %s';
+  rsPleaseFillInAValidValueFor = 'Please fill in a valid value for';
+
 constructor TfrmModifyRegisters.create(AOwner:tcomponent;address:ptrUint);
 var x: pbreakpoint;
 begin
@@ -83,7 +87,7 @@ begin
   inherited create(Aowner);
 
   self.address:=address;
-  caption:='Modify registers(s) at '+IntToHex(address,8);
+  caption:=Format(rsModifyRegistersSAt, [IntToHex(address, 8)]);
 
   if debuggerthread<>nil then
   begin
@@ -212,24 +216,24 @@ begin
   tempregedit.change_sf:=cbSF.State<>cbGrayed;
   tempregedit.change_of:=cbOF.State<>cbGrayed;
 
-  if tempregedit.change_eax then try tempregedit.new_eax:=symhandler.getaddressfromname(edtEAX.text) except raise exception.Create('Please fill in a valid value for EAX'); end;
-  if tempregedit.change_ebx then try tempregedit.new_ebx:=symhandler.getaddressfromname(edtEBX.text) except raise exception.Create('Please fill in a valid value for EBX'); end;
-  if tempregedit.change_ecx then try tempregedit.new_ecx:=symhandler.getaddressfromname(edtECX.text) except raise exception.Create('Please fill in a valid value for ECX'); end;
-  if tempregedit.change_edx then try tempregedit.new_edx:=symhandler.getaddressfromname(edtEDX.text) except raise exception.Create('Please fill in a valid value for EDX'); end;
-  if tempregedit.change_esi then try tempregedit.new_esi:=symhandler.getaddressfromname(edtESI.text) except raise exception.Create('Please fill in a valid value for ESI'); end;
-  if tempregedit.change_edi then try tempregedit.new_edi:=symhandler.getaddressfromname(edtEDI.text) except raise exception.Create('Please fill in a valid value for EDI'); end;
-  if tempregedit.change_ebp then try tempregedit.new_ebp:=symhandler.getaddressfromname(edtEBP.text) except raise exception.Create('Please fill in a valid value for EBP'); end;
-  if tempregedit.change_esp then try tempregedit.new_esp:=symhandler.getaddressfromname(edtESP.text) except raise exception.Create('Please fill in a valid value for ESP'); end;
-  if tempregedit.change_eip then try tempregedit.new_eip:=symhandler.getaddressfromname(edtEIP.text) except raise exception.Create('Please fill in a valid value for EIP'); end;
+  if tempregedit.change_eax then try tempregedit.new_eax:=symhandler.getaddressfromname(edtEAX.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EAX'); end;
+  if tempregedit.change_ebx then try tempregedit.new_ebx:=symhandler.getaddressfromname(edtEBX.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EBX'); end;
+  if tempregedit.change_ecx then try tempregedit.new_ecx:=symhandler.getaddressfromname(edtECX.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' ECX'); end;
+  if tempregedit.change_edx then try tempregedit.new_edx:=symhandler.getaddressfromname(edtEDX.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EDX'); end;
+  if tempregedit.change_esi then try tempregedit.new_esi:=symhandler.getaddressfromname(edtESI.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' ESI'); end;
+  if tempregedit.change_edi then try tempregedit.new_edi:=symhandler.getaddressfromname(edtEDI.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EDI'); end;
+  if tempregedit.change_ebp then try tempregedit.new_ebp:=symhandler.getaddressfromname(edtEBP.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EBP'); end;
+  if tempregedit.change_esp then try tempregedit.new_esp:=symhandler.getaddressfromname(edtESP.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' ESP'); end;
+  if tempregedit.change_eip then try tempregedit.new_eip:=symhandler.getaddressfromname(edtEIP.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' EIP'); end;
   {$ifdef cpu64}
-  if tempregedit.change_r8 then try tempregedit.new_r8:=symhandler.getaddressfromname(edtR8.text) except raise exception.Create('Please fill in a valid value for R8'); end;
-  if tempregedit.change_r9 then try tempregedit.new_r9:=symhandler.getaddressfromname(edtR9.text) except raise exception.Create('Please fill in a valid value for R9'); end;
-  if tempregedit.change_r10 then try tempregedit.new_r10:=symhandler.getaddressfromname(edtR10.text) except raise exception.Create('Please fill in a valid value for R10'); end;
-  if tempregedit.change_r11 then try tempregedit.new_r11:=symhandler.getaddressfromname(edtR11.text) except raise exception.Create('Please fill in a valid value for R11'); end;
-  if tempregedit.change_r12 then try tempregedit.new_r12:=symhandler.getaddressfromname(edtR12.text) except raise exception.Create('Please fill in a valid value for R12'); end;
-  if tempregedit.change_r13 then try tempregedit.new_r13:=symhandler.getaddressfromname(edtR13.text) except raise exception.Create('Please fill in a valid value for R13'); end;
-  if tempregedit.change_r14 then try tempregedit.new_r14:=symhandler.getaddressfromname(edtR14.text) except raise exception.Create('Please fill in a valid value for R14'); end;
-  if tempregedit.change_r15 then try tempregedit.new_r15:=symhandler.getaddressfromname(edtR15.text) except raise exception.Create('Please fill in a valid value for R15'); end;
+  if tempregedit.change_r8 then try tempregedit.new_r8:=symhandler.getaddressfromname(edtR8.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R8'); end;
+  if tempregedit.change_r9 then try tempregedit.new_r9:=symhandler.getaddressfromname(edtR9.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R9'); end;
+  if tempregedit.change_r10 then try tempregedit.new_r10:=symhandler.getaddressfromname(edtR10.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R10'); end;
+  if tempregedit.change_r11 then try tempregedit.new_r11:=symhandler.getaddressfromname(edtR11.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R11'); end;
+  if tempregedit.change_r12 then try tempregedit.new_r12:=symhandler.getaddressfromname(edtR12.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R12'); end;
+  if tempregedit.change_r13 then try tempregedit.new_r13:=symhandler.getaddressfromname(edtR13.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R13'); end;
+  if tempregedit.change_r14 then try tempregedit.new_r14:=symhandler.getaddressfromname(edtR14.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R14'); end;
+  if tempregedit.change_r15 then try tempregedit.new_r15:=symhandler.getaddressfromname(edtR15.text) except raise exception.Create(rsPleaseFillInAValidValueFor+' R15'); end;
   {$endif}
   if tempregedit.change_cf then tempregedit.new_cf:=cbCF.checked;
   if tempregedit.change_pf then tempregedit.new_pf:=cbPF.checked;

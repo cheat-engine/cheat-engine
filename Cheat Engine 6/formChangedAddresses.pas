@@ -63,6 +63,11 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper, debugeventhandler;
 
+resourcestring
+  rsStop='Stop';
+  rsClose='Close';
+  rsNoDescription = 'No Description';
+
 destructor TAddressEntry.destroy;
 begin
   if stack.stack<>nil then
@@ -140,10 +145,10 @@ var temp: dword;
     i: integer;
 begin
 
-  if OKButton.caption='Stop' then
+  if OKButton.caption=rsStop then
   begin
     debuggerthread.FindWhatCodeAccessesStop(self);
-    okButton.Caption:='Close';
+    okButton.Caption:=rsClose;
   end
   else
     close;
@@ -170,13 +175,13 @@ begin
     ae.free;
   end;
 
-  if OKButton.caption='Stop' then
+  if OKButton.caption=rsStop then
     OKButton.Click;
 end;
 
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
 begin
-  OKButton.Caption:='Stop';
+  OKButton.Caption:=rsStop;
 end;
 
 procedure TfrmChangedAddresses.ChangedlistDblClick(Sender: TObject);
@@ -184,7 +189,9 @@ var i: integer;
     ad: dword;
 begin
   if changedlist.Selected<>nil then
-    mainform.addresslist.addaddress('No Description', changedlist.selected.caption, [],0, OldVarTypeToNewVarType(cbDisplayType.itemindex));
+    mainform.addresslist.addaddress(rsNoDescription,
+      changedlist.selected.caption, [], 0, OldVarTypeToNewVarType(
+      cbDisplayType.itemindex));
 end;
 
 procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
@@ -268,6 +275,8 @@ procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
 var x: array of integer;
     i: integer;
 begin
+  okbutton.caption:=rsStop;
+
   setlength(x, 0);
   loadformposition(self,x);
 

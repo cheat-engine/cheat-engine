@@ -31,6 +31,9 @@ type
 
 implementation
 
+resourcestring
+  rsCriticalsectionLeaveWithoutEnter = 'Criticalsection leave without enter';
+
 procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE);
 var deadlockprevention: integer;
 begin
@@ -66,7 +69,7 @@ end;
 procedure TGuiSafeCriticalSection.leave;
 begin
   if haslock and (getcurrentthreadid <> lockedthreadid) then
-    raise Exception.Create('Criticalsection leave without enter');
+    raise Exception.Create(rsCriticalsectionLeaveWithoutEnter);
 
   Dec(lockcount);
   if lockcount = 0 then

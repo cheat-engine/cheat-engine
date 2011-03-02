@@ -512,6 +512,30 @@ implementation
 
 uses formsettingsunit, StrUtils, foundlisthelper;
 
+resourcestring
+  rsIsNotAValidCharacterInsideABinaryString = '%s is not a valid character inside a binary string';
+  rsInvalidBinaryNotation = 'Invalid binary notation';
+  rsThreadSynchronizer = 'Thread synchronizer';
+  rsUnknown = 'Unknown';
+  rsPleaseFillSomethingIn = 'Please fill something in';
+  rsIsNotAValidValue = '%s is not a valid value';
+  rsIsAnInvalidValue = '%s is an invalid value';
+  rsIsNotAValidNotation = '%s is an invalid notation';
+  rsErrorAllocatingBytesForTheOldResults = 'Error allocating %s bytes for the old results. buffersize=%s variablesize=%s';
+  rsDiskWriteError = 'Disk write error:%s';
+  rsNoReadableMemoryFound = 'No readable memory found';
+  rsFailureAllocatingMemoryForCopyTriedAllocatingKB = 'Failure allocating memory for copy. Tried allocating %s KB';
+  rsErrorWhenWhileLoadingResult = 'Error when while loading result';
+  rsNotEnoughDiskspaceForTheAddressFile = 'Not enough diskspace for the address file';
+  rsNotEnoughDiskspaceForTheMemoryFile = 'Not enough diskspace for the memory file';
+  rsDiskWriteError2 = 'Disk Write Error:%s';
+  rsFailedSpawningTheSaveFirstScanThread = 'Failed spawning the Save First Scan thread';
+  rsForSomeReasonTheScanControllerDoesNotExist = 'For some reason the scanController does not exist';
+  rsAResultSetWithThisNameAlreadyExists = 'A result set with this name(%s) already exists';
+  rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName = 'TMP and UNDO are names that may not be used. Try another name';
+  rsTheTemporaryScanDirectoryDoesNotExistCheckYourScan = 'The temporary scan directory %s does not exist. Check your scan settings';
+  rsFailureCreatingTheScanDirectory = 'Failure creating the scan directory';
+
 //===============Local functions================//
 function getBytecountArrayOfByteString(st: string): integer;
 var bytes: tbytes;
@@ -534,11 +558,11 @@ begin
     case st[i] of
       '0','1','?','*': inc(result);
       ' ',#8: ; //ignore
-      else raise exception.Create(st[i]+' is not a valid character inside a binary string');
+      else raise exception.Create(Format(rsIsNotAValidCharacterInsideABinaryString, [st[i]]));
     end;
   end;
 
-  if result=0 then raise exception.Create('Invalid binary notation');
+  if result=0 then raise exception.Create(rsInvalidBinaryNotation);
   if (result mod 8=0) then
     result:=1+result div 8
   else
@@ -1871,10 +1895,10 @@ begin
     on e: exception do
     begin
       case part of
-        0: errorstring:='Thread synchronizer';
+        0: errorstring:=rsThreadSynchronizer;
         1: errorstring:=scanner.Addressfilename;
         2: errorstring:=scanner.MemoryFilename;
-        else errorstring:='Unknown';
+        else errorstring:=rsUnknown;
       end;
 
       errorstring:=errorstring+':'+e.message;
@@ -2507,7 +2531,7 @@ begin
   if scanOption in [soCustom, soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soDecreasedValueBy, soIncreasedValueBy] then
   begin
     //user input is given
-    if scanvalue1='' then raise exception.Create('Please fill something in');
+    if scanvalue1='' then raise exception.Create(rsPleaseFillSomethingIn);
 
     if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
     begin
@@ -2532,13 +2556,13 @@ begin
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
-              raise exception.Create(scanvalue1+' is not a valid value');
+              raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
             end;
           end;
           value:=trunc(dvalue);
 
         end else
-          raise exception.Create(scanvalue1+' is an invalid value');
+          raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue1]));
       end;
 
       if scanOption=soValueBetween then
@@ -2565,13 +2589,13 @@ begin
               try
                 dvalue:=strtofloat(scanvalue1,FloatSettings);
               except
-                raise exception.Create(scanvalue1+' is not a valid value');
+                raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
               end;
             end;
             value:=trunc(dvalue);
           end
           else
-            raise exception.Create(scanvalue2+' is an invalid value');
+            raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue2]));
         end;
       end;
     end;
@@ -2590,7 +2614,7 @@ begin
         try
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
-          raise exception.Create(scanvalue1+' is not a valid value');
+          raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
         end;
       end;
 
@@ -2608,7 +2632,7 @@ begin
           try
             dvalue2:=strtofloat(scanvalue1,FloatSettings);
           except
-            raise exception.Create(scanvalue1+' is not a valid value');
+            raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
           end;
         end;
 
@@ -2696,7 +2720,7 @@ begin
         end
         else
         if not (binarystring[i] in [' ',#8]) then
-          raise exception.Create(binarystring+' is not a valid notation');
+          raise exception.Create(Format(rsIsNotAValidNotation, [binarystring]));
       end;
 
       self.andmask:=BinToInt(andmask);
@@ -3061,7 +3085,7 @@ begin
       if self.variableType=vtall then
       begin
         oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
-        if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(buffersize*variablesize)+' bytes for the old results. buffersize='+inttostr(buffersize)+' variablesize='+inttostr(variablesize));
+        if oldmemory=nil then raise exception.Create(Format(rsErrorAllocatingBytesForTheOldResults, [inttostr(buffersize*variablesize), inttostr(buffersize), inttostr(variablesize)]));
       end;
 
       oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
@@ -3070,7 +3094,7 @@ begin
     begin
       setlength(oldaddresses,buffersize);
       oldmemory:=virtualAlloc(nil,buffersize*variablesize,MEM_COMMIT	or MEM_TOP_DOWN	, PAGE_READWRITE);
-      if oldmemory=nil then raise exception.Create('Error allocating '+inttostr(buffersize*variablesize)+' bytes for the old results. buffersize='+inttostr(buffersize)+' variablesize='+inttostr(variablesize));
+      if oldmemory=nil then raise exception.Create(Format(rsErrorAllocatingBytesForTheOldResults, [inttostr(buffersize*variablesize), inttostr(buffersize), inttostr(variablesize)]));
 
       oldAddressFile.seek(7+sizeof(ptruint)*startentry,soFromBeginning);   //header+addresssize*startentry
       if not (self.variableType in [vtString,vtByteArray]) then
@@ -3342,7 +3366,7 @@ begin
     scanwriter.flush;
 
     if scanwriter.writeError then
-      raise exception.Create('Disk write error:'+scanwriter.errorString);
+      raise exception.Create(Format(rsDiskWriteError, [scanwriter.errorString]));
   except
     on e: exception do
     begin
@@ -4122,7 +4146,7 @@ begin
 
   totalAddresses:=totalProcessMemorySize;
 
-  if memRegionPos=0 then raise exception.Create('No readable memory found');
+  if memRegionPos=0 then raise exception.Create(rsNoReadableMemoryFound);
 
 
   //if soUnknown, make a buffer where it can store all the 'previous' memory
@@ -4136,7 +4160,7 @@ begin
     OutputDebugString(format('Allocating %dKB for previousMemoryBuffer',[totalProcessMemorySize div 1024]));
     OwningMemScan.previousMemoryBuffer:=VirtualAlloc(nil,totalProcessMemorySize, MEM_COMMIT or MEM_TOP_DOWN, PAGE_READWRITE); //top down to try to prevent memory fragmentation
     if OwningMemScan.previousMemoryBuffer=nil then
-      raise exception.Create('Failure allocating memory for copy. Tried allocating '+inttostr(totalProcessMemorySize div 1024)+' KB');
+      raise exception.Create(Format(rsFailureAllocatingMemoryForCopyTriedAllocatingKB, [inttostr(totalProcessMemorySize div 1024)]));
 
     OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
   end;
@@ -4465,7 +4489,7 @@ begin
           AddressFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Addresses.TMP',fmOpenWrite or fmShareDenyNone);
           MemoryFile:=TFileStream.Create(OwningMemScan.ScanresultFolder+'Memory.TMP',fmOpenWrite or fmsharedenynone);
         except
-          raise exception.create('Error when while loading result');
+          raise exception.create(rsErrorWhenWhileLoadingResult);
         end;
 
 
@@ -4479,7 +4503,7 @@ begin
         addressfile.size:=wantsize;
 
         if addressfile.size<>wantsize then
-          raise exception.create('Not enough diskspace for the address file');
+          raise exception.create(rsNotEnoughDiskspaceForTheAddressFile);
 
 
         wantsize:=memoryfile.size;
@@ -4489,7 +4513,7 @@ begin
         memoryfile.size:=wantsize;
 
         if memoryfile.size<>wantsize then
-          raise exception.create('Not enough diskspace for the memory file');
+          raise exception.create(rsNotEnoughDiskspaceForTheMemoryFile);
 
 
 
@@ -4498,7 +4522,7 @@ begin
       except
         on e: exception do
         begin
-          OutputDebugString(pchar('Disk Write Error:'+e.message));
+          OutputDebugString(pchar(Format(rsDiskWriteError2, [e.message])));
           haserror:=true;
           errorstring:='controller:Cleanup:ResultsPrepare:'+e.message;
         end;
@@ -4587,7 +4611,7 @@ begin
       begin
         OutputDebugString(pchar('First Scan Create:'+e.message));
         haserror2:=true;
-        errorstring:='controller:Cleanup:Failed spawning the Save First Scan thread:'+e.message;
+        errorstring:='controller:Cleanup:'+rsFailedSpawningTheSaveFirstScanThread+':'+e.message;
       end;
     end;
   except
@@ -4666,7 +4690,7 @@ begin
     end;
   end
   else
-    raise exception.Create('For some reason the scanController does not exist');
+    raise exception.Create(rsForSomeReasonTheScanControllerDoesNotExist);
   //and now the caller has to wait
 end;
 
@@ -4719,7 +4743,7 @@ begin
 
   fname:=uppercase(resultname);
   if (fname='TMP') or (fname='UNDO') then
-    raise exception.create('TMP and UNDO are names that may not be used. Try another name');
+    raise exception.create(rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName);
 
   if savedresults=nil then
   begin
@@ -4730,7 +4754,7 @@ begin
   end;
 
   if savedresults.IndexOf(resultname)<>-1 then
-    raise exception.create('A result set with this name('+resultname+') already exists');
+    raise exception.create(Format(rsAResultSetWithThisNameAlreadyExists, [resultname]));
 
 
   //everything looks ok
@@ -5038,7 +5062,7 @@ begin
   fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
 
   if not DirectoryExists(usedtempdir) then
-    raise exception.create('The temporary scan directory '+usedtempdir+' does not exist. Check your scan settings');
+    raise exception.create(Format(rsTheTemporaryScanDirectoryDoesNotExistCheckYourScan, [usedtempdir]));
 
 
   if not DirectoryExists(fScanResultFolder) then
@@ -5048,7 +5072,7 @@ begin
       //failure in creating the dir
       MakePathAccessible(fScanResultFolder);
       if not CreateDir(fScanResultFolder) then
-        raise exception.create('Failure creating the scan directory');
+        raise exception.create(rsFailureCreatingTheScanDirectory);
     end;
   end;
 
@@ -5061,11 +5085,61 @@ begin
 end;
 
 procedure TMemscan.DeleteScanfolder;
+var usedtempdir,tempdiralternative: string;
+    Info : TSearchRec;
+    f: string;
+    age: longint;
+    currenttime: longint;
+
 begin
   if fScanResultFolder<>'' then
   begin
     try
       if DeleteFolder(fScanResultFolder) then outputdebugstring('deleted the scanresults') else outputdebugstring('Failure deleting the scanresults');
+
+
+
+      //check if there are folders that are older than 2 days
+      if (length(tempdiralternative)>2) and dontusetempdir then
+      begin
+        usedtempdir:=tempdiralternative;
+
+        tempdiralternative:=trim(tempdiralternative);
+        if tempdiralternative[length(tempdiralternative)]<>pathdelim then
+          tempdiralternative:=tempdiralternative+pathdelim;
+      end
+      else
+        usedtempdir:=GetTempDir;
+
+
+      if FindFirst(usedtempdir+'Cheat Engine\{*}',  faDirectory , info)=0 then
+      begin
+        repeat
+          if (info.Attr and faDirectory) = faDirectory then
+          begin
+            if length(info.Name)>5 then
+            begin
+              //if found, delete them if older than 2 days
+              f:=usedtempdir+'Cheat Engine\'+info.name;
+
+
+              age:=info.time; //FileAge('"'+f+'"');
+
+              if age>0 then
+              begin
+                currenttime:=DateTimeToFileDate(now);
+
+                if (currenttime-age) > 60*60*24*2 then //if older than 2 days  then
+                  deletefolder(f);
+              end;
+            end;
+          end;
+
+        until FindNext(info)<>0;
+        FindClose(info);
+      end;
+
+
     except
       outputdebugstring('Fatal error while trying to delete the scanresults');
     end;

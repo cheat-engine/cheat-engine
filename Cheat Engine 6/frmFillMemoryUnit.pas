@@ -31,6 +31,11 @@ var
 
 implementation
 
+resourcestring
+  rsPleaseFillInAValidFromAddress = 'Please fill in a valid ''From'' address';
+  rsPleaseFillInAValidToAddress = 'Please fill in a valid ''To'' address';
+  rsPleaseFillInAValidFillValue = 'Please fill in a valid ''Fill'' value';
+
 
 procedure TfrmFillMemory.Button1Click(Sender: TObject);
 var start,stop: ptrUint;
@@ -45,19 +50,19 @@ begin
   try
     start:=strtoint('$'+edit1.Text);
   except
-    raise exception.Create('Please fill in a valid ''From'' address');
+    raise exception.Create(rsPleaseFillInAValidFromAddress);
   end;
 
   try
     stop:=strToInt('$'+edit2.Text);
   except
-    raise exception.Create('Please fill in a valid ''To'' address');
+    raise exception.Create(rsPleaseFillInAValidToAddress);
   end;
 
   try
     fillvalue:=strToInt('$'+edit3.Text);
   except
-    raise exception.Create('Please fill in a valid ''Fill'' value');
+    raise exception.Create(rsPleaseFillInAValidFillValue);
   end;
 
   count:=stop-start+1;

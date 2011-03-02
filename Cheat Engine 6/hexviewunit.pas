@@ -146,6 +146,30 @@ implementation
 
 uses formsettingsunit, Valuechange, AddAddress;
 
+resourcestring
+  rsBigFuckingError = 'Big fucking error';
+  rsInvalidBytesPerSeperatorValue = 'Invalid BytesPerSeperator value:%s';
+  rsThisLooksLikeAnArrayOfByteDoYouWantToInputItAsAHex = 'This looks like an '
+    +'array of byte. Do you want to input it as a hexadecimal string?';
+  rsThisLooksLikeANormalStringDoYouWantToInputItAsAStr = 'This looks like a '
+    +'normal string. Do you want to input it as a string ?';
+  rsProtect = 'Protect';
+  rsNoAccess = 'No Access';
+  rsReadOnly = 'Read Only';
+  rsReadWrite = 'Read/Write';
+  rsWriteCopy = 'Write Copy';
+  rsExecute = 'Execute';
+  rsExecuteReadOnly = 'Execute/Read only';
+  rsExecuteReadWrite = 'Execute/Read/Write';
+  rsExecuteWriteCopy = 'Execute/Write Copy';
+  rsGuarded = 'Guarded';
+  rsNotCached = 'Not Cached';
+  rsBase = 'Base';
+  rsSize = 'Size';
+  rsPhysicalAddress = 'Physical Address';
+  rsModule = 'Module';
+  rsAddress = 'address';
+
 function THexview.hasSelection: boolean;
 begin
   result:=fhasSelection or isEditing;
@@ -197,7 +221,7 @@ procedure THexView.ShowDifference(hv: THexview);
 begin
   EndDifferenceView;
 
-  if hv=self then raise exception.create('Big fucking error');
+  if hv=self then raise exception.create(rsBigFuckingError);
   //set an addresslock between this and that hexview
 
   lock(hv);
@@ -214,7 +238,8 @@ end;
 procedure THexView.setBytesPerSeperator(b: integer);
 begin
   if not (b in [2,4,8]) then
-    raise exception.create('Invalid BytesPerSeperator value:'+inttostr(b));
+    raise exception.create(Format(rsInvalidBytesPerSeperatorValue, [inttostr(b)]
+      ));
 
   fbytesPerSeperator:=b;
   update;
@@ -700,14 +725,16 @@ begin
       begin
         //valid enough AOB string
         if selectionType=hrChar then
-          if MessageDlg('This looks like an array of byte. Do you want to input it as a hexadecimal string?',mtConfirmation,[mbyes,mbno],0)=mryes then
+          if MessageDlg(rsThisLooksLikeAnArrayOfByteDoYouWantToInputItAsAHex,
+            mtConfirmation, [mbyes, mbno], 0)=mryes then
             selectionType:=hrByte;
       end
       else
       begin
         //invalid AOB string
         if selectionType=hrByte then
-          if MessageDlg('This looks like a normal string. Do you want to input it as a string ?',mtConfirmation,[mbyes,mbno],0)=mryes then
+          if MessageDlg(rsThisLooksLikeANormalStringDoYouWantToInputItAsAStr,
+            mtConfirmation, [mbyes, mbno], 0)=mryes then
             selectiontype:=hrChar;
 
       end;
@@ -938,28 +965,29 @@ begin
   try
     zeromemory(@mbi,sizeof(mbi));
     Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
-    memoryInfo:='Protect:';
+    memoryInfo:=rsProtect+':';
 
-    if (mbi.Protect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+'No Access ';
-    if (mbi.Protect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+'Read Only ';
-    if (mbi.Protect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+'Read/Write ';
-    if (mbi.Protect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Write Copy ';
-    if (mbi.Protect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+'Execute ';
-    if (mbi.Protect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+'Execute/Read only ';
-    if (mbi.Protect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+'Execute/Read/Write ';
-    if (mbi.Protect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+'Execute/Write Copy ';
-    if (mbi.Protect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+'Guarded ';
-    if (mbi.Protect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+'Not Cached';
+    if (mbi.Protect and PAGE_NOACCESS)>0 then memoryInfo:=memoryInfo+rsNoAccess+' ';
+    if (mbi.Protect and PAGE_READONLY)>0 then memoryInfo:=memoryInfo+rsReadOnly+' ';
+    if (mbi.Protect and PAGE_READWRITE)>0 then memoryInfo:=memoryInfo+rsReadWrite+' ';
+    if (mbi.Protect and PAGE_WRITECOPY)>0 then memoryInfo:=memoryInfo+rsWriteCopy+' ';
+    if (mbi.Protect and PAGE_EXECUTE)>0 then memoryInfo:=memoryInfo+rsExecute+' ';
+    if (mbi.Protect and PAGE_EXECUTE_READ)>0 then memoryInfo:=memoryInfo+rsExecuteReadOnly+' ';
+    if (mbi.Protect and PAGE_EXECUTE_READWRITE)>0 then memoryInfo:=memoryInfo+rsExecuteReadWrite+' ';
+    if (mbi.Protect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+rsExecuteWriteCopy+' ';
+    if (mbi.Protect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+rsGuarded+' ';
+    if (mbi.Protect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+rsNotCached;
 
 
-    memoryInfo:=memoryInfo+' Base='+IntToHex(ptrUint(mbi.BaseAddress),8)+' Size='+IntTohex(mbi.RegionSize,1);
+    memoryInfo:=memoryInfo+' '+rsBase+'='+IntToHex(ptrUint(mbi.BaseAddress), 8)+' '
+      +rsSize+'='+IntTohex(mbi.RegionSize, 1);
 
     if (formsettings<>nil) and assigned(GetPhysicalAddress) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
-      memoryInfo:=memoryInfo+' Physical Address='+IntToHex(a64,8);
+      memoryInfo:=memoryInfo+' '+rsPhysicalAddress+'='+IntToHex(a64, 8);
 
 
     if symhandler.getmodulebyaddress(fAddress,mi) then
-      memoryInfo:=memoryInfo+' Module='+mi.modulename;
+      memoryInfo:=memoryInfo+' '+rsModule+'='+mi.modulename;
 
   except
   end;
@@ -1225,7 +1253,7 @@ begin
   currentaddress:=fAddress;
 
   offscreenbitmap.Canvas.TextOut(0,0,memoryInfo);
-  offscreenbitmap.Canvas.TextOut(0,textheight,'address');
+  offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
 
   bheader:='';
   cheader:='';

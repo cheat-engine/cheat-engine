@@ -102,6 +102,14 @@ implementation
 uses debuggertypedefinitions, debugeventhandler, MainUnit,frmFloatingPointPanelUnit,Memorybrowserformunit,disassembler,frmTracerUnit,foundcodeunit,kerneldebugger,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin(*,frmCreatedProcessListUnit*);
 
 
+resourcestring
+  rsPleaseTargetAnotherProcess = 'Please target another process';
+  rsYouMustFirstOpenAProcess = 'You must first open a process';
+  rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent = 'This will attach the debugger of Cheat Engine to the current process.';
+  rsDoNotCloseCE = 'If you close Cheat Engine while the game is running, the game will close too. Are you sure you want to do this?';
+  rsContinue = 'Continue?';
+  rsDebugError = 'I couldn''t attach the debugger to this process! You could try to open the process using the processpicker and try that! If that also doesn''t work check if '
+    +'you have debugging rights.';
 
 function DebugBreakProstitute(x: Thandle):boolean;
 begin
@@ -123,17 +131,17 @@ var mes: string;
     reS:boolean;
     i: integer;
 begin
-  if processid=GetCurrentProcessId then raise exception.create('Please target another process');
+  if processid=GetCurrentProcessId then raise exception.create(rsPleaseTargetAnotherProcess);
 
   result:=false;
-  if processhandle=0 then raise exception.create('You must first open a process');
+  if processhandle=0 then raise exception.create(rsYouMustFirstOpenAProcess);
 
   if (debuggerthread=nil) then
   begin
     if @DebugActiveProcessStop=@DebugActiveProcessStopProstitute then
-      mes:='This will attach the debugger of Cheat Engine to the current process. If you close Cheat Engine while the game is running, the game will close too. Are you sure you want to do this?'
+      mes:=rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent+' '+rsDoNotCloseCE
     else
-      mes:='This will attach the debugger of Cheat Engine to the current process. Continue?';
+      mes:=rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent+' '+rsContinue;
 
     if ask then
       res:=Messagedlg(mes,mtConfirmation,[mbYes, mbNo],0)=mrYes
@@ -148,7 +156,7 @@ begin
       try
         Debuggerthread:=TDebuggerThread.MyCreate2(processid);
       except
-        raise exception.Create('I couldn''t attach the debugger to this process! You could try to open the process using the processpicker and try that! If that also doesn''t work check if you have debugging rights.');
+        raise exception.Create(rsDebugError);
       end;
 
       result:=true;

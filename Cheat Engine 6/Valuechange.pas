@@ -50,6 +50,10 @@ var
 
 implementation
 
+resourcestring
+  rsChangeOffset = 'Change offset %s';
+  rsPartOfTheStringIsUnreadable = 'Part of the string is unreadable!';
+
 
 function TValueChangeForm.getunicode:boolean;
 begin
@@ -65,7 +69,7 @@ end;
 procedure TValueChangeForm.setaddress(x: ptrUint);
 begin
   faddress:=x;
-  caption:='Change offset '+inttohex(x,8);  
+  caption:=Format(rsChangeOffset, [inttohex(x, 8)]);
   updatevalue;
 end;
 
@@ -334,7 +338,7 @@ begin
                       begin
                         write:=0;
                         readprocessmemory(processhandle,pointer(address+i),addr(newstring[i]),1,write);
-                        if write<>1 then raise exception.Create('Part of the string is unreadable!');
+                        if write<>1 then raise exception.Create(rsPartOfTheStringIsUnreadable);
                       end
                       else
                         newstring[i]:=newvalue7[i];

@@ -206,6 +206,11 @@ implementation
 
 uses frmautoinjectunit, MemoryBrowserFormUnit;
 
+resourcestring
+  rsQueuedMemoryEventsWaiting = 'Queued memory events waiting: %s';
+  rsHeapcount = 'Heapcount=%s';
+  rsFailureToInitialize = 'Failure to initialize';
+
 procedure TDisplayThread.removeaddress(addresslist: PMemrecTableArray; memallocevent: TmemoryAllocevent );
 var
   level: integer;
@@ -691,8 +696,8 @@ end;
 
 procedure TfrmMemoryAllocHandler.Timer1Timer(Sender: TObject);
 begin
-  StatusBar1.Panels[0].Text:='Queued memory events waiting: '+inttostr(displaythread.ObjectQueue.Count);
-  Statusbar1.Panels[1].Text:='Heapcount='+inttostr(displaythread.heapcount);
+  StatusBar1.Panels[0].Text:=Format(rsQueuedMemoryEventsWaiting, [inttostr(displaythread.ObjectQueue.Count)]);
+  Statusbar1.Panels[1].Text:=Format(rsHeapcount, [inttostr(displaythread.heapcount)]);
 end;
 
 procedure TfrmMemoryAllocHandler.Button1Click(Sender: TObject);
@@ -924,7 +929,7 @@ begin
 
     injectionscript.Add('CreateThread(CeInitializeAllocHook)');
     ResetEvent(CEInitializationFinished);
-    if not autoassemble(injectionscript,false) then raise exception.Create('Failure to initialize');
+    if not autoassemble(injectionscript, false) then raise exception.Create(rsFailureToInitialize);
   finally
     displaythread.csObjectList.Leave;
     memrecCS.Leave;

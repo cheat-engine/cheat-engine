@@ -125,6 +125,14 @@ end;
 
 implementation
 
+resourcestring
+  rsSymbolsAreBeingLoaded = 'Symbols are being loaded';
+  rsPleaseOpenAProcessFirst = 'Please open a process first';
+  rsAddress = 'Address';
+  rsBytes = 'Bytes';
+  rsOpcode = 'Opcode';
+  rsComment = 'Comment';
+
 procedure TDisassemblerview.setJumplineState(state: tshowjumplinestate);
 begin
   fShowjumplineState:=state;
@@ -545,9 +553,9 @@ begin
     if (not symhandler.isloaded) and (not symhandler.haserror) then
     begin
       if processid>0 then
-        statusinfolabel.Caption:='Symbols are being loaded'
+        statusinfolabel.Caption:=rsSymbolsAreBeingLoaded
       else
-        statusinfolabel.Caption:='Please open a process first';
+        statusinfolabel.Caption:=rsPleaseOpenAProcessFirst;
 
     end
     else
@@ -911,7 +919,7 @@ begin
   begin
     ImageIndex:=-1;
     MinWidth:=50;
-    Text:='Address';
+    Text:=rsAddress;
     Width:=80;
    end;
 
@@ -919,7 +927,7 @@ begin
   begin
     ImageIndex:=-1;
     MinWidth:=50;
-    Text:='Bytes';
+    Text:=rsBytes;
     Width:=140;
   end;
 
@@ -927,7 +935,7 @@ begin
   begin
     ImageIndex:=-1;
     MinWidth:=50;
-    Text:='Opcode';
+    Text:=rsOpcode;
     Width:=200;
   end;
 
@@ -935,7 +943,7 @@ begin
   begin
     ImageIndex:=-1;
     MinWidth:=5;
-    Text:='Comment';
+    Text:=rsComment;
     AutoSize:=true;
 
     Width:=100;

@@ -35,6 +35,12 @@ implementation
 
 uses AdvancedOptionsUnit;
 
+resourcestring
+  rsRegionToAdd = 'Region to add';
+  rsRegion = 'Region';
+  rsPleaseFillInAValidFromAddress = 'Please fill in a valid ''From'' address';
+  rsPleaseFillInAValidToAddress = 'Please fill in a valid ''To'' address';
+
 procedure TfrmAddToCodeList.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
@@ -47,7 +53,7 @@ begin
   edit1.Text:=IntToHex(fromaddress,8);
   edit2.Text:=IntToHex(toaddress,8);
 
-  if addtocodelist then caption:='Region to add' else caption:='Region';
+  if addtocodelist then caption:=rsRegionToAdd else caption:=rsRegion;
 end;
 
 procedure TfrmAddToCodeList.Button1Click(Sender: TObject);
@@ -55,13 +61,13 @@ begin
   try
     fromaddress:=strtoint('$'+edit1.Text);
   except
-    raise exception.Create('Please fill in a valid ''From'' address');
+    raise exception.Create(rsPleaseFillInAValidFromAddress);
   end;
 
   try
     toaddress:=strToInt('$'+edit2.Text);
   except
-    raise exception.Create('Please fill in a valid ''To'' address');
+    raise exception.Create(rsPleaseFillInAValidToAddress);
   end;
 
   if addtocodelist then

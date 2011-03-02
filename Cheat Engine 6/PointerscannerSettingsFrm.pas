@@ -110,6 +110,10 @@ implementation
 uses frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit;
 {$endif}
 
+resourcestring
+  rsAdd = 'Add';
+  rsRemove = 'Remove';
+
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
@@ -293,7 +297,7 @@ begin
 
     with btnAddOffset do
     begin
-      caption:='Add';
+      caption:=rsAdd;
       left:=offsetentry.Left+offsetentry.Width+3;
       width:=60;
       height:=offsetentry.Height;
@@ -308,7 +312,7 @@ begin
     
     with btnRemoveOffset do
     begin
-      caption:='Remove';
+      caption:=rsRemove;
       left:=btnAddOffset.Left+btnAddOffset.Width+3;
       width:=60;
       height:=offsetentry.Height;

@@ -28,6 +28,11 @@ end;
 
 implementation
 
+resourcestring
+  rsDoesNotExist = '%s does not exist';
+  rsMappingFailed = 'Mapping failed';
+  rsFailedCreatingAProperView = 'Failed creating a proper view';
+
 destructor TFileMapping.destroy;
 begin
   //clean up the mapping
@@ -50,17 +55,17 @@ begin
   try
     //open file
     FileHandle := CreateFile(PChar(filename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if FileHandle = INVALID_HANDLE_VALUE then raise exception.create(filename+' does not exist');
+    if FileHandle = INVALID_HANDLE_VALUE then raise exception.create(Format(rsDoesNotExist, [filename]));
 
     FFileSize:=GetFileSize(FileHandle,nil);
 
     //still here, so create filemapping
     FileMapping := CreateFileMapping(FileHandle, nil, PAGE_WRITECOPY	, 0, 0, nil);
-    if FileMapping = 0 then raise exception.create('Mapping failed');
+    if FileMapping = 0 then raise exception.create(rsMappingFailed);
 
     //map it completly
     FFileContent:= MapViewOfFile(FileMapping, FILE_MAP_COPY , 0, 0, 0);
-    if FFileContent=nil then raise exception.Create('Failed creating a proper view');
+    if FFileContent=nil then raise exception.Create(rsFailedCreatingAProperView);
 
   except
     on e: exception do

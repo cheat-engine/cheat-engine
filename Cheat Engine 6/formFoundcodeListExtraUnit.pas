@@ -78,11 +78,15 @@ var
 
 implementation
 
+resourcestring
+  rsTheValueOfThePointerNeededToFindThisAddressIsProba = 'The value of the '
+    +'pointer needed to find this address is probably %s';
+  rsProbableBasePointer = 'Probable base pointer =%s';
 
 procedure TFormFoundCodeListExtra.setprobably(address: ptrUint);
 begin
   fprobably:=address;
-  Label17.Caption:='The value of the pointer needed to find this address is probably '+IntToHex(address,8);
+  Label17.Caption:=Format(rsTheValueOfThePointerNeededToFindThisAddressIsProba, [IntToHex(address, 8)]);
 end;
 
 
@@ -121,7 +125,7 @@ begin
   s:=s+label13.Caption+#13#10;
   s:=s+label15.Caption+#13#10;
   s:=s+#13#10;
-  s:=s+'Probable base pointer ='+inttohex(probably,8)+#13#10#13#10;
+  s:=s+Format(rsProbableBasePointer, [inttohex(probably, 8)])+#13#10#13#10;
 
   s:=s+label1.Caption+#13#10;
   s:=s+label2.Caption+#13#10;

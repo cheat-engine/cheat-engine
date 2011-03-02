@@ -48,6 +48,13 @@ implementation
 
 { TfrmMemviewPreferences }
 
+resourcestring
+  rsBackgroundColor = 'Background color';
+  rsHexadecimalColor = 'Hexadecimal color';
+  rsNormalColor = 'Normal color';
+  rsRegisterColor = 'Register color';
+  rsSymbolColor = 'Symbol color';
+
 procedure TfrmMemviewPreferences.applyfont;
 begin
   lblNormal.font.Name:=fontdialog1.Font.Name;
@@ -77,7 +84,7 @@ end;
 procedure TfrmMemviewPreferences.GroupBox1Click(Sender: TObject);
 begin
   colordialog1.Color:=groupbox1.color;
-  colordialog1.Title:='Background color';
+  colordialog1.Title:=rsBackgroundColor;
   if colordialog1.execute then
     groupbox1.color:=colordialog1.Color;
 end;
@@ -85,7 +92,7 @@ end;
 procedure TfrmMemviewPreferences.lblHexClick(Sender: TObject);
 begin
   colordialog1.Color:=lblHex.font.color;
-  colordialog1.Title:='Hexadecimal color';
+  colordialog1.Title:=rsHexadecimalColor;
   if colordialog1.execute then
     lblHex.font.color:=colordialog1.Color;
 end;
@@ -93,7 +100,7 @@ end;
 procedure TfrmMemviewPreferences.lblNormalClick(Sender: TObject);
 begin
   colordialog1.Color:=lblNormal.font.color;
-  colordialog1.Title:='Normal color';
+  colordialog1.Title:=rsNormalColor;
   if colordialog1.execute then
     lblNormal.font.color:=colordialog1.Color;
 end;
@@ -101,7 +108,7 @@ end;
 procedure TfrmMemviewPreferences.lblRegisterClick(Sender: TObject);
 begin
   colordialog1.Color:=lblRegister.font.color;
-  colordialog1.Title:='Register color';
+  colordialog1.Title:=rsRegisterColor;
   if colordialog1.execute then
     lblRegister.font.color:=colordialog1.Color;
 end;
@@ -109,7 +116,7 @@ end;
 procedure TfrmMemviewPreferences.lblSymbolClick(Sender: TObject);
 begin
   colordialog1.Color:=lblSymbol.font.color;
-  colordialog1.Title:='Symbol color';
+  colordialog1.Title:=rsSymbolColor;
   if colordialog1.execute then
     lblSymbol.font.color:=colordialog1.Color;
 end;

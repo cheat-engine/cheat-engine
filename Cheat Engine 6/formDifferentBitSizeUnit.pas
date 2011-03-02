@@ -40,6 +40,10 @@ var
 
 implementation
 
+resourcestring
+  rsTheLastTimeYouScannedTheNumberOfBitsWasAndNowItIsP = 'The last time you scanned the number of bits was %s and now it is %s. Please tell me how and how much i must change the '
+    +'bit offset to scan succesfully. (Left+right arrow keys move the bits)';
+  rsWellDoneYouFoundAEasterEgg = 'Well done, you found a easter egg!';
 
 procedure TformDifferentBitSize.FormShow(Sender: TObject);
 var i: integer;
@@ -56,7 +60,7 @@ begin
 
   labelnew.left:=labelold.left+labelold.Width-labelnew.Width;
 
-  label1.caption:='The last time you scanned the number of bits was '+IntToStr(length(oldbit))+' and now it is '+IntToStr(length(newbit))+'. Please tell me how and how much i must change the bit offset to scan succesfully. (Left+right arrow keys move the bits)';
+  label1.caption:=Format(rsTheLastTimeYouScannedTheNumberOfBitsWasAndNowItIsP, [IntToStr(length(oldbit)), IntToStr(length(newbit))]);
 
   setlength(bitscan,0);
 end;
@@ -86,7 +90,7 @@ end;
 
 procedure TformDifferentBitSize.OhnoYoufoundme1Click(Sender: TObject);
 begin
-  showmessage('Well done, you found a easter egg! ');
+  showmessage(rsWellDoneYouFoundAEasterEgg);
 end;
 
 procedure TformDifferentBitSize.Button1Click(Sender: TObject);

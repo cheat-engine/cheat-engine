@@ -26,6 +26,57 @@ implementation
 
 uses simpleaobscanner, StrUtils;
 
+resourcestring
+  rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
+  rsThereIsCodeDefinedWithoutSpecifyingTheAddressItBel = 'There is code defined without specifying the address it belongs to';
+  rsIsNotAValidBytestring = '%s is not a valid bytestring';
+  rsTheBytesAtAreNotWhatWasExpected = 'The bytes at %s are not what was expected';
+  rsTheMemoryAtCanNotBeRead = 'The memory at +%s can not be read';
+  rsWrongSyntaxASSERTAddress1122335566 = 'Wrong syntax. ASSERT(address,11 22 33 ** 55 66)';
+  rsIsNotAValidSize = '%s is not a valid size';
+  rsWrongSyntaxGLOBALALLOCNameSize = 'Wrong syntax. GLOBALALLOC(name,size)';
+  rsCouldNotBeFound = '%s could not be found';
+  rsWrongSyntaxIncludeFilenameCea = 'Wrong syntax. Include(filename.cea)';
+  rsWrongSyntaxCreateThreadAddress = 'Wrong syntax. CreateThread(address)';
+  rsCouldNotBeInjected = '%s could not be injected';
+  rsWrongSyntaxLoadLibraryFilename = 'Wrong syntax. LoadLibrary(filename)';
+  rsInvalidAddressForReadMem = 'Invalid address for ReadMem';
+  rsInvalidSizeForReadMem = 'Invalid size for ReadMem';
+  rsTheMemoryAtCouldNotBeFullyRead = 'The memory at %s could not be fully read';
+  rsWrongSyntaxReadMemAddressSize = 'Wrong syntax. ReadMem(address,size)';
+  rsTheFileDoesNotExist = 'The file %s does not exist';
+  rsWrongSyntaxLoadBinaryAddressFilename = 'Wrong syntax. LoadBinary(address,filename)';
+  rsSyntaxError = 'Syntax error';
+  rsTheArrayOfByteCouldNotBeFound = 'The array of byte ''%s'' could not be found';
+  rsWrongSyntaxAOBSCANName11223355 = 'Wrong syntax. AOBSCAN(name,11 22 33 ** 55)';
+  rsDefineAlreadyDefined = 'Define %s already defined';
+  rsWrongSyntaxDEFINENameWhatever = 'Wrong syntax. DEFINE(name,whatever)';
+  rsSyntaxErrorFullAccessAddressSize = 'Syntax error. FullAccess(address,size)';
+  rsIsNotAValidIdentifier = '%s is not a valid identifier';
+  rsIsBeingRedeclared = '%s is being redeclared';
+  rsLabelIsBeingDefinedMoreThanOnce = 'label %s is being defined more than once';
+  rsLabelIsNotDefinedInTheScript = 'label %s is not defined in the script';
+  rsTheIdentifierHasAlreadyBeenDeclared = 'The identifier %s has already been declared';
+  rsWrongSyntaxALLOCIdentifierSizeinbytes = 'Wrong syntax. ALLOC(identifier,sizeinbytes)';
+  rsNeedToUseKernelmodeReadWriteprocessmemory = 'You need to use kernelmode read/writeprocessmemory if you want to use KALLOC';
+  rsSorryButWithoutTheDriverKALLOCWillNotFunction = 'Sorry, but without the driver KALLOC will not function';
+  rsWrongSyntaxKallocIdentifierSizeinbytes = 'Wrong syntax. kalloc(identifier,sizeinbytes)';
+  rsThisAddressSpecifierIsNotValid = 'This address specifier is not valid';
+  rsThisInstructionCanTBeCompiled = 'This instruction can''t be compiled';
+  rsErrorInLine = 'Error in line %s (%s) :%s';
+  rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar = '%s was supposed to be added to the symbollist, but it isn''t declared';
+  rsTheAddressInCreatethreadIsNotValid = 'The address in createthread(%s) is not valid';
+  rsTheAddressInLoadbinaryIsNotValid = 'The address in loadbinary(%s,%s) is not valid';
+  rsThisCodeCanBeInjectedAreYouSure = 'This code can be injected. Are you sure?';
+  rsFailureToAllocateMemory = 'Failure to allocate memory';
+  rsNotAllInstructionsCouldBeInjected = 'Not all instructions could be injected';
+  rsTheFollowingKernelAddressesWhereAllocated = 'The following kernel addresses where allocated';
+  rsTheCodeInjectionWasSuccessfull = 'The code injection was successfull';
+  rsYouCanOnlyHaveOneEnableSection = 'You can only have one enable section';
+  rsYouCanOnlyHaveOneDisableSection = 'You can only have one disable section';
+  rsYouHavnTSpecifiedAEnableSection = 'You havn''t specified a enable section';
+  rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
+
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
     a: integer;
@@ -227,7 +278,7 @@ begin
       begin
         //forward label, so labels[lastseenlabel+1]
         if lastseenlabel+1 >= length(labels) then
-          raise exception.Create('Forward jump with no label defined');
+          raise exception.Create(rsForwardJumpWithNoLabelDefined);
 
         currentline:=replacetoken(currentline,'@f',labels[lastseenlabel+1]);
         currentline:=replacetoken(currentline,'@F',labels[lastseenlabel+1]);
@@ -236,7 +287,7 @@ begin
       begin
         //forward label, so labels[lastseenlabel]
         if lastseenlabel=-1 then
-          raise exception.Create('There is code defined without specifying the address it belongs to');
+          raise exception.Create(rsThereIsCodeDefinedWithoutSpecifyingTheAddressItBel);
 
         currentline:=replacetoken(currentline,'@b',labels[lastseenlabel]);
         currentline:=replacetoken(currentline,'@B',labels[lastseenlabel]);
@@ -449,7 +500,7 @@ begin
                 try
                   ConvertStringToBytes(s2, true, bytes);
                 except
-                  raise exception.create(s2+' is not a valid bytestring');
+                  raise exception.create(Format(rsIsNotAValidBytestring, [s2]));
                 end;
 
                 if length(bytes)>0 then
@@ -463,19 +514,19 @@ begin
                         begin
                           if bytes[j]>=0 then
                             if byte(bytes[j])<>bytebuf[j] then
-                              raise exception.Create('The bytes at '+s1+' are not what was expected');
+                              raise exception.Create(Format(rsTheBytesAtAreNotWhatWasExpected, [s1]));
                         end;
-                    end else raise exception.Create('The memory at +'+s1+' can not be read');
+                    end else raise exception.Create(Format(rsTheMemoryAtCanNotBeRead, [s1]));
                   finally
                     freemem(bytebuf);
                   end;
 
                 end
-                else raise exception.Create(s2+' is not a valid bytestring');
+                else raise exception.Create(Format(rsIsNotAValidBytestring, [s2]));
 
               end
               else
-                raise exception.Create('Wrong syntax. ASSERT(address,11 22 33 ** 55 66)');
+                raise exception.Create(rsWrongSyntaxASSERTAddress1122335566);
             end;
 
             setlength(assemblerlines,length(assemblerlines)-1);
@@ -497,7 +548,7 @@ begin
               try
                 x:=strtoint(s2);
               except
-                raise exception.Create(s2+' is not a valid size');
+                raise exception.Create(Format(rsIsNotAValidSize, [s2]));
               end;
 
               //define it here already
@@ -512,7 +563,7 @@ begin
               continue;
 
             end
-            else raise exception.Create('Wrong syntax. GLOBALALLOC(name,size)');
+            else raise exception.Create(rsWrongSyntaxGLOBALALLOCNameSize);
           end;
 
           if uppercase(copy(currentline,1,8))='INCLUDE(' then
@@ -546,7 +597,7 @@ begin
                 end;
 
                 if not fileexists(s1) then
-                  raise exception.Create(s1+' could not be found');
+                  raise exception.Create(Format(rsCouldNotBeFound, [s1]));
               end;
 
 
@@ -570,7 +621,7 @@ begin
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
             end
-            else raise exception.Create('Wrong syntax. Include(filename.cea)');
+            else raise exception.Create(rsWrongSyntaxIncludeFilenameCea);
           end;
 
           if uppercase(copy(currentline,1,13))='CREATETHREAD(' then
@@ -587,7 +638,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
-            end else raise exception.Create('Wrong syntax. CreateThread(address)');
+            end else raise exception.Create(rsWrongSyntaxCreateThreadAddress);
           end;
 
           if uppercase(copy(currentline,1,12))='LOADLIBRARY(' then
@@ -616,12 +667,12 @@ begin
                 symhandler.reinitialize;
                 symhandler.waitforsymbolsloaded;
               except
-                raise exception.create(s1+' could not be injected');
+                raise exception.create(Format(rsCouldNotBeInjected, [s1]));
               end;
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
-            end else raise exception.Create('Wrong syntax. LoadLibrary(filename)');
+            end else raise exception.Create(rsWrongSyntaxLoadLibraryFilename);
           end;
 
           if uppercase(copy(currentline,1,8))='READMEM(' then
@@ -639,23 +690,23 @@ begin
               try
                 testptr:=symhandler.getAddressFromName(s1);
               except
-                raise exception.Create('Invalid address for ReadMem');
+                raise exception.Create(rsInvalidAddressForReadMem);
               end;
 
               try
                 a:=strtoint(s2);
               except
-                raise exception.Create('Invalid size for ReadMem');
+                raise exception.Create(rsInvalidSizeForReadMem);
               end;
 
               if a=0 then
-                raise exception.Create('Invalid size for ReadMem');
+                raise exception.Create(rsInvalidSizeForReadMem);
 
 
               getmem(bytebuf,a);
               try
                 if (not ReadProcessMemory(processhandle, pointer(testptr),bytebuf,a,x)) or (x<a) then
-                  raise exception.Create('The memory at '+s1+' could not be fully read');
+                  raise exception.Create(Format(rsTheMemoryAtCouldNotBeFullyRead, [s1]));
 
                 //still here so everything ok
                 setlength(assemblerlines,length(assemblerlines)-1);
@@ -686,7 +737,7 @@ begin
 
 
 
-            end else raise exception.Create('Wrong syntax. ReadMem(address,size)');
+            end else raise exception.Create(rsWrongSyntaxReadMemAddressSize);
 
             continue;
           end;
@@ -702,7 +753,7 @@ begin
               s1:=trim(copy(currentline,a+1,b-a-1));
               s2:=trim(copy(currentline,b+1,c-b-1));
 
-              if not fileexists(s2) then raise exception.Create('The file '+s2+' does not exist');
+              if not fileexists(s2) then raise exception.Create(Format(rsTheFileDoesNotExist, [s2]));
 
               setlength(loadbinary,length(loadbinary)+1);
               loadbinary[length(loadbinary)-1].address:=s1;
@@ -710,7 +761,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
-            end else raise exception.Create('Wrong syntax. LoadBinary(address,filename)');
+            end else raise exception.Create(rsWrongSyntaxLoadBinaryAddressFilename);
           end;
 
           if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
@@ -729,7 +780,7 @@ begin
               if registeredsymbols<>nil then
                 registeredsymbols.Add(s1);
             end
-            else raise exception.Create('Syntax error');
+            else raise exception.Create(rsSyntaxError);
 
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
@@ -748,7 +799,7 @@ begin
               setlength(deletesymbollist,length(deletesymbollist)+1);
               deletesymbollist[length(deletesymbollist)-1]:=s1;
             end
-            else raise exception.Create('Syntax error');
+            else raise exception.Create(rsSyntaxError);
 
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
@@ -776,12 +827,12 @@ begin
               begin
                 testPtr:=findaob(s2);
                 if (testPtr=0) then
-                  raise exception.Create('The array of byte '''+s2+''' could not be found');
+                  raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s2]));
               end;
 
               currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
               //NO CONTINUE LINE HERE
-            end else raise exception.Create('Wrong syntax. AOBSCAN(name,11 22 33 ** 55)');
+            end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
           end;
 
           //define
@@ -799,7 +850,7 @@ begin
 
               for j:=0 to length(defines)-1 do
                 if uppercase(defines[j].name)=uppercase(s1) then
-                  raise exception.Create('Define '+s1+' already defined');
+                  raise exception.Create(Format(rsDefineAlreadyDefined, [s1]));
 
               setlength(defines,length(defines)+1);
               defines[length(defines)-1].name:=s1;
@@ -807,7 +858,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
-            end else raise exception.Create('Wrong syntax. DEFINE(name,whatever)');
+            end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever);
           end;
 
           if uppercase(copy(currentline,1,11))='FULLACCESS(' then
@@ -824,7 +875,7 @@ begin
               setlength(fullaccess,length(fullaccess)+1);
               fullaccess[length(fullaccess)-1].address:=symhandler.getAddressFromName(s1);
               fullaccess[length(fullaccess)-1].size:=strtoint(s2);
-            end else raise exception.Create('Syntax error. FullAccess(address,size)');
+            end else raise exception.Create(rsSyntaxErrorFullAccessAddressSize);
 
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
@@ -844,14 +895,14 @@ begin
 
 
               val('$'+s1,j,a);
-              if a=0 then raise exception.Create(s1+' is not a valid identifier');
+              if a=0 then raise exception.Create(Format(rsIsNotAValidIdentifier, [s1]));
 
               varsize:=length(s1);
 
               while (j<length(labels)) and (length(labels[j].labelname)>varsize) do
               begin
                 if labels[j].labelname=s1 then
-                  raise exception.Create(s1+' is being redeclared');
+                  raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
                 inc(j);
               end;
 
@@ -864,11 +915,11 @@ begin
               for j:=0 to code.Count-1 do
                 if trim(code[j])=s1+':' then
                 begin
-                  if ok1 then raise exception.Create('label '+s1+' is being defined more than once');
+                  if ok1 then raise exception.Create(Format(rsLabelIsBeingDefinedMoreThanOnce, [s1]));
                   ok1:=true;
                 end;
 
-              if not ok1 then raise exception.Create('label '+s1+' is not defined in the script');
+              if not ok1 then raise exception.Create(Format(rsLabelIsNotDefinedInTheScript, [s1]));
 
 
               //still here so ok
@@ -885,7 +936,7 @@ begin
               setlength(labels[l].references2,0);
 
               continue;
-            end else raise exception.Create('Syntax Error');
+            end else raise exception.Create(rsSyntaxError);
           end;
 
           if (uppercase(copy(currentline,1,8))='DEALLOC(') then
@@ -947,7 +998,7 @@ begin
               end;
 
               val('$'+s1,j,a);
-              if a=0 then raise exception.Create(s1+' is not a valid identifier');
+              if a=0 then raise exception.Create(Format(rsIsNotAValidIdentifier, [s1]));
 
               varsize:=length(s1);
 
@@ -956,7 +1007,7 @@ begin
               while (j<length(allocs)) and (length(allocs[j].varname)>varsize) do
               begin
                 if allocs[j].varname=s1 then
-                  raise exception.Create('The identifier '+s1+' has already been declared');
+                  raise exception.Create(Format(rsTheIdentifierHasAlreadyBeenDeclared, [s1]));
 
                 inc(j);
               end;
@@ -983,7 +1034,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
-            end else raise exception.Create('Wrong syntax. ALLOC(identifier,sizeinbytes)');
+            end else raise exception.Create(rsWrongSyntaxALLOCIdentifierSizeinbytes);
           end;
 
 
@@ -1003,10 +1054,10 @@ begin
           //memory kalloc
           if uppercase(copy(currentline,1,7))='KALLOC(' then
           begin
-            if not DBKReadWrite then raise exception.Create('You need to use kernelmode read/writeprocessmemory if you want to use KALLOC');
+            if not DBKReadWrite then raise exception.Create(rsNeedToUseKernelmodeReadWriteprocessmemory);
 
             if DBKLoaded=false then
-              raise exception.Create('Sorry, but without the driver KALLOC will not function');
+              raise exception.Create(rsSorryButWithoutTheDriverKALLOCWillNotFunction);
 
             //syntax: kalloc(x,size)    x=variable name size=bytes
             //kallocate memory
@@ -1020,7 +1071,7 @@ begin
               s2:=trim(copy(currentline,b+1,c-b-1));
 
               val('$'+s1,j,a);
-              if a=0 then raise exception.Create(s1+' is not a valid identifier');
+              if a=0 then raise exception.Create(Format(rsIsNotAValidIdentifier, [s1]));
 
               varsize:=length(s1);
 
@@ -1029,7 +1080,7 @@ begin
               while (j<length(kallocs)) and (length(kallocs[j].varname)>varsize) do
               begin
                 if kallocs[j].varname=s1 then
-                  raise exception.Create('The identifier '+s1+' has already been declared');
+                  raise exception.Create(Format(rsTheIdentifierHasAlreadyBeenDeclared, [s1]));
 
                 inc(j);
               end;
@@ -1048,7 +1099,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
-            end else raise exception.Create('Wrong syntax. kalloc(identifier,sizeinbytes)');
+            end else raise exception.Create(rsWrongSyntaxKallocIdentifierSizeinbytes);
           end;
 
           {$endif}
@@ -1093,7 +1144,7 @@ begin
 
               continue; //next line
             except
-              raise exception.Create('This address specifier is not valid');
+              raise exception.Create(rsThisAddressSpecifierIsNotValid);
             end;
           end;
 
@@ -1115,7 +1166,7 @@ begin
             //replace identifiers in the line with their address
             if not assemble(currentline,currentaddress,assembled[0].bytes) then raise exception.Create('bla');
           except
-            raise exception.Create('This instruction can''t be compiled');
+            raise exception.Create(rsThisInstructionCanTBeCompiled);
           end;
 
         finally
@@ -1124,7 +1175,7 @@ begin
 
       except
         on E:exception do
-          raise exception.Create('Error in line '+IntToStr(currentlinenr)+' ('+currentline+')'+' :'+e.Message);
+          raise exception.Create(Format(rsErrorInLine, [IntToStr(currentlinenr), currentline, e.Message]));
 
       end;
     end;
@@ -1151,7 +1202,7 @@ begin
             end;
 
 
-        if not ok1 then raise exception.Create(addsymbollist[i]+' was supposed to be added to the symbollist, but it isn''t declared');
+        if not ok1 then raise exception.Create(Format(rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar, [addsymbollist[i]]));
       end;
     end;
 
@@ -1205,7 +1256,7 @@ begin
               break;
             end;
 
-        if not ok1 then raise exception.Create('The address in createthread('+createthread[i]+') is not valid');
+        if not ok1 then raise exception.Create(Format(rsTheAddressInCreatethreadIsNotValid, [createthread[i]]));
 
       end;
 
@@ -1258,7 +1309,7 @@ begin
               break;
             end;
 
-        if not ok1 then raise exception.Create('The address in loadbinary('+loadbinary[i].address+','+loadbinary[i].filename+') is not valid');
+        if not ok1 then raise exception.Create(Format(rsTheAddressInLoadbinaryIsNotValid, [loadbinary[i].address, loadbinary[i].filename]));
 
       end;
 
@@ -1269,7 +1320,7 @@ begin
       exit;
     end;
 
-    if popupmessages and (messagedlg('This code can be injected. Are you sure?',mtConfirmation	,[mbyes,mbno],0)<>mryes) then exit;
+    if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation	, [mbyes, mbno], 0)<>mryes) then exit;
 
     //allocate the memory
 
@@ -1300,7 +1351,7 @@ begin
               begin
                 //try allocating untill a memory region has been found (e.g due to quick allocating by the game)
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
-                if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 1');
+                if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 1');
 
                 dec(k);
               end;
@@ -1308,7 +1359,7 @@ begin
               if allocs[j].address=0 then
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
 
-              if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 2');
+              if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 2');
 
               //adjust the addresses of entries that are part of this block
               for k:=j+1 to i-1 do
@@ -1341,14 +1392,14 @@ begin
 
 
           allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
-          if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 3');
+          if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 3');
           dec(k);
         end;
 
         if allocs[j].address=0 then
           allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
 
-        if allocs[j].address=0 then OutputDebugString('Failure to allocate memory 4');
+        if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 4');
 
         for i:=j+1 to length(allocs)-1 do
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
@@ -1483,7 +1534,7 @@ begin
           currentaddress:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
           continue; //next line
         except
-          raise exception.Create('This address specifier is not valid');
+          raise exception.Create(rsThisAddressSpecifierIsNotValid);
         end;
       end;
 
@@ -1583,7 +1634,7 @@ begin
 
     if not ok2 then
     begin
-      if popupmessages then showmessage('Not all instructions could be injected')
+      if popupmessages then showmessage(rsNotAllInstructionsCouldBeInjected)
     end
     else
     begin
@@ -1726,12 +1777,12 @@ begin
 
         if length(kallocs)>0 then
         begin
-          s1:=#13#10+'The following kernel addresses where allocated:';
+          s1:=#13#10+rsTheFollowingKernelAddressesWhereAllocated+':';
           for i:=0 to length(kallocs)-1 do
             s1:=s1+#13#10+kallocs[i].varname+'='+IntToHex(kallocs[i].address,8);
         end;
 
-        showmessage('The code injection was successfull'+s1);
+        showmessage(rsTheCodeInjectionWasSuccessfull+s1);
       end;
     end;
 
@@ -1912,13 +1963,13 @@ begin
   if enablepos=-2 then
   begin
     if not popupmessages then exit;
-    raise exception.Create('You can only have one enable section');
+    raise exception.Create(rsYouCanOnlyHaveOneEnableSection);
   end;
 
   if disablepos=-2 then
   begin
     if not popupmessages then exit;
-    raise exception.Create('You can only have one disable section');
+    raise exception.Create(rsYouCanOnlyHaveOneDisableSection);
   end;
 
   tempstrings:=tstringlist.create;
@@ -1933,14 +1984,14 @@ begin
       if (enablepos=-1) then
       begin
         if not popupmessages then exit;
-        raise exception.Create('You havn''t specified a enable section');
+        raise exception.Create(rsYouHavnTSpecifiedAEnableSection);
 
       end;
 
       if (disablepos=-1) then
       begin
         if not popupmessages then exit;
-        raise exception.Create('You havn''t specified a disable section');
+        raise exception.Create(rsYouHavnTSpecifiedADisableSection);
         
       end;
 

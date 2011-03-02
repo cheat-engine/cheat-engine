@@ -687,9 +687,9 @@ begin
     btnAddToCodeList.enabled:=false;
     btnExtraInfo.Enabled:=false;
     if foundcodelist.Items.Count=0 then
-      description.caption:='Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code that change the watched address.'
+      description.caption:=rsUseTheGameApplicationForAWhile
     else
-      description.caption:='Select an item from the list for a small description';
+      description.caption:=rsSelectAnItemFromTheListForASmallDescription;
 
 
   end;

@@ -55,6 +55,12 @@ uses frmCapturedTimersUnit;
 //uses frmCapturedTimersUnit;
 
 
+resourcestring
+  rsInvis = 'Invis';
+  rsRemoved = 'Removed';
+  rsDissectWindows = 'Dissect Windows';
+  rsGiveTheNewTextForThisWindow = 'Give the new text for this window';
+
 
 procedure TfrmdissectWindow.FormClose(Sender: TObject;
   var Action: TCloseAction);
@@ -95,7 +101,7 @@ begin
       if iswindowvisible(winhandle) then
         treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
       else
-        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+') (Invis)');
+        treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
 
 
     winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -124,7 +130,7 @@ begin
         if iswindowvisible(winhandle) then
           treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
         else
-          treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+') (Invis)');
+          treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
 
 
         winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -173,7 +179,7 @@ begin
       if iswindowvisible(h) then
         treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
       else
-        treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
+        treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
 
     except
     end;
@@ -235,7 +241,7 @@ procedure TfrmdissectWindow.Button4Click(Sender: TObject);
   TimerhookdataMapping:thandle;  }
 
 begin
-  raise exception.Create('Removed');
+  raise exception.Create(rsRemoved);
   {
   raise exception.Create('I said Removed dickwad');
 
@@ -320,7 +326,7 @@ begin
       oldname[254]:=#0; //make sure
       name:=oldname;
 
-      if inputquery('Dissect Windows','Give the new text for this window',name) then
+      if inputquery(rsDissectWindows, rsGiveTheNewTextForThisWindow, name) then
       begin
         SetWindowText(h,pchar(name));
 
@@ -337,7 +343,7 @@ begin
           if iswindowvisible(h) then
             treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
           else
-            treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+') (Invis)';
+            treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
         finally
           freemem(title);
           freemem(classname);

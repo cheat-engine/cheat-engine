@@ -48,6 +48,9 @@ implementation
 
 { TfrmLuaEngine }
 
+resourcestring
+  rsError = 'error';
+
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
 begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
@@ -99,12 +102,12 @@ begin
       begin
         pc:=lua_tolstring(luavm, -1,nil);
         if pc<>nil then
-          mOutput.lines.add('error:'+pc)
+          mOutput.lines.add(rsError+':'+pc)
         else
-          moutput.lines.add('error:'+'nil');
+          moutput.lines.add(rsError+':'+'nil');
 
         lua_pop(luavm, i);
-      end else moutput.lines.add('error');
+      end else moutput.lines.add(rsError);
 
     end;
   finally

@@ -9,6 +9,7 @@ object frmDissectCode: TfrmDissectCode
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.31'

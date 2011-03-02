@@ -99,6 +99,12 @@ type
 
 implementation
 
+resourcestring
+  rsPointerValueSetupError = 'Pointer value setup error';
+  rsNoMemoryFoundInTheSpecifiedRegion = 'No memory found in the specified '
+    +'region';
+  rsAllocatingBytesToBuffer = 'Allocating %s bytes to ''buffer''';
+  rsNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
 
 type TMemoryRegion2 = record
   Address: ptrUint;
@@ -573,7 +579,7 @@ begin
   lastPointerValue:=current;
 
   if lastPointerValue=nil then
-    raise exception.create('Pointer value setup error');
+    raise exception.create(rsPointerValueSetupError);
 end;
 
 constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean);
@@ -679,7 +685,7 @@ begin
   if length(memoryregion)=0 then
   begin
     OutputDebugString('No memory found in the specified region');
-    raise exception.create('No memory found in the specified region');
+    raise exception.create(rsNoMemoryFoundInTheSpecifiedRegion);
   end;
 
   //lets search really at the start of the location the user specified
@@ -753,14 +759,14 @@ begin
   for i:=0 to length(memoryregion)-1 do
     maxsize:=max(maxsize, memoryregion[i].MemorySize);
 
-  outputdebugstring('Allocating '+inttostr(maxsize)+' bytes to ''buffer''');
+  outputdebugstring(Format(rsAllocatingBytesToBuffer, [inttostr(maxsize)]));
 
   buffer:=nil;
   try
     getmem(buffer,maxsize);
   except
     outputdebugstring('Not enough memory free to scan');
-    raise exception.Create('Not enough memory free to scan');
+    raise exception.Create(rsNotEnoughMemoryFreeToScan);
   end;
 
   try
