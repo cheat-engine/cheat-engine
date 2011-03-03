@@ -17,12 +17,12 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1236"/>
+      <BuildNr Value="1245"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
     </VersionInfo>
-    <BuildModes Count="3" Active="release">
+    <BuildModes Count="3" Active="debug-nomt">
       <Item1 Name="release" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -154,15 +154,18 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="233">
+    <Units Count="235">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="98"/>
-        <CursorPos X="40" Y="105"/>
+        <TopLine Value="101"/>
+        <CursorPos X="1" Y="128"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -183,7 +186,6 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="505"/>
@@ -200,10 +202,12 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="14" Y="9"/>
+        <TopLine Value="1001"/>
+        <CursorPos X="1" Y="1015"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
@@ -282,10 +286,12 @@
         <Filename Value="CEDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEDebugger"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="113"/>
+        <TopLine Value="4"/>
         <CursorPos X="64" Y="126"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
       <Unit12>
@@ -1472,10 +1478,15 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="31"/>
-        <CursorPos X="54" Y="44"/>
+        <TopLine Value="637"/>
+        <CursorPos X="37" Y="695"/>
         <UsageCount Value="209"/>
+        <Bookmarks Count="1">
+          <Item0 X="14" Y="697" ID="8"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit115>
       <Unit116>
@@ -1492,10 +1503,12 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1729"/>
-        <CursorPos X="115" Y="1736"/>
+        <TopLine Value="1"/>
+        <CursorPos X="9" Y="11"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit117>
       <Unit118>
@@ -1607,10 +1620,12 @@
         <Filename Value="VEHDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugger"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="33"/>
-        <CursorPos X="1" Y="48"/>
+        <TopLine Value="267"/>
+        <CursorPos X="41" Y="277"/>
         <UsageCount Value="205"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit128>
       <Unit129>
@@ -1637,20 +1652,24 @@
         <Filename Value="WindowsDebugger.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="WindowsDebugger"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="22"/>
-        <CursorPos X="9" Y="35"/>
+        <CursorPos X="10" Y="35"/>
         <UsageCount Value="265"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit131>
       <Unit132>
         <Filename Value="DebuggerInterfaceAPIWrapper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="9"/>
-        <CursorPos X="1" Y="26"/>
+        <CursorPos X="1" Y="25"/>
         <UsageCount Value="265"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit132>
       <Unit133>
@@ -1887,10 +1906,12 @@
       </Unit154>
       <Unit155>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1177"/>
-        <CursorPos X="5" Y="1193"/>
-        <UsageCount Value="50"/>
+        <TopLine Value="328"/>
+        <CursorPos X="6" Y="342"/>
+        <UsageCount Value="51"/>
+        <Loaded Value="True"/>
       </Unit155>
       <Unit156>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\base.inc"/>
@@ -2039,10 +2060,12 @@
       <Unit173>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="672"/>
+        <TopLine Value="671"/>
         <CursorPos X="3" Y="687"/>
         <UsageCount Value="75"/>
+        <Loaded Value="True"/>
       </Unit173>
       <Unit174>
         <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
@@ -2520,127 +2543,147 @@
         <CursorPos X="1" Y="194"/>
         <UsageCount Value="12"/>
       </Unit232>
+      <Unit233>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwantstatus.pas"/>
+        <UnitName Value="jwantstatus"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="8621"/>
+        <CursorPos X="3" Y="8635"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit233>
+      <Unit234>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwanative.pas"/>
+        <UnitName Value="jwanative"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="3582"/>
+        <CursorPos X="11" Y="3596"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit234>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5599" Column="38" TopLine="5584"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="680" Column="38" TopLine="662"/>
       </Position1>
       <Position2>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5618" Column="45" TopLine="5599"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="31" TopLine="662"/>
       </Position2>
       <Position3>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5799" Column="32" TopLine="5783"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="105" Column="40" TopLine="98"/>
       </Position3>
       <Position4>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5835" Column="32" TopLine="5822"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="676" Column="38" TopLine="669"/>
       </Position4>
       <Position5>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5839" Column="26" TopLine="5822"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="680" Column="41" TopLine="669"/>
       </Position5>
       <Position6>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5857" Column="46" TopLine="5842"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position6>
       <Position7>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5893" Column="24" TopLine="5883"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="690" Column="1" TopLine="667"/>
       </Position7>
       <Position8>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5907" Column="49" TopLine="5889"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position8>
       <Position9>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5915" Column="49" TopLine="5894"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="690" Column="1" TopLine="670"/>
       </Position9>
       <Position10>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="5948" Column="49" TopLine="5927"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position10>
       <Position11>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6006" Column="33" TopLine="5991"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="674" Column="1" TopLine="667"/>
       </Position11>
       <Position12>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6056" Column="33" TopLine="6041"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="680" Column="1" TopLine="667"/>
       </Position12>
       <Position13>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6068" Column="27" TopLine="6051"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="674" Column="49" TopLine="667"/>
       </Position13>
       <Position14>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6109" Column="42" TopLine="6095"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position14>
       <Position15>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6221" Column="25" TopLine="6204"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="674" Column="1" TopLine="667"/>
       </Position15>
       <Position16>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6238" Column="26" TopLine="6220"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="676" Column="1" TopLine="667"/>
       </Position16>
       <Position17>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6253" Column="30" TopLine="6235"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="682" Column="1" TopLine="667"/>
       </Position17>
       <Position18>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6317" Column="30" TopLine="6299"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position18>
       <Position19>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6329" Column="32" TopLine="6309"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="674" Column="1" TopLine="667"/>
       </Position19>
       <Position20>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6350" Column="32" TopLine="6330"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="680" Column="1" TopLine="667"/>
       </Position20>
       <Position21>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6370" Column="32" TopLine="6350"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="682" Column="1" TopLine="667"/>
       </Position21>
       <Position22>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6457" Column="32" TopLine="6437"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="672" Column="1" TopLine="667"/>
       </Position22>
       <Position23>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6481" Column="32" TopLine="6461"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="674" Column="1" TopLine="667"/>
       </Position23>
       <Position24>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6545" Column="32" TopLine="6525"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="676" Column="1" TopLine="667"/>
       </Position24>
       <Position25>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6903" Column="72" TopLine="6889"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="682" Column="1" TopLine="667"/>
       </Position25>
       <Position26>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7009" Column="61" TopLine="7002"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="695" Column="14" TopLine="676"/>
       </Position26>
       <Position27>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7018" Column="56" TopLine="7002"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="552" Column="63" TopLine="541"/>
       </Position27>
       <Position28>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7057" Column="56" TopLine="7041"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="11" Column="9" TopLine="1"/>
       </Position28>
       <Position29>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7088" Column="38" TopLine="7077"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="700" Column="29" TopLine="685"/>
       </Position29>
       <Position30>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7114" Column="38" TopLine="7103"/>
+        <Filename Value="cheatengine.lpr"/>
+        <Caret Line="105" Column="40" TopLine="98"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -2696,7 +2739,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="13">
+    <BreakPoints Count="14">
       <Item1>
         <Source Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\objpas.pp"/>
         <Line Value="336"/>
@@ -2749,11 +2792,15 @@
         <Source Value="LuaHandler.pas"/>
         <Line Value="3654"/>
       </Item13>
+      <Item14>
+        <Source Value="VEHDebugger.pas"/>
+        <Line Value="275"/>
+      </Item14>
     </BreakPoints>
     <Watches Count="1">
       <Item1>
-        <Expression Value="result"/>
-        <DisplayStyle Value="wdfDecimal"/>
+        <Expression Value="context.eip"/>
+        <DisplayStyle Value="wdfHex"/>
       </Item1>
     </Watches>
     <Exceptions Count="4" IgnoreAll="True">

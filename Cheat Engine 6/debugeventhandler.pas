@@ -548,11 +548,7 @@ begin
     bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
 
-    if bpp.breakpointMethod=bpmInt3 then //if it's a software breakpoint adjust eip to go back by 1
-    begin
-      dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
-      setContext; //just to be sure
-    end;
+
 
     if (not active) or (not CheckIfConditionIsMet(bpp)) then
     begin
@@ -669,9 +665,10 @@ begin
 
 
   case debugEvent.Exception.ExceptionRecord.ExceptionCode of
-    EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT:
+    EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT: //SW bp
     begin
-      OutputDebugString('EXCEPTION_BREAKPOINT');
+      OutputDebugString('EXCEPTION_BREAKPOINT:'+inttohex(context.{$ifdef cpu64}rip{$else}eip{$endif},8));
+
 
       //if this is the first breakpoint exception check if it needs to tset the entry point bp
 
@@ -681,12 +678,29 @@ begin
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
       end;
 
-
-
-
-      Result := DispatchBreakpoint(context.{$ifdef cpu64}Rip-1{$else}eip-1{$endif}, dwContinueStatus);
-      context.dr6:=0;
+      //it's a software breakpoint adjust eip to go back by 1
+      dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
       setContext;
+
+
+      Result := DispatchBreakpoint(context.{$ifdef cpu64}Rip{$else}eip{$endif}, dwContinueStatus);
+
+      if dwContinueStatus=DBG_CONTINUE then
+      begin
+        context.dr6:=0; //handled
+        setContext;
+      end
+      else
+      begin
+        {todo: On int3 and windows debugger emulate the exception
+
+        if CurrentDebuggerInterface.name='Windows Debugger' then
+        begin
+          //emulate a call to the unhandled exception handler
+
+        end;
+        }
+      end;
     end;
 
     EXCEPTION_SINGLE_STEP, STATUS_WX86_SINGLE_STEP:
@@ -711,8 +725,11 @@ begin
       else
         Result := SingleStep(dwContinueStatus);
 
-      context.dr6:=0;
-      setContext;
+      if dwContinueStatus=DBG_CONTINUE then
+      begin
+        context.dr6:=0; //handled
+        setContext;
+      end;
     end;
 
     else

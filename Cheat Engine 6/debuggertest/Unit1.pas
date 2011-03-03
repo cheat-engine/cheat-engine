@@ -73,6 +73,27 @@ implementation
 
 {$R *.lfm}
 
+procedure exc(E: Exception);
+var
+  I: Integer;
+  Frames: PPointerArray;
+  Report: string;
+begin
+  Report := 'Program exception! ' + LineEnding +
+    'Stacktrace:' + LineEnding + LineEnding;
+  if E <> nil then begin
+    Report := Report + 'Exception class: ' + E.ClassName + LineEnding +
+    'Message: ' + E.Message + LineEnding;
+  end;
+  Report := Report + BackTraceStrFunc(ExceptAddr);
+  Frames := PPointerArray(ExceptFrames);
+  for I := 0 to ExceptFrameCount - 1 do
+    Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
+
+  ShowMessage(Report);
+
+end;
+
 function generateIntegrityValue: dword;
 var
   size: dword;
@@ -193,7 +214,7 @@ begin
   end;
 {$else}
   asm
-    mov eax,xxx
+    lea eax,xxx
     mov _dr0,eax
   end;
 {$endif}
@@ -245,15 +266,17 @@ XXX:
       mov x,ebp
       mov y,esp      
     end;
-    ShowMessage('Normal exit. Looks like the interrupt was handled(Which under normal situations should not happen). EBP='+inttohex(x,8)+' ESP='+inttohex(y,8)+' EAX='+inttohex(z,8));
+    ShowMessage('BAAAAAD Normal exit. Looks like the interrupt was handled(Which under normal situations should not happen). EBP='+inttohex(x,8)+' ESP='+inttohex(y,8)+' EAX='+inttohex(z,8));
     exit;
   except
-  {  on e:exception do
+    on e:exception do
     begin
 
-      showmessage('breakpoint caused exception. As expected. Message:'+e.message);
+      exc(e);
 
-    end; }
+      //showmessage('breakpoint caused exception. As expected. Message:'+e.message+' '+inttohex(ptruint(ExceptionObject.Addr),8));
+
+    end;
   end;
 end;
 
@@ -273,7 +296,9 @@ try
 
   showmessage('fuck');
 except
-  showmessage('correct');
+  on e:exception do
+    exc(e);
+  //showmessage('correct');
 end;
 end;
 
