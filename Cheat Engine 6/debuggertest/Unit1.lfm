@@ -12,7 +12,7 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 118
     Height = 17
@@ -165,5 +165,14 @@ object Form1: TForm1
     Caption = 'Create thread longterm'
     OnClick = Button9Click
     TabOrder = 8
+  end
+  object Button10: TButton
+    Left = 616
+    Height = 25
+    Top = 88
+    Width = 75
+    Caption = 'Button10'
+    OnClick = Button10Click
+    TabOrder = 9
   end
 end

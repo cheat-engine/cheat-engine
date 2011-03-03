@@ -19,8 +19,12 @@ type TChangeHealthThread=class(tthread)
 end;
 
 type
+
+  { TForm1 }
+
   TForm1 = class(TForm)
     Button1: TButton;
+    Button10: TButton;
     Button2: TButton;
     Label1: TLabel;
     Button3: TButton;
@@ -38,6 +42,7 @@ type
     Button7: TButton;
     Button8: TButton;
     Button9: TButton;
+    procedure Button10Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -56,6 +61,7 @@ type
     cht: TChangeHealthThread;
   public
     { Public declarations }
+    procedure ecx(Sender : TObject; E : Exception);
   end;
 
 var
@@ -182,7 +188,7 @@ label xxx;
 begin
 {$ifdef cpu64}
   asm
-    mov rax,xxx
+    lea rax,xxx
     mov _dr0,rax
   end;
 {$else}
@@ -242,13 +248,33 @@ XXX:
     ShowMessage('Normal exit. Looks like the interrupt was handled(Which under normal situations should not happen). EBP='+inttohex(x,8)+' ESP='+inttohex(y,8)+' EAX='+inttohex(z,8));
     exit;
   except
-    on e:exception do
+  {  on e:exception do
     begin
 
       showmessage('breakpoint caused exception. As expected. Message:'+e.message);
 
-    end;
+    end; }
   end;
+end;
+
+procedure TForm1.Button10Click(Sender: TObject);
+begin
+try
+  asm
+    nop
+    nop
+    nop
+    db $cc
+    nop
+    nop
+    nop
+
+  end;
+
+  showmessage('fuck');
+except
+  showmessage('correct');
+end;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -258,9 +284,14 @@ begin
 end;
 
 
+procedure TForm1.ecx(Sender : TObject; E : Exception);
+begin
+  showmessage('unexpected error');
+end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  application.OnException:=ecx;
   label1.caption:=format('%p : %d',[@health, health]);
   label2.caption:=format('%p',[@x]);
   button4.click;
