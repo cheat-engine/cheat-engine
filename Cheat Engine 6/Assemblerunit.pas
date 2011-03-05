@@ -2106,10 +2106,12 @@ var i,j,k,err,err2: integer;
     temp: string;
     haserror: boolean;
     f: double;
-
+    inQuote: boolean;
+    quotechar: char;
 begin
   if length(token)=0 then exit; //empty string
-  if token[1] in ['''','"'] then exit; //don't rewrite quotes
+
+
 
   setlength(tokens,0);
   result:=false;
@@ -2135,20 +2137,39 @@ begin
 
   temp:='';
   i:=1;
+  inquote:=false;
   while i<=length(token) do
   begin
-    if token[i] in ['[',']','+','-'] then
+    if token[i] in ['''', '"'] then
     begin
-      if temp<>'' then
+      if inQuote then
       begin
-        setlength(tokens,length(tokens)+1);
-        tokens[length(tokens)-1]:=temp;
-        temp:='';
+        if token[i]=quotechar then
+          inQuote:=false;
+      end
+      else
+      begin
+        //start of a quote
+        quotechar:=token[i];
+        inquote:=true;
       end;
-      setlength(tokens,length(tokens)+1);
-      tokens[length(tokens)-1]:=token[i];
-      inc(i);
-      continue;
+    end;
+
+    if not inquote then
+    begin
+      if token[i] in ['[',']','+','-'] then
+      begin
+        if temp<>'' then
+        begin
+          setlength(tokens,length(tokens)+1);
+          tokens[length(tokens)-1]:=temp;
+          temp:='';
+        end;
+        setlength(tokens,length(tokens)+1);
+        tokens[length(tokens)-1]:=token[i];
+        inc(i);
+        continue;
+      end;
     end;
     temp:=temp+token[i];
     inc(i);
@@ -2239,8 +2260,8 @@ var i,j,last: integer;
     spacecount: integer;
     seperatorcount: integer;
 
-    firstquote: boolean;
-    firstquotechar: char;
+    quoted: boolean;
+    quotechar: char;
 
     t: string;
     ispartial: boolean;
@@ -2251,170 +2272,146 @@ begin
     opcode:=copy(opcode,1,length(opcode)-1);
 
   last:=1;
-  firstquote:=false;
+  quoted:=false;
   for i:=1 to length(opcode) do
   begin
-    if (i=length(opcode)) or (opcode[i]=' ') or (opcode[i]=',') or (opcode[i]='''') or (opcode[i]='"') then
+
+    //check if this is a quote char
+    if (opcode[i]='''') or (opcode[i]='"') then
     begin
-      if not firstquote then
+      if quoted then //check if it's the end quote
       begin
-        setlength(tokens,length(tokens)+1);
-        if i=length(opcode) then
-          tokens[length(tokens)-1]:=copy(opcode,last,i-last+1)
-        else
-          tokens[length(tokens)-1]:=copy(opcode,last,i-last);
-
-
-        if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then //only uppercase if it's not kernel_
-        begin
-          if length(tokens[length(tokens)-1])>2 then
-          begin
-            if not (tokens[length(tokens)-1][1] in ['''', '"']) then //if not a quoted string then make it uppercase
-              tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
-          end
-          else
-            tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
-        end;
-
-
-        //6.1: Uptimized this lookup. Instead of a 18 compares a full string lookup on each token it now only compares up to 4 times
-        t:=tokens[length(tokens)-1];
-
-
-        isPartial:=false;
-        if length(t)>=3 then //3 characters is good enough to get the general idea, then do a string compare to verify
-        begin
-          case t[1] of
-            'B' : //Byte, BYTE PTR
-            begin
-              if (t[2]='Y') and (t[3]='T') then //could be BYTE
-                isPartial:=(t='BYTE') or (t='BYTE PTR');
-
-            end;
-
-            'D': //DQWORD, DWORD, DQWORD PTR, DWORD PTR
-            begin
-              case t[2] of
-                'Q' : //DQWORD or DQWORD PTR
-                begin
-                  if t[3]='W' then
-                    isPartial:=(t='DQWORD') or (t='DQWORD PTR');
-                end;
-
-                'W' : //DWORD or DWORD PTR
-                begin
-                  if t[3]='O' then
-                    isPartial:=(t='DWORD') or (t='DWORD PTR');
-                end;
-              end;
-            end;
-
-            'F' : //FAR
-            begin
-              if (t[2]='A') and (t[3]='R') then
-                isPartial:=(t='FAR');
-            end;
-
-            'L' : //LONG
-            begin
-              if (t[2]='O') and (t[3]='N') then
-                isPartial:=(t='LONG');
-            end;
-
-            'Q': //QWORD, QWORD PTR
-            begin
-              if (t[2]='W') and (t[3]='O') then //could be QWORD
-                isPartial:=(t='QWORD') or (t='QWORD PTR');
-            end;
-
-            'S' : //SHORT
-            begin
-              if (t[2]='H') and (t[3]='O') then
-                isPartial:=(t='SHORT');
-            end;
-
-            'T': //TBYTE, TWORD, TBYTE PTR, TWORD PTR,
-            begin
-              case t[2] of
-                'B' : //TBYTE or TBYTE PTR
-                begin
-                  if t[3]='Y' then
-                    isPartial:=(t='TBYTE') or (t='TBYTE PTR');
-                end;
-
-                'W' : //TWORD or TWORD PTR
-                begin
-                  if t[3]='O' then
-                    isPartial:=(t='TWORD') or (t='TWORD PTR');
-                end;
-              end;
-
-            end;
-
-            'W' : //WORD, WORD PTR
-            begin
-              if (t[2]='W') and (t[3]='O') then //could be WORD
-                isPartial:=(t='QWORD') or (t='QWORD PTR');
-            end;
-
-          end;
-        end;
-
-
-
-        {if (tokens[length(tokens)-1]='DQWORD')
-        or (tokens[length(tokens)-1]='TBYTE')
-        or (tokens[length(tokens)-1]='TWORD')
-        or (tokens[length(tokens)-1]='QWORD')
-        or (tokens[length(tokens)-1]='DWORD')
-        or (tokens[length(tokens)-1]='WORD')
-        or (tokens[length(tokens)-1]='BYTE')
-        or (tokens[length(tokens)-1]='DQWORD PTR')
-        or (tokens[length(tokens)-1]='TBYTE PTR')
-        or (tokens[length(tokens)-1]='TWORD PTR')
-        or (tokens[length(tokens)-1]='QWORD PTR')
-        or (tokens[length(tokens)-1]='DWORD PTR')
-        or (tokens[length(tokens)-1]='WORD PTR')
-        or (tokens[length(tokens)-1]='BYTE PTR')
-        or (tokens[length(tokens)-1]='SHORT')
-        or (tokens[length(tokens)-1]='LONG')
-        or (tokens[length(tokens)-1]='FAR')  }
-        if ispartial then
-        begin
-          setlength(tokens,length(tokens)-1)
-        end
-        else
-        begin
-          last:=i+1;
-
-          if (length(tokens)>1) then
-          begin
-            //Rewrite
-            rewrite(tokens[length(tokens)-1]);
-          end;
-        end;
-                  
-        if opcode[i] in ['''','"'] then
-        begin
-          firstquote:=true;
-          firstquotechar:=opcode[i];
-          dec(last); //include the quotechar
-        end;
+        if opcode[i]=quotechar then
+          quoted:=false;
       end
       else
       begin
-        //inside a quote and a token seperator was encountered
-        if opcode[i] = firstquotechar then //check if it is the string terminator
+        quoted:=true;
+        quotechar:=opcode[i];
+      end;
+    end;
+
+    //check if we encounter a token seperator. (space or , )
+    //but only check when it's not inside a quoted string
+    if (i=length(opcode)) or ((not quoted) and ((opcode[i]=' ') or (opcode[i]=',')))  then
+    begin
+
+
+      setlength(tokens,length(tokens)+1);
+      if i=length(opcode) then
+        tokens[length(tokens)-1]:=copy(opcode,last,i-last+1)
+      else
+        tokens[length(tokens)-1]:=copy(opcode,last,i-last);
+
+
+      if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then //only uppercase if it's not kernel_
+      begin
+        if length(tokens[length(tokens)-1])>2 then
         begin
-          firstquote:=false;
-          if i=length(opcode) then
+          if not (tokens[length(tokens)-1][1] in ['''', '"']) then //if not a quoted string then make it uppercase
+            tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+        end
+        else
+          tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
+      end;
+
+
+      //6.1: Optimized this lookup. Instead of a 18 compares a full string lookup on each token it now only compares up to 4 times
+      t:=tokens[length(tokens)-1];
+
+
+      isPartial:=false;
+      if length(t)>=3 then //3 characters is good enough to get the general idea, then do a string compare to verify
+      begin
+        case t[1] of
+          'B' : //Byte, BYTE PTR
           begin
-            //it's the last character, let's handle it here
-            tokens[length(tokens)-1]:=copy(opcode,last,i-last+1);
-            rewrite(tokens[length(tokens)-1]);
-          end
+            if (t[2]='Y') and (t[3]='T') then //could be BYTE
+              isPartial:=(t='BYTE') or (t='BYTE PTR');
+
+          end;
+
+          'D': //DQWORD, DWORD, DQWORD PTR, DWORD PTR
+          begin
+            case t[2] of
+              'Q' : //DQWORD or DQWORD PTR
+              begin
+                if t[3]='W' then
+                  isPartial:=(t='DQWORD') or (t='DQWORD PTR');
+              end;
+
+              'W' : //DWORD or DWORD PTR
+              begin
+                if t[3]='O' then
+                  isPartial:=(t='DWORD') or (t='DWORD PTR');
+              end;
+            end;
+          end;
+
+          'F' : //FAR
+          begin
+            if (t[2]='A') and (t[3]='R') then
+              isPartial:=(t='FAR');
+          end;
+
+          'L' : //LONG
+          begin
+            if (t[2]='O') and (t[3]='N') then
+              isPartial:=(t='LONG');
+          end;
+
+          'Q': //QWORD, QWORD PTR
+          begin
+            if (t[2]='W') and (t[3]='O') then //could be QWORD
+              isPartial:=(t='QWORD') or (t='QWORD PTR');
+          end;
+
+          'S' : //SHORT
+          begin
+            if (t[2]='H') and (t[3]='O') then
+              isPartial:=(t='SHORT');
+          end;
+
+          'T': //TBYTE, TWORD, TBYTE PTR, TWORD PTR,
+          begin
+            case t[2] of
+              'B' : //TBYTE or TBYTE PTR
+              begin
+                if t[3]='Y' then
+                  isPartial:=(t='TBYTE') or (t='TBYTE PTR');
+              end;
+
+              'W' : //TWORD or TWORD PTR
+              begin
+                if t[3]='O' then
+                  isPartial:=(t='TWORD') or (t='TWORD PTR');
+              end;
+            end;
+
+          end;
+
+          'W' : //WORD, WORD PTR
+          begin
+            if (t[2]='W') and (t[3]='O') then //could be WORD
+              isPartial:=(t='QWORD') or (t='QWORD PTR');
+          end;
+
         end;
-        
+      end;
+
+      if ispartial then
+      begin
+        setlength(tokens,length(tokens)-1)
+      end
+      else
+      begin
+        last:=i+1;
+
+        if (length(tokens)>1) then
+        begin
+          //Rewrite
+          rewrite(tokens[length(tokens)-1]);
+        end;
       end;
     end;
 
