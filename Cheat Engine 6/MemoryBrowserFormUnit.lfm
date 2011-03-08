@@ -892,6 +892,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49234
         OnClick = Referencedstrings1Click
       end
+      object MenuItem10: TMenuItem
+        Caption = 'All strings (not implemented)'
+        Visible = False
+        OnClick = MenuItem10Click
+      end
       object MemoryRegions1: TMenuItem
         Caption = 'Memory Regions'
         ShortCut = 16466

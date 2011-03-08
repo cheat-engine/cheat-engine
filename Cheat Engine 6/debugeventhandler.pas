@@ -678,7 +678,7 @@ begin
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
       end;
 
-      //it's a software breakpoint adjust eip to go back by 1
+      //it's a software breakpoint, adjust eip to go back by 1
       dec(context.{$ifdef cpu64}rip{$else}eip{$endif});
       setContext;
 

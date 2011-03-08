@@ -81,6 +81,8 @@ var i,j: integer;
     lw: longword;
     z: floatx80;
 
+    max: integer;
+
 begin
   if context=nil then exit;
 
@@ -170,7 +172,12 @@ begin
         end;
 
         {$ifdef cpu64}
-        for i:=0 to 15 do
+        if processhandler.is64bit then
+          max:=15
+        else
+          max:=7;
+
+        for i:=0 to max do
         begin
 
           p:=@context.FltSave.XmmRegisters[i];

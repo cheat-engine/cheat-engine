@@ -201,6 +201,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label8: TLabel
@@ -215,6 +216,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label9: TLabel
@@ -229,6 +231,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label11: TLabel
@@ -243,6 +246,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label12: TLabel
@@ -257,6 +261,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label13: TLabel
@@ -271,6 +276,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label14: TLabel
@@ -285,6 +291,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label15: TLabel
@@ -299,6 +306,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label16: TLabel
@@ -313,6 +321,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentColor = False
       ParentFont = False
       PopupMenu = pmEmpty
+      OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
     object Label18: TLabel

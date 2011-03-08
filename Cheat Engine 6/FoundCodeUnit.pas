@@ -350,6 +350,8 @@ begin
         r8label.caption:=' R8='+IntToHex(coderecord.context.r8,8);
         r8label.parent:=FormFoundCodeListExtra;
         r8label.OnMouseDown:=registerMouseDown;
+        r8label.OnDblClick:=RegisterDblClick;
+
 
         r9label:=tlabel.Create(FormFoundCodeListExtra);
         r9label.font:=label9.font;
@@ -358,6 +360,7 @@ begin
         r9label.caption:=' R9='+IntToHex(coderecord.context.r9,8);
         r9label.parent:=FormFoundCodeListExtra;
         r9label.OnMouseDown:=registerMouseDown;
+        r9label.OnDblClick:=RegisterDblClick;
 
         r10label:=tlabel.Create(FormFoundCodeListExtra);
         r10label.font:=label9.font;
@@ -366,6 +369,7 @@ begin
         r10label.caption:='R10='+IntToHex(coderecord.context.r10,8);
         r10label.parent:=FormFoundCodeListExtra;
         r10label.OnMouseDown:=registerMouseDown;
+        r10label.OnDblClick:=RegisterDblClick;
 
         r11label:=tlabel.Create(FormFoundCodeListExtra);
         r11label.font:=label9.font;
@@ -374,6 +378,7 @@ begin
         r11label.caption:='R11='+IntToHex(coderecord.context.r11,8);
         r11label.parent:=FormFoundCodeListExtra;
         r11label.OnMouseDown:=registerMouseDown;
+        r11label.OnDblClick:=RegisterDblClick;
 
         r12label:=tlabel.Create(FormFoundCodeListExtra);
         r12label.font:=label9.font;
@@ -382,6 +387,7 @@ begin
         r12label.caption:='R12='+IntToHex(coderecord.context.r12,8);
         r12label.parent:=FormFoundCodeListExtra;
         r12label.OnMouseDown:=registerMouseDown;
+        r12label.OnDblClick:=RegisterDblClick;
 
         r13label:=tlabel.Create(FormFoundCodeListExtra);
         r13label.font:=label9.font;
@@ -390,6 +396,7 @@ begin
         r13label.caption:='R13='+IntToHex(coderecord.context.r13,8);
         r13label.parent:=FormFoundCodeListExtra;
         r13label.OnMouseDown:=registerMouseDown;
+        r13label.OnDblClick:=RegisterDblClick;
 
         r14label:=tlabel.Create(FormFoundCodeListExtra);
         r14label.font:=label9.font;
@@ -398,6 +405,7 @@ begin
         r14label.caption:='R14='+IntToHex(coderecord.context.r14,8);
         r14label.parent:=FormFoundCodeListExtra;
         r14label.OnMouseDown:=registerMouseDown;
+        r14label.OnDblClick:=RegisterDblClick;
 
         r15label:=tlabel.Create(FormFoundCodeListExtra);
         r15label.font:=label9.font;
@@ -406,6 +414,7 @@ begin
         r15label.caption:='R15='+IntToHex(coderecord.context.r15,8);
         r15label.parent:=FormFoundCodeListExtra;
         r15label.OnMouseDown:=registerMouseDown;
+        r15label.OnDblClick:=RegisterDblClick;
 
 
         height:=height+(r15label.top+r15label.height)-(label14.top+label14.height);

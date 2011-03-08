@@ -52,6 +52,7 @@ type
     procedure Copyguesstoclipboard1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure RegisterDblClick(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Panel6Resize(Sender: TObject);
@@ -77,6 +78,8 @@ var
   FormFoundCodeListExtra: TFormFoundCodeListExtra;
 
 implementation
+
+uses MemoryBrowserFormUnit;
 
 resourcestring
   rsTheValueOfThePointerNeededToFindThisAddressIsProba = 'The value of the '
@@ -160,6 +163,25 @@ begin
     fpp.Free;
 
   saveformposition(self,[]);
+end;
+
+procedure TFormFoundCodeListExtra.RegisterDblClick(Sender: TObject);
+var s: string;
+i: integer;
+begin
+  if (sender is TLabel) then
+  begin
+    s:=tlabel(sender).Caption;
+    i:=pos('=',s);
+    if i>0 then //should always be true
+    begin
+      s:=copy(s,i+1,length(s));
+
+      memorybrowser.hexview.address:=strtoint('$'+s);
+      memorybrowser.show;
+    end;
+  end;
+
 end;
 
 

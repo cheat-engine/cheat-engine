@@ -84,13 +84,11 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         Font.Color = clBlack
         Font.Height = -13
         Font.Name = 'Courier'
-        Lines.Strings = (
-          'Memo1'
-        )
         ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth
         TabOrder = 1
+        WordWrap = False
       end
     end
   end

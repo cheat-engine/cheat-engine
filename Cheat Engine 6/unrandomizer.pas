@@ -4,7 +4,8 @@ unit unrandomizer;
 
 interface
 
-uses windows, CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,NewKernelHandler;
+uses windows, CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,NewKernelHandler,
+  MemFuncs;
 
 type Tunrandomize=class(tthread)
 private

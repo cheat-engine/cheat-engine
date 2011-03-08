@@ -180,7 +180,7 @@ procedure SetLanguage;
 
 procedure DetachIfPossible;
 
-procedure getexecutablememoryregionsfromregion(start: ptrUint; stop:ptrUint; var memoryregions: TMemoryRegions);
+
 
 
 const
@@ -867,29 +867,7 @@ begin
   result:=copy(result,1,length(result)-1);
 end;
 
-procedure getexecutablememoryregionsfromregion(start: ptrUint; stop:ptrUint; var memoryregions: tmemoryregions);
-var address: ptrUint;
-    mbi: memory_basic_information;
-begin
-  setlength(memoryregions,0);
-  address:=start;
-  while (address<stop) and (VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
-  begin
-    if ((mbi.AllocationProtect and PAGE_EXECUTE)=PAGE_EXECUTE) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY) then
-    begin
-      //executable
-      setlength(memoryregions,length(memoryregions)+1);
-      memoryregions[length(memoryregions)-1].BaseAddress:=ptrUint(mbi.baseaddress);
-      memoryregions[length(memoryregions)-1].MemorySize:=mbi.RegionSize;
-    end;
 
-    inc(address,mbi.RegionSize);
-  end;
-
-end;
 
 
 {$ifndef standalonetrainer}

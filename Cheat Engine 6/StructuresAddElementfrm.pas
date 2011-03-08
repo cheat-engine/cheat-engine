@@ -9,6 +9,9 @@ uses
   Dialogs, StdCtrls, LResources;
 
 type
+
+  { TfrmStructuresAddElement }
+
   TfrmStructuresAddElement = class(TForm)
     cbType: TComboBox;
     cbPointerto: TCheckBox;
@@ -20,6 +23,7 @@ type
     Label2: TLabel;
     edtOffset: TEdit;
     Label3: TLabel;
+    procedure Button1Click(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
     procedure edtByteSizeChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
@@ -54,10 +58,20 @@ begin
   end;
 end;
 
+procedure TfrmStructuresAddElement.Button1Click(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmStructuresAddElement.edtByteSizeChange(Sender: TObject);
 begin
-  bytesize:=strtoint(edtbytesize.text);
-  cbtype.Items.Objects[cbtype.itemindex]:=pointer(ptrint(bytesize));
+  try
+    bytesize:=strtoint(edtbytesize.text);
+
+    if bytesize>0 then
+      cbtype.Items.Objects[cbtype.itemindex]:=pointer(ptrint(bytesize));
+  except
+  end;
 end;
 
 procedure TfrmStructuresAddElement.edtOffsetChange(Sender: TObject);

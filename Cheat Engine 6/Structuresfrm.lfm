@@ -25,6 +25,7 @@ object frmStructures: TfrmStructures
     ClientHeight = 37
     ClientWidth = 649
     TabOrder = 0
+    OnClick = Panel1Click
     object edtAddress: TEdit
       Left = 5
       Height = 21
@@ -148,8 +149,9 @@ object frmStructures: TfrmStructures
       end
     end
     object Commands1: TMenuItem
-      Caption = 'Commands'
+      Caption = 'Options'
       Enabled = False
+      OnClick = Commands1Click
       object Renamestructure1: TMenuItem
         Caption = 'Rename structure'
         OnClick = Renamestructure1Click
@@ -161,6 +163,23 @@ object frmStructures: TfrmStructures
       object Autoguessoffsets1: TMenuItem
         Caption = 'Automatically guess offset types'
         OnClick = Autoguessoffsets1Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
+      object miSaveToCT: TMenuItem
+        AutoCheck = True
+        Caption = 'Save this structure in CT'
+        Checked = True
+        OnClick = miSaveToCTClick
+      end
+      object miAutoCreate: TMenuItem
+        AutoCheck = True
+        Caption = 'Autocreate structures from undefined pointer types'
+        Checked = True
+      end
+      object miAutostructsize: TMenuItem
+        Caption = 'Autocreate structure size:'
       end
     end
   end

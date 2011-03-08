@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,CEFuncProc,
-  symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler;
+  symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler, MemFuncs;
 
 type tmoduledata =class
   public

@@ -22,6 +22,7 @@ type
   TMemoryBrowser = class(TForm)
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
     miDisassembly64: TMenuItem;
@@ -209,6 +210,7 @@ type
     stacktrace2: TMenuItem;
     Executetillreturn1: TMenuItem;
     procedure memorypopupPopup(Sender: TObject);
+    procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -517,7 +519,8 @@ uses Valuechange,
   frmPagingUnit,
   frmluaengineunit,
   disassemblerviewlinesunit,
-  frmBreakpointConditionunit
+  frmBreakpointConditionunit,
+  frmStringMapUnit
   ;
 
 
@@ -857,6 +860,14 @@ begin
     MenuItem8.visible:=false;
     miDeleteBP.visible:=false;
   end;
+end;
+
+procedure TMemoryBrowser.MenuItem10Click(Sender: TObject);
+begin
+  if frmStringMap=nil then
+    frmStringMap:=TfrmStringMap.Create(nil);
+
+  frmStringMap.show;
 end;
 
 procedure TMemoryBrowser.MenuItem2Click(Sender: TObject);

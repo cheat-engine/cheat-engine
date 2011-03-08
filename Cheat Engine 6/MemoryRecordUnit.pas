@@ -7,7 +7,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler;
+  customtypehandler, fileutil, LCLProc;
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
@@ -58,6 +58,7 @@ type
     fID: integer;
     FrozenValue : string;
     CurrentValue: string;
+
     UnreadablePointer: boolean;
     BaseAddress: ptrUint;
     RealAddress: ptrUint;
@@ -107,8 +108,8 @@ type
     isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
 
-    Description : unicodestring;
-    interpretableaddress: unicodestring;
+    Description : string;
+    interpretableaddress: string;
 
 
     pointeroffsets: array of dword; //if set this is an pointer
@@ -364,11 +365,10 @@ begin
 
   tempnode:=CheatEntry.FindNode('Description');
   if tempnode<>nil then
-    Description:=tempnode.TextContent;
+    Description:=ansitoutf8(tempnode.TextContent);
 
-  description:=AnsiDequotedStr(description,'"');
-{  if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
-    description:=copy(description,2,length(description)-2);}
+  if (description<>'') and ((description[1]='"') and (description[length(description)]='"')) then
+    description:=copy(description,2,length(description)-2);
 
 
   tempnode:=CheatEntry.FindNode('Options');
@@ -628,6 +628,8 @@ var
   tn: TTreenode;
   i,j: integer;
   a:TDOMAttr;
+
+  s: ansistring;
 begin
   if selectedonly then
   begin
@@ -641,7 +643,11 @@ begin
   doc:=node.OwnerDocument;
   cheatEntry:=doc.CreateElement('CheatEntry');
   cheatEntry.AppendChild(doc.CreateElement('ID')).TextContent:=IntToStr(ID);
-  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:=AnsiQuotedStr(description,'"');
+
+
+
+  s:=utf8tosys(description);
+  cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='"'+s+'"';
 
   //save options
   //(moHideChildren, moBindActivation, moRecursiveSetValue);
@@ -1292,10 +1298,10 @@ begin
         if Extra.stringData.unicode then
         begin
           pba[bufsize-2]:=0;
-          result:=wc;
+          result:={ansitoutf8}(wc);
         end
         else
-          result:=c;
+          result:={ansitoutf8}(c);
       end;
 
       vtByteArray:
@@ -1354,6 +1360,7 @@ var
   temps: string;
 
   tempsw: widestring;
+  tempsa: ansistring;
 
   mr: TMemoryRecord;
 
@@ -1398,7 +1405,7 @@ begin
 
   realAddress:=GetRealAddress; //quick update
 
-  currentValue:=v;
+  currentValue:={utf8toansi}(v);
 
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
   begin
@@ -1485,6 +1492,7 @@ begin
 
 
         tempsw:=currentvalue;
+        tempsa:=currentvalue;
 
         //copy the string to the buffer
         for i:=0 to x-1 do
@@ -1495,7 +1503,7 @@ begin
           end
           else
           begin
-            c[i]:=pchar(currentValue)[i];
+            c[i]:=pchar(tempsa)[i];
           end;
         end;
 

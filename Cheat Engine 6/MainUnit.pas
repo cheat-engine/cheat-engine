@@ -6713,11 +6713,14 @@ var
   totaldiskspacefree: LARGE_INTEGER;
   percentage: boolean;
 begin
-  estimateddiskspaceneeded:=foundcount*8*3;
+ { estimateddiskspaceneeded:=foundcount*8*3;
   GetDiskFreeSpaceEx(pchar(memscan.ScanresultFolder), diskspacefree, totaldiskspace,@totaldiskspacefree);
+
 
   if estimateddiskspaceneeded>diskspacefree then
     if MessageDlg(rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults, mtwarning, [mbyes, mbno], 0)<>mryes then exit;
+     }
+
 
   if cbpercentage<>nil then
     percentage:=cbPercentage.checked

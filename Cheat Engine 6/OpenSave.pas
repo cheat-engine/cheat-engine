@@ -770,7 +770,7 @@ begin
       if doc=nil then
         ReadXMLFile(doc, filename);
 
-      LoadXML(doc, merge, uppercase(extractfileext(filename))='.CETRAINER');
+      LoadXML(doc, merge, uppercase(extractfileext(utf8tosys(filename)))='.CETRAINER');
       if isProtected then //I know, this protection is pathetic for anyone that can compile ce. But as I said, this is just to stop the ultimate lazy guy from just editing the .CETRAINER file and changing the name
         mainform.isProtected:=true;
     except
@@ -800,10 +800,9 @@ var
     doc: TXMLDocument;
     workdir: string;
 begin
-  //filename:=UTF8ToSys(filename); //fix chinese problems I hope
+  filename:=UTF8ToSys(filename); //fix chinese problems I hope
 
   SetCurrentDir(ExtractFilePath(filename)); //in case it's a table with 'external' files
-
   Extension:=uppercase(extractfileext(filename));
 
   if not merge then
@@ -867,10 +866,13 @@ var structure: TDOMnode;
     i: integer;
     doc: TDOMDocument;
 begin
+  if struct.donotsave then exit;
+
   doc:=Structures.OwnerDocument;
   structure:=structures.AppendChild(doc.CreateElement('Structure'));
-  structure.AppendChild(doc.CreateElement('Name')).TextContent:=struct.name;
+  structure.AppendChild(doc.CreateElement('Name')).TextContent:=utf8toansi(struct.name);
   elements:=structure.AppendChild(doc.CreateElement('Elements'));
+
 
 
 
@@ -878,16 +880,23 @@ begin
   begin
     element:=elements.AppendChild(doc.CreateElement('Element'));
     element.AppendChild(doc.CreateElement('Offset')).TextContent:=inttostr(struct.structelement[i].offset);
-    element.AppendChild(doc.CreateElement('Description')).TextContent:=struct.structelement[i].description;
+    element.AppendChild(doc.CreateElement('Description')).TextContent:=Utf8ToAnsi(struct.structelement[i].description);
+
+    element.AppendChild(doc.CreateElement('Structurenr')).TextContent:=inttostr(struct.structelement[i].structurenr);
+    element.AppendChild(doc.CreateElement('Bytesize')).TextContent:=inttostr(struct.structelement[i].bytesize);
 
     if struct.structelement[i].pointerto then
     begin
       element.AppendChild(doc.CreateElement('PointerTo')).TextContent:='1';
       element.AppendChild(doc.CreateElement('PointerToSize')).TextContent:=inttostr(struct.structelement[i].pointertosize);
+
+      if struct.structelement[i].structurenr>=0 then
+      begin
+        if definedstructures[struct.structelement[i].structurenr].donotsave then
+          element.AppendChild(doc.CreateElement('Structurenr')).TextContent:='-16';
+      end
     end;
 
-    element.AppendChild(doc.CreateElement('Structurenr')).TextContent:=inttostr(struct.structelement[i].structurenr);
-    element.AppendChild(doc.CreateElement('Bytesize')).TextContent:=inttostr(struct.structelement[i].bytesize);
 
   end;
 
