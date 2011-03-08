@@ -570,6 +570,8 @@ var
   ClearMask: dword; //mask used to whipe the original bits from DR7
   currentthread: TDebugThreadHandler;
   i: integer;
+
+  hasoldbp: boolean;
 begin
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
@@ -612,14 +614,45 @@ begin
             currentthread := threadlist.items[i];
             currentthread.suspend;
             currentthread.fillContext;
+
+            hasoldbp:=false; //now check if this thread actually has the breakpoint set (and not replaced or never even set)
+
             case breakpoint.debugregister of
-              0: currentthread.context.Dr0 := 0;
-              1: currentthread.context.Dr1 := 0;
-              2: currentthread.context.Dr2 := 0;
-              3: currentthread.context.Dr3 := 0;
+              0:
+              begin
+                hasoldbp:=currentthread.context.Dr0=breakpoint.address;
+                if hasoldbp then
+                  currentthread.context.Dr0 := 0;
+              end;
+
+              1:
+              begin
+                hasoldbp:=currentthread.context.Dr1=breakpoint.address;
+                if hasoldbp then
+                  currentthread.context.Dr1 := 0;
+              end;
+
+              2:
+              begin
+                hasoldbp:=currentthread.context.Dr2=breakpoint.address;
+                if hasoldbp then
+                  currentthread.context.Dr2 := 0;
+              end;
+
+              3:
+              begin
+                hasoldbp:=currentthread.context.Dr3=breakpoint.address;
+                if hasoldbp then
+                  currentthread.context.Dr3 := 0;
+              end;
             end;
-            currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-            currentthread.setcontext;
+
+            if hasoldbp then
+            begin
+              currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+              currentthread.setcontext;
+            end;
+
             currentthread.resume;
           end;
 

@@ -1,14 +1,15 @@
 object frmStructuresAddElement: TfrmStructuresAddElement
   Left = 782
-  Height = 186
+  Height = 171
   Top = 342
   Width = 300
   BorderStyle = bsDialog
   Caption = 'Add Element'
-  ClientHeight = 186
+  ClientHeight = 171
   ClientWidth = 300
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Label1: TLabel

@@ -26,14 +26,14 @@ object frmStringMap: TfrmStringMap
       OnClick = btnScanClick
       TabOrder = 0
     end
-    object Button2: TButton
+    object btnFree: TButton
       Left = 25
       Height = 25
       Top = 72
       Width = 119
       Caption = 'Free the current list'
       Enabled = False
-      OnClick = Button2Click
+      OnClick = btnFreeClick
       TabOrder = 1
     end
     object ProgressBar1: TProgressBar
@@ -43,12 +43,12 @@ object frmStringMap: TfrmStringMap
       Width = 152
       TabOrder = 2
     end
-    object Label1: TLabel
+    object lblStringCount: TLabel
       Left = 25
       Height = 16
-      Top = 130
-      Width = 35
-      Caption = 'Label1'
+      Top = 112
+      Width = 75
+      Caption = 'Stringcount: 0'
       ParentColor = False
     end
   end

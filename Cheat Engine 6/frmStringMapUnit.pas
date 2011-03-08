@@ -9,8 +9,8 @@ This unit will create a map that holds the addresses of all the strings in the g
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
-  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree;
+  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
+  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler;
 
 type
 
@@ -20,6 +20,7 @@ type
   TStringData=record
     address: ptruint;
     stringsize: integer;
+    unicode: boolean;
     previous: PStringData;
     next: PStringdata;
   end;
@@ -29,30 +30,33 @@ type
   private
     progressbar: TProgressBar;
     stringtree: TAvgLvlTree;
-    procedure AddString(address: ptruint; size: integer);
+    bma: TBigMemoryAllocHandler;
+    procedure AddString(address: ptruint; size: integer; unicode: boolean);
 
     procedure docleanup;
   public
     procedure execute; override;
-    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree);
+    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler);
   end;
 
   TfrmStringMap = class(TForm)
     btnScan: TButton;
-    Button2: TButton;
-    Label1: TLabel;
+    btnFree: TButton;
+    lblStringCount: TLabel;
     ListView1: TListView;
     Panel1: TPanel;
     ProgressBar1: TProgressBar;
     procedure btnScanClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnFreeClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
     { private declarations }
     scanner: TStringScan;
+    bma: TBigMemoryAllocHandler;
   public
     { public declarations }
     stringtree: TAvgLvlTree;
+    treememorymanager: TAvgLvlTreeNodeMemManager;
     function treecompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     function isString(address: ptruint): boolean;
@@ -69,32 +73,44 @@ implementation
 resourcestring
   rsStop = 'Stop';
   rsGenerateStringMap = 'Generate string map';
+  rsStringcount = 'Stringcount: %s';
 
 procedure TStringscan.docleanup;
 begin
   if frmstringmap<>nil then //how the fuck did this thread get started if it is nil ?
-    frmStringMap.btnScan.Caption:=rsGenerateStringMap;
+  begin
+    progressbar.Position:=0;
 
-  progressbar.Position:=0;
+    with frmstringmap do
+    begin
+      btnScan.Caption:=rsGenerateStringMap;
+      lblStringCount.caption:=Format(rsStringcount, [inttostr(stringtree.Count)]);
+      btnFree.enabled:=true;
+    end;
+  end;
 
-  frmStringMap.caption:=inttostr(stringtree.Count);
+
+
+
 end;
 
-procedure TStringScan.AddString(address: ptruint; size: integer);
+procedure TStringScan.AddString(address: ptruint; size: integer; unicode: boolean);
 var e: Pstringdata;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
+
+  s: pchar;
+  ws: pwidechar;
+  x: dword;
 begin
   //replace this with saving the results to disk
-
-  {
-  getmem(e, sizeof(TStringData));
+  e:=bma.alloc(sizeof(TStringData));
   e.address:=address;
   e.stringsize:=size;
+  e.unicode:=unicode;
 
 
-
- { n:=stringtree.Add(e);
+  n:=stringtree.Add(e);
   prev:=stringtree.FindPrecessor(n);
   next:=stringtree.FindSuccessor(n);
 
@@ -112,7 +128,7 @@ begin
   begin
     e.next:=next.Data;
     pstringdata(next.data).previous:=e;
-  end;      }
+  end;
 end;
 
 procedure TStringScan.execute;
@@ -131,6 +147,7 @@ var buf: PByteArray;
   currentpos: ptruint; //position in the current memory region
   x: dword;
 
+  unicode: boolean;
   start: integer; //index where the first valid character is
 begin
   //get memory regions
@@ -157,6 +174,7 @@ begin
       currentpos:=0;
       while (not terminated) and (currentpos<mr[i].MemorySize) do
       begin
+        unicode:=false;
         s:=mr[i].MemorySize;
         currentbufsize:=min(s-currentpos, maxbuf);
         if ReadProcessMemory(processhandle, pointer(mr[i].BaseAddress+currentpos) , buf, currentbufsize,x) then
@@ -166,7 +184,7 @@ begin
           for j:=0 to currentbufsize-5 do
           begin
 
-            if (buf[j]>=$20) and (buf[j]<$c0) then
+            if (buf[j]>=$20) and (buf[j]<=$7f) then
             begin
               if start=-1 then
                 start:=j;
@@ -174,16 +192,23 @@ begin
             else
             begin
               if (buf[j]=0) and (start<>-1) and (buf[j-1]<>0) then //unicode ?
-                continue;
-
-              //still here, so the previous character was 0 or the current char is invalid
-              if j-start>4 then
               begin
-                //found something that resembles a string
-                AddString(mr[i].BaseAddress+currentpos+start,j-start-1);
+                unicode:=true;
+                continue;
+              end;
+
+              if start<>-1 then
+              begin
+                //still here, so the previous character was 0 or the current char is invalid
+                if ((not unicode) and (j-start>4)) or (unicode and (j-start>9)) then
+                begin
+                  //found something that resembles a string
+                  AddString(mr[i].BaseAddress+currentpos+start,j-start-1, unicode);
+                end;
               end;
 
               start:=-1;
+              unicode:=false;
             end;
           end;
 
@@ -202,13 +227,16 @@ begin
   end;
 end;
 
-constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree);
+constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler);
 begin
   self.stringtree:=stringtree;
   self.progressbar:=progressbar;
+  self.bma:=bma;
 
   progressbar.Position:=0;
   progressbar.max:=100;
+
+
 
   inherited create(suspended);
 end;
@@ -230,12 +258,27 @@ begin
   begin
     scanner.Terminate;
     scanner.WaitFor;
+    scanner.free;
+    scanner:=nil;
   end;
 
   if stringtree<>nil then
   begin
     stringtree.clear;
     stringtree.free;
+    stringtree:=nil;
+  end;
+
+  if treememorymanager<>nil then
+  begin
+    treememorymanager.Free;
+    treememorymanager:=nil;
+  end;
+
+  if bma<>nil then
+  begin
+    bma.free;
+    bma:=nil;
   end;
 
 end;
@@ -252,7 +295,6 @@ begin
   begin
     Cleanup;
 
-
     if ProcessHandler.is64Bit then
       mapIdType:=itu8 //unsigned 8 bytes
     else
@@ -260,17 +302,25 @@ begin
 
     stringtree:=TAvgLvlTree.CreateObjectCompare(treecompare);
 
+    treememorymanager:=TAvgLvlTreeNodeMemManager.Create;
+    treememorymanager.MinimumFreeNode:=102400;
+    treememorymanager.MaximumFreeNodeRatio:=16;
+
+
+    stringtree.NodeMemManager:=treememorymanager;
+
+
+
+    bma:=TBigMemoryAllocHandler.create;
+
     btnScan.caption:=rsStop;
 
-    scanner:=TStringScan.create(false, progressbar1, stringtree);
-
-
-
+    scanner:=TStringScan.create(false, progressbar1, stringtree, bma);
   end;
 
 end;
 
-procedure TfrmStringMap.Button2Click(Sender: TObject);
+procedure TfrmStringMap.btnFreeClick(Sender: TObject);
 begin
   cleanup;
 end;
@@ -318,70 +368,5 @@ end;
 
 initialization
   {$I frmStringMapUnit.lrs}
-
-{
-unit Unit1;
-
-
-interface
-
-uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, strutils, AVL_Tree, AvgLvlTree, maps, FPCAdds, trees;
-
-type
-
-
-
-
-
-
-
-  TForm1 = Class(TForm)
-    Button1: TButton;
-    Label2: TLabel;
-    Label3: TLabel;
-    ListBox1: TListBox;
-    ProcessLabel: TLabel;
-    procedure Button1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-  private
-
-    function compare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
-    procedure AddString(address: ptruint; size: integer);
-    function isString(address: ptruint): boolean;
-
-  public
-
-    count: integer;
-    t: TAvgLvlTree;
-  end;
-
-var
-  Form1: TForm1;
-  globalcounter: integer;
-
-implementation
-
-
-
-
-
-
-
-
-
-procedure TForm1.Button1Click(Sender: TObject);
-begin
-  count:=0;
-  if isString($004004ff) then
-    showMessage('yes')
-  else
-    showMessage('no');
-
-  showmessage('count='+inttostr(count));
-end;
-
-}
 
 end.

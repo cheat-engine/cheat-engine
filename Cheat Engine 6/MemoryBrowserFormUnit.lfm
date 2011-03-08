@@ -894,7 +894,6 @@ object MemoryBrowser: TMemoryBrowser
       end
       object MenuItem10: TMenuItem
         Caption = 'All strings (not implemented)'
-        Visible = False
         OnClick = MenuItem10Click
       end
       object MemoryRegions1: TMenuItem

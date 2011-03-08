@@ -963,7 +963,7 @@ begin
     vtSingle: result:=-12;
     vtDouble: result:=-13;
     vtString: result:=-14;
-    vtUnicodeString: result:=-7; //currently not implemented
+    vtUnicodeString: result:=-15;
     vtByteArray: result:=-7; //FindTypeOfData should never return this
     vtBinary: result:=-7; //nor this
     vtAll: result:=-7; //also not this
@@ -1059,7 +1059,6 @@ begin
     
   for i:=0 to length(definedstructures)-1 do
   begin
-    if definedstructures[i].donotsave then
 
     if i<structures1.Count-2 then
     begin
@@ -3043,6 +3042,30 @@ begin
                 inc(definedstructures[structureid].structelement[i].bytesize);
               end;
             end;
+          end;
+
+          -15: //string unicode
+          begin
+            definedstructures[structureid].structelement[i].description:='Unicode String';
+
+            //find out how long this string is:
+            definedstructures[structureid].structelement[i].bytesize:=0;
+            while (x<structsize-1) and ((buf[x] in [32..127]) or ((buf[x]=0) and (buf[x+1] in [32..127]))) do
+            begin
+              inc(x);
+              inc(definedstructures[structureid].structelement[i].bytesize);
+            end;
+
+            if (x<structsize-1) then
+            begin
+              if buf[x]=0 then
+              begin
+                inc(x);
+                inc(definedstructures[structureid].structelement[i].bytesize);
+              end;
+            end;
+
+
           end;
 
 
