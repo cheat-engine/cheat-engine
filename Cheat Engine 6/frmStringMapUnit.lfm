@@ -1,0 +1,64 @@
+object frmStringMap: TfrmStringMap
+  Left = 877
+  Height = 353
+  Top = 428
+  Width = 409
+  Caption = 'String map'
+  ClientHeight = 353
+  ClientWidth = 409
+  OnClose = FormClose
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 239
+    Height = 353
+    Top = 0
+    Width = 170
+    Align = alRight
+    ClientHeight = 353
+    ClientWidth = 170
+    TabOrder = 0
+    object btnScan: TButton
+      Left = 25
+      Height = 25
+      Top = 32
+      Width = 119
+      Caption = 'Generate string map'
+      OnClick = btnScanClick
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 25
+      Height = 25
+      Top = 72
+      Width = 119
+      Caption = 'Free the current list'
+      Enabled = False
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+    object ProgressBar1: TProgressBar
+      Left = 9
+      Height = 20
+      Top = 8
+      Width = 152
+      TabOrder = 2
+    end
+    object Label1: TLabel
+      Left = 25
+      Height = 16
+      Top = 130
+      Width = 35
+      Caption = 'Label1'
+      ParentColor = False
+    end
+  end
+  object ListView1: TListView
+    Left = 0
+    Height = 353
+    Top = 0
+    Width = 239
+    Align = alClient
+    Columns = <>
+    TabOrder = 1
+  end
+end
