@@ -49,7 +49,7 @@ uses
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
   trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
   xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
-  IconStuff, cetranslator, frmStringMapUnit, MemFuncs;
+  IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}

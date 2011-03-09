@@ -547,6 +547,10 @@ object MemoryBrowser: TMemoryBrowser
       ShortCut = 16454
       OnClick = Search1Click
     end
+    object MenuItem11: TMenuItem
+      Caption = 'Search for accessible strings'
+      OnClick = MenuItem11Click
+    end
     object N13: TMenuItem
       Caption = '-'
     end

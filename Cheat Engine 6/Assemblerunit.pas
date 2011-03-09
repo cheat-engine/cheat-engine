@@ -2392,8 +2392,8 @@ begin
 
           'W' : //WORD, WORD PTR
           begin
-            if (t[2]='W') and (t[3]='O') then //could be WORD
-              isPartial:=(t='QWORD') or (t='QWORD PTR');
+            if (t[2]='O') and (t[3]='R') then //could be WORD
+              isPartial:=(t='WORD') or (t='WORD PTR');
           end;
 
         end;

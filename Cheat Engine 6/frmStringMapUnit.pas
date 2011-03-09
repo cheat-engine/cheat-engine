@@ -10,7 +10,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
-  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler;
+  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler;
 
 type
 
@@ -42,25 +42,33 @@ type
   TfrmStringMap = class(TForm)
     btnScan: TButton;
     btnFree: TButton;
+    btnShowList: TButton;
     lblStringCount: TLabel;
     ListView1: TListView;
     Panel1: TPanel;
     ProgressBar1: TProgressBar;
     procedure btnScanClick(Sender: TObject);
     procedure btnFreeClick(Sender: TObject);
+    procedure btnShowListClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormResize(Sender: TObject);
+    procedure ListView1DblClick(Sender: TObject);
+    procedure Panel1Resize(Sender: TObject);
   private
     { private declarations }
-    scanner: TStringScan;
+
     bma: TBigMemoryAllocHandler;
+    isfillinglist: boolean;
   public
     { public declarations }
+    scanner: TStringScan;
     stringtree: TAvgLvlTree;
     treememorymanager: TAvgLvlTreeNodeMemManager;
     function treecompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     function isString(address: ptruint): boolean;
     function getString(address: ptruint): PStringData;
+    function findNearestString(address: ptruint): PStringData;
   end; 
 
 var
@@ -70,10 +78,13 @@ implementation
 
 { TfrmStringMap }
 
+uses MemoryBrowserFormUnit;
+
 resourcestring
   rsStop = 'Stop';
   rsGenerateStringMap = 'Generate string map';
   rsStringcount = 'Stringcount: %s';
+  rsBtnShowList = '<<Show list';
 
 procedure TStringscan.docleanup;
 begin
@@ -103,6 +114,9 @@ var e: Pstringdata;
   ws: pwidechar;
   x: dword;
 begin
+  if size>1024 then exit; //tl;dr
+  if symhandler.inSystemModule(address) then exit; //don't add it
+
   //replace this with saving the results to disk
   e:=bma.alloc(sizeof(TStringData));
   e.address:=address;
@@ -183,27 +197,25 @@ begin
           start:=-1;
           for j:=0 to currentbufsize-5 do
           begin
-
-            if (buf[j]>=$20) and (buf[j]<=$7f) then
+                                          // \/ unicode is only true when it already has a char, so -1 is valid
+            if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and (buf[j-1]<>0)) then
             begin
               if start=-1 then
+              begin
                 start:=j;
+                if buf[j+1]=0 then
+                  unicode:=true;
+              end;
             end
             else
             begin
-              if (buf[j]=0) and (start<>-1) and (buf[j-1]<>0) then //unicode ?
-              begin
-                unicode:=true;
-                continue;
-              end;
-
               if start<>-1 then
               begin
                 //still here, so the previous character was 0 or the current char is invalid
                 if ((not unicode) and (j-start>4)) or (unicode and (j-start>9)) then
                 begin
                   //found something that resembles a string
-                  AddString(mr[i].BaseAddress+currentpos+start,j-start-1, unicode);
+                  AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
                 end;
               end;
 
@@ -325,12 +337,106 @@ begin
   cleanup;
 end;
 
-procedure TfrmStringMap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
+procedure TfrmStringMap.btnShowListClick(Sender: TObject);
+var n: TAvgLvlTreeNode;
+  p: Pstringdata;
 
+  buf: pansichar;
+  wbuf: pwidechar absolute buf;
+  x: dword;
+  li: tlistitem;
+
+  i: integer;
+
+  s: string;
+begin
+  if not isfillinglist then
+  begin
+    if stringtree<>nil then
+    begin
+      if stringtree.Count>0 then
+      begin
+        n:=stringtree.FindLowest;
+        if n<>nil then
+        begin
+          isfillinglist:=true;
+          btnShowList.caption:=rsStop;
+
+          getmem(buf,512);
+
+          try
+            p:=n.Data;
+            i:=0;
+
+            while p<>nil do
+            begin
+              inc(i);
+
+              if ReadProcessMemory(processhandle, pointer(p.address), buf, min(509, p.stringsize), x) then
+              begin
+                li:=listview1.items.add;
+
+                li.caption:=inttohex(p.address,8);
+                li.data:=pointer(p.address);
+
+                buf[min(510, p.stringsize)]:=#0;
+                buf[min(510, p.stringsize)+1]:=#0;
+
+
+                if p.unicode then
+                  s:=wbuf
+                else
+                  s:=ansitoutf8(buf);
+
+                li.SubItems.Add(s);
+
+              end;
+
+              if i mod 25 = 0 then application.ProcessMessages;
+              if not isfillinglist then break;
+
+              p:=p.next;
+            end;
+
+          finally
+            freemem(buf);
+            isfillinglist:=false;
+          end;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    isfillinglist:=false;
+    btnShowList.caption:=rsBtnShowList;
+  end;
 end;
 
-function TfrmStringMap.getString(address: ptruint): PStringData;
+procedure TfrmStringMap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  isfillinglist:=false;
+end;
+
+procedure TfrmStringMap.FormResize(Sender: TObject);
+begin
+  listview1.Column[listview1.ColumnCount-1].Width:=listview1.ClientWidth-listview1.Column[0].Width-3;
+end;
+
+procedure TfrmStringMap.ListView1DblClick(Sender: TObject);
+begin
+  if listview1.Selected<>nil then
+  begin
+    memorybrowser.hexview.address:=ptruint(listview1.Selected.Data);
+  end;
+end;
+
+procedure TfrmStringMap.Panel1Resize(Sender: TObject);
+begin
+  btnShowList.Top:=(panel1.clientheight div 2) - (btnShowList.height div 2);
+end;
+
+function TfrmStringMap.findNearestString(address: ptruint): PStringData;
 var
   k: TStringData;
   p: PStringData;
@@ -348,16 +454,26 @@ begin
       while (p<>nil) and (p.address>k.address) do
         p:=p.previous;
 
-      //it is a fact that p.address <= address
-      if p<>nil then
-      begin
-        if p.address+p.stringsize>address then
-          result:=p;
-      end;
-
+      result:=p;
     end;
 
   end;
+
+end;
+
+function TfrmStringMap.getString(address: ptruint): PStringData;
+var p: PStringData;
+begin
+  result:=nil;
+  p:=findNearestString(address);
+
+  //it is a fact that p.address <= address
+  if p<>nil then
+  begin
+    if p.address+p.stringsize>address then //if the address falls inside the range of the string
+      result:=p;
+  end;
+
 end;
 
 function TfrmStringMap.isString(address: ptruint): boolean;

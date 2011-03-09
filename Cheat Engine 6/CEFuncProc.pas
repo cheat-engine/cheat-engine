@@ -698,6 +698,8 @@ resourcestring
   rsFailedExecutingTheFunctionOfTheDll = 'Failed executing the function of the dll';
   rsUnknownErrorDuringInjection = 'Unknown error during injection';
   rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
+  rsNoKernel32DllLoaded = 'No kernel32.dll loaded';
+  rsSeparator = 'Separator';
 
 function ProcessID: dword;
 begin
@@ -984,7 +986,7 @@ begin
   //todo: Change this to a full AA script (but make sure not to call injectdll in there :)  )
 
   h:=LoadLibrary('Kernel32.dll');
-  if h=0 then raise exception.Create('No kernel32.dll loaded');
+  if h=0 then raise exception.Create(rsNoKernel32DllLoaded);
 
   LoadLibraryPtr:=nil;
   GetProcAddressPtr:=nil;
@@ -1501,7 +1503,7 @@ begin
     VK_NUMPAD9	: result:=rsNumeric+' 9';
     VK_MULTIPLY	: result:=rsNumeric+' *';
     VK_ADD	: result:=rsNumeric+' +';
-    VK_SEPARATOR : result:=rsNumeric+' Separator';
+    VK_SEPARATOR : result:=rsNumeric+' '+rsSeparator;
     VK_SUBTRACT	: result:=rsNumeric+' -';
     VK_DECIMAL	: result:=rsNumeric+' .';
     VK_DIVIDE	: result:=rsNumeric+' /';

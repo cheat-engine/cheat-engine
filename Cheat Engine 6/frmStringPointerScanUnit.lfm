@@ -1,0 +1,94 @@
+object frmStringPointerScan: TfrmStringPointerScan
+  Left = 589
+  Height = 313
+  Top = 267
+  Width = 632
+  Caption = 'String pointer scan'
+  ClientHeight = 313
+  ClientWidth = 632
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 313
+    Top = 0
+    Width = 144
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 313
+    ClientWidth = 144
+    TabOrder = 0
+    object edtBase: TEdit
+      Left = 8
+      Height = 23
+      Top = 24
+      Width = 127
+      TabOrder = 0
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 16
+      Top = 4
+      Width = 62
+      Caption = 'Base region'
+      ParentColor = False
+    end
+    object edtStructsize: TEdit
+      Left = 8
+      Height = 23
+      Top = 72
+      Width = 80
+      TabOrder = 1
+      Text = '4096'
+    end
+    object Label2: TLabel
+      Left = 8
+      Height = 16
+      Top = 56
+      Width = 51
+      Caption = 'Structsize'
+      ParentColor = False
+    end
+    object Button1: TButton
+      Left = 8
+      Height = 25
+      Top = 136
+      Width = 80
+      Caption = 'Scan'
+      OnClick = Button1Click
+      TabOrder = 2
+    end
+    object Label3: TLabel
+      Left = 8
+      Height = 16
+      Top = 168
+      Width = 22
+      Caption = 'Info'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 8
+      Height = 16
+      Top = 96
+      Width = 53
+      Caption = 'Max Level'
+      ParentColor = False
+    end
+    object edtMaxLevel: TEdit
+      Left = 8
+      Height = 23
+      Top = 112
+      Width = 80
+      TabOrder = 3
+      Text = '2'
+    end
+  end
+  object ListView1: TListView
+    Left = 144
+    Height = 313
+    Top = 0
+    Width = 488
+    Align = alClient
+    Columns = <>
+    TabOrder = 1
+  end
+end

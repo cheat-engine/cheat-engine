@@ -1,12 +1,13 @@
 object frmStringMap: TfrmStringMap
-  Left = 877
+  Left = 624
   Height = 353
-  Top = 428
+  Top = 295
   Width = 409
   Caption = 'String map'
   ClientHeight = 353
   ClientWidth = 409
   OnClose = FormClose
+  OnResize = FormResize
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 239
@@ -17,6 +18,7 @@ object frmStringMap: TfrmStringMap
     ClientHeight = 353
     ClientWidth = 170
     TabOrder = 0
+    OnResize = Panel1Resize
     object btnScan: TButton
       Left = 25
       Height = 25
@@ -51,6 +53,15 @@ object frmStringMap: TfrmStringMap
       Caption = 'Stringcount: 0'
       ParentColor = False
     end
+    object btnShowList: TButton
+      Left = 1
+      Height = 25
+      Top = 165
+      Width = 75
+      Caption = '<<Show list'
+      OnClick = btnShowListClick
+      TabOrder = 3
+    end
   end
   object ListView1: TListView
     Left = 0
@@ -58,7 +69,17 @@ object frmStringMap: TfrmStringMap
     Top = 0
     Width = 239
     Align = alClient
-    Columns = <>
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 80
+      end    
+      item
+        Caption = 'String'
+        Width = 150
+      end>
     TabOrder = 1
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
   end
 end

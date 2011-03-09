@@ -23,6 +23,7 @@ type
     dispQwords: TMenuItem;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
     miDisassembly64: TMenuItem;
@@ -211,6 +212,7 @@ type
     Executetillreturn1: TMenuItem;
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
+    procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -520,8 +522,8 @@ uses Valuechange,
   frmluaengineunit,
   disassemblerviewlinesunit,
   frmBreakpointConditionunit,
-  frmStringMapUnit
-  ;
+  frmStringMapUnit,
+  frmStringpointerscanUnit;
 
 
 resourcestring
@@ -868,6 +870,16 @@ begin
     frmStringMap:=TfrmStringMap.Create(nil);
 
   frmStringMap.show;
+end;
+
+procedure TMemoryBrowser.MenuItem11Click(Sender: TObject);
+begin
+  if frmStringPointerscan=nil then
+    frmStringpointerscan:=Tfrmstringpointerscan.create(nil);
+
+  frmStringpointerscan.edtBase.text:=inttohex(hexview.address,8);
+
+  frmStringpointerscan.show;
 end;
 
 procedure TMemoryBrowser.MenuItem2Click(Sender: TObject);
@@ -2130,9 +2142,8 @@ procedure TMemoryBrowser.Debugstrings1Click(Sender: TObject);
 begin
   {$ifndef net}
 
-  startdebuggerifneeded;
-
-  formdebugstrings.show;
+  if startdebuggerifneeded then
+    formdebugstrings.show;
   {$endif}
 end;
 
