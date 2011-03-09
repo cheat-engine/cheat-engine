@@ -329,10 +329,10 @@ begin
     setlength(staticlist,0);
     
     staticscanner:=TStaticscanner.Create(true);
-    staticscanner.startaddress:=StrToInt64('$'+edit1.Text);
-    staticscanner.stopaddress:=StrToInt64('$'+edit2.Text);
-    staticscanner.filterstart:=StrToInt64('$'+edit3.Text);
-    staticscanner.filterstop:=StrToInt64('$'+edit4.Text);
+    staticscanner.startaddress:=StrToQWordEx('$'+edit1.Text);
+    staticscanner.stopaddress:=StrToQWordEx('$'+edit2.Text);
+    staticscanner.filterstart:=StrToQWordEx('$'+edit3.Text);
+    staticscanner.filterstop:=StrToQWordEx('$'+edit4.Text);
 
     staticscanner.progressbar:=progressbar1;
     button1.Caption:=strStop;

@@ -2519,6 +2519,8 @@ var FloatSettings: TFormatSettings;
     i: integer;
     foundbuffersize: integer;
     td: double;
+
+    s: string;
 begin
   OutputDebugString('configurescanroutine');
   foundbuffersize:=0;
@@ -2538,9 +2540,10 @@ begin
       //parse scanvalue1
       try
         if hexadecimal then
-          value:=strtoint64('$'+scanvalue1)
+          value:=StrToQWord('$'+scanvalue1)
         else
-          value:=strtoint64(scanvalue1);
+          value:=strtoqwordex(scanvalue1);
+
       except
         if (variableType=vtAll) or (percentage) then
         begin
@@ -2570,9 +2573,9 @@ begin
         //also parse scanvalue2
         try
           if hexadecimal then
-            value2:=strtoint64('$'+scanvalue2)
+            value2:=StrToQWord('$'+scanvalue2)
           else
-            value2:=strtoint64(scanvalue2);
+            value2:=StrToQwordEx(scanvalue2);
 
         except
           if (variableType=vtAll) or (percentage) then

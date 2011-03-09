@@ -113,7 +113,7 @@ begin
     err:=pos('-',treeview1.items[i].Text);
 
     try
-      h:=StrToInt64('$'+copy(treeview1.items[i].Text, 1, err-1));
+      h:=StrToQWordEx('$'+copy(treeview1.items[i].Text, 1, err-1));
 
       winhandle:=getwindow(h,GW_CHILD);
 
@@ -162,7 +162,7 @@ begin
     err:=pos('-',treeview1.selected.Text);
 
     try
-      h:=StrToInt64('$'+copy(treeview1.selected.Text, 1, err-1));
+      h:=StrToQWordEx('$'+copy(treeview1.selected.Text, 1, err-1));
 
       title[0]:=#0;
       classname[0]:=#0;
@@ -296,7 +296,7 @@ begin
   begin
     err:=pos('-',treeview1.selected.Text);
     try
-      h:=strtoint64('$'+copy(treeview1.selected.Text, 1, err-1));
+      h:=StrToQWordEx('$'+copy(treeview1.selected.Text, 1, err-1));
       closewindow(h);
     except
 
@@ -316,7 +316,7 @@ begin
 
   err:=pos('-',treeview1.selected.Text);
   try
-    h:=strtoint64('$'+copy(treeview1.selected.Text, 1, err-1));
+    h:=StrToQWordEx('$'+copy(treeview1.selected.Text, 1, err-1));
 
 
 

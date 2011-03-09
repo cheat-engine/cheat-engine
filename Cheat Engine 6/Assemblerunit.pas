@@ -3273,7 +3273,7 @@ begin
   if tokens[0]='DQ' then
   begin
     for i:=1 to nroftokens-1 do
-      addqword(bytes,strtoint64(parameter1));
+      addqword(bytes,StrToQWordEx(parameter1));
     result:=true;
     exit;
   end;  
@@ -3369,29 +3369,29 @@ begin
 
   if paramtype1=ttValue then
   begin
-    v:=StrToInt64(parameter1);
+    v:=StrToQWordEx(parameter1);
     vtype:=StringValueToType(parameter1);
   end;
 
   if paramtype2=ttValue then if v=0 then
   begin
-    v:=StrToInt64(parameter2);
+    v:=StrToQWordEx(parameter2);
     vtype:=StringValueToType(parameter2);
   end
   else
   begin
-    v2:=StrToInt64(parameter2);
+    v2:=StrToQWordEx(parameter2);
     v2type:=StringValueToType(parameter2);
   end;
 
   if paramtype3=ttValue then if v=0 then
   begin
-    v:=StrToInt64(parameter3);
+    v:=StrToQWordEx(parameter3);
     vtype:=StringValueToType(parameter3);
   end
   else
   begin
-    v2:=StrToInt64(parameter3);
+    v2:=StrToQWordEx(parameter3);
     v2type:=StringValueToType(parameter3);
   end;
 

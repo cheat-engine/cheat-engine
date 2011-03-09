@@ -192,7 +192,7 @@ begin
       if s='' then //should never happen
         s:=treeview1.Selected.Text;
 
-      address:=strtoint64('$'+s);
+      address:=StrToQWordEx('$'+s);
       { val('$'+s,address,i); fpc 2.4.1 doesn't handle this correctly }
 
      //showmessage('s='+s+' address='+inttohex(address,8));

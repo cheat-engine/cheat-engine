@@ -6,12 +6,16 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, bigmemallochandler, math;
+  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus, bigmemallochandler, math;
+
+const
+  wm_sps_done=wm_user+1;
 
 type
 
   { TfrmStringPointerScan }
   TPointerpath=array of dword;
+
 
 type
   PMappedRegion=^TMappedRegion;
@@ -46,15 +50,20 @@ type
     fillpointerblock: pdwordarray;
    // block64: array of Pint64Array;
 
+    results: TMemorystream;
+    resultfile: tfilestream;
+
     procedure handleBlock(blockaddress: ptruint; level: integer; path: TPointerpath);
-    procedure addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: boolean);
+    procedure addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: bool);
 
     procedure mapRegionIfNeeded(blockaddress: ptruint; size: integer);
     procedure fillPointers(base: ptruint; size: integer);
     function getFirstPointerEntry(base: ptruint): PPointerListEntry;
+    procedure flushResults;
+
   public
     procedure execute; override;
-    constructor create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler);
+    constructor create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; resultfile: tfilestream);
     destructor destroy; override;
   end;
 
@@ -68,8 +77,18 @@ type
     Label3: TLabel;
     Label4: TLabel;
     ListView1: TListView;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    OpenDialog1: TOpenDialog;
     Panel1: TPanel;
+    SaveDialog1: TSaveDialog;
     procedure Button1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
   private
     { private declarations }
 
@@ -81,9 +100,14 @@ type
 
     scanner: TScanner;
 
+    pointerfile: tfilestream;
+    pointerfileLevelwidth: integer;
+
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
+    procedure OpenPointerfile(filename: string);
+    procedure scanDone(var m: tmessage); message wm_sps_done;
   public
     { public declarations }
   end;
@@ -143,8 +167,8 @@ begin
     begin
       if (fillpointerblock[i]>$10000) and ((fillpointerblock[i] mod 4)=0) and (isreadable(fillpointerblock[i])) then
       begin
-//        p:=bma.alloc(sizeof(TPointerListEntry));
-        p:=getmem(sizeof(TPointerListEntry));
+        p:=bma.alloc(sizeof(TPointerListEntry));
+       // p:=getmem(sizeof(TPointerListEntry));
 
        // ZeroMemory(p, sizeof(TPointerListEntry));
         p.address:=base+(i*4);
@@ -196,13 +220,6 @@ begin
   search.baseaddress:=blockaddress;
   result:=mappedregions.FindNearest(@search);
 
-
-  if blockaddress=$54ebe0 then
-  begin
-    asm nop end
-  end;
-
-
   if result<>nil then
     map:=result.data
   else
@@ -220,12 +237,6 @@ begin
       map:=nil;
 
   end;
-
-
-
-  //if it's not in the range
- { if (map<>nil) and (not InRangeX(blockaddress, map.baseaddress, map.baseaddress+map.size)) then map:=nil;
-   }
 
   if (map<>nil) then
   begin
@@ -258,6 +269,7 @@ begin
   begin
     //create a new one
 //    map:=bma.alloc(sizeof(TMappedRegion));
+    //no bma, a map can be freed
     map:=getmem(sizeof(TMappedRegion));
 
     //ZeroMemory(map, sizeof(TMappedRegion));
@@ -312,8 +324,21 @@ begin
 
 end;
 
-procedure TScanner.addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: boolean);
+procedure TScanner.flushResults;
 begin
+  resultfile.WriteBuffer(results.Memory^, results.size);
+  results.position:=0;
+end;
+
+procedure TScanner.addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: BOOL);
+begin
+  results.WriteBuffer(level, sizeof(level));
+  results.WriteBuffer(unicode, sizeof(unicode));
+  results.WriteBuffer(path[0], sizeof(path[0])*maxlevel+1);
+
+  if results.Position>=(15*1024*1024) then
+    flushResults;
+
   inc(count);
 end;
 
@@ -366,25 +391,36 @@ var pointerpath: TPointerpath;
   i: integer;
 begin
   try
-    setlength(pointerpath, maxlevel+1); //maxlevel=0 means 1 offset
-    setlength(levelblock, maxlevel+1);
-    for i:=0 to length(levelblock)-1 do
-      getmem(levelblock[i], structsize); //one time alloc for each level so it can be reused without having to reallocate each recursion
+    try
+      setlength(pointerpath, maxlevel+1); //maxlevel=0 means 1 offset
+      setlength(levelblock, maxlevel+1);
+      for i:=0 to length(levelblock)-1 do
+        getmem(levelblock[i], structsize); //one time alloc for each level so it can be reused without having to reallocate each recursion
 
-    getmem(fillpointerblock, structsize);
+      getmem(fillpointerblock, structsize);
+
+      results:=TMemoryStream.Create;
+      results.Size:=16*1024*1024;
+      results.Position:=0;
 
 
-    handleBlock(baseaddress, 0, pointerpath);
+      handleBlock(baseaddress, 0, pointerpath);
+      flushResults;
 
-    messagebox(0,pchar(inttostr(count)),'ps',0);
+      //messagebox(0,pchar(inttostr(count)),'ps',0);
 
-  except
-    on e: exception do
-      messagebox(0,pchar('Exception:'+e.Message),'ps',0);
+    except
+      on e: exception do
+        messagebox(0,pchar('Exception:'+e.Message),'ps',0);
+    end;
+
+  finally
+    PostMessage(frmStringPointerScan.Handle, wm_sps_done, 0,0);
+
   end;
 end;
 
-constructor TScanner.create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler);
+constructor TScanner.create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; resultfile: Tfilestream);
 begin
   self.baseaddress:=baseaddress;
   self.structsize:=structsize;
@@ -392,6 +428,7 @@ begin
   self.mappedregions:=mappedregions;
   self.pointerlist:=pointerlist;
   self.bma:=bma;
+  self.resultfile:=resultfile;
 
   count:=0;
 
@@ -410,7 +447,27 @@ begin
 
 end;
 
+
 //----------------------------
+
+procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
+begin
+  cleanup;
+
+  pointerfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
+  pointerfile.ReadBuffer(pointerfileLevelwidth, sizeof(pointerfileLevelwidth));
+
+
+
+end;
+
+procedure TfrmStringPointerScan.scanDone(var m: tmessage);
+begin
+  label3.caption:='Found:'+inttostr(scanner.count);
+
+  cleanup;
+  OpenPointerfile(frmStringPointerScan.SaveDialog1.FileName);
+end;
 
 function TfrmStringPointerScan.mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
 begin
@@ -423,7 +480,20 @@ begin
 end;
 
 procedure tfrmStringPointerScan.cleanup;
+var r: TAvgLvlTreeNode;
+  p,m: PMappedRegion;
 begin
+  if scanner<>nil then
+  begin
+    scanner.terminate;
+    scanner.WaitFor;
+    freeandnil(scanner);
+  end;
+
+  listview1.items.count:=0;
+  while listview1.ColumnCount>0 do
+    listview1.Columns.Delete(0);
+
   if bma<>nil then
     freeAndNil(bma);
 
@@ -437,7 +507,23 @@ begin
     freeandnil(pointerlist);
 
   if mappedRegions<>nil then
+  begin
+    r:=mappedRegions.FindLowest;
+    if r<>nil then
+    begin
+      m:=PMappedRegion(r.data);
+      while m<>nil do
+      begin
+        p:=m;
+        m:=m.next;
+        freemem(p);
+      end;
+    end;
     freeandnil(mappedRegions);
+  end;
+
+  if pointerfile<>nil then
+    freeandnil(pointerfile);
 end;
 
 procedure TfrmStringPointerScan.Button1Click(Sender: TObject);
@@ -453,6 +539,12 @@ begin
 
   structsize:=strtoint(edtStructsize.text);
   maxlevel:=strtoint(edtMaxLevel.text);
+
+  if savedialog1.execute then
+  begin
+    pointerfile:=TFileStream.Create(savedialog1.filename, fmCreate or fmShareDenyNone);
+    pointerfile.Write(maxlevel, sizeof(maxlevel));
+  end;
 
   if frmStringMap=nil then
     frmStringMap:=tfrmStringMap.Create(nil);
@@ -478,8 +570,20 @@ begin
 
   //the stringmap has been generated
 
-  scanner:=Tscanner.create(baseAddress, structsize, maxlevel, mappedRegions, pointerlist, bma);
+  scanner:=Tscanner.create(baseAddress, structsize, maxlevel, mappedRegions, pointerlist, bma, pointerfile);
 
+
+end;
+
+procedure TfrmStringPointerScan.MenuItem2Click(Sender: TObject);
+begin
+  cleanup;
+end;
+
+procedure TfrmStringPointerScan.MenuItem3Click(Sender: TObject);
+begin
+  if OpenDialog1.Execute then
+    OpenPointerfile(opendialog1.filename);
 
 end;
 

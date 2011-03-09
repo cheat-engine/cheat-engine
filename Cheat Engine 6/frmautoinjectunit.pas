@@ -410,7 +410,7 @@ begin
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
   begin
     try
-      a:=strtoint64('$'+address);
+      a:=StrToQWordEx('$'+address);
     except
 
       a:=symhandler.getaddressfromname(address);
@@ -1074,10 +1074,10 @@ begin
 
   if inputquery(rsStartAddress+':', rsCodeRelocationTemplate, starts) then
   begin
-    start:=strtoint64('$'+starts);
+    start:=StrToQWordEx('$'+starts);
     if inputquery(rsEndAddressLastBytesAreIncludedIfNecesary, rsCodeRelocationTemplate, stops) then
     begin
-      stop:=strtoint64('$'+stops);
+      stop:=StrToQWordEx('$'+stops);
 
       output:=tstringlist.Create;
       labels:=tstringlist.create;

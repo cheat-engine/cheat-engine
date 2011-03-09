@@ -466,7 +466,7 @@ begin
 
       if temp2<>'' then //I know this isn't completly correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
       begin
-        p:=StrToInt64('$'+temp2);
+        p:=StrToQWordEx('$'+temp2);
         if p>maxregistervalue then maxregistervalue:=p;
       end;
 

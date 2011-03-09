@@ -476,7 +476,7 @@ var x: dword;
   pd: PPageData;
   cr4: ptruint;
 begin
-  base:=strtoint64('$'+edtcr3.text);
+  base:=StrToQWordEx('$'+edtcr3.text);
 
   cleanup;
 

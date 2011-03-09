@@ -903,7 +903,7 @@ begin
   s:=tlabel(sender).Caption;
   s:=copy(s,5,8);
 
-  memorybrowser.memoryaddress:=strtoint64('$'+s);
+  memorybrowser.memoryaddress:=StrToQWordEx('$'+s);
 end;
 
 procedure TfrmTracer.lvTracerDblClick(Sender: TObject);

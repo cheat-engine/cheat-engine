@@ -1313,7 +1313,7 @@ begin
       if tokens[i]='*' then
       begin
         //multiply the left and right
-        tokens[i-1]:=inttohex(strtoint64('$'+tokens[i-1])*strtoint64('$'+tokens[i+1]),8);
+        tokens[i-1]:=inttohex(StrToQWordEx('$'+tokens[i-1])*strtoint64('$'+tokens[i+1]),8);
         tokens[i]:='';
         tokens[i+1]:='';
       end;
@@ -1341,10 +1341,10 @@ begin
           //do the calculation
           case nextoperation of
             calcAddition:
-              result:=result+strtoint64('$'+tokens[i]);
+              result:=result+StrToQWordEx('$'+tokens[i]);
 
             calcSubstraction:
-              result:=result-strtoint64('$'+tokens[i]);
+              result:=result-StrToQWordEx('$'+tokens[i]);
 
           end;
 
@@ -1478,7 +1478,7 @@ begin
     begin
       off:=copy(list[i],2,length(list[i]));
       try
-        offsets[i-1]:=strtoint64('$'+off);
+        offsets[i-1]:=StrToQWordEx('$'+off);
       except
         exit;
       end;

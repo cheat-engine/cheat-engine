@@ -401,7 +401,7 @@ var j,k,l: integer;
     read3: dword;
     read4: single;
     read5: double;
-    read6: Int64;
+    read6: uInt64;
     read7: pchar;
     read72: pwidechar;
     read8: array of byte;

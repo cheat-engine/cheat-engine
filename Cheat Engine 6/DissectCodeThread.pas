@@ -5,7 +5,7 @@ unit DissectCodeThread;
 interface
 
 uses
-  windows, CEFuncProc,LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math;
+  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math, CEFuncProc;
 
 
 type
@@ -401,7 +401,9 @@ begin
       if not (s[i] in ['0'..'9','A'..'F','a'..'f']) then
       begin
         o:=copy(s, first, i-first);
-        result:=strtoint64('$'+o);
+
+        result:=StrToQWordEx('$'+o);
+
 
         if result>=$10000 then result:=0;
         if isAddress(result) then result:=0;

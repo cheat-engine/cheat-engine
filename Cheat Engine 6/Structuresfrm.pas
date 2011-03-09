@@ -2392,7 +2392,7 @@ begin
     if inputquery(rsRecalculateBaseOfStructure, rsGiveTheAddressOfThisElement, a) then
     begin
       try
-        newaddress:=strtoint64('$'+a);
+        newaddress:=StrToQWordEx('$'+a);
       except
         raise exception.Create(Format(rsIHaveNoIdeaWhatMeans, [a]));
       end;

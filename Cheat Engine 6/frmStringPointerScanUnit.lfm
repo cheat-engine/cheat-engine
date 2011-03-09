@@ -4,17 +4,18 @@ object frmStringPointerScan: TfrmStringPointerScan
   Top = 267
   Width = 632
   Caption = 'String pointer scan'
-  ClientHeight = 313
+  ClientHeight = 293
   ClientWidth = 632
+  Menu = MainMenu1
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 313
+    Height = 293
     Top = 0
     Width = 144
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 313
+    ClientHeight = 293
     ClientWidth = 144
     TabOrder = 0
     object edtBase: TEdit
@@ -84,11 +85,44 @@ object frmStringPointerScan: TfrmStringPointerScan
   end
   object ListView1: TListView
     Left = 144
-    Height = 313
+    Height = 293
     Top = 0
     Width = 488
     Align = alClient
     Columns = <>
+    OwnerData = True
     TabOrder = 1
+    ViewStyle = vsReport
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.sptr'
+    Filter = 'String pointer (*.sptr)|*.sptr'
+    left = 34
+    top = 185
+  end
+  object MainMenu1: TMainMenu
+    left = 197
+    top = 104
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Clear'
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Open'
+        OnClick = MenuItem3Click
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Rescan'
+      object MenuItem6: TMenuItem
+        Caption = 'Remove non-strings'
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    left = 111
+    top = 193
   end
 end

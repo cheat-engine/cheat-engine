@@ -208,19 +208,19 @@ only memory
   if codecavescanner=nil then
   begin
     try
-      startaddress:=StrToInt64('$'+editstart.text);
+      startaddress:=StrToQWordEx('$'+editstart.text);
     except
       raise exception.Create(rsPleaseProvideAValidStartAddress);
     end;
 
     try
-      stopaddress:=StrToint64('$'+editStop.text);
+      stopaddress:=StrToQWordEx('$'+editStop.text);
     except
       raise exception.Create(rsPleaseProvideAValidStopAddress);
     end;
 
     try
-      bytelength:=StrToInt64('$'+editsize.Text);
+      bytelength:=StrToQWordEx('$'+editsize.Text);
       if bytelength<3 then raise exception.Create(rsPleaseTellMeYouDonTNeedACodeCaveThisSmall);
     except
       raise exception.Create(rsPleaseProvideAValidSizeForTheWantedCodeCave);

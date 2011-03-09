@@ -198,7 +198,7 @@ var delta: dword;
 begin
   if listbox1.ItemIndex<>-1 then
   begin
-    delta:=strtoint64('$'+editaddress.text)-tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress;
+    delta:=StrToQWordEx('$'+editaddress.text)-tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress;
     inc(tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress,delta);
     inc(tregion(listbox1.items.objects[listbox1.ItemIndex]).toaddress,delta);
     listbox1.Items[listbox1.ItemIndex]:=inttohex(tregion(listbox1.items.objects[listbox1.ItemIndex]).fromaddress,8)+'-'+inttohex(tregion(listbox1.items.objects[listbox1.ItemIndex]).toaddress,8);

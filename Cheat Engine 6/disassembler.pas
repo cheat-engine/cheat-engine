@@ -10450,7 +10450,7 @@ begin
     //check O for a hexadecimal value of 8 bytes and longer.
     if has4ByteHexString(d,s) then
     begin
-      address:=strtoint64(s); //s already has the $ in front
+      address:=StrToQWordEx(s); //s already has the $ in front
       result:=isAddress(address);
     end;
   end else

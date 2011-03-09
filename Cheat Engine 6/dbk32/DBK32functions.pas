@@ -1251,7 +1251,7 @@ var cc: dword;
     output: uint64;
     st: string;
     sp: uint64;
-    d: uint64;
+    d: system.qword;
 begin
   result:=0;
 
@@ -1259,7 +1259,7 @@ begin
 
   if length(st)<4 then exit;
 
-  if TryStrToInt64('$'+st, d) then exit; //windows BSOD's if it's a hexadecimal value
+  if TryStrToQWord('$'+st, d) then exit; //windows BSOD's if it's a hexadecimal value
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin

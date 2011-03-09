@@ -412,7 +412,7 @@ begin
           if tempnode<>nil then
           begin
             try
-              tempaddress:=strtoint64('$'+tempnode.TextContent);
+              tempaddress:=StrToQWordEx('$'+tempnode.TextContent);
             except
             end;
           end;

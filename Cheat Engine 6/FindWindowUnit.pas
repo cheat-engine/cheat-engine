@@ -77,8 +77,8 @@ begin
   if memscan<>nil then exit;
   
   try
-    start:=StrToInt64('$'+editStart.text);
-    stop:=strtoint64('$'+editstop.Text);
+    start:=StrToQWordEx('$'+editStart.text);
+    stop:=StrToQWordEx('$'+editstop.Text);
   except
     raise exception.Create(rsTheSpecifiedRangeIsInvalid);
   end;

@@ -893,8 +893,8 @@ begin
     try
       if VarType in [vtByte, vtWord, vtDword, vtQword, vtCustom] then
       begin
-        oldvalue:=StrToInt64(getvalue);
-        increasevalue:=StrToInt64(value);
+        oldvalue:=StrToQWordEx(getvalue);
+        increasevalue:=StrToQWordEx(value);
         setvalue(IntToStr(oldvalue+increasevalue));
       end
       else
@@ -921,8 +921,8 @@ begin
     try
       if VarType in [vtByte, vtWord, vtDword, vtQword] then
       begin
-        oldvalue:=StrToInt64(getvalue);
-        decreasevalue:=StrToInt64(value);
+        oldvalue:=StrToQWordEx(getvalue);
+        decreasevalue:=StrToQWordEx(value);
         setvalue(IntToStr(oldvalue-decreasevalue));
       end
       else
@@ -1348,7 +1348,7 @@ var
   pqw: PQWord absolute buf;
 
   li: PLongInt absolute buf;
-  li64: PInt64 absolute buf;
+  li64: PQWord absolute buf;
 
   wc: PWideChar absolute buf;
   c: PChar absolute buf;
@@ -1442,9 +1442,9 @@ begin
       vtByte: pb^:=strtoint(currentValue);
       vtWord: pw^:=strtoint(currentValue);
       vtDword: pdw^:=strtoint(currentValue);
-      vtQword: pqw^:=strtoint64(currentValue);
+      vtQword: pqw^:=StrToQWordEx(currentValue);
       vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then ps^:=StrToFloat(currentValue);
-      vtDouble: if (not fShowAsHex) or (not TryStrToInt64('$'+currentvalue, li64^)) then pd^:=StrToFloat(currentValue);
+      vtDouble: if (not fShowAsHex) or (not TryStrToQWord('$'+currentvalue, li64^)) then pd^:=StrToFloat(currentValue);
 
       vtBinary:
       begin
@@ -1453,7 +1453,7 @@ begin
         else
           temps:=IntToStr(BinToInt(currentValue));
 
-        temp:=StrToInt64(temps);
+        temp:=StrToQWordEx(temps);
         temp:=temp shl extra.bitData.Bit;
         mask:=qword($ffffffffffffffff) shl extra.bitData.BitLength;
         mask:=not mask; //mask now contains the length of the bits (4 bits would be 0001111)

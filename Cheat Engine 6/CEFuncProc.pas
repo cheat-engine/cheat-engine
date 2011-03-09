@@ -66,7 +66,7 @@ type TProcessListInfo=record
 end;
 PProcessListInfo=^TProcessListInfo;
 
-
+function StrToQWordEx(s: string): qword;
 
 function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
@@ -712,6 +712,19 @@ begin
 end;
 
 
+function StrToQWordEx(s: string): qword;
+begin
+  s:=trim(s);
+  if length(s)=0 then
+    raise exception.create('Invalid integer')
+  else
+  begin
+    if s[1]='-' then
+      result:=StrToInt64(s)
+    else
+      result:=StrToQWord(s);
+  end;
+end;
 
 procedure errorbeep;
 begin
@@ -2889,7 +2902,7 @@ end;
 
 function HexStrToInt64(const S: string): Int64;
 begin
-  result:=StrToint64(ConvertHexStrToRealStr(s));
+  result:=StrToQWordEx(ConvertHexStrToRealStr(s));
 end;
 
 function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
@@ -3238,6 +3251,8 @@ begin
     closehandle(ths);
   end;
 end;
+
+
 
 
 initialization

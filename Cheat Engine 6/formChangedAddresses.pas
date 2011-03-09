@@ -210,15 +210,15 @@ begin
     for i:=0 to changedlist.Items.Count-1 do
     begin
       case cbDisplayType.ItemIndex of
-        0: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtByte,  nil, micbShowAsHexadecimal.checked);
-        1: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtWord,  nil, micbShowAsHexadecimal.checked);
-        2: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDWord, nil, micbShowAsHexadecimal.checked);
-        3: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtSingle,nil, micbShowAsHexadecimal.checked);
-        4: s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtDouble,nil, micbShowAsHexadecimal.checked);
+        0: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtByte,  nil, micbShowAsHexadecimal.checked);
+        1: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtWord,  nil, micbShowAsHexadecimal.checked);
+        2: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtDWord, nil, micbShowAsHexadecimal.checked);
+        3: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtSingle,nil, micbShowAsHexadecimal.checked);
+        4: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtDouble,nil, micbShowAsHexadecimal.checked);
         else
         begin
           //custom type
-          s:=ReadAndParseAddress(strtoint64('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
+          s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
         end;
       end;
 
@@ -260,7 +260,7 @@ procedure TfrmChangedAddresses.Browsethismemoryregion1Click(
 begin
   if changedlist.Selected<>nil then
   begin
-    memorybrowser.memoryaddress:=strtoint64('$'+changedlist.Selected.Caption);
+    memorybrowser.memoryaddress:=StrToQWordEx('$'+changedlist.Selected.Caption);
     if not memorybrowser.visible then
       memorybrowser.show;
   end;

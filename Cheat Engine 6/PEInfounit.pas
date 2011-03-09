@@ -736,7 +736,7 @@ var address: ptrUint;
     check: boolean;
 begin
   try
-    address:=strtoint64('$'+edtAddress.text);
+    address:=StrToQWordEx('$'+edtAddress.text);
   except
     beep; //beeeeeeeeeeeeping idiot
     exit;

@@ -143,8 +143,8 @@ end;
 
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
 begin
-  start:=strtoint64('$'+edtReverseStart.text);
-  stop:=strtoint64('$'+edtReverseStop.text);
+  start:=StrToQWordEx('$'+edtReverseStart.text);
+  stop:=StrToQWordEx('$'+edtReverseStop.text);
 
   automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 

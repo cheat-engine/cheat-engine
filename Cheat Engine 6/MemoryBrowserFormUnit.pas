@@ -2169,7 +2169,7 @@ begin
   param:='0';
   if not InputQuery(rsCreateRemoteThread, rsWhatWillBeTheStartaddressOfThisThread, start) then exit;
   try
-    startaddress:=StrToInt64('$'+start);
+    startaddress:=StrToQWordEx('$'+start);
   except
     raise exception.Create(rsPleaseEnterAValidHexadecimalAddres);
   end;

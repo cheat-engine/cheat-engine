@@ -1614,7 +1614,7 @@ begin
 
             if rbFindAddress.Checked then
             begin
-              address:=strtoint64('$'+edtAddress.Text);
+              address:=StrToQWordEx('$'+edtAddress.Text);
 
               //rescan the pointerlist
 

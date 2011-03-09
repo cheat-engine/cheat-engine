@@ -1335,7 +1335,7 @@ function TMainform.getScanStart: ptruint;
 begin
   try
 
-    Result := StrToInt64('$' + FromAddress.Text);
+    Result := StrToQWordEx('$' + FromAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStartAddress, [FromAddress.Text]));
   end;
@@ -1349,7 +1349,7 @@ end;
 function TMainform.getScanStop: ptruint;
 begin
   try
-    Result := StrToInt64('$' + ToAddress.Text);
+    Result := StrToQWordEx('$' + ToAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStopAddress, [ToAddress.Text]));
   end;
@@ -4391,7 +4391,7 @@ begin
         begin
           //binary
           if rbdec.checked then
-            oldvaluei:=strtoint64(scanvalue.text)
+            oldvaluei:=StrToQWordEx(scanvalue.text)
           else
           begin
             s:=trim(oldvalue);
@@ -4407,10 +4407,10 @@ begin
         begin
           if washexadecimal then
           begin
-            oldvaluei:=strtoint64('$'+oldvalue);
+            oldvaluei:=StrToQWordEx('$'+oldvalue);
           end
           else
-            oldvaluei:=strtoint64(oldvalue);
+            oldvaluei:=StrToQWordEx(oldvalue);
         end;
 
         5,6,9:
@@ -4426,7 +4426,7 @@ begin
         7: //generic type,  text or all
         begin
           try
-            oldvaluei:=StrToInt64(oldvalue);
+            oldvaluei:=StrToQWordEx(oldvalue);
           except
             oldvaluef:=StrToFloat(oldvalue);
             wasfloat:=true;
@@ -5613,7 +5613,7 @@ begin
     //convert the value to a binary value
     try
       if scanvalue.text='' then scanvalue.text:='0' else
-        scanvalue.text:=inttobin(strtoint64(scanvalue.Text));
+        scanvalue.text:=inttobin(StrToQWordEx(scanvalue.Text));
       if scanvalue.text='' then scanvalue.text:='0';
     except
      //

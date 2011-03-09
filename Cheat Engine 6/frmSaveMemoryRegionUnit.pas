@@ -172,13 +172,13 @@ var fromaddress,toaddress:qword;
     temp:qword;
 begin
   try
-    fromaddress:=StrToInt64('$'+editFrom.Text);
+    fromaddress:=StrToQWordEx('$'+editFrom.Text);
   except
     raise exception.Create(Format(rsIsNotAValidAddress, [editfrom.Text]));
   end;
 
   try
-    toaddress:=StrToInt64('$'+editto.Text);
+    toaddress:=StrToQWordEx('$'+editto.Text);
   except
     raise exception.Create(Format(rsIsNotAValidAddress, [editto.Text]));
   end;
