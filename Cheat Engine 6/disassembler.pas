@@ -548,40 +548,13 @@ begin
             3:  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'],';
             4:
             begin
+              //has an sib
               result:='['+sib(memory,modrmbyte+1,last)+'],';
-              //no displacement unless it's 64-bit and that is already handled in sib()
-
-              {dwordptr:=@memory[last];
-
-
-              if result='' then
-              begin
-                LastdisassembleData.modrmValueType:=dvtAddress;
-                LastdisassembleData.modrmValue:=dwordptr^;
-              end;
-
-              if integer(dwordptr^)>0 then
-              begin
-                if result<>'' then
-                  result:=result+'+'+inttohexs(integer(dwordptr^),8)+'],'
-                else
-                  result:=inttohexs(integer(dwordptr^),8)+'],';
-              end
-              else
-              begin
-                if result<>'' then
-                  result:=result+'-'+inttohexs(-integer(dwordptr^),8)+'],'
-                else
-                  result:=inttohexs(-integer(dwordptr^),8)+'],';
-              end;
-
-              result:=getsegmentoverride(prefix)+'['+result;
-
-              inc(last,4);}
             end;
 
             5:
             begin
+              //followed by a disp32
               if is64bit then
               begin
                 riprelative:=true;
@@ -1126,22 +1099,21 @@ begin
     //mod 0 : [scaled index]+disp32
     //mod 1 : [scaled index]+disp8+ebp
     //mod 2 : [scaled index]+disp32+ebp
-    displacementstring:='';
-    case _mod of
-      0,2,3: //32-displacement
-      begin
-        if (_mod<>0) or (_rm=5) then
-        begin
-          if pinteger(dwordptr)^<0 then
-            displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
-          else
-            displacementstring:=inttohexs(pinteger(dwordptr)^,8);
 
-          last:=last+4;
-        end;
-      end;
-      1:
+    case _mod of
+      0:
       begin
+        displacementstring:='';
+        if pinteger(dwordptr)^<0 then
+          displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
+        else
+          displacementstring:=inttohexs(pinteger(dwordptr)^,8);
+
+        last:=last+4;
+      end;
+     1:
+      begin
+        displacementstring:=colorreg+'EBP'+endcolor;
         if pshortint(dwordptr)^<0 then
           displacementstring:=displacementstring+'-'+inttohexs(-pshortint(dwordptr)^,2)
         else
@@ -1149,6 +1121,18 @@ begin
 
         last:=last+1;
       end;
+
+     2:
+     begin
+       displacementstring:=colorreg+'EBP'+endcolor;
+       if pinteger(dwordptr)^<0 then
+         displacementstring:=displacementstring+'-'+inttohexs(-pinteger(dwordptr)^,8)
+       else
+         displacementstring:=displacementstring+'+'+inttohexs(pinteger(dwordptr)^,8);
+
+       last:=last+4;
+     end;
+
     end;
 
     if result='' then
