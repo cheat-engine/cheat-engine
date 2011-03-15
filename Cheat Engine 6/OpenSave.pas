@@ -774,7 +774,8 @@ begin
       if isProtected then //I know, this protection is pathetic for anyone that can compile ce. But as I said, this is just to stop the ultimate lazy guy from just editing the .CETRAINER file and changing the name
         mainform.isProtected:=true;
     except
-      raise exception.Create(rsThisIsNotAValidCheatTable);
+      on e: exception do
+        raise exception.Create(rsThisIsNotAValidCheatTable + ' ('+e.message+')');
     end;
 
   finally

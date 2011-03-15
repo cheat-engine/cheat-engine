@@ -1101,7 +1101,7 @@ begin
     //mod 2 : [scaled index]+disp32+ebp
 
     case _mod of
-      0:
+      0: //sib with a mod of 0. scaled index + disp32
       begin
         displacementstring:='';
         if pinteger(dwordptr)^<0 then
@@ -1111,7 +1111,7 @@ begin
 
         last:=last+4;
       end;
-     1:
+     1: //scaled index + ebp+ disp 8
       begin
         displacementstring:=colorreg+'EBP'+endcolor;
         if pshortint(dwordptr)^<0 then
@@ -1122,7 +1122,7 @@ begin
         last:=last+1;
       end;
 
-     2:
+     2: //scaned index + ebp+disp 32
      begin
        displacementstring:=colorreg+'EBP'+endcolor;
        if pinteger(dwordptr)^<0 then

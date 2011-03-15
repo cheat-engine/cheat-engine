@@ -73,13 +73,12 @@ object frmAdConfig: TfrmAdConfig
       Top = 137
       Width = 100
       ItemHeight = 15
-      ItemIndex = 3
+      ItemIndex = 2
       Items.Strings = (
-        '120x600'
-        '160x600'
+        '120x600160x600'
         '300x250'
         '468x60'
-        '728x90 '
+        '728x90'
       )
       OnChange = ComboBox1Change
       Style = csDropDownList

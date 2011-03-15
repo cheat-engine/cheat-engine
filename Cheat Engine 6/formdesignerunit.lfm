@@ -236,6 +236,7 @@ object FormDesigner: TFormDesigner
       Caption = 'CESplitter'
       Grouped = True
       ImageIndex = 19
+      OnClick = TBClick
       Style = tbsCheck
     end
   end

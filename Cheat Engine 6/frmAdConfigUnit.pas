@@ -115,7 +115,7 @@ end;
 procedure TfrmAdConfig.edtHeightChange(Sender: TObject);
 begin
   try
-    adwindow.ClientHeight:=strtoint(edtHeight.text);
+    adwindow.ClientHeight:=strtoint(trim(edtHeight.text));
   except
   end;
   adwindow.handlemove;

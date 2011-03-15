@@ -66,25 +66,25 @@ type tcheat = class (twincontrol)
     function getCheckboxVisible: boolean;
     function editPresent: boolean;
   public
+
+
     cheatnr: integer;
 
     beeponactivate: boolean;
 
+    constructor create(AOwner:Tcomponent); override;
+
     procedure setDeactivateTimer(interval: integer);
     procedure timerdeactivate(sender: tobject);
+
 
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
-
-    property showhotkey: boolean read fshowhotkey write SetShowHotkey;
-    constructor create(AOwner:Tcomponent); override;
   published
 
     property Color;
     property Textcolor:tcolor read ftextcolor write SetTextcolor;
-    property HasEditBox:boolean read EditPresent write ChangeEdit;
-    property HasCheckbox: boolean read getCheckboxVisible write SetCheckbox;
     property Editleft:integer read geteditleft write seteditleft default 200;
     property Editwidth: integer read geteditwidth write seteditwidth;
     property Editvalue:string read GetEditValue write SetEditValue;
@@ -94,6 +94,11 @@ type tcheat = class (twincontrol)
     property Descriptionleft:integer read getdescriptionleft write setdescriptionleft;
     property Activated: boolean read factivated write SetActivated;
     property Activationcolor: TColor read factivationcolor write factivationcolor;
+
+    property showhotkey: boolean read fshowhotkey write SetShowHotkey;
+    property HasEditBox: boolean read EditPresent write ChangeEdit;
+    property HasCheckbox: boolean read getCheckboxVisible write SetCheckbox;
+
 
 end;
 
@@ -190,6 +195,7 @@ begin
   begin
     if checkbox<>nil then
       freeandnil(checkbox);
+
     hotkeyleft:=0;
   end;
 end;
@@ -331,7 +337,10 @@ begin
     edit.Visible:=true;
   end
   else
-    freeandnil(present);
+  begin
+    if edit<>nil then
+      freeandnil(edit);
+  end;
 
   resetwidth;
 end;
