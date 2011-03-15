@@ -8,6 +8,8 @@ uses
   Classes, SysUtils, jwawindows, windows;
 
   //credits to jedi code library for filling in the "extended registers"
+const CONTEXT_EXTENDED=$20;
+
 type
   TJclMMContentType = (mt8Bytes, mt4Words, mt2DWords, mt1QWord, mt2Singles, mt1Double);
 

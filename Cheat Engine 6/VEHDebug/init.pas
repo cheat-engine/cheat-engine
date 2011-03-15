@@ -67,7 +67,7 @@ begin
     begin
       if lpte.th32OwnerProcessID=cpid then
       begin
-        ep.ContextRecord:=@c;
+        ep.ContextRecord:=nil; //@c;
         ep.ExceptionRecord:=@er;
         er.NumberParameters:=0;
 
@@ -75,6 +75,7 @@ begin
         begin
           //create process
           er.ExceptionCode:=$ce000000; // $ce000000=create process (just made up)
+
           InternalHandler(@ep,lpte.th32ThreadID); //I don't care what the return value is
           isfirst:=false;
         end else
@@ -171,6 +172,12 @@ begin
   begin
     if oldExceptionHandler<>nil then
       outputdebugstring('Old exception handler should have been deleted. If not, this will crash');
+
+
+    OutputDebugString('Testing if it handles normal debug events');
+    OutputDebugString('1');
+    OutputDebugString('2');
+    OutputDebugString('3');
 
     OutputDebugString('Calling EmulateInitializeEvents');
     EmulateInitializeEvents;

@@ -38,8 +38,11 @@ var i: integer;
   eventhandles: array [0..1] of THandle;
   wr: dword;
   contextsize: integer;
+  s: string;
 begin
    HandlerCS.enter; //block any other thread that has an single step exception untill this is handles
+
+
 
    //fill in the exception and context structures
    {$ifdef cpu64}
@@ -59,14 +62,21 @@ begin
    {$endif}
 
    //setup the context
-   contextsize:=sizeof(TContext);
-   {$ifdef cpu32}
-     //32-bit
-     if (ExceptionInfo.ContextRecord.ContextFlags and CONTEXT_EXTENDED)=CONTEXT_EXTENDED then
-       contextsize:=sizeof(TEContext);
-   {$endif}
+   if ExceptionInfo.ContextRecord<>nil then
+   begin
+     contextsize:=sizeof(TContext);
+     {$ifdef cpu32}
+       //32-bit
+       if (ExceptionInfo.ContextRecord.ContextFlags and CONTEXT_EXTENDED)=CONTEXT_EXTENDED then
+         contextsize:=sizeof(TEContext);
+     {$endif}
 
-   CopyMemory(@VEHSharedMem.CurrentContext[0],ExceptionInfo.ContextRecord,contextsize);
+    // messagebox(0,pchar('Copying context:'+inttohex(ptruint(ExceptionInfo.ContextRecord),8)+':'+inttostr(contextsize)), 'InternalHandler', 0);
+
+     CopyMemory(@VEHSharedMem.CurrentContext[0],ExceptionInfo.ContextRecord,contextsize);
+   end
+   else
+     zeromemory(@VEHSharedMem.CurrentContext[0], sizeof(TEContext));
 
    VEHSharedMem.ProcessID:=GetCurrentProcessId;
    VEHSharedMem.ThreadID:=threadid;
@@ -80,7 +90,10 @@ begin
 
      i:=wr -WAIT_OBJECT_0;
      if i=0 then //hashandleddebugevent has been set.  After ce is done with it use the new context
-       CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],sizeof(TCONTEXT))
+     begin
+       if ExceptionInfo.ContextRecord<>nil then
+         CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],contextsize)
+     end
      else
      begin
        //MessageBox(0,'WaitForMultipleObjects failed', 'VEH Debug Error', MB_OK);
