@@ -148,9 +148,9 @@ type
 
 type
   {$ifdef cpu64}
-  _CONTEXT32 = record
+  _CONTEXT32 = packed record
   {$else}
-  _CONTEXT = record
+  _CONTEXT = packed record
   {$endif}
     ContextFlags: DWORD;
     Dr0: DWORD;
