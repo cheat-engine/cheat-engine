@@ -13,12 +13,12 @@ type TGenericHotkey=class
     onNotify: TNotifyEvent;
 
     constructor create(routine: TNotifyEvent; keys: TKeycombo);
-    destructor destroy;
+    destructor destroy; override;
 end;
 
 implementation
 
-uses mainunit, hotkeyhandler;
+uses mainunit, hotkeyhandler, LuaCaller;
 
 constructor TGenericHotkey.create(routine: TNotifyEvent; keys: TKeycombo);
 begin
@@ -32,6 +32,8 @@ destructor TGenericHotkey.destroy;
 begin
   //unregister hotkey
   UnregisterGenericHotkey(self);
+
+  CleanupLuaCall(tmethod(onNotify));
 end;
 
 end.

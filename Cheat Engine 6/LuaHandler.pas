@@ -1664,6 +1664,8 @@ begin
   begin
     memoryrecord:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(memoryrecord.onActivate));
+    memoryrecord.onActivate:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -1705,6 +1707,8 @@ begin
   begin
     memoryrecord:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(memoryrecord.onDeactivate));
+    memoryrecord.onDeactivate:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -1723,6 +1727,7 @@ begin
       lc.luaroutine:=routine;
       memoryrecord.onDeactivate:=lc.ActivateEvent;
     end;
+
 
   end;
 
@@ -2358,6 +2363,8 @@ begin
   begin
     GenericHotkey:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(GenericHotkey.onNotify));
+    GenericHotkey.onNotify:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -2480,13 +2487,18 @@ var
   routine: string;
 
   lc: TLuaCaller;
+  oldroutine: TNotifyEvent;
 begin
+
   result:=0;
   paramcount:=lua_gettop(L);
   if paramcount=2 then
   begin
     timer:=lua_touserdata(L,-2);
+    oldroutine:=timer.OnTimer;
 
+    CleanupLuaCall(TMethod(timer.OnTimer));
+    timer.ontimer:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -2505,6 +2517,7 @@ begin
       lc.luaroutine:=routine;
       timer.OnTimer:=lc.NotifyEvent;
     end;
+
 
   end;
 
@@ -2877,6 +2890,8 @@ begin
   begin
     wincontrol:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(wincontrol.OnEnter));
+    wincontrol.OnEnter:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -2916,6 +2931,8 @@ begin
   begin
     wincontrol:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(wincontrol.onExit));
+    wincontrol.onExit:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -3339,6 +3356,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onClose));
+    control.onClose:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -3380,6 +3399,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onClick));
+    control.onClick:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -4348,6 +4369,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onChange));
+    control.onChange:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -4670,6 +4693,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onChange));
+    control.onChange:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -4782,6 +4807,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onClick));
+    control.onClick:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -5201,6 +5228,8 @@ begin
   begin
     control:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(control.onChange));
+    control.onChange:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -6276,6 +6305,8 @@ begin
   begin
     memoryrecordhotkey:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(memoryrecordhotkey.onHotkey));
+    memoryrecordhotkey.onHotkey:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -6316,6 +6347,8 @@ begin
   begin
     memoryrecordhotkey:=lua_touserdata(L,-2);
 
+    CleanupLuaCall(tmethod(memoryrecordhotkey.onPostHotkey));
+    memoryrecordhotkey.onPostHotkey:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -7324,7 +7357,6 @@ begin
       s.add('stringlist_remove=strings_remove');
 
       //same for the rename of memrec to memoryrecord
-
       s.add('memrec_setDescription = memoryrecord_setDescription_fromlua');
       s.add('memrec_getDescription = memoryrecord_getDescription_fromlua');
       s.add('memrec_getAddress = memoryrecord_getAddress_fromlua');
@@ -7341,6 +7373,9 @@ begin
       s.add('memrec_appendToEntry = memoryrecord_appendToEntry_fromlua');
       s.add('memrec_delete = memoryrecord_delete_fromlua');
       s.add('getAddressFromName = getAddress');
+
+      //timer onInterval has been renamed to timer onTimer
+      s.add('timer_onInterval = timer_onTimer');
 
       lua_doscript(s.text);
 

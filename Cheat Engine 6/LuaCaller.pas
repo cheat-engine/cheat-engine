@@ -25,15 +25,31 @@ type
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function ActivateEvent(sender: TObject; before: boolean): boolean;
       constructor create;
+      destructor destroy; override;
   end;
+
+procedure CleanupLuaCall(event: TMethod);   //cleans up a luacaller class if it was assigned if it was set
 
 implementation
 
 uses luahandler, MainUnit;
 
+procedure CleanupLuaCall(event: TMethod);
+begin
+  if (event.code<>nil) and (event.data<>nil) and (TObject(event.data) is TLuaCaller) then
+    TLuaCaller(event.data).free;
+
+end;
+
 constructor TLuaCaller.create;
 begin
   luaroutineindex:=-1;
+end;
+
+destructor TLuaCaller.destroy;
+begin
+  if luaroutineindex<>-1 then //deref
+    luaL_unref(luavm, LUA_REGISTRYINDEX, luaroutineindex);
 end;
 
 function TLuaCaller.canRun: boolean;

@@ -425,7 +425,7 @@ require("class");
 
 --Timer Class : (Inheritance: Component->object)
 --timer_setInterval(timer, interval)
---timer_onInterval(timer, function)
+--timer_onTimer(timer, function)
 
 --OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
 --opendialog_execute(openDialog): Shows the dialog and returns the string to the selected file

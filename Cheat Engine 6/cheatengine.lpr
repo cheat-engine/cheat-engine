@@ -49,7 +49,7 @@ uses
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
   trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
   xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
-  IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit;
+  IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit, frmStructPointerRescanUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -123,6 +123,7 @@ begin
   initcetitle;
 
   handleparameters;
+  Application.CreateForm(TfrmStructPointerRescan, frmStructPointerRescan);
   Application.Run;
 end.
 

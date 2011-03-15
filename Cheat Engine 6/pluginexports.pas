@@ -1562,12 +1562,12 @@ begin
 end;
 
 function ce_createForm2(params: pointer):pointer;
-var f: tceform;
+var f: Tcustomform;
   visible: ^boolean;
 begin
   visible:=params;
 
-  f:=Tceform.CreateNew(nil);
+  f:=Tcustomform.CreateNew(nil);
   f.borderstyle:=bsSingle;
 
   if visible^ then f.show;
@@ -1585,12 +1585,12 @@ begin
 end;
 
 function ce_form_centerScreen2(params: pointer):pointer;
-var f: tform;
+var f: Tcustomform;
 begin
-  f:=Tform(params);
+  f:=Tcustomform(params);
 
   try
-    if (f is Tform) then
+    if (f is Tcustomform) then
       f.Position:=poScreenCenter;
 
   except
@@ -1605,7 +1605,7 @@ end;
 
 function ce_form_hide2(params: pointer): pointer;
 begin
-  TForm(params).Hide;
+  Tcustomform(params).Hide;
   result:=nil;
 end;
 
@@ -1616,7 +1616,7 @@ end;
 
 function ce_form_show2(params: pointer): pointer;
 begin
-  TForm(params).show;
+  Tcustomform(params).show;
   result:=nil;
 end;
 
@@ -1626,9 +1626,9 @@ begin
 end;
 
 function ce_createPanel2(params: pointer):pointer;
-var p: TPanel;
+var p: TCEPanel;
 begin
-  p:=TPanel.Create(tcontrol(params));
+  p:=TCEPanel.Create(tcontrol(params));
   p.parent:=twincontrol(params);
   result:=p;
   ComponentFunctionHandlerClass.inputComponent(result);
@@ -1640,9 +1640,9 @@ begin
 end;
 
 function ce_createGroupBox2(params: pointer):pointer;
-var g: TGroupBox;
+var g: TCEGroupBox;
 begin
-  g:=TGroupBox.Create(tcontrol(params));
+  g:=TCEGroupBox.Create(tcontrol(params));
   g.parent:=twincontrol(params);
   result:=g;
   ComponentFunctionHandlerClass.inputComponent(result);
@@ -1654,9 +1654,9 @@ begin
 end;
 
 function ce_createButton2(params: pointer):pointer;
-var b: TButton;
+var b: TCEButton;
 begin
-  b:=Tbutton.Create(tcontrol(params));
+  b:=TCEbutton.Create(tcontrol(params));
   b.parent:=twincontrol(params);
   result:=b;
   ComponentFunctionHandlerClass.inputComponent(result);
@@ -1668,9 +1668,9 @@ begin
 end;
 
 function ce_createImage2(params: pointer):pointer;
-var i: TImage;
+var i: TCEImage;
 begin
-  i:=TImage.Create(tcontrol(params));
+  i:=TCEImage.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
   ComponentFunctionHandlerClass.inputComponent(result);
