@@ -5,7 +5,7 @@ unit DebugHandler;
 interface
 
 uses
-  windows, Classes, SysUtils, syncobjs;
+  windows, Classes, SysUtils, syncobjs, extcont;
 
 
 function Handler(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
@@ -37,6 +37,7 @@ function InternalHandler(ExceptionInfo: PEXCEPTION_POINTERS; threadid: dword): L
 var i: integer;
   eventhandles: array [0..1] of THandle;
   wr: dword;
+  contextsize: integer;
 begin
    HandlerCS.enter; //block any other thread that has an single step exception untill this is handles
 
@@ -58,7 +59,14 @@ begin
    {$endif}
 
    //setup the context
-   CopyMemory(@VEHSharedMem.CurrentContext[0],ExceptionInfo.ContextRecord,sizeof(TCONTEXT));
+   contextsize:=sizeof(TContext);
+   {$ifdef cpu32}
+     //32-bit
+     if (ExceptionInfo.ContextRecord.ContextFlags and CONTEXT_EXTENDED)=CONTEXT_EXTENDED then
+       contextsize:=sizeof(TEContext);
+   {$endif}
+
+   CopyMemory(@VEHSharedMem.CurrentContext[0],ExceptionInfo.ContextRecord,contextsize);
 
    VEHSharedMem.ProcessID:=GetCurrentProcessId;
    VEHSharedMem.ThreadID:=threadid;

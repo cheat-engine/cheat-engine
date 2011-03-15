@@ -167,9 +167,6 @@ begin
   OutputDebugString(pchar('@HasHandledDebugEvent='+inttohex(ptruint(@VEHSharedMem.HasHandledDebugEvent),8)));
 
 
-
-
-
   if assigned(AddVectoredExceptionHandler) then
   begin
     if oldExceptionHandler<>nil then
