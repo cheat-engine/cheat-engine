@@ -8,7 +8,7 @@ uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents;
+  ExtraTrainerComponents, customtimer;
 
 var
   LuaVM: Plua_State;
@@ -2151,6 +2151,7 @@ begin
     f:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(L));
     lua_pushboolean(L, GetForegroundWindow()=f.Handle);
+    result:=1;
   end
   else
    lua_pop(L, lua_gettop(L));
@@ -2450,10 +2451,15 @@ var parameters: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_touserdata(L, -parameters);
     p:=ce_createTimer(f);
+
+    if parameters>=2 then
+      tcustomtimer(p).Enabled:=lua_toboolean(L, -parameters+1)
+    else
+      tcustomtimer(p).enabled:=true;
 
     lua_pop(L, lua_gettop(L));
 
@@ -2464,16 +2470,14 @@ end;
 
 function timer_setInterval_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
-  t: pointer;
-  interval: integer;
+  t: TCustomTimer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
     t:=lua_touserdata(L, -2);
-    interval:=lua_tointeger(L, -1);
-    ce_timer_setInterval(t,interval);
+    t.Interval:=lua_tointeger(L, -1);
   end;
 
   lua_pop(L, lua_gettop(L));
@@ -2482,7 +2486,7 @@ end;
 function timer_onTimer_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
-  timer: TTimer;
+  timer: TCustomTimer;
   f: integer;
   routine: string;
 
@@ -2522,6 +2526,41 @@ begin
   end;
 
   lua_pop(L, paramcount);
+end;
+
+function timer_setEnabled_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  Timer: TCustomTimer;
+  Enabled: boolean;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=2 then
+  begin
+    Timer:=lua_touserdata(L,-2);
+    Timer.Enabled:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, paramcount);
+end;
+
+function timer_getEnabled_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  Timer: TCustomTimer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    Timer:=lua_touserdata(L,-1);
+    lua_pop(L, paramcount);
+
+    lua_pushboolean(L, Timer.Enabled);
+    result:=1;
+
+  end else lua_pop(L, paramcount);
 end;
 
 
@@ -3227,7 +3266,18 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function createStringlist_fromLua(L: Plua_State): integer; cdecl;
+var
+  stringlist: TStringlist;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
 
+  stringlist:=TStringList.Create;
+
+  lua_pushlightuserdata(L, stringlist);
+  result:=1;
+end;
 
 function stringlist_getDuplicates_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -4605,6 +4655,57 @@ begin
   lua_pop(L, paramcount);
 end;
 
+
+
+function createToggleBox_fromLua(L: Plua_State): integer; cdecl;
+var
+  ToggleBox: TCEToggleBox;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  ToggleBox:=TCEToggleBox.Create(owner);
+  if owner<>nil then
+    ToggleBox.Parent:=owner;
+
+  lua_pushlightuserdata(L, ToggleBox);
+  result:=1;
+end;
+
+function createCheckBox_fromLua(L: Plua_State): integer; cdecl;
+var
+  CheckBox: TCECheckBox;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  CheckBox:=TCECheckBox.Create(owner);
+  if owner<>nil then
+    CheckBox.Parent:=owner;
+
+  lua_pushlightuserdata(L, CheckBox);
+  result:=1;
+end;
 
 function checkbox_getAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -6956,6 +7057,31 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
+function createSplitter_fromLua(L: Plua_State): integer; cdecl;
+var
+  Splitter: TCESplitter;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  Splitter:=TCESplitter.Create(owner);
+  if owner<>nil then
+    Splitter.Parent:=owner;
+
+  lua_pushlightuserdata(L, splitter);
+  result:=1;
+end;
+
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -7028,30 +7154,19 @@ begin
     lua_register(LuaVM, 'closeCE', closeCE_fromLua);
     lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows_fromLua);
     lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow_fromLua);
-    lua_register(LuaVM, 'createForm', createForm_fromLua);
-    lua_register(LuaVM, 'createPanel', createPanel_fromLua);
-    lua_register(LuaVM, 'createGroupBox', createPanel_fromLua);
-    lua_register(LuaVM, 'createButton', createButton_fromLua);
-    lua_register(LuaVM, 'createImage', createImage_fromLua);
-    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile_fromLua);
-    lua_register(LuaVM, 'image_transparent', image_transparent_fromLua);
-    lua_register(LuaVM, 'image_stretch', image_stretch_fromLua);
-    lua_register(LuaVM, 'createLabel', createLabel_fromLua);
-    lua_register(LuaVM, 'createEdit', createEdit_fromLua);
-    lua_register(LuaVM, 'createMemo', createMemo_fromLua);
-    lua_register(LuaVM, 'createTimer', createTimer_fromLua);
 
+
+    lua_register(LuaVM, 'createGroupBox', createGroupBox_fromLua);
+
+
+    lua_register(LuaVM, 'createLabel', createLabel_fromLua);
+    lua_register(LuaVM, 'createSplitter', createSplitter_fromLua);
 
     lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
     lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
     lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
-    {
-    lua_register(LuaVM, 'stringlist_getCount', stringlist_getCount_fromLua);
-    lua_register(LuaVM, 'stringlist_getString', stringlist_getString_fromLua);
-    lua_register(LuaVM, 'stringlist_getFullText', stringlist_getFullText_fromLua);  //6.1
-    lua_register(LuaVM, 'stringlist_add', stringlist_add_fromLua);
-    lua_register(LuaVM, 'stringlist_remove', stringlist_remove_fromLua);   }
+
 
     lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
     lua_register(LuaVM, 'createProcess', createProcess_fromLua);
@@ -7066,8 +7181,10 @@ begin
     lua_register(LuaVM, 'inSystemModule', inSystemModule_fromLua);
     lua_register(LuaVM, 'getCommonModuleList', getCommonModuleList_fromLua);
 
-
-
+    lua_register(LuaVM, 'createImage', createImage_fromLua);
+    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile_fromLua);
+    lua_register(LuaVM, 'image_transparent', image_transparent_fromLua);
+    lua_register(LuaVM, 'image_stretch', image_stretch_fromLua);
 
     lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys_fromLua);
@@ -7125,6 +7242,8 @@ begin
     lua_register(LuaVM, 'strings_getString', strings_getString_fromLua);
     lua_register(LuaVM, 'strings_setString', strings_setString_fromLua);
 
+
+    lua_register(LuaVM, 'createStringlist', createStringlist_fromLua);
     lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates_fromLua);
     lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates_fromLua);
     lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted_fromLua);
@@ -7132,6 +7251,7 @@ begin
     lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive_fromLua);
     lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_setCaseSensitive_fromLua);
 
+    lua_register(LuaVM, 'createForm', createForm_fromLua);
     lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
     lua_register(LuaVM, 'form_onClose', form_onClose_fromLua);
     lua_register(LuaVM, 'form_show', form_show_fromLua);
@@ -7139,7 +7259,7 @@ begin
     lua_register(LuaVM, 'form_showModal', form_showModal_fromLua);
     lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow_fromLua);
 
-
+    lua_register(LuaVM, 'createPanel', createPanel_fromLua);
     lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment_fromLua);
     lua_register(LuaVM, 'panel_setAlignment', panel_setAlignment_fromLua);
     lua_register(LuaVM, 'panel_getBevelInner', panel_getBevelInner_fromLua);
@@ -7151,6 +7271,9 @@ begin
     lua_register(LuaVM, 'panel_getFullRepaint', panel_getFullRepaint_fromLua);
     lua_register(LuaVM, 'panel_setFullRepaint', panel_setFullRepaint_fromLua);
 
+
+
+    lua_register(LuaVM, 'createEdit', createEdit_fromLua);
     lua_register(LuaVM, 'edit_clear', edit_clear_fromLua);
     lua_register(LuaVM, 'edit_selectAll', edit_selectAll_fromLua);
     lua_register(LuaVM, 'edit_clearSelection', edit_clearSelection_fromLua);
@@ -7159,6 +7282,7 @@ begin
     lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard_fromLua);
     lua_register(LuaVM, 'edit_onChange', edit_onChange_fromLua);
 
+    lua_register(LuaVM, 'createMemo', createMemo_fromLua);
     lua_register(LuaVM, 'memo_append', memo_append_fromLua);
     lua_register(LuaVM, 'memo_getLines', memo_getLines_fromLua);
     lua_register(LuaVM, 'memo_getWordWrap', memo_getWordWrap_fromLua);
@@ -7170,10 +7294,12 @@ begin
     lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars_fromLua);
     lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars_fromLua);
 
+    lua_register(LuaVM, 'createButton', createButton_fromLua);
     lua_register(LuaVM, 'button_getModalResult', button_getModalResult_fromLua);
     lua_register(LuaVM, 'button_setModalResult', button_setModalResult_fromLua);
 
-
+    lua_register(LuaVM, 'createToggleBox', createToggleBox_fromLua);
+    lua_register(LuaVM, 'createCheckBox', createCheckBox_fromLua);
     lua_register(LuaVM, 'checkbox_getAllowGrayed', checkbox_getAllowGrayed_fromLua);
     lua_register(LuaVM, 'checkbox_setAllowGrayed', checkbox_setAllowGrayed_fromLua);
     lua_register(LuaVM, 'checkbox_getState', checkbox_getState_fromLua);
@@ -7248,12 +7374,13 @@ begin
     lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex_fromLua);
 
 
+    lua_register(LuaVM, 'createTimer', createTimer_fromLua);
     lua_register(LuaVM, 'timer_setInterval', timer_setInterval_fromLua);
     lua_register(LuaVM, 'timer_onTimer', timer_onTimer_fromLua);
+    lua_register(LuaVM, 'timer_setEnabled', timer_setEnabled_fromLua);
+    lua_register(LuaVM, 'timer_getEnabled', timer_getEnabled_fromLua);
 
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute_fromLua);
-
-
 
 
     Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);

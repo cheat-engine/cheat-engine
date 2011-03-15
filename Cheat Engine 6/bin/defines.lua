@@ -1,10 +1,19 @@
 --Defines:
 
+--memo scrollbar defines
+ssNone=0
+ssHorizontal=1
+ssVertical=2
+ssBoth=3
+ssAutoHorizontal=4
+ssAutoVertical=5
+ssAutoBoth=6
+
+
 --scan types: (fast scan methods)
 fsmNotAligned=0
 fsmAligned=1
 fsmLastDigits=2
-
 
 
 --debug variables

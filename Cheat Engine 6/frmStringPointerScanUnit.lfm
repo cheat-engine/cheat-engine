@@ -1,50 +1,35 @@
 object frmStringPointerScan: TfrmStringPointerScan
   Left = 589
-  Height = 313
+  Height = 384
   Top = 267
-  Width = 632
-  Caption = 'String pointer scan'
-  ClientHeight = 293
-  ClientWidth = 632
+  Width = 626
+  Caption = 'String pointerscan'
+  ClientHeight = 364
+  ClientWidth = 626
   Menu = MainMenu1
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 293
+    Height = 364
     Top = 0
-    Width = 144
+    Width = 96
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 293
-    ClientWidth = 144
+    ClientHeight = 364
+    ClientWidth = 96
     TabOrder = 0
-    object edtBase: TEdit
-      Left = 8
-      Height = 23
-      Top = 24
-      Width = 127
-      TabOrder = 0
-    end
-    object Label1: TLabel
-      Left = 8
-      Height = 16
-      Top = 4
-      Width = 62
-      Caption = 'Base region'
-      ParentColor = False
-    end
     object edtStructsize: TEdit
       Left = 8
       Height = 23
-      Top = 72
+      Top = 24
       Width = 80
-      TabOrder = 1
+      TabOrder = 0
       Text = '4096'
     end
     object Label2: TLabel
       Left = 8
       Height = 16
-      Top = 56
+      Top = 8
       Width = 51
       Caption = 'Structsize'
       ParentColor = False
@@ -52,11 +37,11 @@ object frmStringPointerScan: TfrmStringPointerScan
     object Button1: TButton
       Left = 8
       Height = 25
-      Top = 136
+      Top = 88
       Width = 80
       Caption = 'Scan'
       OnClick = Button1Click
-      TabOrder = 2
+      TabOrder = 1
     end
     object Label3: TLabel
       Left = 8
@@ -69,7 +54,7 @@ object frmStringPointerScan: TfrmStringPointerScan
     object Label4: TLabel
       Left = 8
       Height = 16
-      Top = 96
+      Top = 48
       Width = 53
       Caption = 'Max Level'
       ParentColor = False
@@ -77,22 +62,82 @@ object frmStringPointerScan: TfrmStringPointerScan
     object edtMaxLevel: TEdit
       Left = 8
       Height = 23
-      Top = 112
+      Top = 64
       Width = 80
-      TabOrder = 3
+      TabOrder = 2
       Text = '2'
     end
   end
-  object ListView1: TListView
-    Left = 144
-    Height = 293
+  object Panel2: TPanel
+    Left = 96
+    Height = 364
     Top = 0
-    Width = 488
+    Width = 530
     Align = alClient
-    Columns = <>
-    OwnerData = True
+    BevelOuter = bvNone
+    ClientHeight = 364
+    ClientWidth = 530
     TabOrder = 1
-    ViewStyle = vsReport
+    object ListView1: TListView
+      Left = 0
+      Height = 312
+      Top = 52
+      Width = 530
+      Align = alClient
+      Columns = <>
+      OwnerData = True
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnCustomDrawItem = ListView1CustomDrawItem
+      OnData = ListView1Data
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 52
+      Top = 0
+      Width = 530
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 52
+      ClientWidth = 530
+      TabOrder = 1
+      object edtBase: TEdit
+        Left = 8
+        Height = 23
+        Top = 24
+        Width = 127
+        OnChange = edtBaseChange
+        TabOrder = 0
+      end
+      object Label1: TLabel
+        Left = 8
+        Height = 16
+        Top = 4
+        Width = 62
+        Caption = 'Base region'
+        ParentColor = False
+      end
+      object lblExtra: TLabel
+        Left = 142
+        Height = 16
+        Top = 3
+        Width = 91
+        Caption = 'Compare against'
+        Enabled = False
+        ParentColor = False
+      end
+      object edtExtra: TEdit
+        Left = 142
+        Height = 23
+        Top = 24
+        Width = 127
+        Enabled = False
+        OnChange = edtExtraChange
+        TabOrder = 1
+      end
+    end
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sptr'
@@ -117,7 +162,8 @@ object frmStringPointerScan: TfrmStringPointerScan
     object MenuItem5: TMenuItem
       Caption = 'Rescan'
       object MenuItem6: TMenuItem
-        Caption = 'Remove non-strings'
+        Caption = 'Remove pointers'
+        OnClick = MenuItem6Click
       end
     end
   end

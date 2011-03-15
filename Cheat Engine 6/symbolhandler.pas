@@ -1065,6 +1065,9 @@ begin
   begin
     if name[1]='$' then
     begin
+      val(name,result,i);
+      if i=0 then exit; //it's a hexadecimal string starting with a $
+
       //check if lua thingy
       i:=lua_gettop(luavm); //make sure the stack ends here when done
 
@@ -1119,7 +1122,7 @@ begin
   val('$'+name,result,i);
   if i=0 then exit; //it's a valid hexadecimal string
 
-  if copy(name,1,2)='0x' then
+  if lowercase(copy(name,1,2))='0x' then
   begin
     val(name,result,i);
     if i=0 then exit;

@@ -104,24 +104,8 @@ require("class");
 --hideAllCEWindows() : makes all normal ce windows invisible (e.g trainer table)
 --unhideMainCEwindow() : shows the main cheat engine window
 
-------class-objects-----
---The following objects are descendent from the object named "control", therefore the returned pointer when they are created can also be used for functions that start with control_
 
---createForm(visible OPT): creates a form (window) and returns the pointer for it. Visible is default true but can be changed
-
-
---The following create routines take an owner as parameter. Owner can be a Form, Panel or Groupbox
---The x,y position will be based on the client array of the owner
---createPanel(owner)
---createGroupBox(owner)
---createButton(owner)
---createImage(owner)
---createLabel(owner)
---createEdit(owner)
---createMemo(owner)
---createTimer(owner)
-
-
+--interval
 --getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
 
 
@@ -238,6 +222,7 @@ require("class");
 
 
 --Stringlist Class: (Inheritance : Strings->Object)
+--createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
 --stringlist_getDuplicates(list) : returns the duplicates property
 --stringlist_setDuplicates(list, Duplicates) : Sets the duplicates property
 --stringlist_getSorted(list) : returns true if the list has the sorted property
@@ -247,6 +232,7 @@ require("class");
 
 
 --Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+--createForm(visible OPT): creates a Form class object(window) and returns the pointer for it. Visible is default true but can be changed
 --form_centerScreen(form); : Places the form at the center of the screen
 --form_hide(form) : Hide the form
 --form_show(form) : show the form
@@ -260,12 +246,14 @@ require("class");
 
 
 --Label Class: (Inheritance: GraphicControl->Control->Component->Object)
+--createLabel(owner): Creates a Label class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 
 --Splitter Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
-
+--createSplitter(owner): Creates a Splitter class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 --Panel Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
+--createPanel(owner): Creates a Panel class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --panel_getAlignment(panel) : gets the alignment property
 --panel_setAlignment(panel, alignment) : sets the alignment property
 --panel_getBevelInner(panel) 
@@ -280,11 +268,13 @@ require("class");
 
 
 --Image Class: (Inheritance: GraphicControl->Control->Component->Object)
+--createImage(owner): Creates an Image class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --image_loadImageFromFile(filename)
 --image_stretch(boolean)
 --image_transparent(boolean)
 
 --Edit Class: (Inheritance: WinControl->Control->Component->Object)
+--createEdit(owner): Creates an Edit class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --edit_clear(edit)
 --edit_selectAll(edit)
 --edit_clearSelection(edit)
@@ -295,6 +285,7 @@ require("class");
 
 
 --Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
+--createMemo(owner): Creates a Memo class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --memo_append(memo,string)
 --memo_getLines(memo) : returns a Strings class
 --memo_getWordWrap(memo)
@@ -304,7 +295,17 @@ require("class");
 --memo_getWantReturns(memo)
 --memo_setWantReturns(memo, boolean)
 --memo_getScrollbars(memo)
---memo_setScrollbars(memo, boolean)
+--memo_setScrollbars(memo, scrollbarenumtype) : 
+--  Sets the scrollbars. Horizontal only takes affect when wordwrap is disabled
+--  valid enum types: 
+--    ssNone : No scrollbars
+--    ssHorizontal: Has a horizontal scrollbar
+--    ssVertical: Has a vertical scrollbar
+--    ssBoth: Has both scrollbars
+--    ssAutoHorizontal: Same as above but only shows when there actually is something to scroll for
+--    ssAutoVertical: " " " " ...
+--    ssAutoBoth: " " " " ...
+
 
 
 
@@ -313,10 +314,12 @@ require("class");
 
 
 --Button Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
+--createButton(owner): Creates a Button class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --button_getModalResult(button)
 --button_setModalResult(button, mr)
 
 --CheckBox Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
+--createCheckBox(owner): Creates a CheckBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --checkbox_getAllowGrayed(CheckBox)
 --checkbox_setAllowGrayed(CheckBox, boolean)
 --checkbox_getState(checkbox)
@@ -324,8 +327,11 @@ require("class");
 --checkbox_onChange(checkbox, function)
 
 --ToggleBox Class: (Inheritance: CheckBox->ButtonControl->WinControl->Control->Component->Object)
+--createToggleBox(owner): Creates a ToggleBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 --GroupBox Class: (Inheritance: WinControl->Control->Component->Object)
+--createGroupBox(owner): Creates a GroupBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
+
 
 --RadioGroup class: (Inheritance: GroupBox->WinControl->Control->Component->Object)
 --radiogroup_getRows(radiogroup): Returns the number of rows
@@ -424,8 +430,14 @@ require("class");
 
 
 --Timer Class : (Inheritance: Component->object)
+--createTimer(owner, enabled OPT): 
+--  Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
+--  Owner may be nil, but you will be responsible for destroying it
 --timer_setInterval(timer, interval)
 --timer_onTimer(timer, function)
+--timer_getEnabled(timer)
+--timer_setEnabled(timer, boolean)
+
 
 --OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
 --opendialog_execute(openDialog): Shows the dialog and returns the string to the selected file

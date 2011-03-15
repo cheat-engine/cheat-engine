@@ -1789,9 +1789,9 @@ begin
 end;
 
 function ce_createMemo2(params: pointer):pointer;
-var i: TMemo;
+var i: TCEMemo;
 begin
-  i:=TMemo.Create(tcontrol(params));
+  i:=TCEMemo.Create(tcontrol(params));
   i.parent:=twincontrol(params);
   result:=i;
   ComponentFunctionHandlerClass.inputComponent(result);
@@ -1799,13 +1799,14 @@ end;
 
 function ce_createMemo(owner: pointer): pointer; stdcall;
 begin
-  result:=pluginsync(ce_createImage2,owner);
+  result:=pluginsync(ce_createMemo2,owner);
 end;
 
 function ce_createTimer2(params: pointer):pointer;
-var i: TTimer;
+var i: TCETimer;
 begin
-  i:=TTimer.Create(tcontrol(params));
+  i:=TCETimer.Create(tcontrol(params));
+
   result:=i;
   ComponentFunctionHandlerClass.inputComponent(result);
 end;
@@ -1817,7 +1818,7 @@ end;
 
 function ce_timer_setInterval2(params: pointer):pointer;
 type tp=record
-  timer: TTimer;
+  timer: TCETimer;
   interval: integer;
 end;
 var p: ^tp;
@@ -1829,7 +1830,7 @@ end;
 
 procedure ce_timer_setInterval(timer: pointer; interval: integer); stdcall;
 var p:record
-  timer: TTimer;
+  timer: TCETimer;
   interval: integer;
 end;
 begin
@@ -1848,7 +1849,7 @@ end;
 
 function ce_timer_onTimer2(params: pointer): pointer;
 var p: POnTimer;
-  t: TTimer;
+  t: TCETimer;
 begin
   p:=params;
   t:=p.t;

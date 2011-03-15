@@ -2827,12 +2827,18 @@ end;
 procedure TMemoryBrowser.SetCodeAndDataBase;
 var code,data: ptrUint;
 begin
-  outputdebugstring('calling GetEntryPointAndDataBase');
-  GetEntryPointAndDataBase(code,data);
-  outputdebugstring('returned from GetEntryPointAndDataBase');
+  if processid=$ffffffff then  //file instead of process
+  begin
+    code:=0;
+    data:=0;
+  end
+  else
+    GetEntryPointAndDataBase(code,data);
 
   disassemblerview.SelectedAddress:=code;
   memoryaddress:=data;
+
+
 end;
 
 procedure TMemoryBrowser.Back1Click(Sender: TObject);

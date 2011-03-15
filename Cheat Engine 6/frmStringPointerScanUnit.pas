@@ -1,3 +1,8 @@
+{
+todo:
+This has shown a usefull method to dissect structures
+wat can be done is add every dword offset in a structure as an offset and compare against the 4 bytes there
+}
 unit frmStringPointerScanUnit;
 
 {$mode delphi}
@@ -69,13 +74,15 @@ type
 
   TfrmStringPointerScan = class(TForm)
     Button1: TButton;
-    edtMaxLevel: TEdit;
+    edtExtra: TEdit;
     edtBase: TEdit;
+    edtMaxLevel: TEdit;
     edtStructsize: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    lblExtra: TLabel;
     ListView1: TListView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -85,10 +92,18 @@ type
     MenuItem6: TMenuItem;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
     SaveDialog1: TSaveDialog;
     procedure Button1Click(Sender: TObject);
+    procedure edtBaseChange(Sender: TObject);
+    procedure edtExtraChange(Sender: TObject);
+    procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+
+    procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
   private
     { private declarations }
 
@@ -103,13 +118,20 @@ type
     pointerfile: tfilestream;
     pointerfileLevelwidth: integer;
 
+    address, address2: ptruint;
+    hasAddress2: boolean;
+
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     procedure OpenPointerfile(filename: string);
     procedure scanDone(var m: tmessage); message wm_sps_done;
+
+    function getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
   public
     { public declarations }
+    entrysize: integer;
+    count: integer;
   end;
 
 
@@ -168,9 +190,7 @@ begin
       if (fillpointerblock[i]>$10000) and ((fillpointerblock[i] mod 4)=0) and (isreadable(fillpointerblock[i])) then
       begin
         p:=bma.alloc(sizeof(TPointerListEntry));
-       // p:=getmem(sizeof(TPointerListEntry));
 
-       // ZeroMemory(p, sizeof(TPointerListEntry));
         p.address:=base+(i*4);
         p.pointsto:=fillpointerblock[i];
 
@@ -326,15 +346,16 @@ end;
 
 procedure TScanner.flushResults;
 begin
-  resultfile.WriteBuffer(results.Memory^, results.size);
+  resultfile.WriteBuffer(results.Memory^, results.position);
   results.position:=0;
 end;
 
 procedure TScanner.addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: BOOL);
 begin
   results.WriteBuffer(level, sizeof(level));
+  results.WriteBuffer(stringsize, sizeof(stringsize));
   results.WriteBuffer(unicode, sizeof(unicode));
-  results.WriteBuffer(path[0], sizeof(path[0])*maxlevel+1);
+  results.WriteBuffer(path[0], sizeof(path[0])*(maxlevel+1));
 
   if results.Position>=(15*1024*1024) then
     flushResults;
@@ -450,15 +471,154 @@ end;
 
 //----------------------------
 
+
+function TfrmStringPointerScan.getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
+var i: integer;
+  x: dword;
+
+  b: pchar;
+  wb: pwidechar absolute b;
+begin
+  a:=address+offsets[0];
+  for i:=1 to level do
+  begin
+    if readprocessmemory(processhandle, pointer(a), @a, processhandler.pointersize, x) then
+    begin
+      a:=a+offsets[i];
+    end
+    else
+    begin
+      result:='???';
+      exit;
+    end;
+  end;
+
+  getmem(b, bytesize+2);
+  if ReadProcessMemory(processhandle, pointer(a), b, bytesize, x) then
+  begin
+    b[bytesize]:=#0;
+    b[bytesize+1]:=#0;
+
+    if unicode then
+      result:=wb
+    else
+      result:=b;
+
+  end;
+  freemem(b);
+
+end;
+
+procedure TfrmStringPointerScan.ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+  type TPointerRecord=record
+    level: integer;
+    stringsize: integer;
+    unicode: BOOL;
+    offset: TDwordArray;
+  end;
+  PPointerRecord=^TPointerRecord;
+var s,s2: string;
+
+  a: ptruint;
+begin
+  defaultdraw:=true;
+
+  if item.data<>nil then
+    sender.Canvas.Font.Color:=clblue;
+end;
+
+
+
+procedure TfrmStringPointerScan.ListView1Data(Sender: TObject; Item: TListItem);
+  type TPointerRecord=record
+    level: integer;
+    stringsize: integer;
+    unicode: BOOL;
+    offset: TDwordArray;
+  end;
+  PPointerRecord=^TPointerRecord;
+var
+  buf: PPointerRecord;
+  i: integer;
+
+  l: integer;
+  s,s2: string;
+  a: ptruint;
+begin
+  if pointerfile<>nil then
+  begin
+    pointerfile.Position:=sizeof(pointerfileLevelwidth)+item.Index*entrysize;
+
+    getmem(buf, entrysize);
+
+
+
+    if pointerfile.Read(buf^, entrysize)=entrysize then
+    begin
+      l:=buf.level;
+
+      item.Caption:=inttohex(buf.offset[0],1);
+      for i:=1 to buf.level do
+        item.SubItems.Add(inttohex(buf.offset[i],1));
+
+      for i:=buf.level+1 to pointerfileLevelwidth do
+        item.subitems.add('');
+
+      s:=getStringFromPointer(address, buf.offset, buf.level, buf.stringsize, buf.unicode, a);
+      item.SubItems.Add(inttohex(a,8)+' : '+s);
+
+      if hasAddress2 then
+      begin
+        s2:=getStringFromPointer(address2, buf.offset, buf.level, buf.stringsize, buf.unicode, a);
+        item.SubItems.Add(inttohex(a,8)+' : '+s2);
+
+        if s<>s2 then
+          item.data:=pointer(1);
+      end;
+    end;
+
+    freemem(buf);
+  end;
+end;
+
 procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
+var lc: TListColumn;
+  i: integer;
 begin
   cleanup;
 
   pointerfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
   pointerfile.ReadBuffer(pointerfileLevelwidth, sizeof(pointerfileLevelwidth));
 
+  entrysize:=(pointerfileLevelwidth+4)*sizeof(dword); //+4 for : Levelsize of pointer, stringsize and the isunicode boolean and levelwidth is based on 0 (0=1 offset, 1=2 offsets, etc..)
+  count:=(pointerfile.size-sizeof(pointerfileLevelwidth)) div (entrysize);
+
+  for i:=0 to pointerfileLevelwidth do
+  begin
+    lc:=listview1.Columns.Add;
+    lc.MinWidth:=2;
+    lc.Width:=70;
+    lc.Caption:='Offset '+inttostr(i);
+  end;
+
+  lc:=listview1.Columns.Add;
+  lc.MinWidth:=2;
+  lc.Width:=120;
+  lc.Caption:='Address';
+
+  lc:=listview1.Columns.Add;
+  lc.MinWidth:=2;
+  lc.Width:=120;
+  lc.Caption:='Address 2';
+  lc.Visible:=false;
+
+  lblExtra.enabled:=true;
+  edtExtra.Enabled:=true;
+
+  edtExtraChange(edtExtra);
 
 
+  listview1.items.count:=min(1000000, count);
 end;
 
 procedure TfrmStringPointerScan.scanDone(var m: tmessage);
@@ -575,6 +735,28 @@ begin
 
 end;
 
+procedure TfrmStringPointerScan.edtBaseChange(Sender: TObject);
+begin
+  try
+    address:=StrToQword('$'+edtBase.text);
+  except
+  end;
+end;
+
+procedure TfrmStringPointerScan.edtExtraChange(Sender: TObject);
+begin
+  if listview1.ColumnCount>1 then
+  begin
+    hasAddress2:=edtExtra.Text<>'';
+    listview1.Columns[listview1.ColumnCount-1].Visible:=hasAddress2;
+  end;
+
+  try
+    address2:=StrToQword('$'+edtExtra.text);
+  except
+  end;
+end;
+
 procedure TfrmStringPointerScan.MenuItem2Click(Sender: TObject);
 begin
   cleanup;
@@ -584,6 +766,11 @@ procedure TfrmStringPointerScan.MenuItem3Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
     OpenPointerfile(opendialog1.filename);
+
+end;
+
+procedure TfrmStringPointerScan.MenuItem6Click(Sender: TObject);
+begin
 
 end;
 

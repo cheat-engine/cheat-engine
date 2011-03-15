@@ -2185,16 +2185,18 @@ begin
 
   for i:=0 to length(tokens)-1 do
   begin
-    if (length(tokens[i])>1) or (not (tokens[i][1] in ['[',']','+','-','*'])) then
+    if (length(tokens[i])>1) and (not (tokens[i][1] in ['[',']','+','-','*'])) then //3/16/2011: 11:15 (replaced or with and)
     begin
       val('$'+tokens[i],j,err);
       if (err<>0) and (getreg(tokens[i],false)=-1) then
       begin
+        showmessage(tokens[i]);
+
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
         if not haserror then
           tokens[i]:=temp;
 
-
+        showmessage(tokens[i])
       end;
     end;
   end;
