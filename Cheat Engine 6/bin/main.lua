@@ -334,6 +334,7 @@ require("class");
 
 
 --RadioGroup class: (Inheritance: GroupBox->WinControl->Control->Component->Object)
+--createRadioGroup(owner): Creates a RadioGroup class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --radiogroup_getRows(radiogroup): Returns the number of rows
 --radiogroup_getItems(radiogroup): Returns a Strings object
 --radiogroup_getColumns(radiogroup): Returns the nuber of columns
@@ -342,6 +343,7 @@ require("class");
 
 
 --ListBox Class: (Inheritance: WinControl->Control->Component->Object) 
+--createListBox(owner): Creates a ListBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --listbox_clear(listbox)
 --listbox_getItems(listbox): Returns a strings object
 --listbox_getItemIndex(listbox)
@@ -349,6 +351,7 @@ require("class");
 
 
 --ComboBox Class: (Inheritance: WinControl->Control->Component->Object)
+--createComboBox(owner): Creates a ComboBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --combobox_clear(combobox)
 --combobox_getItems(combobox)
 --combobox_getItemIndex(combobox)
@@ -357,6 +360,7 @@ require("class");
 
 
 --ProgressBar Class: (Inheritance: WinControl->Control->Component->Object)
+--createProgressBar(owner): Creates a ProgressBar class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --progressbar_stepIt(progressbar)
 --progressbar_stepBy(progressbar, delta)
 --progressbar_getMax(progressbar)
@@ -369,6 +373,7 @@ require("class");
 
 
 --TrackBar Class : (Inheritance: WinControl->Control->Component->Object)
+--createTrackBar(owner): Creates a TrackBar class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --trackbar_getMax(trackbar)
 --trackbar_setMax(trackbar, integer)
 --trackbar_getMin(trackbar)
@@ -422,6 +427,7 @@ require("class");
 
 
 --Listview Class : (Inheritance: WinControl->Control->Component->Object)
+--createListView(owner): Creates a ListView class object which belongs to the given owner. Owner can be any object inherited from WinControl
 --listview_clear(listview)
 --listview_getColumns(listview): Returns a ListColumns object
 --listview_getItems(listview) : Returns a ListItems object

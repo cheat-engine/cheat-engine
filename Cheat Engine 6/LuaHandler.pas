@@ -4820,6 +4820,31 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function createRadioGroup_fromLua(L: Plua_State): integer; cdecl;
+var
+  RadioGroup: TCERadioGroup;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  RadioGroup:=TCERadioGroup.Create(owner);
+  if owner<>nil then
+    RadioGroup.Parent:=owner;
+
+  lua_pushlightuserdata(L, RadioGroup);
+  result:=1;
+end;
+
 function radiogroup_getRows_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
@@ -4934,6 +4959,31 @@ begin
   lua_pop(L, paramcount);
 end;
 
+function createListBox_fromLua(L: Plua_State): integer; cdecl;
+var
+  ListBox: TCEListBox;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  ListBox:=TCEListBox.Create(owner);
+  if owner<>nil then
+    ListBox.Parent:=owner;
+
+  lua_pushlightuserdata(L, ListBox);
+  result:=1;
+end;
+
 function listbox_clear_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listbox: tcustomlistbox;
@@ -5003,6 +5053,31 @@ begin
 end;
 
 //combobox
+function createComboBox_fromLua(L: Plua_State): integer; cdecl;
+var
+  ComboBox: TCEComboBox;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  ComboBox:=TCEComboBox.Create(owner);
+  if owner<>nil then
+    ComboBox.Parent:=owner;
+
+  lua_pushlightuserdata(L, ComboBox);
+  result:=1;
+end;
+
 function combobox_clear_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   combobox: tcustomcombobox;
@@ -5071,6 +5146,31 @@ begin
   lua_pop(L, paramcount);
 end;
 
+
+function createProgressBar_fromLua(L: Plua_State): integer; cdecl;
+var
+  ProgressBar: TCEProgressBar;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  ProgressBar:=TCEProgressBar.Create(owner);
+  if owner<>nil then
+    ProgressBar.Parent:=owner;
+
+  lua_pushlightuserdata(L, ProgressBar);
+  result:=1;
+end;
 
 function progressbar_stepIt_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -5208,6 +5308,31 @@ begin
 end;
 
 //trackbar
+function createTrackBar_fromLua(L: Plua_State): integer; cdecl;
+var
+  TrackBar: TCETrackBar;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  TrackBar:=TCETrackBar.Create(owner);
+  if owner<>nil then
+    TrackBar.Parent:=owner;
+
+  lua_pushlightuserdata(L, TrackBar);
+  result:=1;
+end;
+
 function trackbar_getMax_fromLua(L: PLua_State): integer; cdecl;
 var
   paramcount: integer;
@@ -5718,6 +5843,32 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
+
+//listview
+function createListView_fromLua(L: Plua_State): integer; cdecl;
+var
+  ListView: TCEListView;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, -paramcount)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  ListView:=TCEListView.Create(owner);
+  if owner<>nil then
+    ListView.Parent:=owner;
+
+  lua_pushlightuserdata(L, ListView);
+  result:=1;
+end;
 
 function listview_clear_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -7306,22 +7457,28 @@ begin
     lua_register(LuaVM, 'checkbox_setState', checkbox_setState_fromLua);
     lua_register(LuaVM, 'checkbox_onChange', checkbox_onChange_fromLua);
 
+
+    lua_register(LuaVM, 'createRadioGroup', createRadioGroup_fromLua);
     lua_register(LuaVM, 'radiogroup_getRows', radiogroup_getRows_fromLua);
     lua_register(LuaVM, 'radiogroup_getItems', radioGroup_getItems_fromLua);
     lua_register(LuaVM, 'radiogroup_getColumns', radiogroup_getColumns_fromLua);
     lua_register(LuaVM, 'radiogroup_setColumns', radiogroup_setColumns_fromLua);
     lua_register(LuaVM,' radiogroup_onClick', radiogroup_onClick_fromLua);
 
+    lua_register(LuaVM, 'createListBox', createListBox_fromLua);
     lua_register(LuaVM, 'listbox_clear', listbox_clear_fromLua);
     lua_register(LuaVM, 'listbox_getItems', listbox_getItems_fromLua);
     lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex_fromLua);
     lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex_fromLua);
 
+    lua_register(LuaVM, 'createComboBox', createComboBox_fromLua);
     lua_register(LuaVM, 'combobox_clear', combobox_clear_fromLua);
     lua_register(LuaVM, 'combobox_getItems', combobox_getItems_fromLua);
     lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex_fromLua);
     lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex_fromLua);
 
+
+    lua_register(LuaVM, 'createProgressBar', createProgressBar_fromLua);
     lua_register(LuaVM, 'progressbar_stepIt', progressbar_stepIt_fromLua);
     lua_register(LuaVM, 'progressbar_stepBy', progressbar_stepBy_fromLua);
     lua_register(LuaVM, 'progressbar_getMax', progressbar_getMax_fromLua);
@@ -7331,6 +7488,7 @@ begin
     lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition_fromLua);
     lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition_fromLua);
 
+    lua_register(LuaVM, 'createTrackBar', createTrackBar_fromLua);
     lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax_fromLua);
     lua_register(LuaVM, 'trackbar_setMax', trackbar_setMax_fromLua);
     lua_register(LuaVM, 'trackbar_getMin', trackbar_getMin_fromLua);
@@ -7367,6 +7525,8 @@ begin
     lua_register(LuaVM, 'listitems_getCount', listitems_getCount_fromLua);
     lua_register(LuaVM, 'listitems_add', listitems_add_fromLua);
 
+
+    lua_register(LuaVM, 'createListView', createListView_fromLua);
     lua_register(LuaVM, 'listview_clear', listview_clear_fromLua);
     lua_register(LuaVM, 'listview_getColumns', listview_getColumns_fromLua);
     lua_register(LuaVM, 'listview_getItems', listview_getItems_fromLua);
