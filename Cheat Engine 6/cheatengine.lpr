@@ -123,7 +123,6 @@ begin
   initcetitle;
 
   handleparameters;
-  Application.CreateForm(TfrmStructPointerRescan, frmStructPointerRescan);
   Application.Run;
 end.
 

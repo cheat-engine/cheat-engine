@@ -11,7 +11,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus, bigmemallochandler, math;
+  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus, bigmemallochandler, math, maps, RegExpr;
 
 const
   wm_sps_done=wm_user+1;
@@ -20,6 +20,8 @@ type
 
   { TfrmStringPointerScan }
   TPointerpath=array of dword;
+  TDiffkind=(dkDontCare, dkMustBeDifferent, dkMustBeSame);
+
 
 
 type
@@ -37,6 +39,95 @@ type
     pointsto: ptruint;
     previous: PPointerListEntry;
     next: PPointerListEntry;
+  end;
+
+
+  type TPointerRecord=packed record
+    level: integer;
+    stringsize: integer;
+    unicode: BOOL;
+    offset: TDwordArray;
+  end;
+  PPointerRecord=^TPointerRecord;
+
+
+
+  TPointerfileReader=class
+  private
+    pointerfile: TFilestream;
+    entrysize: integer;
+    fcount: qword;
+    pointerfileLevelwidth: integer;
+
+    bufferindex: integer;
+    buffersize: integer;
+    pointerrecords: PPointerRecord;    //actually an array...
+
+    stringbuf: pchar;
+    widestringbuf: pwidechar;
+
+    pointermap: TMap;
+
+    function getByteFromAddress(address: ptruint; var error: boolean): byte;
+    function getWordFromAddress(address: ptruint; var error: boolean): word;
+    function getDWordFromAddress(address: ptruint; var error: boolean): dword;
+    function getQWordFromAddress(address: ptruint; var error: boolean): qword;
+    function getSingleFromAddress(address: ptruint; var error: boolean): single;
+    function getDoubleFromAddress(address: ptruint; var error: boolean): double;
+    function getPointerFromAddress(address: ptruint; var error: boolean): ptruint;
+
+  public
+    vartype: TVariableType;
+    procedure clearPointerCache;
+    function getPointerRecord(index: qword): PPointerRecord;
+    function getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint): ptruint;
+    function getStringFromPointerRecord(p: ppointerrecord; address: ptruint): string;
+    function getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
+
+    constructor create(filename: string);
+    destructor destroy; override;
+
+    property levelWidth: integer read pointerfileLevelwidth;
+    property count: qword read fcount;
+  end;
+
+
+  Trescan=class(tthread)
+  private
+    outputfile: tfilestream;
+    isstringscan: boolean;
+    mustbestart: boolean;
+    regEx: TRegExprEngine;
+    diffkind: TDiffkind;
+    pointerfilereader: TPointerfileReader;
+
+    address, address2: ptruint;
+
+    mustbeinregion: boolean;
+    pointerstart, pointerend: ptruint;
+
+    results: TMemorystream;
+    fcount: qword;
+    fCurrentPosition: qword;
+
+    vartype: TVariableType;
+    procedure addPointer(p: PPointerRecord);
+    procedure flushresults;
+
+    function checkByte(p: PPointerRecord): boolean;
+    function checkWord(p: PPointerRecord): boolean;
+    function checkDWord(p: PPointerRecord): boolean;
+    function checkQWord(p: PPointerRecord): boolean;
+    function checkSingle(p: PPointerRecord): boolean;
+    function checkDouble(p: PPointerRecord): boolean;
+    function checkPointer(p: PPointerRecord): boolean;
+
+  public
+    procedure execute; override;
+    constructor create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; pointerfilereader: TPointerfileReader; outputfilename: string );
+    destructor destroy; override;
+    property count: qword read fcount;
+    property currentPosition: qword read fCurrentPosition;
   end;
 
 
@@ -58,6 +149,15 @@ type
     results: TMemorystream;
     resultfile: tfilestream;
 
+    //datascan variables
+    isDataScan: boolean;
+    alignment: integer;
+
+    mustbeinregion: boolean;
+    pointerstart: ptruint;
+    pointerstop: ptruint;
+
+
     procedure handleBlock(blockaddress: ptruint; level: integer; path: TPointerpath);
     procedure addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: bool);
 
@@ -68,19 +168,31 @@ type
 
   public
     procedure execute; override;
-    constructor create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; resultfile: tfilestream);
+    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
     destructor destroy; override;
   end;
 
   TfrmStringPointerScan = class(TForm)
     Button1: TButton;
+    cbCaseSensitive: TCheckBox;
+    cbMustBeStart: TCheckBox;
+    cbRegExp: TCheckBox;
+    cbPointerInRange: TCheckBox;
+    comboType: TComboBox;
+    edtPointerStart: TEdit;
+    edtPointerStop: TEdit;
+    edtAlignsize: TEdit;
     edtExtra: TEdit;
     edtBase: TEdit;
     edtMaxLevel: TEdit;
+    edtRegExp: TEdit;
     edtStructsize: TEdit;
     Label1: TLabel;
     Label2: TLabel;
-    Label3: TLabel;
+    lblAlign: TLabel;
+    lblAnd: TLabel;
+    lblString: TLabel;
+    lblInfo: TLabel;
     Label4: TLabel;
     lblExtra: TLabel;
     ListView1: TListView;
@@ -88,22 +200,35 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miClearCache: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    pmPointerfile: TPopupMenu;
+    ProgressBar1: TProgressBar;
+    rbStringscan: TRadioButton;
+    rbDatascan: TRadioButton;
     SaveDialog1: TSaveDialog;
+    statusupdater: TTimer;
     procedure Button1Click(Sender: TObject);
+    procedure cbRegExpChange(Sender: TObject);
+    procedure cbPointerInRangeChange(Sender: TObject);
+    procedure comboTypeChange(Sender: TObject);
     procedure edtBaseChange(Sender: TObject);
     procedure edtExtraChange(Sender: TObject);
     procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 
     procedure ListView1Data(Sender: TObject; Item: TListItem);
+    procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miClearCacheClick(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure rbDatascanChange(Sender: TObject);
+    procedure statusupdaterTimer(Sender: TObject);
   private
     { private declarations }
 
@@ -114,12 +239,13 @@ type
     bma: TBigMemoryAllocHandler;
 
     scanner: TScanner;
-
-    pointerfile: tfilestream;
-    pointerfileLevelwidth: integer;
+    rescanner: TRescan;
+    pointerfilereader: TPointerfilereader;
 
     address, address2: ptruint;
     hasAddress2: boolean;
+
+
 
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -130,8 +256,6 @@ type
     function getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
   public
     { public declarations }
-    entrysize: integer;
-    count: integer;
   end;
 
 
@@ -145,14 +269,681 @@ implementation
 
 { TfrmStringPointerScan }
 
+uses frmStructPointerRescanUnit, MemoryBrowserFormUnit;
+
 resourcestring
   rsGeneratingStringmap = 'Generating stringmap';
   rsGeneratedScanning = 'Generated. Scanning...';
   rsThisAddressIsNotAccessible = 'This address is not accessible';
 
+//----------TPointerfileReader---------
+
+function TPointerfilereader.getByteFromAddress(address: ptruint; var error: boolean): byte;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 1, x);
+  error:=error or (x<>1);
+end;
+
+function TPointerfilereader.getWordFromAddress(address: ptruint; var error: boolean): word;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 2, x);
+  error:=error or (x<>2);
+end;
+
+function TPointerfilereader.getDWordFromAddress(address: ptruint; var error: boolean): dword;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 4, x);
+  error:=error or (x<>4);
+end;
+
+function TPointerfilereader.getQWordFromAddress(address: ptruint; var error: boolean): qword;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 8, x);
+  error:=error or (x<>8);
+end;
+
+function TPointerfilereader.getSingleFromAddress(address: ptruint; var error: boolean): single;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 4, x);
+  error:=error or (x<>4);
+end;
+
+function TPointerfilereader.getDoubleFromAddress(address: ptruint; var error: boolean): double;
+var x: dword;
+begin
+  error:=not readprocessmemory(processhandle, pointer(address), @result, 8, x);
+  error:=error or (x<>8);
+end;
+
+function TPointerfilereader.getPointerFromAddress(address: ptruint; var error: boolean): ptruint;
+var x: dword;
+begin
+  result:=0;
+  error:=not readprocessmemory(processhandle, pointer(address), @result, processhandler.pointersize, x);
+  error:=error or (x<>processhandler.pointersize);
+end;
+
+
+procedure TPointerfilereader.clearPointerCache;
+begin
+  pointermap.Clear;
+end;
+
+function TPointerfileReader.getPointerRecord(index: qword): PPointerRecord;
+var blocksize: integer;
+begin
+  result:=nil;
+
+  if (buffersize=0) or (not InRangeQ(index, bufferindex, bufferindex+buffersize-1)) then
+  begin
+    blocksize:=count-index-1;
+    blocksize:=min(blocksize, 4096);
+
+    pointerfile.Position:=sizeof(pointerfileLevelwidth)+index*entrysize;
+    if pointerfile.Read(pointerrecords^, entrysize*blocksize)=entrysize*blocksize then
+    begin
+      bufferindex:=index;
+      buffersize:=blocksize;
+    end;
+  end;
+
+  result:=PPointerRecord(ptruint(pointerrecords)+(index-bufferindex)*entrysize);
+
+end;
+
+function TPointerfilereader.getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint): ptruint;
+var address: ptruint;
+  a: ptruint;
+  i: integer;
+  x: dword;
+  dp: pptruint;
+begin
+  result:=0;
+
+  address:=baseaddress+p.offset[0];
+  for i:=1 to p.level do
+  begin
+    dp:=pointermap.GetDataPtr(address);
+    if dp<>nil then
+    begin
+      address:=dp^;
+      if address=0 then
+        exit; //unreadable
+    end
+    else
+    begin
+      a:=0;
+      if not readprocessmemory(processhandle, pointer(address), @a, processhandler.pointersize, x) then
+        a:=0;
+
+      pointermap.Add(address, a);
+      address:=a;
+
+      if a=0 then
+        exit; //unreadable
+    end;
+
+
+    address:=address+p.offset[i]
+  end;
+
+  result:=address;
+end;
+
+function TPointerfileReader.getStringFromPointerRecord(p: ppointerrecord; address: ptruint): string;
+var i,j: integer;
+  x: dword;
+  e: boolean;
+begin
+  address:=getAddressFromPointerRecord(p, address);
+  if address=0 then
+    result:='???'
+  else
+  begin
+    case vartype of
+      vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtPointer:
+      begin
+        e:=false;
+        case vartype of
+          vtByte: result:=inttostr(getByteFromAddress(address,e));
+          vtWord: result:=inttostr(getWordFromAddress(address,e));
+          vtDword: result:=inttostr(getDwordFromAddress(address,e));
+          vtQword: result:=inttostr(getQwordFromAddress(address,e));
+          vtSingle: result:=format('%.3f',[getSingleFromAddress(address,e)]);
+          vtDouble: result:=format('%.3f',[getDoubleFromAddress(address,e)]);
+          vtPointer: result:=IntToHex(getPointerFromAddress(address,e), processhandler.pointersize*2);
+        end;
+
+        if e then
+          result:='???';
+      end;
+
+      vtString:
+      begin
+
+        //string
+
+        if p.stringsize>0 then
+          i:=min(p.stringsize, 510)
+        else
+          i:=16; //it was a data type
+
+        if readprocessmemory(processhandle, pointer(address), stringbuf, i, x) then
+        begin
+          stringbuf[i]:=#0;
+          stringbuf[i+1]:=#0;
+
+          if p.stringsize<=0 then
+          begin
+            //guess the stringtype (if it is one to begin with)
+            if stringbuf[1]=#0 then
+              p.unicode:=true;
+
+          end;
+
+
+          if p.unicode then
+            result:=widestringbuf
+          else
+            result:=stringbuf;
+
+        end
+        else
+          result:='???';
+
+      end
+      else
+        result:='Not yet implemented';
+
+    end;
+  end;
+
+end;
+
+function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
+begin
+  p:=getPointerRecord(index);
+  if p<>nil then
+    result:=getStringFromPointerRecord(p, address);
+
+  address:=getAddressFromPointerRecord(p, address);
+end;
+
+constructor TPointerfileReader.create(filename: string);
+begin
+  pointerfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
+  pointerfile.ReadBuffer(pointerfileLevelwidth, sizeof(pointerfileLevelwidth));
+
+  entrysize:=(pointerfileLevelwidth+4)*sizeof(dword); //+4 for : Levelsize of pointer, stringsize and the isunicode boolean and levelwidth is based on 0 (0=1 offset, 1=2 offsets, etc..)
+  fcount:=(pointerfile.size-sizeof(pointerfileLevelwidth)) div (entrysize);
+
+  getmem(pointerrecords, entrysize*4096);
+
+  getmem(stringbuf, 512);
+  widestringbuf:=pwidechar(stringbuf);
+
+  pointermap:=TMap.Create(ituPtrSize,sizeof(pointer))
+
+end;
+
+destructor TPointerfileReader.destroy;
+begin
+  if pointerfile<>nil then
+    freeandnil(pointerfile);
+
+  if pointerrecords<>nil then
+    freemem(pointerrecords);
+
+  if stringbuf<>nil then
+    freemem(stringbuf);
+
+  if pointermap<>nil then
+    freeandnil(pointermap);
+
+  //cleanup the maps
+  inherited destroy;
+end;
 
 
 
+//--------------TRescan----------------
+procedure TRescan.flushResults;
+begin
+  outputfile.WriteBuffer(results.Memory^, results.position);
+  results.position:=0;
+end;
+
+procedure TRescan.addPointer(p: PPointerRecord);
+begin
+  inc(fcount);
+  results.WriteBuffer(p^, pointerfilereader.entrysize);
+
+  if results.Position>=(15*1024*1024) then
+    flushResults;
+end;
+
+function TRescan.checkByte(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: byte;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getByteFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getByteFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkWord(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: word;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getWordFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getWordFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkDWord(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: Dword;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getDwordFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getDwordFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkQWord(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: Qword;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getQwordFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getQwordFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkSingle(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: Single;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getSingleFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getSingleFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkDouble(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: Double;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getDoubleFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getDoubleFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+function TRescan.checkPointer(p: PPointerRecord): boolean;
+var error: boolean;
+  a: ptruint;
+  v,v2: PtrUint;
+begin
+  result:=false;
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  if a<>0 then
+  begin
+    v:=pointerfilereader.getPointerFromAddress(a, error);
+    result:=not error;
+
+    if result and (diffkind<>dkDontCare) then
+    begin
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      if a<>0 then
+      begin
+        v2:=pointerfilereader.getPointerFromAddress(a, error);
+        result:=not error;
+
+        if result then
+        begin
+          if diffkind=dkMustBeDifferent then
+            result:=v<>v2
+          else
+            result:=v=v2; //must be equal
+        end;
+
+      end
+      else
+        result:=false;
+    end;
+  end;
+end;
+
+
+
+procedure TRescan.execute;
+var i,j: integer;
+  terminatecheck: integer;
+  p: PPointerRecord;
+
+  s,s2: string;
+  passed: boolean;
+  index,len: integer;
+begin
+
+  try
+    for i:=0 to pointerfilereader.count-1 do
+    begin
+      p:=pointerfilereader.getPointerRecord(i);
+
+      case vartype of
+        vtByte: passed:=checkByte(p);
+        vtWord: passed:=checkWord(p);
+        vtDword: passed:=checkDword(p);
+        vtQword: passed:=checkQword(p);
+        vtSingle: passed:=checkSingle(p);
+        vtDouble: passed:=checkDouble(p);
+        vtPointer: passed:=checkPointer(p);
+
+
+        vtString:   //todo, move to checkString
+        begin
+          s:=pointerfilereader.getStringFromPointerRecord(p,address);
+          if s<>'' then
+          begin
+            if regex<>nil then
+            begin
+              //use the regex engine to test this string
+              index:=0;
+              len:=0;
+              passed:=RegExprPos(regex, pchar(s), index, len);
+
+              if passed and mustbestart then
+                passed:=index=0;
+            end
+            else
+            begin
+              passed:=true;
+              if isstringscan then
+              begin //check if the first 4 characters are valid
+
+                for j:=1 to min(length(s), 4) do
+                  if not (s[j] in [#$20..#$7f]) then
+                  begin
+                    passed:=false;
+                    break;
+                  end;
+
+              end;
+            end;
+          end
+          else
+            passed:=false;
+
+
+          if passed and (diffkind<>dkDontCare) then
+          begin
+            s2:=pointerfilereader.getStringFromPointerRecord(p,address2);
+
+            if diffkind=dkMustBeDifferent then
+              passed:=s<>s2
+            else
+              passed:=s=s2;
+
+            if (passed) and (regex<>nil) then
+            begin
+              index:=0;
+              len:=0;
+              passed:=RegExprPos(regex, pchar(s), index, len);
+
+              if passed and mustbestart then
+                passed:=index=0;
+            end;
+          end;
+        end;
+      end;
+
+
+
+
+      if passed then //add it
+        addPointer(p);
+
+      //check for forced exit
+      inc(terminatecheck);
+      if (terminatecheck>10000) then
+      begin
+        if terminated then exit;
+        terminatecheck:=0;
+      end;
+
+      fCurrentPosition:=i;
+    end;
+
+    flushresults;
+
+  finally
+    if outputfile<>nil then
+      freeandnil(outputfile);
+
+    if results<>nil then
+      freeandnil(results);
+
+    PostMessage(frmStringPointerScan.Handle, wm_sps_done, 0,0);
+  end;
+
+
+end;
+
+constructor TRescan.create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; pointerfilereader: TPointerfileReader; outputfilename: string );
+var regflags: tregexprflags;
+  lw: integer;
+begin
+  self.vartype:=pointerfilereader.vartype;
+
+  self.isstringscan:=isstringscan;
+  self.mustbestart:=mustbestart;
+  self.diffkind:=diffkind;
+  self.pointerfilereader:=pointerfilereader;
+  self.address:=address;
+  self.address2:=address2;
+  self.mustbeinregion:=mustbeinregion;
+  self.pointerstart:=pointerstart;
+  self.pointerend:=pointerend;
+
+
+  pointerfilereader.clearPointercache;
+
+
+  if isstringscan then
+  begin
+    if regexstr<>'' then
+    begin
+      if CaseSensitive then
+        regflags:=[]
+      else
+        regflags:=[ref_caseinsensitive];
+
+      self.regex:=GenerateRegExprEngine(pchar(regexstr), regflags);
+    end;
+  end;
+  outputfile:=TFileStream.Create(outputfilename, fmCreate or fmShareDenyNone);
+
+  lw:=pointerfilereader.levelWidth;
+  outputfile.WriteBuffer(lw, sizeof(lw));
+
+
+  results:=TMemoryStream.Create;
+
+  results.size:=16*1024*1024;
+
+  inherited create(suspended);
+end;
+
+
+destructor TRescan.destroy;
+begin
+  if outputfile<>nil then
+    freeandnil(outputfile);
+
+  if results<>nil then
+    freeandnil(results);
+
+  inherited destroy;
+end;
 
 //--------------TScanner---------------
 function TScanner.getFirstPointerEntry(base: ptruint): PPointerListEntry;
@@ -376,19 +1167,46 @@ var
 
   pe: PPointerListEntry;
 begin
-  //check which strings can be found in this block
-  p:=frmStringMap.findNearestString(blockaddress);
-  while (p<>nil) and (p.address<blockaddress) do
-    p:=p.next;
 
-  if p<>nil then
+  if isDataScan then
   begin
-    while (p<>nil) and (p.address<blockaddress+structsize) do       //found a string, add it
+    i:=0;
+    while i<structsize do
     begin
-      path[level]:=p.address-blockaddress;
-      addStringPath(level, path, p.stringsize, p.unicode);
-      p:=p.next;
+      path[level]:=i;
+
+      if (not mustbeinregion) or (InRangeX(blockaddress+i, pointerstart, pointerstop)) then
+        addStringPath(level, path, -1,false); //use -1 to identify a data entry
+
+      inc(i, alignment);
     end;
+  end
+  else
+  begin
+    //check which strings can be found in this block
+    p:=frmStringMap.findNearestString(blockaddress);
+
+    if p<>nil then
+    begin
+      while (p<>nil) and (p.address<blockaddress+structsize) do       //found a string, add it
+      begin
+        if p.address>=blockaddress then
+        begin
+          path[level]:=p.address-blockaddress;
+
+          if (not mustbeinregion) or (InRangeX(p.address, pointerstart, pointerstop)) then
+            addStringPath(level, path, p.stringsize, p.unicode);
+        end
+        else
+        begin
+          path[level]:=0;
+          if (not mustbeinregion) or (InRangeX(blockaddress, pointerstart, pointerstop)) then
+            addStringPath(level, path, p.stringsize-(blockaddress-p.address), p.unicode);
+        end;
+        p:=p.next;
+      end;
+    end;
+
   end;
 
   if level>=maxlevel then exit; //max level reached, no need to scan for pointers in this block
@@ -441,7 +1259,7 @@ begin
   end;
 end;
 
-constructor TScanner.create(baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; resultfile: Tfilestream);
+constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
 begin
   self.baseaddress:=baseaddress;
   self.structsize:=structsize;
@@ -449,7 +1267,16 @@ begin
   self.mappedregions:=mappedregions;
   self.pointerlist:=pointerlist;
   self.bma:=bma;
-  self.resultfile:=resultfile;
+
+  self.isDataScan:=isDataScan;
+  self.alignment:=alignment;
+  self.pointerstart:=pointerstart;
+  self.pointerstop:=pointerstop;
+  self.mustbeinregion:=mustbeinregion;
+
+
+  resultfile:=TFileStream.Create(filename, fmCreate or fmShareDenyNone);
+  resultfile.Write(maxlevel, sizeof(maxlevel));
 
   count:=0;
 
@@ -465,6 +1292,9 @@ begin
 
   if fillpointerblock<>nil then
     freemem(fillpointerblock);
+
+  if resultfile<>nil then
+    freeandnil(resultfile);
 
 end;
 
@@ -510,16 +1340,6 @@ begin
 end;
 
 procedure TfrmStringPointerScan.ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
-  type TPointerRecord=record
-    level: integer;
-    stringsize: integer;
-    unicode: BOOL;
-    offset: TDwordArray;
-  end;
-  PPointerRecord=^TPointerRecord;
-var s,s2: string;
-
-  a: ptruint;
 begin
   defaultdraw:=true;
 
@@ -530,55 +1350,56 @@ end;
 
 
 procedure TfrmStringPointerScan.ListView1Data(Sender: TObject; Item: TListItem);
-  type TPointerRecord=record
-    level: integer;
-    stringsize: integer;
-    unicode: BOOL;
-    offset: TDwordArray;
-  end;
-  PPointerRecord=^TPointerRecord;
 var
-  buf: PPointerRecord;
   i: integer;
-
-  l: integer;
   s,s2: string;
   a: ptruint;
+
+
+  p: PPointerRecord;
 begin
-  if pointerfile<>nil then
+  if pointerfilereader<>nil then
   begin
-    pointerfile.Position:=sizeof(pointerfileLevelwidth)+item.Index*entrysize;
+    item.data:=nil;
 
-    getmem(buf, entrysize);
+    a:=address;
+    s:=pointerfilereader.getStringAndAddress(item.index, a, p);
 
-
-
-    if pointerfile.Read(buf^, entrysize)=entrysize then
+    if p<>nil then
     begin
-      l:=buf.level;
+      item.caption:=inttohex(p.offset[0],1);
+      for i:=1 to p.level do
+        item.SubItems.add(inttohex(p.offset[i],1));
 
-      item.Caption:=inttohex(buf.offset[0],1);
-      for i:=1 to buf.level do
-        item.SubItems.Add(inttohex(buf.offset[i],1));
-
-      for i:=buf.level+1 to pointerfileLevelwidth do
-        item.subitems.add('');
-
-      s:=getStringFromPointer(address, buf.offset, buf.level, buf.stringsize, buf.unicode, a);
-      item.SubItems.Add(inttohex(a,8)+' : '+s);
-
-      if hasAddress2 then
-      begin
-        s2:=getStringFromPointer(address2, buf.offset, buf.level, buf.stringsize, buf.unicode, a);
-        item.SubItems.Add(inttohex(a,8)+' : '+s2);
-
-        if s<>s2 then
-          item.data:=pointer(1);
-      end;
+      for i:=p.level+1 to pointerfilereader.levelWidth do
+        item.SubItems.Add('');
     end;
 
-    freemem(buf);
+    if a>0 then
+      item.SubItems.Add(inttohex(a,8)+' : '+s)
+    else
+      item.subitems.add('??? : ???');
+
+
+    if hasAddress2 then
+    begin
+      a:=address2;
+      s2:=pointerfilereader.getStringAndAddress(item.index, a, p);
+      if a>0 then
+        item.SubItems.Add(inttohex(a,8)+' : '+s2)
+      else
+        item.subitems.add('??? : ???');
+
+      if s<>s2 then
+        item.data:=pointer(1);
+    end;
   end;
+end;
+
+procedure TfrmStringPointerScan.ListView1DblClick(Sender: TObject);
+begin
+  if listview1.Selected<>nil then
+    MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRecord(listview1.Selected.Index), address);
 end;
 
 procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
@@ -587,13 +1408,11 @@ var lc: TListColumn;
 begin
   cleanup;
 
-  pointerfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
-  pointerfile.ReadBuffer(pointerfileLevelwidth, sizeof(pointerfileLevelwidth));
+  pointerfilereader:=TPointerfileReader.Create(filename);
+  comboType.OnChange(comboType);
 
-  entrysize:=(pointerfileLevelwidth+4)*sizeof(dword); //+4 for : Levelsize of pointer, stringsize and the isunicode boolean and levelwidth is based on 0 (0=1 offset, 1=2 offsets, etc..)
-  count:=(pointerfile.size-sizeof(pointerfileLevelwidth)) div (entrysize);
 
-  for i:=0 to pointerfileLevelwidth do
+  for i:=0 to pointerfilereader.levelWidth do
   begin
     lc:=listview1.Columns.Add;
     lc.MinWidth:=2;
@@ -610,7 +1429,7 @@ begin
   lc.MinWidth:=2;
   lc.Width:=120;
   lc.Caption:='Address 2';
-  lc.Visible:=false;
+
 
   lblExtra.enabled:=true;
   edtExtra.Enabled:=true;
@@ -618,15 +1437,25 @@ begin
   edtExtraChange(edtExtra);
 
 
-  listview1.items.count:=min(1000000, count);
+  listview1.items.count:=min(10000000, pointerfilereader.count);
 end;
 
 procedure TfrmStringPointerScan.scanDone(var m: tmessage);
 begin
-  label3.caption:='Found:'+inttostr(scanner.count);
+  if scanner<>nil then
+    lblInfo.caption:='Found:'+inttostr(scanner.count);
+
+  if rescanner<>nil then
+    lblInfo.caption:='Found:'+inttostr(rescanner.count);
+
 
   cleanup;
   OpenPointerfile(frmStringPointerScan.SaveDialog1.FileName);
+
+  if pointerfilereader<>nil then
+    showmessage('Scan done! Found '+inttostr(pointerfilereader.count))
+  else
+    raise exception.create('Error during scan. No scanresults available');
 end;
 
 function TfrmStringPointerScan.mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -643,6 +1472,17 @@ procedure tfrmStringPointerScan.cleanup;
 var r: TAvgLvlTreeNode;
   p,m: PMappedRegion;
 begin
+  statusupdater.enabled:=false;
+  progressbar1.Visible:=false;
+  progressbar1.Position:=0;
+
+  if rescanner<>nil then
+  begin
+    rescanner.terminate;
+    rescanner.waitfor;
+    freeandnil(rescanner);
+  end;
+
   if scanner<>nil then
   begin
     scanner.terminate;
@@ -682,63 +1522,124 @@ begin
     freeandnil(mappedRegions);
   end;
 
-  if pointerfile<>nil then
-    freeandnil(pointerfile);
+  if pointerfilereader<>nil then
+    freeandnil(pointerfilereader);
+
 end;
 
 procedure TfrmStringPointerScan.Button1Click(Sender: TObject);
 var baseaddress: ptruint;
   structsize: integer;
   maxlevel: integer;
+  alignsize: integer;
+  pointerstart: ptruint;
+  pointerstop: ptruint;
 begin
   cleanup;
 
-  baseaddress:=strtoint('$'+edtBase.text);
+  baseaddress:=StrToQWordEx('$'+edtBase.text);
   if not isreadable(baseaddress) then
     raise exception.create(rsThisAddressIsNotAccessible);
 
   structsize:=strtoint(edtStructsize.text);
   maxlevel:=strtoint(edtMaxLevel.text);
 
-  if savedialog1.execute then
+  if rbDatascan.checked then
   begin
-    pointerfile:=TFileStream.Create(savedialog1.filename, fmCreate or fmShareDenyNone);
-    pointerfile.Write(maxlevel, sizeof(maxlevel));
+    alignsize:=strtoint(edtAlignsize.text);
+
+    if cbPointerInRange.checked then
+    begin
+      pointerstart:=StrToQWordEx('$'+edtPointerStart.text);
+      pointerstop:=StrToQWordEx('$'+edtPointerStop.text);
+    end;
   end;
 
-  if frmStringMap=nil then
-    frmStringMap:=tfrmStringMap.Create(nil);
+  if savedialog1.execute then
+  begin
 
 
-  mappedRegions:=TAvgLvlTree.CreateObjectCompare(mapCompare);
-  pointerlist:=TAvgLvlTree.CreateObjectCompare(pointerCompare);
-  //pointerlistMemManager:=TAvgLvlTreeNodeMemManager.Create;
-//  pointerlist.NodeMemManager:=pointerlistMemManager;
-//  pointerlistMemManager.MinimumFreeNode:=102400;
-//  pointerlistMemManager.MaximumFreeNodeRatio:=32;
-
-  bma:=TBigMemoryAllocHandler.create;
 
 
-  frmstringmap.btnScan.click;
-
-  label3.caption:=rsGeneratingStringmap;
-  label3.Repaint;
-  frmstringmap.scanner.WaitFor;
-
-  label3.caption:=rsGeneratedScanning;
-
-  //the stringmap has been generated
-
-  scanner:=Tscanner.create(baseAddress, structsize, maxlevel, mappedRegions, pointerlist, bma, pointerfile);
 
 
+    mappedRegions:=TAvgLvlTree.CreateObjectCompare(mapCompare);
+    pointerlist:=TAvgLvlTree.CreateObjectCompare(pointerCompare);
+    pointerlistMemManager:=TAvgLvlTreeNodeMemManager.Create;
+    pointerlist.NodeMemManager:=pointerlistMemManager;
+    pointerlistMemManager.MinimumFreeNode:=102400;
+    pointerlistMemManager.MaximumFreeNodeRatio:=32;
+
+    bma:=TBigMemoryAllocHandler.create;
+
+    if rbStringscan.checked then
+    begin
+      if frmStringMap=nil then
+        frmStringMap:=tfrmStringMap.Create(nil);
+
+      frmstringmap.cbRegExp.checked:=cbRegExp.checked;
+      frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
+      frmstringmap.cbMustBeStart.checked:=cbMustBeStart.checked;
+      frmstringmap.edtRegExp.text:=edtRegExp.text;
+
+      frmstringmap.btnScan.click;
+      lblInfo.caption:=rsGeneratingStringmap;
+      lblInfo.Repaint;
+      frmstringmap.scanner.WaitFor;
+
+    end;
+
+
+
+    lblInfo.caption:=rsGeneratedScanning;
+
+    statusupdater.enabled:=true;
+
+    //everything has been configured
+    scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename);
+
+  end;
+end;
+
+procedure TfrmStringPointerScan.cbRegExpChange(Sender: TObject);
+begin
+  cbCaseSensitive.enabled:=cbRegExp.checked;
+  cbMustBeStart.enabled:=cbRegExp.checked;
+  edtRegExp.enabled:=cbRegExp.checked;
+end;
+
+procedure TfrmStringPointerScan.cbPointerInRangeChange(Sender: TObject);
+begin
+  edtPointerStart.enabled:=cbPointerInRange.checked;
+  edtPointerStop.enabled:=cbPointerInRange.checked;
+  lbland.enabled:=cbPointerInRange.checked;
+end;
+
+procedure TfrmStringPointerScan.comboTypeChange(Sender: TObject);
+begin
+  if pointerfilereader<>nil then
+  begin
+    case comboType.itemindex of
+      0: pointerfilereader.vartype:=vtString;
+      1: pointerfilereader.vartype:=vtByte;
+      2: pointerfilereader.vartype:=vtWord;
+      3: pointerfilereader.vartype:=vtDword;
+      4: pointerfilereader.vartype:=vtQword;
+      5: pointerfilereader.vartype:=vtSingle;
+      6: pointerfilereader.vartype:=vtDouble;
+      7: pointerfilereader.vartype:=vtPointer;
+    end;
+
+    listview1.Refresh;
+
+  end;
 end;
 
 procedure TfrmStringPointerScan.edtBaseChange(Sender: TObject);
 begin
   try
     address:=StrToQword('$'+edtBase.text);
+    listview1.Refresh;
   except
   end;
 end;
@@ -746,13 +1647,11 @@ end;
 procedure TfrmStringPointerScan.edtExtraChange(Sender: TObject);
 begin
   if listview1.ColumnCount>1 then
-  begin
     hasAddress2:=edtExtra.Text<>'';
-    listview1.Columns[listview1.ColumnCount-1].Visible:=hasAddress2;
-  end;
 
   try
     address2:=StrToQword('$'+edtExtra.text);
+    listview1.Refresh;
   except
   end;
 end;
@@ -769,8 +1668,102 @@ begin
 
 end;
 
-procedure TfrmStringPointerScan.MenuItem6Click(Sender: TObject);
+procedure TfrmStringPointerScan.miClearCacheClick(Sender: TObject);
 begin
+  if pointerfilereader<>nil then
+    pointerfilereader.clearPointerCache;
+
+  listview1.Refresh;
+end;
+
+procedure TfrmStringPointerScan.MenuItem6Click(Sender: TObject);
+var f: TfrmStructPointerRescan;
+  diffkind : TDiffkind;
+  pointerstart: ptruint;
+  pointerstop: ptruint;
+begin
+
+  f:=TfrmStructPointerRescan.Create(self);
+  f.comboType.itemindex:=combotype.itemindex;
+
+
+  f.rbDiffDontCare.enabled:=hasAddress2;
+  f.rbMustBeDifferent.enabled:=hasAddress2;
+  f.rbMustBeSame.enabled:=hasAddress2;
+
+  if f.showmodal=mrok then
+  begin
+    //rescan
+    if f.rbMustBeSame.checked then
+      diffkind:=dkMustBeSame
+    else
+    if f.rbMustBeDifferent.checked then
+      diffkind:=dkMustBeDifferent
+    else
+      diffkind:=dkDontCare;
+
+    if cbPointerInRange.checked then
+    begin
+      pointerstart:=StrToQWordEx('$'+f.edtPointerStart.text);
+      pointerstop:=StrToQWordEx('$'+f.edtPointerStop.text);
+    end;
+
+
+
+    if savedialog1.execute then
+    begin
+      progressbar1.visible:=true;
+      statusupdater.enabled:=true;
+      listview1.items.count:=0;
+
+      case f.comboType.itemindex of
+        0: pointerfilereader.vartype:=vtString;
+        1: pointerfilereader.vartype:=vtByte;
+        2: pointerfilereader.vartype:=vtWord;
+        3: pointerfilereader.vartype:=vtDword;
+        4: pointerfilereader.vartype:=vtQword;
+        5: pointerfilereader.vartype:=vtSingle;
+        6: pointerfilereader.vartype:=vtDouble;
+        7: pointerfilereader.vartype:=vtPointer;
+      end;
+
+
+
+      rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, combotype.itemindex=0, f.cbCaseSensitive.checked, f.cbMustBeStart.checked, f.edtRegExp.text, diffkind, pointerfilereader, savedialog1.filename );
+    end;
+
+  end;
+
+  f.close;
+  f.free;
+end;
+
+procedure TfrmStringPointerScan.rbDatascanChange(Sender: TObject);
+begin
+  cbRegExp.enabled:=rbStringscan.checked;
+  cbCaseSensitive.enabled:=rbStringscan.checked and cbRegExp.checked;
+  cbMustBeStart.enabled:=rbStringscan.checked and cbRegExp.checked;
+  lblString.enabled:=rbStringscan.checked and cbRegExp.checked;
+  edtRegExp.enabled:=rbStringscan.checked and cbRegExp.checked;
+
+  lblAlign.enabled:=rbDatascan.checked;
+  edtAlignsize.enabled:=rbDatascan.checked;
+  edtPointerStart.enabled:=rbDatascan.checked and cbPointerInRange.checked;
+  lblAnd.enabled:=rbDatascan.checked and cbPointerInRange.checked;
+  edtPointerStop.enabled:=rbDatascan.checked and cbPointerInRange.checked;
+end;
+
+procedure TfrmStringPointerScan.statusupdaterTimer(Sender: TObject);
+begin
+  if (rescanner<>nil) and (pointerfilereader<>nil) then
+    progressbar1.position:=trunc((rescanner.currentPosition / pointerfilereader.count) * 1000);
+
+  if scanner<>nil then
+    lblInfo.caption:='Scanning... Found '+inttostr(scanner.count)
+  else
+  if rescanner<>nil then
+    lblinfo.caption:='Scanning... Found '+inttostr(rescanner.count)
+
 
 end;
 

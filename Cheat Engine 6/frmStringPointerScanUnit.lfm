@@ -1,25 +1,26 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 589
-  Height = 384
-  Top = 267
+  Left = 837
+  Height = 413
+  Top = 366
   Width = 626
-  Caption = 'String pointerscan'
-  ClientHeight = 364
+  Caption = 'Structure spider'
+  ClientHeight = 393
   ClientWidth = 626
   Menu = MainMenu1
+  Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 364
+    Height = 373
     Top = 0
-    Width = 96
+    Width = 177
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 364
-    ClientWidth = 96
+    ClientHeight = 373
+    ClientWidth = 177
     TabOrder = 0
     object edtStructsize: TEdit
-      Left = 8
+      Left = 87
       Height = 23
       Top = 24
       Width = 80
@@ -27,7 +28,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Text = '4096'
     end
     object Label2: TLabel
-      Left = 8
+      Left = 87
       Height = 16
       Top = 8
       Width = 51
@@ -35,73 +36,193 @@ object frmStringPointerScan: TfrmStringPointerScan
       ParentColor = False
     end
     object Button1: TButton
-      Left = 8
+      Left = 40
       Height = 25
-      Top = 88
+      Top = 328
       Width = 80
       Caption = 'Scan'
       OnClick = Button1Click
       TabOrder = 1
     end
-    object Label3: TLabel
-      Left = 8
+    object lblInfo: TLabel
+      Left = 0
       Height = 16
-      Top = 168
-      Width = 22
+      Top = 357
+      Width = 177
+      Align = alBottom
       Caption = 'Info'
       ParentColor = False
     end
     object Label4: TLabel
-      Left = 8
+      Left = 4
       Height = 16
-      Top = 48
+      Top = 8
       Width = 53
       Caption = 'Max Level'
       ParentColor = False
     end
     object edtMaxLevel: TEdit
-      Left = 8
+      Left = 4
       Height = 23
-      Top = 64
+      Top = 24
       Width = 80
       TabOrder = 2
       Text = '2'
     end
+    object edtRegExp: TEdit
+      Left = 11
+      Height = 23
+      Top = 230
+      Width = 155
+      Enabled = False
+      TabOrder = 3
+    end
+    object cbMustBeStart: TCheckBox
+      Left = 19
+      Height = 19
+      Top = 192
+      Width = 89
+      Caption = 'Must be start'
+      Enabled = False
+      TabOrder = 4
+    end
+    object cbCaseSensitive: TCheckBox
+      Left = 19
+      Height = 19
+      Top = 175
+      Width = 93
+      Caption = 'Case sensitive'
+      Enabled = False
+      TabOrder = 5
+    end
+    object cbRegExp: TCheckBox
+      Left = 11
+      Height = 19
+      Top = 158
+      Width = 164
+      Caption = 'Strings must match reg exp'
+      OnChange = cbRegExpChange
+      TabOrder = 6
+    end
+    object rbStringscan: TRadioButton
+      Left = 0
+      Height = 19
+      Top = 138
+      Width = 78
+      Caption = 'String scan'
+      Checked = True
+      OnChange = rbDatascanChange
+      TabOrder = 8
+      TabStop = True
+    end
+    object rbDatascan: TRadioButton
+      Left = 0
+      Height = 19
+      Top = 262
+      Width = 71
+      Caption = 'Data scan'
+      OnChange = rbDatascanChange
+      TabOrder = 7
+    end
+    object edtAlignsize: TEdit
+      Left = 11
+      Height = 23
+      Top = 302
+      Width = 153
+      Enabled = False
+      TabOrder = 9
+      Text = '4'
+    end
+    object lblAlign: TLabel
+      Left = 11
+      Height = 16
+      Top = 282
+      Width = 48
+      Caption = 'Alignsize'
+      Enabled = False
+      ParentColor = False
+    end
+    object edtPointerStart: TEdit
+      Left = 4
+      Height = 23
+      Top = 74
+      Width = 155
+      Enabled = False
+      TabOrder = 10
+    end
+    object cbPointerInRange: TCheckBox
+      Left = 4
+      Height = 19
+      Top = 52
+      Width = 150
+      Caption = 'Pointer must be in range'
+      Enabled = False
+      OnChange = cbPointerInRangeChange
+      TabOrder = 11
+    end
+    object lblAnd: TLabel
+      Left = 5
+      Height = 16
+      Top = 98
+      Width = 21
+      Caption = 'and'
+      Enabled = False
+      ParentColor = False
+    end
+    object edtPointerStop: TEdit
+      Left = 4
+      Height = 23
+      Top = 114
+      Width = 155
+      Enabled = False
+      TabOrder = 12
+    end
+    object lblString: TLabel
+      Left = 12
+      Height = 16
+      Top = 214
+      Width = 35
+      Caption = 'String:'
+      Enabled = False
+      ParentColor = False
+    end
   end
   object Panel2: TPanel
-    Left = 96
-    Height = 364
+    Left = 177
+    Height = 373
     Top = 0
-    Width = 530
+    Width = 449
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 364
-    ClientWidth = 530
+    ClientHeight = 373
+    ClientWidth = 449
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 312
+      Height = 321
       Top = 52
-      Width = 530
+      Width = 449
       Align = alClient
       Columns = <>
       OwnerData = True
+      PopupMenu = pmPointerfile
       ReadOnly = True
       RowSelect = True
       TabOrder = 0
       ViewStyle = vsReport
       OnCustomDrawItem = ListView1CustomDrawItem
       OnData = ListView1Data
+      OnDblClick = ListView1DblClick
     end
     object Panel3: TPanel
       Left = 0
       Height = 52
       Top = 0
-      Width = 530
+      Width = 449
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 52
-      ClientWidth = 530
+      ClientWidth = 449
       TabOrder = 1
       object edtBase: TEdit
         Left = 8
@@ -137,13 +258,47 @@ object frmStringPointerScan: TfrmStringPointerScan
         OnChange = edtExtraChange
         TabOrder = 1
       end
+      object comboType: TComboBox
+        Left = 319
+        Height = 23
+        Top = 24
+        Width = 124
+        Anchors = [akTop, akRight]
+        ItemHeight = 15
+        ItemIndex = 0
+        Items.Strings = (
+          'String'
+          '1 Byte'
+          '2 Bytes'
+          '4 Bytes'
+          '8 Bytes'
+          'Float'
+          'Double'
+          'Pointer (hex)'
+        )
+        OnChange = comboTypeChange
+        Style = csDropDownList
+        TabOrder = 2
+        Text = 'String'
+      end
     end
+  end
+  object ProgressBar1: TProgressBar
+    Left = 0
+    Height = 20
+    Top = 373
+    Width = 626
+    Align = alBottom
+    Max = 1000
+    TabOrder = 2
+    Visible = False
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.sptr'
     Filter = 'String pointer (*.sptr)|*.sptr'
-    left = 34
-    top = 185
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    left = 480
+    top = 64
   end
   object MainMenu1: TMainMenu
     left = 197
@@ -162,13 +317,30 @@ object frmStringPointerScan: TfrmStringPointerScan
     object MenuItem5: TMenuItem
       Caption = 'Rescan'
       object MenuItem6: TMenuItem
-        Caption = 'Remove pointers'
+        Caption = 'Filter pointerlist'
         OnClick = MenuItem6Click
       end
     end
   end
   object OpenDialog1: TOpenDialog
-    left = 111
-    top = 193
+    DefaultExt = '.sptr'
+    Filter = 'String pointer (*.sptr)|*.sptr'
+    left = 552
+    top = 64
+  end
+  object statusupdater: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = statusupdaterTimer
+    left = 464
+    top = 208
+  end
+  object pmPointerfile: TPopupMenu
+    left = 400
+    top = 112
+    object miClearCache: TMenuItem
+      Caption = 'Clear pointer cache'
+      OnClick = miClearCacheClick
+    end
   end
 end

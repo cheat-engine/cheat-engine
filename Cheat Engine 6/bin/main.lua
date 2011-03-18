@@ -184,8 +184,8 @@ require("class");
 --control_getAlign(control, alignmentoption): gets the alignment of the control
 --control_getEnabled(control) : gets the enabled state of the control
 --control_setEnabled(control, boolean) : Sets the enabled state of the control
---control_getVisible(control) : Sets the visible state of the control
---control_setVisible(control, boolean) : Gets the visible state of the control
+--control_getVisible(control) : gets the visible state of the control
+--control_setVisible(control, boolean) : sets the visible state of the control
 --control_getColor(control) : gets the color
 --control_setColor(control, rgb) : Sets the color
 --control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
@@ -199,7 +199,7 @@ require("class");
 --wincontrol_canFocus(control): returns true if the object can be focused
 --wincontrol_focused(control): returns boolean true when focused
 --wincontrol_setFocus(control): tries to set keyboard focus the object
---wincontrol_OnEnter(control, function) : Sets an onEnter event. (Triggered on focus enter)
+--wincontrol_onEnter(control, function) : Sets an onEnter event. (Triggered on focus enter)
 --wincontrol_onExit(control, function) : Sets an onExit event. (Triggered on lost focus)
 
 

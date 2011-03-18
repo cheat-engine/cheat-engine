@@ -30,9 +30,9 @@ begin
   while (address<stop) and (VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
   begin
     if (mbi.state=MEM_COMMIT) and
-       ((mbi.AllocationProtect and PAGE_NOACCESS)<>PAGE_NOACCESS) and
-       ((mbi.AllocationProtect and PAGE_GUARD)<>PAGE_GUARD) and
-       ((mbi.AllocationProtect and PAGE_NOCACHE)<>PAGE_NOCACHE) then
+       ((mbi.Protect and PAGE_NOACCESS)<>PAGE_NOACCESS) and
+       ((mbi.Protect and PAGE_GUARD)<>PAGE_GUARD) and
+       ((mbi.Protect and PAGE_NOCACHE)<>PAGE_NOCACHE) then
     begin
       //readable
       setlength(memoryregions,length(memoryregions)+1);
@@ -56,10 +56,10 @@ begin
   begin
     if (mbi.state=MEM_COMMIT) and
     (
-       ((mbi.AllocationProtect and PAGE_EXECUTE)=PAGE_EXECUTE) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or
-       ((mbi.AllocationProtect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY)
+       ((mbi.Protect and PAGE_EXECUTE)=PAGE_EXECUTE) or
+       ((mbi.Protect and PAGE_EXECUTE_READ)=PAGE_EXECUTE_READ) or
+       ((mbi.Protect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or
+       ((mbi.Protect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY)
     )
     then
     begin

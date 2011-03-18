@@ -24,6 +24,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
     miDisassembly64: TMenuItem;
@@ -213,6 +214,7 @@ type
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
+    procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -875,8 +877,20 @@ end;
 procedure TMemoryBrowser.MenuItem11Click(Sender: TObject);
 begin
   if frmStringPointerscan=nil then
-    frmStringpointerscan:=Tfrmstringpointerscan.create(nil);
+    frmStringpointerscan:=Tfrmstringpointerscan.create(MemoryBrowser);
 
+  frmStringpointerscan.rbStringscan.Checked:=true;
+  frmStringpointerscan.edtBase.text:=inttohex(hexview.address,8);
+
+  frmStringpointerscan.show;
+end;
+
+procedure TMemoryBrowser.miPointerSpiderClick(Sender: TObject);
+begin
+  if frmStringPointerscan=nil then
+    frmStringpointerscan:=Tfrmstringpointerscan.create(MemoryBrowser);
+
+  frmStringpointerscan.rbDatascan.Checked:=true;
   frmStringpointerscan.edtBase.text:=inttohex(hexview.address,8);
 
   frmStringpointerscan.show;
@@ -1484,6 +1498,7 @@ begin
       begin
         findwindow.editStart.Text:=inttohex(memoryaddress+1,8);
         findwindow.firstscan:=false;
+        findwindow.btnOK.Click;
       end else
       begin
         search1.OnClick(self);

@@ -10,7 +10,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
-  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler;
+  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler, Regex, RegExpr;
 
 type
 
@@ -28,6 +28,8 @@ type
 
   TStringScan=class(tthread)
   private
+    regex: TREGExprEngine;
+    muststartwithregex: boolean;
     progressbar: TProgressBar;
     stringtree: TAvgLvlTree;
     bma: TBigMemoryAllocHandler;
@@ -35,14 +37,19 @@ type
 
     procedure docleanup;
   public
+
     procedure execute; override;
-    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler);
+    constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TREGExprEngine; muststartwithregex: boolean);
   end;
 
   TfrmStringMap = class(TForm)
     btnScan: TButton;
     btnFree: TButton;
     btnShowList: TButton;
+    cbRegExp: TCheckBox;
+    cbCaseSensitive: TCheckBox;
+    cbMustBeStart: TCheckBox;
+    edtRegExp: TEdit;
     lblStringCount: TLabel;
     ListView1: TListView;
     Panel1: TPanel;
@@ -50,6 +57,7 @@ type
     procedure btnScanClick(Sender: TObject);
     procedure btnFreeClick(Sender: TObject);
     procedure btnShowListClick(Sender: TObject);
+    procedure cbRegExpChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormResize(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
@@ -59,6 +67,7 @@ type
 
     bma: TBigMemoryAllocHandler;
     isfillinglist: boolean;
+    regex: TRegExprEngine;
   public
     { public declarations }
     scanner: TStringScan;
@@ -163,6 +172,9 @@ var buf: PByteArray;
 
   unicode: boolean;
   start: integer; //index where the first valid character is
+
+  str: string;
+  index, len: integer;
 begin
   //get memory regions
   buf:=nil;
@@ -188,15 +200,28 @@ begin
       currentpos:=0;
       while (not terminated) and (currentpos<mr[i].MemorySize) do
       begin
+        if mr[i].BaseAddress=$283b000 then
+        begin
+          asm
+          nop
+          nop
+          nop
+          end
+        end;
+
         unicode:=false;
         s:=mr[i].MemorySize;
-        currentbufsize:=min(s-currentpos, maxbuf);
+        currentbufsize:=4096; //min(s-currentpos, maxbuf);
         if ReadProcessMemory(processhandle, pointer(mr[i].BaseAddress+currentpos) , buf, currentbufsize,x) then
         begin
           //find and add the strings
+          currentbufsize:=x;
+
           start:=-1;
-          for j:=0 to currentbufsize-5 do
+          for j:=0 to currentbufsize-2 do
           begin
+
+
                                           // \/ unicode is only true when it already has a char, so -1 is valid
             if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and (buf[j-1]<>0)) then
             begin
@@ -215,7 +240,26 @@ begin
                 if ((not unicode) and (j-start>4)) or (unicode and (j-start>9)) then
                 begin
                   //found something that resembles a string
-                  AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+
+                  if regex<>nil then
+                  begin
+                    buf[j]:=0;
+
+                    if unicode then
+                      str:=PWideChar(@buf[start])
+                    else
+                      str:=PChar(@buf[start]);
+
+                    index:=0;
+                    len:=0;
+                    if RegExprPos(regex, pchar(str) , index,len) then
+                    begin
+                      if (not muststartwithregex) or (muststartwithregex and (index=0)) then
+                        AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+                    end
+                  end
+                  else
+                    AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
                 end;
               end;
 
@@ -224,6 +268,10 @@ begin
             end;
           end;
 
+        end
+        else
+        begin
+          currentbufsize:=4096;
         end;
 
         inc(currentpos, currentbufsize);
@@ -239,11 +287,13 @@ begin
   end;
 end;
 
-constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler);
+constructor TStringScan.create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TRegExprEngine; muststartwithregex: boolean);
 begin
   self.stringtree:=stringtree;
   self.progressbar:=progressbar;
   self.bma:=bma;
+  self.regex:=regex;
+  self.muststartwithregex:=muststartwithregex;
 
   progressbar.Position:=0;
   progressbar.max:=100;
@@ -297,7 +347,10 @@ end;
 
 procedure TfrmStringMap.btnScanClick(Sender: TObject);
 var mapIdType: TMapIdType;
+    regflags: tregexprflags;
 begin
+  isfillinglist:=false;
+
   if btnScan.caption=rsStop then
   begin
     Cleanup;
@@ -325,9 +378,18 @@ begin
 
     bma:=TBigMemoryAllocHandler.create;
 
+    if cbRegExp.checked then
+    begin
+      if cbCaseSensitive.checked then
+        regflags:=[]
+      else
+        regflags:=[ref_caseinsensitive];
+
+      regex:=GenerateRegExprEngine(pchar(edtRegExp.Text), regflags);
+    end;
     btnScan.caption:=rsStop;
 
-    scanner:=TStringScan.create(false, progressbar1, stringtree, bma);
+    scanner:=TStringScan.create(false, progressbar1, stringtree, bma, regex, cbMustBeStart.checked);
   end;
 
 end;
@@ -352,6 +414,8 @@ var n: TAvgLvlTreeNode;
 begin
   if not isfillinglist then
   begin
+    listview1.clear;
+
     if stringtree<>nil then
     begin
       if stringtree.Count>0 then
@@ -401,6 +465,7 @@ begin
           finally
             freemem(buf);
             isfillinglist:=false;
+            btnShowList.caption:=rsBtnShowList;
           end;
         end;
       end;
@@ -411,6 +476,13 @@ begin
     isfillinglist:=false;
     btnShowList.caption:=rsBtnShowList;
   end;
+end;
+
+procedure TfrmStringMap.cbRegExpChange(Sender: TObject);
+begin
+  cbCaseSensitive.enabled:=cbRegExp.checked;
+  cbMustBeStart.enabled:=cbRegExp.checked;
+  edtRegExp.enabled:=cbRegExp.checked;
 end;
 
 procedure TfrmStringMap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -426,14 +498,12 @@ end;
 procedure TfrmStringMap.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
-  begin
     memorybrowser.hexview.address:=ptruint(listview1.Selected.Data);
-  end;
 end;
 
 procedure TfrmStringMap.Panel1Resize(Sender: TObject);
 begin
-  btnShowList.Top:=(panel1.clientheight div 2) - (btnShowList.height div 2);
+  btnShowList.Top:=(panel1.clientheight) - (btnShowList.height)-3;
 end;
 
 function TfrmStringMap.findNearestString(address: ptruint): PStringData;
@@ -453,6 +523,9 @@ begin
       p:=PStringData(n.Data);
       while (p<>nil) and (p.address>k.address) do
         p:=p.previous;
+
+      if (p<>nil) and (p.address+p.stringsize<address) then
+        p:=p.next;
 
       result:=p;
     end;

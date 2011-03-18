@@ -2190,13 +2190,9 @@ begin
       val('$'+tokens[i],j,err);
       if (err<>0) and (getreg(tokens[i],false)=-1) then
       begin
-        showmessage(tokens[i]);
-
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
         if not haserror then
           tokens[i]:=temp;
-
-        showmessage(tokens[i])
       end;
     end;
   end;

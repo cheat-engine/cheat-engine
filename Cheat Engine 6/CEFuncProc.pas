@@ -165,6 +165,7 @@ function MaxX(a, b: ptrUint): ptrUint;inline; overload;
 
 
 function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
+function InRangeQ(const AValue, AMin, AMax: qword): Boolean;inline;
 
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
@@ -700,6 +701,7 @@ resourcestring
   rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
   rsNoKernel32DllLoaded = 'No kernel32.dll loaded';
   rsSeparator = 'Separator';
+  rsInvalidInteger = 'Invalid integer';
 
 function ProcessID: dword;
 begin
@@ -716,7 +718,7 @@ function StrToQWordEx(s: string): qword;
 begin
   s:=trim(s);
   if length(s)=0 then
-    raise exception.create('Invalid integer')
+    raise exception.create(rsInvalidInteger)
   else
   begin
     if s[1]='-' then
@@ -3143,6 +3145,10 @@ begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
+function InRangeQ(const AValue, AMin, AMax: QWord): Boolean;inline;
+begin
+  Result:=(AValue>=AMin) and (AValue<=AMax);
+end;
 
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 {

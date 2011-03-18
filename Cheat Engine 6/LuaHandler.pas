@@ -7376,8 +7376,8 @@ begin
 
     lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount_fromLua);
     lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl_fromLua);
-    lua_register(LuaVM, 'wincontrol_OnEnter', wincontrol_OnEnter_fromLua);
-    lua_register(LuaVM, 'wincontrol_OnExit', wincontrol_OnExit_fromLua);
+    lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_OnEnter_fromLua);
+    lua_register(LuaVM, 'wincontrol_onExit', wincontrol_OnExit_fromLua);
     lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus_fromLua);
     lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused_fromLua);
     lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus_fromLua);

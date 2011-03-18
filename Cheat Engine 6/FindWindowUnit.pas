@@ -10,6 +10,9 @@ uses
 
 const wm_fw_scandone=wm_user+1;
 type
+
+  { TFindWindow }
+
   TFindWindow = class(TForm)
     ProgressBar: TProgressBar;
     Panel1: TPanel;
@@ -27,13 +30,13 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     Scanvalue: TEdit;
+    procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     memscan: TMemScan;
-    procedure scandone(var m: TMessage); message wm_fw_scandone;
   public
     { Public declarations }
     firstscan: boolean;
@@ -50,31 +53,17 @@ resourcestring
   rsNothingFound = 'Nothing found';
   rsTheSpecifiedRangeIsInvalid = 'The specified range is invalid';
 
-procedure TFindWindow.scandone(var m: TMessage);
-var x: ptruint;
-    i: integer;
-begin
-  //showmessage('scan finished');
-  try
-    if memscan.GetOnlyOneResult(x) then
-    begin
-      MemoryBrowser.memoryaddress:=x;
-      modalresult:=mrok;
-    end else raise exception.Create(rsNothingFound);
-  finally
-    for i:=0 to ControlCount-1 do
-      Controls[i].Enabled:=true;
-    freeandnil(memscan);
-  end;
-end;
+
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
 var start,stop,temp: dword;
-    cb: TCheckbox;
+    //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
+    x: ptruint;
 begin
-  if memscan<>nil then exit;
+  if memscan<>nil then
+    freeandnil(memscan);
   
   try
     start:=StrToQWordEx('$'+editStart.text);
@@ -90,42 +79,32 @@ begin
     stop:=temp;
   end;
 
-  cb:=TCheckbox.create(self);
-  cb.visible:=false;
-  cb.checked:=true;
-  cb.parent:=self;
 
   if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
 
-//  raise exception.Create('Please tell dark byte he still has to implement a new find');
 
-
-  memscan:=TMemscan.create(ProgressBar);
-  memscan.setScanDoneCallback(handle, wm_fw_scandone);
+  memscan:=TMemscan.create(nil);
   memscan.onlyone:=true;
 
-  for i:=0 to ControlCount-1 do
-    Controls[i].Enabled:=false;
 
+  try
+    memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+    memscan.waittilldone;
 
-  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
+    if memscan.GetOnlyOneResult(x) then
+    begin
+      MemoryBrowser.memoryaddress:=x;
+      modalresult:=mrok;
+    end else raise exception.Create(rsNothingFound);
+  finally
+    freeandnil(memscan);
+  end;
 
+end;
 
-    {
-  if GetMemoryRangesAndScanValue2(firstresult,start,stop,true,true,Exact_value,valtype,scanvalue.text,'',rounded,true,progressbar,false,cbunicode.checked)>0 then
-  begin
-    //something found
-    MemoryBrowser.memoryaddress:=firstresult;
-    MemoryBrowser.RefreshMB;
-    modalresult:=mrok;
-    findwindow.close;
-  end else
-  begin
-    showmessage('Nothing found...');
-    if not firstscan then modalresult:=mrcancel;
-  end;    }
+procedure TFindWindow.btnCancelClick(Sender: TObject);
+begin
 
-  cb.free;
 end;
 
 procedure TFindWindow.FormShow(Sender: TObject);
@@ -149,7 +128,7 @@ begin
     editStart.visible:=true;
     label2.Visible:=true;
     label3.Visible:=true;
-
+    Scanvalue.SetFocus;
   end
   else
   begin

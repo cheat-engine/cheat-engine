@@ -1083,18 +1083,19 @@ begin
           exit;
         end
         else
+        if lua_isstring(LuaVM, -1) then
+        begin
+          p:=lua_tostring(LuaVM, -1);
+          if (p<>nil) then name:=p;
+        end
+        else
         if lua_isnumber(LuaVM, -1) then
         begin
           result:=lua_tointeger(LuaVM, -1);
           lua_settop(luavm, i);
           exit;
-        end
-        else
-        if lua_isstring(LuaVM, -1) then
-        begin
-          p:=lua_tostring(LuaVM, -1);
-          if (p<>nil) then name:=p;
         end;
+
 
         lua_settop(luavm, i);
       end;

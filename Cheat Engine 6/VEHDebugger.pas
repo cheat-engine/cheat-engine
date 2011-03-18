@@ -385,7 +385,7 @@ begin
       s.add('db '''+guidstring+''',0');
       s.Add('CreateThread("vehdebug'+prefix+'.InitializeVEH")');
 
-    //  Clipboard.SetTextBuf(pchar(s.text));
+      //Clipboard.SetTextBuf(pchar(s.text));
 
       if autoassemble(s,false) then
       begin

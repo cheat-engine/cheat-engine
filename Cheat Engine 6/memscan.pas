@@ -4974,7 +4974,11 @@ begin
 
   scanController.roundingtype:=roundingtype;
 
-  self.fastscanalignment:=strtoint('$'+fastscanparameter);
+  if fastscanparameter<>'' then
+    self.fastscanalignment:=strtoint('$'+fastscanparameter)
+  else
+    self.fastscanalignment:=1;
+
   self.fastscanmethod:=fastscanmethod;
   self.fastscandigitcount:=length(fastscanparameter);
 

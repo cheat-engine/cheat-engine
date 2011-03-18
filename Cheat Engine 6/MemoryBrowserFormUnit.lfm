@@ -1098,6 +1098,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16464
         OnClick = Dissectdata1Click
       end
+      object miPointerSpider: TMenuItem
+        Caption = 'Structure spider'
+        ShortCut = 49232
+        OnClick = miPointerSpiderClick
+      end
       object Watchmemoryallocations1: TMenuItem
         Caption = 'Watch memory allocations'
         ShortCut = 24653
