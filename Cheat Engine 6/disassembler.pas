@@ -9373,7 +9373,7 @@ begin
                       if memory[1]>=$c8 then
                       begin
                         lastdisassembledata.opcode:='fmulp';
-                        lastdisassembledata.parameters:='st('+inttostr(memory[1]-$c0)+'),st(0)';
+                        lastdisassembledata.parameters:='st('+inttostr(memory[1]-$c8)+'),st(0)';
                       end
                       else
                       begin
@@ -9418,7 +9418,7 @@ begin
                      if memory[1]>=$e0 then
                      begin
                        lastdisassembledata.opcode:='fsubrp';
-                       lastdisassembledata.parameters:='st('+inttostr(memory[1]-$c0)+'),st(0)';
+                       lastdisassembledata.parameters:='st('+inttostr(memory[1]-$e0)+'),st(0)';
                      end
                      else
                      begin
@@ -9467,7 +9467,7 @@ begin
                    end;
 
                 7: begin
-                     description:='devide';
+                     description:='divide';
                      last:=2;
                      if memory[1]>=$f8 then
                      begin
