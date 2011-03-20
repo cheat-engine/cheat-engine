@@ -134,10 +134,18 @@ type
   TScanner=class(tthread)
   private
     baseaddress: ptruint;
+    baseaddress2: ptruint;
+    diffkind: Tdiffkind;
+    vartype: TVariableType;
     structsize: ptruint;
     maxlevel: ptruint;
     mappedregions: TAvgLvlTree;
     pointerlist: TAvgLvlTree;
+
+    tempvariablebuffer, tempvariablebuffer2: pbytearray; //storage for the value compare. Preallocate so no need to call getmem/freemem each time
+    variablesize: integer;
+    valuemap: tmap;
+
     bma: TBigMemoryAllocHandler;
 
     count: integer;
@@ -160,15 +168,20 @@ type
 
     procedure handleBlock(blockaddress: ptruint; level: integer; path: TPointerpath);
     procedure addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: bool);
+    function comparePath(level: integer; path: tpointerpath; stringsize: integer): boolean;
+
 
     procedure mapRegionIfNeeded(blockaddress: ptruint; size: integer);
     procedure fillPointers(base: ptruint; size: integer);
     function getFirstPointerEntry(base: ptruint): PPointerListEntry;
+
+    function getPointerValue(address: ptruint): ptruint;
+
     procedure flushResults;
 
   public
     procedure execute; override;
-    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
+    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
     destructor destroy; override;
   end;
 
@@ -178,7 +191,9 @@ type
     cbMustBeStart: TCheckBox;
     cbRegExp: TCheckBox;
     cbPointerInRange: TCheckBox;
+    cbMapPointerValues: TCheckBox;
     comboType: TComboBox;
+    comboCompareType: TComboBox;
     edtPointerStart: TEdit;
     edtPointerStop: TEdit;
     edtAlignsize: TEdit;
@@ -189,6 +204,7 @@ type
     edtStructsize: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    lblCompare: TLabel;
     lblAlign: TLabel;
     lblAnd: TLabel;
     lblString: TLabel;
@@ -207,8 +223,12 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     pmPointerfile: TPopupMenu;
     ProgressBar1: TProgressBar;
+    rbDiffDontCare: TRadioButton;
+    rbMustBeDifferent: TRadioButton;
+    rbMustBeSame: TRadioButton;
     rbStringscan: TRadioButton;
     rbDatascan: TRadioButton;
     SaveDialog1: TSaveDialog;
@@ -228,10 +248,10 @@ type
     procedure miClearCacheClick(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
     procedure rbDatascanChange(Sender: TObject);
+    procedure rbDiffDontCareChange(Sender: TObject);
     procedure statusupdaterTimer(Sender: TObject);
   private
     { private declarations }
-
     mappedRegions: TAvgLvlTree; //holds the map of the regions that have been mapped
 
     pointerlist: TAvgLvlTree; //holds the pointers in the app of the mapped regions
@@ -946,6 +966,26 @@ begin
 end;
 
 //--------------TScanner---------------
+function TScanner.getPointerValue(address: ptruint): ptruint;
+{
+returns 0 if not found
+}
+var
+  search: TPointerListEntry;
+  pe: TAvgLvlTreeNode;
+  r: PPointerListEntry;
+begin
+  result:=0;
+  mapRegionIfNeeded(address,4096);
+  search.address:=address;
+  pe:=pointerlist.Find(@search);
+  if pe<>nil then
+  begin
+    r:=pe.data;
+    result:=r.pointsto;
+  end;
+end;
+
 function TScanner.getFirstPointerEntry(base: ptruint): PPointerListEntry;
 var pe: TAvgLvlTreeNode;
   search: TPointerListEntry;
@@ -1141,8 +1181,107 @@ begin
   results.position:=0;
 end;
 
+function TScanner.comparePath(level: integer; path: tpointerpath; stringsize: integer): boolean;
+var i: integer;
+  x: ptruint;
+  address, address2: ptruint;
+  e: boolean;
+
+  value,value2: pbytearray;
+  br: dword;
+begin
+  result:=false;
+  address:=baseaddress+path[0];
+  address2:=baseaddress2+path[0];
+  for i:=1 to level do
+  begin
+    x:=getPointerValue(address2);
+    if x<>0 then
+    begin
+      address2:=address2+x;
+
+      x:=getPointerValue(address);
+      if x<>0 then //not much chance it's 0 else it would never got here...
+        address:=address+x
+      else
+        exit;
+
+    end else exit;
+  end;
+
+
+  //still here so both addresses are readable
+  //
+  if valuemap<>nil then
+  begin
+    value:=valuemap.GetDataPtr(address);
+    value2:=valuemap.GetDataPtr(address2);
+  end
+  else
+  begin
+    value:=nil;
+    value2:=nil;
+  end;
+
+  //check address1
+  if value=nil then //not found, so read it manually
+  begin
+    if readprocessmemory(processhandle, pointer(address), @tempvariablebuffer[1], variablesize, br) then
+    begin
+      tempvariablebuffer[0]:=1; //mark as readable
+      value:=tempvariablebuffer;
+    end
+    else
+      tempvariablebuffer[0]:=0; //mark as unreadable
+
+    if valuemap<>nil then //add it
+      valuemap.Add(address, tempvariablebuffer^);
+  end;
+
+  if value=nil then exit; //unreadable
+
+  //check address2
+  if value2=nil then //not found, so read it manually
+  begin
+    if readprocessmemory(processhandle, pointer(address2), @tempvariablebuffer2[1], variablesize, br) then
+    begin
+      tempvariablebuffer2[0]:=1; //mark as readable
+      value2:=tempvariablebuffer2;
+    end
+    else
+      tempvariablebuffer2[0]:=0; //mark as unreadable
+
+    if valuemap<>nil then //add it
+      valuemap.Add(address2, tempvariablebuffer2^);
+  end;
+
+  if value2=nil then exit; //unreadable
+
+  if value[0]=0 then exit; //unreadable but mapped as unreadable
+  if value[1]=0 then exit; //    "       "     "    "     "
+
+  value:=@value[1];
+  value2:=@value2[1];
+
+  if isDataScan then
+  begin
+    result:=CompareMem(value, value2, variablesize);
+
+    if diffkind=dkMustBeDifferent then result:=not result; //invert the result if it's a mustbedifferent type
+  end
+  else
+  begin
+    result:=CompareMem(value, value2, min(stringsize, variablesize));
+    if diffkind=dkMustBeDifferent then result:=not result; //invert the result if it's a mustbedifferent type
+  end;
+
+
+end;
+
 procedure TScanner.addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: BOOL);
 begin
+  if (diffkind<>dkDontCare) and (not comparePath(level, path, stringsize)) then exit;
+
   results.WriteBuffer(level, sizeof(level));
   results.WriteBuffer(stringsize, sizeof(stringsize));
   results.WriteBuffer(unicode, sizeof(unicode));
@@ -1202,6 +1341,7 @@ begin
           path[level]:=0;
           if (not mustbeinregion) or (InRangeX(blockaddress, pointerstart, pointerstop)) then
             addStringPath(level, path, p.stringsize-(blockaddress-p.address), p.unicode);
+
         end;
         p:=p.next;
       end;
@@ -1259,9 +1399,12 @@ begin
   end;
 end;
 
-constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
+constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
 begin
   self.baseaddress:=baseaddress;
+  self.baseaddress2:=baseaddress2;
+  self.diffkind:=diffkind;
+  self.vartype:=vartype;
   self.structsize:=structsize;
   self.maxlevel:=maxlevel;
   self.mappedregions:=mappedregions;
@@ -1274,6 +1417,25 @@ begin
   self.pointerstop:=pointerstop;
   self.mustbeinregion:=mustbeinregion;
 
+  if diffkind<>dkDontCare then
+  begin
+    case vartype of
+      vtString: variablesize:=8; //string
+      vtByte: variablesize:=1; //byte
+      vtWord: variablesize:=2; //word
+      vtDword: variablesize:=4; //dword
+      vtQword: variablesize:=8; //qword
+      vtSingle: variablesize:=4; //single
+      vtDouble: variablesize:=8; //double
+      vtPointer: variablesize:=processhandler.pointersize; //pointer
+    end;
+
+    if mapvalues then
+      valuemap:=TMap.create(ituPtrSize,variablesize+1);
+
+    getmem(tempvariablebuffer, variablesize+1);
+    getmem(tempvariablebuffer2, variablesize+1);
+  end;
 
   resultfile:=TFileStream.Create(filename, fmCreate or fmShareDenyNone);
   resultfile.Write(maxlevel, sizeof(maxlevel));
@@ -1296,6 +1458,14 @@ begin
   if resultfile<>nil then
     freeandnil(resultfile);
 
+  if tempvariablebuffer<>nil then
+    freemem(tempvariablebuffer);
+
+  if tempvariablebuffer2<>nil then
+    freemem(tempvariablebuffer2);
+
+  if valuemap<>nil then
+    freeandnil(valuemap);
 end;
 
 
@@ -1529,11 +1699,15 @@ end;
 
 procedure TfrmStringPointerScan.Button1Click(Sender: TObject);
 var baseaddress: ptruint;
+  baseaddress2: ptruint;
   structsize: integer;
   maxlevel: integer;
   alignsize: integer;
   pointerstart: ptruint;
   pointerstop: ptruint;
+
+  diffkind: TDiffkind;
+  vartype: TVariableType;
 begin
   cleanup;
 
@@ -1543,6 +1717,12 @@ begin
 
   structsize:=strtoint(edtStructsize.text);
   maxlevel:=strtoint(edtMaxLevel.text);
+
+  if edtExtra.text='' then
+  begin
+    rbDiffDontCare.Checked:=true;
+    baseaddress2:=StrToQwordEx('$'+edtextra.text);
+  end;
 
   if rbDatascan.checked then
   begin
@@ -1595,8 +1775,33 @@ begin
 
     statusupdater.enabled:=true;
 
+    if rbMustBeSame.checked then
+      diffkind:=dkMustBeSame
+    else
+    if rbMustBeDifferent.checked then
+      diffkind:=dkMustBeDifferent
+    else
+      diffkind:=dkDontCare;
+
+
+    if diffkind<>dkDontCare then
+    begin
+      case comboCompareType.itemindex of
+        0: vartype:=vtString;
+        1: vartype:=vtByte;
+        2: vartype:=vtWord;
+        3: vartype:=vtDword;
+        4: vartype:=vtQword;
+        5: vartype:=vtSingle;
+        6: vartype:=vtDouble;
+        7: vartype:=vtPointer;
+      end;
+    end;
+
+
+
     //everything has been configured
-    scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename);
+    scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, baseaddress2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename);
 
   end;
 end;
@@ -1648,6 +1853,10 @@ procedure TfrmStringPointerScan.edtExtraChange(Sender: TObject);
 begin
   if listview1.ColumnCount>1 then
     hasAddress2:=edtExtra.Text<>'';
+
+  rbMustBeDifferent.enabled:=hasAddress2;
+  rbMustBeSame.enabled:=hasAddress2;
+  rbDiffDontCare.enabled:=hasAddress2;
 
   try
     address2:=StrToQword('$'+edtExtra.text);
@@ -1751,6 +1960,12 @@ begin
   edtPointerStart.enabled:=rbDatascan.checked and cbPointerInRange.checked;
   lblAnd.enabled:=rbDatascan.checked and cbPointerInRange.checked;
   edtPointerStop.enabled:=rbDatascan.checked and cbPointerInRange.checked;
+end;
+
+procedure TfrmStringPointerScan.rbDiffDontCareChange(Sender: TObject);
+begin
+  lblCompare.enabled:=rbDiffDontCare.checked = false;
+  comboCompareType.enabled:=rbDiffDontCare.checked = false;
 end;
 
 procedure TfrmStringPointerScan.statusupdaterTimer(Sender: TObject);
