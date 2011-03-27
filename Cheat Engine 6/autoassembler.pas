@@ -76,6 +76,7 @@ resourcestring
   rsYouCanOnlyHaveOneDisableSection = 'You can only have one disable section';
   rsYouHavnTSpecifiedAEnableSection = 'You havn''t specified a enable section';
   rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
+  rsWrongSyntaxSHAREDALLOCNameSize = 'Wrong syntax. SHAREDALLOC(name,size)';
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -340,7 +341,7 @@ var i,j,k,l,e: integer;
     end;
 
 
-    globalallocs, allocs, kallocs: array of tcealloc;
+    globalallocs, allocs, kallocs, sallocs: array of tcealloc;
     labels: array of tlabel;
     defines: array of tdefine;
     fullaccess: array of tfullaccess;
@@ -380,6 +381,7 @@ begin
   setlength(allocs,0);
   setlength(kallocs,0);
   setlength(globalallocs,0);
+  setlength(sallocs,0);
   setlength(createthread,0);
 
   currentaddress:=0;
@@ -532,8 +534,34 @@ begin
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
           end;
+              {
+          if uppercase(copy(currentline,1,12))='SHAREDALLOC(' then
+          begin
+            a:=pos('(',currentline);
+            b:=pos(',',currentline);
+            c:=pos(')',currentline);
+            if (a>0) and (b>0) and (c>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
 
+              try
+                x:=strtoint(s2);
+              except
+                raise exception.Create(Format(rsIsNotAValidSize, [s2]));
+              end;
 
+              setlength(sallocs,length(sallocs)+1);
+              sallocs[length(sallocs)-1].address:=allocateSharedMemoryIntoTargetProcess(s1,x);
+              sallocs[length(sallocs)-1].varname:=s1;
+              sallocs[length(sallocs)-1].size:=x;
+
+              setlength(assemblerlines,length(assemblerlines)-1);
+              continue;
+
+            end
+            else raise exception.Create(rsWrongSyntaxSHAREDALLOCNameSize);
+          end;  }
 
           if uppercase(copy(currentline,1,12))='GLOBALALLOC(' then
           begin

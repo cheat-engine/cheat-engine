@@ -227,6 +227,7 @@ type TCEAlloc=record
   varname: string;
   size: dword;
   prefered: ptrUint;
+
 end;
 type PCEAlloc=^TCEAlloc;
 type TCEAllocArray=array of TCEAlloc;

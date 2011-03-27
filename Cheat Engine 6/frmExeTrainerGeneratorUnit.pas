@@ -462,6 +462,7 @@ begin
   begin
     z:=TFiledata(listview1.Selected.data);
     InputQuery('New foldername', 'CE trainer maker', z.folder);
+    listview1.Selected.SubItems[0]:=z.folder;
   end;
 end;
 

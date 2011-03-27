@@ -7264,6 +7264,24 @@ begin
   end else lua_pop(L, paramcount);
 end;
 
+function deallocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  address: ptruint;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+  begin
+    if lua_isstring(L, -paramcount) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+    else
+      address:=lua_tointeger(L,-paramcount);
+
+    UnmapViewOfFile(pointer(address));
+  end;
+
+end;
+
 function getCheatEngineDir_fromlua(L: PLua_State): integer; cdecl;
 begin
   lua_pop(L, paramcount);
@@ -7669,6 +7687,7 @@ begin
     lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory_fromLua);
 
     lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory_fromLua);
+    lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory_fromLua);
     lua_register(LuaVM, 'getCheatEngineDir', getCheatEngineDir_fromLua);
 
 

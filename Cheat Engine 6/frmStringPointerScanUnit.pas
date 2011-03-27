@@ -214,6 +214,7 @@ type
     edtMaxLevel: TEdit;
     edtRegExp: TEdit;
     edtStructsize: TEdit;
+    lblvds: TLabel;
     lblBaseRegion: TLabel;
     lblStructsize: TLabel;
     lblCompare: TLabel;
@@ -1690,7 +1691,6 @@ begin
   cleanup;
   OpenPointerfile(frmStringPointerScan.SaveDialog1.FileName);
 
-  btnScan.enabled:=true;
   btnScan.caption:='Rescan';
   btnScan.tag:=0;
 
@@ -1916,6 +1916,7 @@ begin
   cbCaseSensitive.enabled:=cbRegExp.checked;
   cbMustBeStart.enabled:=cbRegExp.checked;
   edtRegExp.enabled:=cbRegExp.checked;
+  lblString.enabled:=cbRegExp.checked;
 end;
 
 procedure TfrmStringPointerScan.cbPointerInRangeChange(Sender: TObject);
@@ -1973,7 +1974,7 @@ end;
 
 procedure TfrmStringPointerScan.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-
+  cleanup;
 end;
 
 procedure TfrmStringPointerScan.MenuItem2Click(Sender: TObject);
@@ -2128,11 +2129,11 @@ end;
 procedure TfrmStringPointerScan.disableGui(control: TWinControl);
 var i: integer;
 begin
-  if control<>btnScan then
-    control.Enabled:=false;
-
-  for i:=0 to ControlCount-1 do
+  for i:=0 to control.ControlCount-1 do
   begin
+    if control.Controls[i]<>btnScan then
+      control.Controls[i].enabled:=false;
+
     if (control.Controls[i] is TWinControl) then
       disableGui(TWinControl(control.Controls[i]));
   end;
@@ -2141,12 +2142,19 @@ end;
 
 procedure TfrmStringPointerScan.enableGui;
 begin
+  panel4.enabled:=true;
   lblBaseRegion.enabled:=true;
   lblExtra.enabled:=true;
 
   cbPointerInRange.enabled:=true;
   cbPointerInRange.OnChange(cbPointerInRange);
 
+  lblBaseRegion.enabled:=true;
+  lblExtra.enabled:=true;
+  lblvds.enabled:=true;
+
+  edtBase.enabled:=true;
+  edtExtra.enabled:=true;
   edtExtra.OnChange(edtExtra); //makes the difftypes enabled or not
 
   rbDatascan.enabled:=true;
@@ -2154,6 +2162,10 @@ begin
 
   cbRegExpChange(rbStringscan);
   comboType.enabled:=true;
+
+  rbDatascanChange(Nil);
+
+  btnScan.enabled:=true;
 end;
 
 initialization

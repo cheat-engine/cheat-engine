@@ -133,6 +133,9 @@ require("class");
 --allocateSharedMemory(name, size):
 --  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
 --  It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+
+--deallocateSharedMemory(address)
+
   
 --getCheatEngineDir(): Returns the folder Cheat Engine is located at
 

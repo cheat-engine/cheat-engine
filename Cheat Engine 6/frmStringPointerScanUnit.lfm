@@ -7,6 +7,7 @@ object frmStringPointerScan: TfrmStringPointerScan
   ClientHeight = 524
   ClientWidth = 626
   Menu = MainMenu1
+  OnClose = FormClose
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Panel1: TPanel
@@ -24,7 +25,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Height = 23
       Top = 24
       Width = 80
-      TabOrder = 0
+      TabOrder = 2
       Text = '4096'
     end
     object lblStructsize: TLabel
@@ -42,7 +43,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 80
       Caption = 'Scan'
       OnClick = btnScanClick
-      TabOrder = 1
+      TabOrder = 0
     end
     object lblInfo: TLabel
       Left = 0
@@ -66,7 +67,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Height = 23
       Top = 24
       Width = 80
-      TabOrder = 2
+      TabOrder = 1
       Text = '2'
     end
     object edtRegExp: TEdit
@@ -75,7 +76,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Top = 366
       Width = 155
       Enabled = False
-      TabOrder = 3
+      TabOrder = 11
     end
     object cbMustBeStart: TCheckBox
       Left = 16
@@ -84,7 +85,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 89
       Caption = 'Must be start'
       Enabled = False
-      TabOrder = 4
+      TabOrder = 10
     end
     object cbCaseSensitive: TCheckBox
       Left = 16
@@ -93,16 +94,16 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 93
       Caption = 'Case sensitive'
       Enabled = False
-      TabOrder = 5
+      TabOrder = 9
     end
     object cbRegExp: TCheckBox
-      Left = 8
+      Left = 5
       Height = 19
       Top = 300
       Width = 164
       Caption = 'Strings must match reg exp'
       OnChange = cbRegExpChange
-      TabOrder = 6
+      TabOrder = 8
     end
     object rbStringscan: TRadioButton
       Left = 5
@@ -111,7 +112,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 78
       Caption = 'String scan'
       OnChange = rbDatascanChange
-      TabOrder = 8
+      TabOrder = 7
     end
     object rbDatascan: TRadioButton
       Left = 5
@@ -120,7 +121,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 71
       Caption = 'Data scan'
       OnChange = rbDatascanChange
-      TabOrder = 7
+      TabOrder = 12
     end
     object edtAlignsize: TEdit
       Left = 12
@@ -128,7 +129,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Top = 438
       Width = 153
       Enabled = False
-      TabOrder = 9
+      TabOrder = 13
       Text = '4'
     end
     object lblAlign: TLabel
@@ -146,7 +147,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Top = 74
       Width = 155
       Enabled = False
-      TabOrder = 10
+      TabOrder = 4
     end
     object cbPointerInRange: TCheckBox
       Left = 4
@@ -155,12 +156,12 @@ object frmStringPointerScan: TfrmStringPointerScan
       Width = 150
       Caption = 'Pointer must be in range'
       OnChange = cbPointerInRangeChange
-      TabOrder = 11
+      TabOrder = 3
     end
     object lblAnd: TLabel
-      Left = 5
+      Left = 4
       Height = 16
-      Top = 98
+      Top = 96
       Width = 21
       Caption = 'and'
       Enabled = False
@@ -172,12 +173,12 @@ object frmStringPointerScan: TfrmStringPointerScan
       Top = 112
       Width = 155
       Enabled = False
-      TabOrder = 12
+      TabOrder = 5
     end
     object lblString: TLabel
       Left = 13
       Height = 16
-      Top = 350
+      Top = 352
       Width = 35
       Caption = 'String:'
       Enabled = False
@@ -191,7 +192,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       BevelOuter = bvNone
       ClientHeight = 131
       ClientWidth = 170
-      TabOrder = 13
+      TabOrder = 6
       object rbDiffDontCare: TRadioButton
         Left = 5
         Height = 19
@@ -327,7 +328,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       object lblExtra: TLabel
         Left = 142
         Height = 16
-        Top = 3
+        Top = 4
         Width = 91
         Caption = 'Compare against'
         ParentColor = False
@@ -362,6 +363,14 @@ object frmStringPointerScan: TfrmStringPointerScan
         Style = csDropDownList
         TabOrder = 2
         Text = 'String'
+      end
+      object lblvds: TLabel
+        Left = 319
+        Height = 16
+        Top = 4
+        Width = 109
+        Caption = 'Variable display type'
+        ParentColor = False
       end
     end
   end
