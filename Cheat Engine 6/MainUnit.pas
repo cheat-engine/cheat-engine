@@ -2339,10 +2339,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  asm
-    db $48,$89,$0c,$24
-    mov [rsp],rcx
-  end;
+
 end;
 
 

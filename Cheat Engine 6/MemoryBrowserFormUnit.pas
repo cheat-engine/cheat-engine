@@ -2716,7 +2716,7 @@ end;
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);
 begin
 
-  with tmemorybrowser.create(nil) do
+  with tmemorybrowser.create(application) do
   begin
     inc(mbchildcount);
     name:=rsMemoryBrowser+inttostr(mbchildcount);

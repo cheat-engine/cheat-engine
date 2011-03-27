@@ -56,13 +56,11 @@ var launchdir: string;
   outfile: Tfilestream;
 
   filelist: TStringList;
-  i: integer;
 
   ceexe: string;
 
   startupinfo: TSTARTUPINFO;
   ProcessInformation: TPROCESSINFORMATION;
-  is32bit: boolean;
   filename, folder: string;
   selfpath: string;
 begin
@@ -73,7 +71,6 @@ begin
   archivename:=selfpath+'CET_Archive.dat';
 
   filelist:=TStringList.create;
-  is32bit:=false;
 
 
   if FileExists(archivename) then
@@ -104,17 +101,10 @@ begin
         ForceDirectories(launchdir+folder);
 
       if filename='cheatengine-i386.exe' then
-      begin
-        is32bit:=true;
         filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
-      end;
 
       if filename='cheatengine-x86_64.exe' then
-      begin
-        is32bit:=false;
         filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
-      end;
-
 
       filelist.add(launchdir+filename);
       {$ifndef release}
