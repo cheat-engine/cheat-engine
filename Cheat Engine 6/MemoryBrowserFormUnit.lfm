@@ -897,7 +897,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = Referencedstrings1Click
       end
       object MenuItem10: TMenuItem
-        Caption = 'All strings (not implemented)'
+        Caption = 'All strings'
         OnClick = MenuItem10Click
       end
       object MemoryRegions1: TMenuItem

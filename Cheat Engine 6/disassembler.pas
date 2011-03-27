@@ -1083,7 +1083,7 @@ begin
   begin
     if is64bit then
     begin
-      if _mod=0 then //index=4 mod=0 : special case
+      if (base=5) and (index=4) and (_mod=0) then //disp32
       begin
         //sib has a 32-bit displacement value (starting at 0000000000000000)
         LastDisassembleData.modrmValueType:=dvtAddress;

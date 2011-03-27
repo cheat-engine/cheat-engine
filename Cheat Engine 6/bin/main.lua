@@ -130,6 +130,13 @@ require("class");
 --Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
 --If initialized using a function itself it won't be able to get saved in the table
 
+--allocateSharedMemory(name, size):
+--  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
+--  It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+  
+--getCheatEngineDir(): Returns the folder Cheat Engine is located at
+
+
 
 --undefined property functions
 --getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)

@@ -27,7 +27,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       TabOrder = 0
       Text = '4096'
     end
-    object Label2: TLabel
+    object lblStructsize: TLabel
       Left = 87
       Height = 16
       Top = 8
@@ -35,13 +35,13 @@ object frmStringPointerScan: TfrmStringPointerScan
       Caption = 'Structsize'
       ParentColor = False
     end
-    object Button1: TButton
+    object btnScan: TButton
       Left = 41
       Height = 25
       Top = 464
       Width = 80
       Caption = 'Scan'
-      OnClick = Button1Click
+      OnClick = btnScanClick
       TabOrder = 1
     end
     object lblInfo: TLabel
@@ -53,7 +53,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Caption = 'Info'
       ParentColor = False
     end
-    object Label4: TLabel
+    object lblMaxLevel: TLabel
       Left = 4
       Height = 16
       Top = 8
@@ -154,7 +154,6 @@ object frmStringPointerScan: TfrmStringPointerScan
       Top = 52
       Width = 150
       Caption = 'Pointer must be in range'
-      Enabled = False
       OnChange = cbPointerInRangeChange
       TabOrder = 11
     end
@@ -170,7 +169,7 @@ object frmStringPointerScan: TfrmStringPointerScan
     object edtPointerStop: TEdit
       Left = 4
       Height = 23
-      Top = 114
+      Top = 112
       Width = 155
       Enabled = False
       TabOrder = 12
@@ -187,7 +186,7 @@ object frmStringPointerScan: TfrmStringPointerScan
     object Panel4: TPanel
       Left = -1
       Height = 131
-      Top = 136
+      Top = 139
       Width = 170
       BevelOuter = bvNone
       ClientHeight = 131
@@ -232,7 +231,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Width = 124
         Enabled = False
         ItemHeight = 15
-        ItemIndex = 0
+        ItemIndex = 3
         Items.Strings = (
           'String'
           '1 Byte'
@@ -246,7 +245,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         OnChange = comboTypeChange
         Style = csDropDownList
         TabOrder = 3
-        Text = 'String'
+        Text = '4 Bytes'
       end
       object lblCompare: TLabel
         Left = 5
@@ -264,8 +263,10 @@ object frmStringPointerScan: TfrmStringPointerScan
         Top = 104
         Width = 148
         Caption = 'Store values during scan'
+        Checked = True
         ParentShowHint = False
         ShowHint = True
+        State = cbChecked
         TabOrder = 4
       end
     end
@@ -315,7 +316,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         OnChange = edtBaseChange
         TabOrder = 0
       end
-      object Label1: TLabel
+      object lblBaseRegion: TLabel
         Left = 8
         Height = 16
         Top = 4
@@ -386,8 +387,15 @@ object frmStringPointerScan: TfrmStringPointerScan
     top = 104
     object MenuItem1: TMenuItem
       Caption = 'File'
+      object MenuItem7: TMenuItem
+        Caption = 'New Window'
+        OnClick = MenuItem7Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
       object MenuItem2: TMenuItem
-        Caption = 'Clear'
+        Caption = 'New scan'
         OnClick = MenuItem2Click
       end
       object MenuItem3: TMenuItem
@@ -397,6 +405,7 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object MenuItem5: TMenuItem
       Caption = 'Rescan'
+      Visible = False
       object MenuItem6: TMenuItem
         Caption = 'Filter pointerlist'
         OnClick = MenuItem6Click

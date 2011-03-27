@@ -727,11 +727,14 @@ var ctfile: TFilestream;
 
     isProtected: boolean;
 begin
+
   isProtected:=false;
   unprotectedstream:=nil;
   ctfile:=nil;
   doc:=nil;
   ctfile:=Tfilestream.Create(filename,fmopenread or fmsharedenynone);
+
+  mainform.addresslist.Items.BeginUpdate;
   try
     x:=nil;
     getmem(x,12);
@@ -790,6 +793,8 @@ begin
 
     if unprotectedstream<>nil then
       unprotectedstream.free;
+
+    mainform.addresslist.Items.EndUpdate;
   end;
 end;
 

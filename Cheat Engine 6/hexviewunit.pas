@@ -139,7 +139,7 @@ type
     property address: ptrUint read fAddress write setAddress;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
-
+    property history: TStack read backlist;
   end;
 
 implementation
@@ -1435,6 +1435,7 @@ end;
 
 procedure THexView.setAddress(a: ptrUint);
 begin
+
   fAddress:=a;
   if changelist<>nil then
     changelist.Clear;

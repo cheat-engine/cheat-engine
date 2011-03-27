@@ -11,6 +11,38 @@ procedure launch;
 
 implementation
 
+function DeleteFolder(dir: string) : boolean;
+var
+  DirInfo: TSearchRec;
+  r : Integer;
+begin
+  ZeroMemory(@DirInfo,sizeof(TSearchRec));
+  result := true;
+
+  while dir[length(dir)]=pathdelim do //cut of \
+    dir:=copy(dir,1,length(dir)-1);
+
+  r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
+  while (r = 0) and result do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+        result := DeleteFile(dir + pathdelim + DirInfo.Name)
+      else
+      begin
+        if (DirInfo.Name<>'.') and (DirInfo.Name<>'..') then
+          DeleteFolder(dir+pathdelim+DirInfo.name);
+      end;
+    end;
+    r := FindNext(DirInfo);
+  end;
+  FindClose(DirInfo);
+
+  if Result then
+    result := RemoveDir(dir);
+end;
+
 procedure launch;
 var launchdir: string;
   archivename: string;
@@ -31,7 +63,7 @@ var launchdir: string;
   startupinfo: TSTARTUPINFO;
   ProcessInformation: TPROCESSINFORMATION;
   is32bit: boolean;
-  filename: string;
+  filename, folder: string;
   selfpath: string;
 begin
   selfpath:=ExtractFilePath(GetModuleName(0));
@@ -58,6 +90,19 @@ begin
       temp[size]:=#0;
 
       filename:=temp;
+      freemem(temp);
+
+      z.read(size, sizeof(size));
+      getmem(temp, size+1);
+      z.read(temp^, size);
+      temp[size]:=#0;
+
+      folder:=temp;
+      freemem(temp);
+
+      if folder<>'' then
+        ForceDirectories(launchdir+folder);
+
       if filename='cheatengine-i386.exe' then
       begin
         is32bit:=true;
@@ -75,15 +120,13 @@ begin
       {$ifndef release}
       deletefile(launchdir+filename); //in case it didn't get deleted
       {$endif}
-      outfile:=tfilestream.Create(launchdir+filename, fmCreate);
+      outfile:=tfilestream.Create(launchdir+folder+filename, fmCreate);
 
       size:=0;
       z.read(size, sizeof(size));
 
       outfile.CopyFrom(z, size);
       outfile.free;
-
-      freemem(temp);
     end;
 
     z.free;
@@ -91,14 +134,6 @@ begin
 
 
     ceexe:=launchdir+ExtractFileName(GetModuleName(0));
-
-
-    if is32bit then
-    begin
-      //dbghelp32.dll needs to be in win32
-      CreateDir(launchdir+'win32');
-      MoveFile(pchar(launchdir+'dbghelp.dll'), pchar(launchdir+'win32\dbghelp.dll'));
-    end;
 
 
     if FileExists(launchdir+'CET_TRAINER.CETRAINER') then
@@ -115,19 +150,7 @@ begin
 
   end;
 
-  if is32bit then
-  begin
-    DeleteFile(launchdir+'win32\dbghelp.dll');
-    RemoveDir(launchdir+'win32');
-  end;
-
-  if filelist<>nil then
-  begin
-    for i:=0 to filelist.count-1 do
-      deletefile(filelist[i]);
-  end;
-
-  removedir(launchdir);
+  deleteFolder(launchdir);
 end;
 
 

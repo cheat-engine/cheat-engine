@@ -4446,7 +4446,14 @@ begin
           if opcodes[j].opcode1=eo_prd then
           begin
             addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter1));
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+
+            inc(bytes[length(bytes)-1],k);
             if self.REX_W then
               addqword(bytes,v)
             else

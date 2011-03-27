@@ -18,7 +18,7 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server;
+  luafile, xmplayer_server, sharedMemory;
 
 //the following are just for compatibility
 
@@ -2339,7 +2339,10 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  adwindow.loadad;
+  asm
+    db $48,$89,$0c,$24
+    mov [rsp],rcx
+  end;
 end;
 
 
@@ -6394,12 +6397,12 @@ var _us: string;
 var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
+var p: PByteArray;
 begin
-  asm
 
-
-  end;
-
+ // allocate
+  p:=allocateSharedMemoryIntoTargetProcess('EricShare');
+  showmessage('allocated at:'+inttohex(ptruint(p),8));
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

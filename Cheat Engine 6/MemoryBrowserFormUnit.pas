@@ -888,7 +888,7 @@ end;
 procedure TMemoryBrowser.miPointerSpiderClick(Sender: TObject);
 begin
   if frmStringPointerscan=nil then
-    frmStringpointerscan:=Tfrmstringpointerscan.create(MemoryBrowser);
+    frmStringpointerscan:=Tfrmstringpointerscan.create(application);
 
   frmStringpointerscan.rbDatascan.Checked:=true;
   frmStringpointerscan.edtBase.text:=inttohex(hexview.address,8);
@@ -1379,12 +1379,16 @@ end;
 procedure TMemoryBrowser.Goto1Click(Sender: TObject);
 var newaddress: string;
     canceled: boolean;
+    old: ptruint;
 begin
   panel4.setfocus;
+  old:=memoryaddress;
   newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(memoryaddress, 8), true, canceled, memorybrowserHistory);
 
-  memoryaddress:=getaddress(newaddress);
   hexview.address:=getaddress(newaddress);
+
+  if old<>hexview.address then
+    hexview.history.Push(pointer(old));
 
   hexview.SetFocus;
 end;

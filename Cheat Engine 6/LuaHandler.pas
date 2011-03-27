@@ -32,7 +32,7 @@ implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
-  cesupport, DBK32functions;
+  cesupport, DBK32functions, sharedMemory;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7201,10 +7201,12 @@ begin
     else
       parameter:=0;
 
+    lua_pop(L, paramcount);
+
 
     executeKernelCode(address,parameter);
 
-    result:=1;
+    result:=0;
   end else lua_pop(L, paramcount);
 end;
 
@@ -7233,6 +7235,41 @@ begin
   result:=1;
 end;
 
+function allocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
+var
+  paramcount: integer;
+  sharedmemoryname: string;
+  size: ptruint;
+  address: pointer;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+  begin
+    sharedmemoryname:=Lua_ToString(L,-paramcount);
+
+    if paramcount>=2 then
+      size:=lua_tointeger(L, -paramcount+1)
+    else
+      size:=4096;
+
+    lua_pop(L, paramcount);
+
+    address:=allocateSharedMemoryIntoTargetProcess(sharedmemoryname, size);
+    if address<>nil then
+    begin
+      lua_pushlightuserdata(L, address);
+      result:=1;
+    end;
+  end else lua_pop(L, paramcount);
+end;
+
+function getCheatEngineDir_fromlua(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, paramcount);
+  lua_pushstring(L, CheatEngineDir);
+  result:=0;
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -7631,11 +7668,12 @@ begin
     lua_register(LuaVM, 'dbk_getPEThread', dbk_getPEThread_fromLua);
     lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory_fromLua);
 
+    lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory_fromLua);
+    lua_register(LuaVM, 'getCheatEngineDir', getCheatEngineDir_fromLua);
+
+
     s:=tstringlist.create;
     try
-      s.add('os=nil');
-
-
       //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
       s.add('package.path = package.path .. ";?.lua";');
       s.add('stringlist_getCount=strings_getCount');

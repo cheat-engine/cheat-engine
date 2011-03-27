@@ -1,5 +1,6 @@
 --Defines:
 
+
 --memo scrollbar defines
 ssNone=0
 ssHorizontal=1

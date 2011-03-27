@@ -6,32 +6,60 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, ExtCtrls,
-  dialogs, StdCtrls, cefuncproc, IconStuff, zstream;
+  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream;
+
 
 type
+  TFileData=class
+    filepath: string;
+    filename: string;
+    folder: string;
+  end;
+
+
 
   { TfrmExeTrainerGenerator }
 
   TfrmExeTrainerGenerator = class(TForm)
     Button1: TButton;
     Button2: TButton;
-    cbVEHDebug: TCheckBox;
+    btnAddFile: TButton;
+    btnRemoveFile: TButton;
+    Button3: TButton;
     cbKernelDebug: TCheckBox;
-    cbXMPlayer: TCheckBox;
     cbSpeedhack: TCheckBox;
+    cbVEHDebug: TCheckBox;
+    cbXMPlayer: TCheckBox;
     comboCompression: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
+    GroupBox3: TGroupBox;
     Image1: TImage;
     Label1: TLabel;
+    ListView1: TListView;
+    miEditFolder: TMenuItem;
+    OpenDialog1: TOpenDialog;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    pmFiles: TPopupMenu;
     rb32: TRadioButton;
     rb64: TRadioButton;
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
+    procedure btnAddFileClick(Sender: TObject);
+    procedure btnRemoveFileClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
+    procedure ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure ListView1SelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
+    procedure miEditFolderClick(Sender: TObject);
+    procedure pmFilesPopup(Sender: TObject);
   private
     { private declarations }
     saving: boolean;
@@ -39,10 +67,12 @@ type
     _archive: TMemoryStream;
 
     updatehandle: thandle;
-    procedure addFile(filename: string);
+    procedure addFile(filename: string; folder: string='');
   public
     { public declarations }
     filename: string;
+    procedure addFiletoList(fn: string);
+    procedure addDirToList(dir: string);
   end; 
 
 var
@@ -85,7 +115,7 @@ begin
 
 end;
 
-procedure TfrmExeTrainerGenerator.addFile(filename: string);
+procedure TfrmExeTrainerGenerator.addFile(filename: string; folder: string='');
 var
   f: tmemorystream;
   currentfile: string;
@@ -96,8 +126,6 @@ var
 begin
   f:=TMemoryStream.create;
   try
-
-
     f.LoadFromFile(filename);
     f.position:=0;
     size:=f.size;
@@ -107,6 +135,11 @@ begin
     size:=length(currentfile);
     archive.write(size, sizeof(size));
     archive.write(currentfile[1], size);
+
+    //write the relative folder
+    size:=length(folder);
+    archive.write(size, sizeof(size));
+    archive.write(folder[1], size);
 
     //write the size, and the file itself
     size:=f.size;
@@ -139,6 +172,7 @@ var DECOMPRESSOR: TMemorystream;
   gii: PGRPICONDIR absolute ii;
 
   compression: Tcompressionlevel;
+  i: integer;
 begin
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
   SaveTable(CETRAINER, true);
@@ -172,13 +206,16 @@ begin
         addfile(CETRAINER);
         deletefile(cetrainer);
 
+        for i:=0 to listview1.Items.Count-1 do
+          addfile(TFileData(listview1.items[i].data).filepath, TFileData(listview1.items[i].data).folder);
+
         addfile(cheatenginedir+'defines.lua');
 
         if rb32.checked then
         begin
           addfile(cheatenginedir+'cheatengine-i386.exe');
           addfile(cheatenginedir+'lua5.1-32.dll');
-          addfile(cheatenginedir+'win32\dbghelp.dll');
+          addfile(cheatenginedir+'win32\dbghelp.dll'+'win32');
 
           if cbSpeedhack.checked then
             addfile(cheatenginedir+'speedhack-i386.dll');
@@ -275,16 +312,103 @@ begin
   end;
 end;
 
+procedure TfrmExeTrainerGenerator.addDirToList(dir: string);
+var dirinfo: TSearchRec;
+  r: integer;
+begin
+  ZeroMemory(@DirInfo,sizeof(TSearchRec));
+
+  while dir[length(dir)]=pathdelim do //cut of \
+    dir:=copy(dir,1,length(dir)-1);
+
+  r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
+  while (r = 0) do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+        addFiletoList(dir + pathdelim + DirInfo.Name)
+      else
+      begin
+        if (DirInfo.Name[1]<>'.') then
+          addDirToList(dir + pathdelim + DirInfo.Name);
+      end;
+    end;
+
+    r := FindNext(DirInfo);
+  end;
+  FindClose(DirInfo);
+end;
+
+
+procedure TfrmExeTrainerGenerator.addFiletoList(fn: string);
+var f: TFiledata;
+  d: string;
+  li: TListItem;
+begin
+  f:=tfiledata.create;
+  f.filepath:=fn;
+  f.filename:=extractfilename(fn);
+
+  d:=ExtractFilePath(fn);
+  d:=ExtractRelativepath(cheatenginedir, d);
+  if (pos(':', d)>0) or (pos('..', d)>0) then
+    d:='';
+
+  f.folder:=d;
+
+  li:=listview1.Items.Add;
+  li.caption:=f.filename;
+  li.SubItems.Add(d);
+  li.Data:=f;
+end;
+
+procedure TfrmExeTrainerGenerator.Button3Click(Sender: TObject);
+begin
+  if SelectDirectoryDialog1.Execute then
+    addDirToList(SelectDirectoryDialog1.FileName);
+end;
+
 procedure TfrmExeTrainerGenerator.Button1Click(Sender: TObject);
 begin
   image1.picture.icon:=pickIcon;
 end;
 
-procedure TfrmExeTrainerGenerator.FormClose(Sender: TObject;
-  var CloseAction: TCloseAction);
+procedure TfrmExeTrainerGenerator.btnAddFileClick(Sender: TObject);
+var i: integer;
+begin
+  if opendialog1.execute then
+  begin
+    for i:=0 to opendialog1.Files.count-1 do
+      addFileToList(opendialog1.Files[i]);
+  end;
+end;
+
+procedure TfrmExeTrainerGenerator.btnRemoveFileClick(Sender: TObject);
+var i: integer;
+begin
+  i:=0;
+  while i<listview1.items.count do
+  begin
+    if listview1.Items[i].Selected then
+    begin
+      TFileData(listview1.items[i].data).free;
+      listview1.items.Delete(i);
+    end
+    else
+      inc(i);
+  end;
+
+end;
+
+procedure TfrmExeTrainerGenerator.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var i: integer;
 begin
   closeaction:=cafree;
   frmExeTrainerGenerator:=nil;
+
+  for i:=0 to ListView1.Items.Count-1 do
+    TFiledata(listview1.items[i].Data).free;
 end;
 
 procedure TfrmExeTrainerGenerator.FormCloseQuery(Sender: TObject;
@@ -297,6 +421,9 @@ procedure TfrmExeTrainerGenerator.FormCreate(Sender: TObject);
 var s: string;
   i: integer;
 begin
+  OpenDialog1.InitialDir:=CheatEngineDir;
+  SelectDirectoryDialog1.InitialDir:=CheatEngineDir;
+
   //scan the current script for markers that might indicate a used feature
   s:=lowercase(mainform.frmLuaTableScript.assemblescreen.Text);
 
@@ -315,6 +442,32 @@ begin
       image1.Picture.Icon:=TCEForm(mainform.LuaForms[i]).icon;
       break;
     end;
+
+end;
+
+procedure TfrmExeTrainerGenerator.ListView1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+begin
+
+end;
+
+procedure TfrmExeTrainerGenerator.ListView1SelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
+begin
+  btnRemoveFile.enabled:=listview1.Selected<>nil;
+end;
+
+procedure TfrmExeTrainerGenerator.miEditFolderClick(Sender: TObject);
+var z: TFiledata;
+begin
+  if listview1.Selected<>nil then
+  begin
+    z:=TFiledata(listview1.Selected.data);
+    InputQuery('New foldername', 'CE trainer maker', z.folder);
+  end;
+end;
+
+procedure TfrmExeTrainerGenerator.pmFilesPopup(Sender: TObject);
+begin
+  miEditFolder.enabled:=ListView1.Selected<>nil;
 
 end;
 
