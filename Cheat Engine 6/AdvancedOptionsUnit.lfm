@@ -174,13 +174,13 @@ object AdvancedOptions: TAdvancedOptions
     object N2: TMenuItem
       Caption = '-'
     end
-    object CC1: TMenuItem
+    object miReplaceWithNops: TMenuItem
       Caption = 'Replace with code that does nothing'
-      OnClick = CC1Click
+      OnClick = miReplaceWithNopsClick
     end
-    object CC2: TMenuItem
+    object miRestoreWithOriginal: TMenuItem
       Caption = 'Restore with original code'
-      OnClick = CC2Click
+      OnClick = miRestoreWithOriginalClick
     end
     object Findoutwhatthiscodechanges1: TMenuItem
       Caption = 'Find out what addresses this code writes to'

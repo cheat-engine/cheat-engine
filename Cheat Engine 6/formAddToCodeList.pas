@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources;
+  Dialogs, StdCtrls, LResources, cefuncproc, newkernelhandler;
 
 type
   TfrmAddToCodeList = class(TForm)
@@ -59,19 +59,20 @@ end;
 procedure TfrmAddToCodeList.Button1Click(Sender: TObject);
 begin
   try
-    fromaddress:=strtoint('$'+edit1.Text);
+    fromaddress:=StrToQWordEx('$'+edit1.Text);
   except
     raise exception.Create(rsPleaseFillInAValidFromAddress);
   end;
 
   try
-    toaddress:=strToInt('$'+edit2.Text);
+    toaddress:=StrToQWordEx('$'+edit2.Text);
   except
     raise exception.Create(rsPleaseFillInAValidToAddress);
   end;
 
   if addtocodelist then
     advancedoptions.AddToCodeList(fromaddress,1+toaddress-fromaddress,false);
+
   modalresult:=mrOk;
 end;
 

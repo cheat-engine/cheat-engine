@@ -6601,6 +6601,7 @@ var
   i: integer;
   canceled: boolean;
   actuallyshown: double;
+  error: boolean;
 begin
   if ScanTabList<>nil then
     ScanTabList.enabled:=true;
@@ -6624,7 +6625,10 @@ begin
   if message.wparam>0 then
   begin
     messagedlg(Format(rsScanError, [memscan.GetErrorString]), mtError, [mbok], 0);
-  end;
+    error:=true;
+  end
+  else
+    error:=false;
 
 {  else}
 //  showmessage('SCAN SUCCES. time='+inttostr(after-before));
@@ -6669,6 +6673,9 @@ begin
 
 
   scanepilogue(canceled);
+
+  if error and (memscan.lastscantype=stFirstScan) then //firstscan failed
+    NewScan.Click;
 end;
 
 procedure Tmainform.CancelbuttonClick(Sender: TObject);

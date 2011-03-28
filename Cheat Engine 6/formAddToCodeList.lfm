@@ -35,7 +35,6 @@ object frmAddToCodeList: TfrmAddToCodeList
     Height = 21
     Top = 4
     Width = 81
-    MaxLength = 8
     TabOrder = 0
     Text = 'DDDDDDDD'
   end

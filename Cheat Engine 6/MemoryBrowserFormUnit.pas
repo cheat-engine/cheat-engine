@@ -12,7 +12,7 @@ uses
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  scrollboxex;
+  scrollboxex, disassemblercomments;
 
 
 type
@@ -62,12 +62,12 @@ type
     Timer2: TTimer;
     Panel1: TPanel;
     Panel4: TPanel;
-    Replacewithnops1: TMenuItem;
+    miReplacewithnops: TMenuItem;
     Gotoaddress1: TMenuItem;
     Search1: TMenuItem;
     Change1: TMenuItem;
     Addthisaddresstothelist1: TMenuItem;
-    Addthisopcodetothecodelist1: TMenuItem;
+    miAddToTheCodelist: TMenuItem;
     N1: TMenuItem;
     N2: TMenuItem;
     Splitter1: TSplitter;
@@ -142,7 +142,7 @@ type
     Findstaticpointers1: TMenuItem;
     Scanforcodecaves1: TMenuItem;
     Changestateofregisteratthislocation1: TMenuItem;
-    ogglebreakpoint1: TMenuItem;
+    miTogglebreakpoint: TMenuItem;
     Breakpointlist1: TMenuItem;
     Makepagewritable1: TMenuItem;
     Dissectdata1: TMenuItem;
@@ -232,6 +232,7 @@ type
     procedure miDebugEventsClick(Sender: TObject);
     procedure miLuaEngineClick(Sender: TObject);
     procedure miPagingClick(Sender: TObject);
+    procedure miUserdefinedCommentClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -248,7 +249,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure Splitter2Moved(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
-    procedure Replacewithnops1Click(Sender: TObject);
+    procedure miReplacewithnopsClick(Sender: TObject);
 
     procedure FControl1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
@@ -256,7 +257,7 @@ type
     procedure Search1Click(Sender: TObject);
     procedure Change1Click(Sender: TObject);
     procedure Addthisaddresstothelist1Click(Sender: TObject);
-    procedure Addthisopcodetothecodelist1Click(Sender: TObject);
+    procedure miAddToTheCodelistClick(Sender: TObject);
     procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer;
       var Accept: Boolean);
     procedure ScrollBar2Scroll(Sender: TObject; ScrollCode: TScrollCode;
@@ -298,7 +299,7 @@ type
     procedure Findstaticpointers1Click(Sender: TObject);
     procedure Scanforcodecaves1Click(Sender: TObject);
     procedure Changestateofregisteratthislocation1Click(Sender: TObject);
-    procedure ogglebreakpoint1Click(Sender: TObject);
+    procedure miTogglebreakpointClick(Sender: TObject);
     procedure Breakpointlist1Click(Sender: TObject);
     procedure Makepagewritable1Click(Sender: TObject);
     procedure Dissectdata1Click(Sender: TObject);
@@ -581,6 +582,8 @@ resourcestring
   rsMaxStacktraceSize = 'Max stacktrace size';
   rsNeedToRunDissectCode = 'You will need to run the dissect code routine first before this window is usable. Run it now?';
   rsMemoryViewerCurrentlyDebuggingThread = 'Memory Viewer - Currently debugging thread %s';
+  rsRestoreWithOrginalCode = 'Restore with orginal code';
+  rsReplaceWithCodeThatDoesNothing = 'Replace with code that does nothing';
 
 
 //property functions:
@@ -749,6 +752,16 @@ end;
 procedure TMemoryBrowser.miPagingClick(Sender: TObject);
 begin
   TfrmPaging.create(nil).show;
+end;
+
+procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
+var comment: string;
+begin
+  comment:=dassemblercomments.comments[disassemblerview.SelectedAddress];
+  if InputQuery('Comment','Comment for '+inttohex(disassemblerview.SelectedAddress,8), comment) then
+    dassemblercomments.comments[disassemblerview.SelectedAddress]:=comment;
+
+  disassemblerview.Refresh;
 end;
 
 procedure TMemoryBrowser.Panel5Click(Sender: TObject);
@@ -1420,11 +1433,11 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Replacewithnops1Click(Sender: TObject);
+procedure TMemoryBrowser.miReplacewithnopsClick(Sender: TObject);
 var codelength: integer;
     written: dword;
     bla:string;
-    i: integer;
+    i,j: integer;
     nops: array of byte;
     a: ptrUint;
     original: dword;
@@ -1432,10 +1445,28 @@ var codelength: integer;
     mbi : _MEMORY_BASIC_INFORMATION;
   //set the protectionlabel
 begin
-  //search dselected in the addresslist
-
-
   a:=disassemblerview.SelectedAddress;
+
+  for i:=0 to AdvancedOptions.numberofcodes-1 do
+  begin
+    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode) ) then
+    begin
+      for j:=0 to AdvancedOptions.Codelist2.Items.count-1 do
+        AdvancedOptions.Codelist2.Items[j].Selected:=false;
+
+      AdvancedOptions.Codelist2.Items[i].Selected:=true;
+      AdvancedOptions.Codelist2.ItemIndex:=i;
+
+      if AdvancedOptions.code[i].changed then
+        AdvancedOptions.miRestoreWithOriginal.Click
+      else
+        AdvancedOptions.miReplaceWithNops.click;
+
+      exit;
+    end;
+  end;
+
+  //still here so add it to the codelist
 
   disassemble(a,bla);
   codelength:=a-disassemblerview.SelectedAddress;
@@ -1524,7 +1555,7 @@ begin
   //if shift is not pressed and it's a up,down,left or right, then disable multiline section
   case key of
     vk_delete:
-      Replacewithnops1.Click;
+      miReplacewithnops.Click;
 
 
     vk_return:
@@ -1646,7 +1677,7 @@ begin
 
 end;
 
-procedure TMemoryBrowser.Addthisopcodetothecodelist1Click(Sender: TObject);
+procedure TMemoryBrowser.miAddToTheCodelistClick(Sender: TObject);
 var {start,stop: string;
     a,b: dword;
     i: integer;}
@@ -2370,7 +2401,7 @@ begin
   tfrmModifyRegisters.create(self,disassemblerview.SelectedAddress).showmodal;
 end;
 
-procedure TMemoryBrowser.ogglebreakpoint1Click(Sender: TObject);
+procedure TMemoryBrowser.miTogglebreakpointClick(Sender: TObject);
 begin
   if startdebuggerifneeded(true) then
   begin
@@ -2637,9 +2668,12 @@ end;
 
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
 var x: ptrUint;
+  i: integer;
+
+  inadvancedoptions: boolean;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
-  ogglebreakpoint1.Enabled:=processhandle<>0;
+  miTogglebreakpoint.Enabled:=processhandle<>0;
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
   Findoutwhataddressesthisinstructionaccesses1.enabled:=processhandle<>0;
 
@@ -2651,8 +2685,28 @@ begin
   miConditionalBreak.enabled:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil);
 
 
-  ogglebreakpoint1.visible:=not ischild;
+  miTogglebreakpoint.visible:=not ischild;
 
+  inadvancedoptions:=false;
+  for i:=0 to AdvancedOptions.numberofcodes-1 do
+  begin
+    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode) ) then
+    begin
+      inadvancedoptions:=true;
+
+      if AdvancedOptions.code[i].changed then
+        miReplacewithnops.caption:=rsRestoreWithOrginalCode
+      else
+        miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+
+      break;
+    end;
+  end;
+
+  if not inadvancedoptions then
+    miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+
+  miAddToTheCodelist.visible:=not inadvancedoptions;
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);

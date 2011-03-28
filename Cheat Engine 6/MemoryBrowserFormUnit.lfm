@@ -743,13 +743,13 @@ object MemoryBrowser: TMemoryBrowser
     object N2: TMenuItem
       Caption = '-'
     end
-    object Replacewithnops1: TMenuItem
+    object miReplacewithnops: TMenuItem
       Caption = 'Replace with code that does nothing'
-      OnClick = Replacewithnops1Click
+      OnClick = miReplacewithnopsClick
     end
-    object Addthisopcodetothecodelist1: TMenuItem
+    object miAddToTheCodelist: TMenuItem
       Caption = 'Add to the code list'
-      OnClick = Addthisopcodetothecodelist1Click
+      OnClick = miAddToTheCodelistClick
     end
     object Assemble1: TMenuItem
       Caption = 'Assemble'
@@ -780,9 +780,9 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Change register at this location'
       OnClick = Changestateofregisteratthislocation1Click
     end
-    object ogglebreakpoint1: TMenuItem
+    object miTogglebreakpoint: TMenuItem
       Caption = 'Toggle breakpoint'
-      OnClick = ogglebreakpoint1Click
+      OnClick = miTogglebreakpointClick
     end
     object Breakandtraceinstructions1: TMenuItem
       Caption = 'Break and trace instructions'
@@ -804,8 +804,8 @@ object MemoryBrowser: TMemoryBrowser
       OnClick = MenuItem2Click
     end
     object miUserdefinedComment: TMenuItem
-      Caption = 'Userdefined tags'
-      Visible = False
+      Caption = 'Set/Change comment'
+      OnClick = miUserdefinedCommentClick
     end
   end
   object Timer2: TTimer
@@ -1026,7 +1026,7 @@ object MemoryBrowser: TMemoryBrowser
       object Setbreakpoint1: TMenuItem
         Caption = 'Toggle breakpoint'
         ShortCut = 116
-        OnClick = ogglebreakpoint1Click
+        OnClick = miTogglebreakpointClick
       end
       object N3: TMenuItem
         Caption = '-'

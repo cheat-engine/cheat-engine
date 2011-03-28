@@ -2,6 +2,9 @@ unit AdvancedOptionsUnit;
 
 {$MODE Delphi}
 
+{
+This unit could use a big update
+}
 interface
 
 uses
@@ -17,8 +20,8 @@ type
 
   TAdvancedOptions = class(TForm)
     PopupMenu2: TPopupMenu;
-    CC1: TMenuItem;
-    CC2: TMenuItem;
+    miReplaceWithNops: TMenuItem;
+    miRestoreWithOriginal: TMenuItem;
     Remove1: TMenuItem;
     Rename1: TMenuItem;
     Findoutwhatthiscodechanges1: TMenuItem;
@@ -43,8 +46,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
-    procedure CC2Click(Sender: TObject);
-    procedure CC1Click(Sender: TObject);
+    procedure miRestoreWithOriginalClick(Sender: TObject);
+    procedure miReplaceWithNopsClick(Sender: TObject);
     procedure Remove1Click(Sender: TObject);
     procedure Findoutwhatthiscodechanges1Click(Sender: TObject);
     procedure Rename1Click(Sender: TObject);
@@ -326,8 +329,8 @@ var offset: ptrUint;
 begin
   if (codelist2.Items.Count=0) or (codelist2.ItemIndex=-1) then
   begin
-    cc1.enabled:=false;
-    cc2.enabled:=false;
+    miReplaceWithNops.enabled:=false;
+    miRestoreWithOriginal.enabled:=false;
     rename1.enabled:=false;
     remove1.enabled:=false;
     Openthedisassemblerhere1.enabled:=false;
@@ -349,13 +352,13 @@ begin
 
     if code[codelist2.itemindex].changed then
     begin
-      cc1.enabled:=false;
-      cc2.enabled:=true;
+      miReplaceWithNops.enabled:=false;
+      miRestoreWithOriginal.enabled:=true;
       Findoutwhatthiscodechanges1.enabled:=false;
     end else
     begin
-      cc1.enabled:=true;
-      cc2.enabled:=false;
+      miReplaceWithNops.enabled:=true;
+      miRestoreWithOriginal.enabled:=false;
 
       //disassemble this address, and see if it a writer or reader
       //if neither grey it out
@@ -399,7 +402,7 @@ end;
 
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';
                strnotthesame='The memory at this address isn''t what it should be! Continue?';
-procedure TAdvancedOptions.CC2Click(Sender: TObject);
+procedure TAdvancedOptions.miRestoreWithOriginalClick(Sender: TObject);
 var i,j: integer;
     a: ptrUint;
     lengthactualopcode: dword;
@@ -476,7 +479,7 @@ rsResumeTheGame = 'Resume the game';
 rsPaused = 'paused';
 rsPauseTheGame = 'Pause the game';
 rsTheMemoryAtThisAddressCouldnTBeWritten = 'The memory at this address couldn''t be written';
-procedure TAdvancedOptions.CC1Click(Sender: TObject);
+procedure TAdvancedOptions.miReplaceWithNopsClick(Sender: TObject);
 var codelength: integer;
     written: dword;
     i,index: integer;
