@@ -32,7 +32,7 @@ implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
-  cesupport, DBK32functions, sharedMemory;
+  cesupport, DBK32functions, sharedMemory, disassembler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7289,6 +7289,63 @@ begin
   result:=0;
 end;
 
+function disassemble_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  address: ptruint;
+  d: TDisassembler;
+  x: string;
+  s: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    if lua_isstring(L, -paramcount) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+    else
+      address:=lua_tointeger(L,-paramcount);
+
+    lua_pop(L, paramcount);
+
+    d:=TDisassembler.Create;
+    try
+      d.showmodules:=false;
+      d.showsymbols:=false;
+    finally
+      d.free;
+    end;
+
+    s:=d.disassemble(address, x);
+    result:=1;
+    lua_pushstring(L, s);
+  end;
+end;
+
+function splitDisassembledString_fromLua(L: PLua_State): integer; cdecl;
+var paramcount: integer;
+  disassembledstring: string;
+
+  address, bytes, opcode, special: string;
+begin
+  result:=0;
+  paramcount:=lua_gettop(L);
+  if paramcount=1 then
+  begin
+    disassembledstring:=lua_tostring(L,-paramcount);
+    lua_pop(L, paramcount);
+
+    splitDisassembledString(disassembledstring, true, address, bytes, opcode, special);
+
+    result:=4;
+    lua_pushstring(L, special);
+    lua_pushstring(L, opcode);
+    lua_pushstring(L, bytes);
+    lua_pushstring(L, address);
+
+  end;
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
 begin
@@ -7689,6 +7746,9 @@ begin
     lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory_fromLua);
     lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory_fromLua);
     lua_register(LuaVM, 'getCheatEngineDir', getCheatEngineDir_fromLua);
+
+    lua_register(LuaVM, 'disassemble', disassemble_fromLua);
+    lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString_fromLua);
 
 
     s:=tstringlist.create;

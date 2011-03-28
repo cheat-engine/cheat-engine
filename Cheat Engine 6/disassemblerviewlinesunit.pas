@@ -5,7 +5,7 @@ unit disassemblerviewlinesunit;
 interface
 
 uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
-     CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin;
+     CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin, disassemblerComments;
 
 type
   TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
@@ -171,6 +171,7 @@ procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer;
 var
     baseofsymbol: qword;
     symbolname: string;
+    comment: string;
     refferencedby: string;
     refferencedbylinecount: integer;
     refferencedbyheight: integer;
@@ -357,7 +358,10 @@ begin
   parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
   specialstring:=visibleDisassembler.DecodeLastParametersToString;
 
-
+  //userdefined comments
+  comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address];
+  if comment<>'' then
+    specialstring:=format(comment,[specialstring]);
 
 
 

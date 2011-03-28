@@ -11,7 +11,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
      tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
-     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile;
+     comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile, disassemblerComments;
 
 
 var CurrentTableVersion: dword=10;
@@ -270,7 +270,7 @@ end;
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 var
     CheatTable: TDOMNode;
-    Files, Forms, Entries, Codes, Symbols, Comments, luascript: TDOMNode;
+    Files, Forms, Entries, Codes, Symbols, Comments, luascript, DComments: TDOMNode;
     CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
 
@@ -361,6 +361,7 @@ begin
       Structures:=CheatTable.FindNode('Structures');
       Comments:=CheatTable.FindNode('Comments');
       LuaScript:=CheatTable.FindNode('LuaScript');
+      DComments:=CheatTable.FindNode('DisassemblerComments');
     end;
 
     if Files<>nil then
@@ -558,6 +559,10 @@ begin
       setlength(definedstructures,0);
 
 
+    //disassemblercomments
+    if DComments<>nil then
+      dassemblercomments.loadFromXMLNode(dcomments);
+
 
     Commentsunit.Comments.Memo1.clear;
     if comments<>nil then
@@ -584,7 +589,6 @@ begin
     mainform.frmLuaTableScript.assemblescreen.ClearAll;
     if luaScript<>nil then
       mainform.frmLuaTableScript.assemblescreen.Text:=luascript.TextContent;
-
 
     if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
     begin
@@ -911,7 +915,7 @@ end;
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
     CheatTable: TDOMNode;
-    Files, Forms,Entries,Symbols, Structures, Comment,luascript: TDOMNode;
+    Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
     CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
 
@@ -1014,6 +1018,14 @@ begin
     luascript.TextContent:=mainform.frmLuaTableScript.assemblescreen.text;
     mainform.frmLuaTableScript.assemblescreen.MarkTextAsSaved;
   end;
+
+  //disassemblercomments
+  if dassemblercomments.count>0 then
+  begin
+    dcomments:=CheatTable.AppendChild(doc.CreateElement('DisassemblerComments'));
+    dassemblercomments.saveToXMLNode(dcomments);
+  end;
+
   WriteXMLFile(doc, filename);
 
   doc.Free;

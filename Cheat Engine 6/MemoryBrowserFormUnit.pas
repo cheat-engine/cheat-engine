@@ -758,7 +758,7 @@ procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
 var comment: string;
 begin
   comment:=dassemblercomments.comments[disassemblerview.SelectedAddress];
-  if InputQuery('Comment','Comment for '+inttohex(disassemblerview.SelectedAddress,8), comment) then
+  if InputQuery('Comment','Comment for '+inttohex(disassemblerview.SelectedAddress,8)+' (%s shows the autoguess value)', comment) then
     dassemblercomments.comments[disassemblerview.SelectedAddress]:=comment;
 
   disassemblerview.Refresh;
@@ -1290,8 +1290,14 @@ begin
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
+var m: TPoint;
 begin
-  assemble1.Click;
+  //find what column is clicked
+  m:=disassemblerview.ScreenToClient(mouse.cursorpos);
+  if m.x>(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2)) then
+    miUserdefinedComment.click //comment click
+  else
+    assemble1.Click;
 end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);

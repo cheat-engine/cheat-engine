@@ -9,7 +9,7 @@ this unit will contain the interface for the disassembler comments
 interface
 
 uses
-  Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler;
+  Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler, dom;
 
 type TDisassemblerComments=class
   private
@@ -21,6 +21,10 @@ type TDisassemblerComments=class
     function getInterpretableAddress(address: ptruint): string;
   public
     procedure clear;
+
+
+    procedure saveToXMLNode(node: TDOMNode);
+    procedure loadFromXMLNode(node: TDOMNode);
 
     function getCommentInRegion(address: ptruint; size: integer; out actualaddress: ptruint): string;
     procedure deleteComment(address: ptruint);
@@ -36,6 +40,7 @@ end;
 var
   dassemblercomments: TDisassemblerComments;
 
+procedure reinitializeDisassemblerComments;
 
 implementation
 
@@ -60,6 +65,7 @@ var search: TCommentData;
   n: TAvgLvlTreeNode;
   prev,next: TAvgLvlTreeNode;
 begin
+
   //check if this comment exists, and if not, add it
   search.address:=address;
   n:=commentstree.Find(@search);
@@ -92,6 +98,7 @@ var search: TCommentData;
   c: PCommentData;
   n: TAvgLvlTreeNode;
   prev,next: TAvgLvlTreeNode;
+  mi: TModuleInfo;
 begin
   //check if this comment exists, and if not, add it
   search.address:=address;
@@ -102,7 +109,12 @@ begin
     c:=getmem(sizeof(TCommentData));
     c.address:=address;
     c.comment:=strnew(pchar(comment));
-    c.interpretableAddress:=strnew(pchar(symhandler.getNameFromAddress(address)));
+
+    if symhandler.getmodulebyaddress(address, mi) then
+      c.interpretableAddress:=strnew(pchar('"'+mi.modulename+'"+'+inttohex(address-mi.baseaddress,1) ))
+    else
+      c.interpretableAddress:=strnew(pchar(inttohex(address,8) ));
+
 
     n:=commentstree.Add(c);
 
@@ -197,6 +209,67 @@ begin
   end;
 end;
 
+procedure TDisassemblerComments.loadFromXMLNode(node: TDOMNode);
+var i: integer;
+  addressstring: string;
+  address: ptruint;
+  commentstring: string;
+  n,n2: TDomnode;
+  e: boolean;
+begin
+  clear;
+  for i:=0 to node.ChildNodes.Count-1 do
+  begin
+    n:=node.ChildNodes[i];
+    if n.NodeName='DisassemblerComment' then
+    begin
+      n2:=n.FindNode('Address');
+      if n2<>nil then
+      begin
+        addressstring:=n2.TextContent;
+
+        n2:=n.FindNode('Comment');
+        if n2<>nil then
+        begin
+          commentstring:=n2.TextContent;
+
+          address:=symhandler.getAddressFromName(addressstring, false, e);
+          if e then
+            address:=i+1; //as a temp holder
+
+
+          comments[address]:=commentstring;
+          interpretableAddress[address]:=addressstring;
+        end;
+
+      end;
+    end;
+  end;
+end;
+
+procedure TDisassemblerComments.saveToXMLNode(node: TDOMNode);
+var n: TAvgLvlTreeNode;
+  c: PCommentData;
+  doc: TDOMDocument;
+
+  commentnode: TDOMNode;
+begin
+  doc:=node.OwnerDocument;
+
+  n:=commentstree.FindLowest;
+  if n<>nil then
+  begin
+    c:=n.data;
+    while c<>nil do
+    begin
+      commentnode:=node.AppendChild(doc.CreateElement('DisassemblerComment'));
+      commentnode.AppendChild(doc.CreateElement('Address')).TextContent:=c.interpretableAddress;
+      commentnode.AppendChild(doc.CreateElement('Comment')).TextContent:=c.comment;
+      c:=c.next;
+    end;
+  end;
+end;
+
 function Compare(Item1, Item2: Pointer): Integer;
 begin
   result:=comparevalue(PCommentData(item1).address, PCommentData(item2).address);
@@ -211,21 +284,26 @@ begin
   begin
     //free the comments and the comment data objects
     n:=commentstree.FindLowest;
-    c:=n.Data;
-    while c<>nil do
+    if n<>nil then
     begin
-      if c.comment<>nil then
-        StrDispose(c.comment);
+      c:=n.Data;
+      while c<>nil do
+      begin
+        if c.comment<>nil then
+          StrDispose(c.comment);
 
-      prev:=c;
-      c:=c.next;
+        prev:=c;
+        c:=c.next;
 
-      freemem(prev);
+        freemem(prev);
+      end;
     end;
 
 
   end;
 end;
+
+
 
 constructor TDisassemblerComments.create;
 begin
@@ -236,6 +314,43 @@ destructor TDisassemblerComments.destroy;
 begin
   clear;
   freeandnil(commentstree);
+
+  inherited destroy;
+end;
+
+procedure reinitializeDisassemblerComments;
+var newcomments, olddassemblercomments: TDisassemblerComments;
+  i: integer;
+  n: TAvgLvlTreeNode;
+  c: PCommentData;
+  e: boolean;
+
+  address: ptruint;
+begin
+  newcomments:=TDisassemblerComments.create;
+  n:=dassemblercomments.commentstree.FindLowest;
+  if n<>nil then
+  begin
+    c:=n.data;
+    while c<>nil do
+    begin
+      address:=symhandler.getAddressFromName(c.interpretableAddress, true, e);
+
+      if e then //couldn't get resolved
+        address:=c.address;
+
+      newcomments.comments[address]:=c.comment;
+      newcomments.interpretableAddress[address]:=c.interpretableAddress;  //force the interpretable address in case it failed setting
+
+      c:=c.next;
+    end;
+  end;
+
+  olddassemblercomments:=dassemblercomments;
+  dassemblercomments:=newcomments;
+  olddassemblercomments.Free;
+
+
 end;
 
 initialization

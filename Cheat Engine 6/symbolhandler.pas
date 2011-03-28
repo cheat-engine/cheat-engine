@@ -59,6 +59,7 @@ type
     thisprocessid: dword;    
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
+    procedure finishedLoadingSymbols;
   public
     isloading: boolean;
     error: boolean;
@@ -199,7 +200,7 @@ procedure symhandlerInitialize;
 
 implementation
 
-uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib;
+uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib, disassemblerComments;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -295,6 +296,11 @@ begin
   end;
 end;
 
+procedure TSymbolloaderthread.finishedLoadingSymbols;
+begin
+  reinitializeDisassemblerComments;
+end;
+
 procedure TSymbolloaderthread.execute;
 begin
   try
@@ -317,6 +323,7 @@ begin
       symbolprocesshandle:=processhandle;
     finally
       isloading:=false;
+      synchronize(finishedloadingsymbols);
     end;
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);

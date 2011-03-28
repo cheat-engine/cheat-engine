@@ -139,6 +139,10 @@ require("class");
   
 --getCheatEngineDir(): Returns the folder Cheat Engine is located at
 
+--disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
+--splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
+
+
 
 
 --undefined property functions
