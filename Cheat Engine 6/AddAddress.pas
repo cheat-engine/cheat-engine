@@ -145,7 +145,13 @@ begin
     //still here so that address was right
 
     currentaddress2:=0;
+
+    if not processhandler.is64Bit then
+      currentaddress:=currentaddress and $ffffffff;
+
     check:=readprocessmemory(processhandle,pointer(currentaddress),@currentaddress2,processhandler.pointersize,read);
+
+
 
     if length(pointerinfo[i].offset.text)>0 then
     begin
