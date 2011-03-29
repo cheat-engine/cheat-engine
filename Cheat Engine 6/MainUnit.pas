@@ -6443,6 +6443,7 @@ begin
     attachlist.AddStrings(autoattachlist);
     attachlist.AddStrings(extraautoattachlist);
 
+
     if attachlist.Count>0 then
     begin
       //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
@@ -6452,32 +6453,38 @@ begin
       getprocesslist(pl);
 
       try
-
         for i:=0 to attachlist.Count-1 do
         begin
           a:=uppercase(trim(attachlist.Strings[i]));
           for j:=pl.Count-1 downto 0 do //can't do indexof
           begin
+
             p:=uppercase(pl.strings[j]);
             if pos(a,p)=10 then
             begin
               //the process is found
               p:='$'+copy(p,1,8);
               val(p,newPID,k);
-              if processid=newPID then exit; //already attached to this one
+              if k=0 then
+              begin
+                if ProcessHandler.processid=newPID then exit; //already attached to the newest one
 
-              ProcessHandler.processid:=newPID;
-              unpause;
-              DetachIfPossible;
 
-              MainForm.ProcessLabel.caption:=pl.strings[j];
-              Open_Process;
-              enablegui(false);
+                ProcessHandler.processid:=newPID;
+                unpause;
+                DetachIfPossible;
 
-              openProcessEpilogue('',0,0,true);
 
-              symhandler.reinitialize;
-              reinterpretaddresses;
+                MainForm.ProcessLabel.caption:=pl.strings[j];
+                Open_Process;
+                enablegui(false);
+
+                openProcessEpilogue('',0,0,true);
+
+                symhandler.reinitialize;
+                reinterpretaddresses;
+                exit;
+              end;
             end;
           end;
 

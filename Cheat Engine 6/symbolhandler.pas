@@ -308,8 +308,8 @@ begin
       SymbolsLoaded:=false;
       if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
 
-
       SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
+
       if symbolsloaded then
       begin
         symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
@@ -500,7 +500,6 @@ begin
     symbolloaderthread.WaitFor; //wait till it's done
     symbolloaderthread.Free;
   end;
-
 
   symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
   symbolloaderthread.kernelsymbols:=kernelsymbols;
