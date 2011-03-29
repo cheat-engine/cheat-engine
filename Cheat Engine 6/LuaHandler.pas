@@ -587,15 +587,15 @@ end;
 
 function sleep_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
 begin
-  paramcount:=lua_gettop(L);
+  parameters:=lua_gettop(L);
 
   result:=0;
-  if paramcount=1 then
+  if parameters=1 then
     sleep(lua_tointeger(L, -1));
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function print2(param: pointer): pointer;
@@ -613,17 +613,17 @@ end;
 
 function print_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   s: string;
 
   str: string;
   i: integer;
 begin
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  parameters:=lua_gettop(L);
+  if parameters=0 then exit;
 
   str:='';
-  for i:=-paramcount to -1 do
+  for i:=-parameters to -1 do
   begin
     if lua_islightuserdata(L,i) then
       s:=inttohex(ptruint(lua_touserdata(L, i)),8)
@@ -636,18 +636,18 @@ begin
   if str<>'' then
     pluginsync(print2, @str[1]);
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
   lua_pushstring(L, str);
   result:=1;
 end;
 
 function showMessage_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   s: string;
 begin
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  parameters:=lua_gettop(L);
+  if parameters=0 then exit;
 
   if lua_islightuserdata(l,-1) then
     s:=inttohex(ptruint(lua_touserdata(L, -1)),8)
@@ -656,13 +656,13 @@ begin
 
   ce_showmessage(pchar(s));
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
   result:=0;
 end;
 
 function readInteger_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: integer;
@@ -670,8 +670,8 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=1 then
+    parameters:=lua_gettop(L);
+    if parameters=1 then
     begin
       //ShowMessage(inttostr(lua_type(L, -1)));
 
@@ -681,7 +681,7 @@ begin
         address:=lua_tointeger(L,-1);
 
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       v:=0;
       if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
@@ -699,7 +699,7 @@ end;
 
 function readFloat_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: single;
@@ -707,15 +707,15 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=1 then
+    parameters:=lua_gettop(L);
+    if parameters=1 then
     begin
       if lua_isstring(L, -1) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       v:=0;
       if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
@@ -733,7 +733,7 @@ end;
 
 function readDouble_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: double;
@@ -741,15 +741,15 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=1 then
+    parameters:=lua_gettop(L);
+    if parameters=1 then
     begin
       if lua_isstring(L, -1) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       v:=0;
       if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
@@ -767,7 +767,7 @@ end;
 
 function readString_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: pchar;
@@ -776,20 +776,20 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount>=1 then
+    parameters:=lua_gettop(L);
+    if parameters>=1 then
     begin
-      if lua_isstring(L, -paramcount) then
+      if lua_isstring(L, -parameters) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-2))
       else
-        address:=lua_tointeger(L,-paramcount);
+        address:=lua_tointeger(L,-parameters);
 
-      if paramcount=2 then
+      if parameters=2 then
         maxsize:=lua_tointeger(L,-1)
       else
         maxsize:=50;
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       getmem(v,maxsize);
       try
@@ -814,7 +814,7 @@ end;
 
 function writeInteger_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: integer;
@@ -822,8 +822,8 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=2 then
+    parameters:=lua_gettop(L);
+    if parameters=2 then
     begin
       if lua_isstring(L, -2) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-2))
@@ -832,7 +832,7 @@ begin
 
       v:=lua_tointeger(L, -1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
       result:=1;
     end;
@@ -844,7 +844,7 @@ end;
 
 function writeFloat_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: single;
@@ -852,8 +852,8 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=2 then
+    parameters:=lua_gettop(L);
+    if parameters=2 then
     begin
       if lua_isstring(L, -2) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-2))
@@ -862,7 +862,7 @@ begin
 
       v:=lua_tonumber(L, -1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
 
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
@@ -876,7 +876,7 @@ end;
 
 function writeDouble_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: double;
@@ -884,8 +884,8 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=2 then
+    parameters:=lua_gettop(L);
+    if parameters=2 then
     begin
       if lua_isstring(L, -2) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-2))
@@ -894,7 +894,7 @@ begin
 
       v:=lua_tonumber(L, -1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
       result:=1;
@@ -907,7 +907,7 @@ end;
 
 function writeString_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
 
   v: pchar;
@@ -915,8 +915,8 @@ var
 begin
   result:=0;
   try
-    paramcount:=lua_gettop(L);
-    if paramcount=2 then
+    parameters:=lua_gettop(L);
+    if parameters=2 then
     begin
       if lua_isstring(L, -2) then
         address:=symhandler.getAddressFromName(lua_tostring(L,-2))
@@ -925,7 +925,7 @@ begin
 
       v:=lua.lua_tostring(L, -1);
 
-      lua_pop(L, paramcount);
+      lua_pop(L, parameters);
 
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), v, length(v), r));
       result:=1;
@@ -937,7 +937,7 @@ begin
 end;
 
 function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   addresstoread: ptruint;
   bytestoread: integer;
   i: integer;
@@ -947,25 +947,25 @@ var paramcount: integer;
 begin
   tableversion:=false;
   result:=0;
-  paramcount:=lua_gettop(L);
+  parameters:=lua_gettop(L);
 
-  if lua_isstring(L, -paramcount) then
-    addresstoread:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+  if lua_isstring(L, -parameters) then
+    addresstoread:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
   else
-    addresstoread:=lua_tointeger(L,-paramcount);
+    addresstoread:=lua_tointeger(L,-parameters);
 
-  if paramcount>1 then
+  if parameters>1 then
   begin
-    bytestoread:=lua_tointeger(L,-paramcount+1);
+    bytestoread:=lua_tointeger(L,-parameters+1);
 
-    if paramcount>2 then
-      tableversion:=lua_toboolean(L, -paramcount+2);
+    if parameters>2 then
+      tableversion:=lua_toboolean(L, -parameters+2);
 
   end
   else
     bytestoread:=1;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 
   setlength(bytes,bytestoread);
   ZeroMemory(@bytes[0], bytestoread);
@@ -996,7 +996,7 @@ end;
 
 function writeBytes(processhandle: dword; L: PLua_State): integer;
 var
-  paramcount: integer;
+  parameters: integer;
   bytes: array of byte;
   i,j: integer;
   address: ptruint;
@@ -1004,24 +1004,24 @@ var
   oldprotect: dword;
   b: byte;
 begin
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  parameters:=lua_gettop(L);
+  if parameters=0 then exit;
 
 
 
-  if lua_isstring(L, -paramcount) then
-    address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+  if lua_isstring(L, -parameters) then
+    address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
   else
-    address:=lua_tointeger(L,-paramcount);
+    address:=lua_tointeger(L,-parameters);
 
-  if lua_istable(L, -paramcount+1) then
+  if lua_istable(L, -parameters+1) then
   begin
-    paramcount:=lua_tointeger(L, -paramcount+2);
+    parameters:=lua_tointeger(L, -parameters+2);
 
 
-    setlength(bytes,paramcount-1);
+    setlength(bytes,parameters-1);
 
-    for i:=0 to paramcount-1 do
+    for i:=0 to parameters-1 do
     begin
       lua_pushinteger(L,i);
       lua_gettable(L, -3);
@@ -1033,10 +1033,10 @@ begin
   end
   else
   begin
-    setlength(bytes,paramcount-1);
+    setlength(bytes,parameters-1);
 
     j:=0;
-    for i:=(-paramcount)+1 to -1 do
+    for i:=(-parameters)+1 to -1 do
     begin
       b:=lua_tointeger(L,i);
       bytes[j]:=b;
@@ -1046,12 +1046,12 @@ begin
   end;
 
   x:=0;
-  VirtualProtectEx(processhandle, pointer(address), paramcount-1, PAGE_EXECUTE_READWRITE, oldprotect);
-  WriteProcessMemory(processhandle, pointer(address), @bytes[0], paramcount-1, x);
-  VirtualProtectEx(processhandle, pointer(address), paramcount-1, oldprotect, oldprotect);
+  VirtualProtectEx(processhandle, pointer(address), parameters-1, PAGE_EXECUTE_READWRITE, oldprotect);
+  WriteProcessMemory(processhandle, pointer(address), @bytes[0], parameters-1, x);
+  VirtualProtectEx(processhandle, pointer(address), parameters-1, oldprotect, oldprotect);
 
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
   lua_pushinteger(L, x);    //return the number of bytes written
 
   result:=1;  //return 1 value
@@ -1079,12 +1079,12 @@ end;
 
 function autoAssemble_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   code: TStringlist;
   r: boolean;
 begin
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  parameters:=lua_gettop(L);
+  if parameters=0 then exit;
 
   code:=tstringlist.create;
   try
@@ -1096,7 +1096,7 @@ begin
       r:=false;
     end;
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
     lua_pushboolean(L, r);
   finally
     code.free;
@@ -1107,13 +1107,13 @@ end;
 
 function getPixel_fromlua(L: PLua_State): integer; cdecl;
 var t:TCanvas;
-  paramcount: integer;
+  parameters: integer;
   r: dword;
   x,y: integer;
 begin
   result:=0; //return 0 paramaters
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     x:=lua_tointeger(L, -2); //x
     y:=lua_tointeger(L, -1); //y
@@ -1134,44 +1134,44 @@ begin
       end;
     except
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function getMousePos_fromlua(L: PLua_State): integer; cdecl;
 var t:TCanvas;
-  paramcount: integer;
+  parameters: integer;
   cp: Tpoint;
 begin
   result:=0; //return 0 parameters
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then
+  parameters:=lua_gettop(L);
+  if parameters=0 then
   begin
     cp:=mouse.CursorPos;
     lua_pushinteger(L, cp.x);
     lua_pushinteger(L, cp.y);
     result:=2;   //return 2 parameters
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function setMousePos_fromlua(L: PLua_State): integer; cdecl;
 var t:TCanvas;
-  paramcount: integer;
+  parameters: integer;
   cp: Tpoint;
 begin
   result:=0; //return 0 parameters
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cp.x:=lua_tointeger(L, -2); //x
     cp.y:=lua_tointeger(L, -1); //y
     lua_pop(L, 2);
 
     mouse.CursorPos:=cp;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function createTableEntry_fromlua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   r: pointer;
 begin
   lua_pop(L, lua_gettop(L)); //clear the stack
@@ -1182,17 +1182,17 @@ begin
 end;
 
 function getTableEntry_fromlua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   description: pchar;
   r: pointer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     description:=lua.lua_tostring(L,-1); //description
 
-    lua_pop(L, paramcount);  //clear stack
+    lua_pop(L, parameters);  //clear stack
 
     r:=ce_getTableEntry(description);
     if r<>nil then
@@ -1200,40 +1200,40 @@ begin
       lua_pushlightuserdata(L,r); //return the pointer
       result:=1;
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_setDescription_fromlua(L: PLUA_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   description: pchar;
   memrec: pointer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec:=lua_touserdata(L,-2); //memrec
     description:=lua.lua_tostring(L,-1); //description
 
-    lua_pop(L, paramcount);  //clear stack
+    lua_pop(L, parameters);  //clear stack
 
     ce_memrec_setDescription(memrec, description);
   end;
 
-  lua_pop(L, paramcount);  //clear stack
+  lua_pop(L, parameters);  //clear stack
 
 end;
 
 function memoryrecord_getDescription_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   d: pchar;
   memrec: pointer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memrec:=lua_touserdata(L,-1);
     d:=ce_memrec_getDescription(memrec);
@@ -1242,12 +1242,12 @@ begin
       lua_pushstring(L, d);
       result:=1;
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_getAddress_fromlua(L: PLua_state): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memrec: pointer;
   address: ptruint;
   offsets: array of dword;
@@ -1258,11 +1258,11 @@ begin
   offsetcount:=0;
   setlength(offsets,0);
 
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memrec:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     if ce_memrec_getAddress(memrec, @address, nil, 0, @offsetcount) then
     begin
@@ -1283,50 +1283,50 @@ begin
 
     end;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_setAddress_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
   address: pchar;
   offsets: array of dword;
   i,j: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=2 then
+  parameters:=lua_gettop(L);
+  if parameters>=2 then
   begin
-    memrec:=lua_touserdata(L, (-paramcount));
-    address:=lua.lua_tostring(L, (-paramcount)+1);
+    memrec:=lua_touserdata(L, (-parameters));
+    address:=lua.lua_tostring(L, (-parameters)+1);
 
-    setlength(offsets,paramcount-2);
+    setlength(offsets,parameters-2);
     j:=0;
-    for i:=(-paramcount)+2 to -1 do
+    for i:=(-parameters)+2 to -1 do
     begin
       offsets[j]:=lua_tointeger(L, i);
       inc(j);
     end;
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     ce_memrec_setAddress(memrec, address, @offsets[0], length(offsets))
   end else
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 end;
 
 function memoryrecord_getType_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    memrec:=lua_touserdata(L, (-paramcount));
-    lua_pop(L, paramcount);
+    memrec:=lua_touserdata(L, (-parameters));
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, ce_memrec_getType(memrec));
     result:=1;
@@ -1338,36 +1338,36 @@ function memoryrecord_setType_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   vtype: integer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec:=lua_touserdata(L, -2);
     vtype:=lua_tointeger(L, -1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     ce_memrec_setType(memrec, vtype);
   end
   else
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
 end;
 
 function memoryrecord_getValue_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 
   v: pchar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    memrec:=lua_touserdata(L, (-paramcount));
-    lua_pop(L, paramcount);
+    memrec:=lua_touserdata(L, (-parameters));
+    lua_pop(L, parameters);
 
 
     getmem(v,255);
@@ -1381,20 +1381,20 @@ begin
     finally
       freemem(v);
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function memoryrecord_setValue_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 
   v: pchar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec:=lua_touserdata(L, -2);
     v:=lua.lua_tostring(L, -1);
@@ -1402,23 +1402,23 @@ begin
 
     ce_memrec_setValue(memrec, v);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_getScript_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 
   v: pchar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memrec:=lua_touserdata(L, -1);
     v:=ce_memrec_getScript(memrec);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     if v<>nil then
     begin
@@ -1426,7 +1426,7 @@ begin
       result:=1;
     end;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 
 
 end;
@@ -1435,13 +1435,13 @@ end;
 function memoryrecord_setScript_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 
   v: pchar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec:=lua_touserdata(L, -2);
     v:=lua.lua_tostring(L, -1);
@@ -1450,43 +1450,43 @@ begin
   end;
 
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function memoryrecord_isActive_fromlua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   direction: integer;
   memrec: pointer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    memrec:=lua_touserdata(L, -paramcount);
-    lua_pop(L, paramcount);
+    memrec:=lua_touserdata(L, -parameters);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, ce_memrec_isFrozen(memrec));
     result:=1;
   end
-  else lua_pop(L, paramcount);
+  else lua_pop(L, parameters);
 end;
 
 function memoryrecord_freeze_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
   direction: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
-    memrec:=lua_touserdata(L, -paramcount);
+    memrec:=lua_touserdata(L, -parameters);
 
 
-    if paramcount=2 then
+    if parameters=2 then
       direction:=lua_tointeger(L, -1)
     else
       direction:=0;
@@ -1494,147 +1494,147 @@ begin
     ce_memrec_freeze(memrec, direction);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_unfreeze_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
   direction: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    memrec:=lua_touserdata(L, -paramcount);
+    memrec:=lua_touserdata(L, -parameters);
     ce_memrec_unfreeze(memrec);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_setColor_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
   color: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec:=lua_touserdata(L,-2);
     color:=lua_tointeger(L,-1);
     ce_memrec_setColor(memrec,color);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_appendToEntry_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec1,memrec2: pointer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memrec1:=lua_touserdata(L,-2);
     memrec2:=lua_touserdata(L,-1);
     ce_memrec_appendtoentry(memrec1,memrec2);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_delete_fromlua(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memrec:=lua_touserdata(L,-2);
     ce_memrec_delete(memrec);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_getID_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecord:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecord.id);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_getHotkeyCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecord:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecord.HotkeyCount);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_getHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecord:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, memoryrecord.Hotkey[index]);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_getHotkeyByID_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
   id: integer;
   i: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecord:=lua_touserdata(L,-2);
     id:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     for i:=0 to memoryrecord.Hotkeycount-1 do
       if memoryrecord.Hotkey[i].id=id then
@@ -1643,13 +1643,13 @@ begin
         result:=1;
       end;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function memoryrecord_onActivate_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
   f: integer;
   routine: string;
@@ -1659,8 +1659,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecord:=lua_touserdata(L,-2);
 
@@ -1687,12 +1687,12 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecord_onDeactivate_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecord: Tmemoryrecord;
   f: integer;
   routine: string;
@@ -1702,8 +1702,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecord:=lua_touserdata(L,-2);
 
@@ -1731,11 +1731,11 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function isKeyPressed_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   keyinput: pchar;
   key: integer;
   w: word;
@@ -1743,8 +1743,8 @@ var paramcount: integer;
 begin
   result:=0;
   r:=false;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L,-1) then  //char given instead of keycode
     begin
@@ -1757,7 +1757,7 @@ begin
     if lua_isnumber(L,-1) then //keycode
       key:=lua_tointeger(L,-1);
 
-    lua_pop(L, paramcount); //parameters have been fetched, clear stack
+    lua_pop(L, parameters); //parameters have been fetched, clear stack
 
     if key<>0 then
     begin
@@ -1771,13 +1771,13 @@ begin
       result:=1;
     end;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 
 end;
 
 
 function keyDown_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   keyinput: pchar;
   key: integer;
   w: word;
@@ -1785,8 +1785,8 @@ var paramcount: integer;
 begin
   result:=0;
   r:=false;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
@@ -1803,12 +1803,12 @@ begin
       keybd_event(key, 0,0,0);
 
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function keyUp_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   keyinput: pchar;
   key: integer;
   w: word;
@@ -1816,8 +1816,8 @@ var paramcount: integer;
 begin
   result:=0;
   r:=false;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
@@ -1834,11 +1834,11 @@ begin
       keybd_event(key, 0,KEYEVENTF_KEYUP,0);
 
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function doKeyPress_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   keyinput: pchar;
   key: integer;
   w: word;
@@ -1846,8 +1846,8 @@ var paramcount: integer;
 begin
   result:=0;
   r:=false;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L,-1) then  //char given isntead of keycode
     begin
@@ -1868,20 +1868,20 @@ begin
     end;
 
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function getProcessIDFromProcessName_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   pname: pchar;
   pid: dword;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     pname:=lua.lua_tostring(L, -1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     pid:=ce_getProcessIDFromProcessName(pname);
     if pid<>0 then
@@ -1891,17 +1891,17 @@ begin
     end;
 
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function openProcess_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   pname: pchar;
   pid: dword;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L,-1) then
     begin
@@ -1911,12 +1911,12 @@ begin
     else
       pid:=lua_tointeger(L,-1);
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     if pid<>0 then
       ce_openProcess(pid);
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function beep_fromLua(L: PLua_state): integer; cdecl;
@@ -1942,12 +1942,12 @@ end;
 
 
 function debugProcess_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   debuggerinterface: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
     debuggerinterface:=lua_tointeger(L, -1)
   else
     debuggerinterface:=0;
@@ -1958,7 +1958,7 @@ begin
 end;
 
 function debug_setBreakpoint_fromLua(L: Plua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   i,j: integer;
 
   address: ptruint;
@@ -1967,14 +1967,14 @@ var paramcount: integer;
   e: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
     j:=0;
     address:=0;
     size:=1;
     trigger:=integer(bptexecute);
-    for i:=-paramcount to -1 do
+    for i:=-parameters to -1 do
     begin
       case j of
         0:
@@ -2009,13 +2009,13 @@ begin
 end;
 
 function debug_removeBreakpoint_fromLua(L: Plua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   address: ptruint;
   e: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L, -1) then
     begin
@@ -2037,12 +2037,12 @@ begin
 end;
 
 function debug_continueFromBreakpoint_fromLua(L: Plua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   method: TContinueOption;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     method:=TContinueOption(lua_tointeger(L, -1));
     ce_debug_continuefrombreakpoint(method);
@@ -2346,7 +2346,7 @@ begin
       GenericHotkey.keys[i+parameters-1]:=lua_tointeger(L, i);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function generichotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
@@ -2387,7 +2387,7 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
@@ -2485,7 +2485,7 @@ end;
 
 function timer_onTimer_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   timer: TCustomTimer;
   f: integer;
   routine: string;
@@ -2495,8 +2495,8 @@ var
 begin
 
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     timer:=lua_touserdata(L,-2);
     oldroutine:=timer.OnTimer;
@@ -2525,42 +2525,42 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function timer_setEnabled_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   Timer: TCustomTimer;
   Enabled: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     Timer:=lua_touserdata(L,-2);
     Timer.Enabled:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function timer_getEnabled_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   Timer: TCustomTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     Timer:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, Timer.Enabled);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
@@ -2583,17 +2583,17 @@ end;
 
 function control_getCaption_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   d: pchar;
   control: pointer;
 
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     getmem(d,255);
     try
@@ -2607,7 +2607,7 @@ begin
     finally
       freemem(d);
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
@@ -2633,16 +2633,16 @@ end;
 
 function control_getPosition_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: pointer;
   x,y: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     x:=ce_control_getX(control);
     y:=ce_control_getY(control);
@@ -2651,7 +2651,7 @@ begin
     lua_pushinteger(L, y);
     result:=2;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function control_setSize_fromLua(L: Plua_State): integer; cdecl;
@@ -2675,16 +2675,16 @@ end;
 
 function control_getSize_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: pointer;
   width,height: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     width:=ce_control_getWidth(control);
     height:=ce_control_getHeight(control);
@@ -2693,230 +2693,230 @@ begin
     lua_pushinteger(L, height);
     result:=2;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function control_setAlign_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: pointer;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
     a:=lua_tointeger(L,-1);
     ce_control_setAlign(control,a);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_getAlign_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   align: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(control.Align));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function control_setEnabled_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   Enabled: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
     control.Enabled:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_getEnabled_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, control.Enabled);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function control_setVisible_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   visible: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
     control.visible:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_getVisible_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, control.Visible);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function control_setColor_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   Color: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
     control.Color:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_getColor_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, control.color);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function control_setParent_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   Parent: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
     control.Parent:=TWinControl(lua_touserdata(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_getParent_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     control:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, control.Parent);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function wincontrol_getControlCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, wincontrol.ControlCount);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function wincontrol_getControl_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     wincontrol:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, wincontrol.Controls[index]);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function wincontrol_onEnter_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
   f: integer;
   routine: string;
@@ -2924,8 +2924,8 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     wincontrol:=lua_touserdata(L,-2);
 
@@ -2952,12 +2952,12 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function wincontrol_onExit_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
   f: integer;
   routine: string;
@@ -2965,8 +2965,8 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     wincontrol:=lua_touserdata(L,-2);
 
@@ -2993,59 +2993,59 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function wincontrol_canFocus_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, wincontrol.CanFocus);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function wincontrol_focused_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, wincontrol.Focused);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function wincontrol_setFocus_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   wincontrol: TWinControl;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     wincontrol:=lua_touserdata(L,-1);
     wincontrol.SetFocus;
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function strings_add_fromLua(L: Plua_State): integer; cdecl;
@@ -3097,34 +3097,34 @@ end;
 
 function strings_getString_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     strings:=lua_touserdata(L,-2);
     index:=lua_toInteger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, strings[index]);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function strings_setString_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
   index: integer;
   s: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=3 then
+  parameters:=lua_gettop(L);
+  if parameters=3 then
   begin
     strings:=lua_touserdata(L,-3);
     index:=lua_toInteger(L,-2);
@@ -3132,7 +3132,7 @@ begin
 
     strings[index]:=s;
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function strings_delete_fromLua(L: Plua_State): integer; cdecl;
@@ -3155,52 +3155,52 @@ end;
 
 function strings_getText_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     strings:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, strings.Text);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function strings_indexOf_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
   s: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     strings:=lua_touserdata(L,-2);
     s:=Lua_ToString(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, strings.IndexOf(s));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function strings_insert_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
   index: integer;
   s: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=3 then
+  parameters:=lua_gettop(L);
+  if parameters=3 then
   begin
     strings:=lua_touserdata(L,-3);
     index:=lua_tointeger(L,-2);
@@ -3208,26 +3208,26 @@ begin
 
     strings.Insert(index,s);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function strings_getCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   strings: TStrings;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     strings:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, strings.Count);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function strings_loadFromFile_fromLua(L: Plua_State): integer; cdecl;
@@ -3281,117 +3281,117 @@ end;
 
 function stringlist_getDuplicates_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   align: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     stringlist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(stringlist.Duplicates));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function stringlist_setDuplicates_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     stringlist:=lua_touserdata(L,-2);
     stringlist.Duplicates:=TDuplicates(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function stringlist_getSorted_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   align: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     stringlist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, stringlist.Sorted);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function stringlist_setSorted_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     stringlist:=lua_touserdata(L,-2);
     stringlist.Sorted:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function stringlist_getCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   align: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     stringlist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, stringlist.CaseSensitive);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function stringlist_setCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   stringlist: TStringlist;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     stringlist:=lua_touserdata(L,-2);
     stringlist.CaseSensitive:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function form_onClose_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TCustomForm;
   f: integer;
   routine: string;
@@ -3401,8 +3401,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -3429,12 +3429,12 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function control_onClick_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TControl;
   f: integer;
   routine: string;
@@ -3444,8 +3444,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -3472,30 +3472,30 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function object_destroy_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   component: pointer;
   x,y: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     component:=lua_touserdata(L,-1);
 
     ce_object_destroy(component);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function messageDialog_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   message: pchar;
   dialogtype: integer;
   buttontype: integer;
@@ -3506,13 +3506,13 @@ var
   b: TMsgDlgButtons;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=3 then
+  parameters:=lua_gettop(L);
+  if parameters>=3 then
   begin
-    message:=lua.lua_tostring(L,-paramcount);
-    dialogtype:=lua_tointeger(L,-paramcount+1);
+    message:=lua.lua_tostring(L,-parameters);
+    dialogtype:=lua_tointeger(L,-parameters+1);
     b:=[];
-    for i:=-paramcount+2 to -1 do
+    for i:=-parameters+2 to -1 do
     begin
       buttontype:=lua_tointeger(L,i);
       case buttontype of
@@ -3531,39 +3531,39 @@ begin
         else b:=b+[mbyes];
       end;
     end;
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     r:=ce_messageDialog_lua(message, dialogtype, b);
     lua_pushinteger(L,r);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function speedhack_setSpeed_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   speed: single;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     speed:=lua_tonumber(L,-1);
     ce_speedhack_setSpeed(speed);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function injectDLL_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   filename: pchar;
   r: boolean;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     filename:=lua.lua_tostring(L,-1);
     r:=false;
@@ -3575,7 +3575,7 @@ begin
     result:=1;
     lua_pushboolean(L, r);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
@@ -3665,7 +3665,7 @@ end;
 
 function AOBScan_fromLua(L: PLua_state): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   i,b: integer;
   scanstring: string;
   protectionflags: string;
@@ -3675,26 +3675,26 @@ var
 begin
   result:=0;
 
-  paramcount:=lua_gettop(L);
-  if paramcount=0 then exit;
+  parameters:=lua_gettop(L);
+  if parameters=0 then exit;
 
   protectionflags:='';
   alignmenttype:=fsmNotAligned;
   alignmentparam:='1';
 
-  if (paramcount>=1) and (lua_isstring(L,-paramcount)) then
+  if (parameters>=1) and (lua_isstring(L,-parameters)) then
   begin
     //it's a scanstring, optional call
-    scanstring:=Lua_ToString(L, -paramcount);
-    if paramcount>=2 then
-      protectionflags:=Lua_ToString(L, -paramcount+1);
+    scanstring:=Lua_ToString(L, -parameters);
+    if parameters>=2 then
+      protectionflags:=Lua_ToString(L, -parameters+1);
 
-    if paramcount>=3 then
-      alignmenttype:=TFastScanMethod(lua_tointeger(L, -paramcount+2));
+    if parameters>=3 then
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, -parameters+2));
 
 
-    if paramcount>=4 then
-      alignmentparam:=Lua_ToString(L, -paramcount+3);
+    if parameters>=4 then
+      alignmentparam:=Lua_ToString(L, -parameters+3);
 
 
   end
@@ -3702,7 +3702,7 @@ begin
   begin
     //buildup the scanstring
     scanstring:='';
-    for i:=-paramcount to -1 do
+    for i:=-parameters to -1 do
     begin
       b:=lua_tointeger(L,i);
 
@@ -3743,13 +3743,13 @@ begin
 end;
 
 function getAddress_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   s: string;
 
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
     s:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -3763,13 +3763,13 @@ begin
 end;
 
 function getNameFromAddress_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   s: string;
   address: ptruint;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromName(lua_tostring(L,-1))
@@ -3785,13 +3785,13 @@ begin
 end;
 
 function inModule_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   s: string;
   address: ptruint;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromName(lua_tostring(L,-1))
@@ -3807,13 +3807,13 @@ begin
 end;
 
 function inSystemModule_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   s: string;
   address: ptruint;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromName(lua_tostring(L,-1))
@@ -3845,12 +3845,12 @@ begin
 end;
 
 function getPropertyList_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   c: tobject;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -3861,7 +3861,7 @@ begin
 end;
 
 function getProperty_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   c: tobject;
   p: string;
   buf: pchar;
@@ -3869,8 +3869,8 @@ var paramcount: integer;
   size: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
     p:=Lua_ToString(L, -1);
@@ -3894,13 +3894,13 @@ begin
 end;
 
 function setProperty_fromLua(L: PLua_state): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   c: tobject;
   p,v: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=3 then
+  parameters:=lua_gettop(L);
+  if parameters=3 then
   begin
     c:=lua_touserdata(L, -3);
     p:=Lua_ToString(L, -2);
@@ -3914,11 +3914,11 @@ end;
 
 function object_getClassName_fromLua(L: PLua_state): integer; cdecl;
 var c: TObject;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -4035,11 +4035,11 @@ end;
 
 function component_getComponentCount_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -4052,11 +4052,11 @@ end;
 function component_getComponent_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
   i: integer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
     i:=lua_tointeger(L,-1);
@@ -4069,11 +4069,11 @@ end;
 
 function component_getName_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -4085,11 +4085,11 @@ end;
 
 function component_setName_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
     c.Name:=lua_tostring(L,-1);
@@ -4099,11 +4099,11 @@ end;
 
 function component_getTag_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -4116,11 +4116,11 @@ end;
 function component_setTag_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
   t: integer;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     c:=lua_touserdata(L, -2);
     c.Tag:=lua_tointeger(L, -1);
@@ -4131,11 +4131,11 @@ end;
 
 function component_getOwner_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  paramcount: integer;
+  parameters: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     c:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(l));
@@ -4147,177 +4147,177 @@ end;
 
 function panel_getAlignment_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     panel:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.Alignment));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function panel_setAlignment_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     panel:=lua_touserdata(L,-2);
     panel.Alignment:=TAlignment(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function panel_getBevelInner_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     panel:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.BevelInner));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function panel_setBevelInner_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     panel:=lua_touserdata(L,-2);
     panel.BevelInner:=TPanelBevel(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function panel_getBevelOuter_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     panel:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.BevelOuter));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function panel_setBevelOuter_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     panel:=lua_touserdata(L,-2);
     panel.BevelOuter:=TPanelBevel(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function panel_getBevelWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     panel:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, panel.BevelWidth);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function panel_setBevelWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     panel:=lua_touserdata(L,-2);
     panel.BevelWidth:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function panel_getFullRepaint_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     panel:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, panel.FullRepaint);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function panel_setFullRepaint_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   panel: Tcustompanel;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     panel:=lua_touserdata(L,-2);
     panel.FullRepaint:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function edit_clear_fromLua(L: Plua_State): integer; cdecl;
@@ -4406,7 +4406,7 @@ end;
 
 function edit_onChange_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TCustomEdit;
   f: integer;
   routine: string;
@@ -4414,8 +4414,8 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -4442,217 +4442,217 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memo_append_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: TCustomMemo;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memo:=lua_touserdata(L,-2);
     memo.Append(Lua_ToString(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memo_getLines_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: TCustomMemo;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memo:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, memo.Lines);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memo_getWordWrap_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memo:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WordWrap);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memo_setWordWrap_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memo:=lua_touserdata(L,-2);
     memo.WordWrap:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memo_getWantTabs_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memo:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WantTabs);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memo_setWantTabs_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memo:=lua_touserdata(L,-2);
     memo.WantTabs:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memo_getWantReturns_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memo:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WantReturns);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memo_setWantReturns_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memo:=lua_touserdata(L,-2);
     memo.WantReturns:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memo_getScrollbars_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memo:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(memo.Scrollbars));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memo_setScrollbars_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memo: Tcustommemo;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memo:=lua_touserdata(L,-2);
     memo.Scrollbars:=TScrollStyle(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function button_getModalResult_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   button: Tcustombutton;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     button:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(button.ModalResult));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function button_setModalResult_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   button: Tcustombutton;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     button:=lua_touserdata(L,-2);
     button.ModalResult:=TModalResult(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
@@ -4667,7 +4667,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -4692,7 +4692,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -4709,77 +4709,77 @@ end;
 
 function checkbox_getAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   checkbox: Tcustomcheckbox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     checkbox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, checkbox.AllowGrayed);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function checkbox_setAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   checkbox: Tcustomcheckbox;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     checkbox:=lua_touserdata(L,-2);
     checkbox.AllowGrayed:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function checkbox_getState_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   checkbox: Tcustomcheckbox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     checkbox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(checkbox.State));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function checkbox_setState_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   checkbox: Tcustomcheckbox;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     checkbox:=lua_touserdata(L,-2);
     checkbox.State:=TCheckBoxState(lua_tointeger(L,-1));
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function checkbox_onChange_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TCustomCheckBox;
   f: integer;
   routine: string;
@@ -4789,8 +4789,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -4817,7 +4817,7 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function createRadioGroup_fromLua(L: Plua_State): integer; cdecl;
@@ -4830,7 +4830,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -4847,78 +4847,78 @@ end;
 
 function radiogroup_getRows_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   radiogroup: TCustomRadioGroup;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     radiogroup:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, radiogroup.Rows);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function radiogroup_getItems_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   radiogroup: TCustomRadioGroup;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     radiogroup:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, radiogroup.items);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function radiogroup_getColumns_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   radiogroup: Tcustomradiogroup;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     radiogroup:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, radiogroup.Columns);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function radiogroup_setColumns_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   radiogroup: Tcustomradiogroup;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     radiogroup:=lua_touserdata(L,-2);
     radiogroup.Columns:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function radiogroup_onClick_fromLua(L: PLua_State): integer; cdecl; //for some reason the radiogroup has it's own fonclick variable
 var
-  paramcount: integer;
+  parameters: integer;
   control: TCustomRadioGroup;
   f: integer;
   routine: string;
@@ -4928,8 +4928,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -4956,7 +4956,7 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function createListBox_fromLua(L: Plua_State): integer; cdecl;
@@ -4969,7 +4969,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5001,55 +5001,55 @@ end;
 
 function listbox_getItems_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listbox: TCustomlistbox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listbox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listbox.items);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listbox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listbox: Tcustomlistbox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listbox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listbox.ItemIndex);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listbox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listbox: Tcustomlistbox;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listbox:=lua_touserdata(L,-2);
     listbox.itemindex:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 //combobox
@@ -5063,7 +5063,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5095,55 +5095,55 @@ end;
 
 function combobox_getItems_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   combobox: TCustomcombobox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     combobox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, combobox.items);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function combobox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   combobox: Tcustomcombobox;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     combobox:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, combobox.ItemIndex);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function combobox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   combobox: Tcustomcombobox;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     combobox:=lua_touserdata(L,-2);
     combobox.itemindex:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
@@ -5157,7 +5157,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5203,108 +5203,108 @@ end;
 
 function progressbar_getMax_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, progressbar.max);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function progressbar_setMax_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     progressbar:=lua_touserdata(L,-2);
     progressbar.max:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function progressbar_getMin_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, progressbar.Min);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function progressbar_setMin_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     progressbar:=lua_touserdata(L,-2);
     progressbar.Min:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function progressbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, progressbar.Position);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function progressbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   progressbar: Tcustomprogressbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     progressbar:=lua_touserdata(L,-2);
     progressbar.Position:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 //trackbar
@@ -5318,7 +5318,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5335,113 +5335,113 @@ end;
 
 function trackbar_getMax_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     trackbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.max);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function trackbar_setMax_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     trackbar:=lua_touserdata(L,-2);
     trackbar.max:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function trackbar_getMin_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     trackbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.Min);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function trackbar_setMin_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     trackbar:=lua_touserdata(L,-2);
     trackbar.Min:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function trackbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     trackbar:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.Position);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function trackbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   trackbar: Tcustomtrackbar;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     trackbar:=lua_touserdata(L,-2);
     trackbar.Position:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function trackbar_onChange_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   control: TCustomTrackBar;
   f: integer;
   routine: string;
@@ -5449,8 +5449,8 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     control:=lua_touserdata(L,-2);
 
@@ -5477,165 +5477,165 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function listcolumn_setAutosize_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumns: TListColumn;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumns:=lua_touserdata(L,-2);
     listcolumns.AutoSize:=lua_toboolean(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function listcolumn_getCaption_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listcolumn:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, listcolumn.caption);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listcolumn_setCaption_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumn:=lua_touserdata(L,-2);
     listcolumn.caption:=Lua_ToString(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function listcolumn_getMaxWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listcolumn:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.maxwidth);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listcolumn_setMaxWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumn:=lua_touserdata(L,-2);
     listcolumn.maxwidth:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function listcolumn_getMinWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listcolumn:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.Minwidth);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listcolumn_setMinWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumn:=lua_touserdata(L,-2);
     listcolumn.Minwidth:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function listcolumn_getWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listcolumn:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.width);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listcolumn_setWidth_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumn: Tlistcolumn;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumn:=lua_touserdata(L,-2);
     listcolumn.width:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function collection_clear_fromLua(L: Plua_State): integer; cdecl;
@@ -5654,20 +5654,20 @@ end;
 
 function collection_getCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   collection: Tcollection;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     collection:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, collection.Count);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function collection_delete_fromLua(L: Plua_State): integer; cdecl;
@@ -5689,40 +5689,40 @@ end;
 
 function listcolumns_add_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumns: TListColumns;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listcolumns:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listcolumns.Add);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listcolumns_getColumn_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listcolumns: TListcolumns;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listcolumns:=lua_touserdata(L,-2);
     index:=lua_toInteger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listcolumns[index]);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listitem_delete_fromLua(L: Plua_State): integer; cdecl;
@@ -5742,55 +5742,55 @@ end;
 
 function listitem_getCaption_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listitem: Tlistitem;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listitem:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, listitem.caption);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listitem_setCaption_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listitem: Tlistitem;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listitem:=lua_touserdata(L,-2);
     listitem.Caption:=Lua_ToString(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function listitem_getSubItems_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listitem: Tlistitem;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listitem:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listitem.SubItems);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listitems_clear_fromLua(L: Plua_State): integer; cdecl;
@@ -5809,38 +5809,38 @@ end;
 
 function listitems_getCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listitems: Tlistitems;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listitems:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listitems.Count);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listitems_add_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listitems: Tlistitems;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listitems:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listitems.Add);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
@@ -5855,7 +5855,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5886,73 +5886,73 @@ end;
 
 function listview_getColumns_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listview: TCEListView;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listview:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listview.Columns);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listview_getItems_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listview: TCustomListView;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listview:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listview.Items);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listview_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listview: Tcustomlistview;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     listview:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, listview.ItemIndex);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function listview_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   listview: Tcustomlistview;
   a: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     listview:=lua_touserdata(L,-2);
     listview.itemindex:=lua_tointeger(L,-1);
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function opendialog_execute_fromLua(L: Plua_State): integer; cdecl;
@@ -6254,41 +6254,41 @@ end;
 
 function cheatcomponent_getActive_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushboolean(L, cheatcomponent.activated);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setActive_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=2 then
+  parameters:=lua_gettop(L);
+  if parameters>=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-paramcount);
-    cheatcomponent.activated:=lua_toboolean(L,-paramcount+1);
+    cheatcomponent:=lua_touserdata(L,-parameters);
+    cheatcomponent.activated:=lua_toboolean(L,-parameters+1);
 
-    if paramcount=3 then
+    if parameters=3 then
     begin
-      deactivatetime:=lua_tointeger(L,-paramcount+2);
+      deactivatetime:=lua_tointeger(L,-parameters+2);
       if cheatcomponent.activated then
         cheatcomponent.setDeactivateTimer(deactivatetime);
 
@@ -6296,253 +6296,253 @@ begin
   end;
 
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getDescription_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.Description);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setDescription_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cheatcomponent:=lua_touserdata(L,-2);
     cheatcomponent.Description:=Lua_ToString(L,-1);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.Hotkey);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cheatcomponent:=lua_touserdata(L,-2);
     cheatcomponent.Hotkey:=Lua_ToString(L,-1);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, cheatcomponent.DescriptionLeft);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cheatcomponent:=lua_touserdata(L,-2);
     cheatcomponent.DescriptionLeft:=lua_tointeger(L,-1);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, cheatcomponent.HotkeyLeft);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cheatcomponent:=lua_touserdata(L,-2);
     cheatcomponent.HotkeyLeft:=lua_tointeger(L,-1);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getEditValue_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     cheatcomponent:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.EditValue);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
 function cheatcomponent_setEditValue_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     cheatcomponent:=lua_touserdata(L,-2);
     cheatcomponent.EditValue:=Lua_ToString(L,-1);
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function memoryrecordhotkey_getDescription_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushstring(L, memoryrecordhotkey.description);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecordhotkey_getHotkeyString_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
 
     lua_pushstring(L, ConvertKeyComboToString(memoryrecordhotkey.keys));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecordhotkey_getID_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecordhotkey.id);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecordhotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: Tmemoryrecordhotkey;
   f: integer;
   routine: string;
@@ -6552,8 +6552,8 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-2);
 
@@ -6580,13 +6580,13 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 
 function memoryrecordhotkey_onPostHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: Tmemoryrecordhotkey;
   f: integer;
   routine: string;
@@ -6594,8 +6594,8 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-2);
 
@@ -6622,137 +6622,137 @@ begin
 
   end;
 
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function memoryrecordhotkey_getOwner_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, memoryrecordhotkey.owner);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function memoryrecordhotkey_doHotkey_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     memoryrecordhotkey:=lua_touserdata(L,-1);
     memoryrecordhotkey.doHotkey;
   end;
-  lua_pop(L, paramcount);
+  lua_pop(L, parameters);
 end;
 
 function addresslist_getCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   addresslist: TAddresslist;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     addresslist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, addresslist.Count);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function addresslist_getMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   addresslist: TAddresslist;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     addresslist:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, addresslist.MemRecItems[index]);
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function addresslist_getMemoryRecordByDescription_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   addresslist: TAddresslist;
   description: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     addresslist:=lua_touserdata(L,-2);
     description:=Lua_ToString(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, addresslist.getRecordWithDescription(description));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function addresslist_getMemoryRecordByID_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   addresslist: TAddresslist;
   id: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     addresslist:=lua_touserdata(L,-2);
     id:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, addresslist.getRecordWithID(id));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function addresslist_createMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   addresslist: TAddresslist;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     addresslist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushlightuserdata(L,   MainForm.addresslist.addaddress(rsPluginAddress,
       '0', [], 0, vtDword));
     result:=1;
 
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 
@@ -6986,62 +6986,62 @@ end;
 
 function foundlist_getCount_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   foundlist: Tfoundlist;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     foundlist:=lua_touserdata(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     lua_pushinteger(L, foundlist.Count);
     result:=1;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function foundlist_getAddress_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   foundlist: Tfoundlist;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     foundlist:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
 
     lua_pushstring(L, inttohex(foundlist.GetAddress(index),8));
     result:=1;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function foundlist_getValue_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   foundlist: Tfoundlist;
   b: dword;
   value: string;
   index: integer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=2 then
+  parameters:=lua_gettop(L);
+  if parameters=2 then
   begin
     foundlist:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     foundlist.GetAddress(index, b, value);
 
     lua_pushstring(L, value);
     result:=1;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function supportCheatEngine_fromLua(L: Plua_State): integer; cdecl;
@@ -7146,68 +7146,68 @@ end;
 
 function dbk_getPEProcess_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   pid: dword;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     pid:=lua_tointeger(L,-1);
 
     lua_pushinteger(L, GetPEProcess(pid));
     result:=1;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function dbk_getPEThread_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   pid: dword;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
     pid:=lua_tointeger(L,-1);
 
     lua_pushinteger(L, GetPEThread(pid));
     result:=1;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function dbk_executeKernelMemory_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   address: ptruint;
   parameter: ptruint;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
-    if lua_isstring(L, -paramcount) then
-      address:=symhandler.getAddressFromName(Lua_ToString(L,-paramcount))
+    if lua_isstring(L, -parameters) then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,-parameters))
     else
-      address:=lua_tointeger(L, -paramcount);
+      address:=lua_tointeger(L, -parameters);
 
-    if paramcount>=2 then
+    if parameters>=2 then
     begin
-      if lua_isstring(L, -paramcount+1) then
-        parameter:=symhandler.getAddressFromName(Lua_ToString(L,-paramcount+1))
+      if lua_isstring(L, -parameters+1) then
+        parameter:=symhandler.getAddressFromName(Lua_ToString(L,-parameters+1))
       else
-        parameter:=lua_tointeger(L, -paramcount+1);
+        parameter:=lua_tointeger(L, -parameters+1);
     end
     else
       parameter:=0;
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
 
     executeKernelCode(address,parameter);
 
     result:=0;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function createSplitter_fromLua(L: Plua_State): integer; cdecl;
@@ -7220,7 +7220,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -paramcount)
+    owner:=lua_touserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -7237,23 +7237,23 @@ end;
 
 function allocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
 var
-  paramcount: integer;
+  parameters: integer;
   sharedmemoryname: string;
   size: ptruint;
   address: pointer;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
-    sharedmemoryname:=Lua_ToString(L,-paramcount);
+    sharedmemoryname:=Lua_ToString(L,-parameters);
 
-    if paramcount>=2 then
-      size:=lua_tointeger(L, -paramcount+1)
+    if parameters>=2 then
+      size:=lua_tointeger(L, -parameters+1)
     else
       size:=4096;
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     address:=allocateSharedMemoryIntoTargetProcess(sharedmemoryname, size);
     if address<>nil then
@@ -7261,21 +7261,21 @@ begin
       lua_pushlightuserdata(L, address);
       result:=1;
     end;
-  end else lua_pop(L, paramcount);
+  end else lua_pop(L, parameters);
 end;
 
 function deallocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   address: ptruint;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
-    if lua_isstring(L, -paramcount) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+    if lua_isstring(L, -parameters) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
     else
-      address:=lua_tointeger(L,-paramcount);
+      address:=lua_tointeger(L,-parameters);
 
     UnmapViewOfFile(pointer(address));
   end;
@@ -7284,28 +7284,28 @@ end;
 
 function getCheatEngineDir_fromlua(L: PLua_State): integer; cdecl;
 begin
-  lua_pop(L, paramcount);
+  lua_pop(L, lua_gettop(l));
   lua_pushstring(L, CheatEngineDir);
   result:=0;
 end;
 
 function disassemble_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   address: ptruint;
   d: TDisassembler;
   x: string;
   s: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    if lua_isstring(L, -paramcount) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-paramcount))
+    if lua_isstring(L, -parameters) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
     else
-      address:=lua_tointeger(L,-paramcount);
+      address:=lua_tointeger(L,-parameters);
 
-    lua_pop(L, paramcount);
+    lua_pop(L, parameters);
 
     d:=TDisassembler.Create;
     try
@@ -7322,17 +7322,17 @@ begin
 end;
 
 function splitDisassembledString_fromLua(L: PLua_State): integer; cdecl;
-var paramcount: integer;
+var parameters: integer;
   disassembledstring: string;
 
   address, bytes, opcode, special: string;
 begin
   result:=0;
-  paramcount:=lua_gettop(L);
-  if paramcount=1 then
+  parameters:=lua_gettop(L);
+  if parameters=1 then
   begin
-    disassembledstring:=lua_tostring(L,-paramcount);
-    lua_pop(L, paramcount);
+    disassembledstring:=lua_tostring(L,-parameters);
+    lua_pop(L, parameters);
 
     splitDisassembledString(disassembledstring, true, address, bytes, opcode, special);
 
