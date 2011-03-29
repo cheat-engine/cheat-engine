@@ -1677,6 +1677,11 @@ begin
 
 
   listview1.items.count:=min(10000000, pointerfilereader.count);
+
+  //setup rescan mode
+
+  btnScan.caption:='Rescan';
+  btnScan.tag:=0;
 end;
 
 procedure TfrmStringPointerScan.scanDone(var m: tmessage);
@@ -1988,8 +1993,13 @@ end;
 
 procedure TfrmStringPointerScan.MenuItem3Click(Sender: TObject);
 begin
-  if OpenDialog1.Execute then
+  if (scanner=nil) and (rescanner=nil) and OpenDialog1.Execute then
+  begin
     OpenPointerfile(opendialog1.filename);
+    disablegui(Panel1);
+    enablegui;
+  end;
+
 
 end;
 
