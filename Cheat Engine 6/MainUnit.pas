@@ -6430,7 +6430,8 @@ var pl: TStringlist;
     a: string;
     p: string;
 
-
+    oldpid: dword;
+    oldphandle: thandle;
     attachlist: tstringlist;
 begin
   if (autoattachlist=nil) or (formsettings=nil) or (extraautoattachlist=nil) then exit;
@@ -6469,6 +6470,8 @@ begin
               begin
                 if ProcessHandler.processid=newPID then exit; //already attached to the newest one
 
+                oldpid:= ProcessHandler.processid;
+                oldphandle:=processhandler.processhandle;
 
                 ProcessHandler.processid:=newPID;
                 unpause;
@@ -6479,7 +6482,7 @@ begin
                 Open_Process;
                 enablegui(false);
 
-                openProcessEpilogue('',0,0,true);
+                openProcessEpilogue('',oldpid, oldphandle,true);
 
                 symhandler.reinitialize;
                 reinterpretaddresses;
