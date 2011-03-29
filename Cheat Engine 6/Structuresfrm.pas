@@ -230,6 +230,7 @@ type TbaseStructure=record
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
 
     procedure MenuItem3Click(Sender: TObject);
+    procedure miAutostructsizeClick(Sender: TObject);
     procedure miLockMemClick(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miSaveToCTClick(Sender: TObject);
@@ -1343,6 +1344,17 @@ begin
   end;
 end;
 
+procedure TfrmStructures.miAutostructsizeClick(Sender: TObject);
+var newsize: string;
+begin
+  newsize:=inttostr(miAutostructsize.tag);
+  if InputQuery('Autocreate structure', 'Default size:', newsize) then
+  begin
+    miAutostructsize.tag:=strtoint(newsize);
+    miAutostructsize.caption:='Autocreate structure size: '+inttostr(miAutostructsize.tag);
+  end;
+end;
+
 
 procedure TfrmStructures.miChangeColorsClick(Sender: TObject);
 var c: TfrmStructuresConfig;
@@ -1554,7 +1566,7 @@ begin
     newstructureid:=length(definedstructures)-1;
 
 
-    automaticallyGuessOffsets(a, 0, 4096, length(definedstructures)-1);
+    automaticallyGuessOffsets(a, 0, miAutostructsize.tag, length(definedstructures)-1);
 
     applyChanges(true);
   end;

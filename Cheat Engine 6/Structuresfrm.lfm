@@ -179,7 +179,9 @@ object frmStructures: TfrmStructures
         Checked = True
       end
       object miAutostructsize: TMenuItem
-        Caption = 'Autocreate structure size:'
+        Tag = 4096
+        Caption = 'Autocreate structure size: 4096'
+        OnClick = miAutostructsizeClick
       end
     end
   end
