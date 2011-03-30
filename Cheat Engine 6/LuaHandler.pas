@@ -7388,6 +7388,7 @@ begin
     lua_register(LuaVM, 'memoryrecord_getValue', memoryrecord_getValue_fromlua);
     lua_register(LuaVM, 'memoryrecord_setValue', memoryrecord_setValue_fromlua);
     lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript_fromlua);
+    lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript_fromlua);
     lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive_fromlua);
     lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze_fromlua);
     lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze_fromlua);
