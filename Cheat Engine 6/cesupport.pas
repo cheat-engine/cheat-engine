@@ -106,6 +106,11 @@ begin
     LM_MOVE: handleMove;
     LM_SIZE: handleMove;
     LM_CLOSEQUERY: hide;
+    LM_DESTROY:
+    begin
+      attachedform.WindowProc:=attachedwindowproc;
+      attachedform:=nil;
+    end;
   end;
 
   attachedwindowproc(TheMessage);

@@ -1,7 +1,7 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 568
+  Left = 700
   Height = 310
-  Top = 318
+  Top = 408
   Width = 692
   Caption = 'Trainer generator'
   ClientHeight = 310
@@ -105,7 +105,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object cbSupportCheatEngine: TCheckBox
       Left = 8
       Height = 19
-      Top = 8
+      Top = 1
       Width = 233
       Caption = 'Don''t support Cheat Engine (or yourself)'
       Checked = True
