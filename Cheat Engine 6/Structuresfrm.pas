@@ -400,6 +400,7 @@ begin
   begin
     self.addresses[i].address:=addresses[i];
     self.addresses[i].lockedMemory:=nil;
+    self.addresses[i].lockedsize:=0;
   end;
 
   self.basestructure:=basestructure;
@@ -412,7 +413,10 @@ procedure TStructure.removeAddress(i: integer);
 var j: integer;
 begin
   if addresses[i].lockedMemory<>nil then
+  begin
     freemem(addresses[i].lockedMemory);
+    addresses[i].lockedMemory:=nil;
+  end;
 
   for j:=i to length(addresses)-2 do
     addresses[j]:=addresses[j+1];
@@ -423,6 +427,7 @@ begin
   for j:=0 to length(objects)-1 do
     if objects[j].child<>nil then
       objects[j].child.removeAddress(i);
+
   refresh;
 end;
 
@@ -476,6 +481,9 @@ var
   soffsetsize: string;
   x: dword;
 begin
+  if self.parentnode.Level>1 then
+    raise exception.create('lock called for a child');
+
   result:=false;
   lastentry:=length(definedstructures[basestructure].structelement)-1;
 
@@ -489,6 +497,8 @@ begin
       rsStructureViewLock, soffsetsize)=false then exit;
     offsetsize:=strtoint(soffsetsize);
   end;
+
+
 
   //allocate the locked buffer
   addresses[i].lockedsize:=offsetsize;
@@ -517,6 +527,7 @@ begin
     //read from the override
     CopyMemory(lpBuffer, pointer(ptruint(overrideReadWith)+(ptrUint(lpBaseAddress)-overrideReadBase)), nsize);
     lpNumberOfBytesRead:=nSize;
+    result:=true;
   end;
 
 end;
@@ -609,9 +620,9 @@ begin
 
     for c:=0 to length(addresses)-1 do
     begin
-      overrideReadWith:=addresses[c].lockedMemory;
-      overrideReadSize:=addresses[c].lockedsize;
-      overrideReadBase:=addresses[c].address;
+      overrideReadWith :=addresses[c].lockedMemory;
+      overrideReadSize :=addresses[c].lockedsize;
+      overrideReadBase :=addresses[c].address;
 
       if snr<0 then
       begin
@@ -1610,8 +1621,9 @@ begin
         begin
           if isreadable(elementaddress[i]) then
           begin
+            //found a readable block to work with
             autoCreateStructure(elementaddress[i], definedstructures[basestruct].structelement[elementnr].structurenr);
-            break;
+            break;  //found one so no need to define again
           end;
         end;
       end;
@@ -1620,7 +1632,11 @@ begin
 
     setlength(s.objects[elementnr].child.addresses,length(currentstructure.addresses));
     for i:=0 to length(currentstructure.addresses)-1 do
-      s.objects[elementnr].child.addresses[i]:=currentstructure.addresses[i];
+    begin
+      s.objects[elementnr].child.addresses[i].address:=currentstructure.addresses[i].address;
+      s.objects[elementnr].child.addresses[i].lockedMemory:=nil;
+      s.objects[elementnr].child.addresses[i].lockedsize:=0;
+    end;
   end;
 
   currentstructure.refresh;
@@ -3182,22 +3198,26 @@ begin
   //save the current memory values of the selected row (first level only)
   if currentstructure<>nil then
   begin
-    x:=TEdit(popupmenu2.PopupComponent);
-    sid:=x.tag;
+    if (popupmenu2.PopupComponent is Tedit) then
+    begin
+      x:=TEdit(popupmenu2.PopupComponent);
+      sid:=x.tag;
 
-    if x.readonly=false then
-    begin
-      if currentstructure.lockaddressmemory(sid) then
+      if x.readonly=false then
       begin
-        x.Color:=clGray;
-        x.readonly:=true;
+        if currentstructure.lockaddressmemory(sid) then
+        begin
+          x.Color:=clGray;
+          x.readonly:=true;
+        end;
+      end
+      else
+      begin
+        currentstructure.unlockaddressmemory(sid);
+        x.color:=clDefault;
+        x.readonly:=false;
       end;
-    end
-    else
-    begin
-      currentstructure.unlockaddressmemory(sid);
-      x.color:=clDefault;
-      x.readonly:=false;
+
     end;
   end;
 
