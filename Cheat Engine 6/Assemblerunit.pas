@@ -2297,13 +2297,17 @@ begin
 
       setlength(tokens,length(tokens)+1);
       if i=length(opcode) then
-        tokens[length(tokens)-1]:=copy(opcode,last,i-last+1)
+        j:=i-last+1
       else
-        tokens[length(tokens)-1]:=copy(opcode,last,i-last);
+        j:=i-last;
+
+      tokens[length(tokens)-1]:=copy(opcode,last,j);
 
 
-      if pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0 then //only uppercase if it's not kernel_
+      if (j>0) and (tokens[length(tokens)-1][1]<>'$') and ((j<7) or (pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0)) then //only uppercase if it's not kernel_
       begin
+        //don't uppercase empty strings, kernel_ strings or strings starting with $
+
         if length(tokens[length(tokens)-1])>2 then
         begin
           if not (tokens[length(tokens)-1][1] in ['''', '"']) then //if not a quoted string then make it uppercase
