@@ -98,7 +98,12 @@ begin
       freemem(temp);
 
       if folder<>'' then
+      begin
         ForceDirectories(launchdir+folder);
+        if folder[length(folder)]<>pathdelim then
+          folder:=folder+pathdelim;
+      end;
+
 
       if filename='cheatengine-i386.exe' then
         filename:=ExtractFileName(GetModuleName(0)); //give it the same name as the trainer
