@@ -2641,7 +2641,7 @@ begin
     if s='UDF' then
     begin
       s:=tceform(LuaForms[i]).name;
-      s:=copy(s, 16, length(s));
+      s:=copy(s, 4, length(s));
       if TryStrToInt(s, k) then
       begin
         if k>=j then

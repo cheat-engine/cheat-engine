@@ -66,7 +66,6 @@
         <Filename Value="standalonephase2.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="standalonephase2"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
@@ -79,10 +78,11 @@
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="130"/>
-        <CursorPos X="1" Y="154"/>
+        <TopLine Value="108"/>
+        <CursorPos X="36" Y="104"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -311,7 +311,7 @@
     <BreakPoints Count="1">
       <Item1>
         <Source Value="main.pas"/>
-        <Line Value="153"/>
+        <Line Value="158"/>
       </Item1>
     </BreakPoints>
     <Exceptions Count="3">

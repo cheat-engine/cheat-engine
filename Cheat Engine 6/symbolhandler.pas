@@ -264,6 +264,7 @@ begin
   finally
     freemem(x);
   end;
+
 end;
 
 procedure TSymbolloaderthread.LoadDriverSymbols;
@@ -298,7 +299,7 @@ end;
 
 procedure TSymbolloaderthread.finishedLoadingSymbols;
 begin
-  reinitializeDisassemblerComments;
+
 end;
 
 procedure TSymbolloaderthread.execute;
@@ -323,7 +324,7 @@ begin
       symbolprocesshandle:=processhandle;
     finally
       isloading:=false;
-      synchronize(finishedloadingsymbols);
+      //synchronize(finishedloadingsymbols);
     end;
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
@@ -1452,6 +1453,9 @@ begin
   except
     //MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
   end;
+
+
+  reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
 end;
 
 

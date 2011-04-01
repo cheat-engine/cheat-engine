@@ -1,7 +1,7 @@
 object frmPEInfo: TfrmPEInfo
-  Left = 643
+  Left = 644
   Height = 318
-  Top = 380
+  Top = 381
   Width = 485
   Caption = 'Portable Executable (PE) Info'
   ClientHeight = 318

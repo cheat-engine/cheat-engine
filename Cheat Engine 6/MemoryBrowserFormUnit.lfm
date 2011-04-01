@@ -1,5 +1,5 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 750
+  Left = 751
   Height = 587
   Top = 258
   Width = 722
@@ -838,8 +838,17 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Set symbol searchpath'
         OnClick = Setsymbolsearchpath1Click
       end
+      object MenuItem13: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem12: TMenuItem
+        Caption = 'Apply changes to file'
+        Visible = False
+        OnClick = MenuItem12Click
+      end
       object N4: TMenuItem
         Caption = '-'
+        Visible = False
       end
       object Savememoryregion1: TMenuItem
         Caption = 'Save memory region'

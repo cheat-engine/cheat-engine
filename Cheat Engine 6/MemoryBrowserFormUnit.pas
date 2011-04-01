@@ -24,6 +24,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
@@ -214,6 +216,7 @@ type
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
+    procedure MenuItem12Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -526,7 +529,8 @@ uses Valuechange,
   disassemblerviewlinesunit,
   frmBreakpointConditionunit,
   frmStringMapUnit,
-  frmStringpointerscanUnit;
+  frmStringpointerscanUnit,
+  frmFilePatcherUnit;
 
 
 resourcestring
@@ -896,6 +900,14 @@ begin
   frmStringpointerscan.edtBase.text:=inttohex(hexview.address,8);
 
   frmStringpointerscan.show;
+end;
+
+procedure TMemoryBrowser.MenuItem12Click(Sender: TObject);
+var f: Tfrmfilepatcher;
+begin
+  f:=tfrmfilepatcher.create(self);
+  f.showmodal;
+  f.free;
 end;
 
 procedure TMemoryBrowser.miPointerSpiderClick(Sender: TObject);
