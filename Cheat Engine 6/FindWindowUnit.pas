@@ -85,6 +85,9 @@ begin
 
   memscan:=TMemscan.create(nil);
   memscan.onlyone:=true;
+  memscan.scanCopyOnWrite:=scanDontCare;
+  memscan.scanExecutable:=scanDontCare;
+  memscan.scanWritable:=scanDontCare;
 
 
   try

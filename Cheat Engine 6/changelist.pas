@@ -73,11 +73,14 @@ sets the size of the list, returns true if a Clear might be needed
 }
 var i: integer;
 begin
-  if (address<>lastaddress) or (length(list)<>size) then
+  if size>0 then
   begin
-    lastaddress:=address;
-    setlength(list,size);
-    clear;
+    if (address<>lastaddress) or (length(list)<>size) then
+    begin
+      lastaddress:=address;
+      setlength(list,size);
+      clear;
+    end;
   end;
 
 

@@ -1231,6 +1231,7 @@ var
 
   bp: PBreakpoint;
 begin
+  if bytesperline<=0 then exit;
   if Parent=nil then exit;
 
   if displayType=dtByte then
@@ -1489,7 +1490,7 @@ begin
   else
     bytesPerLine:=(usablewidth div bytesize) and $fffffff8;
 
-  if bytesperline=0 then
+  if bytesperline<=0 then
     bytesperline:=8;
 
   charstart:=bytestart+bytesperline*byteSizeWithoutChar;

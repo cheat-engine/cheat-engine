@@ -1,5 +1,7 @@
 unit LuaHandler;
 
+{todo: Split up into smaller units. 7800 lines is becomming too big}
+
 {$mode delphi}
 
 interface
@@ -32,7 +34,8 @@ implementation
 
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
-  cesupport, DBK32functions, sharedMemory, disassembler;
+  cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
+  LuaPicture;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2094,6 +2097,49 @@ begin
   result:=1;
 end;
 
+function form_onClose_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  control: TCustomForm;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(tmethod(control.onClose));
+    control.onClose:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      control.OnClose:=lc.CloseEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      control.OnClose:=lc.CloseEvent;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 function form_centerScreen_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
@@ -2171,6 +2217,99 @@ begin
     ce_form_show(f);
   end;
   lua_pop(L, lua_gettop(L));
+end;
+
+function listView_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TlistView;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function comboBox_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TcomboBox;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function listbox_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TListBox;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+
+
+function graphicControl_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TGraphicControl;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+
+function customControl_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TCustomControl;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
 end;
 
 function createPanel_fromLua(L: Plua_State): integer; cdecl;
@@ -2294,6 +2433,43 @@ begin
   end;
 
   lua_pop(L, lua_gettop(L));
+end;
+
+function Image_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TImage;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function Image_getPicture_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TCustomImage;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+
+    lua_pushlightuserdata(L, c.Picture);
+    result:=1;
+
+  end else lua_pop(L, parameters);
 end;
 
 function createHotkey_fromLua(L: Plua_State): integer; cdecl;
@@ -3388,49 +3564,6 @@ begin
   lua_pop(L, parameters);
 end;
 
-
-function form_onClose_fromLua(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  control: TCustomForm;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-
-//  clickroutine: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_touserdata(L,-2);
-
-    CleanupLuaCall(tmethod(control.onClose));
-    control.onClose:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      control.OnClose:=lc.CloseEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      control.OnClose:=lc.CloseEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function control_onClick_fromLua(L: PLua_State): integer; cdecl;
 var
@@ -7449,6 +7582,9 @@ begin
     lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile_fromLua);
     lua_register(LuaVM, 'image_transparent', image_transparent_fromLua);
     lua_register(LuaVM, 'image_stretch', image_stretch_fromLua);
+    lua_register(LuaVM, 'image_getCanvas', image_getCanvas_fromLua);
+    lua_register(LuaVM, 'image_getPicture', Image_getPicture_fromLua);
+
 
     lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys_fromLua);
@@ -7583,12 +7719,14 @@ begin
     lua_register(LuaVM, 'listbox_getItems', listbox_getItems_fromLua);
     lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex_fromLua);
     lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex_fromLua);
+    lua_register(LuaVM, 'listbox_getCanvas', listbox_getCanvas_fromLua);
 
     lua_register(LuaVM, 'createComboBox', createComboBox_fromLua);
     lua_register(LuaVM, 'combobox_clear', combobox_clear_fromLua);
     lua_register(LuaVM, 'combobox_getItems', combobox_getItems_fromLua);
     lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex_fromLua);
     lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex_fromLua);
+    lua_register(LuaVM, 'combobox_getCanvas', combobox_getCanvas_fromLua);
 
 
     lua_register(LuaVM, 'createProgressBar', createProgressBar_fromLua);
@@ -7645,6 +7783,7 @@ begin
     lua_register(LuaVM, 'listview_getItems', listview_getItems_fromLua);
     lua_register(LuaVM, 'listview_getItemIndex', listview_getItemIndex_fromLua);
     lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex_fromLua);
+    lua_register(LuaVM, 'listview_getCanvas', listview_getCanvas_fromLua);
 
 
     lua_register(LuaVM, 'createTimer', createTimer_fromLua);
@@ -7750,6 +7889,17 @@ begin
 
     lua_register(LuaVM, 'disassemble', disassemble_fromLua);
     lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString_fromLua);
+
+    lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas_fromLua);
+    lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas_fromLua);
+
+
+
+    initializeLuaPicture;
+    initializeLuaPen;
+    initializeLuaBrush;
+    initializeLuaFont;
+    initializeLuaCanvas;
 
 
     s:=tstringlist.create;
