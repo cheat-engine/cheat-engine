@@ -62,6 +62,8 @@ var start,stop,temp: dword;
     i: integer;
     x: ptruint;
 begin
+
+
   if memscan<>nil then
     freeandnil(memscan);
   
@@ -83,6 +85,7 @@ begin
   if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
 
 
+
   memscan:=TMemscan.create(nil);
   memscan.onlyone:=true;
   memscan.scanCopyOnWrite:=scanDontCare;
@@ -98,9 +101,18 @@ begin
     begin
       MemoryBrowser.memoryaddress:=x;
       modalresult:=mrok;
-    end else raise exception.Create(rsNothingFound);
+    end else
+    begin
+      //showmessage(rsNothingFound);
+      //wtf...
+      freeandnil(memscan);
+
+      raise exception.Create(rsNothingFound); //this causes a crash
+      //raise exception.Create('Nothing found'); //this does not
+    end;
   finally
-    freeandnil(memscan);
+    if memscan<>nil then
+      freeandnil(memscan);
   end;
 
 end;
@@ -116,7 +128,9 @@ begin
   
   if firstscan then
   begin
-    editstart.Text:=Inttohex(memorybrowser.memoryaddress,8);
+
+
+    editstart.Text:=Inttohex(memorybrowser.memoryaddress, processhandler.pointersize*2);
 
     if processhandler.is64bit then
       editstop.text:='7FFFFFFFFFFFFFFF';

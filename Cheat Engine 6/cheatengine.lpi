@@ -192,7 +192,7 @@
         <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="6389"/>
-        <CursorPos X="19" Y="6398"/>
+        <CursorPos X="67" Y="6407"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1844" ID="2"/>
@@ -627,10 +627,13 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4632"/>
-        <CursorPos X="13" Y="4649"/>
+        <TopLine Value="4641"/>
+        <CursorPos X="9" Y="4655"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
       <Unit42>
@@ -893,10 +896,13 @@
         <ComponentName Value="FindWindow"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FindWindowUnit"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="52"/>
-        <CursorPos X="36" Y="70"/>
+        <TopLine Value="96"/>
+        <CursorPos X="1" Y="110"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit64>
       <Unit65>
@@ -2269,7 +2275,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="184"/>
         <CursorPos X="1" Y="72"/>
-        <UsageCount Value="184"/>
+        <UsageCount Value="185"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit192>
@@ -2296,7 +2302,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="11" Y="10"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="176"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit195>
       <Unit196>
@@ -2307,7 +2313,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="45"/>
         <CursorPos X="1" Y="50"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="176"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit196>
@@ -2318,7 +2324,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="11" Y="10"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="176"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit197>
       <Unit198>
@@ -2364,7 +2370,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="86"/>
         <CursorPos X="31" Y="100"/>
-        <UsageCount Value="164"/>
+        <UsageCount Value="165"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit203>
       <Unit204>
@@ -2473,7 +2479,7 @@
       <Unit217>
         <Filename Value="C:\lazarus\lcl\forms.pp"/>
         <UnitName Value="Forms"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="400"/>
         <CursorPos X="14" Y="651"/>
@@ -2484,12 +2490,11 @@
         <Filename Value="LuaMenu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaMenu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="136"/>
-        <CursorPos X="28" Y="154"/>
-        <UsageCount Value="28"/>
+        <CursorPos X="88" Y="146"/>
+        <UsageCount Value="29"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit218>
@@ -2514,126 +2519,126 @@
         <Loaded Value="True"/>
       </Unit220>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="30" HistoryIndex="27">
       <Position1>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="83" Column="32" TopLine="68"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4651" Column="1" TopLine="4644"/>
       </Position1>
       <Position2>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7825" Column="66" TopLine="7823"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4654" Column="1" TopLine="4644"/>
       </Position2>
       <Position3>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7468" Column="56" TopLine="7460"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4655" Column="1" TopLine="4644"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7660" Column="60" TopLine="7639"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4656" Column="1" TopLine="4644"/>
       </Position4>
       <Position5>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7700" Column="53" TopLine="7678"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4657" Column="1" TopLine="4644"/>
       </Position5>
       <Position6>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7662" Column="55" TopLine="7642"/>
+        <Filename Value="FindWindowUnit.pas"/>
+        <Caret Line="110" Column="1" TopLine="96"/>
       </Position6>
       <Position7>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3095" Column="1" TopLine="3089"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4649" Column="1" TopLine="4644"/>
       </Position7>
       <Position8>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3096" Column="25" TopLine="3085"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4650" Column="1" TopLine="4644"/>
       </Position8>
       <Position9>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4651" Column="1" TopLine="4644"/>
       </Position9>
       <Position10>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2448" Column="60" TopLine="2437"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4652" Column="9" TopLine="4644"/>
       </Position10>
       <Position11>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3095" Column="30" TopLine="3071"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="357" Column="29" TopLine="343"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3099" Column="12" TopLine="3075"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3354" Column="3" TopLine="3337"/>
       </Position12>
       <Position13>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3106" Column="22" TopLine="3082"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3381" Column="57" TopLine="3357"/>
       </Position13>
       <Position14>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3112" Column="30" TopLine="3088"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3617" Column="41" TopLine="3606"/>
       </Position14>
       <Position15>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3124" Column="47" TopLine="3100"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position15>
       <Position16>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7698" Column="57" TopLine="7675"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="356" Column="15" TopLine="332"/>
       </Position16>
       <Position17>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2230" Column="15" TopLine="2216"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3612" Column="17" TopLine="3597"/>
       </Position17>
       <Position18>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="13" Column="45" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3678" Column="19" TopLine="3654"/>
       </Position18>
       <Position19>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="11" Column="37" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3778" Column="13" TopLine="3757"/>
       </Position19>
       <Position20>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="238" Column="44" TopLine="225"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3887" Column="15" TopLine="3863"/>
       </Position20>
       <Position21>
-        <Filename Value="C:\lazarus\lcl\interfaces\win32\win32wsmenus.pp"/>
-        <Caret Line="1126" Column="1" TopLine="1112"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4181" Column="13" TopLine="4112"/>
       </Position21>
       <Position22>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1260" Column="30" TopLine="1255"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4311" Column="15" TopLine="4287"/>
       </Position22>
       <Position23>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4582" Column="15" TopLine="4558"/>
       </Position23>
       <Position24>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1575" Column="39" TopLine="1572"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4584" Column="70" TopLine="4560"/>
       </Position24>
       <Position25>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="247" Column="58" TopLine="229"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4593" Column="17" TopLine="4569"/>
       </Position25>
       <Position26>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="124" Column="1" TopLine="119"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4594" Column="70" TopLine="4570"/>
       </Position26>
       <Position27>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1584" Column="68" TopLine="1572"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4640" Column="13" TopLine="4616"/>
       </Position27>
       <Position28>
-        <Filename Value="LuaMenu.pas"/>
-        <Caret Line="137" Column="5" TopLine="117"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4655" Column="9" TopLine="4641"/>
       </Position28>
       <Position29>
-        <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="261" Column="5" TopLine="248"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="357" Column="27" TopLine="343"/>
       </Position29>
       <Position30>
-        <Filename Value="formsettingsunit.pas"/>
-        <Caret Line="1065" Column="38" TopLine="1051"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="3354" Column="3" TopLine="3349"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

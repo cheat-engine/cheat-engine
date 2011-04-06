@@ -4647,8 +4647,19 @@ destructor TScancontroller.destroy;
 var i: integer;
 begin
   terminate;
-  for i:=0 to length(scanners)-1 do
-    scanners[i].Free;
+  WaitFor;
+
+  scannersCS.Enter;
+  try
+    for i:=0 to length(scanners)-1 do
+      scanners[i].Free;
+
+    setlength(scanners,0);
+  finally
+    scannersCS.leave;
+  end;
+
+
 
   scannersCS.free;
   resultsaveCS.free;
@@ -5194,7 +5205,7 @@ begin
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
 
   if scanController<>nil then
-    scancontroller.free;
+    freeandnil(scancontroller);
 
 
   DeleteScanfolder;
