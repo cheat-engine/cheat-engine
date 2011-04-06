@@ -25,7 +25,7 @@ uses
   CustomTypeHandler, LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit, frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
   ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport, trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile, xmplayer_server, xmplayer_defines,
   ExtraTrainerComponents, frmAdConfigUnit, IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit, frmStructPointerRescanUnit, sharedMemory,
-  disassemblerComments, frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture;
+  disassemblerComments, frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu;
 
 {$R cheatengine.res}
 {$R manifest.res}

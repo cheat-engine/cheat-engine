@@ -155,22 +155,22 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object Label4: TLabel
-      Left = 203
+      Left = 199
       Height = 14
       Top = 124
-      Width = 49
+      Width = 53
       Anchors = [akTop, akRight]
-      Caption = 'Scan type'
+      Caption = 'Scan Type'
       Enabled = False
       ParentColor = False
     end
     object Label8: TLabel
-      Left = 201
+      Left = 197
       Height = 14
       Top = 148
-      Width = 51
+      Width = 55
       Anchors = [akTop, akRight]
-      Caption = 'Value type'
+      Caption = 'Value Type'
       Enabled = False
       ParentColor = False
     end
@@ -545,9 +545,9 @@ object MainForm: TMainForm
         Height = 19
         Hint = 'Unchecked:'#13#10'Do not scan writable memory'#13#10#13#10'Checked:'#13#10'Only scan writable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s writable memory or not'
         Top = 45
-        Width = 65
+        Width = 59
         AllowGrayed = True
-        Caption = 'Writeable'
+        Caption = 'Writable'
         Checked = True
         State = cbChecked
         TabOrder = 7
@@ -648,7 +648,7 @@ object MainForm: TMainForm
       Top = 322
       Width = 89
       Anchors = [akLeft, akBottom]
-      Caption = 'Memory view'
+      Caption = 'Memory View'
       OnClick = btnMemoryViewClick
       TabOrder = 7
     end
@@ -658,7 +658,7 @@ object MainForm: TMainForm
       Top = 322
       Width = 113
       Anchors = [akRight, akBottom]
-      Caption = 'Add address manually'
+      Caption = 'Add Address Manually'
       OnClick = Button1Click
       TabOrder = 8
     end
@@ -695,7 +695,7 @@ object MainForm: TMainForm
       Top = 48
       Width = 65
       Anchors = [akTop, akRight]
-      Caption = 'Undo scan'
+      Caption = 'Undo Scan'
       Enabled = False
       OnClick = UndoScanClick
       TabOrder = 3

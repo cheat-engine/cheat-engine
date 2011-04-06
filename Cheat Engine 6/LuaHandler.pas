@@ -10,7 +10,7 @@ uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents, customtimer;
+  ExtraTrainerComponents, customtimer, menus;
 
 var
   LuaVM: Plua_State;
@@ -35,7 +35,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture;
+  LuaPicture, LuaMenu;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2204,6 +2204,45 @@ begin
 
 end;
 
+function form_getMenu_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: TCustomForm;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    form:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+
+    lua_pushlightuserdata(L, form.menu);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function form_setMenu_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: TCustomForm;
+  menu: TMainmenu;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    form:=lua_touserdata(L,-2);
+    menu:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    form.Menu:=menu;
+
+  end else lua_pop(L, parameters);
+end;
+
+
 
 function form_show_fromLua(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -2271,6 +2310,7 @@ begin
     result:=1;
 
   end else lua_pop(L, parameters);
+
 end;
 
 
@@ -3047,6 +3087,41 @@ begin
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, control.Parent);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function control_setPopupMenu_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  control: TControl;
+  PopupMenu: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    control:=lua_touserdata(L,-2);
+    control.PopupMenu:=TPopupMenu(lua_touserdata(L,-1));
+  end;
+
+  lua_pop(L, parameters);
+end;
+
+function control_getPopupMenu_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  control: TControl;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    control:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, control.PopupMenu);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -6881,8 +6956,7 @@ begin
     addresslist:=lua_touserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L,   MainForm.addresslist.addaddress(rsPluginAddress,
-      '0', [], 0, vtDword));
+    lua_pushlightuserdata(L,   MainForm.addresslist.addaddress(rsPluginAddress, '0', [], 0, vtDword));
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -7622,6 +7696,10 @@ begin
     lua_register(LuaVM, 'control_getColor', control_getColor_fromLua);
     lua_register(LuaVM, 'control_setParent', control_setParent_fromLua);
     lua_register(LuaVM, 'control_getParent', control_getParent_fromLua);
+    lua_register(LuaVM, 'control_setPopupMenu', control_setPopupMenu_fromLua);
+    lua_register(LuaVM, 'control_getPopupMenu', control_getPopupMenu_fromLua);
+
+
 
     lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount_fromLua);
     lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl_fromLua);
@@ -7658,6 +7736,8 @@ begin
     lua_register(LuaVM, 'form_hide', form_hide_fromLua);
     lua_register(LuaVM, 'form_showModal', form_showModal_fromLua);
     lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow_fromLua);
+    lua_register(LuaVM, 'form_getMenu', form_getMenu_fromLua);
+    lua_register(LuaVM, 'form_setMenu', form_setMenu_fromLua);
 
     lua_register(LuaVM, 'createPanel', createPanel_fromLua);
     lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment_fromLua);
@@ -7900,6 +7980,7 @@ begin
     initializeLuaBrush;
     initializeLuaFont;
     initializeLuaCanvas;
+    initializeLuaMenu;
 
 
     s:=tstringlist.create;

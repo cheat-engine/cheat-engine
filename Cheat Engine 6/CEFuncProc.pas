@@ -716,6 +716,9 @@ end;
 
 
 function StrToQWordEx(s: string): qword;
+{
+This routine will use StrToQword unless it is a negative value, in which case it will use StrToInt64
+}
 begin
   s:=trim(s);
   if length(s)=0 then

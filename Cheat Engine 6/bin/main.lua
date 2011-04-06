@@ -203,6 +203,8 @@ control_getColor(control) : gets the color
 control_setColor(control, rgb) : Sets the color
 control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
 control_setParent(control) : Sets the parent for this control
+control_getPopupMenu(control)
+control_setPopupMenu(control)
 control_onClick(control, functionnameorstring) : Sets the onclick routine
 
 
@@ -214,6 +216,31 @@ wincontrol_focused(control): returns boolean true when focused
 wincontrol_setFocus(control): tries to set keyboard focus the object
 wincontrol_onEnter(control, function) : Sets an onEnter event. (Triggered on focus enter)
 wincontrol_onExit(control, function) : Sets an onExit event. (Triggered on lost focus)
+
+
+MenuItem class(Inheritance: Component->Object)
+createMenuItem(ownermenu) : Creates a menu item that gets added to the owner menu
+menuItem_getCaption(menuitem) : Gets the caption of the menu item
+menuItem_setCaption(menuitem, caption) : Sets the caption of the menu item
+menuItem_getShortcut(menuitem): Returns the shortcut for this menu item
+menuItem_setShortcut(menuitem, shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
+menuItem_getCount(menuitem)
+menuItem_getItem(menuitem, index) : Returns the menuitem object at the given index
+menuItem_add(menuItem, menuItem) : Adds a menuItem as a submenu item
+menuItem_delete(menuitem, index)
+menuItem_onClick(menuitem, function) : Sets an onClick event
+
+
+Menu Class: (Inheritance: Component->Object)
+menu_getItems(menu) : Returns the MenuItem of this Menu
+
+MainMenu Class: (Inheritance: Menu->Component->Object)
+createMainMenu(form)
+  The mainmenu is the menu at the top of a window
+
+PopupMenu Class: (Inheritance: Menu->Component->Object)
+createPopupMenu(owner)
+  The popup menu is the menu that popus up when showing the (rightclick) context of an control
 
 
 Strings Class: (Inheritance : Object) (Mostly an abstract class)
@@ -254,8 +281,8 @@ form_show(form) : show the form
 form_showModal(form) : show the form and wait for it to close and get the close result
 form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
-
-
+form_getMenu(form) : Returns the mainmenu object of this form
+form_setMenu(form, mainmenu)
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
 graphicControl_getCanvas(graphiccontrol) : Returns the Canvas object for the given object that has inherited from customControl

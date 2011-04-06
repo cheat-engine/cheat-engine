@@ -4585,7 +4585,7 @@ begin
       for i:=0 to length(scanners)-1 do
       begin
         outputdebugstring(format('ScanController: Freeing scanner %d',[i]));
-        scanners[i].Free;
+        freeandnil(scanners[i]);
       end;
 
       setlength(scanners,0);
@@ -4644,7 +4644,12 @@ begin
 end;
 
 destructor TScancontroller.destroy;
+var i: integer;
 begin
+  terminate;
+  for i:=0 to length(scanners)-1 do
+    scanners[i].Free;
+
   scannersCS.free;
   resultsaveCS.free;
   inherited destroy;
@@ -5185,8 +5190,12 @@ end;
 
 destructor TMemScan.destroy;
 begin
-  if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   if SaveFirstScanThread<>nil then SaveFirstScanThread.Free;
+  if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
+
+  if scanController<>nil then
+    scancontroller.free;
+
 
   DeleteScanfolder;
 

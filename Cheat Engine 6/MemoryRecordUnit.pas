@@ -269,6 +269,8 @@ begin
 
   hotkeylist:=tlist.create;
 
+  foptions:=[];
+
   inherited create;
 end;
 
@@ -300,6 +302,7 @@ begin
   if treenode<>nil then
     treenode.free;
 
+  inherited Destroy;
 
 end;
 
@@ -333,6 +336,9 @@ begin
     vtString: //if setting to the type of string enable the zero terminate method by default
       extra.stringData.ZeroTerminate:=true;
 
+    vtAutoAssembler:
+      if AutoAssemblerData.script=nil then
+        AutoAssemblerData.script:=tstringlist.create;
   end;
 
 

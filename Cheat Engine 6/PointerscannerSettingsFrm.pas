@@ -70,6 +70,7 @@ type
     cbOnlyOneStatic: TCheckBox;
     CheckBox1: TCheckBox;
     procedure Button1Click(Sender: TObject);
+    procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
@@ -168,6 +169,11 @@ begin
   end;
 
   modalresult:=mrok;
+end;
+
+procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetChange(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);

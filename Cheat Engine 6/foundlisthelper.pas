@@ -67,6 +67,7 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: integer read fvartype;
+    property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
     constructor create(foundlist: tlistview; memscan: TMemScan);

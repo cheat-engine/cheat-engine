@@ -1959,7 +1959,10 @@ begin
 
   m:=addresslist.addaddress(strNoDescription, addressString, [], 0, OldVarTypeToNewVarType(realvartype), customname, l,startbit , false,node,attachmode);
   if m.VarType=vtBinary then
-    m.Extra.bitData.showasbinary:=rbBit.checked;
+    m.Extra.bitData.showasbinary:=rbBit.checked
+  else
+  if (m.VarType=vtString) then
+    m.Extra.stringData.unicode:=foundlist.isUnicode;
 end;
 
 procedure TMainForm.SetExpectedTableName;
@@ -6394,12 +6397,10 @@ var _us: string;
 var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
-var p: PByteArray;
 begin
 
- // allocate
-  p:=allocateSharedMemoryIntoTargetProcess('EricShare');
-  showmessage('allocated at:'+inttohex(ptruint(p),8));
+
+
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

@@ -1097,6 +1097,9 @@ begin
     begin
       if m.VarType=vtAutoAssembler then
       begin
+        if m.AutoAssemblerData.script=nil then
+          m.AutoAssemblerData.script:=TStringList.create;
+
         m.AutoAssemblerData.script.text:=script;
         result:=true;
       end;
@@ -1243,6 +1246,8 @@ begin
     begin
       m1.treenode.MoveTo(m2.treenode, naAddChild);
       result:=pointer(1);
+
+      m2.SetVisibleChildrenState;
     end;
 
   except
@@ -1567,7 +1572,7 @@ var f: Tcustomform;
 begin
   visible:=params;
 
-  f:=Tcustomform.CreateNew(nil);
+  f:=Tcustomform.CreateNew(application);
   f.borderstyle:=bsSingle;
 
   if visible^ then f.show;

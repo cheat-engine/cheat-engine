@@ -41,15 +41,15 @@ object FindWindow: TFindWindow
       ParentColor = False
     end
     object Label2: TLabel
-      Left = 154
+      Left = 144
       Height = 14
-      Top = 22
+      Top = 23
       Width = 24
       Caption = 'From'
       ParentColor = False
     end
     object Label3: TLabel
-      Left = 167
+      Left = 152
       Height = 14
       Top = 42
       Width = 14
@@ -65,20 +65,20 @@ object FindWindow: TFindWindow
       ParentColor = False
     end
     object editStart: TEdit
-      Left = 187
+      Left = 168
       Height = 21
       Top = 16
-      Width = 90
-      MaxLength = 8
+      Width = 109
+      MaxLength = 16
       TabOrder = 1
       Text = '00400000'
     end
     object EditStop: TEdit
-      Left = 187
+      Left = 168
       Height = 21
       Top = 40
-      Width = 90
-      MaxLength = 8
+      Width = 109
+      MaxLength = 16
       TabOrder = 2
       Text = '7FFFFFFF'
     end

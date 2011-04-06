@@ -117,6 +117,10 @@ begin
   if firstscan then
   begin
     editstart.Text:=Inttohex(memorybrowser.memoryaddress,8);
+
+    if processhandler.is64bit then
+      editstop.text:='7FFFFFFFFFFFFFFF';
+
     height:=185;
     progressbar.Top:=96;
 

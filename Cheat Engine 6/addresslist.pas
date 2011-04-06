@@ -626,6 +626,7 @@ begin
     memrec.treenode.MoveTo(node, attachmode);
 
   result:=memrec;
+
 end;
 
 procedure TAddresslist.setTreeNodes(t: TTreenodes);

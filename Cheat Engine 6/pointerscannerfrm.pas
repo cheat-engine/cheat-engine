@@ -37,6 +37,13 @@ type
     valuescansinglemax: single;
     valuescandoublemax: double;
 
+    mustbeinrange: boolean;
+    baseStart: ptruint;
+    baseEnd: ptruint;
+
+    startOffsetValues: array of dword;
+    endoffsetvalues: array of dword;
+
 
     //---
     Pointerscanresults: TPointerscanresultReader;
@@ -69,6 +76,13 @@ type
     valuescandouble: double;
     valuescansinglemax: single;
     valuescandoublemax: double;
+
+    mustbeinrange: boolean;
+    baseStart: ptruint;
+    baseEnd: ptruint;
+
+    startOffsetValues: array of dword;
+    endoffsetvalues: array of dword;
 
     procedure execute; override;
   end;
@@ -1282,7 +1296,7 @@ end;
 procedure TRescanWorker.execute;
 var
     currentEntry: qword;
-    i: integer;
+    i,j: integer;
 
     address,address2: ptrUint;
     pa: PPointerAddress;
@@ -1326,66 +1340,98 @@ begin
           address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset;
 
         if address>0 then
-        begin                    
-          for i:=p.offsetcount-1 downto 0 do
+        begin
+          if (not mustbeinrange) or (inrangex(address, baseStart, baseEnd)) then
           begin
-            pa:=rescanhelper.findPointer(address);
-            if pa=nil then
+            if length(startOffsetValues)>0 then
             begin
-              if readprocessmemory(processhandle, pointer(address), @address2, pointersize, x) then
-                pa:=rescanhelper.AddPointer(address, address2)
-              else
-                pa:=rescanhelper.AddPointer(address, 0);
-            end;
-
-            if pa.value>0 then
-              address:=pa.value+p.offsets[i]
-            else
-            begin
-              valid:=false;
-              break; //invalid pointer
-            end;
-          end;
-
-          if valid then
-          begin
-            if forvalue then
-            begin
-              //evaluate the address (address must be accessible)
-              if rescanhelper.ispointer(address) then
-              begin
-                value:=rescanhelper.findAddress(address);
-                if value=nil then
+              //check the offsets
+              for i:=0 to length(startOffsetValues)-1 do
+                if p.offsets[p.offsetcount-1-i]<>startOffsetValues[i] then
                 begin
-                  //value is not yet stored, fetch it and add it to the list
-                  if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
-                    value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
+                  valid:=false;
+                  break;
+                end;
+            end;
+
+            if length(endoffsetvalues)>0 then
+            begin
+              j:=0;
+              for i:=length(endoffsetvalues)-1 downto 0 do
+              begin
+                if p.offsets[j]<>endoffsetvalues[i] then
+                begin
+                  valid:=false;
+                  break;
+                end;
+                inc(j);
+              end;
+            end;
+
+            if valid then
+            begin
+              //evaluate the pointer to address
+              for i:=p.offsetcount-1 downto 0 do
+              begin
+                pa:=rescanhelper.findPointer(address);
+                if pa=nil then
+                begin
+                  if readprocessmemory(processhandle, pointer(address), @address2, pointersize, x) then
+                    pa:=rescanhelper.AddPointer(address, address2)
                   else
-                    valid:=false; //unreadable even though ispointer returned true....
+                    pa:=rescanhelper.AddPointer(address, 0);
                 end;
 
+                if pa.value>0 then
+                  address:=pa.value+p.offsets[i]
+                else
+                begin
+                  valid:=false;
+                  break; //invalid pointer
+                end;
+              end;
 
-                if (value=nil) or (not isMatchToValue(value)) then
-                  valid:=false; //invalid value
-              end else valid:=false; //unreadable address
-            end
-            else
-            begin
-              //check if the address matches
-              if address<>PointerAddressToFind then
-                valid:=false;
             end;
-          end;
 
-          if valid then
-          begin
-            //checks passed, it's valid
-            tempbuffer.Write(p^,Pointerscanresults.entrySize);
-            if tempbuffer.Position>16*1024*1024 then flushresults;
-          end;
+            if valid then
+            begin
+              if forvalue then
+              begin
+                //evaluate the address (address must be accessible)
+                if rescanhelper.ispointer(address) then
+                begin
+                  value:=rescanhelper.findAddress(address);
+                  if value=nil then
+                  begin
+                    //value is not yet stored, fetch it and add it to the list
+                    if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
+                      value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
+                    else
+                      valid:=false; //unreadable even though ispointer returned true....
+                  end;
 
 
+                  if (value=nil) or (not isMatchToValue(value)) then
+                    valid:=false; //invalid value
+                end else valid:=false; //unreadable address
+              end
+              else
+              begin
+                //check if the address matches
+                if address<>PointerAddressToFind then
+                  valid:=false;
+              end;
+            end;
 
+            if valid then
+            begin
+              //checks passed, it's valid
+              tempbuffer.Write(p^,Pointerscanresults.entrySize);
+              if tempbuffer.Position>16*1024*1024 then flushresults;
+            end;
+
+
+          end; //must be in range and it wasn't in the range
         end; //else not a valid module
       end;
 
@@ -1414,7 +1460,7 @@ end;
 procedure TRescanpointers.execute;
 var
   tempstring: string;
-  i: integer;
+  i,j: integer;
 
   TotalPointersToEvaluate: qword;
   PointersEvaluated: qword;
@@ -1491,6 +1537,21 @@ begin
       rescanworkers[i].entriestocheck:=blocksize;
       if i=rescanworkercount-1 then
         rescanworkers[i].entriestocheck:=TotalPointersToEvaluate-rescanworkers[i].startEntry; //to the end
+
+
+      rescanworkers[i].mustbeinrange:=mustbeinrange;
+      rescanworkers[i].baseStart:=baseStart;
+      rescanworkers[i].baseEnd:=baseEnd;
+      setlength(rescanworkers[i].startOffsetValues, length(startoffsetvalues));
+      for j:=0 to length(startOffsetValues)-1 do
+        rescanworkers[i].startOffsetValues[j]:=startOffsetValues[j];
+
+      setlength(rescanworkers[i].endoffsetvalues, length(endoffsetvalues));
+      for j:=0 to length(EndOffsetValues)-1 do
+        rescanworkers[i].EndOffsetValues[j]:=EndOffsetValues[j];
+
+
+
 
       threadhandles[i]:=rescanworkers[i].Handle;
       rescanworkers[i].start;
@@ -1598,11 +1659,28 @@ begin
         begin
           if savedialog1.Execute then
           begin
+
+
             rescan.filename:=savedialog1.filename;
             if cbDelay.checked then
-              rescan.delay:=strtoint(edtDelay.text)
+              rescan.delay:=delay
             else
               rescan.delay:=0;
+
+            rescan.mustbeinrange:=cbBasePointerMustBeInRange.checked;
+            if rescan.mustbeinrange then
+            begin
+              rescan.BaseStart:=baseStart;
+              rescan.BaseEnd:=baseEnd;
+            end;
+
+            setlength(rescan.startOffsetValues, length(startOffsetValues));
+            for i:=0 to length(startOffsetValues)-1 do
+              rescan.startOffsetValues[i]:=startOffsetValues[i];
+
+            setlength(rescan.endOffsetValues, length(endOffsetValues));
+            for i:=0 to length(endOffsetValues)-1 do
+              rescan.endOffsetValues[i]:=endOffsetValues[i];
 
             if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then
               rescan.overwrite:=true;

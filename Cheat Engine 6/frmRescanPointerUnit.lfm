@@ -1,32 +1,32 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 830
-  Height = 121
-  Top = 323
+  Left = 1295
+  Height = 208
+  Top = 137
   Width = 267
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 121
+  ClientHeight = 208
   ClientWidth = 267
-  Font.Height = -13
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object edtAddress: TEdit
     Left = 10
-    Height = 24
-    Top = 30
+    Height = 21
+    Top = 26
     Width = 111
     CharCase = ecUppercase
     MaxLength = 8
     TabOrder = 0
   end
   object cbValueType: TComboBox
-    Left = 126
-    Height = 24
-    Top = 30
+    Left = 125
+    Height = 21
+    Top = 26
     Width = 132
-    ItemHeight = 16
+    ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
       '4 Byte'
@@ -48,9 +48,9 @@ object frmRescanPointer: TfrmRescanPointer
     TabOrder = 2
     object rbFindAddress: TRadioButton
       Left = 0
-      Height = 20
+      Height = 19
       Top = 4
-      Width = 112
+      Width = 93
       Caption = 'Address to find:'
       Checked = True
       OnClick = rbFindAddressClick
@@ -59,56 +59,122 @@ object frmRescanPointer: TfrmRescanPointer
     end
     object rbFindValue: TRadioButton
       Left = 120
-      Height = 20
+      Height = 19
       Top = 4
-      Width = 96
+      Width = 82
       Caption = 'Value to find:'
       OnClick = rbFindAddressClick
       TabOrder = 1
     end
   end
-  object Button1: TButton
-    Left = 48
-    Height = 25
-    Top = 88
-    Width = 75
-    Caption = 'OK'
-    Default = True
-    ModalResult = 1
-    TabOrder = 3
-  end
-  object Button2: TButton
-    Left = 128
-    Height = 25
-    Top = 88
-    Width = 75
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 4
-  end
   object cbDelay: TCheckBox
     Left = 8
-    Height = 20
-    Top = 62
-    Width = 118
+    Height = 19
+    Top = 56
+    Width = 97
     Caption = 'Delay rescan for'
-    TabOrder = 5
+    TabOrder = 3
   end
   object edtDelay: TEdit
-    Left = 128
-    Height = 24
-    Top = 61
+    Left = 112
+    Height = 21
+    Top = 56
     Width = 32
-    TabOrder = 6
+    TabOrder = 4
     Text = '0'
   end
   object Label1: TLabel
-    Left = 160
-    Height = 17
-    Top = 64
-    Width = 53
+    Left = 146
+    Height = 14
+    Top = 59
+    Width = 41
     Caption = 'seconds'
     ParentColor = False
+  end
+  object cbBasePointerMustBeInRange: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 80
+    Width = 160
+    Caption = 'Base pointer must be in range'
+    OnChange = cbBasePointerMustBeInRangeChange
+    TabOrder = 5
+  end
+  object edtBaseStart: TEdit
+    Left = 8
+    Height = 21
+    Top = 104
+    Width = 112
+    CharCase = ecUppercase
+    Enabled = False
+    TabOrder = 6
+    Text = '0000000000000000'
+  end
+  object cbMustStartWithSpecificOffsets: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 128
+    Width = 122
+    Caption = 'Must start with offsets'
+    OnChange = cbMustStartWithSpecificOffsetsChange
+    TabOrder = 7
+  end
+  object pnlButtons: TPanel
+    Left = 56
+    Height = 34
+    Top = 176
+    Width = 170
+    BevelOuter = bvNone
+    ClientHeight = 34
+    ClientWidth = 170
+    TabOrder = 8
+    object Button2: TButton
+      Left = 85
+      Height = 25
+      Top = 3
+      Width = 75
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 5
+      Height = 25
+      Top = 3
+      Width = 75
+      Caption = 'OK'
+      Default = True
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+  end
+  object edtBaseEnd: TEdit
+    Left = 146
+    Height = 21
+    Top = 104
+    Width = 112
+    CharCase = ecUppercase
+    Enabled = False
+    TabOrder = 9
+    Text = 'FFFFFFFFFFFFFFFF'
+  end
+  object lblAnd: TLabel
+    Left = 123
+    Height = 14
+    Top = 106
+    Width = 19
+    Caption = 'and'
+    Enabled = False
+    ParentColor = False
+  end
+  object cbMustEndWithSpecificOffsets: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 152
+    Width = 120
+    Caption = 'Must end with offsets'
+    OnChange = cbMustEndWithSpecificOffsetsChange
+    TabOrder = 10
   end
 end
