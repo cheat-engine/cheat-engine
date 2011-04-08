@@ -16,6 +16,7 @@ var
   DirInfo: TSearchRec;
   r : Integer;
 begin
+  Delay();
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   result := true;
 
@@ -138,14 +139,22 @@ begin
       StartupInfo.cb:=sizeof(StartupInfo);
 
       if (CreateProcess(nil, pchar(ceexe+' "'+launchdir+'CET_TRAINER.CETRAINER"'), nil, nil, FALSE, 0, nil, pchar(launchdir), StartupInfo, ProcessInformation)) then
+      begin
         WaitForSingleObject(ProcessInformation.hProcess, INFINITE);
+        sleep(2000);
+      end;
 
     end;
 
 
   end;
 
-  deleteFolder(launchdir);
+  if not deleteFolder(launchdir) then
+  begin
+    //deletion failed, try one more time in 5 seconds else give up
+    sleep(5000);
+    deleteFolder(launchdir);
+  end;
 end;
 
 
