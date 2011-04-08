@@ -16,7 +16,6 @@ var
   DirInfo: TSearchRec;
   r : Integer;
 begin
-  Delay();
   ZeroMemory(@DirInfo,sizeof(TSearchRec));
   result := true;
 
