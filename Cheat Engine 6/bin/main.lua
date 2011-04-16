@@ -29,6 +29,7 @@ writeString(address,string) : Write a string to the specified address. Returns t
 getAddress(string): returns the address of a symbol. Can be a modulename or an export
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
 
+
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
 showMessage(text) : shows a messagebox with the given text
@@ -248,6 +249,7 @@ strings_clear(list) : Deletes all strings in the list
 strings_add(list, string) : adds a string to the list
 strings_delete(list, index) : Deletes a string from the list
 strings_getText(strings) : Returns all the strings as one big string
+strings_setText(strings) : Sets the strings of the given strings object to the given text (can be multiline)
 strings_indexOf(list, string): Returns the index of the specified string. Returns -1 if not found
 strings_insert(list, index, string): Inserts a string at a specific spot moving the items after it
 

@@ -576,6 +576,7 @@ var
 //  addressfile, memoryfile: File;
 //  newAddressfile,newmemoryfile: File;
 
+  savedStackSize: dword=4096;
   buffersize: dword=512*1024;
   overridedebug: boolean;
 

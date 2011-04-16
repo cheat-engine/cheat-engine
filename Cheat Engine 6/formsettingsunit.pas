@@ -37,11 +37,14 @@ type
     cbShowProcesslist: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
     GroupBox2: TGroupBox;
     Label2: TLabel;
     Label25: TLabel;
     Label4: TLabel;
+    Label6: TLabel;
+    Label7: TLabel;
     LoadButton: TSpeedButton;
     Panel1: TPanel;
     pcDebugConfig: TPageControl;
@@ -289,6 +292,7 @@ var processhandle2: Thandle;
     found:boolean;
 
     networkupdateinterval,updateinterval,freezeinterval,FoundInterval: integer;
+    stacksize: integer;
 
     dllpath: Tpathspecifier;
 begin
@@ -306,6 +310,11 @@ begin
 
   if not ((cbMemPrivate.checked) or (cbMemImage.Checked) or (cbMemMapped.Checked)) then
     if messagedlg(rsYouHavenTSelectedAnyMemoryTypeThisWillResultInChea, mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+
+  val(edtStacksize.text, stacksize, error);
+  if (error<>0) or (stacksize<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtStacksize.text]));
+
+
 
 
   val(editUpdatefoundInterval.Text,foundinterval,error);
@@ -338,6 +347,8 @@ begin
     if Reg.OpenKey('\Software\Cheat Engine',true) then
     begin
       //write the settings
+      reg.WriteInteger('Saved Stacksize', stacksize);
+
       reg.writebool('Show processlist in mainmenu', cbShowProcesslist.checked);
       mainform.Process1.Visible:=cbShowProcesslist.checked;
 
@@ -649,6 +660,8 @@ begin
   mainform.FreezeTimer.Interval:=freezeinterval;
   mainform.UpdateTimer.Interval:=networkupdateinterval;
   {$endif}
+
+  savedStackSize:=stacksize;
 
   Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 

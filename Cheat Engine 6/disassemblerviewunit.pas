@@ -657,6 +657,8 @@ begin
   header.width:=max(x, scrollbox.ClientWidth);
   discanvas.width:=max(x, scrollbox.ClientWidth);
 
+  discanvas.height:=scrollbox.ClientHeight-header.height;
+
   scrollbox.VertScrollBar.Visible:=false;
 
 

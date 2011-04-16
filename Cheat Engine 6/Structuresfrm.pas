@@ -308,6 +308,7 @@ type TbaseStructure=record
     function convertVariableTypeTostructnr(d: TVariableType): integer;
 //    function RawToType(address: dword; const buf: array of byte; size: integer):integer;
     procedure ExtraEnter(Sender: TObject);
+    function guessTypeOfAddress(address: ptruint): integer;
     procedure automaticallyGuessOffsets(baseaddress, baseOffset: ptrUint; structsize: integer; structureid: integer);
     procedure autoCreateStructure(address: ptruint; var newstructureid: integer);
 
@@ -1072,6 +1073,7 @@ begin
   for i:=0 to length(definedstructures)-1 do
   begin
 
+
     if i<structures1.Count-2 then
     begin
       //check the name, and update if needed
@@ -1083,7 +1085,9 @@ begin
       mi:=tmenuitem.Create(self);
       mi.Caption:=definedstructures[i].name;
       mi.OnClick:=definedstructureselect;
+      mi.visible:=not definedstructures[i].donotsave;
       mi.Tag:=i;
+
 
       structures1.Add(mi);
     end;
@@ -1615,18 +1619,28 @@ begin
   if definedstructures[basestruct].structelement[elementnr].pointerto then
   begin
     if definedstructures[basestruct].structelement[elementnr].structurenr=-16 then
-      if miAutoCreate.checked then  //if the autocreate structure option is enabled create a new default structure
+    begin
+      for i:=0 to length(elementaddress)-1 do
       begin
-        for i:=0 to length(elementaddress)-1 do
+        if isreadable(elementaddress[i]) then
         begin
-          if isreadable(elementaddress[i]) then
+          //found a readable block to work with
+          if miAutoCreate.checked then  //if the autocreate structure option is enabled create a new default structure
+            autoCreateStructure(elementaddress[i], definedstructures[basestruct].structelement[elementnr].structurenr)
+          else
           begin
-            //found a readable block to work with
-            autoCreateStructure(elementaddress[i], definedstructures[basestruct].structelement[elementnr].structurenr);
-            break;  //found one so no need to define again
+            definedstructures[basestruct].structelement[elementnr].structurenr:=guessTypeOfAddress(elementaddress[i]);
+            definedstructures[basestruct].structelement[elementnr].bytesize:=128;
           end;
+
+
+
+          break;  //found one so no need to define again
         end;
       end;
+
+
+    end;
 
     s.objects[elementnr].child:=tstructure.create(tvStructureView,node,elementaddress,definedstructures[basestruct].structelement[elementnr].structurenr);
 
@@ -2797,30 +2811,34 @@ end;
 procedure TfrmStructures.Deletecurrentstructure1Click(Sender: TObject);
 var i,j: integer;
 begin
-  if MessageDlg(Format(rsAreYouSureYouWantToDelete, [definedstructures[currentstructure.basestructure].name]), mtConfirmation, [mbyes, mbno], 0)= mryes then
+  if currentstructure<>nil then
   begin
-    //remove all children that make use of this structnr
-    //and move all children that point to higher numbered ones
-    for i:=0 to length(definedstructures)-1 do
-      for j:=0 to length(definedstructures[i].structelement)-1 do
-      begin
-        if definedstructures[i].structelement[j].structurenr=currentstructure.basestructure then
-          definedstructures[i].structelement[j].structurenr:=-7;   //change the old reference to a 4 byte type
+    if MessageDlg(Format(rsAreYouSureYouWantToDelete, [definedstructures[currentstructure.basestructure].name]), mtConfirmation, [mbyes, mbno], 0)= mryes then
+    begin
+      //remove all children that make use of this structnr
+      //and move all children that point to higher numbered ones
+      for i:=0 to length(definedstructures)-1 do
+        for j:=0 to length(definedstructures[i].structelement)-1 do
+        begin
+          if definedstructures[i].structelement[j].structurenr=currentstructure.basestructure then
+            definedstructures[i].structelement[j].structurenr:=-7;   //change the old reference to a 4 byte type
 
-        if definedstructures[i].structelement[j].structurenr>currentstructure.basestructure then
-          dec(definedstructures[i].structelement[j].structurenr);
+          if definedstructures[i].structelement[j].structurenr>currentstructure.basestructure then
+            dec(definedstructures[i].structelement[j].structurenr);
 
-        if definedstructures[i].structelement[j].structurenr=0 then
-          definedstructures[i].structelement[j].structurenr:=-7;
-      end;
+          if definedstructures[i].structelement[j].structurenr=0 then
+            definedstructures[i].structelement[j].structurenr:=-7;
+        end;
 
-    for i:=currentstructure.basestructure to length(definedstructures)-2 do
-      definedstructures[i]:=definedstructures[i+1];
+      for i:=currentstructure.basestructure to length(definedstructures)-2 do
+        definedstructures[i]:=definedstructures[i+1];
 
-    setlength(definedstructures,length(definedstructures)-1);
-    freeandnil(currentstructure);
+      setlength(definedstructures,length(definedstructures)-1);
+      freeandnil(currentstructure);
 
-    applyChanges(true);
+      applyChanges(true);
+    end;
+
   end;
 end;
 
@@ -2943,6 +2961,22 @@ begin
   end;
 
 
+end;
+
+function TfrmStructures.guessTypeOfAddress(address: ptruint): integer;
+var buf: array of byte;
+  x: dword;
+  t: TVariableType;
+begin
+  setlength(buf,128);
+
+  x:=0;
+  readprocessmemory(processhandle,pointer(address),@buf[0],128,x);
+  if x>0 then
+  begin
+    t:=FindTypeOfData(address, @buf[0],x);
+    result:=convertVariableTypeTostructnr(t);
+  end;
 end;
 
 procedure TfrmStructures.automaticallyGuessOffsets(baseaddress, baseOffset: ptrUint; structsize: integer; structureid: integer);

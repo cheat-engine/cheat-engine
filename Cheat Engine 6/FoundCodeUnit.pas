@@ -106,8 +106,8 @@ end;
 
 procedure TCodeRecord.savestack;
 begin
-  getmem(stack.stack, 4096);
-  ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, 4096, stack.savedsize);
+  getmem(stack.stack, savedStackSize);
+  ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
 end;
 
 procedure TFoundCodedialog.AddRecord;

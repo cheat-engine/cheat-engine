@@ -263,6 +263,9 @@ begin
         begin
           LoadingSettingsFromRegistry:=true;
 
+          if reg.ValueExists('Saved Stacksize') then
+            savedStackSize:=reg.ReadInteger('Saved Stacksize');
+
           if reg.valueexists('Show processlist in mainmenu') then
             cbShowProcesslist.checked:=reg.readbool('Show processlist in mainmenu');
 

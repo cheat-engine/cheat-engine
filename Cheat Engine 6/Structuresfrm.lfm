@@ -171,12 +171,12 @@ object frmStructures: TfrmStructures
         AutoCheck = True
         Caption = 'Save this structure in CT'
         Checked = True
+        Visible = False
         OnClick = miSaveToCTClick
       end
       object miAutoCreate: TMenuItem
         AutoCheck = True
         Caption = 'Autocreate structures from undefined pointer types'
-        Checked = True
       end
       object miAutostructsize: TMenuItem
         Tag = 4096

@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -554,9 +554,9 @@ object formSettings: TformSettings
         end
         object cbFastscan: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 39
-          Width = 128
+          Width = 130
           Caption = 'Fast scan on by default'
           Checked = True
           State = cbChecked
@@ -564,10 +564,10 @@ object formSettings: TformSettings
         end
         object cbSkip_PAGE_NOCACHE: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
           Top = 56
-          Width = 310
+          Width = 312
           Caption = 'Don''t scan memory that is protected with the No Cache option'
           ParentShowHint = False
           ShowHint = True
@@ -575,9 +575,9 @@ object formSettings: TformSettings
         end
         object cbMemImage: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 224
-          Width = 353
+          Width = 355
           Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
           Checked = True
           State = cbChecked
@@ -585,17 +585,17 @@ object formSettings: TformSettings
         end
         object cbMemMapped: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 244
-          Width = 529
+          Width = 531
           Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
           TabOrder = 4
         end
         object cbMemPrivate: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 204
-          Width = 204
+          Width = 206
           Caption = 'MEM_PRIVATE:Memory that is private.'
           Checked = True
           State = cbChecked
@@ -611,9 +611,9 @@ object formSettings: TformSettings
         end
         object cbDontusetempdir: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 90
-          Width = 290
+          Width = 292
           Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
           OnChange = cbDontusetempdirChange
           TabOrder = 7
@@ -673,9 +673,9 @@ object formSettings: TformSettings
         end
         object cbAllIncludesCustomType: TCheckBox
           Left = 0
-          Height = 17
+          Height = 19
           Top = 73
-          Width = 290
+          Width = 292
           Caption = 'Custom types are included with the ALL scan variabletype'
           Checked = True
           State = cbChecked
@@ -798,7 +798,7 @@ object formSettings: TformSettings
         object GroupBox2: TGroupBox
           Left = 7
           Height = 153
-          Top = 209
+          Top = 257
           Width = 416
           Caption = 'Debugger interface config'
           ClientHeight = 135
@@ -894,7 +894,7 @@ object formSettings: TformSettings
         object rbgDebuggerInterface: TRadioGroup
           Left = 7
           Height = 87
-          Top = 121
+          Top = 169
           Width = 161
           AutoFill = True
           AutoSize = True
@@ -951,6 +951,30 @@ object formSettings: TformSettings
           Top = 57
           Width = 102
           Caption = 'Single line assembler:'
+          ParentColor = False
+        end
+        object Label6: TLabel
+          Left = 15
+          Height = 14
+          Top = 121
+          Width = 230
+          Caption = 'Size of stack to record on "Find what... routines"'
+          ParentColor = False
+        end
+        object edtStacksize: TEdit
+          Left = 15
+          Height = 21
+          Top = 137
+          Width = 45
+          TabOrder = 6
+          Text = '4096'
+        end
+        object Label7: TLabel
+          Left = 63
+          Height = 14
+          Top = 139
+          Width = 27
+          Caption = 'Bytes'
           ParentColor = False
         end
       end

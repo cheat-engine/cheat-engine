@@ -39,7 +39,7 @@ object frmStructuresConfig: TfrmStructuresConfig
     ClientWidth = 181
     ParentColor = False
     TabOrder = 2
-    OnClick = ColorClick
+    OnMouseDown = ColorClick
     object Label1: TLabel
       Tag = 1
       Cursor = crHandPoint
@@ -49,7 +49,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 39
       Caption = 'Default'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label2: TLabel
       Tag = 2
@@ -60,7 +60,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 47
       Caption = 'Different'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label3: TLabel
       Tag = 3
@@ -71,7 +71,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 66
       Caption = 'Group equal'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label7: TLabel
       Tag = 8
@@ -82,7 +82,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 30
       Caption = 'Equal'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
   end
   object GroupBox2: TGroupBox
@@ -97,7 +97,8 @@ object frmStructuresConfig: TfrmStructuresConfig
     Color = clHighlight
     ParentColor = False
     TabOrder = 3
-    OnClick = ColorClick
+    OnClick = ColorClickOld
+    OnMouseDown = ColorClick
     object Label4: TLabel
       Tag = 5
       Cursor = crHandPoint
@@ -107,7 +108,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 39
       Caption = 'Default'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label5: TLabel
       Tag = 6
@@ -118,7 +119,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 47
       Caption = 'Different'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label6: TLabel
       Tag = 7
@@ -129,7 +130,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 66
       Caption = 'Group equal'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
     object Label8: TLabel
       Tag = 9
@@ -140,7 +141,7 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 30
       Caption = 'Equal'
       ParentColor = False
-      OnClick = ColorClick
+      OnMouseDown = ColorClick
     end
   end
   object ColorDialog1: TColorDialog

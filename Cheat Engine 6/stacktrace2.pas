@@ -145,7 +145,7 @@ begin
     inc(i);
 
 
-    trace.Add(address+' - '+value+' - '+secondary);
+    trace.AddObject(address+' - '+value+' - '+secondary, pointer(esp));
     if (maxdepth>0) and (trace.Count>=maxdepth) then exit;
 
     inc(esp, (i-oldi)*processhandler.pointersize);

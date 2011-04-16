@@ -3422,6 +3422,26 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function strings_setText_fromLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  strings: TStrings;
+  text: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    strings:=lua_touserdata(L,-2);
+    text:=Lua_ToString(L, -1);
+    lua_pop(L, parameters);
+
+    strings.Text:=text;
+
+
+  end else lua_pop(L, parameters);
+end;
+
 function strings_indexOf_fromLua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -7465,7 +7485,7 @@ begin
     address:=allocateSharedMemoryIntoTargetProcess(sharedmemoryname, size);
     if address<>nil then
     begin
-      lua_pushlightuserdata(L, address);
+      lua_pushinteger(L, ptruint(address));
       result:=1;
     end;
   end else lua_pop(L, parameters);

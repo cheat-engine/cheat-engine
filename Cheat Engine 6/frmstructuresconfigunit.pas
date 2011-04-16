@@ -26,8 +26,9 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    procedure ColorClick(Sender: TObject);
+    procedure ColorClickOld(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     { private declarations }
     fbackgroundcolor: TColor;
@@ -171,10 +172,8 @@ begin
   end;
 end;
 
-procedure TfrmStructuresConfig.ColorClick(Sender: TObject);
+procedure TfrmStructuresConfig.ColorClickOld(Sender: TObject);
 begin
-
-
   ColorDialog1.Color:=GetColor(TControl(sender).tag);
   if ColorDialog1.Execute then
     SetColor(TControl(sender).tag,ColorDialog1.Color);
@@ -183,6 +182,13 @@ end;
 procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ColorDialog1.Color:=GetColor(TControl(sender).tag);
+  if ColorDialog1.Execute then
+    SetColor(TControl(sender).tag,ColorDialog1.Color);
 end;
 
 initialization

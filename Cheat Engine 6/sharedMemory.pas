@@ -122,7 +122,7 @@ begin
 
   s.add('createThread(allocator)');
 
-  Clipboard.AsText:=s.text;
+ // Clipboard.AsText:=s.text;
 
   try
     setlength(CEAllocArray,0);
