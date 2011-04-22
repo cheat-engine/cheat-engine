@@ -74,6 +74,7 @@ begin
     if check='CHEATENGINE' then
     begin
       //this is a file with a header. (if not the user has been lame enough to copy memory starting with CHEATENGINE)
+      temp:=0;
       datafile.ReadBuffer(temp,4);
       case temp of
         1:
@@ -81,7 +82,7 @@ begin
           datafile.ReadBuffer(temp,4);
 
           size:=datafile.Size-datafile.Position;
-          listbox1.Items.AddObject(inttohex(temp,8)+'-'+inttohex(temp+size,8),tregion.create(temp,temp+size));
+          listbox1.Items.AddObject(inttohex(temp,8)+'-'+inttohex(temp+size-1,8),tregion.create(temp,temp+size));
 
           setlength(buf,1);
           setlength(buf[0],size);
@@ -99,7 +100,7 @@ begin
             setlength(buf,length(buf)+1);
             setlength(buf[length(buf)-1],size);
             datafile.ReadBuffer(buf[length(buf)-1][0],size);
-            listbox1.items.addobject(inttohex(temp,8)+'-'+inttohex(temp+size,8),tregion.create(temp,temp+size));
+            listbox1.items.addobject(inttohex(temp,8)+'-'+inttohex(temp+size-1,8),tregion.create(temp,temp+size));
           end;
         end;
 
@@ -113,14 +114,14 @@ begin
             setlength(buf,length(buf)+1);
             setlength(buf[length(buf)-1],size);
             datafile.ReadBuffer(buf[length(buf)-1][0],size);
-            listbox1.items.addobject(inttohex(temp,8)+'-'+inttohex(temp+size,8),tregion.create(temp,temp+size));
+            listbox1.items.addobject(inttohex(temp,8)+'-'+inttohex(temp+size-1,8),tregion.create(temp,temp+size));
           end;
         end
         else
         begin
           datafile.Position:=0; //NO HEADER, this is a professional user, or someone who doesn't know what he's doing
           size:=datafile.size;
-          listbox1.items.addobject('00000000-'+inttohex(size,8),tregion.create(0,size));
+          listbox1.items.addobject('00000000-'+inttohex(size-1,8),tregion.create(0,size));
 
           setlength(buf,1);
           setlength(buf[0],size);
@@ -143,9 +144,10 @@ begin
     end;
 
   finally
+    if datafile<>nil then
+      datafile.Free;
+
     freemem(check);
-
-
   end;
 
   listbox1.itemindex:=0;
@@ -165,7 +167,7 @@ begin
     setlength(buf[i],0);
   setlength(buf,0);
 
-  datafile.Free;
+
 
   action:=cafree;
 end;

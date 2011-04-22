@@ -114,6 +114,9 @@ object frmStringMap: TfrmStringMap
         Caption = 'String'
         Width = 150
       end>
+    HideSelection = False
+    ReadOnly = True
+    RowSelect = True
     TabOrder = 1
     ViewStyle = vsReport
     OnDblClick = ListView1DblClick

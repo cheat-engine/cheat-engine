@@ -61,7 +61,6 @@ object MemoryBrowser: TMemoryBrowser
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      OnClick = Panel5Click
     end
     object RegisterView: TPanel
       Left = 512

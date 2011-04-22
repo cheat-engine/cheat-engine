@@ -145,11 +145,12 @@ splitDisassembledString(disassembledstring): Returns 4 strings. The address, byt
 
 
 
-undefined property functions
+undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)
 getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
 setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
 getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
 
+getMemoryViewForm() : Returns the memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getAddressList() : Returns the cheat table addresslist object
 getFreezeTimer()
@@ -179,6 +180,7 @@ object_destroy(object) : Destroys the object (basically everything inherits from
 Component Class: (Inheritance: Object)
 component_getComponentCount(Component) : Returns the number of components attached to his component
 component_getComponent(Component, index) : Returns the specific component
+component_findComponentByName(component, name) : Returns the component with this name
 component_getName(Component) : Return the name
 component_setName(Component, newname) : Changes the name
 component_getTag(Component) : Sets an integer value. You can use this for ID's

@@ -358,7 +358,6 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -549,6 +548,7 @@ object MainForm: TMainForm
         AllowGrayed = True
         Caption = 'Writable'
         Checked = True
+        PopupMenu = pmScanRegion
         State = cbChecked
         TabOrder = 7
       end
@@ -560,6 +560,7 @@ object MainForm: TMainForm
         Width = 73
         AllowGrayed = True
         Caption = 'Executable'
+        PopupMenu = pmScanRegion
         State = cbGrayed
         TabOrder = 8
       end
@@ -571,6 +572,7 @@ object MainForm: TMainForm
         Width = 83
         AllowGrayed = True
         Caption = 'CopyOnWrite'
+        PopupMenu = pmScanRegion
         TabOrder = 9
       end
     end
@@ -1956,6 +1958,18 @@ object MainForm: TMainForm
     object miResetRange: TMenuItem
       Caption = 'Reset range'
       OnClick = miResetRangeClick
+    end
+  end
+  object pmScanRegion: TPopupMenu
+    left = 352
+    top = 232
+    object miPresetAll: TMenuItem
+      Caption = 'Preset: Scan all memory'
+      OnClick = miPresetAllClick
+    end
+    object miPresetWritable: TMenuItem
+      Caption = 'Preset: Scan writable memory'
+      OnClick = miPresetWritableClick
     end
   end
 end

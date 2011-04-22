@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, disassemblerviewunit, disassemblerviewlinesunit;
+  StdCtrls, Menus, disassemblerviewunit, disassemblerviewlinesunit;
 
 type
 
@@ -24,6 +24,8 @@ type
     lblNormal: TLabel;
     lblSymbol: TLabel;
     lblHex: TLabel;
+    miRestoreToDefaults: TMenuItem;
+    pmColors: TPopupMenu;
     procedure btnFontClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbColorGroupChange(Sender: TObject);
@@ -34,6 +36,7 @@ type
     procedure lblNormalClick(Sender: TObject);
     procedure lblRegisterClick(Sender: TObject);
     procedure lblSymbolClick(Sender: TObject);
+    procedure miRestoreToDefaultsClick(Sender: TObject);
   private
     { private declarations }
     oldstate: TDisassemblerViewColorsState;
@@ -47,6 +50,8 @@ type
 implementation
 
 { TfrmMemviewPreferences }
+
+uses MemoryBrowserFormUnit;
 
 resourcestring
   rsBackgroundColor = 'Background color';
@@ -119,6 +124,23 @@ begin
   colordialog1.Title:=rsSymbolColor;
   if colordialog1.execute then
     lblSymbol.font.color:=colordialog1.Color;
+end;
+
+procedure TfrmMemviewPreferences.miRestoreToDefaultsClick(Sender: TObject);
+begin
+  //restore to defaults
+  MemoryBrowser.disassemblerview.getDefaultColors(colors);
+  groupbox1.Color:=colors[oldstate].backgroundcolor;
+  lblnormal.font.color:=colors[oldstate].normalcolor;
+  lblRegister.font.color:=colors[oldstate].registercolor;
+  lblSymbol.font.color:=colors[oldstate].symbolcolor;
+  lblHex.Font.color:=colors[oldstate].hexcolor;
+
+  fontdialog1.Font.Name:=MemoryBrowser.Font.name; //parent fontname and size
+  fontdialog1.font.Size:=MemoryBrowser.Font.size;
+  btnFont.Caption:=fontdialog1.Font.Name+' '+inttostr(fontdialog1.Font.Size);
+
+  applyfont;
 end;
 
 procedure TfrmMemviewPreferences.btnFontClick(Sender: TObject);

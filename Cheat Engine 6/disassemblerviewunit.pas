@@ -112,14 +112,19 @@ type TDisassemblerview=class(TPanel)
     procedure setheaderWidth(headerid: integer; size: integer);
 
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
-    property PopupMenu: TPopupMenu read getPopupMenu write SetPopupMenu;
-    property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
-    property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
-    property TopAddress: ptrUint read fTopAddress write setTopAddress;
-    property ShowJumplines: boolean read fShowJumplines write setJumpLines;
-    property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
+
+    procedure getDefaultColors(var c: Tdisassemblerviewcolors);
+
+
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
+  published
+    property ShowJumplines: boolean read fShowJumplines write setJumpLines;
+    property ShowJumplineState: TShowJumplineState read fShowjumplinestate write setJumplineState;
+    property TopAddress: ptrUint read fTopAddress write setTopAddress;
+    property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
+    property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
+    property PopupMenu: TPopupMenu read getPopupMenu write SetPopupMenu;
 end;
 
 
@@ -982,48 +987,53 @@ begin
   self.OnMouseWheel:=mousescroll;
 
 
-  //setup the default colors:
-  self.colors[csNormal].backgroundcolor:=clBtnFace;
-  self.colors[csNormal].normalcolor:=clWindowText;
-  self.colors[csNormal].registercolor:=clRed;
-  self.colors[csNormal].symbolcolor:=clGreen;
-  self.colors[csNormal].hexcolor:=clBlue;
+  getDefaultColors(colors);
 
-  self.colors[csHighlighted].backgroundcolor:=clHighlight;
-  self.colors[csHighlighted].normalcolor:=clHighlightText;
-  self.colors[csHighlighted].registercolor:=clRed;
-  self.colors[csHighlighted].symbolcolor:=clLime;
-  self.colors[csHighlighted].hexcolor:=clYellow;
-
-  self.colors[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
-  self.colors[csSecondaryHighlighted].normalcolor:=clHighlightText;
-  self.colors[csSecondaryHighlighted].registercolor:=clRed;
-  self.colors[csSecondaryHighlighted].symbolcolor:=clLime;
-  self.colors[csSecondaryHighlighted].hexcolor:=clYellow;
-
-  self.colors[csBreakpoint].backgroundcolor:=clRed;
-  self.colors[csBreakpoint].normalcolor:=clBlack;
-  self.colors[csBreakpoint].registercolor:=clGreen;
-  self.colors[csBreakpoint].symbolcolor:=clLime;
-  self.colors[csBreakpoint].hexcolor:=clBlue;
-
-  self.colors[csHighlightedbreakpoint].backgroundcolor:=clGreen;
-  self.colors[csHighlightedbreakpoint].normalcolor:=clWhite;
-  self.colors[csHighlightedbreakpoint].registercolor:=clRed;
-  self.colors[csHighlightedbreakpoint].symbolcolor:=clLime;
-  self.colors[csHighlightedbreakpoint].hexcolor:=clBlue;
-
-  self.colors[csSecondaryHighlightedbreakpoint].backgroundcolor:=clGreen;
-  self.colors[csSecondaryHighlightedbreakpoint].normalcolor:=clWhite;
-  self.colors[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
-  self.colors[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
-  self.colors[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
 
   scrollbox.AutoSize:=false;
   scrollbox.AutoScroll:=false;
 
 end;
 
+procedure TDisassemblerview.getDefaultColors(var c: Tdisassemblerviewcolors);
+begin
+  //setup the default colors:
+  c[csNormal].backgroundcolor:=clBtnFace;
+  c[csNormal].normalcolor:=clWindowText;
+  c[csNormal].registercolor:=clRed;
+  c[csNormal].symbolcolor:=clGreen;
+  c[csNormal].hexcolor:=clBlue;
+
+  c[csHighlighted].backgroundcolor:=clHighlight;
+  c[csHighlighted].normalcolor:=clHighlightText;
+  c[csHighlighted].registercolor:=clRed;
+  c[csHighlighted].symbolcolor:=clLime;
+  c[csHighlighted].hexcolor:=clYellow;
+
+  c[csSecondaryHighlighted].backgroundcolor:=clGradientActiveCaption;
+  c[csSecondaryHighlighted].normalcolor:=clHighlightText;
+  c[csSecondaryHighlighted].registercolor:=clRed;
+  c[csSecondaryHighlighted].symbolcolor:=clLime;
+  c[csSecondaryHighlighted].hexcolor:=clYellow;
+
+  c[csBreakpoint].backgroundcolor:=clRed;
+  c[csBreakpoint].normalcolor:=clBlack;
+  c[csBreakpoint].registercolor:=clGreen;
+  c[csBreakpoint].symbolcolor:=clLime;
+  c[csBreakpoint].hexcolor:=clBlue;
+
+  c[csHighlightedbreakpoint].backgroundcolor:=clGreen;
+  c[csHighlightedbreakpoint].normalcolor:=clWhite;
+  c[csHighlightedbreakpoint].registercolor:=clRed;
+  c[csHighlightedbreakpoint].symbolcolor:=clLime;
+  c[csHighlightedbreakpoint].hexcolor:=clBlue;
+
+  c[csSecondaryHighlightedbreakpoint].backgroundcolor:=clGreen;
+  c[csSecondaryHighlightedbreakpoint].normalcolor:=clWhite;
+  c[csSecondaryHighlightedbreakpoint].registercolor:=clRed;
+  c[csSecondaryHighlightedbreakpoint].symbolcolor:=clLime;
+  c[csSecondaryHighlightedbreakpoint].hexcolor:=clBlue;
+end;
 
 
 end.

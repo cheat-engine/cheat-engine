@@ -85,11 +85,15 @@ var x: ptrUint;
     d,y: string;
     found: boolean;
 
+    maxaddress: ptruint;
 
 begin
   x:=startaddress;
-  while not terminated and (x<$fffffff0) do
+  maxaddress:=startaddress;
+  while not terminated and (maxaddress>=startaddress) do
   begin
+    maxaddress:=startaddress;
+
     currentaddress:=x;
     if (x mod 4096) = 0 then
     begin

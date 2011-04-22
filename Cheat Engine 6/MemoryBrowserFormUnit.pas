@@ -886,7 +886,7 @@ end;
 procedure TMemoryBrowser.MenuItem10Click(Sender: TObject);
 begin
   if frmStringMap=nil then
-    frmStringMap:=TfrmStringMap.Create(nil);
+    frmStringMap:=TfrmStringMap.Create(application);
 
   frmStringMap.show;
 end;
@@ -1331,6 +1331,7 @@ begin
   disassemblerview.OnKeyDown:=FControl1keydown;
   disassemblerview.OnDblClick:=disassemblerviewDblClick;
   disassemblerview.TopAddress:=$00400000;
+  disassemblerview.name:='DisassemblerView';
 
   //save to the registry
   reg:=Tregistry.Create;

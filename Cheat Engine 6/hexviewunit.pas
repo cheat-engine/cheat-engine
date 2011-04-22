@@ -105,6 +105,10 @@ type
 
     function CalculateGradientColor(Percentage: single; MaxColor, MinColor: TColor): TColor;
     procedure setBytesPerSeperator(b: integer);
+    function gethasSelection: boolean;
+
+    function getSelectionStart: ptruint;
+    function getSelectionStop: ptruint;
 
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -130,16 +134,21 @@ type
     function isLocked: boolean;
     function isShowingDifference: boolean;
 
-    function hasSelection: boolean;
+
 
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
 
 
-    property address: ptrUint read fAddress write setAddress;
+
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property history: TStack read backlist;
+  published
+    property address: ptrUint read fAddress write setAddress;
+    property hasSelection: boolean read gethasSelection;
+    property selectionStart: ptruint read getSelectionStart;
+    property selectionStop: ptruint read getSelectionStop;
   end;
 
 implementation
@@ -170,7 +179,7 @@ resourcestring
   rsModule = 'Module';
   rsAddress = 'address';
 
-function THexview.hasSelection: boolean;
+function THexview.gethasSelection: boolean;
 begin
   result:=fhasSelection or isEditing;
 end;
@@ -633,11 +642,20 @@ begin
   end;
 end;
 
+function THexView.GetSelectionStart: ptruint;
+begin
+  result:=MinX(selected,selected2);
+end;
+
+function THexView.GetSelectionStop: ptruint;
+begin
+  result:=MaxX(selected,selected2);
+end;
 
 procedure THexView.GetSelectionRange(var start: ptruint; var stop: ptruint);
 begin
-  start:=MinX(selected,selected2);
-  stop:=MaxX(selected,selected2);
+  start:=GetSelectionStart;
+  stop:=GetSelectionStop;
 end;
 
 procedure THexView.CopySelectionToClipboard;

@@ -316,6 +316,10 @@ var n:  TAvgLvlTreeNode;
   i: integer;
   t,p: Pstringdata;
 begin
+  isfillinglist:=false;
+
+  listview1.Clear;
+
   if scanner<>nil then
   begin
     scanner.Terminate;
@@ -343,7 +347,14 @@ begin
     bma:=nil;
   end;
 
+  if regex<>nil then
+  begin
+    regex.free;
+    regex:=nil;
+  end;
 end;
+
+
 
 procedure TfrmStringMap.btnScanClick(Sender: TObject);
 var mapIdType: TMapIdType;
@@ -386,7 +397,10 @@ begin
         regflags:=[ref_caseinsensitive];
 
       regex:=GenerateRegExprEngine(pchar(edtRegExp.Text), regflags);
-    end;
+    end
+    else
+      regex:=nil;
+
     btnScan.caption:=rsStop;
 
     scanner:=TStringScan.create(false, progressbar1, stringtree, bma, regex, cbMustBeStart.checked);

@@ -1,13 +1,14 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 561
-  Height = 256
-  Top = 380
+  Left = 628
+  Height = 245
+  Top = 374
   Width = 193
   Caption = 'Disassembler Preferences'
-  ClientHeight = 256
+  ClientHeight = 245
   ClientWidth = 193
   OnCreate = FormCreate
   OnShow = FormShow
+  PopupMenu = pmColors
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object btnFont: TButton
@@ -42,12 +43,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object GroupBox1: TGroupBox
     Cursor = crHandPoint
     Left = 4
-    Height = 165
+    Height = 148
     Top = 56
     Width = 181
     Anchors = [akTop, akLeft, akRight, akBottom]
     Caption = 'Normal'
-    ClientHeight = 147
+    ClientHeight = 130
     ClientWidth = 177
     TabOrder = 2
     OnClick = GroupBox1Click
@@ -95,7 +96,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object Button2: TButton
     Left = 16
     Height = 26
-    Top = 226
+    Top = 215
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'Apply'
@@ -106,7 +107,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object Button3: TButton
     Left = 96
     Height = 26
-    Top = 226
+    Top = 215
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
@@ -153,5 +154,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     PreviewText = 'mov'
     left = 88
     top = 8
+  end
+  object pmColors: TPopupMenu
+    left = 32
+    top = 96
+    object miRestoreToDefaults: TMenuItem
+      Caption = 'Restore to defaults'
+      OnClick = miRestoreToDefaultsClick
+    end
   end
 end

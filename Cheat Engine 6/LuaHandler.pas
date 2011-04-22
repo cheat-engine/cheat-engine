@@ -35,7 +35,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu;
+  LuaPicture, LuaMenu, MemoryBrowserFormUnit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -1918,6 +1918,12 @@ begin
 
     if pid<>0 then
       ce_openProcess(pid);
+
+    if (ProcessHandle<>0) and (processid=pid) then
+    begin
+      lua_pushboolean(L, true);
+      result:=1;
+    end;
 
   end else lua_pop(L, parameters);
 end;
@@ -4158,6 +4164,12 @@ end;
 
 
 
+function getMemoryViewForm_fromLua(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  lua_pushlightuserdata(l, MemoryBrowser);
+end;
 
 function getMainForm_fromLua(L: PLua_state): integer; cdecl;
 begin
@@ -4261,6 +4273,8 @@ begin
   end;
 end;
 
+
+
 function component_getComponentCount_fromLua(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
@@ -4273,6 +4287,24 @@ begin
     lua_pop(L, lua_gettop(l));
 
     lua_pushinteger(L, c.ComponentCount);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function component_findComponentByName_fromLua(L: PLua_state): integer; cdecl;
+var c: TComponent;
+  n: string;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    c:=lua_touserdata(L, -2);
+    n:=Lua_ToString(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, c.FindComponent(n));
     result:=1;
   end else lua_pop(L, lua_gettop(l));
 end;
@@ -7513,7 +7545,7 @@ function getCheatEngineDir_fromlua(L: PLua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(l));
   lua_pushstring(L, CheatEngineDir);
-  result:=0;
+  result:=1;
 end;
 
 function disassemble_fromLua(L: PLua_State): integer; cdecl;
@@ -7693,6 +7725,7 @@ begin
 
     lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount_fromLua);
     lua_register(LuaVM, 'component_getComponent', component_getComponent_fromLua);
+    lua_register(LuaVM, 'component_findComponentByName', component_findComponentByName_fromLua);
     lua_register(LuaVM, 'component_getName', component_getName_fromLua);
     lua_register(LuaVM, 'component_setName', component_setName_fromLua);
     lua_register(LuaVM, 'component_getTag', component_getTag_fromLua);
@@ -7894,7 +7927,7 @@ begin
 
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute_fromLua);
 
-
+    Lua_register(LuaVM, 'getMemoryViewForm', getMainForm_fromLua);
     Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);
     Lua_register(LuaVM, 'getAddressList', getAddressList_fromLua);
     Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer_fromLua);

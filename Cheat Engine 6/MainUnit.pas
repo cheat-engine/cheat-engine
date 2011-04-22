@@ -192,10 +192,12 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
+    miPresetWritable: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    miPresetAll: TMenuItem;
     miAddFile: TMenuItem;
     MenuItem9: TMenuItem;
     miResyncFormsWithLua: TMenuItem;
@@ -227,6 +229,7 @@ type
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
+    pmScanRegion: TPopupMenu;
     rbFsmAligned: TRadioButton;
     rbfsmLastDigts: TRadioButton;
     SettingsButton: TSpeedButton;
@@ -378,8 +381,10 @@ type
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miPresetAllClick(Sender: TObject);
     procedure miAddFileClick(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
+    procedure miPresetWritableClick(Sender: TObject);
     procedure miResyncFormsWithLuaClick(Sender: TObject);
     procedure miCreateLuaFormClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
@@ -2357,6 +2362,13 @@ begin
   frmLuaTableScript.show;
 end;
 
+procedure TMainForm.miPresetAllClick(Sender: TObject);
+begin
+  cbWritable.State:=cbGrayed;
+  cbCaseSensitive.state:=cbGrayed;
+  cbExecutable.state:=cbGrayed;
+end;
+
 procedure TMainForm.miAddFileClick(Sender: TObject);
 var f: TOpendialog;
 
@@ -2397,6 +2409,13 @@ begin
   frmTrainerGenerator.show;
 
 
+end;
+
+procedure TMainForm.miPresetWritableClick(Sender: TObject);
+begin
+  cbWritable.State:=cbchecked;
+  cbCaseSensitive.state:=cbGrayed;
+  cbExecutable.state:=cbGrayed;
 end;
 
 procedure TMainForm.miResyncFormsWithLuaClick(Sender: TObject);
@@ -6398,7 +6417,7 @@ var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-
+  if virtualfreeex(processhandle, pointer($400000), 4096, MEM_DECOMMIT) then showmessage('yes') else showmessage('no');
 
 
 end;
