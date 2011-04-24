@@ -7778,9 +7778,9 @@ begin
     lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates_fromLua);
     lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates_fromLua);
     lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted_fromLua);
-    lua_register(LuaVM, 'stringlist_getSorted', stringlist_setSorted_fromLua);
+    lua_register(LuaVM, 'stringlist_setSorted', stringlist_setSorted_fromLua);
     lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive_fromLua);
-    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_setCaseSensitive_fromLua);
+    lua_register(LuaVM, 'stringlist_setCaseSensitive', stringlist_setCaseSensitive_fromLua);
 
     lua_register(LuaVM, 'createForm', createForm_fromLua);
     lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
