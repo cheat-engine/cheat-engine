@@ -51,7 +51,7 @@ type TMemRecExtraData=record
 
 
 type
-  TActivateEvent=function (sender: TObject; before: boolean): boolean of object;
+  TActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
   TMemoryRecordHotkey=class;
   TMemoryRecord=class
   private
@@ -1007,10 +1007,24 @@ var f: string;
     i: integer;
 
 begin
+  //6.0 compatibility
   if (state) then
     LUA_memrec_callback(self, '_memrec_'+description+'_activating')
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivating');
+
+  //6.1+
+  if state then
+  begin
+    //activating , before
+    if assigned(fonactivate) then
+      if not fonactivate(self, true, fActive) then exit; //do not activate if it returns false
+  end
+  else
+  begin
+    if assigned(fondeactivate) then
+      if not fondeactivate(self, true, fActive) then exit;
+  end;
 
 
   if not isGroupHeader then
@@ -1075,14 +1089,28 @@ begin
   end;
 
 
+  //6.0 compat
   if state then
     LUA_memrec_callback(self, '_memrec_'+description+'_activated')
   else
     LUA_memrec_callback(self, '_memrec_'+description+'_deactivated');
 
+
+  //6.1+
+  if state then
+  begin
+    //activating , before
+    if assigned(fonactivate) then
+      if not fonactivate(self, false, factive) then exit; //do not activate if it returns false
+  end
+  else
+  begin
+    if assigned(fondeactivate) then
+      if not fondeactivate(self, false, factive) then exit;
+  end;
+
+
   SetVisibleChildrenState;
-
-
 
 end;
 
