@@ -1267,6 +1267,9 @@ begin
   end;
 
   hmodule:=loadlibrary(pchar(dllname));
+  if hmodule=0 then
+    exit;
+
 
   GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
   if not assigned(GetVersion) then
