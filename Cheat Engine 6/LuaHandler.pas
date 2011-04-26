@@ -1294,6 +1294,8 @@ var
   memrec: pointer;
   parameters: integer;
   address: pchar;
+
+  s: string;
   offsets: array of dword;
   i,j: integer;
 begin
@@ -1302,7 +1304,14 @@ begin
   if parameters>=2 then
   begin
     memrec:=lua_touserdata(L, (-parameters));
-    address:=lua.lua_tostring(L, (-parameters)+1);
+
+    if lua_isstring(L, (-parameters)+1) then
+      address:=lua.lua_tostring(L, (-parameters)+1)
+    else //convert it to a hexadecimal value first
+    begin
+      s:=inttohex(lua_tointeger(L, (-parameters)+1),8);
+      address:=pchar(s);
+    end;
 
     setlength(offsets,parameters-2);
     j:=0;

@@ -35,7 +35,7 @@ uses
 {$endif}
 
 procedure HandleParameters;
-{Keep in mind: Responsible for not making the mainfor visible}
+{Keep in mind: Responsible for not making the mainform visible}
 var i: integer;
   mainformvisible: boolean;
 begin
@@ -44,7 +44,7 @@ begin
 
     for i:=0 to Paramcount do
     begin
-      if (pos('.CETRAINER', paramstr(i))>0) or (pos('.CT', paramstr(i))>0) then
+      if (pos('.CETRAINER', uppercase(paramstr(i)))>0) or (pos('.CT', uppercase(paramstr(i)))>0) then
       begin
         mainformvisible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
         LoadTable(paramstr(i),false);
@@ -71,7 +71,6 @@ begin
 
       application.title:=tceform(mainform.luaforms[i]).Caption;
       application.icon:=tceform(mainform.luaforms[i]).Icon;
-     // TPopupwindow.create(tceform(mainform.luaforms[i]));
 
       break;
     end;
@@ -87,8 +86,6 @@ begin
 
   symhandlerInitialize;
 
- // LRSTranslator := TPoTranslator.Create(FindLocaleFileName('.po'));
-  //TranslateUnitResourceStrings('MainUnit',
   Application.ShowMainForm:=false;
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);

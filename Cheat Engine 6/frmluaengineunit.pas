@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Menus, ExtCtrls, luahandler,lua, lauxlib, lualib;
+  StdCtrls, Menus, ExtCtrls, luahandler, SynMemo, SynCompletion, SynEdit, lua,
+  lauxlib, lualib, LuaSyntax;
 
 type
 
@@ -21,7 +22,6 @@ type
     MenuItem6: TMenuItem;
     cbShowOnPrint: TMenuItem;
     mOutput: TMemo;
-    mScript: TMemo;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -30,7 +30,9 @@ type
     Panel2: TPanel;
     SaveDialog1: TSaveDialog;
     Splitter1: TSplitter;
+    mScript: TSynEdit;
     procedure btnExecuteClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -39,6 +41,7 @@ type
     { private declarations }
   public
     { public declarations }
+    synhighlighter: TSynLuaSyn;
   end; 
 
 var
@@ -113,6 +116,12 @@ begin
   finally
     luacs.Leave;
   end;
+end;
+
+procedure TfrmLuaEngine.FormCreate(Sender: TObject);
+begin
+  synhighlighter:=TSynLuaSyn.Create(self);
+  mscript.Highlighter:=synhighlighter;
 end;
 
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);

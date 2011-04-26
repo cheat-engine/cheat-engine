@@ -5208,9 +5208,11 @@ begin
     setactivewindow(lastactive);
   end;
 
-  autoattachlist.free;
+  freeandnil(autoattachlist);
 
-  if speedhack<>nil then speedhack.free;
+  if speedhack<>nil then
+    freeandnil(speedhack);
+
  // EExternalException
 end;
 
