@@ -10,6 +10,9 @@ uses
   Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs;
 
 type
+  TByteSelectEvent=procedure(sender: TObject; address: ptruint; address2: ptruint) of object;
+  TAddressChangeEvent=procedure(sender: TObject; address: ptruint) of object;
+
   THexRegion=(hrInvalid, hrByte, hrChar);
   TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
 
@@ -72,6 +75,11 @@ type
 
     backlist: TStack;
 
+    fOnByteSelect: TByteSelectEvent;
+    fonAddressChange: TAddressChangeEvent;
+
+    lastaddress: ptruint;
+    lastselection1, lastselection2: ptruint;
     procedure LoadMemoryRegion;
     function GetPageInfo(a: ptruint): PPageInfo;
 
@@ -144,11 +152,14 @@ type
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property history: TStack read backlist;
+    property onByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
+    property onAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
   published
     property address: ptrUint read fAddress write setAddress;
     property hasSelection: boolean read gethasSelection;
     property selectionStart: ptruint read getSelectionStart;
     property selectionStop: ptruint read getSelectionStop;
+
   end;
 
 implementation
@@ -1563,6 +1574,17 @@ begin
     mbcanvas.Repaint;
     lastupdate:=gettickcount;
   end;
+
+  if (lastaddress<>faddress) and assigned(fonAddressChange) then
+    fonAddressChange(self, faddress);
+
+  lastaddress:=fAddress;
+
+  if ((lastselection1<>selected) or (lastselection2<>selected2)) and assigned(fOnByteSelect) then
+    fOnByteSelect(self, selected, selected2);
+
+  lastselection1:=selected;
+  lastselection2:=selected2;
 end;
 
 procedure THexView.OnLostFocus(sender: TObject);

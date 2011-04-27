@@ -192,6 +192,7 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
+    miUndoValue: TMenuItem;
     miPresetWritable: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -405,6 +406,7 @@ type
     procedure miFreezePositiveClick(Sender: TObject);
     procedure miSaveScanresultsClick(Sender: TObject);
     procedure miShowAsBinaryClick(Sender: TObject);
+    procedure miUndoValueClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
@@ -1915,7 +1917,7 @@ var Address: ptrUint;
 
     ct: TCustomType;
     customname: string;
-    m: tmemoryrecord;
+    m: TMemoryRecord;
 begin
 
   //first check if this address is already in the list!
@@ -2147,6 +2149,7 @@ begin
         //yes, so keep the list
         //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
         wasActive:=false;
+
         for i := 0 to addresslist.count - 1 do
           if (addresslist[i].VarType = vtAutoAssembler) and (addresslist[i].active) then
           begin
@@ -3518,6 +3521,12 @@ procedure TMainForm.miShowAsBinaryClick(Sender: TObject);
 begin
   if (addresslist.selectedrecord<>nil) and (addresslist.selectedrecord.vartype=vtbinary) then
     addresslist.selectedrecord.extra.bitData.showasbinary:=not addresslist.selectedrecord.extra.bitData.showasbinary;
+end;
+
+procedure TMainForm.miUndoValueClick(Sender: TObject);
+begin
+  if (addresslist.selectedrecord<>nil) and (addresslist.selectedrecord.canUndo) then
+    addresslist.selectedrecord.UndoSetValue;
 end;
 
 procedure TMainForm.miZeroTerminateClick(Sender: TObject);
@@ -5010,6 +5019,7 @@ begin
 
   miChangeColor.Visible:=addresslist.selcount>0;
 
+  miUndoValue.Visible:=(addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.canUndo);
 end;
 
 procedure TMainForm.Unfreezealladdresses1Click(Sender: TObject);

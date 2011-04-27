@@ -35,7 +35,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit;
+  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7648,6 +7648,131 @@ begin
     lua_pop(L, parameters);
 end;
 
+function hexadecimalview_getTopAddress(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  hv: THexView;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    hv:=lua_touserdata(L, -1);
+    lua_pop(L, parameters);
+
+    result:=1;
+    lua_pushinteger(L, hv.address);
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+function hexadecimalview_setTopAddress(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  hv: THexView;
+  address: ptruint;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    hv:=lua_touserdata(L, -2);
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+    else
+      address:=lua_tointeger(L, -1);
+
+
+    lua_pop(L, parameters);
+
+    hv.address:=address;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+function hexadecimalview_onAddressChange(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  hexadecimalview: THexView;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    hexadecimalview:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(tmethod(hexadecimalview.onAddressChange));
+    hexadecimalview.onAddressChange:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      hexadecimalview.onAddressChange:=lc.AddressChangeEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      hexadecimalview.onAddressChange:=lc.AddressChangeEvent;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+end;
+
+function hexadecimalview_onByteSelect(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  hexadecimalview: THexView;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    hexadecimalview:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(tmethod(hexadecimalview.onByteSelect));
+    hexadecimalview.onByteSelect:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      hexadecimalview.onByteSelect:=lc.ByteSelectEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      hexadecimalview.onByteSelect:=lc.ByteSelectEvent;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+end;
+
+
 function disassemblerview_getSelectedAddress(L: PLua_State): integer; cdecl;
 var parameters: integer;
   dv: TDisassemblerview;
@@ -8161,11 +8286,11 @@ begin
     lua_register(LuaVM, 'disassemblerview_setSelectedAddress', disassemblerview_setSelectedAddress);
     lua_register(LuaVM, 'disassemblerview_onSelectionChange', disassemblerview_onSelectionChange);
 
-   { lua_register(LuaVM, 'hexadecimalview_getTopAddress', hexadecimalview_getTopAddress);
+    lua_register(LuaVM, 'hexadecimalview_getTopAddress', hexadecimalview_getTopAddress);
     lua_register(LuaVM, 'hexadecimalview_setTopAddress', hexadecimalview_setTopAddress);
     lua_register(LuaVM, 'hexadecimalview_onAddressChange', hexadecimalview_onAddressChange);
     lua_register(LuaVM, 'hexadecimalview_onByteSelect', hexadecimalview_onByteSelect);
-        }
+
 
     initializeLuaPicture;
     initializeLuaPen;

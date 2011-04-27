@@ -1407,6 +1407,12 @@ object MainForm: TMainForm
         ShortCut = 13
         OnClick = Value1Click
       end
+      object miUndoValue: TMenuItem
+        Caption = 'Undo last edit'
+        ShortCut = 16474
+        Visible = False
+        OnClick = miUndoValueClick
+      end
       object Smarteditaddresses1: TMenuItem
         Caption = 'Smart edit address(es)'
         GroupIndex = 2

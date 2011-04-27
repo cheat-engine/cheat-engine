@@ -25,6 +25,9 @@ type
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function ActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
+      procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
+      procedure AddressChangeEvent(sender: TObject; address: ptruint);
+
       constructor create;
       destructor destroy; override;
   end;
@@ -160,13 +163,51 @@ begin
       lua_pushinteger(luavm, address2);
 
 
-      lua_pcall(Luavm, 3,0,0); //procedure(sender, before, currentstate)
+      lua_pcall(Luavm, 3,0,0); //procedure(sender, address, address2)
       lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
     luacs.leave;
   end;
 end;
+
+procedure TLuaCaller.ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
+begin
+  Luacs.Enter;
+  try
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushlightuserdata(Luavm, sender);
+      lua_pushinteger(luavm, address);
+      lua_pushinteger(luavm, address2);
+
+      lua_pcall(Luavm, 3,0,0); //procedure(sender, address, address2)
+      lua_pop(Luavm, lua_gettop(Luavm));
+    end;
+  finally
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.AddressChangeEvent(sender: TObject; address: ptruint);
+begin
+  Luacs.Enter;
+  try
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushlightuserdata(Luavm, sender);
+      lua_pushinteger(luavm, address);
+
+      lua_pcall(Luavm, 2,0,0); //procedure(sender, address)
+      lua_pop(Luavm, lua_gettop(Luavm));
+    end;
+  finally
+    luacs.leave;
+  end;
+end;
+
 
 end.
 

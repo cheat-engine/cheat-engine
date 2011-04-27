@@ -58,6 +58,8 @@ type
     fID: integer;
     FrozenValue : string;
     CurrentValue: string;
+    UndoValue   : string;  //keeps the last value before a manual edit
+
 
     UnreadablePointer: boolean;
     BaseAddress: ptrUint;
@@ -139,9 +141,12 @@ type
 
     function isPointer: boolean;
     procedure ApplyFreeze;
+
     function GetValue: string;
     procedure SetValue(v: string); overload;
     procedure SetValue(v: string; isFreezer: boolean); overload;
+    procedure UndoSetValue;
+    function canUndo: boolean;
     procedure increaseValue(value: string);
     procedure decreaseValue(value: string);
     function GetRealAddress: PtrUInt;
@@ -1359,6 +1364,22 @@ begin
   freemem(buf);
 end;
 
+function TMemoryrecord.canUndo: boolean;
+begin
+  result:=undovalue<>'';
+end;
+
+procedure TMemoryRecord.UndoSetValue;
+begin
+  if canUndo then
+  begin
+    try
+      setvalue(UndoValue, false);
+    except
+    end;
+  end;
+end;
+
 procedure TMemoryRecord.SetValue(v: string);
 begin
   SetValue(v,false);
@@ -1420,6 +1441,9 @@ begin
 
     end;
   end;
+
+  if (not isfreezer) then
+    undovalue:=GetValue;
 
 
   if (not isfreezer) and (moRecursiveSetValue in options) then //do this for all it's children

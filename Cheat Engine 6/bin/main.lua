@@ -150,7 +150,7 @@ getPropertyList(class) : Returns a stringlist object containing all the publishe
 setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
 getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
 
-getMemoryViewForm() : Returns the memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
+getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getAddressList() : Returns the cheat table addresslist object
 getFreezeTimer()
@@ -620,8 +620,8 @@ memoryrecord_getID(memoryrecord)
 memoryrecord_getHotkeyCount(memoryrecord)
 memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
 memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
-memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the activation to stop
-memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, before): boolean; If before is true returning false will cause the deactivation to stop
+memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the activation to stop
+memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the deactivation to stop
 memoryrecord_setDescription(te, description): sets the specified description for this entry
 memoryrecord_getDescription(te): gets the current description of this entry
 memoryrecord_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
@@ -647,6 +647,8 @@ addresslist_getMemoryRecordByDescription(addresslist, description): getTableEntr
 addresslist_getMemoryRecordByID(addresslist, ID)
 
 addresslist_createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+
+
 
 
 
@@ -815,4 +817,28 @@ dbk_executeKernelMemory(address, parameter) :
   Executes a routine from kernelmode (e.g a routine written there with auto assembler)
   parameter can be a value or an address. It's up to your code how it's handled
 
+
+
+Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+memoryview_getDisassemblerView(memoryView): Returns the visual disassembler object on the memoryview window
+memoryview_getHexadecimalView(memoryView): Returns the visual hexadecimal object on the memoryview window
+
+Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+  The visual disassembler used on the memory view window
+
+disassemblerview_getSelectedAddress(disassemblerview)
+disassemblerview_setSelectedAddress(disassemblerview, address)
+disassemblerview_onSelectionChange(disassemblerview, function): function(disassemblerview, address, address2)
+
+Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+  The visual hexadecimal object used on the memory view window
+
+hexadecimalview_getTopAddress(hexadecimalview)
+hexadecimalview_setTopAddress(hexadecimalview, address)
+hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimalview, address)
+hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+
 --]]
+
+
+
