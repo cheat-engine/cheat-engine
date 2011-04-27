@@ -28,6 +28,7 @@ uses jwawindows, windows, sysutils, LCLIntf,forms, classes, controls, comctrls, 
 
 type TShowjumplineState=(jlsAll, jlsOnlyWithinRange);     
 
+type TDisassemblerSelectionChangeEvent=procedure (sender: TObject; address, address2: ptruint) of object;
 
 
 type TDisassemblerview=class(TPanel)
@@ -49,6 +50,8 @@ type TDisassemblerview=class(TPanel)
 
     offscreenbitmap: TBitmap;
 
+    lastselected1, lastselected2: ptruint; //reminder for the update on what the previous address was
+
     fSelectedAddress: ptrUint; //normal selected address
     fSelectedAddress2: ptrUint; //secondary selected address (when using shift selecting)
     fTopAddress: ptrUint; //address to start disassembling from
@@ -60,6 +63,9 @@ type TDisassemblerview=class(TPanel)
 
     lastupdate: dword;
     destroyed: boolean;
+
+    fOnSelectionChange: TDisassemblerSelectionChangeEvent;
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -77,8 +83,8 @@ type TDisassemblerview=class(TPanel)
     procedure DisCanvasPaint(Sender: TObject);
     procedure DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure SetPopupMenu(p: Tpopupmenu);
-    function getPopupMenu: Tpopupmenu; //hidden on purpose
+  //  procedure SetPopupMenu(p: Tpopupmenu);
+  //  function getPopupMenu: Tpopupmenu; //hidden on purpose
     procedure setSelectedAddress(address: ptrUint);
     procedure setSelectedAddress2(address: ptrUint);
     procedure setTopAddress(address: ptrUint);
@@ -112,6 +118,7 @@ type TDisassemblerview=class(TPanel)
     procedure setheaderWidth(headerid: integer; size: integer);
 
     property Totalvisibledisassemblerlines: integer read fTotalvisibledisassemblerlines;
+    property OnSelectionChange: TDisassemblerSelectionChangeEvent read fOnSelectionChange write fOnSelectionChange;
 
     procedure getDefaultColors(var c: Tdisassemblerviewcolors);
 
@@ -239,6 +246,7 @@ begin
   end else fTopAddress:=address;
 
 
+
   update;
 end;
 
@@ -254,18 +262,21 @@ begin
 
 end;
 
-
+         {
 function TDisassemblerview.getPopupMenu: Tpopupmenu;
 begin
   if discanvas<>nil then
-    result:=discanvas.PopupMenu;
+    result:=discanvas.PopupMenu
+  else
+    result:=TControl(self).PopupMenu;
 end;
 
 procedure TDisassemblerview.SetPopupMenu(p: tpopupmenu);
 begin
+  TControl(self).PopupMenu:=p;
   if discanvas<>nil then
     discanvas.PopupMenu:=p;
-end;
+end;        }
 
 procedure TDisassemblerview.HandleSpecialKey(key: word);
 var i: integer;
@@ -622,7 +633,20 @@ begin
     if not isupdating then
       disCanvas.Repaint;
     lastupdate:=gettickcount;
+
   end;
+
+
+  if assigned(fOnSelectionChange) then
+  begin
+    //check if there has been a change since last update
+    if (lastselected1<>fSelectedAddress) or (lastselected2<>fselectedaddress2) then
+      fOnSelectionChange(self, fselectedaddress, fselectedaddress2);
+  end;
+
+  lastselected1:=fselectedaddress;
+  lastselected2:=fSelectedAddress2;
+
 
 
 end;
@@ -817,8 +841,11 @@ begin
 end;
 
 constructor TDisassemblerview.create(AOwner: TComponent);
+var emptymenu: TPopupMenu;
 begin
   inherited create(AOwner);
+
+  emptymenu:=TPopupMenu.create(self);
 
   tabstop:=true;
   DoubleBuffered:=true;
@@ -832,6 +859,7 @@ begin
     bevelInner:=bvLowered;
     height:=19;
     parent:=self;
+    PopupMenu:=emptymenu;
    // color:=clYellow;
   end;
 
@@ -844,6 +872,7 @@ begin
     autosize:=false;
     //transparent:=false;
     parent:=statusinfo;
+    PopupMenu:=emptymenu;
   end;
 
   disassembleDescription:=Tpanel.Create(self);
@@ -863,6 +892,7 @@ begin
     Font.Style:=[];
 
     parent:=self;
+    PopupMenu:=emptymenu;
 
 
   end;
@@ -900,6 +930,7 @@ begin
     scrollbox.OnResize:=scrollboxResize;
     parent:=self;
     OnEnter:=OnLostFocus;
+    //PopupMenu:=emptymenu;
     //OnMouseWheel:=MouseScroll;
   end;
 
@@ -918,6 +949,7 @@ begin
     onenter:=OnLostFocus;
     //header.Align:=alTop;
     header.ParentFont:=false;
+    PopupMenu:=emptymenu;
   end;
 
 

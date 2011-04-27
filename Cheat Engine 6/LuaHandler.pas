@@ -35,7 +35,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, MemoryBrowserFormUnit;
+  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -588,15 +588,16 @@ begin
 end;
 
 
-function sleep_fromlua(L: PLua_State): integer; cdecl;
+function sleep(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
 begin
   parameters:=lua_gettop(L);
 
   result:=0;
+
   if parameters=1 then
-    sleep(lua_tointeger(L, -1));
+    windows.sleep(lua_tointeger(L, -1));
 
   lua_pop(L, parameters);
 end;
@@ -614,7 +615,7 @@ begin
   result:=nil;
 end;
 
-function print_fromlua(L: PLua_State): integer; cdecl;
+function print(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   s: string;
@@ -644,7 +645,7 @@ begin
   result:=1;
 end;
 
-function showMessage_fromlua(L: PLua_State): integer; cdecl;
+function showMessage_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   s: string;
@@ -663,7 +664,7 @@ begin
   result:=0;
 end;
 
-function readInteger_fromlua(L: PLua_State): integer; cdecl;
+function readInteger(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -700,7 +701,7 @@ begin
   end;
 end;
 
-function readFloat_fromlua(L: PLua_State): integer; cdecl;
+function readFloat(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -734,7 +735,7 @@ begin
   end;
 end;
 
-function readDouble_fromlua(L: PLua_State): integer; cdecl;
+function readDouble(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -768,7 +769,7 @@ begin
   end;
 end;
 
-function readString_fromlua(L: PLua_State): integer; cdecl;
+function readString(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -815,7 +816,7 @@ begin
   end;
 end;
 
-function writeInteger_fromlua(L: PLua_State): integer; cdecl;
+function writeInteger(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -845,7 +846,7 @@ begin
   end;
 end;
 
-function writeFloat_fromlua(L: PLua_State): integer; cdecl;
+function writeFloat(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -877,7 +878,7 @@ begin
   end;
 end;
 
-function writeDouble_fromlua(L: PLua_State): integer; cdecl;
+function writeDouble(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -908,7 +909,7 @@ begin
   end;
 end;
 
-function writeString_fromlua(L: PLua_State): integer; cdecl;
+function writeString(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -939,7 +940,7 @@ begin
   end;
 end;
 
-function readBytes(processhandle: dword; L: PLua_State): integer; cdecl;
+function readBytesEx(processhandle: dword; L: PLua_State): integer; cdecl;
 var parameters: integer;
   addresstoread: ptruint;
   bytestoread: integer;
@@ -997,7 +998,7 @@ begin
 end;
 
 
-function writeBytes(processhandle: dword; L: PLua_State): integer;
+function writeBytesEx(processhandle: dword; L: PLua_State): integer;
 var
   parameters: integer;
   bytes: array of byte;
@@ -1060,27 +1061,27 @@ begin
   result:=1;  //return 1 value
 end;
 
-function writeBytes_fromlua(L: PLua_state): integer; cdecl;
+function writeBytes(L: PLua_state): integer; cdecl;
 begin
-  result:=writeBytes(processhandle, L);
+  result:=writeBytesEx(processhandle, L);
 end;
 
-function readBytes_fromlua(L: PLua_State): integer; cdecl;
+function readBytes(L: PLua_State): integer; cdecl;
 begin
-  result:=readBytes(processhandle, L);
+  result:=readBytesEx(processhandle, L);
 end;
 
-function writeBytesLocal_fromlua(L: PLua_state): integer; cdecl;
+function writeBytesLocal(L: PLua_state): integer; cdecl;
 begin
-  result:=writebytes(getcurrentprocess, L);
+  result:=writebytesEx(getcurrentprocess, L);
 end;
 
-function readBytesLocal_fromlua(L: PLua_State): integer; cdecl;
+function readBytesLocal(L: PLua_State): integer; cdecl;
 begin
-  result:=readbytes(getcurrentprocess, L);
+  result:=readbytesEx(getcurrentprocess, L);
 end;
 
-function autoAssemble_fromlua(L: PLua_State): integer; cdecl;
+function autoAssemble_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   code: TStringlist;
@@ -1108,7 +1109,7 @@ begin
   result:=1;
 end;
 
-function getPixel_fromlua(L: PLua_State): integer; cdecl;
+function getPixel(L: PLua_State): integer; cdecl;
 var t:TCanvas;
   parameters: integer;
   r: dword;
@@ -1140,7 +1141,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function getMousePos_fromlua(L: PLua_State): integer; cdecl;
+function getMousePos(L: PLua_State): integer; cdecl;
 var t:TCanvas;
   parameters: integer;
   cp: Tpoint;
@@ -1156,7 +1157,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function setMousePos_fromlua(L: PLua_State): integer; cdecl;
+function setMousePos(L: PLua_State): integer; cdecl;
 var t:TCanvas;
   parameters: integer;
   cp: Tpoint;
@@ -1173,7 +1174,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function createTableEntry_fromlua(L: PLua_State): integer; cdecl;
+function createTableEntry(L: PLua_State): integer; cdecl;
 var parameters: integer;
   r: pointer;
 begin
@@ -1184,7 +1185,7 @@ begin
   result:=1;
 end;
 
-function getTableEntry_fromlua(L: PLua_State): integer; cdecl;
+function getTableEntry(L: PLua_State): integer; cdecl;
 var parameters: integer;
   description: pchar;
   r: pointer;
@@ -1206,7 +1207,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_setDescription_fromlua(L: PLUA_State): integer; cdecl;
+function memoryrecord_setDescription(L: PLUA_State): integer; cdecl;
 var
   parameters: integer;
   description: pchar;
@@ -1228,7 +1229,7 @@ begin
 
 end;
 
-function memoryrecord_getDescription_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getDescription(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   d: pchar;
@@ -1248,7 +1249,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_getAddress_fromlua(L: PLua_state): integer; cdecl;
+function memoryrecord_getAddress(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   memrec: pointer;
@@ -1289,7 +1290,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_setAddress_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setAddress(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1328,7 +1329,7 @@ begin
     lua_pop(L, parameters);
 end;
 
-function memoryrecord_getType_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getType(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1346,7 +1347,7 @@ begin
   end;
 end;
 
-function memoryrecord_setType_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setType(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   vtype: integer;
@@ -1367,7 +1368,7 @@ begin
 
 end;
 
-function memoryrecord_getValue_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getValue(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1397,7 +1398,7 @@ begin
 end;
 
 
-function memoryrecord_setValue_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setValue(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1417,7 +1418,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_getScript_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_getScript(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1444,7 +1445,7 @@ begin
 end;
 
 
-function memoryrecord_setScript_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setScript(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1466,7 +1467,7 @@ begin
 end;
 
 
-function memoryrecord_isActive_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_isActive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   direction: integer;
@@ -1485,7 +1486,7 @@ begin
   else lua_pop(L, parameters);
 end;
 
-function memoryrecord_freeze_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_freeze(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1509,7 +1510,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_unfreeze_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_unfreeze(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1526,7 +1527,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_setColor_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_setColor(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1544,7 +1545,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_appendToEntry_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_appendToEntry(L: PLua_State): integer; cdecl;
 var
   memrec1,memrec2: pointer;
   parameters: integer;
@@ -1561,7 +1562,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_delete_fromlua(L: PLua_State): integer; cdecl;
+function memoryrecord_delete(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -1577,7 +1578,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_getID_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_getID(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1595,7 +1596,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_getHotkeyCount_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_getHotkeyCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1613,7 +1614,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_getHotkey_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_getHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1633,7 +1634,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_getHotkeyByID_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_getHotkeyByID(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1659,7 +1660,7 @@ begin
 end;
 
 
-function memoryrecord_onActivate_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_onActivate(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1702,7 +1703,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecord_onDeactivate_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecord_onDeactivate(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecord: Tmemoryrecord;
@@ -1746,7 +1747,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function isKeyPressed_fromLua(L: PLua_State): integer; cdecl;
+function isKeyPressed(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
   key: integer;
@@ -1788,7 +1789,7 @@ begin
 end;
 
 
-function keyDown_fromLua(L: PLua_State): integer; cdecl;
+function keyDown(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
   key: integer;
@@ -1819,7 +1820,7 @@ begin
 end;
 
 
-function keyUp_fromLua(L: PLua_State): integer; cdecl;
+function keyUp(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
   key: integer;
@@ -1849,7 +1850,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function doKeyPress_fromLua(L: PLua_State): integer; cdecl;
+function doKeyPress(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
   key: integer;
@@ -1883,7 +1884,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function getProcessIDFromProcessName_fromLua(L: PLua_state): integer; cdecl;
+function getProcessIDFromProcessName(L: PLua_state): integer; cdecl;
 var parameters: integer;
   pname: pchar;
   pid: dword;
@@ -1906,7 +1907,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function openProcess_fromLua(L: PLua_state): integer; cdecl;
+function openProcess(L: PLua_state): integer; cdecl;
 var parameters: integer;
   pname: pchar;
   pid: dword;
@@ -1937,21 +1938,21 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function beep_fromLua(L: PLua_state): integer; cdecl;
+function beep(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L)); //clear the stack
-  beep;
+  SysUtils.Beep;
   result:=0;
 end;
 
-function pause_fromLua(L: PLua_state): integer; cdecl;
+function pause(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L)); //clear the stack
   ce_pause;
   result:=0;
 end;
 
-function unpause_fromLua(L: PLua_state): integer; cdecl;
+function unpause(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L)); //clear the stack
   ce_unpause;
@@ -1959,7 +1960,7 @@ begin
 end;
 
 
-function debugProcess_fromLua(L: PLua_state): integer; cdecl;
+function debugProcess(L: PLua_state): integer; cdecl;
 var parameters: integer;
   debuggerinterface: integer;
 begin
@@ -1975,7 +1976,7 @@ begin
   ce_debugProcess(debuggerinterface);
 end;
 
-function debug_setBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   i,j: integer;
 
@@ -2026,7 +2027,7 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
-function debug_removeBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+function debug_removeBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
   e: boolean;
@@ -2054,7 +2055,7 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
-function debug_continueFromBreakpoint_fromLua(L: Plua_State): integer; cdecl;
+function debug_continueFromBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   method: TContinueOption;
 begin
@@ -2069,13 +2070,13 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
-function closeCE_fromLua(L: Plua_state): integer; cdecl;
+function closeCE(L: Plua_state): integer; cdecl;
 begin
   ce_closeCE;
   result:=0;
 end;
 
-function hideAllCEWindows_fromLua(L: Plua_State): integer; cdecl;
+function hideAllCEWindows(L: Plua_State): integer; cdecl;
 begin
   result:=0;
   lua_pop(L, lua_gettop(L)); //clear the stack
@@ -2083,7 +2084,7 @@ begin
   ce_hideAllCEWindows;
 end;
 
-function unhideMainCEwindow_fromLua(L: Plua_State): integer; cdecl;
+function unhideMainCEwindow(L: Plua_State): integer; cdecl;
 begin
   result:=0;
   lua_pop(L, lua_gettop(L)); //clear the stack
@@ -2091,7 +2092,7 @@ begin
   ce_unhideMainCEwindow;
 end;
 
-function createForm_fromLua(L: Plua_State): integer; cdecl;
+function createForm(L: Plua_State): integer; cdecl;
 var f: pointer;
   parameters: integer;
   visible: boolean;
@@ -2112,7 +2113,7 @@ begin
   result:=1;
 end;
 
-function form_onClose_fromLua(L: PLua_State): integer; cdecl;
+function form_onClose(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TCustomForm;
@@ -2155,7 +2156,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function form_centerScreen_fromLua(L: Plua_State): integer; cdecl;
+function form_centerScreen(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
 begin
@@ -2169,7 +2170,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function form_hide_fromLua(L: Plua_State): integer; cdecl;
+function form_hide(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
 begin
@@ -2183,7 +2184,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function form_showModal_fromLua(L: Plua_State): integer; cdecl;
+function form_showModal(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: tcustomform;
 begin
@@ -2201,7 +2202,7 @@ begin
 end;
 
 
-function form_isForegroundWindow_fromLua(L: Plua_State): integer; cdecl;
+function form_isForegroundWindow(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: tcustomform;
 begin
@@ -2219,7 +2220,7 @@ begin
 
 end;
 
-function form_getMenu_fromLua(L: PLua_State): integer; cdecl;
+function form_getMenu(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   form: TCustomForm;
@@ -2238,7 +2239,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function form_setMenu_fromLua(L: PLua_State): integer; cdecl;
+function form_setMenu(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   form: TCustomForm;
@@ -2259,7 +2260,7 @@ end;
 
 
 
-function form_show_fromLua(L: Plua_State): integer; cdecl;
+function form_show(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
 begin
@@ -2273,7 +2274,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function listView_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function listView_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TlistView;
@@ -2291,7 +2292,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function comboBox_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function comboBox_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TcomboBox;
@@ -2309,7 +2310,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listbox_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function listbox_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TListBox;
@@ -2330,7 +2331,7 @@ end;
 
 
 
-function graphicControl_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function graphicControl_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TGraphicControl;
@@ -2349,7 +2350,7 @@ begin
 end;
 
 
-function customControl_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function customControl_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TCustomControl;
@@ -2367,7 +2368,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function createPanel_fromLua(L: Plua_State): integer; cdecl;
+function createPanel(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2385,7 +2386,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createButton_fromLua(L: Plua_State): integer; cdecl;
+function createButton(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2403,7 +2404,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createGroupBox_fromLua(L: Plua_State): integer; cdecl;
+function createGroupBox(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2421,7 +2422,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createImage_fromLua(L: Plua_State): integer; cdecl;
+function createImage(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2439,7 +2440,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function image_loadImageFromFile_fromLua(L: Plua_State): integer; cdecl;
+function image_loadImageFromFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   i: pointer;
   filename: pchar;
@@ -2456,7 +2457,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function image_stretch_fromLua(L: Plua_State): integer; cdecl;
+function image_stretch(L: Plua_State): integer; cdecl;
 var parameters: integer;
   i: pointer;
   state: boolean;
@@ -2473,7 +2474,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function image_transparent_fromLua(L: Plua_State): integer; cdecl;
+function image_transparent(L: Plua_State): integer; cdecl;
 var parameters: integer;
   i: pointer;
   state: boolean;
@@ -2490,7 +2491,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function Image_getCanvas_fromLua(L: PLua_State): integer; cdecl;
+function Image_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TImage;
@@ -2508,7 +2509,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function Image_getPicture_fromLua(L: PLua_State): integer; cdecl;
+function Image_getPicture(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TCustomImage;
@@ -2527,7 +2528,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function createHotkey_fromLua(L: Plua_State): integer; cdecl;
+function createHotkey(L: Plua_State): integer; cdecl;
 var parameters: integer;
   h: TGenericHotkey;
   routine: string;
@@ -2560,7 +2561,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function GenericHotkey_setKeys_fromLua(L: PLua_State): integer; cdecl;
+function GenericHotkey_setKeys(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   GenericHotkey: TGenericHotkey;
@@ -2580,7 +2581,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function generichotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
+function generichotkey_onHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   GenericHotkey: TGenericHotkey;
@@ -2622,7 +2623,7 @@ begin
 end;
 
 
-function createLabel_fromLua(L: Plua_State): integer; cdecl;
+function createLabel(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2640,7 +2641,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createEdit_fromLua(L: Plua_State): integer; cdecl;
+function createEdit(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2658,7 +2659,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createMemo_fromLua(L: Plua_State): integer; cdecl;
+function createMemo(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2676,7 +2677,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createTimer_fromLua(L: Plua_State): integer; cdecl;
+function createTimer(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
 begin
@@ -2699,7 +2700,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function timer_setInterval_fromLua(L: Plua_State): integer; cdecl;
+function timer_setInterval(L: Plua_State): integer; cdecl;
 var parameters: integer;
   t: TCustomTimer;
 begin
@@ -2714,7 +2715,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function timer_onTimer_fromLua(L: PLua_State): integer; cdecl;
+function timer_onTimer(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   timer: TCustomTimer;
@@ -2759,7 +2760,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function timer_setEnabled_fromLua(L: PLua_State): integer; cdecl;
+function timer_setEnabled(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   Timer: TCustomTimer;
@@ -2776,7 +2777,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function timer_getEnabled_fromLua(L: PLua_State): integer; cdecl;
+function timer_getEnabled(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   Timer: TCustomTimer;
@@ -2795,7 +2796,7 @@ begin
 end;
 
 
-function control_setCaption_fromLua(L: Plua_State): integer; cdecl;
+function control_setCaption(L: Plua_State): integer; cdecl;
 var parameters: integer;
   c: pointer;
   caption: pchar;
@@ -2812,7 +2813,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function control_getCaption_fromLua(L: PLua_State): integer; cdecl;
+function control_getCaption(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   d: pchar;
@@ -2842,7 +2843,7 @@ begin
 end;
 
 
-function control_setPosition_fromLua(L: Plua_State): integer; cdecl;
+function control_setPosition(L: Plua_State): integer; cdecl;
 var parameters: integer;
   c: pointer;
   x,y: integer;
@@ -2862,7 +2863,7 @@ begin
 end;
 
 
-function control_getPosition_fromLua(L: PLua_State): integer; cdecl;
+function control_getPosition(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: pointer;
@@ -2885,7 +2886,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function control_setSize_fromLua(L: Plua_State): integer; cdecl;
+function control_setSize(L: Plua_State): integer; cdecl;
 var parameters: integer;
   c: pointer;
   width,height: integer;
@@ -2904,7 +2905,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function control_getSize_fromLua(L: PLua_State): integer; cdecl;
+function control_getSize(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: pointer;
@@ -2928,7 +2929,7 @@ begin
 end;
 
 
-function control_setAlign_fromLua(L: PLua_State): integer; cdecl;
+function control_setAlign(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: pointer;
@@ -2946,7 +2947,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getAlign_fromLua(L: PLua_State): integer; cdecl;
+function control_getAlign(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -2965,7 +2966,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function control_setEnabled_fromLua(L: PLua_State): integer; cdecl;
+function control_setEnabled(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -2982,7 +2983,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getEnabled_fromLua(L: PLua_State): integer; cdecl;
+function control_getEnabled(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3001,7 +3002,7 @@ begin
 end;
 
 
-function control_setVisible_fromLua(L: PLua_State): integer; cdecl;
+function control_setVisible(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3018,7 +3019,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getVisible_fromLua(L: PLua_State): integer; cdecl;
+function control_getVisible(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3036,7 +3037,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function control_setColor_fromLua(L: PLua_State): integer; cdecl;
+function control_setColor(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3053,7 +3054,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getColor_fromLua(L: PLua_State): integer; cdecl;
+function control_getColor(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3072,7 +3073,7 @@ begin
 end;
 
 
-function control_setParent_fromLua(L: PLua_State): integer; cdecl;
+function control_setParent(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3089,7 +3090,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getParent_fromLua(L: PLua_State): integer; cdecl;
+function control_getParent(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3107,7 +3108,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function control_setPopupMenu_fromLua(L: PLua_State): integer; cdecl;
+function control_setPopupMenu(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3124,7 +3125,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function control_getPopupMenu_fromLua(L: PLua_State): integer; cdecl;
+function control_getPopupMenu(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3142,7 +3143,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_getControlCount_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_getControlCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3160,7 +3161,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_getControl_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_getControl(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3180,7 +3181,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_onEnter_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_onEnter(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3221,7 +3222,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function wincontrol_onExit_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_onExit(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3262,7 +3263,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function wincontrol_canFocus_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_canFocus(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3280,7 +3281,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_focused_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_focused(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3298,7 +3299,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_setFocus_fromLua(L: PLua_State): integer; cdecl;
+function wincontrol_setFocus(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   wincontrol: TWinControl;
@@ -3314,7 +3315,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function strings_add_fromLua(L: Plua_State): integer; cdecl;
+function strings_add(L: Plua_State): integer; cdecl;
 var parameters: integer;
   strings: TStrings;
 begin
@@ -3329,7 +3330,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function strings_clear_fromLua(L: Plua_State): integer; cdecl;
+function strings_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   strings: TStrings;
 begin
@@ -3344,7 +3345,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function strings_remove_fromLua(L: Plua_State): integer; cdecl;  //compat with ce 6
+function strings_remove(L: Plua_State): integer; cdecl;  //compat with ce 6
 var parameters: integer;
   strings: TStrings;
   s: string;
@@ -3361,7 +3362,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function strings_getString_fromLua(L: PLua_State): integer; cdecl;
+function strings_getString(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3381,7 +3382,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function strings_setString_fromLua(L: PLua_State): integer; cdecl;
+function strings_setString(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3401,7 +3402,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function strings_delete_fromLua(L: Plua_State): integer; cdecl;
+function strings_delete(L: Plua_State): integer; cdecl;
 var parameters: integer;
   strings: TStrings;
   index: integer;
@@ -3419,7 +3420,7 @@ begin
 end;
 
 
-function strings_getText_fromLua(L: PLua_State): integer; cdecl;
+function strings_getText(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3437,7 +3438,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function strings_setText_fromLua(L: PLua_State): integer; cdecl;
+function strings_setText(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3457,7 +3458,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function strings_indexOf_fromLua(L: PLua_State): integer; cdecl;
+function strings_indexOf(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3477,7 +3478,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function strings_insert_fromLua(L: PLua_State): integer; cdecl;
+function strings_insert(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3498,7 +3499,7 @@ begin
 end;
 
 
-function strings_getCount_fromLua(L: PLua_State): integer; cdecl;
+function strings_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   strings: TStrings;
@@ -3516,7 +3517,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function strings_loadFromFile_fromLua(L: Plua_State): integer; cdecl;
+function strings_loadFromFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   strings: TStrings;
 begin
@@ -3534,7 +3535,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function strings_saveToFile_fromLua(L: Plua_State): integer; cdecl;
+function strings_saveToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   strings: TStrings;
 begin
@@ -3552,7 +3553,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function createStringlist_fromLua(L: Plua_State): integer; cdecl;
+function createStringlist(L: Plua_State): integer; cdecl;
 var
   stringlist: TStringlist;
 begin
@@ -3565,7 +3566,7 @@ begin
   result:=1;
 end;
 
-function stringlist_getDuplicates_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_getDuplicates(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3584,7 +3585,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function stringlist_setDuplicates_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_setDuplicates(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3602,7 +3603,7 @@ begin
 end;
 
 
-function stringlist_getSorted_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_getSorted(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3621,7 +3622,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function stringlist_setSorted_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_setSorted(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3638,7 +3639,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function stringlist_getCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_getCaseSensitive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3657,7 +3658,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function stringlist_setCaseSensitive_fromLua(L: PLua_State): integer; cdecl;
+function stringlist_setCaseSensitive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   stringlist: TStringlist;
@@ -3675,7 +3676,7 @@ begin
 end;
 
 
-function control_onClick_fromLua(L: PLua_State): integer; cdecl;
+function control_onClick(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TControl;
@@ -3718,7 +3719,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function object_destroy_fromLua(L: PLua_State): integer; cdecl;
+function object_destroy(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   component: pointer;
@@ -3736,7 +3737,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function messageDialog_fromLua(L: PLua_State): integer; cdecl;
+function messageDialog(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   message: pchar;
@@ -3783,7 +3784,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function speedhack_setSpeed_fromLua(L: PLua_State): integer; cdecl;
+function speedhack_setSpeed(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   speed: single;
@@ -3798,7 +3799,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function injectDLL_fromLua(L: PLua_State): integer; cdecl;
+function injectDLL(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   filename: pchar;
@@ -3824,7 +3825,7 @@ end;
 
 
 
-function getAutoAttachList_fromLua(L: Plua_State): integer; cdecl;
+function getAutoAttachList(L: Plua_State): integer; cdecl;
 var f: pointer;
   parameters: integer;
   visible: boolean;
@@ -3839,7 +3840,7 @@ end;
 
 
 
-function generateAPIHookScript_fromLua(L: PLua_state): integer; cdecl;
+function generateAPIHookScript_lua(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   address: string;
@@ -3875,7 +3876,7 @@ begin
 
 end;
 
-function createProcess_fromLua(L: PLua_state): integer; cdecl;
+function createProcess(L: PLua_state): integer; cdecl;
 var parameters: integer;
   path,params: string;
   debug: boolean;
@@ -3906,7 +3907,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function AOBScan_fromLua(L: PLua_state): integer; cdecl;
+function AOBScan(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   i,b: integer;
@@ -3978,14 +3979,14 @@ end;
 
 
 
-function getOpenedProcessID_fromLua(L: PLua_state): integer; cdecl;
+function getOpenedProcessID(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   result:=1;
   lua_pushinteger(L, processid);
 end;
 
-function getAddress_fromLua(L: PLua_state): integer; cdecl;
+function getAddress(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
 
@@ -4005,7 +4006,7 @@ begin
 
 end;
 
-function getNameFromAddress_fromLua(L: PLua_state): integer; cdecl;
+function getNameFromAddress(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
   address: ptruint;
@@ -4027,7 +4028,7 @@ begin
   else lua_pop(L, lua_gettop(l));
 end;
 
-function inModule_fromLua(L: PLua_state): integer; cdecl;
+function inModule(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
   address: ptruint;
@@ -4049,7 +4050,7 @@ begin
   else lua_pop(L, lua_gettop(l));
 end;
 
-function inSystemModule_fromLua(L: PLua_state): integer; cdecl;
+function inSystemModule(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
   address: ptruint;
@@ -4070,7 +4071,7 @@ begin
   end;
 end;
 
-function getCommonModuleList_fromLua(L: PLua_state): integer; cdecl;
+function getCommonModuleList(L: PLua_state): integer; cdecl;
 begin
   result:=0;
   lua_pop(L, lua_gettop(l));
@@ -4079,7 +4080,7 @@ begin
   result:=1;
 end;
 
-function reinitializeSymbolhandler_fromLua(L: PLua_state): integer; cdecl;
+function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   result:=0;
@@ -4087,7 +4088,7 @@ begin
   symhandler.waitforsymbolsloaded;
 end;
 
-function getPropertyList_fromLua(L: PLua_state): integer; cdecl;
+function getPropertyList(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
 begin
@@ -4103,7 +4104,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function getProperty_fromLua(L: PLua_state): integer; cdecl;
+function getProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
   p: string;
@@ -4136,7 +4137,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function setProperty_fromLua(L: PLua_state): integer; cdecl;
+function setProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
   p,v: string;
@@ -4155,7 +4156,7 @@ begin
   lua_pop(L, lua_gettop(l));
 end;
 
-function object_getClassName_fromLua(L: PLua_state): integer; cdecl;
+function object_getClassName(L: PLua_state): integer; cdecl;
 var c: TObject;
   parameters: integer;
 begin
@@ -4173,35 +4174,68 @@ end;
 
 
 
-function getMemoryViewForm_fromLua(L: PLua_state): integer; cdecl;
+function getMemoryViewForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
   lua_pushlightuserdata(l, MemoryBrowser);
 end;
 
-function getMainForm_fromLua(L: PLua_state): integer; cdecl;
+function getMainForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
   lua_pushlightuserdata(l, mainform);
 end;
 
-function getAddressList_fromLua(L: PLua_state): integer; cdecl;
+function memoryview_getDisassemblerView(L: PLua_state): integer; cdecl;
+var m: TMemoryBrowser;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    m:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, m.disassemblerview);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+function memoryview_getHexadecimalView(L: PLua_state): integer; cdecl;
+var m: TMemoryBrowser;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    m:=lua_touserdata(L, -1);
+    lua_pop(L, lua_gettop(l));
+
+    lua_pushlightuserdata(L, m.hexview);
+    result:=1;
+  end else lua_pop(L, lua_gettop(l));
+end;
+
+
+function getAddressList(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
   lua_pushlightuserdata(l, mainform.addresslist);
 end;
 
-function getFreezeTimer_fromLua(L: PLua_state): integer; cdecl;
+function getFreezeTimer(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
   lua_pushlightuserdata(l, mainform.FreezeTimer);
 end;
 
-function getUpdateTimer_fromLua(L: PLua_state): integer; cdecl;
+function getUpdateTimer(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
@@ -4210,7 +4244,7 @@ end;
 
 
 
-function inheritsFromObject_fromLua(L: PLua_state): integer; cdecl;
+function inheritsFromObject(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
@@ -4228,7 +4262,7 @@ begin
   end;
 end;
 
-function inheritsFromComponent_fromLua(L: PLua_state): integer; cdecl;
+function inheritsFromComponent(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
@@ -4246,7 +4280,7 @@ begin
   end;
 end;
 
-function inheritsFromControl_fromLua(L: PLua_state): integer; cdecl;
+function inheritsFromControl(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
@@ -4264,7 +4298,7 @@ begin
   end;
 end;
 
-function inheritsFromWinControl_fromLua(L: PLua_state): integer; cdecl;
+function inheritsFromWinControl(L: PLua_state): integer; cdecl;
 var x: TObject;
 begin
   result:=0;
@@ -4284,7 +4318,7 @@ end;
 
 
 
-function component_getComponentCount_fromLua(L: PLua_state): integer; cdecl;
+function component_getComponentCount(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
 begin
@@ -4300,7 +4334,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function component_findComponentByName_fromLua(L: PLua_state): integer; cdecl;
+function component_findComponentByName(L: PLua_state): integer; cdecl;
 var c: TComponent;
   n: string;
   parameters: integer;
@@ -4318,7 +4352,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function component_getComponent_fromLua(L: PLua_state): integer; cdecl;
+function component_getComponent(L: PLua_state): integer; cdecl;
 var c: TComponent;
   i: integer;
   parameters: integer;
@@ -4336,7 +4370,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function component_getName_fromLua(L: PLua_state): integer; cdecl;
+function component_getName(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
 begin
@@ -4352,7 +4386,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function component_setName_fromLua(L: PLua_state): integer; cdecl;
+function component_setName(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
 begin
@@ -4366,7 +4400,7 @@ begin
   lua_pop(L, lua_gettop(l));
 end;
 
-function component_getTag_fromLua(L: PLua_state): integer; cdecl;
+function component_getTag(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
 begin
@@ -4382,7 +4416,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function component_setTag_fromLua(L: PLua_state): integer; cdecl;
+function component_setTag(L: PLua_state): integer; cdecl;
 var c: TComponent;
   t: integer;
   parameters: integer;
@@ -4398,7 +4432,7 @@ begin
 end;
 
 
-function component_getOwner_fromLua(L: PLua_state): integer; cdecl;
+function component_getOwner(L: PLua_state): integer; cdecl;
 var c: TComponent;
   parameters: integer;
 begin
@@ -4414,7 +4448,7 @@ begin
   end else lua_pop(L, lua_gettop(l));
 end;
 
-function panel_getAlignment_fromLua(L: PLua_State): integer; cdecl;
+function panel_getAlignment(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4432,7 +4466,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function panel_setAlignment_fromLua(L: PLua_State): integer; cdecl;
+function panel_setAlignment(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4449,7 +4483,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function panel_getBevelInner_fromLua(L: PLua_State): integer; cdecl;
+function panel_getBevelInner(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4467,7 +4501,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function panel_setBevelInner_fromLua(L: PLua_State): integer; cdecl;
+function panel_setBevelInner(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4484,7 +4518,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function panel_getBevelOuter_fromLua(L: PLua_State): integer; cdecl;
+function panel_getBevelOuter(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4502,7 +4536,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function panel_setBevelOuter_fromLua(L: PLua_State): integer; cdecl;
+function panel_setBevelOuter(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4519,7 +4553,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function panel_getBevelWidth_fromLua(L: PLua_State): integer; cdecl;
+function panel_getBevelWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4537,7 +4571,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function panel_setBevelWidth_fromLua(L: PLua_State): integer; cdecl;
+function panel_setBevelWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4554,7 +4588,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function panel_getFullRepaint_fromLua(L: PLua_State): integer; cdecl;
+function panel_getFullRepaint(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4572,7 +4606,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function panel_setFullRepaint_fromLua(L: PLua_State): integer; cdecl;
+function panel_setFullRepaint(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   panel: Tcustompanel;
@@ -4589,7 +4623,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function edit_clear_fromLua(L: Plua_State): integer; cdecl;
+function edit_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4603,7 +4637,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_selectAll_fromLua(L: Plua_State): integer; cdecl;
+function edit_selectAll(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4617,7 +4651,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_clearSelection_fromLua(L: Plua_State): integer; cdecl;
+function edit_clearSelection(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4631,7 +4665,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_copyToClipboard_fromLua(L: Plua_State): integer; cdecl;
+function edit_copyToClipboard(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4645,7 +4679,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_cutToClipboard_fromLua(L: Plua_State): integer; cdecl;
+function edit_cutToClipboard(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4659,7 +4693,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_pasteFromClipboard_fromLua(L: Plua_State): integer; cdecl;
+function edit_pasteFromClipboard(L: Plua_State): integer; cdecl;
 var parameters: integer;
   e: tcustomedit;
 begin
@@ -4673,7 +4707,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function edit_onChange_fromLua(L: PLua_State): integer; cdecl;
+function edit_onChange(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TCustomEdit;
@@ -4714,7 +4748,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memo_append_fromLua(L: PLua_State): integer; cdecl;
+function memo_append(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: TCustomMemo;
@@ -4731,7 +4765,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memo_getLines_fromLua(L: PLua_State): integer; cdecl;
+function memo_getLines(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: TCustomMemo;
@@ -4749,7 +4783,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memo_getWordWrap_fromLua(L: PLua_State): integer; cdecl;
+function memo_getWordWrap(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4767,7 +4801,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memo_setWordWrap_fromLua(L: PLua_State): integer; cdecl;
+function memo_setWordWrap(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4784,7 +4818,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memo_getWantTabs_fromLua(L: PLua_State): integer; cdecl;
+function memo_getWantTabs(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4802,7 +4836,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memo_setWantTabs_fromLua(L: PLua_State): integer; cdecl;
+function memo_setWantTabs(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4819,7 +4853,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memo_getWantReturns_fromLua(L: PLua_State): integer; cdecl;
+function memo_getWantReturns(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4837,7 +4871,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memo_setWantReturns_fromLua(L: PLua_State): integer; cdecl;
+function memo_setWantReturns(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4854,7 +4888,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memo_getScrollbars_fromLua(L: PLua_State): integer; cdecl;
+function memo_getScrollbars(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4872,7 +4906,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memo_setScrollbars_fromLua(L: PLua_State): integer; cdecl;
+function memo_setScrollbars(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memo: Tcustommemo;
@@ -4889,7 +4923,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function button_getModalResult_fromLua(L: PLua_State): integer; cdecl;
+function button_getModalResult(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   button: Tcustombutton;
@@ -4907,7 +4941,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function button_setModalResult_fromLua(L: PLua_State): integer; cdecl;
+function button_setModalResult(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   button: Tcustombutton;
@@ -4926,7 +4960,7 @@ end;
 
 
 
-function createToggleBox_fromLua(L: Plua_State): integer; cdecl;
+function createToggleBox(L: Plua_State): integer; cdecl;
 var
   ToggleBox: TCEToggleBox;
   parameters: integer;
@@ -4951,7 +4985,7 @@ begin
   result:=1;
 end;
 
-function createCheckBox_fromLua(L: Plua_State): integer; cdecl;
+function createCheckBox(L: Plua_State): integer; cdecl;
 var
   CheckBox: TCECheckBox;
   parameters: integer;
@@ -4976,7 +5010,7 @@ begin
   result:=1;
 end;
 
-function checkbox_getAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
+function checkbox_getAllowGrayed(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   checkbox: Tcustomcheckbox;
@@ -4994,7 +5028,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function checkbox_setAllowGrayed_fromLua(L: PLua_State): integer; cdecl;
+function checkbox_setAllowGrayed(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   checkbox: Tcustomcheckbox;
@@ -5011,7 +5045,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function checkbox_getState_fromLua(L: PLua_State): integer; cdecl;
+function checkbox_getState(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   checkbox: Tcustomcheckbox;
@@ -5029,7 +5063,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function checkbox_setState_fromLua(L: PLua_State): integer; cdecl;
+function checkbox_setState(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   checkbox: Tcustomcheckbox;
@@ -5046,7 +5080,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function checkbox_onChange_fromLua(L: PLua_State): integer; cdecl;
+function checkbox_onChange(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TCustomCheckBox;
@@ -5089,7 +5123,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function createRadioGroup_fromLua(L: Plua_State): integer; cdecl;
+function createRadioGroup(L: Plua_State): integer; cdecl;
 var
   RadioGroup: TCERadioGroup;
   parameters: integer;
@@ -5114,7 +5148,7 @@ begin
   result:=1;
 end;
 
-function radiogroup_getRows_fromLua(L: PLua_State): integer; cdecl;
+function radiogroup_getRows(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   radiogroup: TCustomRadioGroup;
@@ -5132,7 +5166,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function radiogroup_getItems_fromLua(L: PLua_State): integer; cdecl;
+function radiogroup_getItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   radiogroup: TCustomRadioGroup;
@@ -5150,7 +5184,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function radiogroup_getColumns_fromLua(L: PLua_State): integer; cdecl;
+function radiogroup_getColumns(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   radiogroup: Tcustomradiogroup;
@@ -5168,7 +5202,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function radiogroup_setColumns_fromLua(L: PLua_State): integer; cdecl;
+function radiogroup_setColumns(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   radiogroup: Tcustomradiogroup;
@@ -5185,7 +5219,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function radiogroup_onClick_fromLua(L: PLua_State): integer; cdecl; //for some reason the radiogroup has it's own fonclick variable
+function radiogroup_onClick(L: PLua_State): integer; cdecl; //for some reason the radiogroup has it's own fonclick variable
 var
   parameters: integer;
   control: TCustomRadioGroup;
@@ -5228,7 +5262,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function createListBox_fromLua(L: Plua_State): integer; cdecl;
+function createListBox(L: Plua_State): integer; cdecl;
 var
   ListBox: TCEListBox;
   parameters: integer;
@@ -5253,7 +5287,7 @@ begin
   result:=1;
 end;
 
-function listbox_clear_fromLua(L: Plua_State): integer; cdecl;
+function listbox_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listbox: tcustomlistbox;
 begin
@@ -5268,7 +5302,7 @@ begin
 end;
 
 
-function listbox_getItems_fromLua(L: PLua_State): integer; cdecl;
+function listbox_getItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listbox: TCustomlistbox;
@@ -5286,7 +5320,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listbox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function listbox_getItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listbox: Tcustomlistbox;
@@ -5304,7 +5338,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listbox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function listbox_setItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listbox: Tcustomlistbox;
@@ -5322,7 +5356,7 @@ begin
 end;
 
 //combobox
-function createComboBox_fromLua(L: Plua_State): integer; cdecl;
+function createComboBox(L: Plua_State): integer; cdecl;
 var
   ComboBox: TCEComboBox;
   parameters: integer;
@@ -5347,7 +5381,7 @@ begin
   result:=1;
 end;
 
-function combobox_clear_fromLua(L: Plua_State): integer; cdecl;
+function combobox_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   combobox: tcustomcombobox;
 begin
@@ -5362,7 +5396,7 @@ begin
 end;
 
 
-function combobox_getItems_fromLua(L: PLua_State): integer; cdecl;
+function combobox_getItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   combobox: TCustomcombobox;
@@ -5380,7 +5414,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function combobox_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function combobox_getItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   combobox: Tcustomcombobox;
@@ -5398,7 +5432,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function combobox_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function combobox_setItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   combobox: Tcustomcombobox;
@@ -5416,7 +5450,7 @@ begin
 end;
 
 
-function createProgressBar_fromLua(L: Plua_State): integer; cdecl;
+function createProgressBar(L: Plua_State): integer; cdecl;
 var
   ProgressBar: TCEProgressBar;
   parameters: integer;
@@ -5441,7 +5475,7 @@ begin
   result:=1;
 end;
 
-function progressbar_stepIt_fromLua(L: Plua_State): integer; cdecl;
+function progressbar_stepIt(L: Plua_State): integer; cdecl;
 var parameters: integer;
     progressbar: TCustomProgressBar;
 begin
@@ -5455,7 +5489,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function progressbar_stepBy_fromLua(L: Plua_State): integer; cdecl;
+function progressbar_stepBy(L: Plua_State): integer; cdecl;
 var parameters: integer;
     progressbar: TCustomProgressBar;
 begin
@@ -5470,7 +5504,7 @@ begin
 end;
 
 
-function progressbar_getMax_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_getMax(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5488,7 +5522,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function progressbar_setMax_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_setMax(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5505,7 +5539,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function progressbar_getMin_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_getMin(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5523,7 +5557,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function progressbar_setMin_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_setMin(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5541,7 +5575,7 @@ begin
 end;
 
 
-function progressbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_getPosition(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5559,7 +5593,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function progressbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
+function progressbar_setPosition(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   progressbar: Tcustomprogressbar;
@@ -5577,7 +5611,7 @@ begin
 end;
 
 //trackbar
-function createTrackBar_fromLua(L: Plua_State): integer; cdecl;
+function createTrackBar(L: Plua_State): integer; cdecl;
 var
   TrackBar: TCETrackBar;
   parameters: integer;
@@ -5602,7 +5636,7 @@ begin
   result:=1;
 end;
 
-function trackbar_getMax_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_getMax(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5620,7 +5654,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function trackbar_setMax_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_setMax(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5637,7 +5671,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function trackbar_getMin_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_getMin(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5655,7 +5689,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function trackbar_setMin_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_setMin(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5673,7 +5707,7 @@ begin
 end;
 
 
-function trackbar_getPosition_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_getPosition(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5691,7 +5725,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function trackbar_setPosition_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_setPosition(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   trackbar: Tcustomtrackbar;
@@ -5708,7 +5742,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function trackbar_onChange_fromLua(L: PLua_State): integer; cdecl;
+function trackbar_onChange(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   control: TCustomTrackBar;
@@ -5749,7 +5783,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function listcolumn_setAutosize_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_setAutosize(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumns: TListColumn;
@@ -5767,7 +5801,7 @@ begin
 end;
 
 
-function listcolumn_getCaption_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_getCaption(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5785,7 +5819,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listcolumn_setCaption_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_setCaption(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5802,7 +5836,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function listcolumn_getMaxWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_getMaxWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5820,7 +5854,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listcolumn_setMaxWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_setMaxWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5837,7 +5871,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function listcolumn_getMinWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_getMinWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5855,7 +5889,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listcolumn_setMinWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_setMinWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5872,7 +5906,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function listcolumn_getWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_getWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5890,7 +5924,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listcolumn_setWidth_fromLua(L: PLua_State): integer; cdecl;
+function listcolumn_setWidth(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumn: Tlistcolumn;
@@ -5907,7 +5941,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function collection_clear_fromLua(L: Plua_State): integer; cdecl;
+function collection_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   collection: TCollection;
 begin
@@ -5921,7 +5955,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function collection_getCount_fromLua(L: PLua_State): integer; cdecl;
+function collection_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   collection: Tcollection;
@@ -5939,7 +5973,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function collection_delete_fromLua(L: Plua_State): integer; cdecl;
+function collection_delete(L: Plua_State): integer; cdecl;
 var parameters: integer;
   collection: Tcollection;
   index: integer;
@@ -5956,7 +5990,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function listcolumns_add_fromLua(L: PLua_State): integer; cdecl;
+function listcolumns_add(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumns: TListColumns;
@@ -5974,7 +6008,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listcolumns_getColumn_fromLua(L: PLua_State): integer; cdecl;
+function listcolumns_getColumn(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listcolumns: TListcolumns;
@@ -5994,7 +6028,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listitem_delete_fromLua(L: Plua_State): integer; cdecl;
+function listitem_delete(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listitem: Tlistitem;
 begin
@@ -6009,7 +6043,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function listitem_getCaption_fromLua(L: PLua_State): integer; cdecl;
+function listitem_getCaption(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listitem: Tlistitem;
@@ -6027,7 +6061,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listitem_setCaption_fromLua(L: PLua_State): integer; cdecl;
+function listitem_setCaption(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listitem: Tlistitem;
@@ -6044,7 +6078,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function listitem_getSubItems_fromLua(L: PLua_State): integer; cdecl;
+function listitem_getSubItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listitem: Tlistitem;
@@ -6062,7 +6096,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listitems_clear_fromLua(L: Plua_State): integer; cdecl;
+function listitems_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listitems: Tlistitems;
 begin
@@ -6076,7 +6110,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function listitems_getCount_fromLua(L: PLua_State): integer; cdecl;
+function listitems_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listitems: Tlistitems;
@@ -6094,7 +6128,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listitems_add_fromLua(L: PLua_State): integer; cdecl;
+function listitems_add(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listitems: Tlistitems;
@@ -6114,7 +6148,7 @@ end;
 
 
 //listview
-function createListView_fromLua(L: Plua_State): integer; cdecl;
+function createListView(L: Plua_State): integer; cdecl;
 var
   ListView: TCEListView;
   parameters: integer;
@@ -6139,7 +6173,7 @@ begin
   result:=1;
 end;
 
-function listview_clear_fromLua(L: Plua_State): integer; cdecl;
+function listview_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listview: Tcustomlistview;
 begin
@@ -6153,7 +6187,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function listview_getColumns_fromLua(L: PLua_State): integer; cdecl;
+function listview_getColumns(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listview: TCEListView;
@@ -6171,7 +6205,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listview_getItems_fromLua(L: PLua_State): integer; cdecl;
+function listview_getItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listview: TCustomListView;
@@ -6189,7 +6223,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listview_getItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function listview_getItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listview: Tcustomlistview;
@@ -6207,7 +6241,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listview_setItemIndex_fromLua(L: PLua_State): integer; cdecl;
+function listview_setItemIndex(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   listview: Tcustomlistview;
@@ -6224,7 +6258,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function opendialog_execute_fromLua(L: Plua_State): integer; cdecl;
+function opendialog_execute(L: Plua_State): integer; cdecl;
 var parameters: integer;
   opendialog: TOpenDialog;
   r: string;
@@ -6250,7 +6284,7 @@ begin
 end;
 
 
-function findTableFile_fromLua(L: Plua_State): integer; cdecl;
+function findTableFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: string;
   i: integer;
@@ -6277,7 +6311,7 @@ begin
 end;
 
 
-function tablefile_saveToFile_fromLua(L: Plua_State): integer; cdecl;
+function tablefile_saveToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
   f: string;
@@ -6295,7 +6329,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function tablefile_getData_fromLua(L: Plua_State): integer; cdecl;
+function tablefile_getData(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
 begin
@@ -6311,7 +6345,7 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
-function xmplayer_playXM_fromLua(L: Plua_State): integer; cdecl;
+function xmplayer_playXM(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
   f: string;
@@ -6333,7 +6367,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function xmplayer_pause_fromLua(L: Plua_State): integer; cdecl;
+function xmplayer_pause(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
   if xmplayer=nil then
@@ -6346,7 +6380,7 @@ begin
      xmplayer.pause;
 end;
 
-function xmplayer_resume_fromLua(L: Plua_State): integer; cdecl;
+function xmplayer_resume(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
   if xmplayer=nil then
@@ -6359,7 +6393,7 @@ begin
      xmplayer.resume;
 end;
 
-function xmplayer_stop_fromLua(L: Plua_State): integer; cdecl;
+function xmplayer_stop(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
   if xmplayer=nil then
@@ -6372,7 +6406,7 @@ begin
      xmplayer.stop;
 end;
 
-function xmplayer_isPlaying_fromLua(L: Plua_State): integer; cdecl;
+function xmplayer_isPlaying(L: Plua_State): integer; cdecl;
 var parameters: integer;
 begin
   if xmplayer=nil then
@@ -6388,7 +6422,7 @@ begin
   end;
 end;
 
-function readRegionFromFile_fromLua(L: Plua_State): integer; cdecl;
+function readRegionFromFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   filename: string;
   address: ptruint;
@@ -6428,7 +6462,7 @@ begin
 end;
 
 
-function writeRegionToFile_fromLua(L: Plua_State): integer; cdecl;
+function writeRegionToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   filename: string;
   address: ptruint;
@@ -6475,7 +6509,7 @@ begin
 end;
 
 
-function registerSymbol_fromLua(L: Plua_State): integer; cdecl;
+function registerSymbol(L: Plua_State): integer; cdecl;
 var parameters: integer;
   symbolname: string;
   address: string;
@@ -6497,7 +6531,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function unregisterSymbol_fromLua(L: Plua_State): integer; cdecl;
+function unregisterSymbol(L: Plua_State): integer; cdecl;
 var parameters: integer;
   symbolname: string;
 begin
@@ -6513,7 +6547,7 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
-function resetLuaState_fromLua(L: Plua_State): integer; cdecl;
+function resetLuaState(L: Plua_State): integer; cdecl;
 begin
   result:=0;
   lua_pop(L, lua_gettop(L));
@@ -6521,7 +6555,7 @@ begin
 
 end;
 
-function cheatcomponent_getActive_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getActive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6540,7 +6574,7 @@ begin
 end;
 
 
-function cheatcomponent_setActive_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setActive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6568,7 +6602,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function cheatcomponent_getDescription_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getDescription(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6587,7 +6621,7 @@ begin
 end;
 
 
-function cheatcomponent_setDescription_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setDescription(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6605,7 +6639,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function cheatcomponent_getHotkey_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6624,7 +6658,7 @@ begin
 end;
 
 
-function cheatcomponent_setHotkey_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6642,7 +6676,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function cheatcomponent_getDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getDescriptionLeft(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6661,7 +6695,7 @@ begin
 end;
 
 
-function cheatcomponent_setDescriptionLeft_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setDescriptionLeft(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6679,7 +6713,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function cheatcomponent_getHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getHotkeyLeft(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6698,7 +6732,7 @@ begin
 end;
 
 
-function cheatcomponent_setHotkeyLeft_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setHotkeyLeft(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6716,7 +6750,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function cheatcomponent_getEditValue_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_getEditValue(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6735,7 +6769,7 @@ begin
 end;
 
 
-function cheatcomponent_setEditValue_fromLua(L: PLua_State): integer; cdecl;
+function cheatcomponent_setEditValue(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   cheatcomponent: TCheat;
@@ -6754,7 +6788,7 @@ begin
 end;
 
 
-function memoryrecordhotkey_getDescription_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_getDescription(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -6772,7 +6806,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecordhotkey_getHotkeyString_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_getHotkeyString(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -6791,7 +6825,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecordhotkey_getID_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_getID(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -6809,7 +6843,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecordhotkey_onHotkey_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_onHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: Tmemoryrecordhotkey;
@@ -6853,7 +6887,7 @@ begin
 end;
 
 
-function memoryrecordhotkey_onPostHotkey_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_onPostHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: Tmemoryrecordhotkey;
@@ -6894,7 +6928,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function memoryrecordhotkey_getOwner_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_getOwner(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -6912,7 +6946,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecordhotkey_doHotkey_fromLua(L: PLua_State): integer; cdecl;
+function memoryrecordhotkey_doHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memoryrecordhotkey: TMemoryRecordHotkey;
@@ -6927,7 +6961,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function addresslist_getCount_fromLua(L: PLua_State): integer; cdecl;
+function addresslist_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   addresslist: TAddresslist;
@@ -6945,7 +6979,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function addresslist_getMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
+function addresslist_getMemoryRecord(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   addresslist: TAddresslist;
@@ -6965,7 +6999,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function addresslist_getMemoryRecordByDescription_fromLua(L: PLua_State): integer; cdecl;
+function addresslist_getMemoryRecordByDescription(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   addresslist: TAddresslist;
@@ -6985,7 +7019,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function addresslist_getMemoryRecordByID_fromLua(L: PLua_State): integer; cdecl;
+function addresslist_getMemoryRecordByID(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   addresslist: TAddresslist;
@@ -7005,7 +7039,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function addresslist_createMemoryRecord_fromLua(L: PLua_State): integer; cdecl;
+function addresslist_createMemoryRecord(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   addresslist: TAddresslist;
@@ -7024,7 +7058,7 @@ begin
 end;
 
 
-function createMemScan_fromLua(L: Plua_State): integer; cdecl;
+function createMemScan(L: Plua_State): integer; cdecl;
 var
   progressbar: TCustomProgressbar;
   memscan: TMemScan;
@@ -7043,7 +7077,7 @@ begin
   result:=1;
 end;
 
-function getCurrentMemscan_fromLua(L: Plua_State): integer; cdecl;
+function getCurrentMemscan(L: Plua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
 
@@ -7056,7 +7090,7 @@ end;
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
-function memscan_firstScan_fromLua(L: Plua_State): integer; cdecl;
+function memscan_firstScan(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
@@ -7111,7 +7145,7 @@ begin
 
 end;
 
-function memscan_nextScan_fromLua(L: Plua_State): integer; cdecl;
+function memscan_nextScan(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
@@ -7149,7 +7183,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function memscan_waitTillDone_fromLua(L: Plua_State): integer; cdecl;
+function memscan_waitTillDone(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
@@ -7165,7 +7199,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function memscan_getAttachedFoundlist_fromLua(L: Plua_State): integer; cdecl;
+function memscan_getAttachedFoundlist(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
@@ -7183,7 +7217,7 @@ begin
 end;
 
 
-function memscan_saveCurrentResults_fromLua(L: Plua_State): integer; cdecl;
+function memscan_saveCurrentResults(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
@@ -7201,7 +7235,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createFoundList_fromLua(L: Plua_State): integer; cdecl;
+function createFoundList(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: TFoundlist;
@@ -7220,7 +7254,7 @@ begin
   result:=1;
 end;
 
-function foundlist_initialize_fromLua(L: Plua_State): integer; cdecl;
+function foundlist_initialize(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: Tfoundlist;
@@ -7236,7 +7270,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function foundlist_deinitialize_fromLua(L: Plua_State): integer; cdecl;
+function foundlist_deinitialize(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: Tfoundlist;
@@ -7252,7 +7286,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function foundlist_getCount_fromLua(L: PLua_State): integer; cdecl;
+function foundlist_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: Tfoundlist;
@@ -7269,7 +7303,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function foundlist_getAddress_fromLua(L: PLua_State): integer; cdecl;
+function foundlist_getAddress(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: Tfoundlist;
@@ -7289,7 +7323,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function foundlist_getValue_fromLua(L: PLua_State): integer; cdecl;
+function foundlist_getValue(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   foundlist: Tfoundlist;
@@ -7312,7 +7346,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function supportCheatEngine_fromLua(L: Plua_State): integer; cdecl;
+function supportCheatEngine(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
   //attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL
@@ -7376,7 +7410,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function fuckCheatEngine_fromLua(L: Plua_State): integer; cdecl;
+function fuckCheatEngine(L: Plua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   if adwindow<>nil then
@@ -7385,7 +7419,7 @@ begin
   result:=0;
 end;
 
-function dbk_initialize_fromLua(L: Plua_State): integer; cdecl;
+function dbk_initialize(L: Plua_State): integer; cdecl;
 var x: bool;
 begin
   LoadDBK32;
@@ -7393,26 +7427,26 @@ begin
   result:=1;
 end;
 
-function dbk_useKernelmodeOpenProcess_fromLua(L: Plua_State): integer; cdecl;
+function dbk_useKernelmodeOpenProcess(L: Plua_State): integer; cdecl;
 begin
   UseDBKOpenProcess;
 
   result:=0;
 end;
 
-function dbk_useKernelmodeProcessMemoryAccess_fromLua(L: Plua_State): integer; cdecl;
+function dbk_useKernelmodeProcessMemoryAccess(L: Plua_State): integer; cdecl;
 begin
   UseDBKReadWriteMemory;
   result:=0;
 end;
 
-function dbk_useKernelmodeQueryMemoryRegions_fromLua(L: Plua_State): integer; cdecl;
+function dbk_useKernelmodeQueryMemoryRegions(L: Plua_State): integer; cdecl;
 begin
   UseDBKQueryMemoryRegion;
   result:=0;
 end;
 
-function dbk_getPEProcess_fromLua(L: PLua_State): integer; cdecl;
+function dbk_getPEProcess(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   pid: dword;
@@ -7428,7 +7462,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function dbk_getPEThread_fromLua(L: PLua_State): integer; cdecl;
+function dbk_getPEThread(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   pid: dword;
@@ -7444,7 +7478,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function dbk_executeKernelMemory_fromLua(L: PLua_State): integer; cdecl;
+function dbk_executeKernelMemory(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -7478,7 +7512,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function createSplitter_fromLua(L: Plua_State): integer; cdecl;
+function createSplitter(L: Plua_State): integer; cdecl;
 var
   Splitter: TCESplitter;
   parameters: integer;
@@ -7503,7 +7537,7 @@ begin
   result:=1;
 end;
 
-function allocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
+function allocateSharedMemory(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   sharedmemoryname: string;
@@ -7532,7 +7566,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function deallocateSharedMemory_fromLua(L: PLua_State): integer; cdecl;
+function deallocateSharedMemory(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
 begin
@@ -7550,14 +7584,14 @@ begin
 
 end;
 
-function getCheatEngineDir_fromlua(L: PLua_State): integer; cdecl;
+function getCheatEngineDir(L: PLua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(l));
   lua_pushstring(L, CheatEngineDir);
   result:=1;
 end;
 
-function disassemble_fromLua(L: PLua_State): integer; cdecl;
+function disassemble_lua(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
   d: TDisassembler;
@@ -7586,10 +7620,10 @@ begin
     s:=d.disassemble(address, x);
     result:=1;
     lua_pushstring(L, s);
-  end;
+  end else lua_pop(L, parameters);
 end;
 
-function splitDisassembledString_fromLua(L: PLua_State): integer; cdecl;
+function splitDisassembledString(L: PLua_State): integer; cdecl;
 var parameters: integer;
   disassembledstring: string;
 
@@ -7602,17 +7636,100 @@ begin
     disassembledstring:=lua_tostring(L,-parameters);
     lua_pop(L, parameters);
 
-    splitDisassembledString(disassembledstring, true, address, bytes, opcode, special);
+    disassembler.splitDisassembledString(disassembledstring, true, address, bytes, opcode, special);
 
     result:=4;
     lua_pushstring(L, special);
     lua_pushstring(L, opcode);
     lua_pushstring(L, bytes);
     lua_pushstring(L, address);
-
-  end;
+  end
+  else
+    lua_pop(L, parameters);
 end;
 
+function disassemblerview_getSelectedAddress(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  dv: TDisassemblerview;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    dv:=lua_touserdata(L, -1);
+    lua_pop(L, parameters);
+
+    result:=1;
+    lua_pushinteger(L, dv.SelectedAddress);
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+function disassemblerview_setSelectedAddress(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  dv: TDisassemblerview;
+  address: ptruint;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    dv:=lua_touserdata(L, -2);
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+    else
+      address:=lua_tointeger(L, -1);
+
+
+    lua_pop(L, parameters);
+
+    dv.SelectedAddress:=address;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+function disassemblerview_onSelectionChange(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  disassemblerview: TDisassemblerview;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    disassemblerview:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(tmethod(disassemblerview.onselectionchange));
+    disassemblerview.onselectionchange:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      disassemblerview.onselectionchange:=lc.DisassemblerSelectionChangeEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      disassemblerview.onselectionchange:=lc.DisassemblerSelectionChangeEvent;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -7623,419 +7740,432 @@ begin
     luaL_openlibs(LuaVM);
 
     lua_atpanic(LuaVM, LuaPanic);
-    lua_register(LuaVM, 'print', print_fromlua);
-    lua_register(LuaVM, 'sleep', sleep_fromlua);
-    lua_register(LuaVM, 'pause', pause_fromlua);
-    lua_register(LuaVM, 'unpause', unpause_fromlua);
-    lua_register(LuaVM, 'readBytes', readbytes_fromlua);
-    lua_register(LuaVM, 'writeBytes', writebytes_fromlua);
-    lua_register(LuaVM, 'readInteger', readInteger_fromlua);
-    lua_register(LuaVM, 'readFloat', readFloat_fromlua);
-    lua_register(LuaVM, 'readDouble', readDouble_fromlua);
-    lua_register(LuaVM, 'readString', readString_fromlua);
-    lua_register(LuaVM, 'writeInteger', writeInteger_fromlua);
-    lua_register(LuaVM, 'writeFloat', writeFloat_fromlua);
-    lua_register(LuaVM, 'writeDouble', writeDouble_fromlua);
-    lua_register(LuaVM, 'writeString', writeString_fromlua);
+    lua_register(LuaVM, 'print', print);
+    lua_register(LuaVM, 'sleep', sleep);
+    lua_register(LuaVM, 'pause', pause);
+    lua_register(LuaVM, 'unpause', unpause);
+    lua_register(LuaVM, 'readBytes', readbytes);
+    lua_register(LuaVM, 'writeBytes', writebytes);
+    lua_register(LuaVM, 'readInteger', readInteger);
+    lua_register(LuaVM, 'readFloat', readFloat);
+    lua_register(LuaVM, 'readDouble', readDouble);
+    lua_register(LuaVM, 'readString', readString);
+    lua_register(LuaVM, 'writeInteger', writeInteger);
+    lua_register(LuaVM, 'writeFloat', writeFloat);
+    lua_register(LuaVM, 'writeDouble', writeDouble);
+    lua_register(LuaVM, 'writeString', writeString);
 
-    lua_register(LuaVM, 'readBytesLocal', readbyteslocal_fromlua);
-    lua_register(LuaVM, 'writeBytesLocal', writebyteslocal_fromlua);
-    lua_register(LuaVM, 'autoAssemble', autoAssemble_fromlua);
-    lua_register(LuaVM, 'showMessage', showMessage_fromlua);
-    lua_register(LuaVM, 'getPixel', getPixel_fromlua);
-    lua_register(LuaVM, 'getMousePos', getMousePos_fromlua);
-    lua_register(LuaVM, 'setMousePos', setMousePos_fromlua);
-    lua_register(LuaVM, 'createTableEntry', createTableEntry_fromlua);
-    lua_register(LuaVM, 'getTableEntry', getTableEntry_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setDescription', memoryrecord_setDescription_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getDescription', memoryrecord_getDescription_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getAddress', memoryrecord_getAddress_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setAddress', memoryrecord_setAddress_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getType', memoryrecord_getType_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setType', memoryrecord_setType_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getValue', memoryrecord_getValue_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setValue', memoryrecord_setValue_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript_fromlua);
-    lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive_fromlua);
-    lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze_fromlua);
-    lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze_fromlua);
-    lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor_fromlua);
-    lua_register(LuaVM, 'memoryrecord_appendToEntry', memoryrecord_appendToEntry_fromlua);
-    lua_register(LuaVM, 'memoryrecord_delete', memoryrecord_delete_fromlua);
+    lua_register(LuaVM, 'readBytesLocal', readbyteslocal);
+    lua_register(LuaVM, 'writeBytesLocal', writebyteslocal);
+    lua_register(LuaVM, 'autoAssemble', autoAssemble_lua);
+    lua_register(LuaVM, 'showMessage', showMessage_lua);
+    lua_register(LuaVM, 'getPixel', getPixel);
+    lua_register(LuaVM, 'getMousePos', getMousePos);
+    lua_register(LuaVM, 'setMousePos', setMousePos);
+    lua_register(LuaVM, 'createTableEntry', createTableEntry);
+    lua_register(LuaVM, 'getTableEntry', getTableEntry);
+    lua_register(LuaVM, 'memoryrecord_setDescription', memoryrecord_setDescription);
+    lua_register(LuaVM, 'memoryrecord_getDescription', memoryrecord_getDescription);
+    lua_register(LuaVM, 'memoryrecord_getAddress', memoryrecord_getAddress);
+    lua_register(LuaVM, 'memoryrecord_setAddress', memoryrecord_setAddress);
+    lua_register(LuaVM, 'memoryrecord_getType', memoryrecord_getType);
+    lua_register(LuaVM, 'memoryrecord_setType', memoryrecord_setType);
+    lua_register(LuaVM, 'memoryrecord_getValue', memoryrecord_getValue);
+    lua_register(LuaVM, 'memoryrecord_setValue', memoryrecord_setValue);
+    lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript);
+    lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript);
+    lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive);
+    lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze);
+    lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze);
+    lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor);
+    lua_register(LuaVM, 'memoryrecord_appendToEntry', memoryrecord_appendToEntry);
+    lua_register(LuaVM, 'memoryrecord_delete', memoryrecord_delete);
 
-    lua_register(LuaVM, 'memoryrecord_getID', memoryrecord_getID_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getHotkeyCount', memoryrecord_getHotkeyCount_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getHotkey', memoryrecord_getHotkey_fromlua);
-    lua_register(LuaVM, 'memoryrecord_getHotkeyByID', memoryrecord_getHotkeyByID_fromlua);
-    lua_register(LuaVM, 'memoryrecord_onActivate', memoryrecord_onActivate_fromlua);
-    lua_register(LuaVM, 'memoryrecord_onDeactivate', memoryrecord_onDeactivate_fromlua);
-
-
-
-    lua_register(LuaVM, 'isKeyPressed', isKeyPressed_fromlua);
-    lua_register(LuaVM, 'keyDown', keyDown_fromLua);
-    lua_register(LuaVM, 'keyUp', keyUp_fromLua);
-    lua_register(LuaVM, 'doKeyPress', doKeyPress_fromLua);
-    lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName_fromLua);
-    lua_register(LuaVM, 'openProcess', openProcess_fromLua);
-    lua_register(LuaVM, 'debugProcess', debugProcess_fromLua);
-    lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint_fromLua);
-    lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint_fromLua);
-    lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint_fromLua);
-    lua_register(LuaVM, 'closeCE', closeCE_fromLua);
-    lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows_fromLua);
-    lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow_fromLua);
+    lua_register(LuaVM, 'memoryrecord_getID', memoryrecord_getID);
+    lua_register(LuaVM, 'memoryrecord_getHotkeyCount', memoryrecord_getHotkeyCount);
+    lua_register(LuaVM, 'memoryrecord_getHotkey', memoryrecord_getHotkey);
+    lua_register(LuaVM, 'memoryrecord_getHotkeyByID', memoryrecord_getHotkeyByID);
+    lua_register(LuaVM, 'memoryrecord_onActivate', memoryrecord_onActivate);
+    lua_register(LuaVM, 'memoryrecord_onDeactivate', memoryrecord_onDeactivate);
 
 
-    lua_register(LuaVM, 'createGroupBox', createGroupBox_fromLua);
+
+    lua_register(LuaVM, 'isKeyPressed', isKeyPressed);
+    lua_register(LuaVM, 'keyDown', keyDown);
+    lua_register(LuaVM, 'keyUp', keyUp);
+    lua_register(LuaVM, 'doKeyPress', doKeyPress);
+    lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName);
+    lua_register(LuaVM, 'openProcess', openProcess);
+    lua_register(LuaVM, 'debugProcess', debugProcess);
+    lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);
+    lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint);
+    lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint);
+    lua_register(LuaVM, 'closeCE', closeCE);
+    lua_register(LuaVM, 'hideAllCEWindows', hideAllCEWindows);
+    lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow);
 
 
-    lua_register(LuaVM, 'createLabel', createLabel_fromLua);
-    lua_register(LuaVM, 'createSplitter', createSplitter_fromLua);
-
-    lua_register(LuaVM, 'messageDialog', messageDialog_fromLua);
-    lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed_fromLua);
-    lua_register(LuaVM, 'injectDLL', injectDLL_fromLua);
-    lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList_fromLua);
+    lua_register(LuaVM, 'createGroupBox', createGroupBox);
 
 
-    lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_fromLua);
-    lua_register(LuaVM, 'createProcess', createProcess_fromLua);
-    lua_register(LuaVM, 'AOBScan', AOBScan_fromLua);
-    lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID_fromLua);
-    lua_register(LuaVM, 'getAddress', getAddress_fromLua);
-    lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler_fromLua);
+    lua_register(LuaVM, 'createLabel', createLabel);
+    lua_register(LuaVM, 'createSplitter', createSplitter);
+
+    lua_register(LuaVM, 'messageDialog', messageDialog);
+    lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed);
+    lua_register(LuaVM, 'injectDLL', injectDLL);
+    lua_register(LuaVM, 'getAutoAttachList', getAutoAttachList);
+
+
+    lua_register(LuaVM, 'generateAPIHookScript', generateAPIHookScript_lua);
+    lua_register(LuaVM, 'createProcess', createProcess);
+    lua_register(LuaVM, 'AOBScan', AOBScan);
+    lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID);
+    lua_register(LuaVM, 'getAddress', getAddress);
+    lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
 
     //ce6.1
-    lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress_fromLua);
-    lua_register(LuaVM, 'inModule', inModule_fromLua);
-    lua_register(LuaVM, 'inSystemModule', inSystemModule_fromLua);
-    lua_register(LuaVM, 'getCommonModuleList', getCommonModuleList_fromLua);
-
-    lua_register(LuaVM, 'createImage', createImage_fromLua);
-    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile_fromLua);
-    lua_register(LuaVM, 'image_transparent', image_transparent_fromLua);
-    lua_register(LuaVM, 'image_stretch', image_stretch_fromLua);
-    lua_register(LuaVM, 'image_getCanvas', image_getCanvas_fromLua);
-    lua_register(LuaVM, 'image_getPicture', Image_getPicture_fromLua);
-
-
-    lua_register(LuaVM, 'createHotkey', createHotkey_fromLua);
-    lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys_fromLua);
-    lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey_fromLua);
-
-    lua_register(LuaVM, 'getPropertyList', getPropertyList_fromLua);
-    lua_register(LuaVM, 'setProperty', setProperty_fromLua);
-    lua_register(LuaVM, 'getProperty', getProperty_fromLua);
-
-    lua_register(LuaVM, 'object_getClassName', object_getClassName_fromLua);
-    lua_register(LuaVM, 'object_destroy', object_destroy_fromLua);
-
-    lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount_fromLua);
-    lua_register(LuaVM, 'component_getComponent', component_getComponent_fromLua);
-    lua_register(LuaVM, 'component_findComponentByName', component_findComponentByName_fromLua);
-    lua_register(LuaVM, 'component_getName', component_getName_fromLua);
-    lua_register(LuaVM, 'component_setName', component_setName_fromLua);
-    lua_register(LuaVM, 'component_getTag', component_getTag_fromLua);
-    lua_register(LuaVM, 'component_setTag', component_setTag_fromLua);
-    lua_register(LuaVM, 'component_getOwner', component_getOwner_fromLua);
-
-    lua_register(LuaVM, 'control_setCaption', control_setCaption_fromLua);
-    lua_register(LuaVM, 'control_getCaption', control_getCaption_fromLua);
-    lua_register(LuaVM, 'control_setPosition', control_setPosition_fromLua);
-    lua_register(LuaVM, 'control_getPosition', control_getPosition_fromLua);
-    lua_register(LuaVM, 'control_setSize', control_setSize_fromLua);
-    lua_register(LuaVM, 'control_getSize', control_getSize_fromLua);
-    lua_register(LuaVM, 'control_setAlign', control_setAlign_fromLua);
-    lua_register(LuaVM, 'control_getAlign', control_getAlign_fromLua);
-    lua_register(LuaVM, 'control_onClick', control_onClick_fromLua);
-    lua_register(LuaVM, 'control_setEnabled', control_setEnabled_fromLua);
-    lua_register(LuaVM, 'control_getEnabled', control_getEnabled_fromLua);
-    lua_register(LuaVM, 'control_setVisible', control_setVisible_fromLua);
-    lua_register(LuaVM, 'control_getVisible', control_getVisible_fromLua);
-    lua_register(LuaVM, 'control_setColor', control_setColor_fromLua);
-    lua_register(LuaVM, 'control_getColor', control_getColor_fromLua);
-    lua_register(LuaVM, 'control_setParent', control_setParent_fromLua);
-    lua_register(LuaVM, 'control_getParent', control_getParent_fromLua);
-    lua_register(LuaVM, 'control_setPopupMenu', control_setPopupMenu_fromLua);
-    lua_register(LuaVM, 'control_getPopupMenu', control_getPopupMenu_fromLua);
-
-
-
-    lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount_fromLua);
-    lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl_fromLua);
-    lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_OnEnter_fromLua);
-    lua_register(LuaVM, 'wincontrol_onExit', wincontrol_OnExit_fromLua);
-    lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus_fromLua);
-    lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused_fromLua);
-    lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus_fromLua);
-
-    lua_register(LuaVM, 'strings_add', strings_add_fromLua);
-    lua_register(LuaVM, 'strings_clear', strings_clear_fromLua);
-    lua_register(LuaVM, 'strings_delete', strings_delete_fromLua);
-    lua_register(LuaVM, 'strings_getText', strings_getText_fromLua);
-    lua_register(LuaVM, 'strings_indexOf', strings_indexOf_fromLua);
-    lua_register(LuaVM, 'strings_insert', strings_insert_fromLua);
-    lua_register(LuaVM, 'strings_getCount', strings_getCount_fromLua);
-    lua_register(LuaVM, 'strings_remove', strings_remove_fromLua);
-    lua_register(LuaVM, 'strings_getString', strings_getString_fromLua);
-    lua_register(LuaVM, 'strings_setString', strings_setString_fromLua);
-
-
-    lua_register(LuaVM, 'createStringlist', createStringlist_fromLua);
-    lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates_fromLua);
-    lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates_fromLua);
-    lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted_fromLua);
-    lua_register(LuaVM, 'stringlist_setSorted', stringlist_setSorted_fromLua);
-    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive_fromLua);
-    lua_register(LuaVM, 'stringlist_setCaseSensitive', stringlist_setCaseSensitive_fromLua);
-
-    lua_register(LuaVM, 'createForm', createForm_fromLua);
-    lua_register(LuaVM, 'form_centerScreen', form_centerScreen_fromLua);
-    lua_register(LuaVM, 'form_onClose', form_onClose_fromLua);
-    lua_register(LuaVM, 'form_show', form_show_fromLua);
-    lua_register(LuaVM, 'form_hide', form_hide_fromLua);
-    lua_register(LuaVM, 'form_showModal', form_showModal_fromLua);
-    lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow_fromLua);
-    lua_register(LuaVM, 'form_getMenu', form_getMenu_fromLua);
-    lua_register(LuaVM, 'form_setMenu', form_setMenu_fromLua);
-
-    lua_register(LuaVM, 'createPanel', createPanel_fromLua);
-    lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment_fromLua);
-    lua_register(LuaVM, 'panel_setAlignment', panel_setAlignment_fromLua);
-    lua_register(LuaVM, 'panel_getBevelInner', panel_getBevelInner_fromLua);
-    lua_register(LuaVM, 'panel_setBevelInner', panel_setBevelInner_fromLua);
-    lua_register(LuaVM, 'panel_getBevelOuter', panel_getBevelOuter_fromLua);
-    lua_register(LuaVM, 'panel_setBevelOuter', panel_setBevelOuter_fromLua);
-    lua_register(LuaVM, 'panel_getBevelWidth', panel_getBevelWidth_fromLua);
-    lua_register(LuaVM, 'panel_setBevelWidth', panel_setBevelWidth_fromLua);
-    lua_register(LuaVM, 'panel_getFullRepaint', panel_getFullRepaint_fromLua);
-    lua_register(LuaVM, 'panel_setFullRepaint', panel_setFullRepaint_fromLua);
-
-
-
-    lua_register(LuaVM, 'createEdit', createEdit_fromLua);
-    lua_register(LuaVM, 'edit_clear', edit_clear_fromLua);
-    lua_register(LuaVM, 'edit_selectAll', edit_selectAll_fromLua);
-    lua_register(LuaVM, 'edit_clearSelection', edit_clearSelection_fromLua);
-    lua_register(LuaVM, 'edit_copyToClipboard', edit_copyToClipboard_fromLua);
-    lua_register(LuaVM, 'edit_cutToClipboard', edit_cutToClipboard_fromLua);
-    lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard_fromLua);
-    lua_register(LuaVM, 'edit_onChange', edit_onChange_fromLua);
-
-    lua_register(LuaVM, 'createMemo', createMemo_fromLua);
-    lua_register(LuaVM, 'memo_append', memo_append_fromLua);
-    lua_register(LuaVM, 'memo_getLines', memo_getLines_fromLua);
-    lua_register(LuaVM, 'memo_getWordWrap', memo_getWordWrap_fromLua);
-    lua_register(LuaVM, 'memo_setWordWrap', memo_setWordWrap_fromLua);
-    lua_register(LuaVM, 'memo_getWantTabs', memo_getWantTabs_fromLua);
-    lua_register(LuaVM, 'memo_setWantTabs', memo_setWantTabs_fromLua);
-    lua_register(LuaVM, 'memo_getWantReturns', memo_getWantReturns_fromLua);
-    lua_register(LuaVM, 'memo_setWantReturns', memo_setWantReturns_fromLua);
-    lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars_fromLua);
-    lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars_fromLua);
-
-    lua_register(LuaVM, 'createButton', createButton_fromLua);
-    lua_register(LuaVM, 'button_getModalResult', button_getModalResult_fromLua);
-    lua_register(LuaVM, 'button_setModalResult', button_setModalResult_fromLua);
-
-    lua_register(LuaVM, 'createToggleBox', createToggleBox_fromLua);
-    lua_register(LuaVM, 'createCheckBox', createCheckBox_fromLua);
-    lua_register(LuaVM, 'checkbox_getAllowGrayed', checkbox_getAllowGrayed_fromLua);
-    lua_register(LuaVM, 'checkbox_setAllowGrayed', checkbox_setAllowGrayed_fromLua);
-    lua_register(LuaVM, 'checkbox_getState', checkbox_getState_fromLua);
-    lua_register(LuaVM, 'checkbox_setState', checkbox_setState_fromLua);
-    lua_register(LuaVM, 'checkbox_onChange', checkbox_onChange_fromLua);
-
-
-    lua_register(LuaVM, 'createRadioGroup', createRadioGroup_fromLua);
-    lua_register(LuaVM, 'radiogroup_getRows', radiogroup_getRows_fromLua);
-    lua_register(LuaVM, 'radiogroup_getItems', radioGroup_getItems_fromLua);
-    lua_register(LuaVM, 'radiogroup_getColumns', radiogroup_getColumns_fromLua);
-    lua_register(LuaVM, 'radiogroup_setColumns', radiogroup_setColumns_fromLua);
-    lua_register(LuaVM,' radiogroup_onClick', radiogroup_onClick_fromLua);
-
-    lua_register(LuaVM, 'createListBox', createListBox_fromLua);
-    lua_register(LuaVM, 'listbox_clear', listbox_clear_fromLua);
-    lua_register(LuaVM, 'listbox_getItems', listbox_getItems_fromLua);
-    lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex_fromLua);
-    lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex_fromLua);
-    lua_register(LuaVM, 'listbox_getCanvas', listbox_getCanvas_fromLua);
-
-    lua_register(LuaVM, 'createComboBox', createComboBox_fromLua);
-    lua_register(LuaVM, 'combobox_clear', combobox_clear_fromLua);
-    lua_register(LuaVM, 'combobox_getItems', combobox_getItems_fromLua);
-    lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex_fromLua);
-    lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex_fromLua);
-    lua_register(LuaVM, 'combobox_getCanvas', combobox_getCanvas_fromLua);
-
-
-    lua_register(LuaVM, 'createProgressBar', createProgressBar_fromLua);
-    lua_register(LuaVM, 'progressbar_stepIt', progressbar_stepIt_fromLua);
-    lua_register(LuaVM, 'progressbar_stepBy', progressbar_stepBy_fromLua);
-    lua_register(LuaVM, 'progressbar_getMax', progressbar_getMax_fromLua);
-    lua_register(LuaVM, 'progressbar_setMax', progressbar_setMax_fromLua);
-    lua_register(LuaVM, 'progressbar_getMin', progressbar_getMin_fromLua);
-    lua_register(LuaVM, 'progressbar_setMin', progressbar_setMin_fromLua);
-    lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition_fromLua);
-    lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition_fromLua);
-
-    lua_register(LuaVM, 'createTrackBar', createTrackBar_fromLua);
-    lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax_fromLua);
-    lua_register(LuaVM, 'trackbar_setMax', trackbar_setMax_fromLua);
-    lua_register(LuaVM, 'trackbar_getMin', trackbar_getMin_fromLua);
-    lua_register(LuaVM, 'trackbar_setMin', trackbar_setMin_fromLua);
-    lua_register(LuaVM, 'trackbar_getPosition', trackbar_getPosition_fromLua);
-    lua_register(LuaVM, 'trackbar_setPosition', trackbar_setPosition_fromLua);
-    lua_register(LuaVM, 'trackbar_onChange', trackbar_onChange_fromLua);
-
-
-    lua_register(LuaVM, 'listcolumn_setAutosize', listcolumn_setAutosize_fromLua);
-    lua_register(LuaVM, 'listcolumn_getCaption', listcolumn_getCaption_fromLua);
-    lua_register(LuaVM, 'listcolumn_setCaption', listcolumn_setCaption_fromLua);
-    lua_register(LuaVM, 'listcolumn_getMaxWidth', listcolumn_getMaxWidth_fromLua);
-    lua_register(LuaVM, 'listcolumn_setMaxWidth', listcolumn_setMaxWidth_fromLua);
-    lua_register(LuaVM, 'listcolumn_getMinWidth', listcolumn_getMinWidth_fromLua);
-    lua_register(LuaVM, 'listcolumn_setMinWidth', listcolumn_setMinWidth_fromLua);
-    lua_register(LuaVM, 'listcolumn_getWidth', listcolumn_getWidth_fromLua);
-    lua_register(LuaVM, 'listcolumn_setWidth', listcolumn_setWidth_fromLua);
-
-
-    lua_register(LuaVM, 'collection_clear', collection_clear_fromLua);
-    lua_register(LuaVM, 'collection_getCount', collection_getCount_fromLua);
-    lua_register(LuaVM, 'collection_delete', collection_delete_fromLua);
-
-    lua_register(LuaVM, 'listcolumns_add', listcolumns_add_fromLua);
-    lua_register(LuaVM, 'listcolumns_getColumn', listcolumns_getColumn_fromLua);
-
-    lua_register(LuaVM, 'listitem_delete', listitem_delete_fromLua);
-    lua_register(LuaVM, 'listitem_getCaption', listitem_getCaption_fromLua);
-    lua_register(LuaVM, 'listitem_setCaption', listitem_setCaption_fromLua);
-    lua_register(LuaVM, 'listitem_getSubItems', listitem_getSubItems_fromLua);
-
-    lua_register(LuaVM, 'listitems_clear', listitems_clear_fromLua);
-    lua_register(LuaVM, 'listitems_getCount', listitems_getCount_fromLua);
-    lua_register(LuaVM, 'listitems_add', listitems_add_fromLua);
-
-
-    lua_register(LuaVM, 'createListView', createListView_fromLua);
-    lua_register(LuaVM, 'listview_clear', listview_clear_fromLua);
-    lua_register(LuaVM, 'listview_getColumns', listview_getColumns_fromLua);
-    lua_register(LuaVM, 'listview_getItems', listview_getItems_fromLua);
-    lua_register(LuaVM, 'listview_getItemIndex', listview_getItemIndex_fromLua);
-    lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex_fromLua);
-    lua_register(LuaVM, 'listview_getCanvas', listview_getCanvas_fromLua);
-
-
-    lua_register(LuaVM, 'createTimer', createTimer_fromLua);
-    lua_register(LuaVM, 'timer_setInterval', timer_setInterval_fromLua);
-    lua_register(LuaVM, 'timer_onTimer', timer_onTimer_fromLua);
-    lua_register(LuaVM, 'timer_setEnabled', timer_setEnabled_fromLua);
-    lua_register(LuaVM, 'timer_getEnabled', timer_getEnabled_fromLua);
-
-    lua_register(LuaVM, 'openDialog_execute', openDialog_execute_fromLua);
-
-    Lua_register(LuaVM, 'getMemoryViewForm', getMainForm_fromLua);
-    Lua_register(LuaVM, 'getMainForm', getMainForm_fromLua);
-    Lua_register(LuaVM, 'getAddressList', getAddressList_fromLua);
-    Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer_fromLua);
-    Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer_fromLua);
-
-    Lua_register(LuaVM, 'findTableFile', findTableFile_fromLua);
-    Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile_fromLua);
-    Lua_register(LuaVM, 'tablefile_getData', tablefile_getData_fromLua);
-
-    Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM_fromLua);
-    Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause_fromLua);
-    Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume_fromLua);
-    Lua_register(LuaVM, 'xmplayer_stop', xmplayer_stop_fromLua);
-    Lua_register(LuaVM, 'xmplayer_isPlaying', xmplayer_isPlaying_fromLua);
-
-    Lua_register(LuaVM, 'writeRegionToFile', writeRegionToFile_fromLua);
-    Lua_register(LuaVM, 'readRegionFromFile', readRegionFromFile_fromLua);
-
-    Lua_register(LuaVM, 'registerSymbol', registersymbol_fromLua);
-    Lua_register(LuaVM, 'unregisterSymbol', unregistersymbol_fromLua);
-
-    Lua_register(LuaVM, 'resetLuaState', resetLuaState_fromLua);
-
-    Lua_register(LuaVM, 'cheatcomponent_setActive', cheatcomponent_setActive_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getActive', cheatcomponent_getActive_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_setDescription', cheatcomponent_setDescription_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getDescription', cheatcomponent_getDescription_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_setHotkey', cheatcomponent_setHotkey_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getHotkey', cheatcomponent_getHotkey_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_setDescriptionLeft', cheatcomponent_setDescriptionLeft_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getDescriptionLeft', cheatcomponent_getDescriptionLeft_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_setHotkeyLeft', cheatcomponent_setHotkeyLeft_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getHotkeyLeft', cheatcomponent_getHotkeyLeft_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_setEditValue', cheatcomponent_setEditValue_fromLua);
-    Lua_register(LuaVM, 'cheatcomponent_getEditValue', cheatcomponent_getEditValue_fromLua);
-
-
-    Lua_register(LuaVM, 'memoryrecordhotkey_getDescription', memoryrecordhotkey_getDescription_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getID', memoryrecordhotkey_getID_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_onHotkey', memoryrecordhotkey_onHotkey_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_onPostHotkey', memoryrecordhotkey_onPostHotkey_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner_fromLua);
-    Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey_fromLua);
-
-    Lua_register(LuaVM, 'addresslist_getCount', addresslist_getCount_fromLua);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecord', addresslist_getMemoryRecord_fromLua);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription_fromLua);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID_fromLua);
-    Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord_fromLua);
-
-    Lua_register(LuaVM, 'createMemScan', createMemScan_fromLua);
-    Lua_register(LuaVM, 'getCurrentMemscan', getCurrentMemscan_fromLua);
-    Lua_register(LuaVM, 'memscan_firstScan', memscan_firstScan_fromLua);
-    Lua_register(LuaVM, 'memscan_nextScan', memscan_nextScan_fromLua);
-    Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone_fromLua);
-    Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults_fromLua);
-    Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist_fromLua);
-
-
-    Lua_register(LuaVM, 'createFoundList', createFoundList_fromLua);
-    Lua_register(LuaVM, 'foundlist_initialize', foundlist_initialize_fromLua);
-    Lua_register(LuaVM, 'foundlist_deinitialize', foundlist_deinitialize_fromLua);
-    Lua_register(LuaVM, 'foundlist_getCount', foundlist_getCount_fromLua);
-    Lua_register(LuaVM, 'foundlist_getAddress', foundlist_getAddress_fromLua);
-    Lua_register(LuaVM, 'foundlist_getValue', foundlist_getValue_fromLua);
-
-    Lua_register(LuaVM, 'supportCheatEngine', supportCheatEngine_fromLua);
-    Lua_register(LuaVM, 'fuckCheatEngine', fuckCheatEngine_fromLua);
-
-
-
-    lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject_fromLua);
-    lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent_fromLua);
-    lua_register(LuaVM, 'inheritsFromControl', inheritsFromControl_fromLua);
-    lua_register(LuaVM, 'inheritsFromWinControl', inheritsFromWinControl_fromLua);
-
-    Lua_register(LuaVM, 'beep', beep_fromLua);
-
-
-    lua_register(LuaVM, 'dbk_initialize', dbk_initialize_fromLua);
-    lua_register(LuaVM, 'dbk_useKernelmodeOpenProcess', dbk_useKernelmodeOpenProcess_fromLua);
-    lua_register(LuaVM, 'dbk_useKernelmodeProcessMemoryAccess', dbk_useKernelmodeProcessMemoryAccess_fromLua);
-    lua_register(LuaVM, 'dbk_useKernelmodeQueryMemoryRegions', dbk_useKernelmodeQueryMemoryRegions_fromLua);
-    lua_register(LuaVM, 'dbk_getPEProcess', dbk_getPEProcess_fromLua);
-    lua_register(LuaVM, 'dbk_getPEThread', dbk_getPEThread_fromLua);
-    lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory_fromLua);
-
-    lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory_fromLua);
-    lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory_fromLua);
-    lua_register(LuaVM, 'getCheatEngineDir', getCheatEngineDir_fromLua);
-
-    lua_register(LuaVM, 'disassemble', disassemble_fromLua);
-    lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString_fromLua);
-
-    lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas_fromLua);
-    lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas_fromLua);
-
-
+    lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress);
+    lua_register(LuaVM, 'inModule', inModule);
+    lua_register(LuaVM, 'inSystemModule', inSystemModule);
+    lua_register(LuaVM, 'getCommonModuleList', getCommonModuleList);
+
+    lua_register(LuaVM, 'createImage', createImage);
+    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile);
+    lua_register(LuaVM, 'image_transparent', image_transparent);
+    lua_register(LuaVM, 'image_stretch', image_stretch);
+    lua_register(LuaVM, 'image_getCanvas', image_getCanvas);
+    lua_register(LuaVM, 'image_getPicture', Image_getPicture);
+
+
+    lua_register(LuaVM, 'createHotkey', createHotkey);
+    lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);
+    lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey);
+
+    lua_register(LuaVM, 'getPropertyList', getPropertyList);
+    lua_register(LuaVM, 'setProperty', setProperty);
+    lua_register(LuaVM, 'getProperty', getProperty);
+
+    lua_register(LuaVM, 'object_getClassName', object_getClassName);
+    lua_register(LuaVM, 'object_destroy', object_destroy);
+
+    lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount);
+    lua_register(LuaVM, 'component_getComponent', component_getComponent);
+    lua_register(LuaVM, 'component_findComponentByName', component_findComponentByName);
+    lua_register(LuaVM, 'component_getName', component_getName);
+    lua_register(LuaVM, 'component_setName', component_setName);
+    lua_register(LuaVM, 'component_getTag', component_getTag);
+    lua_register(LuaVM, 'component_setTag', component_setTag);
+    lua_register(LuaVM, 'component_getOwner', component_getOwner);
+
+    lua_register(LuaVM, 'control_setCaption', control_setCaption);
+    lua_register(LuaVM, 'control_getCaption', control_getCaption);
+    lua_register(LuaVM, 'control_setPosition', control_setPosition);
+    lua_register(LuaVM, 'control_getPosition', control_getPosition);
+    lua_register(LuaVM, 'control_setSize', control_setSize);
+    lua_register(LuaVM, 'control_getSize', control_getSize);
+    lua_register(LuaVM, 'control_setAlign', control_setAlign);
+    lua_register(LuaVM, 'control_getAlign', control_getAlign);
+    lua_register(LuaVM, 'control_onClick', control_onClick);
+    lua_register(LuaVM, 'control_setEnabled', control_setEnabled);
+    lua_register(LuaVM, 'control_getEnabled', control_getEnabled);
+    lua_register(LuaVM, 'control_setVisible', control_setVisible);
+    lua_register(LuaVM, 'control_getVisible', control_getVisible);
+    lua_register(LuaVM, 'control_setColor', control_setColor);
+    lua_register(LuaVM, 'control_getColor', control_getColor);
+    lua_register(LuaVM, 'control_setParent', control_setParent);
+    lua_register(LuaVM, 'control_getParent', control_getParent);
+    lua_register(LuaVM, 'control_setPopupMenu', control_setPopupMenu);
+    lua_register(LuaVM, 'control_getPopupMenu', control_getPopupMenu);
+
+
+
+    lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount);
+    lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl);
+    lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_OnEnter);
+    lua_register(LuaVM, 'wincontrol_onExit', wincontrol_OnExit);
+    lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus);
+    lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused);
+    lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus);
+
+    lua_register(LuaVM, 'strings_add', strings_add);
+    lua_register(LuaVM, 'strings_clear', strings_clear);
+    lua_register(LuaVM, 'strings_delete', strings_delete);
+    lua_register(LuaVM, 'strings_getText', strings_getText);
+    lua_register(LuaVM, 'strings_indexOf', strings_indexOf);
+    lua_register(LuaVM, 'strings_insert', strings_insert);
+    lua_register(LuaVM, 'strings_getCount', strings_getCount);
+    lua_register(LuaVM, 'strings_remove', strings_remove);
+    lua_register(LuaVM, 'strings_getString', strings_getString);
+    lua_register(LuaVM, 'strings_setString', strings_setString);
+
+
+    lua_register(LuaVM, 'createStringlist', createStringlist);
+    lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates);
+    lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates);
+    lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted);
+    lua_register(LuaVM, 'stringlist_setSorted', stringlist_setSorted);
+    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive);
+    lua_register(LuaVM, 'stringlist_setCaseSensitive', stringlist_setCaseSensitive);
+
+    lua_register(LuaVM, 'createForm', createForm);
+    lua_register(LuaVM, 'form_centerScreen', form_centerScreen);
+    lua_register(LuaVM, 'form_onClose', form_onClose);
+    lua_register(LuaVM, 'form_show', form_show);
+    lua_register(LuaVM, 'form_hide', form_hide);
+    lua_register(LuaVM, 'form_showModal', form_showModal);
+    lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow);
+    lua_register(LuaVM, 'form_getMenu', form_getMenu);
+    lua_register(LuaVM, 'form_setMenu', form_setMenu);
+
+    lua_register(LuaVM, 'createPanel', createPanel);
+    lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment);
+    lua_register(LuaVM, 'panel_setAlignment', panel_setAlignment);
+    lua_register(LuaVM, 'panel_getBevelInner', panel_getBevelInner);
+    lua_register(LuaVM, 'panel_setBevelInner', panel_setBevelInner);
+    lua_register(LuaVM, 'panel_getBevelOuter', panel_getBevelOuter);
+    lua_register(LuaVM, 'panel_setBevelOuter', panel_setBevelOuter);
+    lua_register(LuaVM, 'panel_getBevelWidth', panel_getBevelWidth);
+    lua_register(LuaVM, 'panel_setBevelWidth', panel_setBevelWidth);
+    lua_register(LuaVM, 'panel_getFullRepaint', panel_getFullRepaint);
+    lua_register(LuaVM, 'panel_setFullRepaint', panel_setFullRepaint);
+
+
+
+    lua_register(LuaVM, 'createEdit', createEdit);
+    lua_register(LuaVM, 'edit_clear', edit_clear);
+    lua_register(LuaVM, 'edit_selectAll', edit_selectAll);
+    lua_register(LuaVM, 'edit_clearSelection', edit_clearSelection);
+    lua_register(LuaVM, 'edit_copyToClipboard', edit_copyToClipboard);
+    lua_register(LuaVM, 'edit_cutToClipboard', edit_cutToClipboard);
+    lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard);
+    lua_register(LuaVM, 'edit_onChange', edit_onChange);
+
+    lua_register(LuaVM, 'createMemo', createMemo);
+    lua_register(LuaVM, 'memo_append', memo_append);
+    lua_register(LuaVM, 'memo_getLines', memo_getLines);
+    lua_register(LuaVM, 'memo_getWordWrap', memo_getWordWrap);
+    lua_register(LuaVM, 'memo_setWordWrap', memo_setWordWrap);
+    lua_register(LuaVM, 'memo_getWantTabs', memo_getWantTabs);
+    lua_register(LuaVM, 'memo_setWantTabs', memo_setWantTabs);
+    lua_register(LuaVM, 'memo_getWantReturns', memo_getWantReturns);
+    lua_register(LuaVM, 'memo_setWantReturns', memo_setWantReturns);
+    lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars);
+    lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars);
+
+    lua_register(LuaVM, 'createButton', createButton);
+    lua_register(LuaVM, 'button_getModalResult', button_getModalResult);
+    lua_register(LuaVM, 'button_setModalResult', button_setModalResult);
+
+    lua_register(LuaVM, 'createToggleBox', createToggleBox);
+    lua_register(LuaVM, 'createCheckBox', createCheckBox);
+    lua_register(LuaVM, 'checkbox_getAllowGrayed', checkbox_getAllowGrayed);
+    lua_register(LuaVM, 'checkbox_setAllowGrayed', checkbox_setAllowGrayed);
+    lua_register(LuaVM, 'checkbox_getState', checkbox_getState);
+    lua_register(LuaVM, 'checkbox_setState', checkbox_setState);
+    lua_register(LuaVM, 'checkbox_onChange', checkbox_onChange);
+
+
+    lua_register(LuaVM, 'createRadioGroup', createRadioGroup);
+    lua_register(LuaVM, 'radiogroup_getRows', radiogroup_getRows);
+    lua_register(LuaVM, 'radiogroup_getItems', radioGroup_getItems);
+    lua_register(LuaVM, 'radiogroup_getColumns', radiogroup_getColumns);
+    lua_register(LuaVM, 'radiogroup_setColumns', radiogroup_setColumns);
+    lua_register(LuaVM,' radiogroup_onClick', radiogroup_onClick);
+
+    lua_register(LuaVM, 'createListBox', createListBox);
+    lua_register(LuaVM, 'listbox_clear', listbox_clear);
+    lua_register(LuaVM, 'listbox_getItems', listbox_getItems);
+    lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex);
+    lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex);
+    lua_register(LuaVM, 'listbox_getCanvas', listbox_getCanvas);
+
+    lua_register(LuaVM, 'createComboBox', createComboBox);
+    lua_register(LuaVM, 'combobox_clear', combobox_clear);
+    lua_register(LuaVM, 'combobox_getItems', combobox_getItems);
+    lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex);
+    lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex);
+    lua_register(LuaVM, 'combobox_getCanvas', combobox_getCanvas);
+
+
+    lua_register(LuaVM, 'createProgressBar', createProgressBar);
+    lua_register(LuaVM, 'progressbar_stepIt', progressbar_stepIt);
+    lua_register(LuaVM, 'progressbar_stepBy', progressbar_stepBy);
+    lua_register(LuaVM, 'progressbar_getMax', progressbar_getMax);
+    lua_register(LuaVM, 'progressbar_setMax', progressbar_setMax);
+    lua_register(LuaVM, 'progressbar_getMin', progressbar_getMin);
+    lua_register(LuaVM, 'progressbar_setMin', progressbar_setMin);
+    lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition);
+    lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition);
+
+    lua_register(LuaVM, 'createTrackBar', createTrackBar);
+    lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax);
+    lua_register(LuaVM, 'trackbar_setMax', trackbar_setMax);
+    lua_register(LuaVM, 'trackbar_getMin', trackbar_getMin);
+    lua_register(LuaVM, 'trackbar_setMin', trackbar_setMin);
+    lua_register(LuaVM, 'trackbar_getPosition', trackbar_getPosition);
+    lua_register(LuaVM, 'trackbar_setPosition', trackbar_setPosition);
+    lua_register(LuaVM, 'trackbar_onChange', trackbar_onChange);
+
+
+    lua_register(LuaVM, 'listcolumn_setAutosize', listcolumn_setAutosize);
+    lua_register(LuaVM, 'listcolumn_getCaption', listcolumn_getCaption);
+    lua_register(LuaVM, 'listcolumn_setCaption', listcolumn_setCaption);
+    lua_register(LuaVM, 'listcolumn_getMaxWidth', listcolumn_getMaxWidth);
+    lua_register(LuaVM, 'listcolumn_setMaxWidth', listcolumn_setMaxWidth);
+    lua_register(LuaVM, 'listcolumn_getMinWidth', listcolumn_getMinWidth);
+    lua_register(LuaVM, 'listcolumn_setMinWidth', listcolumn_setMinWidth);
+    lua_register(LuaVM, 'listcolumn_getWidth', listcolumn_getWidth);
+    lua_register(LuaVM, 'listcolumn_setWidth', listcolumn_setWidth);
+
+
+    lua_register(LuaVM, 'collection_clear', collection_clear);
+    lua_register(LuaVM, 'collection_getCount', collection_getCount);
+    lua_register(LuaVM, 'collection_delete', collection_delete);
+
+    lua_register(LuaVM, 'listcolumns_add', listcolumns_add);
+    lua_register(LuaVM, 'listcolumns_getColumn', listcolumns_getColumn);
+
+    lua_register(LuaVM, 'listitem_delete', listitem_delete);
+    lua_register(LuaVM, 'listitem_getCaption', listitem_getCaption);
+    lua_register(LuaVM, 'listitem_setCaption', listitem_setCaption);
+    lua_register(LuaVM, 'listitem_getSubItems', listitem_getSubItems);
+
+    lua_register(LuaVM, 'listitems_clear', listitems_clear);
+    lua_register(LuaVM, 'listitems_getCount', listitems_getCount);
+    lua_register(LuaVM, 'listitems_add', listitems_add);
+
+
+    lua_register(LuaVM, 'createListView', createListView);
+    lua_register(LuaVM, 'listview_clear', listview_clear);
+    lua_register(LuaVM, 'listview_getColumns', listview_getColumns);
+    lua_register(LuaVM, 'listview_getItems', listview_getItems);
+    lua_register(LuaVM, 'listview_getItemIndex', listview_getItemIndex);
+    lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex);
+    lua_register(LuaVM, 'listview_getCanvas', listview_getCanvas);
+
+
+    lua_register(LuaVM, 'createTimer', createTimer);
+    lua_register(LuaVM, 'timer_setInterval', timer_setInterval);
+    lua_register(LuaVM, 'timer_onTimer', timer_onTimer);
+    lua_register(LuaVM, 'timer_setEnabled', timer_setEnabled);
+    lua_register(LuaVM, 'timer_getEnabled', timer_getEnabled);
+
+    lua_register(LuaVM, 'openDialog_execute', openDialog_execute);
+
+    Lua_register(LuaVM, 'getMemoryViewForm', getMainForm);
+    lua_register(LuaVM, 'memoryview_getDisassemblerView', memoryview_getDisassemblerView);
+    lua_register(LuaVM, 'memoryview_getHexadecimalView', memoryview_getHexadecimalView);
+
+
+    Lua_register(LuaVM, 'getMainForm', getMainForm);
+    Lua_register(LuaVM, 'getAddressList', getAddressList);
+    Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer);
+    Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer);
+
+    Lua_register(LuaVM, 'findTableFile', findTableFile);
+    Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
+    Lua_register(LuaVM, 'tablefile_getData', tablefile_getData);
+
+    Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM);
+    Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause);
+    Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume);
+    Lua_register(LuaVM, 'xmplayer_stop', xmplayer_stop);
+    Lua_register(LuaVM, 'xmplayer_isPlaying', xmplayer_isPlaying);
+
+    Lua_register(LuaVM, 'writeRegionToFile', writeRegionToFile);
+    Lua_register(LuaVM, 'readRegionFromFile', readRegionFromFile);
+
+    Lua_register(LuaVM, 'registerSymbol', registersymbol);
+    Lua_register(LuaVM, 'unregisterSymbol', unregistersymbol);
+
+    Lua_register(LuaVM, 'resetLuaState', resetLuaState);
+
+    Lua_register(LuaVM, 'cheatcomponent_setActive', cheatcomponent_setActive);
+    Lua_register(LuaVM, 'cheatcomponent_getActive', cheatcomponent_getActive);
+    Lua_register(LuaVM, 'cheatcomponent_setDescription', cheatcomponent_setDescription);
+    Lua_register(LuaVM, 'cheatcomponent_getDescription', cheatcomponent_getDescription);
+    Lua_register(LuaVM, 'cheatcomponent_setHotkey', cheatcomponent_setHotkey);
+    Lua_register(LuaVM, 'cheatcomponent_getHotkey', cheatcomponent_getHotkey);
+    Lua_register(LuaVM, 'cheatcomponent_setDescriptionLeft', cheatcomponent_setDescriptionLeft);
+    Lua_register(LuaVM, 'cheatcomponent_getDescriptionLeft', cheatcomponent_getDescriptionLeft);
+    Lua_register(LuaVM, 'cheatcomponent_setHotkeyLeft', cheatcomponent_setHotkeyLeft);
+    Lua_register(LuaVM, 'cheatcomponent_getHotkeyLeft', cheatcomponent_getHotkeyLeft);
+    Lua_register(LuaVM, 'cheatcomponent_setEditValue', cheatcomponent_setEditValue);
+    Lua_register(LuaVM, 'cheatcomponent_getEditValue', cheatcomponent_getEditValue);
+
+
+    Lua_register(LuaVM, 'memoryrecordhotkey_getDescription', memoryrecordhotkey_getDescription);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getID', memoryrecordhotkey_getID);
+    Lua_register(LuaVM, 'memoryrecordhotkey_onHotkey', memoryrecordhotkey_onHotkey);
+    Lua_register(LuaVM, 'memoryrecordhotkey_onPostHotkey', memoryrecordhotkey_onPostHotkey);
+    Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner);
+    Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey);
+
+    Lua_register(LuaVM, 'addresslist_getCount', addresslist_getCount);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecord', addresslist_getMemoryRecord);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription);
+    Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID);
+    Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord);
+
+    Lua_register(LuaVM, 'createMemScan', createMemScan);
+    Lua_register(LuaVM, 'getCurrentMemscan', getCurrentMemscan);
+    Lua_register(LuaVM, 'memscan_firstScan', memscan_firstScan);
+    Lua_register(LuaVM, 'memscan_nextScan', memscan_nextScan);
+    Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone);
+    Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults);
+    Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist);
+
+
+    Lua_register(LuaVM, 'createFoundList', createFoundList);
+    Lua_register(LuaVM, 'foundlist_initialize', foundlist_initialize);
+    Lua_register(LuaVM, 'foundlist_deinitialize', foundlist_deinitialize);
+    Lua_register(LuaVM, 'foundlist_getCount', foundlist_getCount);
+    Lua_register(LuaVM, 'foundlist_getAddress', foundlist_getAddress);
+    Lua_register(LuaVM, 'foundlist_getValue', foundlist_getValue);
+
+    Lua_register(LuaVM, 'supportCheatEngine', supportCheatEngine);
+    Lua_register(LuaVM, 'fuckCheatEngine', fuckCheatEngine);
+
+
+
+    lua_register(LuaVM, 'inheritsFromObject', inheritsFromObject);
+    lua_register(LuaVM, 'inheritsFromComponent', inheritsFromComponent);
+    lua_register(LuaVM, 'inheritsFromControl', inheritsFromControl);
+    lua_register(LuaVM, 'inheritsFromWinControl', inheritsFromWinControl);
+
+    Lua_register(LuaVM, 'beep', beep);
+
+
+    lua_register(LuaVM, 'dbk_initialize', dbk_initialize);
+    lua_register(LuaVM, 'dbk_useKernelmodeOpenProcess', dbk_useKernelmodeOpenProcess);
+    lua_register(LuaVM, 'dbk_useKernelmodeProcessMemoryAccess', dbk_useKernelmodeProcessMemoryAccess);
+    lua_register(LuaVM, 'dbk_useKernelmodeQueryMemoryRegions', dbk_useKernelmodeQueryMemoryRegions);
+    lua_register(LuaVM, 'dbk_getPEProcess', dbk_getPEProcess);
+    lua_register(LuaVM, 'dbk_getPEThread', dbk_getPEThread);
+    lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory);
+
+    lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory);
+    lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory);
+    lua_register(LuaVM, 'getCheatEngineDir', getCheatEngineDir);
+
+    lua_register(LuaVM, 'disassemble', disassemble_lua);
+    lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString);
+
+    lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas);
+    lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas);
+
+
+    lua_register(LuaVM, 'disassemblerview_getSelectedAddress', disassemblerview_getSelectedAddress);
+    lua_register(LuaVM, 'disassemblerview_setSelectedAddress', disassemblerview_setSelectedAddress);
+    lua_register(LuaVM, 'disassemblerview_onSelectionChange', disassemblerview_onSelectionChange);
+
+   { lua_register(LuaVM, 'hexadecimalview_getTopAddress', hexadecimalview_getTopAddress);
+    lua_register(LuaVM, 'hexadecimalview_setTopAddress', hexadecimalview_setTopAddress);
+    lua_register(LuaVM, 'hexadecimalview_onAddressChange', hexadecimalview_onAddressChange);
+    lua_register(LuaVM, 'hexadecimalview_onByteSelect', hexadecimalview_onByteSelect);
+        }
 
     initializeLuaPicture;
     initializeLuaPen;
@@ -8055,21 +8185,21 @@ begin
       s.add('stringlist_remove=strings_remove');
 
       //same for the rename of memrec to memoryrecord
-      s.add('memrec_setDescription = memoryrecord_setDescription_fromlua');
-      s.add('memrec_getDescription = memoryrecord_getDescription_fromlua');
-      s.add('memrec_getAddress = memoryrecord_getAddress_fromlua');
-      s.add('memrec_setAddress = memoryrecord_setAddress_fromlua');
-      s.add('memrec_getType = memoryrecord_getType_fromlua');
-      s.add('memrec_setType = memoryrecord_setType_fromlua');
-      s.add('memrec_getValue = memoryrecord_getValue_fromlua');
-      s.add('memrec_setValue = memoryrecord_setValue_fromlua');
-      s.add('memrec_getScript = memoryrecord_getScript_fromlua');
-      s.add('memrec_isActive = memoryrecord_isActive_fromlua');
-      s.add('memrec_freeze = memoryrecord_freeze_fromlua');
-      s.add('memrec_unfreeze = memoryrecord_unfreeze_fromlua');
-      s.add('memrec_setColor = memoryrecord_setColor_fromlua');
-      s.add('memrec_appendToEntry = memoryrecord_appendToEntry_fromlua');
-      s.add('memrec_delete = memoryrecord_delete_fromlua');
+      s.add('memrec_setDescription = memoryrecord_setDescription');
+      s.add('memrec_getDescription = memoryrecord_getDescription');
+      s.add('memrec_getAddress = memoryrecord_getAddress');
+      s.add('memrec_setAddress = memoryrecord_setAddress');
+      s.add('memrec_getType = memoryrecord_getType');
+      s.add('memrec_setType = memoryrecord_setType');
+      s.add('memrec_getValue = memoryrecord_getValue');
+      s.add('memrec_setValue = memoryrecord_setValue');
+      s.add('memrec_getScript = memoryrecord_getScript');
+      s.add('memrec_isActive = memoryrecord_isActive');
+      s.add('memrec_freeze = memoryrecord_freeze');
+      s.add('memrec_unfreeze = memoryrecord_unfreeze');
+      s.add('memrec_setColor = memoryrecord_setColor');
+      s.add('memrec_appendToEntry = memoryrecord_appendToEntry');
+      s.add('memrec_delete = memoryrecord_delete');
       s.add('getAddressFromName = getAddress');
 
       //timer onInterval has been renamed to timer onTimer

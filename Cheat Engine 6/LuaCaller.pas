@@ -24,6 +24,7 @@ type
       procedure NotifyEvent(sender: TObject);
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function ActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
+      procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       constructor create;
       destructor destroy; override;
   end;
@@ -140,6 +141,26 @@ begin
       if lua_gettop(Luavm)>0 then
         result:=lua_toboolean(LuaVM,-1);
 
+      lua_pop(Luavm, lua_gettop(Luavm));
+    end;
+  finally
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.DisassemblerSelectionChangeEvent(sender: tobject; address, address2: ptruint);
+begin
+  Luacs.Enter;
+  try
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushlightuserdata(Luavm, sender);
+      lua_pushinteger(luavm, address);
+      lua_pushinteger(luavm, address2);
+
+
+      lua_pcall(Luavm, 3,0,0); //procedure(sender, before, currentstate)
       lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
