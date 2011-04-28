@@ -23,7 +23,7 @@ begin
     dir:=copy(dir,1,length(dir)-1);
 
   r := FindFirst(dir + pathdelim+'*.*', FaAnyfile, DirInfo);
-  while (r = 0) and result do
+  while (r = 0) do
   begin
     if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
     begin
