@@ -791,34 +791,46 @@ begin
   begin
     //if it's an autoassemblerscript then spawn the autoassembler script editor that the owner might want to use
     if assigned(fOnAutoAssemblerEdit) then
-    begin
       fOnAutoAssemblerEdit(self, self.selectedRecord);
-      exit;
-    end;
+
+    exit;
   end;
 
 
-
-
-  if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
+ { //fuck this for now, perhaps for 6.2
+  if (selcount=1) then
   begin
-    allError:=true;
-    someError:=false;
-    for i:=0 to count-1 do
-      if memrecitems[i].isSelected then
-      begin
-        try
-          memrecitems[i].SetValue(value);
-          memrecitems[i].treenode.update;
-          allError:=false;
-        except
-          someError:=true;
-        end;
-      end;
+    //only one selection, start the value editor
+    //create an editor at the location of the value field
+    //: when the enter key is pressed on that value call setValue with the new value
+    //: when the view is scrolled adjust the position
+    //: when the edit box loses focus apply the change
 
-    if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
-    if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
-  end;
+
+  end
+  else }
+    //multiple selections, use an input box for this
+
+    if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
+    begin
+      allError:=true;
+      someError:=false;
+      for i:=0 to count-1 do
+        if memrecitems[i].isSelected then
+        begin
+          try
+            memrecitems[i].SetValue(value);
+            memrecitems[i].treenode.update;
+            allError:=false;
+          except
+            someError:=true;
+          end;
+        end;
+
+      if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
+      if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
+    end;
+ // end;
 end;
 
 procedure TAddresslist.TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);

@@ -122,7 +122,6 @@ procedure TfrmLuaEngine.FormCreate(Sender: TObject);
 begin
   synhighlighter:=TSynLuaSyn.Create(self);
   mscript.Highlighter:=synhighlighter;
-  SynAutoComplete1.Editor:=mscript;
 end;
 
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);

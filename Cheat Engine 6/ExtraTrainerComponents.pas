@@ -36,8 +36,10 @@ type tcheat = class (twincontrol)
     fshowhotkey: boolean;
     factivationcolor: tcolor;
     feditleft: integer;
+    feditwidth: integer;
     feditvalue: string;
     fcheckboxstate: boolean;
+
 
     deactivatetimer: TTimer;
     procedure resetwidth;
@@ -53,9 +55,7 @@ type tcheat = class (twincontrol)
     procedure sethotkeyleft(x: integer);
     function  getdescriptionleft:integer;
     procedure Setdescriptionleft(x: integer);
-    function  geteditleft:integer;
     procedure seteditleft(x: integer);
-    function  geteditwidth:integer;
     procedure seteditwidth(x: integer);
     procedure setTextColor(c:tcolor);
     procedure SetCheckbox(x: boolean);
@@ -85,8 +85,8 @@ type tcheat = class (twincontrol)
 
     property Color;
     property Textcolor:tcolor read ftextcolor write SetTextcolor;
-    property Editleft:integer read geteditleft write seteditleft default 200;
-    property Editwidth: integer read geteditwidth write seteditwidth;
+    property Editleft:integer read feditleft write seteditleft default 200;
+    property Editwidth: integer read feditwidth write seteditwidth;
     property Editvalue:string read GetEditValue write SetEditValue;
     property Hotkey:string read GetHotkey write SetHotkey;
     property Description:string read GetDescription write SetDescription;
@@ -98,7 +98,7 @@ type tcheat = class (twincontrol)
     property showhotkey: boolean read fshowhotkey write SetShowHotkey;
     property HasEditBox: boolean read EditPresent write ChangeEdit;
     property HasCheckbox: boolean read getCheckboxVisible write SetCheckbox;
-
+    property font;
 
 end;
 
@@ -268,14 +268,11 @@ begin
   end;
 end;
 
-function tcheat.geteditwidth:integer;
-begin
-  if edit<>nil then
-    result:=edit.width;
-end;
 
 procedure tcheat.seteditwidth(x:integer);
 begin
+  fEditWidth:=x;
+
   if edit<>nil then
     edit.width:=x;
 
@@ -283,10 +280,7 @@ begin
 end;
 
 
-function tcheat.geteditleft:integer;
-begin
-  result:=feditleft;
-end;
+
 
 procedure tcheat.seteditleft(x:integer);
 begin
@@ -331,10 +325,18 @@ begin
     if edit=nil then
       edit:=tedit.Create(self);
 
+    edit.autosize:=false;
+
 
     edit.Left:=Self.editleft;
+    edit.width:=self.Editwidth;
     edit.Parent:=self;
     edit.Visible:=true;
+    edit.BorderStyle:=bsNone;
+
+
+    edit.top:=hotkeylabel.top;
+    edit.height:=hotkeylabel.height;
   end
   else
   begin
@@ -390,6 +392,8 @@ begin
 
   clientheight:=28;
   feditleft:=200;
+  feditwidth:=100;
+
 
   deactivatetimer:=TTimer.create(self);
   deactivatetimer.enabled:=false;

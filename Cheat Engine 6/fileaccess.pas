@@ -90,16 +90,12 @@ begin
     i:=GetNamedSecurityInfo(pwidechar(path), SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, nil,nil, @dacl, nil, sec);
     if i=ERROR_SUCCESS then
     begin
-      // showmessage(inttohex(ptruint(dacl),1));
-
-
       zeromemory(@ea,sizeof(ea));
       ea.grfAccessPermissions:=GENERIC_ALL;
       ea.grfAccessMode:=GRANT_ACCESS;
       ea.grfInheritance:=SUB_CONTAINERS_AND_OBJECTS_INHERIT;
       ea.Trustee.TrusteeForm:=TRUSTEE_IS_SID;
       ea.Trustee.TrusteeType:=TRUSTEE_IS_UNKNOWN;
-      // ea.Trustee.ptstrName:='DB';
       PSID(ea.Trustee.ptstrName) := Sid;
 
 
@@ -108,13 +104,13 @@ begin
       if i=ERROR_SUCCESS then
       begin
         i:=SetNamedSecurityInfo(pwidechar(path), SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, nil,nil, newdacl, nil);
-        if i<>error_success then
-          raise exception.create('SetNamedSecurityInfo failed: '+inttostr(i));
-      end
-      else raise exception.create('SetEntriesInAcl failed: '+inttostr(i));
-    end else raise exception.create('GetNamedSecurityInfo failed: '+inttostr(i));
-  end
-  else raise exception.create('AllocateAndInitializeSid failed');
+        //if i<>error_success then
+        //  raise exception.create('SetNamedSecurityInfo failed: '+inttostr(i));
+      end;
+      //else raise exception.create('SetEntriesInAcl failed: '+inttostr(i));
+    end;// else raise exception.create('GetNamedSecurityInfo failed: '+inttostr(i));
+  end;
+  //else raise exception.create('AllocateAndInitializeSid failed');
 end;
 
 end.

@@ -17,6 +17,9 @@ var
   LuaCS: Tcriticalsection;
 
 
+function lua_strtofloat(s: string): double;
+function lua_strtoint(s: string): integer;
+
 procedure Lua_RegisterObject(name: string; o: TObject);
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
@@ -43,6 +46,8 @@ resourcestring
   rsUndefinedLuaError = 'Undefined lua error';
   rsCheatengineIsBeingAFag = 'Cheatengine is being a fag';
   rsPluginAddress = 'Plugin Address';
+  rsInvalidFloat = 'Invalid floating point string:%s';
+  rsInvalidInt = 'Invalid integer:%s';
 
 
 function lua_isstring(L: PLua_state; i: integer): boolean;
@@ -109,6 +114,55 @@ begin
     lua_pop(LuaVM, lua_gettop(luavm)); //reset stack
   finally
     LuaCS.Leave;
+  end;
+
+end;
+
+function lua_strtofloat(s: string): double;
+var stackpos: integer;
+  s2: integer;
+begin
+  LuaCS.enter;
+  try
+    stackpos:=lua_gettop(luavm);
+    if lua_dostring(luavm, pchar('return '+s) )=0 then
+    begin
+      s2:=lua_gettop(luavm);
+      if (s2-stackpos)>0 then
+        result:=lua_tonumber(luavm, stackpos-s2)
+      else
+        raise exception.create(Format(rsInvalidFloat, [s]));
+    end
+    else
+      raise exception.create(Format(rsInvalidFloat, [s]));
+
+  finally
+    lua_settop(luavm, stackpos);
+    LuaCS.leave;
+  end;
+end;
+
+function lua_strtoint(s: string): integer;
+var stackpos: integer;
+  s2: integer;
+begin
+  LuaCS.enter;
+  try
+    stackpos:=lua_gettop(luavm);
+    if lua_dostring(luavm, pchar('return '+s) )=0 then
+    begin
+      s2:=lua_gettop(luavm);
+      if (s2-stackpos)>0 then
+        result:=lua_tointeger(luavm, stackpos-s2)
+      else
+        raise exception.create(Format(rsInvalidInt, [s]));
+    end
+    else
+      raise exception.create(Format(rsInvalidInt, [s]));
+
+  finally
+    lua_settop(luavm, stackpos);
+    LuaCS.leave;
   end;
 
 end;

@@ -2559,13 +2559,25 @@ begin
             try
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
-              raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+              //see if lua knows better
+              try
+                dvalue:=lua_strtofloat(scanvalue1);
+              except
+                raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+              end;
             end;
           end;
           value:=trunc(dvalue);
 
         end else
-          raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue1]));
+        begin
+          //not a float type, perhaps lua knows how to handle it
+          try
+            value:=lua_strtoint(scanvalue1);
+          except
+            raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue1]));
+          end;
+        end;
       end;
 
       if scanOption=soValueBetween then
@@ -2590,15 +2602,28 @@ begin
 
               //try again
               try
-                dvalue:=strtofloat(scanvalue1,FloatSettings);
+                dvalue:=strtofloat(scanvalue2,FloatSettings);
               except
-                raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+                //see if lua knows better
+                try
+                  dvalue:=lua_strtofloat(scanvalue2);
+                except
+                  raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
+                end;
               end;
             end;
-            value:=trunc(dvalue);
+            value2:=trunc(dvalue);
           end
           else
-            raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue2]));
+          begin
+            //perhaps lua knows what it is
+            try
+              value2:=lua_strtoint(scanvalue2);
+            except
+              raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue2]));
+            end;
+
+          end;
         end;
       end;
     end;
@@ -2617,7 +2642,12 @@ begin
         try
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
-          raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+          //try lua
+          try
+            dvalue:=lua_strtofloat(scanvalue1);
+          except
+            raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+          end;
         end;
       end;
 
@@ -2633,9 +2663,14 @@ begin
 
           //try again
           try
-            dvalue2:=strtofloat(scanvalue1,FloatSettings);
+            dvalue2:=strtofloat(scanvalue2,FloatSettings);
           except
-            raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
+            //and again
+            try
+              dvalue2:=lua_strtofloat(scanvalue2);
+            except
+              raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
+            end;
           end;
         end;
 

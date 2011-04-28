@@ -59,10 +59,6 @@ begin
   except
   end;
 
-  //first see if there is a window of type TCETrainer
-//  for i:=0 to mainform.LuaForms.count-1 do
-
-
 
   for i:=0 to mainform.LuaForms.count-1 do
     if tceform(mainform.luaforms[i]).visible then

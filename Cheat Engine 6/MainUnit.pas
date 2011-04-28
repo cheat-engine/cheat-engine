@@ -6429,8 +6429,8 @@ var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-  if virtualfreeex(processhandle, pointer($400000), 4096, MEM_DECOMMIT) then showmessage('yes') else showmessage('no');
 
+  showmessage(inttostr(lua_StrToInt(scanvalue.text)));
 
 end;
 

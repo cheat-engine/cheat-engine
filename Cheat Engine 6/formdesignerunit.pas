@@ -81,11 +81,15 @@ type
 
     procedure OIDDestroy(sender: Tobject);
     function MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
+    function CompatibleMethodExists(const Name: String; InstProp: PInstProp; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
+
+    procedure OnComponentRenamed(AComponent: TComponent);
   public
     { public declarations }
     oid:TObjectInspectorDlg;
     procedure DesignerGetAddClass(Sender: TObject; var ioClass: string);
     procedure DesignerSelectionChange(sender: tobject);
+    procedure DesignerChange(sender: TObject);
     procedure ObjectInspectorSelectionChange(sender: tobject);
     procedure surfaceOnChange(sender: tobject);
 
@@ -104,6 +108,7 @@ type
     function onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
     function ogm(const Method: TMethod; CheckOwner: TObject): String;
     procedure OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
+    procedure OnGetCompatibleMethods(InstProp: PInstProp; const Proc: TGetStrProc);
 
     procedure OnWriteMethod(Writer: TWriter; Instance: TPersistent; PropInfo: PPropInfo; const MethodValue, DefMethodValue: TMethod; var Handled: boolean);
 
@@ -232,6 +237,21 @@ begin
   result:=true;
 end;
 
+function TFormDesigner.CompatibleMethodExists(const Name: String; InstProp: PInstProp; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
+begin
+  result:=MethodExists(name, nil, MethodIsCompatible, MethodIsPublished, IdentIsMethod);
+end;
+
+procedure TFormDesigner.OnComponentRenamed(AComponent: TComponent);
+begin
+  if (AComponent is TCustomForm) then
+    Lua_RegisterObject(AComponent.name, AComponent)
+  else
+    Lua_RegisterObject(TCustomForm(GlobalDesignHook.LookupRoot).name +'_'+AComponent.Name, AComponent);
+end;
+
+
+
 procedure TFormDesigner.FormCreate(Sender: TObject);
 var h: TPropertyEditorHook;
   gc: TOICustomPropertyGrid;
@@ -252,6 +272,11 @@ begin
   GlobalDesignHook.AddHandlerCreateMethod(onCreateMethod);
   GlobalDesignHook.AddHandlerGetMethodName(ogm);
   GlobalDesignHook.AddHandlerGetMethods(onGetMethods);
+
+  //new lazarus version doesn't seem to use GetMethods...
+  GlobalDesignHook.AddHandlerGetCompatibleMethods(OnGetCompatibleMethods);
+
+
 //  GlobalDesignHook.addhandler
   GlobalDesignHook.AddHandlerModified(Modified);
 
@@ -259,6 +284,10 @@ begin
   GlobalDesignHook.AddHandlerRenameMethod(onRenameMethod);
 
   GlobalDesignHook.AddHandlerMethodExists(MethodExists);
+  GlobalDesignHook.AddHandlerCompatibleMethodExists(CompatibleMethodExists);
+
+
+  GlobalDesignHook.AddHandlerComponentRenamed(OnComponentRenamed);
 
   loadedfromsave:=loadformposition(self, x);
 
@@ -316,11 +345,18 @@ begin
 
         surface.onselectionchange:=designerSelectionChange;
 
+
       end;
 
     end;
   end;
 
+end;
+
+
+procedure TFormDesigner.DesignerChange(sender: TObject);
+begin
+  showmessage('changed');
 end;
 
 procedure TFormDesigner.DesignerSelectionChange(sender: tobject);
@@ -337,7 +373,6 @@ begin
   if GlobalDesignHook=nil then exit;
 
   surface:=TJvDesignSurface(sender);
-
 
   if GlobalDesignHook.LookupRoot<>nil then
   begin
@@ -375,6 +410,8 @@ begin
 
   surface.OnSelectionChange:=DesignerSelectionChange;
 
+
+
   oid.RefreshComponentTreeSelection;
 
 
@@ -387,6 +424,12 @@ begin
   oid.RefreshPropertyValues;
 
   oid.RefreshComponentTreeSelection;
+
+  if GlobalDesignHook=nil then exit;
+
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) then
+    TCEForm(GlobalDesignHook.LookupRoot).ResyncWithLua;
+
 end;
 
 
@@ -573,6 +616,12 @@ begin
   for i:=0 to methodlist.count-1 do
     proc(methodlist[i]);
 
+end;
+
+procedure TFormDesigner.OnGetCompatibleMethods(InstProp: PInstProp; const Proc: TGetStrProc);
+begin
+ // InstProp.PropInfo.
+  OnGetMethods(nil, proc);
 end;
 
 procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction);
