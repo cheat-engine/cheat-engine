@@ -51,7 +51,7 @@ object frmLuaEngine: TfrmLuaEngine
       BevelOuter = bvNone
       ClientHeight = 106
       ClientWidth = 82
-      TabOrder = 0
+      TabOrder = 1
       OnResize = Panel2Resize
       object btnExecute: TButton
         Left = 4
@@ -75,7 +75,7 @@ object frmLuaEngine: TfrmLuaEngine
       Font.Quality = fqNonAntialiased
       ParentColor = False
       ParentFont = False
-      TabOrder = 1
+      TabOrder = 0
       Gutter.Visible = False
       Gutter.Width = 57
       Gutter.MouseActions = <      

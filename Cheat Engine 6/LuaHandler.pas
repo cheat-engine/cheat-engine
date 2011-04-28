@@ -7627,15 +7627,10 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters>=1 then
-  begin
-    if lua_isstring(L, -parameters) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
-    else
-      address:=lua_tointeger(L,-parameters);
+    lua_pop(L, parameters);
 
-    UnmapViewOfFile(pointer(address));
-  end;
-
+  lua_pushstring(L, 'deallocateSharedMemory is not implemented (It''s not even in the list of available functions)');
+  lua_error(L);
 end;
 
 function getCheatEngineDir(L: PLua_State): integer; cdecl;
