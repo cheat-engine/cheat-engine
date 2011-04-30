@@ -38,7 +38,6 @@ var i: integer;
   eventhandles: array [0..1] of THandle;
   wr: dword;
   contextsize: integer;
-  s: string;
 begin
    HandlerCS.enter; //block any other thread that has an single step exception untill this is handles
 

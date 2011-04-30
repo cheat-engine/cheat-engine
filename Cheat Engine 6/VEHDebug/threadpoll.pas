@@ -8,7 +8,7 @@ Keeps a list of all the threads and notifies the debugger when a change has happ
 interface
 
 uses
-  jwawindows,windows,Classes, SysUtils,init;
+  jwawindows,windows,Classes, SysUtils,init, extcont;
 
 type TThreadPoller=class(tthread)
   private
@@ -32,7 +32,7 @@ procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
-  c:  Tcontext;
+  c:  TEContext;
 begin
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;
@@ -46,7 +46,7 @@ procedure TThreadPoller.DestroyThreadEvent(threadid: dword);
 var
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
-  c: Tcontext;
+  c: TEContext;
 begin
   ep.ContextRecord:=@c;
   ep.ExceptionRecord:=@er;

@@ -29,22 +29,9 @@ implementation
 uses DebugHandler,threadpoll;
 
 
-
-type Ttest=class(tthread)
-  private
-    procedure execute; override;
-end;
-
-procedure ttest.execute;
-begin
-  FreeOnTerminate:=true;
-  outputdebugstring('execute');
-end;
-
 procedure EmulateInitializeEvents;
 var ep: TEXCEPTIONPOINTERS;
     er: TEXCEPTIONRECORD;
-    c: Tcontext;
 
     ths: THandle;
     lpte: TThreadEntry32;
@@ -52,7 +39,7 @@ var ep: TEXCEPTIONPOINTERS;
     cpid: dword;
     isfirst: boolean;
 begin
-  OutputDebugString('EmulateInitializeEvents');
+  //OutputDebugString('EmulateInitializeEvents');
   cpid:=GetCurrentProcessId;
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
