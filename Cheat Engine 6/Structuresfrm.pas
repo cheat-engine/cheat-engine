@@ -592,7 +592,9 @@ begin
     while treeviewused.Canvas.TextWidth(st)<i do
       st:=st+'PADDING';
 
-    treeviewused.Items.GetFirstNode.Text:=st;
+
+    if self.parentnode=nil then
+      treeviewused.Items.GetFirstNode.Text:=st;
   end;
 
   setlength(currentvalues,length(addresses));
@@ -2022,7 +2024,7 @@ begin
     if definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr<0 then
       cbtype.ItemIndex:=-definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr-1
     else
-      cbtype.itemindex:=definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr+15;
+      cbtype.itemindex:=definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr+16;
 
 
     edtDescription.text:=definedstructures[selectedstructure.basestructure].structelement[selectedelement].description;
@@ -2049,14 +2051,14 @@ begin
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].structurenr:=cbtype.ItemIndex-16;
 
       if definedstructures[selectedstructure.basestructure].structelement[selectedelement].pointerto then
-        definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=4
+        definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=processhandler.pointersize
       else
         definedstructures[selectedstructure.basestructure].structelement[selectedelement].bytesize:=bytesize;
 
       if tvStructureView.Selected.HasChildren then
       begin
-        tvStructureView.Selected.DeleteChildren;
         freeandnil(selectedstructure.objects[selectedelement].child);
+        tvStructureView.Selected.DeleteChildren;
       end;
 
       tvStructureView.Selected.Collapse(true);
